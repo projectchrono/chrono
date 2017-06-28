@@ -72,7 +72,7 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
     m_conicalgear->SetTransmissionRatio(GetConicalGearRatio());
     my_system->Add(m_conicalgear);
 
-    // Create a differential, i.e. an apicycloidal mechanism that connects three
+    // Create a differential, i.e. an epicycloidal mechanism that connects three
     // rotating members. This class of mechanisms can be simulated using
     // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
     // assigned according to Willis formula. The case of the differential is

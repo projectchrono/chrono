@@ -113,8 +113,8 @@ class CH_PARALLEL_API ChSolverParallel {
                      custom_vector<real>& b);
 
     /// Call this function with an associated solver type to solve the system.
-    virtual uint Solve(ChShurProduct& ShurProduct,
-                       ChProjectConstraints& Project,
+    virtual uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+                       ChProjectConstraints& Project, ///< Constraints
                        const uint max_iter,           ///< Maximum number of iterations
                        const uint size,               ///< Number of unknowns
                        const DynamicVector<real>& b,  ///< Rhs vector
@@ -150,20 +150,21 @@ class CH_PARALLEL_API ChSolverParallelAPGDREF : public ChSolverParallel {
     ~ChSolverParallelAPGDREF() {}
 
     /// Solve using the APGD method.
-    uint Solve(ChShurProduct& ShurProduct,
-               ChProjectConstraints& Project,
-               const uint max_iter,           // Maximum number of iterations
-               const uint size,               // Number of unknowns
-               const DynamicVector<real>& r,  // Rhs vector
-               DynamicVector<real>& gamma     // The vector of unknowns
+    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+               ChProjectConstraints& Project, ///< Constraints
+               const uint max_iter,           ///< Maximum number of iterations
+               const uint size,               ///< Number of unknowns
+               const DynamicVector<real>& r,  ///< Rhs vector
+               DynamicVector<real>& gamma     ///< The vector of unknowns
                );
 
     /// Compute the residual for the solver.
-    real Res4(ChShurProduct& ShurProduct,
-              ChProjectConstraints& Project,
-              DynamicVector<real>& gamma,
-              const DynamicVector<real>& r,
-              DynamicVector<real>& tmp);
+    real Res4(ChShurProduct& ShurProduct,    ///< Schur product
+              ChProjectConstraints& Project, ///< Constraints
+              DynamicVector<real>& gamma,    ///< The vector of unknowns
+              const DynamicVector<real>& r,  ///< Rhs vector
+              DynamicVector<real>& tmp       ///< temporary vector
+			  );
 
     /// APGD specific vectors.
     DynamicVector<real> gamma_hat;
@@ -177,8 +178,8 @@ class CH_PARALLEL_API ChSolverParallelAPGD : public ChSolverParallel {
     ~ChSolverParallelAPGD() {}
 
     /// Solve using a more streamlined but harder to read version of the APGD method.
-    uint Solve(ChShurProduct& ShurProduct,
-               ChProjectConstraints& Project,
+    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+               ChProjectConstraints& Project, ///< Constraints
                const uint max_iter,           ///< Maximum number of iterations
                const uint size,               ///< Number of unknowns
                const DynamicVector<real>& b,  ///< Rhs vector
@@ -204,8 +205,8 @@ class CH_PARALLEL_API ChSolverParallelBB : public ChSolverParallel {
     ~ChSolverParallelBB() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
-    uint Solve(ChShurProduct& ShurProduct,
-               ChProjectConstraints& Project,
+    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+               ChProjectConstraints& Project, ///< Constraints
                const uint max_iter,           ///< Maximum number of iterations
                const uint size,               ///< Number of unknowns
                const DynamicVector<real>& b,  ///< Rhs vector
@@ -226,8 +227,8 @@ class CH_PARALLEL_API ChSolverParallelMinRes : public ChSolverParallel {
     ~ChSolverParallelMinRes() {}
 
     /// Solve using the minimal residual method.
-    uint Solve(ChShurProduct& ShurProduct,
-               ChProjectConstraints& Project,
+    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+               ChProjectConstraints& Project, ///< Constraints
                const uint max_iter,           ///< Maximum number of iterations
                const uint size,               ///< Number of unknowns
                const DynamicVector<real>& b,  ///< Rhs vector
@@ -244,8 +245,8 @@ class CH_PARALLEL_API ChSolverParallelSPGQP : public ChSolverParallel {
     ~ChSolverParallelSPGQP() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
-    uint Solve(ChShurProduct& ShurProduct,
-               ChProjectConstraints& Project,
+    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+               ChProjectConstraints& Project, ///< Constraints
                const uint max_iter,           ///< Maximum number of iterations
                const uint size,               ///< Number of unknowns
                const DynamicVector<real>& b,  ///< Rhs vector
@@ -267,8 +268,8 @@ class CH_PARALLEL_API ChSolverParallelCG : public ChSolverParallel {
     ~ChSolverParallelCG() {}
 
     /// Solve using the conjugate gradient method.
-    uint Solve(ChShurProduct& ShurProduct,
-               ChProjectConstraints& Project,
+    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+               ChProjectConstraints& Project, ///< Constraints
                const uint max_iter,           ///< Maximum number of iterations
                const uint size,               ///< Number of unknowns
                const DynamicVector<real>& b,  ///< Rhs vector
@@ -285,8 +286,8 @@ class CH_PARALLEL_API ChSolverParallelJacobi : public ChSolverParallel {
     ~ChSolverParallelJacobi() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
-    uint Solve(ChShurProduct& ShurProduct,
-               ChProjectConstraints& Project,
+    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+               ChProjectConstraints& Project, ///< Constraints
                const uint max_iter,           ///< Maximum number of iterations
                const uint size,               ///< Number of unknowns
                const DynamicVector<real>& b,  ///< Rhs vector
@@ -302,8 +303,8 @@ class CH_PARALLEL_API ChSolverParallelGS : public ChSolverParallel {
     ~ChSolverParallelGS() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
-    uint Solve(ChShurProduct& ShurProduct,
-               ChProjectConstraints& Project,
+    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
+               ChProjectConstraints& Project, ///< Constraints
                const uint max_iter,           ///< Maximum number of iterations
                const uint size,               ///< Number of unknowns
                const DynamicVector<real>& b,  ///< Rhs vector

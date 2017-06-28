@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
                                     0,   // Mohr cohesive limit (Pa)
                                     30,  // Mohr friction limit (degrees)
                                     0.01,// Janosi shear coefficient (m)
-                                    5e7, // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi
+                                    5e7, // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
                                     2e4  // Damping (Pa s/m), proportional to negative vertical speed (optional)
                                     );
     mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        ChIrrTools::drawColorbar(0,30000, "Pressure yeld [Pa]", application.GetDevice(),  1180);
+        ChIrrTools::drawColorbar(0,30000, "Pressure yield [Pa]", application.GetDevice(),  1180);
 
         application.EndScene();
     }

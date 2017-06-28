@@ -287,13 +287,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Create and return the pointer to a new body.
     /// The returned body is created with a contact model consistent with the type
-    /// of this Chsystem and with the collision system currently associated with this
+    /// of this ChSystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
     virtual ChBody* NewBody() = 0;
 
     /// Create and return the pointer to a new body with auxiliary reference frame.
     /// The returned body is created with a contact model consistent with the type
-    /// of this Chsystem and with the collision system currently associated with this
+    /// of this ChSystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
     virtual ChBodyAuxRef* NewBodyAuxRef() = 0;
 

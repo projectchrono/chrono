@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Rear of the articulated vehicle model. This base class has a strcuture similar
+// Rear of the articulated vehicle model. This base class has a structure similar
 // to that of a ChWheeledVehicle.
 //
 // =============================================================================

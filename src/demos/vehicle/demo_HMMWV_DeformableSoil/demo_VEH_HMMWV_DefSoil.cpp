@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
                                            0,     // Mohr cohesive limit (Pa)
                                            30,    // Mohr friction limit (degrees)
                                            0.01,  // Janosi shear coefficient (m)
-                                           2e8,   // Elastic stiffness (Pa/m), before plastic yeld
+                                           2e8,   // Elastic stiffness (Pa/m), before plastic yield
                                            3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
                                            );
             /*

@@ -259,7 +259,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override {
         bool bounced = false;
 
-        // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
+        // Elastic Restitution model (use simple Newton model with coefficient e=v(+)/v(-))
         // Note that this works only if the two connected items are two ChBody.
 
         if (this->objA && this->objB) {
