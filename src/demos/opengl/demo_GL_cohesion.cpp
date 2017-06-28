@@ -1,6 +1,3 @@
-//
-// PROJECT CHRONO - http://projectchrono.org
-//
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //

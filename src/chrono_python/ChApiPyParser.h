@@ -1,31 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-#ifndef CHAPIPYPARSER_H
-#define CHAPIPYPARSER_H
-
-//////////////////////////////////////////////////
-//  
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //   ChApiPyParser.h
 //
 //   Base header for all headers that have symbols
 //   that can be exported.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
+
+#ifndef CHAPIPYPARSER_H
+#define CHAPIPYPARSER_H
 
 //#pragma warning(disable: 4251)
 
