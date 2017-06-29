@@ -12,7 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// Rigid terrain
+// Deformable terrain based on SCM (Soil Contact Model) from DLR
+// (Krenn & Hirzinger)
 //
 // =============================================================================
 
@@ -26,7 +27,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/DeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 #include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -38,32 +39,32 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Implementation of the DeformableTerrain wrapper class
+// Implementation of the SCMDeformableTerrain wrapper class
 // -----------------------------------------------------------------------------
-DeformableTerrain::DeformableTerrain(ChSystem* system) {
-    m_ground = std::make_shared<DeformableSoil>(system);
+SCMDeformableTerrain::SCMDeformableTerrain(ChSystem* system) {
+    m_ground = std::make_shared<SCMDeformableSoil>(system);
     system->Add(m_ground);
 }
     
 // Return the terrain height at the specified location
-double DeformableTerrain::GetHeight(double x, double y) const {
+double SCMDeformableTerrain::GetHeight(double x, double y) const {
     //// TODO
     return 0;
 }
 
 // Return the terrain normal at the specified location
-ChVector<> DeformableTerrain::GetNormal(double x, double y) const {
+ChVector<> SCMDeformableTerrain::GetNormal(double x, double y) const {
     //// TODO
     return m_ground->plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
 }
 
 // Set the color of the visualization assets
-void DeformableTerrain::SetColor(ChColor color) {
+void SCMDeformableTerrain::SetColor(ChColor color) {
     m_ground->m_color->SetColor(color);
 }
 
 // Set the texture and texture scaling
-void DeformableTerrain::SetTexture(const std::string tex_file, float tex_scale_x, float tex_scale_y) {
+void SCMDeformableTerrain::SetTexture(const std::string tex_file, float tex_scale_x, float tex_scale_y) {
     std::shared_ptr<ChTexture> texture(new ChTexture);
     texture->SetTextureFilename(tex_file);
     texture->SetTextureScale(tex_scale_x, tex_scale_y);
@@ -71,25 +72,25 @@ void DeformableTerrain::SetTexture(const std::string tex_file, float tex_scale_x
 }
 
 // Set the plane reference.
-void DeformableTerrain::SetPlane(ChCoordsys<> mplane) { m_ground->plane = mplane; }
+void SCMDeformableTerrain::SetPlane(ChCoordsys<> mplane) { m_ground->plane = mplane; }
 
 // Get the plane reference.
-const ChCoordsys<>& DeformableTerrain::GetPlane() const { return m_ground->plane; }
+const ChCoordsys<>& SCMDeformableTerrain::GetPlane() const { return m_ground->plane; }
 
 // Get the trimesh that defines the ground shape.
-const std::shared_ptr<ChTriangleMeshShape> DeformableTerrain::GetMesh() const { return m_ground->m_trimesh_shape; }
+const std::shared_ptr<ChTriangleMeshShape> SCMDeformableTerrain::GetMesh() const { return m_ground->m_trimesh_shape; }
 
 // Enable bulldozing effect.
-void DeformableTerrain::SetBulldozingFlow(bool mb) {
+void SCMDeformableTerrain::SetBulldozingFlow(bool mb) {
     m_ground->do_bulldozing = mb;
 }
 
-bool DeformableTerrain::GetBulldozingFlow() const {
+bool SCMDeformableTerrain::GetBulldozingFlow() const {
     return m_ground->do_bulldozing;
 }
 
 // Set properties of the SCM soil model
-void DeformableTerrain::SetSoilParametersSCM(
+void SCMDeformableTerrain::SetSoilParametersSCM(
     double mBekker_Kphi,    // Kphi, frictional modulus in Bekker model
     double mBekker_Kc,      // Kc, cohesive modulus in Bekker model
     double mBekker_n,       // n, exponent of sinkage in Bekker model (usually 0.6...1.8)
@@ -109,7 +110,7 @@ void DeformableTerrain::SetSoilParametersSCM(
     m_ground->damping_R = mdamping_R;
 }
 
-void DeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
+void SCMDeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
                                  double mbulldozing_flow_factor,  ///< growth of lateral volume respect to pressed volume
                                  int mbulldozing_erosion_n_iterations, ///< number of erosion refinements per timestep 
                                  int mbulldozing_erosion_n_propagations ///< number of concentric vertex selections subject to erosion 
@@ -120,49 +121,49 @@ void DeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle
     m_ground->bulldozing_erosion_n_propagations = mbulldozing_erosion_n_propagations;
 }
 
-void DeformableTerrain::SetAutomaticRefinement(bool mr) { 
+void SCMDeformableTerrain::SetAutomaticRefinement(bool mr) { 
     m_ground->do_refinement = mr;
 }
 
-bool DeformableTerrain::GetAutomaticRefinement() const {
+bool SCMDeformableTerrain::GetAutomaticRefinement() const {
     return m_ground->do_refinement;
 }
 
-void DeformableTerrain::SetAutomaticRefinementResolution(double mr) {
+void SCMDeformableTerrain::SetAutomaticRefinementResolution(double mr) {
     m_ground->refinement_resolution = mr;
 }
 
-double DeformableTerrain::GetAutomaticRefinementResolution() const {
+double SCMDeformableTerrain::GetAutomaticRefinementResolution() const {
     return m_ground->refinement_resolution;
 }
 
-void DeformableTerrain::SetTestHighOffset(double mr) {
+void SCMDeformableTerrain::SetTestHighOffset(double mr) {
     m_ground->test_high_offset = mr;
 }
 
-double DeformableTerrain::GetTestHighOffset() const {
+double SCMDeformableTerrain::GetTestHighOffset() const {
     return m_ground->test_high_offset;
 }
 
 // Set the color plot type.
-void DeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double mmax) {
+void SCMDeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double mmax) {
     m_ground->plot_type = mplot;
     m_ground->plot_v_min = mmin;
     m_ground->plot_v_max = mmax;
 }
 
 // Initialize the terrain as a flat grid
-void DeformableTerrain::Initialize(double height, double sizeX, double sizeY, int divX, int divY) {
+void SCMDeformableTerrain::Initialize(double height, double sizeX, double sizeY, int divX, int divY) {
     m_ground->Initialize(height, sizeX, sizeY, divX, divY);
 }
 
 // Initialize the terrain from a specified .obj mesh file.
-void DeformableTerrain::Initialize(const std::string& mesh_file) {
+void SCMDeformableTerrain::Initialize(const std::string& mesh_file) {
     m_ground->Initialize(mesh_file);
 }
 
 // Initialize the terrain from a specified height map.
-void DeformableTerrain::Initialize(const std::string& heightmap_file,
+void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
                                    const std::string& mesh_name,
                                    double sizeX,
                                    double sizeY,
@@ -172,11 +173,11 @@ void DeformableTerrain::Initialize(const std::string& heightmap_file,
 }
 
 // -----------------------------------------------------------------------------
-// Implementation of DeformableSoil
+// Implementation of SCMDeformableSoil
 // -----------------------------------------------------------------------------
 
 // Constructor.
-DeformableSoil::DeformableSoil(ChSystem* system) {
+SCMDeformableSoil::SCMDeformableSoil(ChSystem* system) {
     this->SetSystem(system);
 
     // Create the default mesh asset
@@ -208,7 +209,7 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
 
     Initialize(0,3,3,10,10);
     
-    plot_type = DeformableTerrain::PLOT_NONE;
+    plot_type = SCMDeformableTerrain::PLOT_NONE;
     plot_v_min = 0;
     plot_v_max = 0.2;
 
@@ -219,7 +220,7 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
 }
 
 // Initialize the terrain as a flat grid
-void DeformableSoil::Initialize(double height, double sizeX, double sizeY, int nX, int nY) {
+void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, int nX, int nY) {
     m_trimesh_shape->GetMesh().Clear();
     // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
@@ -282,13 +283,13 @@ void DeformableSoil::Initialize(double height, double sizeX, double sizeY, int n
 }
 
 // Initialize the terrain from a specified .obj mesh file.
-void DeformableSoil::Initialize(const std::string& mesh_file) {
+void SCMDeformableSoil::Initialize(const std::string& mesh_file) {
     m_trimesh_shape->GetMesh().Clear();
     m_trimesh_shape->GetMesh().LoadWavefrontMesh(mesh_file, true, true);
 }
 
 // Initialize the terrain from a specified height map.
-void DeformableSoil::Initialize(const std::string& heightmap_file,
+void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
                               const std::string& mesh_name,
                               double sizeX,
                               double sizeY,
@@ -409,7 +410,7 @@ void DeformableSoil::Initialize(const std::string& heightmap_file,
 }
 
 // Set up auxiliary data structures.
-void DeformableSoil::SetupAuxData() {
+void SCMDeformableSoil::SetupAuxData() {
     // better readability:
     std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
@@ -453,7 +454,7 @@ void DeformableSoil::SetupAuxData() {
 }
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
-void DeformableSoil::ComputeInternalForces() {
+void SCMDeformableSoil::ComputeInternalForces() {
 
     // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
@@ -925,45 +926,45 @@ void DeformableSoil::ComputeInternalForces() {
     //
     // Update the visualization colors
     // 
-    if (plot_type != DeformableTerrain::PLOT_NONE) {
+    if (plot_type != SCMDeformableTerrain::PLOT_NONE) {
         colors.resize(vertices.size());
         for (size_t iv = 0; iv< vertices.size(); ++iv) {
             ChColor mcolor;
             switch (plot_type) {
-                case DeformableTerrain::PLOT_LEVEL:
+                case SCMDeformableTerrain::PLOT_LEVEL:
                     mcolor = ChColor::ComputeFalseColor(p_level[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_LEVEL_INITIAL:
+                case SCMDeformableTerrain::PLOT_LEVEL_INITIAL:
                     mcolor = ChColor::ComputeFalseColor(p_level_initial[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_SINKAGE:
+                case SCMDeformableTerrain::PLOT_SINKAGE:
                     mcolor = ChColor::ComputeFalseColor(p_sinkage[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_SINKAGE_ELASTIC:
+                case SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC:
                     mcolor = ChColor::ComputeFalseColor(p_sinkage_elastic[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_SINKAGE_PLASTIC:
+                case SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC:
                     mcolor = ChColor::ComputeFalseColor(p_sinkage_plastic[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_STEP_PLASTIC_FLOW:
+                case SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW:
                     mcolor = ChColor::ComputeFalseColor(p_step_plastic_flow[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_K_JANOSI:
+                case SCMDeformableTerrain::PLOT_K_JANOSI:
                     mcolor = ChColor::ComputeFalseColor(p_kshear[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_PRESSURE:
+                case SCMDeformableTerrain::PLOT_PRESSURE:
                     mcolor = ChColor::ComputeFalseColor(p_sigma[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_PRESSURE_YELD:
+                case SCMDeformableTerrain::PLOT_PRESSURE_YELD:
                     mcolor = ChColor::ComputeFalseColor(p_sigma_yeld[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_SHEAR:
+                case SCMDeformableTerrain::PLOT_SHEAR:
                     mcolor = ChColor::ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_MASSREMAINDER:
+                case SCMDeformableTerrain::PLOT_MASSREMAINDER:
                     mcolor = ChColor::ComputeFalseColor(p_massremainder[iv], plot_v_min, plot_v_max);
                     break;
-                case DeformableTerrain::PLOT_ISLAND_ID:
+                case SCMDeformableTerrain::PLOT_ISLAND_ID:
                     mcolor = ChColor(0,0,1);
                     if (p_erosion[iv] == true)
                         mcolor = ChColor(1,1,1);
@@ -972,7 +973,7 @@ void DeformableSoil::ComputeInternalForces() {
                     if (p_id_island[iv] <0)
                         mcolor = ChColor(0,0,0);
                     break;
-                case DeformableTerrain::PLOT_IS_TOUCHED:
+                case SCMDeformableTerrain::PLOT_IS_TOUCHED:
                     if (p_sigma[iv]>0)
                         mcolor = ChColor(1,0,0);
                     else 

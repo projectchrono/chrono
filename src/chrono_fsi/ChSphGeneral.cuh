@@ -212,8 +212,8 @@ __device__ inline Real3 Modify_Local_PosB(Real3 &b, Real3 a) {
  *          Distance between two particles, considering the periodic boundary
  * condition
  *
- * @param posRadA Position of Particle A
- * @param posRadB Position of Particle B
+ * @param a Position of Particle A
+ * @param b Position of Particle B
  *
  * @return Distance vector (distance in x, distance in y, distance in z)
  */

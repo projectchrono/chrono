@@ -12,7 +12,7 @@
 // Authors: Justin Madsen
 // =============================================================================
 //
-// Base class for a Pacjeka type Magic formula 2002 tire model
+// Base class for a Pacejka type Magic formula 2002 tire model
 //
 // =============================================================================
 

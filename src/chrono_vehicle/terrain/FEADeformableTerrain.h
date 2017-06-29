@@ -12,7 +12,7 @@
 // Authors: Antonio Recuero, Bryan Peterson
 // =============================================================================
 //
-// FEA Deformable terrain. Box of terrain composed of 9-node brick elements which
+// FEA deformable terrain. Box of terrain composed of 9-node brick elements which
 // can capture moderate deformation (no remeshing). Constitutive behavior given
 // by Drucker-Prager.
 //
@@ -37,7 +37,7 @@ namespace vehicle {
 /// Drucker-Prager plasticity and capped Drucker-Prager plasticity.
 class CH_VEHICLE_API FEADeformableTerrain : public ChTerrain {
   public:
-    /// Construct a default DeformableSoil.
+    /// Construct a default FEADeformableSoil.
     /// The user is responsible for calling various Set methods before Initialize.
     FEADeformableTerrain(ChSystem* system  ///< [in/out] pointer to the containing system);
                          );

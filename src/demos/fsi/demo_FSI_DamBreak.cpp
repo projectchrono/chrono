@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     // You can set your cuda device, if you have multiple of them
     // If not this should be set to 0 or not specified at all
-    cudaSetDevice(1);
+    ////cudaSetDevice(0);
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);

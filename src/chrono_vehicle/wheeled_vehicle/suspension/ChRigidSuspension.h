@@ -82,6 +82,9 @@ class CH_VEHICLE_API ChRigidSuspension : public ChSuspension {
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const override;
 
+    /// Get the current global COM location of the suspension subsystem.
+    virtual ChVector<> GetCOMPos() const override;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
 

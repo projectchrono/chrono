@@ -1,18 +1,18 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-//
+// =============================================================================
 //   Demo code (advanced), about
 //
 //     - using the SCM semi-empirical model for deformable soil
+// =============================================================================
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -21,7 +21,7 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/DeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the 'deformable terrain' object
-    vehicle::DeformableTerrain mterrain(&my_system);
+    vehicle::SCMDeformableTerrain mterrain(&my_system);
 
     // Optionally, displace/tilt/rotate the terrain reference plane:
     mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.5)));
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
                                     0,   // Mohr cohesive limit (Pa)
                                     30,  // Mohr friction limit (degrees)
                                     0.01,// Janosi shear coefficient (m)
-                                    4e7, // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
+                                    4e7, // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi 
                                     3e4  // Damping (Pa s/m), proportional to negative vertical speed (optional)
                                     );
     mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
@@ -128,14 +128,14 @@ int main(int argc, char* argv[]) {
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
-    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
+    mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
+    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
+    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
+    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
+    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_ISLAND_ID, 0, 8);
+    //mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
     mterrain.GetMesh()->SetWireframe(true);
 
 
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        ChIrrTools::drawColorbar(0,30000, "Pressure yeld [Pa]", application.GetDevice(),  1180);
+        ChIrrTools::drawColorbar(0,30000, "Pressure yield [Pa]", application.GetDevice(),  1180);
 
         application.EndScene();
     }

@@ -1,11 +1,6 @@
 Tutorials {#tutorial_root}
 ==========================
 
-
--   @subpage tutorial_table_of_content_install 
-
-    How to set up Chrono and build Chrono projects on your machine.
-
 -   @subpage tutorial_table_of_content_chrono
 
     Examples about the core functionalities of the Chrono library.

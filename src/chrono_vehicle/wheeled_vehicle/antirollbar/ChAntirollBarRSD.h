@@ -68,6 +68,9 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     /// Get the total mass of the anti-roll bar subsystem.
     virtual double GetMass() const override;
 
+    /// Get the current global COM location of the anti-roll bar subsystem.
+    virtual ChVector<> GetCOMPos() const override;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 

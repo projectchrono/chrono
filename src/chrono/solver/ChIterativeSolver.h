@@ -93,7 +93,7 @@ class ChApi ChIterativeSolver : public ChSolver {
 
     /// Set the sharpness factor.
     /// This factor may be used by SOR-like methods with projection (see Mangasarian LCP method).
-    /// Usualy in the range [0,1]. Default: 1. 
+    /// Usually in the range [0,1]. Default: 1. 
     virtual void SetSharpnessLambda(double mval) {
         if (mval > 0.)
             shlambda = mval;

@@ -31,7 +31,7 @@
 //  [col  2]     left post input, a value in [-1,1]
 //  [col  3]     right post input, a value in [-1,1]
 //  [col  4]     steering input, a value in [-1,1]
-//  [col  5]     actual left post dispalcement
+//  [col  5]     actual left post displacement
 //  [col  6]     actual right post displacement
 //  [col  7- 9]  application point for left tire force
 //  [col 10-12]  left tire force

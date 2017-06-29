@@ -27,10 +27,16 @@
     <script type="text/javascript" src="$relpath^doxy-boot.js"></script>
     <script type="text/javascript" src="$relpath^bootstrap-hover-dropdown.min.js"></script>
 </head>
+<style>
+.not-active {
+   pointer-events: none;
+   cursor: default;
+}
+</style>
 <body>
 
 <!-- HERE STARTS THE NAVIGATION BAR (as in the index.html web site generated with bootstrap) -->
-    <nav class="navbar navbar-default role="navigation">
+    <nav class="navbar navbar-default" role="navigation">
       <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -52,26 +58,20 @@
              
             
             <li class="dropdown">
-            <a href="http://api.chrono.projectchrono.org" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">Documentation <span class="caret"></span></a>
+            <a href="http://api.chrono.projectchrono.org" class="dropdown-toggle disabled not-active" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">Documentation <span class="caret"></span></a>
               <ul class="dropdown-menu">
                 
-                <li><a href="http://api.chrono.projectchrono.org">API main page</a></li>
+                <li><a href="http://api.projectchrono.org">Chrono Development Branch</a></li>
+
+				<li><a href="http://api.projectchrono.org" class="not-active">(Coming Soon) Chrono 3.0,0</a></li>
                 
-                <li><a href="http://api.chrono.projectchrono.org/faq_root.html">FAQ</a></li>
+                <li><a href="http://projectchrono.org/faq">FAQ</a></li>
+
+                <li><a href="http://projectchrono.org/models">Model Library</a></li>
                 
-                <li><a href="http://api.chrono.projectchrono.org/tutorial_table_of_content_install.html">Install Guide</a></li>
+                <li><a href="http://projectchrono.org/validation">Validation Studies</a></li>
                 
-                <li><a href="http://api.chrono.projectchrono.org/tutorial_root.html">Tutorials</a></li>
-                
-                <li><a href="http://api.chrono.projectchrono.org/manual_root.html">Reference manual</a></li>
-                
-                <li><a href="http://api.chrono.projectchrono.org/model_root.html">Model Library</a></li>
-                
-                <li><a href="http://api.chrono.projectchrono.org/validation_studies_root.html">Validation Studies</a></li>
-                
-                <li><a href="http://api.chrono.projectchrono.org/whitepaper_root.html">White Papers</a></li>
-                
-                <li><a href="http://api.chrono.projectchrono.org/refman.pdf">PDF Version</a></li>
+                <li><a href="http://projectchrono.org/whitepapers">White Papers</a></li>
                 
               </ul>
             </li>
@@ -79,7 +79,7 @@
              
             
             <li class="dropdown">
-            <a href="http://projectchrono.org/gallery/" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
+            <a href="http://projectchrono.org/gallery/" class="dropdown-toggle disabled not-active" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
               <ul class="dropdown-menu">
                 
                 <li><a href="http://projectchrono.org/gallery/">Gallery</a></li>
@@ -102,7 +102,7 @@
              
             
             <li class="dropdown">
-            <a href=http://projectchrono.org/about/" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
+            <a href=http://projectchrono.org/about/" class="dropdown-toggle disabled not-active" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
               <ul class="dropdown-menu">
                 
                 <li><a href="http://projectchrono.org/about/">Quick Facts</a></li>

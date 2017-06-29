@@ -147,6 +147,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const = 0;
 
+    /// Get the current global COM location of the suspension subsystem.
+    virtual ChVector<> GetCOMPos() const = 0;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}
 

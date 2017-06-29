@@ -62,6 +62,9 @@ class CH_VEHICLE_API ChVehicle {
     /// This includes the mass of the chassis and all vehicle subsystems.
     virtual double GetVehicleMass() const = 0;
 
+    /// Get the current global vehicle COM location.
+    virtual ChVector<> GetVehicleCOMPos() const = 0;
+
     /// Get the vehicle location.
     /// This is the global location of the chassis reference frame origin.
     const ChVector<>& GetVehiclePos() const { return m_chassis->GetPos(); }

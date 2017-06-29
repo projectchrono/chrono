@@ -138,6 +138,20 @@ double ChRigidPinnedAxle::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChRigidPinnedAxle::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getAxleTubeMass() * m_axleTube->GetPos();
+
+    return com / GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidPinnedAxle::LogConstraintViolations(VehicleSide side) {
     // Revolute joint

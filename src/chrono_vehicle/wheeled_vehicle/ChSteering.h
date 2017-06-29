@@ -71,6 +71,9 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     /// Get the total mass of the steering subsystem.
     virtual double GetMass() const = 0;
 
+    /// Get the current global COM location of the steering subsystem.
+    virtual ChVector<> GetCOMPos() const = 0;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
 

@@ -92,6 +92,9 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const override;
 
+    /// Get the current global COM location of the suspension subsystem.
+    virtual ChVector<> GetCOMPos() const override;
+
     /// Get a handle to the specified shock (spring-damper) element.
     std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
 

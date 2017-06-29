@@ -161,6 +161,21 @@ double ChDoubleWishboneReduced::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChDoubleWishboneReduced::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getUprightMass() * m_upright[LEFT]->GetPos();
+    com += getUprightMass() * m_upright[RIGHT]->GetPos();
+
+    return com / GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
     ChSuspension::AddVisualizationAssets(vis);

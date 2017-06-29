@@ -127,6 +127,15 @@ double ChAntirollBarRSD::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the anti-roll bar subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChAntirollBarRSD::GetCOMPos() const {
+    ChVector<> com = getArmMass() * m_arm_left->GetPos() + getArmMass() * m_arm_right->GetPos();
+
+    return com / GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint

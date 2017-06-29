@@ -63,6 +63,9 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Get the wheel width (for visualization only).
     virtual double GetWidth() const { return 0; }
 
+    /// Get the current global COM location of the wheel.
+    ChVector<> GetCOMPos() const;
+
     /// Initialize this wheel subsystem.
     /// The wheel mass and inertia are used to increment those of the spindle.
     virtual void Initialize(std::shared_ptr<ChBody> spindle  ///< handle to the associated spindle body

@@ -103,6 +103,13 @@ double ChRackPinion::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the steering subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChRackPinion::GetCOMPos() const {
+    return m_link->GetPos();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)

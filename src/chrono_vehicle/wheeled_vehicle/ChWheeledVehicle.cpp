@@ -110,16 +110,44 @@ void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
 // -----------------------------------------------------------------------------
 double ChWheeledVehicle::GetVehicleMass() const {
     double mass = m_chassis->GetMass();
-    for (size_t i = 0; i < m_suspensions.size(); i++)
-        mass += m_suspensions[i]->GetMass();
-    for (size_t i = 0; i < m_antirollbars.size(); i++)
-        mass += m_antirollbars[i]->GetMass();
-    for (size_t i = 0; i < m_steerings.size(); i++)
-        mass += m_steerings[i]->GetMass();
-    for (size_t i = 0; i < m_wheels.size(); i++)
-        mass += m_wheels[i]->GetMass();
+
+    for (auto susp : m_suspensions) {
+        mass += susp->GetMass();
+    }
+    for (auto antiroll : m_antirollbars) {
+        mass += antiroll->GetMass();
+    }
+    for (auto steering : m_steerings) {
+        mass += steering->GetMass();
+    }
+    for (auto wheel : m_wheels) {
+        mass += wheel->GetMass();
+    }
 
     return mass;
+}
+
+// -----------------------------------------------------------------------------
+// Calculate and return the current vehicle COM location
+// -----------------------------------------------------------------------------
+ChVector<> ChWheeledVehicle::GetVehicleCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += m_chassis->GetMass() * m_chassis->GetCOMPos();
+    for (auto susp : m_suspensions) {
+        com += susp->GetMass() * susp->GetCOMPos();
+    }
+    for (auto antiroll : m_antirollbars) {
+        com += antiroll->GetMass() * antiroll->GetCOMPos();
+    }
+    for (auto steering : m_steerings) {
+        com += steering->GetMass() * steering->GetCOMPos();
+    }
+    for (auto wheel : m_wheels) {
+        com += wheel->GetMass() * wheel->GetCOMPos();
+    }
+
+    return com / GetVehicleMass();
 }
 
 // -----------------------------------------------------------------------------

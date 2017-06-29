@@ -75,6 +75,9 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// Get the total mass of the steering subsystem.
     virtual double GetMass() const override;
 
+    /// Get the current global COM location of the steering subsystem.
+    virtual ChVector<> GetCOMPos() const override;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
