@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         // Irrlicht application draws all 3D objects and all GUI items
         application.DrawAll();
@@ -512,7 +512,7 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         // Irrlicht must finish drawing the frame
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     if (myforklift)

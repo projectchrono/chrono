@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
         if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_shaftC->Get_spe_funct()))
             mfun->Set_yconst(wheel_C_rotspeed);
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

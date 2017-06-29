@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.02);
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         ChIrrTools::drawGrid(application.GetVideoDriver(), 5, 5, 20, 20,
                              ChCoordsys<>(ChVector<>(0, 0.04, 0), Q_from_AngAxis(CH_C_PI / 2, VECT_X)),
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

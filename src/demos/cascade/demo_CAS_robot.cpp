@@ -462,7 +462,7 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
-        application.GetVideoDriver()->beginScene(true, true, video::SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, video::SColor(255, 140, 161, 192));
 
         // .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
         application.DrawAll();
@@ -474,7 +474,7 @@ int main(int argc, char* argv[]) {
         ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2,10,400,300,80);
         ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2,10,500,300,80);
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;
