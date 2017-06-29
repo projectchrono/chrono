@@ -1,8 +1,16 @@
 \mainpage Project Chrono API/SDK documentation
 
-@subpage introduction_root
+@subpage introduction_chrono
 
-FAQ, high level overview, etc.
+High level overview of Chrono's features and capabilities.
+
+---
+
+@subpage tutorial_table_of_content_install 
+
+Instructions for configuring, building, and installing Chrono and its optional modules.
+
+Instructions on how to set up a project that uses Chrono.
 
 ---
 
@@ -16,22 +24,12 @@ Basic example code for various features in Chrono. Rather verbose, good place to
 
 More detailed documentation of Chrono's main features.
 
+Download the reference manual as a single [PDF](refman.pdf) file. 
 
 ---
 
-@subpage model_root
+Plugins
 
-Aiming to help in two ways: (*i*) demonstrate more advanced features of Chrono, and (*ii*) provide a head-start for a Chrono project. Assumes a higher level of familiarity with the Chrono API. Less verbose than the [Tutorials](\ref tutorial_root).
+- Overview of [Chrono::PyEngine](@ref introduction_chrono_pyengine)
 
-
----
-
-@subpage validation_studies_root
-
-A compilation of tests carried out to validate Chrono.
-
----
-
-@subpage whitepaper_root
-
-Technical information about specific algorithms and their Chrono implementation.
+- Overview of [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
