@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     // You can set your cuda device, if you have multiple of them
     // If not this should be set to 0 or not specified at all
-    cudaSetDevice(1);
+    ////cudaSetDevice(0);
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);

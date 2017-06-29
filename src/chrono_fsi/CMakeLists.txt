@@ -36,11 +36,15 @@ IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++11")
   SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11")
 ENDIF()
-SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
-#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_30")
+
+# Detect CUDA architecture and get best NVCC flags
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
+SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
+LIST(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
 
 message(STATUS "  CUDA toolkit includes:    ${CUDA_TOOLKIT_ROOT_DIR}/include")
 message(STATUS "  CUDA SDK includes:        ${CUDA_SDK_ROOT_DIR}/common/inc")
+message(STATUS "  CUDA compile flags:       ${CUDA_NVCC_FLAGS}")
 
 option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
 option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
