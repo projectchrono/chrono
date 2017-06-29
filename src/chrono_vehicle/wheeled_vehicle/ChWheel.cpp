@@ -43,6 +43,14 @@ void ChWheel::Initialize(std::shared_ptr<ChBody> spindle) {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the wheel subsystem.
+// This is simply the COM of the associated spindle body.
+// -----------------------------------------------------------------------------
+ChVector<> ChWheel::GetCOMPos() const {
+    return m_spindle->GetPos();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)

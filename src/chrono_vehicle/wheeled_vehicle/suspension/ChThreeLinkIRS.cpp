@@ -244,6 +244,27 @@ double ChThreeLinkIRS::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChThreeLinkIRS::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getArmMass() * m_arm[LEFT]->GetPos();
+    com += getArmMass() * m_arm[RIGHT]->GetPos();
+
+    com += getLowerLinkMass() * m_lower[LEFT]->GetPos();
+    com += getLowerLinkMass() * m_lower[RIGHT]->GetPos();
+
+    com += getUpperLinkMass() * m_upper[LEFT]->GetPos();
+    com += getUpperLinkMass() * m_upper[RIGHT]->GetPos();
+
+    return com / GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChThreeLinkIRS::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

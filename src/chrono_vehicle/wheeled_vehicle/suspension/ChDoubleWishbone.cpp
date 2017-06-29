@@ -277,6 +277,27 @@ double ChDoubleWishbone::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChDoubleWishbone::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getUCAMass() * m_UCA[LEFT]->GetPos();
+    com += getUCAMass() * m_UCA[RIGHT]->GetPos();
+
+    com += getLCAMass() * m_LCA[LEFT]->GetPos();
+    com += getLCAMass() * m_LCA[RIGHT]->GetPos();
+
+    com += getUprightMass() * m_upright[LEFT]->GetPos();
+    com += getUprightMass() * m_upright[RIGHT]->GetPos();
+
+    return com / GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishbone::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

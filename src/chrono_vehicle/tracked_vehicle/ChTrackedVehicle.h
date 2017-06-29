@@ -57,6 +57,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// This includes the mass of the chassis and all vehicle subsystems.
     virtual double GetVehicleMass() const override;
 
+    /// Get the current global vehicle COM location.
+    virtual ChVector<> GetVehicleCOMPos() const override {
+        //// TODO
+        return ChVector<>(0, 0, 0);
+    }
+
     /// Get the specified suspension subsystem.
     std::shared_ptr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }
 

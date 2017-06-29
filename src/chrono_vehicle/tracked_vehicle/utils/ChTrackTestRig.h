@@ -72,6 +72,12 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// This is simply the mass of the track subsystem.
     virtual double GetVehicleMass() const override;
 
+    /// Get the current global rig COM location.
+    virtual ChVector<> GetVehicleCOMPos() const override {
+        //// TODO
+        return ChVector<>(0, 0, 0);
+    }
+
     /// Return the location of the shaker post.
     const ChVector<>& GetPostPosition() const { return m_post_pos; }
 

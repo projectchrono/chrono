@@ -365,6 +365,32 @@ double ChSolidAxle::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChSolidAxle::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getAxleTubeMass() * m_axleTube->GetPos();
+    com += getTierodMass() * m_tierod->GetPos();
+    com += getDraglinkMass() * m_draglink->GetPos();
+    com += getBellCrankMass() * m_bellCrank->GetPos();
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getULMass() * m_upperLink[LEFT]->GetPos();
+    com += getULMass() * m_upperLink[RIGHT]->GetPos();
+
+    com += getLLMass() * m_lowerLink[LEFT]->GetPos();
+    com += getLLMass() * m_lowerLink[RIGHT]->GetPos();
+
+    com += getKnuckleMass() * m_knuckle[LEFT]->GetPos();
+    com += getKnuckleMass() * m_knuckle[RIGHT]->GetPos();
+
+    return com / GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

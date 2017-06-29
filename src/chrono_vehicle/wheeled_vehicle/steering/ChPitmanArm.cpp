@@ -173,6 +173,15 @@ double ChPitmanArm::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the steering subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChPitmanArm::GetCOMPos() const {
+    ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
+
+    return com / GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)

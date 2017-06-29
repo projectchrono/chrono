@@ -302,6 +302,30 @@ double ChHendricksonPRIMAXX::GetMass() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChHendricksonPRIMAXX::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getAxlehousingMass() * m_axlehousing->GetPos();
+    com += getTransversebeamMass() * m_transversebeam->GetPos();
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getKnuckleMass() * m_knuckle[LEFT]->GetPos();
+    com += getKnuckleMass() * m_knuckle[RIGHT]->GetPos();
+
+    com += getTorquerodMass() * m_torquerod[LEFT]->GetPos();
+    com += getTorquerodMass() * m_torquerod[RIGHT]->GetPos();
+
+    com += getLowerbeamMass() * m_lowerbeam[LEFT]->GetPos();
+    com += getLowerbeamMass() * m_lowerbeam[RIGHT]->GetPos();
+
+    return com / GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

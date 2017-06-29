@@ -121,6 +121,12 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// steering mechanism.
     virtual double GetVehicleMass() const override;
 
+    /// Get the current global rig COM location.
+    virtual ChVector<> GetVehicleCOMPos() const override {
+        //// TODO
+        return ChVector<>(0, 0, 0);
+    }
+
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
 
