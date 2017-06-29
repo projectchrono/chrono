@@ -15,6 +15,7 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono/utils/ChProfiler.h"
 
 namespace chrono {
 namespace irrlicht {
@@ -838,6 +839,77 @@ void ChIrrTools::drawPlot3D(irr::video::IVideoDriver* driver,
         }
     }
 }
+
+
+void drawProfilerRecursive(utils::ChProfileIterator* profileIterator, irr::IrrlichtDevice* device, int mx, int my, int sx, int sy, int xspacing, int& ypos) {
+    profileIterator->First();
+	if (profileIterator->Is_Done())
+		return;
+
+    irr::gui::IGUIFont* font = device->getGUIEnvironment()->getSkin()->getFont();//getBuiltInFont();
+
+	float accumulated_time=0,parent_time = profileIterator->Is_Root() ? utils::ChProfileManager::Get_Time_Since_Reset() : profileIterator->Get_Current_Parent_Total_Time();
+	int i;
+	int frames_since_reset = utils::ChProfileManager::Get_Frame_Count_Since_Reset();
+
+    float tot_frametime = utils::ChProfileManager::Get_Time_Since_Reset();
+
+    char buffer[300];
+    irr::video::SColor mcol(255,255,255,90);
+
+	int numChildren = 0;
+
+	for (i = 0; !profileIterator->Is_Done(); i++,profileIterator->Next())
+	{
+		numChildren++;
+		float current_total_time = profileIterator->Get_Current_Total_Time();
+		accumulated_time += current_total_time;
+		float fraction = parent_time > FLT_EPSILON ? (current_total_time / parent_time) * 100 : 0.f;
+        float fraction_tot = tot_frametime > FLT_EPSILON ? (current_total_time/tot_frametime) *100 : 0.f;
+
+        irr::core::rect<s32> mrect(mx, my+ypos, mx+(int)(sx * (current_total_time/tot_frametime)), my+ypos+18);
+        device->getVideoDriver()->draw2DRectangle(irr::video::SColor(100, ((xspacing*200)%255), ((-xspacing*151+200)%255), 230), mrect);
+
+		sprintf(buffer, "%d -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms / frame (%d calls)\n",i, profileIterator->Get_Current_Name(), fraction, fraction_tot, (current_total_time / (double)frames_since_reset),profileIterator->Get_Current_Total_Calls());
+		irr::core::stringw mstring(buffer);
+        font->draw(mstring, irr::core::rect<irr::s32>(mx+xspacing, my+ypos, mx+sx, my+ypos+20), mcol);
+        ypos += 20;
+
+        profileIterator->Enter_Child(i);
+		drawProfilerRecursive(profileIterator, device, mx, my, sx, sy, xspacing+30, ypos);
+		profileIterator->Enter_Parent();
+        for (int j= 0; j < i; ++j)
+            profileIterator->Next();
+	}
+
+    float fraction = parent_time > FLT_EPSILON ? ((parent_time - accumulated_time) / parent_time) * 100 : 0.f;
+    float fraction_tot = tot_frametime > FLT_EPSILON ? ((parent_time - accumulated_time)/tot_frametime) *100 : 0.f;
+
+    irr::core::rect<s32> mrect(mx, my+ypos, mx+ (int)(sx *((parent_time - accumulated_time)/tot_frametime)), my+ypos+18);
+    device->getVideoDriver()->draw2DRectangle(irr::video::SColor(100, ((xspacing*200)%255), ((-xspacing*151+200)%255), 230), mrect);
+
+	sprintf(buffer, "n -- %s (%.2f %% parent, %.2f %% tot.) :: %.3f ms\n", "Unaccounted:", fraction, fraction_tot, parent_time - accumulated_time);
+    irr::core::stringw mstringu(buffer);
+    font->draw(mstringu, irr::core::rect<irr::s32>(mx+xspacing, my+ypos, mx+sx, my+ypos+20), mcol);
+    ypos += 20;
+}
+
+/// Draw run-time profiler infos
+void ChIrrTools::drawProfiler(irr::IrrlichtDevice* device) {
+    int mx = 230;
+    int my = 30;
+    int sx = 500;
+    int sy = 400;
+
+    int ypos = 0;
+    utils::ChProfileIterator* profileIterator = 0;
+	profileIterator = utils::ChProfileManager::Get_Iterator();
+
+	drawProfilerRecursive(profileIterator, device, mx, my, sx, sy, 0, ypos);
+
+	utils::ChProfileManager::Release_Iterator(profileIterator);
+}
+
 
 }  // end namespace irrlicht
 }  // end namespace chrono

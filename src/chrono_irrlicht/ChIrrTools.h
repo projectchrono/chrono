@@ -226,6 +226,10 @@ class ChApiIrr ChIrrTools {
                            ChCoordsys<> mpos = CSYSNORM,
                            irr::video::SColor mcol = irr::video::SColor(50, 80, 110, 110),
                            bool use_Zbuffer = false);
+
+    /// Draw run-time profiler infos
+    static void drawProfiler(irr::IrrlichtDevice* device);
+
 };
 
 /// @} irrlicht_module
