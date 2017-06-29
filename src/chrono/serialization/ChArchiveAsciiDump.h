@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHARCHIVEASCIIDUMP_H
 #define CHARCHIVEASCIIDUMP_H
@@ -35,7 +36,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 
       virtual ~ChArchiveAsciiDump() {};
 
-      /// If true, the variables namesare not printed. 
+      /// If true, the variables names are not printed. 
       /// Useful when used for GetLog() << ...  (for more compact formatting).
       void SetSuppressNames(bool msu) {suppress_names = msu;}
 

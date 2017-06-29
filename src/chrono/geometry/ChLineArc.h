@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -26,9 +26,6 @@ namespace geometry {
 /// By default it is evaluated clockwise from angle1 to angle2.
 
 class ChApi ChLineArc : public ChLine {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLineArc)
 
   public:
     ChCoordsys<> origin;    ///< center position and plane of the arc: xy used for plane, z for axis.

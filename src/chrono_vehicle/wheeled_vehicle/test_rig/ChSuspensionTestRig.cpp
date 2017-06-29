@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -13,9 +13,10 @@
 // =============================================================================
 //
 // Implementation of a suspension testing mechanism (as a vehicle).
-// The tested suspension can be specified through a stand-alone JSON file (and
-// may or may not include a steering subsystem), or as a specified axle in a
-// vehicle JSON specification file.
+// The tested suspension can be specified:
+// - through a stand-alone JSON file (may or may not include a steering subsystem)
+// - as a specified axle in a vehicle JSON specification file
+// - as a specified axle in an existing vehicle (which must have been initialized)
 //
 // The reference frame follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -31,12 +32,18 @@
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
+
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishbone.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
+
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
+
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -48,7 +55,7 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Defintion of a chassis for a suspension test rig
+// Definition of a chassis for a suspension test rig
 // -----------------------------------------------------------------------------
 class ChSuspensionTestRigChassis : public ChRigidChassis {
   public:
@@ -160,6 +167,12 @@ void ChSuspensionTestRig::LoadSuspension(const std::string& filename) {
         m_suspension = std::make_shared<SolidAxle>(d);
     } else if (subtype.compare("MultiLink") == 0) {
         m_suspension = std::make_shared<MultiLink>(d);
+    } else if (subtype.compare("MacPhersonStrut") == 0) {
+        m_suspension = std::make_shared<MacPhersonStrut>(d);
+    } else if (subtype.compare("SemiTrailingArm") == 0) {
+        m_suspension = std::make_shared<SemiTrailingArm>(d);
+    } else if (subtype.compare("ThreeLinkIRS") == 0) {
+        m_suspension = std::make_shared<ThreeLinkIRS>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -195,13 +208,43 @@ void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
+                                         int axle_index,
+                                         double displ_limit,
+                                         std::shared_ptr<ChTire> tire_left,
+                                         std::shared_ptr<ChTire> tire_right,
+                                         ChMaterialSurface::ContactMethod contact_method)
+    : ChVehicle("SuspensionTestRig", contact_method), m_displ_limit(displ_limit) {
+    assert(axle_index >= 0 && axle_index < vehicle.GetNumberAxles());
+
+    // Load suspension subsystem
+    m_suspension = vehicle.GetSuspension(axle_index);
+    m_suspLoc = m_suspension->GetLocation();
+
+    // Load wheel subsystems
+    m_wheel[LEFT] = vehicle.GetWheel(WheelID(axle_index, LEFT));
+    m_wheel[RIGHT] = vehicle.GetWheel(WheelID(axle_index, RIGHT));
+
+    // Load steering subsystem (if needed)
+    int steering_index = m_suspension->GetSteeringIndex();
+    if (steering_index >= 0) {
+        m_steering = vehicle.GetSteering(steering_index);
+        m_steeringLoc = m_steering->GetPosition().pos;
+        m_steeringRot = m_steering->GetPosition().rot;
+    }
+
+    // Cache tires
+    m_tire[LEFT] = tire_left;
+    m_tire[RIGHT] = tire_right;
+}
+
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          int axle_index,
                                          double displ_limit,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle(contact_method), m_displ_limit(displ_limit) {
+    : ChVehicle("SuspensionTestRig", contact_method), m_displ_limit(displ_limit) {
     // Open and parse the input file (vehicle JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -256,7 +299,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle(contact_method) {
+    : ChVehicle("SuspensionTestRig", contact_method) {
     // Open and parse the input file (rig JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -318,9 +361,9 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     // Initialize the suspension and steering subsystems.
     if (HasSteering()) {
         m_steering->Initialize(m_chassis->GetBody(), m_steeringLoc, m_steeringRot);
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink());
+        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink(), 0);
     } else {
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_chassis->GetBody());
+        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_chassis->GetBody(), -1);
     }
 
     // Initialize the two wheels
@@ -501,7 +544,7 @@ void ChSuspensionTestRig::Synchronize(double time, double steering, double disp_
     m_suspension->Synchronize(LEFT, m_tire[LEFT]->GetTireForce());
     m_suspension->Synchronize(RIGHT, m_tire[RIGHT]->GetTireForce());
 
-    // Udpate the height of the underlying "terrain" object, using the current z positions
+    // Update the height of the underlying "terrain" object, using the current z positions
     // of the post bodies.
     m_terrain.m_height_L = m_post[LEFT]->GetPos().z() + m_post_height / 2;
     m_terrain.m_height_R = m_post[RIGHT]->GetPos().z() + m_post_height / 2;
@@ -560,7 +603,7 @@ void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& col
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_post_height * 12.0);
     m_post[side]->AddAsset(piston);  // add asset to post body
 
-    // Post sleve (on chassis/ground body)
+    // Post sleeve (on chassis/ground body)
     auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
     cyl->GetCylinderGeometry().p1 = m_post[side]->GetPos() - ChVector<>(0, 0, 8 * m_post_height);

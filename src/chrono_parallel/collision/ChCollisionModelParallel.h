@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -29,7 +29,7 @@ class ChBody;
 
 namespace collision {
 
-/// @addtogroup parallel_module
+/// @addtogroup parallel_collision
 /// @{
 
 /// Class to encapsulate description of a convex collision shape.
@@ -206,7 +206,7 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
     unsigned int nObjects;
 };
 
-/// @} parallel_module
+/// @} parallel_collision
 
 }  // end namespace collision
 }  // end namespace chrono

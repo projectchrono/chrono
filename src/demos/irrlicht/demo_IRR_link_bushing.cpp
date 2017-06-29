@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
                                     ChFrame<>(ChVector<>(0.5, 0.0, 0.0)), //initial frame of bushing in abs space
                                     ChVector<>(95000.0),    // K stiffness in local frame  [N/m]
                                     ChVector<>(100.0),      // R damping in local frame  [N/m/s]
-                                    ChVector<>(18000.0)     // plastic yeld [N/m]
+                                    ChVector<>(18000.0)     // plastic yield [N/m]
                                     );  
     my_loadcontainer->Add(my_loadbushingp);
 

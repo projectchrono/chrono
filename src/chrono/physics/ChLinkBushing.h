@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -10,10 +10,10 @@
 //
 // =============================================================================
 // Authors: Antonio Recuero
-//
+// =============================================================================
 // Class that inherits from ChLinkLock as a free joint. Compliances are added
 // to the relative motion between two rigid bodies. Out of the 6 possible dofs
-// available to apply compliance, only those corresponsing the bushing type
+// available to apply compliance, only those corresponding the bushing type
 // selected by the user are introduced.
 // =============================================================================
 
@@ -31,9 +31,6 @@ namespace chrono {
 /// the case of an ideal constraint.
 
 class ChApi ChLinkBushing : public ChLinkLock {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkBushing)
 
   public:
     enum bushing_joint {

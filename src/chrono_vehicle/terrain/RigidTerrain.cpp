@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -340,7 +340,7 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
-    // Readibility aliases
+    // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh.getCoordsVertices();
     std::vector<ChVector<> >& normals = m_trimesh.getCoordsNormals();
     std::vector<ChVector<int> >& idx_vertices = m_trimesh.getIndicesVertexes();

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,7 +19,7 @@
 // by the base class ChDoubleWishbone) and origins at the midpoint between the
 // lower control arms' connection points to the chassis.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -49,14 +49,14 @@ const double HMMWV_DoubleWishboneFront::m_LCARadius = 0.03;
 const double HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
 const double HMMWV_DoubleWishboneFront::m_uprightRadius = 0.04;
 
-const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(0.04117,
-                                                             0.07352,
-                                                             0.04117);          // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(0.03, 0.03, 0.06276);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertia(0.4, 0.4, 0.8938);     // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(0.1656,
-                                                             0.1934,
-                                                             0.04367);  // TODO: This is not the correct value
+// TODO: Fix these values
+const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
+const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
+const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
+const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
 
 const double HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
@@ -76,14 +76,14 @@ const double HMMWV_DoubleWishboneRear::m_LCARadius = 0.03;
 const double HMMWV_DoubleWishboneRear::m_UCARadius = 0.02;
 const double HMMWV_DoubleWishboneRear::m_uprightRadius = 0.04;
 
-const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(0.04117,
-                                                            0.07352,
-                                                            0.04117);          // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(0.03, 0.03, 0.06276);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertia(0.4, 0.4, 0.8938);     // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(0.1656,
-                                                            0.1934,
-                                                            0.04367);  // TODO: This is not the correct value
+// TODO: Fix these values
+const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
+const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
+const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
+const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
 
 const double HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 
@@ -106,7 +106,11 @@ class HMMWV_ShockForce : public ChLinkSpringCB::ForceFunctor {
                      double metalmetal_lower_bound,
                      double metalmetal_upper_bound);
 
-    virtual double operator()(double time, double rest_length, double length, double vel);
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override;
 
   private:
     double m_ms_compr;
@@ -142,7 +146,7 @@ HMMWV_ShockForce::HMMWV_ShockForce(double midstroke_compression_slope,
       m_min_length(metalmetal_lower_bound),
       m_max_length(metalmetal_upper_bound) {}
 
-double HMMWV_ShockForce::operator()(double time, double rest_length, double length, double vel) {
+double HMMWV_ShockForce::operator()(double time, double rest_length, double length, double vel, ChLinkSpringCB* link) {
     /*
     // On midstroke curve
     if (length >= m_min_length && length <= m_max_length)

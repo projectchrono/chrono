@@ -23,7 +23,7 @@ Chrono is a simulation tool that can be used to understand how physical systems 
 Robotics, vehicle dynamics (wheeled and tracked), terramechanics, granular dynamics, mechanism design, farming, food processing, building collapse, connected autonomous vehicles.
 <br><br>
 
-#### Why shouldn't I use Bullet@copy, or ODE@copy, or Physx@copy? They too look at how systems change in time and for some problems they do it many times faster than Chrono.
+#### Why shouldn't I use Bullet&copy; or ODE&copy; or Physx&copy;? They too look at how systems change in time and for some problems they do it many times faster than Chrono.
 Chrono takes a physics-based approach to the modeling and simulation of complex dynamic systems.  As such, we are paying a price for trying to stay faithful to the underlying physics governing the time evolution of the system of interest. We are committing a significant chunk of our effort to validate the modeling and simulation techniques we rely upon in Chrono. Many of these validation activities are reported in several [technical reports and theses](http://sbel.wisc.edu/Publications/).
 <br><br>
 
@@ -69,11 +69,11 @@ and enhanced with textures from some graphics package.
 The analysis might require a co-simulation with MATLAB&copy;. 
 The results can be post-processed with Pov-Ray&copy; to obtained high quality movies.
 
-![](http://www.projectchrono.org/assets/manual/workflow.png)
+<img src="http://www.projectchrono.org/assets/manual/workflow.png" class="img-responsive">
 
 #### What is a high level overview on how Chrono is organized?
 One can think of Chrono as having five foundational components that provide support for equation formulation, equation solution, proximity computation, parallel computing, and post-processing. The software is organized so that it draws on parallel computing: GPU computing (as enabled by CUDA), multi-core parallel computing (as enabled by OpenMP), and distributed-memory parallel computing (as enabled by MPI). The rigid body dynamics, flexible body dynamics, and fluid-solid interaction solution is built on the aforementioned foundational components. An API is in place to define a model and instruct Chrono to perform certain operations in relation to it. User toolkits (such as Chrono::Vehicle, Chrono::Granular,  etc.) are in place to ease the pre/post-processing burden associated with Chrono simulation. Some modules are less developed than others. For instance, the MPI support is not available at this time owing to poor scaling performance we obtained during previous experiments. 
 
-![](http://www.projectchrono.org/assets/manual/chronoStructure2016.png)
+<img src="http://www.projectchrono.org/assets/manual/chronoStructure2016.png" class="img-responsive">
 
 

@@ -32,7 +32,7 @@ static glm::vec3 ColorConverter(int hex_value) {
     return rgbColor;
 }
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 static ChOpenGLMaterial white(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1));
@@ -52,7 +52,9 @@ static ChOpenGLMaterial contact_color(glm::vec3(0, 0, 0), ColorConverter(0xFFF0A
 
 static ChOpenGLMaterial text_mat(glm::vec3(0, 0, 0), glm::vec3(100.0f, 145.0f, 170.0f) / 255.0f, glm::vec3(1, 1, 1));
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
+
 #endif

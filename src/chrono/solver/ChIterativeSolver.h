@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,23 +21,20 @@ namespace chrono {
 
 /// Base class for ITERATIVE solvers aimed at solving complementarity problems arising
 /// from QP optimization problems.
-/// This class does nothing: it is up to derived clases to implement specific solution
+/// This class does nothing: it is up to derived classes to implement specific solution
 /// methods.
-/// The problem is described by a variational inequality VI(Z*x-d,K):
-///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
+/// The problem is described by a variational inequality VI(Z*x-d,K):\n
+/// 
+///  | M -Cq'|*|q|- | f|= |0| , l \f$\in\f$ Y, C \f$\in\f$ Ny, normal cone to Y\n
 ///  | Cq -E | |l|  |-b|  |c|
-///
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
+/// 
+/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|\n
 ///                                           |Cq  E | |-l| |-b| |c|
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
 
 class ChApi ChIterativeSolver : public ChSolver {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChIterativeSolver)
 
   protected:
     int max_iterations;  ///< maximum allowed iterations
@@ -96,7 +93,7 @@ class ChApi ChIterativeSolver : public ChSolver {
 
     /// Set the sharpness factor.
     /// This factor may be used by SOR-like methods with projection (see Mangasarian LCP method).
-    /// Usualy in the range [0,1]. Default: 1. 
+    /// Usually in the range [0,1]. Default: 1. 
     virtual void SetSharpnessLambda(double mval) {
         if (mval > 0.)
             shlambda = mval;
@@ -115,7 +112,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     bool GetWarmStart() const { return warm_start; }
 
     /// Set the tolerance for stopping criterion.
-    /// The iteration is stopped when the constraint feasability error is below this value.
+    /// The iteration is stopped when the constraint feasibility error is below this value.
     /// Default: 0.0
     void SetTolerance(double mval) { tolerance = mval; }
 

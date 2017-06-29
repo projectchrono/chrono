@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,7 +18,7 @@
 // composed of brick elements. It serves to validate the elastic, isotropic,
 // large deformation internal forces and the element inertia.
 //
-// This element is a regular 8-noded trilinear brick element with enhanced assumed
+// This element is a regular 8-nodes trilinear brick element with enhanced assumed
 // strain that alleviates locking. More information on the validation of this element
 // may be found in Chrono's documentation. This simulation uses an external force
 // that builds up with time using a smooth cosine function. The user may increase

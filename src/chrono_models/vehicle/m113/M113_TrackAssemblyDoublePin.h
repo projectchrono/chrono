@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -28,6 +28,9 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
+/// @addtogroup vehicle_models_m113
+/// @{
+
 /// M113 track assembly using double-pin track shoes.
 class CH_MODELS_API M113_TrackAssemblyDoublePin : public ChTrackAssemblyDoublePin {
   public:
@@ -43,6 +46,8 @@ class CH_MODELS_API M113_TrackAssemblyDoublePin : public ChTrackAssemblyDoublePi
     static const ChVector<> m_susp_locs_L[5];
     static const ChVector<> m_susp_locs_R[5];
 };
+
+/// @} vehicle_models_m113
 
 }  // end namespace m113
 }  // end namespace vehicle

@@ -7,13 +7,13 @@ This is an optional unit that can be used to export scripts for
 postprocessing simulation data. For example, it can generate 
 the .pov and .ini scripts to be used with the POVray rendering tool.
 
-Read [the introduction to modules](@ref modules) for a technical 
+Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono::Engine project.
 
 
 ## Features
 
-The **POSTPROCESSING module** is used to export data for
+The **POSTPROCESS module** is used to export data for
 batch rendering of animations etc.
 
 Here are the main features:
@@ -52,9 +52,8 @@ because the architecture of this system is not limited to POVray.
 
 ## Building instructions
 
-This unit corresponds to an additional DLL library, 
-called **ChronoEngine_POSTPROCESS.dll**, that can be linked to your application 
-if you want to use it. On Linux systems, the .dll suffix is .so.
+This unit corresponds to an additional shared library, called ChronoEngine_postprocess, that can be linked to your application if you want to use it.
+The file extension will be .dll for Win and .so on Linux.
 
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
@@ -63,11 +62,12 @@ if you want to use it. On Linux systems, the .dll suffix is .so.
  
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
-
-When you will rebuild the project, you could find the demo_postprocess in the 
+When you will rebuild the project, you could find demo_POST_xxxx in the 
 binary directory, among other default demos. 
 
 ## How to use it
+
+Please mind that, in order to use POVray and/or GNUPLOT, these have to be installed and their environmental variables set properly.
 
 - Look at the [API section](group__postprocess__module.html) of this module for documentation about classes and functions.
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -40,9 +40,10 @@ double rest_angle = CH_C_PI / 6;
 
 // Functor class implementing the torque for a ChLinkRotSpringCB link.
 class MySpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
-    virtual double operator()(double time,   // current time
-                              double angle,  // relative angle of rotation
-                              double vel     // relative angular speed
+    virtual double operator()(double time,             // current time
+                              double angle,            // relative angle of rotation
+                              double vel,              // relative angular speed
+                              ChLinkRotSpringCB* link  // back-pointer to associated link
                               ) override {
         double torque = -spring_coef * (angle - rest_angle) - damping_coef * vel;
         return torque;

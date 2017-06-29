@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -305,7 +305,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
                 this->elastic_yeld >
             0) {
             // Case: tentative stress is in polar cone; a singular region where the gradient of
-            // the yeld function (or flow potential) is not defined. Just project to vertex.
+            // the yield function (or flow potential) is not defined. Just project to vertex.
             ChStressTensor<> vertexstress;
             double vertcoord = this->elastic_yeld / (3 * this->alpha);
             vertexstress.XX() = vertcoord;
@@ -315,8 +315,8 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
             this->ComputeElasticStrain(vertexstrain, vertexstress);
             mplasticstrainflow.MatrSub(guesselstrain, vertexstrain);
         } else {
-            // Case: tentative stress is out of the yeld cone.
-            // Just project using the yeld (or flow potential) gradient.
+            // Case: tentative stress is out of the yield cone.
+            // Just project using the yield (or flow potential) gradient.
             ChStrainTensor<> dFdS;
             ChStrainTensor<> dGdS;
             double devsq = sqrt(mstress.GetInvariant_J2());

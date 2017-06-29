@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -12,10 +12,8 @@
 // Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel test program using penalty method for frictional contact.
-//
-// The model simulated here consists of a number of spherical objects falling
-// onto a mixer blade attached through a revolute joint to the ground.
+// ChronoParallel test program using an MPM container (3DOF), either a particle
+// or a fluid container 
 //
 // The global reference frame has Z up.
 //
@@ -27,6 +25,7 @@
 #include <cstdio>
 #include <vector>
 #include <cmath>
+#include <fstream>
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
@@ -38,20 +37,18 @@
 
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 
-#include <fstream>
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
-double time_step = 1e-3;
+
 using namespace chrono;
 using namespace chrono::collision;
+
 #define USE_RIGID 1
 
-#if USE_RIGID
-Ch3DOFRigidContainer* mpm_container;
-#else
-ChFluidContainer* mpm_container;
-#endif
+double time_step = 1e-3;
+double kernel_radius = .016 * 2;
+
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer
 // blade attached through a revolute joint to ground. The mixer is constrained
@@ -121,23 +118,25 @@ void AddContainer(ChSystemParallelNSC* sys) {
 }
 
 // -----------------------------------------------------------------------------
-// Create the fluid in the shape of a sphere.
+// Create the MPM container with spherical contact
 // -----------------------------------------------------------------------------
-void AddFluid(ChSystemParallelNSC* sys) {
-#if USE_RIGID
-    mpm_container = new Ch3DOFRigidContainer(sys);
-#else
-    mpm_container = new ChFluidContainer(sys);
+void AddMPMContainer(ChSystemParallelNSC* sys) {
 
+#if USE_RIGID
+    auto mpm_container = std::make_shared<ChParticleContainer>();
+#else
+    auto mpm_container = std::make_shared<ChFluidContainer>();
 #endif
+    sys->Add3DOFContainer(mpm_container);
+
     real youngs_modulus = 1.4e6;
     real poissons_ratio = 0.2;
     real rho = 400;
+
 #if USE_RIGID
     mpm_container->mu = 0;
     mpm_container->alpha = 0;
     mpm_container->cohesion = 0;
-
 #else
     mpm_container->tau = time_step * 4;
     mpm_container->epsilon = 1e-3;
@@ -157,8 +156,8 @@ void AddFluid(ChSystemParallelNSC* sys) {
     // mpm_container->rho = 400;
     mpm_container->mass = .01;
     mpm_container->mpm_iterations = 30;
-    mpm_container->kernel_radius = .016 * 2;
-    mpm_container->collision_envelope = mpm_container->kernel_radius * 0.05;
+    mpm_container->kernel_radius = kernel_radius;
+    mpm_container->collision_envelope = kernel_radius * 0.05;
     mpm_container->contact_recovery_speed = 10;
     mpm_container->contact_cohesion = 0;
     mpm_container->contact_mu = 0;
@@ -168,24 +167,19 @@ void AddFluid(ChSystemParallelNSC* sys) {
     // mpm_container->tau = time_step * 4;
     // mpm_container->epsilon = 1e-3;
     real radius = .2;  //*5
-    real dens = 30;
-    real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, .1);
-    real vol;
 
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
 
 #if 1
 #if USE_RIGID
-    double dist = mpm_container->kernel_radius;
-
+    double dist = kernel_radius;
 #else
-    double dist = mpm_container->kernel_radius * 0.9;
-
+    double dist = kernel_radius * 0.9;
 #endif
 
-    vol = dist * dist * dist * .8;
+    real vol = dist * dist * dist * .8;
     mpm_container->mass = rho * vol;
 
     utils::HCPSampler<> sampler(dist);
@@ -224,6 +218,7 @@ void AddFluid(ChSystemParallelNSC* sys) {
 // mpm_container->AddNodes(pos_fluid, vel_fluid);
 #endif
 }
+
 // -----------------------------------------------------------------------------
 // Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
@@ -271,9 +266,9 @@ int main(int argc, char* argv[]) {
     msystem.ChangeSolverType(SolverType::BB);
     msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
-    AddFluid(&msystem);
+    AddMPMContainer(&msystem);
 
-    msystem.GetSettings()->collision.collision_envelope = (mpm_container->kernel_radius * .05);
+    msystem.GetSettings()->collision.collision_envelope = kernel_radius * .05;
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
     msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
     msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
@@ -291,11 +286,14 @@ int main(int argc, char* argv[]) {
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
     gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .1f);
+    gl_window.SetRenderMode(opengl::WIREFRAME);
     gl_window.Pause();
+
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.
     // gl_window.StartDrawLoop(time_step);
     // return 0;
+
     while (true) {
         if (gl_window.Active()) {
             gl_window.DoStepDynamics(time_step);

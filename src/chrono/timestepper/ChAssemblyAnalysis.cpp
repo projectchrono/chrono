@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -82,7 +82,7 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
         Vold = V;
 
-        // Perform a linearized semi-implcit Euler integration step
+        // Perform a linearized semi-implicit Euler integration step
         //
         // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
         // [ Cq                           0   ] [ -dt*l  ] = [ C/dt + Ct ]

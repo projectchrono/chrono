@@ -1,3 +1,20 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+//
+// Definitions for all 3DOF type containers for chrono parallel.
+//
+// =============================================================================
 
 #include <cstdlib>
 #include <algorithm>
@@ -12,34 +29,28 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// CLASS FOR A 3DOF FLUID NODE
-
-Ch3DOFContainer::Ch3DOFContainer() {
-    kernel_radius = .04;
-    collision_envelope = 0;
-    contact_recovery_speed = 10;
-    contact_cohesion = 0;
-    contact_compliance = 0;
-    contact_mu = 0;
-    max_velocity = 20;
-    data_manager = 0;
-
-    num_fluid_contacts = 0;
-    num_fluid_bodies = 0;
-    num_rigid_bodies = 0;
-    num_rigid_fluid_contacts = 0;
-    num_unilaterals = 0;
-    num_bilaterals = 0;
-    num_shafts = 0;
-    num_fea_tets = 0;
-    num_fea_nodes = 0;
-    alpha = 0;
+Ch3DOFContainer::Ch3DOFContainer()
+    : data_manager(nullptr),
+      kernel_radius(.04),
+      collision_envelope(0),
+      contact_recovery_speed(10),
+      contact_cohesion(0),
+      contact_compliance(0),
+      contact_mu(0),
+      max_velocity(20),
+      num_fluid_contacts(0),
+      num_fluid_bodies(0),
+      num_rigid_bodies(0),
+      num_rigid_fluid_contacts(0),
+      num_unilaterals(0),
+      num_bilaterals(0),
+      num_shafts(0),
+      num_fea_tets(0),
+      num_fea_nodes(0),
+      alpha(0) {
+    family.x = 1;
+    family.y = 0x7FFF;
 }
-
-Ch3DOFContainer::~Ch3DOFContainer() {}
 
 Ch3DOFContainer::Ch3DOFContainer(const Ch3DOFContainer& other) : ChPhysicsItem(other) {
     this->data_manager = other.data_manager;
@@ -86,4 +97,5 @@ void Ch3DOFContainer::SetFamily(short mfamily, short mask_no_collision) {
     family.x = (1 << mfamily);
     family.y &= ~(1 << mask_no_collision);
 }
+
 }  // end namespace chrono

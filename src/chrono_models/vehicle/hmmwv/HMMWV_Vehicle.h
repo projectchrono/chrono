@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -32,6 +32,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Base class for a HMMWV vehicle.
 class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
   public:
     virtual ~HMMWV_Vehicle() {}
@@ -44,14 +48,17 @@ class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
     }
 
   protected:
-    HMMWV_Vehicle(ChMaterialSurface::ContactMethod contactMethod, DrivelineType driveType)
-        : ChWheeledVehicle(contactMethod), m_driveType(driveType), m_omega({ 0, 0, 0, 0 }) {}
+    HMMWV_Vehicle(const std::string& name, ChMaterialSurface::ContactMethod contactMethod, DrivelineType driveType)
+        : ChWheeledVehicle(name, contactMethod), m_driveType(driveType), m_omega({0, 0, 0, 0}) {}
 
-    HMMWV_Vehicle(ChSystem* system, DrivelineType driveType) : ChWheeledVehicle(system), m_driveType(driveType), m_omega({ 0, 0, 0, 0 }) {}
+    HMMWV_Vehicle(const std::string& name, ChSystem* system, DrivelineType driveType)
+        : ChWheeledVehicle(name, system), m_driveType(driveType), m_omega({0, 0, 0, 0}) {}
 
     DrivelineType m_driveType;
     std::vector<double> m_omega;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

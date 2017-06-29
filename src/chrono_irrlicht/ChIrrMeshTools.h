@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -44,7 +44,7 @@ ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 length,
 /// This function is based on a modified version of the irrlicht_bullet demo,
 /// see  http://www.continuousphysics.com
 /// It is used to convert an Irrlicht mesh into a ChTriangleMesh, which is used
-/// for collision detection in Chrono::Engine.
+/// for collision detection in Chrono.
 ChApiIrr void fillChTrimeshFromIrlichtMesh(geometry::ChTriangleMesh* chTrimesh, irr::scene::IMesh* pMesh);
 
 /// Given a ChTriangleMesh object, computes an Irrlicht mesh.

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -26,8 +26,7 @@ namespace geometry {
 
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTriangleMeshSoup)
+  private:
 
     std::vector<ChTriangle> m_triangles;  ///< triangle list
 

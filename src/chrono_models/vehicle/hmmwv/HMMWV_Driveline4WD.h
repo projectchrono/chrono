@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,6 +27,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Shafts-based 4-WD driveline for the HMMWV vehicle.
 class CH_MODELS_API HMMWV_Driveline4WD : public ChShaftsDriveline4WD {
   public:
     HMMWV_Driveline4WD(const std::string& name);
@@ -61,6 +65,8 @@ class CH_MODELS_API HMMWV_Driveline4WD : public ChShaftsDriveline4WD {
     static const double m_front_conicalgear_ratio;
     static const double m_rear_conicalgear_ratio;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,24 +19,13 @@
 
 namespace chrono {
 
-/// An iterative solver based on modified
-/// Krylov iteration of spectral projected gradients
-/// with Borzilai-Borwein.
-/// The problem is described by a variational inequality VI(Z*x-d,K):
-///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
-///  | Cq -E | |l|  |-b|  |c|
-///
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
-///                                           |Cq  E | |-l| |-b| |c|
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals)
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0)
-/// * case CCP: Y_i are friction cones)
+///An iterative solver based on modified
+///Krylov iteration of spectral projected gradients
+///with Barzilai-Borwein.\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures
+/// passed to the solver.
 
 class ChApi ChSolverBB : public ChIterativeSolver {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolverBB)
 
   protected:
     int n_armijo;
@@ -83,7 +72,7 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     int GetMaxArmijoBacktrace() { return this->max_armijo_backtrace; }
 
     /// Enable diagonal preconditioning. It a simple but fast
-    /// preconditioning technique that is expecially useful to
+    /// preconditioning technique that is especially useful to
     /// fix slow convergence in case variables have very different orders
     /// of magnitude.
     void SetDiagonalPreconditioning(bool mp) { this->diag_preconditioning = mp; }

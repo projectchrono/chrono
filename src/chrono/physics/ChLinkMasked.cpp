@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -25,7 +25,7 @@ using namespace geometry;
 CH_FACTORY_REGISTER(ChLinkMasked)
 
 ChLinkMasked::ChLinkMasked() {
-    force_D = new ChLinkForce;  // defeault no forces in link dof
+    force_D = new ChLinkForce;  // default no forces in link dof
     force_R = new ChLinkForce;
     force_X = new ChLinkForce;
     force_Y = new ChLinkForce;
@@ -293,10 +293,10 @@ void ChLinkMasked::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset i
     }
 }
 
-void ChLinkMasked::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChLinkMasked::IntToDescriptor(const unsigned int off_v,
                                    const ChStateDelta& v,
                                    const ChVectorDynamic<>& R,
-                                   const unsigned int off_L,  ///< offset in L, Qc
+                                   const unsigned int off_L,
                                    const ChVectorDynamic<>& L,
                                    const ChVectorDynamic<>& Qc) {
     int cnt = 0;
@@ -309,9 +309,9 @@ void ChLinkMasked::IntToDescriptor(const unsigned int off_v,  ///< offset in v, 
     }
 }
 
-void ChLinkMasked::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChLinkMasked::IntFromDescriptor(const unsigned int off_v,
                                      ChStateDelta& v,
-                                     const unsigned int off_L,  ///< offset in L
+                                     const unsigned int off_L,
                                      ChVectorDynamic<>& L) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
@@ -420,7 +420,7 @@ void ChLinkMasked::Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBody
     if (!mCq)
         return;
 
-    // traslational part - not changed
+    // translational part - not changed
     mCqw->PasteClippedMatrix(*mCq, 0, 0, mCq->GetRows(), 3, 0, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4

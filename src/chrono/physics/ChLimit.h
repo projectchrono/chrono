@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -15,8 +15,8 @@
 #ifndef CHLINKLIMIT_H
 #define CHLINKLIMIT_H
 
-#include <cmath>
 #include <cfloat>
+#include <cmath>
 
 #include "chrono/core/ChMath.h"
 #include "chrono/motion_functions/ChFunction.h"
@@ -25,13 +25,12 @@
 
 namespace chrono {
 
-/// Class for limits in link joints (for example limits on elbow or knee
-/// rotations, etc.)
-/// Old code: Must be improved..
+/// Class for limits in link joints (for example limits on elbow or knee rotations, etc.)
+/// Old code. Must be improved.
 
 class ChApi ChLinkLimit {
   private:
-    bool active;  // true/false
+    bool active;  // true|false
     bool penalty_only;
     bool polar;
     bool rotation;
@@ -119,8 +118,7 @@ class ChApi ChLinkLimit {
     void ArchiveIN(ChArchiveIn& marchive);
 };
 
-CH_CLASS_VERSION(ChLinkLimit,0)
-
+CH_CLASS_VERSION(ChLinkLimit, 0)
 
 }  // end namespace chrono
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,7 +20,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -58,16 +58,20 @@ const std::string ChDoubleWishbone::m_pointNames[] = {"SPINDLE ",
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDoubleWishbone::ChDoubleWishbone(const std::string& name) : ChSuspension(name) {
-}
+ChDoubleWishbone::ChDoubleWishbone(const std::string& name, bool vehicle_frame_inertia)
+    : ChSuspension(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishbone::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                   const ChVector<>& location,
                                   std::shared_ptr<ChBody> tierod_body,
+                                  int steering_index,
                                   double left_ang_vel,
                                   double right_ang_vel) {
+    m_location = location;
+    m_steering_index = steering_index;
+
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -114,7 +118,14 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
-    m_upright[side]->SetInertiaXX(getUprightInertia());
+    if (m_vehicle_frame_inertia) {
+        ChMatrix33<> inertia =
+            TransformInertiaMatrix(getUprightInertiaMoments(), getUprightInertiaProducts(), chassisRot, chassisRot);
+        m_upright[side]->SetInertia(inertia);
+    } else {
+        m_upright[side]->SetInertiaXX(getUprightInertiaMoments());
+        m_upright[side]->SetInertiaXY(getUprightInertiaProducts());
+    }
     chassis->GetSystem()->AddBody(m_upright[side]);
 
     // Unit vectors for orientation matrices.
@@ -138,7 +149,13 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_UCA[side]->SetPos(points[UCA_CM]);
     m_UCA[side]->SetRot(rot);
     m_UCA[side]->SetMass(getUCAMass());
-    m_UCA[side]->SetInertiaXX(getUCAInertia());
+    if (m_vehicle_frame_inertia) {
+        ChMatrix33<> inertia = TransformInertiaMatrix(getUCAInertiaMoments(), getUCAInertiaProducts(), chassisRot, rot);
+        m_UCA[side]->SetInertia(inertia);
+    } else {
+        m_UCA[side]->SetInertiaXX(getUCAInertiaMoments());
+        m_UCA[side]->SetInertiaXY(getUCAInertiaProducts());
+    }
     chassis->GetSystem()->AddBody(m_UCA[side]);
 
     // Create and initialize Lower Control Arm body.
@@ -156,7 +173,13 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_LCA[side]->SetPos(points[LCA_CM]);
     m_LCA[side]->SetRot(rot);
     m_LCA[side]->SetMass(getLCAMass());
-    m_LCA[side]->SetInertiaXX(getLCAInertia());
+    if (m_vehicle_frame_inertia) {
+        ChMatrix33<> inertia = TransformInertiaMatrix(getLCAInertiaMoments(), getLCAInertiaProducts(), chassisRot, rot);
+        m_LCA[side]->SetInertia(inertia);
+    } else {
+        m_LCA[side]->SetInertiaXX(getLCAInertiaMoments());
+        m_LCA[side]->SetInertiaXY(getLCAInertiaProducts());
+    }
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
@@ -251,6 +274,27 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 // -----------------------------------------------------------------------------
 double ChDoubleWishbone::GetMass() const {
     return 2 * (getSpindleMass() + getUCAMass() + getLCAMass() + getUprightMass());
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChDoubleWishbone::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getUCAMass() * m_UCA[LEFT]->GetPos();
+    com += getUCAMass() * m_UCA[RIGHT]->GetPos();
+
+    com += getLCAMass() * m_LCA[LEFT]->GetPos();
+    com += getLCAMass() * m_LCA[RIGHT]->GetPos();
+
+    com += getUprightMass() * m_upright[LEFT]->GetPos();
+    com += getUprightMass() * m_upright[RIGHT]->GetPos();
+
+    return com / GetMass();
 }
 
 // -----------------------------------------------------------------------------

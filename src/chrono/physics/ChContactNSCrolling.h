@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -52,10 +52,11 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rx.SetNormalConstraint(&this->Nx);
     }
 
-    ChContactNSCrolling(ChContactContainer* mcontainer,
-                        Ta* mobjA,  ///< collidable object A
-                        Tb* mobjB,  ///< collidable object B
-                        const collision::ChCollisionInfo& cinfo)
+    ChContactNSCrolling(ChContactContainer* mcontainer,          ///< contact container
+                        Ta* mobjA,                               ///< collidable object A
+                        Tb* mobjB,                               ///< collidable object B
+                        const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+                        )
         : ChContactNSC<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
         Rx.SetRollingConstraintU(&this->Ru);
         Rx.SetRollingConstraintV(&this->Rv);
@@ -67,8 +68,8 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     virtual ~ChContactNSCrolling() {}
 
     /// Initialize again this constraint.
-    virtual void Reset(Ta* mobjA,  ///< collidable object A
-                       Tb* mobjB,  ///< collidable object B
+    virtual void Reset(Ta* mobjA,
+                       Tb* mobjB,
                        const collision::ChCollisionInfo& cinfo) {
         // Base method call:
         ChContactNSC<Ta, Tb>::Reset(mobjA, mobjB, cinfo);
@@ -82,6 +83,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
 
         // Calculate composite material properties
         ChMaterialCompositeNSC mat(
+            this->container->GetSystem()->composition_strategy.get(),
             std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurfaceBase()),
             std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurfaceBase()));
 
@@ -137,10 +139,10 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         react_torque.z() = L(off_L + 5);
     }
 
-    virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                         ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                         const ChVectorDynamic<>& L,  ///< the L vector
-                                         const double c               ///< a scaling factor
+    virtual void ContIntLoadResidual_CqL(const unsigned int off_L,  
+                                         ChVectorDynamic<>& R,      
+                                         const ChVectorDynamic<>& L,
+                                         const double c             
                                          ) {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntLoadResidual_CqL(off_L, R, L, c);
@@ -150,11 +152,11 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         this->Rv.MultiplyTandAdd(R, L(off_L + 5) * c);
     }
 
-    virtual void ContIntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                         ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                         const double c,            ///< a scaling factor
-                                         bool do_clamp,             ///< apply clamping to c*C?
-                                         double recovery_clamp      ///< value for min/max clamping of c*C
+    virtual void ContIntLoadConstraint_C(const unsigned int off_L, 
+                                         ChVectorDynamic<>& Qc,    
+                                         const double c,           
+                                         bool do_clamp,            
+                                         double recovery_clamp     
                                          ) {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
@@ -176,7 +178,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     // no force to add - this is NSC, not SMC
     //};
 
-    virtual void ContIntToDescriptor(const unsigned int off_L,  ///< offset in L, Qc
+    virtual void ContIntToDescriptor(const unsigned int off_L,
                                      const ChVectorDynamic<>& L,
                                      const ChVectorDynamic<>& Qc) {
         // base behaviour too
@@ -191,7 +193,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rv.Set_b_i(Qc(off_L + 5));
     }
 
-    virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
+    virtual void ContIntFromDescriptor(const unsigned int off_L,
                                        ChVectorDynamic<>& L) {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntFromDescriptor(off_L, L);

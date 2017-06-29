@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHDISTRIBUTION_H
 #define CHDISTRIBUTION_H
@@ -121,7 +123,7 @@ class ChWeibullDistribution : public ChDistribution {
   public:
     /// Create the Weibull distribution with assigned scale
     /// factor 'lambda' and with shape 'k'.
-    /// The larger 'labda' is, the more horizontally stretched is the distribution.
+    /// The larger 'lambda' is, the more horizontally stretched is the distribution.
     /// For k<1, there is a vertical peak at 0.
     /// For k=1, you get the exponential distribution
     /// For k>1, you get an asymmetric bell shape
@@ -316,7 +318,7 @@ class ChDiscreteDistribution : public ChDistribution {
         delete cdf_y;
     }
 
-    /// Compute a random value, according to the discrete probabilty values entered
+    /// Compute a random value, according to the discrete probability values entered
     /// when you created this object
     virtual double GetRandom() {
         double rand = ChRandom();

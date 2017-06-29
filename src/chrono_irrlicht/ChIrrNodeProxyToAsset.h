@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -47,8 +47,9 @@ class ChApiIrr ChIrrNodeProxyToAsset : public irr::scene::ISceneNode {
   public:
     /// Constructor
     ChIrrNodeProxyToAsset(
-        std::shared_ptr<ChAsset> myvisualization,  ///< pointer to the Chrono::Engine visualization asset
-        irr::scene::ISceneNode* parent);           ///< the parent node in Irrlicht hierarchy
+        std::shared_ptr<ChAsset> myvisualization,  ///< pointer to the ChronoEngine visualization asset
+        irr::scene::ISceneNode* parent           ///< the parent node in Irrlicht hierarchy
+    );
 
     /// Destructor.
     ~ChIrrNodeProxyToAsset() {}

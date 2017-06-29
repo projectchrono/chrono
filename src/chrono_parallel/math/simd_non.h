@@ -235,4 +235,5 @@ CUDA_HOST_DEVICE inline vec3 Max(const vec3& a, const vec3& b) {
 CUDA_HOST_DEVICE inline vec3 Min(const vec3& a, const vec3& b) {
     return vec3(chrono::Min(a[0], b[0]), chrono::Min(a[1], b[1]), chrono::Min(a[2], b[2]));
 }
-}
+
+} // end namespace simd

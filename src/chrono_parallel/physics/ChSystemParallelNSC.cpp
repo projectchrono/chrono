@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar, Radu Serban
+// =============================================================================
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
@@ -48,6 +62,17 @@ ChBodyAuxRef* ChSystemParallelNSC::NewBodyAuxRef() {
         return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
 
     return new ChBodyAuxRef(ChMaterialSurface::NSC);
+}
+
+void ChSystemParallelNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {
+    if (auto fea_container = std::dynamic_pointer_cast<ChFEAContainer>(container)) {
+        data_manager->fea_container = fea_container;
+    } else {
+        data_manager->node_container = container;
+    }
+
+    container->SetSystem(this);
+    container->data_manager = data_manager;
 }
 
 void ChSystemParallelNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {

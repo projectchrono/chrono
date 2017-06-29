@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -23,12 +23,12 @@ namespace irrlicht {
 /// @addtogroup irrlicht_module
 /// @{
 
-/// Class to add some GUI to Irrlicht+Chrono::Engine applications.  Such basic
+/// Class to add some GUI to Irrlicht+ChronoEngine applications. \n Such basic
 /// GUI can be used to monitor solver timings, to change physical system
 /// settings easily, and so on.
 class ChApiIrr ChIrrApp : public ChIrrAppInterface {
   public:
-    /// Create the application with Irrlicht context (3D view, device, etc.)
+    /// Create the application with Irrlicht context (3D view, device, etc.).
     ChIrrApp(ChSystem* psystem,
              const wchar_t* title = 0,
              irr::core::dimension2d<irr::u32> dimens = irr::core::dimension2d<irr::u32>(640, 480),
@@ -37,14 +37,13 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
              bool do_antialias = true,
              irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9);
 
-    /// Safely delete every Irrlicht item (including the Irrlicht scene nodes)
+    /// Safely delete every Irrlicht item (including the Irrlicht scene nodes).
     virtual ~ChIrrApp();
 
     /// Gets the asset converter
     ChIrrAssetConverter* GetAssetConverter() { return mconverter; }
 
-    /// Shortcut to add and bind a ChIrrNodeAsset to an item, if it has not been
-    /// added previously.
+    /// Shortcut to add and bind a ChIrrNodeAsset to an item, if it has not been added previously.
     void AssetBind(std::shared_ptr<ChPhysicsItem> mitem);
 
     /// Shortcut to add and bind a ChIrrNodeAsset to all items in a ChSystem.

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -162,12 +162,12 @@ class ChContactTuple {
     virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) {}
 
     virtual void ContIntToDescriptor(const unsigned int off_L,    ///< offset in L, Qc
-                                     const ChVectorDynamic<>& L,  ///<
-                                     const ChVectorDynamic<>& Qc  ///<
+                                     const ChVectorDynamic<>& L,  ///< the L vector
+                                     const ChVectorDynamic<>& Qc  ///< the Qc vector
                                      ) {}
 
     virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
-                                       ChVectorDynamic<>& L       ///<
+                                       ChVectorDynamic<>& L       ///< the L vector
                                        ) {}
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}

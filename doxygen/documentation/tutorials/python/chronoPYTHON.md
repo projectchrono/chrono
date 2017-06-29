@@ -1,7 +1,8 @@
 Chrono PYTHON module tutorials   {#tutorial_table_of_content_chrono_python}
 ================================
 
-Tutorials for users that installed the [PYTHON module](@ref module_python_installation).
+Tutorials that teach how to use the 
+[PYTHON module](group__python__module.html).
 
 These examples show how to parse Python programs **from the C++ side**, using
 the Python module.

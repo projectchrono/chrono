@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -58,7 +58,7 @@ void ChLinkSpringCB::UpdateForces(double time) {
     ChLinkMarkers::UpdateForces(time);
 
     // Invoke the provided functor to evaluate force
-    m_force = m_force_fun ? (*m_force_fun)(time, m_rest_length, dist, dist_dt) : 0;
+    m_force = m_force_fun ? (*m_force_fun)(time, m_rest_length, dist, dist_dt, this) : 0;
 
     // Add to existing force.
     C_force += m_force * relM.pos.GetNormalized();

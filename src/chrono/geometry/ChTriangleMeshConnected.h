@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -28,9 +28,6 @@ namespace geometry {
 /// shared between faces.
 
 class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTriangleMeshConnected)
 
   public:
     std::vector<ChVector<double>> m_vertices;
@@ -115,17 +112,17 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
     virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
 
-    /// Create a map of neighbouring triangles, vector of:
+    /// Create a map of neighboring triangles, vector of:
     /// [Ti TieA TieB TieC]
     /// (the free sides have triangle id = -1).
-    /// Return false if some edge has more than 2 neighbouring triangles
+    /// Return false if some edge has more than 2 neighboring triangles
     bool ComputeNeighbouringTriangleMap(std::vector<std::array<int, 4>>& tri_map) const;
 
     /// Create a winged edge structure, map of {key, value} as
     /// {{edgevertexA, edgevertexB}, {triangleA, triangleB}}
     /// If allow_single_wing = false, only edges with at least 2 triangles are returned.
     ///  Else, also boundary edges with 1 triangle (the free side has triangle id = -1).
-    /// Return false if some edge has more than 2 neighbouring triangles.
+    /// Return false if some edge has more than 2 neighboring triangles.
 
     bool ComputeWingedEdges(std::map<std::pair<int, int>, std::pair<int, int>>& winged_edges,
                             bool allow_single_wing = true) const;
@@ -158,7 +155,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Split a given edge by inserting a vertex in the middle: from two triangles one
     /// gets four triangles. It also interpolate normals, colors, uv. It also used and modifies the
-    /// triangle neighbouring map.
+    /// triangle neighboring map.
     /// If the two triangles do not share an edge, returns false.
     bool SplitEdge (
         int itA,      ///< triangle A index,
@@ -181,7 +178,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
       public:
         virtual ~ChRefineEdgeCriterion() {}
 
-        // Compute lenght of an edge or more in general a
+        // Compute length of an edge or more in general a
         // merit function - the higher, the more likely the edge must be cut
         virtual double ComputeLength(const int vert_a, const int vert_b, ChTriangleMeshConnected* mmesh) = 0;
     };

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -171,7 +171,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     /// will also be calculated.
     bool use_numerical_differentiation = false;
 
-    /// Internal force and EAS parameters are caulculated for numerical differentiation.
+    /// Internal force and EAS parameters are calculated for numerical differentiation.
     if (use_numerical_differentiation) {
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         ChMatrixNM<double, 330, 1> TempIntegratedResult;

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -49,7 +49,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared
     // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // In this case it is the motor block. This because the ChShaftsThermalEngine
     // needs two 1dof items to apply the torque in-between them (the other will be
-    // the crankshaft). In simplier models, one could just use SetShaftFixed() on
+    // the crankshaft). In simpler models, one could just use SetShaftFixed() on
     // this object, but here we prefer to leave it free and use a ChShaftsBody
     // constraint to connect it to the car chassis (so the car can 'roll' when
     // pressing the throttle, like in muscle cars)
@@ -70,7 +70,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared
     m_crankshaft->SetInertia(GetCrankshaftInertia());
     my_system->Add(m_crankshaft);
 
-    // CREATE  a thermal engine model beteen motor block and crankshaft (both
+    // CREATE  a thermal engine model between motor block and crankshaft (both
     // receive the torque, but with opposite sign).
     m_engine = std::make_shared<ChShaftsThermalEngine>();
     m_engine->Initialize(m_crankshaft, m_motorblock);
@@ -81,8 +81,8 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChBody> chassis, std::shared
     m_engine->SetTorqueCurve(mTw);
 
     // CREATE  an engine brake model that represents the losses of the engine because
-    // of inner frictions/turbolences/etc. Without this, the engine at 0% throttle
-    // in neutral position would rotate forever at contant speed.
+    // of inner friction/turbulence/etc. Without this, the engine at 0% throttle
+    // in neutral position would rotate forever at constant speed.
     m_engine_losses = std::make_shared<ChShaftsThermalEngine>();
     m_engine_losses->Initialize(m_crankshaft, m_motorblock);
     my_system->Add(m_engine_losses);

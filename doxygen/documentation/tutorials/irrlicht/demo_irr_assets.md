@@ -12,7 +12,7 @@ This tutorial shows how to:
 
 Note: the same assets that you use for Irrlicht display 
 can be used for postprocessing, ex. with POVray as 
-explained in demo_postprocess.cpp . 
+explained in [demo_POST_povray](\ref tutorial_demo_povray). 
  
 \include demo_IRR_assets.cpp
 

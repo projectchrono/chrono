@@ -212,7 +212,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIBRARIES "@CH_CASCADELIBS@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
 	  
-	elseif(${COMPONENT_UPPER} MATCHES "COSIMULATION")
+	  elseif(${COMPONENT_UPPER} MATCHES "COSIMULATION")
 	
       list(APPEND CHRONO_LIBRARIES "@CH_SOCKET_LIB@")
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_cosimulation")
@@ -228,6 +228,13 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       if(${Chrono_HAS_irrlicht})
         list(APPEND CHRONO_LIB_NAMES "_ChronoEngine_python_irrlicht")
       endif()
+
+    elseif(${COMPONENT_UPPER} MATCHES "MATLAB")
+
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_MATLABINC@")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
+      list(APPEND CHRONO_LIBRARIES "@CH_MATLABLIB@")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
 
     endif()
 

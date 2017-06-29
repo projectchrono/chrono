@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,7 +18,7 @@
 // frame with X pointing towards the front, Y to the left, and Z up (as imposed
 // by the base class ChHendricksonPRIMAXX) and origin in the chassis midplane.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -115,11 +115,11 @@ const ChVector<> Generic_HendricksonPRIMAXX::getLocation(PointId which) {
         case LOWERBEAM_TB:
             return ChVector<>(-0.376, 0.65, -0.197);  // lowerbeam, transverse beam
         case SHOCKAH_C:
-            return ChVector<>(-0.1, 0.65, 0.15);  // shock at axle housing (AH), chasis
+            return ChVector<>(-0.1, 0.65, 0.15);  // shock at axle housing (AH), chassis
         case SHOCKAH_AH:
             return ChVector<>(-0.1, 0.65, -0.1);  // shock at axle housing (AH), axle housing
         case SHOCKLB_C:
-            return ChVector<>(-0.376, 0.65, 0.15);  //  shock at lower beam (LB), chasis
+            return ChVector<>(-0.376, 0.65, 0.15);  //  shock at lower beam (LB), chassis
         case SHOCKLB_LB:
             return ChVector<>(-0.376, 0.65, -0.197);  //  shock at lower beam (LB), lower beam
         case KNUCKLE_CM:

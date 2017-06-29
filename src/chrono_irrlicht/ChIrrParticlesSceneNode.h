@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -33,17 +33,18 @@ namespace irrlicht {
 class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
   public:
     /// Build a scene node for the Irrlicht Engine. This scene node is also a
-    /// rigid body for the Chrono::Engine multibody simulation. As soon as
-    /// created, the wrapped ChParticlesClones is also added to the Chrono::Engine
+    /// rigid body for the Chrono multibody simulation. As soon as
+    /// created, the wrapped ChParticlesClones is also added to the Chrono
     /// To delete a ChParticlesClonesScene node from an Irrlicht scene, use the
-    /// remove() function only! (it will also be removed from the Chrono::Engine)
+    /// remove() function only! (it will also be removed from the Chrono)
     ChIrrParticlesSceneNode(
-        ChSystem* msystem,                 ///< pointer to the Chrono::Engine physical simulation system
+        ChSystem* msystem,                 ///< pointer to the Chrono physical simulation system
         irr::scene::IAnimatedMesh* mesh,   ///< a sample 3D mesh for representing the shape of each particle
         irr::core::vector3df mmesh_scale,  ///< scale of the sample mesh
         ISceneNode* parent,                ///< the parent node in Irrlicht hierarchy
         irr::scene::ISceneManager* mgr,    ///< the Irrlicht scene manager
-        irr::s32 id);                      ///< the Irrlicht identifier
+        irr::s32 id                        ///< the Irrlicht identifier
+        );
 
     /// Destructor.
     /// Note: as this Irrlicht node is destructed, it also automatically removes
@@ -83,10 +84,10 @@ class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
     /// wrapped by this scene node.
     std::shared_ptr<ChParticlesClones>& GetParticles() { return *particlep; }
 
-    /// Returns true if the node is moved by Chrono::Engine simulation system.
+    /// Returns true if the node is moved by Chrono simulation system.
     virtual bool IsChronoControlled() const { return ChronoControlled; }
 
-    /// Set true if you want Chrono::Engine to include this body in simulation.
+    /// Set true if you want Chrono to include this body in simulation.
     virtual void SetChronoControlled(const bool& controlled) { ChronoControlled = controlled; }
 
     // IAnimatedMeshSceneNode* GetChildMesh() {return child_mesh;}

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -113,20 +113,21 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC()
       complianceRoll(0),
       complianceSpin(0) {}
 
-ChMaterialCompositeNSC::ChMaterialCompositeNSC(std::shared_ptr<ChMaterialSurfaceNSC> mat1,
+ChMaterialCompositeNSC::ChMaterialCompositeNSC(ChMaterialCompositionStrategy<float>* strategy,
+                                               std::shared_ptr<ChMaterialSurfaceNSC> mat1,
                                                std::shared_ptr<ChMaterialSurfaceNSC> mat2) {
-    static_friction = std::min<float>(mat1->static_friction, mat2->static_friction);
-    sliding_friction = std::min<float>(mat1->sliding_friction, mat2->sliding_friction);
-    restitution = std::min<float>(mat1->restitution, mat2->restitution);
-    cohesion = std::min<float>(mat1->cohesion, mat2->cohesion);
-    dampingf = std::min<float>(mat1->dampingf, mat2->dampingf);
-    compliance = mat1->compliance + mat2->compliance;
-    complianceT = mat1->complianceT + mat2->complianceT;
+    static_friction = strategy->CombineFriction(mat1->static_friction, mat2->static_friction);
+    sliding_friction = strategy->CombineFriction(mat1->sliding_friction, mat2->sliding_friction);
+    restitution = strategy->CombineRestitution(mat1->restitution, mat2->restitution);
+    cohesion = strategy->CombineCohesion(mat1->cohesion, mat2->cohesion);
+    dampingf = strategy->CombineDamping(mat1->dampingf, mat2->dampingf);
+    compliance = strategy->CombineCompliance(mat1->compliance, mat2->compliance);
+    complianceT = strategy->CombineCompliance(mat1->complianceT, mat2->complianceT);
 
-    rolling_friction = std::min<float>(mat1->rolling_friction, mat2->rolling_friction);
-    spinning_friction = std::min<float>(mat1->spinning_friction, mat2->spinning_friction);
-    complianceRoll = mat1->complianceRoll + mat2->complianceRoll;
-    complianceSpin = mat1->complianceSpin + mat2->complianceSpin;
+    rolling_friction = strategy->CombineFriction(mat1->rolling_friction, mat2->rolling_friction);
+    spinning_friction = strategy->CombineFriction(mat1->spinning_friction, mat2->spinning_friction);
+    complianceRoll = strategy->CombineCompliance(mat1->complianceRoll , mat2->complianceRoll);
+    complianceSpin = strategy->CombineCompliance(mat1->complianceSpin , mat2->complianceSpin);
 }
 
 }  // end namespace chrono

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -57,7 +57,7 @@ class ChApi ChCollisionUtils {
                                         Vector& Bprojected);
 };
 
-/// Wrapper for using andexporting the Bullet implementation of the convex hull library.
+/// Wrapper for using and exporting the Bullet implementation of the convex hull library.
 class ChApi ChConvexHullLibraryWrapper {
   public:
     ChConvexHullLibraryWrapper();

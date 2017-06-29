@@ -1,12 +1,29 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+
 #include <algorithm>
 #include <cmath>
 
+#include "chrono_parallel/ChDataManager.h"
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
+#include "chrono_parallel/physics/ChFluidKernels.h"
 #include "chrono_parallel/physics/ChMPM.cuh"
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/constraints/ChConstraintFluidFluidUtils.h"
+
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
+#include "chrono_parallel/collision/ChCollision.h"
 
 #include "chrono_parallel/math/other_types.h"  // for uint, vec2, vec3
 #include "chrono_parallel/math/real.h"         // for real
@@ -14,16 +31,13 @@
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
 #include "chrono_parallel/math/matrix.h"       // for quaternion, real4
-#include "chrono_parallel/collision/ChCollision.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-ChFluidContainer::ChFluidContainer(ChSystemParallelNSC* physics_system) {
-    data_manager = physics_system->data_manager;
-    data_manager->Add3DOFContainer(this);
+ChFluidContainer::ChFluidContainer() {
     body_offset = 0;
     epsilon = 1e-3;
     tau = 4 * .001;
@@ -47,11 +61,7 @@ ChFluidContainer::ChFluidContainer(ChSystemParallelNSC* physics_system) {
     theta_c = 2.5e-2;
     alpha_flip = .95;
     mpm_init = false;
-
-    family.x = 1;
-    family.y = 0x7FFF;
 }
-ChFluidContainer::~ChFluidContainer() {}
 
 void ChFluidContainer::AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;

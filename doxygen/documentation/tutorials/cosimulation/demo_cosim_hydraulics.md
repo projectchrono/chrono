@@ -5,7 +5,7 @@ This tutorial explains how to use co-simulation to
 simulate a hydraulic system that moves a simple mechanism. 
 The hydraulic system is managed by Simulink, 
 while the mechanism with moving parts and joints is simulated by 
-Chrono. This is enabled by the [COSIMULATION module](@ref module_cosimulation_installation).
+Chrono. This is enabled by the [COSIMULATION module](group__cosimulation__module.html).
 
 The approach described can serve as a template for complex scenarios 
 in which mechanisms with multiple hydraulic 
@@ -20,7 +20,7 @@ whereas Chrono can be used for the remaining components of the mechanical system
 
 The prerequisites for this tutorial are:
 
-* The Chrono [COSIMULATION module](@ref module_cosimulation_installation) should be properly installed/working.
+* The Chrono [COSIMULATION module](group__cosimulation__module.html) should be properly installed/working.
 * [Simulink](http://www.mathworks.com/products/simulink) must be installed.
 * The Matlab [Instrument Control Toolbox](http://www.mathworks.com/products/instrument) should be installed.
 * The Matlab [SimHydraulics Toolbox](http://www.mathworks.com/products/simhydraulics) should be installed.
@@ -225,7 +225,7 @@ src/demos/cosimulation/demo_COSIM_hydraulics.cpp
 ~~~
 
 Now create create a 'dead' linear actuator between two points 
-using a @ref ChLinkSpring with zero stiffness and damping. 
+using a @ref chrono::ChLinkSpring with zero stiffness and damping. 
 This will be used to apply the force between the two bodies as 
 a cylinder with spherical ball ends.
 

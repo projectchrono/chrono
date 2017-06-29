@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -34,8 +34,10 @@ const double HMMWV_PitmanArm::m_pitmanArmRadius = 0.02;
 
 const double HMMWV_PitmanArm::m_maxAngle = 50.0 * (CH_C_PI / 180);
 
-const ChVector<> HMMWV_PitmanArm::m_steeringLinkInertia(0.252, 0.00233, 0.254);
-const ChVector<> HMMWV_PitmanArm::m_pitmanArmInertia(0.00638, 0.00756, 0.00150);
+const ChVector<> HMMWV_PitmanArm::m_steeringLinkInertiaMoments(0.252, 0.00233, 0.254);
+const ChVector<> HMMWV_PitmanArm::m_steeringLinkInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_PitmanArm::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
+const ChVector<> HMMWV_PitmanArm::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

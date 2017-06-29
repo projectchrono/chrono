@@ -15,10 +15,10 @@ This module consists of *two* main sets of build targets:
 
 - The Python modules for [Chrono::PyEngine](@ref introduction_chrono_pyengine). 
   Currently, the PyChrono Python modules that are built are:
-	- *ChronoEngine_PYTHON_core*, that wraps all the core Chrono,
-	- *ChronoEngine_PYTHON_postprocess*, that wraps the POSTPROCESS module.
-	- *ChronoEngine_PYTHON_irrlicht*, that wraps the IRRLICHT module.
-	- *ChronoEngine_PYTHON_fea*, that wraps the FEA module.
+    - *ChronoEngine_PYTHON_core*, that wraps all the core Chrono,
+    - *ChronoEngine_PYTHON_postprocess*, that wraps the POSTPROCESS module.
+    - *ChronoEngine_PYTHON_irrlicht*, that wraps the IRRLICHT module.
+    - *ChronoEngine_PYTHON_fea*, that wraps the FEA module.
 
 - A *PYPARSER module* is built, that is a C++ module for parsing / executing / interpreting 
   Python instructions from C++ programs.
@@ -27,10 +27,10 @@ This module consists of *two* main sets of build targets:
 ## Requirements
 
 - To **run** applications based on this module:
-	- you must have [Python](http://www.python.org) installed.
+    - you must have [Python](http://www.python.org) installed.
 - To **build** this module:
-	- you must have [Python](http://www.python.org) installed,
-	- you must have the [SWIG](http://www.swig.org/) wrapper generator installed.
+    - you must have [Python](http://www.python.org) installed,
+    - you must have the [SWIG](http://www.swig.org/) wrapper generator installed.
 
 <div class="ce-warning">
 Some previous SWIG versions have a bug related to processing private and protected C++11 enum classes. This bug has been fixed in recent releases.  Use **SWIG-3.0.12**.
@@ -43,9 +43,9 @@ Some previous SWIG versions have a bug related to processing private and protect
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
 
-3. Set the <tt>ENABLE_MODULE_PYTHON</tt> as 'on', then press 'Configure' (to refresh the variable list) 
+3. Set the `ENABLE_MODULE_PYTHON` as 'on', then press 'Configure' (to refresh the variable list) 
 
-4. If prompted, set the <tt>CH_PYTHONDIR</tt> variable to the directory where you have your copy of Python. 
+4. If prompted, set the `CH_PYTHONDIR` variable to the directory where you have your copy of Python. 
    For example, it could be <tt>C:/Python33</tt>
 
 5. When you pressed 'Configure', CMake should have detected your SWIG tools. This should create two variables in CMake called <tt>SWIG_DIR</tt> and <tt>SWIG_EXECUTABLE</tt>. 
@@ -67,10 +67,10 @@ If you have multiple Python installations on the same machine, you may need to e
 After successful compilation, the [Chrono::PyEngine](@ref introduction_chrono_pyengine) modules can be used either from the *BUILD* tree or, after installation, from the *INSTALL* tree.  In order for the generated Python modules to be accessible, you must set/append to the <tt>PYTHONPATH</tt> environment variable.  During configuration, the Chrono CMake script will output the proper paths to be used in setting the PYTHONPATH environment variables; for example:
 
 - Windows:
-  <img src="http://www.projectchrono.org/assets/manual/ChronoPython_config.png" width="500">
+<img src="http://www.projectchrono.org/assets/manual/ChronoPython_config.png" width="500">
 
 - Linux:
-  <img src="http://www.projectchrono.org/assets/manual/ChronoPython_config_linux.png" width="600">
+<img src="http://www.projectchrono.org/assets/manual/ChronoPython_config_linux.png" width="600">
 
 Setting/changing environment variables is platform-specific.
 
@@ -86,12 +86,12 @@ Setting/changing environment variables is platform-specific.
 For more details on using the [Chrono::PyEngine](@ref introduction_chrono_pyengine) module, see the [introduction to Python scripting](@ref chrono_pyengine_reference) .
 
 - C++ functions (as Python parser)
-	- Look at the [API section](group__python__module.html) of this module for documentation about C++ functions.
-	- Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the C++ functions of this module.
+    - Look at the [API section](group__python__module.html) of this module for documentation about C++ functions.
+    - Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the C++ functions of this module.
 
 - Python functions (as [Chrono::PyEngine](@ref introduction_chrono_pyengine) )
-	- Look at the [reference](@ref chrono_pyengine_reference) of Chrono::PyEngine to learn how to use Python to control Chrono.
-	- Look at the Python source of [demos](@ref tutorial_table_of_content_chrono_pyengine) to learn how to use Chrono::PyEngine.
+    - Look at the [reference](@ref chrono_pyengine_reference) of Chrono::PyEngine to learn how to use Python to control Chrono.
+    - Look at the Python source of [demos](@ref tutorial_table_of_content_chrono_pyengine) to learn how to use Chrono::PyEngine.
 
 ## Notes
 
@@ -108,7 +108,7 @@ The build process of the Python modules, as generated by CMake, consists of thes
 
 <div class="ce-info">
 Note that the SWIG tool requires a few minutes to process the source 
-and  generate the .cxx wrapper file. When you start the compilation of the entire 
+and generate the .cxx wrapper file. When you start the compilation of the entire 
 Chrono project, the process might look 'frozen' 
 for one or two minutes when SWIG does its job. 
 </div>

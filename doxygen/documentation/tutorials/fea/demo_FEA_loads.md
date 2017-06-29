@@ -3,7 +3,7 @@ Apply loads   (demo_FEA_loads.cpp)  {#tutorial_demo_FEA_loads}
 
 
 Tutorial that teaches how to use the 
-[FEA module](@ref module_fea_installation)
+[FEA module](group__fea__module.html)
 to add loads to finite element models.
 
 Loads are added via ChLoad objects.

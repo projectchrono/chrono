@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -32,13 +32,6 @@
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_wheeled Wheeled vehicles
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 
@@ -53,11 +46,14 @@ namespace vehicle {
 class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
   public:
     /// Construct a vehicle system with a default ChSystem.
-    ChWheeledVehicle(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC)
-        : ChVehicle(contact_method) {}
+    ChWheeledVehicle(const std::string& name,                                                  ///< [in] vehicle name
+                     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+                     );
 
     /// Construct a vehicle system using the specified ChSystem.
-    ChWheeledVehicle(ChSystem* system) : ChVehicle(system) {}
+    ChWheeledVehicle(const std::string& name,  ///< [in] vehicle name
+                     ChSystem* system          ///< [in] containing mechanical system
+                     );
 
     /// Destructor.
     virtual ~ChWheeledVehicle() {}
@@ -80,6 +76,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.
     virtual double GetVehicleMass() const override;
+
+    /// Get the current global vehicle COM location.
+    virtual ChVector<> GetVehicleCOMPos() const override;
 
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }

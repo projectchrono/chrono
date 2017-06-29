@@ -1,20 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_MODELBULLET_H
 #define CHC_MODELBULLET_H
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h"
@@ -38,9 +38,6 @@ class ChConvexDecomposition;
 
 class ChApi ChModelBullet : public ChCollisionModel {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChModelBullet)
-
   protected:
     // The Bullet collision object containing Bullet geometries
     btCollisionObject* bt_collision_object;
@@ -60,7 +57,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
 
     /// Builds the BV hierarchy.
     /// Call this function AFTER adding the geometric description.
-    /// MUST be inherited by child classes! (ex for bulding BV hierarchies)
+    /// MUST be inherited by child classes! (ex for building BV hierarchies)
     virtual int BuildModel();
 
     //
@@ -143,7 +140,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// Add a convex hull to this model. A convex hull is simply a point cloud that describe
     /// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
     /// Points are passed as a list, that is instantly copied into the model.
-    virtual bool AddConvexHull(std::vector<ChVector<double> >& pointlist,
+    virtual bool AddConvexHull(std::vector<ChVector<double>>& pointlist,
                                const ChVector<>& pos = ChVector<>(),
                                const ChMatrix33<>& rot = ChMatrix33<>(1));
 
@@ -181,9 +178,9 @@ class ChApi ChModelBullet : public ChCollisionModel {
 
     /// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
     /// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis.
-    /// The center of the ellipse is on Y=0 level, and it is ofsetted by R_offset from
+    /// The center of the ellipse is on Y=0 level, and it is offsetted by R_offset from
     /// the Y axis in radial direction. The two radii of the ellipse are R_vert (for the
-    /// vertical direction, i.e. the axis parellel to Y) and R_hor (for the axis that
+    /// vertical direction, i.e. the axis parallel to Y) and R_hor (for the axis that
     /// is perpendicular to Y). Also, the solid is clamped with two discs on the top and
     /// the bottom, at levels Y_low and Y_high.
     virtual bool AddBarrel(double Y_low,
@@ -194,15 +191,15 @@ class ChApi ChModelBullet : public ChCollisionModel {
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1));
 
-    /// Add a 2D closed line, defined on the XY plane passing by pos and alinged as rot,
+    /// Add a 2D closed line, defined on the XY plane passing by pos and aligned as rot,
     /// that defines a 2D collision shape that will collide with another 2D line of the same type
     /// if aligned on the same plane. This is useful for mechanisms that work on a plane, and that
     /// require more precise collision that is not possible with current 3D shapes. For example,
-    /// the line can contain concave or convex round fillets. 
-    /// Requirements: 
+    /// the line can contain concave or convex round fillets.
+    /// Requirements:
     /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
     /// - the line must contain only ChLineSegment and ChLineArc sub-lines
-    /// - the sublines must follow in the proper order, with cohincident corners, and must be closed.
+    /// - the sublines must follow in the proper order, with coincident corners, and must be closed.
     virtual bool Add2Dpath(geometry::ChLinePath& mpath,
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
@@ -210,27 +207,28 @@ class ChApi ChModelBullet : public ChCollisionModel {
 
     /// Add a point-like sphere, that will collide with other geometries,
     /// but won't ever create contacts between them.
-    virtual bool AddPoint(  double radius = 0,                     ///< the radius of the node 
-                            const ChVector<>& pos = ChVector<>()   ///< the position of the node in model coordinates
-                           );
+    virtual bool AddPoint(double radius = 0,                    ///< the radius of the node
+                          const ChVector<>& pos = ChVector<>()  ///< the position of the node in model coordinates
+    );
 
-    /// Add a triangle from  mesh. 
-    /// For efficiency, points are stored as pointers. Thus, the user must 
+    /// Add a triangle from  mesh.
+    /// For efficiency, points are stored as pointers. Thus, the user must
     /// take care of memory management and of dangling pointers.
-    virtual bool AddTriangleProxy(  ChVector<>* p1,                 ///< points to vertex1 coords
-                                    ChVector<>* p2,                 ///< points to vertex2 coords
-                                    ChVector<>* p3,                 ///< points to vertex3 coords
-                                    ChVector<>* ep1,                ///< points to neighbouring vertex at edge1 if any
-                                    ChVector<>* ep2,                ///< points to neighbouring vertex at edge1 if any
-                                    ChVector<>* ep3,                ///< points to neighbouring vertex at edge1 if any
-                                    bool mowns_vertex_1,            ///< vertex is owned by this triangle (otherwise, owned by neighbour)
-                                    bool mowns_vertex_2,
-                                    bool mowns_vertex_3,
-                                    bool mowns_edge_1,              ///< edge is owned by this triangle (otherwise, owned by neighbour)
-                                    bool mowns_edge_2,
-                                    bool mowns_edge_3,
-                                    double msphereswept_rad=0       ///< sphere swept triangle ('fat' triangle, improves robustness)
-                                  );
+    virtual bool AddTriangleProxy(
+        ChVector<>* p1,              ///< points to vertex1 coords
+        ChVector<>* p2,              ///< points to vertex2 coords
+        ChVector<>* p3,              ///< points to vertex3 coords
+        ChVector<>* ep1,             ///< points to neighbouring vertex at edge1 if any
+        ChVector<>* ep2,             ///< points to neighbouring vertex at edge1 if any
+        ChVector<>* ep3,             ///< points to neighbouring vertex at edge1 if any
+        bool mowns_vertex_1,         ///< vertex is owned by this triangle (otherwise, owned by neighbour)
+        bool mowns_vertex_2,         ///< vertex is owned by this triangle (otherwise, owned by neighbour)
+        bool mowns_vertex_3,         ///< vertex is owned by this triangle (otherwise, owned by neighbour)
+        bool mowns_edge_1,           ///< edge is owned by this triangle (otherwise, owned by neighbour)
+        bool mowns_edge_2,           ///< edge is owned by this triangle (otherwise, owned by neighbour)
+        bool mowns_edge_3,           ///< edge is owned by this triangle (otherwise, owned by neighbour)
+        double msphereswept_rad = 0  ///< sphere swept triangle ('fat' triangle, improves robustness)
+    );
 
     /// Add all shapes already contained in another model.
     /// Thank to the adoption of shared pointers, underlying shapes are
@@ -280,7 +278,6 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
-
     //
     // CUSTOM BULLET
     //
@@ -294,10 +291,9 @@ class ChApi ChModelBullet : public ChCollisionModel {
     void onFamilyChange();
 };
 
-
 }  // end namespace collision
 
-CH_CLASS_VERSION(collision::ChModelBullet,0)
+CH_CLASS_VERSION(collision::ChModelBullet, 0)
 
 }  // end namespace chrono
 

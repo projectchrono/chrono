@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -44,28 +44,26 @@ class ChSystem;
 /// Further info at the @ref rigid_bodies  manual page.
 
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
-    
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChBody)
 
   protected:
-    std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< Pointer to the collision model
+    std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< pointer to the collision model
 
-    unsigned int body_id;  ///< body specific identifier, used for indexing (internal use only)
+    unsigned int body_id;   ///< body-specific identifier, used for indexing (internal use only)
+    unsigned int body_gid;  ///< body-specific identifier, used for global indexing (internal use only)
 
-    std::vector<std::shared_ptr<ChMarker> > marklist;  ///< list of child markers
-    std::vector<std::shared_ptr<ChForce> > forcelist;  ///< list of child forces
+    std::vector<std::shared_ptr<ChMarker>> marklist;  ///< list of markers
+    std::vector<std::shared_ptr<ChForce>> forcelist;  ///< list of forces
 
     ChVector<> gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
 
-    ChVector<> Xforce;   ///< force  acting on body, applied to COG -in abs. coords-
-    ChVector<> Xtorque;  ///< torque acting on body  -in body rel. coords-
+    ChVector<> Xforce;   ///< force  acting on body, applied to COG (in absolute coords)
+    ChVector<> Xtorque;  ///< torque acting on body  (in body relative coords)
 
-    ChVector<> Force_acc;   ///< force accumulator; (in abs space, applied to COG)
-    ChVector<> Torque_acc;  ///< torque accumulator;(in abs space)
+    ChVector<> Force_acc;   ///< force accumulator, applied to COG (in absolute coords)
+    ChVector<> Torque_acc;  ///< torque accumulator (in abs space)
 
-    ChVector<> Scr_force;   ///< script force accumulator; (in abs space, applied to COG)
-    ChVector<> Scr_torque;  ///< script torque accumulator;(in abs space)
+    ChVector<> Scr_force;   ///< script force accumulator, applied to COG (in absolute coords)
+    ChVector<> Scr_torque;  ///< script torque accumulator (in absolute coords)
 
     std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
 
@@ -77,8 +75,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVariablesBodyOwnMass variables;  ///< interface to solver (store inertia and coordinates)
 
-    float max_speed;  ///< limit on linear speed (useful for VR & videogames)
-    float max_wvel;   ///< limit on angular vel. (useful for VR & videogames)
+    float max_speed;  ///< limit on linear speed
+    float max_wvel;   ///< limit on angular velocity
 
     float sleep_time;
     float sleep_minspeed;
@@ -131,7 +129,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Enable/disable the collision for this rigid body.
     /// (After setting ON, you may need RecomputeCollisionModel()
     /// before anim starts, if you added an external object
-    /// that implements onAddCollisionGeometries(), ex. in a plugin for a CAD)
+    /// that implements onAddCollisionGeometries(), ex. in a plug-in for a CAD)
     void SetCollide(bool state);
 
     /// Return true if collision is enabled for this body.
@@ -186,11 +184,17 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// nor is it in "sleep" mode. Return false otherwise.
     bool IsActive();
 
-    /// Set body id for indexing (used only internally)
+    /// Set body id for indexing (internal use only)
     void SetId(int id) { body_id = id; }
 
-    /// Set body id for indexing (used only internally)
+    /// Set body id for indexing (internal use only)
     unsigned int GetId() { return body_id; }
+
+    /// Set global body index (internal use only)
+    void SetGid(unsigned int id) { body_gid = id; }
+
+    /// Get the global body index (internal use only)
+    unsigned int GetGid() const { return body_gid; }
 
     //
     // FUNCTIONS
@@ -298,7 +302,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Change the collision model.
     void SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
 
-    /// Acess the collision model for the collision engine.
+    /// Access the collision model for the collision engine.
     /// To get a non-null pointer, remember to SetCollide(true), before.
     std::shared_ptr<collision::ChCollisionModel> GetCollisionModel() { return collision_model; }
 
@@ -434,7 +438,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Set the inertia tensor of the body.
     /// The provided 3x3 matrix should be symmetric and contain the inertia
-    /// tensor, epxressed in the local coordinate system:
+    /// tensor, expressed in the local coordinate system:
     /// <pre>
     ///               [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     /// newXInertia = [                  int{x^2+z^2}   -int{yz}dm    ]
@@ -471,7 +475,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// iner = [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
     void SetInertiaXY(const ChVector<>& iner);
-    /// Get the extradiagonal part of the inertia tensor (Ixy, Ixz, Iyz values)
+    /// Get the extra-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values)
     /// Warning about sign: in some books they write the inertia tensor as
     /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; ...].
     /// The return 3x1 vector contains the following values:
@@ -487,7 +491,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
     float GetMaxSpeed() const { return max_speed; }
 
-    /// Set the maximum angualar speed (beyond this limit it will be clamped).
+    /// Set the maximum angular speed (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because
     /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
@@ -522,8 +526,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// for each UpdateState().
     void ComputeGyro();
 
-    /// Transform and adds a cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
-    /// The carthesian force must be passed as vector and application point, and vcan be either in local
+    /// Transform and adds a Cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
+    /// The Cartesian force must be passed as vector and application point, and vcan be either in local
     /// (local = true) or absolute reference (local = false)
     void Add_as_lagrangian_force(const ChVector<>& force,
                                  const ChVector<>& appl_point,
@@ -579,7 +583,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void UpdateMarkers(double mytime);
     /// Update all children forces of the rigid body, at current body state.
     void UpdateForces(double mytime);
-    /// Update local time of rigid body, and time-dependant data
+    /// Update local time of rigid body, and time-dependent data
     void UpdateTime(double mytime);
 
     /// Update all auxiliary data of the rigid body and of
@@ -665,7 +669,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -811,7 +815,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         EVAL_CONTACT_SF = (1L << 5),  // evaluate CONTACT_SF channel (static friction coeff)
         SHOW_COLLMESH = (1L << 6),    // show collision mesh - obsolete
         FIXED = (1L << 7),            // body is fixed to ground
-        LIMITSPEED = (1L << 8),       // body angular and linar speed is limited (clamped)
+        LIMITSPEED = (1L << 8),       // body angular and linear speed is limited (clamped)
         SLEEPING = (1L << 9),         // body is sleeping [internal]
         USESLEEPING = (1L << 10),     // if body remains in same place for too long time, it will be frozen
         NOGYROTORQUE = (1L << 11),    // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation

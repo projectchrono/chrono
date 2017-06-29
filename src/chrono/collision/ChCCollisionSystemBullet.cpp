@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/collision/ChCModelBullet.h"
@@ -233,7 +236,7 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
         bt2DarcShape* arc = (bt2DarcShape*)arcObj->getCollisionShape();
         bt2DsegmentShape* segment = (bt2DsegmentShape*)segmentObj->getCollisionShape();
 
-        // A concave arc (i.e.with outward volume, counterclockwise abscyssa) will never collide with segments
+        // A concave arc (i.e.with outward volume, counterclockwise abscissa) will never collide with segments
         if (arc->get_counterclock()) 
             return;
 
@@ -682,7 +685,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         ChModelBullet* triModelB = (ChModelBullet*)triB->getUserPointer();
 
         // brute force discard of connected triangles
-        // ***TODO*** faster approach based on colision families that can bypass the
+        // ***TODO*** faster approach based on collision families that can bypass the
         // check at the broadphase level?
         if (triA->get_p1() == triB->get_p1() ||
             triA->get_p1() == triB->get_p2() ||
@@ -754,7 +757,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         double candid_mu, candid_mv; 
 
 
-        // Shortcut: if two degenerate 'skinny' triangles with points 2&3 cohincident (ex. used to
+        // Shortcut: if two degenerate 'skinny' triangles with points 2&3 coincident (ex. used to
         // represent chunks of beams) just do an edge-edge test (as capsule-capsule) and return:
         if ((pA2 == pA3) && (pB2 == pB3) && triA->owns_e1() && triB->owns_e1()) {
             ChVector<> cA, cB, D;
@@ -908,7 +911,7 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
         ChVector<> cA, cB, D;
 
         double edge_tol = 1e-3;
-        //  + edge_tol to discard flat edges with some tolerancing:
+        //  + edge_tol to discard flat edges with some tolerance:
         double beta_convex_limit = CH_C_PI_2 + edge_tol; 
         //  +/- edge_tol to inflate arc of acceptance of edge vs edge, to cope with singular cases (ex. flat cube vs flat cube):
         double alpha_lo_limit = - edge_tol;              

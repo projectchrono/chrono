@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -13,6 +13,7 @@
 // =============================================================================
 //
 // Description: Parallel timer class that uses a map to query and add timers
+//
 // =============================================================================
 
 #pragma once
@@ -27,6 +28,9 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 
 namespace chrono {
+
+/// @addtogroup parallel_module
+/// @{
 
 struct TimerData {
     TimerData() : runs(0) {}
@@ -102,4 +106,7 @@ class CH_PARALLEL_API ChTimerParallel {
     std::map<std::string, TimerData> timer_list;
     std::map<std::string, TimerData>::iterator it;
 };
-}
+
+/// @} parallel_module
+
+} // end namespace chrono

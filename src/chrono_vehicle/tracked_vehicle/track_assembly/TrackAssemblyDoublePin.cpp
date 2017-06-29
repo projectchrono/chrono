@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -159,7 +159,7 @@ void TrackAssemblyDoublePin::LoadSuspension(const std::string& filename, int whi
     std::string type = d["Type"].GetString();
     assert(type.compare("RoadWheelAssembly") == 0);
 
-    // Extract road-wheeel assembly type.
+    // Extract road-wheel assembly type.
     assert(d.HasMember("Template"));
     std::string subtype = d["Template"].GetString();
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -53,7 +53,7 @@ using namespace chrono;
 // to a ChConstraint object.
 //
 // NOTE: the frictional contact problem is a special type of nonlinear
-// complementarity, called Cone Complementarty (CCP) and this is
+// complementarity, called Cone Complementary (CCP) and this is
 // solved as well by HyperOctant, using the same framework.
 
 // Test 1
@@ -422,7 +422,7 @@ void test_3() {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
+    GetLog() << " Example: the HyperOCTANT technology for solving LCP\n\n\n";
 
     // Test: an introductory problem:
     test_1();

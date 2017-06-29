@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,17 +22,15 @@ namespace chrono {
 /// Class for rigid bodies with an auxiliary reference frame.
 /// Unlike ChBody, where the COG frame is used as the reference frame, the
 /// auxiliary reference frame of a ChBodyAuxRef can be different from its
-/// COG frame.  This spcialization is provided for situations where it is more
+/// COG frame.  This specialization is provided for situations where it is more
 /// convenient to specify collision shapes, visualization assets, and marker
 /// positions with respect to a reference frame other than the COG frame.
-/// Note that, because of the auxilary reference, this type of rigid bodies
+/// Note that, because of the auxiliary reference, this type of rigid bodies
 /// can be slightly less efficient than the base ChBody object.
 ///
 /// Additional information can be found in the @ref rigid_bodies manual page.
 
 class ChApi ChBodyAuxRef : public ChBody {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChBodyAuxRef)
 
   private:
     ChFrameMoving<> auxref_to_cog;  ///< auxiliary REF location, relative to COG

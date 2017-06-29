@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -45,7 +45,7 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Defintion of a chassis for a track test rig
+// Definition of a chassis for a track test rig
 // -----------------------------------------------------------------------------
 class ChTrackTestRigChassis : public ChRigidChassis {
   public:
@@ -103,7 +103,7 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
                                const ChVector<>& location,
                                ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle(contact_method), m_location(location), m_max_torque(0) {
+    : ChVehicle("TrackTestRig", contact_method), m_location(location), m_max_torque(0) {
     // Open and parse the input file (track assembly JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -133,7 +133,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
                                const ChVector<>& location,
                                ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle(contact_method),
+    : ChVehicle("TrackTestRig", contact_method),
       m_track(assembly),
       m_location(location),
       m_max_torque(0) {
@@ -306,7 +306,7 @@ void ChTrackTestRig::AddVisualize_post(std::shared_ptr<ChBody> post_body,
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -height * 12.0);
     post_body->AddAsset(piston);  // add asset to post body
 
-    // Post sleve (on chassis/ground body)
+    // Post sleeve (on chassis/ground body)
     auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = width / 4.0;
     cyl->GetCylinderGeometry().p1 = post_body->GetPos() - ChVector<>(0, 0, 8 * height);

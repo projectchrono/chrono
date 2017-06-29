@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -12,7 +12,8 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: Utility functions for narrowphase
+// Description: Utility functions for GJK and MPR narrowphase.
+//
 // =============================================================================
 
 #pragma once
@@ -23,12 +24,18 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup parallel_collision
+/// @{
+
+/// Support point for a sphere (for GJK and MPR).
 inline real3 GetSupportPoint_Sphere(const real& radius, const real3& n) {
     // real3 b = real3(B.x);
     // return b * b * n / length(b * n);
     // the ellipsoid support function provides a cleaner solution for some reason
     return radius * n;
 }
+
+/// Support point for a triangle (for GJK and MPR).
 inline real3 GetSupportPoint_Triangle(const real3* t, const real3& n) {
     real dist = Dot(t[0], n);
     real3 point = t[0];
@@ -45,6 +52,8 @@ inline real3 GetSupportPoint_Triangle(const real3* t, const real3& n) {
 
     return point;
 }
+
+/// Support point for a box (for GJK and MPR).
 inline real3 GetSupportPoint_Box(const real3& B, const real3& n) {
     real3 result = real3(0);
     result.x = Sign(n.x) * B.x;
@@ -52,6 +61,8 @@ inline real3 GetSupportPoint_Box(const real3& B, const real3& n) {
     result.z = Sign(n.z) * B.z;
     return result;
 }
+
+/// Support point for an ellipsoid (for GJK and MPR).
 inline real3 GetSupportPoint_Ellipsoid(const real3& B, const real3& n) {
     real3 normal = n;
     real3 result = B * B * normal / Length(B * normal);
@@ -65,6 +76,7 @@ inline real3 GetSupportPoint_Ellipsoid(const real3& B, const real3& n) {
     //	return k*norm;
 }
 
+/// Support point for a cylinder (for GJK and MPR).
 inline real3 GetSupportPoint_Cylinder(const real3& B, const real3& n) {
     real s = Sqrt(n.x * n.x + n.z * n.z);
     real3 tmp;
@@ -79,6 +91,8 @@ inline real3 GetSupportPoint_Cylinder(const real3& B, const real3& n) {
     }
     return tmp;
 }
+
+/// Support point for a plane (for GJK and MPR).
 inline real3 GetSupportPoint_Plane(const real3& B, const real3& n) {
     real3 result = B;
 
@@ -90,6 +104,8 @@ inline real3 GetSupportPoint_Plane(const real3& B, const real3& n) {
 
     return result;
 }
+
+/// Support point for a cone (for GJK and MPR).
 inline real3 GetSupportPoint_Cone(const real3& B, const real3& n) {
     real radius = B.x;
     real height = B.y;
@@ -115,16 +131,21 @@ inline real3 GetSupportPoint_Cone(const real3& B, const real3& n) {
         }
     }
 }
+
+/// Support point for a line segment (for GJK and MPR).
 inline real3 GetSupportPoint_Seg(const real B, const real3& n) {
     real3 result = real3(0);
     result.x = Sign(n.x) * B;
 
     return result;
 }
+
+/// Support point for a capsule (for GJK and MPR).
 inline real3 GetSupportPoint_Capsule(const real2& B, const real3& n) {
     return GetSupportPoint_Seg(B.x, n) + GetSupportPoint_Sphere(B.y, n);
 }
 
+/// Support point for a disk (for GJK and MPR).
 inline real3 GetSupportPoint_Disk(const real& B, const real3& n) {
     real3 n2 = real3(n.x, n.y, 0);
     n2 = Normalize(n2);
@@ -134,6 +155,7 @@ inline real3 GetSupportPoint_Disk(const real& B, const real3& n) {
     return result;
 }
 
+/// Support point for a rectangle (for GJK and MPR).
 inline real3 GetSupportPoint_Rect(const real3& B, const real3& n) {
     real3 result = real3(0);
     result.x = Sign(n.x) * B.x;
@@ -141,16 +163,22 @@ inline real3 GetSupportPoint_Rect(const real3& B, const real3& n) {
     return result;
 }
 
+/// Support point for a rounded box, i.e. a sphere-swept box (for GJK and MPR).
 inline real3 GetSupportPoint_RoundedBox(const real4& B, const real3& n) {
     return GetSupportPoint_Box(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
 }
+
+/// Support point for a rounded cylinder, i.e. a sphere-swept cylinder (for GJK and MPR).
 inline real3 GetSupportPoint_RoundedCylinder(const real4& B, const real3& n) {
     return GetSupportPoint_Cylinder(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
 }
+
+/// Support point for a rounded cone, i.e. a sphere-swept cone (for GJK and MPR).
 inline real3 GetSupportPoint_RoundedCone(const real4& B, const real3& n) {
     return GetSupportPoint_Cone(real3(B.x, B.y, B.z), n) + GetSupportPoint_Sphere(B.w, n);
 }
 
+/// Support point for a gneric convex sphae (for GJK and MPR).
 inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, const real3& n) {
     real max_dot_p = -C_LARGE_REAL;
     real dot_p;
@@ -165,6 +193,7 @@ inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, co
     return point;
 }
 
+/// Support point for a tetrahedron (for GJK and MPR).
 inline real3 GetSupportPoint_Tetrahedron(const uvec4 indices, const real3* nodes, const real3& n) {
     real max_dot_p = -C_LARGE_REAL;
     real dot_p;
@@ -420,5 +449,8 @@ static void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, 
         face = 3;
     }
 }
-}
-}
+
+/// @} parallel_colision
+
+} // end namespace collision
+} // end namespace chrono

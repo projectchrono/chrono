@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -329,8 +329,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
 
         tot_iterations++;
 
-        // Terminate the loop if violation in constraints has been succesfully limited.
-        // ***TO DO*** a reliable termination creterion..
+        // Terminate the loop if violation in constraints has been successfully limited.
+        // ***TO DO*** a reliable termination criterion..
         /*
         if (maxd < this->tolerance)
         {

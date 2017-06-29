@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -64,8 +64,6 @@ class ChApiFea ChProximityMeshless {
 /// an object of class ChMatterMeshless.
 
 class ChApiFea ChProximityContainerMeshless : public ChProximityContainer {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChProximityContainerMeshless)
 
   protected:
     std::list<ChProximityMeshless*> proximitylist;
@@ -108,7 +106,7 @@ class ChApiFea ChProximityContainerMeshless : public ChProximityContainer {
     virtual void ReportAllProximities(ReportProximityCallback* mcallback) override;
 
     // Perform some SPH per-edge initializations and accumulations of values
-    // into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )
+    // into the connected pairs of particles (summation into particle's  J, Amoment, m_v, UserForce -viscous only- )
     // Will be called by the ChMatterMeshless item.
     void AccumulateStep1();
 

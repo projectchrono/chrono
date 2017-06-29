@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -26,9 +26,6 @@ namespace chrono {
 /// Mask structure for N scalar constraint equations between two bodies.
 
 class ChApi ChLinkMask {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMask)
 
   protected:
     std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraint states
@@ -78,7 +75,7 @@ class ChApi ChLinkMask {
     /// Tells if i-th equation is a unilateral constraint
     bool IsUnilateral(int i);
 
-    // Get the number of removed degrees of freedom (n.of costraints)
+    // Get the number of removed degrees of freedom (n.of constraints)
 
     /// Count both bilaterals and unilaterals
     int GetMaskDoc();
@@ -87,13 +84,13 @@ class ChApi ChLinkMask {
     /// Count only unilaterals
     int GetMaskDoc_d();
 
-    /// Get the i-th active scalar costraint (not active constr. won't be considered)
+    /// Get the i-th active scalar constraint (not active constr. won't be considered)
     ChConstraintTwoBodies* GetActiveConstrByNum(int mnum);
 
     /// Sets some active constraints as redundant.
     int SetActiveRedundantByArray(int* mvector, int mcount);
 
-    /// Set lock =ON for costraints which were disabled because redundant
+    /// Set lock =ON for constraints which were disabled because redundant
     int RestoreRedundant();
 
     /// If SetAllDisabled(true), all the constraints are temporarily turned
@@ -124,9 +121,6 @@ CH_CLASS_VERSION(ChLinkMask,0)
 /// the ChLinkLock link.
 
 class ChApi ChLinkMaskLF : public ChLinkMask {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMaskLF)
 
   public:
     /// Create a ChLinkMaskLF which has 7 scalar constraints of

@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHLOADABLE_H
 #define CHLOADABLE_H
@@ -42,7 +43,7 @@ class ChApi ChLoadable {
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) = 0;
 
     /// Increment all DOFs using a delta. Default is sum, but may override if 
-    /// ndof_x is diffenrent than ndof_w, for example with rotation quaternions and angular w vel.
+    /// ndof_x is different than ndof_w, for example with rotation quaternions and angular w vel.
     /// This could be invoked, for example, by the BDF differentiation that computes the jacobians.
     virtual void LoadableStateIncrement(const unsigned int off_x,
                                    ChState& x_new,

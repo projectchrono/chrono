@@ -1,89 +1,99 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHSYSTEMDESCRIPTOR_H
 #define CHSYSTEMDESCRIPTOR_H
 
 #include <vector>
 
-#include "chrono/solver/ChVariables.h"
-#include "chrono/solver/ChConstraint.h"
-#include "chrono/solver/ChKblock.h"
 #include "chrono/parallel/ChOpenMP.h"
 #include "chrono/parallel/ChThreadsSync.h"
+#include "chrono/solver/ChConstraint.h"
+#include "chrono/solver/ChKblock.h"
+#include "chrono/solver/ChVariables.h"
 
 namespace chrono {
-
-/// Base class for collecting objects inherited from ChConstraint ,
-/// ChVariables and, optionally ChKblock. These objects
+/// Base class for collecting objects inherited from ChConstraint,
+/// ChVariables and optionally ChKblock. These objects
 /// can be used to define a sparse representation of the system.
 /// This collector is important because it contains all the required
 /// information that is sent to a solver (usually a VI/CCP solver, or
-/// as a subcase, a linear solver). 
-///  The problem is described by a variational inequality VI(Z*x-d,K):
-///
-///  | H -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
+/// as a subcase, a linear solver).\n
+/// The problem is described by a variational inequality VI(Z*x-d,K):\n
+/// The matrix \f$Z\f$ that represents the problem has this form:
+/// <pre>
+///  | H -Cq'|*|q|- | f|= |0|
 ///  | Cq -E | |l|  |-b|  |c|
+/// </pre>
+/// with \f$Y \ni \mathbb{l}  \perp \mathbb{c} \in N_y\f$ \n
+/// where \f$N_y\f$ is the normal cone to \f$Y\f$ \n
+/// By flipping the sign of \f$l_i\f$, the matrix \f$Z\f$ can be symmetric (but in general non positive definite)
+/// <pre>
+/// | H  Cq'|*| q|-| f|=|0|
+/// | Cq  E | |-l| |-b| |c|
+/// </pre>
 ///
-/// Also Z symmetric by flipping sign of l_i: |H  Cq'|*| q|-| f|=|0|
-///                                           |Cq  E | |-l| |-b| |c|
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
-/// * case CCP: Y_i are friction cones
-/// Usually, H = M, the mass matrix, but in some cases, ex. when using 
-/// implicit integrators, objects inherited from ChKblock can be added
-/// too, hence H could be H=a*M+b*K+c*R (but not all solvers handle ChKblock!)
-/// All solvers require that the description of
-/// the system is passed by means of a ChSystemDescriptor,
-/// where all constraints, variables, masses, known terms
-///	(ex.forces) are represented as sparse data that
-/// are objects inherited from ChConstraint or ChVariables.
-/// Within this default implementation, the ChSystemDescriptor
-/// simply contains vectors with pointers to the variables
-/// and constraints, but more advanced implementation (ex. for
+/// * Linear Problem: \f$ \forall i \,Y_i = \mathbb{R}, N_{y_{i}} = 0\f$ (e.g. all bilateral)
+/// * Linear Complementarity Problem (LCP): \f$ 0\le c \perp l\ge0 \f$ (i.e. \f$Y_i = \mathbb{R}^+\f$)
+/// * Cone Complementarity Problem (CCP): \f$Y \ni \mathbb{l}  \perp \mathbb{c} \in N_y\f$ (\f$Y_i\f$ are friction
+/// cones)
+///
+/// *Notes*
+/// 1. most often you call ConvertToMatrixForm() right after a dynamic simulation step,
+///    in order to get the system matrices updated to the last timestep;
+/// 2. when using Anitescu default stepper, the 'f' vector contains forces*timestep = F*dt
+/// 3. when using Anitescu default stepper, 'q' represents the 'delta speed',
+/// 4. when using Anitescu default stepper, 'b' represents the dt/phi stabilization term.
+/// 5. usually, H = M, the mass matrix, but in some cases, ex. when using
+///         implicit integrators, objects inherited from ChKblock can be added
+///         too, hence H could be H=a*M+b*K+c*R (but not all solvers handle ChKblock!)
+///
+/// All solvers require that the description of the system
+/// is passed by means of a ChSystemDescriptor object
+/// that holds a list of all the constraints, variables, masses, known terms
+///	(ex.forces) under the form of ChVariables, ChConstraints and ChKblock.
+///
+/// In this default implementation, the ChSystemDescriptor
+/// simply holds a vector of pointers to ChVariables
+/// or to ChConstraints, but more advanced implementations (ex. for
 /// supporting parallel GPU solvers) could store constraints
-/// and variables structures with more efficient data schemes.
+/// and variables structures with other, more efficient data schemes.
 
 class ChApi ChSystemDescriptor {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemDescriptor)
 
   protected:
     //
     // DATA
     //
-    std::vector<ChConstraint*> vconstraints;
-    std::vector<ChVariables*> vvariables;
-    std::vector<ChKblock*> vstiffness;
+    std::vector<ChConstraint*> vconstraints;  ///< list of pointers to all the ChConstraint in the current Chrono system
+    std::vector<ChVariables*> vvariables;     ///< list of pointers to all the ChVariables in the current Chrono system
+    std::vector<ChKblock*> vstiffness;        ///< list of pointers to all the ChKblock in the current Chrono system
 
     int num_threads;
 
     ChSpinlock* spinlocktable;
 
-    double c_a;         // coefficient form M mass matrices in vvariables
+    double c_a;  // coefficient form M mass matrices in vvariables
 
   private:
-    int n_q;            // n.active variables
-    int n_c;            // n.active constraints
-    bool freeze_count;  // for optimizations
-
+    int n_q;            ///< number of active variables
+    int n_c;            ///< number of active constraints
+    bool freeze_count;  ///< for optimization: avoid to re-count the number of active variables and constraints
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    /// Constructor
     ChSystemDescriptor();
 
+    /// Destructor
     virtual ~ChSystemDescriptor();
 
     //
@@ -136,13 +146,13 @@ class ChApi ChSystemDescriptor {
     /// otherwise CountActiveVariables() and CountActiveConstraints() might fail.
     virtual void UpdateCountsAndOffsets();
 
-    /// Sets the c_a coefficient (default=1) used for scaling the M masses of the vvariables 
+    /// Sets the c_a coefficient (default=1) used for scaling the M masses of the vvariables
     /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
-    virtual void SetMassFactor(const double mc_a) { c_a = mc_a;}
+    virtual void SetMassFactor(const double mc_a) { c_a = mc_a; }
 
-    /// Gets the c_a coefficient (default=1) used for scaling the M masses of the vvariables 
+    /// Gets the c_a coefficient (default=1) used for scaling the M masses of the vvariables
     /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
-    virtual double GetMassFactor() { return c_a;}
+    virtual double GetMassFactor() { return c_a; }
 
     //
     // DATA <-> MATH.VECTORS FUNCTIONS
@@ -152,25 +162,25 @@ class ChApi ChSystemDescriptor {
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
     virtual int BuildFbVector(ChMatrix<>& Fvector  ///< matrix which will contain the entire vector of 'f'
-                              );
+    );
     /// Get a vector with all the 'bi' known terms ('constraint residuals' etc.) associated to all constraints,
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
     virtual int BuildBiVector(ChMatrix<>& Bvector  ///< matrix which will contain the entire vector of 'b'
-                              );
+    );
 
     /// Get the d vector = {f; -b} with all the 'fb' and 'bi' known terms, as in  Z*y-d
     /// (it is the concatenation of BuildFbVector and BuildBiVector) The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
     virtual int BuildDiVector(ChMatrix<>& Dvector  ///< matrix which will contain the entire vector of {f;-b}
-                              );
+    );
 
     /// Get the D diagonal of the Z system matrix, as a single column vector (it includes all the diagonal
     /// masses of M, and all the diagonal E (-cfm) terms).
     /// The Diagonal_vect must already have the size of n. of unknowns, otherwise it will be resized if necessary).
     virtual int BuildDiagonalVector(
         ChMatrix<>& Diagonal_vect  ///< matrix which will contain the entire vector of terms on M and E diagonal
-        );
+    );
 
     /// Using this function, one may get a vector with all the variables 'q'
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
@@ -181,7 +191,7 @@ class ChApi ChSystemDescriptor {
     virtual int FromVariablesToVector(
         ChMatrix<>& mvector,       ///< matrix which will contain the entire vector of 'q'
         bool resize_vector = true  ///< if true the vector size will be checked & resized if necessary
-        );
+    );
 
     /// Using this function, one may go in the opposite direction of the FromVariablesToVector()
     /// function, i.e. one gives a vector with all the variables 'q' ordered into a column vector, and
@@ -192,7 +202,7 @@ class ChApi ChSystemDescriptor {
     /// this is called after FromVariablesToVector() to do a kind of 'undo', for example.
     /// \return  the number of scalar variables (i.e. the rows of the column vector).
     virtual int FromVectorToVariables(ChMatrix<>& mvector  ///< matrix which contains the entire vector of 'q'
-                                      );
+    );
 
     /// Using this function, one may get a vector with all the constraint reactions 'l_i'
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
@@ -205,7 +215,7 @@ class ChApi ChSystemDescriptor {
     virtual int FromConstraintsToVector(
         ChMatrix<>& mvector,       ///< matrix which will contain the entire vector of 'l_i'
         bool resize_vector = true  ///< if true the vector size will be checked & resized if necessary
-        );
+    );
 
     /// Using this function, one may go in the opposite direction of the FromConstraintsToVector()
     /// function, i.e. one gives a vector with all the constr.reactions 'l_i' ordered into a column vector, and
@@ -218,7 +228,7 @@ class ChApi ChSystemDescriptor {
     /// this is called after FromConstraintsToVector() to do a kind of 'undo', for example.
     /// \return  the number of scalar constraint multipliers (i.e. the rows of the column vector).
     virtual int FromVectorToConstraints(ChMatrix<>& mvector  ///< matrix which contains the entire vector of 'l_i'
-                                        );
+    );
 
     /// Using this function, one may get a vector with all the unknowns x={q,l} i.e. q variables & l_i constr.
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
@@ -229,7 +239,7 @@ class ChApi ChSystemDescriptor {
     virtual int FromUnknownsToVector(
         ChMatrix<>& mvector,       ///< matrix which will contain the entire vector x={q,l}
         bool resize_vector = true  ///< if true the vector size will be checked & resized if necessary
-        );
+    );
 
     /// Using this function, one may go in the opposite direction of the FromUnknownsToVector()
     /// function, i.e. one gives a vector with all the unknowns x={q,l} ordered into a column vector, and
@@ -238,7 +248,7 @@ class ChApi ChSystemDescriptor {
     /// function will fail if mvector does not match the amount and ordering of
     /// the variable and constraint objects!!! (it is up to the user to check this!)
     virtual int FromVectorToUnknowns(ChMatrix<>& mvector  ///< matrix which contains the entire vector x={q,l}
-                                     );
+    );
 
     //
     // MATHEMATICAL OPERATIONS ON DATA
@@ -264,7 +274,7 @@ class ChApi ChSystemDescriptor {
                                        std::vector<bool>* enabled = 0  ///< optional: vector of enable flags, one per
                                        /// scalar constraint. true=enable, false=disable
                                        ///(skip)
-                                       );
+    );
 
     /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}
     /// (if x not provided, use values in current lagrangian multipliers l_i
@@ -276,9 +286,9 @@ class ChApi ChSystemDescriptor {
         ChMatrix<>* x        ///< optional matrix with the vector to be multiplied (if null, use current l_i and q)
         // std::vector<bool>* enabled=0 ///< optional: vector of enable flags, one per scalar constraint. true=enable,
         // false=disable (skip)
-        );
+    );
 
-    /// Performs projecton of constraint multipliers onto allowed set (in case
+    /// Performs projection of constraint multipliers onto allowed set (in case
     /// of bilateral constraints it does not affect multipliers, but for frictional
     /// constraints, for example, it projects multipliers onto the friction cones)
     /// Note! the 'l_i' data in the ChConstraints of the system descriptor are changed
@@ -286,7 +296,7 @@ class ChApi ChSystemDescriptor {
     /// it may happen that you need to backup them via FromConstraintToVector().
     virtual void ConstraintsProject(
         ChMatrix<>& multipliers  ///< matrix which contains the entire vector of 'l_i' multipliers to be projected
-        );
+    );
 
     /// As ConstraintsProject(), but instead of passing the l vector, the entire
     /// vector of unknowns x={q,-l} is passed.
@@ -295,7 +305,7 @@ class ChApi ChSystemDescriptor {
     /// it may happen that you need to backup them via FromConstraintToVector().
     virtual void UnknownsProject(
         ChMatrix<>& mx  ///< matrix which contains the entire vector of unknowns x={q,-l} (only the l part is projected)
-        );
+    );
 
     /// The following (obsolete) function may be called after a solver's 'Solve()'
     /// operation has been performed. This gives an estimate of 'how
@@ -305,7 +315,7 @@ class ChApi ChSystemDescriptor {
     virtual void ComputeFeasabilityViolation(
         double& resulting_maxviolation,  ///< gets the max constraint violation (either bi- and unilateral.)
         double& resulting_feasability    ///< gets the max feasability as max |l*c| , for unilateral only
-        );
+    );
 
     //
     // MISC
@@ -326,40 +336,27 @@ class ChApi ChSystemDescriptor {
     /// the jacobians of all the constraints/contacts, all the mass matrices, all vectors,
     /// as they are _currently_ stored in the sparse data of all ChConstraint and ChVariables
     /// contained in this ChSystemDescriptor.
-    /// The matrices define the VI variational inequality:
     ///
-    ///  | H -Cq'|*|q|- | f|= |0| , l \in Y (es friction cone), c \in normal cone to Y
-    ///  | Cq -E | |l|  |-b|  |c|    (case no friction: LCP c>=0, l>=0, l*c=0;)
-    ///                              (case only bilaterals: linear system, c=0)
-    ///
-    /// also symmetrizable by flipping the sign of l_i terms:  | H  Cq'|*| q|- | f|= |0|
-    ///                                                        | Cq -E | |-l|  |-b|  |C|
-    /// Note 1: most often you'll call ConvertToMatrixForm() right after a dynamic simulation timestep,
-    ///         because the system matrices are properly initialized,
-    /// Note 2: when using Anitescu default stepper, the 'f' vector contains forces*timestep = F*dt
-    /// Note 3: when using Anitescu default stepper, q represents the 'delta speed',
-    /// Note 4: when using Anitescu default stepper, b represents the dt/phi stabilization term.
-    /// Note 5: usually, H = M, the mass matrix, but in some cases, ex. when using 
-    ///         implicit integrators, objects inherited from ChKblock can be added
-    ///         too, hence H could be H=a*M+b*K+c*R
-    ///  This can be useful for debugging, data dumping, and similar purposes (most solvers avoid
+    /// This can be useful for debugging, data dumping, and similar purposes (most solvers avoid
     /// using these matrices, for performance), for example you will load these matrices in Matlab.
     /// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
     /// The matrices and vectors are automatically resized if needed.
-	virtual void ConvertToMatrixForm(ChSparseMatrix* Cq,   ///< fill this system jacobian matrix, if not null
-									 ChSparseMatrix* H,    ///< fill this system H (mass+stiffness+damp) matrix, if not null
-									 ChSparseMatrix* E,    ///< fill this system 'compliance' matrix , if not null
-                                     ChMatrix<>* Fvector,  ///< fill this vector as the known term 'f', if not null
-                                     ChMatrix<>* Bvector,  ///< fill this vector as the known term 'b', if not null
-                                     ChMatrix<>* Frict,    ///< fill as a vector with friction coefficients (=-1 for
-                                     /// tangent comp.; =-2 for bilaterals), if not null
-                                     bool only_bilaterals = false,
-                                     bool skip_contacts_uv = false);
+    virtual void ConvertToMatrixForm(
+        ChSparseMatrix* Cq,   ///< fill this system jacobian matrix, if not null
+        ChSparseMatrix* H,    ///< fill this system H (mass+stiffness+damp) matrix, if not null
+        ChSparseMatrix* E,    ///< fill this system 'compliance' matrix , if not null
+        ChMatrix<>* Fvector,  ///< fill this vector as the known term 'f', if not null
+        ChMatrix<>* Bvector,  ///< fill this vector as the known term 'b', if not null
+        ChMatrix<>* Frict,    ///< fill as a vector with friction coefficients (=-1 for
+        /// tangent comp.; =-2 for bilaterals), if not null
+        bool only_bilaterals = false, ///< skip unilateral constraints
+        bool skip_contacts_uv = false ///< skip the tangential reaction constraints
+    );
 
     /// Create and return the assembled system matrix and RHS vector.
     virtual void ConvertToMatrixForm(ChSparseMatrix* Z,  ///< [out] assembled system matrix
                                      ChMatrix<>* rhs     ///< [out] assembled RHS vector
-                                     );
+    );
 
     /// Saves to disk the LAST used matrices of the problem.
     /// If assembled == true,
@@ -373,14 +370,11 @@ class ChApi ChSystemDescriptor {
     ///    dump_b.dat   has the constraint rhs
     virtual void DumpLastMatrices(bool assembled = false, const char* path = "");
 
-
-
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite<ChSystemDescriptor>();
         // serialize parent class
@@ -389,8 +383,7 @@ class ChApi ChSystemDescriptor {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead<ChSystemDescriptor>();
         // deserialize parent class
@@ -399,8 +392,7 @@ class ChApi ChSystemDescriptor {
     }
 };
 
-CH_CLASS_VERSION(ChSystemDescriptor,0)
-
+CH_CLASS_VERSION(ChSystemDescriptor, 0)
 
 }  // end namespace chrono
 

@@ -1,29 +1,17 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHPYTHON_H
 #define CHPYTHON_H
-
-//////////////////////////////////////////////////
-//  
-//   ChPython.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "chrono_python/ChApiPyParser.h"
 #include "chrono/core/ChLog.h"
@@ -94,7 +82,7 @@ public:
 			/// You can pass a path too, ex "mydir/myotherdir/mysystem", but do NOT add .py
 			/// at the end!
 			/// That .py file, created when pressing the add-in button in SolidWorks CAD,
-			/// contains a python program that creates an equivalent mechanism in Chrono::Engine:
+			/// contains a python program that creates an equivalent mechanism in Chrono:
 			/// so it contains a sequce of creations of ChPhysicsItem objects (bodies, links, etc.).
 			/// If you want to add these python C::E objects to your ChSystem that you created 
 			/// in a C++ program, call this function: it will parse the .py textblock and add the created

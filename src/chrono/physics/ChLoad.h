@@ -1,13 +1,15 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+
 
 #ifndef CHLOAD_H
 #define CHLOAD_H
@@ -54,9 +56,6 @@ class ChLoadJacobians {
 /// matrix of the load) that can be used in implicit integrators, statics, etc.
 
 class ChApi ChLoadBase {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLoadBase)
 
 protected:
     ChLoadJacobians* jacobians;
@@ -180,7 +179,7 @@ public:
 
 /// Class for a load acting on a single ChLoadable item, via ChLoader objects.
 /// There are various ChLoader interfaces ready to use, that can be used
-/// as 'building blocks'. These are expecially important for creating loads
+/// as 'building blocks'. These are especially important for creating loads
 /// that are distributed on surfaces, lines, volumes, since some ChLoaders implement quadrature.
 /// Create them as ChLoad< ChLoaderPressure > my_load(...); for example.
 

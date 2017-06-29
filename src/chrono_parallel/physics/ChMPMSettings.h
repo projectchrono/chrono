@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,6 +20,10 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_physics
+/// @{
+
+/// Settings for the Material Point Method
 struct MPM_Settings {
     float dt, kernel_radius, inv_radius, bin_edge;
     float inv_bin_edge, max_velocity, mu, lambda;
@@ -36,4 +40,6 @@ struct MPM_Settings {
     int bins_per_axis_z;
 };
 
-}
+/// @} parallel_physics
+
+} // end namespace chrono

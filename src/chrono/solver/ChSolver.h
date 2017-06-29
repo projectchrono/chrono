@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -28,22 +28,11 @@ namespace chrono {
 
 /// Base class for solvers aimed at solving complementarity problems arising from QP optimization
 /// problems. This is an abstract class and specific solution methods are implemented in derived
-/// classes (e.g., SOR, APGD, etc.)
-/// The problem is described by a variational inequality VI(Z*x-d,K):
-///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
-///  | Cq -E | |l|  |-b|  |c|
-///
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
-///                                           |Cq  E | |-l| |-b| |c|
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
-/// * case CCP: Y_i are friction cones
+/// classes (e.g., SOR, APGD, etc.)\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures
+/// passed to the solver.
 
 class ChApi ChSolver {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolver)
 
   public:
       /// Available types of solvers.
@@ -84,7 +73,7 @@ class ChApi ChSolver {
 
     /// This function does the setup operations for the solver.
     /// The purpose of this function is to prepare the solver for subsequent calls to the
-    /// solve function.  This function is called only as frequently it is determined that
+    /// solve function. This function is called only as frequently it is determined that
     /// it is appropriate to perform the setup phase.
     virtual bool Setup(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                        ) {

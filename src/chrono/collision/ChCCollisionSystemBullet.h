@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHC_COLLISIONSYSTEMBULLET_H
 #define CHC_COLLISIONSYSTEMBULLET_H
@@ -26,9 +29,6 @@ namespace collision {
 ///
 
 class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChCollisionSystemBullet)
 
   public:
     ChCollisionSystemBullet(unsigned int max_objects = 16000, double scene_size = 500);

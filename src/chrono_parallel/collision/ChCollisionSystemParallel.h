@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -14,6 +14,7 @@
 //
 // Description: Parallel collsion system that calls a custom AABB generator,
 // broadphase and narrowphase
+//
 // =============================================================================
 
 #pragma once
@@ -34,18 +35,18 @@ class ChSystemParallel;  // forward declaration
 
 namespace collision {
 
-///
+/// @addtogroup parallel_collision
+/// @{
+
 /// Class for collision engine based on the spatial subdivision method.
 /// Contains both the broadphase and the narrow phase methods.
-///
-
 class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
   public:
     ChCollisionSystemParallel(ChParallelDataManager* dc);
     virtual ~ChCollisionSystemParallel();
 
     /// Clears all data instanced by this algorithm
-    /// if any (like persistent contact manifolds)
+    /// if any (like persistent contact manifolds).
     virtual void Clear(void) {}
 
     /// Adds a collision model to the collision
@@ -71,7 +72,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     /// The basic behavior of the implementation is the following: collision system
     /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
     /// EndAddContact() of the contact container. But if a special container (say, GPU enabled)
-    /// is passed, a more rapid buffer copy might be performed)
+    /// is passed, a more rapid buffer copy might be performed).
     virtual void ReportContacts(ChContactContainer* mcontactcontainer) {}
 
     /// After the Run() has completed, you can call this function to
@@ -81,7 +82,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     /// The basic behavior of the implementation is  the following: collision system
     /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
     /// EndAddProximities() of the proximity container. But if a special container (say, GPU enabled)
-    /// is passed, a more rapid buffer copy might be performed)
+    /// is passed, a more rapid buffer copy might be performed).
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) {}
 
     /// Perform a raycast (ray-hit test with the collision models).
@@ -108,6 +109,8 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     custom_vector<char> body_active;
     friend class chrono::ChSystemParallel;
 };
+
+/// @} parallel_colision
 
 }  // end namespace collision
 }  // end namespace chrono

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -147,7 +147,7 @@ class InPlaceParser {
 
     void ClearHardSeparator(char c) { mHard[c] = ST_DATA; }
 
-    void DefaultSymbols(void);  // set up default symbols for hard seperator and comment symbol of the '#' character.
+    void DefaultSymbols(void);  // set up default symbols for hard separator and comment symbol of the '#' character.
 
     bool EOS(char c) {
         if (mHard[c] == ST_EOS) {
@@ -163,7 +163,7 @@ class InPlaceParser {
     inline bool IsHard(char c);
     inline char* SkipSpaces(char* foo);
     inline bool IsWhiteSpace(char c);
-    inline bool IsNonSeparator(char c);  // non seperator,neither hard nor soft
+    inline bool IsNonSeparator(char c);  // non separator,neither hard nor soft
 
     bool mMyAlloc;  // whether or not *I* allocated the buffer and am responsible for deleting it.
     char* mData;    // ascii data to parse.
@@ -1062,7 +1062,7 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
         edge_map.insert({medgeC, it});
     }
 
-    // Create a map of neighbouring triangles, vector of:
+    // Create a map of neighboring triangles, vector of:
     // [Ti TieA TieB TieC]
     tri_map.resize(this->m_face_v_indices.size());
     for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
@@ -1332,7 +1332,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
 
 
 // Split an edge by inserting a point in the middle
-// It also updates uv buffer, normals buffer, etc. and recomputes neighbouring map.
+// It also updates uv buffer, normals buffer, etc. and recomputes neighboring map.
 bool ChTriangleMeshConnected::SplitEdge (
         int itA,      ///< triangle index,
         int itB,      ///< triangle index, -1 if not existing (means free edge on A)
@@ -1342,7 +1342,7 @@ bool ChTriangleMeshConnected::SplitEdge (
         int& itA_2,   ///< returns the index of split triangle A, part2
         int& itB_1,   ///< returns the index of split triangle B, part1
         int& itB_2,   ///< returns the index of split triangle B, part2
-        std::vector<std::array<int, 4>>& tri_map, ///< triangle neighbouring map
+        std::vector<std::array<int, 4>>& tri_map, ///< triangle neighboring map
         std::vector<std::vector<double>*>& aux_data_double, ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
         std::vector<std::vector<int>*>& aux_data_int,       ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
         std::vector<std::vector<bool>*>& aux_data_bool,      ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
@@ -1424,7 +1424,7 @@ bool ChTriangleMeshConnected::SplitEdge (
             // for m_face_v_indices buffer (vertex indexes) only:
             if (ibuffer ==0)  {
                 
-                // Update triangle neighbouring map
+                // Update triangle neighboring map
 
                 std::array<int, 4> topo_A_1 = tri_map[itA];
                 std::array<int, 4> topo_A_2 = tri_map[itA];
@@ -1602,7 +1602,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                 mlist.pop_back();
 
             } else {
-                //  find longest-edge in neighbouring triangle
+                //  find longest-edge in neighboring triangle
                 double T1_L_max = 0;
                 int edge_N1 =0;
                 int t_shared = 0; 

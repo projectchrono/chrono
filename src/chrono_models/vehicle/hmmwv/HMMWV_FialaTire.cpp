@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -42,9 +42,9 @@ HMMWV_FialaTire::HMMWV_FialaTire(const std::string& name) : ChFialaTire(name) {}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_FialaTire::SetFialaParams() {
-    // Parametes were fit at roughly 1700lbs and 24psi
+    // Parameters were fit at roughly 1700lbs and 24psi
     // Note, the width is not based on the width of the physical tire.
-    // It was soley based on providing a good fit to the aligning torque curve.
+    // It was only based on providing a good fit to the aligning torque curve.
     m_unloaded_radius = 0.461264;
     m_width = 0.8235;
     m_rolling_resistance = 0.001;  // Assume very small since no other data exists

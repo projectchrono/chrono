@@ -1,5 +1,5 @@
 #=============================================================================
-# CMake configuration file for the Chrono postprocessing module
+# CMake configuration file for the Chrono postprocess module
 # 
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
@@ -14,7 +14,7 @@ ENDIF()
 MESSAGE(STATUS "==== Chrono Postprocess module ====")
 
 #-----------------------------------------------------------------------------
-# LIST THE FILES THAT MAKE THE POSTPROCESSING LIBRARY
+# LIST THE FILES THAT MAKE THE POSTPROCESS LIBRARY
 
 SET(ChronoEngine_POSTPROCESS_SOURCES 
     ChPovRay.cpp

@@ -19,7 +19,7 @@ For your convenience, the CAD model, the converted **spider\_robot.py** model, a
 
 The following is the complete listing of **demo\_spider.py**  (it must stay in the same directory where you exported your CAD model with the name **spider\_robot.py**)
 
-Note how we used  **mybody = mysystem.SearchBody('...')**; and  **mymarker = mybody.SearchMarker('...');** to retrieve object pointers from their names in the 3D CAD model. Also note that a part that shows as *M-410iB-300 -1/ArmBase<1>* in the GUI of SolidWorks, becomes *M-410iB-300 -1/ArmBase-1* for the Python side; i.e. the <N> suffix becomes -N.
+Note how we used  **mybody = mysystem.SearchBody('...')**; and  **mymarker = mybody.SearchMarker('...');** to retrieve object pointers from their names in the 3D CAD model. Also note that a part that shows as *M-410iB-300 -1/ArmBase\<1\>* in the GUI of SolidWorks, becomes *M-410iB-300 -1/ArmBase-1* for the Python side; i.e. the \<N\> suffix becomes -N.
 	
 Finally, note how we used ChFunction objects to build some basic loop motions for the actuators, in prescribed rotation mode.
 
@@ -48,7 +48,7 @@ print ("Load a model exported by SolidWorks");
 #  Create the simulation system and add items
 #
 
-mysystem      = chrono.ChSystem()
+mysystem      = chrono.ChSystemNSC()
 
 parts = chrono.ImportSolidWorksSystem('./spider_robot');
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -16,7 +16,7 @@
 //
 // The model consists of a rigid double pendulum moving under gravity.
 // The test compares the simulation results (location and velocity of the center
-// of mass of the second pendulum) against the solution obtained byintegrating
+// of mass of the second pendulum) against the solution obtained by integrating
 // the ODEs in minimal coordinates q = (phi1, phi2).
 //
 // =============================================================================

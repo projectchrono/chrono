@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -271,7 +271,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     ChStreamOutAsciiFile ini_file(ini_filename.c_str());
 
     ini_file << "; Script for rendering an animation with POV-Ray. \n";
-    ini_file << "; Generated autumatically by Chrono::Engine. \n\n";
+    ini_file << "; Generated automatically by Chrono::Engine. \n\n";
     if (this->antialias)
         ini_file << "Antialias=On \n";
     else

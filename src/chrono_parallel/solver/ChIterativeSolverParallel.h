@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -14,6 +14,7 @@
 //
 // Description: This class calls the parallel solver, used as an intermediate
 // between chrono's solver interface and the parallel solver interface.
+//
 // =============================================================================
 
 #pragma once
@@ -22,7 +23,6 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/ChIntegratorParallel.h"
 
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 
@@ -31,22 +31,26 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_solver
+/// @{
+
+/// Base class for all iterative solvers.
 class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
   public:
     virtual ~ChIterativeSolverParallel();
 
-    ///< Each child class must define its own solve method
+    /// Each child class must define its own solve method.
     virtual double Solve(ChSystemDescriptor& sysd) { return 0; }
-    ///< Similarly, the run timestep function needs to be defined
+    /// Similarly, the run timestep function needs to be defined.
     virtual void RunTimeStep() = 0;
-    ///< This function computes the new velocities based on the lagrange multipliers
+    /// This function computes the new velocities based on the lagrange multipliers.
     virtual void ComputeImpulses() = 0;
 
-    ///< Compute the inverse mass matrix and the term v+M_inv*hf
+    /// Compute the inverse mass matrix and the term v+M_inv*hf.
     void ComputeInvMassMatrix();
-    // Compute mass matrix
+    /// Compute mass matrix.
     void ComputeMassMatrix();
-    ///< Solves just the bilaterals so that they can be warm started
+    /// Solves just the bilaterals so that they can be warm started.
     void PerformStabilization();
 
     real GetResidual();
@@ -63,6 +67,7 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
     ChProjectNone ProjectNone;
 };
 
+/// Wrapper class for all complementarity solvers.
 class CH_PARALLEL_API ChIterativeSolverParallelNSC : public ChIterativeSolverParallel {
   public:
     ChIterativeSolverParallelNSC(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
@@ -70,19 +75,19 @@ class CH_PARALLEL_API ChIterativeSolverParallelNSC : public ChIterativeSolverPar
     virtual void RunTimeStep();
     virtual void ComputeImpulses();
 
-    ///< Compute the constraint Jacobian matrix.
+    /// Compute the constraint Jacobian matrix.
     void ComputeD();
-    ///< Compute the compliance matrix.
+    /// Compute the compliance matrix.
     void ComputeE();
-    ///< Compute the RHS vector. This will not change depending on the solve
+    /// Compute the RHS vector. This will not change depending on the solve.
     void ComputeR();
-    ///< Compute the Shur matrix N.
+    /// Compute the Shur matrix N.
     void ComputeN();
-    ///< Set the RHS vector depending on the local solver mode
+    /// Set the RHS vector depending on the local solver mode.
     void SetR();
-    ///< This function computes an initial guess for each contact
+    /// This function computes an initial guess for each contact.
     void PreSolve();
-    ///< This function is used to change the solver algorithm.
+    /// This function is used to change the solver algorithm.
     void ChangeSolverType(SolverType type);
 
   private:
@@ -90,6 +95,7 @@ class CH_PARALLEL_API ChIterativeSolverParallelNSC : public ChIterativeSolverPar
     ChProjectConstraints ProjectFull;
 };
 
+/// Iterative solver for SMC (penalty-based) problems.
 class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverParallel {
   public:
     ChIterativeSolverParallelSMC(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
@@ -97,11 +103,11 @@ class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverPar
     virtual void RunTimeStep();
     virtual void ComputeImpulses();
 
-    ///< Compute the constraint Jacobian matrix.
+    /// Compute the constraint Jacobian matrix.
     void ComputeD();
-    ///< Compute the compliance matrix.
+    /// Compute the compliance matrix.
     void ComputeE();
-    ///< Compute the RHS vector.
+    /// Compute the RHS vector.
     void ComputeR();
 
     void ProcessContacts();
@@ -118,4 +124,6 @@ class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverPar
     void host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id);
 };
 
-}  // end namespace chrono
+/// @} parallel_solver
+
+} // end namespace chrono

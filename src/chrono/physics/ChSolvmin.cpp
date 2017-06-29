@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -742,7 +742,7 @@ void ChOptimizerGenetic::ApplyCrossover(ChGenotype* par1, ChGenotype* par2, ChGe
             return;  // %%%%
 
         case CrossoverType::ARITMETIC:
-            // 'Aritmetic' crossover:
+            // 'Arithmetic' crossover:
             // average of fenotypes with random wheight
             for (mv = 0; mv < nvars; mv++) {
                 w1 = ChRandom();
@@ -1158,7 +1158,7 @@ bool ChOptimizerGradient::DoOptimize() {
     ChMatrixDynamic<> mX(nv, 1);       // the variables
     ChMatrixDynamic<> mXguess(nv, 1);  // the guessed variables
     ChMatrixDynamic<> mG(nv, 1);       // the gradient
-    ChMatrixDynamic<> mGcn(nv, 1);     // the conjugategradient
+    ChMatrixDynamic<> mGcn(nv, 1);     // the conjugate gradient
     ChMatrixDynamic<> mGcnold(nv, 1);  // the old conjugate gradient
     ChMatrixDynamic<> mDx(nv, 1);      // the increment
     ChMatrixDynamic<> mXmid(nv, 1);    // the bisection center
@@ -1352,7 +1352,7 @@ ChOptimizerHybrid::ChOptimizerHybrid(const ChOptimizerHybrid& other) : ChOptimiz
 }
 
 ChOptimizerHybrid::~ChOptimizerHybrid() {
-    // delete the two incapsulated optimizers;
+    // delete the two encapsulated optimizers;
     delete genetic_opt;
     delete local_opt;
 }
@@ -1488,7 +1488,7 @@ double solvopt(unsigned int n,
       options is a vector of optional parameters (see the description in SOLVOPT.H).
             Returned optional values:
             options[8], the number of iterations, options[8]<0 means
-                        an error occured
+                        an error occurred
             options[9], the number of objective function evaluations, and
             options[10],the number of gradient evaluations.
       idData rappresenta un dato a 32 bit per contenere particolari informazioni

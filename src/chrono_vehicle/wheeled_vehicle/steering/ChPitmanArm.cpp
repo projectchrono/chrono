@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,14 +30,20 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChPitmanArm::ChPitmanArm(const std::string& name) : ChSteering(name) {
-}
+ChPitmanArm::ChPitmanArm(const std::string& name, bool vehicle_frame_inertia)
+    : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
+    m_position = ChCoordsys<>(location, rotation);
+
+    // Chassis orientation (expressed in absolute frame)
+    // Recall that the suspension reference frame is aligned with the chassis.
+    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
     steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -68,7 +74,14 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_link->SetPos(points[STEERINGLINK]);
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(getSteeringLinkMass());
-    m_link->SetInertiaXX(getSteeringLinkInertia());
+    if (m_vehicle_frame_inertia) {
+        ChMatrix33<> inertia = TransformInertiaMatrix(getSteeringLinkInertiaMoments(), getSteeringLinkInertiaProducts(),
+                                                      chassisRot, steering_to_abs.GetRot());
+        m_link->SetInertia(inertia);
+    } else {
+        m_link->SetInertiaXX(getSteeringLinkInertiaMoments());
+        m_link->SetInertiaXY(getSteeringLinkInertiaProducts());
+    }
     chassis->GetSystem()->AddBody(m_link);
 
     m_pP = m_link->TransformPointParentToLocal(points[UNIV]);
@@ -82,7 +95,14 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_arm->SetPos(points[PITMANARM]);
     m_arm->SetRot(steering_to_abs.GetRot());
     m_arm->SetMass(getPitmanArmMass());
-    m_arm->SetInertiaXX(getPitmanArmInertia());
+    if (m_vehicle_frame_inertia) {
+        ChMatrix33<> inertia = TransformInertiaMatrix(getPitmanArmInertiaMoments(), getPitmanArmInertiaProducts(),
+                                                      chassisRot, steering_to_abs.GetRot());
+        m_arm->SetInertia(inertia);
+    } else {
+        m_arm->SetInertiaXX(getPitmanArmInertiaMoments());
+        m_arm->SetInertiaXY(getPitmanArmInertiaProducts());
+    }
     chassis->GetSystem()->AddBody(m_arm);
 
     // Cache points for arm visualization (expressed in the arm frame)
@@ -150,6 +170,15 @@ void ChPitmanArm::Synchronize(double time, double steering) {
 // -----------------------------------------------------------------------------
 double ChPitmanArm::GetMass() const {
     return getSteeringLinkMass() + getPitmanArmMass();
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the steering subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChPitmanArm::GetCOMPos() const {
+    ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
+
+    return com / GetMass();
 }
 
 // -----------------------------------------------------------------------------

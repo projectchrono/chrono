@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -136,21 +136,21 @@ void ChMapMatrix::ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::
     m_CSR_current = true;
 }
 
-int* ChMapMatrix::GetCSR_LeadingIndexArray() const
+int* ChMapMatrix::GetCS_LeadingIndexArray() const
 {
     if (!m_CSR_current)
         ConvertToCSR(m_ia, m_ja, m_a);
     return m_ia.data();
 }
 
-int* ChMapMatrix::GetCSR_TrailingIndexArray() const
+int* ChMapMatrix::GetCS_TrailingIndexArray() const
 {
     if (!m_CSR_current)
         ConvertToCSR(m_ia, m_ja, m_a);
     return m_ja.data();
 }
 
-double* ChMapMatrix::GetCSR_ValueArray() const {
+double* ChMapMatrix::GetCS_ValueArray() const {
     if (!m_CSR_current)
         ConvertToCSR(m_ia, m_ja, m_a);
     return m_a.data();

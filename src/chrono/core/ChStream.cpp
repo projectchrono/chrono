@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include <cmath>
 #include <cstdarg>
@@ -747,7 +747,7 @@ bool ChStreamVectorWrapper::End_of_stream() {
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-// These constructors / destructors, though concise, cannost stay in .h because
+// These constructors / destructors, though concise, cannot stay in .h because
 // the GNU GCC linker gives strange problems...
 
 ChStreamOut::ChStreamOut() {

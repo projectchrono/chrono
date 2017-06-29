@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,9 +21,8 @@ using namespace irr::scene;
 // Initialize static variables
 int ChBodySceneNode::body_identifier = 0;
 
-// Constructors
 ChBodySceneNode::ChBodySceneNode(ChSystem* msystem, IAnimatedMesh* mesh, ISceneNode* parent, ISceneManager* mgr, s32 id)
-    : scene::ISceneNode(parent, mgr, id), ChronoControlled(true) {
+    : ISceneNode(parent, mgr, id), ChronoControlled(true) {
     assert(msystem);
 
 #ifdef _DEBUG
@@ -58,7 +57,7 @@ ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
                                  ISceneManager* mgr,
                                  s32 id,
                                  const ChVector<>& offset)
-    : scene::ISceneNode(parent, mgr, id), ChronoControlled(true) {
+    : ISceneNode(parent, mgr, id), ChronoControlled(true) {
     assert(msystem);
 
 #ifdef _DEBUG
@@ -82,7 +81,7 @@ ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
     msystem->AddBody(GetBody());
 }
 
-/// Destructor.
+// Destructor.
 ChBodySceneNode::~ChBodySceneNode() {
     // Automatically remove from the Chrono::Engine system, if currently inserted
     // in a system.

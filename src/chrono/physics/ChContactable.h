@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHCONTACTABLE_H
 #define CHCONTACTABLE_H
@@ -26,7 +27,7 @@ class ChPhysicsItem;
 
 /// Interface for objects that generate contacts
 /// One should inherit from ChContactable_1vars, ChContactable_2vars  etc. depending
-/// on the number of ChVariable objects contained in the object (i.e. the variable chuncks
+/// on the number of ChVariable objects contained in the object (i.e. the variable chunks
 /// to whom the contact point position depends, also the variables affected by contact force).
 class ChContactable {
   public:
@@ -76,7 +77,7 @@ class ChContactable {
     virtual void ContactForceLoadResidual_F(const ChVector<>& F, const ChVector<>& abs_point, ChVectorDynamic<>& R) = 0;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,

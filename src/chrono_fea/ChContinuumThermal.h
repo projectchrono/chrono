@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -37,7 +37,7 @@ class ChContinuumThermal : public ChContinuumPoisson3D {
 
     /// Sets the k conductivity constant of the material,
     /// expressed in watts per meter kelvin [ W/(m K) ].
-    /// Ex. (approx.): water = 0.6, alluminium = 200, steel = 50, plastics=0.9-0.2
+    /// Ex. (approx.): water = 0.6, aluminium = 200, steel = 50, plastics=0.9-0.2
     /// Sets the conductivity matrix as isotropic (diagonal k)
     void SetThermalConductivityK(double mk) {
         k_thermal_conductivity = mk;

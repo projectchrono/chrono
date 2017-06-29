@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -173,7 +173,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd  ///< system description 
 
         if (fabs(MNpNp) < 10e-30) {
             if (verbose)
-                GetLog() << "Iter=" << iter << " Rayleygh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
+                GetLog() << "Iter=" << iter << " Rayleigh quotient alpha breakdown: " << zNMr << " / " << MNpNp << "\n";
             MNpNp = 10e-12;
         }
 
@@ -409,14 +409,14 @@ double ChSolverPMINRES::Solve_SupportingStiffness(
         // Robustness improver: case of division by zero
         if (fabs(MZpZp) < 10e-30) {
             if (verbose)
-                GetLog() << "Rayleygh alpha denominator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
+                GetLog() << "Rayleigh alpha denominator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
                          << "  iter=" << iter << "\n";
             MZpZp = 10e-30;
         }
         // Robustness improver: case when r is orthogonal to Z*r (ex at first iteration, if f=0, x=0, with constraints)
         if (fabs(zZMr) < 10e-30) {
             if (verbose)
-                GetLog() << "Rayleygh alpha numerator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
+                GetLog() << "Rayleigh alpha numerator breakdown: " << zZMr << " / " << MZpZp << "=" << (zZMr / MZpZp)
                          << "  iter=" << iter << "\n";
             zZMr = 1;
             MZpZp = 1;
@@ -426,7 +426,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(
 
         if (alpha < 0)
             if (verbose)
-                GetLog() << "Rayleygh alpha < 0: " << alpha << "    iter=" << iter << "\n";
+                GetLog() << "Rayleigh alpha < 0: " << alpha << "    iter=" << iter << "\n";
 
         // x = x + alpha * p;
         mtmp = mp;
@@ -479,7 +479,7 @@ double ChSolverPMINRES::Solve_SupportingStiffness(
         mtmp.MatrSub(mZMr, mZMr_old);
         double numerator = mz.MatrDot(mz, mtmp);
         double denominator = mz_old.MatrDot(mz_old, mZMr_old);
-        // Raleygh quotient (original Minres)
+        // Rayleigh quotient (original Minres)
         // double numerator   = mr.MatrDot(mz,mZMr);			// 1)  r'* Z *r
         // double denominator = mr.MatrDot(mz_old,mZMr_old);	// 2)  r_old'* Z *r_old
         double beta = numerator / denominator;

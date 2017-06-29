@@ -1,4 +1,19 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+
 #include <algorithm>
+#include <climits>
 
 #include "chrono_parallel/collision/ChCollision.h"
 #include "chrono_parallel/collision/ChDataStructures.h"
@@ -121,6 +136,8 @@ void ChCAABBGenerator::GenerateAABB() {
             int start = start_rigid[index];
 
             // Body data
+            if (id == UINT_MAX)
+                continue;
 
             real3 position = pos_rigid[id];
             quaternion rotation = Mult(body_rot[id], local_rot);

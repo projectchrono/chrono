@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_COLLISIONTREE_H
 #define CHC_COLLISIONTREE_H
@@ -47,7 +48,7 @@ class ChCollisionTree {
     virtual int AddGeometry(geometry::ChGeometry* mgeo);
 
     /// Builds the BV hierarchy
-    /// MUST be inherited by child classes! (ex for bulding BV hierarchies)
+    /// MUST be inherited by child classes! (ex for building BV hierarchies)
     /// The 'out_layer' parameter can be used if contacts have to be detected
     /// even at a distance='envelope' from the surface (shortly, the effect
     /// is that bounding boxes are 'inflated' by this parameter).

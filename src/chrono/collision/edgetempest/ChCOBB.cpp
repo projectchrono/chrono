@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include <cstdlib>
 #include <cmath>
@@ -97,7 +98,7 @@ bool CHOBB::OBB_Overlap(ChMatrix33<>& B, Vector T, Vector a, Vector b) {
     Bf(2, 2) = myfabs(B.Get33Element(2, 2));
     Bf(2, 2) += reps;
 
-    // if any of these tests are one-sided, then the polyhedra are disjoint
+    // if any of these tests are one-sided, then the polyhedron are disjoint
     r = 1;
 
     // A1 x A2 = A0

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -25,18 +25,17 @@ using namespace geometry;
 CH_FACTORY_REGISTER(ChContactContainerNSC)
 
 ChContactContainerNSC::ChContactContainerNSC()
-    : n_added_6_6(0), 
-    n_added_6_3(0), 
-    n_added_3_3(0), 
-    n_added_333_3(0),
-    n_added_333_6(0),
-    n_added_333_333(0),
-    n_added_666_3(0),
-    n_added_666_6(0),
-    n_added_666_333(0),
-    n_added_666_666(0),
-    n_added_6_6_rolling(0)
-    {}
+    : n_added_6_6(0),
+      n_added_6_3(0),
+      n_added_3_3(0),
+      n_added_333_3(0),
+      n_added_333_6(0),
+      n_added_333_333(0),
+      n_added_666_3(0),
+      n_added_666_6(0),
+      n_added_666_333(0),
+      n_added_666_666(0),
+      n_added_6_6_rolling(0) {}
 
 ChContactContainerNSC::ChContactContainerNSC(const ChContactContainerNSC& other) : ChContactContainer(other) {
     n_added_6_6 = 0;
@@ -137,7 +136,7 @@ void ChContactContainerNSC::EndAddContact() {
         delete (*lastcontact_3_3);
         lastcontact_3_3 = contactlist_3_3.erase(lastcontact_3_3);
     }
-     while (lastcontact_333_3 != contactlist_333_3.end()) {
+    while (lastcontact_333_3 != contactlist_333_3.end()) {
         delete (*lastcontact_333_3);
         lastcontact_333_3 = contactlist_333_3.erase(lastcontact_333_3);
     }
@@ -173,13 +172,14 @@ void ChContactContainerNSC::EndAddContact() {
 }
 
 template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(std::list<Tcont*>& contactlist,
-                           Titer& lastcontact,
-                           int& n_added,
-                           ChContactContainer* mcontainer,
-                           Ta* objA,  ///< collidable object A
-                           Tb* objB,  ///< collidable object B
-                           const collision::ChCollisionInfo& cinfo) {
+void _OptimalContactInsert(std::list<Tcont*>& contactlist,          ///< contact list
+                           Titer& lastcontact,                      ///< last contact acquired
+                           int& n_added,                            ///< number of contact inserted
+                           ChContactContainer* mcontainer,          ///< contact container
+                           Ta* objA,                                ///< collidable object A
+                           Tb* objB,                                ///< collidable object B
+                           const collision::ChCollisionInfo& cinfo  ///< collision informations
+) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
         (*lastcontact)->Reset(objA, objB, cinfo);
@@ -201,7 +201,7 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
     auto contactableA = mcontact.modelA->GetContactable();
     auto contactableB = mcontact.modelB->GetContactable();
 
-    // See if both collision models use NSC i.e. 'nonsmooth dynamics' material
+    // See if both collision models use NSC i.e. 'non-smooth dynamics' material
     // of type ChMaterialSurfaceNSC, trying to downcast from ChMaterialSurface.
     // If not NSC vs NSC, just bailout (ex it could be that this was a SMC vs SMC contact)
 
@@ -467,13 +467,14 @@ void ChContactContainerNSC::IntStateScatterReactions(const unsigned int off_L, c
 }
 
 template <class Tcont>
-void _IntLoadResidual_CqL(unsigned int& coffset,
-                          std::list<Tcont*>& contactlist,
-                          const unsigned int off_L,    ///< offset in L multipliers
-                          ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                          const ChVectorDynamic<>& L,  ///< the L vector
-                          const double c,              ///< a scaling factor
-                          const int stride) {
+void _IntLoadResidual_CqL(unsigned int& coffset,           ///< offset of the contacts
+                          std::list<Tcont*>& contactlist,  ///< list of contacts
+                          const unsigned int off_L,        ///< offset in L multipliers
+                          ChVectorDynamic<>& R,            ///< result: the R residual, R += c*Cq'*L
+                          const ChVectorDynamic<>& L,      ///< the L vector
+                          const double c,                  ///< a scaling factor
+                          const int stride                 ///< stride
+) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntLoadResidual_CqL(off_L + coffset, R, L, c);
@@ -482,11 +483,10 @@ void _IntLoadResidual_CqL(unsigned int& coffset,
     }
 }
 
-void ChContactContainerNSC::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                                ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                                const ChVectorDynamic<>& L,  ///< the L vector
-                                                const double c               ///< a scaling factor
-                                                ) {
+void ChContactContainerNSC::IntLoadResidual_CqL(const unsigned int off_L,
+                                                ChVectorDynamic<>& R,
+                                                const ChVectorDynamic<>& L,
+                                                const double c) {
     unsigned int coffset = 0;
     _IntLoadResidual_CqL(coffset, contactlist_6_6, off_L, R, L, c, 3);
     _IntLoadResidual_CqL(coffset, contactlist_6_3, off_L, R, L, c, 3);
@@ -502,14 +502,15 @@ void ChContactContainerNSC::IntLoadResidual_CqL(const unsigned int off_L,    ///
 }
 
 template <class Tcont>
-void _IntLoadConstraint_C(unsigned int& coffset,
-                          std::list<Tcont*>& contactlist,
-                          const unsigned int off,  ///< offset in Qc residual
-                          ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
-                          const double c,          ///< a scaling factor
-                          bool do_clamp,           ///< apply clamping to c*C?
-                          double recovery_clamp,   ///< value for min/max clamping of c*C
-                          const int stride) {
+void _IntLoadConstraint_C(unsigned int& coffset,           ///< contact offset
+                          std::list<Tcont*>& contactlist,  ///< contact list
+                          const unsigned int off,          ///< offset in Qc residual
+                          ChVectorDynamic<>& Qc,           ///< result: the Qc residual, Qc += c*C
+                          const double c,                  ///< a scaling factor
+                          bool do_clamp,                   ///< apply clamping to c*C?
+                          double recovery_clamp,           ///< value for min/max clamping of c*C
+                          const int stride                 ///< stride
+) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         (*itercontact)->ContIntLoadConstraint_C(off + coffset, Qc, c, do_clamp, recovery_clamp);
@@ -518,12 +519,11 @@ void _IntLoadConstraint_C(unsigned int& coffset,
     }
 }
 
-void ChContactContainerNSC::IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
-                                                ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
-                                                const double c,          ///< a scaling factor
-                                                bool do_clamp,           ///< apply clamping to c*C?
-                                                double recovery_clamp    ///< value for min/max clamping of c*C
-                                                ) {
+void ChContactContainerNSC::IntLoadConstraint_C(const unsigned int off,
+                                                ChVectorDynamic<>& Qc,
+                                                const double c,
+                                                bool do_clamp,
+                                                double recovery_clamp) {
     unsigned int coffset = 0;
     _IntLoadConstraint_C(coffset, contactlist_6_6, off, Qc, c, do_clamp, recovery_clamp, 3);
     _IntLoadConstraint_C(coffset, contactlist_6_3, off, Qc, c, do_clamp, recovery_clamp, 3);
@@ -541,10 +541,10 @@ void ChContactContainerNSC::IntLoadConstraint_C(const unsigned int off,  ///< of
 template <class Tcont>
 void _IntToDescriptor(unsigned int& coffset,
                       std::list<Tcont*>& contactlist,
-                      const unsigned int off_v,  ///< offset in v, R
+                      const unsigned int off_v,
                       const ChStateDelta& v,
                       const ChVectorDynamic<>& R,
-                      const unsigned int off_L,  ///< offset in L, Qc
+                      const unsigned int off_L,
                       const ChVectorDynamic<>& L,
                       const ChVectorDynamic<>& Qc,
                       const int stride) {
@@ -556,10 +556,10 @@ void _IntToDescriptor(unsigned int& coffset,
     }
 }
 
-void ChContactContainerNSC::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChContactContainerNSC::IntToDescriptor(const unsigned int off_v,
                                             const ChStateDelta& v,
                                             const ChVectorDynamic<>& R,
-                                            const unsigned int off_L,  ///< offset in L, Qc
+                                            const unsigned int off_L,
                                             const ChVectorDynamic<>& L,
                                             const ChVectorDynamic<>& Qc) {
     unsigned int coffset = 0;
@@ -579,9 +579,9 @@ void ChContactContainerNSC::IntToDescriptor(const unsigned int off_v,  ///< offs
 template <class Tcont>
 void _IntFromDescriptor(unsigned int& coffset,
                         std::list<Tcont*>& contactlist,
-                        const unsigned int off_v,  ///< offset in v
+                        const unsigned int off_v,
                         ChStateDelta& v,
-                        const unsigned int off_L,  ///< offset in L
+                        const unsigned int off_L,
                         ChVectorDynamic<>& L,
                         const int stride) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
@@ -592,9 +592,9 @@ void _IntFromDescriptor(unsigned int& coffset,
     }
 }
 
-void ChContactContainerNSC::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChContactContainerNSC::IntFromDescriptor(const unsigned int off_v,
                                               ChStateDelta& v,
-                                              const unsigned int off_L,  ///< offset in L
+                                              const unsigned int off_L,
                                               ChVectorDynamic<>& L) {
     unsigned int coffset = 0;
     _IntFromDescriptor(coffset, contactlist_6_6, off_v, v, off_L, L, 3);

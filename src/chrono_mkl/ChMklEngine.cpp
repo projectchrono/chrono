@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -37,7 +37,7 @@ ChMklEngine::ChMklEngine(int pb_size, ChSparseMatrix::SymmetryType matrix_type)
       m_maxfct(1),
       m_mnum(1),
       m_last_phase(-1) {
-    m_type = ConvertMatrixType(matrix_type);
+    m_type = GetPardisoMatrixType(matrix_type);
     ResetSolver();
 }
 
@@ -56,11 +56,11 @@ void ChMklEngine::SetMatrix(ChSparseMatrix& Z) {
 
     m_n = Z.GetNumRows();
 
-    m_a = Z.GetCSR_ValueArray();
-    m_ia = Z.GetCSR_LeadingIndexArray();
-    m_ja = Z.GetCSR_TrailingIndexArray();
+    m_a = Z.GetCS_ValueArray();
+    m_ia = Z.GetCS_LeadingIndexArray();
+    m_ja = Z.GetCS_TrailingIndexArray();
 
-    int type = ConvertMatrixType(Z.GetType());
+    int type = GetPardisoMatrixType(Z.GetType());
     if (m_type != type) {
         m_type = type;
         ResetSolver();
@@ -111,7 +111,6 @@ void ChMklEngine::UsePermutationVector(bool val) {
     }
 }
 
-/// Warns if a incompatible parameter has been previously set
 void ChMklEngine::resetIparmElement(int iparm_num, int reset_value) {
     if (m_iparm[iparm_num] != reset_value) {
         m_iparm[iparm_num] = reset_value;
@@ -165,13 +164,7 @@ void ChMklEngine::UsePartialSolution(int option, int start_row, int end_row) {
     }
 }
 
-/// The Schur complement is output on the solution vector \c x that has to be resized to \c n x \c n size;
-/// The next call to Pardiso must not involve a solution phase. So no phase 33, 331, 332, 333, 23, 13 ecc...
-/// Any solution phase in fact would ouput the solution on the solution vector \c x.
-/// The element (\param[start_row],\param[start_row] must be the top-left element of the matrix on which the Schur
-/// complement will be computed;
-/// The element (\param[end_row],\param[end_row] must be the bottom-right element of the matrix on which the Schur
-/// complement will be computed;
+
 void ChMklEngine::OutputSchurComplement(int option, int start_row, int end_row) {
     m_iparm[35] = option;
 
@@ -213,7 +206,7 @@ int ChMklEngine::PardisoCall(int phase, int message_level) {
 }
 
 // Convert the symmetry matrix type to the corresponding Pardiso code.
-MKL_INT ChMklEngine::ConvertMatrixType(ChSparseMatrix::SymmetryType type) {
+MKL_INT ChMklEngine::GetPardisoMatrixType(ChSparseMatrix::SymmetryType type) {
     switch (type) {
         case ChSparseMatrix::GENERAL:
             return 11;

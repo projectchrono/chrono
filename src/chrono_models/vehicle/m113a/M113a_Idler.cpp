@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -57,7 +57,11 @@ class M113a_TensionerForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113a_TensionerForce(double k, double c, double f, double l0) : m_k(k), m_c(c), m_f(f), m_l0(l0) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel) override {
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
         return m_f - m_k * (length - m_l0) - m_c * vel;
     }
 

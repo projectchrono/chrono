@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -57,28 +57,29 @@ void ChConstraintTwoGenericBoxed::SetBoxedMinMax(double mmin, double mmax) {
     l_max = mmax;
 }
 
-void ChConstraintTwoGenericBoxed::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChConstraintTwoGenericBoxed::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChConstraintTwoGenericBoxed>();
 
-    // serialize parent class too
-    ChConstraintTwoGeneric::StreamOUT(mstream);
+    // serialize the parent class data too
+    ChConstraintTwoGeneric::ArchiveOUT(marchive);
 
-    // stream out all member data
-    mstream << l_min;
-    mstream << l_max;
+    // serialize all member data:
+    marchive << CHNVP(l_min);
+    marchive << CHNVP(l_max);
 }
 
-void ChConstraintTwoGenericBoxed::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+void ChConstraintTwoGenericBoxed::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChConstraintTwoGenericBoxed>();
 
-    // deserialize parent class too
-    ChConstraintTwoGeneric::StreamIN(mstream);
+    // deserialize the parent class data too
+    ChConstraintTwoGeneric::ArchiveIN(marchive);
 
-    // stream in all member data
-    mstream >> l_min;
-    mstream >> l_max;
+    // deserialize all member data:
+    marchive >> CHNVP(l_min);
+    marchive >> CHNVP(l_max);
 }
+
 
 }  // end namespace chrono

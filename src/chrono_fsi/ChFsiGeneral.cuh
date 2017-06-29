@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,32 +27,30 @@ namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChFsiGeneral {
-public:
-  ChFsiGeneral();
-  ChFsiGeneral(SimParams *hostParams, NumberOfObjects *hostNumObjects);
-  ~ChFsiGeneral();
-  /**
-* @brief computeGridSize
-* @details Compute grid and thread block size for a given number of elements
-*
-* @param n Total number of elements. Each elements needs a thread to be computed
-* @param blockSize Number of threads per block.
-* @param numBlocks output
-* @param numThreads Output: number of threads per block
-*/
-  void computeGridSize(uint n, uint blockSize, uint &numBlocks,
-                       uint &numThreads);
-  void setParameters(SimParams *hostParams, NumberOfObjects *hostNumObjects);
-  virtual void Finalize(){};
+  public:
+    ChFsiGeneral();
+    ChFsiGeneral(SimParams* hostParams, NumberOfObjects* hostNumObjects);
+    ~ChFsiGeneral();
 
-protected:
-  uint iDivUp(uint a, uint b);
+    /// @brief Compute number of blocks and threads for calculation on GPU
+    /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize
+    void computeGridSize(uint n,            ///< Total num elements
+                         uint blockSize,   ///< BlockSize Number of threads per block
+                         uint& numBlocks,  ///< numBlocks (output)
+                         uint& numThreads  ///< numThreads (output)
+                         );
 
-private:
-  SimParams *paramsH;
-  NumberOfObjects *numObjectsH;
+    void setParameters(SimParams* hostParams, NumberOfObjects* hostNumObjects);
+    virtual void Finalize(){};
+
+  protected:
+    uint iDivUp(uint a, uint b);
+
+  private:
+    SimParams* paramsH;
+    NumberOfObjects* numObjectsH;
 };
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono
 
 #endif

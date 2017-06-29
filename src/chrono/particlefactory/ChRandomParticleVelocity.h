@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHRANDOMPARTICLEVELOCITY_H
 #define CHRANDOMPARTICLEVELOCITY_H
@@ -34,7 +36,7 @@ class ChRandomParticleVelocity {
     /// Function that creates a random velocity each
     /// time it is called.
     /// This base behavior simply uses zero velocity by default.
-    /// Children classes implmeent more advanced velocity randomizations.
+    /// Children classes implement more advanced velocity randomizations.
     virtual ChVector<> RandomVelocity() { return VNULL; }
 };
 

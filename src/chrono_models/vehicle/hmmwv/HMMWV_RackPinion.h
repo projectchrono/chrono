@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,6 +27,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Rack-pinion steering subsystem for the HMMWV vehicle.
 class CH_MODELS_API HMMWV_RackPinion : public ChRackPinion {
   public:
     HMMWV_RackPinion(const std::string& name);
@@ -53,6 +57,8 @@ class CH_MODELS_API HMMWV_RackPinion : public ChRackPinion {
 
     static const double m_maxAngle;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

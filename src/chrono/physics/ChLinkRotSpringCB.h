@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -26,8 +26,6 @@ namespace chrono {
 /// they are connected through a revolute, cylindrical, or screw joint). The
 /// relative angle and relative angular speed of this link are about the common axis.
 class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkRotSpringCB)
 
   public:
     ChLinkRotSpringCB();
@@ -53,9 +51,10 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
         virtual ~TorqueFunctor() {}
 
         /// Calculate and return the general spring-damper torque at the specified configuration.
-        virtual double operator()(double time,   ///< current time
-                                  double angle,  ///< relative angle of rotation
-                                  double vel     ///< relative angular speed
+        virtual double operator()(double time,             ///< current time
+                                  double angle,            ///< relative angle of rotation
+                                  double vel,              ///< relative angular speed
+                                  ChLinkRotSpringCB* link  ///< back-pointer to associated link
                                   ) = 0;
     };
 

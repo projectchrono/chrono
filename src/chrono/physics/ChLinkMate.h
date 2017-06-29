@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -28,15 +28,12 @@ namespace chrono {
 /// are created in assemblies of 3D CAD tools (parallel
 /// axis, or face-to-face, etc.).
 /// Note that most of the ChLinkMate constraints can be
-/// done also with the contraints inherited from ChLinkLock...
+/// done also with the constraints inherited from ChLinkLock...
 /// but in case of links of the ChLinkLock class they
 /// reference two ChMarker objects, tht can also move, but
 /// this is could be an unnecessary complication in most cases.
 
 class ChApi ChLinkMate : public ChLink {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMate)
 
   public:
     ChLinkMate() {}
@@ -62,9 +59,6 @@ CH_CLASS_VERSION(ChLinkMate,0)
 
 class ChApi ChLinkMateGeneric : public ChLinkMate {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateGeneric)
-
   protected:
     ChFrame<> frame1;
     ChFrame<> frame2;
@@ -76,9 +70,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     bool c_ry;
     bool c_rz;
 
-    int ndoc;    ///< number of DOC, degrees of costraint
-    int ndoc_c;  ///< number of DOC, degrees of costraint (only bilaterals)
-    int ndoc_d;  ///< number of DOC, degrees of costraint (only unilaterals)
+    int ndoc;    ///< number of DOC, degrees of constraint
+    int ndoc_c;  ///< number of DOC, degrees of constraint (only bilaterals)
+    int ndoc_d;  ///< number of DOC, degrees of constraint (only unilaterals)
 
     ChLinkMask* mask;
 
@@ -137,7 +131,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Initialization based on passing two vectors (point + dir) on the
     /// two bodies, they will represent the X axes of the two frames (Y and Z will
-    /// be built from the X vector via Gramm Schmidt orthonomralization).
+    /// be built from the X vector via Gram Schmidt orthonormalization).
     /// Use the other ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
@@ -234,9 +228,6 @@ CH_CLASS_VERSION(ChLinkMateGeneric,0)
 
 class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMatePlane)
-
   protected:
     bool flipped;
     double separation;
@@ -292,9 +283,6 @@ CH_CLASS_VERSION(ChLinkMatePlane,0)
 
 class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateCoaxial)
-
   protected:
     bool flipped;
 
@@ -339,9 +327,6 @@ CH_CLASS_VERSION(ChLinkMateCoaxial,0)
 
 class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateSpherical)
-
   public:
     ChLinkMateSpherical() : ChLinkMateGeneric(true, true, true, false, false, false) {}
     ChLinkMateSpherical(const ChLinkMateSpherical& other);
@@ -369,9 +354,6 @@ CH_CLASS_VERSION(ChLinkMateSpherical,0)
 /// Mate constraining distance of origin of frame B respect to X axis of frame A.
 
 class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateXdistance)
 
   protected:
     double distance;
@@ -422,9 +404,6 @@ CH_CLASS_VERSION(ChLinkMateXdistance,0)
 
 class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateParallel)
-
   protected:
     bool flipped;
 
@@ -471,9 +450,6 @@ CH_CLASS_VERSION(ChLinkMateParallel,0)
 
 class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateOrthogonal)
-
   protected:
     ChVector<> reldir1;
     ChVector<> reldir2;
@@ -514,13 +490,10 @@ CH_CLASS_VERSION(ChLinkMateOrthogonal,0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint that completly fix one frame's rotation and translation
+/// Mate constraint that completely fix one frame's rotation and translation
 /// respect to the other frame.
 
 class ChApi ChLinkMateFix : public ChLinkMateGeneric {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateFix)
 
   public:
     ChLinkMateFix() : ChLinkMateGeneric(true, true, true, true, true, true) {}

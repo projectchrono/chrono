@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -638,7 +638,7 @@ void ChElementShellReissner4::ComputeMassMatrix() {
     // Heuristic, simplified 'lumped' mass matrix.
     // Split the mass in 4 pieces, weighting as the jacobian at integration point, but
     // lump at the node closest to integration point.
-    // This is simplier than the stiffness-consistent mass matrix that would require
+    // This is simpler than the stiffness-consistent mass matrix that would require
     // integration over gauss points.
 
     for (int n = 0; n < NUMNODES; n++) {

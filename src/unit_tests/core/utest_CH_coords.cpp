@@ -1,16 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// -----------------------------------------------------------------------
+// =============================================================================
 // Demo on how to use Chrono coordinate transformations
-// -----------------------------------------------------------------------
+// =============================================================================
 
 #include <cmath>
 
@@ -39,11 +39,11 @@ int main(int argc, char* argv[]) {
     ChVector<> mvect2;  // resulting (transformed) vectors will go here
     ChVector<> mvect3;
 
-    // Define a  POINT  to be transformed, exèressed in
+    // Define a  POINT  to be transformed, expressed in
     // local frame coordinate.
     ChVector<> mvect1(2, 3, 4);
 
-    // Define a vector representin the TRASLATION of the frame
+    // Define a vector representing the TRASLATION of the frame
     // respect to absolute (world) coordinates.
     ChVector<> vtraslA(5, 6, 7);
 

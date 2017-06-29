@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "      " << pos_1.x() << "  " << pos_1.y() << "\n";
             GetLog() << "      " << pos_2.x() << "  " << pos_2.y() << "\n";
 
-            // But it's quite likely that, for the second pendulum, waht we want is
+            // But it's quite likely that, for the second pendulum, what we want is
             // the position of the body reference frame.  This is available with:
             ChFrame<> frame_2 = pend_2->GetFrame_REF_to_abs();
             pos_2 = frame_2.GetPos();

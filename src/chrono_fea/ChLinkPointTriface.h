@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -49,8 +49,6 @@ class ChApiFea ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 
 /// The node can be offset respect to the face.
 
 class ChApiFea ChLinkPointTriface : public ChLinkInterface {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkPointTriface)
 
   private:
     ChVector<> react;
@@ -210,8 +208,6 @@ class ChApiFea ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
 class ChApiFea ChLinkPointTrifaceRot : public ChLinkInterface {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkPointTrifaceRot)
 
   private:
     ChVector<> react;

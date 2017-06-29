@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -29,12 +29,10 @@ namespace utils {
 /// its mass, a centroidal frame, and its inertia tensor (w.r.t. the centroidal frame).
 /// New sub-components can be included in the composite body and optionally
 /// marked as "voids" (holes), by specifying:
-/// <pre>
 /// - the mass of the sub-component
 /// - a sub-component centroidal frame, relative to the composite reference frame;
 ///   the location of this frame represents the sub-component COM location
 /// - the sub-component inertia tensor w.r.t. its centroidal frame
-/// </pre>
 
 class ChApi CompositeInertia {
   public:

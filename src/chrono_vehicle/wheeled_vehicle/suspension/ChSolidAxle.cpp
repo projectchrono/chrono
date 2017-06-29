@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,7 +20,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -64,8 +64,12 @@ ChSolidAxle::ChSolidAxle(const std::string& name) : ChSuspension(name) {
 void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
                              std::shared_ptr<ChBody> tierod_body,
+                             int steering_index,
                              double left_ang_vel,
                              double right_ang_vel) {
+    m_location = location;
+    m_steering_index = steering_index;
+
     // Unit vectors for orientation matrices.
     ChVector<> u;
     ChVector<> v;
@@ -358,6 +362,32 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
 double ChSolidAxle::GetMass() const {
     return getAxleTubeMass() + getTierodMass() + getDraglinkMass() + getBellCrankMass() +
            2 * (getSpindleMass() + getULMass() + getLLMass() + getKnuckleMass());
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChSolidAxle::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getAxleTubeMass() * m_axleTube->GetPos();
+    com += getTierodMass() * m_tierod->GetPos();
+    com += getDraglinkMass() * m_draglink->GetPos();
+    com += getBellCrankMass() * m_bellCrank->GetPos();
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getULMass() * m_upperLink[LEFT]->GetPos();
+    com += getULMass() * m_upperLink[RIGHT]->GetPos();
+
+    com += getLLMass() * m_lowerLink[LEFT]->GetPos();
+    com += getLLMass() * m_lowerLink[RIGHT]->GetPos();
+
+    com += getKnuckleMass() * m_knuckle[LEFT]->GetPos();
+    com += getKnuckleMass() * m_knuckle[RIGHT]->GetPos();
+
+    return com / GetMass();
 }
 
 // -----------------------------------------------------------------------------

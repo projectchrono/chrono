@@ -1,20 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-//   Demos code about
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-//     - FEA (introduction to dynamics)
+// FEA (introduction to dynamics)
 //
-
-// Include some headers used by this tutorial...
+// =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -289,7 +289,7 @@ void test_2b() {
 
 void test_3() {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: tetahedron FEM dynamics, implicit integration \n\n";
+    GetLog() << "TEST: tetrahedron FEM dynamics, implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
     ChSystemNSC my_system;
@@ -480,9 +480,8 @@ void test_4() {
     }
 }
 
-
 int main(int argc, char* argv[]) {
     test_3();
-	
+
     return 0;
 }

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -36,9 +36,6 @@ class ChBody;
 /// to parent ChBody, if needed to represent imposed trajectories etc.
 
 class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMarker)
 
   public:
     enum eChMarkerMotion {
@@ -76,7 +73,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
   public:
     ChMarker();
-    ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt);
+    ChMarker(const std::string& name,
+             ChBody* body,
+             const ChCoordsys<>& rel_pos,
+             const ChCoordsys<>& rel_pos_dt,
+             const ChCoordsys<>& rel_pos_dtdt);
     ChMarker(const ChMarker& other);
     ~ChMarker();
 
@@ -122,7 +123,7 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Get reference to the inner 'absolute frame' auxiliary
     /// coordinates. This object (coordinates/speeds/accel. of marker
-    /// expressed in absolute coordinates) is useful for performace
+    /// expressed in absolute coordinates) is useful for performance
     /// reasons. Note! it is updated only after each Update() function.
     const ChFrameMoving<double>& GetAbsFrame() const { return abs_frame; }
 

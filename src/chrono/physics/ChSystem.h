@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -16,7 +16,7 @@
 #define CHSYSTEM_H
 
 #include <cfloat>
-#include <memory.h>
+#include <memory>
 #include <cstdlib>
 #include <cmath>
 #include <cstring>
@@ -63,12 +63,14 @@ class ChContactContainer;
 /// order to perform simulations (you'll insert rigid bodies and
 /// links into it..)
 ///
+/// Note that this is an abstract class, in your code you must
+/// create a system from one of the concrete classes: 
+///   @ref chrono::ChSystemNSC (for non-smooth contacts) or
+///   @ref chrono::ChSystemSMC (for smooth 'penalty' contacts).
+///
 /// Further info at the @ref simulation_system  manual page.
 
 class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystem)
 
   public:
     /// Create a physical system.
@@ -119,15 +121,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     double GetStepMax() const { return step_max; }
 
     /// Set the method for time integration (time stepper type).
-    /// <pre>
     ///   - Suggested for fast dynamics with hard (NSC) contacts: EULER_IMPLICIT_LINEARIZED
     ///   - Suggested for fast dynamics with hard (NSC) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
     ///   - Suggested for finite element smooth dynamics: HHT, EULER_IMPLICIT_LINEARIZED
-    /// NOTES:
+    ///
+    /// *Notes*:
     ///   - for more advanced customization, use SetTimestepper()
     ///   - old methods ANITESCU and TASORA were replaced by EULER_IMPLICIT_LINEARIZED and EULER_IMPLICIT_PROJECTED,
     ///     respectively
-    /// </pre>
     void SetTimestepperType(ChTimestepper::Type type);
 
     /// Get the current method for time integration (time stepper type).
@@ -147,7 +148,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Sets tolerance (in m) for assembly constraints. When trying to keep constraints together,
     /// the iterative process is stopped if this tolerance (or max.number of iterations ) is reached
-    void SetTol(double m_tol) { tol = m_tol; }
+    void SetTol(double tolerance) { tol = tolerance; }
     /// Gets current tolerance for assembly constraints.
     double GetTol() const { return tol; }
 
@@ -155,9 +156,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// The tolerance specified here is in fact a tolerance at the force level.
     /// this value is multiplied by the value of the current time step and then
     /// used as a stopping criteria for the iterative speed solver.
-    void SetTolForce(double mtol) { tol_force = mtol; }
+    void SetTolForce(double tolerance) { tol_force = tolerance; }
     /// Return the current value of the tolerance used in the speed solver.
     double GetTolForce() const { return tol_force; }
+
+    /// Change the default composition laws for contact surface materials
+    /// (coefficient of friction, cohesion, compliance, etc.)
+    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy);
 
     /// For elastic collisions, with objects that have nonzero
     /// restitution coefficient: objects will rebounce only if their
@@ -176,16 +181,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
-    /// <pre>
     ///   - Suggested solver for speed, but lower precision: SOR
     ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
     ///   - For problems that involve a stiffness matrix: MINRES
-    /// NOTES:
+    ///
+    /// *Notes*:
     ///   - Do not use CUSTOM type, as this type is reserved for external solvers
-    ///     (set using SetSolver and/or SetStabSolver)
+    ///     (set using SetSolver() and/or SetStabSolver())
     ///   - This function is a shortcut, internally equivalent to two calls to
     ///     SetSolver() and SetStabSolve()
-    /// </pre>
     virtual void SetSolverType(ChSolver::Type type);
 
     /// Gets the current solver type.
@@ -283,13 +287,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Create and return the pointer to a new body.
     /// The returned body is created with a contact model consistent with the type
-    /// of this Chsystem and with the collision system currently associated with this
+    /// of this ChSystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
     virtual ChBody* NewBody() = 0;
 
     /// Create and return the pointer to a new body with auxiliary reference frame.
     /// The returned body is created with a contact model consistent with the type
-    /// of this Chsystem and with the collision system currently associated with this
+    /// of this ChSystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
     virtual ChBodyAuxRef* NewBodyAuxRef() = 0;
 
@@ -303,7 +307,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Remove all controls from this system.
     void RemoveAllControls();
 
-    /// Replace the contact continer.
+    /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
 
     /// Get the contact container
@@ -630,13 +634,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// reached, but current time step may be automatically "retouched" to
     /// meet exactly the m_endtime after n steps.
     /// Useful when you want to advance the simulation in a
-    /// simulations (3d modeling software etc.) wihch needs updates
+    /// simulations (3d modeling software etc.) which needs updates
     /// of the screen at a fixed rate (ex.30th of second)  while
     /// the integration must use more steps.
     bool DoFrameDynamics(double m_endtime);
 
     /// Given the current state, the sw simulates the
-    /// dynamical behaviour of the system, until the end
+    /// dynamical behavior of the system, until the end
     /// time is reached, repeating many steps (maybe the step size
     /// will be automatically changed if the integrator method supports
     /// step size adaption).
@@ -673,7 +677,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ///    dump_f.dat   has the applied loads
     ///    dump_b.dat   has the constraint rhs
     /// as passed to the solver in the problem
-    ///  | H -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
+    ///  | H -Cq'|*|q|- | f|= |0| , l \f$\in Y, c \in Ny\f$, normal cone to Y
     ///  | Cq -E | |l|  |-b|  |c|
 
     void SetDumpSolverMatrices(bool md) { dump_matrices = md; }
@@ -722,7 +726,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     bool DoFrameKinematics(double m_endtime);
 
     /// Given the current state, this kinematic simulation
-    /// satisfies all the costraints with the "DoStepKinematics"
+    /// satisfies all the constraints with the "DoStepKinematics"
     /// procedure for each time step, from the current time
     /// to the end time.
     bool DoEntireKinematics();
@@ -733,7 +737,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// a Newton-Raphson iteration loop. Used iteratively in inverse kinematics.
     /// Action can be one of AssemblyLevel::POSITION, AssemblyLevel::VELOCITY, or 
     /// AssemblyLevel::ACCELERATION (or a combination of these)
-    /// Returns true if no errors and false if an error occured (impossible assembly?)
+    /// Returns true if no errors and false if an error occurred (impossible assembly?)
     bool DoAssembly(int action);
 
     /// Shortcut for full position/velocity/acceleration assembly.
@@ -755,8 +759,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Finds the position of static equilibrium (and the
     /// reactions) starting from the current position.
-    /// Since a truncated iterative metod is used, you may need
-    /// to call this method multiple times in case of large nonlienarities
+    /// Since a truncated iterative method is used, you may need
+    /// to call this method multiple times in case of large nonlinearities
     /// before coming to the precise static solution.
     bool DoStaticRelaxing(int nsteps = 10);
 
@@ -771,7 +775,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     /// Process a ".chr" binary file containing the full system object
-    /// hierarchy as exported -for example- by the R3D modeler, with chrono plugin version,
+    /// hierarchy as exported -for example- by the R3D modeler, with chrono plug-in version,
     /// or by using the FileWriteChR() function.
     int FileProcessChR(ChStreamInBinary& m_file);
 
@@ -825,6 +829,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     std::vector<CustomCollisionCallback*> collision_callbacks;
 
+    std::unique_ptr<ChMaterialCompositionStrategy<float>> composition_strategy; /// material composition strategy
+
     // timers for profiling execution speed
     ChTimer<double> timer_step;              ///< timer for integration step
     ChTimer<double> timer_solver;            ///< timer for solver (excluding setup phase)
@@ -836,9 +842,20 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
+
+    // Friend class declarations
+
+    template <class Ta, class Tb>
+    friend class ChContactNSC;
+
+    template <class Ta, class Tb>
+    friend class ChContactNSCrolling;
+
+    template <class Ta, class Tb>
+    friend class ChContactSMC;
 };
 
-CH_CLASS_VERSION(ChSystem,0)
+CH_CLASS_VERSION(ChSystem, 0)
 
 }  // end namespace chrono
 

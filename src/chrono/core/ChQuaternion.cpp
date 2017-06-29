@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -83,7 +83,7 @@ ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<d
     return (res);
 }
 
-// Get the quaternion from an agle of rotation and an axis, defined in _abs_ coords.
+// Get the quaternion from an angle of rotation and an axis, defined in _abs_ coords.
 // The axis is supposed to be fixed, i.e. it is constant during rotation.
 // The 'axis' vector must be normalized.
 ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) {
@@ -115,7 +115,7 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
     double sinangle = ChClamp(axis.Length() / lenXlen, -1.0, +1.0);
     double cosangle = ChClamp(fr_vect ^ to_vect / lenXlen, -1.0, +1.0);
 
-    // Consider three cases: Parallel, Opposite, non-colinear
+    // Consider three cases: Parallel, Opposite, non-collinear
     if (std::abs(sinangle) == 0.0 && cosangle > 0) {
         // fr_vect & to_vect are parallel
         quat.e0() = 1.0;

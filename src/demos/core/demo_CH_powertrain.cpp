@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
         GetLog() << " Example: create a simple power train with ChShaft objects: \n";
 
         // We will model a very basic powertrain with two shafts A and B,
-        // connected by a reducer [ t ] with transmision ratio 't'. Shafts are
+        // connected by a reducer [ t ] with transmission ratio 't'. Shafts are
         // free to rotate, shaft A has an applied torque Ta, so A and B will
         // constantly accelerate. Each shaft must have some inertia, it's like a
         // flywheel, marked as || in the following scheme:
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
         // constraint.
         // The ChShaftsPlanetary makes a kinematic constraint between three
         // shafts: so one of them will be 'fixed' and will represent the truss
-        // of the reducer -in epicycloidaal reducer, this is the role of the
+        // of the reducer -in s reducer, this is the role of the
         // large gear with inner teeth- and the two remaining shafts are the
         // input and output shafts (in other cases, such as the differential
         // planetary gear of the cars, all three shafts are free).

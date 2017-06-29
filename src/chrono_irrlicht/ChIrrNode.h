@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -48,12 +48,12 @@ namespace irrlicht {
 class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
   public:
     /// Build a scene node for the Irrlicht Engine.
-    /// This scene node also has a pointer to a rigid body for the Chrono::Engine
+    /// This scene node also has a pointer to a rigid body for the Chrono
     /// multibody simulation.  To delete a ChIrrSceneNode node from an Irrlicht
     /// scene, use the remove() function from the Irrlicht side (it won't delete
     /// the C::E body, though), or better delete the corresponding ChIrrlichtObj
     /// asset from the C::E side, or delete the full C::E body.
-    ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,  ///< pointer to the Chrono::Engine item (es. rigid body)
+    ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,  ///< pointer to the Chrono item (es. rigid body)
               irr::scene::ISceneNode* parent,             ///< the parent node in Irrlicht hierarchy
               irr::scene::ISceneManager* mgr,             ///< the Irrlicht scene manager
               irr::s32 id                                 ///< the Irrlicht identifier
@@ -90,10 +90,10 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     /// (ex. a ChBody) wrapped by this scene node.
     std::weak_ptr<ChPhysicsItem> GetPhysicsItem() { return physicsitem; }
 
-    /// Returns true if the node is moved by Chrono::Engine simulation system.
+    /// Returns true if the node is moved by Chrono simulation system.
     virtual bool IsChronoControlled() const { return ChronoControlled; }
 
-    /// Set true if the node must be moved by Chrono::Engine simulation system
+    /// Set true if the node must be moved by Chrono simulation system
     /// (it follows a ChPhysicsItem that contains a ChIrrNodeAsset, proxy to this).
     virtual void SetChronoControlled(const bool& controlled) { ChronoControlled = controlled; }
 

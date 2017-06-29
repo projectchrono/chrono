@@ -6,7 +6,7 @@ Install the MATLAB module {#module_matlab_installation}
 This is a simple module that allows exchanging matrices and variables 
 from/to the Matlab environment with simple C++ function calls in Chrono::Engine.
 
-Read [the introduction to modules](@ref modules) for a technical 
+Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono::Engine project.
 
 
@@ -37,9 +37,9 @@ functions from your Chrono::Engine -based application. Basically, you can
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
   
-2. Set the ENABLE_MODULE_MATLAB as 'on', then press 'Configure' (to refresh the variable list)
+2. Set the `ENABLE_MODULE_MATLAB` as 'on', then press 'Configure' (to refresh the variable list)
 
-3. Set the CH_MATLAB_SDK to the path where you have your Matlab '/extern' subdirectory. 
+3. Set the `CH_MATLAB_SDK` to the path where you have your Matlab '/extern' subdirectory. 
    This changes depending on where you installed Matlab. 
    For example, it could be `C:/Program Files/MATLAB/R2015b/extern`
  
@@ -70,7 +70,7 @@ find it; so you need to modify the PATH system variable. Do the following:
 <div class="ce-info">
 In some cases, in Windows, the Matlab engine cannot be started 
 because it was not registered in COM during its installation. 
-In this case, when launching the "demo_matlab.exe", 
+In this case, when launching the "demo_MTLB_matlab.exe", 
 you get a message like "Can't start MATLAB engine". 
 To fix this problem: <br><br>
 1.Open your Matlab editor,  <br>
@@ -82,4 +82,4 @@ To fix this problem: <br><br>
 
 - Look at the [API section](group__matlab__module.html) of this module for documentation about classes and functions.
 
-- Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.
+- Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_matlab) to learn how to use the functions of this module.

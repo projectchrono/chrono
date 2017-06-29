@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -241,12 +241,12 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// Given current state y={x,v} , computes acceleration a in the state derivative dy/dt={v,a} and
     /// lagrangian multipliers L (if any).
     /// NOTES
-    ///   - some solvers (ex in DVI) cannot compute a classical derivative dy/dt when v is a function
-    ///     of bounded variation, and f or L are distributions (e.g., when there are impulses and
-    ///     discontinuities), so they compute a finite Dv through a finite dt. This is the reason why
-    ///     this function has an optional parameter dt. In a DVI setting, one computes Dv, and returns
-    ///     Dv*(1/dt) here in Dvdt parameter; if the original Dv has to be known, just multiply Dvdt*dt later.
-    ///     The same for impulses: a DVI would compute impulses I, and return L=I*(1/dt).
+    ///  - some solvers (ex in DVI) cannot compute a classical derivative dy/dt when v is a function
+    ///    of bounded variation, and f or L are distributions (e.g., when there are impulses and
+    ///    discontinuities), so they compute a finite Dv through a finite dt. This is the reason why
+    ///    this function has an optional parameter dt. In a DVI setting, one computes Dv, and returns
+    ///    Dv*(1/dt) here in Dvdt parameter; if the original Dv has to be known, just multiply Dvdt*dt later.
+    ///    The same for impulses: a DVI would compute impulses I, and return L=I*(1/dt).
     ///  - derived classes must take care of calling StateScatter(y,T) before computing Dy, only if
     ///    force_state_scatter = true (otherwise it is assumed state is already in sync)
     ///  - derived classes must take care of resizing Dv if needed.

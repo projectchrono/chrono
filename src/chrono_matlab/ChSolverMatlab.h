@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -26,8 +26,6 @@ namespace chrono {
 /// Class for using Matlab from Chrono programs.
 
 class ChApiMatlab ChSolverMatlab : public ChSolver {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolverMatlab)
 
   protected:
     ChMatlabEngine* mengine;
@@ -45,7 +43,7 @@ class ChApiMatlab ChSolverMatlab : public ChSolver {
     /// As typical of direct solvers, the Pardiso solver only requires the matrix for its Setup() phase.
     virtual bool SolveRequiresMatrix() const override { return false; }
 
-    /// Solve using the Matlab default direct solver (as in x=A\b)
+    /// Solve using the Matlab default direct solver (as in x=A\\b)
     virtual double Solve(ChSystemDescriptor& sysd) override;
 
     /// Method to allow serialization of transient data to archives.

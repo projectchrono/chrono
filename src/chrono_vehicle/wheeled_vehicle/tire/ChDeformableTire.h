@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -50,6 +50,8 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     ChDeformableTire(const std::string& name  ///< [in] name of this tire system
                      );
 
+    virtual ~ChDeformableTire() {}
+
     /// Set the type of contact surface.
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
     ContactSurfaceType GetContactSurfaceType() const { return m_contact_type; }
@@ -68,7 +70,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// The default value is 0.6
     void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
 
-    /// Set coefficient of restiturion.
+    /// Set coefficient of restitution.
     /// The default value is 0.1
     void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
 

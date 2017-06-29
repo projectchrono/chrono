@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -56,14 +56,13 @@ class ChMatrixDynamic;
 /// means the element at 3rd row, 5th column.
 ///  This is an abstract class, so you cannot instantiate
 /// objects from it: you must rather create matrices using the
-/// specialized child classes like ChMatrixDynamic, ChMatrixNM
+/// specialized child classes like ChMatrixDynamic, ChMatrixNM,
 /// ChMatrix33 and so on; all of them have this same base class.
 ///  Warning: for optimization reasons, not all functions will
 /// check about boundaries of element indexes and matrix sizes (in
 /// some cases, if sizes are wrong, debug asserts are used).
 ///
 /// Further info at the @ref mathematical_objects manual page.
-
 template <class Real = double>
 class ChMatrix {
   protected:
@@ -258,7 +257,7 @@ class ChMatrix {
 
     /// Fill the diagonal elements, given a sample.
     /// Note that the matrix must already be square (no check for
-    /// rectangular matrices!), and the extradiagonal elements are
+    /// rectangular matrices!), and the extra-diagonal elements are
     /// not modified -this function does not set them to 0-
     void FillDiag(Real sample) {
         for (int i = 0; i < rows; ++i)
@@ -915,11 +914,11 @@ class ChMatrix {
                                       Get44Element(3, 2) * (Real)qua.e2() + Get44Element(3, 3) * (Real)qua.e3());
     }
 
-    /// Transposes only the lower-right 3x3 submatrix of a hemisimetric 4x4 matrix,
+    /// Transposes only the lower-right 3x3 submatrix of a hemisymmetric 4x4 matrix,
     /// used when the 4x4 matrix is a "star" matrix [q] coming from a quaternion q:
     /// the non commutative quat. product is:
     ///     q1 x q2  =  [q1]*q2  =  [q2st]*q1
-    /// where [q2st] is the "semitranspose of [q2].
+    /// where [q2st] is the "semi-transpose of [q2].
     void MatrXq_SemiTranspose() {
         SetElement(1, 2, -GetElement(1, 2));
         SetElement(1, 3, -GetElement(1, 3));
@@ -930,9 +929,9 @@ class ChMatrix {
     }
 
     /// Change the sign of the 2nd, 3rd and 4th columns of a 4x4 matrix,
-    /// The product between a quaternion q1 and the coniugate of q2 (q2'), is:
+    /// The product between a quaternion q1 and the conjugate of q2 (q2'), is:
     ///    q1 x q2'  = [q1]*q2'   = [q1sn]*q2
-    /// where [q1sn] is the seminegation of the 4x4 matrix [q1].
+    /// where [q1sn] is the semi-negation of the 4x4 matrix [q1].
     void MatrXq_SemiNeg() {
         for (int i = 0; i < rows; ++i)
             for (int j = 1; j < columns; ++j)

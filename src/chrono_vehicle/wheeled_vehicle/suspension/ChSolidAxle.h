@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,7 +21,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -51,7 +51,7 @@ namespace vehicle {
 /// the vehicle.  When attached to a chassis, only an offset is provided.
 ///
 /// All point locations are assumed to be given for the left half of the
-/// supspension and will be mirrored (reflecting the y coordinates) to construct
+/// suspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
 class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
   public:
@@ -71,12 +71,15 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension
     /// reference frame is always aligned with the chassis reference frame.
-    /// Finally, tierod_body is a handle to the body to which the suspension
-    /// tierods are to be attached. For a steerable suspension, this will be the
-    /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
+    /// 'tierod_body' is a handle to the body to which the suspension tierods
+    /// are to be attached. For a steered suspension, this will be the steering
+    /// (central) link of a suspension subsystem.  Otherwise, this is the chassis.
+    /// If this suspension is steered, 'steering_index' indicates the index of the
+    /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
                             std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            int steering_index,                     ///< [in] index of the associated steering mechanism
                             double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
                             double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
                             ) override;
@@ -91,6 +94,12 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const override;
 
+    /// Get the current global COM location of the suspension subsystem.
+    virtual ChVector<> GetCOMPos() const override;
+
+    /// Get a handle to the specified spring element.
+    std::shared_ptr<ChLinkSpringCB> GetSpring(VehicleSide side) const { return m_spring[side]; }
+
     /// Get the force in the spring element.
     double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetSpringReact(); }
 
@@ -99,6 +108,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
     /// Get the current deformation of the spring element.
     double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetSpringDeform(); }
+
+    /// Get a handle to the specified shock (damper) element.
+    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
 
     /// Get the force in the shock (damper) element.
     double GetShockForce(VehicleSide side) const { return m_shock[side]->GetSpringReact(); }
@@ -209,35 +221,24 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_tierod;        ///< handles to the tierod body
     std::shared_ptr<ChBody> m_bellCrank;     ///< handles to the bellcrank body
     std::shared_ptr<ChBody> m_draglink;      ///< handles to the draglink body
-    std::shared_ptr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (left/right)
-    std::shared_ptr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (left/right)
-    std::shared_ptr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (left/right)
+    std::shared_ptr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (L/R)
+    std::shared_ptr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (L/R)
+    std::shared_ptr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (L/R)
 
-    std::shared_ptr<ChLinkLockRevolute>
-        m_revoluteKingpin[2];     ///< handles to the knuckle-axle tube revolute joints (left/right)
-    std::shared_ptr<ChLinkLockRevolute>
-        m_revoluteBellCrank;      ///< handles to the bellCrank-axle revolute joint (left)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalTierod;        ///< handles to the knuckle-tierod spherical joint (left)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalDraglink;      ///< handles to the draglink-chassis spherical joint (left)
-    std::shared_ptr<ChLinkUniversal>
-        m_universalDraglink;      ///< handles to the draglink-bellCrank universal joint (left)
-    std::shared_ptr<ChLinkUniversal>
-        m_universalTierod;        ///< handles to the knuckle-tierod universal joint (right)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalUpperLink[2];  ///< handles to the upper link-axle tube spherical joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalLowerLink[2];  ///< handles to the lower link-axle tube spherical joints (left/right)
-    std::shared_ptr<ChLinkUniversal>
-        m_universalUpperLink[2];  ///< handles to the upper link-chassis universal joints (left/right)
-    std::shared_ptr<ChLinkUniversal>
-        m_universalLowerLink[2];  ///< handles to the lower link-chassis universal joints (left/right)
-    std::shared_ptr<ChLinkLockPointPlane>
-        m_pointPlaneBellCrank;    ///< handles to the bellCrank-tierod point-plane joint (left)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteBellCrank;       ///< bellCrank-axle revolute joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;      ///< draglink-chassis spherical joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalDraglink;          ///< draglink-bellCrank universal joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalTierod;            ///< knuckle-tierod universal joint (right)
+    std::shared_ptr<ChLinkLockPointPlane> m_pointPlaneBellCrank;   ///< bellCrank-tierod point-plane joint (left)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle tube revolute joints (L/R)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalUpperLink[2];  ///< upper link-axle tube spherical joints (L/R)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalLowerLink[2];  ///< lower link-axle tube spherical joints (L/R)
+    std::shared_ptr<ChLinkUniversal> m_universalUpperLink[2];      ///< upper link-chassis universal joints (L/R)
+    std::shared_ptr<ChLinkUniversal> m_universalLowerLink[2];      ///< lower link-chassis universal joints (L/R)
 
-    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
+    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (L/R)
+    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (L/R)
 
   private:
     // Hardpoint absolute locations

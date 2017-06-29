@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -136,7 +136,7 @@ class ChApi ChFile_ps_graph_setting {
 /// Class for postScript(TM) output.
 /// Defines special file class ChFile_ps for EPS
 /// or PS output, i.e. Encapsulated PostScript or
-/// PostScript (TM) files incuding vectorial plots,
+/// PostScript (TM) files including vectorial plots,
 /// graphs, lines, fonts, etc.
 
 class ChApi ChFile_ps : public ChStreamOutAsciiFile {
@@ -186,7 +186,7 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     // FUNCTIONS
     //
 
-    // Functions for setting the viewport of grpahs for graph plotting
+    // Functions for setting the viewport of graphs for graph plotting
 
     /// Get viewport position of left-lower graph corner, in page space
     const ChVector2<>& Get_G_p() const { return G_p; };
@@ -248,8 +248,8 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     void PaintStroke();  // after the line has been set, this draws it!
     void PaintFill();    // same as before, but fills the enclosed area.
     void Clip();         // same as before, but defines clip region.
-    void GrSave();       // save graph variable status (current clip region, linewidth, colours, etc.)
-    void GrRestore();    // restore graph variable status (current clip region, linewidth, colours, etc.)
+    void GrSave();       // save graph variable status (current clip region, linewidth, colors, etc.)
+    void GrRestore();    // restore graph variable status (current clip region, linewidth, colors, etc.)
 
     // Hi level draw functions: if space = PS_SPACE_GRAPH the coords are considered in 2d
     // graph space and then projected and clipped onto it, otherwise are in page space.
@@ -281,9 +281,9 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     /// and x coords run form Xfrom... with steps Xsteps-
     void DrawGraphXY(ChMatrix<>* Yvalues, double Xfrom, double Xstep);
 
-    /// Draws a text label (with "fontsize" size) with postion relative to low-left corner
+    /// Draws a text label (with "fontsize" size) with potion relative to low-left corner
     /// of graph. If "dolinesample= true", also draws a little horizontal sample of line
-    /// with current width/colour on the left of the label.
+    /// with current width/color on the left of the label.
     void DrawGraphLabel(double dx,
                         double dy,
                         double fontsize,

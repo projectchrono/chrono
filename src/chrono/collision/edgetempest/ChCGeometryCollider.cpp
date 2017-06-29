@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include <cstdio>
 #include <cmath>
@@ -517,7 +518,7 @@ class BoxBoxCollisionTest2 {
         }
 
         //--- now we can safely pick the contact normal, since we
-        //--- know wheter we have a face-case or edge-edge case.
+        //--- know whether we have a face-case or edge-edge case.
         n = axis[minimum_axis];
 
         //--- This is definitely an edge-edge case
@@ -540,7 +541,7 @@ class BoxBoxCollisionTest2 {
             int columnA = ((minimum_axis)-6) / 3;
             int columnB = ((minimum_axis)-6) % 3;
             double s, t;
-            //--- Compute the edge-paramter values s and t corresponding to the closest
+            //--- Compute the edge-parameter values s and t corresponding to the closest
             //--- points between the two infinite lines parallel to the two edges.
             ClosestPointsBetweenLines()(p_a, A[columnA], p_b, B[columnB], s, t);
             //--- Use the edge parameter values to compute the closest
@@ -560,7 +561,7 @@ class BoxBoxCollisionTest2 {
         //--- normal. This coordinate frame is nice, because the contact-face is a axis
         //--- aligned rectangle. We will refer to this frame as the reference frame, and
         //--- use the letter 'r' or 'R' for it. The other box is named the incident box,
-        //--- its closest face towards the reference face is called the incidient face, and
+        //--- its closest face towards the reference face is called the incident face, and
         //--- is denoted by the letter 'i' or 'I'.
         Vector *R_r, *R_i;      //--- Box direction vectors in WCS
         Vector ext_r, ext_i;    //--- Box extents
@@ -586,7 +587,7 @@ class BoxBoxCollisionTest2 {
             incident_inside = AinB;
         }
         //--- Following vectors are used for computing the corner points of the incident
-        //--- face. At first they are used to determine the axis of the incidient box
+        //--- face. At first they are used to determine the axis of the incident box
         //--- pointing towards the reference box.
         //---
         //--- n_r_wcs = normal pointing away from reference frame in WCS coordinates.
@@ -610,9 +611,9 @@ class BoxBoxCollisionTest2 {
         abs_n_r[0] = fabs(n_r[0]);
         abs_n_r[1] = fabs(n_r[1]);
         abs_n_r[2] = fabs(n_r[2]);
-        //--- Find the largest compontent of abs_n_r: This corresponds to the normal
-        //--- for the indident face. The axis number is stored in a3. the other
-        //--- axis numbers of the indicent face are stored in a1,a2.
+        //--- Find the largest component of abs_n_r: This corresponds to the normal
+        //--- for the incident face. The axis number is stored in a3. the other
+        //--- axis numbers of the incident face are stored in a1,a2.
         int a1, a2, a3;
         if (abs_n_r[1] > abs_n_r[0]) {
             if (abs_n_r[1] > abs_n_r[2]) {
@@ -635,7 +636,7 @@ class BoxBoxCollisionTest2 {
                 a3 = 2;
             }
         }
-        //--- Now we have information enough to determine the incidient face, that means we can
+        //--- Now we have information enough to determine the incident face, that means we can
         //--- compute the center point of incident face in WCS coordinates.
 
         int plus_sign[3];
@@ -667,13 +668,13 @@ class BoxBoxCollisionTest2 {
         }
         //--- Find the four corners of the incident face, in reference-face coordinates
         double quad[8];  //--- 2D coordinate of incident face (stored as x,y pairs).
-        bool inside[4];  //--- inside state of the four coners of the quad
-        //--- Project center_ri onto reference-face coordinate system (has origo
+        bool inside[4];  //--- inside state of the four corners of the quad
+        //--- Project center_ri onto reference-face coordinate system (has origin
         //--- at the center of the reference face, and the two orthogonal unit vectors
-        //--- denoted by R_r[code1] and R_r[code2] spaning the face-plane).
+        //--- denoted by R_r[code1] and R_r[code2] spanning the face-plane).
         double c1 = R_r[code1].Dot(center_ir);
         double c2 = R_r[code2].Dot(center_ir);
-        //--- Compute the projections of the axis spanning the incidient
+        //--- Compute the projections of the axis spanning the incident
         //--- face, onto the axis spanning the reference face.
         //---
         //--- This will allow us to determine the coordinates in the reference-face
@@ -1177,7 +1178,7 @@ static double ChPointTriangleDistance(Vector& B,
 
     double dylen = Vlength(Dy);
 
-    if (fabs(dylen) < 0.000001)  // degenere triangle
+    if (fabs(dylen) < 0.000001)  // degenerated triangle
         return mdistance;
 
     Dy = Vmul(Dy, 1.0 / dylen);

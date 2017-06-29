@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     mbody_gearA->AddAsset(cylinder_texture);
-    // for aesthetical reasons, also add a thin cylinder only as a visualization:
+    // for aesthetic reasons, also add a thin cylinder only as a visualization:
     auto mshaft_shape = std::make_shared<ChCylinderShape>();
     mshaft_shape->GetCylinderGeometry().p1 = ChVector<>(0,-3,0);
     mshaft_shape->GetCylinderGeometry().p2 = ChVector<>(0, 10,0);

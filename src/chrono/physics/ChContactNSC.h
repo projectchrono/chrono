@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -57,7 +57,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactNSC(ChContactContainer* mcontainer,      ///< contact container
+    ChContactNSC(ChContactContainer* mcontainer,          ///< contact container
                  Ta* mobjA,                               ///< collidable object A
                  Tb* mobjB,                               ///< collidable object B
                  const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
@@ -88,6 +88,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
 
         // Calculate composite material properties
         ChMaterialCompositeNSC mat(
+            this->container->GetSystem()->composition_strategy.get(),
             std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurfaceBase()),
             std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurfaceBase()));
 
@@ -142,25 +143,25 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         react_force.z() = L(off_L + 2);
     }
 
-    virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                         ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                         const ChVectorDynamic<>& L,  ///< the L vector
-                                         const double c               ///< a scaling factor
+    virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    
+                                         ChVectorDynamic<>& R,        
+                                         const ChVectorDynamic<>& L,  
+                                         const double c               
                                          ) override {
         this->Nx.MultiplyTandAdd(R, L(off_L) * c);
         this->Tu.MultiplyTandAdd(R, L(off_L + 1) * c);
         this->Tv.MultiplyTandAdd(R, L(off_L + 2) * c);
     }
 
-    virtual void ContIntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                         ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                         const double c,            ///< a scaling factor
-                                         bool do_clamp,             ///< apply clamping to c*C?
-                                         double recovery_clamp      ///< value for min/max clamping of c*C
+    virtual void ContIntLoadConstraint_C(const unsigned int off_L,  
+                                         ChVectorDynamic<>& Qc,     
+                                         const double c,            
+                                         bool do_clamp,             
+                                         double recovery_clamp      
                                          ) override {
         bool bounced = false;
 
-        // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
+        // Elastic Restitution model (use simple Newton model with coefficient e=v(+)/v(-))
         // Note that this works only if the two connected items are two ChBody.
 
         if (this->objA && this->objB) {
@@ -220,9 +221,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         }
     }
 
-    virtual void ContIntToDescriptor(const unsigned int off_L,    ///< offset in L, Qc
-                                     const ChVectorDynamic<>& L,  ///<
-                                     const ChVectorDynamic<>& Qc  ///<
+    virtual void ContIntToDescriptor(const unsigned int off_L,
+                                     const ChVectorDynamic<>& L,
+                                     const ChVectorDynamic<>& Qc
                                      ) override {
         // only for solver warm start
         Nx.Set_l_i(L(off_L));
@@ -235,8 +236,8 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Tv.Set_b_i(Qc(off_L + 2));
     }
 
-    virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
-                                       ChVectorDynamic<>& L       ///<
+    virtual void ContIntFromDescriptor(const unsigned int off_L,
+                                       ChVectorDynamic<>& L
                                        ) override {
         L(off_L) = Nx.Get_l_i();
         L(off_L + 1) = Tu.Get_l_i();
@@ -258,7 +259,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override {
         bool bounced = false;
 
-        // Elastic Restitution model (use simple Newton model with coeffcient e=v(+)/v(-))
+        // Elastic Restitution model (use simple Newton model with coefficient e=v(+)/v(-))
         // Note that this works only if the two connected items are two ChBody.
 
         if (this->objA && this->objB) {

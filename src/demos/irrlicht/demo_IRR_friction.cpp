@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         mphysicalSystem.Add(msphereBody);
 
         // Notes:
-        // - setting nonzero spinning frition and/or setting nonzero rolling friction
+        // - setting nonzero spinning friction and/or setting nonzero rolling friction
         //   affects the speed of the solver (each contact eats 2x of CPU time repsect to the
         //   case of simple sliding/staic contact)
         // - avoid using zero spinning friction with nonzero rolling friction.

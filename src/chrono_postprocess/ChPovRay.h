@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -119,7 +119,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// Set the background color - will write this in the output .pov file.
     virtual void SetBackground(ChColor color) { background = color; }
 
-    /// Set the ambiant light - will write this in the output .pov file.
+    /// Set the ambient light - will write this in the output .pov file.
     virtual void SetAmbientLight(ChColor color) { ambient_light = color; }
 
     /// Turn on/off the display of the COG (center of mass) of rigid bodies.
@@ -135,7 +135,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     virtual void SetShowLinks(bool show, double msize = 0.04);
 
     /// Turn on/off the display of contacts, using spheres or arrows (see eChContactSymbol modes).
-    /// The size of the arrow or of the sphere dependson force strength multiplied by 'scale'.
+    /// The size of the arrow or of the sphere depends on force strength multiplied by 'scale'.
     /// Use 'max_size' to limit size of arrows if too long, or spheres if too large (they will be signaled by white
     /// color)
     /// Use 'width' for the radius of the arrow. If in 'SYMBOL_VECTOR_SCALERADIUS' mode, the length of the vector is

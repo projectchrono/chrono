@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,7 +21,7 @@
 namespace chrono {
 namespace fea {
 
-/// Class for applyings loads to a contact mesh as a cluster of forces
+/// Class for applying loads to a contact mesh as a cluster of forces
 /// operating on the nodes of the underlying finite elements.
 /// It is useful for doing cosimulation: one can pass this object's vertex & faces
 /// to an external software (ex. CFD) that in turn will perform collision detection
@@ -31,8 +31,6 @@ namespace fea {
 /// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
 
 class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLoadContactSurfaceMesh)
 
   public:
     ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> cmesh) { contactmesh = cmesh; }
@@ -126,7 +124,7 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
                 ++vertex_index;
             }
         }
-        // Populate the array of aplied loads to nodes
+        // Populate the array of applied loads to nodes
         for (size_t i = 0; i < vert_forces.size(); ++i) {
             std::shared_ptr<ChNodeFEAxyz> mnode = ind_ptr_map[vert_ind[i]];
             auto mforce = std::make_shared<ChLoadXYZnode>(mnode);

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -25,41 +25,48 @@
 namespace chrono {
 namespace vehicle {
 namespace generic {
-    class CH_MODELS_API Generic_SimpleDriveline : public ChDriveline {
-    public:
-        Generic_SimpleDriveline(const std::string& name);
-        virtual ~Generic_SimpleDriveline() {}
 
-        /// Return the number of driven axles.
-        virtual int GetNumDrivenAxles() const final override { return 1; }
+/// @addtogroup vehicle_models_generic
+/// @{
 
-        /// Initialize the driveline subsystem.
-        /// This function connects this driveline subsystem to the axles of the
-        /// specified suspension subsystems.
-        virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
-            const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
-            const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
-            ) override;
+/// Simple driveline model for the generic vehicle (purely kinematic).
+class CH_MODELS_API Generic_SimpleDriveline : public ChDriveline {
+  public:
+    Generic_SimpleDriveline(const std::string& name);
+    virtual ~Generic_SimpleDriveline() {}
 
-        /// Get the angular speed of the driveshaft.
-        /// This represents the output from the driveline subsystem that is passed to
-        /// the powertrain system.
-        virtual double GetDriveshaftSpeed() const override;
+    /// Return the number of driven axles.
+    virtual int GetNumDrivenAxles() const final override { return 1; }
 
-        /// Update the driveline subsystem: apply the specified motor torque.
-        /// This represents the input to the driveline subsystem from the powertrain
-        /// system.
-        virtual void Synchronize(double torque) override;
+    /// Initialize the driveline subsystem.
+    /// This function connects this driveline subsystem to the axles of the
+    /// specified suspension subsystems.
+    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
+                            const ChSuspensionList& suspensions,  ///< list of all vehicle suspension subsystems
+                            const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
+                            ) override;
 
-        /// Get the motor torque to be applied to the specified wheel.
-        virtual double GetWheelTorque(const WheelID& wheel_id) const override;
+    /// Get the angular speed of the driveshaft.
+    /// This represents the output from the driveline subsystem that is passed to
+    /// the powertrain system.
+    virtual double GetDriveshaftSpeed() const override;
 
-    private:
-        static const double m_conicalgear_ratio;
+    /// Update the driveline subsystem: apply the specified motor torque.
+    /// This represents the input to the driveline subsystem from the powertrain
+    /// system.
+    virtual void Synchronize(double torque) override;
 
-        std::shared_ptr<ChShaft> m_driven_left;
-        std::shared_ptr<ChShaft> m_driven_right;
-    };
+    /// Get the motor torque to be applied to the specified wheel.
+    virtual double GetWheelTorque(const WheelID& wheel_id) const override;
+
+  private:
+    static const double m_conicalgear_ratio;
+
+    std::shared_ptr<ChShaft> m_driven_left;
+    std::shared_ptr<ChShaft> m_driven_right;
+};
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

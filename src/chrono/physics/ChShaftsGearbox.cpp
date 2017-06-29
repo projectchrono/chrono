@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -81,19 +81,19 @@ void ChShaftsGearbox::IntStateScatterReactions(const unsigned int off_L, const C
     torque_react = L(off_L);
 }
 
-void ChShaftsGearbox::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                          ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                          const ChVectorDynamic<>& L,  ///< the L vector
-                                          const double c               ///< a scaling factor
+void ChShaftsGearbox::IntLoadResidual_CqL(const unsigned int off_L,   
+                                          ChVectorDynamic<>& R,       
+                                          const ChVectorDynamic<>& L, 
+                                          const double c              
                                           ) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
-void ChShaftsGearbox::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                          ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                          const double c,            ///< a scaling factor
-                                          bool do_clamp,             ///< apply clamping to c*C?
-                                          double recovery_clamp      ///< value for min/max clamping of c*C
+void ChShaftsGearbox::IntLoadConstraint_C(const unsigned int off_L,  
+                                          ChVectorDynamic<>& Qc,     
+                                          const double c,            
+                                          bool do_clamp,             
+                                          double recovery_clamp      
                                           ) {
     double res = 0;  // no residual anyway! allow drifting...
 
@@ -106,10 +106,10 @@ void ChShaftsGearbox::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
     Qc(off_L) += cnstr_violation;
 }
 
-void ChShaftsGearbox::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChShaftsGearbox::IntToDescriptor(const unsigned int off_v,
                                       const ChStateDelta& v,
                                       const ChVectorDynamic<>& R,
-                                      const unsigned int off_L,  ///< offset in L, Qc
+                                      const unsigned int off_L,
                                       const ChVectorDynamic<>& L,
                                       const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
@@ -117,9 +117,9 @@ void ChShaftsGearbox::IntToDescriptor(const unsigned int off_v,  ///< offset in 
     constraint.Set_b_i(Qc(off_L));
 }
 
-void ChShaftsGearbox::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChShaftsGearbox::IntFromDescriptor(const unsigned int off_v,
                                         ChStateDelta& v,
-                                        const unsigned int off_L,  ///< offset in L
+                                        const unsigned int off_L,
                                         ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }

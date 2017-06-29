@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar, Radu Serban
+// =============================================================================
+//
+// Description: The definition of a parallel ChSystem, pretty much everything is
+// done manually instead of using the functions used in ChSystem. This is to
+// handle the different data structures present in the parallel implementation
+//
+// =============================================================================
+
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChShaftsGearbox.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
@@ -290,7 +310,8 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
             // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
         }
     }
-    ChFEAContainer* container = (ChFEAContainer*)data_manager->fea_container;
+
+    auto container = std::static_pointer_cast<ChFEAContainer>(data_manager->fea_container);
 
     std::vector<uvec4> elements(num_elements);
 
@@ -724,19 +745,19 @@ void ChSystemParallel::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
 
-int ChSystemParallel::GetNumBodies() {
+unsigned int ChSystemParallel::GetNumBodies() {
     return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
 }
 
-int ChSystemParallel::GetNumShafts() {
+unsigned int ChSystemParallel::GetNumShafts() {
     return data_manager->num_shafts;
 }
 
-int ChSystemParallel::GetNumContacts() {
+unsigned int ChSystemParallel::GetNumContacts() {
     return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
 }
 
-int ChSystemParallel::GetNumBilaterals() {
+unsigned int ChSystemParallel::GetNumBilaterals() {
     return data_manager->num_bilaterals;
 }
 
@@ -769,4 +790,10 @@ double ChSystemParallel::GetTimerCollision() {
 
 settings_container* ChSystemParallel::GetSettings() {
     return &(data_manager->settings);
+}
+
+// -------------------------------------------------------------
+
+void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy) {
+    data_manager->composition_strategy = std::move(strategy);
 }

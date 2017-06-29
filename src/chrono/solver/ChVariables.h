@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,37 +21,32 @@
 
 namespace chrono {
 
-///  Base class for representing items which introduce
-/// 'variables', that is variables 'v' (and associated masses M)
+/// Base class for representing objects that introduce
+/// 'variables' (also referred as 'v') and their associated mass submatrices
 /// for a sparse representation of the problem.
 ///
-///  The problem is described by a variational inequality VI(Z*x-d,K):
+/// See ChSystemDescriptor for more information about the overall
+/// problem and data representation.
 ///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
-///  | Cq -E | |l|  |-b|  |c|
+/// Each ChVariables object must be able to compute a mass submatrix,
+/// that will be assembled directly inside the global matrix Z,
+/// (in particular inside the block H or M).\n
+/// Because of this there is no need for ChVariables and derived classes
+/// to actually \e store their mass submatrix in memory:
+/// they just need to be able to compute it!
 ///
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
-///                                           |Cq  E | |-l| |-b| |c|
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
-/// * case CCP: Y_i are friction cones
+/// Moreover, in some cases, the mass submatrix is not even needed.
+/// In fact, some Chrono solvers are matrix-free. \n
+/// This means that each ChVariables (and derived) object can be asked
+/// not to \e assemble its mass submatrix,
+/// but instead to provide operation related to it.\n
+/// E.g. M*x, M\\x, +=M*x, and so on...
+/// Each derived class must implement these methods!
 ///
-/// Note, all masses and variables are assembled in
-/// huge matrices, but there's no need to really
-/// build such matrices, in order to exploit sparsity).
-///
-///  Note: in sake of highest generalization, this base
-/// class does NOT include a mass submatrix (a sub part of the M
-/// matrix) but just declares methods such as Compute_invMb_v(),
-/// (which are used by iterative solvers) which MUST
-/// be implemented by child classes. This doing, some child
-/// classes too may implement all three methods without needing to
-/// store entire mass submatrices, if possible, in sake of efficiency.
+/// Because of this, the ChVariables class
+/// does \e not include any mass submatrix by default
 
 class ChApi ChVariables {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChVariables)
 
   private:
     ChMatrix<>* qb;  ///< variables (accelerations, speeds, etc. depending on the problem)

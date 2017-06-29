@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -29,8 +29,6 @@ namespace chrono {
 /// This is implemented as a typical linked list of ChContactSMC objects
 /// (that is, contacts between two ChContactable objects).
 class ChApi ChContactContainerSMC : public ChContactContainer {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactContainerSMC)
 
   public:
     typedef ChContactSMC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactSMC_3_3;

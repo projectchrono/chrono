@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -147,7 +147,7 @@ int ChLinkMask::SetActiveRedundantByArray(int* mvector, int mcount) {
     return mcount;
 }
 
-// set lock =ON for costraints which were disabled because redundant
+// set lock =ON for constraints which were disabled because redundant
 int ChLinkMask::RestoreRedundant() {
     int tot = 0;
     for (int j = 0; j < nconstr; j++) {

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -529,7 +529,7 @@ class ChLinearAlgebra {
     /// Performs SVD decomposition. Matrices U,W,V are automatically resized
     /// if passed with wrong size.
     /// [A] is 'this' matrix. so that [A]=[U][W][V]'
-    /// Also computes condition number (near 1= well cond, if ->infinite, A tend to simgularity)
+    /// Also computes condition number (near 1= well cond, if ->infinite, A tend to singularity)
     static int SVD(ChMatrix<>& mA, ChMatrix<>& U, ChMatrix<>& W, ChMatrix<>& V, double& cond_num) {
         const double MACHEP = 1.4e-17;  // measure of machine precision for SVD
         const double MAXCN = 1.0e+12;
@@ -557,7 +557,7 @@ class ChLinearAlgebra {
         //	U=CopyFromMatrixT(A); ???
         U.CopyFromMatrix(*A);
 
-        // Begin housholder reduction
+        // Begin householder reduction
 
         g = x = scale = 0.0;
 

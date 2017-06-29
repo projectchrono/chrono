@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -42,7 +42,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
                                            DrivelineType drive_type,
                                            ChMaterialSurface::ContactMethod contact_method,
                                            ChassisCollisionType chassis_collision_type)
-    : HMMWV_Vehicle(contact_method, drive_type) {
+    : HMMWV_Vehicle("HMMWVreduced", contact_method, drive_type) {
     Create(fixed, chassis_collision_type);
 }
 
@@ -50,7 +50,7 @@ HMMWV_VehicleReduced::HMMWV_VehicleReduced(ChSystem* system,
                                            const bool fixed,
                                            DrivelineType drive_type,
                                            ChassisCollisionType chassis_collision_type)
-    : HMMWV_Vehicle(system, drive_type) {
+    : HMMWV_Vehicle("HMMWVreduced", system, drive_type) {
     Create(fixed, chassis_collision_type);
 }
 
@@ -124,8 +124,8 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
     // Initialize the suspension subsystems (specify the suspension subsystems'
     // frames relative to the chassis reference frame).
     m_suspensions[0]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(66.59, 0, 1.039),
-                                 m_steerings[0]->GetSteeringLink(), m_omega[0], m_omega[1]);
-    m_suspensions[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), m_chassis->GetBody(),
+                                 m_steerings[0]->GetSteeringLink(), 0, m_omega[0], m_omega[1]);
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), m_chassis->GetBody(), -1,
                                  m_omega[2], m_omega[3]);
 
     // Initialize wheels

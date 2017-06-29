@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -94,7 +94,7 @@ class ChApi ChOptimizer : public ChObj {
 
     /// Performs the optimization of the ChSystem pointed by "database"
     /// (or whatever object which can evaluate the string "function" and the "optvarlist")
-    /// using the current parameters. Returns false if some error occured.
+    /// using the current parameters. Returns false if some error occurred.
     /// This function just makes some tests, allocations, and compilations..
     virtual bool PreOptimize();
     ///  This function computes the optimal xv[].
@@ -142,7 +142,7 @@ class ChApi ChOptimizerLocal : public ChOptimizer {
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
-    // using the current parameters. Returns false if some error occured.
+    // using the current parameters. Returns false if some error occurred.
     virtual bool DoOptimize() override;
 };
 
@@ -251,7 +251,7 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
 
     // The optimization procedure.
     // Performs the optimization of the PSystem pointed by "database"
-    // using the current parameters. Returns false if some error occured.
+    // using the current parameters. Returns false if some error occurred.
     virtual bool DoOptimize() override;
 
     // Handling of populations
@@ -313,7 +313,7 @@ class ChApi ChOptimizerGradient : public ChOptimizer {
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
-    // using the current parameters. Returns false if some error occured.
+    // using the current parameters. Returns false if some error occurred.
     virtual bool DoOptimize() override;
 };
 
@@ -321,7 +321,7 @@ class ChApi ChOptimizerGradient : public ChOptimizer {
 
 /// Class for genetic optimization followed by
 /// a refinement with the method of gradient, one after the other.
-/// Parameters must be set for the two incapsulated optimizers
+/// Parameters must be set for the two encapsulated optimizers
 /// genetic_opt and  gradient_opt,  that is  for example:
 /// my_hybrid->genetic_opt->maxgenerations = 200; etc...
 /// However, the optimization variables, the system and the objective function
@@ -353,7 +353,7 @@ class ChApi ChOptimizerHybrid : public ChOptimizer {
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
-    // using the current parameters. Returns false if some error occured.
+    // using the current parameters. Returns false if some error occurred.
     virtual bool DoOptimize() override;
 };
 
@@ -394,7 +394,7 @@ ChApi double solvopt(unsigned int n,
                       (@ ... changes should be done with care)
 
          options[8], return the number of iterations, options[8]<0 means
-                       an error occured
+                       an error occurred
          options[9], return the number of objective function evaluations, and
          options[10],return the number of gradient evaluations.
          options[11],limit on the maximum number of fx evaluations. No default.

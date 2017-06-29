@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -29,13 +29,6 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
 
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_tracked Tracked vehicles
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 
@@ -48,28 +41,27 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
   public:
     /// Construct a vehicle system with a default ChSystem.
-    ChTrackedVehicle(
-        const std::string& name,                                                          ///< [in] name of the system
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
-        );
+    ChTrackedVehicle(const std::string& name,                                                  ///< [in] vehicle name
+                     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+                     );
 
     /// Construct a vehicle system using the specified ChSystem.
-    ChTrackedVehicle(const std::string& name,  ///< [in] name of the system
+    ChTrackedVehicle(const std::string& name,  ///< [in] vehicle name
                      ChSystem* system          ///< [in] containing mechanical system
                      );
 
     /// Destructor.
     virtual ~ChTrackedVehicle();
 
-    /// Get the name identifier for this vehicle system.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this vehicle system.
-    void SetName(const std::string& name) { m_name = name; }
-
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.
     virtual double GetVehicleMass() const override;
+
+    /// Get the current global vehicle COM location.
+    virtual ChVector<> GetVehicleCOMPos() const override {
+        //// TODO
+        return ChVector<>(0, 0, 0);
+    }
 
     /// Get the specified suspension subsystem.
     std::shared_ptr<ChTrackAssembly> GetTrackAssembly(VehicleSide side) const { return m_tracks[side]; }
@@ -199,8 +191,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     virtual void LogConstraintViolations() override;
 
   protected:
-    std::string m_name;  ///< name of the vehicle system
-
     std::shared_ptr<ChTrackAssembly> m_tracks[2];   ///< handles to the track assemblies (left/right)
     std::shared_ptr<ChTrackDriveline> m_driveline;  ///< handle to the driveline subsystem
 

@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_constraint
+/// @{
+
 template <typename T>
 static void inline SetRow3(T& D, const int row, const int col, const real3& A) {
     D.set(row, col + 0, A.x);
@@ -77,7 +80,7 @@ static void inline AppendRow6Weak(T& D, const int row, const int col, const real
     D.weakAppend(row, col + 4, init);
     D.weakAppend(row, col + 5, init);
 }
-//
+
 template <typename T>
 static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
     //    printf("%d [%d %d %d]\n", row, col + 0, col + 1, col + 2);
@@ -185,6 +188,7 @@ static void inline SetCol6(T& D, const int row, const int col, const real3& A, c
     D.set(row + 4, col, B.y);
     D.set(row + 5, col, B.z);
 }
+
 CH_PARALLEL_API
 void Orthogonalize(real3& Vx, real3& Vy, real3& Vz);
 
@@ -224,18 +228,18 @@ void Compute_Jacobian_Rolling(const quaternion& quat,
                               real3& T2,
                               real3& T3);
 
-#define Loop_Over_Rigid_Neighbors(X)                    \
-    for (int p = 0; p < (signed)num_fluid_bodies; p++) {\
-        int start = contact_counts[p];                  \
-        int end = contact_counts[p + 1];                \
-        for (int index = start; index < end; index++) { \
-            int i = index - start;                      \
-            X                                           \
-        }                                               \
+#define Loop_Over_Rigid_Neighbors(X)                     \
+    for (int p = 0; p < (signed)num_fluid_bodies; p++) { \
+        int start = contact_counts[p];                   \
+        int end = contact_counts[p + 1];                 \
+        for (int index = start; index < end; index++) {  \
+            int i = index - start;                       \
+            X                                            \
+        }                                                \
     }
 
 #define Loop_Over_Fluid_Neighbors(X)                                                             \
-    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {                                  \
+    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {                          \
         real3 pos_p = sorted_pos[body_a];                                                        \
         for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {           \
             int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i]; \
@@ -252,7 +256,10 @@ void Compute_Jacobian_Rolling(const quaternion& quat,
     }
 
 CH_PARALLEL_API
-bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu);
+bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, real mu);
+
+CH_PARALLEL_API
+bool Cone_single_rigid(real& gamma_n, real& gamma_s, real mu);
 
 CH_PARALLEL_API
 void AppendRigidFluidBoundary(const real contact_mu,
@@ -291,4 +298,7 @@ void BuildRigidFluidBoundary(const real contact_mu,
                              const uint body_offset,
                              const uint start_boundary,
                              ChParallelDataManager* data_manager);
-}
+
+/// @} parallel_colision
+
+} // end namespace chrono
