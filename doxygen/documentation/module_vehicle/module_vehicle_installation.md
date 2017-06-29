@@ -20,37 +20,45 @@ Here are the main features:
 - both tracked and wheeled vehicles
 - different types of tire models
 	- Pacejka
-	- rigid
 	- Fiala
 	- finite elements, deformable
+	- rigid
 	- etc.
 - different types of soil models
 	- rigid
-	- deformable
+	- deformable SCM (Soil Contact Model)
+	- deformable FEA (ANCF solid elements)
 	- granular
 	- etc.
-- use JSON for easy definition of models
-- different types of suspensions
+- use JSON for easy specification of models (vehicles and sub-systems)
+- different types of suspensions for wheeled vehicles
+    - double wishbone
 	- multilink
-	- rigid axle
+	- solid axle
 	- McPherson
+	- semi-trailing arm
 	- Hendrickson
-	- double wishbone
-- driveline 1D primitives
+	- etc.
+- various templates for segmented tracks
+    - single-pin track shoes
+    - double-pin track shoes
+- driveline and powertrain 1D primitives
 	- clutches
 	- thermal engines
-	- brakes
 	- reducers
 	- gears
 	- planetary gears
 	- etc.
+- driver models
+    - interactive (Irrlicht key and mouse controls)
+    - closed-loop (path-follower, constant speed controller, etc.)
 
 
 ## Requirements
 
 - To **run** applications based on this module there are no requirements
 
-- To **build** applications applications based on this module there are no requirements
+- To **build** applications based on this module there are no requirements
 
 
 ## Building instructions
@@ -61,10 +69,6 @@ Here are the main features:
 2. Set the `ENABLE_MODULE_VEHICLE` as 'on', then press 'Configure' (to refresh the variable list) 
 	 
 3. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
-
-<div class="ce-info">
- This module is under development - more features will appear in future.
-</div>
 
 
 ## How to use it
