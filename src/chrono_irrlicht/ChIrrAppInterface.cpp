@@ -16,7 +16,7 @@
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/core/ChFileutils.h"
-
+#include "chrono/utils/ChProfiler.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
 
@@ -54,6 +54,9 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
         switch (event.KeyInput.Key) {
             case irr::KEY_KEY_I:
                 app->SetShowInfos(!app->GetShowInfos());
+                return true;
+            case irr::KEY_KEY_O:
+                app->SetShowProfiler(!app->GetShowProfiler());
                 return true;
             case irr::KEY_SPACE:
                 app->pause_step = !app->pause_step;
@@ -571,7 +574,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
                                                        gad_tab2, 9917, L"Pause physics");
 
     gad_textHelp =
-        GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 350), true, true, gad_tab3);
+        GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 380), true, true, gad_tab3);
     irr::core::stringw hstr = "Instructions for interface.\n\n";
     hstr += "MOUSE \n\n";
     hstr += " left button: camera rotation \n";
@@ -580,6 +583,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     hstr += " wheel button: drag collision shapes\n";
     hstr += "\nKEYBOARD\n\n";
     hstr += " 'i' key: show/hide settings\n";
+    hstr += " 'o' key: show/hide profiler\n";
     hstr += " arrows keys: camera X/Z translate\n";
     hstr += " Pg Up/Dw keys: camera Y translate\n";
     hstr += " 'spacebar' key: stop/start simul.\n";
@@ -598,6 +602,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     system = psystem;
 
     show_infos = false;
+    show_profiler = false;
 
     // the container, a level that contains all chrono nodes
     container = device->getSceneManager()->addEmptySceneNode();
@@ -640,6 +645,11 @@ void ChIrrAppInterface::SetFonts(const std::string& mfontdir) {
 
 // Clean canvas at beginning of scene.
 void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SColor color) {
+    
+    utils::ChProfileManager::Reset();
+    utils::ChProfileManager::Start_Profile("Irrlicht loop");
+    utils::ChProfileManager::Increment_Frame_Counter();
+
     GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
 
     if (camera_auto_rotate_speed) {
@@ -653,11 +663,20 @@ void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SC
 
 // Call this to end the scene draw at the end of each animation frame.
 void ChIrrAppInterface::EndScene() {
+
+    utils::ChProfileManager::Stop_Profile();
+    
+    if(show_profiler)
+        ChIrrTools::drawProfiler(this->GetDevice());
+
     GetVideoDriver()->endScene();
+
 }
 
 // Advance physics by one time step.
 void ChIrrAppInterface::DoStep() {
+    CH_PROFILE("DoStep");
+
     if (!step_manage)
         return;
 
@@ -696,6 +715,8 @@ void ChIrrAppInterface::DoStep() {
 
 // Redraw all 3D shapes and GUI elements
 void ChIrrAppInterface::DrawAll() {
+    CH_PROFILE("DrawAll");
+
     irr::core::stringw str = "World time   =";
     str += (int)(1000 * system->GetChTime());
     str += " ms  \n\nCPU step (total)      =";
@@ -870,6 +891,8 @@ void ChIrrAppInterface::DrawAll() {
         gad_pause_step->setEnabled(GetStepManage());
         gad_timestep->setEnabled(GetStepManage());
     }
+
+    
 
     // if(show_infos)
     GetIGUIEnvironment()->drawAll();

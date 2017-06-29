@@ -64,6 +64,10 @@ class ChApiIrr ChIrrAppInterface {
     void SetShowInfos(bool val) { show_infos = val; }
     bool GetShowInfos() { return show_infos; }
 
+    /// Show the realtime profiler in the 3D view
+    void SetShowProfiler(bool val) { show_profiler = val; }
+    bool GetShowProfiler() { return show_profiler; }
+
     /// Set/Get the time step for time integration. This value is used when
     /// calling DoStep() in a loop, to advance the simulation by one timestep.
     void SetTimestep(double val);
@@ -234,6 +238,7 @@ class ChApiIrr ChIrrAppInterface {
     irr::scene::ISceneNode* container;
 
     bool show_infos;
+    bool show_profiler;
 
     bool step_manage;
     bool pause_step;
