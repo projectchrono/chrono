@@ -21,24 +21,21 @@ Here are the main features:
 - different types of tire models
 	- Pacejka
 	- Fiala
-	- finite elements, deformable
+	- deformable FEA (multi-layer ANCF shell elements)
 	- rigid
-	- etc.
 - different types of soil models
 	- rigid
 	- deformable SCM (Soil Contact Model)
 	- deformable FEA (ANCF solid elements)
 	- granular
-	- etc.
 - use JSON for easy specification of models (vehicles and sub-systems)
 - different types of suspensions for wheeled vehicles
-    - double wishbone
+	- double wishbone
 	- multilink
 	- solid axle
 	- McPherson
 	- semi-trailing arm
 	- Hendrickson
-	- etc.
 - various templates for segmented tracks
     - single-pin track shoes
     - double-pin track shoes
@@ -48,7 +45,6 @@ Here are the main features:
 	- reducers
 	- gears
 	- planetary gears
-	- etc.
 - driver models
     - interactive (Irrlicht key and mouse controls)
     - closed-loop (path-follower, constant speed controller, etc.)
