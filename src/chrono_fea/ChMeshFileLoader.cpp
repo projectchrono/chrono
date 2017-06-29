@@ -51,7 +51,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         bool parse_header = true;
         bool parse_nodes = false;
 
-        fstream fin(filename_node);
+        ifstream fin(filename_node);
         if (!fin.good())
             throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
 
@@ -124,7 +124,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         bool parse_header = true;
         bool parse_tet = false;
 
-        fstream fin(filename_ele);
+        ifstream fin(filename_ele);
         if (!fin.good())
             throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
 
@@ -216,7 +216,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
         E_PARSE_NODESET
     } e_parse_section = E_PARSE_UNKNOWN;
 
-    fstream fin(filename);
+    ifstream fin(filename);
     if (!fin.good())
         throw ChException("ERROR opening Abaqus .inp file: " + std::string(filename) + "\n");
 
@@ -453,7 +453,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     int TotalNumNodes, TotalNumElements, TottalNumBEdges;
     BoundingBox.FillElem(0);
 
-    std::fstream fin(filename);
+    ifstream fin(filename);
     if (!fin.good())
         throw ChException("ERROR opening Mesh file: " + std::string(filename) + "\n");
 
