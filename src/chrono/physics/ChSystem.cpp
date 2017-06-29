@@ -30,6 +30,7 @@
 #include "chrono/solver/ChSolverSymmSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 #include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/utils/ChProfiler.h"
 
 using namespace chrono::collision;
 
@@ -778,6 +779,7 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
+    CH_PROFILE( "Setup");
     // inherit the parent class (compute offsets of bodies, links, etc.)
     ChAssembly::Setup();
 
@@ -844,6 +846,8 @@ void ChSystem::Setup() {
 // - updates all markers (automatic, as children of bodies).
 
 void ChSystem::Update(bool update_assets) {
+    CH_PROFILE( "Update");
+
     timer_update.start();  // Timer for profiling
 
     // Executes the "forUpdate" in all controls of controlslist
@@ -1229,6 +1233,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
                                     bool force_state_scatter,     // if false, x,v and T are not scattered to the system
                                     bool force_setup              // if true, call the solver's Setup() function
                                     ) {
+    CH_PROFILE( "StateSolveCorrection");
+
     if (force_state_scatter)
         StateScatter(x, v, T);
 
@@ -1374,6 +1380,8 @@ void ChSystem::SynchronizeLastCollPositions() {
 }
 
 double ChSystem::ComputeCollisions() {
+    CH_PROFILE( "ComputeCollisions");
+
     double mretC = 0.0;
 
     timer_collision_broad.start();
@@ -1388,15 +1396,19 @@ double ChSystem::ComputeCollisions() {
     // containers in the physic system. The default contact container
     // for ChBody and ChParticles is used always.
 
-    collision_system->ReportContacts(contact_container.get());
+    {
+        CH_PROFILE( "ReportContacts");
 
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
-            collision_system->ReportContacts(mcontactcontainer.get());
-        }
+        collision_system->ReportContacts(contact_container.get());
 
-        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
-            collision_system->ReportProximities(mproximitycontainer.get());
+        for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+            if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
+                collision_system->ReportContacts(mcontactcontainer.get());
+            }
+
+            if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
+                collision_system->ReportProximities(mproximitycontainer.get());
+            }
         }
     }
 
@@ -1527,6 +1539,8 @@ int ChSystem::DoStepDynamics(double m_step) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::Integrate_Y() {
+    CH_PROFILE("Integrate_Y");
+
     ResetTimers();
 
     timer_step.start();
@@ -1564,7 +1578,10 @@ bool ChSystem::Integrate_Y() {
         timestepper->SetQcDoClamp(false);
 
     // PERFORM TIME STEP HERE!
-    timestepper->Advance(step);
+    {
+        CH_PROFILE( "Advance");
+        timestepper->Advance(step);
+    }
 
     // Executes custom processing at the end of step
     CustomEndOfStep();
