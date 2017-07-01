@@ -47,7 +47,7 @@ The following is a short list of main attributes of Chrono.
 
 ### Implementation details
 
--   ANSI-compliant C++ syntax.
+-   C++ syntax (requires C++11)
 -   Optimized custom classes for vectors, quaternions, matrices.
 -   Optimized custom classes for coordinate systems and coordinate transformations, featuring a custom compact algebra via operator overloading.
 -   All operations on points/speeds/accelerations are based on quaternion algebra and have been profiled for fastest execution.
@@ -57,18 +57,16 @@ The following is a short list of main attributes of Chrono.
 -   Expandable run-time class factory.
 -   Custom pseudo-'run-time-type-information', to allow persistence even in case of name-mangling with different C++ compilers.
 -   High resolution timer, platform independent.
--   Class to create PostScript(tm) output.
-
 
 ### Other
 
-- Interface with MATLAB
-- Cosimulation with Simulink
+- Template-based vehicle modeling through Chrono::Vehicle
+- Scripting via Python (Chrono::Python)
+- Interface with MATLAB (Chrono::Matlab)
+- Cosimulation with Simulink (Chrono::Cosimulation)
 - Import STEP cad files to define complex geometries
 - Online/offline visualization with Irrlicht and POV-Ray, respectively.
-- Classes for genetic & classical optimization.
 - Classes for interfacing external geometric data (NURBS, splines).
-- Scripting via Python.
-- Makefile system based on CMake (cross-platform, on Windows 32/64 bit, Linux, OSX).
+- Build system based on CMake (cross-platform, on Windows 64 bit, Linux, OSX).
 
 

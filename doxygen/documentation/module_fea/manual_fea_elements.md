@@ -213,7 +213,7 @@ In this page you can find a description of their properties.
 
 Additional information regarding the implementation of finite elements
 in Chrono can be found at the  
-[whitepapers page](@ref whitepaper_root).
+[whitepapers page](http://projectchrono.org/whitepapers/).
 
 
 # Examples

@@ -38,7 +38,7 @@ class ChApiIrr ChBodySceneNode : public irr::scene::ISceneNode {
     /// rigid body for the Chrono multibody simulation.
     /// As soon as created, the wrapped ChBody is also added to Chrono system.
     /// To delete a ChBodyScene node from an Irrlicht scene, use the remove()
-    /// function only! (it will also be removed from the Chrono system)
+    /// function only! (it will also be removed from the Chrono system).
     ChBodySceneNode(ChSystem* msystem,                ///< pointer to the Chrono physical simulation system
                     irr::scene::IAnimatedMesh* mesh,  ///< a 3D mesh for representing the shape of the body
                     irr::scene::ISceneNode* parent,   ///< the parent node in Irrlicht hierarchy
@@ -46,12 +46,14 @@ class ChApiIrr ChBodySceneNode : public irr::scene::ISceneNode {
                     irr::s32 id                       ///< the Irrlicht identifier
                     );
 
+    /// Build a scene node for the Irrlicht Engine with a specified offset
+    /// of the visualization mesh, relative to the body COM.
     ChBodySceneNode(ChSystem* msystem,                ///< pointer to the Chrono physical simulation system
                     irr::scene::IAnimatedMesh* mesh,  ///< a 3D mesh for representing the shape of the body
                     irr::scene::ISceneNode* parent,   ///< the parent node in Irrlicht hierarchy
                     irr::scene::ISceneManager* mgr,   ///< the Irrlicht 	 manager
                     irr::s32 id,                      ///< the Irrlicht identifier
-                    const ChVector<>& offset          ///< offset between mesh and body COG
+                    const ChVector<>& offset          ///< offset between mesh and body COM
                     );
 
     /// Destructor.
