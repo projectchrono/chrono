@@ -168,10 +168,10 @@ int main(int argc, char* argv[]) {
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetRelTolerance(1e-20);
     msolver->SetTolerance(1e-20);
-    msolver->SetVerbose(true);
+    //msolver->SetVerbose(true);
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetTolForce(1e-20);
-    my_system.SetParallelThreadNumber(1);
+    //my_system.SetParallelThreadNumber(1);
 
     // Note: in electrostatics, here you can have only a single linear (non transient) solution
     // so at this point you must do:

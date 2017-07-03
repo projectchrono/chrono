@@ -249,14 +249,17 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (nty > 0) {
                     string::size_type ncom = line.find(",", nty);
                     string s_ele_type = line.substr(nty + 5, ncom - (nty + 5));
-                    if (s_ele_type != "C3D10" && s_ele_type != "DC3D10") {
-                        throw ChException("ERROR in .inp file, TYPE=" + s_ele_type +
-                                          " (only C3D10 or DC3D10 tetrahedrons supported) see: \n" + line + "\n");
+                    e_parse_section = E_PARSE_UNKNOWN;
+                    if (s_ele_type == "C3D10") {
                         e_parse_section = E_PARSE_TETS_10;
-                    } else if (s_ele_type == "C3D10") {
+                    } else if (s_ele_type == "DC3D10") {
                         e_parse_section = E_PARSE_TETS_10;
                     } else if (s_ele_type == "C3D4") {
                         e_parse_section = E_PARSE_TETS_4;
+                    }
+                    if (e_parse_section == E_PARSE_UNKNOWN) {
+                        throw ChException("ERROR in .inp file, TYPE=" + s_ele_type +
+                                          " (only C3D10 or DC3D10 or C3D4 tetrahedrons supported) see: \n" + line + "\n");
                     }
                 }
                 string::size_type nse = line.find("ELSET=");
