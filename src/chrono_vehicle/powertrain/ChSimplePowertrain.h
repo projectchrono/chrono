@@ -58,15 +58,13 @@ class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
     /// This simplified model does not have a torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return 0; }
 
-    /// Return the current transmission gear
+    /// Return the current transmission gear.
     /// This simplified model does not have a transmission box.
     virtual int GetCurrentTransmissionGear() const override { return 1; }
 
     /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
     /// interface between the powertrain and vehicle co-simulation modules.
-    /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
-    /// this function returns 0.
     virtual double GetOutputTorque() const override { return m_shaftTorque; }
 
     /// Use this function to set the mode of automatic transmission.
@@ -92,16 +90,16 @@ class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
     virtual void Advance(double step) override {}
 
   protected:
-    /// Return the forward gear ratio (single gear transmission)
+    /// Return the forward gear ratio (single gear transmission).
     virtual double GetForwardGearRatio() const = 0;
 
-    /// Return the reverse gear ratio
+    /// Return the reverse gear ratio.
     virtual double GetReverseGearRatio() const = 0;
 
-    /// Return the maximum motor torque
+    /// Return the maximum motor torque.
     virtual double GetMaxTorque() const = 0;
 
-    /// Return the maximum motor speed
+    /// Return the maximum motor speed.
     virtual double GetMaxSpeed() const = 0;
 
   private:

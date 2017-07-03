@@ -133,6 +133,8 @@ set(CV_POVERTRAIN_FILES
     powertrain/ChSimplePowertrain.cpp
     powertrain/ChShaftsPowertrain.h
     powertrain/ChShaftsPowertrain.cpp
+    powertrain/ChSimpleMapPowertrain.h
+    powertrain/ChSimpleMapPowertrain.cpp
 
     powertrain/SimplePowertrain.h
     powertrain/SimplePowertrain.cpp

@@ -85,6 +85,11 @@ void HMMWV::Initialize() {
             m_powertrain = ptrain;
             break;
         }
+        case PowertrainModelType::SIMPLE_MAP: {
+            HMMWV_SimpleMapPowertrain* ptrain = new HMMWV_SimpleMapPowertrain;
+            m_powertrain = ptrain;
+            break;
+        }
         case PowertrainModelType::SIMPLE: {
             HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain;
             m_powertrain = ptrain;

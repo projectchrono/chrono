@@ -30,6 +30,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
