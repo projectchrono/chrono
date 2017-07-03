@@ -46,7 +46,6 @@ class CH_FSI_API ChFluidDynamics : public ChFsiGeneral {
     /// Instantiate ChFsiForceParallel, i.e. force system;
     /// Copy the pointer to fluid data, parameters, and number of objects
     /// to member variables.
-    /// Further info at the @ref fluid_system  manual page.
     ChFluidDynamics(ChBce* otherBceWorker,
                     ChFsiDataManager* otherFsiData,
                     SimParams* otherParamsH,

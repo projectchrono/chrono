@@ -67,24 +67,24 @@ enum hostType { NAME, ADDRESS };
 const int HOST_NAME_LENGTH = 64;
 
 /// Class for storing information about a TCP host
-/// in socket communication, ex with an IP address
+/// in socket communication, ex with an IP address.
 
 class ChApiCosimulation ChHostInfo {
   private:
 #ifdef UNIX
-    char searchHostDB;  // search the host database flag
+    char searchHostDB;  ///< search the host database flag
 #endif
 
-    struct hostent* hostPtr;  // Entry within the host address database
+    struct hostent* hostPtr;  ///< Entry within the host address database
 
   public:
-    // Default constructor
+    /// Default constructor
     ChHostInfo();
 
-    // Retrieves the host entry based on the host name or address
+    /// Retrieves the host entry based on the host name or address.
     ChHostInfo(const std::string& hostName, hostType type);
 
-    // Destructor.  Closes the host entry database.
+    /// Destructor.  Closes the host entry database.
     ~ChHostInfo() {
 #ifdef UNIX
         endhostent();
@@ -93,10 +93,10 @@ class ChApiCosimulation ChHostInfo {
 
 #ifdef UNIX
 
-    // Retrieves the next host entry in the database
+    /// Retrieves the next host entry in the database.
     char getNextHost();
 
-    // Opens the host entry database
+    /// Opens the host entry database.
     void openHostDb() {
         endhostent();
         searchHostDB = 1;
@@ -105,10 +105,10 @@ class ChApiCosimulation ChHostInfo {
 
 #endif
 
-    // Retrieves the hosts IP address in dot x.y.z.w notation
+    /// Retrieves the hosts IP address in dot x.y.z.w notation.
     char* getHostIPAddress();
 
-    // Retrieves the hosts name
+    /// Retrieves the hosts name.
     char* getHostName() { return hostPtr->h_name; }
 
   private:

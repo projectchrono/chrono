@@ -131,7 +131,7 @@ If you need it because you recompile the python module in debug mode, either you
 <br>
 1. Comment out the line:
 	<br>
-    <tt>
+	<tt>
 	//#define Py_DEBUG
 	</tt>
 2. Modify 

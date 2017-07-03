@@ -1,4 +1,4 @@
-Converting from MediaWiki to Doxygen {#tutorial_converting_wiki}
+Documenting code with Doxygen {#tutorial_doxygen}
 ==========================
 
 ##Reference Links
@@ -28,9 +28,9 @@ brew install doxygen
 
 ##Building documentation
 
-The documentation is in the main chrono repository in the ```doxygen``` folder. To build the documentation run the ```doxygen``` command in this directory. Documentation will be built at ```../../docs_build```.
+The documentation is in the main chrono repository in the ```doxygen``` folder. To build the documentation run the ```doxygen``` command in this directory. By default, the documentation will be built in ```/tmp/chrono_doxygen```.  To change the output directory, edit the file ```Doxyfile``` and change the variable ```OUTPUT_DIRECTORY```.
 
-
+The instructions below also mention the corresponding syntax in the old MediaWiki-based Chrono documentation.
 
 ###Links
 
@@ -57,9 +57,9 @@ Example: ```=== Create a column ===``` becomes ```### Create a column```
 
 
 ### Images
-Images must be in the documentation/images/ folder to be picked up by doxygen, if you would like to add more folders modify the ```IMAGE_PATH             = documentation/images/``` setting in the doxfile.
+Images must be in the documentation/images/ folder to be picked up by doxygen, if you would like to add more folders modify the ```IMAGE_PATH             = documentation/images/``` setting in ```Doxyfile```.
 
-Images can be added as follows
+Images can be added as follows:
 
 ~~~
 ![](http://projectchrono.org/assets/manual/SWaddin.jpg)
@@ -178,7 +178,6 @@ brick_material.SetComplianceT(0.000000001)
 
 Becomes
 
-~~~~
 
 ~~~{.py}
 brick_material = chrono.ChMaterialSurfaceShared()
@@ -188,7 +187,6 @@ brick_material.SetCompliance (0.000000003)
 brick_material.SetComplianceT(0.000000001)
 ~~~
 
-~~~~
 
 ### Emphasis
 

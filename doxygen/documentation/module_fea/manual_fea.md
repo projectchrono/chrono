@@ -173,7 +173,7 @@ The following example illustrates it.
 # See also
 
 
-- [whitepapers page](@ref whitepaper_root) 
+- [whitepapers page](http://projectchrono.org/whitepapers/) 
   Theory and additional information regarding the implementation of finite elements in Chrono 
 
 - [tutorials](@ref tutorial_table_of_content_chrono_fea) 

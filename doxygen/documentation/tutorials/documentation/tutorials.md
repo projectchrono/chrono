@@ -7,11 +7,11 @@ The following tutorials explain how to write documentation for Chrono.
 These tutorials are mostly for Chrono contributors.
 </div> 
 
+-   @subpage tutorial_doxygen
+
+    Brief introduction to instrumenting code for automatic doxygen API documentation.
+
 -   @subpage tutorial_writing_whitepapers
 	
     Tutorial explaining how to write LaTeX documents about theoretical aspects related to Chrono.
-	
-	
--   @subpage tutorial_converting_wiki
 
-    Tutorial explaining  how to convert pages from the Wiki in the old site into markdown files for the new doxygen documentation system.

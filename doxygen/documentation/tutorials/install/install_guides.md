@@ -28,12 +28,13 @@ Installation Guides {#tutorial_table_of_content_install}
 
 -   @subpage module_opengl_installation
 
--   @subpage module_ogre_installation
-
 -   @subpage module_parallel_installation
 
 -   @subpage module_mkl_installation
 
+-   @subpage module_fsi_installation
+
+-   @subpage module_ogre_installation
 
 	
 ## How to install auxiliary tools

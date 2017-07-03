@@ -2,7 +2,7 @@ Writing white papers       {#tutorial_writing_whitepapers}
 ==========================
 
 A 'white paper' is a document that provides technical/analytical details that anchor the software implementation in Chrono.
-In order to maintain some sense of uniformity between these white paper documents it is highly recommended that the source document be generated in LaTeX using a Chrono specific document type. Specifically, we provide a **chrono.cls** LaTeX class that you can use instead of the article class. This is how the docs in the [white papers page](@ref whitepaper_root) have been generated.
+In order to maintain some sense of uniformity between these white paper documents it is highly recommended that the source document be generated in LaTeX using a Chrono specific document type. Specifically, we provide a **chrono.cls** LaTeX class that you can use instead of the article class. This is how the docs in the [white papers page](http://projectchrono.org/whitepapers/) have been generated.
 
 
 ## Finding the chrono.cls LaTeX class
@@ -75,6 +75,6 @@ Then, add the link to your document in the ```whitepapers.md``` file in ```chron
 <div class="ce-warning">
 Compiling these white paper LaTeX sources is not integrated in the automatic Doxygen toolchain, 
 so it is up to you to build, check the cross links, upload, etc.
-<div>
+</div>
 
  
