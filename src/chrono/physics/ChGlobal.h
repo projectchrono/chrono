@@ -36,6 +36,9 @@ ChApi const std::string& GetChronoDataPath();
 /// Chrono data directory (thread safe)
 ChApi std::string GetChronoDataFile(const std::string& filename);
 
+/// Obtain the path to the output directory for Chrono demos.
+ChApi const std::string& GetChronoOutputPath();
+
 }  // end namespace chrono
 
 #endif
