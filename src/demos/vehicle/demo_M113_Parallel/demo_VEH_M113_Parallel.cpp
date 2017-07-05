@@ -210,6 +210,8 @@ void progressbar(unsigned int x, unsigned int n, unsigned int w = 50) {
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // -----------------
     // Initialize output
     // -----------------

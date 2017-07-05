@@ -29,6 +29,8 @@ using namespace chrono;
 using namespace postprocess;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     GetLog() << "CHRONO demo about low-level time integration of differential equations: \n\n";
 
     if (true) {

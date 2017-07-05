@@ -39,6 +39,8 @@ using namespace io;
 using namespace gui;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a Chrono::Engine physical system
     ChSystemNSC mphysicalSystem;
 

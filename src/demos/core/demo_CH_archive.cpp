@@ -512,6 +512,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     GetLog() << "\n"
              << "CHRONO foundation classes demo: archives (serialization)\n\n";

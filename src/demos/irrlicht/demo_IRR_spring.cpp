@@ -60,6 +60,8 @@ class MySpringForce : public ChLinkSpringCB::ForceFunctor {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     ChSystemNSC system;
     system.Set_G_acc(ChVector<>(0, 0, 0));
 

@@ -32,6 +32,8 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     ChSystemNSC system;
     system.Set_G_acc(ChVector<>(1, -1, 1));
 

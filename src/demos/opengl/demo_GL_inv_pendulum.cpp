@@ -165,6 +165,8 @@ void MyController::Advance(double step) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Problem parameters
     // ------------------
     double mass_cart = 1.0;    // mass of the cart

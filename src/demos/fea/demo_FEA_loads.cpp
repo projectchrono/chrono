@@ -416,6 +416,8 @@ void test_1() {
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     test_1();
 
     return 0;

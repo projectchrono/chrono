@@ -15,6 +15,7 @@
 #ifndef CHAPICOSIMULATION_H
 #define CHAPICOSIMULATION_H
 
+#include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
 // When compiling this library, remember to define CH_API_COMPILE_COSIMULATION

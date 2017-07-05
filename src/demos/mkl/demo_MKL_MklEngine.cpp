@@ -157,6 +157,7 @@ void test_MklEngine()
 }
 
 int main(){
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
 	test_CSR3();
 

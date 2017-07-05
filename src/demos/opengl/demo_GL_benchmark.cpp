@@ -45,6 +45,8 @@ void AddMixture(ChSystem* sys) {
 // Create the system
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     ChSystemNSC msystem;
 
     AddMixture(&msystem);

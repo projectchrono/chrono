@@ -28,6 +28,8 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     GetLog() << " Test the execution of Python statements, formulas, programs.\n No graphical user interface.\n\n";
 
     // Use a ChPythonEngine object.

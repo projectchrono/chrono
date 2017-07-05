@@ -71,6 +71,8 @@ int scaleFactor = 35;
 double dz = 0.01;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,

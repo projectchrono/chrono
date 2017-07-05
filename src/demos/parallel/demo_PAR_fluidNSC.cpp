@@ -120,6 +120,8 @@ void AddFluid(ChSystemParallelNSC* sys) {
 // Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     int threads = 8;
 
     // Simulation parameters

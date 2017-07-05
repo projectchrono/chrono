@@ -157,6 +157,8 @@ void AddContainer(ChIrrApp& application) {
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Simulation and rendering time-step
     double time_step = 1e-4;
     double out_step = 0.02;

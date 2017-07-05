@@ -27,6 +27,7 @@ using namespace chrono::cosimul;
 
 int main(int argc, char* argv[]) {
     // To write something to the console, use the chrono::GetLog()
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     GetLog() << "CHRONO demo about sockets \n\n";
 

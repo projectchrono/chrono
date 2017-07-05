@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/ChVersion.h"
 #include "chrono/motion_functions/ChFunction.h"
 
 // Use the namespace of Chrono
@@ -24,12 +23,11 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     //
     // EXAMPLE 1: create a ramp ChFunction, set properties, evaluate it.
     //
-
-    GetLog() << "Chrono revision: " << CHRONO_VCS_REVISION << "\n";
-    GetLog() << "Chrono version: " << CHRONO_VERSION << "\n";
 
     GetLog() << "==== Test 1...\n\n";
 

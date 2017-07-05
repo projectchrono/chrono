@@ -13,6 +13,7 @@
 #ifndef CH_APISUBSYS_H
 #define CH_APISUBSYS_H
 
+#include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
 // When compiling this library, remember to define CH_API_COMPILE_VEHICLE

@@ -359,6 +359,8 @@ void printSimulationParameters(fsi::SimParams* paramsH) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     time_t rawtime;
     struct tm* timeinfo;
 

@@ -38,6 +38,8 @@ using namespace chrono;
 using namespace postprocess;  // <- to keep things shorter
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a Chrono::Engine physical system
     ChSystemNSC mphysicalSystem;
 

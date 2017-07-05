@@ -17,6 +17,7 @@
 #ifndef CHAPIGL_H
 #define CHAPIGL_H
 
+#include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
 /**

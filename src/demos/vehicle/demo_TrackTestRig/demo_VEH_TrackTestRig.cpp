@@ -58,6 +58,8 @@ const std::string out_dir = "../TRACK_TESTRIG";
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     ChTrackTestRig* rig = nullptr;
     ChVector<> attach_loc(0, 1, 0);
 

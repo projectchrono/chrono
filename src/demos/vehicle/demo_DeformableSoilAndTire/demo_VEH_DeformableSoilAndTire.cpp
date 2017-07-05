@@ -33,6 +33,8 @@ using namespace chrono::vehicle;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Global parameter for tire:
     double tire_rad = 0.5;
     double tire_vel_z0 = -3;

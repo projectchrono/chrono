@@ -621,6 +621,8 @@ void test_5() {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     GetLog() << " Example: the FEM technology for finite elements \n\n\n";
 
     // Test: an introductory problem:

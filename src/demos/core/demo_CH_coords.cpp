@@ -29,6 +29,8 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // To write something to the console, use the chrono::GetLog()
     GetLog() << "CHRONO demo about coordinate transformations: \n\n";
 

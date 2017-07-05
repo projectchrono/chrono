@@ -48,6 +48,8 @@ void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Simulation parameters
     double gravity = -9.81;
     double time_step = 0.00001;
