@@ -17,13 +17,6 @@
 
 #include "chrono/core/ChPlatform.h"
 
-// Chrono::Engine version
-//
-// This is an integer, as 0xaabbccdd where
-// for example version 1.2.0 is 0x00010200
-
-#define CH_VERSION_FEA_MODULE 0x00000001
-
 // When compiling this library, remember to define CH_API_COMPILE_FEA
 // (so that the symbols with 'ChApiFea' in front of them will be
 // marked as exported). Otherwise, just do not define it if you

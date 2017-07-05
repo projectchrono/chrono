@@ -66,6 +66,9 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${CHRONO_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${CHRONO_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${CHRONO_VERSION_PATCH}")
 
+# Version as a hexadecimal integer of the form 0x00MMmmPP
+set(CH_VERSION 0x00030000)
+
 #-----------------------------------------------------------------------------
 # Location of additional CMake scripts
 #-----------------------------------------------------------------------------
