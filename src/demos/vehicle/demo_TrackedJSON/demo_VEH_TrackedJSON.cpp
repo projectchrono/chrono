@@ -90,7 +90,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 double tend = 10.0;
 
 // Output directories (Povray only)
-const std::string out_dir = "../M113_JSON";
+const std::string out_dir = GetChronoOutputPath() + "M113_JSON";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // =============================================================================

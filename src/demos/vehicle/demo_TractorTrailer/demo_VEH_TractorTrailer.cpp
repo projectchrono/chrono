@@ -85,7 +85,7 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 #else
 double tend = 20.0;
 
-const std::string out_dir = "../GENERIC_VEHICLE";
+const std::string out_dir = GetChronoOutputPath() + "TRACTOR_TRAILER";
 const std::string pov_dir = out_dir + "/POVRAY";
 #endif
 

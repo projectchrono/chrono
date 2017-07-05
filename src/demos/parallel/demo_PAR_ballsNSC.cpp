@@ -41,24 +41,12 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-const char* out_folder = "../BALLS_NSC/POVRAY";
-
 // Tilt angle (about global Y axis) of the container.
 double tilt_angle = 1 * CH_C_PI / 20;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
 int count_X = 2;
 int count_Y = 2;
-
-// -----------------------------------------------------------------------------
-// Generate postprocessing output with current system state.
-// -----------------------------------------------------------------------------
-void OutputData(ChSystemParallel* sys, int out_frame, double time) {
-    char filename[100];
-    sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-    utils::WriteShapesPovray(sys, filename);
-    std::cout << "time = " << time << std::flush << std::endl;
-}
 
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
@@ -223,15 +211,9 @@ int main(int argc, char* argv[]) {
 #else
     // Run simulation for specified time
     int num_steps = (int)std::ceil(time_end / time_step);
-    int out_steps = (int)std::ceil((1 / time_step) / out_fps);
-    int out_frame = 0;
     double time = 0;
 
     for (int i = 0; i < num_steps; i++) {
-        if (i % out_steps == 0) {
-            OutputData(&msystem, out_frame, time);
-            out_frame++;
-        }
         msystem.DoStepDynamics(time_step);
         time += time_step;
     }

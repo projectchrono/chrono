@@ -70,7 +70,7 @@ double render_step_size = 1.0 / FPS;  // FPS = 50
 
 // POV-Ray output
 bool povray_output = false;
-const std::string out_dir = "../HMMWV9";
+const std::string out_dir = GetChronoOutputPath() + "HMMWV9";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // =============================================================================

@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     // Better put the Matlab stuff inside a try{}, since it may throw exception if
     // the engine is not started (because Matlab not properly installed)
     try {
-        GetLog() << "PERFORM TESTS OF MATLAB<->CHRONOENGINE INTERACTION\n\n";
+        GetLog() << "PERFORM TESTS OF MATLAB<->CHRONO INTERACTION\n\n";
         GetLog() << "(please wait few seconds: Matlab engine must be loaded)\n\n";
 
         // This is the object that you can use to access the Matlab engine.
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 1: execute a Matlab command
         //
 
-        GetLog() << "- Execute plotting command from Chrono::Engine...\n\n";
+        GetLog() << "- Execute plotting command from Chrono...\n\n";
 
         matlab_engine.Eval(
             "z=peaks(25); \

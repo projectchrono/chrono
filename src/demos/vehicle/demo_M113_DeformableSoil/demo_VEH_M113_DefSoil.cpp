@@ -69,7 +69,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 ChVector<> trackPoint(-2.0, 0.0, 0.0);
 
 // Output directories
-const std::string out_dir = "../M113_DEF_SOIL";
+const std::string out_dir = GetChronoOutputPath() + "M113_DEF_SOIL";
 const std::string img_dir = out_dir + "/IMG";
 
 // Visualization output

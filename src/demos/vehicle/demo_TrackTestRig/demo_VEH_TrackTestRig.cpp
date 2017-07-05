@@ -54,7 +54,7 @@ double render_step_size = 1.0 / 50;
 // Output (screenshot captures)
 bool img_output = false;
 
-const std::string out_dir = "../TRACK_TESTRIG";
+const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 
 // =============================================================================
 int main(int argc, char* argv[]) {

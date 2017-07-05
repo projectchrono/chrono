@@ -99,7 +99,7 @@ bool debug_output = false;
 double debug_fps = 10;
 
 // Output directories
-const std::string out_dir = "../STEERING_CONTROLLER";
+const std::string out_dir = GetChronoOutputPath() + "STEERING_CONTROLLER";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // POV-Ray output

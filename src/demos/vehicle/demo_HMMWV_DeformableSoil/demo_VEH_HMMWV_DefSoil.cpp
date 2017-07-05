@@ -110,7 +110,7 @@ double render_step_size = 1.0 / 100;
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Output directories
-const std::string out_dir = "../HMMWV_DEF_SOIL";
+const std::string out_dir = GetChronoOutputPath() + "HMMWV_DEF_SOIL";
 const std::string img_dir = out_dir + "/IMG";
 
 // Visualization output

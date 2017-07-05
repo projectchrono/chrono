@@ -95,7 +95,7 @@ std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
 
 // Output collection
 bool collect_output = false;
-std::string out_dir = "../SUSPENSION_TEST_RIG";
+std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
 double out_step_size = 1.0 / 100;
 
 // =============================================================================

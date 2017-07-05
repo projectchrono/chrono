@@ -69,7 +69,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 ChVector<> trackPoint(0.0, 0.0, 0.0);
 
 // Output directories
-const std::string out_dir = "../M113";
+const std::string out_dir = GetChronoOutputPath() + "M113";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
 

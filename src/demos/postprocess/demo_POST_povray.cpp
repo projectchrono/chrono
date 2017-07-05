@@ -218,24 +218,32 @@ int main(int argc, char* argv[]) {
     // SETUP THE POSTPROCESSING
     //
 
+    // Create (if needed) the output directory
+    const std::string demo_dir = GetChronoOutputPath() + "DEMO_POVRAY";
+    if (ChFileutils::MakeDirectory(demo_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << demo_dir << std::endl;
+        return 1;
+    }
+
     // Create an exporter to POVray !!!
 
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
     // Sets some file names for in-out processes.
     pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-    pov_exporter.SetOutputScriptFile("rendering_frames.pov");
+    pov_exporter.SetOutputScriptFile(demo_dir + "/rendering_frames.pov");
     pov_exporter.SetOutputDataFilebase("my_state");
     pov_exporter.SetPictureFilebase("picture");
 
-    // Even better: save the .dat files and the .bmp files
-    // in two subdirectories, to avoid cluttering the current
-    // directory...
-    ChFileutils::MakeDirectory("output");
-    ChFileutils::MakeDirectory("anim");
+    // Even better: save the .dat files and the .bmp files in two subdirectories,
+    // to avoid cluttering the current directory.
+    const std::string out_dir = demo_dir + "/output";
+    const std::string anim_dir = demo_dir + "/anim";
+    ChFileutils::MakeDirectory(out_dir.c_str());
+    ChFileutils::MakeDirectory(anim_dir.c_str());
 
-    pov_exporter.SetOutputDataFilebase("output/my_state");
-    pov_exporter.SetPictureFilebase("anim/picture");
+    pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
+    pov_exporter.SetPictureFilebase(anim_dir + "/picture");
 
     // --Optional: modify default light
     pov_exporter.SetLight(ChVector<>(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
