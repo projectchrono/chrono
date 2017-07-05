@@ -30,7 +30,7 @@ namespace generic {
 /// @{
 
 /// Open-loop driver model for use with a generic vehicle.
-class CH_MODELS_API Generic_FuncDriver : public ChDriver {
+class Generic_FuncDriver : public ChDriver {
   public:
     Generic_FuncDriver(ChVehicle& vehicle) : ChDriver(vehicle) {}
     ~Generic_FuncDriver() {}
