@@ -15,9 +15,6 @@
 #ifndef CORE_VERSION_H_
 #define CORE_VERSION_H_
 
-// Version Control Revision
-#define CHRONO_VCS_REVISION "@VCS_REVISION@"
-
 // Chrono version (string)
 #define CHRONO_VERSION "@CHRONO_VERSION@"
 #define CHRONO_VERSION_MAJOR "@CHRONO_VERSION_MAJOR@"
