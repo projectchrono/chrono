@@ -26,20 +26,26 @@
 //
 // =============================================================================
 
-#include "chrono/solver/ChSolverMINRES.h"
-#include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono/core/ChFileutils.h"
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
+
+#include "chrono/solver/ChSolverMINRES.h"
+
+#include "chrono_fea/ChElementBrick_9.h"
+#include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
+
+#include "chrono_mkl/ChSolverMKL.h"
+
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
-#include "chrono_mkl/ChSolverMKL.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -54,8 +60,17 @@ void SimpleBoxContact();
 void ShellBrickContact();
 void DPCapPress();
 
+// Output directory
+const std::string out_dir = GetChronoOutputPath() + "FEA_BRICK9";
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    // Create (if needed) the output directory
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     DPCapPress();
     // ShellBrickContact();
@@ -345,7 +360,8 @@ void DPCapPress() {
     my_system.Setup();
     my_system.Update();
 
-    outputfile = fopen("SolidBenchmark.txt", "w");
+    std::string filename = out_dir + "/DPCapPress.txt";
+    outputfile = fopen(filename.c_str(), "w");
 
     double ChTime = 0.0;
     double start = std::clock();
@@ -698,7 +714,8 @@ void ShellBrickContact() {
     my_system.Setup();
     my_system.Update();
 
-    outputfile = fopen("SolidBenchmark.txt", "w");
+    std::string filename = out_dir + "/ShellBrickContact.txt";
+    outputfile = fopen(filename.c_str(), "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
@@ -1013,7 +1030,8 @@ void SimpleBoxContact() {
     my_system.Setup();
     my_system.Update();
 
-    outputfile = fopen("SolidBenchmark.txt", "w");
+    std::string filename = out_dir + "/SimpleBoxContact.txt";
+    outputfile = fopen(filename.c_str(), "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
@@ -1347,7 +1365,8 @@ void SoilBin() {
     my_system.Setup();
     my_system.Update();
 
-    outputfile = fopen("SolidBenchmark0.txt", "w");
+    std::string filename = out_dir + "/SoilBin.txt";
+    outputfile = fopen(filename.c_str(), "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
     for (int ii = 0; ii < N_x; ii++) {
         auto nodetest =
@@ -1635,7 +1654,8 @@ void AxialDynamics() {
     my_system.Setup();
     my_system.Update();
 
-    outputfile = fopen("SolidBenchmark.txt", "w");
+    std::string filename = out_dir + "/AxialDynamics.txt";
+    outputfile = fopen(filename.c_str(), "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
@@ -1882,7 +1902,8 @@ void BendingQuasiStatic() {
     my_system.Setup();
     my_system.Update();
 
-    outputfile = fopen("SolidBenchmark.txt", "w");
+    std::string filename = out_dir + "/BendingQuasistatic.txt";
+    outputfile = fopen(filename.c_str(), "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
@@ -2127,7 +2148,8 @@ void SwingingShell() {
     my_system.Setup();
     my_system.Update();
 
-    outputfile = fopen("SolidBenchmark.txt", "w");
+    std::string filename = out_dir + "SwingingShell.txt";
+    outputfile = fopen(filename.c_str(), "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());

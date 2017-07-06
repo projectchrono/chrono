@@ -59,7 +59,7 @@ std::ofstream simParams;
 //----------------------------
 // output directories and settings
 //----------------------------
-const std::string out_dir = "FSI_OUTPUT";
+const std::string out_dir = GetChronoOutputPath() + "FSI_DAM_BREAK";
 const std::string demo_dir = out_dir + "/DamBreak";
 // Save data as csv files, turn it on to be able to see the results off-line using paraview
 bool save_output = true;

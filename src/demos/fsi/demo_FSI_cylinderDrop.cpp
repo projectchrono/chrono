@@ -66,7 +66,7 @@ std::ofstream simParams;
 // output directories and settings
 //----------------------------
 
-const std::string out_dir = "FSI_OUTPUT";
+const std::string out_dir = GetChronoOutputPath() + "FSI_CYLINDER_DROP";
 const std::string pov_dir_fluid = out_dir + "/povFilesFluid";
 const std::string pov_dir_mbd = out_dir + "/povFilesHmmwv";
 bool povray_output = true;
