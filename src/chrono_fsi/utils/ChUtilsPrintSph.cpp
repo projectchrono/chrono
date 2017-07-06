@@ -74,7 +74,7 @@ void PrintToFile(const thrust::device_vector<Real3> &posRadD,
   fileNameFluidBoundaries.open(nameFluidBoundaries);
   std::stringstream ssFluidBoundaryParticles;
     if(printToParaview)
-     ssFluidParticles << "x,y,z,vx,vy,vz,U,rpx,rpy,rpz,rpw\n";
+     ssFluidBoundaryParticles << "x,y,z,vx,vy,vz,U,rpx,rpy,rpz,rpw\n";
 
   //		ssFluidBoundaryParticles.precision(20);
   for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
@@ -98,7 +98,7 @@ void PrintToFile(const thrust::device_vector<Real3> &posRadD,
   std::stringstream ssBCE;
   //		ssFluidBoundaryParticles.precision(20);
   if(printToParaview)
-     ssFluidParticles << "x,y,z,vx,vy,vz,U,rpx,rpy,rpz,rpw\n";
+     ssBCE << "x,y,z,vx,vy,vz,U,rpx,rpy,rpz,rpw\n";
 
   int refSize = referenceArray.size();
   if (refSize > 2) {
