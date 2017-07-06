@@ -48,7 +48,7 @@ void SetupParamsH(SimParams* paramsH, Real bxDim, Real byDim, Real bzDim, Real f
     paramsH->bodyForce3 = mR3(0, 0, 0);
     paramsH->rho0 = 1000;
     paramsH->markerMass = pow(paramsH->MULT_INITSPACE * paramsH->HSML, 3) * paramsH->rho0;
-    paramsH->mu0 = .0001;
+    paramsH->mu0 = .001;
     paramsH->v_Max = 2;  
     paramsH->EPS_XSPH = .5f;
 
@@ -66,8 +66,8 @@ void SetupParamsH(SimParams* paramsH, Real bxDim, Real byDim, Real bzDim, Real f
     paramsH->tweakMultV = 0.1;
     paramsH->tweakMultRho = .00;
     paramsH->bceType = ADAMI;  // ADAMI, mORIGINAL
-    paramsH->cMin = mR3(-bxDim, -byDim, -bzDim) - mR3(paramsH->HSML * 5);
-    paramsH->cMax = mR3(bxDim, byDim, 1.2 * bzDim) + mR3(paramsH->HSML * 5);
+    paramsH->cMin = mR3(-bxDim, -byDim, -bzDim) - mR3(paramsH->HSML * 1);
+    paramsH->cMax = mR3(bxDim, byDim, 1.2 * bzDim) + mR3(paramsH->HSML * 1);
 
     //****************************************************************************************
     int3 side0 = mI3(floor((paramsH->cMax.x - paramsH->cMin.x) / (2 * paramsH->HSML)),
