@@ -226,7 +226,6 @@ int main(int argc, char* argv[]) {
     }
 
     // Create an exporter to POVray !!!
-
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
     // Sets some file names for in-out processes.
