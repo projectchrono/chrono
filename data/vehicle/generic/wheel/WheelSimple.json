@@ -1,0 +1,14 @@
+{
+  "Name":                       "Generic Cylindrical Wheel",
+  "Type":                       "Wheel",
+  "Template":                   "Wheel",
+
+  "Mass":                       88.39,
+  "Inertia":                    [0.113, 0.113, 0.113],
+
+  "Visualization":
+  {
+    "Radius":                   0.41,
+    "Width":                    0.254
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "Name":     "M113 APC",
+  "Type":     "TrackVehicle",
+  "Template": "TrackVehicle",
+
+  "Chassis":
+  {
+    "Mass":     2086.524902,
+    "COM":      [0.055765, 0, 0.52349],
+    "Inertia":  [1078.52344, 2955.66050, 3570.20377]
+  },
+  
+  "TrackSystem":
+  [
+    {
+      "Input File":   "M113/TrackSystem.json",
+      "Location":     [0, 1.0, 0]
+    },
+
+    {
+      "Input File":   "M113/TrackSystem.json",
+      "Location":     [0, -1.0, 0]
+    }
+  ],
+
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
+  "Visualization":
+  {
+    "Filename":  "M113/M113_chassis.obj",
+    "Name":      "M113_Chassis_geom"
+  }
+}

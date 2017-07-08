@@ -13,8 +13,8 @@ if __name__ == '__main__':
 print ("First tutorial about Chrono::Engine in Python");
 
 
-# Load the Chrono::Engine unit!!!
-import ChronoEngine_PYTHON_core as chrono
+# Load the Chrono::Engine module!!!
+import ChronoEngine_python_core as chrono
 
 
 # Test logging

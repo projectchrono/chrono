@@ -1,0 +1,14 @@
+%{
+
+/* Includes the header in the wrapper code */
+#include "chrono/physics/ChMaterialSurface.h"
+
+using namespace chrono;
+
+%}
+
+
+/* Parse the header file to generate wrappers */
+%include "../chrono/physics/ChMaterialSurface.h"    
+
+

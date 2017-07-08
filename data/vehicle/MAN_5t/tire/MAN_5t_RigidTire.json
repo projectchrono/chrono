@@ -1,0 +1,26 @@
+{
+  "Name":                       "MAN_5t Rigid Tire",
+  "Type":                       "Tire",
+  "Template":                   "RigidTire",
+
+  "Radius":                     0.6,
+  "Width":                      0.3,
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.9,
+      "Coefficient of Restitution": 0.1,
+
+      "Properties": {
+          "Young Modulus":          2e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  }
+}

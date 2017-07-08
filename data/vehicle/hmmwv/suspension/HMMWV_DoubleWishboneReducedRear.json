@@ -1,0 +1,56 @@
+{
+  "Name":                       "HMMWV DoubleWishbone Reduced Rear",
+  "Type":                       "Suspension",
+  "Template":                   "DoubleWishboneReduced",
+
+  "Spindle" :
+  {
+    "Mass":                     15.91,
+    "COM":                      [0.036, 0.910, -0.026],
+    "Inertia":                  [2, 4, 2],
+    "Radius":                   0.15,
+    "Width":                    0.06
+  },
+
+  "Upright":
+  {
+    "Mass":                     27.27,
+    "COM":                      [0.036, 0.751, -0.026],
+    "Inertia":                  [5, 5, 5],
+    "Radius":                   0.025
+  },
+
+  "Upper Control Arm":
+  {
+    "Location Chassis Front":   [0.349, 0.462, 0.228],
+    "Location Chassis Back":    [0.077, 0.462, 0.224],
+    "Location Upright":         [0.036, 0.716, 0.216]
+  },
+
+  "Lower Control Arm":
+  {
+    "Location Chassis Front":   [0.223, 0.307, 0.000],
+    "Location Chassis Back":    [-0.223, 0.307, 0.000],
+    "Location Upright":         [0.036, 0.787, -0.118]
+  },
+
+  "Tierod":
+  {
+    "Location Chassis":         [0.223, 0.416, 0.059],
+    "Location Upright":         [0.170, 0.821, -0.009]
+  },
+
+  "Shock":
+  {
+    "Location Chassis":         [-0.104, 0.498, 0.323],
+    "Location Upright":         [-0.097, 0.544, -0.038],
+    "Free Length":              0.382,
+    "Spring Coefficient":       369149.000,
+    "Damping Coefficient":      63921.000
+  },
+
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}

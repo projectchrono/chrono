@@ -1,0 +1,20 @@
+{
+  "Name":                       "HMMWV Rack-Pinion Steering",
+  "Type":                       "Steering",
+  "Template":                   "RackPinion",
+
+  "Steering Link":
+  {
+    "Mass":                     9.072,
+    "COM":                      0,
+    "Inertia":                  [1, 1, 1],
+    "Radius":                   0.03,
+    "Length":                   0.896
+  },
+
+  "Pinion":
+  {
+    "Radius":                   0.1,
+    "Maximum Angle":            0.87
+  }
+}

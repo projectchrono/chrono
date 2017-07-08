@@ -1,0 +1,23 @@
+{
+  "Name":     "HMMWV Front Suspension Test",
+  "Type":     "SuspensionTest",
+  "Template": "SuspensionTest",
+
+  "Suspension":
+  {
+    "Input File":   "hmmwv/suspension/HMMWV_DoubleWishboneFront.json",
+    "Location":     [1.688965, 0, 0],
+    "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_FrontLeft.json",
+    "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_FrontRight.json"
+  },
+
+  "Displacement Limit":     0.15,
+
+  "Steering":
+  {
+    "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",
+    "Location":             [1.24498, 0, 0.101322],
+    "Orientation":          [0.98699637, 0, 0.16074256, 0],
+    "Suspension Index":     0
+  }
+}

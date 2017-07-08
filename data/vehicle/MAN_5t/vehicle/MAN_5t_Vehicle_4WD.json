@@ -1,0 +1,53 @@
+{
+  "Name":     "MAN 5t",
+  "Type":     "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis":
+  {
+    "Input File":               "MAN_5t/chassis/MAN_5t_Chassis.json"
+  },
+
+  "Axles":
+  [
+    {
+      "Suspension Input File":   "MAN_5t/suspension/MAN_5t_SolidAxle.json",
+      "Suspension Location":     [4.311, 0, -0.040],
+      "Steering Index":          0,
+      "Left Wheel Input File":   "MAN_5t/wheel/MAN_5t_Wheel_FrontLeft.json",
+      "Right Wheel Input File":  "MAN_5t/wheel/MAN_5t_Wheel_FrontRight.json",
+      "Left Brake Input File":   "MAN_5t/brake/MAN_5t_BrakeSimple.json",
+      "Right Brake Input File":  "MAN_5t/brake/MAN_5t_BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File":   "MAN_5t/suspension/MAN_5t_SolidAxle.json",
+      "Suspension Location":     [0.0200, 0, -0.040],
+      "Left Wheel Input File":   "MAN_5t/wheel/MAN_5t_Wheel_RearLeft.json",
+      "Right Wheel Input File":  "MAN_5t/wheel/MAN_5t_Wheel_RearRight.json",
+      "Left Brake Input File":   "MAN_5t/brake/MAN_5t_BrakeSimple.json",
+      "Right Brake Input File":  "MAN_5t/brake/MAN_5t_BrakeSimple.json"
+    }
+  ],
+
+  "Steering Subsystems":
+  [
+    {
+      "Input File":           "MAN_5t/steering/MAN_5t_RackPinion.json",
+      "Location":             [4.2001, 0, -0.07],
+      "Orientation":          [1, 0, 0, 0]
+    }
+  ],
+
+  "Driveline":
+  {
+    "Input File":           "MAN_5t/driveline/MAN_5t_Driveline4WD.json",
+    "Suspension Indexes":   [0, 1]
+  },
+
+  "Visualization":
+  {
+    "Mesh Filename":  "MAN_5t/MAN_5t_chassis.obj",
+    "Mesh Name":      "MAN_5t_chassis_POV_geom"
+  }
+}

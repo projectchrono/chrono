@@ -1,0 +1,18 @@
+material sky
+{
+	technique
+	{
+		pass
+		{
+			fog_override true none
+			lighting off
+			depth_write off
+
+			texture_unit
+			{
+				cubic_texture sky_side.jpg sky_side.jpg sky_side.jpg sky_side.jpg sky_top.jpg sky_bottom.jpg separateUV
+				tex_address_mode clamp
+			}
+		}
+	}
+}

@@ -1,0 +1,25 @@
+{
+  "Name":     "Generic chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+                              "Location":    [0, 0, 0], 
+                              "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                95.0,
+     "Moments of Inertia":  [200.0, 500.0, 500.0],
+     "Products of Inertia": [0, 0, 0],
+     "Void":                false
+   }
+  ],
+
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  }
+}

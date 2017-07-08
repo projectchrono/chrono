@@ -80,3 +80,12 @@ nosetests.xml
 ## Simulink Code Generation
 slprj/
 
+##---------------------------------------------------
+## Website
+##---------------------------------------------------
+_site
+.sass-cache
+doxygen/documentation/images/chronoStructure2016.png
+build_chrono_website.sh
+.htaccess
+refman.pdf

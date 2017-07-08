@@ -1,0 +1,9 @@
+BasedOnStyle: Chromium
+
+# Longer lines
+ColumnLimit: 120
+
+# Increase indentation
+IndentWidth: 4
+TabWidth: 4
+AccessModifierOffset: -2

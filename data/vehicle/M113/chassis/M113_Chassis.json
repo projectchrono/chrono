@@ -1,0 +1,56 @@
+{
+  "Name":     "M113 chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+                              "Location":    [-2.006, 0, 0.406], 
+                              "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                5489.24,
+     "Moments of Inertia":  [1786.92, 10449.67, 10721.22],
+     "Products of Inertia": [0, 0, 0],
+     "Void":                false
+   }
+  ],
+ 
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
+  "Visualization":
+  {
+    "Mesh": 
+    {
+       "Filename":  "M113/Chassis.obj",
+       "Name":      "Chassis_POV_geom"
+    },
+    "Primitives":
+    [
+      {
+        "Type": "SPHERE",
+        "Location": [-2.006, 0, 0.406],
+        "Radius": 0.1
+      },
+      {
+        "Type": "CYLINDER",
+        "Location": [-2.006, 0, 0.406],
+        "Orientation": [1, 0, 0, 0],
+        "Radius": 0.02,
+        "Length": 0.6
+      },
+      {
+        "Type": "CYLINDER",
+        "Location": [-2.006, 0, 0.406],
+        "Orientation": [0.7071, 0, 0, 0.7071],
+        "Radius": 0.02,
+        "Length": 0.6
+      }
+   ]
+  }
+}

@@ -21,30 +21,30 @@ if __name__ == '__main__':
 
 
 # Load the Chrono::Engine unit and the postprocessing unit!!!
-import ChronoEngine_PYTHON_core as chrono
-import ChronoEngine_PYTHON_postprocess as postprocess
+import ChronoEngine_python_core as chrono
+import ChronoEngine_python_postprocess as postprocess
 
 # We will create two directories for saving some files, we need this:
 import os
 
 
 # Create a physical system,
-my_system = chrono.ChSystem()
+my_system = chrono.ChSystemNSC()
 my_systemB = my_system
 my_system.SetTol(2)
 print (my_systemB.GetTol())
 
 # Create a body
-body_1= chrono.ChBodyAuxRefShared()
+body_1= chrono.ChBodyAuxRef()
 my_system.Add(body_1)
 
 # Attach a visualization asset to the body (a Wavefront .obj mesh)
-myasset = chrono.ChSphereShapeShared()
+myasset = chrono.ChSphereShape()
 myasset.GetSphereGeometry().rad =0.2
 body_1.GetAssets().push_back(myasset)
 
 # Assets can be shared, ex. to save memory...
-body_2= chrono.ChBodyAuxRefShared()
+body_2= chrono.ChBodyAuxRef()
 body_2.SetPos(chrono.ChVectorD(0.5,0,0))
 my_system.Add(body_2)
 body_2.GetAssets().push_back(myasset)
@@ -56,7 +56,7 @@ body_2.GetAssets().push_back(myasset)
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        ("../data/_template_POV.pov")
+pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
 pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
 pov_exporter.SetOutputDataFilebase  ("my_state")
 pov_exporter.SetPictureFilebase     ("picture")

@@ -1,0 +1,98 @@
+{
+  "Name":                           "Generic Solid Axle",
+  "Type":                           "Suspension",
+  "Template":                       "SolidAxle",
+
+  "Spindle" :
+  {
+    "Mass":                         0.248,
+    "COM":                          [0, 0.910, 0],
+    "Inertia":                      [0.0000558, 0.0000279, 0.0000558],
+    "Radius":                       0.06,
+    "Width":                        0.04
+  },
+
+  "Knuckle":
+  {
+    "Mass":                         1.356,
+    "COM":                          [0, 0.7, 0],
+    "Inertia":                      [0.00255, 0.00134, 0.00196],
+    "Radius":                       0.01,
+    "Location Lower":               [0.005, 0.7, -0.05],
+    "Location Upper":               [-0.015, 0.675, 0.075]
+  },
+
+  "Upper Link":
+  {
+    "Mass":                         1.446,
+    "COM":                          [0.15, 0.4875, 0.15],
+    "Inertia":                      [0.011, 0.011, 0.000142],
+    "Radius":                       0.02,
+    "Location Axle":                [-0.055, 0.475, 0.15],
+    "Location Chassis":             [0.355, 0.5, 0.15]
+  },
+
+  "Lower Link":
+  {
+    "Mass":                         2.892,
+    "COM":                          [0.23, 0.475, -0.06],
+    "Inertia":                      [0.0514, 0.0514, 0.00037],
+    "Radius":                       0.02,
+    "Location Axle":                [0.01, 0.6, -0.075],
+    "Location Chassis":             [0.45, 0.35, -0.045]
+  },
+  
+  "Axle Tube" :
+  {
+    "Mass":                         44.958,
+    "COM":                          [0, 0, 0],
+    "Inertia":                      [7.744, 0.045, 7.744],
+    "Radius":                       0.03
+  },
+
+  "Tierod":
+  {
+    "Mass":                         1.633,
+    "Inertia":                      [0.252, 0.001, 0.252],
+    "Location Knuckle":             [-0.075, 0.68, -0.065],
+	  "Radius":                       0.003
+  },
+  
+  "Draglink":
+  {
+    "Mass":                         0.464,
+    "Inertia":                      [0.005, 0.005, 0.001],
+    "Location Chassis":             [0.385, 0.45, -0.02],
+    "Location Bell Crank":          [0, 0.425, -0.05],
+	  "Radius":                       0.003
+  },
+  
+  "Bell Crank":
+  {
+    "Mass":                         0.218,
+    "Inertia":                      [0.001, 0.001, 0.001],
+    "Location Tierod":              [-0.075, 0.325, -0.065],
+    "Location Axle":                [0, 0.325, -0.05],
+	  "Radius":                       0.003
+  },
+
+  "Spring":
+  {
+    "Location Chassis":             [-0.080, 0.56, 0.3],
+    "Location Axle":                [-0.065, 0.575, -0.025],
+    "Spring Coefficient":           267062.000,
+    "Free Length":                  0.3948
+  },
+
+  "Shock":
+  {
+    "Location Chassis":             [-0.080, 0.56, 0.3],
+    "Location Axle":                [-0.065, 0.575, -0.025],
+    "Damping Coefficient":          22459.000
+  },
+
+  "Axle":
+  {
+    "Inertia":                      0.4
+  }
+}

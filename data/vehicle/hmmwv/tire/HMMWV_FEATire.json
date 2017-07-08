@@ -1,0 +1,41 @@
+{
+  "Name":            "HMMWV FEA Tire",
+  "Type":            "Tire",
+  "Template":        "FEATire",
+
+  "Tire Radius":     0.7,
+  "Rim Radius":      0.4,
+  "Rim Width":       0.3,
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.3,
+      "Coefficient of Restitution": 0.2,
+
+      "Properties":
+      {       
+          "Young Modulus":              1e5,
+          "Poisson Ratio":              0.3
+      },
+
+      "Coefficients":
+      {
+          "Normal Stiffness":           1.3e6,
+          "Normal Damping":             1.3e3,
+          "Tangential Stiffness":       0,
+          "Tangential Damping":         0
+      }
+  },
+
+  "Continuum Material":
+  {
+     "Elasticity Modulus":         0.016e9,
+     "Poisson Ratio":              0.4,
+     "Rayleigh Damping":           0.004,
+     "Density":                    1000
+  },
+
+  "Default Pressure":      10.0e3,
+
+  "Abaqus Mesh Filename":  "hmmwv/tire/HMMWV_lugged_coarse.inp"
+}

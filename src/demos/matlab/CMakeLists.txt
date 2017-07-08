@@ -1,35 +1,32 @@
 #--------------------------------------------------------------
 # Additional include paths
 
-INCLUDE_DIRECTORIES( ${CH_MATLABINC} )
-				    
+INCLUDE_DIRECTORIES(${CH_MATLABINC})
+
 #--------------------------------------------------------------
-# Add executables
+# List all matlab demos
 
+SET(DEMOS
+  demo_MTLB_matlab
+  demo_MTLB_functions_plot
+)
 
-ADD_EXECUTABLE(demo_matlab   		demo_matlab.cpp)
-SOURCE_GROUP(demos\\matlab FILES  	demo_matlab.cpp)
-SET_TARGET_PROPERTIES(demo_matlab PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	)
-TARGET_LINK_LIBRARIES(demo_matlab
-	${CH_MATLABLIB}
- 	ChronoEngine)
-ADD_DEPENDENCIES (demo_matlab ChronoEngine)
+MESSAGE(STATUS "Demo programs for MATLAB module...")
 
+#--------------------------------------------------------------
+# Add executables for demos
 
-ADD_EXECUTABLE(demo_chfunctions_plot  		demo_chfunctions_plot.cpp)
-SOURCE_GROUP(demos\\matlab FILES  	demo_chfunctions_plot.cpp)
-SET_TARGET_PROPERTIES(demo_chfunctions_plot PROPERTIES 
-	FOLDER demos
-	LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	)
-TARGET_LINK_LIBRARIES(demo_chfunctions_plot
-	${CH_MATLABLIB}
- 	ChronoEngine)
-ADD_DEPENDENCIES (demo_chfunctions_plot ChronoEngine)
+FOREACH(PROGRAM ${DEMOS})
+    MESSAGE(STATUS "...add ${PROGRAM}")
 
+    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+        FOLDER demos
+        COMPILE_FLAGS "${CH_CXX_FLAGS}"
+        LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${CH_MATLABLIB} ChronoEngine ChronoEngine_matlab)
+    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_matlab)
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
-install(TARGETS demo_matlab DESTINATION bin)
-install(TARGETS demo_chfunctions_plot DESTINATION bin)
+ENDFOREACH(PROGRAM)

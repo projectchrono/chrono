@@ -1,0 +1,25 @@
+{
+  "Name":            "Generic Fiala Tire",
+  "Type":            "Tire",
+  "Template":        "FialaTire",
+
+  "Fiala Parameters" :
+  {
+    "Unloaded Radius":      0.3099,
+    "Width":                0.235,
+    "Vertical Stiffness":   310000,
+    "Vertical Damping":     3100,
+    "Rolling Resistance":   0.001,
+    "CSLIP":                1000000.0,
+    "CALPHA":               45836.6236,
+    "UMIN":                 0.9,
+    "UMAX":                 1.0,
+    "X Relaxation Length":  0.05,
+    "Y Relaxation Length":  0.15
+  },
+
+  "Visualization":
+  {
+    "Width":                0.235
+  }
+}
