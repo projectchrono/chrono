@@ -46,7 +46,6 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
     double neg_BB1_fallback = 0.11;
     double neg_BB2_fallback = 0.12;
 
-    bool verbose = false;
 
     int i_friction_comp = 0;
     tot_iterations = 0;
