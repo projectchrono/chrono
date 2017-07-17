@@ -28,33 +28,38 @@ namespace chrono {
 class ChSystemDistributed;
 
 class CH_DISTR_API ChDistributedDataManager {
-public:
-	ChDistributedDataManager(ChSystemDistributed *my_sys);
-	virtual ~ChDistributedDataManager();
+  public:
+    ChDistributedDataManager(ChSystemDistributed* my_sys);
+    virtual ~ChDistributedDataManager();
 
-	std::vector<unsigned int> global_id; ///< Global id of each body
-	std::vector<distributed::COMM_STATUS> comm_status; ///< Communication status of each body
+    std::vector<unsigned int> global_id;                ///< Global id of each body
+    std::vector<distributed::COMM_STATUS> comm_status;  ///< Communication status of each body
+    std::vector<distributed::COMM_STATUS> curr_status;  ///< Used as a reference only by ChCommDistributed
 
-	ChParallelDataManager *data_manager;	///< Pointer to the main Chrono::Parallel Data Manager
-	ChSystemDistributed *my_sys;	///< Pointer to the main dynamical system
+    std::unordered_map<uint, int> gid_to_localid;  ///< Maps gloabl id to local id on this rank
 
-	std::vector<int> body_shape_start; ///< Start index in body_shapes of the shapes associated with this BODY
-	std::vector<int> body_shape_count; ///< Number of shapes associated with this BODY
-	std::vector<int> body_shapes; ///< Indices of shape in DATA_MANAGER->shape_data for a given SHAPE
+    ChParallelDataManager* data_manager;  ///< Pointer to the main Chrono::Parallel Data Manager
+    ChSystemDistributed* my_sys;          ///< Pointer to the main dynamical system
 
-	// TODO: Need to track open spots in: data_manager->shape_data, this->body_shapes
-	// DON'T need to track open spots in this->body_shape_start/count because those correspond with a BODY index
-	// and therefore can be checked for validity by checking the body status
+    std::vector<int> body_shape_start;  ///< Start index in body_shapes of the shapes associated with this BODY
+    std::vector<int> body_shape_count;  ///< Number of shapes associated with this BODY
+    std::vector<int> body_shapes;       ///< Indices of shape in DATA_MANAGER->shape_data for a given SHAPE
 
-	// When receiving a body and adding its collision shapes, need 1)to find a spot in body shapes large enough for all of the
-	// body's shapes, 2) Find individual slots in data_manager->shape_data to index to from body_shapes
+    // TODO: Need to track open spots in: data_manager->shape_data, this->body_shapes
+    // DON'T need to track open spots in this->body_shape_start/count because those correspond with a BODY index
+    // and therefore can be checked for validity by checking the body status
 
-	std::vector<bool> my_free_shapes;	///< Indicates that the free spaces in this->body_shapes
-	std::vector<bool> dm_free_shapes;	///< Indicates that the space in the data_manager->shape_data is available
+    // When receiving a body and adding its collision shapes, need 1)to find a spot in body shapes large enough for all
+    // of the
+    // body's shapes, 2) Find individual slots in data_manager->shape_data to index to from body_shapes
 
-	int first_empty;	///< Index of the first unused body in the bodylist
+    std::vector<bool> my_free_shapes;  ///< Indicates that the free spaces in this->body_shapes
+    std::vector<bool> dm_free_shapes;  ///< Indicates that the space in the data_manager->shape_data is available
 
-	/// Returns the local index of a body, given its global id
-	int GetLocalIndex(unsigned int gid);
+    int first_empty;  ///< Index of the first unused body in the bodylist
+
+    /// Returns the local index of a body, given its global id
+    /// Returns -1 if the body is not found on this rank
+    int GetLocalIndex(unsigned int gid);
 };
 } /* namespace chrono */

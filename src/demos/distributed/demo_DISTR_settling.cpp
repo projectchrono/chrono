@@ -53,7 +53,10 @@ void Monitor(chrono::ChSystemParallel* system) {
 }
 
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
-    sys->WriteCSV(out_frame, "../granular");  // TODO
+    std::string filename = "data" + std::to_string(out_frame) + ".csv";
+    std::string filedir = "../granular";
+    sys->WriteCSV(filedir, filename);
+
     std::cout << "time = " << time << std::flush << std::endl;
 }
 
@@ -80,7 +83,7 @@ void AddContainer(ChSystemDistributed* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(0.1, 0.5, 1);
+    ChVector<> hdim(0.2, 1, 1);  // 0.1, 0.5, 1
     double hthick = 0.005;
 
     bin->GetCollisionModel()->ClearModel();
@@ -163,9 +166,9 @@ int main(int argc, char* argv[]) {
         num_threads = atoi(argv[1]);
     }
 
-    int num_balls = 100000;  // Default 10,000
     omp_set_num_threads(num_threads);
 
+    int num_balls = 100000;  // Default 10,000
     if (argc > 2 && atoi(argv[2]) <= 1000000) {
         num_balls = atoi(argv[2]);
     }
@@ -183,7 +186,7 @@ int main(int argc, char* argv[]) {
     unsigned int max_iteration = 100;
     double tolerance = 1e-3;
 
-    ChSystemDistributed my_sys(MPI_COMM_WORLD, 0.005, 100000);
+    ChSystemDistributed my_sys(MPI_COMM_WORLD, 0.005, 100000, std::string("../out") + std::to_string(my_rank) + ".txt");
     my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));

@@ -16,7 +16,8 @@
 #include <string>
 #include <memory>
 #include <numeric>
-#include <string>
+#include <iostream>
+#include <fstream>
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/collision/ChCCollisionSystem.h"
@@ -36,7 +37,10 @@
 using namespace chrono;
 using namespace collision;
 
-ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects) {
+ChSystemDistributed::ChSystemDistributed(MPI_Comm world,
+                                         double ghost_layer,
+                                         unsigned int max_objects,
+                                         std::string debug_file) {
     this->world = world;
     MPI_Comm_size(world, &num_ranks);
     MPI_Comm_rank(world, &my_rank);
@@ -51,6 +55,8 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
     this->ghost_layer = ghost_layer;
     this->num_bodies_global = 0;
 
+    this->debug_stream.open(debug_file);
+
     data_manager->system_timer.AddTimer("Send");
     data_manager->system_timer.AddTimer("Recv");
     data_manager->system_timer.AddTimer("FirstEmpty");
@@ -62,6 +68,7 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
 ChSystemDistributed::~ChSystemDistributed() {
     delete domain;
     delete comm;
+    debug_stream.close();
     // delete ddm;
 }
 
@@ -105,7 +112,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
         newbody->GetCollisionModel()->GetAABB(min, max);
 
         //		printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", min.x(), min.y(), min.z(), max.x(), max.y(),
-        //max.z());
+        // max.z());
 
         // If the part of the body lies in this sub-domain, add it
         if ((min.x() <= subhi.x() && sublo.x() <= max.x()) && (min.y() <= subhi.y() && sublo.y() <= max.y()) &&
@@ -164,6 +171,9 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
 
     newbody->SetId(data_manager->num_rigid_bodies);
     bodylist.push_back(newbody);
+
+    ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
+
     data_manager->num_rigid_bodies++;
     newbody->SetSystem(this);  // TODO Syncs collision model
 
@@ -172,6 +182,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.rot_rigid.push_back(quaternion());
     data_manager->host_data.active_rigid.push_back(true);
     data_manager->host_data.collide_rigid.push_back(true);
+
     // Let derived classes reserve space for specific material surface data
     ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
 }
@@ -192,6 +203,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
     data_manager->host_data.active_rigid.push_back(true);
     data_manager->host_data.collide_rigid.push_back(true);
 
+    ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
     // Let derived classes reserve space for specific material surface data
     ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
 }
@@ -202,6 +214,7 @@ void ChSystemDistributed::RemoveBodyExchange(int index) {
     bodylist[index]->SetCollide(false);  // Note: this calls collisionsystem::remove
     if (index < ddm->first_empty)
         ddm->first_empty = index;
+    ddm->gid_to_localid.erase(ddm->global_id[index]);
 }
 
 // Trusts the ID to be correct on the body
@@ -215,6 +228,7 @@ void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
     bodylist[index]->SetCollide(false);
     if (index < ddm->first_empty)
         ddm->first_empty = index;
+    ddm->gid_to_localid.erase(body->GetGid());
 }
 
 // Used to end the program on an error and print a message.
@@ -292,7 +306,7 @@ void ChSystemDistributed::PrintShapeData() {
     for (; bl_itr != bodylist.end(); bl_itr++, i++) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
             int body_start = ddm->body_shape_start[i];
-            printf("Body %d: ", i);
+            printf("Body %d: ", ddm->global_id[i]);
             for (int j = 0; j < ddm->body_shape_count[i]; j++) {
                 std::string msg;
                 int shape_index = ddm->body_shapes[body_start + j];
@@ -320,15 +334,14 @@ void ChSystemDistributed::PrintShapeData() {
 }
 
 // Outputs all bodies in the system to a CSV file
-void ChSystemDistributed::WriteCSV(int fileCounter, std::string fileprefix) {
-    const std::string file_name =
-        fileprefix + "/csv" + std::to_string(my_rank) + "/data" + std::to_string(fileCounter) + ".csv";
+void ChSystemDistributed::WriteCSV(std::string filedir, std::string filename) {
+    const std::string file_name = filedir + "/node" + std::to_string(my_rank) + filename + ".csv";
 
     std::ofstream file;
     file.open(file_name);
     std::stringstream ss_particles;
     ss_particles << "x,y,z,vx,vy,vz,U,r\n";
-    //			",adhesion,const_ad,gn,gt,kn,kt,poisson,restit,sliding_fric,static_fric,young,mass\n";
+    //			",adhesion,con_ad,gn,gt,kn,kt,poisson,restit,sliding_fric,static_fric,young,mass\n";
 
     std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
     int i = 0;
@@ -352,10 +365,12 @@ void ChSystemDistributed::WriteCSV(int fileCounter, std::string fileprefix) {
 
             ss_particles << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x() << "," << vel.y() << ","
                          << vel.z() << "," << vel.Length() << "," << r << std::endl;
-            //					<< "," << adhesion << "," << const_ad  << "," << gn << "," << gt << "," << kn << "," << kt <<
+            //					<< "," << adhesion << "," << const_ad  << "," << gn << "," << gt << "," << kn << "," <<
+            // kt
+            //<<
             //"," << poisson << ","
             //					<< restit << "," << sliding_fric << "," << static_fric << "," << young << "," << mass <<
-            //std::endl;
+            // std::endl;
         }
     }
 

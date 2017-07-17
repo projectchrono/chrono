@@ -18,6 +18,8 @@
 #include <string>
 #include <memory>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 #include "chrono/physics/ChBody.h"
 
@@ -44,7 +46,7 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 
   public:
     /// world specifies on which MPI_Comm the simulation should run.
-    ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects);
+    ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects, std::string debug_file);
     virtual ~ChSystemDistributed();
 
     int GetNumRanks() { return num_ranks; }
@@ -67,13 +69,19 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     void ErrorAbort(std::string msg);
     void PrintBodyStatus();
     void PrintShapeData();
-    void WriteCSV(int fileCounter, std::string fileprefix);
+
+    /// Writes out the positions and velocities of all bodies in the system
+    /// to a csv format file in in filedir. Prepends the MPI rank to
+    /// the beginning of the file.
+    void WriteCSV(std::string filedir, std::string filename);
 
     MPI_Comm GetMPIWorld() { return world; }
 
     ChDistributedDataManager* ddm;
 
     char* node_name;
+
+    std::ofstream debug_stream;
 
   protected:
     // MPI

@@ -14,6 +14,8 @@
 
 #include <mpi.h>
 #include <memory>
+#include <omp.h>
+#include <forward_list>
 
 #include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
@@ -37,878 +39,804 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     this->my_sys = my_sys;
     this->data_manager = my_sys->data_manager;
 
-    // TODO how large for the bufs? put on stack?
-    sendup_buf = new double[10000000];
-    //	sendup_buf = new unsigned char[1000000];
-    num_sendup = 0;
-    senddown_buf = new double[10000000];
-    //	senddown_buf = new unsigned char[1000000];
-    num_senddown = 0;
     ddm = my_sys->ddm;
+
+    // Create and Commit all custom MPI Data Types
+    // Exchange // TODO packing and array safety...
+    MPI_Datatype type_exchange[4] = {MPI_UNSIGNED, MPI_BYTE, MPI_DOUBLE, MPI_FLOAT};
+    int blocklen_exchange[4] = {1, 1, 20, 6};
+    MPI_Aint disp_exchange[4];
+    disp_exchange[0] = offsetof(BodyExchange, gid);
+    disp_exchange[1] = offsetof(BodyExchange, collide);
+    disp_exchange[2] = offsetof(BodyExchange, pos);
+    disp_exchange[3] = offsetof(BodyExchange, mu);
+    MPI_Datatype temp_type;
+    MPI_Type_create_struct(4, blocklen_exchange, disp_exchange, type_exchange, &temp_type);
+    MPI_Aint lb, extent;
+    MPI_Type_get_extent(temp_type, &lb, &extent);  // TODO change extent and possibly internal?
+    MPI_Type_create_resized(temp_type, lb, extent, &BodyExchangeType);
+    MPI_Type_commit(&BodyExchangeType);
+
+    // Update
+    MPI_Datatype type_update[3] = {MPI_UNSIGNED, MPI_INT, MPI_DOUBLE};
+    int blocklen_update[3] = {1, 1, 13};
+    MPI_Aint disp_update[3];
+    disp_update[0] = offsetof(BodyUpdate, gid);
+    disp_update[1] = offsetof(BodyUpdate, update_type);
+    disp_update[2] = offsetof(BodyUpdate, pos);
+    MPI_Type_create_struct(3, blocklen_update, disp_update, type_update, &BodyUpdateType);
+    MPI_Type_commit(&BodyUpdateType);
+
+    // Shape
+    MPI_Datatype type_shape[3] = {MPI_UNSIGNED, MPI_INT, MPI_DOUBLE};
+    int blocklen_shape[3] = {1, 1, 9};
+    MPI_Aint disp_shape[3];
+    disp_shape[0] = offsetof(Shape, gid);
+    disp_shape[1] = offsetof(Shape, type);
+    disp_shape[2] = offsetof(Shape, A);
+    // MPI_Type_create_struct(3, blocklen_shape, disp_shape, type_shape, &ShapeType);
+    // MPI_Type_commit(&ShapeType);
+
+    MPI_Datatype temp_type_s;
+    MPI_Type_create_struct(3, blocklen_shape, disp_shape, type_shape, &temp_type_s);
+    MPI_Aint lb_s, extent_s;
+    MPI_Type_get_extent(temp_type_s, &lb_s, &extent_s);  // TODO change extent and possibly internal?
+    MPI_Type_create_resized(temp_type_s, lb_s, extent_s, &ShapeType);
+    MPI_Type_commit(&ShapeType);
 }
 
-ChCommDistributed::~ChCommDistributed() {
-    delete sendup_buf;
-    delete senddown_buf;
-}
+ChCommDistributed::~ChCommDistributed() {}
 
-// Processes an incoming message from another rank.
-// updown determines if this buffer was received from the rank above this rank
-// or below this rank. updown = 1 ==> up, updown = 0 ==> down
-void ChCommDistributed::ProcessBuffer(int num_recv, double* buf, int updown) {
-    int n = 0;  // Current index in the recved buffer
-    double total_first_empty = 0;
-    while (n < num_recv) {
+void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int updown) {
+    if (buf->gid == UINT_MAX) {
+        return;
+    }
+    // ddm->first_empty = 0;
+    std::shared_ptr<ChBody> body;
+
+    for (int n = 0; n < num_recv; n++) {
         ddm->data_manager->system_timer.start("FirstEmpty");
         // Find the next empty slot in the data manager.
-        if (ddm->comm_status[ddm->first_empty] != distributed::EMPTY) {
+        if (ddm->first_empty != data_manager->num_rigid_bodies &&
+            ddm->comm_status[ddm->first_empty] != distributed::EMPTY) {
             while (ddm->first_empty < data_manager->num_rigid_bodies &&
                    ddm->comm_status[ddm->first_empty] != distributed::EMPTY) {
                 ddm->first_empty++;
             }
         }
         ddm->data_manager->system_timer.start("FirstEmpty");
-
         // GetLog() << "Rank " << my_sys->GetMyRank() << " First Empty: " <<
         // ddm->data_manager->system_timer.GetTime("FirstEmpty") << "\n";
-
-        std::shared_ptr<ChBody> body;
-
-        // If this body is an update for an existing body
-        //		else if (message_type == distributed::UPDATE || message_type == distributed::FINAL_UPDATE_GIVE)
-        if ((int)buf[n + 1] == distributed::UPDATE || (int)buf[n + 1] == distributed::FINAL_UPDATE_GIVE) {
-            // Find the existing body // TODO: Better search
-            bool found = false;
-            unsigned int gid = (unsigned int)buf[n + 2];
-            //			unsigned int gid;
-            //			std::memcpy(&gid, buf + 2*sizeof(int), sizeof(uint));
-            for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
-                if (ddm->global_id[i] == gid && ddm->comm_status[i] != distributed::EMPTY) {
-                    if (ddm->comm_status[i] != distributed::GHOST_UP &&
-                        ddm->comm_status[i] != distributed::GHOST_DOWN) {
-                        GetLog() << "Trying to update a non-ghost body on rank " << my_sys->GetMyRank() << "\n";
-                    }
-                    body = (*data_manager->body_list)[i];
-                    found = true;
-                    //					if (message_type == distributed::FINAL_UPDATE_GIVE)
-                    if ((int)buf[n + 1] == distributed::FINAL_UPDATE_GIVE) {
-                        ddm->comm_status[i] = distributed::OWNED;
-                        //						GetLog() << "Owning gid " << gid << " on rank " << my_sys->GetMyRank() <<
-                        //"\n";
-                        //						my_sys->PrintBodyStatus();
-                    }
-                    break;
-                }
-            }
-
-            if (found) {
-                n += UnpackUpdate(buf + n, body);
-            } else {
-                GetLog() << "GID " << gid << " NOT found rank " << my_sys->GetMyRank() << "\n";
-                my_sys->ErrorAbort("Body to be updated not found\n");
-            }
+        // If there are no empty spaces in the data manager, create
+        // a new body to add
+        if (ddm->first_empty == data_manager->num_rigid_bodies) {
+            body = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+            body->SetId(data_manager->num_rigid_bodies);
         }
-
-        // If this body is being added to the rank
-        //		int message_type;
-        //		std::memcpy(&message_type, buf + sizeof(int), sizeof(int));
-        //		if (message_type == distributed::EXCHANGE)
-        else if ((int)(buf[n + 1]) == distributed::EXCHANGE) {
-            // If there are no empty spaces in the data manager, create
-            // a new body to add
-            if (ddm->first_empty == data_manager->num_rigid_bodies) {
-                body =
-                    std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-                body->SetId(data_manager->num_rigid_bodies);
-            }
-            // If an empty space was found in the body manager
-            else {
-                body = (*data_manager->body_list)[ddm->first_empty];
-            }
-
-            n += UnpackExchange(buf + n, body);
-
-            // Add the new body
-            distributed::COMM_STATUS status = (updown == 1) ? distributed::GHOST_UP : distributed::GHOST_DOWN;
-            if (ddm->first_empty == data_manager->num_rigid_bodies) {
-                my_sys->AddBodyExchange(body, status);
-            } else {
-                ddm->comm_status[ddm->first_empty] = status;
-                body->SetBodyFixed(false);
-            }
+        // If an empty space was found in the body manager
+        else {
+            body = (*data_manager->body_list)[ddm->first_empty];
         }
-
-        //		else if (message_type == distributed::FINAL_UPDATE_TAKE)
-        else if ((int)buf[n + 1] == distributed::FINAL_UPDATE_TAKE) {
-            unsigned int gid = (unsigned int)buf[n + 2];
-            //			unsigned int gid;
-            //			std::memcpy(&gid, buf + 2*sizeof(int), sizeof(uint));
-            int id = ddm->GetLocalIndex(gid);
-            //			GetLog() << "Take:  " << gid << ", id " << id << " rank " << my_sys->GetMyRank() << "\n";
-
-            my_sys->RemoveBodyExchange(id);
-            //			n += 2*sizeof(int) + sizeof(uint);
-            n += 3;
+        UnpackExchange(buf + n, body);
+        // Add the new body
+        distributed::COMM_STATUS status = (updown == 1) ? distributed::GHOST_UP : distributed::GHOST_DOWN;
+        if (ddm->first_empty == data_manager->num_rigid_bodies) {
+            my_sys->AddBodyExchange(body, status);
         } else {
-            GetLog() << "Undefined message type rank " << my_sys->GetMyRank() << "\n";
+            ddm->comm_status[ddm->first_empty] = status;
+            body->SetBodyFixed(false);
+            ddm->gid_to_localid[body->GetGid()] = body->GetId();
         }
     }
 }
 
-// TODO could do packing with openmp and paste the buffers together
-// Locate each body that has left the sub-domain,
-// remove it,
-// and pack it for communication.
+void ChCommDistributed::ProcessUpdates(int num_recv, BodyUpdate* buf) {
+    // If the buffer is empty
+    if (buf->gid == UINT_MAX) {
+        return;
+    }
+    std::shared_ptr<ChBody> body;
+    for (int n = 0; n < num_recv; n++) {
+        // Find the existing body
+        int index = ddm->GetLocalIndex((buf + n)->gid);
+        // GetLog() << "Updating GID" << (buf + n)->gid << "Rank " << my_sys->GetMyRank() << " index: " << index <<
+        // "\n";
+        if (index != -1 && ddm->comm_status[index] != distributed::EMPTY) {
+            if (ddm->comm_status[index] != distributed::GHOST_UP &&
+                ddm->comm_status[index] != distributed::GHOST_DOWN) {
+                GetLog() << "Trying to update a non-ghost body on rank " << my_sys->GetMyRank() << "GID "
+                         << (buf + n)->gid << "\n";
+            }
+            body = (*data_manager->body_list)[index];
+            UnpackUpdate(buf + n, body);
+            if ((buf + n)->update_type == distributed::FINAL_UPDATE_GIVE) {
+                ddm->comm_status[index] = distributed::OWNED;
+                GetLog() << "Owning gid " << (buf + n)->gid << " index " << index << " rank " << my_sys->GetMyRank()
+                         << "\n";
+            }
+        } else {
+            GetLog() << "GID " << buf->gid << " NOT found rank " << my_sys->GetMyRank() << "\n";
+            my_sys->ErrorAbort("Body to be updated not found\n");
+        }
+    }
+}
+
+void ChCommDistributed::ProcessTakes(int num_recv, uint* buf) {
+    if (buf[0] == UINT_MAX) {
+        return;
+    }
+    for (int i = 0; i < num_recv; i++) {
+        int index = ddm->GetLocalIndex(buf[i]);
+        my_sys->RemoveBodyExchange(index);
+    }
+}
+
+// TODO might be able to do in parallel if check the number of shapes per body in a first pass
+void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
+    if (buf->gid == UINT_MAX) {
+        return;
+    }
+
+    int n = 0;
+    uint gid;
+
+    // Each iteration handles all shapes for a single body
+    while (n < num_recv) {
+        gid = (buf + n)->gid;
+        // Create a collision model
+        GetLog() << "Unpacking shapes for gid " << (buf + n)->gid << "\n";
+
+        auto model = std::make_shared<ChCollisionModelDistributed>();
+
+        GetLog() << "Setting collision model\n";
+        // Done creating this body's model
+        (*ddm->data_manager->body_list)[ddm->GetLocalIndex(gid)]->SetCollisionModel(model);
+
+        // Single model
+        ChVector<double> A((buf + n)->A[0], (buf + n)->A[1], (buf + n)->A[2]);
+        // Each iteration handles a single shape for the body
+        while ((buf + n)->gid == gid) {
+            switch ((buf + n)->type) {
+                case chrono::collision::SPHERE:
+                    GetLog() << "Unpacking Sphere rank " << my_sys->GetMyRank() << "\n";
+                    model->AddSphere((buf + n)->data[0], A);
+                    break;
+                    /*    case chrono::collision::BOX:
+                            GetLog() << "Unpacking Box\n";
+                            model->AddBox((buf + n)->data[0], (buf + n)->data[1], (buf + n)->data[2],
+                                          A);  // TODO does anything with pos ? // TODO need to add rotation! also
+                       how?*/
+                    break;
+                default:
+                    GetLog() << "Unpacking undefined collision shape\n";
+            }
+            n++;
+        }
+
+        GetLog() << "Building collision model\n";
+        model->BuildModel();  // Calls collisionsystem::add
+    }
+}
+
+// Handle all necessary communication
 void ChCommDistributed::Exchange() {
     MPI_Barrier(my_sys->world);
-    num_sendup = 0;
-    num_senddown = 0;
+
     int my_rank = my_sys->GetMyRank();
     int num_ranks = my_sys->GetNumRanks();
+    std::forward_list<int> exchanges_up;
+    std::forward_list<int> exchanges_down;
 
-    ddm->data_manager->system_timer.start("Send");
-    // PACKING and UPDATING comm_status of existing bodies
-    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
-        // Skip empty bodies or those that this rank isn't responsible for
-        int curr_status = ddm->comm_status[i];
-        int location = my_sys->domain->GetBodyRegion(i);
+    // Saves a reference copy for consistency in the threads.
+    ddm->curr_status = ddm->comm_status;
 
-        if (curr_status == distributed::GLOBAL || curr_status == distributed::EMPTY ||
-            curr_status == distributed::GHOST_UP || curr_status == distributed::GHOST_DOWN)
-            continue;
+    // TODO do scans to count sizes before allocating
+    // Send Buffers
+    BodyExchange exchange_up_buf[10000];
+    BodyExchange exchange_down_buf[10000];
+    BodyUpdate update_up_buf[10000];
+    BodyUpdate update_down_buf[10000];
+    Shape shapes_up[10000];
+    Shape shapes_down[10000];
+    uint update_take_up[10000];
+    uint update_take_down[10000];
 
-        // If the body now affects the next sub-domain
-        if (location == distributed::GHOST_UP || location == distributed::SHARED_UP) {
-            // If the body has already been shared, it need only update its corresponding ghost
-            if (curr_status == distributed::SHARED_UP) {
-                //				GetLog() << "Update: rank " << my_rank
-                //						<< " -- " << ddm->global_id[i] << " --> rank "
-                //						<< my_rank + 1 << "\n";
-                num_sendup += PackUpdate(sendup_buf + num_sendup, i, distributed::UPDATE);
+    // Send Counts
+    int num_exchange_up = 0;
+    int num_exchange_down = 0;
+    int num_update_up = 0;
+    int num_update_down = 0;
+    int num_shapes_up = 0;
+    int num_shapes_down = 0;
+    int num_take_up = 0;
+    int num_take_down = 0;
+
+    // Output buffers for thread-safety
+    std::string exchange_string = "";
+    std::string update_string = "";
+    std::string take_string = "";
+
+#pragma omp parallel sections
+    {
+// Exchange Loop
+#pragma omp section
+        {
+            for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+                // Skip empty bodies or those that this rank isn't responsible for
+                int curr_status = ddm->curr_status[i];
+                if (curr_status != distributed::OWNED)
+                    continue;
+                int location = my_sys->domain->GetBodyRegion(i);
+
+                /*
+                                if (curr_status == distributed::GLOBAL || curr_status == distributed::EMPTY ||
+                                    curr_status == distributed::GHOST_UP || curr_status == distributed::GHOST_DOWN ||
+                                    curr_status == distributed::SHARED_UP ||
+                                    curr_status == distribtued::SHARED_DOWN)  // TODO Ok to skipped already shared
+                                    continue;
+                */
+
+                // If the body now affects the next sub-domain
+                // If the body is being marked as shared for the first time, the whole
+                // body must be packed to create a ghost on another rank
+                if ((location == distributed::GHOST_UP || location == distributed::SHARED_UP)) {  // &&
+                    // curr_status == distributed::OWNED) {
+                    GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank "
+                             << my_rank + 1 << " index " << i << "\n";
+                    exchange_string += std::string("eu,") + std::to_string(ddm->global_id[i]) + "\n";
+                    PackExchange(exchange_up_buf + num_exchange_up, i);
+                    num_exchange_up++;
+                    ddm->comm_status[i] = distributed::SHARED_UP;
+                    exchanges_up.push_front(i);
+                }
+
+                // If the body now affects the previous sub-domain:
+                // If the body is being marked as shared for the first time, the whole
+                // body must be packed to create a ghost on another rank
+                else if ((location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN)) {  // &&
+                    //                         curr_status == distributed::OWNED) {
+                    GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank "
+                             << my_rank - 1 << " index " << i << "\n";
+                    exchange_string += std::string("ed,") + std::to_string(ddm->global_id[i]) + "\n";
+                    PackExchange(exchange_down_buf + num_exchange_down, i);
+                    num_exchange_down++;
+                    ddm->comm_status[i] = distributed::SHARED_DOWN;
+                    exchanges_down.push_front(i);
+                }
             }
-            // If the body is being marked as shared for the first time, the whole body must
-            // be packed to create a ghost on another rank
-            else if (curr_status == distributed::OWNED) {
-                GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank + 1
-                         << "\n";
-                num_sendup += PackExchange(sendup_buf + num_sendup, i);
-                ddm->comm_status[i] = distributed::SHARED_UP;
+        }  // end of exchange section
+
+// Update Loop
+#pragma omp section
+        {
+            // PACKING and UPDATING comm_status of existing bodies
+            for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+                // Skip empty bodies or those that this rank isn't responsible for
+                int curr_status = ddm->curr_status[i];
+                int location = my_sys->domain->GetBodyRegion(i);
+
+                /*if (curr_status == distributed::GLOBAL || curr_status == distributed::EMPTY ||
+                    curr_status == distributed::GHOST_UP || curr_status == distributed::GHOST_DOWN)
+                    continue;
+                */
+
+                if (curr_status != distributed::SHARED_UP && curr_status != distributed::SHARED_DOWN)
+                    continue;
+
+                // If the body now affects the next sub-domain
+                if ((location == distributed::GHOST_UP || location == distributed::SHARED_UP) &&
+                    curr_status == distributed::SHARED_UP) {
+                    // If the body has already been shared, it need only update its
+                    // corresponding ghost
+                    // GetLog() << "Update: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank
+                    // + 1
+                    //         << "\n";
+                    update_string += std::string("uu,") + std::to_string(ddm->global_id[i]) + "\n";
+
+                    PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE);
+                    num_update_up++;
+                }
+
+                // If the body now affects the previous sub-domain:
+                else if ((location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN) &&
+                         curr_status == distributed::SHARED_DOWN) {
+                    // If the body has already been shared, it need only update its
+                    // corresponding ghost
+                    // GetLog() << "Update: rank " << my_rank << "--" << ddm->global_id[i] << "-->rank " << my_rank - 1
+                    //         << "\n";
+                    update_string += std::string("ud,") + std::to_string(ddm->global_id[i]) + "\n";
+
+                    PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE);
+                    num_update_down++;
+                }
+
+                // If the body is no longer involved with this rank, it must be removed from
+                // this rank
+                else if (location == distributed::UNOWNED_UP || location == distributed::UNOWNED_DOWN) {
+                    int up;
+                    if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
+                        update_string += std::string("gu,") + std::to_string(ddm->global_id[i]) + "\n";
+                        PackUpdate(update_up_buf + num_update_up, i, distributed::FINAL_UPDATE_GIVE);
+                        num_update_up++;
+                        up = 1;
+                    } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
+                        update_string += std::string("gd,") + std::to_string(ddm->global_id[i]) + "\n";
+                        PackUpdate(update_down_buf + num_update_down, i, distributed::FINAL_UPDATE_GIVE);
+                        num_update_down++;
+                        up = -1;
+                    }
+
+                    GetLog() << "Give: " << my_rank << " -- " << ddm->global_id[i] << " --> " << my_rank + up << "\n";
+
+                    my_sys->RemoveBodyExchange(i);
+                }
+            }  // End of packing for loop
+        }      // End of update section
+
+// Update Take Loop
+#pragma omp section
+        {
+            // PACKING and UPDATING comm_status of existing bodies
+            for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+                // Skip empty bodies or those that this rank isn't responsible for
+                int curr_status = ddm->curr_status[i];
+                if (curr_status != distributed::SHARED_DOWN && curr_status != distributed::SHARED_UP)
+                    continue;
+
+                int location = my_sys->domain->GetBodyRegion(i);
+
+                /*                if (curr_status == distributed::GLOBAL || curr_status == distributed::EMPTY ||
+                                    curr_status == distributed::GHOST_UP || curr_status == distributed::GHOST_DOWN)
+                                    continue;
+                */
+
+                // If the body is no longer involved with either neighbor, remove it from
+                // the other rank
+                // and take ownership on this rank
+                if (location == distributed::OWNED) {
+                    if (curr_status == distributed::SHARED_UP) {
+                        take_string += std::string("tu,") + std::to_string(ddm->global_id[i]) + "\n";
+                        PackUpdateTake(update_take_up + num_take_up, i);
+                        num_take_up++;
+
+                    } else if (curr_status == distributed::SHARED_DOWN) {
+                        take_string += std::string("td,") + std::to_string(ddm->global_id[i]) + "\n";
+                        PackUpdateTake(update_take_down + num_take_down, i);
+                        num_take_down++;
+                    }
+                    ddm->comm_status[i] = distributed::OWNED;
+                }
+            }  // End of packing for loop
+        }      // End of update take loop
+    }          // End of parallel sections
+
+    std::string output_string = exchange_string + update_string + take_string;
+    my_sys->debug_stream << output_string;
+    my_sys->debug_stream << "*\n";
+
+    MPI_Status status_exchange_up;
+    MPI_Status status_exchange_down;
+    MPI_Status status_update_up;
+    MPI_Status status_update_down;
+    MPI_Status status_take_up;
+    MPI_Status status_take_down;
+    MPI_Status status_shapes_up;
+    MPI_Status status_shapes_down;
+
+    MPI_Request rq_exchange_up;
+    MPI_Request rq_exchange_down;
+    MPI_Request rq_update_up;
+    MPI_Request rq_update_down;
+    MPI_Request rq_take_up;
+    MPI_Request rq_take_down;
+    MPI_Request rq_shapes_up;
+    MPI_Request rq_shapes_down;
+
+    MPI_Status recv_status_exchange_up;
+    MPI_Status recv_status_exchange_down;
+    MPI_Status recv_status_update_up;
+    MPI_Status recv_status_update_down;
+    MPI_Status recv_status_take_up;
+    MPI_Status recv_status_take_down;
+    MPI_Status recv_status_shapes_up;
+    MPI_Status recv_status_shapes_down;
+
+    int num_recv_exchange_up;
+    int num_recv_exchange_down;
+    int num_recv_update_up;
+    int num_recv_update_down;
+    int num_recv_take_up;
+    int num_recv_take_down;
+    int num_recv_shapes_up;
+    int num_recv_shapes_down;
+
+    BodyExchange* recv_exchange_down = NULL;
+    BodyExchange* recv_exchange_up = NULL;
+    BodyUpdate* recv_update_down = NULL;
+    BodyUpdate* recv_update_up = NULL;
+    uint* recv_take_down = NULL;
+    uint* recv_take_up = NULL;
+    Shape* recv_shapes_down = NULL;
+    Shape* recv_shapes_up = NULL;
+
+#pragma omp parallel sections
+    {
+// Send/Recv
+#pragma omp section
+        {
+            // SENDING - TODO sequential for now
+
+            // Send empty message if there is nothing to send
+            if (num_exchange_up == 0) {
+                exchange_up_buf->gid = UINT_MAX;
+                num_exchange_up = 1;
             }
+            if (num_exchange_down == 0) {
+                exchange_down_buf->gid = UINT_MAX;
+                num_exchange_down = 1;
+            }
+            if (num_update_up == 0) {
+                update_up_buf->gid = UINT_MAX;
+                num_update_up = 1;
+            }
+            if (num_update_down == 0) {
+                update_down_buf->gid = UINT_MAX;
+                num_update_down = 1;
+            }
+            if (num_take_up == 0) {
+                update_take_up[0] = UINT_MAX;
+                num_take_up = 1;
+            }
+            if (num_take_down == 0) {
+                update_take_down[0] = UINT_MAX;
+                num_take_down = 1;
+            }
+
+            // Send Exchanges
+            if (my_rank != num_ranks - 1) {
+                MPI_Isend(exchange_up_buf, num_exchange_up, BodyExchangeType, my_rank + 1, 1, my_sys->world,
+                          &rq_exchange_up);
+            }
+            if (my_rank != 0) {
+                MPI_Isend(exchange_down_buf, num_exchange_down, BodyExchangeType, my_rank - 1, 2, my_sys->world,
+                          &rq_exchange_down);
+            }
+
+            // Recv Exchanges
+            if (my_sys->GetMyRank() != 0) {
+                MPI_Probe(my_rank - 1, 1, my_sys->world, &recv_status_exchange_down);
+                MPI_Get_count(&recv_status_exchange_down, BodyExchangeType, &num_recv_exchange_down);
+                recv_exchange_down = new BodyExchange[num_recv_exchange_down];
+                MPI_Recv(recv_exchange_down, num_recv_exchange_down, BodyExchangeType, my_rank - 1, 1, my_sys->world,
+                         &recv_status_exchange_down);
+            }
+            if (my_rank != num_ranks - 1) {
+                MPI_Probe(my_rank + 1, 2, my_sys->world, &recv_status_exchange_up);
+                MPI_Get_count(&recv_status_exchange_up, BodyExchangeType, &num_recv_exchange_up);
+                recv_exchange_up = new BodyExchange[num_recv_exchange_up];
+                MPI_Recv(recv_exchange_up, num_recv_exchange_up, BodyExchangeType, my_rank + 1, 2, my_sys->world,
+                         &recv_status_exchange_up);
+            }
+
+            // Send Updates
+            if (my_rank != num_ranks - 1) {
+                MPI_Isend(update_up_buf, num_update_up, BodyUpdateType, my_rank + 1, 3, my_sys->world, &rq_update_up);
+            }
+            if (my_rank != 0) {
+                MPI_Isend(update_down_buf, num_update_down, BodyUpdateType, my_rank - 1, 4, my_sys->world,
+                          &rq_update_down);
+            }
+
+            // Recv Updates
+            if (my_sys->GetMyRank() != 0) {
+                MPI_Probe(my_rank - 1, 3, my_sys->world, &recv_status_update_down);
+                MPI_Get_count(&recv_status_update_down, BodyUpdateType, &num_recv_update_down);
+                recv_update_down = new BodyUpdate[num_recv_update_down];
+                MPI_Recv(recv_update_down, num_recv_update_down, BodyUpdateType, my_rank - 1, 3, my_sys->world,
+                         &recv_status_update_down);
+            }
+            if (my_rank != num_ranks - 1) {
+                MPI_Probe(my_rank + 1, 4, my_sys->world, &recv_status_update_up);
+                MPI_Get_count(&recv_status_update_up, BodyUpdateType, &num_recv_update_up);
+                recv_update_up = new BodyUpdate[num_recv_update_up];
+                MPI_Recv(recv_update_up, num_recv_update_up, BodyUpdateType, my_rank + 1, 4, my_sys->world,
+                         &recv_status_update_up);
+            }
+
+            // Send Takes
+            if (my_rank != num_ranks - 1) {
+                MPI_Isend(update_take_up, num_take_up, MPI_UNSIGNED, my_rank + 1, 5, my_sys->world, &rq_take_up);
+            }
+            if (my_rank != 0) {
+                MPI_Isend(update_take_down, num_take_down, MPI_UNSIGNED, my_rank - 1, 6, my_sys->world, &rq_take_down);
+            }
+
+            // Recv Takes
+            if (my_sys->GetMyRank() != 0) {
+                MPI_Probe(my_rank - 1, 5, my_sys->world, &recv_status_take_down);
+                MPI_Get_count(&recv_status_take_down, MPI_UNSIGNED, &num_recv_take_down);
+                recv_take_down = new uint[num_recv_take_down];
+                MPI_Recv(recv_take_down, num_recv_take_down, MPI_UNSIGNED, my_rank - 1, 5, my_sys->world,
+                         &recv_status_take_down);
+            }
+            if (my_rank != num_ranks - 1) {
+                MPI_Probe(my_rank + 1, 6, my_sys->world, &recv_status_take_up);
+                MPI_Get_count(&recv_status_take_up, MPI_UNSIGNED, &num_recv_take_up);
+                recv_take_up = new uint[num_recv_take_up];
+                MPI_Recv(recv_take_up, num_recv_take_up, MPI_UNSIGNED, my_rank + 1, 6, my_sys->world,
+                         &recv_status_take_up);
+            }
+        }  // End of send/recv section
+
+// TODO could do in parallel if counting the spaces in the buffers in the first pass
+// Pack Shapes Up
+#pragma omp section
+        {
+            for (auto itr_up = exchanges_up.begin(); itr_up != exchanges_up.end(); itr_up++) {
+                num_shapes_up += PackShapes(shapes_up + num_shapes_up, *itr_up);
+            }
+            if (num_shapes_up == 0) {
+                shapes_up->gid = UINT_MAX;
+                num_shapes_up = 1;
+            }
+        }  // End of pack shapes up section
+// Pack Shapes Down
+#pragma omp section
+        {
+            for (auto itr_down = exchanges_down.begin(); itr_down != exchanges_down.end(); itr_down++) {
+                num_shapes_down += PackShapes(shapes_down + num_shapes_down, *itr_down);
+            }
+            if (num_shapes_down == 0) {
+                shapes_down->gid = UINT_MAX;
+                num_shapes_down = 1;
+            }  // End of pack shapes down section
         }
+    }  // End of parallel sections
 
-        // If the body now affects the previous sub-domain:
-        else if (location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN) {
-            if (curr_status == distributed::SHARED_DOWN) {
-                // If the body has already been shared, it need only update its corresponding ghost
-                //				GetLog() << "Update: rank " << my_rank << " -- "
-                //						<< ddm->global_id[i] << " --> rank "
-                //						<< my_rank - 1 << "\n";
-                num_senddown += PackUpdate(senddown_buf + num_senddown, i, distributed::UPDATE);
-            } else if (curr_status == distributed::OWNED) {
-                // If the body is being marked as shared for the first time, the whole body must
-                // be packed to create a ghost on another rank
-                GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank - 1
-                         << "\n";
-                num_senddown += PackExchange(senddown_buf + num_senddown, i);
-                ddm->comm_status[i] = distributed::SHARED_DOWN;
-            }
-        }
+    // TODO sections
+    if (my_rank != 0)
+        ProcessExchanges(num_recv_exchange_down, recv_exchange_down, 0);
+    if (my_rank != num_ranks - 1)
+        ProcessExchanges(num_recv_exchange_up, recv_exchange_up, 1);
+    if (my_rank != 0)
+        ProcessUpdates(num_recv_update_down, recv_update_down);
+    if (my_rank != num_ranks - 1)
+        ProcessUpdates(num_recv_update_up, recv_update_up);
+    if (my_rank != 0)
+        ProcessTakes(num_recv_take_down, recv_take_down);
+    if (my_rank != num_ranks - 1)
+        ProcessTakes(num_recv_take_up, recv_take_up);
 
-        // If the body is no longer involved with this rank, it must be removed from this rank
-        else if (location == distributed::UNOWNED_UP || location == distributed::UNOWNED_DOWN) {
-            int up;
-            if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
-                num_sendup += PackUpdate(sendup_buf + num_sendup, i, distributed::FINAL_UPDATE_GIVE);
-                up = 1;
-            } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
-                num_senddown += PackUpdate(senddown_buf + num_senddown, i, distributed::FINAL_UPDATE_GIVE);
-                up = -1;
-            }
-
-            GetLog() << "Give: " << my_rank << " -- " << ddm->global_id[i] << " --> " << my_rank + up << "\n";
-
-            my_sys->RemoveBodyExchange(i);
-        }
-
-        // If the body is no longer involved with either neighbor, remove it from the other rank
-        // and take ownership on this rank
-        else if (location == distributed::OWNED) {
-            if (curr_status == distributed::SHARED_UP) {
-                num_sendup += PackUpdateTake(sendup_buf + num_sendup, i);
-            } else if (curr_status == distributed::SHARED_DOWN) {
-                num_senddown += PackUpdateTake(senddown_buf + num_senddown, i);
-            }
-            ddm->comm_status[i] = distributed::OWNED;
-        }
-    }  // End of packing for loop
-
-    // SENDING
-    MPI_Status statusup;
-    MPI_Status statusdown;
-
-    // Send empty message if there is nothing to send
-    if (num_sendup == 0) {
-        sendup_buf[0] = 0;
-        num_sendup = 1;
-    }
-
-    MPI_Request up_rq;
-    // send up
+    // Send Shapes
     if (my_rank != num_ranks - 1) {
-        MPI_Isend(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world, &up_rq);
-        // MPI_Send(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world);
-        //		MPI_Isend(sendup_buf, num_sendup, MPI_UNSIGNED_CHAR, my_rank + 1, 1, my_sys->world, &up_rq);
+        MPI_Isend(shapes_up, num_shapes_up, ShapeType, my_rank + 1, 7, my_sys->world, &rq_shapes_up);
     }
-
-    // Send empty message if there is nothing to send
-    if (num_senddown == 0) {
-        senddown_buf[0] = 0;
-        //		int zero = 0;
-        //		std::memcpy(senddown_buf, &zero, sizeof(int));
-        num_senddown = 1;
-    }
-
-    MPI_Request down_rq;
-    // send down
     if (my_rank != 0) {
-        MPI_Isend(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world, &down_rq);
-        // MPI_Send(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world);
-        //		MPI_Isend(senddown_buf, num_senddown, MPI_UNSIGNED_CHAR, my_rank - 1, 2, my_sys->world, &down_rq);
+        MPI_Isend(shapes_down, num_shapes_down, ShapeType, my_rank - 1, 8, my_sys->world, &rq_shapes_down);
     }
-    ddm->data_manager->system_timer.stop("Send");
 
-    ddm->data_manager->system_timer.start("Recv");
-    // RECEIVING
-    int num_recvdown;
-    int num_recvup;
-
-    // probe for message from down
-    double* recvdown_buf = NULL;
-    //	unsigned char *recvdown_buff = NULL;
-
+    // Recv Shapes
     if (my_sys->GetMyRank() != 0) {
-        MPI_Probe(my_rank - 1, 1, my_sys->world, &statusdown);
-        MPI_Get_count(&statusdown, MPI_DOUBLE, &num_recvdown);
-        //		MPI_Get_count(&statusdown, MPI_UNSIGNED_CHAR, &num_recvdown);
-        recvdown_buf = new double[num_recvdown];
-        //		recvdown_buff = new unsigned char[num_recvdown];
-        MPI_Recv(recvdown_buf, num_recvdown, MPI_DOUBLE, my_rank - 1, 1, my_sys->world, &statusdown);
-        //		MPI_Recv(recvdown_buf, num_recvdown, MPI_UNSIGNED_CHAR, my_rank - 1, 1, my_sys->world, &statusdown);
+        MPI_Probe(my_rank - 1, 7, my_sys->world, &recv_status_shapes_down);
+        MPI_Get_count(&recv_status_shapes_down, ShapeType, &num_recv_shapes_down);
+        recv_shapes_down = new Shape[num_recv_shapes_down];
+        MPI_Recv(recv_shapes_down, num_recv_shapes_down, ShapeType, my_rank - 1, 7, my_sys->world,
+                 &recv_status_shapes_down);
     }
-
-    // Process message from down, then check for message from up.
-    // (or thread to do both at the same time)
-    //	int first;
-    //	std::memcpy(&first, recvdown_buf, sizeof(int);
-    //	if (my_rank != num_ranks - 1 && first != 0)
-    if (my_rank != 0 && recvdown_buf[0] != 0) {
-        ProcessBuffer(num_recvdown, recvdown_buf, 0);
-    }
-
-    delete recvdown_buf;
-    //	delete recvdown_buf;
-    recvdown_buf = NULL;
-    //	recvdown_buf = NULL;
-
-    // probe for a message from up
-    double* recvup_buf = NULL;
-    //	unsigned char *recvup_buf = NULL;
     if (my_rank != num_ranks - 1) {
-        MPI_Probe(my_rank + 1, 2, my_sys->world, &statusup);
-        MPI_Get_count(&statusup, MPI_DOUBLE, &num_recvup);
-        //		MPI_Get_count(&statusup, MPI_UNSIGNED_CHAR, &num_recvup);
-        recvup_buf = new double[num_recvup];
-        //		recvup_buf = new unsigned char[num_recvup];
-        MPI_Recv(recvup_buf, num_recvup, MPI_DOUBLE, my_rank + 1, 2, my_sys->world, &statusup);
-        //		MPI_Recv(recvup_buf, num_recvup, MPI_UNSIGNED_CHAR, my_rank + 1, 2, my_sys->world, &statusup);
+        MPI_Probe(my_rank + 1, 8, my_sys->world, &recv_status_shapes_up);
+        MPI_Get_count(&recv_status_shapes_up, ShapeType, &num_recv_shapes_up);
+        recv_shapes_up = new Shape[num_recv_shapes_up];
+        MPI_Recv(recv_shapes_up, num_recv_shapes_up, ShapeType, my_rank + 1, 8, my_sys->world, &recv_status_shapes_up);
     }
 
-    // Process message from up.
-    //	int first;
-    //	std::memcpy(&first, recvup_buff, sizeof(int);
-    //	if (my_rank != num_ranks - 1 && first != 0)
-    if (my_rank != num_ranks - 1 && recvup_buf[0] != 0) {
-        ProcessBuffer(num_recvup, recvup_buf, 1);
-    }
+    if (my_rank != 0)
+        ProcessShapes(num_recv_shapes_down, recv_shapes_down);
+    if (my_rank != num_ranks - 1)
+        ProcessShapes(num_recv_shapes_up, recv_shapes_up);
 
-    delete recvup_buf;
-
-    ddm->data_manager->system_timer.stop("Recv");
+    my_sys->PrintShapeData();
 }
 
-void ChCommDistributed::CheckExchange() {
-    int* checkup_buf = new int[10000];  // TODO buffer sizes based on num_shared and num_ghost
-    int iup = 0;
-    int* checkdown_buf = new int[10000];
-    int idown = 0;
-
-    // my_sys->PrintBodyStatus();
-    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
-        switch (ddm->comm_status[i]) {
-            case distributed::SHARED_DOWN:
-                checkdown_buf[idown++] = distributed::SHARED_DOWN;
-                checkdown_buf[idown++] = (int)ddm->global_id[i];
-                break;
-            case distributed::SHARED_UP:
-                checkup_buf[iup++] = distributed::SHARED_UP;
-                checkup_buf[iup++] = (int)ddm->global_id[i];
-                break;
-            case distributed::GHOST_DOWN:
-                checkdown_buf[idown++] = distributed::GHOST_DOWN;
-                checkdown_buf[idown++] = (int)ddm->global_id[i];
-                break;
-            case distributed::GHOST_UP:
-                checkup_buf[iup++] = distributed::GHOST_UP;
-                checkup_buf[iup++] = (int)ddm->global_id[i];
-                break;
-            default:
-                break;
-        }
-    }
-
-    int my_rank = my_sys->GetMyRank();
-    int num_ranks = my_sys->GetNumRanks();
-    if (iup == 0) {
-        checkup_buf[0] = distributed::EMPTY;
-        iup = 1;
-    }
-    if (idown == 0) {
-        checkdown_buf[0] = distributed::EMPTY;
-        idown = 1;
-    }
-
-    MPI_Request up_rq;
-    if (my_rank != num_ranks - 1) {
-        MPI_Isend(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world, &up_rq);
-        // MPI_Send(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world);
-    }
-    MPI_Request down_rq;
-    if (my_rank != 0) {
-        MPI_Isend(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world, &down_rq);
-        // MPI_Send(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world);
-    }
-
-    delete checkup_buf;
-    delete checkdown_buf;
-
-    MPI_Status statusdown;
-    MPI_Status statusup;
-    int num_recvdown = 1;
-    int num_recvup = 1;
-    int* recvdown_buf = NULL;
-    int* recvup_buf = NULL;
-
-    if (my_rank != 0) {
-        MPI_Probe(my_rank - 1, 1, my_sys->world, &statusdown);
-        MPI_Get_count(&statusdown, MPI_INT, &num_recvdown);
-        recvdown_buf = new int[num_recvdown];
-        MPI_Recv(recvdown_buf, num_recvdown, MPI_INT, my_rank - 1, 1, my_sys->world, &statusdown);
-    }
-
-    if (num_recvdown != 1) {
-        for (int i = 0; i < num_recvdown; i += 2) {
-            int local_id = ddm->GetLocalIndex((unsigned int)recvdown_buf[i + 1]);
-            int status_to_match =
-                (recvdown_buf[i] == distributed::SHARED_UP) ? distributed::GHOST_DOWN : distributed::SHARED_DOWN;
-            if (local_id == -1) {
-                GetLog() << "ERROR: GID " << (unsigned int)recvdown_buf[i + 1] << " not on rank " << my_rank
-                         << " and on rank " << my_rank - 1 << " as " << recvdown_buf[i] << "\n";
-            } else if (ddm->comm_status[local_id] == status_to_match) {
-                continue;
-            } else {
-                // TODO Handle Mismatch
-                GetLog() << "MISMATCH: GID " << (unsigned int)recvdown_buf[i + 1] << "seen on " << my_rank << " as "
-                         << (int)ddm->comm_status[local_id] << " and on rank " << my_rank - 1 << " as "
-                         << recvdown_buf[i] << "\n";
-                my_sys->PrintBodyStatus();
-            }
-        }
-    }
-
-    delete recvdown_buf;
-
-    if (my_rank != num_ranks - 1) {
-        MPI_Probe(my_rank + 1, 2, my_sys->world, &statusup);
-        MPI_Get_count(&statusup, MPI_INT, &num_recvup);
-        recvup_buf = new int[num_recvup];
-        MPI_Recv(recvup_buf, num_recvup, MPI_INT, my_rank + 1, 2, my_sys->world, &statusup);
-    }
-
-    if (my_rank != num_ranks - 1 && num_recvup != 1) {
-        for (int i = 0; i < num_recvup; i += 2) {
-            int local_id = ddm->GetLocalIndex((unsigned int)recvup_buf[i + 1]);
-            int status_match =
-                (recvup_buf[i] == distributed::SHARED_DOWN) ? distributed::GHOST_UP : distributed::SHARED_UP;
-            if (local_id == -1) {
-                GetLog() << "ERROR: GID: " << (unsigned int)recvup_buf[i + 1] << " not on rank " << my_rank
-                         << " and on rank " << my_rank + 1 << " as " << recvup_buf[i] << "\n";
-            } else if (ddm->comm_status[local_id] == status_match) {
-                continue;
-            } else {
-                // TODO handle mismatch
-                GetLog() << "MISMATCH: GID " << (unsigned int)recvup_buf[i + 1] << "seen on " << my_rank << " as "
-                         << (int)ddm->comm_status[local_id] << " and on rank " << my_rank + 1 << " as " << recvup_buf[i]
-                         << "\n";
-                my_sys->PrintBodyStatus();
-            }
-        }
-    }
-
-    delete recvup_buf;
-    MPI_Barrier(my_sys->world);
-}
-
-// Called when a sphere leaves this rank's subdomain into the ghost layer.
-// The body should have been removed from the local system's
-// list after this function is called.
-// Packages the body into buf.
-// Returns the number of elements which the body took in the buffer
-int ChCommDistributed::PackExchange(double* buf, int index) {
-    //	unsigned char *buf;
-
-    int m = 1;  // Number of doubles being packed (will be placed in the front of the buffer
-                // once packing is done)
-
-    //	int n = sizeof(int);
-
-    buf[m++] = (double)distributed::EXCHANGE;
-
-    //	int message_type = distributed::EXCHANGE;
-    //	std::memcpy(buf+n, &message_type, sizeof(int));
-    //	n += sizeof(int);
-
+void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     // Global Id
-    buf[m++] = (double)ddm->global_id[index];
-
-    //	std::memcpy(buf+n, &ddm->global_id[index], sizeof(uint));
-    //	n += sizeof(uint);
+    buf->gid = ddm->global_id[index];
 
     // Position and rotation
     real3 pos = data_manager->host_data.pos_rigid[index];
-    buf[m++] = pos.x;
-    buf[m++] = pos.y;
-    buf[m++] = pos.z;
-
-    //	std::memcpy(buf+n, pos.array, 3*sizeof(real));
-    //	n += 3*sizeof(real);
+    buf->pos[0] = pos.x;
+    buf->pos[1] = pos.y;
+    buf->pos[2] = pos.z;
 
     // Rotation
     quaternion rot = data_manager->host_data.rot_rigid[index];
-    buf[m++] = rot.x;
-    buf[m++] = rot.y;
-    buf[m++] = rot.z;
-    buf[m++] = rot.w;
-
-    //	std::memcpy(buf+n, rot.array, 4*sizeof(real));
-    //	n += 4*sizeof(real);
+    buf->rot[0] = rot.w;
+    buf->rot[1] = rot.x;
+    buf->rot[2] = rot.y;
+    buf->rot[3] = rot.z;
 
     // Velocity
-    buf[m++] = data_manager->host_data.v[index * 6];
-    buf[m++] = data_manager->host_data.v[index * 6 + 1];
-    buf[m++] = data_manager->host_data.v[index * 6 + 2];
+    buf->vel[0] = data_manager->host_data.v[index * 6];
+    buf->vel[1] = data_manager->host_data.v[index * 6 + 1];
+    buf->vel[2] = data_manager->host_data.v[index * 6 + 2];
 
     // Angular Velocity
-    buf[m++] = data_manager->host_data.v[index * 6 + 3];
-    buf[m++] = data_manager->host_data.v[index * 6 + 4];
-    buf[m++] = data_manager->host_data.v[index * 6 + 5];
-
-    //	for (int i = 0; i < 6; i++)
-    //	{
-    //		std::memcpy(buf+n, &data_manager->host_data.v[index*6 + i], sizeof(real));
-    //		n += sizeof(real);
-    //	}
+    buf->vel[3] = data_manager->host_data.v[index * 6 + 3];
+    buf->vel[4] = data_manager->host_data.v[index * 6 + 4];
+    buf->vel[5] = data_manager->host_data.v[index * 6 + 5];
 
     // Mass
-    buf[m++] = data_manager->host_data.mass_rigid[index];
-
-    //	std::memcpy(buf+n, &data_manager->host_data.mass_rigid[index], sizeof(real));
-    //	n += sizeof(real);
+    buf->mass = data_manager->host_data.mass_rigid[index];
 
     // Inertia
-    ChMatrix33<double> inertia = my_sys->bodylist[index]->GetInertia();
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            buf[m++] = inertia.GetElement(i, j);
-        }
-    }
+    ChVector<double> inertiaXX = my_sys->bodylist[index]->GetInertiaXX();
+    buf->inertiaXX[0] = inertiaXX.x();
+    buf->inertiaXX[1] = inertiaXX.y();
+    buf->inertiaXX[2] = inertiaXX.z();
 
-    //	for (int i = 0; i < 3; i++)
-    //	{
-    //		for (int j = 0; j < 3; j++)
-    //		{
-    //			std::memcpy(buf+n, &(inertia.GetElement(i,j)), sizeof(real));
-    //			n += sizeof(real);
-    //		}
-    //	}
+    ChVector<double> inertiaXY = my_sys->bodylist[index]->GetInertiaXY();
+    buf->inertiaXY[0] = inertiaXY.x();
+    buf->inertiaXY[1] = inertiaXY.y();
+    buf->inertiaXY[2] = inertiaXY.z();
 
     // Material SMC
-    buf[m++] = data_manager->host_data.mu[index];  // Static Friction
+    buf->mu = data_manager->host_data.mu[index];  // Static Friction
 
-    //	std::memcpy(buf+n, &(data_manager->host_data.mu[index]), sizeof(real));
-    //	n += sizeof(real);
-
-    buf[m++] = data_manager->host_data.adhesionMultDMT_data[index];  // Adhesion
-                                                                     //					int message_type;
-
-    //	std::memcpy(buf+n, &(data_manager->host_data.adhesionMultDMT_data[index]), sizeof(real));
-    //	n += sizeof(real);
+    buf->adhesionMultDMT = data_manager->host_data.adhesionMultDMT_data[index];  // Adhesion
 
     if (data_manager->settings.solver.use_material_properties) {
-        buf[m++] = data_manager->host_data.elastic_moduli[index].x;  // Young's Modulus
+        buf->ym_kn = data_manager->host_data.elastic_moduli[index].x;  // Young's Modulus
+        buf->pr_kt = data_manager->host_data.elastic_moduli[index].y;  // Poisson Ratio
+        buf->restit_gn = data_manager->host_data.cr[index];            // Coefficient of Restitution
 
-        //    	std::memcpy(buf+n, &(data_manager->host_data.elastic_moduli[index].x), sizeof(real));
-        //    	n += sizeof(real);
-
-        buf[m++] = data_manager->host_data.elastic_moduli[index].y;  // Poisson Ratio
-
-        //    	std::memcpy(buf+n, &(data_manager->host_data.elastic_moduli[index].y), sizeof(real));
-        //    	n += sizeof(real);
-
-        buf[m++] = data_manager->host_data.cr[index];  // Coefficient of Restitution
-
-        //    	std::memcpy(buf+n, &(data_manager->host_data.cr[index]), sizeof(real));
-        //    	n += sizeof(real);
     } else {
-        buf[m++] = data_manager->host_data.dem_coeffs[index].x;  // kn
-        buf[m++] = data_manager->host_data.dem_coeffs[index].y;  // kt
-        buf[m++] = data_manager->host_data.dem_coeffs[index].z;  // gn
-        buf[m++] = data_manager->host_data.dem_coeffs[index].w;  // gt
-
-        //    	std::memcpy(buf+n, data_manager->host_data.dem_coeffs[index].array, 4*sizeof(real));
-        //    	n += 4*sizeof(real);
+        buf->ym_kn = data_manager->host_data.dem_coeffs[index].x;
+        buf->pr_kt = data_manager->host_data.dem_coeffs[index].y;
+        buf->restit_gn = data_manager->host_data.dem_coeffs[index].z;
+        buf->gt = data_manager->host_data.dem_coeffs[index].w;
     }
 
     // Collision
-    buf[m++] = (double)data_manager->host_data.collide_rigid[index];
-
-    //    std::memcpy(buf+n, &(data_manager->host_data.collide_rigid[index]), sizeof(char));
-    //    n += sizeof(char);
-
-    int shape_count = ddm->body_shape_count[index];
-    buf[m++] = (double)shape_count;
-
-    //    std::memcpy(buf+n, &shape_count, sizeof(int));
-    //    n += sizeof(int);
-
-    for (int i = 0; i < shape_count; i++) {
-        int shape_index = ddm->body_shapes[ddm->body_shape_start[index] + i];
-        int type = data_manager->shape_data.typ_rigid[shape_index];
-        int start = data_manager->shape_data.start_rigid[shape_index];
-        buf[m++] = (double)type;
-
-        //    	std::memcpy(buf+n, &type, sizeof(int));
-        //    	n += sizeof(int);
-
-        buf[m++] = data_manager->shape_data.ObA_rigid[shape_index].x;
-        buf[m++] = data_manager->shape_data.ObA_rigid[shape_index].y;
-        buf[m++] = data_manager->shape_data.ObA_rigid[shape_index].z;
-
-        //		std::memcpy(buf+n, data_manager->shape_data.ObA_rigid[shape_index].array, 3*sizeof(real));
-        //		n += 3*sizeof(real);
-
-        buf[m++] = data_manager->shape_data.ObR_rigid[shape_index].x;  // TOOD the order of array is wxyz
-        buf[m++] = data_manager->shape_data.ObR_rigid[shape_index].y;
-        buf[m++] = data_manager->shape_data.ObR_rigid[shape_index].z;
-        buf[m++] = data_manager->shape_data.ObR_rigid[shape_index].w;
-
-        //		std::memcpy(buf+n, data_manager->shape_data.ObR_rigid[shape_index].array, 4*sizeof(real));
-        //		n += 4*sizeof(real);
-
-        // buf[m++] = data_manager->shape_data.fam_rigid[shape_index]; short2??
-
-        switch (type) {
-            case chrono::collision::SPHERE:
-                buf[m++] = data_manager->shape_data.sphere_rigid[start];
-
-                //    		std::memcpy(buf+n, &(data_manager->shape_data.sphere_rigid[start]), sizeof(real));
-                //    		n += sizeof(real);
-                break;
-            case chrono::collision::BOX:
-                buf[m++] = data_manager->shape_data.box_like_rigid[start].x;
-                buf[m++] = data_manager->shape_data.box_like_rigid[start].y;
-                buf[m++] = data_manager->shape_data.box_like_rigid[start].z;
-
-                //    		std::memcpy(buf+n, data_manager->shape_data.box_like_rigid[start].array, 3*sizeof(real));
-                //    		n += 3*sizeof(real);
-                break;
-            default:
-                GetLog() << "Invalid shape for transfer\n";
-        }
-    }
-
-    buf[0] = (double)m;
-
-    //	std::memcpy(buf, &n, sizeof(int));
-
-    // return n;
-    return m;
+    buf->collide = data_manager->host_data.collide_rigid[index];
 }
 
 // Unpacks a sphere body from the buffer into body.
 // Note: body is meant to be a ptr into the data structure
 // where the body should be unpacked.
 // The body must be in the bodylist already so that GetId is valid
-int ChCommDistributed::UnpackExchange(double* buf, std::shared_ptr<ChBody> body) {
-    //	unsigned char *buf;
-
-    int m = 2;  // Skip the size value and the type value
-
-    //	int n = 2*sizeof(int);
-
+void ChCommDistributed::UnpackExchange(BodyExchange* buf, std::shared_ptr<ChBody> body) {
     // Global Id
-    uint gid = (unsigned int)buf[m++];
-    body->SetGid(gid);
-
-    //	uint gid;
-    //	std::memcpy(&gid, buf+n, sizeof(uint));
-    //	body->SetGid(gid);
-
-    int index = body->GetId();
-    ddm->global_id[index] = gid;
+    body->SetGid(buf->gid);
 
     // Position and rotation
-    body->SetPos(ChVector<double>(buf[m], buf[m + 1], buf[m + 2]));
-    m += 3;
-
-    //	double pos[3];
-    //	std::memcpy(pos, buf+n, 3*sizeof(double));
-    //	n += 3*sizeof(double);
-    //	body->SetPos(pos[0], pos[1], pos[2]);
+    body->SetPos(ChVector<double>(buf->pos[0], buf->pos[1], buf->pos[2]));
 
     // Rotation
-    body->SetRot(ChQuaternion<double>(buf[m], buf[m + 1], buf[m + 2], buf[m + 3]));
-    m += 4;
-
-    //	ChQuaternion<double> rot;
-    //	std::memcpy(rot.data, buf+n, 4*sizeof(double));
-    //	n += 4*sizeof(double);
-    //	body->SetRot(rot);
+    body->SetRot(ChQuaternion<double>(buf->rot[0], buf->rot[1], buf->rot[2], buf->rot[3]));
 
     // Linear and Angular Velocities
-    body->SetPos_dt(ChVector<double>(buf[m], buf[m + 1], buf[m + 2]));
-    m += 3;
+    body->SetPos_dt(ChVector<double>(buf->vel[0], buf->vel[1], buf->vel[2]));
 
-    //	ChVector<double> vel;
-    //	std::memcpy(vel.data, buf+n, 3*sizeof(double));
-    //	n += 3*sizeof(double);
-    //	body->SetPos_dt(vel);
-
-    body->SetWvel_par(ChVector<double>(buf[m], buf[m + 1], buf[m + 2]));
-    m += 3;
-
-    //	ChVector<double> omega;
-    //	std::memcpy(omega.data, buf+n, 3*sizeof(double));
-    //	n += 3*sizeof(double);
-    //	body->SetWvel_par(omega);
+    body->SetWvel_par(ChVector<double>(buf->vel[3], buf->vel[4], buf->vel[5]));
 
     // Mass
-    body->SetMass(buf[m++]);
-
-    //	double mass;
-    //	std::memcpy(&mass, buf+n, sizeof(double));
-    //	n += sizeof(double);
-    //	body->SetMass(mass);
-
-    // Inertia
-    ChMatrix33<double> inertia;
-    for (int i = 0; i < 3; i++)  // TODO matrix is symmetric
-    {
-        for (int j = 0; j < 3; j++) {
-            inertia.SetElement(i, j, buf[m++]);
-        }
-    }
-    body->SetInertia(inertia);
+    body->SetMass(buf->mass);
+    body->SetInertiaXX(ChVector<double>(buf->inertiaXX[0], buf->inertiaXX[1], buf->inertiaXX[2]));
+    body->SetInertiaXY(ChVector<double>(buf->inertiaXY[0], buf->inertiaXY[1], buf->inertiaXY[2]));
 
     // Material SMC
     std::shared_ptr<ChMaterialSurfaceSMC> mat = std::make_shared<ChMaterialSurfaceSMC>();
 
-    mat->SetFriction((float)buf[m++]);  // Static Friction
-    mat->adhesionMultDMT = (float)buf[m++];
+    mat->SetFriction(buf->mu);  // Static Friction
+    mat->adhesionMultDMT = buf->adhesionMultDMT;
 
     if (data_manager->settings.solver.use_material_properties) {
-        mat->young_modulus = (float)buf[m++];
-        mat->poisson_ratio = (float)buf[m++];
-        mat->restitution = (float)buf[m++];
+        mat->young_modulus = buf->ym_kn;
+        mat->poisson_ratio = buf->pr_kt;
+        mat->restitution = buf->restit_gn;
     } else {
-        mat->kn = (float)buf[m++];
-        mat->kt = (float)buf[m++];
-        mat->gn = (float)buf[m++];
-        mat->gt = (float)buf[m++];
+        mat->kn = buf->ym_kn;
+        mat->kt = buf->pr_kt;
+        mat->gn = buf->restit_gn;
+        mat->gt = buf->gt;
     }
 
     body->SetMaterialSurface(mat);
 
-    bool collide = (bool)buf[m++];
-
-    // Collision
-    int shape_count = (int)buf[m++];
-
+    bool collide = buf->collide;
     body->GetCollisionModel()->ClearModel();
-    for (int i = 0; i < shape_count; i++) {
-        int type = (int)buf[m++];
-        ChVector<double> A(buf[m], buf[m + 1], buf[m + 2]);
-        m += 3;
-
-        ChQuaternion<double> R(buf[m], buf[m + 1], buf[m + 2], buf[m + 3]);
-        m += 4;
-
-        switch (type) {
-            case chrono::collision::SPHERE:
-                GetLog() << "Unpacking Sphere\n";
-                body->GetCollisionModel()->AddSphere(buf[m++], A);  // TODO does anything with pos?
-                break;
-            case chrono::collision::BOX:
-                GetLog() << "Unpacking Box\n";
-                body->GetCollisionModel()->AddBox(
-                    buf[m++], buf[m++], buf[m++],
-                    A);  // TODO does anything with pos ?? rotation as quaternion vs matrix??
-                break;
-            default:
-                GetLog() << "Unpacking undefined collision shape\n";
-        }
-    }
-
-    body->GetCollisionModel()->BuildModel();  // Doesn't call collisionsystem::add since system isn't set yet.
-    body->SetCollide(collide);
-    return m;
 }
 
 // Only packs the essentials for a body update
-int ChCommDistributed::PackUpdate(double* buf, int index, int update_type) {
-    //	unsigned char *buf;
+void ChCommDistributed::PackUpdate(BodyUpdate* buf, int index, int update_type) {
+    // GetLog() << "Packing update GID " << ddm->global_id[index] << " rank " << my_sys->GetMyRank()
+    //         << ((update_type == distributed::FINAL_UPDATE_GIVE) ? " give" : " normal") << "\n";
 
-    int m = 1;
-    //	int n = sizeof(int);
-
-    buf[m++] = (double)update_type;
-
-    //	std::memcpy(buf+n, &update_type, sizeof(int));
+    buf->update_type = update_type;
 
     // Global Id
-    buf[m++] = (double)ddm->global_id[index];
-
-    //	std::memcpy(buf+n, &(ddm->global_id[index]), sizeof(uint));
-    //	n += sizeof(uint);
+    buf->gid = ddm->global_id[index];
 
     // Position
-    buf[m++] = data_manager->host_data.pos_rigid[index].x;
-    buf[m++] = data_manager->host_data.pos_rigid[index].y;
-    buf[m++] = data_manager->host_data.pos_rigid[index].z;
-
-    //	memcpy(buf+n, data_manager->host_data.pos_rigid[index].array, 3*sizeof(real));
-    //	n += 3*sizeof(real);
+    buf->pos[0] = data_manager->host_data.pos_rigid[index].x;
+    buf->pos[1] = data_manager->host_data.pos_rigid[index].y;
+    buf->pos[2] = data_manager->host_data.pos_rigid[index].z;
 
     // Rotation
-    buf[m++] = data_manager->host_data.rot_rigid[index].x;
-    buf[m++] = data_manager->host_data.rot_rigid[index].y;
-    buf[m++] = data_manager->host_data.rot_rigid[index].z;
-    buf[m++] = data_manager->host_data.rot_rigid[index].w;
-
-    //	std::memcpy(buf+n, data_manager->host_data.rot_rigid[index].array, 4*sizeof(real));
-    //	n += 4*sizeof(real);
+    buf->rot[0] = data_manager->host_data.rot_rigid[index].w;
+    buf->rot[1] = data_manager->host_data.rot_rigid[index].x;
+    buf->rot[2] = data_manager->host_data.rot_rigid[index].y;
+    buf->rot[3] = data_manager->host_data.rot_rigid[index].z;
 
     // Velocity
-    buf[m++] = data_manager->host_data.v[index * 6];
-    buf[m++] = data_manager->host_data.v[index * 6 + 1];
-    buf[m++] = data_manager->host_data.v[index * 6 + 2];
+    buf->vel[0] = data_manager->host_data.v[index * 6];
+    buf->vel[1] = data_manager->host_data.v[index * 6 + 1];
+    buf->vel[2] = data_manager->host_data.v[index * 6 + 2];
 
     // Angular Velocity
-    buf[m++] = data_manager->host_data.v[index * 6 + 3];
-    buf[m++] = data_manager->host_data.v[index * 6 + 4];
-    buf[m++] = data_manager->host_data.v[index * 6 + 5];
-
-    //	for (int i = 0; i < 6; i++)
-    //	{
-    //		std::memcpy(buf+n, &data_manager->host_data.v[index*6 + i], sizeof(real));
-    //		n += sizeof(real);
-    //	}
-
-    buf[0] = (double)m;
-
-    //	std::memcpy(buf, &n, sizeof(int));
-
-    // return n;
-    return m;
+    buf->vel[3] = data_manager->host_data.v[index * 6 + 3];
+    buf->vel[4] = data_manager->host_data.v[index * 6 + 4];
+    buf->vel[5] = data_manager->host_data.v[index * 6 + 5];
 }
 
-int ChCommDistributed::UnpackUpdate(double* buf, std::shared_ptr<ChBody> body) {
-    //	unsigned char *buf;
-
-    int m = 2;  // Skip size value and type value
-
-    //	int n = 2*sizeof(int);
-
-    // Global Id //TODO not needed??
-    body->SetGid((unsigned int)buf[m++]);
-
-    //	uint gid;
-    //	std::memcpy(&gid, buf+n, sizeof(uint));
-    //	body->SetGid(gid);
-    //	n += sizeof(uint);
-
+void ChCommDistributed::UnpackUpdate(BodyUpdate* buf, std::shared_ptr<ChBody> body) {
     // Position
-    body->SetPos(ChVector<double>(buf[m], buf[m + 1], buf[m + 2]));
-    m += 3;
-
-    //	double data[4];
-    //	std::memcpy(data, buf+n, 3*sizeof(real));
-    //	ChVector<real> pos;
-    //	pos.Set(data[0], data[1], data[2]);
-    //	n += 3*sizeof(real);
-    //	body->SetPos(pos);
+    body->SetPos(ChVector<double>(buf->pos[0], buf->pos[1], buf->pos[2]));
 
     // Rotation
-    body->SetRot(ChQuaternion<double>(buf[m], buf[m + 1], buf[m + 2], buf[m + 3]));
-    m += 4;
-
-    //	std::memcpy(data, buf+n, 4*sizeof(double));
-    //	ChQuaternion<double> rot;
-    //	rot.Set(data[0], data[1], data[2], data[3]);
-    //	n += 4*sizeof(double);
-    //	body->SetRot(rot);
+    body->SetRot(ChQuaternion<double>(buf->rot[0], buf->rot[1], buf->rot[2], buf->rot[3]));
 
     // Linear Velocity
-    body->SetPos_dt(ChVector<double>(buf[m], buf[m + 1], buf[m + 2]));
-    m += 3;
-
-    //	std::memcpy(data, buf+n, 3*sizeof(double));
-    //	ChVector<double> vel;
-    //	vel.Set(data[0],data[1],data[2]);
-    //	body->SetPos_dt(vel);
-    //	n += 3*sizeof(double);
+    body->SetPos_dt(ChVector<double>(buf->vel[0], buf->vel[1], buf->vel[2]));
 
     // Angular Velocity
-    body->SetWvel_par(ChVector<double>(buf[m], buf[m + 1], buf[m + 2]));
-    m += 3;
-
-    //	std::memcpy(data, buf+n, 3*sizeof(double));
-    //	ChVector<double> omega;
-    //	omega.Set(data[0], data[1], data[2]);
-    //	body->SetWvel_par(omega);
-    //	n += 3*sizeof(double);
-
-    //	return n;
-    return m;
+    body->SetWvel_par(ChVector<double>(buf->vel[3], buf->vel[4], buf->vel[5]));
 }
 
-int ChCommDistributed::PackUpdateTake(double* buf, int index) {
-    //	unsigned char *buf;
-    //	int n = sizeof(int);
+// Packs all shapes for a single body into the buffer
+int ChCommDistributed::PackShapes(Shape* buf, int index) {
+    int shape_count = ddm->body_shape_count[index];
 
-    buf[0] = (double)3;
-    buf[1] = (double)distributed::FINAL_UPDATE_TAKE;
+    // Pack each shape on the body
+    for (int i = 0; i < shape_count; i++) {
+        (buf + i)->gid = ddm->global_id[index];
+        GetLog() << "Packing shapes for gid " << ddm->global_id[index];
 
-    //	int update_type = distributed::FINAL_UPDATE_TAKE;
-    //	std::memcpy(buf+n, &update_type, sizeof(int));
-    //	n += sizeof(int);
+        int shape_index =
+            ddm->body_shapes[ddm->body_shape_start[index] + i];  // index of the shape in data_manager->shape_data
 
-    buf[2] = (double)ddm->global_id[index];
+        int type = data_manager->shape_data.typ_rigid[shape_index];
+        int start = data_manager->shape_data.start_rigid[shape_index];
+        (buf + i)->type = type;
 
-    //	std::memcpy(buf+n, &(ddm->global_id[index]), sizeof(uint));
-    //	n += sizeof(uint);
+        (buf + i)->A[0] = data_manager->shape_data.ObA_rigid[shape_index].x;
+        (buf + i)->A[1] = data_manager->shape_data.ObA_rigid[shape_index].y;
+        (buf + i)->A[2] = data_manager->shape_data.ObA_rigid[shape_index].z;
 
-    //	std::memcpy(buf, &n, sizeof(int));
+        (buf + i)->R[0] = data_manager->shape_data.ObR_rigid[shape_index].x;  // TODO the order of array is wxyz
+        (buf + i)->R[1] = data_manager->shape_data.ObR_rigid[shape_index].y;
+        (buf + i)->R[2] = data_manager->shape_data.ObR_rigid[shape_index].z;
+        (buf + i)->R[3] = data_manager->shape_data.ObR_rigid[shape_index].w;
 
-    //	return n;
-    return 3;
+        // buf->fam = data_manager->shape_data.fam_rigid[shape_index]; short2??
+
+        switch (type) {
+            case chrono::collision::SPHERE:
+                (buf + i)->data[0] = data_manager->shape_data.sphere_rigid[start];
+                GetLog() << "Packing sphere: " << (buf + i)->data[0];
+                break;
+            case chrono::collision::BOX:
+                (buf + i)->data[0] = data_manager->shape_data.box_like_rigid[start].x;
+                (buf + i)->data[1] = data_manager->shape_data.box_like_rigid[start].y;
+                (buf + i)->data[2] = data_manager->shape_data.box_like_rigid[start].z;
+                break;
+            default:
+                GetLog() << "Invalid shape for transfer\n";
+        }
+    }
+    return shape_count;
+}
+
+void ChCommDistributed::PackUpdateTake(uint* buf, int index) {
+    *buf = ddm->global_id[index];
 }

@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <memory>
+#include <iostream>
 
 #include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "../../chrono_distributed/physics/ChSystemDistributed.h"
@@ -28,8 +29,8 @@ int num_threads;
 double tilt_angle = 1 * CH_C_PI / 20;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
-int count_X = 20;
-int count_Y = 4;
+int count_X = 10;  // 20
+int count_Y = 2;   // 4
 
 // Material properties (same on bin and balls)
 float Y = 2e6f;
@@ -64,9 +65,15 @@ void Monitor(chrono::ChSystemParallel* system) {
 }
 
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
-    char filename[100];
-    sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-    utils::WriteShapesPovray(sys, filename);
+    std::string filedir;
+    if (num_ranks == 1) {
+        filedir = "../reference";
+    } else {
+        filedir = "../granular";
+    }
+    std::string filename = "data" + std::to_string(out_frame);
+    sys->WriteCSV(filedir, filename);
+
     std::cout << "time = " << time << std::flush << std::endl;
 }
 
@@ -130,7 +137,7 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
     // TODO generate randomly. Need to seed though.
-    for (double z = 2; z < 15; z++) {
+    for (double z = 2; z < 3; z++) {
         for (int ix = -count_X; ix <= count_X; ix++) {
             for (int iy = -count_Y; iy <= count_Y; iy++) {
                 ChVector<> pos(0.4 * ix, 0.4 * iy, z);
@@ -155,22 +162,6 @@ void AddFallingBalls(ChSystemDistributed* sys) {
                 sys->AddBody(ball);
             }
         }
-    }
-}
-
-void Simulate(int num_steps, int out_steps, ChSystemDistributed* my_sys, int out_frame, double time, double time_step) {
-    for (int i = 0; i < num_steps; i++) {
-        if (i % out_steps == 0) {
-            OutputData(my_sys, out_frame, time);
-            out_frame++;
-            // my_sys.PrintBodyStatus();
-            // my_sys.PrintShapeData();
-            my_sys->WriteCSV(i, "../granular");
-        }
-        Monitor(my_sys);
-        // my_sys.PrintBodyStatus();
-        my_sys->DoStepDynamics(time_step);
-        time += time_step;
     }
 }
 
@@ -202,7 +193,7 @@ int main(int argc, char* argv[]) {
     double tolerance = 1e-3;
 
     print("Constructing the system...\n");
-    ChSystemDistributed my_sys(MPI_COMM_WORLD, 1.0, 100000);
+    ChSystemDistributed my_sys(MPI_COMM_WORLD, 1.0, 100000, std::string("../out") + std::to_string(my_rank) + ".txt");
 
     std::cout << "Node " << my_sys.node_name << "\n";
 
@@ -221,8 +212,8 @@ int main(int argc, char* argv[]) {
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
-    ChVector<double> domlo(-10, -10, -1);
-    ChVector<double> domhi(10, 10, 15);
+    ChVector<double> domlo(-13, -13, -1);
+    ChVector<double> domhi(13, 13, 15);
     my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
     my_sys.GetDomain()->PrintDomain();
 
@@ -235,7 +226,15 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     double time = 0;
 
-    Simulate(num_steps, out_steps, &my_sys, out_frame, time, time_step);
+    for (int i = 0; i < num_steps; i++) {
+        if (i % out_steps == 0) {
+            OutputData(&my_sys, out_frame, time);
+            out_frame++;
+        }
+        Monitor(&my_sys);
+        my_sys.DoStepDynamics(time_step);
+        time += time_step;
+    }
 
     MPI_Finalize();
 
