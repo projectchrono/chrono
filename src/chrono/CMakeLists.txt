@@ -308,6 +308,7 @@ set(ChronoEngine_geometry_SOURCES
     geometry/ChLineSegment.cpp
     geometry/ChLinePath.cpp
     geometry/ChLineBezier.cpp
+	geometry/ChLineNurbs.cpp
     geometry/ChLineCam.cpp
     geometry/ChLinePoly.cpp
     geometry/ChTriangle.cpp
@@ -333,6 +334,7 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChLineSegment.h
     geometry/ChLinePath.h
     geometry/ChLineBezier.h
+	geometry/ChLineNurbs.h
     geometry/ChTriangle.h
     geometry/ChTriangleMesh.h
     geometry/ChTriangleMeshSoup.h
