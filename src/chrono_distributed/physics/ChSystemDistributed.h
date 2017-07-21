@@ -66,10 +66,14 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     void RemoveBodyExchange(int index);
     ChDomainDistributed* GetDomain() { return domain; }
     ChCommDistributed* GetComm() { return comm; }
+
+    /// Prints msg to the user and ends execution with an MPI error
     void ErrorAbort(std::string msg);
+
+#ifdef DistrDebug
     void PrintBodyStatus();
     void PrintShapeData();
-
+#endif
     /// Writes out the positions and velocities of all bodies in the system
     /// to a csv format file in in filedir. Prepends the MPI rank to
     /// the beginning of the file.
@@ -81,7 +85,9 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 
     char* node_name;
 
+#ifdef DistrDebug
     std::ofstream debug_stream;
+#endif
 
   protected:
     // MPI

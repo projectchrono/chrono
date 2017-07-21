@@ -55,7 +55,9 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world,
     this->ghost_layer = ghost_layer;
     this->num_bodies_global = 0;
 
+#ifdef DistrDebug
     this->debug_stream.open(debug_file);
+#endif
 
     data_manager->system_timer.AddTimer("Send");
     data_manager->system_timer.AddTimer("Recv");
@@ -68,7 +70,9 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world,
 ChSystemDistributed::~ChSystemDistributed() {
     delete domain;
     delete comm;
+#ifdef DistrDebug
     debug_stream.close();
+#endif
     // delete ddm;
 }
 
@@ -100,6 +104,9 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     newbody->SetGid(num_bodies_global);
     num_bodies_global++;
 
+    ddm->body_shape_start.push_back(0);
+    ddm->body_shape_count.push_back(0);
+
     distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);
 
     // Check for collision with this sub-domain
@@ -111,9 +118,10 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
 
         newbody->GetCollisionModel()->GetAABB(min, max);
 
-        //		printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", min.x(), min.y(), min.z(), max.x(), max.y(),
-        // max.z());
-
+#ifdef DistrDebug
+        printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", min.x(), min.y(), min.z(), max.x(), max.y(),
+               max.z());
+#endif
         // If the part of the body lies in this sub-domain, add it
         if ((min.x() <= subhi.x() && sublo.x() <= max.x()) && (min.y() <= subhi.y() && sublo.y() <= max.y()) &&
             (min.z() <= subhi.z() && sublo.z() <= max.z())) {
@@ -129,7 +137,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     ddm->comm_status.push_back(status);
     ddm->global_id.push_back(num_bodies_global - 1);
 
-    // DEBUGGING -----------------------------------
+#ifdef DistrDebug
     switch (status) {
         // Shared up
         case distributed::SHARED_UP:
@@ -167,8 +175,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     }
 
     GetLog() << " GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
-    //-------------------------------------------------
-
+#endif
     newbody->SetId(data_manager->num_rigid_bodies);
     bodylist.push_back(newbody);
 
@@ -195,7 +202,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
     data_manager->num_rigid_bodies++;
     newbody->SetBodyFixed(false);
 
-    newbody->SetSystem(this);  // Calls collisionsystem::add
+    newbody->SetSystem(this);  // Calls collisionsystem::add? TODO
 
     // Actual data is set in UpdateBodies()
     data_manager->host_data.pos_rigid.push_back(real3());
@@ -238,6 +245,7 @@ void ChSystemDistributed::ErrorAbort(std::string msg) {
     MPI_Abort(world, MPI_ERR_OTHER);
 }
 
+#ifdef DistrDebug
 void ChSystemDistributed::PrintBodyStatus() {
     GetLog() << "Rank: " << my_rank << "\n";
     GetLog() << "\tBodylist:\n";
@@ -332,6 +340,7 @@ void ChSystemDistributed::PrintShapeData() {
     printf("num_rigid_shapes: %d, num_rigid_bodies: %d\n", ddm->data_manager->num_rigid_shapes,
            ddm->data_manager->num_rigid_bodies);
 }
+#endif
 
 // Outputs all bodies in the system to a CSV file
 void ChSystemDistributed::WriteCSV(std::string filedir, std::string filename) {

@@ -24,26 +24,8 @@ ChDistributedDataManager::ChDistributedDataManager(ChSystemDistributed* my_sys) 
 
 ChDistributedDataManager::~ChDistributedDataManager() {}
 
-// TODO make much better search
 int ChDistributedDataManager::GetLocalIndex(unsigned int gid) {
     auto search = gid_to_localid.find(gid);
-
-    /*  int localid = -1;
-      if (search != gid_to_localid.end()) {
-          localid = search->second;
-      }
-
-          for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
-              if (global_id[i] == gid && comm_status[i] != distributed::EMPTY) {
-                  if (localid == i) {
-                      GetLog() << "Found correct local id with map\n";
-                  } else {
-                      GetLog() << "INCORRECT LOCAL ID FROM MAP\n";
-                  }
-                  return i;
-              }
-          }
-    */
     if (search != gid_to_localid.end()) {
         return search->second;
     }

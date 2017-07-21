@@ -29,7 +29,6 @@ namespace chrono {
 class ChDistributedDataManager;
 class ChSystemDistributed;
 
-#ifdef TestStruct
 typedef struct BodyExchange {
     uint gid;
     bool collide;
@@ -62,7 +61,6 @@ typedef struct Shape {
     double R[3];
     double data[3];
 } Shape;
-#endif
 
 /// This class holds functions for processing the system's bodies to determine
 /// when a body needs to be sent to another rank for either an update or for
@@ -92,7 +90,23 @@ class CH_DISTR_API ChCommDistributed {
     /// Processes incoming updates from other ranks
     void Exchange();
 
-#ifdef TestStruct
+  protected:
+    ChSystemDistributed* my_sys;
+
+    // MPI Data Types
+    MPI_Datatype BodyExchangeType;
+    MPI_Datatype BodyUpdateType;
+    MPI_Datatype ShapeType;
+
+    ChParallelDataManager* data_manager;
+    ChDistributedDataManager* ddm;
+
+  private:
+    void ProcessExchanges(int num_recv, BodyExchange* buf, int updown);
+    void ProcessUpdates(int num_recv, BodyUpdate* buf);
+    void ProcessTakes(int num_recv, uint* buf);
+    void ProcessShapes(int num_recv, Shape* buf);
+
     /// Packages the body data into buf.
     /// Returns the number of elements which the body took in the buffer
     void PackExchange(BodyExchange* buf, int index);
@@ -106,50 +120,11 @@ class CH_DISTR_API ChCommDistributed {
     /// Unpacks an incoming body to update a ghost
     void UnpackUpdate(BodyUpdate* buf, std::shared_ptr<ChBody> body);
 
+    /// Packs the gid of the body at index index into buf
     void PackUpdateTake(uint* buf, int index);
 
+    /// Packs all shapes for the body at index into buf and returns
+    /// the number of shapes that it has packed.
     int PackShapes(Shape* buf, int index);
-
-    void ProcessExchanges(int num_recv, BodyExchange* buf, int updown);
-    void ProcessUpdates(int num_recv, BodyUpdate* buf);
-    void ProcessTakes(int num_recv, uint* buf);
-    void ProcessShapes(int num_recv, Shape* buf);
-
-#else
-    int PackExchange(double* buf, int index);
-
-    int UnpackExchange(double* buf, std::shared_ptr<ChBody> body);
-
-    int PackUpdate(double* buf, int index, int update_type);
-
-    int UnpackUpdate(double* buf, std::shared_ptr<ChBody> body);
-
-    int PackUpdateTake(double* buf, int index);
-
-    /// Checks for consistency in comm status between ranks
-    void CheckExchange();
-#endif
-
-    ChParallelDataManager* data_manager;
-    ChDistributedDataManager* ddm;
-
-  protected:
-    ChSystemDistributed* my_sys;
-#ifndef TestStruct
-    double* sendup_buf;
-    double* senddown_buf;
-    int num_sendup;
-    int num_senddown;
-#else
-    // MPI Data Types
-    MPI_Datatype BodyExchangeType;
-    MPI_Datatype BodyUpdateType;
-    MPI_Datatype ShapeType;
-#endif
-  private:
-#ifndef TestStruct
-    void Pack();
-    void ProcessBuffer(int num_recv, double* buf, int updown);
-#endif
 };
 } /* namespace chrono */

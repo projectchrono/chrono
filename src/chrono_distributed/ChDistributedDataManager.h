@@ -27,6 +27,13 @@ namespace chrono {
 
 class ChSystemDistributed;
 
+struct LocalShapeNode {
+    struct LocalShapeNode* next;
+    int body_shapes_index;
+    int size;
+    bool free;
+};
+
 class CH_DISTR_API ChDistributedDataManager {
   public:
     ChDistributedDataManager(ChSystemDistributed* my_sys);
@@ -41,9 +48,12 @@ class CH_DISTR_API ChDistributedDataManager {
     ChParallelDataManager* data_manager;  ///< Pointer to the main Chrono::Parallel Data Manager
     ChSystemDistributed* my_sys;          ///< Pointer to the main dynamical system
 
-    std::vector<int> body_shape_start;  ///< Start index in body_shapes of the shapes associated with this BODY
-    std::vector<int> body_shape_count;  ///< Number of shapes associated with this BODY
+    std::vector<int> body_shape_start;  ///< Start index in body_shapes of the shapes associated with this BODY index
+    std::vector<int> body_shape_count;  ///< Number of shapes associated with this BODY index
     std::vector<int> body_shapes;       ///< Indices of shape in DATA_MANAGER->shape_data for a given SHAPE
+    // The values in body_shapes for a given shape begin at body_shape_start[index] and there are
+    // body_shape_count[index] consecutive
+    // values starting there for the body at index index.
 
     // TODO: Need to track open spots in: data_manager->shape_data, this->body_shapes
     // DON'T need to track open spots in this->body_shape_start/count because those correspond with a BODY index
@@ -53,7 +63,10 @@ class CH_DISTR_API ChDistributedDataManager {
     // of the
     // body's shapes, 2) Find individual slots in data_manager->shape_data to index to from body_shapes
 
-    std::vector<bool> my_free_shapes;  ///< Indicates that the free spaces in this->body_shapes
+    // TODO make linked list like allocator
+    std::vector<bool> my_free_shapes;  ///< Indicates the free spaces in this->body_shapes
+    struct LocalShapeNode* local_free_shapes;
+
     std::vector<bool> dm_free_shapes;  ///< Indicates that the space in the data_manager->shape_data is available
 
     int first_empty;  ///< Index of the first unused body in the bodylist

@@ -84,7 +84,6 @@ bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos
             aabb_max[i] = max[i];
         }
     }
-
     return this->ChCollisionModelParallel::AddSphere(radius, pos);
 }
 

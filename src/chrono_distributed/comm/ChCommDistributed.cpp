@@ -41,8 +41,9 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
 
     ddm = my_sys->ddm;
 
-    // Create and Commit all custom MPI Data Types
-    // Exchange // TODO packing and array safety...
+    /* Create and Commit all custom MPI Data Types */
+
+    // Exchange
     MPI_Datatype type_exchange[4] = {MPI_UNSIGNED, MPI_BYTE, MPI_DOUBLE, MPI_FLOAT};
     int blocklen_exchange[4] = {1, 1, 20, 6};
     MPI_Aint disp_exchange[4];
@@ -53,7 +54,7 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     MPI_Datatype temp_type;
     MPI_Type_create_struct(4, blocklen_exchange, disp_exchange, type_exchange, &temp_type);
     MPI_Aint lb, extent;
-    MPI_Type_get_extent(temp_type, &lb, &extent);  // TODO change extent and possibly internal?
+    MPI_Type_get_extent(temp_type, &lb, &extent);
     MPI_Type_create_resized(temp_type, lb, extent, &BodyExchangeType);
     MPI_Type_commit(&BodyExchangeType);
 
@@ -74,13 +75,11 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     disp_shape[0] = offsetof(Shape, gid);
     disp_shape[1] = offsetof(Shape, type);
     disp_shape[2] = offsetof(Shape, A);
-    // MPI_Type_create_struct(3, blocklen_shape, disp_shape, type_shape, &ShapeType);
-    // MPI_Type_commit(&ShapeType);
 
     MPI_Datatype temp_type_s;
     MPI_Type_create_struct(3, blocklen_shape, disp_shape, type_shape, &temp_type_s);
     MPI_Aint lb_s, extent_s;
-    MPI_Type_get_extent(temp_type_s, &lb_s, &extent_s);  // TODO change extent and possibly internal?
+    MPI_Type_get_extent(temp_type_s, &lb_s, &extent_s);
     MPI_Type_create_resized(temp_type_s, lb_s, extent_s, &ShapeType);
     MPI_Type_commit(&ShapeType);
 }
@@ -91,7 +90,8 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
     if (buf->gid == UINT_MAX) {
         return;
     }
-    // ddm->first_empty = 0;
+
+    ddm->first_empty = 0;
     std::shared_ptr<ChBody> body;
 
     for (int n = 0; n < num_recv; n++) {
@@ -104,7 +104,7 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
                 ddm->first_empty++;
             }
         }
-        ddm->data_manager->system_timer.start("FirstEmpty");
+        ddm->data_manager->system_timer.stop("FirstEmpty");
         // GetLog() << "Rank " << my_sys->GetMyRank() << " First Empty: " <<
         // ddm->data_manager->system_timer.GetTime("FirstEmpty") << "\n";
         // If there are no empty spaces in the data manager, create
@@ -117,7 +117,10 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
         else {
             body = (*data_manager->body_list)[ddm->first_empty];
         }
+        body->SetSystem(my_sys);
+
         UnpackExchange(buf + n, body);
+
         // Add the new body
         distributed::COMM_STATUS status = (updown == 1) ? distributed::GHOST_UP : distributed::GHOST_DOWN;
         if (ddm->first_empty == data_manager->num_rigid_bodies) {
@@ -139,23 +142,30 @@ void ChCommDistributed::ProcessUpdates(int num_recv, BodyUpdate* buf) {
     for (int n = 0; n < num_recv; n++) {
         // Find the existing body
         int index = ddm->GetLocalIndex((buf + n)->gid);
-        // GetLog() << "Updating GID" << (buf + n)->gid << "Rank " << my_sys->GetMyRank() << " index: " << index <<
-        // "\n";
+#ifdef DistrDebug
+        GetLog() << "Updating GID" << (buf + n)->gid << "Rank " << my_sys->GetMyRank() << " index: " << index << "\n";
+#endif
         if (index != -1 && ddm->comm_status[index] != distributed::EMPTY) {
             if (ddm->comm_status[index] != distributed::GHOST_UP &&
                 ddm->comm_status[index] != distributed::GHOST_DOWN) {
+#ifdef DistrDebug
                 GetLog() << "Trying to update a non-ghost body on rank " << my_sys->GetMyRank() << "GID "
                          << (buf + n)->gid << "\n";
+#endif
             }
             body = (*data_manager->body_list)[index];
             UnpackUpdate(buf + n, body);
             if ((buf + n)->update_type == distributed::FINAL_UPDATE_GIVE) {
                 ddm->comm_status[index] = distributed::OWNED;
+#ifdef DistrDebug
                 GetLog() << "Owning gid " << (buf + n)->gid << " index " << index << " rank " << my_sys->GetMyRank()
                          << "\n";
+#endif
             }
         } else {
+#ifdef DistrDebug
             GetLog() << "GID " << buf->gid << " NOT found rank " << my_sys->GetMyRank() << "\n";
+#endif
             my_sys->ErrorAbort("Body to be updated not found\n");
         }
     }
@@ -173,10 +183,11 @@ void ChCommDistributed::ProcessTakes(int num_recv, uint* buf) {
 
 // TODO might be able to do in parallel if check the number of shapes per body in a first pass
 void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
+    GetLog() << "ProcessShapes rank " << my_sys->GetMyRank() << "\n";
     if (buf->gid == UINT_MAX) {
         return;
     }
-
+    GetLog() << "Actually ProcessShapes rank " << my_sys->GetMyRank() << "\n";
     int n = 0;
     uint gid;
 
@@ -186,35 +197,36 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
         // Create a collision model
         GetLog() << "Unpacking shapes for gid " << (buf + n)->gid << "\n";
 
-        auto model = std::make_shared<ChCollisionModelDistributed>();
-
-        GetLog() << "Setting collision model\n";
         // Done creating this body's model
-        (*ddm->data_manager->body_list)[ddm->GetLocalIndex(gid)]->SetCollisionModel(model);
+        std::shared_ptr<ChBody> body = (*ddm->data_manager->body_list)[ddm->GetLocalIndex(gid)];
 
+        body->GetCollisionModel()->ClearModel();
         // Single model
         ChVector<double> A((buf + n)->A[0], (buf + n)->A[1], (buf + n)->A[2]);
         // Each iteration handles a single shape for the body
         while ((buf + n)->gid == gid) {
             switch ((buf + n)->type) {
                 case chrono::collision::SPHERE:
+#ifdef DistrDebug
                     GetLog() << "Unpacking Sphere rank " << my_sys->GetMyRank() << "\n";
-                    model->AddSphere((buf + n)->data[0], A);
+#endif
+                    body->GetCollisionModel()->AddSphere((buf + n)->data[0], A);
                     break;
                     /*    case chrono::collision::BOX:
                             GetLog() << "Unpacking Box\n";
-                            model->AddBox((buf + n)->data[0], (buf + n)->data[1], (buf + n)->data[2],
+                            body->GetCollisionModel->AddBox((buf + n)->data[0], (buf + n)->data[1], (buf + n)->data[2],
                                           A);  // TODO does anything with pos ? // TODO need to add rotation! also
                        how?*/
                     break;
                 default:
-                    GetLog() << "Unpacking undefined collision shape\n";
+                    my_sys->ErrorAbort("Unpacking undefined collision shape\n");
             }
             n++;
         }
-
+#ifdef DistrDebug
         GetLog() << "Building collision model\n";
-        model->BuildModel();  // Calls collisionsystem::add
+#endif
+        body->GetCollisionModel()->BuildModel();  // Calls collisionsystem::add
     }
 }
 
@@ -251,10 +263,12 @@ void ChCommDistributed::Exchange() {
     int num_take_up = 0;
     int num_take_down = 0;
 
+#ifdef DistrDebug
     // Output buffers for thread-safety
     std::string exchange_string = "";
     std::string update_string = "";
     std::string take_string = "";
+#endif
 
 #pragma omp parallel sections
     {
@@ -268,22 +282,15 @@ void ChCommDistributed::Exchange() {
                     continue;
                 int location = my_sys->domain->GetBodyRegion(i);
 
-                /*
-                                if (curr_status == distributed::GLOBAL || curr_status == distributed::EMPTY ||
-                                    curr_status == distributed::GHOST_UP || curr_status == distributed::GHOST_DOWN ||
-                                    curr_status == distributed::SHARED_UP ||
-                                    curr_status == distribtued::SHARED_DOWN)  // TODO Ok to skipped already shared
-                                    continue;
-                */
-
                 // If the body now affects the next sub-domain
                 // If the body is being marked as shared for the first time, the whole
                 // body must be packed to create a ghost on another rank
-                if ((location == distributed::GHOST_UP || location == distributed::SHARED_UP)) {  // &&
-                    // curr_status == distributed::OWNED) {
+                if ((location == distributed::GHOST_UP || location == distributed::SHARED_UP)) {
+#ifdef DistrDebug
                     GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank "
                              << my_rank + 1 << " index " << i << "\n";
                     exchange_string += std::string("eu,") + std::to_string(ddm->global_id[i]) + "\n";
+#endif
                     PackExchange(exchange_up_buf + num_exchange_up, i);
                     num_exchange_up++;
                     ddm->comm_status[i] = distributed::SHARED_UP;
@@ -293,11 +300,12 @@ void ChCommDistributed::Exchange() {
                 // If the body now affects the previous sub-domain:
                 // If the body is being marked as shared for the first time, the whole
                 // body must be packed to create a ghost on another rank
-                else if ((location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN)) {  // &&
-                    //                         curr_status == distributed::OWNED) {
+                else if ((location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN)) {
+#ifdef DistrDebug
                     GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank "
                              << my_rank - 1 << " index " << i << "\n";
                     exchange_string += std::string("ed,") + std::to_string(ddm->global_id[i]) + "\n";
+#endif
                     PackExchange(exchange_down_buf + num_exchange_down, i);
                     num_exchange_down++;
                     ddm->comm_status[i] = distributed::SHARED_DOWN;
@@ -315,37 +323,33 @@ void ChCommDistributed::Exchange() {
                 int curr_status = ddm->curr_status[i];
                 int location = my_sys->domain->GetBodyRegion(i);
 
-                /*if (curr_status == distributed::GLOBAL || curr_status == distributed::EMPTY ||
-                    curr_status == distributed::GHOST_UP || curr_status == distributed::GHOST_DOWN)
-                    continue;
-                */
-
                 if (curr_status != distributed::SHARED_UP && curr_status != distributed::SHARED_DOWN)
                     continue;
 
                 // If the body now affects the next sub-domain
+                // If the body has already been shared, it need only update its
+                // corresponding ghost
                 if ((location == distributed::GHOST_UP || location == distributed::SHARED_UP) &&
                     curr_status == distributed::SHARED_UP) {
-                    // If the body has already been shared, it need only update its
-                    // corresponding ghost
-                    // GetLog() << "Update: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank
-                    // + 1
-                    //         << "\n";
+#ifdef DistrDebug
+                    GetLog() << "Update: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank + 1
+                             << "\n";
                     update_string += std::string("uu,") + std::to_string(ddm->global_id[i]) + "\n";
-
+#endif
                     PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE);
                     num_update_up++;
                 }
 
                 // If the body now affects the previous sub-domain:
+                // If the body has already been shared, it need only update its
+                // corresponding ghost
                 else if ((location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN) &&
                          curr_status == distributed::SHARED_DOWN) {
-                    // If the body has already been shared, it need only update its
-                    // corresponding ghost
-                    // GetLog() << "Update: rank " << my_rank << "--" << ddm->global_id[i] << "-->rank " << my_rank - 1
-                    //         << "\n";
+#ifdef DistrDebug
+                    GetLog() << "Update: rank " << my_rank << "--" << ddm->global_id[i] << "-->rank " << my_rank - 1
+                             << "\n";
                     update_string += std::string("ud,") + std::to_string(ddm->global_id[i]) + "\n";
-
+#endif
                     PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE);
                     num_update_down++;
                 }
@@ -355,19 +359,23 @@ void ChCommDistributed::Exchange() {
                 else if (location == distributed::UNOWNED_UP || location == distributed::UNOWNED_DOWN) {
                     int up;
                     if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
+#ifdef DistrDebug
                         update_string += std::string("gu,") + std::to_string(ddm->global_id[i]) + "\n";
+#endif
                         PackUpdate(update_up_buf + num_update_up, i, distributed::FINAL_UPDATE_GIVE);
                         num_update_up++;
                         up = 1;
                     } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
+#ifdef DistrDebug
                         update_string += std::string("gd,") + std::to_string(ddm->global_id[i]) + "\n";
+#endif
                         PackUpdate(update_down_buf + num_update_down, i, distributed::FINAL_UPDATE_GIVE);
                         num_update_down++;
                         up = -1;
                     }
-
+#ifdef DistrDebug
                     GetLog() << "Give: " << my_rank << " -- " << ddm->global_id[i] << " --> " << my_rank + up << "\n";
-
+#endif
                     my_sys->RemoveBodyExchange(i);
                 }
             }  // End of packing for loop
@@ -385,22 +393,20 @@ void ChCommDistributed::Exchange() {
 
                 int location = my_sys->domain->GetBodyRegion(i);
 
-                /*                if (curr_status == distributed::GLOBAL || curr_status == distributed::EMPTY ||
-                                    curr_status == distributed::GHOST_UP || curr_status == distributed::GHOST_DOWN)
-                                    continue;
-                */
-
                 // If the body is no longer involved with either neighbor, remove it from
-                // the other rank
-                // and take ownership on this rank
+                // the other rank and take ownership on this rank
                 if (location == distributed::OWNED) {
                     if (curr_status == distributed::SHARED_UP) {
+#ifdef DistrDebug
                         take_string += std::string("tu,") + std::to_string(ddm->global_id[i]) + "\n";
+#endif
                         PackUpdateTake(update_take_up + num_take_up, i);
                         num_take_up++;
 
                     } else if (curr_status == distributed::SHARED_DOWN) {
+#ifdef DistrDebug
                         take_string += std::string("td,") + std::to_string(ddm->global_id[i]) + "\n";
+#endif
                         PackUpdateTake(update_take_down + num_take_down, i);
                         num_take_down++;
                     }
@@ -410,9 +416,11 @@ void ChCommDistributed::Exchange() {
         }      // End of update take loop
     }          // End of parallel sections
 
+#ifdef DistrDebug
     std::string output_string = exchange_string + update_string + take_string;
     my_sys->debug_stream << output_string;
     my_sys->debug_stream << "*\n";
+#endif
 
     MPI_Status status_exchange_up;
     MPI_Status status_exchange_down;
@@ -578,8 +586,11 @@ void ChCommDistributed::Exchange() {
             if (num_shapes_up == 0) {
                 shapes_up->gid = UINT_MAX;
                 num_shapes_up = 1;
+            } else {
+                GetLog() << "Actually sending shapes rank " << my_sys->GetMyRank() << "\n";
             }
         }  // End of pack shapes up section
+
 // Pack Shapes Down
 #pragma omp section
         {
@@ -589,11 +600,13 @@ void ChCommDistributed::Exchange() {
             if (num_shapes_down == 0) {
                 shapes_down->gid = UINT_MAX;
                 num_shapes_down = 1;
-            }  // End of pack shapes down section
-        }
-    }  // End of parallel sections
+            } else {
+                GetLog() << "Actually sending shapes rank " << my_sys->GetMyRank() << "\n";
+            }
+        }  // End of pack shapes down section
+    }      // End of parallel sections
 
-    // TODO sections
+    // TODO sections?
     if (my_rank != 0)
         ProcessExchanges(num_recv_exchange_down, recv_exchange_down, 0);
     if (my_rank != num_ranks - 1)
@@ -634,8 +647,6 @@ void ChCommDistributed::Exchange() {
         ProcessShapes(num_recv_shapes_down, recv_shapes_down);
     if (my_rank != num_ranks - 1)
         ProcessShapes(num_recv_shapes_up, recv_shapes_up);
-
-    my_sys->PrintShapeData();
 }
 
 void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
@@ -743,15 +754,16 @@ void ChCommDistributed::UnpackExchange(BodyExchange* buf, std::shared_ptr<ChBody
 
     body->SetMaterialSurface(mat);
 
-    bool collide = buf->collide;
+    body->SetCollide(buf->collide);
     body->GetCollisionModel()->ClearModel();
 }
 
 // Only packs the essentials for a body update
 void ChCommDistributed::PackUpdate(BodyUpdate* buf, int index, int update_type) {
-    // GetLog() << "Packing update GID " << ddm->global_id[index] << " rank " << my_sys->GetMyRank()
-    //         << ((update_type == distributed::FINAL_UPDATE_GIVE) ? " give" : " normal") << "\n";
-
+#ifdef DistrDebug
+    GetLog() << "Packing update GID " << ddm->global_id[index] << " rank " << my_sys->GetMyRank()
+             << ((update_type == distributed::FINAL_UPDATE_GIVE) ? " give" : " normal") << "\n";
+#endif
     buf->update_type = update_type;
 
     // Global Id
@@ -800,8 +812,9 @@ int ChCommDistributed::PackShapes(Shape* buf, int index) {
     // Pack each shape on the body
     for (int i = 0; i < shape_count; i++) {
         (buf + i)->gid = ddm->global_id[index];
+#ifdef DistrDebug
         GetLog() << "Packing shapes for gid " << ddm->global_id[index];
-
+#endif
         int shape_index =
             ddm->body_shapes[ddm->body_shape_start[index] + i];  // index of the shape in data_manager->shape_data
 
@@ -818,7 +831,7 @@ int ChCommDistributed::PackShapes(Shape* buf, int index) {
         (buf + i)->R[2] = data_manager->shape_data.ObR_rigid[shape_index].z;
         (buf + i)->R[3] = data_manager->shape_data.ObR_rigid[shape_index].w;
 
-        // buf->fam = data_manager->shape_data.fam_rigid[shape_index]; short2??
+        // buf->fam = data_manager->shape_data.fam_rigid[shape_index]; short2?? TODO
 
         switch (type) {
             case chrono::collision::SPHERE:

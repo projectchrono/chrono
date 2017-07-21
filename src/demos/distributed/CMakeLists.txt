@@ -4,6 +4,7 @@ set(DISTRIBUTED_TESTS
     demo_DISTR_exchange
     demo_DISTR_separate
     demo_DISTR_settling
+    demo_DISTR_rotgrav
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
