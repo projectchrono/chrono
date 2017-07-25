@@ -380,7 +380,8 @@ enum class TireModelType {
     FIALA,       ///< Fiala tire
     ANCF,        ///< ANCF shell element-based tire
     REISSNER,    ///< Reissner 6-field shell element-based tire
-    FEA          ///< FEA co-rotational tire
+    FEA,         ///< FEA co-rotational tire
+    PAC89        ///< Pacejka 89 (magic formula) tire
 };
 
 /// Enum for available powertrain model templates.

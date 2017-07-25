@@ -162,6 +162,26 @@ void HMMWV::Initialize() {
 
             break;
         }
+        case TireModelType::PAC89: {
+            HMMWV_Pac89Tire* tire_FL = new HMMWV_Pac89Tire("FL");
+            HMMWV_Pac89Tire* tire_FR = new HMMWV_Pac89Tire("FR");
+            HMMWV_Pac89Tire* tire_RL = new HMMWV_Pac89Tire("RL");
+            HMMWV_Pac89Tire* tire_RR = new HMMWV_Pac89Tire("RR");
+
+            if (m_tire_step_size > 0) {
+                tire_FL->SetStepsize(m_tire_step_size);
+                tire_FR->SetStepsize(m_tire_step_size);
+                tire_RL->SetStepsize(m_tire_step_size);
+                tire_RR->SetStepsize(m_tire_step_size);
+            }
+
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
+
+            break;
+        }
         case TireModelType::PACEJKA: {
             if (m_pacejkaParamFile.empty())
                 throw ChException("Pacejka parameter file not specified.");
