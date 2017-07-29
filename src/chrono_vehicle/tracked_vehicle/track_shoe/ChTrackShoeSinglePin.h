@@ -40,6 +40,9 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
 
     virtual ~ChTrackShoeSinglePin() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "TrackShoeSinglePin"; }
+
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
 

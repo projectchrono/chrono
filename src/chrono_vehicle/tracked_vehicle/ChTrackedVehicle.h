@@ -53,6 +53,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Destructor.
     virtual ~ChTrackedVehicle();
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "TrackedVehicle"; }
+
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.
     virtual double GetVehicleMass() const override;

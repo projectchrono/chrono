@@ -39,6 +39,9 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
 
     virtual ~ChSimpleDriveline() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "SimpleDriveline"; }
+
     /// Return the number of driven axles.
     virtual int GetNumDrivenAxles() const final override { return 2; }
 

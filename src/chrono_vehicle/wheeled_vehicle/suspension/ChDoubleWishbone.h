@@ -55,6 +55,9 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
   public:
     virtual ~ChDoubleWishbone() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "DoubleWishbone"; }
+
     /// Specify whether or not this suspension can be steered.
     virtual bool IsSteerable() const final override { return true; }
 

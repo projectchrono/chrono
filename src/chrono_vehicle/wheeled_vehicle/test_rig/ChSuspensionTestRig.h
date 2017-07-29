@@ -76,6 +76,9 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Destructor
     ~ChSuspensionTestRig() {}
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "SuspensionTestRig"; }
+
     /// Set the limits for post displacement.
     /// Each post will move between [-val, +val].
     void SetDisplacementLimit(double val) { m_displ_limit = val; }

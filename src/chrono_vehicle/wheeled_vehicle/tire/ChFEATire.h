@@ -35,6 +35,9 @@ class CH_VEHICLE_API ChFEATire : public ChDeformableTire {
 
     virtual ~ChFEATire() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "FEATire"; }
+
   protected:
     /// Return list of internal nodes.
     /// These nodes define the mesh surface over which pressure loads are applied.

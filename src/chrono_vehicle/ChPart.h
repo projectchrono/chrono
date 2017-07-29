@@ -46,6 +46,9 @@ class CH_VEHICLE_API ChPart {
     /// Set the name identifier for this subsystem.
     void SetName(const std::string& name) { m_name = name; }
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const = 0;
+
     /// Set the visualization mode for this subsystem.
     void SetVisualizationType(VisualizationType vis);
 

@@ -58,6 +58,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Destructor
     ~ChTrackTestRig() {}
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "TrackTestRig"; }
+
     /// Set the actuator function
     void SetActuator_func(const std::shared_ptr<ChFunction>& func) { m_actuator = func; }
 

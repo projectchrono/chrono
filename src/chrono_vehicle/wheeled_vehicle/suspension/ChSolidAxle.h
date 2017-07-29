@@ -60,6 +60,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
     virtual ~ChSolidAxle() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "SolidAxle"; }
+
     /// Specify whether or not this suspension can be steered.
     virtual bool IsSteerable() const final override { return true; }
 

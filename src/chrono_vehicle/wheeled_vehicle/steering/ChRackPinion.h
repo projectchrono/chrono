@@ -51,6 +51,9 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
 
     virtual ~ChRackPinion() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "RackPinion"; }
+
     /// Initialize the steering subsystem.
     /// This attached the steering mechanism to the specified chassis body at the
     /// given offset and orientation, relative to the frame of the chassis.

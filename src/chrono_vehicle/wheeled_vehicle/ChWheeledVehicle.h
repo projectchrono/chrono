@@ -58,6 +58,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Destructor.
     virtual ~ChWheeledVehicle() {}
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "WheeledVehicle"; }
+
     /// Get the specified suspension subsystem.
     std::shared_ptr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
 

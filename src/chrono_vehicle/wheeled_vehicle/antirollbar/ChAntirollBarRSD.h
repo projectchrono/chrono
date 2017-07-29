@@ -52,6 +52,9 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
 
     virtual ~ChAntirollBarRSD() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "AntirollBarRSD"; }
+
     /// The anti-roll bar subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension

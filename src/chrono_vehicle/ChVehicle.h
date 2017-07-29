@@ -46,6 +46,9 @@ class CH_VEHICLE_API ChVehicle {
     /// Set the name identifier for this vehicle.
     void SetName(const std::string& name) { m_name = name; }
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const = 0;
+
     /// Get a pointer to the Chrono ChSystem.
     ChSystem* GetSystem() { return m_system; }
 
