@@ -260,6 +260,12 @@ int main(int argc, char* argv[]) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
             my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+
+            auto marker_driver = my_hmmwv.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
+            auto marker_com = my_hmmwv.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
+            GetLog() << "Markers\n";
+            std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " " << marker_driver.z() << std::endl;
+            std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z() << std::endl;
         }
 
         // Collect output data from modules (for inter-module communication)
