@@ -100,6 +100,8 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
         double m_length;
     };
 
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
     bool m_has_collision;
     std::vector<BoxShape> m_coll_boxes;
     std::vector<SphereShape> m_coll_spheres;

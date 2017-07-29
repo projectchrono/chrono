@@ -115,6 +115,14 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const override;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const override;
+
   private:
     static void AddVisualize_post(std::shared_ptr<ChBody> post_body,
                                   std::shared_ptr<ChBody> chassis_body,

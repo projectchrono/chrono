@@ -141,6 +141,18 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This only controls collisions between the chassis and the tire systems.
     virtual void SetChassisVehicleCollide(bool state) override;
 
+    /// Enable/disable output from the suspension subsystems.
+    void SetSuspensionOutput(int id, bool state);
+
+    /// Enable/disable output from the steering subsystems.
+    void SetSteeringOutput(int id, bool state);
+
+    /// Enable/disable output from the anti-roll bar subsystems.
+    void SetAntirollbarOutput(int id, bool state);
+
+    /// Enable/disable output from the driveline subsystem.
+    void SetDrivelineOutput(bool state);
+
     /// Initialize this vehicle at the specified global location and orientation.
     /// This base class implementation only initializes the chassis subsystem.
     /// Derived classes must extend this function to initialize all other wheeled
@@ -163,6 +175,14 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
+
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const override;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const override;
 
   protected:
     ChSuspensionList m_suspensions;            ///< list of handles to suspension subsystems

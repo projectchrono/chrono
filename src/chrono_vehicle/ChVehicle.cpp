@@ -84,10 +84,12 @@ void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
     m_chassis->SetVisualizationType(vis);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChVehicle::SetChassisCollide(bool state) {
     m_chassis->SetCollide(state);
+}
+
+void ChVehicle::SetChassisOutput(bool state) {
+    m_chassis->SetOutput(state);
 }
 
 }  // end namespace vehicle

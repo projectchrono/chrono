@@ -268,5 +268,20 @@ void ChPitmanArm::LogConstraintViolations() {
     }
 }
 
+void ChPitmanArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    bodies.push_back(m_arm);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    joints.push_back(m_revsph);
+    joints.push_back(m_universal);
+    ChPart::ExportJointList(jsonDocument, joints);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

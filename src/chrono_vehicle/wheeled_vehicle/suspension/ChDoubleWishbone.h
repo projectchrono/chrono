@@ -237,6 +237,7 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
     std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
 
+
   private:
     // Flag indicating that the inertia matrices for the upright and control arms
     // are provided in vehicle-aligned centroidal frames
@@ -263,6 +264,8 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

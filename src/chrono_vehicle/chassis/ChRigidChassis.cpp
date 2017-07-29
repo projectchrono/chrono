@@ -149,5 +149,15 @@ void ChRigidChassis::RemoveVisualizationAssets() {
     m_body->GetAssets().clear();
 }
 
+void ChRigidChassis::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_body);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    ChPart::ExportMarkerList(jsonDocument, m_markers);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

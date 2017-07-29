@@ -18,6 +18,8 @@
 
 #include "chrono_vehicle/ChPart.h"
 
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -25,6 +27,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChPart::ChPart(const std::string& name)
     : m_name(name),
+      m_output(false),
       m_friction(0.7f),
       m_restitution(0.1f),
       m_young_modulus(1e7f),
@@ -78,6 +81,101 @@ ChMatrix33<> ChPart::TransformInertiaMatrix(
     ChMatrix33<> tmp;
     tmp.MatrTMultiply(R, J_vehicle);
     return tmp * R;
+}
+
+// -----------------------------------------------------------------------------
+// Default implementation of the function ExportComponentList.
+// Derived classes should override this function and first invoke this base
+// class implementation, followed by calls to the various static Export***List
+// functions, as appropriate.
+// -----------------------------------------------------------------------------
+void ChPart::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    std::string template_name = GetTemplateName();
+    jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
+    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
+                           jsonDocument.GetAllocator());
+    jsonDocument.AddMember("output", m_output, jsonDocument.GetAllocator());
+}
+
+void ChPart::ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChBody>> bodies) {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (auto body : bodies) {
+        jsonArray.PushBack(rapidjson::StringRef(body->GetName()), allocator);
+    }
+    jsonDocument.AddMember("bodies", jsonArray, allocator);
+}
+
+void ChPart::ExportShaftList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChShaft>> shafts) {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (auto shaft : shafts) {
+        jsonArray.PushBack(rapidjson::StringRef(shaft->GetName()), allocator);
+    }
+    jsonDocument.AddMember("shafts", jsonArray, allocator);
+}
+
+void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLink>> joints) {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (auto joint : joints) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.SetObject();
+        obj.AddMember("name", rapidjson::StringRef(joint->GetName()), allocator);
+        //obj.AddMember("body1 name", rapidjson::StringRef(joint->GetBody1()->GetName()), allocator);
+        //obj.AddMember("body2 name", rapidjson::StringRef(joint->GetBody2()->GetName()), allocator);
+        jsonArray.PushBack(obj, allocator);
+    }
+    jsonDocument.AddMember("joints", jsonArray, allocator);
+}
+
+void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChMarker>> markers) {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (auto marker : markers) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.SetObject();
+        obj.AddMember("name", rapidjson::StringRef(marker->GetName()), allocator);
+        obj.AddMember("body name", rapidjson::StringRef(marker->GetBody()->GetName()), allocator);
+        jsonArray.PushBack(obj, allocator);
+    }
+    jsonDocument.AddMember("markers", jsonArray, allocator);
+}
+
+void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument,
+                                 std::vector<std::shared_ptr<ChLinkSpringCB>> springs) {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (auto spring : springs) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.SetObject();
+        obj.AddMember("name", rapidjson::StringRef(spring->GetName()), allocator);
+        //obj.AddMember("body1 name", rapidjson::StringRef(spring->GetBody1()->GetName()), allocator);
+        //obj.AddMember("body2 name", rapidjson::StringRef(spring->GetBody2()->GetName()), allocator);
+        jsonArray.PushBack(obj, allocator);
+    }
+    jsonDocument.AddMember("linear spring-dampers", jsonArray, allocator);
+}
+
+void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
+                                 std::vector<std::shared_ptr<ChLinkRotSpringCB>> springs) {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (auto spring : springs) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.SetObject();
+        obj.AddMember("name", rapidjson::StringRef(spring->GetName()), allocator);
+        //obj.AddMember("body1 name", rapidjson::StringRef(spring->GetBody1()->GetName()), allocator);
+        //obj.AddMember("body2 name", rapidjson::StringRef(spring->GetBody2()->GetName()), allocator);
+        jsonArray.PushBack(obj, allocator);
+    }
+    jsonDocument.AddMember("rotational spring-dampers", jsonArray, allocator);
 }
 
 }  // end namespace vehicle

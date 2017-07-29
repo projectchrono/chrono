@@ -118,6 +118,9 @@ class CH_VEHICLE_API ChVehicle {
     /// as set by the particular derived vehicle class.
     virtual void SetChassisVehicleCollide(bool state) {}
 
+    /// Enable/disable output from the chassis subsystem.
+    void SetChassisOutput(bool state);
+
     /// Advance the state of this vehicle by the specified time step.
     virtual void Advance(double step);
 
@@ -129,6 +132,14 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() = 0;
+
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const = 0;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const = 0;
 
   protected:
     /// Construct a vehicle system with an underlying ChSystem.
