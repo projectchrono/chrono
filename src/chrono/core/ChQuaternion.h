@@ -308,6 +308,12 @@ class ChQuaternion {
     /// Convert the quaternion to three angles (NASA angle set) heading, bank and attitude.
     ChVector<Real> Q_to_NasaAngles();
 
+    /// Set the quaternion from three angles (Euler Sequence 123) roll, pitch, and yaw.
+    void Q_from_Euler123(const ChVector<Real>& ang);
+
+    /// Convert the quaternion to three angles (Euler Sequence 123) roll, pitch, and yaw.
+    ChVector<Real> Q_to_Euler123();
+
     /// Set the quaternion dq/dt. Inputs: the vector of angular speed w specified in absolute coords,
     /// and the rotation expressed as a quaternion q.
     void Qdt_from_Wabs(const ChVector<Real>& w, const ChQuaternion<Real>& q);
@@ -434,6 +440,10 @@ ChApi ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, 
 ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& RxRyRz);
 
 ChApi ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& mq);
+
+ChApi ChQuaternion<double> Q_from_Euler123(const ChVector<double>& RxRyRz);
+
+ChApi ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq);
 
 ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
 
@@ -1097,6 +1107,39 @@ inline ChVector<Real> ChQuaternion<Real>::Q_to_NasaAngles() {
     // attitude
     nasa.x() = asin(-2 * (data[1] * data[3] - data[2] * data[0]));
     return nasa;
+}
+
+template <class Real>
+inline void ChQuaternion<Real>::Q_from_Euler123(const ChVector<Real>& ang) {
+    // Angles {phi;theta;psi} aka {roll;pitch;yaw}
+    Real t0 = cos(ang.z() * 0.5);
+    Real t1 = sin(ang.z() * 0.5);
+    Real t2 = cos(ang.x() * 0.5);
+    Real t3 = sin(ang.x() * 0.5);
+    Real t4 = cos(ang.y() * 0.5);
+    Real t5 = sin(ang.y() * 0.5);
+
+    data[0] = t0 * t2 * t4 + t1 * t3 * t5;
+    data[1] = t0 * t3 * t4 - t1 * t2 * t5;
+    data[2] = t0 * t2 * t5 + t1 * t3 * t4;
+    data[3] = t1 * t2 * t4 - t0 * t3 * t5;
+}
+
+template <class Real>
+inline ChVector<Real> ChQuaternion<Real>::Q_to_Euler123() {
+    // Angles {phi;theta;psi} aka {roll;pitch;yaw} rotation XYZ
+    ChVector<Real> euler;
+    Real sq0 = data[0] * data[0];
+    Real sq1 = data[1] * data[1];
+    Real sq2 = data[2] * data[2];
+    Real sq3 = data[3] * data[3];
+    // roll
+    euler.x() = atan2(2 * (data[2] * data[3] + data[0] * data[1]), sq3 - sq2 - sq1 + sq0);
+    // pitch
+    euler.y() = -asin(2 * (data[1] * data[3] - data[0] * data[2]));
+    // yaw
+    euler.z() = atan2(2 * (data[1] * data[2] + data[3] * data[0]), sq1 + sq0 - sq3 - sq2);
+    return euler;
 }
 
 template <class Real>
