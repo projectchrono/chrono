@@ -24,6 +24,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
 
@@ -39,24 +40,38 @@ class ChApi ChParserOpenSim {
   public:
     ChParserOpenSim();
     ~ChParserOpenSim() {}
+    enum VisType { PRIMITIVES, MESH };
 
-    void parse(ChSystem& system,            ///< [in] containing Chrono system
-               const std::string& filename  ///< [in] OpenSim input file name
-               );
+    void parse(ChSystem& system,             ///< [in] containing Chrono system
+               const std::string& filename,  ///< [in] OpenSim input file name
+               VisType vis = VisType::PRIMITIVES);
 
     ChSystem* parse(const std::string& filename,  ///< [in] OpenSim input file name
-                    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
-                    );
+                    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< [in] contact method
+                    VisType vis = VisType::PRIMITIVES);
 
   private:
     /// Setup lambda table for body parsing
     void initFunctionTable();
 
-    /// Creates ChBody and parses its various properties from its XML child nodes
+    /// Creates body and parses its various properties from its XML child nodes
     bool parseBody(rapidxml::xml_node<>* bodyNode, ChSystem& my_system);
 
-    std::map<std::string, std::function<void(rapidxml::xml_node<>*, ChSystem&, std::shared_ptr<ChBody>)>>
+    // Initializes visualization shapes for bodies connected to each link
+    void initVisualizations(rapidxml::xml_node<>* node, ChSystem& p_system);
+
+    // Get an STL vector from a string, used to make the xml parsing cleaner
+    template <typename T>
+    static inline std::vector<T> strToSTLVector(const char* string) {
+        std::istringstream buf(string);
+        std::istream_iterator<T> beg(buf), end;
+        return std::vector<T>(beg, end);
+    }
+    // Maps child fields of a body node to functions that handle said fields
+    std::map<std::string, std::function<void(rapidxml::xml_node<>*, ChSystem&, std::shared_ptr<ChBodyAuxRef>)>>
         function_table;
+    VisType m_visType;
+    std::vector<std::shared_ptr<ChLink>> m_jointList;
 };
 
 /// @} chrono_utils
