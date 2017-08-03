@@ -82,6 +82,16 @@ class CH_VEHICLE_API ChVehicle {
     /// Return the speed measured at the chassis center of mass.
     double GetVehicleSpeedCOM() const { return m_chassis->GetCOMSpeed(); }
 
+    /// Get the global position of the specified point.
+    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The returned location is expressed in the global reference frame.
+    ChVector<> GetVehiclePointLocation(const ChVector<>& locpos) const { return m_chassis->GetPointLocation(locpos); }
+
+    /// Get the global velocity of the specified point.
+    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The returned velocity is expressed in the global reference frame.
+    ChVector<> GetVehiclePointVelocity(const ChVector<>& locpos) const { return m_chassis->GetPointVelocity(locpos); }
+
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
