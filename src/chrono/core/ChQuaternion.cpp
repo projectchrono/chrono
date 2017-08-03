@@ -186,6 +186,39 @@ ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
     return mnasa;
 }
 
+ChQuaternion<double> Q_from_Euler123(const ChVector<double>& ang) {
+	ChQuaternion<double> q;
+    double t0 = cos(ang.z() * 0.5);
+	double t1 = sin(ang.z() * 0.5);
+	double t2 = cos(ang.x() * 0.5);
+	double t3 = sin(ang.x() * 0.5);
+	double t4 = cos(ang.y() * 0.5);
+	double t5 = sin(ang.y() * 0.5);
+
+	q.e0() = t0 * t2 * t4 + t1 * t3 * t5;
+	q.e1() = t0 * t3 * t4 - t1 * t2 * t5;
+	q.e2() = t0 * t2 * t5 + t1 * t3 * t4;
+	q.e3() = t1 * t2 * t4 - t0 * t3 * t5;
+	
+	return q;
+}
+
+ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq) {
+	ChVector<double> euler;
+    double sq0 = mq.e0() * mq.e0();
+    double sq1 = mq.e1() * mq.e1();
+    double sq2 = mq.e2() * mq.e2();
+    double sq3 = mq.e3() * mq.e3();
+    // roll
+    euler.x() = atan2(2 * (mq.e2() * mq.e3() + mq.e0() * mq.e1()), sq3 - sq2 - sq1 + sq0);
+    // pitch
+    euler.y() = -asin(2 * (mq.e1() * mq.e3() - mq.e0() * mq.e2()));
+    // yaw
+    euler.z() = atan2(2 * (mq.e1() * mq.e2() + mq.e3() * mq.e0()), sq1 + sq0 - sq3 - sq2);
+	
+	return euler;
+}
+
 void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis) {
     if (fabs(quat.e0()) < 0.99999999) {
         double arg = acos(quat.e0());
