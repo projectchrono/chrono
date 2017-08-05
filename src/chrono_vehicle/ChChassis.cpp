@@ -29,6 +29,14 @@ ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixe
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+ChVector<> ChChassis::GetPointLocation(const ChVector<>& locpos) const {
+    return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(locpos);
+}
+
+ChVector<> ChChassis::GetPointVelocity(const ChVector<>& locpos) const {
+   return m_body->GetFrame_REF_to_abs().PointSpeedLocalToParent(locpos);
+}
+
 ChVector<> ChChassis::GetPointAcceleration(const ChVector<>& locpos) const {
     ChVector<> acc_abs = m_body->GetFrame_REF_to_abs().PointAccelerationLocalToParent(locpos);
     return m_body->GetFrame_REF_to_abs().TransformDirectionParentToLocal(acc_abs);
