@@ -65,7 +65,7 @@ class CH_VEHICLE_API SprocketSinglePin : public ChSprocketSinglePin {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     int m_num_teeth;
 

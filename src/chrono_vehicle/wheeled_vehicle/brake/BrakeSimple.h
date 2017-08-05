@@ -40,7 +40,7 @@ class CH_VEHICLE_API BrakeSimple : public ChBrakeSimple {
     virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_maxtorque;
 };

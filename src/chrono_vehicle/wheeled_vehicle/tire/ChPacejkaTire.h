@@ -189,6 +189,8 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     double GetStepsize() const { return m_step_size; }
 
   private:
+    virtual void Create(const rapidjson::Document& d) override {}
+
     // where to find the input parameter file
     const std::string& getPacTireParamFile() const { return m_paramFile; }
 

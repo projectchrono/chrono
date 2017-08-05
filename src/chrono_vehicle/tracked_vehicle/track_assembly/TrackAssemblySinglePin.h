@@ -45,7 +45,7 @@ class CH_VEHICLE_API TrackAssemblySinglePin : public ChTrackAssemblySinglePin {
     virtual const ChVector<> GetRollerLocation(int which) const override { return m_roller_locs[which]; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     void LoadSprocket(const std::string& filename);
     void LoadBrake(const std::string& filename);

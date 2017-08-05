@@ -54,7 +54,7 @@ class CH_VEHICLE_API PitmanArm : public ChPitmanArm {
     virtual const ChVector<> getDirection(DirectionId which) override { return m_dirs[which]; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     ChVector<> m_points[NUM_POINTS];
     ChVector<> m_dirs[NUM_DIRS];

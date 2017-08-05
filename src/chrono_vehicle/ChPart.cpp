@@ -39,6 +39,24 @@ ChPart::ChPart(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChPart::Create(const rapidjson::Document& d) {
+    // Read top-level data
+    assert(d.HasMember("Type"));
+    assert(d.HasMember("Template"));
+    assert(d.HasMember("Name"));
+
+    // Set subsystem name
+    SetName(d["Name"].GetString());
+
+    // If present, enable output (default is no output)
+    if (d.HasMember("Output")) {
+        assert(d["Output"].IsBool());
+        SetOutput(d["Output"].GetBool());
+    }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChPart::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;

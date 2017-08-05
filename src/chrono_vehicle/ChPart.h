@@ -129,6 +129,10 @@ class CH_VEHICLE_API ChPart {
         );
 
   protected:
+    /// Create a vehicle subsystem from JSON data.
+    /// A derived class must override this function and first invoke the base class implementation.
+    virtual void Create(const rapidjson::Document& d);
+
     /// Export the list of bodies to the specified JSON document.
     static void ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChBody>> bodies);
 

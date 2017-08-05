@@ -46,7 +46,7 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_radius;
     double m_width;
