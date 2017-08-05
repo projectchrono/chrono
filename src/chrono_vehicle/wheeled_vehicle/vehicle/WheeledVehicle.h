@@ -48,13 +48,13 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   private:
     void Create(const std::string& filename);
 
-    void LoadChassis(const std::string& filename);
-    void LoadSteering(const std::string& filename, int which);
-    void LoadDriveline(const std::string& filename);
-    void LoadSuspension(const std::string& filename, int axle);
-    void LoadAntirollbar(const std::string& filename);
-    void LoadWheel(const std::string& filename, int axle, int side);
-    void LoadBrake(const std::string& filename, int axle, int side);
+    void LoadChassis(const std::string& filename, int output);
+    void LoadSteering(const std::string& filename, int which, int output);
+    void LoadDriveline(const std::string& filename, int output);
+    void LoadSuspension(const std::string& filename, int axle, int output);
+    void LoadAntirollbar(const std::string& filename, int output);
+    void LoadWheel(const std::string& filename, int axle, int side, int output);
+    void LoadBrake(const std::string& filename, int axle, int side, int output);
 
   private:
     int m_num_axles;                           // number of axles for this vehicle

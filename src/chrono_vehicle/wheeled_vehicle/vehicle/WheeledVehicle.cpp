@@ -76,7 +76,7 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadChassis(const std::string& filename) {
+void WheeledVehicle::LoadChassis(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -101,12 +101,17 @@ void WheeledVehicle::LoadChassis(const std::string& filename) {
         m_chassis = std::make_shared<RigidChassis>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_chassis->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
+void WheeledVehicle::LoadSteering(const std::string& filename, int which, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -133,12 +138,17 @@ void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
         m_steerings[which] = std::make_shared<RackPinion>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_steerings[which]->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadDriveline(const std::string& filename) {
+void WheeledVehicle::LoadDriveline(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -167,12 +177,17 @@ void WheeledVehicle::LoadDriveline(const std::string& filename) {
         m_driveline = std::make_shared<SimpleDriveline>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_driveline->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
+void WheeledVehicle::LoadSuspension(const std::string& filename, int axle, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -209,12 +224,17 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
         m_suspensions[axle] = std::make_shared<ThreeLinkIRS>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_suspensions[axle]->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadAntirollbar(const std::string& filename) {
+void WheeledVehicle::LoadAntirollbar(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -238,12 +258,17 @@ void WheeledVehicle::LoadAntirollbar(const std::string& filename) {
         m_antirollbars.push_back(std::make_shared<AntirollBarRSD>(d));
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_antirollbars.back()->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side) {
+void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -268,12 +293,17 @@ void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side) 
         m_wheels[2 * axle + side] = std::make_shared<Wheel>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_wheels[2 * axle + side]->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) {
+void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -296,6 +326,11 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
     // Create the brake using the appropriate template.
     if (subtype.compare("BrakeSimple") == 0) {
         m_brakes[2 * axle + side] = std::make_shared<BrakeSimple>(d);
+    }
+
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_brakes[2 * axle + side]->SetOutput(output == +1);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -345,6 +380,7 @@ void WheeledVehicle::Create(const std::string& filename) {
     // Validations of the JSON file
     // ----------------------------
 
+    assert(d.HasMember("Chassis"));
     assert(d.HasMember("Steering Subsystems"));
     assert(d.HasMember("Driveline"));
     assert(d.HasMember("Axles"));
@@ -371,11 +407,14 @@ void WheeledVehicle::Create(const std::string& filename) {
     // -------------------------------------------
     // Create the chassis system
     // -------------------------------------------
-    assert(d.HasMember("Chassis"));
 
     {
         std::string file_name = d["Chassis"]["Input File"].GetString();
-        LoadChassis(vehicle::GetDataFile(file_name));
+        int output = 0;
+        if (d["Chassis"].HasMember("Output")) {
+            output = d["Chassis"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadChassis(vehicle::GetDataFile(file_name), output);
     }
 
     // ------------------------------
@@ -384,7 +423,11 @@ void WheeledVehicle::Create(const std::string& filename) {
 
     for (int i = 0; i < m_num_strs; i++) {
         std::string file_name = d["Steering Subsystems"][i]["Input File"].GetString();
-        LoadSteering(vehicle::GetDataFile(file_name), i);
+        int output = 0;
+        if (d["Steering Subsystems"][i].HasMember("Output")) {
+            output = d["Steering Subsystems"][i]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadSteering(vehicle::GetDataFile(file_name), i, output);
         m_strLocations[i] = loadVector(d["Steering Subsystems"][i]["Location"]);
         m_strRotations[i] = loadQuaternion(d["Steering Subsystems"][i]["Orientation"]);
     }
@@ -395,7 +438,11 @@ void WheeledVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        LoadDriveline(vehicle::GetDataFile(file_name));
+        int output = 0;
+        if (d["Driveline"].HasMember("Output")) {
+            output = d["Driveline"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadDriveline(vehicle::GetDataFile(file_name), output);
         SizeType num_driven_susp = d["Driveline"]["Suspension Indexes"].Size();
         m_driven_susp.resize(num_driven_susp);
         for (SizeType i = 0; i < num_driven_susp; i++) {
@@ -412,7 +459,11 @@ void WheeledVehicle::Create(const std::string& filename) {
     for (int i = 0; i < m_num_axles; i++) {
         // Suspension
         std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
-        LoadSuspension(vehicle::GetDataFile(file_name), i);
+        int output = 0;
+        if (d["Axles"][i].HasMember("Output")) {
+            output = d["Axles"][i]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadSuspension(vehicle::GetDataFile(file_name), i, output);
         m_suspLocations[i] = loadVector(d["Axles"][i]["Suspension Location"]);
 
         // Index of steering subsystem (if applicable)
@@ -425,23 +476,23 @@ void WheeledVehicle::Create(const std::string& filename) {
             assert(m_suspensions[i]->IsIndependent());
             assert(d["Axles"][i].HasMember("Antirollbar Location"));
             file_name = d["Axles"][i]["Antirollbar Input File"].GetString();
-            LoadAntirollbar(vehicle::GetDataFile(file_name));
+            LoadAntirollbar(vehicle::GetDataFile(file_name), output);
             m_arbLocations.push_back(loadVector(d["Axles"][i]["Antirollbar Location"]));
             m_arbSuspension.push_back(i);
         }
 
         // Left and right wheels
         file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-        LoadWheel(vehicle::GetDataFile(file_name), i, 0);
+        LoadWheel(vehicle::GetDataFile(file_name), i, VehicleSide::LEFT, output);
         file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-        LoadWheel(vehicle::GetDataFile(file_name), i, 1);
+        LoadWheel(vehicle::GetDataFile(file_name), i, VehicleSide::RIGHT, output);
 
         // Left and right brakes
         file_name = d["Axles"][i]["Left Brake Input File"].GetString();
-        LoadBrake(vehicle::GetDataFile(file_name), i, 0);
+        LoadBrake(vehicle::GetDataFile(file_name), i, VehicleSide::LEFT, output);
 
         file_name = d["Axles"][i]["Right Brake Input File"].GetString();
-        LoadBrake(vehicle::GetDataFile(file_name), i, 1);
+        LoadBrake(vehicle::GetDataFile(file_name), i, VehicleSide::RIGHT, output);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";

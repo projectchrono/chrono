@@ -58,7 +58,7 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackedVehicle::LoadChassis(const std::string& filename) {
+void TrackedVehicle::LoadChassis(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -83,12 +83,17 @@ void TrackedVehicle::LoadChassis(const std::string& filename) {
         m_chassis = std::make_shared<RigidChassis>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_chassis->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackedVehicle::LoadTrackAssembly(const std::string& filename, VehicleSide side) {
+void TrackedVehicle::LoadTrackAssembly(const std::string& filename, VehicleSide side, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -115,12 +120,17 @@ void TrackedVehicle::LoadTrackAssembly(const std::string& filename, VehicleSide 
         m_tracks[side] = std::make_shared<TrackAssemblyDoublePin>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_tracks[side]->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackedVehicle::LoadDriveline(const std::string& filename) {
+void TrackedVehicle::LoadDriveline(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -143,6 +153,11 @@ void TrackedVehicle::LoadDriveline(const std::string& filename) {
     // Create the driveline using the appropriate template.
     if (subtype.compare("SimpleTrackDriveline") == 0) {
         m_driveline = std::make_shared<SimpleTrackDriveline>(d);
+    }
+
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_driveline->SetOutput(output == +1);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -195,7 +210,11 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Chassis"]["Input File"].GetString();
-        LoadChassis(vehicle::GetDataFile(file_name));
+        int output = 0;
+        if (d["Chassis"].HasMember("Output")) {
+            output = d["Chassis"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadChassis(vehicle::GetDataFile(file_name), output);
     }
 
     // ------------------------------------
@@ -209,12 +228,20 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Track Assemblies"][0u]["Input File"].GetString();
-        LoadTrackAssembly(vehicle::GetDataFile(file_name), LEFT);
+        int output = 0;
+        if (d["rack Assemblies"][0u].HasMember("Output")) {
+            output = d["rack Assemblies"][0u]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadTrackAssembly(vehicle::GetDataFile(file_name), VehicleSide::LEFT, output);
         m_track_offset[LEFT] = d["Track Assemblies"][0u]["Offset"].GetDouble();
     }
     {
         std::string file_name = d["Track Assemblies"][1u]["Input File"].GetString();
-        LoadTrackAssembly(vehicle::GetDataFile(file_name), RIGHT);
+        int output = 0;
+        if (d["rack Assemblies"][1u].HasMember("Output")) {
+            output = d["rack Assemblies"][1u]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadTrackAssembly(vehicle::GetDataFile(file_name), VehicleSide::RIGHT, output);
         m_track_offset[RIGHT] = d["Track Assemblies"][1u]["Offset"].GetDouble();
     }
 
@@ -222,9 +249,15 @@ void TrackedVehicle::Create(const std::string& filename) {
     // Create the driveline
     // --------------------
 
+    assert(d.HasMember("Driveline"));
+
     {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        LoadDriveline(vehicle::GetDataFile(file_name));
+        int output = 0;
+        if (d["Driveline"].HasMember("Output")) {
+            output = d["Driveline"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadDriveline(vehicle::GetDataFile(file_name), output);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
