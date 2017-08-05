@@ -158,6 +158,18 @@ void ChTrackAssembly::Synchronize(double time, double braking, const TrackShoeFo
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::SetOutput(bool state) {
+    GetSprocket()->SetOutput(state);
+    m_idler->SetOutput(state);
+    for (auto suspension : m_suspensions)
+        suspension->SetOutput(state);
+    for (auto roller : m_rollers)
+        roller->SetOutput(state);
+    GetTrackShoe(0)->SetOutput(state);
+}
+
+// -----------------------------------------------------------------------------
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::LogConstraintViolations() {

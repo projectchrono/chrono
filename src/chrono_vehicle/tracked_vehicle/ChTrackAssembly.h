@@ -169,6 +169,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
                      const TrackShoeForces& shoe_forces  ///< [in] vector of tire force structures
                      );
 
+    /// Enable/disable output for this subsystem.
+    /// This function overrides the output setting for all components of this track assembly.
+    virtual void SetOutput(bool state) override;
+
     /// Log current constraint violations.
     void LogConstraintViolations();
 

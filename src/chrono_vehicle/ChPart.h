@@ -110,7 +110,7 @@ class CH_VEHICLE_API ChPart {
     float GetGt() const { return m_gt; }
 
     /// Enable/disable output for this subsystem.
-    void SetOutput(bool state) { m_output = state; }
+    virtual void SetOutput(bool state) { m_output = state; }
 
     /// Export this subsystem's component list to the specified JSON object.
     /// Derived classes should override this function and first invoke the base class implementation,

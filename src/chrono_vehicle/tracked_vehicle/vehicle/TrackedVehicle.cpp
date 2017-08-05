@@ -229,8 +229,8 @@ void TrackedVehicle::Create(const std::string& filename) {
     {
         std::string file_name = d["Track Assemblies"][0u]["Input File"].GetString();
         int output = 0;
-        if (d["rack Assemblies"][0u].HasMember("Output")) {
-            output = d["rack Assemblies"][0u]["Output"].GetBool() ? +1 : -1;
+        if (d["Track Assemblies"][0u].HasMember("Output")) {
+            output = d["Track Assemblies"][0u]["Output"].GetBool() ? +1 : -1;
         }
         LoadTrackAssembly(vehicle::GetDataFile(file_name), VehicleSide::LEFT, output);
         m_track_offset[LEFT] = d["Track Assemblies"][0u]["Offset"].GetDouble();
@@ -238,8 +238,8 @@ void TrackedVehicle::Create(const std::string& filename) {
     {
         std::string file_name = d["Track Assemblies"][1u]["Input File"].GetString();
         int output = 0;
-        if (d["rack Assemblies"][1u].HasMember("Output")) {
-            output = d["rack Assemblies"][1u]["Output"].GetBool() ? +1 : -1;
+        if (d["Track Assemblies"][1u].HasMember("Output")) {
+            output = d["Track Assemblies"][1u]["Output"].GetBool() ? +1 : -1;
         }
         LoadTrackAssembly(vehicle::GetDataFile(file_name), VehicleSide::RIGHT, output);
         m_track_offset[RIGHT] = d["Track Assemblies"][1u]["Offset"].GetDouble();
