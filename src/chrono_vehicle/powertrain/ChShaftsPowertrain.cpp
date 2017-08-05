@@ -28,8 +28,8 @@ namespace vehicle {
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsPowertrain::ChShaftsPowertrain(const ChVector<>& dir_motor_block)
-    : ChPowertrain(), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {
+ChShaftsPowertrain::ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block)
+    : ChPowertrain(name), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {
 }
 
 // -----------------------------------------------------------------------------

@@ -36,9 +36,12 @@ namespace vehicle {
 /// and no transmission box.
 class CH_VEHICLE_API ChSimplePowertrain : public ChPowertrain {
   public:
-    ChSimplePowertrain();
+    ChSimplePowertrain(const std::string& name);
 
     virtual ~ChSimplePowertrain() {}
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "SimplePowertrain"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motorSpeed; }

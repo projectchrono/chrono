@@ -26,7 +26,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSimplePowertrain::ChSimplePowertrain() : ChPowertrain(), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {
+ChSimplePowertrain::ChSimplePowertrain(const std::string& name) : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {
 }
 
 // -----------------------------------------------------------------------------

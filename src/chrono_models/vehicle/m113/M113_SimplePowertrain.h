@@ -37,7 +37,7 @@ namespace m113 {
 /// Simple powertrain model for the M113 vehicle (purely kinematic).
 class CH_MODELS_API M113_SimplePowertrain : public ChSimplePowertrain {
   public:
-    M113_SimplePowertrain();
+    M113_SimplePowertrain(const std::string& name);
 
     ~M113_SimplePowertrain() {}
 

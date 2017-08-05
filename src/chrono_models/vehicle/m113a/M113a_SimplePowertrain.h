@@ -33,7 +33,7 @@ namespace m113 {
 
 class CH_MODELS_API M113a_SimplePowertrain : public ChPowertrain {
   public:
-    M113a_SimplePowertrain();
+    M113a_SimplePowertrain(const std::string& name);
 
     ~M113a_SimplePowertrain() {}
 
