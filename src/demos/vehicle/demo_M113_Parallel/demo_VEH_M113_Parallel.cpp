@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) & (~TrackCollide::SPROCKET_RIGHT));
 
     // Create the powertrain system
-    M113_SimplePowertrain powertrain;
+    M113_SimplePowertrain powertrain("Powertrain");
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the driver system
