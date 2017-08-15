@@ -58,11 +58,18 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world,
 #ifdef DistrDebug
     this->debug_stream.open(debug_file);
 #endif
+    data_manager->system_timer.AddTimer("B1");
+    data_manager->system_timer.AddTimer("B2");
+    data_manager->system_timer.AddTimer("B3");
+    data_manager->system_timer.AddTimer("B4");
+    data_manager->system_timer.AddTimer("B5");
+    data_manager->system_timer.AddTimer("A");
 
     data_manager->system_timer.AddTimer("Send");
     data_manager->system_timer.AddTimer("Recv");
     data_manager->system_timer.AddTimer("FirstEmpty");
     data_manager->system_timer.AddTimer("UnpackBody");
+    data_manager->system_timer.AddTimer("Exchange");
 
     collision_system = std::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
 }
@@ -81,10 +88,15 @@ bool ChSystemDistributed::Integrate_Y() {
 
     bool ret = ChSystemParallelSMC::Integrate_Y();
     if (num_ranks != 1) {
+        data_manager->system_timer.start("Exchange");
         comm->Exchange();
+        data_manager->system_timer.stop("Exchange");
+
         //		comm->CheckExchange(); // TODO: Not every timestep
     }
-
+#ifdef DistrProfile
+    PrintEfficiency();
+#endif
     return ret;
 }
 
@@ -104,6 +116,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     newbody->SetGid(num_bodies_global);
     num_bodies_global++;
 
+    // Makes space for shapes TODO Does this work for mid-simulation add?
     ddm->body_shape_start.push_back(0);
     ddm->body_shape_count.push_back(0);
 
@@ -126,6 +139,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
         if ((min.x() <= subhi.x() && sublo.x() <= max.x()) && (min.y() <= subhi.y() && sublo.y() <= max.y()) &&
             (min.z() <= subhi.z() && sublo.z() <= max.z())) {
             status = distributed::GLOBAL;
+            // TODO cut off the shapes and parts of shapes that don't affect this sub-domain
         }
     }
 
@@ -307,10 +321,11 @@ void ChSystemDistributed::PrintBodyStatus() {
     }
 }
 
+#endif
 void ChSystemDistributed::PrintShapeData() {
     std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
     int i = 0;
-    printf("Shape data: Rank %d:\n", my_rank);
+    // printf("Shape data: Rank %d:\n", my_rank);
     for (; bl_itr != bodylist.end(); bl_itr++, i++) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
             int body_start = ddm->body_shape_start[i];
@@ -322,11 +337,11 @@ void ChSystemDistributed::PrintShapeData() {
                 switch (data_manager->shape_data.typ_rigid[shape_index]) {
                     case chrono::collision::SPHERE:
                         printf(
-                            "Sphere: r %.3f, ",
+                            "%d | Sphere: r %.3f, ", my_rank,
                             data_manager->shape_data.sphere_rigid[data_manager->shape_data.start_rigid[shape_index]]);
                         break;
                     case chrono::collision::BOX:
-                        printf("Box: ");  // TODO
+                        printf("%d | Box: ", my_rank);  // TODO
                         break;
                     default:
                         printf("Undefined Shape, ");
@@ -336,9 +351,36 @@ void ChSystemDistributed::PrintShapeData() {
         }
     }
 
-    printf("NumShapes: %d NumBodies: %d\n", ddm->data_manager->shape_data.id_rigid.size(), i);
-    printf("num_rigid_shapes: %d, num_rigid_bodies: %d\n", ddm->data_manager->num_rigid_shapes,
+    printf("%d | NumShapes: %d NumBodies: %d\n", my_rank, ddm->data_manager->shape_data.id_rigid.size(), i);
+    printf("%d | num_rigid_shapes: %d, num_rigid_bodies: %d\n", my_rank, ddm->data_manager->num_rigid_shapes,
            ddm->data_manager->num_rigid_bodies);
+}
+#ifdef DistrProfile
+void ChSystemDistributed::PrintEfficiency() {
+    double used = 0.0;
+    for (int i = 0; i < bodylist.size(); i++) {
+        if (ddm->comm_status[i] != distributed::EMPTY) {
+            used += 1.0;
+        }
+    }
+    used = used / bodylist.size();
+
+    double shapes_used = 0.0;
+    for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {
+        if (data_manager->shape_data.id_rigid[i] != UINT_MAX) {
+            shapes_used += 1.0;
+        }
+    }
+
+    shapes_used = shapes_used / data_manager->shape_data.id_rigid.size();
+
+    FILE* fp;
+    std::string filename = std::to_string(my_rank) + "Efficency.txt";
+    fp = fopen(filename.c_str(), "a");
+    if (fp != NULL) {
+        fprintf(fp, "Bodies: %.2f Shapes: %.2f\n", used, shapes_used);
+        fclose(fp);
+    }
 }
 #endif
 
@@ -349,8 +391,8 @@ void ChSystemDistributed::WriteCSV(std::string filedir, std::string filename) {
     std::ofstream file;
     file.open(file_name);
     std::stringstream ss_particles;
-    ss_particles << "x,y,z,vx,vy,vz,U,r\n";
-    //			",adhesion,con_ad,gn,gt,kn,kt,poisson,restit,sliding_fric,static_fric,young,mass\n";
+    ss_particles << "g,x,y,z,vx,vy,vz,U,r,adhesion,con_ad,gn,gt,kn,kt,poisson,restit,sliding_fric,static_fric,young,"
+                    "mass,rw,rx,ry,rz,wx,wy,wz\n";
 
     std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
     int i = 0;
@@ -358,28 +400,29 @@ void ChSystemDistributed::WriteCSV(std::string filedir, std::string filename) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
             ChVector<> pos = (*bl_itr)->GetPos();
             ChVector<> vel = (*bl_itr)->GetPos_dt();
-            double r = 0.005;
-            //			float adhesion = (*bl_itr)->GetMaterialSurfaceSMC()->adhesionMultDMT;
-            //			float const_ad = (*bl_itr)->GetMaterialSurfaceSMC()->constant_adhesion;
-            //			float gn = (*bl_itr)->GetMaterialSurfaceSMC()->gn;
-            //			float gt = (*bl_itr)->GetMaterialSurfaceSMC()->gt;
-            //			float kn = (*bl_itr)->GetMaterialSurfaceSMC()->kn;
-            //			float kt = (*bl_itr)->GetMaterialSurfaceSMC()->kt;
-            //			float poisson = (*bl_itr)->GetMaterialSurfaceSMC()->poisson_ratio;
-            //			float restit = (*bl_itr)->GetMaterialSurfaceSMC()->restitution;
-            //			float sliding_fric = (*bl_itr)->GetMaterialSurfaceSMC()->sliding_friction;
-            //			float static_fric = (*bl_itr)->GetMaterialSurfaceSMC()->static_friction;
-            //			float young = (*bl_itr)->GetMaterialSurfaceSMC()->young_modulus;
-            //			double mass = (*bl_itr)->GetMass();
+            ChQuaternion<> rot = (*bl_itr)->GetRot();
+            ChVector<> omega = (*bl_itr)->GetWvel_par();
 
-            ss_particles << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x() << "," << vel.y() << ","
-                         << vel.z() << "," << vel.Length() << "," << r << std::endl;
-            //					<< "," << adhesion << "," << const_ad  << "," << gn << "," << gt << "," << kn << "," <<
-            // kt
-            //<<
-            //"," << poisson << ","
-            //					<< restit << "," << sliding_fric << "," << static_fric << "," << young << "," << mass <<
-            // std::endl;
+            double r = 0.005;  // TODO
+            float adhesion = (*bl_itr)->GetMaterialSurfaceSMC()->adhesionMultDMT;
+            float const_ad = (*bl_itr)->GetMaterialSurfaceSMC()->constant_adhesion;
+            float gn = (*bl_itr)->GetMaterialSurfaceSMC()->gn;
+            float gt = (*bl_itr)->GetMaterialSurfaceSMC()->gt;
+            float kn = (*bl_itr)->GetMaterialSurfaceSMC()->kn;
+            float kt = (*bl_itr)->GetMaterialSurfaceSMC()->kt;
+            float poisson = (*bl_itr)->GetMaterialSurfaceSMC()->poisson_ratio;
+            float restit = (*bl_itr)->GetMaterialSurfaceSMC()->restitution;
+            float sliding_fric = (*bl_itr)->GetMaterialSurfaceSMC()->sliding_friction;
+            float static_fric = (*bl_itr)->GetMaterialSurfaceSMC()->static_friction;
+            float young = (*bl_itr)->GetMaterialSurfaceSMC()->young_modulus;
+            double mass = (*bl_itr)->GetMass();
+
+            ss_particles << (*bl_itr)->GetGid() << "," << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x()
+                         << "," << vel.y() << "," << vel.z() << "," << vel.Length() << "," << r << "," << adhesion
+                         << "," << const_ad << "," << gn << "," << gt << "," << kn << "," << kt << "," << poisson << ","
+                         << restit << "," << sliding_fric << "," << static_fric << "," << young << "," << mass << ","
+                         << rot[0] << "," << rot[1] << "," << rot[2] << "," << rot[3] << "," << omega.x() << ","
+                         << omega.y() << "," << omega.z() << std::endl;
         }
     }
 

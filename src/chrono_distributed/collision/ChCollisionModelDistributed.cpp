@@ -51,6 +51,9 @@ bool ChCollisionModelDistributed::AddBox(double hx,
         aabb_valid = true;
     }
 
+    real3 box_aabb_min(v[0][0], v[0][1], v[0][2]);
+    real3 box_aabb_max(v[0][0], v[0][1], v[0][2]);
+
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
             if (v[i][j] < aabb_min[j]) {
@@ -58,8 +61,17 @@ bool ChCollisionModelDistributed::AddBox(double hx,
             } else if (v[i][j] > aabb_max[j]) {
                 aabb_max[j] = v[i][j];
             }
+
+            if (v[i][j] < box_aabb_min[j]) {
+                box_aabb_min[j] = v[i][j];
+            } else if (v[i][j] > box_aabb_max[j]) {
+                box_aabb_max[j] = v[i][j];
+            }
         }
     }
+
+    shape_aabb_min.push_back(box_aabb_min);
+    shape_aabb_max.push_back(box_aabb_max);
 
     return this->ChCollisionModelParallel::AddBox(hx, hy, hz, pos, rot);
 }
@@ -84,6 +96,10 @@ bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos
             aabb_max[i] = max[i];
         }
     }
+
+    shape_aabb_max.push_back(real3(max.x(), max.y(), max.z()));
+    shape_aabb_min.push_back(real3(min.x(), min.y(), min.z()));
+
     return this->ChCollisionModelParallel::AddSphere(radius, pos);
 }
 

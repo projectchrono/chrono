@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
         if (i % out_steps == 0) {
             OutputData(&sys, out_frame, time);
             out_frame++;
-            sys.PrintBodyStatus();
+            // sys.PrintBodyStatus();
         }
         sys.DoStepDynamics(time_step);
         time += time_step;

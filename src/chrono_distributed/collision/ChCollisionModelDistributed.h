@@ -46,6 +46,10 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     /// Only valid at beginning of simulation
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const override;
 
+    // TODO getters
+    std::vector<real3> shape_aabb_max;
+    std::vector<real3> shape_aabb_min;
+
   protected:
     /// Upper and lower vertices of the AABB
     ChVector<double> aabb_max;

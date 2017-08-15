@@ -64,8 +64,7 @@ class CH_DISTR_API ChDistributedDataManager {
     // body's shapes, 2) Find individual slots in data_manager->shape_data to index to from body_shapes
 
     // TODO make linked list like allocator
-    std::vector<bool> my_free_shapes;  ///< Indicates the free spaces in this->body_shapes
-    struct LocalShapeNode* local_free_shapes;
+    struct LocalShapeNode* local_free_shapes;  ///< Indicates the free spaces in this->body_shapes
 
     std::vector<bool> dm_free_shapes;  ///< Indicates that the space in the data_manager->shape_data is available
 
@@ -74,5 +73,8 @@ class CH_DISTR_API ChDistributedDataManager {
     /// Returns the local index of a body, given its global id
     /// Returns -1 if the body is not found on this rank
     int GetLocalIndex(unsigned int gid);
+
+    /// Clean free list that tracks space for shapes // TODO belongs here?
+    void DefragmentFreeList();
 };
 } /* namespace chrono */

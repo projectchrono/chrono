@@ -31,6 +31,7 @@
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/core/ChMatrix33.h"
 
 using namespace chrono;
 using namespace collision;
@@ -183,11 +184,9 @@ void ChCommDistributed::ProcessTakes(int num_recv, uint* buf) {
 
 // TODO might be able to do in parallel if check the number of shapes per body in a first pass
 void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
-    GetLog() << "ProcessShapes rank " << my_sys->GetMyRank() << "\n";
     if (buf->gid == UINT_MAX) {
         return;
     }
-    GetLog() << "Actually ProcessShapes rank " << my_sys->GetMyRank() << "\n";
     int n = 0;
     uint gid;
 
@@ -201,24 +200,37 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
         std::shared_ptr<ChBody> body = (*ddm->data_manager->body_list)[ddm->GetLocalIndex(gid)];
 
         body->GetCollisionModel()->ClearModel();
-        // Single model
-        ChVector<double> A((buf + n)->A[0], (buf + n)->A[1], (buf + n)->A[2]);
+
+        double* rot;
+        double* data;
+
         // Each iteration handles a single shape for the body
         while ((buf + n)->gid == gid) {
+            ChVector<double> A((buf + n)->A[0], (buf + n)->A[1], (buf + n)->A[2]);
+            rot = (buf + n)->R;
+            data = (buf + n)->data;
+
             switch ((buf + n)->type) {
                 case chrono::collision::SPHERE:
 #ifdef DistrDebug
                     GetLog() << "Unpacking Sphere rank " << my_sys->GetMyRank() << "\n";
 #endif
-                    body->GetCollisionModel()->AddSphere((buf + n)->data[0], A);
+                    body->GetCollisionModel()->AddSphere(data[0], A);
                     break;
-                    /*    case chrono::collision::BOX:
-                            GetLog() << "Unpacking Box\n";
-                            body->GetCollisionModel->AddBox((buf + n)->data[0], (buf + n)->data[1], (buf + n)->data[2],
-                                          A);  // TODO does anything with pos ? // TODO need to add rotation! also
-                       how?*/
+
+                case chrono::collision::BOX:
+                    GetLog() << "Unpacking Box\n";
+                    body->GetCollisionModel()->AddBox(data[0], data[1], data[2], A,
+                                                      ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
+
+                /*                case chrono::collision::TRIANGLE:
+                                    body->GetCollisionModel()->AddTriangle(A, B, C, pos, rot);
+                                    break;
+                */
                 default:
+                    GetLog() << "Error gid " << gid << " rank " << my_sys->GetMyRank() << " type " << (buf + n)->type
+                             << "\n";
                     my_sys->ErrorAbort("Unpacking undefined collision shape\n");
             }
             n++;
@@ -583,11 +595,10 @@ void ChCommDistributed::Exchange() {
             for (auto itr_up = exchanges_up.begin(); itr_up != exchanges_up.end(); itr_up++) {
                 num_shapes_up += PackShapes(shapes_up + num_shapes_up, *itr_up);
             }
+
             if (num_shapes_up == 0) {
                 shapes_up->gid = UINT_MAX;
                 num_shapes_up = 1;
-            } else {
-                GetLog() << "Actually sending shapes rank " << my_sys->GetMyRank() << "\n";
             }
         }  // End of pack shapes up section
 
@@ -600,8 +611,6 @@ void ChCommDistributed::Exchange() {
             if (num_shapes_down == 0) {
                 shapes_down->gid = UINT_MAX;
                 num_shapes_down = 1;
-            } else {
-                GetLog() << "Actually sending shapes rank " << my_sys->GetMyRank() << "\n";
             }
         }  // End of pack shapes down section
     }      // End of parallel sections
@@ -672,9 +681,10 @@ void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     buf->vel[2] = data_manager->host_data.v[index * 6 + 2];
 
     // Angular Velocity
-    buf->vel[3] = data_manager->host_data.v[index * 6 + 3];
-    buf->vel[4] = data_manager->host_data.v[index * 6 + 4];
-    buf->vel[5] = data_manager->host_data.v[index * 6 + 5];
+    ChVector<> omega((*data_manager->body_list)[index]->GetWvel_par());
+    buf->vel[3] = omega.x();
+    buf->vel[4] = omega.y();
+    buf->vel[5] = omega.z();
 
     // Mass
     buf->mass = data_manager->host_data.mass_rigid[index];
@@ -786,9 +796,10 @@ void ChCommDistributed::PackUpdate(BodyUpdate* buf, int index, int update_type) 
     buf->vel[2] = data_manager->host_data.v[index * 6 + 2];
 
     // Angular Velocity
-    buf->vel[3] = data_manager->host_data.v[index * 6 + 3];
-    buf->vel[4] = data_manager->host_data.v[index * 6 + 4];
-    buf->vel[5] = data_manager->host_data.v[index * 6 + 5];
+    ChVector<> omega((*data_manager->body_list)[index]->GetWvel_par());
+    buf->vel[3] = omega.x();
+    buf->vel[4] = omega.y();
+    buf->vel[5] = omega.z();
 }
 
 void ChCommDistributed::UnpackUpdate(BodyUpdate* buf, std::shared_ptr<ChBody> body) {
@@ -850,6 +861,6 @@ int ChCommDistributed::PackShapes(Shape* buf, int index) {
     return shape_count;
 }
 
-void ChCommDistributed::PackUpdateTake(uint* buf, int index) {
+inline void ChCommDistributed::PackUpdateTake(uint* buf, int index) {
     *buf = ddm->global_id[index];
 }

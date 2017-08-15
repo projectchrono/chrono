@@ -31,3 +31,18 @@ int ChDistributedDataManager::GetLocalIndex(unsigned int gid) {
     }
     return -1;
 }
+
+void ChDistributedDataManager::DefragmentFreeList() {
+    struct LocalShapeNode* curr = local_free_shapes;
+    if (curr == NULL)
+        return;
+
+    while (curr->next != NULL) {
+        if (curr->free && curr->next->free) {
+            struct LocalShapeNode* new_next = curr->next->next;
+            curr->size += curr->next->size;
+            delete curr->next;
+            curr->next = new_next;
+        }
+    }
+}

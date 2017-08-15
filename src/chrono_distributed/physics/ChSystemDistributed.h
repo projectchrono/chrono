@@ -72,7 +72,10 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 
 #ifdef DistrDebug
     void PrintBodyStatus();
+#endif
     void PrintShapeData();
+#ifdef DistrProfile
+    void PrintEfficiency();
 #endif
     /// Writes out the positions and velocities of all bodies in the system
     /// to a csv format file in in filedir. Prepends the MPI rank to

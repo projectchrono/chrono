@@ -27,30 +27,39 @@ int num_threads;
 double tilt_angle = 0;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
-int count_X = 0;  // 10  // 20
-int count_Y = 0;  // 10  // 4
+int count_X = 10;  // 10  // 20
+int count_Y = 10;  // 10  // 4
 
 // Material properties (same on bin and balls)
 float Y = 2e6f;
 float mu = 0.4f;
 float cr = 0.4f;
 
-const char* out_folder = "../BALLS_DEM/POVRAY";
-
 void print(std::string msg) {
     if (my_rank == MASTER) {
         std::cout << msg;
     }
 }
+
 void Monitor(chrono::ChSystemParallel* system) {
     double TIME = system->GetChTime();
     double STEP = system->GetTimerStep();
     double BROD = system->GetTimerCollisionBroad();
+
+    double B1 = system->data_manager->system_timer.GetTime("B1");
+    double B2 = system->data_manager->system_timer.GetTime("B2");
+    double B3 = system->data_manager->system_timer.GetTime("B3");
+    double B4 = system->data_manager->system_timer.GetTime("B4");
+    double B5 = system->data_manager->system_timer.GetTime("B5");
+
+    double A = system->data_manager->system_timer.GetTime("A");
+
     double NARR = system->GetTimerCollisionNarrow();
     double SOLVER = system->GetTimerSolver();
     double UPDT = system->GetTimerUpdate();
     double SEND = system->data_manager->system_timer.GetTime("Send");
     double RECV = system->data_manager->system_timer.GetTime("Recv");
+    double EXCH = system->data_manager->system_timer.GetTime("Exchange");
     int BODS = system->GetNbodies();
     int CNTC = system->GetNcontacts();
     double RESID = 0;
@@ -61,8 +70,11 @@ void Monitor(chrono::ChSystemParallel* system) {
             std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetTotalIterations();
     }
 
-    printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f | %7.4f | %7.4f\n", TIME, STEP,
-           BROD, NARR, SOLVER, UPDT, BODS, CNTC, REQ_ITS, RESID, SEND, RECV);
+    printf(
+        "%d|   %8.5f | %7.4f | E%7.4f | S%7.4f | R%7.4f | B%7.4f | B1%7.4f | B2%7.4f | B3%7.4f | B4%7.4f | B5%7.4f | "
+        "A%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n",
+        my_rank, TIME, STEP, EXCH, SEND, RECV, BROD, B1, B2, B3, B4, B5, A, NARR, SOLVER, UPDT, BODS, CNTC, REQ_ITS,
+        RESID);
 }
 
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
@@ -101,7 +113,7 @@ void AddContainer(ChSystemDistributed* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(20, 20, 20);  // 5,5,10
+    ChVector<> hdim(4, 4, 15);  // 5,5,10
     double hthick = 0.1;
 
     bin->GetCollisionModel()->ClearModel();
@@ -137,10 +149,10 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
     // TODO generate randomly. Need to seed though.
-    for (double z = 2; z < 3; z++) {
+    for (double z = 10; z < 15; z += 0.35) {
         for (int ix = -count_X; ix <= count_X; ix++) {
             for (int iy = -count_Y; iy <= count_Y; iy++) {
-                ChVector<> pos(0.4 * ix, 0.4 * iy, z);
+                ChVector<> pos(0.35 * ix, 0.35 * iy, z);  //.4*ix, .4*iy,z
 
                 auto ball =
                     std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
@@ -162,6 +174,38 @@ void AddFallingBalls(ChSystemDistributed* sys) {
             }
         }
     }
+}
+
+void AddBigBall(ChSystemDistributed* my_sys) {
+    double ball_radius = 1.0;
+    auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
+    ballMat->SetYoungModulus(Y);
+    ballMat->SetFriction(mu);
+    ballMat->SetRestitution(cr);
+    ballMat->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
+
+    double mass = 10;
+    ChVector<> inertia = (2.0 / 5.0) * mass * ball_radius * ball_radius * ChVector<>(1, 1, 1);
+
+    ChVector<> ball_pos(0, 0, 23);
+
+    auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    ball->SetMaterialSurface(ballMat);
+
+    ball->SetMass(mass);
+    ball->SetPos(ball_pos);
+    ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    ball->SetBodyFixed(false);
+    ball->SetCollide(true);
+
+    ball->GetCollisionModel()->ClearModel();
+    ChVector<> ball_hdim(2, 2, 2);
+
+    utils::AddSphereGeometry(ball.get(), ball_radius);
+
+    ball->GetCollisionModel()->BuildModel();
+
+    my_sys->AddBody(ball);
 }
 
 int main(int argc, char* argv[]) {
@@ -199,7 +243,7 @@ int main(int argc, char* argv[]) {
     my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
-    my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
+    my_sys.Set_G_acc(ChVector<double>(0.01, 0.01, -9.8));
 
     // Set solver parameters
     my_sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
@@ -211,8 +255,9 @@ int main(int argc, char* argv[]) {
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
-    ChVector<double> domlo(-21, -21, -1);
-    ChVector<double> domhi(21, 21, 25);
+    ChVector<double> domlo(-5, -5, -1);
+    ChVector<double> domhi(5, 5, 25);
+    my_sys.GetDomain()->SetSplitAxis(0);
     my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
     my_sys.GetDomain()->PrintDomain();
 
@@ -226,7 +271,7 @@ int main(int argc, char* argv[]) {
     double time = 0;
 
     int checkpoints[4];
-    checkpoints[0] = std::ceil(4 / time_step);
+    checkpoints[0] = std::ceil(2 / time_step);
     checkpoints[1] = std::ceil(8 / time_step);
     checkpoints[2] = std::ceil(12 / time_step);
     checkpoints[3] = std::ceil(16 / time_step);
@@ -236,18 +281,27 @@ int main(int argc, char* argv[]) {
         if (i % out_steps == 0) {
             OutputData(&my_sys, out_frame, time);
             out_frame++;
+            real3 min = my_sys.data_manager->measures.collision.rigid_min_bounding_point;
+            real3 max = my_sys.data_manager->measures.collision.rigid_max_bounding_point;
+            std::cout << "Min: " << min[0] << " " << min[1] << " " << min[2] << " Max: " << max[0] << " " << max[1]
+                      << " " << max[2] << "\n";
         }
 
+        // OutputData(&my_sys, i, time);
+        // my_sys.PrintShapeData();
+
         if (i == checkpoints[0]) {
-            std::cout << "Resetting gravity: (5, 0, -10)\n";
+            std::cout << "Resetting gravity: (-5, 0, -10)\n";
             my_sys.Set_G_acc(ChVector<>(-5, 0, -10));
+            //    AddFallingBalls(&my_sys);
         }
+
         if (i == checkpoints[1]) {
             std::cout << "Resetting gravity: (0, 5, -10)\n";
             my_sys.Set_G_acc(ChVector<>(0, 5, -10));
         }
         if (i == checkpoints[2]) {
-            std::cout << "Resetting gravity: (-5, 0, -10)\n";
+            std::cout << "Resetting gravity: (5, 0, -10)\n";
             my_sys.Set_G_acc(ChVector<>(5, 0, -10));
         }
 
