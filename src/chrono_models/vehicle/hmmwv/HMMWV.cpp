@@ -60,7 +60,8 @@ HMMWV::HMMWV(ChSystem* system)
       m_pacejkaParamFile(""),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
-      m_initOmega({0, 0, 0, 0}) {}
+      m_initOmega({0, 0, 0, 0}),
+      m_apply_drag(false) {}
 
 HMMWV::~HMMWV() {
     delete m_vehicle;
@@ -72,11 +73,25 @@ HMMWV::~HMMWV() {
 }
 
 // -----------------------------------------------------------------------------
+void HMMWV::SetAerodynamicDrag(double Cd, double area, double air_density) {
+    m_Cd = Cd;
+    m_area = area;
+    m_air_density = air_density;
+
+    m_apply_drag = true;
+}
+
+// -----------------------------------------------------------------------------
 void HMMWV::Initialize() {
     // Create and initialize the HMMWV vehicle
     m_vehicle = CreateVehicle();
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
+
+    // If specified, enable aerodynamic drag
+    if (m_apply_drag) {
+        m_vehicle->GetChassis()->SetAerodynamicDrag(m_Cd, m_area, m_air_density);
+    }
 
     // Create and initialize the powertrain system
     switch (m_powertrainType) {

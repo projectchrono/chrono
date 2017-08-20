@@ -68,6 +68,8 @@ void ChWheeledVehicle::Synchronize(double time,
         m_brakes[2 * i]->Synchronize(braking);
         m_brakes[2 * i + 1]->Synchronize(braking);
     }
+
+    m_chassis->Synchronize(time);
 }
 
 // -----------------------------------------------------------------------------
