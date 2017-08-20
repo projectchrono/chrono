@@ -34,7 +34,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_tire
 /// @{
 
-/// Fiala based tire model.
+/// Pacjeka 89 tire model.
 class CH_VEHICLE_API ChPac89Tire : public ChTire {
   public:
       ChPac89Tire(const std::string& name  ///< [in] name of this tire system
@@ -76,6 +76,9 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     /// Set the value of the integration step size for the underlying dynamics.
     void SetStepsize(double val) { m_stepsize = val; }
 
+    /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
+    void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
+
     /// Get the current value of the integration step size.
     double GetStepsize() const { return m_stepsize; }
 
@@ -91,6 +94,15 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     /// Get the tire longitudinal slip.
     virtual double GetLongitudinalSlip() const override { return m_states.cp_long_slip; }
 
+	/// Get the longitudinal slip used in Pac89 (expressed as a percentage).
+    double GetKappa() const { return m_kappa; }
+	
+    /// Get the slip angle used in Pac89 (expressed in degrees).
+    double GetAlpha() const { return m_alpha; }
+
+    /// Get the camber angle used in Pac89 (expressed in degrees).
+	double GetGamma() { return m_gamma; }
+	
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
     virtual double GetNormalStiffnessForce(double depth) const = 0;
@@ -100,6 +112,12 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
 
     /// Set the parameters in the Pac89 model.
     virtual void SetPac89Params() = 0;
+
+    double m_kappa;  ///< longitudinal slip (percentage)
+    double m_alpha;  ///< slip angle (degrees)
+    double m_gamma;  ///< camber angle (degrees)
+
+    double m_gamma_limit;  ///< limit camber angle (degrees)
 
     /// Pac89 tire model parameters
     double m_unloaded_radius;
