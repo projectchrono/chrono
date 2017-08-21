@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,6 +27,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Pitman-arm steering subsystem for the HMMWV vehicle.
 class CH_MODELS_API HMMWV_PitmanArm : public ChPitmanArm {
   public:
     HMMWV_PitmanArm(const std::string& name);
@@ -62,6 +66,8 @@ class CH_MODELS_API HMMWV_PitmanArm : public ChPitmanArm {
     static const ChVector<> m_pitmanArmInertiaMoments;
     static const ChVector<> m_pitmanArmInertiaProducts;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

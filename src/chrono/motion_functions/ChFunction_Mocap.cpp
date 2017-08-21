@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -77,7 +77,7 @@ void ChFunction_Mocap::Set_samples(int m_samples) {
     array_y_dtdt = new ChMatrixDynamic<>(1, samples);
 }
 
-// Compute all the y_dt basing on y, using the trapezioidal rule for numerical differentiation
+// Compute all the y_dt basing on y, using the trapezoidal rule for numerical differentiation
 void ChFunction_Mocap::Compute_array_dt(ChMatrix<>* array_A, ChMatrix<>* array_A_dt) {
     int i, ia, ib;
     double y_dt;
@@ -91,7 +91,7 @@ void ChFunction_Mocap::Compute_array_dt(ChMatrix<>* array_A, ChMatrix<>* array_A
         if (ib >= samples) {
             ib = i;
         };
-        // trapezioidal differentiation
+        // trapezoidal differentiation
         y_dt = ((array_A->GetElement(0, ib)) - (array_A->GetElement(0, ia))) / Get_timeslice();
 
         array_A_dt->SetElement(0, i, y_dt);

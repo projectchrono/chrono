@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -304,11 +304,11 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 WheeledVehicle::WheeledVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
-    : ChWheeledVehicle(contact_method) {
+    : ChWheeledVehicle("", contact_method) {
     Create(filename);
 }
 
-WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : ChWheeledVehicle(system) {
+WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : ChWheeledVehicle("", system) {
     Create(filename);
 }
 
@@ -332,6 +332,14 @@ void WheeledVehicle::Create(const std::string& filename) {
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
+
+    std::string name = d["Name"].GetString();
+    std::string type = d["Type"].GetString();
+    std::string subtype = d["Template"].GetString();
+    assert(type.compare("Vehicle") == 0);
+    assert(subtype.compare("WheeledVehicle") == 0);
+
+    SetName(name);
 
     // ----------------------------
     // Validations of the JSON file
@@ -454,9 +462,9 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     for (int i = 0; i < m_num_axles; i++) {
         if (m_suspSteering[i] >= 0)
             m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i],
-                                         m_steerings[m_suspSteering[i]]->GetSteeringLink());
+                                         m_steerings[m_suspSteering[i]]->GetSteeringLink(), m_suspSteering[i]);
         else
-            m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_chassis->GetBody());
+            m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_chassis->GetBody(), -1);
 
         m_wheels[2 * i]->Initialize(m_suspensions[i]->GetSpindle(LEFT));
         m_wheels[2 * i + 1]->Initialize(m_suspensions[i]->GetSpindle(RIGHT));

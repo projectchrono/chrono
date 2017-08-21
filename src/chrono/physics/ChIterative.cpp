@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include "chrono/physics/ChIterative.h"
 
@@ -16,7 +17,7 @@ namespace chrono {
 //: Transpose Free Quasi-Minimal Residual
 //
 //  Transpose free QMR. First solve Q_1 A Q_2 x = Q_1 b. Then,
-//  return z which is Q_2 x. Here Q1 and Q2 are precondtioners.
+//  return z which is Q_2 x. Here Q1 and Q2 are preconditioners.
 //  Suppose M is about equal to A and M = M_1 * M_2, then
 //  Q_1 = M_1^{-1} and Q_2 = M_2^{-1}
 //  <p>

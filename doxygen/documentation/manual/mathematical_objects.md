@@ -126,7 +126,7 @@ See @ref chrono::ChVectorDynamic for API details.
 	ma3.CopyFromMatrixT(ma1);	
 ~~~
 
-<\br>
+<br>
 Rely on C++ operator overloading to use the  + * -  *= += -=  operators to perform matrix algebra.
 
 <div class="ce-info">
@@ -197,7 +197,7 @@ or use the specific Add() Multiply() functions for highest computational speed.
 		GetLog() << "Matrices are equal within tol 0.002 \n";
 ~~~
 
-<\br>
+<br>
 
 The matrices can operate also on 3D vectors \f$ \mathbf{v}=\{v_x,v_y,v_z\} \f$, 
 that are defined with the ChVector<> class (the Vector is a shortcut for ChVector<double> ). Example:

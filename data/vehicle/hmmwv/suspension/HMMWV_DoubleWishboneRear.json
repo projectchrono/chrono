@@ -3,7 +3,7 @@
   "Type":                       "Suspension",
   "Template":                   "DoubleWishbone",
 
-  "Vehicle-Frame Inertia":      "false",
+  "Vehicle-Frame Inertia":      false,
 
   "Spindle" :
   {

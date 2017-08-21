@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -14,6 +14,7 @@
 //
 // Description: Class definitions for the AABB generator, Broadpahse
 // and Narrowphase
+//
 // =============================================================================
 
 #pragma once
@@ -29,6 +30,10 @@ namespace collision {
 
 class ConvexShape;
 
+/// @addtogroup parallel_collision
+/// @{
+
+/// Generator for Axis-Aligned Bounding Boxes.
 class CH_PARALLEL_API ChCAABBGenerator {
   public:
     ChCAABBGenerator();
@@ -36,6 +41,7 @@ class CH_PARALLEL_API ChCAABBGenerator {
     ChParallelDataManager* data_manager;
 };
 
+/// Class for performing broad-phase collision detection.
 class CH_PARALLEL_API ChCBroadphase {
   public:
     ChCBroadphase();
@@ -52,21 +58,22 @@ class CH_PARALLEL_API ChCBroadphase {
   private:
 };
 
+/// Class for performing narrow-phase collision detection.
 class CH_PARALLEL_API ChCNarrowphaseDispatch {
   public:
     ChCNarrowphaseDispatch() {}
     ~ChCNarrowphaseDispatch() {}
-    // clear contact data structures
+    /// Clear contact data structures.
     void ClearContacts();
-    // Perform collision detection
+    /// Perform collision detection.
     void ProcessRigids();
 
     void PreprocessCount();
-    // Transform the shape data to the global reference frame
-    // Perform this as a preprocessing step to improve performance
-    // Performance is improved because the amount of data loaded is still the same
-    // but it does not have to be transformed per contact pair, now it is
-    // transformed once per shape
+    /// Transform the shape data to the global reference frame.
+    /// Perform this as a preprocessing step to improve performance.
+    /// Performance is improved because the amount of data loaded is still the same
+    /// but it does not have to be transformed per contact pair, now it is
+    /// transformed once per shape.
     void PreprocessLocalToParent();
 
     // For each contact pair decide what to do.
@@ -162,5 +169,8 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     custom_vector<uint> t_bin_fluid_number;
     custom_vector<uint> t_bin_start_index;
 };
-}
-}
+
+/// @} parallel_colision
+
+} // end namespace collision
+} // end namespace chrono

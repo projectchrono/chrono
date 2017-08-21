@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -116,7 +116,7 @@ void ChLinkClearance::UpdateForces(double mytime) {
     Vector m_friction_F_abs = VNULL;
     double m_norm_force = -this->react_force.x();
 
-    // Just add coloumb kinematic friction...
+    // Just add Coulomb kinematic friction...
 
     if (((ChLinkMaskLF*)(this->GetMask()))->Constr_X().IsActive()) {
         Vector temp = Get_contact_P_abs();

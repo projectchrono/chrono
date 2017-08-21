@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,22 +22,11 @@ namespace chrono {
 /// An iterative solver for VI (VI/CCP/LCP/linear problems,..) based on projective fixed
 /// point method, similar to a projected Jacobi method.
 /// Note: this method is here mostly for comparison and tests: we suggest you to use the
-/// more efficient ChSolverSOR - similar, but faster & converges better.
-/// The problem is described by a variational inequality VI(Z*x-d,K):
-///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
-///  | Cq -E | |l|  |-b|  |c|
-///
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
-///                                           |Cq  E | |-l| |-b| |c|
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
-/// * case CCP: Y_i are friction cones
+/// more efficient ChSolverSOR - similar, but faster & converges better.\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures
+/// passed to the solver.
 
 class ChApi ChSolverJacobi : public ChIterativeSolver {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolverJacobi)
 
   public:
     ChSolverJacobi(int mmax_iters = 50,       ///< max.number of iterations

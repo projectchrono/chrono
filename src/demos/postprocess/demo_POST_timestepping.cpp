@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,6 +18,8 @@
 
 #include <cmath>
 
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -29,7 +31,16 @@ using namespace chrono;
 using namespace postprocess;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     GetLog() << "CHRONO demo about low-level time integration of differential equations: \n\n";
+
+    // Create (if needed) output directory
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_TIMESTEPPER";
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     if (true) {
         //
@@ -68,7 +79,8 @@ int main(int argc, char* argv[]) {
         };
 
         // File to dump results
-        ChStreamOutAsciiFile log_file1("log_timestepper_1.dat");
+        std::string logfile = out_dir + "/log_timestepper_1.dat";
+        ChStreamOutAsciiFile log_file1(logfile.c_str());
 
         // Create and object from your custom integrable class:
         MyIntegrable mintegrable;
@@ -87,13 +99,14 @@ int main(int argc, char* argv[]) {
         }
 
         // Plot results
-        ChGnuPlot mplot("__tmp_timestepping_1.gpl");
+        std::string gplfile = out_dir + "/tmp_timestepping_1.gpl";
+        ChGnuPlot mplot(gplfile.c_str());
         mplot.SetGrid();
         mplot.SetTitle("Integrate dx/dt=e^t ");
         mplot.SetLabelX("t");
         mplot.SetLabelY("x");
-        mplot.Plot("log_timestepper_1.dat", 1, 2, "Euler explicit", " with lines lt -1 lw 2");
-        mplot.Plot("log_timestepper_1.dat", 1, 3, "Exact, analytical", " with lines lt 2 lw 2");
+        mplot.Plot(logfile.c_str(), 1, 2, "Euler explicit", " with lines lt -1 lw 2");
+        mplot.Plot(logfile.c_str(), 1, 3, "Exact, analytical", " with lines lt 2 lw 2");
     }
 
     if (true) {
@@ -165,7 +178,8 @@ int main(int argc, char* argv[]) {
         };
 
         // File to dump results
-        ChStreamOutAsciiFile log_file2("log_timestepper_2.dat");
+        std::string logfile = out_dir + "/log_timestepper_2.dat";
+        ChStreamOutAsciiFile log_file2(logfile.c_str());
 
         // Try integrator Euler explicit
 
@@ -193,15 +207,16 @@ int main(int argc, char* argv[]) {
         }
 
         // Plot results
-        ChGnuPlot mplot("__tmp_timestepping_2.gpl");
+        std::string gplfile = out_dir + "/tmp_timestepping_2.gpl";
+        ChGnuPlot mplot(gplfile.c_str());
         mplot.SetGrid();
         mplot.SetTitle("Integrate 2nd order oscillator with 1st order timestepper");
         mplot.SetLabelX("t");
         mplot.SetLabelY("x, v");
-        mplot.Plot("log_timestepper_2.dat", 1, 2, "Euler exp. x", " with lines");
-        mplot.Plot("log_timestepper_2.dat", 1, 3, "Euler exp. v", " with lines");
-        mplot.Plot("log_timestepper_2.dat", 1, 4, "RungeKutta x", " with lines");
-        mplot.Plot("log_timestepper_2.dat", 1, 5, "RungeKutta v", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 2, "Euler exp. x", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 3, "Euler exp. v", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 4, "RungeKutta x", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 5, "RungeKutta v", " with lines");
     }
 
     if (true) {
@@ -275,7 +290,8 @@ int main(int argc, char* argv[]) {
         };
 
         // Create a file to dump results
-        ChStreamOutAsciiFile log_file3("log_timestepper_3.dat");
+        std::string logfile = out_dir + "/log_timestepper_3.dat";
+        ChStreamOutAsciiFile log_file3(logfile.c_str());
 
         // Create and object from your custom integrable class:
         MyIntegrable mintegrable1;
@@ -301,14 +317,15 @@ int main(int argc, char* argv[]) {
         }
 
         // Plot results
-        ChGnuPlot mplot("log_timestepper_3.gpl");
+        std::string gplfile = out_dir + "/tmp_timestepping_3.gpl";
+        ChGnuPlot mplot(gplfile.c_str());
         mplot.SetGrid();
         mplot.SetTitle("Integrate 2nd order oscillator with 2nd order timestepper");
         mplot.SetLabelX("t");
         mplot.SetLabelY("x");
-        mplot.Plot("log_timestepper_3.dat", 1, 2, "RungeKutta", " with lines");
-        mplot.Plot("log_timestepper_3.dat", 1, 4, "Euler exp. IIorder", " with lines");
-        mplot.Plot("log_timestepper_3.dat", 1, 6, "Euler semi-implicit", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 2, "RungeKutta", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 4, "Euler exp. IIorder", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 6, "Euler semi-implicit", " with lines");
     }
 
     if (true) {
@@ -436,7 +453,8 @@ int main(int argc, char* argv[]) {
         };
 
         // Create a file to dump results
-        ChStreamOutAsciiFile log_file4("log_timestepper_4.dat");
+        std::string logfile = out_dir + "/log_timestepper_4.dat";
+        ChStreamOutAsciiFile log_file4(logfile.c_str());
 
         // Create and object from your custom integrable class:
         MyIntegrable mintegrable1;
@@ -486,19 +504,20 @@ int main(int argc, char* argv[]) {
         }
 
         // Plot results
-        ChGnuPlot mplot("log_timestepper_4.gpl");
+        std::string gplfile = out_dir + "/tmp_timestepping_4.gpl";
+        ChGnuPlot mplot(gplfile.c_str());
         mplot.SetGrid();
         mplot.SetTitle("Test: oscillator with implicit integrators");
         mplot.SetLabelX("t");
         mplot.SetLabelY("x");
-        mplot.Plot("log_timestepper_4.dat", 1, 2, "Euler implicit", " with lines");
-        mplot.Plot("log_timestepper_4.dat", 1, 4, "Trapezoidal", " with lines");
-        mplot.Plot("log_timestepper_4.dat", 1, 6, "Euler expl.IIorder", " with lines");
-        mplot.Plot("log_timestepper_4.dat", 1, 8, "HHT alpha=0", " with lines");
-        mplot.Plot("log_timestepper_4.dat", 1, 10, "HHT alpha=-0.33", " with lines");
-        mplot.Plot("log_timestepper_4.dat", 1, 12, "Newmark g=0.5, b=1/4", " with lines");
-        mplot.Plot("log_timestepper_4.dat", 1, 14, "Newmark g=0.5, b=1/6", " with lines");
-        mplot.Plot("log_timestepper_4.dat", 1, 16, "Newmark g=1.0, b=1/4", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 2, "Euler implicit", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 4, "Trapezoidal", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 6, "Euler expl.IIorder", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 8, "HHT alpha=0", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 10, "HHT alpha=-0.33", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 12, "Newmark g=0.5, b=1/4", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 14, "Newmark g=0.5, b=1/6", " with lines");
+        mplot.Plot(logfile.c_str(), 1, 16, "Newmark g=1.0, b=1/4", " with lines");
     }
 
     if (true) {
@@ -655,8 +674,10 @@ int main(int argc, char* argv[]) {
         };
 
         // Create a file to dump results
-        ChStreamOutAsciiFile log_file5("log_timestepper_5.dat");
-        ChStreamOutAsciiFile log_file5r("log_timestepper_5r.dat");
+        std::string logfile5 = out_dir + "/log_timestepper_5.dat";
+        ChStreamOutAsciiFile log_file5(logfile5.c_str());
+        std::string logfile5r = out_dir + "/log_timestepper_5r.dat";
+        ChStreamOutAsciiFile log_file5r(logfile5r.c_str());
 
         // Create and object from your custom integrable class:
         MyIntegrable mintegrable1;
@@ -703,30 +724,31 @@ int main(int argc, char* argv[]) {
                        << ", " << mystepper6.get_L()(0) << "\n";
         }
 
-        ChGnuPlot mplot("log_timestepper_5.gpl");
+        std::string gplfile = out_dir + "/tmp_timestepping_5.gpl";
+        ChGnuPlot mplot(gplfile.c_str());
         mplot.OutputWindow(0);
         mplot.SetGrid();
         mplot.SetTitle("Test: DAE, constrained pendulum");
         mplot.SetLabelX("t");
         mplot.SetLabelY("x");
-        mplot.Plot("log_timestepper_5.dat", 1, 2, "Euler impl. lineariz.", " with lines");
-        mplot.Plot("log_timestepper_5.dat", 1, 6, "Euler impl.", " with lines");
-        mplot.Plot("log_timestepper_5.dat", 1, 10, "Trapezoidal*", " with lines");
-        mplot.Plot("log_timestepper_5.dat", 1, 14, "HHT alpha=0", " with lines");
-        mplot.Plot("log_timestepper_5.dat", 1, 18, "HHT alpha=-0.2", " with lines");
-        mplot.Plot("log_timestepper_5.dat", 1, 22, "Newmark g=0.6,b=0.3", " with lines");
+        mplot.Plot(logfile5.c_str(), 1, 2, "Euler impl. lineariz.", " with lines");
+        mplot.Plot(logfile5.c_str(), 1, 6, "Euler impl.", " with lines");
+        mplot.Plot(logfile5.c_str(), 1, 10, "Trapezoidal*", " with lines");
+        mplot.Plot(logfile5.c_str(), 1, 14, "HHT alpha=0", " with lines");
+        mplot.Plot(logfile5.c_str(), 1, 18, "HHT alpha=-0.2", " with lines");
+        mplot.Plot(logfile5.c_str(), 1, 22, "Newmark g=0.6,b=0.3", " with lines");
 
         mplot.OutputWindow(1);
         mplot.SetGrid();
         mplot.SetTitle("Test: DAE, constrained pendulum reactions");
         mplot.SetLabelX("t [s]");
         mplot.SetLabelY("R [N]");
-        mplot.Plot("log_timestepper_5r.dat", 1, 2, "Euler impl. lineariz.", " with lines");
-        mplot.Plot("log_timestepper_5r.dat", 1, 3, "Euler impl.", " with lines");
-        mplot.Plot("log_timestepper_5r.dat", 1, 4, "Trapezoidal*", " with lines");
-        mplot.Plot("log_timestepper_5r.dat", 1, 5, "HHT alpha=0", " with lines");
-        mplot.Plot("log_timestepper_5r.dat", 1, 6, "HHT alpha=-0.2", " with lines");
-        mplot.Plot("log_timestepper_5r.dat", 1, 7, "Newmark g=0.6,b=0.3", " with lines");
+        mplot.Plot(logfile5r.c_str(), 1, 2, "Euler impl. lineariz.", " with lines");
+        mplot.Plot(logfile5r.c_str(), 1, 3, "Euler impl.", " with lines");
+        mplot.Plot(logfile5r.c_str(), 1, 4, "Trapezoidal*", " with lines");
+        mplot.Plot(logfile5r.c_str(), 1, 5, "HHT alpha=0", " with lines");
+        mplot.Plot(logfile5r.c_str(), 1, 6, "HHT alpha=-0.2", " with lines");
+        mplot.Plot(logfile5r.c_str(), 1, 7, "Newmark g=0.6,b=0.3", " with lines");
 
         mplot.OutputWindow(2);
         mplot.SetGrid();
@@ -736,11 +758,11 @@ int main(int argc, char* argv[]) {
         mplot.SetRangeX(-0.15, 0.15);
         mplot.SetRangeY(-1.025, -0.95);
         mplot.SetCommand("set size ratio 0.5");
-        mplot.Plot("log_timestepper_5.dat", 2, 3, "Euler impl. lineariz.", " pt 0");
-        mplot.Plot("log_timestepper_5.dat", 6, 7, "Euler impl.", " pt 1");
-        mplot.Plot("log_timestepper_5.dat", 10, 11, "Trapezoidal*", " pt 2");
-        mplot.Plot("log_timestepper_5.dat", 14, 15, "HHT alpha=0", " pt 3");
-        mplot.Plot("log_timestepper_5.dat", 18, 19, "HHT alpha=-0.2", " pt 4");
+        mplot.Plot(logfile5.c_str(), 2, 3, "Euler impl. lineariz.", " pt 0");
+        mplot.Plot(logfile5.c_str(), 6, 7, "Euler impl.", " pt 1");
+        mplot.Plot(logfile5.c_str(), 10, 11, "Trapezoidal*", " pt 2");
+        mplot.Plot(logfile5.c_str(), 14, 15, "HHT alpha=0", " pt 3");
+        mplot.Plot(logfile5.c_str(), 18, 19, "HHT alpha=-0.2", " pt 4");
     }
 
     GetLog() << "\n  CHRONO execution terminated.";

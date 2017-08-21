@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -36,6 +36,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
   public:
     ChSimpleDriveline(const std::string& name);
+
     virtual ~ChSimpleDriveline() {}
 
     /// Return the number of driven axles.

@@ -31,7 +31,7 @@ if(ENABLE_IRRKLANG)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       set(CH_IRRKLANG_SDKDIR ""  CACHE PATH   "Where is your IrrKlang SDK installed?")
-      set(CH_IRRKLANGLIB   "" CACHE FILEPATH "Where is your Irrklank library?")
+      set(CH_IRRKLANGLIB   "" CACHE FILEPATH "Where is your Irrklang library?")
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       FIND_PATH(CH_IRRKLANG_SDKDIR NAMES irrlicht.h PATHS "/usr/include/irrklang" "/usr/local/include/irrklang")
       FIND_LIBRARY(CH_IRRKLANGLIB NAMES Irrklang PATHS "/usr/local/lib" ${CH_IRRKLANG_SDKDIR}/lib/Linux)
@@ -133,6 +133,8 @@ set(CV_POVERTRAIN_FILES
     powertrain/ChSimplePowertrain.cpp
     powertrain/ChShaftsPowertrain.h
     powertrain/ChShaftsPowertrain.cpp
+    powertrain/ChSimpleMapPowertrain.h
+    powertrain/ChSimpleMapPowertrain.cpp
 
     powertrain/SimplePowertrain.h
     powertrain/SimplePowertrain.cpp
@@ -146,8 +148,8 @@ set(CV_TERRAIN_FILES
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
-    terrain/DeformableTerrain.h
-    terrain/DeformableTerrain.cpp
+    terrain/SCMDeformableTerrain.h
+    terrain/SCMDeformableTerrain.cpp
 )
 
 if(ENABLE_MODULE_FEA)
@@ -267,6 +269,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChThreeLinkIRS.cpp
     wheeled_vehicle/suspension/ChRigidSuspension.h
     wheeled_vehicle/suspension/ChRigidSuspension.cpp
+    wheeled_vehicle/suspension/ChRigidPinnedAxle.h
+    wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
 
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
@@ -310,6 +314,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.cpp
     wheeled_vehicle/tire/ChPacejkaTire.h
     wheeled_vehicle/tire/ChPacejkaTire.cpp
+	wheeled_vehicle/tire/ChPac89Tire.h
+    wheeled_vehicle/tire/ChPac89Tire.cpp
     wheeled_vehicle/tire/ChLugreTire.h
     wheeled_vehicle/tire/ChLugreTire.cpp
     wheeled_vehicle/tire/ChFialaTire.h

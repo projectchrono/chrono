@@ -1,15 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 1996, 2005, 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// Author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHVECTORDYNAMIC_H
 #define CHVECTORDYNAMIC_H
@@ -36,7 +37,7 @@ namespace chrono {
 ///  The size of the vector can be known even at compile-time, and the vector can
 /// be freely resized also after creation. The size is unlimited (until you have memory).
 ///  Although this is a generic type of vector, please do not use it for 3D vectors
-/// beause there is already the specific ChVector<> class that implements lot of features
+/// because there is already the specific ChVector<> class that implements lot of features
 /// for 3D vectors.
 
 template <class Real = double>

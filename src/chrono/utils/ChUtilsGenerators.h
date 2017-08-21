@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -167,7 +167,7 @@ class ChApi Generator {
 
     // Create bodies, according to the current mixture setup, with initial
     // positions given by the specified sampler in the box domain specified by
-    // 'pos' and 'hdims'. Optionally, a constant inital linear velocity can be set
+    // 'pos' and 'hdims'. Optionally, a constant initial linear velocity can be set
     // for all created bodies.
     void createObjectsBox(SamplingType sType,
                           double dist,
@@ -178,7 +178,7 @@ class ChApi Generator {
     // Create bodies, according to the current mixture setup, with initial
     // positions on a uniform grid with given separations (in x,y,z directions)
     // in the box domain specified by 'pos' and 'hdims'. Optionally, a constant
-    // inital linear velocity can be set for all created bodies.
+    // initial linear velocity can be set for all created bodies.
     void createObjectsBox(const ChVector<>& dist,
                           const ChVector<>& pos,
                           const ChVector<>& hdims,
@@ -186,7 +186,7 @@ class ChApi Generator {
 
     // Create bodies, according to the current mixture setup, with initial
     // positions given by the specified sampler in the cylinder domain specified
-    // by 'pos', 'radius' and 'halfHeight'. Optionally, a constant inital linear
+    // by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial linear
     // velocity can be set for all created bodies.
     void createObjectsCylinderX(SamplingType sType,
                                 double dist,

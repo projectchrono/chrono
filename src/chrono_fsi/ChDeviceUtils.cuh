@@ -2,14 +2,14 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Base class for changing device arrays in non-cuda files
@@ -44,18 +44,18 @@ typedef unsigned int uint;
 
 #define mU3 make_uint3
 
-#define F1CAST(x) (float *)thrust::raw_pointer_cast(&x[0])
-#define D1CAST(x) (double *)thrust::raw_pointer_cast(&x[0])
-#define BCAST(x) (bool *)thrust::raw_pointer_cast(&x[0])
+#define F1CAST(x) (float*)thrust::raw_pointer_cast(&x[0])
+#define D1CAST(x) (double*)thrust::raw_pointer_cast(&x[0])
+#define BCAST(x) (bool*)thrust::raw_pointer_cast(&x[0])
 
-#define I1CAST(x) (int *)thrust::raw_pointer_cast(&x[0])
-#define mI2CAST(x) (int2 *)thrust::raw_pointer_cast(&x[0])
-#define U1CAST(x) (uint *)thrust::raw_pointer_cast(&x[0])
-#define R1CAST(x) (Real *)thrust::raw_pointer_cast(&x[0])
-#define mR3CAST(x) (Real3 *)thrust::raw_pointer_cast(&x[0])
-#define mR4CAST(x) (Real4 *)thrust::raw_pointer_cast(&x[0])
+#define I1CAST(x) (int*)thrust::raw_pointer_cast(&x[0])
+#define mI2CAST(x) (int2*)thrust::raw_pointer_cast(&x[0])
+#define U1CAST(x) (uint*)thrust::raw_pointer_cast(&x[0])
+#define R1CAST(x) (Real*)thrust::raw_pointer_cast(&x[0])
+#define mR3CAST(x) (Real3*)thrust::raw_pointer_cast(&x[0])
+#define mR4CAST(x) (Real4*)thrust::raw_pointer_cast(&x[0])
 #define TCAST(x) thrust::raw_pointer_cast(x.data())
-#define mR3BY3CAST(x) (Real3By3 *)thrust::raw_pointer_cast(&x[0])
+#define mR3BY3CAST(x) (Real3By3*)thrust::raw_pointer_cast(&x[0])
 
 // ----------------------------------------------------------------------------
 // editor stuff
@@ -88,75 +88,92 @@ typedef unsigned int uint;
 //
 // Legacy CUTIL macros. Currently default to no-ops (TODO)
 // ----------------------------------------------------------------------------
-#define cudaCheckError()                                                       \
-  {                                                                            \
-    cudaError_t e = cudaGetLastError();                                        \
-    if (e != cudaSuccess) {                                                    \
-      printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__,                 \
-             cudaGetErrorString(e));                                           \
-      exit(0);                                                                 \
-    }                                                                          \
-  }
+#define cudaCheckError()                                                                     \
+    {                                                                                        \
+        cudaError_t e = cudaGetLastError();                                                  \
+        if (e != cudaSuccess) {                                                              \
+            printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__, cudaGetErrorString(e)); \
+            exit(0);                                                                         \
+        }                                                                                    \
+    }
 
 // --------------------------------------------------------------------
 // GpuTimer
 //
-// This utility class encapsulates a simple timer for recording the
-// time between a start and stop event.
+/// @brief A template time recorder for cuda events.
+/// This utility class encapsulates a simple timer for recording the time between a start and stop event.
 // --------------------------------------------------------------------
 class GpuTimer {
-public:
-  GpuTimer(cudaStream_t stream = 0) : m_stream(stream) {
-    cudaEventCreate(&m_start);
-    cudaEventCreate(&m_stop);
-  }
+  public:
+    GpuTimer(cudaStream_t stream = 0) : m_stream(stream) {
+        cudaEventCreate(&m_start);
+        cudaEventCreate(&m_stop);
+    }
 
-  ~GpuTimer() {
-    cudaEventDestroy(m_start);
-    cudaEventDestroy(m_stop);
-  }
+    ~GpuTimer() {
+        cudaEventDestroy(m_start);
+        cudaEventDestroy(m_stop);
+    }
 
-  void Start() { cudaEventRecord(m_start, m_stream); }
-  void Stop() { cudaEventRecord(m_stop, m_stream); }
+    void Start() { cudaEventRecord(m_start, m_stream); }
+    void Stop() { cudaEventRecord(m_stop, m_stream); }
 
-  float Elapsed() {
-    float elapsed;
-    cudaEventSynchronize(m_stop);
-    cudaEventElapsedTime(&elapsed, m_start, m_stop);
-    return elapsed;
-  }
+    float Elapsed() {
+        float elapsed;
+        cudaEventSynchronize(m_stop);
+        cudaEventElapsedTime(&elapsed, m_start, m_stop);
+        return elapsed;
+    }
 
-private:
-  cudaStream_t m_stream;
-  cudaEvent_t m_start;
-  cudaEvent_t m_stop;
+  private:
+    cudaStream_t m_stream;
+    cudaEvent_t m_start;
+    cudaEvent_t m_stop;
 };
 
 // --------------------------------------------------------------------
 // ChDeviceUtils
 //
-// This utility class encapsulates a operators on device vectors which
-// might be needed in host files
+/// This utility class encapsulates a operators on device vectors which might be needed in host files
 // --------------------------------------------------------------------
 class CH_FSI_API ChDeviceUtils {
-public:
-  static void ResizeMyThrust3(thrust::device_vector<Real3> &mThrustVec,
-                              int mSize);
-  static void ResizeMyThrust4(thrust::device_vector<Real4> &mThrustVec,
-                              int mSize);
-  static void FillMyThrust4(thrust::device_vector<Real4> &mThrustVec, Real4 v);
-  static void ClearMyThrustR3(thrust::device_vector<Real3> &mThrustVec);
-  static void ClearMyThrustR4(thrust::device_vector<Real4> &mThrustVec);
-  static void ClearMyThrustU1(thrust::device_vector<uint> &mThrustVec);
-  static void PushBackR3(thrust::device_vector<Real3> &mThrustVec, Real3 a3);
-  static void PushBackR4(thrust::device_vector<Real4> &mThrustVec, Real4 a4);
-  static void ResizeR3(thrust::device_vector<Real3> &mThrustVec, int size);
-  static void ResizeR4(thrust::device_vector<Real4> &mThrustVec, int size);
-  static void ResizeU1(thrust::device_vector<uint> &mThrustVec, int size);
+  public:
+    /// Resizes a thrust vector of Real3 on the device to a specific size
+    static void ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize);
 
-private:
+    /// Resizes a thrust vector of Real4 on the device to a specific size
+    static void ResizeMyThrust4(thrust::device_vector<Real4>& mThrustVec, int mSize);
+
+    /// Fills out a thrust vector of Real4 on the device with a specific Real4
+    static void FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v);
+
+    /// Clears a thrust vector of Real3 from the device
+    static void ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec);
+
+    /// Clears a thrust vector of Real4 from the device
+    static void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec);
+
+    /// Clears a thrust vector of unsigned int from the device
+    static void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec);
+
+    /// Appends a Real3 data to a thrust vector of Real3 on the device
+    static void PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3);
+
+    /// Appends a Real4 data to a thrust vector of Real4 on the device
+    static void PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4);
+
+    /// Resizes a thrust vector of Real4 on the device to a specific size
+    static void ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size);
+
+    /// Resizes a thrust vector of Real3 on the device to a specific size
+    static void ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size);
+
+    /// Resizes a thrust vector of uint on the device to a specific size
+    static void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
+
+  private:
 };
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono
 
 #endif

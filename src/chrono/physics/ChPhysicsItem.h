@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -31,9 +31,6 @@ class ChSystem;
 /// such as rigid bodies, mechanical joints, etc.
 
 class ChApi ChPhysicsItem : public ChObj {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChPhysicsItem)
 
     friend class ChSystem;
 
@@ -101,7 +98,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual bool GetCollide() const { return false; }
 
     /// If this physical item contains one or more collision models,
-    /// sinchronize their coordinates and bounding boxes to the state of the item.
+    /// synchronize their coordinates and bounding boxes to the state of the item.
     virtual void SyncCollisionModels() {}
 
     /// If this physical item contains one or more collision models,
@@ -156,7 +153,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void Update(bool update_assets = true) { Update(ChTime, update_assets); }
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    /// Child classes should impement this function if GetDOF() > 0.
+    /// Child classes should implement this function if GetDOF() > 0.
     /// It is used by owner ChSystem for some static analysis.
     virtual void SetNoSpeedNoAcceleration() {}
 
@@ -209,7 +206,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                 const unsigned int off_v,  ///< offset in v state vector
                                 ChStateDelta& v,           ///< state vector, speed part
                                 double& T                  ///< time
-                                ) {}
+    ) {}
 
     /// From global state vectors y={x,v} to  item's state (and update)
     /// fetching the states at the specified offsets.
@@ -218,30 +215,30 @@ class ChApi ChPhysicsItem : public ChObj {
                                  const unsigned int off_v,  ///< offset in v state vector
                                  const ChStateDelta& v,     ///< state vector, speed part
                                  const double T             ///< time
-                                 ) {
+    ) {
         // Default behavior: even if no state is used, at least call Update()
-        Update(T); 
+        Update(T);
     }
 
     /// From item's state acceleration to global acceleration vector
     virtual void IntStateGatherAcceleration(const unsigned int off_a,  ///< offset in a accel. vector
                                             ChStateDelta& a            ///< acceleration part of state vector derivative
-                                            ) {}
+    ) {}
 
     /// From global acceleration vector to item's state acceleration
     virtual void IntStateScatterAcceleration(const unsigned int off_a,  ///< offset in a accel. vector
                                              const ChStateDelta& a  ///< acceleration part of state vector derivative
-                                             ) {}
+    ) {}
 
     /// From item's reaction forces to global reaction vector
     virtual void IntStateGatherReactions(const unsigned int off_L,  ///< offset in L vector
                                          ChVectorDynamic<>& L       ///< L vector of reaction forces
-                                         ) {}
+    ) {}
 
     /// From global reaction vector to item's reaction forces
     virtual void IntStateScatterReactions(const unsigned int off_L,   ///< offset in L vector
                                           const ChVectorDynamic<>& L  ///< L vector of reaction forces
-                                          ) {}
+    ) {}
 
     /// Computes x_new = x + Dt , using vectors at specified offsets.
     /// By default, when DOF = DOF_w, it does just the sum, but in some cases (ex when using quaternions
@@ -251,7 +248,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const ChState& x,          ///< state vector, initial position part
                                    const unsigned int off_v,  ///< offset in v state vector
                                    const ChStateDelta& Dv     ///< state vector, increment
-                                   ) {
+    ) {
         for (int i = 0; i < GetDOF(); ++i) {
             x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
         }
@@ -262,7 +259,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c           ///< a scaling factor
-                                   ) {}
+    ) {}
 
     /// Takes the M*v  term,  multiplying mass by a vector, scale and adds to R at given offset:
     ///    R += c*M*w
@@ -270,7 +267,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                     ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
                                     const ChVectorDynamic<>& w,  ///< the w vector
                                     const double c               ///< a scaling factor
-                                    ) {}
+    ) {}
 
     /// Takes the term Cq'*L, scale and adds to R at given offset:
     ///    R += c*Cq'*L
@@ -278,7 +275,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                      ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                      const ChVectorDynamic<>& L,  ///< the L vector
                                      const double c               ///< a scaling factor
-                                     ) {}
+    ) {}
 
     /// Takes the term C, scale and adds to Qc at given offset:
     ///    Qc += c*C
@@ -287,35 +284,32 @@ class ChApi ChPhysicsItem : public ChObj {
                                      const double c,          ///< a scaling factor
                                      bool do_clamp,           ///< apply clamping to c*C?
                                      double recovery_clamp    ///< value for min/max clamping of c*C
-                                     ) {}
+    ) {}
 
     /// Takes the term Ct, scale and adds to Qc at given offset:
     ///    Qc += c*Ct
     virtual void IntLoadConstraint_Ct(const unsigned int off,  ///< offset in Qc residual
                                       ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*Ct
                                       const double c           ///< a scaling factor
-                                      ) {}
+    ) {}
 
-    /// Prepare variables and constraints for a solution:
-    /// From a vector R  into the F 'force' term of the variables
-    /// From a vector Qc into the Qb 'constraint' term of the constraints
-    /// From a vector v  into the q 'unknowns' term of the variables (for warm starting)
-    /// From a vector L  into the L 'lagrangian ' term of the constraints (for warm starting)
-    virtual void IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,  ///< offset in L, Qc
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) {}
+    /// Prepare variables and constraints to accommodate a solution:
+    virtual void IntToDescriptor(
+        const unsigned int off_v,  ///< offset for \e v and \e R
+        const ChStateDelta& v,  ///< vector that will be copied into the \e q 'unknowns' term of the variables (for warm starting)
+        const ChVectorDynamic<>& R,  ///< vector that will be copied into the \e F 'force' term of the variables
+        const unsigned int off_L,    ///< offset for \e L and \e Qc
+        const ChVectorDynamic<>& L,  ///< vector that will be copied into the \e L 'lagrangian ' term of the constraints (for warm starting)
+        const ChVectorDynamic<>& Qc  ///< vector that will be copied into the \e Qb 'constraint' term of the constraints
+    ) {}
 
-    /// After a solver solution, fetch values from variables and constraints:
-    /// To a vector v  from the q 'unknowns' term of the variables
-    /// To a vector L  from the L 'lagrangian ' term of the constraints
-    virtual void IntFromDescriptor(const unsigned int off_v,  ///< offset in v
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,  ///< offset in L
-                                   ChVectorDynamic<>& L) {}
-
+    /// After a solver solution, fetch values from variables and constraints into vectors:
+    virtual void IntFromDescriptor(
+        const unsigned int off_v,  ///< offset for \e v
+        ChStateDelta& v,           ///< vector to where the \e q 'unknowns' term of the variables will be copied
+        const unsigned int off_L,  ///< offset for \e L
+        ChVectorDynamic<>& L       ///< vector to where \e L 'lagrangian ' term of the constraints will be copied
+    ) {}
     // SOLVER SYSTEM FUNCTIONS
     //
     // These are the functions that are used to manage ChConstraint and/or ChVariable
@@ -359,7 +353,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
 
-    /// Tell to a system descriptor that there are contraints of type
+    /// Tell to a system descriptor that there are constraints of type
     /// ChConstraint in this object (for further passing it to a solver)
     /// Basically does nothing, but maybe that inherited classes may specialize this.
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
@@ -415,7 +409,7 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChPhysicsItem,0)
+CH_CLASS_VERSION(ChPhysicsItem, 0)
 
 }  // end namespace chrono
 

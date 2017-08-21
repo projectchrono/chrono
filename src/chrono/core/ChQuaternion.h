@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -155,45 +155,37 @@ class ChQuaternion {
     // This is to be more consistent with the * operator for ChFrames etc.
 
     /// Operator for quaternion product: A*B means the typical quaternion product.
-    /// <pre>
     /// Notes:
     /// - since unit quaternions can represent rotations, the product can represent a
     ///   concatenation of rotations as:
     ///        frame_rotation_2to0 = frame_rotation_1to0 * frame_rotation_2to1
     /// - pay attention to operator low precedence (see C++ precedence rules!)
     /// - quaternion product is not commutative.
-    /// </pre>
     ChQuaternion<Real> operator*(const ChQuaternion<Real>& other) const;
 
     /// Operator for quaternion product and assignment:
     /// A*=B means A'=A*B, with typical quaternion product.
-    /// <pre>
     /// Notes:
     /// - since unit quaternions can represent rotations, the product can represent a
     ///   post-concatenation of a rotation in a kinematic chain.
     /// - quaternion product is not commutative.
-    /// </pre>
     ChQuaternion<Real>& operator*=(const ChQuaternion<Real>& other);
 
     /// Operator for 'specular' quaternion product: A>>B = B*A.
-    /// <pre>
     /// Notes:
     /// - since unit quaternions can represent rotations, the product can represent a
     ///   concatenation of rotations as:
     ///       frame_rotation_2to0 = frame_rotation_2to1 >> frame_rotation_1to0
     /// - pay attention to operator low precedence (see C++ precedence rules!)
     /// - quaternion product is not commutative.
-    /// </pre>
     ChQuaternion<Real> operator>>(const ChQuaternion<Real>& other) const;
 
     /// Operator for quaternion 'specular' product and assignment:
     /// A>>=B means A'=A>>B, or A'=B*A with typical quaternion product.
-    /// <pre>
     /// Notes:
     /// - since unit quaternions can represent rotations, the product can represent a
     ///   pre-concatenation of a rotation in a kinematic chain.
     /// - quaternion product is not commutative.
-    /// </pre>
     ChQuaternion<Real>& operator>>=(const ChQuaternion<Real>& other);
 
     // Operator for scaling the quaternion by a scalar value, as q*s.
@@ -281,31 +273,31 @@ class ChQuaternion {
 
     // CONVERSIONS
 
-    /// Set the quaternion from a rotation vector (ie. a 3D axis of rotation with length as agle of rotation)
+    /// Set the quaternion from a rotation vector (ie. a 3D axis of rotation with length as angle of rotation)
     /// defined in absolute coords.
     /// If you need distinct axis and angle, use Q_from_AngAxis().
     void Q_from_Rotv(const ChVector<Real>& angle_axis);
 
-    /// Get the rotation vector (ie. a 3D axis of rotation with length as agle of rotation) from a quaternion.
+    /// Get the rotation vector (ie. a 3D axis of rotation with length as angle of rotation) from a quaternion.
     /// If you need distinct axis and angle, use rather Q_to_AngAxis().
     ChVector<Real> Q_to_Rotv();
 
-    /// Set the quaternion from an agle of rotation and an axis, defined in absolute coords.
+    /// Set the quaternion from an angle of rotation and an axis, defined in absolute coords.
     /// The axis is supposed to be fixed, i.e. it is constant during rotation!
     /// NOTE, axis must be normalized!
     /// If you need directly the rotation vector=axis * angle, use Q_from_Rotv().
     void Q_from_AngAxis(Real angle, const ChVector<Real>& axis);
 
-    /// Set the quaternion from an agle of rotation about X axis.
+    /// Set the quaternion from an angle of rotation about X axis.
     void Q_from_AngX(Real angleX) { Q_from_AngAxis(angleX, ChVector<Real>(1, 0, 0)); }
 
-    /// Set the quaternion from an agle of rotation about Y axis.
+    /// Set the quaternion from an angle of rotation about Y axis.
     void Q_from_AngY(Real angleY) { Q_from_AngAxis(angleY, ChVector<Real>(0, 1, 0)); }
 
-    /// Set the quaternion from an agle of rotation about Z axis.
+    /// Set the quaternion from an angle of rotation about Z axis.
     void Q_from_AngZ(Real angleZ) { Q_from_AngAxis(angleZ, ChVector<Real>(0, 0, 1)); }
 
-    /// Convert the quaternion to an agle of rotation and an axis, defined in absolute coords.
+    /// Convert the quaternion to an angle of rotation and an axis, defined in absolute coords.
     /// Resulting angle and axis must be passed as parameters.
     /// If you need directly the rotation vector=axis * angle, use Q_to_Rotv().
     void Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const;
@@ -315,6 +307,12 @@ class ChQuaternion {
 
     /// Convert the quaternion to three angles (NASA angle set) heading, bank and attitude.
     ChVector<Real> Q_to_NasaAngles();
+
+    /// Set the quaternion from three angles (Euler Sequence 123) roll, pitch, and yaw.
+    void Q_from_Euler123(const ChVector<Real>& ang);
+
+    /// Convert the quaternion to three angles (Euler Sequence 123) roll, pitch, and yaw.
+    ChVector<Real> Q_to_Euler123();
 
     /// Set the quaternion dq/dt. Inputs: the vector of angular speed w specified in absolute coords,
     /// and the rotation expressed as a quaternion q.
@@ -430,7 +428,7 @@ ChApi ChQuaternion<double> Qscale(const ChQuaternion<double>& q, double fact);
 /// Return the norm two of the quaternion. Euler's parameters have norm = 1
 ChApi ChQuaternion<double> Qnorm(const ChQuaternion<double>& q);
 
-/// Get the quaternion from an agle of rotation and an axis, defined in _abs_ coords.
+/// Get the quaternion from an angle of rotation and an axis, defined in _abs_ coords.
 /// The axis is supposed to be fixed, i.e. it is constant during rotation.
 /// The 'axis' vector must be normalized.
 ChApi ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis);
@@ -442,6 +440,10 @@ ChApi ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, 
 ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& RxRyRz);
 
 ChApi ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& mq);
+
+ChApi ChQuaternion<double> Q_from_Euler123(const ChVector<double>& RxRyRz);
+
+ChApi ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq);
 
 ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
 
@@ -1105,6 +1107,39 @@ inline ChVector<Real> ChQuaternion<Real>::Q_to_NasaAngles() {
     // attitude
     nasa.x() = asin(-2 * (data[1] * data[3] - data[2] * data[0]));
     return nasa;
+}
+
+template <class Real>
+inline void ChQuaternion<Real>::Q_from_Euler123(const ChVector<Real>& ang) {
+    // Angles {phi;theta;psi} aka {roll;pitch;yaw}
+    Real t0 = cos(ang.z() * 0.5);
+    Real t1 = sin(ang.z() * 0.5);
+    Real t2 = cos(ang.x() * 0.5);
+    Real t3 = sin(ang.x() * 0.5);
+    Real t4 = cos(ang.y() * 0.5);
+    Real t5 = sin(ang.y() * 0.5);
+
+    data[0] = t0 * t2 * t4 + t1 * t3 * t5;
+    data[1] = t0 * t3 * t4 - t1 * t2 * t5;
+    data[2] = t0 * t2 * t5 + t1 * t3 * t4;
+    data[3] = t1 * t2 * t4 - t0 * t3 * t5;
+}
+
+template <class Real>
+inline ChVector<Real> ChQuaternion<Real>::Q_to_Euler123() {
+    // Angles {phi;theta;psi} aka {roll;pitch;yaw} rotation XYZ
+    ChVector<Real> euler;
+    Real sq0 = data[0] * data[0];
+    Real sq1 = data[1] * data[1];
+    Real sq2 = data[2] * data[2];
+    Real sq3 = data[3] * data[3];
+    // roll
+    euler.x() = atan2(2 * (data[2] * data[3] + data[0] * data[1]), sq3 - sq2 - sq1 + sq0);
+    // pitch
+    euler.y() = -asin(2 * (data[1] * data[3] - data[0] * data[2]));
+    // yaw
+    euler.z() = atan2(2 * (data[1] * data[2] + data[3] * data[0]), sq1 + sq0 - sq3 - sq2);
+    return euler;
 }
 
 template <class Real>

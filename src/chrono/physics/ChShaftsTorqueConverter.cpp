@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -93,7 +93,7 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
     // The speed ratio must always be in the [0...1] range,
     // anyway let's correct singular cases:
 
-    // - it should be inusual that speed ratio >1, say if the impeller
+    // - it should be unusual that speed ratio >1, say if the impeller
     //   outruns turbine (if there's a clutch lock-in, this should happen).
     //   If so, assume a reflection of T curve and a polar reflection of K curve, after 1.
     if (mR > 1) {

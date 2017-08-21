@@ -62,7 +62,7 @@ public:
 	
 
 
-	//! if returns false, the faces are paralele
+	//! if returns false, the faces are parallel
 	SIMD_FORCE_INLINE bool compute_intervals(
 					const GREAL &D0,
 					const GREAL &D1,
@@ -192,7 +192,7 @@ public:
 	distances[2] is set with the distance
 	closest_point_u, closest_point_v, edge_edge_dir are set too
 	\return
-	- 0: faces are paralele
+	- 0: faces are parallel
 	- 1: face U casts face V
 	- 2: face V casts face U
 	- 3: nearest edges
@@ -206,7 +206,7 @@ public:
 
 		if(Dlen<0.0001)
 		{
-			return 0; //faces near paralele
+			return 0; //faces near parallel
 		}
 
 		edge_edge_dir*= 1/Dlen;//normalize

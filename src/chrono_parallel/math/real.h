@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -34,6 +34,10 @@
 #endif
 
 namespace chrono {
+
+/// @addtogroup parallel_math
+/// @{
+
 // CUDA_HOST_DEVICE static inline real DegToRad(real t) {
 //    return t * C_DegToRad;
 //}
@@ -44,9 +48,10 @@ namespace chrono {
 // CUDA_HOST_DEVICE static inline real Sign(const real x) {
 //  return x < real(0.0) ? -1.0f : 1.0f;
 //}
-// Returns a -1 if the value is negative
-// Returns a +1 if the value is positive
-// Otherwise returns zero, this should only happen if the given value is zero
+
+/// Returns a -1 if the value is negative.
+/// Returns a +1 if the value is positive.
+/// Otherwise returns zero, this should only happen if the given value is zero.
 template <typename T>
 CUDA_HOST_DEVICE static inline T Sign(const T& x) {
     if (x < 0) {
@@ -57,17 +62,19 @@ CUDA_HOST_DEVICE static inline T Sign(const T& x) {
         return T(0);
     }
 }
+
 template <typename T>
 CUDA_HOST_DEVICE static inline T Sqr(const T x) {
     return x * x;
 }
+
 template <typename T>
 CUDA_HOST_DEVICE static inline T Cube(const T x) {
     return x * x * x;
 }
 
-// Checks if the value is zero to within a certain epsilon
-// in this case ZERO_EPSILON is defined based on what the base type of real is
+/// Checks if the value is zero to within a certain epsilon
+/// in this case ZERO_EPSILON is defined based on what the base type of real is
 CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
     return Abs(x) < C_EPSILON;
 }
@@ -89,8 +96,8 @@ CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
 //    return IsZero(x - y);
 //}
 
-// Check if two values are equal using a small delta/epsilon value.
-// Essentially a fuzzy comparison operator
+/// Check if two values are equal using a small delta/epsilon value.
+/// Essentially a fuzzy comparison operator
 template <typename T>
 CUDA_HOST_DEVICE static inline bool IsEqual(const T& _a, const T& _b) {
     real ab;
@@ -135,7 +142,7 @@ CUDA_HOST_DEVICE void SwapIfGreater(T& a, T& b) {
     }
 }
 
-// Clamps a given value a between user specified minimum and maximum values
+/// Clamps a given value a between user specified minimum and maximum values.
 CUDA_HOST_DEVICE inline real Clamp(real x, real low, real high) {
     if (low > high) {
         Swap(low, high);
@@ -150,7 +157,7 @@ CUDA_HOST_DEVICE inline real ClampMin(real x, real low) {
 CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
     return Min(x, high);
 }
-}
+
 //=========MACROS
 #define OPERATOR_EQUALS(op, tin, tout)       \
     inline tout& operator op##=(tin scale) { \
@@ -172,3 +179,7 @@ CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
         a = a op scale;                               \
         return a;                                     \
     }
+
+/// @} parallel_math
+
+}  // end namespace chrono

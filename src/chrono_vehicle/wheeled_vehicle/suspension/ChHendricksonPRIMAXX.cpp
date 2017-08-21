@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,7 +20,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -66,8 +66,12 @@ ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspensi
 void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
                                       std::shared_ptr<ChBody> tierod_body,
+                                      int steering_index,
                                       double left_ang_vel,
                                       double right_ang_vel) {
+    m_location = location;
+    m_steering_index = steering_index;
+
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -84,7 +88,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     outer_local.y() = -outer_local.y();
     m_outerR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
-    // Create and initialize the axlehousing body.
+    // Create and initialize the axle housing body.
     m_axlehousing = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_axlehousing->SetNameString(m_name + "_axlehousing");
     m_axlehousing->SetPos(axleCOM);
@@ -227,7 +231,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_sphericalTorquerod[side]->Initialize(m_axlehousing, m_torquerod[side], ChCoordsys<>(points[TORQUEROD_AH], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalTorquerod[side]);
 
-    // Create and initialize the spherical joint between axlehousing and lower beam.
+    // Create and initialize the spherical joint between axle housing and lower beam.
     m_sphericalLowerbeam[side] = std::make_shared<ChLinkLockSpherical>();
     m_sphericalLowerbeam[side]->SetNameString(m_name + "_sphericalLowerbeam" + suffix);
     m_sphericalLowerbeam[side]->Initialize(m_axlehousing, m_lowerbeam[side], ChCoordsys<>(points[LOWERBEAM_AH], QUNIT));
@@ -295,6 +299,30 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
 double ChHendricksonPRIMAXX::GetMass() const {
     return getAxlehousingMass() + getTransversebeamMass() +
            2 * (getSpindleMass() + getKnuckleMass() + getTorquerodMass() + getLowerbeamMass());
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChHendricksonPRIMAXX::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getAxlehousingMass() * m_axlehousing->GetPos();
+    com += getTransversebeamMass() * m_transversebeam->GetPos();
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getKnuckleMass() * m_knuckle[LEFT]->GetPos();
+    com += getKnuckleMass() * m_knuckle[RIGHT]->GetPos();
+
+    com += getTorquerodMass() * m_torquerod[LEFT]->GetPos();
+    com += getTorquerodMass() * m_torquerod[RIGHT]->GetPos();
+
+    com += getLowerbeamMass() * m_lowerbeam[LEFT]->GetPos();
+    com += getLowerbeamMass() * m_lowerbeam[RIGHT]->GetPos();
+
+    return com / GetMass();
 }
 
 // -----------------------------------------------------------------------------

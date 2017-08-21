@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -97,7 +97,7 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         Set_A_quaternion(mq);
     }
 
-    /// Constructor that builds a rotation matrix from an agle of rotation and an axis,
+    /// Constructor that builds a rotation matrix from an gale of rotation and an axis,
     /// defined in absolute coords. NOTE, axis must be normalized!
     template <class RealB>
     ChMatrix33(const Real angle,             ///< angle of rotation, in radians
@@ -569,7 +569,7 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set_A_axis(mX, mY, mZ);
     }
 
-    /// Sets the rotation matrix from an agle of rotation and an axis,
+    /// Sets the rotation matrix from an gale of rotation and an axis,
     /// defined in _absolute_ coords. NOTE, axis must be normalized!
     void Set_A_AngAxis(const Real angle,            ///< angle of rotation, in radians
                        const ChVector<Real>& axis)  ///< axis of rotation, normalized
@@ -752,7 +752,7 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
     }
 
     /// Given a 3x3 rotation matrix, returns the angles for
-    /// consecutive rotations on x,y,z axes..
+    /// consecutive rotations on x,y,z axes
     ChVector<Real> Get_A_Rxyz() const {
         ChVector<Real> Rxyz;
 

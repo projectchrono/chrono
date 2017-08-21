@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -31,9 +31,10 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-///
-///
-///
+/// @addtogroup vehicle_models_m113
+/// @{
+
+/// M113 sprocket subsystem, suitable for interaction with double-pin track shoes (base class).
 class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
   public:
     virtual ~M113_SprocketDoublePin() {}
@@ -87,6 +88,7 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
     static const double m_gear_RA;
 };
 
+/// M113 sprocket subsystem, suitable for interaction with double-pin track shoes (left side).
 class CH_MODELS_API M113_SprocketDoublePinLeft : public M113_SprocketDoublePin {
   public:
     M113_SprocketDoublePinLeft() : M113_SprocketDoublePin("M113_SprocketLeft") {}
@@ -100,6 +102,7 @@ class CH_MODELS_API M113_SprocketDoublePinLeft : public M113_SprocketDoublePin {
     static const std::string m_meshFile;
 };
 
+/// M113 sprocket subsystem, suitable for interaction with double-pin track shoes (right side).
 class CH_MODELS_API M113_SprocketDoublePinRight : public M113_SprocketDoublePin {
   public:
     M113_SprocketDoublePinRight() : M113_SprocketDoublePin("M113_SprocketRight") {}
@@ -112,6 +115,8 @@ class CH_MODELS_API M113_SprocketDoublePinRight : public M113_SprocketDoublePin 
     static const std::string m_meshName;
     static const std::string m_meshFile;
 };
+
+/// @} vehicle_models_m113
 
 }  // end namespace m113
 }  // end namespace vehicle

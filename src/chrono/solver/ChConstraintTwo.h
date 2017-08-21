@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,7 +22,7 @@ namespace chrono {
 
 /// This class is inherited by the base ChConstraint(),
 /// which does almost nothing. So here this class implements
-/// the functionality for a constrint between a COUPLE of TWO
+/// the functionality for a constraint between a COUPLE of TWO
 /// objects of type ChVariables(), and defines two constraint
 /// matrices, whose column number automatically matches the number
 /// of elements in variables vectors.
@@ -31,9 +31,6 @@ namespace chrono {
 /// must set at least the c_i and b_i values, and jacobians.
 
 class ChApi ChConstraintTwo : public ChConstraint {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChConstraintTwo)
 
   protected:
     ChVariables* variables_a;  ///< The first  constrained object
@@ -70,13 +67,11 @@ class ChApi ChConstraintTwo : public ChConstraint {
     /// automatically creating/resizing jacobians if needed.
     virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b) = 0;
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // end namespace chrono

@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+
 #include <cstdlib>
 #include <algorithm>
 #include <cmath>
@@ -20,10 +34,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// CLASS FOR TETRAHEDRAL FEA ELEMENTS
+// CLASS FOR TETRAHEDRAL FEA ELEMENTS
 uvec3 SortedFace(int face, const uvec4& tetrahedron) {
     int i = tetrahedron.x;
     int j = tetrahedron.y;
@@ -66,17 +77,12 @@ uvec3 UnSortedFace(int face, const uvec4& tetrahedron) {
             break;
     }
 }
-ChFEAContainer::ChFEAContainer(ChSystemParallelNSC* system) {
-    data_manager = system->data_manager;
-    data_manager->AddFEAContainer(this);
+
+ChFEAContainer::ChFEAContainer() {
     num_rigid_constraints = 0;
     rigid_constraint_recovery_speed = 1;
-    family.x = 1;
-    family.y = 0x7FFF;
     beta = 0;
 }
-
-ChFEAContainer::~ChFEAContainer() {}
 
 void ChFEAContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
@@ -430,9 +436,10 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                        // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_fric = data_manager->host_data.fric_data[rigid].x;
-                real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
-                real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
+                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
+                real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
                 real3 gam;
                 gam.x = gamma[start_boundary + index];
@@ -441,8 +448,7 @@ void ChFEAContainer::Project(real* gamma) {
 
                 gam.x += cohesion;
 
-                real mu = friction;
-                if (mu == 0) {
+                if (friction == 0) {
                     gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
                     gam.y = gam.z = 0;
 
@@ -452,7 +458,7 @@ void ChFEAContainer::Project(real* gamma) {
                     continue;
                 }
 
-                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
+                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, friction)) {
                 }
 
                 gamma[start_boundary + index] = gam.x - cohesion;
@@ -473,9 +479,10 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                        // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_fric = data_manager->host_data.fric_data[rigid].x;
-                real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
-                real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
+                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
+                real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
                 real3 gam;
                 gam.x = gamma[start_boundary_node + index];
@@ -517,9 +524,10 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                         // index that goes from 0
                 int rigid = neighbor_marker_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_fric = data_manager->node_container->contact_mu;
-                real cohesion = Max((data_manager->node_container->contact_cohesion + coh) * .5, 0.0);
-                real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
+                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
+                real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
                 real3 gam;
                 gam.x = gamma[start_boundary_marker + index];
@@ -614,32 +622,32 @@ void ChFEAContainer::Build_D() {
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.z * 3, A3.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.w * 3, A4.row(0));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.x * 3, A1.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.y * 3, A2.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.z * 3, A3.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.w * 3, A4.row(1));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.x * 3, A1.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.y * 3, A2.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.z * 3, A3.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.w * 3, A4.row(2));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.z * 3, B3.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.w * 3, B4.row(0));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.x * 3, B1.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.y * 3, B2.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.z * 3, B3.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.w * 3, B4.row(1));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.x * 3, B1.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.y * 3, B2.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.z * 3, B3.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.w * 3, B4.row(2));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         // Volume
 
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.x * 3, r0);
@@ -1004,6 +1012,8 @@ void ChFEAContainer::Build_E() {
     real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
     real inv_hhpa = inv_h * inv_hpa;
     real com = 0;
+    //// TODO: This uses the same compliance value, for all interactions.
+    ////       Consider using a combination law.
     if (alpha) {
         com = inv_hhpa * contact_compliance;
     }
@@ -1083,7 +1093,7 @@ void ChFEAContainer::GenerateSparsity() {
 
         AppendRow12(D_T, start_tet + i * 7 + 2, body_offset, tet_ind, 0);
         D_T.finalize(start_tet + i * 7 + 2);
-        ///==================================================================================================================================
+        //==================================================================================================================================
 
         AppendRow12(D_T, start_tet + i * 7 + 3, body_offset, tet_ind, 0);
         D_T.finalize(start_tet + i * 7 + 3);

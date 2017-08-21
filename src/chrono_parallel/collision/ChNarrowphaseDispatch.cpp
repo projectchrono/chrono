@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+
 #include <algorithm>
 #include <climits>
 
@@ -784,7 +798,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                 real3 t2 = node_pos[bface.y];
                 real3 t3 = node_pos[bface.z];
                 uint bf = bface.w;
-                ConvexShapeTetradhedron* shapeB = new ConvexShapeTetradhedron(tet_index, node_pos);
+                ConvexShapeTetrahedron* shapeB = new ConvexShapeTetrahedron(tet_index, node_pos);
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
                     real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
@@ -931,7 +945,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
                 real3 t2 = node_pos[bface.y];
                 real3 t3 = node_pos[bface.z];
                 uint bf = bface.w;
-                ConvexShapeTetradhedron* shapeB = new ConvexShapeTetradhedron(tet_index, node_pos);
+                ConvexShapeTetrahedron* shapeB = new ConvexShapeTetrahedron(tet_index, node_pos);
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint fluid = f_bin_fluid_number[j];
 

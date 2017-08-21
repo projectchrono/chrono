@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -25,9 +25,6 @@ namespace geometry {
 /// Geometric object representing a segment in 3D space with two end points.
 
 class ChApi ChLineSegment : public ChLine {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLineSegment)
 
   public:
     ChVector<> pA;  ///< first segment endpoint

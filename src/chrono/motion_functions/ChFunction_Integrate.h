@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -24,8 +24,6 @@ namespace chrono {
 /// Uses a numerical quadrature method to compute the definite integral.
 
 class ChApi ChFunction_Integrate : public ChFunction {
-
-    CH_FACTORY_TAG(ChFunction_Integrate)
 
   private:
     std::shared_ptr<ChFunction> fa;

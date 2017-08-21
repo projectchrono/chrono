@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -79,7 +79,7 @@ class MySimpleTank {
     // Build and initialize the tank, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleTank(ChSystemNSC& my_system,           ///< the chrono::engine physical system
+    MySimpleTank(ChSystemNSC& my_system,           ///< the Chrono physical system
                  ISceneManager* msceneManager,  ///< the Irrlicht scene manager for 3d shapes
                  IVideoDriver* mdriver          ///< the Irrlicht video driver
                  ) {
@@ -479,6 +479,8 @@ class MyEventReceiver : public IEventReceiver {
 //
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC my_system;
@@ -555,7 +557,7 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         // .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
         application.DrawAll();
@@ -569,7 +571,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     if (mytank)

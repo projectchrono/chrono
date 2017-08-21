@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,9 +27,6 @@ namespace chrono {
 /// inertia matrix and the mass value are enough.
 
 class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChVariablesBodyOwnMass)
 
   private:
     ChMatrix33<double> inertia;      ///< 3x3 inertia matrix
@@ -92,7 +89,7 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
-    /// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
+    /// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -38,6 +38,8 @@ ChPitmanArm::ChPitmanArm(const std::string& name, bool vehicle_frame_inertia)
 void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
+    m_position = ChCoordsys<>(location, rotation);
+
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
@@ -168,6 +170,15 @@ void ChPitmanArm::Synchronize(double time, double steering) {
 // -----------------------------------------------------------------------------
 double ChPitmanArm::GetMass() const {
     return getSteeringLinkMass() + getPitmanArmMass();
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the steering subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChPitmanArm::GetCOMPos() const {
+    ChVector<> com = getSteeringLinkMass() * m_link->GetPos() + getPitmanArmMass() * m_arm->GetPos();
+
+    return com / GetMass();
 }
 
 // -----------------------------------------------------------------------------

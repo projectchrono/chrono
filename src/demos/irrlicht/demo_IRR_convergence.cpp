@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -179,6 +179,8 @@ void align_spheres(ChIrrAppInterface& application) {
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
 
@@ -223,7 +225,7 @@ int main(int argc, char* argv[]) {
     //
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
@@ -231,7 +233,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

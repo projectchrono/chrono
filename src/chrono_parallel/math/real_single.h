@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,6 +22,9 @@
 #include <cfloat>
 
 namespace chrono {
+
+/// @addtogroup parallel_math
+/// @{
 
 typedef float real;
 #define C_LARGE_REAL FLT_MAX
@@ -98,4 +101,7 @@ CUDA_HOST_DEVICE static inline real Round(const real a) {
 CUDA_HOST_DEVICE static inline real Log(const real a) {
     return logf(a);
 }
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

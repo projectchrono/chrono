@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -302,10 +302,10 @@ void ChLinkUniversal::IntLoadConstraint_C(const unsigned int off_L,  ///< offset
     Qc(off_L + 3) += cnstr_dot_violation;
 }
 
-void ChLinkUniversal::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChLinkUniversal::IntToDescriptor(const unsigned int off_v,
                                       const ChStateDelta& v,
                                       const ChVectorDynamic<>& R,
-                                      const unsigned int off_L,  ///< offset in L, Qc
+                                      const unsigned int off_L,
                                       const ChVectorDynamic<>& L,
                                       const ChVectorDynamic<>& Qc) {
     if (!IsActive())
@@ -322,9 +322,9 @@ void ChLinkUniversal::IntToDescriptor(const unsigned int off_v,  ///< offset in 
     m_cnstr_dot.Set_b_i(Qc(off_L + 3));
 }
 
-void ChLinkUniversal::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChLinkUniversal::IntFromDescriptor(const unsigned int off_v,
                                         ChStateDelta& v,
-                                        const unsigned int off_L,  ///< offset in L
+                                        const unsigned int off_L,
                                         ChVectorDynamic<>& L) {
     if (!IsActive())
         return;

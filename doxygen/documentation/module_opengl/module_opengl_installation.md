@@ -5,7 +5,7 @@ Install the OPENGL module {#module_opengl_installation}
 
 OpenGL support module for Chrono. 
 
-Compared to the[IRRLICHT module](@ref module_irrlicht_installer) this provides 
+Compared to the [IRRLICHT module](group__irrlicht__module.html) this provides 
 a lower-level access to real-time 3D visualization and a more limited
 set of visualization features, but it uses less resources and it can be useful
 in case of large amounts of objects.
@@ -48,6 +48,6 @@ The **OPENGL module** is used for showing simulations in a OpenGL view.
 
 <div class="ce-info">
 Most demos and tutorials do **not** use this module for visualization, as they use 
-the[IRRLICHT module](@ref module_irrlicht_installer), which is easier to use, and at a more advanced stage of development.
+the [IRRLICHT module](group__irrlicht__module.html), which is easier to use, and at a more advanced stage of development.
 </div>
 

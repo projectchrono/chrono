@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -640,7 +640,7 @@ ChLinkMatePlane::ChLinkMatePlane(const ChLinkMatePlane& other) : ChLinkMateGener
 
 void ChLinkMatePlane::SetFlipped(bool doflip) {
     if (doflip != this->flipped) {
-        // swaps direction of X axis by flippping 180° the frame A (slave)
+        // swaps direction of X axis by flipping 180° the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);
@@ -713,7 +713,7 @@ ChLinkMateCoaxial::ChLinkMateCoaxial(const ChLinkMateCoaxial& other) : ChLinkMat
 
 void ChLinkMateCoaxial::SetFlipped(bool doflip) {
     if (doflip != this->flipped) {
-        // swaps direction of X axis by flippping 180° the frame A (slave)
+        // swaps direction of X axis by flipping 180° the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);
@@ -839,7 +839,7 @@ ChLinkMateParallel::ChLinkMateParallel(const ChLinkMateParallel& other) : ChLink
 
 void ChLinkMateParallel::SetFlipped(bool doflip) {
     if (doflip != this->flipped) {
-        // swaps direction of X axis by flippping 180° the frame A (slave)
+        // swaps direction of X axis by flipping 180° the frame A (slave)
 
         ChFrame<> frameRotator(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
         this->frame1.ConcatenatePostTransformation(frameRotator);

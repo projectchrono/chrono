@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -28,6 +28,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Shafts-based powertrain model for the HMMWV vehicle.
 class CH_MODELS_API HMMWV_Powertrain : public ChShaftsPowertrain {
   public:
     HMMWV_Powertrain();
@@ -51,6 +55,8 @@ class CH_MODELS_API HMMWV_Powertrain : public ChShaftsPowertrain {
     static const double m_crankshaft_inertia;
     static const double m_ingear_shaft_inertia;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

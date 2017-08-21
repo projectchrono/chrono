@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,13 +27,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
-
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_antirollbar Anti-roll bar subsystem
-    @}
-*/
 
 namespace chrono {
 namespace vehicle {
@@ -65,6 +58,9 @@ class CH_VEHICLE_API ChAntirollBar : public ChPart {
 
     /// Get the total mass of the anti-roll bar subsystem.
     virtual double GetMass() const = 0;
+
+    /// Get the current global COM location of the anti-roll bar subsystem.
+    virtual ChVector<> GetCOMPos() const = 0;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}

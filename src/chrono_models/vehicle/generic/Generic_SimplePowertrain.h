@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,6 +30,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Simple powertrain model for the generic vehicle (purely kinematic).
 class CH_MODELS_API Generic_SimplePowertrain : public ChSimplePowertrain {
   public:
     Generic_SimplePowertrain();
@@ -46,6 +50,8 @@ class CH_MODELS_API Generic_SimplePowertrain : public ChSimplePowertrain {
     static const double m_fwd_gear_ratio;
     static const double m_rev_gear_ratio;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

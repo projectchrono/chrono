@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -380,13 +380,15 @@ enum class TireModelType {
     FIALA,       ///< Fiala tire
     ANCF,        ///< ANCF shell element-based tire
     REISSNER,    ///< Reissner 6-field shell element-based tire
-    FEA          ///< FEA co-rotational tire
+    FEA,         ///< FEA co-rotational tire
+    PAC89        ///< Pacejka 89 (magic formula) tire
 };
 
 /// Enum for available powertrain model templates.
 enum class PowertrainModelType {
-    SHAFTS,  ///< powertrain based on ChShaft elements
-    SIMPLE   ///< simple powertrain model (similar to a DC motor)
+    SHAFTS,      ///< powertrain based on ChShaft elements
+    SIMPLE_MAP,  ///< simple powertrain model (based on engine-map)
+    SIMPLE       ///< simple powertrain model (similar to a DC motor)
 };
 
 /// Enum for available wheeled-vehicle suspension model templates.
@@ -401,10 +403,10 @@ enum class SuspensionType {
 
 /// Enum for drive types.
 enum class DrivelineType {
-    FWD,  ///< front-wheel drive
-    RWD,  ///< rear-wheel drive
-    AWD,  ///< all-wheel drive
-    SIMPLE
+    FWD,    ///< front-wheel drive
+    RWD,    ///< rear-wheel drive
+    AWD,    ///< all-wheel drive
+    SIMPLE  ///< simple kinematic driveline
 };
 
 /// Enumerations for wheeled vehicle collision families.

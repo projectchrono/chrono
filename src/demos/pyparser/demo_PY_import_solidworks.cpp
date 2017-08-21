@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -39,6 +39,8 @@ using namespace io;
 using namespace gui;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a Chrono::Engine physical system
     ChSystemNSC mphysicalSystem;
 
@@ -125,7 +127,7 @@ int main(int argc, char* argv[]) {
 
     // Now, suppose one is interested in showing an animation of
     // the simulated system. There are different options, for instance
-    // one could use the unit_POSTPROCESSING approach for rendering in
+    // one could use the unit_POSTPROCESS approach for rendering in
     // POVray, or you can open an Irrlicht 3D realtime view and show
     // it, as in the following example code:
 

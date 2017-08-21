@@ -157,11 +157,6 @@ contact points persistent from one simulation frame to the next. This threshold 
 
 # Examples
 For further guidance, see:
-- @ref demo_bricks.cpp
-- @ref demo_collision.cpp
-- @ref demo_friction.cpp
-
-
-
-
-
+- [demo_bricks.cpp](@ref tutorial_demo_bricks)
+- [demo_collision.cpp](@ref tutorial_demo_collision)
+- [demo_friction.cpp](@ref tutorial_demo_friction)

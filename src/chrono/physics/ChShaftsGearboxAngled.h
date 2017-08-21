@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -40,9 +40,6 @@ class ChBodyFrame;
 
 class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsGearboxAngled)
-
   private:
     double t0;
 
@@ -68,7 +65,7 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() const { return 6 + 1 + 1; }
 
-    /// Number of scalar costraints
+    /// Number of scalar constraints
     virtual int GetDOC_c() override { return 1; }
 
     //

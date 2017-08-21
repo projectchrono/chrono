@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHCOORDSYS_H
 #define CHCOORDSYS_H
@@ -20,7 +21,7 @@ namespace chrono {
 ///
 /// COORDSYS:
 ///
-///  This class contains both traslational variable
+///  This class contains both translational variable
 /// (the origin of the axis) and the rotational variable
 /// (that is the unitary quaternion which represent the
 /// special-orthogonal transformation matrix).
@@ -28,7 +29,7 @@ namespace chrono {
 /// are provided. However, for more advanced features, the
 /// heavier classes ChFrame() or ChFrameMoving() may suit better.
 ///  The coordsys object comes either with the template "ChCoordsys<type>" mode,
-/// either in the 'shortcut' flavour, that is "Coordsys", which assumes
+/// either in the 'shortcut' flavor, that is "Coordsys", which assumes
 /// the type of the four scalars is double precision, so it is faster to type.
 ///
 /// Further info at the @ref coordinate_transformations manual page.

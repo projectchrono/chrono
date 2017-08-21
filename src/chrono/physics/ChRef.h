@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,7 +22,7 @@ namespace chrono {
 // CLASS FOR BASIC REFERENCE (a bit OBSOLETE?)
 //
 /// This is the base data for all types of references.
-/// The base implemetation is basically _useless_ unless it has some
+/// The base implementation is basically _useless_ unless it has some
 /// inherited implementation (see other classes below)
 
 class ChApi ChRef {
@@ -115,7 +115,7 @@ class ChApi ChRefFunctionSegment : public ChRefFunction {
     /// Returns the root function (i.e. father sequence containing this segment)
     ChFunction* GetRootFunction() { return ChRefFunction::GetFunction(); }
 
-    /// Change the IDs for ravigating the tree
+    /// Change the IDs for navigating the tree
     bool SetTreeIDs(char* myIDs);
 };
 

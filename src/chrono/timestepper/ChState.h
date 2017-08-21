@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHSTATE_H
 #define CHSTATE_H
@@ -112,7 +113,7 @@ class ChState : public ChVectorDynamic<double> {
 /// Note that for many cases, this would be superfluous, because one could
 /// do y_new = y_old + dydt*td, where dydt is a ChState just like y and y_new, but there
 /// are cases where such simple "+" operations between vectors is not practical, for instance
-/// when integrating rotations in 3D space, where it is better to work with quaterions in y
+/// when integrating rotations in 3D space, where it is better to work with quaternions in y
 /// and y_new, but with spinors/angular velocities/etc. in dydt; so dim(y) is not dim(dydt);
 /// hence the need of this specific class for increments in states.
 /// This is a vector (one-column matrix), hence inherited from ChMatrixDynamic.

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -437,10 +437,10 @@ void ChMatterMeshless::IntLoadResidual_Mv(const unsigned int off,      ///< offs
     }
 }
 
-void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,
                                        const ChStateDelta& v,
                                        const ChVectorDynamic<>& R,
-                                       const unsigned int off_L,  ///< offset in L, Qc
+                                       const unsigned int off_L,
                                        const ChVectorDynamic<>& L,
                                        const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
@@ -449,9 +449,9 @@ void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,  ///< offset in
     }
 }
 
-void ChMatterMeshless::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChMatterMeshless::IntFromDescriptor(const unsigned int off_v,
                                          ChStateDelta& v,
-                                         const unsigned int off_L,  ///< offset in L
+                                         const unsigned int off_L,
                                          ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         v.PasteMatrix(nodes[j]->variables.Get_qb(), off_v + 3 * j, 0);
@@ -727,37 +727,29 @@ void ChMatterMeshless::UpdateParticleCollisionModels() {
 
 //////// FILE I/O
 
-void ChMatterMeshless::StreamOUT(ChStreamOutBinary& mstream) {
-    /*
-    // class version number
-    mstream.VersionWrite(1);
+void ChMatterMeshless::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChMatterMeshless>();
 
-    // serialize parent class too
-    ChIndexedNodes::StreamOUT(mstream);
+    // serialize the parent class data too
+    ChIndexedNodes::ArchiveOUT(marchive);
 
-    // stream out all member data
-    mstream.AbstractWrite(material.get());
-    */
-
-    //***TO DO*** stream nodes
+    // serialize all member data:
+    //***TODO
 }
 
-void ChMatterMeshless::StreamIN(ChStreamInBinary& mstream) {
-    /*
-    // class version number
-    int version = mstream.VersionRead();
+void ChMatterMeshless::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChMatterMeshless>();
 
-    // deserialize parent class too
-    ChIndexedNodes::StreamIN(mstream);
+    // deserialize the parent class data too
+    ChIndexedNodes::ArchiveIN(marchive);
 
-    // stream in all member data
-    ChContinuumElastoplastic* mmat;
-    mstream.AbstractReadCreate(&mmat);
-    material = std::shared_ptr<ChContinuumElastoplastic>(mmat);
-    */
-
-    //***TO DO*** unstream nodes
+    // deserialize all member data:
+    //***TODO
 }
+
+
 
 }  // end namespace fea
 }  // end namespace chrono

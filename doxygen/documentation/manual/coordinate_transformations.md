@@ -472,7 +472,7 @@ transformations in Chrono:
 
 # Examples
 
-- [demo_coords.cpp](\ref demo_coords.cpp)
+- [demo_coords](\ref tutorial_demo_coords)
 
 
 

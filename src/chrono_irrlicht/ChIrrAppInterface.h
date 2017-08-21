@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -34,7 +34,7 @@ namespace irrlicht {
 // Forward reference
 class ChIrrAppEventReceiver;
 
-/// Class to add some GUI to Irrlicht + Chrono::Engine applications.
+/// Class to add some GUI to Irrlicht + ChronoEngine applications.
 /// This basic GUI can be used to monitor solver timings, to easily change
 /// physical system settings, etc.
 class ChApiIrr ChIrrAppInterface {
@@ -63,6 +63,10 @@ class ChApiIrr ChIrrAppInterface {
     /// Show the info panel in the 3D view
     void SetShowInfos(bool val) { show_infos = val; }
     bool GetShowInfos() { return show_infos; }
+
+    /// Show the realtime profiler in the 3D view
+    void SetShowProfiler(bool val) { show_profiler = val; }
+    bool GetShowProfiler() { return show_profiler; }
 
     /// Set/Get the time step for time integration. This value is used when
     /// calling DoStep() in a loop, to advance the simulation by one timestep.
@@ -224,7 +228,7 @@ class ChApiIrr ChIrrAppInterface {
     EffectHandler* effect;
     bool use_effects;
 
-    // The Chrono::Engine system:
+    // The ChronoEngine system:
     ChSystem* system;
 
     ChIrrAppEventReceiver* receiver;
@@ -234,6 +238,7 @@ class ChApiIrr ChIrrAppInterface {
     irr::scene::ISceneNode* container;
 
     bool show_infos;
+    bool show_profiler;
 
     bool step_manage;
     bool pause_step;

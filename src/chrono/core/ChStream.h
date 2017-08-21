@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -28,7 +28,7 @@
 namespace chrono {
 /// Ugly hack added by hammad to get code to compile on osx.
 /// Compiler had trouble finding the create function,
-/// adding #incldue to ChClassRegister made other things break in ChLog so I couldn't do that....
+/// adding include to ChClassRegister made other things break in ChLog so I couldn't do that....
 template <class T>
 void create(std::string cls_name, T** ppObj);
 
@@ -218,7 +218,7 @@ class ChApi ChStreamInAscii : public ChStreamIn {
 };
 
 /// Templated function for swapping bytes of objects of type 'T',
-/// in general fo rwhatever T type. This is used for cross-platform
+/// in general fo whatever T type. This is used for cross-platform
 /// compatibility when sharing objects between big-endian and little-endian
 /// memory models, depending on the microprocessor type.
 
@@ -270,7 +270,7 @@ class ChApi ChBinaryArchive {
         objects_pointers.push_back(NULL);
     }
     /// Put a pointer in pointer vector, but only if it
-    /// was not previously interted. Returns position of pointer
+    /// was not previously inserted. Returns position of pointer
     /// if already existing, otherwise -1.
     int PutPointer(void* object) {
         for (size_t i = 0; i < objects_pointers.size(); ++i) {
@@ -286,7 +286,7 @@ class ChApi ChBinaryArchive {
 
 ///
 /// This is a base class for all BINARY OUTPUT streams, in a way such
-/// that the stream is platform indepent (see the 'little endian' stuff
+/// that the stream is platform independent (see the 'little endian' stuff
 /// in 'floating point to persistent data' topics..)
 /// Defines some << operators from basic
 /// types, converting all them into calls to the Output() function.
@@ -334,7 +334,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
     /// Generic operator for binary streaming of generic objects.
     /// WARNING!!! raw byte streaming! If class 'T' contains double,
     /// int, long, etc, these may give problems when loading on another
-    /// platform which has big-endian ordering, if generated on a little-edian platform...
+    /// platform which has big-endian ordering, if generated on a little-endian platform...
     template <class T>
     void GenericBinaryOutput(T& ogg) {
         // from object to stream, all bytes of objects of 'T' type
@@ -404,7 +404,7 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
 
 ///
 /// This is a base class for all BINARY INPUT streams, in a way such
-/// that the stream is platform indepent (see the 'little endian' stuff
+/// that the stream is platform independent (see the 'little endian' stuff
 /// in 'floating point to persistent data' topics..)
 /// Defines some << operators from basic
 /// types, converting all them into calls to the Output() function.
@@ -450,7 +450,7 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
     /// Generic operator for raw binary streaming of generic objects
     /// WARNING!!! raw byte streaming! If class 'T' contains double,
     /// int, long, etc, these may give problems when loading on another
-    /// platform which has big-endian ordering, if generated on a little-edian platform...
+    /// platform which has big-endian ordering, if generated on a little-endian platform...
     template <class T>
     void GenericBinaryInput(T& ogg) {
         // from stream to object, all bytes of objects of 'T' type
@@ -496,7 +496,7 @@ class ChApi ChStreamInBinary : public ChStreamIn, public ChBinaryArchive {
         return *mObj;
     }
 
-    /// Extract an object from the archive, and assignes the pointer to it.
+    /// Extract an object from the archive, and assigns the pointer to it.
     /// This function can be used to load objects whose class is not
     /// known in advance (anyway, assuming the class had been registered
     /// with Chrono class factory registration). It _creates_ the object

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -23,8 +23,6 @@ namespace chrono {
 /// This data is used to define surface properties owned by ChBody rigid bodies and
 /// similar objects; it carries information that is used to make contacts.
 class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMaterialSurfaceSMC)
 
   public:
     float young_modulus;      ///< Young's modulus (elastic modulus)
@@ -128,7 +126,9 @@ class ChApi ChMaterialCompositeSMC : public ChMaterialComposite {
 
     ChMaterialCompositeSMC();
 
-    ChMaterialCompositeSMC(std::shared_ptr<ChMaterialSurfaceSMC> mat1, std::shared_ptr<ChMaterialSurfaceSMC> mat2);
+    ChMaterialCompositeSMC(ChMaterialCompositionStrategy<float>* strategy,
+                           std::shared_ptr<ChMaterialSurfaceSMC> mat1,
+                           std::shared_ptr<ChMaterialSurfaceSMC> mat2);
 };
 
 }  // end namespace chrono

@@ -14,7 +14,7 @@ attached to [rigid bodies](@ref rigid_bodies).
 - Markers can be used to get the position/velocity/acceleration of 
   a given reference frame attached to a [rigid body](@ref rigid_bodies)
 
-- They can be used to build [mechanical constraints](@manual_ChLink) via ChLink objects
+- They can be used to build [mechanical constraints](@ref links) via ChLink objects
   by using a couple of ChMarker objects from two bodies
 
 Example:

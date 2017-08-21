@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -50,7 +50,7 @@ float GLOBAL_dampingf = 0.1f;
 class MyEventReceiver : public IEventReceiver {
   public:
     MyEventReceiver(ChIrrAppInterface* myapp) {
-        // store pointer applicaiton
+        // store pointer application
         application = myapp;
 
         // ..add a GUI slider to control friction
@@ -220,6 +220,8 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
 
@@ -305,13 +307,13 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

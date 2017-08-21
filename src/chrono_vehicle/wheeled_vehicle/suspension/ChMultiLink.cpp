@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -66,8 +66,12 @@ ChMultiLink::ChMultiLink(const std::string& name) : ChSuspension(name) {
 void ChMultiLink::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
                              std::shared_ptr<ChBody> tierod_body,
+                             int steering_index,
                              double left_ang_vel,
                              double right_ang_vel) {
+    m_location = location;
+    m_steering_index = steering_index;
+
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -295,6 +299,30 @@ void ChMultiLink::InitializeSide(VehicleSide side,
 // -----------------------------------------------------------------------------
 double ChMultiLink::GetMass() const {
     return 2 * (getSpindleMass() + getUpperArmMass() + getLateralMass() + getTrailingLinkMass() + getUprightMass());
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the suspension subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChMultiLink::GetCOMPos() const {
+    ChVector<> com(0, 0, 0);
+
+    com += getSpindleMass() * m_spindle[LEFT]->GetPos();
+    com += getSpindleMass() * m_spindle[RIGHT]->GetPos();
+
+    com += getUpperArmMass() * m_upperArm[LEFT]->GetPos();
+    com += getUpperArmMass() * m_upperArm[RIGHT]->GetPos();
+
+    com += getLateralMass() * m_lateral[LEFT]->GetPos();
+    com += getLateralMass() * m_lateral[RIGHT]->GetPos();
+
+    com += getTrailingLinkMass() * m_trailingLink[LEFT]->GetPos();
+    com += getTrailingLinkMass() * m_trailingLink[RIGHT]->GetPos();
+
+    com += getUprightMass() * m_upright[LEFT]->GetPos();
+    com += getUprightMass() * m_upright[RIGHT]->GetPos();
+
+    return com / GetMass();
 }
 
 // -----------------------------------------------------------------------------

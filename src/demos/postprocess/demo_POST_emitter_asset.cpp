@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,9 +27,9 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#define USE_POSTPROCESSING_MODULE
+#define USE_POSTPROCESS_MODULE
 
-#if defined USE_POSTPROCESSING_MODULE
+#if defined USE_POSTPROCESS_MODULE
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAsset.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
@@ -50,6 +50,8 @@ using namespace irr::io;
 using namespace irr::gui;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
 
@@ -86,7 +88,7 @@ int main(int argc, char* argv[]) {
     mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
     floorBody->AddAsset(mvisual);
 
-    #if defined USE_POSTPROCESSING_MODULE
+    #if defined USE_POSTPROCESS_MODULE
     // Custom rendering in POVray:
     auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
     mPOVcustom->SetCommands("texture{ pigment{ color rgb<1,1,1>}} \n\
@@ -176,7 +178,7 @@ int main(int argc, char* argv[]) {
                 airrlicht_application->AssetBind(mbody);
                 airrlicht_application->AssetUpdate(mbody);
 
-                #if defined USE_POSTPROCESSING_MODULE
+                #if defined USE_POSTPROCESS_MODULE
                     // Enable PovRay rendering
                     auto mpov_asset = std::make_shared<ChPovRayAsset>();
                     mbody->AddAsset(mpov_asset);
@@ -325,7 +327,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
             airrlicht_application->AssetUpdate(mbody);
 
             // Enable PovRay rendering
-            #if defined USE_POSTPROCESSING_MODULE
+            #if defined USE_POSTPROCESS_MODULE
             auto mpov_asset = std::make_shared<ChPovRayAsset>();
             mbody->AddAsset(mpov_asset);
             #endif
@@ -351,25 +353,34 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     application.AssetUpdateAll();
 
 
-    #if defined USE_POSTPROCESSING_MODULE
+    #if defined USE_POSTPROCESS_MODULE
+
+    // Create (if needed) the output directory
+    const std::string demo_dir = GetChronoOutputPath() + "DEMO_EMITTER";
+    if (ChFileutils::MakeDirectory(demo_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << demo_dir << std::endl;
+        return 1;
+    }
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
     // Sets some file names for in-out processes.
     pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-    pov_exporter.SetOutputScriptFile("rendering_frames.pov");
+    pov_exporter.SetOutputScriptFile(demo_dir + "/rendering_frames.pov");
     pov_exporter.SetOutputDataFilebase("my_state");
     pov_exporter.SetPictureFilebase("picture");
 
     // Even better: save the .dat files and the .bmp files
     // in two subdirectories, to avoid cluttering the current
     // directory...
-    ChFileutils::MakeDirectory("output");
-    ChFileutils::MakeDirectory("anim");
+    const std::string out_dir = demo_dir + "/output";
+    const std::string anim_dir = demo_dir + "/anim";
+    ChFileutils::MakeDirectory(out_dir.c_str());
+    ChFileutils::MakeDirectory(anim_dir.c_str());
 
-    pov_exporter.SetOutputDataFilebase("output/my_state");
-    pov_exporter.SetPictureFilebase("anim/picture");
+    pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
+    pov_exporter.SetPictureFilebase(anim_dir + "/picture");
 
     pov_exporter.SetLight(VNULL,ChColor(0,0,0),false);
     pov_exporter.SetCustomPOVcommandsScript(
@@ -412,7 +423,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
 
     //
     // THE SOFT-REAL-TIME CYCLE
-    //
+    //	
 
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
@@ -435,7 +446,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
 
         // Create the incremental nnnn.dat and nnnn.pov files that will be load
         // by the pov .ini script in POV-Ray (do this at each simulation timestep)
-        #if defined USE_POSTPROCESSING_MODULE
+        #if defined USE_POSTPROCESS_MODULE
           pov_exporter.ExportData();
         #endif
     }

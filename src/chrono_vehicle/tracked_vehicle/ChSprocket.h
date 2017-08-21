@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -44,13 +44,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
-
-/**
-    @addtogroup vehicle_tracked
-    @{
-        @defgroup vehicle_tracked_sprocket Sprocket subsystem
-    @}
-*/
 
 namespace chrono {
 namespace vehicle {

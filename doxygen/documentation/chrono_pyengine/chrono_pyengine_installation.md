@@ -57,10 +57,12 @@ that is free.
 <div class="ce-info">
 We suggest to install also the following third party packages for expanding 
 the capabilities of Python in mathematical ad plotting areas:
-* [Numpy](http://numpy.scipy.org/)
-* [Matplotlib](http://matplotlib.sourceforge.net/).<br>
+<ul>
+  <li>[Numpy](http://numpy.scipy.org/)</li>
+  <li>[Matplotlib](http://matplotlib.sourceforge.net/)</li>
+</ul>
 NOTE. Precompiled binaries of Numpy and Matplotlib for Python 3.2 can be 
-downloaded  from the [unofficial repository](http://www.lfd.uci.edu/~gohlke/pythonlibs/ repository). 
+downloaded  from the [unofficial repository](http://www.lfd.uci.edu/~gohlke/pythonlibs/). 
 A faster option is to install the [entire SciPy stack](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy-stack)
 that includes both.
 Otherwise there is a custom Python distribution called [Enthough](http://enthought.com/products/epd.php) that already includes the two packages.

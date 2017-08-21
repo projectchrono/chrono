@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,9 +30,11 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
 
 #ifdef CHRONO_FEA
 #include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
@@ -43,6 +45,16 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Definition of the HMMWV assembly.
+/// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
+/// a HMMWV, the powertrain model, and the 4 tires. It provides wrappers to access the different
+/// systems and subsystems, functions for specifying the driveline, powertrain, and tire types,
+/// as well as functions for controlling the visualization mode of each component.
+/// Note that this is an abstract class which cannot be instantiated.  Instead, use one of the
+/// concrete classes HMMWV_Full or HMMWV_Reduced.
 class CH_MODELS_API HMMWV {
   public:
     virtual ~HMMWV();
@@ -71,6 +83,8 @@ class CH_MODELS_API HMMWV {
     ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
 
     void Initialize();
+
+    void SetAerodynamicDrag(double Cd, double area, double air_density);
 
     void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
@@ -108,12 +122,20 @@ class CH_MODELS_API HMMWV {
     double m_initFwdVel;
     std::vector<double> m_initOmega;
 
+    bool m_apply_drag;
+    double m_Cd;
+    double m_area;
+    double m_air_density;
+
     ChSystem* m_system;
     HMMWV_Vehicle* m_vehicle;
     ChPowertrain* m_powertrain;
     std::array<ChTire*, 4> m_tires;
 };
 
+/// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using full
+/// double wishbone suspensions (i.e., suspensions that include rigid bodies for the upper
+/// and lower control arms).
 class CH_MODELS_API HMMWV_Full : public HMMWV {
   public:
     HMMWV_Full() {}
@@ -129,6 +151,9 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
     }
 };
 
+/// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using reduced
+/// double wishbone suspensions (i.e., suspensions that replace the upper and lower control
+/// arms with distance constraints).
 class CH_MODELS_API HMMWV_Reduced : public HMMWV {
   public:
     HMMWV_Reduced() {}
@@ -140,6 +165,8 @@ class CH_MODELS_API HMMWV_Reduced : public HMMWV {
                         : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
     }
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban, Hammad Mazhar
+// =============================================================================
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
@@ -48,7 +62,7 @@ void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
         data_manager->host_data.elastic_moduli.push_back(real2(0, 0));
         data_manager->host_data.cr.push_back(0);
     } else {
-        data_manager->host_data.dem_coeffs.push_back(real4(0, 0, 0, 0));
+        data_manager->host_data.smc_coeffs.push_back(real4(0, 0, 0, 0));
     }
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
@@ -66,7 +80,7 @@ void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     custom_vector<real>& adhesionMult = data_manager->host_data.adhesionMultDMT_data;
     custom_vector<real>& mu = data_manager->host_data.mu;
     custom_vector<real>& cr = data_manager->host_data.cr;
-    custom_vector<real4>& dem_coeffs = data_manager->host_data.dem_coeffs;
+    custom_vector<real4>& smc_coeffs = data_manager->host_data.smc_coeffs;
 
     // Since this function is called in a parallel for loop, we must access the
     // material properties in a thread-safe manner (we cannot use the function
@@ -84,7 +98,7 @@ void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
         elastic_moduli[index] = real2(mat_ptr->GetYoungModulus(), mat_ptr->GetPoissonRatio());
         cr[index] = mat_ptr->GetRestitution();
     } else {
-        dem_coeffs[index] = real4(mat_ptr->GetKn(), mat_ptr->GetKt(), mat_ptr->GetGn(), mat_ptr->GetGt());
+        smc_coeffs[index] = real4(mat_ptr->GetKn(), mat_ptr->GetKt(), mat_ptr->GetGn(), mat_ptr->GetGt());
     }
 }
 

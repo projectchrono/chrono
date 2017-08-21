@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,8 +27,6 @@ namespace fea {
 /// Proxy to FEA nodes, to grant them the features
 /// needed for collision detection.
 class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactNodeXYZ)
 
   public:
     ChContactNodeXYZ(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0) {
@@ -93,7 +91,7 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
     }
 
     /// Get the absolute speed of point abs_point if attached to the
-    /// surface. Easy in this case because there are no roations..
+    /// surface. Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->mnode->pos_dt; }
 
     /// Return the coordinate system for the associated collision model.
@@ -108,7 +106,7 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -149,8 +147,6 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud
 /// type of collisions.
 class ChApiFea ChContactNodeXYZsphere : public ChContactNodeXYZ {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactNodeXYZsphere)
 
   public:
     ChContactNodeXYZsphere(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0);
@@ -169,8 +165,6 @@ class ChApiFea ChContactNodeXYZsphere : public ChContactNodeXYZ {
 /// from ChNodeFEAxyzrot, but this does not happen -hopefully it will be, in future API-, so we need
 /// to implement also this ChContactNodeXYZROT as a proxy to ChNodeFEAxyzrot, sorry for code redundancy.
 class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactNodeXYZROT)
 
   public:
     ChContactNodeXYZROT(ChNodeFEAxyzrot* anode = 0, ChContactSurface* acontainer = 0) {
@@ -235,7 +229,7 @@ class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
     }
 
     /// Get the absolute speed of point abs_point if attached to the
-    /// surface. Easy in this case because there are no roations..
+    /// surface. Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->mnode->GetPos_dt(); }
 
     /// Return the coordinate system for the associated collision model.
@@ -250,7 +244,7 @@ class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -291,8 +285,6 @@ class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud
 /// type of collisions.
 class ChApiFea ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactNodeXYZROTsphere)
 
   public:
     ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode = 0, ChContactSurface* acontainer = 0);
@@ -307,11 +299,9 @@ class ChApiFea ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 
 /// Class which defines a contact surface for FEA elements, where only xyz nodes
 /// in the FEA model are used as contact items for the collision detection.
-/// Might be an efficient option in case of dense tesselations (but misses the FEAnodes-vs-FEAfaces
+/// Might be an efficient option in case of dense tessellations (but misses the FEAnodes-vs-FEAfaces
 /// cases, and misses FEAedge-vs-edges)
 class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactSurfaceNodeCloud)
 
   public:
     ChContactSurfaceNodeCloud(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh){};

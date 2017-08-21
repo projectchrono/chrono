@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -41,7 +41,7 @@ using namespace irr::gui;
 
 // This function will be used to apply forces caused by
 // a rotating fan, to all objects in front of it (a simple
-// exaple just to demonstrate how to apply custom forces).
+// example just to demonstrate how to apply custom forces).
 
 void apply_fan_force(ChSystemNSC* msystem,       // contains all bodies
                      ChCoordsys<>& fan_csys,  // pos and rotation of fan
@@ -81,6 +81,8 @@ void apply_fan_force(ChSystemNSC* msystem,       // contains all bodies
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a ChronoENGINE physical system
     ChSystemNSC my_system;
 
@@ -187,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         // Irrlicht application draws all 3D objects and all GUI items
         application.DrawAll();
@@ -218,7 +220,7 @@ int main(int argc, char* argv[]) {
         // STEP:
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

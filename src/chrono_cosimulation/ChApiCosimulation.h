@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -15,14 +15,8 @@
 #ifndef CHAPICOSIMULATION_H
 #define CHAPICOSIMULATION_H
 
+#include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
-
-// Chrono::Engine version
-//
-// This is an integer, as 0xaabbccdd where
-// for example version 1.2.0 is 0x00010200
-
-#define CH_VERSION_COSIMULATION_MODULE 0x00000100
 
 // When compiling this library, remember to define CH_API_COMPILE_COSIMULATION
 // (so that the symbols with 'ChApiCosimulation' in front of them will be

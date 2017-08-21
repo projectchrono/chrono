@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -136,10 +136,10 @@ void ChConveyor::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
     conveyor_plate->IntLoadResidual_Mv(off + 6, R, w, c);
 }
 
-void ChConveyor::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+void ChConveyor::IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,  // offset in L, Qc
+                                 const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
     conveyor_truss->IntToDescriptor(off_v, v, R, off_L, L, Qc);

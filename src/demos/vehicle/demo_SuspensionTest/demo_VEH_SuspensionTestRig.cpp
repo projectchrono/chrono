@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -31,7 +31,7 @@
 //  [col  2]     left post input, a value in [-1,1]
 //  [col  3]     right post input, a value in [-1,1]
 //  [col  4]     steering input, a value in [-1,1]
-//  [col  5]     actual left post dispalcement
+//  [col  5]     actual left post displacement
 //  [col  6]     actual right post displacement
 //  [col  7- 9]  application point for left tire force
 //  [col 10-12]  left tire force
@@ -95,11 +95,13 @@ std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
 
 // Output collection
 bool collect_output = false;
-std::string out_dir = "../SUSPENSION_TEST_RIG";
+std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
 double out_step_size = 1.0 / 100;
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Use rigid wheels to actuate suspension.
     auto tire_L = std::make_shared<RigidTire>(vehicle::GetDataFile(tire_file));
     auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(tire_file));

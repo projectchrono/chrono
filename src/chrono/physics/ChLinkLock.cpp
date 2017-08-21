@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -130,7 +130,7 @@ void ChLinkLock::BuildLinkType(LinkType link_type) {
 
     ChLinkMaskLF m_mask;
 
-    // SetLockMask() sets the costraints for the link coordinates: (X,Y,Z, E0,E1,E2,E3)
+    // SetLockMask() sets the constraints for the link coordinates: (X,Y,Z, E0,E1,E2,E3)
     switch (type) {
         case LinkType::FREE:
             m_mask.SetLockMask(false, false, false, false, false, false, false);
@@ -274,7 +274,7 @@ void ChLinkLock::UpdateTime(double time) {
         return;
 
     // Update motion position/speed/acceleration by motion laws
-    // as expressed by specific link CH funcions
+    // as expressed by specific link CH functions
     deltaC.pos.x() = motion_X->Get_y(time);
     deltaC_dt.pos.x() = motion_X->Get_y_dx(time);
     deltaC_dtdt.pos.x() = motion_X->Get_y_dxdx(time);
@@ -334,7 +334,7 @@ void ChLinkLock::UpdateRelMarkerCoords() {
     // FOR ALL THE 6(or3) COORDINATES OF RELATIVE MOTION OF THE TWO MARKERS.
     //  Also set some static vectors/quaternions which will be used later in the
     // UpdateState function for the Lock-Formulation method (this customization,
-    // happens only for speed readsons, otherwise the base UpdateRelMarkerCoords()
+    // happens only for speed reasons, otherwise the base UpdateRelMarkerCoords()
     // could be sufficient)
 
     PQw = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
@@ -577,7 +577,7 @@ void ChLinkLock::UpdateState() {
              Qscale(Qcross(Qconjugate(deltaC_dt.rot), relM_dt.rot), 2));
 
     // +++++++++ COMPUTE THE  Cq Ct Qc    matrices (temporary, for complete lock
-    // contraint)
+    // constraint)
 
     ChMatrix33<> m2_Rel_A_dt;
     marker2->Compute_Adt(m2_Rel_A_dt);
@@ -697,7 +697,7 @@ void ChLinkLock::UpdateState() {
 
     ChLinkMaskLF* mmask = (ChLinkMaskLF*)this->mask;
 
-    if (mmask->Constr_X().IsActive())  // for X costraint...
+    if (mmask->Constr_X().IsActive())  // for X constraint...
     {
         Cq1->PasteClippedMatrix(*Cq1_temp, 0, 0, 1, 7, index, 0);
         Cq2->PasteClippedMatrix(*Cq2_temp, 0, 0, 1, 7, index, 0);
@@ -713,7 +713,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_Y().IsActive())  // for Y costraint...
+    if (mmask->Constr_Y().IsActive())  // for Y constraint...
     {
         Cq1->PasteClippedMatrix(*Cq1_temp, 1, 0, 1, 7, index, 0);
         Cq2->PasteClippedMatrix(*Cq2_temp, 1, 0, 1, 7, index, 0);
@@ -729,7 +729,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_Z().IsActive())  // for Z costraint...
+    if (mmask->Constr_Z().IsActive())  // for Z constraint...
     {
         Cq1->PasteClippedMatrix(*Cq1_temp, 2, 0, 1, 7, index, 0);
         Cq2->PasteClippedMatrix(*Cq2_temp, 2, 0, 1, 7, index, 0);
@@ -745,7 +745,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E0().IsActive())  // for E0 costraint...
+    if (mmask->Constr_E0().IsActive())  // for E0 constraint...
     {
         Cq1->PasteClippedMatrix(*Cq1_temp, 3, 3, 1, 4, index, 3);
         Cq2->PasteClippedMatrix(*Cq2_temp, 3, 3, 1, 4, index, 3);
@@ -761,7 +761,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E1().IsActive())  // for E1 costraint...
+    if (mmask->Constr_E1().IsActive())  // for E1 constraint...
     {
         Cq1->PasteClippedMatrix(*Cq1_temp, 4, 3, 1, 4, index, 3);
         Cq2->PasteClippedMatrix(*Cq2_temp, 4, 3, 1, 4, index, 3);
@@ -777,7 +777,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E2().IsActive())  // for E2 costraint...
+    if (mmask->Constr_E2().IsActive())  // for E2 constraint...
     {
         Cq1->PasteClippedMatrix(*Cq1_temp, 5, 3, 1, 4, index, 3);
         Cq2->PasteClippedMatrix(*Cq2_temp, 5, 3, 1, 4, index, 3);
@@ -793,7 +793,7 @@ void ChLinkLock::UpdateState() {
         index++;
     }
 
-    if (mmask->Constr_E3().IsActive())  // for E3 costraint...
+    if (mmask->Constr_E3().IsActive())  // for E3 constraint...
     {
         Cq1->PasteClippedMatrix(*Cq1_temp, 6, 3, 1, 4, index, 3);
         Cq2->PasteClippedMatrix(*Cq2_temp, 6, 3, 1, 4, index, 3);
@@ -1263,10 +1263,10 @@ void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in 
     // nothing to do for ChLinkLimit
 }
 
-void ChLinkLock::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChLinkLock::IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,  ///< offset in L, Qc
+                                 const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
     // parent class:
@@ -1348,9 +1348,9 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
     }
 }
 
-void ChLinkLock::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
                                    ChStateDelta& v,
-                                   const unsigned int off_L,  ///< offset in L
+                                   const unsigned int off_L,
                                    ChVectorDynamic<>& L) {
     // parent class:
     ChLinkMasked::IntFromDescriptor(off_L, v, off_L, L);
@@ -1682,7 +1682,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
 }
 
 void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<>* mCqw, int qwrow, ChBodyFrame* mbody) {
-    // traslational part - not changed
+    // translational part - not changed
     mCqw->PasteClippedMatrix(*mCq, qrow, 0, 1, 3, qwrow, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4

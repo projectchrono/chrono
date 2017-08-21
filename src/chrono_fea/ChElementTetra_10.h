@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -26,8 +26,8 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Tetahedron FEA element with 10 nodes.
-/// This is a quadratic element for displacementes; stress and strain
+/// Tetrahedron FEA element with 10 nodes.
+/// This is a quadratic element for displacements; stress and strain
 /// are interpolated depending on Gauss points.
 class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUVW {
   protected:
@@ -769,7 +769,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override {
         // evaluate shape functions (in compressed vector), btw. not dependant on state
-        ChMatrixNM<double, 1, 4> N;
+        ChMatrixNM<double, 1, 10> N;
         this->ShapeFunctions(
             N, U, V, W);  // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
 

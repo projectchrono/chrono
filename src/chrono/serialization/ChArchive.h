@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHARCHIVE_H
 #define CHARCHIVE_H
@@ -743,7 +744,7 @@ class  ChArchiveOut : public ChArchive {
           this->out_array_end(arraysize, typeid(bVal.value()).name());
       }
 
-        // trick to wrap stl::vector container
+        // trick to wrap std::vector container
       template<class T>
       void out     (ChNameValue< std::vector<T> > bVal) {
           this->out_array_pre(bVal.name(), bVal.value().size(), typeid(T).name());
@@ -757,7 +758,7 @@ class  ChArchiveOut : public ChArchive {
           }
           this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
       }
-        // trick to wrap stl::list container
+        // trick to wrap st::list container
       template<class T>
       void out     (ChNameValue< std::list<T> > bVal) {
           this->out_array_pre(bVal.name(), bVal.value().size(), typeid(T).name());
@@ -773,14 +774,14 @@ class  ChArchiveOut : public ChArchive {
           }
           this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
       }
-        // trick to wrap stl::pair container
+        // trick to wrap st::pair container
       template<class T, class Tv>
       void out     (ChNameValue< std::pair<T, Tv> > bVal) {
           _wrap_pair<T,Tv> mpair(bVal.value());
           ChNameValue< _wrap_pair<T,Tv> > pair_val(bVal.name(), mpair);
           this->out (pair_val);
       }
-        // trick to wrap stl::unordered_map container
+        // trick to wrap st::unordered_map container
       template<class T, class Tv>
       void out     (ChNameValue< std::unordered_map<T, Tv> > bVal) {
           this->out_array_pre(bVal.name(), bVal.value().size(), typeid(std::pair<T, Tv>).name());
@@ -1063,7 +1064,7 @@ class  ChArchiveIn : public ChArchive {
           this->in_array_end(bVal.name());
       }
 
-             // trick to wrap stl::vector container
+             // trick to wrap st::vector container
       template<class T>
       void in     (ChNameValue< std::vector<T> > bVal) {
           bVal.value().clear();
@@ -1082,7 +1083,7 @@ class  ChArchiveIn : public ChArchive {
           }
           this->in_array_end(bVal.name());
       }
-             // trick to wrap stl::list container
+             // trick to wrap st::list container
       template<class T>
       void in     (ChNameValue< std::list<T> > bVal) {
           bVal.value().clear();
@@ -1100,14 +1101,14 @@ class  ChArchiveIn : public ChArchive {
           }
           this->in_array_end(bVal.name());
       }
-        // trick to wrap stl::pair container
+        // trick to wrap st::pair container
       template<class T, class Tv>
       void in     (ChNameValue< std::pair<T, Tv> > bVal) {
           _wrap_pair<T,Tv> mpair(bVal.value());
           ChNameValue< _wrap_pair<T,Tv> > pair_val(bVal.name(), mpair);
           this->in (pair_val);
       }
-        // trick to wrap stl::unordered_map container
+        // trick to wrap std::unordered_map container
       template<class T, class Tv>
       void in     (ChNameValue< std::unordered_map<T, Tv> > bVal) {
           bVal.value().clear();

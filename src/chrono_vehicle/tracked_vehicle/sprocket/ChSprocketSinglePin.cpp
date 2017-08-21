@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -104,7 +104,7 @@ class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
 };
 
 void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
-    // Return now if collision disabled on sproket or track shoes.
+    // Return now if collision disabled on sprocket or track shoes.
     if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
         return;
 

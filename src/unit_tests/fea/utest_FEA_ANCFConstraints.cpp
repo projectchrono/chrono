@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,7 +20,7 @@
 // ChLinkLockLock, whereas the second link (Body_3) is connected to Body_2 through a
 // revolute joint (my_link_23). These two joints are meant to check rigid body to rigid body
 // constraints. Body_3 is connected to node 1 of a 4x4 mesh of ANCF shell elements.
-// To apply these rigid-body/ANCF shell element contraints, we use the classes
+// To apply these rigid-body/ANCF shell element constraints, we use the classes
 // ChLinkPointFrame and ChLinkDirFrame, which impose contraints in the position and
 // gradient vector of the constrained node, respectively. A local or global direction is
 // used to constrained the gradient of the ANCF element w.r.t. the rigid body

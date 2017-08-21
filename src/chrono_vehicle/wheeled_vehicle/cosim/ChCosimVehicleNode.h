@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,9 +30,6 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled_cosim
-/// @{
-
 class CH_VEHICLE_API ChCosimVehicleNode : public ChCosimNode {
   public:
     ChCosimVehicleNode(int rank, ChWheeledVehicle* vehicle, ChPowertrain* powertrain, ChDriver* driver);
@@ -51,8 +48,6 @@ class CH_VEHICLE_API ChCosimVehicleNode : public ChCosimNode {
     int m_num_wheels;
     TireForces m_tire_forces;
 };
-
-/// @} vehicle_wheeled_cosim
 
 }  // end namespace vehicle
 }  // end namespace chrono

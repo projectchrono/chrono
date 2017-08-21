@@ -29,7 +29,7 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Class that renders the text and other UI elements.
@@ -71,7 +71,9 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
     ChTimer<>* timer_geometry;
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
+
 #endif

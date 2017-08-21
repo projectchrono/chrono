@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -13,6 +13,7 @@
 // =============================================================================
 //
 // Description: lots of useful definitions for thrust, includes and enums
+//
 // =============================================================================
 
 #pragma once
@@ -63,6 +64,9 @@ static std::ostream null_stream(&null_buffer);
 #define THRUST_PAR
 #endif
 
+/// @addtogroup parallel_module
+/// @{
+
 #define Thrust_Inclusive_Scan_Sum(x, y)                               \
     thrust::inclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin()); \
     y = x.back();
@@ -86,51 +90,86 @@ static std::ostream null_stream(&null_buffer);
 #define Thrust_Unique(x) thrust::unique(THRUST_PAR x.begin(), x.end()) - x.begin();
 #define DBG(x) printf(x);
 
+/// @} parallel_module
+
 namespace chrono {
 
+/// @addtogroup parallel_module
+/// @{
+
+/// Iterative solver type.
 enum class SolverType {
-    STEEPEST_DESCENT,
-    GRADIENT_DESCENT,
-    CONJUGATE_GRADIENT,
-    CONJUGATE_GRADIENT_SQUARED,
-    BICONJUGATE_GRADIENT,
-    BICONJUGATE_GRADIENT_STAB,
-    MINIMUM_RESIDUAL,
-    QUASI_MINIMUM_RESIDUAL,
-    APGD,
-    APGDREF,
-    JACOBI,
-    GAUSS_SEIDEL,
-    PDIP,
-    BB,
-    SPGQP
+    STEEPEST_DESCENT,            ///< steepest descent
+    GRADIENT_DESCENT,            ///< gradient descent
+    CONJUGATE_GRADIENT,          ///< conjugate gradient
+    CONJUGATE_GRADIENT_SQUARED,  ///< conjugate gradient squared
+    BICONJUGATE_GRADIENT,        ///< BiCG
+    BICONJUGATE_GRADIENT_STAB,   ///< BiCGStab
+    MINIMUM_RESIDUAL,            ///< MINRES (minimum residual)
+    QUASI_MINIMUM_RESIDUAL,      ///< Quasi MINRES
+    APGD,                        ///< Accelerated Projected Gradient Descent
+    APGDREF,                     ///< reference implementation for APGD
+    JACOBI,                      ///< Jacobi
+    GAUSS_SEIDEL,                ///< Gauss-Seidel
+    PDIP,                        ///< Primal-Dual Interior Point
+    BB,                          ///< Barzilai-Borwein
+    SPGQP                        ///< Spectral Projected Gradient (QP projection)
 };
 
-enum class SolverMode { NORMAL, SLIDING, SPINNING, BILATERAL };
+/// Enumeration for solver mode.
+enum class SolverMode {
+    NORMAL,    ///< solve only normal contact impulses
+    SLIDING,   ///< solve for contact and sliding friction impulses
+    SPINNING,  ///< solve for rolling resistance impulses
+    BILATERAL  ///< solve for bilateral Lagrange multipliers
+};
 
-enum class CollisionSystemType { COLLSYS_PARALLEL, COLLSYS_BULLET_PARALLEL };
+/// Enumeration for the collision system type
+enum class CollisionSystemType {
+    COLLSYS_PARALLEL,        ///< default collision system
+    COLLSYS_BULLET_PARALLEL  ///< Bullet-based collision system
+};
 
+/// Enumeration of narrow-phase collision methods.
 enum class NarrowPhaseType {
-    NARROWPHASE_MPR,
-    NARROWPHASE_R,
-    NARROWPHASE_HYBRID_MPR,
+    NARROWPHASE_MPR,        ///< Minkovski Portal Refinement
+    NARROWPHASE_R,          ///< analytical collision detection
+    NARROWPHASE_HYBRID_MPR  ///< analytical method with fallback on MPR
 };
 
-// This is set so that parts of the code that have been "flattened" can know what
-// type of system is used.
-enum class SystemType { SYSTEM_NSC, SYSTEM_SMC };
+/// Enumeration for system type.
+/// Used so that parts of the code that have been "flattened" can know what type of system is used.
+enum class SystemType {
+    SYSTEM_NSC,  ///< system using non-smooth (complementarity) contact
+    SYSTEM_SMC   ///< system using smooth (penalty) contact
+};
 
-// Types of bilateral constraints.
-enum BilateralType { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAFT_SHAFT_BODY, UNKNOWN };
+/// Enumeration for bilateral constraint types.
+enum BilateralType {
+    BODY_BODY,          ///< constraints between two rigid bodies
+    SHAFT_SHAFT,        ///< constraints between two 1-D shaft elements
+    SHAFT_SHAFT_SHAFT,  ///< constraints involving 3 1-D shaft elements
+    SHAFT_BODY,         ///< constraints between a shaft and a rigid body
+    SHAFT_SHAFT_BODY,   ///< constraints involving two shafts and one rigid body
+    UNKNOWN             ///< unknow constraint type
+};
 
-// Supported Logging Levels
-enum class LoggingLevel { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
+/// Supported Logging Levels.
+enum class LoggingLevel {
+    LOG_NONE,     ///< no logging
+    LOG_INFO,     ///< info
+    LOG_TRACE,    ///< tracing
+    LOG_WARNING,  ///< warnings
+    LOG_ERROR     ///< errors
+};
 
-// Explicit conversion of scoped enumeration to int (e.g. for streaming)
+/// Explicit conversion of scoped enumeration to int (e.g. for streaming).
 template <typename Enumeration>
 auto as_integer(Enumeration const value) -> typename std::underlying_type<Enumeration>::type {
     return static_cast<typename std::underlying_type<Enumeration>::type>(value);
 }
+
+/// @} parallel_module
 
 }  // end namespace chrono
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -51,7 +51,7 @@ double ChSimpleTrackDriveline::GetDriveshaftSpeed() const {
 }
 
 // -----------------------------------------------------------------------------
-// This utility function implements a simple model of Torsen limited-splip
+// This utility function implements a simple model of Torsen limited-slip
 // differential with a max_bias:1 torque bias ratio.
 // We hardcode the speed difference range over which the torque bias grows from
 // a value of 1 to a value of max_bias to the interval [0.25, 0.5].

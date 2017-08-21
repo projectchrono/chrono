@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,13 +27,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_steering Steering subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 
@@ -48,8 +41,12 @@ class CH_VEHICLE_API ChSteering : public ChPart {
 
     virtual ~ChSteering() {}
 
+    /// Get the position (location and orientation) of the steering subsystem
+    ///  relative to the chassis reference frame.
+    const ChCoordsys<>& GetPosition() const { return m_position; }
+
     /// Get a handle to the main link of the steering subsystems.
-    /// Return a handle to the body to which the tierods of a steerbale
+    /// Return a handle to the body to which the tierods of a steerable
     /// suspension subsystem are attached.
     std::shared_ptr<ChBody> GetSteeringLink() const { return m_link; }
 
@@ -74,10 +71,14 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     /// Get the total mass of the steering subsystem.
     virtual double GetMass() const = 0;
 
+    /// Get the current global COM location of the steering subsystem.
+    virtual ChVector<> GetCOMPos() const = 0;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
 
   protected:
+    ChCoordsys<> m_position;         ///< location and orientation relative to chassis
     std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link
 };
 

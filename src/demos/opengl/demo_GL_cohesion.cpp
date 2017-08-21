@@ -1,11 +1,8 @@
-//
-// PROJECT CHRONO - http://projectchrono.org
-//
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -126,6 +123,8 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
 

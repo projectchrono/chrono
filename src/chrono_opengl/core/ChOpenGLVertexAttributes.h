@@ -33,7 +33,7 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Support for ADS lighting with glow and texture coordinates.
@@ -55,6 +55,7 @@ class CH_OPENGL_API ChOpenGLVertexAttributesPADSNT {
     glm::vec2 texture_coordinate;
 };
 
+/// Support for ADS lighting with glow.
 class CH_OPENGL_API ChOpenGLVertexAttributesPADSN {
   public:
     ChOpenGLVertexAttributesPADSN();
@@ -109,7 +110,9 @@ class CH_OPENGL_API ChOpenGLVertexAttributesP {
     glm::vec3 position;
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
+
 #endif

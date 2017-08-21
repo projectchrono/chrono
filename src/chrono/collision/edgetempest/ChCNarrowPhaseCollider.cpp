@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include <cstdio>
 #include <cstring>
@@ -70,7 +71,7 @@ ChNarrowPhaseCollider::eCollSuccess ChNarrowPhaseCollider::ComputeCollisions(ChM
     this->num_geo_tests = 0;
 
     // don't release the memory,
-    // DONT reset the num_collision_pairs counter (may be mutiple calls for different object couples)
+    // DONT reset the num_collision_pairs counter (may be multiple calls for different object couples)
     // this->ClearPairsList();
 
     // Precompute useful matrices

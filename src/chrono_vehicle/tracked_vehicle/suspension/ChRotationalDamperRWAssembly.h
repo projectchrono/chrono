@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// Get a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
 
-    /// Return the current pitch angle of the carrir body.
+    /// Return the current pitch angle of the carrier body.
     /// This angle is measured in the x-z transversal plane, from the initial configuration,
     /// and follows the right-hand rule.
     virtual double GetCarrierAngle() const override;

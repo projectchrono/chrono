@@ -35,6 +35,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_FialaTire.h
     hmmwv/HMMWV_LugreTire.cpp
     hmmwv/HMMWV_LugreTire.h
+    hmmwv/HMMWV_Pac89Tire.cpp
+    hmmwv/HMMWV_Pac89Tire.h	
     hmmwv/HMMWV_PitmanArm.cpp
     hmmwv/HMMWV_PitmanArm.h
     hmmwv/HMMWV_Powertrain.cpp
@@ -47,6 +49,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_SimpleDriveline.h
     hmmwv/HMMWV_SimplePowertrain.cpp
     hmmwv/HMMWV_SimplePowertrain.h
+    hmmwv/HMMWV_SimpleMapPowertrain.cpp
+    hmmwv/HMMWV_SimpleMapPowertrain.h
     hmmwv/HMMWV_Vehicle.h
     hmmwv/HMMWV_VehicleFull.cpp
     hmmwv/HMMWV_VehicleFull.h
@@ -105,6 +109,8 @@ set(CVM_GENERIC_FILES
     generic/Generic_SimpleDriveline.h
     generic/Generic_RigidSuspension.h
     generic/Generic_RigidSuspension.cpp
+    generic/Generic_RigidPinnedAxle.h
+    generic/Generic_RigidPinnedAxle.cpp
 )
 source_group("generic" FILES ${CVM_GENERIC_FILES})
 

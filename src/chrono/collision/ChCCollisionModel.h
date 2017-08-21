@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_COLLISIONMODEL_H
 #define CHC_COLLISIONMODEL_H
@@ -56,9 +56,6 @@ enum ShapeType {
 
 class ChApi ChCollisionModel {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChCollisionModel)
-
   public:
     ChCollisionModel();
 
@@ -72,7 +69,7 @@ class ChApi ChCollisionModel {
 
     /// Builds the BV hierarchy.
     /// Call this function AFTER adding the geometric description.
-    /// MUST be inherited by child classes! (ex for bulding BV hierarchies)
+    /// MUST be inherited by child classes! (ex for building BV hierarchies)
     virtual int BuildModel() = 0;
 
     //
@@ -175,9 +172,9 @@ class ChApi ChCollisionModel {
 
     /// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
     /// The barrel shape is made by lathing an arc of an ellipse around the vertical Y axis.
-    /// The center of the ellipse is on Y=0 level, and it is ofsetted by R_offset from
+    /// The center of the ellipse is on Y=0 level, and it is offsetted by R_offset from
     /// the Y axis in radial direction. The two radii of the ellipse are R_vert (for the
-    /// vertical direction, i.e. the axis parellel to Y) and R_hor (for the axis that
+    /// vertical direction, i.e. the axis parallel to Y) and R_hor (for the axis that
     /// is perpendicular to Y). Also, the solid is clamped with two discs on the top and
     /// the bottom, at levels Y_low and Y_high.
     virtual bool AddBarrel(double Y_low,
@@ -188,7 +185,7 @@ class ChApi ChCollisionModel {
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1)) = 0;
 
-    /// Add a 2D closed line, defined on the XY plane passing by pos and alinged as rot,
+    /// Add a 2D closed line, defined on the XY plane passing by pos and aligned as rot,
     /// that defines a 2D collision shape that will collide with another 2D line of the same type
     /// if aligned on the same plane. This is useful for mechanisms that work on a plane, and that
     /// require more precise collision that is not possible with current 3D shapes. For example,
@@ -196,7 +193,7 @@ class ChApi ChCollisionModel {
     /// Requirements: 
     /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
     /// - the line must contain only ChLineSegment and ChLineArc sub-lines
-    /// - the sublines must follow in the proper order, with cohincident corners, and must be closed.
+    /// - the sublines must follow in the proper order, with coincident corners, and must be closed.
     virtual bool Add2Dpath(geometry::ChLinePath& mpath,
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
@@ -242,7 +239,7 @@ class ChApi ChCollisionModel {
     /// By default it uses GetCsysForCollisionModel 
     virtual void SyncPosition() =0;
 
-    /// By default, all collsion objects belong to family n.0,
+    /// By default, all collision objects belong to family n.0,
     /// but you can set family in range 0..15. This is used when
     /// the objects collided with another: the contact is created
     /// only if the family is within the 'family mask' of the other,
@@ -299,14 +296,14 @@ class ChApi ChCollisionModel {
     /// Sets the suggested collision 'inward safe margin' for the
     /// shapes to be added from now on, using the AddBox,
     /// AddCylinder etc (where, if this margin is too high for some
-    /// thin or small shapes, it may be clamped)..
-    /// If dist<0 and interpenetation occurs (ex.for numerical errors) within
+    /// thin or small shapes, it may be clamped).
+    /// If dist\<0 and interpretation occurs (ex.for numerical errors) within
     /// this 'safe margin' inward range, collision detection is still fast
     /// and reliable (beyond this, for deep penetrations, CD still works,
     /// but might be slower and less reliable)
     /// Call this BEFORE adding the shapes into the model.
     /// Side effect: think at the margin as a radius of a 'smoothing' fillet
-    /// on all corners of the shapes - that's why you cannot exceed with this...
+    /// on all corners of the shapes - that's why you cannot exceed with this.
     virtual void SetSafeMargin(double amargin) { model_safe_margin = (float)amargin; }
     /// Returns the inward safe margin (see SetSafeMargin() )
     virtual float GetSafeMargin() { return model_safe_margin; }
@@ -315,12 +312,12 @@ class ChApi ChCollisionModel {
     /// added, from now on, to this collision model).  This 'envelope' is a
     /// surrounding invisible volume which extends outward from the
     /// surface, and it is used to detect contacts a bit before shapes
-    /// come into contact, i.e. when dist>0. However contact points will stay
+    /// come into contact, i.e. when dist\>0. However contact points will stay
     /// on the true surface of the geometry, not on the external surface of the
     /// envelope.
     /// Call this BEFORE adding the shapes into the model.
     /// Side effect: AABB are 'expanded' outward by this amount, so if you
-    /// exagerate with this value, CD might be slower and too sensible.
+    /// exaggerate with this value, CD might be slower and too sensible.
     /// On the other hand, if you set this value to 0, contacts are detected
     /// only for dist<=0, thus causing unstable simulation.
     virtual void SetEnvelope(double amargin) { model_envelope = (float)amargin; }

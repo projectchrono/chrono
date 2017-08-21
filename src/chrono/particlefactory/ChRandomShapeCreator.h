@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHRANDOMSHAPECREATOR_H
 #define CHRANDOMSHAPECREATOR_H
@@ -199,7 +201,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
 
 /// Class for generating convex hulls with variable chordal size
 /// and aspect ratios. By default uses constant distributions
-/// (all hulss are equally sized) but you can provide your distributions.
+/// (all hulls are equally sized) but you can provide your distributions.
 class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
   public:
     ChRandomShapeCreatorConvexHulls() {
@@ -396,7 +398,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
                 generated_probability[i] = generated_stats[i] / sum;
             }
         }
-        // Scan families, starting from randomied index, and see which is
+        // Scan families, starting from randomized index, and see which is
         // 'lagging behind'.
         unsigned int tested_family = (int)floor((double)(family_generators.size() - 1) * ChRandom());
         unsigned int ntests = 0;

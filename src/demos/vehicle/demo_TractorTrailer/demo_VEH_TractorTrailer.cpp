@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -85,13 +85,15 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 #else
 double tend = 20.0;
 
-const std::string out_dir = "../GENERIC_VEHICLE";
+const std::string out_dir = GetChronoOutputPath() + "TRACTOR_TRAILER";
 const std::string pov_dir = out_dir + "/POVRAY";
 #endif
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // --------------------------
     // Create the various modules
     // --------------------------

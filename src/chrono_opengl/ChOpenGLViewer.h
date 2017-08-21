@@ -37,7 +37,7 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 enum RenderMode { POINTS, WIREFRAME, SOLID };
@@ -133,6 +133,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     std::map<std::string, std::vector<glm::mat4> > model_obj;
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }

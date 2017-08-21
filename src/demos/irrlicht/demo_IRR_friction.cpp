@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -38,6 +38,7 @@ using namespace irr::gui;
 
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
@@ -111,7 +112,7 @@ int main(int argc, char* argv[]) {
         mphysicalSystem.Add(msphereBody);
 
         // Notes:
-        // - setting nonzero spinning frition and/or setting nonzero rolling friction
+        // - setting nonzero spinning friction and/or setting nonzero rolling friction
         //   affects the speed of the solver (each contact eats 2x of CPU time repsect to the
         //   case of simple sliding/staic contact)
         // - avoid using zero spinning friction with nonzero rolling friction.
@@ -193,13 +194,13 @@ int main(int argc, char* argv[]) {
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

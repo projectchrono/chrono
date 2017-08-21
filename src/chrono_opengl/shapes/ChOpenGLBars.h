@@ -24,6 +24,10 @@
 namespace chrono {
 namespace opengl {
 
+/// @addtogroup opengl_module
+/// @{
+
+/// Renders rectangular bars.
 class CH_OPENGL_API ChOpenGLBars : public ChOpenGLObject {
   public:
     ChOpenGLBars();
@@ -41,6 +45,10 @@ class CH_OPENGL_API ChOpenGLBars : public ChOpenGLObject {
 
     typedef ChOpenGLObject super;
 };
+
+/// @} opengl_module
+
 }
 }
+
 #endif

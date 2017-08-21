@@ -1,32 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
-//   Demo code about
-//
-//     - meshless deformable material
-//
-//       (This is just a possible method of integration
-//       of Chrono::Engine + Irrlicht: many others
-//       are possible.)
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -171,7 +153,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
@@ -236,7 +218,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

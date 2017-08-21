@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -36,6 +36,7 @@ class ChApiMkl ChMklEngine {
     ChMklEngine(int pb_size = 0, ChSparseMatrix::SymmetryType matrix_type = ChSparseMatrix::GENERAL);
     ~ChMklEngine();
 
+    /// Pardiso phases
     enum phase_t {
         COMPLETE = 13,
         ANALYSIS = 11,
@@ -59,16 +60,18 @@ class ChApiMkl ChMklEngine {
 
     /// Set directly the CSR matrix arrays.
     /// Note that it is implied that the matrix symmetry type is GENERAL.
-    void SetMatrix(int pb_size, double* a, int* ia, int* ja);
+    void SetMatrix(int pb_size, double* a, int* ia, int* ja); //TODO
 
     /// Set the solution vector.
     /// Note that it is the caller's responsibility to provide an array of appropriate size.
     void SetSolutionVector(ChMatrix<>& x);
+    /// As #SetSolutionVector(ChMatrix<>&).
     void SetSolutionVector(double* x);
 
     /// Set the right-hand side vector.
     /// Note that it is the caller's responsibility to ensure that the size is appropriate.
     void SetRhsVector(ChMatrix<>& b);
+    /// As #SetRhsVector(ChMatrix<>&).
     void SetRhsVector(double* b);
 
     /// Set the matrix, as well as the right-hand side and solution arrays.
@@ -85,6 +88,8 @@ class ChApiMkl ChMklEngine {
     /// Calculate and return the problem residual res=b-Ax.
     /// Note that it is the caller's responsibility to provide an array of appropriate size.
     void GetResidual(ChMatrix<>& res) const;
+
+    /// As GetResidual(ChMatrix<>&).
     void GetResidual(double* res) const;
 
     /// Calculate and return the L2-norm of the problem residual, ||b-Ax||.
@@ -110,23 +115,32 @@ class ChApiMkl ChMklEngine {
     /// Indicate to the solver to store the permutation vector and use it in the next calls.
     void UsePermutationVector(bool val);
 
+    /// Computes only a part of the solution, from \a start_row to \a end_row.
     void UsePartialSolution(int option = 1, int start_row = 0, int end_row = 0);
+
+    /// The Schur complement is output on the solution vector m_x that has to be resized to m_n x m_n size;
+    /// The next call to Pardiso must not involve a solution phase. So no phase 33, 331, 332, 333, 23, 13, etc...
+    /// Any solution phase in fact would output the solution on the solution vector m_x.
+    /// The element (\a start_row,\a start_row) must be the top-left element of the matrix on which the Schur complement will be computed;
+    /// The element (\a end_row,\a end_row) must be the bottom-right element of the matrix on which the Schur complement will be computed;
     void OutputSchurComplement(int option, int start_row, int end_row = 0);
+
+    /// Set the parameter that controls preconditioned CGS.
     void SetPreconditionedCGS(bool val, int L);
 
   private:
     // Internal functions
 
-    static MKL_INT ConvertMatrixType(ChSparseMatrix::SymmetryType type);
+    static MKL_INT GetPardisoMatrixType(ChSparseMatrix::SymmetryType type);
     void resetIparmElement(int iparm_num, int reset_value = 0);
 
     // Data
 
     // Matrix in CSR3 format.
-    // Note that ChMklEngine does not own this data.
+    // Note that ChMklEngine does NOT own this data.
     double* m_a;    ///< pointer to the CSR array of non-zero elements of the A
-    MKL_INT* m_ia;  ///< pointer to the CSR array of row indices
-    MKL_INT* m_ja;  ///< pointer to the CSR array of columns indices
+    MKL_INT* m_ia;  ///< pointer to the CSR array of row indexes
+    MKL_INT* m_ja;  ///< pointer to the CSR array of columns indexes
 
     // Right-hand side and solution arrays.
     // Note that ChMklEngine does not own this data.
@@ -142,7 +156,7 @@ class ChApiMkl ChMklEngine {
     MKL_INT m_iparm[64];      ///< Pardiso solver parameters
     MKL_INT m_maxfct;         ///< maximum number of numerical factorizations
     std::vector<int> m_perm;  ///< vector in which the permutation is stored
-    MKL_INT m_mnum;           ///< 1 <= mnum <= maxfct : which factorizations to use; usually 1
+    MKL_INT m_mnum;           ///< 1 <= #m_mnum <= #m_maxfct : which factorizations to use; usually 1
 
     void* m_pt[64];    ///< Pardiso solver internal data
     int m_last_phase;  ///< cached value for the phase used in the last Pardiso call

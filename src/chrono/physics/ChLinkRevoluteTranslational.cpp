@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -362,10 +362,10 @@ void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int of
     react_torque.z() = 0;
 }
 
-void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,  ///< offset in L multipliers
-                                                      ChVectorDynamic<>& R,  ///< result: the R residual, R += c*Cq'*L
-                                                      const ChVectorDynamic<>& L,  ///< the L vector
-                                                      const double c               ///< a scaling factor
+void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,  
+                                                      ChVectorDynamic<>& R,  
+                                                      const ChVectorDynamic<>& L,  
+                                                      const double c               
                                                       ) {
     m_cnstr_par1.MultiplyTandAdd(R, L(off_L + 0) * c);
     m_cnstr_par2.MultiplyTandAdd(R, L(off_L + 1) * c);
@@ -373,11 +373,11 @@ void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L, 
     m_cnstr_dist.MultiplyTandAdd(R, L(off_L + 3) * c);
 }
 
-void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                                      ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                                      const double c,            ///< a scaling factor
-                                                      bool do_clamp,             ///< apply clamping to c*C?
-                                                      double recovery_clamp      ///< value for min/max clamping of c*C
+void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,
+                                                      ChVectorDynamic<>& Qc,   
+                                                      const double c,          
+                                                      bool do_clamp,           
+                                                      double recovery_clamp    
                                                       ) {
     if (!IsActive())
         return;
@@ -397,10 +397,10 @@ void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L, 
     Qc(off_L + 3) += cnstr_dist_violation;
 }
 
-void ChLinkRevoluteTranslational::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChLinkRevoluteTranslational::IntToDescriptor(const unsigned int off_v,
                                                   const ChStateDelta& v,
                                                   const ChVectorDynamic<>& R,
-                                                  const unsigned int off_L,  ///< offset in L, Qc
+                                                  const unsigned int off_L,
                                                   const ChVectorDynamic<>& L,
                                                   const ChVectorDynamic<>& Qc) {
     if (!IsActive())
@@ -417,9 +417,9 @@ void ChLinkRevoluteTranslational::IntToDescriptor(const unsigned int off_v,  ///
     m_cnstr_dist.Set_b_i(Qc(off_L + 3));
 }
 
-void ChLinkRevoluteTranslational::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChLinkRevoluteTranslational::IntFromDescriptor(const unsigned int off_v,
                                                     ChStateDelta& v,
-                                                    const unsigned int off_L,  ///< offset in L
+                                                    const unsigned int off_L,
                                                     ChVectorDynamic<>& L) {
     if (!IsActive())
         return;

@@ -1,13 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+
 #pragma once
 
+#include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
-
-// Chrono::Engine parallel module, version
-//
-// This is an integer, as 0xaabbccdd where
-// for example version 1.2.0 is 0x00010200
-
-#define CH_VERSION_PARALLEL_MODULE 0x00010200
 
 // When compiling this library, remember to define CH_API_COMPILE_PARALLEL
 // (so that the symbols with 'CH_PARALLEL_API' in front of them will be
@@ -52,4 +60,12 @@
     For additional information, see:
     - the [installation guide](@ref module_parallel_installation)
     - the [tutorials](@ref tutorial_root)
+
+    @{
+        @defgroup parallel_physics Physics objects
+        @defgroup parallel_constraint Unilateral constraints
+        @defgroup parallel_collision Collision objects
+        @defgroup parallel_solver Solvers
+        @defgroup parallel_math Math utilities
+    @}
 */

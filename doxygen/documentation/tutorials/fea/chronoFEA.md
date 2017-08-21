@@ -1,7 +1,8 @@
 Chrono FEA module tutorials {#tutorial_table_of_content_chrono_fea}
 ===========================
 
-Tutorials for users that installed the [FEA module](@ref module_fea_installation).
+Tutorials that teach how to use the 
+[FEA module](group__fea__module.html).
 
 - @subpage  tutorial_demo_FEA_basic
 

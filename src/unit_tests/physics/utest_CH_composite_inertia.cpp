@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -92,7 +92,7 @@ bool test_boxes() {
     double hz = 6;
     double rho = 100;
 
-    // Create composite of multipel boxes in all 3 directions
+    // Create composite of multiple boxes in all 3 directions
     int nx = 5;
     int ny = 3;
     int nz = 2;

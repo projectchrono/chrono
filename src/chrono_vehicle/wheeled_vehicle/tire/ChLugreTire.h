@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -84,7 +84,7 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// Return the number of discs used to model this tire.
     virtual int GetNumDiscs() const = 0;
 
-    /// Return the laterla disc locations.
+    /// Return the lateral disc locations.
     /// These locations are relative to the tire center.
     virtual const double* GetDiscLocations() const = 0;
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -23,6 +23,9 @@
 #include "chrono_parallel/math/real4.h"
 
 namespace chrono {
+
+/// @addtogroup parallel_math
+/// @{
 
 class CH_PARALLEL_API Mat33 {
   public:
@@ -330,4 +333,7 @@ CUDA_HOST_DEVICE CH_PARALLEL_API void PrintLine(const SymMat22& A, const char* n
 //[U.x,V.x,W.x][x]
 //[U.y,V.y,W.y][y]
 //[U.z,V.z,W.z][z]
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

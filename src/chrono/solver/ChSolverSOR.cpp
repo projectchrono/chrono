@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -62,7 +62,7 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd  ///< system description with
     }
 
     // 3)  For all items with variables, add the effect of initial (guessed)
-    //     lagrangian reactions of contraints, if a warm start is desired.
+    //     lagrangian reactions of constraints, if a warm start is desired.
     //     Otherwise, if no warm start, simply resets initial lagrangians to zero.
     if (warm_start) {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
@@ -170,12 +170,12 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd  ///< system description with
 
         }  // end loop on constraints
 
-        // For recording into violaiton history, if debugging
+        // For recording into violation history, if debugging
         if (this->record_violation_history)
             AtIterationEnd(maxviolation, maxdeltalambda, iter);
 
         tot_iterations++;
-        // Terminate the loop if violation in constraints has been succesfully limited.
+        // Terminate the loop if violation in constraints has been successfully limited.
         if (maxviolation < tolerance)
             break;
 

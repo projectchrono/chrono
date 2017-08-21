@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHITERATIVE_H
 #define CHITERATIVE_H
@@ -29,7 +30,7 @@ namespace chrono {
 /// TRANSPOSE-FREE QUASI-MINIMAL-RESIDUAL solver for linear systems.
 ///
 /// Iterative method to solve linear systems Ax=b, applies to
-/// both symmetric and non simmetric matrices, does not
+/// both symmetric and non symmetric matrices, does not
 /// breakdown for singular matrices, accepts preconditioning.
 ///
 ///  x         = initial guess for X0 and also matrix to store final value;

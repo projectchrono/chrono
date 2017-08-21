@@ -23,10 +23,10 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
-/// Renders a wireframe view for triangles
+/// Renders a wireframe view for triangles.
 class CH_OPENGL_API ChOpenGLWires : public ChOpenGLObject {
   public:
     ChOpenGLWires();
@@ -45,7 +45,9 @@ class CH_OPENGL_API ChOpenGLWires : public ChOpenGLObject {
     typedef ChOpenGLObject super;
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
+
 #endif

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -211,10 +211,11 @@ void AddBoxBce(ChFsiDataManager* fsiData,
                std::shared_ptr<ChBody> body,
                ChVector<> relPos,
                ChQuaternion<> relRot,
-               const ChVector<>& size) {
+               const ChVector<>& size,
+	       int plane) {
     thrust::host_vector<Real3> posRadBCE;
 
-    CreateBCE_On_Box(posRadBCE, ChFsiTypeConvert::ChVectorToReal3(size), 12, paramsH);
+    CreateBCE_On_Box(posRadBCE, ChFsiTypeConvert::ChVectorToReal3(size), plane, paramsH);
     //	if (fsiData->sphMarkersH.posRadH.size() !=
     // fsiData->numObjects.numAllMarkers) {
     //		printf("Error! numMarkers, %d, does not match posRadH.size(),

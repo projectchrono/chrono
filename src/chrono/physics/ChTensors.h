@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -133,7 +133,7 @@ class ChVoightTensor : public ChMatrixNM<Real, 6, 1> {
         this->ConvertToMatrix(T);
         temp.MatrMultiplyT(T, Rot);
         T.MatrMultiply(Rot, temp);
-        this->ConvertFromMatrix(T);  // to do, more efficient: unroll matrix multiplications and exploit T simmetry
+        this->ConvertFromMatrix(T);  // to do, more efficient: unroll matrix multiplications and exploit T symmetry
     }
 
     /// Compute the eigenvalues (closed form method)

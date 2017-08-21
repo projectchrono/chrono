@@ -2,7 +2,7 @@ Chrono MATLAB module tutorials   {#tutorial_table_of_content_chrono_matlab}
 ================================
 
 Tutorials for users that installed the 
-[MATLAB module](@ref module_matlab_installation).
+[MATLAB module](group__matlab__module.html).
 
 - @subpage  tutorial_demo_matlab
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -74,6 +74,8 @@ void create_column(ChSystemNSC& mphysicalSystem,
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
 
@@ -91,7 +93,7 @@ int main(int argc, char* argv[]) {
 
     // Create all the rigid bodies.
 
-    // Create a floor that is fixed (that is used also to represent the aboslute reference)
+    // Create a floor that is fixed (that is used also to represent the absolute reference)
 
     auto floorBody = std::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, false, true);
     floorBody->SetPos(ChVector<>(0, -2, 0));
@@ -179,13 +181,13 @@ int main(int argc, char* argv[]) {
     //
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

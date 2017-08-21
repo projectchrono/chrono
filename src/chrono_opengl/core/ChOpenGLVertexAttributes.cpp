@@ -18,7 +18,6 @@
 // C = color
 // N = normal
 // T = texture coordinates
-
 // A = Ambient
 // D = Diffuse
 // S = Specular

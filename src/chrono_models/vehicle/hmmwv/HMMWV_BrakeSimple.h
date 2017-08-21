@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,6 +27,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Simple HMMWV brake subsystem (torque applied directly to the spindle joint).
 class CH_MODELS_API HMMWV_BrakeSimple : public ChBrakeSimple {
   public:
     HMMWV_BrakeSimple(const std::string& name);
@@ -37,6 +41,8 @@ class CH_MODELS_API HMMWV_BrakeSimple : public ChBrakeSimple {
   private:
     static const double m_maxtorque;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

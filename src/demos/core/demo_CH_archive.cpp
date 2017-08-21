@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -24,6 +24,10 @@
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
+
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChFileutils.h"
+
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrixDynamic.h"
@@ -122,11 +126,10 @@ class myEmployee {
 // 'class factory' registration of your class if you want to deserialize
 // objects whose exact class is not known in advance:
 
-CH_FACTORY_REGISTER(myEmployee)  //*****  needed for advanced serialization
+CH_FACTORY_REGISTER(myEmployee)  //*****  for advanced serialization
 
 
 // Ok, now let's do something even more difficult: an inherited class.
-// Note the CH_FACTORY_TAG macro. 
 
 class myEmployeeBoss : public myEmployee {
 
@@ -171,9 +174,9 @@ class myEmployeeBoss : public myEmployee {
     }
 };
 
-CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
+CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  for advanced serialization
 
-// Use the following to mark a class version:
+// Use the following to mark a class version:   //*****  optional, for advanced serialization
 namespace chrono {
 CH_CLASS_VERSION(myEmployeeBoss, 2)
 }
@@ -254,7 +257,7 @@ class myEmployeeCustomConstructor : public myEmployee {
 
 };
 
-CH_FACTORY_REGISTER(myEmployeeCustomConstructor)  //*****  needed for advanced serialization
+CH_FACTORY_REGISTER(myEmployeeCustomConstructor)  //*****  for advanced serialization
 
 
                               
@@ -330,8 +333,8 @@ void my_serialization_example(ChArchiveOut& marchive)
         // class abstraction (class factory) mechanism, so that it
         // can be loaded later even if we do not know if it was an object of
         // class 'myEmployee' or specialized class 'myEmployeeBoss'...
-        // In order to use this feature, the classes must use CH_FACTORY_TAG 
-        // and CH_FACTORY_REGISTER macros, and must implement ArchiveIN() and ArchiveOUT().
+        // In order to use this feature, classes must use the CH_FACTORY_REGISTER macros, 
+        // and must implement ArchiveIN() and ArchiveOUT().
         myEmployeeBoss* a_boss = new myEmployeeBoss(64, 22356, false);
         a_boss->slave.age = 24;
         marchive << CHNVP(a_boss);  //  object was referenced by pointer.
@@ -513,10 +516,17 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     GetLog() << "\n"
              << "CHRONO foundation classes demo: archives (serialization)\n\n";
 
+    // Create (if needed) output directory
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_ARCHIVE";
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     //  Archives inherited from the base class ChArchiveOut can be
     // used to serialize objects, and streams inherited from ChArchiveIn
@@ -531,7 +541,8 @@ int main(int argc, char* argv[]) {
             // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
             //
 
-            ChStreamOutAsciiFile mfileo("foo_archive.txt");
+            std::string asciifile = out_dir + "/foo_archive.txt";
+            ChStreamOutAsciiFile mfileo(asciifile.c_str());
 
             // Create a binary archive, that uses the binary file as storage.
             ChArchiveAsciiDump marchiveout(mfileo);
@@ -546,7 +557,8 @@ int main(int argc, char* argv[]) {
             //
 
             {
-                ChStreamOutBinaryFile mfileo("foo_archive.dat");
+                std::string binfile = out_dir + "/foo_archive.dat";
+                ChStreamOutBinaryFile mfileo(binfile.c_str());
                 
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveOutBinary marchiveout(mfileo);
@@ -555,7 +567,8 @@ int main(int argc, char* argv[]) {
             }
 
             {
-                ChStreamInBinaryFile mfilei("foo_archive.dat");
+                std::string binfile = out_dir + "/foo_archive.dat";
+                ChStreamInBinaryFile mfilei(binfile.c_str());
                 
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveInBinary marchivein(mfilei);
@@ -571,7 +584,8 @@ int main(int argc, char* argv[]) {
             //
 
             {
-                ChStreamOutAsciiFile mfileo("foo_archive.json");
+                std::string jsonfile = out_dir + "/foo_archive.json";
+                ChStreamOutAsciiFile mfileo(jsonfile.c_str());
 
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveOutJSON marchiveout(mfileo);
@@ -581,7 +595,8 @@ int main(int argc, char* argv[]) {
 
             
             {
-                ChStreamInAsciiFile mfilei("foo_archive.json");
+                std::string jsonfile = out_dir + "/foo_archive.json";
+                ChStreamInAsciiFile mfilei(jsonfile.c_str());
 
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveInJSON marchivein(mfilei);

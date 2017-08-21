@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -29,13 +29,6 @@
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
-/**
-    @addtogroup vehicle_tracked
-    @{
-        @defgroup vehicle_tracked_utils Utility classes
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 
@@ -46,7 +39,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
   public:
     /// Default constructor.
-    ChTrackTestRig() {}
+    ChTrackTestRig() : ChVehicle("TrackTestRig") {}
 
     /// Construct a test rig from specified track assembly JSON file.
     ChTrackTestRig(
@@ -78,6 +71,12 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Get the rig total mass.
     /// This is simply the mass of the track subsystem.
     virtual double GetVehicleMass() const override;
+
+    /// Get the current global rig COM location.
+    virtual ChVector<> GetVehicleCOMPos() const override {
+        //// TODO
+        return ChVector<>(0, 0, 0);
+    }
 
     /// Return the location of the shaker post.
     const ChVector<>& GetPostPosition() const { return m_post_pos; }

@@ -2,7 +2,7 @@ Plot ChFunction objects in Matlab (demo_MTLB_functions_plot.cpp)  {#tutorial_dem
 ==========================
 
 Entry level demo about how to use Matlab(TM) and the
-[MATLAB module](@ref module_matlab_installation)
-to plot Chrono::Engine objects of the @ref ChFunction class. 
+[MATLAB module](group__matlab__module.html)
+to plot Chrono::Engine objects of the @ref chrono::ChFunction class. 
 
 \include demo_MTLB_functions_plot.cpp

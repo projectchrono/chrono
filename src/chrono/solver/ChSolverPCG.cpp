@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -114,7 +114,7 @@ double ChSolverPCG::Solve(ChSystemDescriptor& sysd  ///< system description with
         double alpha = up / pNp;                      // 4)  alpha =  u'*p / p'*N*p
 
         if (fabs(pNp) < 10e-10)
-            GetLog() << "Rayleygh quotient pNp breakdown \n";
+            GetLog() << "Rayleigh quotient pNp breakdown \n";
 
         // l = l + alpha * p;
         mtmp.CopyFromMatrix(mp);

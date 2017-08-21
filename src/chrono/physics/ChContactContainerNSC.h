@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -31,8 +31,6 @@ namespace chrono {
 /// with 6 reactions, that account also for rolling and spinning resistance), but also
 /// for '6dof vs 6dof' contactables.
 class ChApi ChContactContainerNSC : public ChContactContainer {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactContainerNSC)
 
   public:
     typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSC_6_6;
@@ -98,8 +96,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// Tell the number of added contacts
     virtual int GetNcontacts() const override {
         return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 +
-               n_added_6_6_rolling;
+               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
     }
 
     /// Remove (delete) all contained contact data.
@@ -127,9 +124,9 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// Tell the number of scalar bilateral constraints (actually, friction
     /// constraints aren't exactly as unilaterals, but count them too)
     virtual int GetDOC_d() override {
-        return 3 *   (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
-                      n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) 
-               + 6 * (n_added_6_6_rolling);
+        return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
+                    n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
+               6 * (n_added_6_6_rolling);
     }
 
     /// In detail, it computes jacobians, violations, etc. and stores

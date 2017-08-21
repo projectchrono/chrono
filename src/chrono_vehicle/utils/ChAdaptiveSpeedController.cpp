@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -12,12 +12,12 @@
 // Authors: Mike Taylor, Radu Serban
 // =============================================================================
 //
-// Utility classe implementing PID adaptive cruise speed controllers. The base 
+// Utility class implementing PID adaptive cruise speed controllers. The base 
 // class implements the basic functionality to control the error between the 
 // location of a sentinel point (a point at a look-ahead distance in front of the
 // vehicle) and the current target point.
 // Derived classes differ in how they specify the target point.  This can be the
-// closest point to the sentinel point on a pre-defined curve path (currently
+// closest point to the sentinel point on a predefined curve path (currently
 // using a ChBezierCurve) or from some other external sources (e.g. interfacing
 // with a camera sensor).
 //

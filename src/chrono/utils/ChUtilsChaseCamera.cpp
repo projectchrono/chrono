@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -122,7 +122,7 @@ void ChChaseCamera::SetCameraPos(const ChVector<>& pos) {
 // -----------------------------------------------------------------------------
 // Return the camera location and the camera target (look at) location,
 // respectively.
-// Note that in Inside mode, in order to accomodate a narrow field of view, we
+// Note that in Inside mode, in order to accommodate a narrow field of view, we
 // set the target location to be at the current driver location and move back
 // the camera position.
 // -----------------------------------------------------------------------------

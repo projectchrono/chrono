@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -50,8 +50,6 @@ class ChApi ChRecPoint {
 ///     where (x,y) points can be inserted randomly.
 
 class ChApi ChFunction_Recorder : public ChFunction {
-
-    CH_FACTORY_TAG(ChFunction_Recorder)
 
   private:
     std::list<ChRecPoint> m_points;  ///< the list of points

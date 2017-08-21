@@ -1,17 +1,19 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include <cstring>
 
 #include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChFileutils.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include "Windows.h"
@@ -91,6 +93,19 @@ const std::string& GetChronoDataPath() {
 // Chrono data directory (thread safe)
 std::string GetChronoDataFile(const std::string& filename) {
     return chrono_data_path + filename;
+}
+
+// -----------------------------------------------------------------------------
+// Functions for manipulating the Chrono data directory
+// -----------------------------------------------------------------------------
+
+static std::string chrono_out_path("DEMO_OUTPUT/");
+
+const std::string& GetChronoOutputPath() {
+    // If the directory does not yet exists, create it.
+    ChFileutils::MakeDirectory(chrono_out_path.c_str());
+
+    return chrono_out_path;
 }
 
 }  // end namespace chrono

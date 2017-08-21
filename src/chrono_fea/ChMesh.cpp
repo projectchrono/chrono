@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -83,6 +83,7 @@ void ChMesh::SetNoSpeedNoAcceleration() {
 }
 
 void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
+    m_node->SetIndex(vnodes.size() + 1);
     vnodes.push_back(m_node);
 }
 
@@ -168,11 +169,11 @@ void ChMesh::RemoveCollisionModelsFromSystem() {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChMesh::IntStateGather(const unsigned int off_x,  ///< offset in x state vector
-                            ChState& x,                ///< state vector, position part
-                            const unsigned int off_v,  ///< offset in v state vector
-                            ChStateDelta& v,           ///< state vector, speed part
-                            double& T)                 ///< time
+void ChMesh::IntStateGather(const unsigned int off_x,  
+                            ChState& x,                
+                            const unsigned int off_v,  
+                            ChStateDelta& v,           
+                            double& T)                 
 {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
@@ -187,11 +188,11 @@ void ChMesh::IntStateGather(const unsigned int off_x,  ///< offset in x state ve
     T = GetChTime();
 }
 
-void ChMesh::IntStateScatter(const unsigned int off_x,  ///< offset in x state vector
-                             const ChState& x,          ///< state vector, position part
-                             const unsigned int off_v,  ///< offset in v state vector
-                             const ChStateDelta& v,     ///< state vector, speed part
-                             const double T)            ///< time
+void ChMesh::IntStateScatter(const unsigned int off_x,  
+                             const ChState& x,          
+                             const unsigned int off_v,  
+                             const ChStateDelta& v,     
+                             const double T)            
 {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
@@ -226,11 +227,11 @@ void ChMesh::IntStateScatterAcceleration(const unsigned int off_a, const ChState
     }
 }
 
-void ChMesh::IntStateIncrement(const unsigned int off_x,  ///< offset in x state vector
-                               ChState& x_new,            ///< state vector, position part, incremented result
-                               const ChState& x,          ///< state vector, initial position part
-                               const unsigned int off_v,  ///< offset in v state vector
-                               const ChStateDelta& Dv)    ///< state vector, increment
+void ChMesh::IntStateIncrement(const unsigned int off_x,  
+                               ChState& x_new,            
+                               const ChState& x,          
+                               const unsigned int off_v,  
+                               const ChStateDelta& Dv)    
 {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
@@ -243,9 +244,9 @@ void ChMesh::IntStateIncrement(const unsigned int off_x,  ///< offset in x state
     }
 }
 
-void ChMesh::IntLoadResidual_F(const unsigned int off,  // offset in R residual (not used here! use particle's offsets)
-                               ChVectorDynamic<>& R,    // result: the R residual, R += c*F
-                               const double c           // a scaling factor
+void ChMesh::IntLoadResidual_F(const unsigned int off, 
+                               ChVectorDynamic<>& R,   
+                               const double c          
                                ) {
     // applied nodal forces
     unsigned int local_off_v = 0;
@@ -328,10 +329,10 @@ void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
     }
 }
 
-void ChMesh::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChMesh::IntToDescriptor(const unsigned int off_v,
                              const ChStateDelta& v,
                              const ChVectorDynamic<>& R,
-                             const unsigned int off_L,  ///< offset in L, Qc
+                             const unsigned int off_L,
                              const ChVectorDynamic<>& L,
                              const ChVectorDynamic<>& Qc) {
     unsigned int local_off_v = 0;
@@ -343,9 +344,9 @@ void ChMesh::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
     }
 }
 
-void ChMesh::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChMesh::IntFromDescriptor(const unsigned int off_v,
                                ChStateDelta& v,
-                               const unsigned int off_L,  ///< offset in L
+                               const unsigned int off_L,
                                ChVectorDynamic<>& L) {
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {

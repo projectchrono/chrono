@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -32,8 +32,6 @@ namespace chrono {
 
 class ChApi ChFunction_Oscilloscope : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Oscilloscope)
-
   private:
     std::list<double> values;
     double end_x;
@@ -54,8 +52,8 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     virtual double Get_y(double x) const override;
 
     /// Add a point at the head (right side of point array).
-    /// Note that it is user's responsability to add points
-    /// which are spaced uniformily (by dx) on the X axis!
+    /// Note that it is user's responsibility to add points
+    /// which are spaced uniformly (by dx) on the X axis!
     /// No checks are done on the correctness of the dx spacing,
     /// except that if you enter a point whose mx is less than the
     /// mx of the one you previously entered, the array is cleared.

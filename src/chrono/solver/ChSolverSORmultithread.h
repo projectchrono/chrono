@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,11 +19,12 @@
 #include "chrono/parallel/ChThreads.h"
 
 namespace chrono {
+/// An iterative solver based on projective fixed point method, with overrelaxation
+/// and immediate variable update as in SOR methods. Multi-threaded.\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures
+/// passed to the solver.
 
 class ChApi ChSolverSORmultithread : public ChIterativeSolver {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolverSORmultithread)
 
   protected:
     ChThreads* solver_threads;

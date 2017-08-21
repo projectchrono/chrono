@@ -1,10 +1,10 @@
-A small application for converting STEP files (demo_converter.cpp)  {#tutorial_demo_converter}
+A small application for converting STEP files (demo_CAS_converter.cpp)  {#tutorial_demo_converter}
 ==========================
 
 
 Tutorial that teaches how to use the 
-[CASCADE module](@ref module_cascade_installation)
+[CASCADE module](group__cascade__module.html)
 to import, convert and visualize STEP models.
 
  
-\include demo_converter.cpp
+\include demo_CAS_converter.cpp

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -55,13 +55,13 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     virtual double GetElement(int row, int col) const override;
 
     /// Return the row index array in the CSR representation of this matrix.
-    virtual int* GetCSR_LeadingIndexArray() const override;
+    virtual int* GetCS_LeadingIndexArray() const override;
 
     /// Return the column index array in the CSR representation of this matrix.
-    virtual int* GetCSR_TrailingIndexArray() const override;
+    virtual int* GetCS_TrailingIndexArray() const override;
 
     /// Return the array of matrix values in the CSR representation of this matrix.
-    virtual double* GetCSR_ValueArray() const override;
+    virtual double* GetCS_ValueArray() const override;
 
     /// Convert to dense matrix.
     void ConvertToDense(ChMatrixDynamic<double>& mat);

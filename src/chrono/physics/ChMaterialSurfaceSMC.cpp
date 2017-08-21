@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -104,7 +104,8 @@ void ChMaterialSurfaceSMC::ArchiveIN(ChArchiveIn& marchive) {
 ChMaterialCompositeSMC::ChMaterialCompositeSMC()
     : E_eff(0), G_eff(0), mu_eff(0), cr_eff(0), adhesion_eff(0), adhesionMultDMT_eff(0), kn(0), kt(0), gn(0), gt(0) {}
 
-ChMaterialCompositeSMC::ChMaterialCompositeSMC(std::shared_ptr<ChMaterialSurfaceSMC> mat1,
+ChMaterialCompositeSMC::ChMaterialCompositeSMC(ChMaterialCompositionStrategy<float>* strategy,
+                                               std::shared_ptr<ChMaterialSurfaceSMC> mat1,
                                                std::shared_ptr<ChMaterialSurfaceSMC> mat2) {
     float inv_E = (1 - mat1->poisson_ratio * mat1->poisson_ratio) / mat1->young_modulus +
                   (1 - mat2->poisson_ratio * mat2->poisson_ratio) / mat2->young_modulus;
@@ -114,18 +115,15 @@ ChMaterialCompositeSMC::ChMaterialCompositeSMC(std::shared_ptr<ChMaterialSurface
     E_eff = 1 / inv_E;
     G_eff = 1 / inv_G;
 
-    mu_eff = std::min<float>(mat1->static_friction, mat2->static_friction);
+    mu_eff = strategy->CombineFriction(mat1->static_friction, mat2->static_friction);
+    cr_eff = strategy->CombineRestitution(mat1->restitution, mat2->restitution);
+    adhesion_eff = strategy->CombineCohesion(mat1->constant_adhesion, mat2->constant_adhesion);
+    adhesionMultDMT_eff = strategy->CombineAdhesionMultiplier(mat1->adhesionMultDMT, mat2->adhesionMultDMT);
 
-    cr_eff = (mat1->restitution + mat2->restitution) / 2;
-
-    adhesion_eff = std::min<float>(mat1->constant_adhesion, mat2->constant_adhesion);
-
-    adhesionMultDMT_eff = std::min<float>(mat1->adhesionMultDMT, mat2->adhesionMultDMT);
-
-    kn = (mat1->kn + mat2->kn) / 2;
-    kt = (mat1->kt + mat2->kt) / 2;
-    gn = (mat1->gn + mat2->gn) / 2;
-    gt = (mat1->gt + mat2->gt) / 2;
+    kn = strategy->CombineStiffnessCoefficient(mat1->kn, mat2->kn);
+    kt = strategy->CombineStiffnessCoefficient(mat1->kt, mat2->kt);
+    gn = strategy->CombineDampingCoefficient(mat1->gn, mat2->gn);
+    gt = strategy->CombineDampingCoefficient(mat1->gt, mat2->gt);
 }
 
 }  // end namespace chrono

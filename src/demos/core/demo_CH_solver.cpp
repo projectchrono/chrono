@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -14,6 +14,11 @@
 
 // Include some headers used by this tutorial...
 
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChFileutils.h"
+#include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChLinkedListMatrix.h"
+
 #include "chrono/solver/ChVariablesGeneric.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
@@ -23,8 +28,6 @@
 #include "chrono/solver/ChSolverSOR.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverBB.h"
-#include "chrono/core/ChLinearAlgebra.h"
-#include "chrono/core/ChLinkedListMatrix.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -53,7 +56,7 @@ using namespace chrono;
 // to a ChConstraint object.
 //
 // NOTE: the frictional contact problem is a special type of nonlinear
-// complementarity, called Cone Complementarty (CCP) and this is
+// complementarity, called Cone Complementary (CCP) and this is
 // solved as well by HyperOctant, using the same framework.
 
 // Test 1
@@ -74,7 +77,7 @@ using namespace chrono;
 //  |  1  2 -1  1 -2  0 .       | |-l_1|   |  5|   |c_1|
 //  |  0  1  0  0 -1  0 .       | |-l_2|   | -1|   |c_2|
 
-void test_1() {
+void test_1(const std::string& out_dir) {
     GetLog() << "\n-------------------------------------------------\n";
     GetLog() << "TEST: generic system with two constraints \n\n";
 
@@ -156,8 +159,10 @@ void test_1() {
     mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
 
     try {
-        ChStreamOutAsciiFile fileM("dump_M.dat");
-        ChStreamOutAsciiFile fileCq("dump_Cq.dat");
+        std::string filename = out_dir + "/dump_M_1.dat";
+        ChStreamOutAsciiFile fileM(filename.c_str());
+        filename = out_dir + "/dump_Cq_1.dat";
+        ChStreamOutAsciiFile fileCq(filename.c_str());
         matrM.StreamOUTsparseMatlabFormat(fileM);
         matrCq.StreamOUTsparseMatlabFormat(fileCq);
     } catch (ChException myex) {
@@ -189,7 +194,7 @@ void test_1() {
 // constraints between them, using 'for' loops, as a benchmark that
 // represents, from a physical point of view, a long inverted multipendulum.
 
-void test_2() {
+void test_2(const std::string& out_dir) {
     GetLog() << "\n-------------------------------------------------\n";
     GetLog() << "TEST: 1D vertical pendulum - ChSolverPMINRES \n\n";
 
@@ -224,6 +229,7 @@ void test_2() {
     mdescriptor.EndInsertion();  // ----- system description is finished
 
     try {
+        std::string filename;
         chrono::ChLinkedListMatrix mdM;
         chrono::ChLinkedListMatrix mdCq;
         chrono::ChLinkedListMatrix mdE;
@@ -231,17 +237,29 @@ void test_2() {
         chrono::ChMatrixDynamic<double> mdb;
         chrono::ChMatrixDynamic<double> mdfric;
         mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-        chrono::ChStreamOutAsciiFile file_M("dump_M.dat");
+
+        filename = out_dir + "/dump_M_2.dat";
+        chrono::ChStreamOutAsciiFile file_M(filename.c_str());
         mdM.StreamOUTsparseMatlabFormat(file_M);
-        chrono::ChStreamOutAsciiFile file_Cq("dump_Cq.dat");
+        
+        filename = out_dir + "/dump_Cq_2.dat";
+        chrono::ChStreamOutAsciiFile file_Cq(filename.c_str());
         mdCq.StreamOUTsparseMatlabFormat(file_Cq);
-        chrono::ChStreamOutAsciiFile file_E("dump_E.dat");
+        
+        filename = out_dir + "/dump_E_2.dat";
+        chrono::ChStreamOutAsciiFile file_E(filename.c_str());
         mdE.StreamOUTsparseMatlabFormat(file_E);
-        chrono::ChStreamOutAsciiFile file_f("dump_f.dat");
+        
+        filename = out_dir + "/dump_f_2.dat";
+        chrono::ChStreamOutAsciiFile file_f(filename.c_str());
         mdf.StreamOUTdenseMatlabFormat(file_f);
-        chrono::ChStreamOutAsciiFile file_b("dump_b.dat");
+        
+        filename = out_dir + "/dump_b_2.dat";
+        chrono::ChStreamOutAsciiFile file_b(filename.c_str());
         mdb.StreamOUTdenseMatlabFormat(file_b);
-        chrono::ChStreamOutAsciiFile file_fric("dump_fric.dat");
+
+        filename = out_dir + "/dump_fric_2.dat";
+        chrono::ChStreamOutAsciiFile file_fric(filename.c_str());
         mdfric.StreamOUTdenseMatlabFormat(file_fric);
     } catch (chrono::ChException myexc) {
         chrono::GetLog() << myexc.what();
@@ -278,7 +296,7 @@ void test_2() {
 //  | ....................| |... |   |...|   |...|
 //  |  Cq   Cq      .     | |-l_1|   |  5|   |c_1|
 
-void test_3() {
+void test_3(const std::string& out_dir) {
     GetLog() << "\n-------------------------------------------------\n";
     GetLog() << "TEST: generic system with stiffness blocks \n\n";
 
@@ -422,19 +440,25 @@ void test_3() {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    GetLog() << " Example: the HyperOCTANT techology for solving LCP\n\n\n";
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    GetLog() << " Example: the HyperOCTANT technology for solving LCP\n\n\n";
+
+    // Create (if needed) output directory
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_SOLVER";
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     // Test: an introductory problem:
-    test_1();
+    test_1(out_dir);
 
     // Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
-    test_2();
+    test_2(out_dir);
 
     // Test: the stiffness benchmark (add also sparse stiffness blocks over M)
-    test_3();
-
-
-	getchar();
+    test_3(out_dir);
 
     return 0;
 }

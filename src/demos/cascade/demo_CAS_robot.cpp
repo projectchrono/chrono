@@ -1,32 +1,21 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
+// =============================================================================
 //   Show how to use the OpenCASCADE features
 //   implemented in the unit_CASCADE:
 //
 //   - load a 3D model saved in STEP format from a CAD
 //   - select some sub assemblies from the STEP model
 //   - make Chrono::Engine objects out of those parts
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -462,7 +451,7 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
-        application.GetVideoDriver()->beginScene(true, true, video::SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, video::SColor(255, 140, 161, 192));
 
         // .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
         application.DrawAll();
@@ -474,7 +463,7 @@ int main(int argc, char* argv[]) {
         ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2,10,400,300,80);
         ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2,10,500,300,80);
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -40,6 +40,12 @@ class CH_VEHICLE_API ChVehicle {
     /// Destructor.
     virtual ~ChVehicle();
 
+    /// Get the name identifier for this vehicle.
+    const std::string& GetName() const { return m_name; }
+
+    /// Set the name identifier for this vehicle.
+    void SetName(const std::string& name) { m_name = name; }
+
     /// Get a pointer to the Chrono ChSystem.
     ChSystem* GetSystem() { return m_system; }
 
@@ -55,6 +61,9 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.
     virtual double GetVehicleMass() const = 0;
+
+    /// Get the current global vehicle COM location.
+    virtual ChVector<> GetVehicleCOMPos() const = 0;
 
     /// Get the vehicle location.
     /// This is the global location of the chassis reference frame origin.
@@ -72,6 +81,16 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the speed of the chassis COM.
     /// Return the speed measured at the chassis center of mass.
     double GetVehicleSpeedCOM() const { return m_chassis->GetCOMSpeed(); }
+
+    /// Get the global position of the specified point.
+    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The returned location is expressed in the global reference frame.
+    ChVector<> GetVehiclePointLocation(const ChVector<>& locpos) const { return m_chassis->GetPointLocation(locpos); }
+
+    /// Get the global velocity of the specified point.
+    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The returned velocity is expressed in the global reference frame.
+    ChVector<> GetVehiclePointVelocity(const ChVector<>& locpos) const { return m_chassis->GetPointVelocity(locpos); }
 
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
@@ -97,7 +116,7 @@ class CH_VEHICLE_API ChVehicle {
     /// Set visualization mode for the chassis subsystem.
     void SetChassisVisualizationType(VisualizationType vis);
 
-    /// Enable/disable collision for the chassis usbsystem. This function controls
+    /// Enable/disable collision for the chassis subsystem. This function controls
     /// contact of the chassis with all other collision shapes in the simulation.
     void SetChassisCollide(bool state);
 
@@ -119,12 +138,18 @@ class CH_VEHICLE_API ChVehicle {
     virtual void LogConstraintViolations() = 0;
 
   protected:
-    /// Construct a vehicle system with a default ChSystem.
-    ChVehicle(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
+    /// Construct a vehicle system with an underlying ChSystem.
+    ChVehicle(const std::string& name,                                                  ///< [in] vehicle name
+              ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+              );
 
     /// Construct a vehicle system using the specified ChSystem.
-    ChVehicle(ChSystem* system);
+    /// All physical components of the vehicle will be added to that system.
+    ChVehicle(const std::string& name,  ///< [in] vehicle name
+              ChSystem* system          ///< [in] containing mechanical system
+              );
 
+    std::string m_name;  ///< vehicle name
     ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_ownsSystem;   ///< true if system created at construction
 

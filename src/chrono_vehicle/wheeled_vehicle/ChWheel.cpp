@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -40,6 +40,14 @@ void ChWheel::Initialize(std::shared_ptr<ChBody> spindle) {
     m_spindle = spindle;
     spindle->SetMass(spindle->GetMass() + GetMass());
     spindle->SetInertiaXX(spindle->GetInertiaXX() + GetInertia());
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the wheel subsystem.
+// This is simply the COM of the associated spindle body.
+// -----------------------------------------------------------------------------
+ChVector<> ChWheel::GetCOMPos() const {
+    return m_spindle->GetPos();
 }
 
 // -----------------------------------------------------------------------------

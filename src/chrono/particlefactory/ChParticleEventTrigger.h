@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHPARTICLEEVENTTRIGGER_H
 #define CHPARTICLEEVENTTRIGGER_H
@@ -40,7 +42,7 @@ class ChParticleEventTrigger {
     virtual void SetupPostProcess(ChSystem& msystem){};
 };
 
-/// Simpliest case: never trigger
+/// Simplest case: never trigger
 class ChParticleEventTriggerNever : public ChParticleEventTrigger {
   public:
     /// Never trig events
@@ -92,11 +94,11 @@ class _particle_last_pos {
 
 /// Trigger an event each time a particle flows into a rectangle.
 /// Rectangle is defined with a coordinate system, in the center, and two X Y sizes.
-/// This is triggered only if the particle is flowing from positove Z to negative Z.
+/// This is triggered only if the particle is flowing from positive Z to negative Z.
 /// Note! there is a 'margin' parameter that must be greater than zero: only particles that
-/// in the neighborhood of the rectangle (less distant than the margin) are cosidered, to
+/// in the neighborhood of the rectangle (less distant than the margin) are considered, to
 /// save computational time. Too small margin might miss some fast-travelin particles, so
-/// margin shoud be at least 'max particle speed' * dt.
+/// margin should be at least 'max particle speed' * dt.
 class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
   public:
     ChParticleEventFlowInRectangle(double mXsize = 1, double mYsize = 1) {

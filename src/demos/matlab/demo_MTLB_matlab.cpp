@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -22,10 +22,12 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Better put the Matlab stuff inside a try{}, since it may throw exception if
     // the engine is not started (because Matlab not properly installed)
     try {
-        GetLog() << "PERFORM TESTS OF MATLAB<->CHRONOENGINE INTERACTION\n\n";
+        GetLog() << "PERFORM TESTS OF MATLAB<->CHRONO INTERACTION\n\n";
         GetLog() << "(please wait few seconds: Matlab engine must be loaded)\n\n";
 
         // This is the object that you can use to access the Matlab engine.
@@ -38,7 +40,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 1: execute a Matlab command
         //
 
-        GetLog() << "- Execute plotting command from Chrono::Engine...\n\n";
+        GetLog() << "- Execute plotting command from Chrono...\n\n";
 
         matlab_engine.Eval(
             "z=peaks(25); \

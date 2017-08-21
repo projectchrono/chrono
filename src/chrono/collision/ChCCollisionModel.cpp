@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChBody.h"
@@ -86,7 +89,7 @@ bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
 }
 
 // Set the collision family group of this model.
-// In orer to properly encode a collision family, the value 'group' must be a power of 2.
+// In order to properly encode a collision family, the value 'group' must be a power of 2.
 void ChCollisionModel::SetFamilyGroup(short group) {
     assert(group > 0 && !(group & (group - 1)));
     family_group = group;

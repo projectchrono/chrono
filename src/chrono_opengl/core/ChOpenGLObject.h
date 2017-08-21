@@ -27,7 +27,7 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Base class for all drawable objects.
@@ -56,7 +56,8 @@ class CH_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
     void InternalInitialize();
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
 

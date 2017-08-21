@@ -1,29 +1,18 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
+// =============================================================================
 //   A small interactive editor to test the
 //   convex decomposition settings and the STEP
 //   conversion features of OpenCASCADE library
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/collision/ChCConvexDecomposition.h"
@@ -716,7 +705,7 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw
-        application.GetVideoDriver()->beginScene(true, true, video::SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, video::SColor(255, 140, 161, 192));
 
         // .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
         application.DrawAll();
@@ -726,7 +715,7 @@ int main(int argc, char* argv[]) {
         //	ChCoordsys<>(ChVector<>(0,0.01,0), Q_from_AngX(CH_C_PI_2) ),
         //	video::SColor(40, 90,130,140), true);
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

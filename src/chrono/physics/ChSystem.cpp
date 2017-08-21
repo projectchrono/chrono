@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,6 +30,7 @@
 #include "chrono/solver/ChSolverSymmSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 #include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/utils/ChProfiler.h"
 
 using namespace chrono::collision;
 
@@ -204,10 +205,10 @@ ChSystem::ChSystem()
       solvecount(0),
       setupcount(0),
       dump_matrices(false),
-      last_err(false)
-
-{
-    system = this;  // as needed by ChAssembly
+      last_err(false),
+      composition_strategy(new ChMaterialCompositionStrategy<float>) {
+    // Required by ChAssembly
+    system = this;
 
     // Set default number of threads to be equal to number of available cores
     parallel_thread_number = CHOMPfunctions::GetNumProcs();
@@ -221,7 +222,8 @@ ChSystem::ChSystem()
 }
 
 ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
-    system = this;  // as needed by ChAssembly
+    // Required by ChAssembly
+    system = this;
 
     G_acc = other.G_acc;
     end_time = other.end_time;
@@ -446,6 +448,10 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     assert(GetNbodies() == 0);
     assert(newcollsystem);
     collision_system = newcollsystem;
+}
+
+void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy) {
+    composition_strategy = std::move(strategy);
 }
 
 // Initial system setup before analysis.
@@ -722,7 +728,7 @@ bool ChSystem::ManageSleepingBodies() {
             }
         }
 
-        // scan all contacts and wake neighbouring bodies
+        // scan all contacts and wake neighboring bodies
         contact_container->ReportAllContacts(&my_waker);
 
         // bailout wakeup cycle prematurely, if all bodies are not sleeping
@@ -773,6 +779,7 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
+    CH_PROFILE( "Setup");
     // inherit the parent class (compute offsets of bodies, links, etc.)
     ChAssembly::Setup();
 
@@ -839,6 +846,8 @@ void ChSystem::Setup() {
 // - updates all markers (automatic, as children of bodies).
 
 void ChSystem::Update(bool update_assets) {
+    CH_PROFILE( "Update");
+
     timer_update.start();  // Timer for profiling
 
     // Executes the "forUpdate" in all controls of controlslist
@@ -1224,6 +1233,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
                                     bool force_state_scatter,     // if false, x,v and T are not scattered to the system
                                     bool force_setup              // if true, call the solver's Setup() function
                                     ) {
+    CH_PROFILE( "StateSolveCorrection");
+
     if (force_state_scatter)
         StateScatter(x, v, T);
 
@@ -1369,6 +1380,8 @@ void ChSystem::SynchronizeLastCollPositions() {
 }
 
 double ChSystem::ComputeCollisions() {
+    CH_PROFILE( "ComputeCollisions");
+
     double mretC = 0.0;
 
     timer_collision_broad.start();
@@ -1383,15 +1396,19 @@ double ChSystem::ComputeCollisions() {
     // containers in the physic system. The default contact container
     // for ChBody and ChParticles is used always.
 
-    collision_system->ReportContacts(contact_container.get());
+    {
+        CH_PROFILE( "ReportContacts");
 
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
-            collision_system->ReportContacts(mcontactcontainer.get());
-        }
+        collision_system->ReportContacts(contact_container.get());
 
-        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
-            collision_system->ReportProximities(mproximitycontainer.get());
+        for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
+            if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
+                collision_system->ReportContacts(mcontactcontainer.get());
+            }
+
+            if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
+                collision_system->ReportProximities(mproximitycontainer.get());
+            }
         }
     }
 
@@ -1522,6 +1539,8 @@ int ChSystem::DoStepDynamics(double m_step) {
 // -----------------------------------------------------------------------------
 
 bool ChSystem::Integrate_Y() {
+    CH_PROFILE("Integrate_Y");
+
     ResetTimers();
 
     timer_step.start();
@@ -1559,13 +1578,16 @@ bool ChSystem::Integrate_Y() {
         timestepper->SetQcDoClamp(false);
 
     // PERFORM TIME STEP HERE!
-    timestepper->Advance(step);
+    {
+        CH_PROFILE( "Advance");
+        timestepper->Advance(step);
+    }
 
     // Executes custom processing at the end of step
     CustomEndOfStep();
 
     // If there are some probe objects in the probe list,
-    // tell them to record their variables (ususally x-y couples)
+    // tell them to record their variables (usually x-y couples)
     RecordAllProbes();
 
     // Call method to gather contact forces/torques in rigid bodies
@@ -1578,7 +1600,7 @@ bool ChSystem::Integrate_Y() {
 }
 
 // -----------------------------------------------------------------------------
-// **** SATISFY ALL COSTRAINT EQUATIONS WITH NEWTON
+// **** SATISFY ALL CONSTRAINT EQUATIONS WITH NEWTON
 // **** ITERATION, UNTIL TOLERANCE SATISFIED, THEN UPDATE
 // **** THE "Y" STATE WITH SetY (WHICH AUTOMATICALLY UPDATES
 // **** ALSO AUXILIARY MATRICES).
@@ -1732,7 +1754,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     if (err) {
         last_err = true;
-        GetLog() << "WARNING: some costraints may be redundant, but couldn't be eliminated \n";
+        GetLog() << "WARNING: some constraints may be redundant, but couldn't be eliminated \n";
     }
     return last_err;
 }
@@ -1777,8 +1799,8 @@ bool ChSystem::DoEntireDynamics() {
     Setup();
 
     // the system may have wrong layout, or too large
-    // clearances in costraints, so it is better to
-    // check for costraint violation each time the integration starts
+    // clearances in constraints, so it is better to
+    // check for constraint violation each time the integration starts
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     // Perform the integration steps until the end
@@ -1876,7 +1898,7 @@ bool ChSystem::DoEntireUniformDynamics(double frame_step) {
     return true;
 }
 
-// Like DoFrameDynamics, but performs kinematics instead of dinamics
+// Like DoFrameDynamics, but performs kinematics instead of dynamics
 
 bool ChSystem::DoFrameKinematics(double m_endtime) {
     double frame_step;

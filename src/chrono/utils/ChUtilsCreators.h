@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -259,7 +259,7 @@ ChApi void LoadConvexMesh(const std::string& file_name,
                           float hacd_fusetolerance = 1e-6f);
 
 // Given a path to an obj file, loads the obj assuming that the individual
-// objects in the obj are convex hulls, usefull when loading a precomputed
+// objects in the obj are convex hulls, useful when loading a precomputed
 // set of convex hulls.
 // The output of this function is used with AddConvexCollisionModel
 ChApi void LoadConvexHulls(const std::string& file_name,

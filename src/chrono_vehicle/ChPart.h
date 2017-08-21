@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -31,7 +31,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a vehicle subsystem.
-/// It managemes the part's name, visualization assets, and contact material.
+/// It manages the part's name, visualization assets, and contact material.
 class CH_VEHICLE_API ChPart {
   public:
     /// Construct a vehicle subsystem with the specified name.
@@ -40,10 +40,10 @@ class CH_VEHICLE_API ChPart {
 
     virtual ~ChPart() {}
 
-    /// Get the name identifier for this track shoe subsystem.
+    /// Get the name identifier for this subsystem.
     const std::string& GetName() const { return m_name; }
 
-    /// Set the name identifier for this track shoe subsystem.
+    /// Set the name identifier for this subsystem.
     void SetName(const std::string& name) { m_name = name; }
 
     /// Set the visualization mode for this subsystem.
@@ -68,18 +68,18 @@ class CH_VEHICLE_API ChPart {
     /// system is so configured and if the SMC contact method is being used).
     /// The default values are: Y = 2e5 and nu = 0.3
     void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
-        float poisson_ratio   ///< [in] Poisson ratio
-        );
+                                      float poisson_ratio   ///< [in] Poisson ratio
+                                      );
 
     /// Set contact material coefficients.
     /// These values are used directly to compute contact forces (if the containing system
     /// is so configured and if the SMC contact method is being used).
     /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
     void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
-        float gn,  ///< [in] normal contact damping
-        float kt,  ///< [in] tangential contact stiffness
-        float gt   ///< [in] tangential contact damping
-        );
+                                        float gn,  ///< [in] normal contact damping
+                                        float kt,  ///< [in] tangential contact stiffness
+                                        float gt   ///< [in] tangential contact damping
+                                        );
 
     /// Get coefficient of friction for contact material.
     float GetCoefficientFriction() const { return m_friction; }

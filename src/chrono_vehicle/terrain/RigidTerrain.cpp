@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -340,7 +340,7 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
-    // Readibility aliases
+    // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh.getCoordsVertices();
     std::vector<ChVector<> >& normals = m_trimesh.getCoordsNormals();
     std::vector<ChVector<int> >& idx_vertices = m_trimesh.getIndicesVertexes();
@@ -450,43 +450,38 @@ void RigidTerrain::ExportMeshPovray(const std::string& out_dir) {
 }
 
 // -----------------------------------------------------------------------------
-// Return the terrain height at the specified location
+// Return the terrain height and normal at the specified location.
+// This is done by casting a ray into the collision model from below, 
+// assuming that there are no other contact shapes under the terrain.
 // -----------------------------------------------------------------------------
 double RigidTerrain::GetHeight(double x, double y) const {
     switch (m_type) {
         case FLAT:
             return m_height;
-        case MESH: {
-            double height = 0;
-            //// TODO
-            return height;
-        }
+        case MESH:
         case HEIGHT_MAP: {
-            double height = 0;
-            //// TODO
-            return height;
+            collision::ChCollisionSystem::ChRayhitResult result;
+            m_ground->GetSystem()->GetCollisionSystem()->RayHit(ChVector<>(x, y, -1000), ChVector<>(x, y, +1000),
+                                                                result);
+
+            return result.hit ? result.abs_hitPoint.z() : 0.0;
         }
         default:
             return 0;
     }
 }
 
-// -----------------------------------------------------------------------------
-// Return the terrain normal at the specified location
-// -----------------------------------------------------------------------------
 ChVector<> RigidTerrain::GetNormal(double x, double y) const {
     switch (m_type) {
         case FLAT:
             return ChVector<>(0, 0, 1);
-        case MESH: {
-            ChVector<> normal(0, 0, 1);
-            //// TODO
-            return normal;
-        }
+        case MESH:
         case HEIGHT_MAP: {
-            ChVector<> normal(0, 0, 1);
-            //// TODO
-            return normal;
+            collision::ChCollisionSystem::ChRayhitResult result;
+            m_ground->GetSystem()->GetCollisionSystem()->RayHit(ChVector<>(x, y, -1000), ChVector<>(x, y, +1000),
+                                                                result);
+
+            return result.hit ? -result.abs_hitNormal : ChVector<>(0, 0, 1);
         }
         default:
             return ChVector<>(0, 0, 1);

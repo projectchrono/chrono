@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -37,6 +37,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
   public:
     ChTrackShoeSinglePin(const std::string& name  ///< [in] name of the subsystem
                          );
+
+    virtual ~ChTrackShoeSinglePin() {}
 
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -40,11 +40,15 @@ ChMarker::ChMarker()
     UpdateState();
 }
 
-ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt) {
-    SetName(myname);
-    Body = myBody;
+ChMarker::ChMarker(const std::string& name,
+                   ChBody* body,
+                   const ChCoordsys<>& rel_pos,
+                   const ChCoordsys<>& rel_pos_dt,
+                   const ChCoordsys<>& rel_pos_dtdt) {
+    SetNameString(name);
+    Body = body;
 
-    motion_X = std::make_shared<ChFunction_Const>(0);   // default: no motion
+    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
     motion_Y = std::make_shared<ChFunction_Const>(0); 
     motion_Z = std::make_shared<ChFunction_Const>(0); 
     motion_ang = std::make_shared<ChFunction_Const>(0); 
@@ -54,9 +58,9 @@ ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys m
 
     motion_type = M_MOTION_FUNCTIONS;
 
-    SetCoord(myrel_pos);
-    SetCoord_dt(myrel_pos_dt);
-    SetCoord_dtdt(myrel_pos_dtdt);
+    SetCoord(rel_pos);
+    SetCoord_dt(rel_pos_dt);
+    SetCoord_dtdt(rel_pos_dtdt);
 
     last_rel_coord = CSYSNORM;
     last_rel_coord_dt = CSYSNULL;
@@ -169,13 +173,13 @@ void ChMarker::UpdateTime(double mytime) {
 
     ChTime = mytime;
 
-    // if a imposed motion (keyframed movement) affects the marker postion (example,from R3D animation system),
+    // if a imposed motion (keyframed movement) affects the marker position (example,from R3D animation system),
     // compute the speed and acceleration values by BDF (example,see the UpdatedExternalTime() function, later)
     // so the updating via motion laws can be skipped!
     if (motion_type == M_MOTION_KEYFRAMED)
         return;
 
-    // skip realtive-position-functions evaluation also if
+    // skip relative-position-functions evaluation also if
     // someone is already handling this from outside..
     if (motion_type == M_MOTION_EXTERNAL)
         return;

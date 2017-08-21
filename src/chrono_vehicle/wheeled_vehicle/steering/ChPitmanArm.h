@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -74,6 +74,9 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
 
     /// Get the total mass of the steering subsystem.
     virtual double GetMass() const override;
+
+    /// Get the current global COM location of the steering subsystem.
+    virtual ChVector<> GetCOMPos() const override;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

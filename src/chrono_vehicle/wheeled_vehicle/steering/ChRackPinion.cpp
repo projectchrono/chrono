@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -43,6 +43,8 @@ ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                               const ChVector<>& location,
                               const ChQuaternion<>& rotation) {
+    m_position = ChCoordsys<>(location, rotation);
+
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
     steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -98,6 +100,13 @@ void ChRackPinion::Synchronize(double time, double steering) {
 // -----------------------------------------------------------------------------
 double ChRackPinion::GetMass() const {
     return GetSteeringLinkMass();
+}
+
+// -----------------------------------------------------------------------------
+// Get the current COM location of the steering subsystem.
+// -----------------------------------------------------------------------------
+ChVector<> ChRackPinion::GetCOMPos() const {
+    return m_link->GetPos();
 }
 
 // -----------------------------------------------------------------------------

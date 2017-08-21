@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -38,12 +38,13 @@ using namespace chrono;
 using namespace postprocess;  // <- to keep things shorter
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a Chrono::Engine physical system
     ChSystemNSC mphysicalSystem;
 
-    //
-    // EXAMPLE 1:
-    //
+    /* Start example */
+    /// [Example 1]
 
     // Create a ChBody, and attach some 'assets'
     // that define 3D shapes. These shapes can be shown
@@ -77,9 +78,13 @@ int main(int argc, char* argv[]) {
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     mfloor->AddAsset(mfloorcolor);
 
-    //
-    // EXAMPLE 2:
-    //
+    
+    /// [Example 1]
+    /* End example */
+
+    /* Start example */
+    /// [Example 2]
+    
 
     // Textures, colors, asset levels with transformations.
     // This section shows how to add more advanced types of assets
@@ -170,9 +175,11 @@ int main(int argc, char* argv[]) {
     mcamera->SetAimPoint(ChVector<>(0, 1, 0));
     mbody->AddAsset(mcamera);
 
-    //
-    // EXAMPLE 3:
-    //
+    /// [Example 2]
+    /* End example */
+
+    /* Start example */
+    /// [Example 3]
 
     // Create a ChParticleClones cluster, and attach 'assets'
     // that define a single "sample" 3D shape. This will be shown
@@ -201,28 +208,41 @@ int main(int argc, char* argv[]) {
     mspherepart->GetSphereGeometry().rad = 0.05;
     mparticles->AddAsset(mspherepart);
 
+    /// [Example 3]
+    /* End example */
+
+    /* Start example */
+    /// [POV exporter]
+
     //
     // SETUP THE POSTPROCESSING
     //
 
-    // Create an exporter to POVray !!!
+    // Create (if needed) the output directory
+    const std::string demo_dir = GetChronoOutputPath() + "DEMO_POVRAY";
+    if (ChFileutils::MakeDirectory(demo_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << demo_dir << std::endl;
+        return 1;
+    }
 
+    // Create an exporter to POVray !!!
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
     // Sets some file names for in-out processes.
     pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-    pov_exporter.SetOutputScriptFile("rendering_frames.pov");
+    pov_exporter.SetOutputScriptFile(demo_dir + "/rendering_frames.pov");
     pov_exporter.SetOutputDataFilebase("my_state");
     pov_exporter.SetPictureFilebase("picture");
 
-    // Even better: save the .dat files and the .bmp files
-    // in two subdirectories, to avoid cluttering the current
-    // directory...
-    ChFileutils::MakeDirectory("output");
-    ChFileutils::MakeDirectory("anim");
+    // Even better: save the .dat files and the .bmp files in two subdirectories,
+    // to avoid cluttering the current directory.
+    const std::string out_dir = demo_dir + "/output";
+    const std::string anim_dir = demo_dir + "/anim";
+    ChFileutils::MakeDirectory(out_dir.c_str());
+    ChFileutils::MakeDirectory(anim_dir.c_str());
 
-    pov_exporter.SetOutputDataFilebase("output/my_state");
-    pov_exporter.SetPictureFilebase("anim/picture");
+    pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
+    pov_exporter.SetPictureFilebase(anim_dir + "/picture");
 
     // --Optional: modify default light
     pov_exporter.SetLight(ChVector<>(-3, 4, 2), ChColor(0.15f, 0.15f, 0.12f), false);
@@ -264,6 +284,12 @@ int main(int argc, char* argv[]) {
     //	pov_exporter.Add(mbody);
     //	pov_exporter.Add(mparticles);
 
+    /// [POV exporter]
+    /* End example */
+
+    /* Start example */
+    /// [POV simulation]
+
     //
     // RUN THE SIMULATION AND SAVE THE POVray FILES AT EACH FRAME
     //
@@ -288,6 +314,9 @@ int main(int argc, char* argv[]) {
     // load in POV-Ray, then when you press 'RUN' you will see that
     // POV-Ray will start rendering a short animation, saving the frames
     // in the directory 'anim'.
+
+    /// [POV simulation]
+    /* End example */
 
     return 0;
 }

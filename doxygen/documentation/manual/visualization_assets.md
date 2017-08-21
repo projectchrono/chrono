@@ -58,10 +58,10 @@ for (unsigned int na= 0; na<abody->GetAssets().size(); na++)
 
 There are many ready-to-use assets that define visualization shapes. Note that multiple visualization shapes can be attached to one body. 
 
-Chrono is rendering engine agnostic. Indeed, if the [IRRLICHT module](@ref module_irrlicht) is used,
+Chrono is rendering engine agnostic. Indeed, if the [IRRLICHT module](group__irrlicht__module.html) is used,
 it is up to the Irrlicht module to convert the visualization assets 
 into something that can be rendered in the OpenGL view of Irrlicht. Likewise, 
-if the [POSTPROCESSING module](@ref module_postprocessing) is used instead, this unit is expected to convert the visualization assets into scripts with shapes for the POVray or some other rendering tool.
+if the [POSTPROCESS module](group__postprocess__module.html) is used instead, this unit is expected to convert the visualization assets into scripts with shapes for the POVray or some other rendering tool.
 
 Visualization assets are inherited from a base class called ChVisualization.
 See @ref chrono::ChVisualization for API details.
@@ -73,14 +73,14 @@ of the owner [body](@ref rigid_bodies). Note that this is not the COG frame, as 
 
 Examples of visualization assets:
 
-- ChSphereShape
-- ChBoxShape
-- ChCylinderShape
-- ChEllipsoidShape
-- ChConeShape
-- ChCapsuleShape
+- @ref chrono::ChSphereShape
+- @ref chrono::ChBoxShape
+- @ref chrono::ChCylinderShape
+- @ref chrono::ChEllipsoidShape
+- @ref chrono::ChConeShape
+- @ref chrono::ChCapsuleShape
 
-A special type of visualization asset is the _ChAssetLevel_. 
+A special type of visualization asset is the @ref chrono::ChAssetLevel. 
 An object of this type does not represent a shape. Rather, it can contain other 
 visualization assets as a group. This allows the creation 
 of hierarchical models. When rotating or translating a ChAssetLevel object, 
@@ -88,8 +88,8 @@ all the shapes associated with that object are moved/rotated.
 
 Other special assets are:
 
-- ChColorAsset
-- ChTexture
+- @ref chrono::ChColorAsset
+- @ref chrono::ChTexture
 
 They affect all the assets belonging to the same level by coloring/texturing them.
 
@@ -127,7 +127,7 @@ body_b->AddAsset(mobjmesh);
 
 See also:
 
-- demo_irr_assets.cpp
+- [demo_irr_assets](@ref tutorial_demo_irr_assets)
 
 
 

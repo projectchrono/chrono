@@ -30,31 +30,39 @@
 
 namespace chrono {
 namespace opengl {
+
+/// @addtogroup opengl_module
+/// @{
+
+/// Generic renderable triangle mesh.
 class CH_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
- public:
-  ChOpenGLMesh();
-  bool Initialize(std::vector<glm::vec3>& vertices,
-                  std::vector<glm::vec3>& normals,
-                  std::vector<glm::vec2>& texcoords,
-                  std::vector<GLuint>& indices,
-                  ChOpenGLMaterial mat);
-  bool Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMaterial mat);
-  bool PostInitialize();
-  void Update(std::vector<glm::mat4>& model);
-  virtual void Draw(const glm::mat4& projection, const glm::mat4& view);
+  public:
+    ChOpenGLMesh();
+    bool Initialize(std::vector<glm::vec3>& vertices,
+                    std::vector<glm::vec3>& normals,
+                    std::vector<glm::vec2>& texcoords,
+                    std::vector<GLuint>& indices,
+                    ChOpenGLMaterial mat);
+    bool Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMaterial mat);
+    bool PostInitialize();
+    void Update(std::vector<glm::mat4>& model);
+    virtual void Draw(const glm::mat4& projection, const glm::mat4& view);
 
-  void TakeDown();
+    void TakeDown();
 
- protected:
-  std::vector<ChOpenGLVertexAttributesPN> data;
-  glm::vec3 ambient;
-  glm::vec3 specular;
-  glm::vec3 diffuse;
-  int size;
+  protected:
+    std::vector<ChOpenGLVertexAttributesPN> data;
+    glm::vec3 ambient;
+    glm::vec3 specular;
+    glm::vec3 diffuse;
+    int size;
 
-  typedef ChOpenGLObject super;
+    typedef ChOpenGLObject super;
 };
+
+/// @} opengl_module
+
 }
 }
 
-#endif  // END of CHOPENGLMESH_H
+#endif

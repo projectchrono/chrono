@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -48,7 +48,7 @@ std::vector<std::shared_ptr<ChBody> > particlelist;
 class MyEventReceiver : public IEventReceiver {
   public:
     MyEventReceiver(ChIrrAppInterface* myapp) {
-        // store pointer applicaiton
+        // store pointer application
         application = myapp;
 
         // ..add a GUI slider to control particles flow
@@ -207,6 +207,8 @@ void purge_debris(ChIrrAppInterface& application, int nmaxparticles = 100) {
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
 
@@ -274,7 +276,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.005);
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
@@ -291,7 +293,7 @@ int main(int argc, char* argv[]) {
             mconveyor->SetConveyorSpeed(STATIC_speed);
         }
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -24,6 +24,9 @@
 #include <cfloat>
 
 namespace chrono {
+
+/// @addtogroup parallel_math
+/// @{
 
 // If the user specified using doubles, define the real type as double
 // Also set some constants. The same is done if floats were specified.
@@ -95,4 +98,7 @@ CUDA_HOST_DEVICE static inline real Round(const real a) {
 CUDA_HOST_DEVICE static inline real Log(const real a) {
     return log(a);
 }
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

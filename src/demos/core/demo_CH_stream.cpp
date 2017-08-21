@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,6 +19,8 @@
 #include <cmath>
 #include <sstream>
 
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
@@ -33,14 +35,20 @@ using namespace chrono;
 // so if you are interested on object serialization look rather at 
 //   demo_archive.cpp 
 
-
-
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    
     // To write something to the console, use the chrono::GetLog()
     // statement, which returns a global output stream to the console (just
     // like the std::out stream).
-    GetLog() << "\n"
-             << "CHRONO foundation classes demo: streaming and serialization\n\n";
+    GetLog() << "\nCHRONO foundation classes demo: streaming and serialization\n\n";
+
+    // Create (if needed) output directory
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_STREAM";
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     /*
      *  TEST SOME BASIC FILE I/O , AS ASCII FILE WRITE/SAVE
@@ -52,13 +60,13 @@ int main(int argc, char* argv[]) {
     // Exceptions thrown are of class ChException.
     try {
         // Open a file of class "ChStreamOutAsciiFile" for writing ascii
-        ChStreamOutAsciiFile mfileo("foo_file.txt");
+        std::string asciifile = out_dir + "/foo_file.txt";
+        ChStreamOutAsciiFile mfileo(asciifile.c_str());
 
         // Write some items, space-separated, inside the ascii file.
         // The class ChStreamOutAsciiFile implements the << operator for most
         // basic types (double, int, string, etc.).
-        mfileo << "test_token"
-               << " " << 123 << " " << 0.123437;
+        mfileo << "test_token  " << 123 << " " << 0.123437;
 
     } catch (ChException myex) {
         // Ops.. file could not be opened or written.. echo what happened!
@@ -70,7 +78,8 @@ int main(int argc, char* argv[]) {
     try {
         // Open a file for reading ascii: the ChStreamInAsciiFile has
         // some minimal parsing capabilities...
-        ChStreamInAsciiFile mfilei("foo_file.txt");
+        std::string asciifile = out_dir + "/foo_file.txt";
+        ChStreamInAsciiFile mfilei(asciifile.c_str());
 
         // Try to load some text tokens and convert them (at least each token
         // separated by space or linefeed..)
@@ -102,7 +111,8 @@ int main(int argc, char* argv[]) {
 
     try {
         // Open a file of class "ChStreamOutBinaryFile" for serializing
-        ChStreamOutBinaryFile mfileo("foo_archive.dat");
+        std::string binfile = out_dir + "/foo_archive.dat";
+        ChStreamOutBinaryFile mfileo(binfile.c_str());
 
         // Write from transient data into persistent binary file
         char m_text[] = "foo_string";
@@ -123,7 +133,8 @@ int main(int argc, char* argv[]) {
 
     try {
         // Open a file of class "ChStreamOutBinaryFile" for deserializing
-        ChStreamInBinaryFile mfilei("foo_archive.dat");
+        std::string binfile = out_dir + "/foo_archive.dat";
+        ChStreamInBinaryFile mfilei(binfile.c_str());
 
         // Read from persistent binary file to transient data
         char m_text[200];

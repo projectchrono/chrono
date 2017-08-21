@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -334,10 +334,10 @@ void ChLinkRevolute::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
     Qc(off_L + 4) += cnstr_vw_violation;
 }
 
-void ChLinkRevolute::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChLinkRevolute::IntToDescriptor(const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const ChVectorDynamic<>& R,
-                                     const unsigned int off_L,  ///< offset in L, Qc
+                                     const unsigned int off_L,
                                      const ChVectorDynamic<>& L,
                                      const ChVectorDynamic<>& Qc) {
     if (!IsActive())
@@ -356,9 +356,9 @@ void ChLinkRevolute::IntToDescriptor(const unsigned int off_v,  ///< offset in v
     m_cnstr_vw.Set_b_i(Qc(off_L + 4));
 }
 
-void ChLinkRevolute::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChLinkRevolute::IntFromDescriptor(const unsigned int off_v,
                                        ChStateDelta& v,
-                                       const unsigned int off_L,  ///< offset in L
+                                       const unsigned int off_L,
                                        ChVectorDynamic<>& L) {
     if (!IsActive())
         return;

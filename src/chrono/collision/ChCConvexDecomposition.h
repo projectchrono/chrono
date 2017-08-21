@@ -1,21 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHC_CONVEXDECOMPOSITION_H
 #define CHC_CONVEXDECOMPOSITION_H
 
-#include "chrono/core/ChApiCE.h"
 #include "chrono/collision/convexdecomposition/HACD/hacdHACD.h"
 #include "chrono/collision/convexdecomposition/HACDv2/HACD.h"
 #include "chrono/collision/convexdecomposition/JR/NvConvexDecomposition.h"
+#include "chrono/core/ChApiCE.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 
 namespace chrono {
@@ -91,7 +94,7 @@ class ChApi ChConvexDecomposition {
 ///
 /// Class for wrapping the HACD convex decomposition code
 /// by Khaled Mamou (in the convexdecomposition/ directory)
-/// so that it is easier to use it by passing the Chrono::Engine
+/// so that it is easier to use it by passing the Chrono
 /// structures of type ChTriangleMesh, ChTriangle, etc.
 ///
 
@@ -137,7 +140,7 @@ class ChApi ChConvexDecompositionHACD : public ChConvexDecomposition {
         double volumeWeight = 0.0,            ///< 'beta' parameter, ie. volume weight
         double compacityAlpha = 0.1,          ///< 'alpha' paramater
         unsigned int nVerticesPerCH = 50      ///< Max vertices for cc.
-        );
+    );
 
     /// Perform the convex decomposition.
     /// This operation is time consuming, and it may take a while to complete.
@@ -223,7 +226,7 @@ class ChApi ChConvexDecompositionJR : public ChConvexDecomposition {
         /// will still occur.
         bool museInitialIslandGeneration,  ///< Whether or not to perform initial island generation on the input mesh.
         bool museIslandGeneration  ///< Whether or not to perform island generation at each split.  Currently disabled.
-        );
+    );
 
     /// Perform the convex decomposition.
     /// This operation is time consuming, and it may take a while to complete.
@@ -301,14 +304,13 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
 
     /// Set the parameters for this convex decomposition algorithm.
     /// Use this function before calling ComputeConvexDecomposition().
-    void SetParameters(
-        unsigned int mMaxHullCount = 256,
-        unsigned int mMaxMergeHullCount = 256,
-        unsigned int mMaxHullVertices = 64,
-        float mConcavity = 0.2f,
-        float mSmallClusterThreshold = 0.0f,
-        float mFuseTolerance = 1e-9  ///< in input mesh, repeated vertices within this tolerance are fused
-        );
+    /// Repeated vertices will be fused with \a mFuseTolerance tolerance.
+    void SetParameters(unsigned int mMaxHullCount = 256,
+                       unsigned int mMaxMergeHullCount = 256,
+                       unsigned int mMaxHullVertices = 64,
+                       float mConcavity = 0.2f,
+                       float mSmallClusterThreshold = 0.0f,
+                       float mFuseTolerance = 1e-9);
 
     /// Perform the convex decomposition.
     /// This operation is time consuming, and it may take a while to complete.

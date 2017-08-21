@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -95,6 +95,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
         // Calculate composite material properties
         ChMaterialCompositeSMC mat(
+            this->container->GetSystem()->composition_strategy.get(),
             std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objA->GetMaterialSurfaceBase()),
             std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objB->GetMaterialSurfaceBase()));
 

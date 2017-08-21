@@ -33,6 +33,7 @@ subject to the following restrictions:
 #include "LinearMath/btQuickprof.h"
 #include "LinearMath/btStackAlloc.h"
 #include "LinearMath/btSerializer.h"
+#include "chrono/utils/ChProfiler.h"
 
 //#define USE_BRUTEFORCE_RAYBROADPHASE 1
 //RECALCULATE_AABB is slower, but benefit is that you don't need to call 'stepSimulation'  or 'updateAabbs' before using a rayTest
@@ -204,6 +205,7 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 
 	{
 		BT_PROFILE("calculateOverlappingPairs");
+        CH_PROFILE("Broad-phase"); //***ALEX***
 		m_broadphasePairCache->calculateOverlappingPairs(m_dispatcher1);
 	}
 
@@ -211,6 +213,7 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 	btDispatcher* dispatcher = getDispatcher();
 	{
 		BT_PROFILE("dispatchAllCollisionPairs");
+        CH_PROFILE("Narrow-phase"); //***ALEX***
 		if (dispatcher)
 			dispatcher->dispatchAllCollisionPairs(m_broadphasePairCache->getOverlappingPairCache(),dispatchInfo,m_dispatcher1);
 	}

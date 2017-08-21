@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -252,10 +252,10 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R resi
     R.PasteSumVector(Iw, off + 3, 0);
 }
 
-void ChBody::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+void ChBody::IntToDescriptor(const unsigned int off_v,
                              const ChStateDelta& v,
                              const ChVectorDynamic<>& R,
-                             const unsigned int off_L,  // offset in L, Qc
+                             const unsigned int off_L,
                              const ChVectorDynamic<>& L,
                              const ChVectorDynamic<>& Qc) {
     this->variables.Get_qb().PasteClippedMatrix(v, off_v, 0, 6, 1, 0, 0);  // for solver warm starting only

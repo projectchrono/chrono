@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -33,6 +33,8 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     double time_step = 1e-3;
 
     ChSystemSMC my_system;
@@ -116,8 +118,8 @@ int main(int argc, char* argv[]) {
         // Adjacent nodes
         int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
         int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        int node2 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1 + N_x;        
-        int node3 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + N_x;
+        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
         auto element = std::make_shared<ChElementShellANCF>();

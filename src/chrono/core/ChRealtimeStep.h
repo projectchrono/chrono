@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHREALTIMESTEP_H
 #define CHREALTIMESTEP_H
@@ -26,7 +29,7 @@ namespace chrono {
 /// simulation, that is the simulated time should
 /// match the real time. The suggested step may
 /// be non-constant because the overhead of the
-/// simulaiton loop may vary because of varying
+/// simulation loop may vary because of varying
 /// overhead in visualization, collision or simulation.
 
 class ChRealtimeStepTimer : public ChTimer<double> {
@@ -37,7 +40,7 @@ class ChRealtimeStepTimer : public ChTimer<double> {
 
     /// Call this function INSIDE the simulation loop, just ONCE
     /// per loop, to get the suggested time for the next integration
-    /// time step. If the the ChRealtimeStepTimer measured that
+    /// time step. If the ChRealtimeStepTimer measured that
     /// previous simulation step required few real-time, it will
     /// suggest a corresponding small value for advancing the simulated
     /// time, and viceversa will give higher values (up to a maximum

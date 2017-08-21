@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -261,7 +261,7 @@ void ChBezierCurve::write(const std::string& filename) {
     size_t numPoints = m_points.size();
     ofile << numPoints << "  9\n";
 
-    // Write points and control polygone vertices
+    // Write points and control polygon vertices
     for (size_t i = 0; i < numPoints; i++) {
         ofile << m_points[i].x() << "  " << m_points[i].y() << "  " << m_points[i].z() << "     ";
         ofile << m_inCV[i].x() << "  " << m_inCV[i].y() << "  " << m_inCV[i].z() << "     ";

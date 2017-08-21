@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,12 +27,13 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Constructor for a ChVehicle using a default Chrono Chsystem.
+// Constructor for a ChVehicle using a default Chrono system.
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(ChMaterialSurface::ContactMethod contact_method) : m_ownsSystem(true), m_stepsize(1e-3) {
+ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
+    : m_name(name), m_ownsSystem(true), m_stepsize(1e-3) {
     m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                              : static_cast<ChSystem*>(new ChSystemSMC);
+                                                          : static_cast<ChSystem*>(new ChSystemSMC);
 
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -53,8 +54,8 @@ ChVehicle::ChVehicle(ChMaterialSurface::ContactMethod contact_method) : m_ownsSy
 // -----------------------------------------------------------------------------
 // Constructor for a ChVehicle using the specified Chrono ChSystem.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(ChSystem* system) : m_system(system), m_ownsSystem(false), m_stepsize(1e-3) {
-}
+ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
+    : m_name(name), m_system(system), m_ownsSystem(false), m_stepsize(1e-3) {}
 
 // -----------------------------------------------------------------------------
 // Destructor for ChVehicle

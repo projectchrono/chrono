@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 1996, 2005, 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHTRANSFORM_H
 #define CHTRANSFORM_H
@@ -47,7 +50,7 @@ class ChTransform {
     /// is given by the 'origin' translation and 'alignment' rotation matrix.
     ///  Since the function is static, you do not need a ChTransform object, for example
     /// use it as: mresult=ChTransform<>::TransformParentToLocal(mpar, morig, malign)
-    ///  This function is optimised for fast execution.
+    ///  This function is optimized for fast execution.
     /// \return The point in local coordinate, as local=[A]'*(parent-origin)
 
     static ChVector<Real> TransformParentToLocal(

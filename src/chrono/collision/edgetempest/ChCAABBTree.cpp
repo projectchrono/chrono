@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include <cstdio>
 #include <cstring>
@@ -212,7 +213,7 @@ int build_recurse(CHAABBTree* m, int bn, int first_geo, int num_geos, double env
 
         coord = Vdot(axis, mean);
 
-        //*** TO DO***??? other splitting criterions??
+        //*** TO DO***??? other splitting criterion??
 
         // now split
 

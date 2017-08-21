@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -16,7 +16,8 @@
 //
 // =============================================================================
 
-#include "chrono/ChVersion.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/core/ChFileutils.h"
 #include "chrono/motion_functions/ChFunction.h"
 
 // Use the namespace of Chrono
@@ -24,12 +25,18 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    // Create (if needed) output directory
+    const std::string out_dir = GetChronoOutputPath() + "DEMO_FUNCTIONS";
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     //
     // EXAMPLE 1: create a ramp ChFunction, set properties, evaluate it.
     //
-
-    GetLog() << "Chrono revision: " << CHRONOENGINE_VCS_REVISION << "\n";
-    GetLog() << "Chrono version: " << CHRONOENGINE_VERSION << "\n";
 
     GetLog() << "==== Test 1...\n\n";
 
@@ -56,7 +63,8 @@ int main(int argc, char* argv[]) {
     f_sine.Set_amp(2);     // set amplitude;
     f_sine.Set_freq(1.5);  // set frequency;
 
-    ChStreamOutAsciiFile file_f_sine("f_sine_out.dat");
+    std::string sinefile = out_dir + "/f_sine_out.dat";
+    ChStreamOutAsciiFile file_f_sine(sinefile.c_str());
 
     // Evaluate y=f(x) function along 100 x points, and its derivatives,
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
@@ -91,7 +99,8 @@ int main(int argc, char* argv[]) {
 
     ChFunction_MyTest f_test;
 
-    ChStreamOutAsciiFile file_f_test("f_test_out.dat");
+    std::string testfile = out_dir + "/f_test_out.dat";
+    ChStreamOutAsciiFile file_f_test(testfile.c_str());
 
     // Evaluate y=f(x) function along 100 x points, and its derivatives,
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
@@ -128,7 +137,8 @@ int main(int argc, char* argv[]) {
 
     f_sequence.Setup();
 
-    ChStreamOutAsciiFile file_f_sequence("f_sequence_out.dat");
+    std::string seqfile = out_dir + "/f_sequence_out.dat";
+    ChStreamOutAsciiFile file_f_sequence(seqfile.c_str());
 
     // Evaluate y=f(x) function along 100 x points, and its derivatives,
     // and save to file (later it can be loaded, for example, in Matlab using the 'load()' command)
@@ -164,7 +174,8 @@ int main(int argc, char* argv[]) {
     f_rep_seq->Set_window_start(0.0);
     f_rep_seq->Set_window_phase(3.0);
 
-    ChStreamOutAsciiFile file_f_repeat("f_repeat_out.dat");
+    std::string repeatfile = out_dir + "/f_repeat_out.dat";
+    ChStreamOutAsciiFile file_f_repeat(repeatfile.c_str());
     for (int i = 0; i < 1000; i++) {
         double x = (double)i / 50.0;
         double y = f_rep_seq->Get_y(x);

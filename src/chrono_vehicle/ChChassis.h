@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -92,6 +92,16 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Return the speed measured at the chassis center of mass.
     double GetCOMSpeed() const { return m_body->GetPos_dt().Length(); }
 
+    /// Get the global position of the specified point.
+    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The returned location is expressed in the global reference frame.
+    ChVector<> GetPointLocation(const ChVector<>& locpos) const;
+
+    /// Get the global velocity of the specified point.
+    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The returned velocity is expressed in the global reference frame.
+    ChVector<> GetPointVelocity(const ChVector<>& locpos) const;
+
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
@@ -114,9 +124,26 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Return true if the chassis body is fixed to ground.
     bool IsFixed() const { return m_body->GetBodyFixed(); }
 
+    /// Set parameters and enable aerodynamic drag force calculation.
+    /// By default, aerodynamic drag force calculation is disabled.
+    void SetAerodynamicDrag(double Cd,          ///< [in] drag coefficient
+                            double area,        ///< [in] reference area
+                            double air_density  ///< [in] air density
+                            );
+
+    /// Update the state of the chassis subsystem.
+    /// The base class implementation applies aerodynamic drag forces to the 
+    /// chassis body (if enabled).
+    virtual void Synchronize(double time);
+
   protected:
     std::shared_ptr<ChBodyAuxRef> m_body;  ///< handle to the chassis body
     bool m_fixed;                          ///< is the chassis body fixed to ground?
+
+    bool m_apply_drag;     ///< enable aerodynamic drag force?
+    double m_Cd;           ///< drag coefficient
+    double m_area;         ///< reference area (m2)
+    double m_air_density;  ///< air density (kg/m3)
 };
 
 /// @} vehicle

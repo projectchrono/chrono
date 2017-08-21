@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -101,7 +101,7 @@ void PitmanArm::Create(const rapidjson::Document& d) {
     m_points[REVSPH_S] = loadVector(d["Revolute-Spherical Joint"]["Location Link"]);
     m_dirs[REVSPH_AXIS] = loadVector(d["Revolute-Spherical Joint"]["Direction"]);
 
-    // Read data for tireod connection points
+    // Read data for tierod connection points
     m_points[TIEROD_PA] = loadVector(d["Tierod Locations"]["Pitman Side"]);
     m_points[TIEROD_IA] = loadVector(d["Tierod Locations"]["Idler Side"]);
 }

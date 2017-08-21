@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -42,6 +42,8 @@ using namespace irr::io;
 using namespace irr::gui;
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
 
@@ -86,7 +88,7 @@ int main(int argc, char* argv[]) {
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
     mbody_gearA->AddAsset(cylinder_texture);
-    // for aesthetical reasons, also add a thin cylinder only as a visualization:
+    // for aesthetic reasons, also add a thin cylinder only as a visualization:
     auto mshaft_shape = std::make_shared<ChCylinderShape>();
     mshaft_shape->GetCylinderGeometry().p1 = ChVector<>(0,-3,0);
     mshaft_shape->GetCylinderGeometry().p2 = ChVector<>(0, 10,0);
@@ -218,7 +220,7 @@ int main(int argc, char* argv[]) {
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
-        application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
 
@@ -251,7 +253,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        application.GetVideoDriver()->endScene();
+        application.EndScene();
     }
 
     return 0;
