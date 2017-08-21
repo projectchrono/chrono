@@ -132,10 +132,27 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     const std::vector<std::shared_ptr<ChMarker>>& GetMarkers() const { return m_markers; }
 
+    /// Set parameters and enable aerodynamic drag force calculation.
+    /// By default, aerodynamic drag force calculation is disabled.
+    void SetAerodynamicDrag(double Cd,          ///< [in] drag coefficient
+                            double area,        ///< [in] reference area
+                            double air_density  ///< [in] air density
+                            );
+
+    /// Update the state of the chassis subsystem.
+    /// The base class implementation applies aerodynamic drag forces to the 
+    /// chassis body (if enabled).
+    virtual void Synchronize(double time);
+
   protected:
     std::shared_ptr<ChBodyAuxRef> m_body;              ///< handle to the chassis body
     std::vector<std::shared_ptr<ChMarker>> m_markers;  ///< list of user-defined markers
     bool m_fixed;                                      ///< is the chassis body fixed to ground?
+
+    bool m_apply_drag;     ///< enable aerodynamic drag force?
+    double m_Cd;           ///< drag coefficient
+    double m_area;         ///< reference area (m2)
+    double m_air_density;  ///< air density (kg/m3)
 };
 
 /// @} vehicle

@@ -25,7 +25,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed) {}
+ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed), m_apply_drag(false) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -90,6 +90,34 @@ void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
     marker->Impose_Rel_Coord(pos_com);
     m_body->AddMarker(marker);
     m_markers.push_back(marker);
+}
+
+// -----------------------------------------------------------------------------
+// Simple model of aerodynamic drag forces.
+// The drag force, calculated based on the forward vehicle speed, is applied to
+// the center of mass of the chassis body.
+// -----------------------------------------------------------------------------
+void ChChassis::SetAerodynamicDrag(double Cd, double area, double air_density) {
+    m_Cd = Cd;
+    m_area = area;
+    m_air_density = air_density;
+
+    m_apply_drag = true;
+}
+
+void ChChassis::Synchronize(double time) {
+    if (!m_apply_drag)
+        return;
+
+    // Calculate aerodynamic drag force (in chassis local frame)
+    ChVector<> V = m_body->TransformDirectionParentToLocal(m_body->GetPos_dt());
+    double Vx = V.x();
+    double Fx = 0.5 * m_Cd * m_area * m_air_density * Vx * Vx;
+    ChVector<> F(-Fx * ChSignum(Vx), 0.0, 0.0);
+
+    // Apply aerodynamic drag force at COM
+    m_body->Empty_forces_accumulators();
+    m_body->Accumulate_force(F, ChVector<>(0), true);
 }
 
 }  // end namespace vehicle
