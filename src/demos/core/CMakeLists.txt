@@ -10,6 +10,7 @@ SET(DEMOS
   demo_CH_powertrain
   demo_CH_functions
   demo_CH_solver
+  demo_CH_EulerAngles
 )
 
 

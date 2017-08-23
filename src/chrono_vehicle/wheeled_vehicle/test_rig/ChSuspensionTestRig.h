@@ -116,6 +116,9 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Return true if a steering system is attached.
     bool HasSteering() const { return m_steering != nullptr; }
 
+    /// Return true if an anti-roll bar system is attached.
+    bool HasAntirollbar() const { return m_antirollbar != nullptr; }
+
     /// Get the rig total mass.
     /// This includes the mass of the suspension and wheels, and (if present) the mass of the
     /// steering mechanism.
@@ -180,15 +183,17 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     void LoadSteering(const std::string& filename);
     void LoadSuspension(const std::string& filename);
     void LoadWheel(const std::string& filename, int side);
+    void LoadAntirollbar(const std::string& filename);
 
     /// Utility function to add visualization to post bodies.
     void AddVisualize_post(VehicleSide side, const ChColor& color);
 
-    std::shared_ptr<ChSuspension> m_suspension;  ///< handle to suspension subsystem
-    std::shared_ptr<ChSteering> m_steering;      ///< handle to the steering subsystem
-    std::shared_ptr<ChShaft> m_dummy_shaft;      ///< dummy driveshaft
-    std::shared_ptr<ChWheel> m_wheel[2];         ///< handles to wheel subsystems
-    std::shared_ptr<ChTire> m_tire[2];           ///< handles to tire subsystems
+    std::shared_ptr<ChSuspension> m_suspension;    ///< handle to suspension subsystem
+    std::shared_ptr<ChSteering> m_steering;        ///< handle to the steering subsystem
+    std::shared_ptr<ChAntirollBar> m_antirollbar;  ///< handle to the anti-roll bar subsystem
+    std::shared_ptr<ChShaft> m_dummy_shaft;        ///< dummy driveshaft
+    std::shared_ptr<ChWheel> m_wheel[2];           ///< handles to wheel subsystems
+    std::shared_ptr<ChTire> m_tire[2];             ///< handles to tire subsystems
 
     std::shared_ptr<ChBody> m_post[2];                         ///< handles to post bodies
     std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic[2];  ///< handles to post prismatic joints
@@ -202,6 +207,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     ChVector<> m_suspLoc;
     ChVector<> m_steeringLoc;
     ChQuaternion<> m_steeringRot;
+    ChVector<> m_antirollbarLoc;
 
     static const double m_post_radius;  ///< radius of the post cylindrical platform
     static const double m_post_height;  ///< height of the post cylindrical platform

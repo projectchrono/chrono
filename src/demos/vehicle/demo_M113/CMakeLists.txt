@@ -1,6 +1,6 @@
 #=============================================================================
-# CMake configuration file for the M113 demo.
-# This example program requires Irrlicht run-time visualization
+# CMake configuration file for the M113 demos.
+# These example programs requires Irrlicht run-time visualization
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
@@ -10,8 +10,10 @@ ENDIF()
 #--------------------------------------------------------------
 # List all model files for this demo
 
-SET(DEMO demo_VEH_M113)
-SOURCE_GROUP("" FILES ${DEMO}.cpp)
+SET(DEMOS
+    demo_VEH_M113
+    demo_VEH_M113_DefSoil
+)
 
 #--------------------------------------------------------------
 # Compiler and linker flags
@@ -30,18 +32,23 @@ if(ENABLE_MODULE_MKL)
 endif()
 
 #--------------------------------------------------------------
-# Add executable
+# Add executables
 
-MESSAGE(STATUS "...add ${DEMO}")
+FOREACH(DEMO ${DEMOS})
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
-                      COMPILE_FLAGS "${COMPILER_FLAGS}"
-                      LINK_FLAGS "${LINKER_FLAGS}")
-TARGET_LINK_LIBRARIES(${DEMO} 
-                      ChronoEngine
-                      ChronoEngine_irrlicht
-                      ChronoEngine_vehicle
-                      ChronoModels_vehicle
-                      ${LIBS})
-INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+    MESSAGE(STATUS "...add ${DEMO}")
+
+    ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp ${MODEL_FILES})
+    SOURCE_GROUP("" FILES ${DEMO}.cpp)
+    SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+                          COMPILE_FLAGS "${COMPILER_FLAGS}"
+                          LINK_FLAGS "${LINKER_FLAGS}")
+    TARGET_LINK_LIBRARIES(${DEMO} 
+                          ChronoEngine
+                          ChronoEngine_irrlicht
+                          ChronoEngine_vehicle
+                          ChronoModels_vehicle
+                          ${LIBS})
+    INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+    
+ENDFOREACH()

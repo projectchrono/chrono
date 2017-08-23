@@ -1,6 +1,6 @@
 #=============================================================================
-# CMake configuration file for the HMMWV demo.
-# This example program requires Irrlicht run-time visualization
+# CMake configuration file for the HMMWV demos.
+# These example programs requires Irrlicht run-time visualization
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
@@ -8,10 +8,12 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
 ENDIF()
 
 #--------------------------------------------------------------
-# List all model files for this demo
+# List all HMMWV demos
 
-SET(DEMO  demo_VEH_HMMWV)
-SOURCE_GROUP("" FILES ${DEMO}.cpp)
+SET(DEMOS
+    demo_VEH_HMMWV
+    demo_VEH_HMMWV_Accel
+    demo_VEH_HMMWV_DefSoil)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -19,17 +21,22 @@ SOURCE_GROUP("" FILES ${DEMO}.cpp)
 INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
 #--------------------------------------------------------------
-# Create the executable
+# Create the executables
 
-MESSAGE(STATUS "...add ${DEMO}")
+FOREACH(DEMO ${DEMOS})
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
-                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-                      LINK_FLAGS "${LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(${DEMO}
-                      ChronoEngine
-                      ChronoEngine_irrlicht
-                      ChronoEngine_vehicle
-                      ChronoModels_vehicle)
-INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+    MESSAGE(STATUS "...add ${DEMO}")
+
+    ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
+    SOURCE_GROUP("" FILES ${DEMO}.cpp)
+    SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+                          COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+                          LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+    TARGET_LINK_LIBRARIES(${DEMO}
+                          ChronoEngine
+                          ChronoEngine_irrlicht
+                          ChronoEngine_vehicle
+                          ChronoModels_vehicle)
+    INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+
+ENDFOREACH()

@@ -60,7 +60,8 @@ HMMWV::HMMWV(ChSystem* system)
       m_pacejkaParamFile(""),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
-      m_initOmega({0, 0, 0, 0}) {}
+      m_initOmega({0, 0, 0, 0}),
+      m_apply_drag(false) {}
 
 HMMWV::~HMMWV() {
     delete m_vehicle;
@@ -72,11 +73,25 @@ HMMWV::~HMMWV() {
 }
 
 // -----------------------------------------------------------------------------
+void HMMWV::SetAerodynamicDrag(double Cd, double area, double air_density) {
+    m_Cd = Cd;
+    m_area = area;
+    m_air_density = air_density;
+
+    m_apply_drag = true;
+}
+
+// -----------------------------------------------------------------------------
 void HMMWV::Initialize() {
     // Create and initialize the HMMWV vehicle
     m_vehicle = CreateVehicle();
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
+
+    // If specified, enable aerodynamic drag
+    if (m_apply_drag) {
+        m_vehicle->GetChassis()->SetAerodynamicDrag(m_Cd, m_area, m_air_density);
+    }
 
     // Create and initialize the powertrain system
     switch (m_powertrainType) {
@@ -147,6 +162,26 @@ void HMMWV::Initialize() {
             HMMWV_FialaTire* tire_FR = new HMMWV_FialaTire("FR");
             HMMWV_FialaTire* tire_RL = new HMMWV_FialaTire("RL");
             HMMWV_FialaTire* tire_RR = new HMMWV_FialaTire("RR");
+
+            if (m_tire_step_size > 0) {
+                tire_FL->SetStepsize(m_tire_step_size);
+                tire_FR->SetStepsize(m_tire_step_size);
+                tire_RL->SetStepsize(m_tire_step_size);
+                tire_RR->SetStepsize(m_tire_step_size);
+            }
+
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
+
+            break;
+        }
+        case TireModelType::PAC89: {
+            HMMWV_Pac89Tire* tire_FL = new HMMWV_Pac89Tire("FL");
+            HMMWV_Pac89Tire* tire_FR = new HMMWV_Pac89Tire("FR");
+            HMMWV_Pac89Tire* tire_RL = new HMMWV_Pac89Tire("RL");
+            HMMWV_Pac89Tire* tire_RR = new HMMWV_Pac89Tire("RR");
 
             if (m_tire_step_size > 0) {
                 tire_FL->SetStepsize(m_tire_step_size);
