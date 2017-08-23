@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -69,11 +70,11 @@ int main(int argc, char* argv[]) {
 
     // Set number of threads
     int threads = 4;
-    int max_threads = omp_get_num_procs();
+    int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
     system->SetParallelThreadNumber(threads);
-    omp_set_num_threads(threads);
+    CHOMPfunctions::SetNumThreads(threads);
 
     // Edit system settings
     system->GetSettings()->solver.tolerance = 1e-3;
