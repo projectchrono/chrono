@@ -35,7 +35,8 @@ ChLinkPointSpline::ChLinkPointSpline() {
 }
 
 ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLock(other) {
-    trajectory_line = std::shared_ptr<ChLine>(other.trajectory_line->Clone());  // deep copy
+    other.trajectory_line->Clone();
+    //trajectory_line = std::shared_ptr<ChLine>(other.trajectory_line->Clone());  // deep copy
 }
 
 void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {

@@ -50,9 +50,7 @@ class ChApi ChLinePath : public ChLine {
 
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(ChVector<>& pos,
-                          const double parU,
-                          const double parV = 0.,
-                          const double parW = 0.) const override;
+                          const double parU) const override;
 
     /// Return the start point of the line.
     virtual ChVector<> GetEndA() const override { return (lines.front())->GetEndA(); }
