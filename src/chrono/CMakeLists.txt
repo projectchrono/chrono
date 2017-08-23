@@ -317,6 +317,9 @@ set(ChronoEngine_geometry_SOURCES
     geometry/ChRoundedBox.cpp
     geometry/ChRoundedCylinder.cpp
     geometry/ChRoundedCone.cpp
+	geometry/ChSurface.cpp
+	geometry/ChSurfaceNurbs.cpp
+	geometry/ChVolume.cpp
     )
 
 set(ChronoEngine_geometry_HEADERS
@@ -342,6 +345,11 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChRoundedBox.h
     geometry/ChRoundedCylinder.h
     geometry/ChRoundedCone.h
+	geometry/ChSurface.h
+	geometry/ChSurfaceNurbs.h
+	geometry/ChVolume.h
+	geometry/ChBasisToolsBspline.h
+	geometry/ChBasisToolsNurbs.h
     )
 
 source_group(geometry FILES
@@ -374,6 +382,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChLineShape.cpp
     assets/ChEmitterAsset.cpp
     assets/ChPointPointDrawing.cpp
+	assets/ChSurfaceShape.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
@@ -402,6 +411,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChLineShape.h
     assets/ChEmitterAsset.h
     assets/ChPointPointDrawing.h
+	assets/ChSurfaceShape.h
     )
 
 source_group(assets FILES
