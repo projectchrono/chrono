@@ -43,19 +43,38 @@ ChLineNurbs::ChLineNurbs(const ChLineNurbs& source) : ChLine(source) {
 
 void ChLineNurbs::Evaluate(
                 ChVector<>& pos, 
-                const double parU, 
-                const double parV, 
-                const double parW) const {
+                const double parU) const {
+
+        double u = ComputeKnotUfromU(parU);
 
         ChVectorDynamic<> mR(this->p+1);
-        ChBasisToolsNurbs::BasisEvaluate(this->p, parU, this->weights, this->knots, mR);
+        ChBasisToolsNurbs::BasisEvaluate(this->p, u, this->weights, this->knots, mR);
 
-        int spanU = ChBasisToolsBspline::FindSpan(this->p, parU, this->knots);
+        int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
         
         pos = VNULL;
         int uind = spanU - p;
         for (int i = 0; i <= this->p; i++) {
             pos += points[uind + i] * mR(i);
+        }
+}
+
+void ChLineNurbs::Derive(
+                ChVector<>& dir, 
+                const double parU) const {
+
+        double u = ComputeKnotUfromU(parU);
+
+        ChVectorDynamic<> mR(this->p+1);
+        ChVectorDynamic<> mdR(this->p+1);
+        ChBasisToolsNurbs::BasisEvaluateDeriv(this->p, u, this->weights, this->knots, mR, mdR);
+
+        int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
+        
+        dir = VNULL;
+        int uind = spanU - p;
+        for (int i = 0; i <= this->p; i++) {
+            dir += points[uind + i] * mdR(i);
         }
 }
 
@@ -80,7 +99,7 @@ void ChLineNurbs::SetupData( int morder,                ///< order p: 1= linear,
 
     this->p = morder;
     this->points = mpoints;
-    int n = points.size();
+    int n = (int)points.size();
     int k = n+p+1;
 
     if (mknots)
