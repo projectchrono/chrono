@@ -1,6 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
+#include "chrono/geometry/ChGeometry.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChSphere.h"
 #include "chrono/geometry/ChCylinder.h"
