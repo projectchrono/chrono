@@ -11,6 +11,7 @@ MESSAGE(STATUS "Demo programs for VEHICLE module...")
 
 ADD_SUBDIRECTORY(demo_HMMWV9)
 ADD_SUBDIRECTORY(demo_HMMWV)
+ADD_SUBDIRECTORY(demo_HMMWV_Parallel)
 ADD_SUBDIRECTORY(demo_WheeledGeneric)
 ADD_SUBDIRECTORY(demo_WheeledJSON)
 ADD_SUBDIRECTORY(demo_SuspensionTest)
