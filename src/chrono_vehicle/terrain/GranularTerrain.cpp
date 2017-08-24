@@ -339,7 +339,7 @@ void GranularTerrain::Synchronize(double time) {
         return;
 
     // Check distance from monitored body to front boundary.
-    double dist = m_front - m_body->GetPos().x();
+    double dist = m_front - m_body->GetFrame_REF_to_abs().GetPos().x();
     if (dist >= m_buffer_distance)
         return;
 
