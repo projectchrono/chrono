@@ -37,6 +37,9 @@ class ChApi ChLineBezier : public ChLine {
     ChLineBezier(const ChLineBezier& source);
     ~ChLineBezier() {}
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLineBezier* Clone() const override { return new ChLineBezier(*this); }
+
     virtual GeometryType GetClassType() const override { return LINE_BEZIER; }
 
     virtual void Set_closed(bool mc) override {}
@@ -44,9 +47,7 @@ class ChApi ChLineBezier : public ChLine {
 
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(ChVector<>& pos,
-                          const double parU,
-                          const double parV = 0.,
-                          const double parW = 0.) const override;
+                          const double parU) const override;
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number

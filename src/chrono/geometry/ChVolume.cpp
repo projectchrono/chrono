@@ -9,25 +9,27 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/geometry/ChLineSegment.h"
+#include <cfloat>
+#include <cmath>
+#include <memory.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+#include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLineSegment)
+//CH_FACTORY_REGISTER(ChVolume)  // NO! abstract class!
 
-ChLineSegment::ChLineSegment(const ChLineSegment& source) : ChLine(source) {
-    pA = source.pA;
-    pB = source.pB;
-}
 
-void ChLineSegment::Evaluate(ChVector<>& pos, const double parU) const {
-    pos = pA * (1 - parU) + pB * parU;
-}
+
+
 
 }  // end namespace geometry
 }  // end namespace chrono

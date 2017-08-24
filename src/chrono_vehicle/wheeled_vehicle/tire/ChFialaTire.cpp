@@ -35,11 +35,6 @@
 namespace chrono {
 namespace vehicle {
 
-template <typename T>
-int sgn(T val) {
-    return (T(0) < val) - (val < T(0));
-}
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChFialaTire::ChFialaTire(const std::string& name) : ChTire(name), m_stepsize(1e-6) {
@@ -221,22 +216,22 @@ void ChFialaTire::Advance(double step) {
             double Fx1 = U * m_data.normal_force;
             double Fx2 =
                 std::abs(std::pow((U * m_data.normal_force), 2) / (4 * m_states.cp_long_slip * m_c_slip));
-            Fx = sgn(m_states.cp_long_slip) * (Fx1 - Fx2);
+            Fx = ChSignum(m_states.cp_long_slip) * (Fx1 - Fx2);
         }
 
         // Lateral Force & Aligning Moment (Mz):
         if (std::abs(m_states.cp_side_slip) <= Alpha_critical) {
             double H = 1 - m_c_alpha * std::abs(std::tan(m_states.cp_side_slip)) / (3 * U * m_data.normal_force);
 
-            Fy = -U * m_data.normal_force * (1 - std::pow(H, 3)) * sgn(m_states.cp_side_slip);
-            Mz = U * m_data.normal_force * m_width * (1 - H) * std::pow(H, 3) * sgn(m_states.cp_side_slip);
+            Fy = -U * m_data.normal_force * (1 - std::pow(H, 3)) * ChSignum(m_states.cp_side_slip);
+            Mz = U * m_data.normal_force * m_width * (1 - H) * std::pow(H, 3) * ChSignum(m_states.cp_side_slip);
         } else {
-            Fy = -U * m_data.normal_force * sgn(m_states.cp_side_slip);
+            Fy = -U * m_data.normal_force * ChSignum(m_states.cp_side_slip);
             Mz = 0;
         }
 
         // Rolling Resistance
-        My = -m_rolling_resistance * m_data.normal_force * sgn(m_states.omega);
+        My = -m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);
 
 
         // compile the force and moment vectors so that they can be 

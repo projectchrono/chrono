@@ -84,6 +84,8 @@ class CH_MODELS_API HMMWV {
 
     void Initialize();
 
+    void SetAerodynamicDrag(double Cd, double area, double air_density);
+
     void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
     void SetSteeringVisualizationType(VisualizationType vis) { m_vehicle->SetSteeringVisualizationType(vis); }
@@ -119,6 +121,11 @@ class CH_MODELS_API HMMWV {
     ChCoordsys<> m_initPos;
     double m_initFwdVel;
     std::vector<double> m_initOmega;
+
+    bool m_apply_drag;
+    double m_Cd;
+    double m_area;
+    double m_air_density;
 
     ChSystem* m_system;
     HMMWV_Vehicle* m_vehicle;

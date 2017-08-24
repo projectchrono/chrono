@@ -41,7 +41,7 @@ ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
 
 ChLinkTrajectory::ChLinkTrajectory(const ChLinkTrajectory& other) : ChLinkLock(other) {
     space_fx = std::shared_ptr<ChFunction>(other.space_fx->Clone());            // deep copy
-    trajectory_line = std::shared_ptr<ChLine>(other.trajectory_line->Clone());  // deep copy
+    trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
 }
 
 void ChLinkTrajectory::Set_space_fx(std::shared_ptr<ChFunction> m_funct) {

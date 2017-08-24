@@ -74,6 +74,8 @@ void ChTrackedVehicle::Synchronize(double time,
     // Apply contact track shoe forces.
     m_tracks[LEFT]->Synchronize(time, braking, shoe_forces_left);
     m_tracks[RIGHT]->Synchronize(time, braking, shoe_forces_right);
+
+    m_chassis->Synchronize(time);
 }
 
 // -----------------------------------------------------------------------------
