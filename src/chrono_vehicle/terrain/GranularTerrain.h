@@ -83,11 +83,19 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
                                         float gt   ///< [in] tangential contact damping
                                         );
 
+    /// Set outward collision envelope (default: 0).
+    /// This value is used for the internal custom collision detection for imposing
+    /// boundary conditions.  Note that if the underlying system is of SMC type (i.e.,
+    /// using a penalty-based contact method), the envelope is automatically set to 0.
+    void SetCollisionEnvelope(double envelope) { m_envelope = envelope; }
+
     /// Enable/disable verbose output (default: false).
     void EnableVerbose(bool val) { m_verbose = val; }
 
-    /// Enable creation of particles fixed to bottom container (default: false).
-    void EnableRoughSurface(bool val) { m_rough_surface = val; }
+    /// Enable creation of particles fixed to bottom container.
+    void EnableRoughSurface(int num_spheres_x,  ///< number of fixed spheres in X direction
+                            int num_spheres_y   ///< number of fixed spheres in Y direction
+                            );
 
     /// Enable moving patch and set parameters.
     void EnableMovingPatch(std::shared_ptr<ChBody> body,  ///< monitored body
@@ -155,6 +163,9 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Get bottom boundary location.
     double GetPatchBottom() const { return m_bottom; }
 
+    /// Report if the patch was moved during the last call to Synchronize().
+    bool PatchMoved() const { return m_moved; }
+
     /// Get the number of particles.
     unsigned int GetNumParticles() const { return m_num_particles; }
 
@@ -172,7 +183,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
 
     // Patch dimensions
     double m_length;  ///< length (X direction) of granular patch
-    double m_width; ///< width (Y direction) of granular patch
+    double m_width;   ///< width (Y direction) of granular patch
 
     // Boundary locations
     double m_front;   ///< front (positive X) boundary location
@@ -182,12 +193,22 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     double m_bottom;  ///< bottom boundary location
 
     // Moving patch parameters
-    std::shared_ptr<ChBody> m_body;  ///< tracked body
     bool m_moving_patch;             ///< moving patch feature enabled?
+    bool m_moved;                    ///< was the patch moved?
+    std::shared_ptr<ChBody> m_body;  ///< tracked body
     double m_buffer_distance;        ///< minimum distance to front boundary
     double m_shift_distance;         ///< size (X direction) of relocated volume
 
-    bool m_rough_surface;                   ///< rough surface feature enabled?
+    // Rough surface (ground-fixed spheres)
+    bool m_rough_surface;  ///< rough surface feature enabled?
+    int m_nx;              ///< number of fixed spheres in X direction
+    int m_ny;              ///< number of fixed spheres in Y direction
+    double m_sep_x;        ///< separation distance in X direction
+    double m_sep_y;        ///< separation distance in Y direction
+
+    // Collision envelope used in custom collision detection
+    double m_envelope;  ///< collision outward envelope
+
     bool m_vis_enabled;                     ///< boundary visualization enabled?
     std::shared_ptr<ChBody> m_ground;       ///< ground body
     std::shared_ptr<ChColorAsset> m_color;  ///< color of boundary visualization asset

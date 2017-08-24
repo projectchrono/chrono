@@ -69,7 +69,7 @@ double hdimZ = 0.5;
 unsigned int num_particles = 45000;
 
 // Fixed base layer?
-////bool rough = false;
+bool rough = false;
 
 // Enable moving patch?
 bool moving_patch = true;
@@ -265,6 +265,7 @@ int main(int argc, char* argv[]) {
     double coh_force = area * (coh * 1e3);
     double coh_g = coh_force * time_step;
 
+    double envelope = 0.1 * r_g;
 
     // --------------------------------
     // Create output directory and file
@@ -338,7 +339,7 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->min_threads = threads;
     system->ChangeSolverType(SolverType::BB);
 
-    system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
+    system->GetSettings()->collision.collision_envelope = envelope;
     system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
     system->GetSettings()->collision.bins_per_axis = vec3(100, 30, 2);
     system->GetSettings()->collision.fixed_bins = true;
@@ -355,9 +356,15 @@ int main(int argc, char* argv[]) {
     GranularTerrain terrain(system);
     terrain.SetContactFrictionCoefficient((float)mu_g);
     terrain.SetContactCohesion((float)coh_g);
-    ////terrain.EnableRoughSurface(rough);
+    terrain.SetCollisionEnvelope(envelope / 5);
+    if (rough) {
+        int nx = (int)std::round((2 * hdimX) / (4 * r_g));
+        int ny = (int)std::round((2 * hdimY) / (4 * r_g));
+        terrain.EnableRoughSurface(nx, ny);
+    }
     terrain.EnableVisualization(true);
     terrain.EnableVerbose(true);
+
     terrain.Initialize(ChVector<>(0, 0, 0), 2 * hdimX, 2 * hdimY, num_particles, r_g, rho_g);
     uint actual_num_particles = terrain.GetNumParticles();
 

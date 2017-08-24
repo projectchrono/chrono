@@ -61,6 +61,9 @@ int main(int argc, char* argv[]) {
     double tire_rad = 0.8;           // Radius (m)
     double tire_ang_vel = CH_C_2PI;  // Tire angular velocity (rad/s)
 
+    // Collision envelope (10% of particle radius)
+    double envelope = 0.1 * r_g;
+
     // ---------------------------------
     // Create the parallel Chrono system
     // ---------------------------------
@@ -92,7 +95,7 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->min_threads = threads;
     system->ChangeSolverType(SolverType::BB);
 
-    system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
+    system->GetSettings()->collision.collision_envelope = envelope;
     system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
     system->GetSettings()->collision.bins_per_axis = vec3(100, 30, 2);
     system->GetSettings()->collision.fixed_bins = true;
@@ -104,9 +107,15 @@ int main(int argc, char* argv[]) {
     GranularTerrain terrain(system);
     terrain.SetContactFrictionCoefficient((float)mu_g);
     terrain.SetContactCohesion((float)coh_g);
-    terrain.EnableRoughSurface(rough);
+    terrain.SetCollisionEnvelope(envelope / 5);
+    if (rough) {
+        int nx = (int)std::round((2 * hdimX) / (4 * r_g));
+        int ny = (int)std::round((2 * hdimY) / (4 * r_g));
+        terrain.EnableRoughSurface(nx, ny);
+    }
     terrain.EnableVisualization(true);
     terrain.EnableVerbose(true);
+
     terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_particles, r_g, rho_g);
     uint actual_num_particles = terrain.GetNumParticles();
     double terrain_height = terrain.GetHeight(0, 0);
@@ -162,7 +171,7 @@ int main(int argc, char* argv[]) {
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Granular terrain demo", system);
-    gl_window.SetCamera(center - ChVector<>(0, 3, 0), center, ChVector<>(0, 0, 1));
+    gl_window.SetCamera(center - ChVector<>(0, 3, 0), center, ChVector<>(0, 0, 1), 0.05f);
     gl_window.SetRenderMode(opengl::SOLID);
 
     // ---------------
@@ -174,6 +183,14 @@ int main(int argc, char* argv[]) {
     while (time < time_end) {
         terrain.Synchronize(time);
         system->DoStepDynamics(time_step);
+
+        ////if (terrain.PatchMoved()) {
+        ////    auto aabb_min = system->data_manager->measures.collision.rigid_min_bounding_point;
+        ////    auto aabb_max = system->data_manager->measures.collision.rigid_max_bounding_point;
+        ////    std::cout << "   Global AABB: " << std::endl;
+        ////    std::cout << "   " << aabb_min.x << "  " << aabb_min.y << "  " << aabb_min.z << std::endl;
+        ////    std::cout << "   " << aabb_max.x << "  " << aabb_max.y << "  " << aabb_max.z << std::endl;
+        ////}
 
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         if (gl_window.Active())
