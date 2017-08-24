@@ -40,7 +40,7 @@ class ChApi ChBox : public ChVolume {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChBox* Clone() const override { return new ChBox(*this); }
 
-    virtual GeometryType GetClassType() const override { return BOX; }
+    virtual ChGeometry::GeometryType GetClassType() const override { return BOX; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
