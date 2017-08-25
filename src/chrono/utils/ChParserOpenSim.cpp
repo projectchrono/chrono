@@ -34,6 +34,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 #include <utility>
 
@@ -49,8 +50,31 @@ ChParserOpenSim::ChParserOpenSim() {
 // Used for coloring bodies
 static int body_idx = 0;
 
+// Holds info for a single collision cylinder
+struct collision_cylinder_specs {
+    double rad;
+    double hlen;
+    ChVector<> pos;
+    ChQuaternion<> rot;
+};
+
+// Holds all cylinder info and family info for a single body
+struct body_collision_struct {
+    ChBody* body;
+    std::vector<collision_cylinder_specs> cylinders;
+    int family;
+    int family_mask_nocollide;
+};
+
+// So we can keep adding to the same body
+static std::map<std::string, body_collision_struct> body_collision_info;
+
 // Parses an opensim file into an existing system
-void ChParserOpenSim::parse(ChSystem& p_system, const std::string& filename, ChParserOpenSim::VisType vis) {
+void ChParserOpenSim::parse(ChSystem& p_system,
+                            const std::string& filename,
+                            ChParserOpenSim::VisType vis,
+                            bool collision) {
+    bodies_collide = collision;
     m_visType = vis;
     rapidxml::file<char> file(filename.c_str());
 
@@ -72,17 +96,19 @@ void ChParserOpenSim::parse(ChSystem& p_system, const std::string& filename, ChP
         parseBody(bodyNode, p_system);
         bodyNode = bodyNode->next_sibling();
     }
-    initVisualizations(bodyNode, p_system);
+    // initVisualizations(bodyNode, p_system);
+    initShapes(bodyNode, p_system);
 }
 
 // Makes a new system and then parses into it
 ChSystem* ChParserOpenSim::parse(const std::string& filename,
                                  ChMaterialSurface::ContactMethod contact_method,
-                                 ChParserOpenSim::VisType vis) {
+                                 ChParserOpenSim::VisType vis,
+                                 bool collision) {
     ChSystem* sys = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                                : static_cast<ChSystem*>(new ChSystemSMC);
 
-    parse(*sys, filename, vis);
+    parse(*sys, filename, vis, collision);
 
     return sys;
 }
@@ -94,7 +120,25 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& my_system) {
     // Make a new body and name it for later
     std::cout << "New body " << bodyNode->first_attribute("name")->value() << std::endl;
     auto newBody = std::make_shared<ChBodyAuxRef>();
-    my_system.Add(newBody);
+
+    my_system.AddBody(newBody);
+    if (bodies_collide) {
+        newBody->SetCollide(true);
+        // Material properties
+        // float Y = 2e6f;
+        // float mu = 0.4f;
+        // float cr = 0.4f;
+
+        auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
+        // ballMat->SetYoungModulus(Y);
+        // ballMat->SetFriction(mu);
+        // ballMat->SetRestitution(cr);
+        // ballMat->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
+
+        newBody->SetMaterialSurface(ballMat);
+    } else {
+        newBody->SetCollide(false);
+    }
 
     // Used for lookup in the joint creation process
     newBody->SetName(bodyNode->first_attribute("name")->value());
@@ -140,7 +184,7 @@ void ChParserOpenSim::initFunctionTable() {
         // Only add vis balls if we're using primitives
         if ((m_visType == PRIMITIVES)) {
             auto sphere = std::make_shared<ChSphereShape>();
-            sphere->GetSphereGeometry().rad = 0.15;
+            sphere->GetSphereGeometry().rad = 0.1;
             // Put vis asset at COM
             sphere->Pos = ChVector<>(elems[0], elems[1], elems[2]);
             newBody->AddAsset(sphere);
@@ -412,6 +456,7 @@ void ChParserOpenSim::initFunctionTable() {
             m_jointList.push_back(joint);
 
         } else if ((std::string(jointNode->name()) == std::string("BallJoint"))) {
+            // Add a spherical joint
             auto joint = std::make_shared<ChLinkLockSpherical>();
             joint->Initialize(parent, newBody, jointFrame.GetCoord());
             joint->SetNameString(jointNode->first_attribute("name")->value());
@@ -446,61 +491,99 @@ void ChParserOpenSim::initFunctionTable() {
     };
     function_table["WrapObjectSet"] = [](xml_node<>* fieldNode, const ChSystem& my_system,
                                          std::shared_ptr<ChBodyAuxRef> newBody) {
-        // I don't think we need this either
+        // I don't think we need this
     };
 }
 
-// Initializes visualizations, currently this only deals with primitives
-void ChParserOpenSim::initVisualizations(xml_node<>* node, ChSystem& p_system) {
-    std::cout << "Assembling Primitives " << std::endl;
-    switch (m_visType) {
-        case VisType::PRIMITIVES:
-            for (auto link : m_jointList) {
-                auto linkCoords = link->GetLinkAbsoluteCoords();
-                std::cout << "Link " << link->GetName() << " is at " << linkCoords.pos.x() << "," << linkCoords.pos.y()
-                          << "," << linkCoords.pos.z() << std::endl;
-                // These need to be ChBodyAuxRef, but hopefully that's all that we'll have
-                auto parent = dynamic_cast<ChBodyAuxRef*>(link->GetBody1());
-                auto child = dynamic_cast<ChBodyAuxRef*>(link->GetBody2());
-                // Make cylinder from parent to outbound joint
-                {
-                    auto parent_joint_cyl = std::make_shared<ChCylinderShape>();
-                    // First end is at parent COM
-                    ChVector<> p1 = parent->GetFrame_COG_to_REF().GetPos();
-                    // Second end is at joint location
-                    ChVector<> p2 = parent->GetFrame_REF_to_abs().TransformPointParentToLocal(linkCoords.pos);
-                    parent_joint_cyl->GetCylinderGeometry().p1 = p1;
-                    parent_joint_cyl->GetCylinderGeometry().p2 = p2;
-                    parent_joint_cyl->GetCylinderGeometry().rad = 0.1;
-                    // Don't make a connection between overlapping bodies
-                    if ((p2 - p1).Length() > 1e-5) {
-                        parent->AddAsset(parent_joint_cyl);
-                    }
-                }
-                // Make cylinder from child to inbound joint
-                {
-                    // Give it a unique color
-                    double colorVal = (1.0 * child->GetIdentifier()) / p_system.Get_bodylist()->size();
-                    child->AddAsset(std::make_shared<ChColorAsset>(colorVal, 1 - colorVal, 0));
+// Initialize collision shapes and attaches vis objects if m_visType is PRIMITIVES
+void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& p_system) {
+    std::cout << "Assembling Collision Shapes " << std::endl;
+    bool vis_primitives = (m_visType == VisType::PRIMITIVES);
+    // Go through the motions of constructing collision models, but don't do it until we have all of the necessary info
+    for (auto link : m_jointList) {
+        auto linkCoords = link->GetLinkAbsoluteCoords();
+        // These need to be ChBodyAuxRef, but hopefully that's all that we'll have
+        auto parent = dynamic_cast<ChBodyAuxRef*>(link->GetBody1());
+        auto child = dynamic_cast<ChBodyAuxRef*>(link->GetBody2());
 
-                    auto joint_child_cyl = std::make_shared<ChCylinderShape>();
-                    // First end is at joint location
-                    ChVector<> p1 = child->GetFrame_REF_to_abs().TransformPointParentToLocal(linkCoords.pos);
-                    // Second end is at child COM
-                    ChVector<> p2 = child->GetFrame_COG_to_REF().GetPos();
-                    joint_child_cyl->GetCylinderGeometry().p1 = p1;
-                    joint_child_cyl->GetCylinderGeometry().p2 = p2;
-                    joint_child_cyl->GetCylinderGeometry().rad = 0.1;
-                    // Don't make a connection between overlapping bodies
-                    if ((p2 - p1).Length() > 1e-5) {
-                        child->AddAsset(joint_child_cyl);
-                    }
-                }
-            }
-            break;
-        case VisType::MESH:
-            // Covered elsewhere
-            break;
+        // Add pointers to struct if they don't exist, struct entry should be default-constructed
+        if (body_collision_info.find(parent->GetName()) == body_collision_info.end()) {
+            body_collision_info[parent->GetName()].body = parent;
+        }
+        if (body_collision_info.find(child->GetName()) == body_collision_info.end()) {
+            body_collision_info[child->GetName()].body = child;
+        }
+        body_collision_struct& parent_col_info = body_collision_info[parent->GetName()];
+        body_collision_struct& child_col_info = body_collision_info[child->GetName()];
+
+        ChVector<> p1, p2;
+        // Make cylinder from parent to outbound joint
+        // First end is at parent COM
+        p1 = parent->GetFrame_COG_to_REF().GetPos();
+        // Second end is at joint location
+        p2 = parent->GetFrame_REF_to_abs().TransformPointParentToLocal(linkCoords.pos);
+
+        // Don't make a connection between overlapping bodies
+        if ((p2 - p1).Length() > 1e-5) {
+            ChMatrix33<> rot;
+            rot.Set_A_Xdir(p1 - p2);
+            // Center of cylinder is halfway between points
+            collision_cylinder_specs new_cyl;
+            new_cyl.rad = .075;
+            new_cyl.hlen = (p1 - p2).Length() / 2;
+            new_cyl.pos = (p1 - p2) / 2;
+            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngZ(-CH_C_PI / 2);
+            body_collision_info[parent->GetName()].cylinders.push_back(new_cyl);
+        }
+
+        // Each child body gets a unique color
+        if (m_visType == VisType::PRIMITIVES) {
+            double colorVal = (1.0 * child->GetIdentifier()) / p_system.Get_bodylist()->size();
+            child->AddAsset(std::make_shared<ChColorAsset>(colorVal, 1 - colorVal, 0));
+        }
+
+        // First end is at joint location
+        p1 = child->GetFrame_REF_to_abs().TransformPointParentToLocal(linkCoords.pos);
+        // Second end is at child COM
+        p2 = child->GetFrame_COG_to_REF().GetPos();
+
+        // Don't make a connection between overlapping bodies
+        if ((p2 - p1).Length() > 1e-5) {
+            ChMatrix33<> rot;
+            rot.Set_A_Xdir(p2 - p1);
+            // Center of cylinder is halfway between points
+            collision_cylinder_specs new_cyl;
+            new_cyl.rad = .075;
+            new_cyl.hlen = (p2 - p1).Length() / 2;
+            new_cyl.pos = (p1 - p2) / 2;
+            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngZ(-CH_C_PI / 2);
+            body_collision_info[child->GetName()].cylinders.push_back(new_cyl);
+        }
+        // Make cylinder from child to inbound joint
+        std::cout << parent->GetName() << " family is " << body_collision_info[parent->GetName()].family << std::endl;
+        if ((parent->GetCollide() == false) || (body_collision_info[parent->GetName()].family == 2)) {
+            std::cout << "Setting "<< child->GetName()<<" to 1" << std::endl;
+            body_collision_info[child->GetName()].family = 1;
+            body_collision_info[child->GetName()].family_mask_nocollide = 2;
+        } else {
+            std::cout << "Setting "<< child->GetName()<<" to 2" << std::endl;
+            body_collision_info[child->GetName()].family = 2;
+            body_collision_info[child->GetName()].family_mask_nocollide = 1;
+        }
+    }
+    // Loops through created set of bodies and actually set up their models
+    for (auto body_info_pair : body_collision_info) {
+        auto body_info = body_info_pair.second;
+        body_info.body->GetCollisionModel()->ClearModel();
+
+        for (auto cyl_info : body_info.cylinders) {
+            utils::AddCylinderGeometry(body_info.body, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
+                                       vis_primitives);
+        }
+        // Set up the model
+        body_info.body->GetCollisionModel()->SetFamily(body_info.family);
+        body_info.body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(body_info.family_mask_nocollide);
+        body_info.body->GetCollisionModel()->BuildModel();
     }
 }
 

@@ -40,15 +40,17 @@ class ChApi ChParserOpenSim {
   public:
     ChParserOpenSim();
     ~ChParserOpenSim() {}
-    enum VisType { PRIMITIVES, MESH };
+    enum VisType { PRIMITIVES, MESH, NONE };
 
     void parse(ChSystem& system,             ///< [in] containing Chrono system
                const std::string& filename,  ///< [in] OpenSim input file name
-               VisType vis = VisType::PRIMITIVES);
+               VisType vis = VisType::PRIMITIVES,
+               bool collision = true);
 
     ChSystem* parse(const std::string& filename,  ///< [in] OpenSim input file name
                     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,  ///< [in] contact method
-                    VisType vis = VisType::PRIMITIVES);
+                    VisType vis = VisType::PRIMITIVES,
+                    bool collision = true);
 
   private:
     /// Setup lambda table for body parsing
@@ -59,6 +61,7 @@ class ChApi ChParserOpenSim {
 
     // Initializes visualization shapes for bodies connected to each link
     void initVisualizations(rapidxml::xml_node<>* node, ChSystem& p_system);
+    void initShapes(rapidxml::xml_node<>* node, ChSystem& p_system);
 
     // Get an STL vector from a string, used to make the xml parsing cleaner
     template <typename T>
@@ -71,6 +74,7 @@ class ChApi ChParserOpenSim {
     std::map<std::string, std::function<void(rapidxml::xml_node<>*, ChSystem&, std::shared_ptr<ChBodyAuxRef>)>>
         function_table;
     VisType m_visType;
+    bool bodies_collide;  // Do bodies have collision shapes?
     std::vector<std::shared_ptr<ChLink>> m_jointList;
 };
 
