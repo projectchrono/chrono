@@ -538,17 +538,12 @@ struct body_collision_struct {
 // Used for vis shapes
 static std::map<std::string, body_collision_struct> body_collision_info;
 
-// Used for coloring
-
 void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
-    int max_depth_level = 0;
-
     if (m_verbose)
         cout << "Creating collision and visualization shapes " << endl;
 
-    bool vis_primitives = (m_visType == VisType::PRIMITIVES);
-
     // Keep the maximum depth so that we can color appropriately
+    int max_depth_level = 0;
 
     // Go through the motions of constructing collision models, but don't do it until we have all of the necessary info
     for (auto link : m_jointList) {
@@ -599,12 +594,6 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             body_collision_info[parent->GetName()].cylinders.push_back(new_cyl);
         }
 
-        // Each child body gets a unique color
-        if (m_visType == VisType::PRIMITIVES) {
-            float colorVal = (1.0f * child_col_info.level) / max_depth_level;
-            child->AddAsset(std::make_shared<ChColorAsset>(colorVal, 1.0f - colorVal, 0.0f));
-        }
-
         // First end is at joint location
         p1 = child->GetFrame_REF_to_abs().TransformPointParentToLocal(linkCoords.pos);
         // Second end is at child COM
@@ -640,27 +629,41 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         }
     }
 
-    // Loops through created set of bodies and actually set up their models
+    // Loop through the list of bodies in the model and create visualization and collision shapes
     for (auto body_info_pair : body_collision_info) {
         auto body_info = body_info_pair.second;
+
+        // Create primitive visualization assets
+        if (m_visType == VisType::PRIMITIVES) {
+            // Assign a color based on the body's level in the tree hierarchy
+            float colorVal = (1.0f * body_info.level) / max_depth_level;
+            body_info.body->AddAsset(std::make_shared<ChColorAsset>(colorVal, 1.0f - colorVal, 0.0f));
+
+            // Create a sphere at the body COM
+            auto sphere = std::make_shared<ChSphereShape>();
+            sphere->GetSphereGeometry().rad = 0.1;
+            sphere->Pos = body_info.body->GetFrame_COG_to_REF().GetPos();
+            body_info.body->AddAsset(sphere);
+
+            // Create visualization cylinders
+            for (auto cyl_info : body_info.cylinders) {
+                auto cylinder = std::make_shared<ChCylinderShape>();
+                cylinder->GetCylinderGeometry().rad = cyl_info.rad;
+                cylinder->GetCylinderGeometry().p1 = ChVector<>(0, cyl_info.hlen, 0);
+                cylinder->GetCylinderGeometry().p2 = ChVector<>(0, -cyl_info.hlen, 0);
+                cylinder->Pos = cyl_info.pos;
+                cylinder->Rot = cyl_info.rot;
+                body_info.body->AddAsset(cylinder);
+            }
+        }
+
+        // Set collision shapes
         if (body_info.body->GetCollide()) {
             body_info.body->GetCollisionModel()->ClearModel();
 
             for (auto cyl_info : body_info.cylinders) {
                 utils::AddCylinderGeometry(body_info.body, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
-                                           vis_primitives);
-            }
-
-            // Each child body gets a unique color
-            if (vis_primitives) {
-                float colorVal = (1.0f * body_info.level) / max_depth_level;
-                body_info.body->AddAsset(std::make_shared<ChColorAsset>(colorVal, 1.0f - colorVal, 0.0f));
-
-                auto sphere = std::make_shared<ChSphereShape>();
-                sphere->GetSphereGeometry().rad = 0.1;
-                // Put vis asset at COM
-                sphere->Pos = body_info.body->GetFrame_COG_to_REF().GetPos();
-                body_info.body->AddAsset(sphere);
+                                           false);
             }
 
             body_info.body->GetCollisionModel()->SetFamily(body_info.family);
