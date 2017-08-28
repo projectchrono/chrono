@@ -45,9 +45,6 @@ using namespace rapidxml;
 using std::cout;
 using std::endl;
 
-// Used for coloring bodies
-static int body_idx = 0;
-
 // -----------------------------------------------------------------------------
 // Constructor for the OpenSim parser.
 // Initializes lambda table.
@@ -161,9 +158,6 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
 
     newBody->SetCollide(m_collide);
 
-    // Used for coloring
-    newBody->SetIdentifier(body_idx++);
-
     // Traverse the list of fields and parse the information for each one
     xml_node<>* fieldNode = bodyNode->first_node();
     while (fieldNode != NULL) {
@@ -190,11 +184,12 @@ void ChParserOpenSim::initFunctionTable() {
             newBody->SetBodyFixed(true);
             newBody->SetCollide(false);
             newBody->SetPos(ChVector<>(0, 0, 0));
-            // Ground has special color to identify it
+            // Mark as ground body
             newBody->AddAsset(std::make_shared<ChColorAsset>(0.0f, 0.0f, 0.0f));
         } else {
             // Give new body mass
             newBody->SetMass(std::stod(fieldNode->value()));
+            // Add to bodies that are collision
         }
     };
 
@@ -204,13 +199,6 @@ void ChParserOpenSim::initFunctionTable() {
         // Opensim doesn't really use a rotated COM to REF frame, so unit quaternion
         newBody->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(elems[0], elems[1], elems[2]), ChQuaternion<>(1, 0, 0, 0)));
         // Only add vis balls if we're using primitives
-        if ((m_visType == PRIMITIVES)) {
-            auto sphere = std::make_shared<ChSphereShape>();
-            sphere->GetSphereGeometry().rad = 0.1;
-            // Put vis asset at COM
-            sphere->Pos = ChVector<>(elems[0], elems[1], elems[2]);
-            newBody->AddAsset(sphere);
-        }
     };
 
     function_table["inertia_xx"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
@@ -540,20 +528,27 @@ struct collision_cylinder_specs {
 
 // Holds all cylinder info and family info for a single body
 struct body_collision_struct {
-    ChBody* body;
+    ChBodyAuxRef* body;
     std::vector<collision_cylinder_specs> cylinders;
     int family;
     int family_mask_nocollide;
+    int level;  // Depth in tree
 };
 
-// So we can keep adding to the same body
+// Used for vis shapes
 static std::map<std::string, body_collision_struct> body_collision_info;
 
+// Used for coloring
+
 void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
+    int max_depth_level = 0;
+
     if (m_verbose)
         cout << "Creating collision and visualization shapes " << endl;
 
     bool vis_primitives = (m_visType == VisType::PRIMITIVES);
+
+    // Keep the maximum depth so that we can color appropriately
 
     // Go through the motions of constructing collision models, but don't do it until we have all of the necessary info
     for (auto link : m_jointList) {
@@ -571,6 +566,18 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         }
         body_collision_struct& parent_col_info = body_collision_info[parent->GetName()];
         body_collision_struct& child_col_info = body_collision_info[child->GetName()];
+
+        // If a body is fixed, treat it as level 0
+        if (parent->GetBodyFixed()) {
+            parent_col_info.level = 0;
+        }
+        // Child is one more level than parent
+        int child_level = parent_col_info.level + 1;
+        // Keep a max depth so we know how to color it
+        if (child_level > max_depth_level) {
+            max_depth_level = child_level;
+        }
+        child_col_info.level = child_level;
 
         ChVector<> p1, p2;
         // Make cylinder from parent to outbound joint
@@ -594,7 +601,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
 
         // Each child body gets a unique color
         if (m_visType == VisType::PRIMITIVES) {
-            float colorVal = (1.0f * child->GetIdentifier()) / system.Get_bodylist()->size();
+            float colorVal = (1.0f * child_col_info.level) / max_depth_level;
             child->AddAsset(std::make_shared<ChColorAsset>(colorVal, 1.0f - colorVal, 0.0f));
         }
 
@@ -642,6 +649,18 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             for (auto cyl_info : body_info.cylinders) {
                 utils::AddCylinderGeometry(body_info.body, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
                                            vis_primitives);
+            }
+
+            // Each child body gets a unique color
+            if (vis_primitives) {
+                float colorVal = (1.0f * body_info.level) / max_depth_level;
+                body_info.body->AddAsset(std::make_shared<ChColorAsset>(colorVal, 1.0f - colorVal, 0.0f));
+
+                auto sphere = std::make_shared<ChSphereShape>();
+                sphere->GetSphereGeometry().rad = 0.1;
+                // Put vis asset at COM
+                sphere->Pos = body_info.body->GetFrame_COG_to_REF().GetPos();
+                body_info.body->AddAsset(sphere);
             }
 
             body_info.body->GetCollisionModel()->SetFamily(body_info.family);
