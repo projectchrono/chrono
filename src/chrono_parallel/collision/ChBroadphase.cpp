@@ -40,25 +40,82 @@ namespace collision {
 
 // Determine the bounding box for the objects===============================================================
 
+// Inverted AABB (assumed associated with an active shape).
+auto inverted = thrust::make_tuple(real3(+C_LARGE_REAL, +C_LARGE_REAL, +C_LARGE_REAL),
+                                   real3(-C_LARGE_REAL, -C_LARGE_REAL, -C_LARGE_REAL),
+                                   0);
+
+// Invert an AABB associated with an inactive shape or a shape on a non-colliding body.
+struct BoxInvert {
+    BoxInvert(const custom_vector<char>* collide) : m_collide(collide) {}
+    thrust::tuple<real3, real3, uint> operator()(const thrust::tuple<real3, real3, uint>& lhs) {
+        uint lhs_id = thrust::get<2>(lhs);
+        if (lhs_id == UINT_MAX || (*m_collide)[lhs_id] == 0)
+            return inverted;
+        else
+            return lhs;
+    }
+    const custom_vector<char>* m_collide;
+};
+
+// AABB union reduction operator
+struct BoxReduce {
+    thrust::tuple<real3, real3, uint> operator()(const thrust::tuple<real3, real3, uint>& lhs,
+                                                 const thrust::tuple<real3, real3, uint>& rhs) {
+        real3 lhs_ll = thrust::get<0>(lhs);
+        real3 lhs_ur = thrust::get<1>(lhs);
+
+        real3 rhs_ll = thrust::get<0>(rhs);
+        real3 rhs_ur = thrust::get<1>(rhs);
+
+        real3 ll = real3(Min(lhs_ll.x, rhs_ll.x), Min(lhs_ll.y, rhs_ll.y), Min(lhs_ll.z, rhs_ll.z));
+        real3 ur = real3(Max(lhs_ur.x, rhs_ur.x), Max(lhs_ur.y, rhs_ur.y), Max(lhs_ur.z, rhs_ur.z));
+
+        return thrust::tuple<real3, real3, uint>(ll, ur, 0);
+    }
+};
+
+// Calculate AABB of all rigid shapes.
+// This function excludes inactive shapes (marked with ID = UINT_MAX) and shapes
+// associated with non-colliding bodies.
 void ChCBroadphase::RigidBoundingBox() {
-    custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    if (aabb_min.size() == 0)
-        return;
+    // Vectors of length = number of collision shapes
+    const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    const custom_vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
+    // Vectors of length = number of rigid bodies
+    const custom_vector<char>& collide_rigid = data_manager->host_data.collide_rigid;
 
-    // determine the bounds on the total space and subdivide based on the bins per axis
-    bbox res(aabb_min[0], aabb_min[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(aabb_min.begin(), aabb_min.end(), unary_op, res, binary_op);
-    res = thrust::transform_reduce(aabb_max.begin(), aabb_max.end(), unary_op, res, binary_op);
+    // Calculate union of all AABBs.  
+    // Excluded AABBs are inverted through the transform operation, prior to the reduction.
+    auto begin = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.begin(), aabb_max.begin(), id_rigid.begin()));
+    auto end = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.end(), aabb_max.end(), id_rigid.end()));
+    auto result = thrust::transform_reduce(THRUST_PAR begin, end, BoxInvert(&collide_rigid), inverted, BoxReduce());
 
-    real3& min_bounding_point = data_manager->measures.collision.rigid_min_bounding_point;
-    real3& max_bounding_point = data_manager->measures.collision.rigid_max_bounding_point;
-
-    min_bounding_point = res.first;
-    max_bounding_point = res.second;
+    data_manager->measures.collision.rigid_min_bounding_point = thrust::get<0>(result);
+    data_manager->measures.collision.rigid_max_bounding_point = thrust::get<1>(result);
 }
+
+// AABB as the pair of its min and max corners.
+typedef thrust::pair<real3, real3> bbox;
+
+// Reduce a pair of bounding boxes (a,b) to a bounding box containing a and b.
+struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
+    bbox operator()(bbox a, bbox b) {
+        real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
+            Min(a.first.z, b.first.z));  // lower left corner
+        real3 ur = real3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
+            Max(a.second.z, b.second.z));  // upper right corner
+        return bbox(ll, ur);
+    }
+};
+
+// Convert a point to a bbox containing that point, (point) -> (point, point).
+struct bbox_transformation : public thrust::unary_function<real3, bbox> {
+    bbox operator()(real3 point) { return bbox(point, point); }
+};
+
+// Calculate AABB of all fluid particles.
 void ChCBroadphase::FluidBoundingBox() {
     const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     const real radius = data_manager->node_container->kernel_radius + data_manager->node_container->collision_envelope;
@@ -82,6 +139,8 @@ void ChCBroadphase::FluidBoundingBox() {
     max_bounding_point = res.second + radius * 6;
     min_bounding_point = res.first - radius * 6;
 }
+
+// Calculate AABB of all tetrahedral shapes.
 void ChCBroadphase::TetBoundingBox() {
     custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
     custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
