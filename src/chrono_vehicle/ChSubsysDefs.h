@@ -421,7 +421,8 @@ enum Enum {
 /// Enum for track shoe types.
 enum class TrackShoeType {
     SINGLE_PIN,  ///< single-pin track shoe and sprocket
-    DOUBLE_PIN   ///< double-pin track shoe and sprocket
+    DOUBLE_PIN,  ///< double-pin track shoe and sprocket
+    RIGID_CB     ///< rigid tooth-rigid web continuous band track shoe and sprocket
 };
 
 /// Enum for guide pin (track shoe/roadwheel/idler).
