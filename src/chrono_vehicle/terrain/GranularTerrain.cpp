@@ -121,10 +121,14 @@ void GranularTerrain::EnableRoughSurface(int num_spheres_x, int num_spheres_y) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void GranularTerrain::EnableMovingPatch(std::shared_ptr<ChBody> body, double buffer_distance, double shift_distance) {
+void GranularTerrain::EnableMovingPatch(std::shared_ptr<ChBody> body,
+                                        double buffer_distance,
+                                        double shift_distance,
+                                        const ChVector<>& init_vel) {
     m_body = body;
     m_buffer_distance = buffer_distance;
     m_shift_distance = shift_distance;
+    m_init_part_vel = init_vel;
 
     // Enable moving patch
     m_moving_patch = true;
@@ -329,7 +333,8 @@ void GranularTerrain::Initialize(const ChVector<>& center,
                                  double width,
                                  unsigned int num_particles,
                                  double radius,
-                                 double density) {
+                                 double density,
+                                 const ChVector<>& init_vel) {
     m_length = length;
     m_width = width;
     m_radius = radius;
@@ -429,7 +434,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     while (m_num_particles < num_particles) {
         if (m_verbose)
             std::cout << "Create layer at height: " << layer_center.z() << std::endl;
-        generator.createObjectsBox(utils::POISSON_DISK, 2 * r, layer_center, layer_hdims);
+        generator.createObjectsBox(utils::POISSON_DISK, 2 * r, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
         m_num_particles = generator.getTotalNumBodies();
     }
@@ -491,6 +496,7 @@ void GranularTerrain::Synchronize(double time) {
     for (auto body : *bodylist) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             body->SetPos(new_points[ip++]);
+            body->SetPos_dt(m_init_part_vel);
         }
     }
 
