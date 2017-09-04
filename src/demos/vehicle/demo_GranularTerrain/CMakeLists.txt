@@ -9,13 +9,12 @@ IF(NOT ENABLE_MODULE_OPENGL OR NOT ENABLE_MODULE_PARALLEL)
 ENDIF()
 
 #--------------------------------------------------------------
-# List all model files for this demo
+# List all granular terrain demos
 
-SET(DEMO
+SET(DEMOS
     demo_VEH_GranularTerrain
+    demo_VEH_MovingPatch
 )
-
-SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories
@@ -23,18 +22,22 @@ SOURCE_GROUP("" FILES ${DEMO}.cpp)
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES} ${CH_OPENGL_INCLUDES})
 
 #--------------------------------------------------------------
-# Add executable
+# Add executables
 
-MESSAGE(STATUS "...add ${DEMO}")
+FOREACH(DEMO ${DEMOS})
 
-ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
-SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
-                      COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-TARGET_LINK_LIBRARIES(${DEMO}
-                      ChronoEngine
-                      ChronoEngine_vehicle
-                      ChronoEngine_parallel
-                      ChronoEngine_opengl)
-INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+    MESSAGE(STATUS "...add ${DEMO}")
 
+    ADD_EXECUTABLE(${DEMO} ${DEMO}.cpp)
+    SOURCE_GROUP("" FILES ${DEMO}.cpp)
+    SET_TARGET_PROPERTIES(${DEMO} PROPERTIES 
+                          COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
+                          LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+    TARGET_LINK_LIBRARIES(${DEMO}
+                          ChronoEngine
+                          ChronoEngine_vehicle
+                          ChronoEngine_parallel
+                          ChronoEngine_opengl)
+    INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
+
+ENDFOREACH()
