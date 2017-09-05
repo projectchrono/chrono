@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// M113 track shoe subsystem (double pin).
+// M113 track shoe subsystem (rigid-web continuous band track).
 //
 // =============================================================================
 
@@ -47,25 +47,11 @@ class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
     /// Return the height of the track shoe.
     virtual double GetHeight() const override { return m_shoe_height; }
 
-    /// Return the mass of the shoe body.
-    virtual double GetShoeMass() const override { return m_shoe_mass; }
-    /// Return the moments of inertia of the shoe body.
-    virtual const ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
-    /// Return shoe length (distance between pins).
-    virtual double GetShoeLength() const override { return m_shoe_length; }
-    /// Return shoe width (separation between connectors).
-    virtual double GetShoeWidth() const override { return m_shoe_width; }
 
-    /// Return the mass of a connector body.
-    virtual double GetConnectorMass() const override { return m_connector_mass; }
-    /// Return the moments of inertia of a connector body.
-    virtual const ChVector<>& GetConnectorInertia() const override { return m_connector_inertia; }
-    /// Return the length of a connector body.
-    virtual double GetConnectorLength() const override { return m_connector_length; }
-    /// Return the radius of a connector body.
-    virtual double GetConnectorRadius() const override { return m_connector_radius; }
-    /// Return the width of a connector body (visualization only).
-    virtual double GetConnectorWidth() const override { return m_connector_width; }
+    /// Return the mass of the shoe body.
+    virtual std::vector<double> GetShoeMasses() const override { return m_shoe_masses; }
+    /// Return the moments of inertia of the shoe body.
+    virtual std::vector<ChVector<>> GetShoeInertias() const override { return m_shoe_inertias; }
 
     /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -73,28 +59,50 @@ class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
     /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual const ChVector<>& GetPadBoxDimensions() const override { return m_pad_box_dims; }
-    virtual const ChVector<>& GetPadBoxLocation() const override { return m_pad_box_loc; }
     virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
-    virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
+    virtual const double GetGuideBoxOffsetX() const override{ return m_guide_box_offset_x; }
+
+
+    //// TODO - Add comments here
+    /// Return belt geometry parameters
+    virtual const double GetBeltWidth() const override{ return m_belt_width; }
+    virtual const double GetToothWidth() const override{ return m_tooth_width; }
+    virtual const double GetToothTipLength() const override{ return m_tooth_tip_length; }
+    virtual const double GetToothBaseLength() const override{ return m_tooth_base_length; }
+    virtual const double GetToothHeight() const override{ return m_tooth_height; }
+    virtual const double GetToothArcRadius() const override{ return m_tooth_arc_radius; }
+    virtual ChVector2<> GetToothArcCenter() const override{ return m_tooth_arc_center; }
+    virtual const double GetBushingDepth() const override{ return m_web_thickness * m_bushing_fractional_depth;}
+    virtual const double GetWebThickness() const override{ return m_web_thickness; }
+    virtual const int GetNumWebSegments() const override{ return m_num_web_segments; }
+    virtual std::vector<double> GetWebLengths() const override{ return m_web_lengths; }
+    virtual const double GetTreadThickness() const override{ return m_tread_thickness; }
+    virtual const double GetTreadLength() const override{ return m_tread_length; }
+
 
   private:
-    static const double m_shoe_mass;
-    static const ChVector<> m_shoe_inertia;
-    static const double m_shoe_length;
-    static const double m_shoe_width;
+    std::vector<double> m_shoe_masses;
+    std::vector<ChVector<>> m_shoe_inertias;
+
     static const double m_shoe_height;
 
-    static const double m_connector_mass;
-    static const ChVector<> m_connector_inertia;
-    static const double m_connector_radius;
-    static const double m_connector_length;
-    static const double m_connector_width;
+    static const double m_belt_width;
+    static const double m_tooth_width;
+    static const double m_tooth_tip_length;
+    static const double m_tooth_base_length;
+    static const double m_tooth_height;
+    static const double m_tooth_arc_radius;
+    ChVector2<> m_tooth_arc_center;
+    static const double m_web_thickness;
+    static const double m_bushing_fractional_depth;
+    static const double m_web_length;
+    static const int m_num_web_segments;
+    std::vector<double> m_web_lengths;
+    static const double m_tread_thickness;
+    static const double m_tread_length;
 
-    static const ChVector<> m_pad_box_dims;
-    static const ChVector<> m_pad_box_loc;
     static const ChVector<> m_guide_box_dims;
-    static const ChVector<> m_guide_box_loc;
+    static const double m_guide_box_offset_x;
 
     static const std::string m_meshName;
     static const std::string m_meshFile;

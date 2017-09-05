@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// M113 sprocket subsystem (double pin).
+// M113 sprocket subsystem (continuous band track).
 //
 // =============================================================================
 
@@ -31,34 +31,27 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const int M113_SprocketCB::m_num_teeth = 10;
-//const int M113_SprocketCB::m_num_teeth = 17; //10;
-
 const double M113_SprocketCB::m_gear_mass = 436.7;
 const ChVector<> M113_SprocketCB::m_gear_inertia(12.22, 13.87, 12.22);
 const double M113_SprocketCB::m_axle_inertia = 1;
 const double M113_SprocketCB::m_separation = 0.278;
 
-const double M113_SprocketCB::m_gear_RT = 0.2715;  // 10.69''
-const double M113_SprocketCB::m_gear_R = 0.0223;   // 0.88''
-const double M113_SprocketCB::m_gear_RA = 0.242;   // 9.53''
-
-//const double M113_SprocketCB::m_gear_RT = 0.2307;  //0.2715;  // 10.69''
-//const double M113_SprocketCB::m_gear_R = 0.0542;   //0.0223;   // 0.88''
-//const double M113_SprocketCB::m_gear_RA = 0.242;   // 9.53''
-const double M113_SprocketCB::m_gear_BaseWidth = 0.0530;
-const double M113_SprocketCB::m_gear_TipWidth = 0.0128;
-const double M113_SprocketCB::m_gear_ToothDepth = 0.0387;
-
-
-const double M113_SprocketCB::m_gear_C = 0.2371;  // 9.334''
-const double M113_SprocketCB::m_gear_W = 0.0464;  // 1.825''
+// Gear profile data
+const int M113_SprocketCB::m_num_teeth = 17;
+const double M113_SprocketCB::m_gear_outer_radius = 0.2307;
+const double M113_SprocketCB::m_gear_base_width = 0.0530;
+const double M113_SprocketCB::m_gear_tip_width = 0.0128;
+const double M113_SprocketCB::m_gear_tooth_depth = 0.0387;
+const double M113_SprocketCB::m_gear_arc_radius = 0.0542;
+const double M113_SprocketCB::m_gear_RA = 0.2307;
 
 const std::string M113_SprocketCBLeft::m_meshName = "Sprocket2_L_POV_geom";
 const std::string M113_SprocketCBLeft::m_meshFile = "M113/Sprocket2_L.obj";
 
 const std::string M113_SprocketCBRight::m_meshName = "Sprocket2_R_POV_geom";
 const std::string M113_SprocketCBRight::m_meshFile = "M113/Sprocket2_R.obj";
+
+
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

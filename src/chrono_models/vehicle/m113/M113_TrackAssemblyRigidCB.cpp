@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// M113 double-pin track assembly subsystem.
+// M113 continuous band track assembly subsystem using rigid-link track shoes.
 //
 // =============================================================================
 
@@ -77,11 +77,11 @@ M113_TrackAssemblyRigidCB::M113_TrackAssemblyRigidCB(VehicleSide side) : ChTrack
     switch (side) {
         case LEFT:
             m_sprocket = std::make_shared<M113_SprocketCBLeft>();
-            num_shoes = 63; // 105;
+            num_shoes = 120; // 105;  //// TODO - Adjust the rest of the belt & sprocket geometry & set this to the correct value
             break;
         case RIGHT:
             m_sprocket = std::make_shared<M113_SprocketCBRight>();
-            num_shoes = 64; // 106;
+            num_shoes = 120; // 106;  //// TODO - Adjust the rest of the belt & sprocket geometry & set this to the correct value
             break;
     }
 

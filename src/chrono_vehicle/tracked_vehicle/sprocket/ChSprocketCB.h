@@ -9,73 +9,13 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
 // Base class for a sprocket template with gear profile composed of circular arcs
 // and line segments, suitable for interaction with a continuous band track.
 //
 // =============================================================================
-
-//#ifndef CH_SPROCKET_CB_H
-//#define CH_SPROCKET_CB_H
-//
-//#include "chrono_vehicle/ChApiVehicle.h"
-//
-//#include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
-//
-//namespace chrono {
-//namespace vehicle {
-//
-///// @addtogroup vehicle_tracked_sprocket
-///// @{
-//
-///// Base class for a sprocket template with gear profile composed of circular arcs
-///// and line segments, suitable for interaction with a continuous band track.
-//class CH_VEHICLE_API ChSprocketCB : public ChSprocket {
-//  public:
-//    ChSprocketCB(const std::string& name  ///< [in] name of the subsystem
-//                 );
-//
-//    virtual ~ChSprocketCB() {}
-//
-//    /// Return the 2D gear profile.
-//    /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
-//    /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
-//    /// clockwise order, and the end of sub-path i must be coincident with beginning of
-//    /// sub-path i+1.
-//    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() override;
-//
-//    /// Return the custom collision callback object.
-//    virtual ChSystem::CustomCollisionCallback* GetCollisionCallback(
-//        ChTrackAssembly* track  ///< [in] pointer to containing track assembly
-//        ) override;
-//
-//  protected:
-//    /// Return the radius of the outer profile of the sprocket.
-//    virtual double GetOuterRadius() const = 0;
-//
-//    /// Return the The linear width (chord length) of the tooth profile where it 
-//    /// intersects with the sprocket’s outer radius circle
-//    virtual double GetBaseWidth() const = 0;
-//
-//    /// Return the length of the flat bottom profile of the sprocket tooth.
-//    virtual double GetTipWidth() const = 0;
-//
-//    /// Return the depth of the tooth profile measured from the tip to the
-//    /// tooth base width cord line.
-//    virtual double GetToothDepth() const = 0;
-//
-//    /// Return the radius of the (concave) tooth circular arcs.
-//    virtual double GetArcRadius() const = 0;
-//};
-//
-///// @} vehicle_tracked_sprocket
-//
-//}  // end namespace vehicle
-//}  // end namespace chrono
-//
-//#endif
 
 #ifndef CH_SPROCKET_CB_H
 #define CH_SPROCKET_CB_H
@@ -116,15 +56,6 @@ namespace chrono {
             /// Return the radius of the outer sprocket circle.
             virtual double GetOuterRadius() const = 0;
 
-            /// Return the radius of the (concave) tooth circular arcs.
-            virtual double GetArcRadius() const = 0;
-
-            /// Return height of arc centers.
-            virtual double GetArcCenterHeight() const = 0;
-
-            /// Return offset of arc centers.
-            virtual double GetArcCenterOffset() const = 0;
-
             /// Return the base width of the sprocket profile 
             /// length of the chord where the tooth profile meets the sprocket's outer radius
             virtual double GetBaseWidth() const = 0;
@@ -136,6 +67,10 @@ namespace chrono {
             /// measured as the distance from the center of the profile tip line to the
             /// center of the base width line
             virtual double GetToothDepth() const = 0;
+
+            /// Return the radius of the (concave) tooth circular arcs.
+            virtual double GetArcRadius() const = 0;
+
         };
 
         /// @} vehicle_tracked_sprocket

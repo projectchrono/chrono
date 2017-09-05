@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// M113 sprocket subsystem (double pin).
+// M113 sprocket subsystem (continuous band track).
 //
 // =============================================================================
 
@@ -34,7 +34,7 @@ namespace m113 {
 /// @addtogroup vehicle_models_m113
 /// @{
 
-/// M113 sprocket subsystem, suitable for interaction with double-pin track shoes (base class).
+/// M113 sprocket subsystem, suitable for interaction with rigid continuous band track shoes (base class).
 class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
   public:
     virtual ~M113_SprocketCB() {}
@@ -56,25 +56,18 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
     virtual double GetSeparation() const override { return m_separation; }
 
     /// Return the radius of the addendum circle.
-    virtual double GetOuterRadius() const override { return m_gear_RT; }
-    /// Return the radius of the (concave) tooth circular arc.
-    virtual double GetArcRadius() const override { return m_gear_R; }
-    /// Return height of arc center.
-    virtual double GetArcCenterHeight() const override { return m_gear_C; }
-    /// Return offset of arc center.
-    virtual double GetArcCenterOffset() const override { return m_gear_W; }
+    virtual double GetOuterRadius() const override { return m_gear_outer_radius; }
     /// Return the base width of the sprocket profile 
     /// length of the chord where the tooth profile meets the sprocket's outer radius
-    virtual double GetBaseWidth() const override { return m_gear_BaseWidth; }
-
+    virtual double GetBaseWidth() const override { return m_gear_base_width; }
     /// Return the width of the inner tip of the sprocket profile
-    virtual double GetTipWidth() const override { return m_gear_TipWidth; }
-
+    virtual double GetTipWidth() const override { return m_gear_tip_width; }
     /// Return the depth of the sprocket profile
     /// measured as the distance from the center of the profile tip line to the
     /// center of the base width line
-    virtual double GetToothDepth() const override{ return m_gear_ToothDepth; }
-
+    virtual double GetToothDepth() const override{ return m_gear_tooth_depth; }
+    /// Return the radius of the (concave) tooth circular arc.
+    virtual double GetArcRadius() const override { return m_gear_arc_radius; }
 
     /// Add visualization of the sprocket.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -93,17 +86,15 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
     static const double m_separation;
 
     // Gear profile data
-    static const double m_gear_RT;
-    static const double m_gear_R;
-    static const double m_gear_C;
-    static const double m_gear_W;
+    static const double m_gear_outer_radius;
+    static const double m_gear_base_width;
+    static const double m_gear_tip_width;
+    static const double m_gear_tooth_depth;
+    static const double m_gear_arc_radius;
     static const double m_gear_RA;
-    static const double m_gear_BaseWidth;
-    static const double m_gear_TipWidth;
-    static const double m_gear_ToothDepth;
 };
 
-/// M113 sprocket subsystem, suitable for interaction with double-pin track shoes (left side).
+/// M113 sprocket subsystem, suitable for interaction with rigid continuous band track shoes (left side).
 class CH_MODELS_API M113_SprocketCBLeft : public M113_SprocketCB {
   public:
     M113_SprocketCBLeft() : M113_SprocketCB("M113_SprocketLeft") {}
@@ -117,7 +108,7 @@ class CH_MODELS_API M113_SprocketCBLeft : public M113_SprocketCB {
     static const std::string m_meshFile;
 };
 
-/// M113 sprocket subsystem, suitable for interaction with double-pin track shoes (right side).
+/// M113 sprocket subsystem, suitable for interaction with drigid continuous band track shoes (right side).
 class CH_MODELS_API M113_SprocketCBRight : public M113_SprocketCB {
   public:
     M113_SprocketCBRight() : M113_SprocketCB("M113_SprocketRight") {}

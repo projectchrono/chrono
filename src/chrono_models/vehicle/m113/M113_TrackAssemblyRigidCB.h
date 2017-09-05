@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// M113 double-pin track assembly subsystem.
+// M113 continuous band track assembly subsystem using rigid-link track shoes.
 //
 // =============================================================================
 
