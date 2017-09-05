@@ -83,13 +83,13 @@ class CH_VEHICLE_API ChTrackAssemblyRigidCB : public ChTrackAssembly {
     void CheckCircleCircle(bool& found,
                            ChVector2<>& Point,
                            ChMatrixDynamic<>& Features,
-                           size_t FeatureIdx,
+                           int FeatureIdx,
                            ChVector2<> StartingPoint,
                            double Radius);
     void CheckCircleLine(bool& found,
                          ChVector2<>& Point,
                          ChMatrixDynamic<>& Features,
-                         size_t FeatureIdx,
+                         int FeatureIdx,
                          ChVector2<> StartingPoint,
                          double Radius);
 

@@ -69,16 +69,15 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // ----------------------------------------------------------
 
     // Number of track shoes and road wheels.
-    size_t num_shoes = m_shoes.size();
-    size_t num_wheels = m_suspensions.size();
-    size_t index = 0;
+    int num_shoes = static_cast<int>(m_shoes.size());
+    int num_wheels = static_cast<int>(m_suspensions.size());
 
     ChVectorDynamic<> ShoeConnectionLengths(1 + m_shoes[0]->GetNumWebSegments());
     ShoeConnectionLengths(0) = m_shoes[0]->GetToothBaseLength();
 
     double seg_length = m_shoes[0]->GetWebLength() / m_shoes[0]->GetNumWebSegments();
-    for (size_t web = 0; web < m_shoes[0]->GetNumWebSegments(); web++) {
-        ShoeConnectionLengths(1 + web) = seg_length;
+    for (int is = 0; is < m_shoes[0]->GetNumWebSegments(); is++) {
+        ShoeConnectionLengths(1 + is) = seg_length;
     }
 
     // X & Y coordinates for the sprocket, idler, and all of the road wheels
@@ -97,7 +96,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     CirclePosAll(1, 1) = idler_pos_3d.z();
     CircleRadiusAll(1) = m_idler->GetWheelRadius();
 
-    for (size_t i = 0; i < num_wheels; i++) {
+    for (int i = 0; i < num_wheels; i++) {
         ChVector<> wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
         CirclePosAll(i + 2, 0) = wheel_pos.x();
         CirclePosAll(i + 2, 1) = wheel_pos.z();
@@ -110,7 +109,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // ----------------------------------------------------------
     // Step 1: Determine if the sprocket is ahead or behind of the other circles
     double AverageXPos = 0;
-    for (size_t i = 0; i < CirclePosAll.GetRows(); i++) {
+    for (int i = 0; i < CirclePosAll.GetRows(); i++) {
         AverageXPos += CirclePosAll(i, 0);
     }
     AverageXPos /= CirclePosAll.GetRows();
@@ -120,24 +119,24 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Start building the path around the sprocket, idler, and wheels
 
-    size_t Current_Circle = 0;
-    size_t NumCirclesOnPath = 0;
+    int Current_Circle = 0;
+    int NumCirclesOnPath = 0;
     ChMatrixDynamic<> TangentPoints(CirclePosAll.GetRows(), 4);  // Will be resized later
-    ChVectorDynamic<> CircleIndex(CirclePosAll.GetRows());       // Will be resized later
+    ChVectorDynamic<int> CircleIndex(CirclePosAll.GetRows());    // Will be resized later
 
     // At most each circle is visted once.  Something went wrong if
     // the loop is not closed within this many passes through the algorithm
-    size_t iter;
+    int iter;
     for (iter = 0; iter < CirclePosAll.GetRows(); iter++) {
-        // Step 2: Create an ordered list of the circles with repect to thier
+        // Step 2: Create an ordered list of the circles with repect to their
         // distance from the starting circle;
 
         std::vector<double> Distances;
-        std::vector<size_t> DistanceIndices;
+        std::vector<int> DistanceIndices;
         Distances.reserve(CirclePosAll.GetRows() - 1);
         DistanceIndices.reserve(CirclePosAll.GetRows() - 1);
 
-        for (size_t c = 0; c < CirclePosAll.GetRows(); c++) {
+        for (int c = 0; c < CirclePosAll.GetRows(); c++) {
             if (c == Current_Circle) {  // Don't count the distance between the circle and itself
                 continue;
             }
@@ -148,7 +147,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             DistanceIndices.push_back(c);
         }
 
-        std::vector<int> idx(Distances.size());
+        std::vector<size_t> idx(Distances.size());
         std::size_t n(0);
         std::generate(std::begin(idx), std::end(idx), [&] { return n++; });
 
@@ -165,7 +164,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         // skips over multiple circle tangents that are co-linear
 
         double minAngle = 0;
-        size_t nextCircle = 0;
+        int nextCircle = 0;
 
         ChVector2<> Tan1Pnt1;
         ChVector2<> Tan1Pnt2;
@@ -246,18 +245,18 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         }
     }
 
-    // Save the reduced geometry corresponding to the tight wrapping of the belt path
+    // Save the reduced geometry corresponding to the tight wrapping of the belt path.
 
-    ChMatrixDynamic<> CirclePos(
-        iter + 1, 2);  // X & Y coordinates for the sprocket and idler or any of the road wheels on the belt wrap loop
-    ChVectorDynamic<> CircleRadius(
-        iter + 1);  // radii for the sprocket and idler or any of the road wheels on the belt wrap loop
+    // X & Y coordinates for the sprocket and idler or any of the road wheels on the belt wrap loop
+    ChMatrixDynamic<> CirclePos(iter + 1, 2);
+    // radii for the sprocket and idler or any of the road wheels on the belt wrap loop
+    ChVectorDynamic<> CircleRadius(iter + 1);
 
     // Move the sprocket to the beginning position from the end
     CirclePos(0, 0) = CirclePosAll(CircleIndex(iter), 0);
     CirclePos(0, 1) = CirclePosAll(CircleIndex(iter), 1);
     CircleRadius(0) = CircleRadiusAll(CircleIndex(iter));
-    for (size_t i = 0; i < (iter); i++) {
+    for (int i = 0; i < (iter); i++) {
         CirclePos(i + 1, 0) = CirclePosAll(CircleIndex(i), 0);
         CirclePos(i + 1, 1) = CirclePosAll(CircleIndex(i), 1);
         CircleRadius(i + 1) = CircleRadiusAll(CircleIndex(i));
@@ -286,13 +285,13 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // to determine the inital scale for sprocket/idler/road wheel circles
 
     double CombineShoeLength = 0;
-    for (size_t i = 0; i < ShoeConnectionLengths.GetRows(); i++) {
+    for (int i = 0; i < ShoeConnectionLengths.GetRows(); i++) {
         CombineShoeLength += ShoeConnectionLengths(i);  // sum all of the seperate lengths per shoe
     }
     CombineShoeLength *= num_shoes;
 
-    ChMatrixDynamic<> Arcs(CircleRadius.GetRows(),
-                           3);  // for each circle [Arc Length, Starting Angle of Arc, Ending Angle of Arc]
+    // for each circle [Arc Length, Starting Angle of Arc, Ending Angle of Arc]
+    ChMatrixDynamic<> Arcs(CircleRadius.GetRows(), 3);
 
     StartingAngle = std::atan2(TangentPoints(CircleRadius.GetRows() - 1, 3) - CirclePos(0, 1),
                                TangentPoints(CircleRadius.GetRows() - 1, 2) - CirclePos(0, 0));
@@ -309,7 +308,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     Arcs(0, 1) = StartingAngle;
     Arcs(0, 2) = EndingAngle;
 
-    for (size_t i = 1; i < CircleRadius.GetRows(); i++) {
+    for (int i = 1; i < CircleRadius.GetRows(); i++) {
         StartingAngle =
             std::atan2(TangentPoints(i - 1, 3) - CirclePos(i, 1), TangentPoints(i - 1, 2) - CirclePos(i, 0));
         EndingAngle = std::atan2(TangentPoints(i, 1) - CirclePos(i, 1), TangentPoints(i, 0) - CirclePos(i, 0));
@@ -330,7 +329,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double LengthOfArcs = 0;
     double LengthOfTangents = 0;
 
-    for (size_t i = 0; i < Arcs.GetRows(); i++) {
+    for (int i = 0; i < Arcs.GetRows(); i++) {
         LengthOfArcs += (Arcs(i, 0) * CircleRadius(i));
 
         LengthOfTangents += std::sqrt(std::pow(TangentPoints(i, 2) - TangentPoints(i, 0), 2) +
@@ -349,12 +348,12 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     for (iter = 0; iter < Maxiter; iter++) {
         ChVectorDynamic<> ScaledCircleRadius = CircleRadius;
-        for (size_t i = 0; i < ScaledCircleRadius.GetRows(); i++) {
+        for (int i = 0; i < ScaledCircleRadius.GetRows(); i++) {
             ScaledCircleRadius(i) += DeltaRadius;
         }
 
         // Calculate the new tangents based off of the arc starting and ending points for each circle
-        for (size_t i = 0; i < ScaledCircleRadius.GetRows(); i++) {
+        for (int i = 0; i < ScaledCircleRadius.GetRows(); i++) {
             double StartingArcPoint_x = cos(Arcs(i, 1)) * ScaledCircleRadius(i) + CirclePos(i, 0);
             double StartingArcPoint_z = sin(Arcs(i, 1)) * ScaledCircleRadius(i) + CirclePos(i, 1);
 
@@ -394,13 +393,13 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         ShoePoints(0, 0) = std::cos(StartingAngle) * ScaledCircleRadius(0) + CirclePos(0, 0);
         ShoePoints(0, 1) = std::sin(StartingAngle) * ScaledCircleRadius(0) + CirclePos(0, 1);
 
-        size_t shoelinktype = 0;
-        size_t CurrentFeature = 0;
+        int shoelinktype = 0;
+        int CurrentFeature = 0;
 
         // Build features array used for determining shoe points on the arcs and tangents
         ChMatrixDynamic<> Features(2 * ScaledCircleRadius.GetRows(), 6);
 
-        for (size_t i = 0; i < ScaledCircleRadius.GetRows(); i++) {
+        for (int i = 0; i < ScaledCircleRadius.GetRows(); i++) {
             // Add Arc Wrap Feature (id = 0)
             Features(2 * i, 0) = 0;  // feature type id
             Features(2 * i, 1) = CirclePos(i, 0);
@@ -423,14 +422,14 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         bool InitalSprocketWrap = true;
         double ExtraLength = 0;
         double CurrentAngle = 0;
-        size_t shoeidx;
+        int shoeidx;
 
         for (shoeidx = 1; shoeidx < ShoePoints.GetRows(); shoeidx++) {
             ChVector2<> Point;
             ChVector2<> StartingPoint(ShoePoints(shoeidx - 1, 0), ShoePoints(shoeidx - 1, 1));
 
-            for (size_t c = 0; c < Features.GetRows();
-                 c++) {  // Make sure that all the features are only searched once to prevent and endless loop
+            // Make sure that all the features are only searched once to prevent and endless loop
+            for (int c = 0; c < Features.GetRows(); c++) {
                 if (Features(CurrentFeature, 0) == 0) {
                     CheckCircleCircle(FoundPoint, Point, Features, CurrentFeature, StartingPoint,
                                       ShoeConnectionLengths(shoelinktype));
@@ -478,7 +477,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             }
         }
 
-        for (int j = shoeidx + 1; j < (ShoePoints.GetRows()); j++) {
+        for (int j = shoeidx + 1; j < ShoePoints.GetRows(); j++) {
             ExtraLength += ShoeConnectionLengths(shoelinktype);
 
             shoelinktype += 1;
@@ -525,9 +524,9 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Now create all of the track shoes at the located points
     auto num_shoe_elements = ShoeConnectionLengths.GetRows();
-    for (size_t s = 0; s < num_shoes; s++) {
+    for (int s = 0; s < num_shoes; s++) {
         std::vector<ChCoordsys<>> shoe_components_coordsys;
-        for (size_t i = 0; i < num_shoe_elements; i++) {
+        for (int i = 0; i < num_shoe_elements; i++) {
             ChVector<> loc(
                 (ShoePoints(i + s * num_shoe_elements, 0) + ShoePoints(i + 1 + s * num_shoe_elements, 0)) / 2,
                 m_sprocket_offset,
@@ -587,7 +586,7 @@ void ChTrackAssemblyRigidCB::FindCircleTangentPoints(ChVector2<> Circle1Pos,
 void ChTrackAssemblyRigidCB::CheckCircleCircle(bool& found,
                                                ChVector2<>& Point,
                                                ChMatrixDynamic<>& Features,
-                                               size_t FeatureIdx,
+                                               int FeatureIdx,
                                                ChVector2<> StartingPoint,
                                                double Radius) {
     // Code was based on http://mathworld.wolfram.com/Circle-CircleIntersection.html
@@ -659,7 +658,7 @@ void ChTrackAssemblyRigidCB::CheckCircleCircle(bool& found,
 void ChTrackAssemblyRigidCB::CheckCircleLine(bool& found,
                                              ChVector2<>& Point,
                                              ChMatrixDynamic<>& Features,
-                                             size_t FeatureIdx,
+                                             int FeatureIdx,
                                              ChVector2<> StartingPoint,
                                              double Radius) {
     // Code was based on http://mathworld.wolfram.com/Circle-LineIntersection.html
