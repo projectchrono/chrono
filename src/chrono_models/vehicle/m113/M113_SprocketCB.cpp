@@ -51,8 +51,6 @@ const std::string M113_SprocketCBLeft::m_meshFile = "M113/Sprocket2_L.obj";
 const std::string M113_SprocketCBRight::m_meshName = "Sprocket2_R_POV_geom";
 const std::string M113_SprocketCBRight::m_meshFile = "M113/Sprocket2_R.obj";
 
-
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_SprocketCB::M113_SprocketCB(const std::string& name) : ChSprocketCB(name) {

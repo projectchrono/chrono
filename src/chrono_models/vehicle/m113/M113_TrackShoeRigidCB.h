@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// M113 track shoe subsystem (rigid-web continuous band track).
+// M113 track shoe subsystem (continuous band with rigid links).
 //
 // =============================================================================
 
@@ -33,7 +33,7 @@ namespace m113 {
 /// @addtogroup vehicle_models_m113
 /// @{
 
-/// Double-pin track shoe subsystem for the M113 vehicle.
+/// Continuous band rigid-link track shoe subsystem for the M113 vehicle.
 class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
   public:
     M113_TrackShoeRigidCB();
@@ -47,7 +47,6 @@ class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
     /// Return the height of the track shoe.
     virtual double GetHeight() const override { return m_shoe_height; }
 
-
     /// Return the mass of the shoe body.
     virtual std::vector<double> GetShoeMasses() const override { return m_shoe_masses; }
     /// Return the moments of inertia of the shoe body.
@@ -60,25 +59,23 @@ class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
     virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
-    virtual const double GetGuideBoxOffsetX() const override{ return m_guide_box_offset_x; }
-
+    virtual const double GetGuideBoxOffsetX() const override { return m_guide_box_offset_x; }
 
     //// TODO - Add comments here
     /// Return belt geometry parameters
-    virtual const double GetBeltWidth() const override{ return m_belt_width; }
-    virtual const double GetToothWidth() const override{ return m_tooth_width; }
-    virtual const double GetToothTipLength() const override{ return m_tooth_tip_length; }
-    virtual const double GetToothBaseLength() const override{ return m_tooth_base_length; }
-    virtual const double GetToothHeight() const override{ return m_tooth_height; }
-    virtual const double GetToothArcRadius() const override{ return m_tooth_arc_radius; }
-    virtual ChVector2<> GetToothArcCenter() const override{ return m_tooth_arc_center; }
-    virtual const double GetBushingDepth() const override{ return m_web_thickness * m_bushing_fractional_depth;}
-    virtual const double GetWebThickness() const override{ return m_web_thickness; }
-    virtual const int GetNumWebSegments() const override{ return m_num_web_segments; }
-    virtual std::vector<double> GetWebLengths() const override{ return m_web_lengths; }
-    virtual const double GetTreadThickness() const override{ return m_tread_thickness; }
-    virtual const double GetTreadLength() const override{ return m_tread_length; }
-
+    virtual const double GetBeltWidth() const override { return m_belt_width; }
+    virtual const double GetToothWidth() const override { return m_tooth_width; }
+    virtual const double GetToothTipLength() const override { return m_tooth_tip_length; }
+    virtual const double GetToothBaseLength() const override { return m_tooth_base_length; }
+    virtual const double GetToothHeight() const override { return m_tooth_height; }
+    virtual const double GetToothArcRadius() const override { return m_tooth_arc_radius; }
+    virtual ChVector2<> GetToothArcCenter() const override { return m_tooth_arc_center; }
+    virtual const double GetBushingDepth() const override { return m_web_thickness * m_bushing_fractional_depth; }
+    virtual const double GetWebThickness() const override { return m_web_thickness; }
+    virtual const int GetNumWebSegments() const override { return m_num_web_segments; }
+    virtual std::vector<double> GetWebLengths() const override { return m_web_lengths; }
+    virtual const double GetTreadThickness() const override { return m_tread_thickness; }
+    virtual const double GetTreadLength() const override { return m_tread_length; }
 
   private:
     std::vector<double> m_shoe_masses;

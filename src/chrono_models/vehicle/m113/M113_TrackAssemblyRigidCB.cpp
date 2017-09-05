@@ -33,23 +33,22 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 const ChVector<> M113_TrackAssemblyRigidCB::m_sprocket_loc(0, 0, 0);
 const ChVector<> M113_TrackAssemblyRigidCB::m_idler_loc(-3.83, 0, -0.12);
-const ChVector<> M113_TrackAssemblyRigidCB::m_susp_locs_L[5] = {
-    ChVector<>(-0.655, 0, -0.215),
-    ChVector<>(-1.322, 0, -0.215),
-    ChVector<>(-1.989, 0, -0.215),
-    ChVector<>(-2.656, 0, -0.215),
-    ChVector<>(-3.322, 0, -0.215)
-};
-const ChVector<> M113_TrackAssemblyRigidCB::m_susp_locs_R[5] = {
-    ChVector<>(-0.740, 0, -0.215),
-    ChVector<>(-1.407, 0, -0.215),
-    ChVector<>(-2.074, 0, -0.215),
-    ChVector<>(-2.740, 0, -0.215),
-    ChVector<>(-3.407, 0, -0.215)
-};
+const ChVector<> M113_TrackAssemblyRigidCB::m_susp_locs_L[5] = {  //
+    ChVector<>(-0.655, 0, -0.215),                                //
+    ChVector<>(-1.322, 0, -0.215),                                //
+    ChVector<>(-1.989, 0, -0.215),                                //
+    ChVector<>(-2.656, 0, -0.215),                                //
+    ChVector<>(-3.322, 0, -0.215)};
+const ChVector<> M113_TrackAssemblyRigidCB::m_susp_locs_R[5] = {  //
+    ChVector<>(-0.740, 0, -0.215),                                //
+    ChVector<>(-1.407, 0, -0.215),                                //
+    ChVector<>(-2.074, 0, -0.215),                                //
+    ChVector<>(-2.740, 0, -0.215),                                //
+    ChVector<>(-3.407, 0, -0.215)};
 
 // -----------------------------------------------------------------------------
-// Constructor for the M113 track assembly using double-pin track shoes.
+// Constructor for the M113 continuous band track assembly using rigid-link
+// track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
 M113_TrackAssemblyRigidCB::M113_TrackAssemblyRigidCB(VehicleSide side) : ChTrackAssemblyRigidCB("", side) {
@@ -73,15 +72,16 @@ M113_TrackAssemblyRigidCB::M113_TrackAssemblyRigidCB(VehicleSide side) : ChTrack
             break;
     }
 
+    //// TODO - Adjust the rest of the belt & sprocket geometry & set this to the correct value
     size_t num_shoes;
     switch (side) {
         case LEFT:
             m_sprocket = std::make_shared<M113_SprocketCBLeft>();
-            num_shoes = 120; // 105;  //// TODO - Adjust the rest of the belt & sprocket geometry & set this to the correct value
+            num_shoes = 120;
             break;
         case RIGHT:
             m_sprocket = std::make_shared<M113_SprocketCBRight>();
-            num_shoes = 120; // 106;  //// TODO - Adjust the rest of the belt & sprocket geometry & set this to the correct value
+            num_shoes = 120;
             break;
     }
 

@@ -31,10 +31,10 @@ namespace m113 {
 /// @addtogroup vehicle_models_m113
 /// @{
 
-/// M113 track assembly using double-pin track shoes.
+/// M113 continuous band track assembly subsystem using rigid-link track shoes.
 class CH_MODELS_API M113_TrackAssemblyRigidCB : public ChTrackAssemblyRigidCB {
   public:
-      M113_TrackAssemblyRigidCB(VehicleSide side);
+    M113_TrackAssemblyRigidCB(VehicleSide side);
 
     virtual const ChVector<> GetSprocketLocation() const override;
     virtual const ChVector<> GetIdlerLocation() const override;

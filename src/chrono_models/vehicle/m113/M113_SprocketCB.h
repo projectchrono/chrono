@@ -34,7 +34,7 @@ namespace m113 {
 /// @addtogroup vehicle_models_m113
 /// @{
 
-/// M113 sprocket subsystem, suitable for interaction with rigid continuous band track shoes (base class).
+/// M113 sprocket subsystem for continuous band track (base class).
 class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
   public:
     virtual ~M113_SprocketCB() {}
@@ -57,7 +57,7 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
 
     /// Return the radius of the addendum circle.
     virtual double GetOuterRadius() const override { return m_gear_outer_radius; }
-    /// Return the base width of the sprocket profile 
+    /// Return the base width of the sprocket profile
     /// length of the chord where the tooth profile meets the sprocket's outer radius
     virtual double GetBaseWidth() const override { return m_gear_base_width; }
     /// Return the width of the inner tip of the sprocket profile
@@ -65,7 +65,7 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
     /// Return the depth of the sprocket profile
     /// measured as the distance from the center of the profile tip line to the
     /// center of the base width line
-    virtual double GetToothDepth() const override{ return m_gear_tooth_depth; }
+    virtual double GetToothDepth() const override { return m_gear_tooth_depth; }
     /// Return the radius of the (concave) tooth circular arc.
     virtual double GetArcRadius() const override { return m_gear_arc_radius; }
 
@@ -94,7 +94,7 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
     static const double m_gear_RA;
 };
 
-/// M113 sprocket subsystem, suitable for interaction with rigid continuous band track shoes (left side).
+/// M113 sprocket subsystem for continuous band track (left side).
 class CH_MODELS_API M113_SprocketCBLeft : public M113_SprocketCB {
   public:
     M113_SprocketCBLeft() : M113_SprocketCB("M113_SprocketLeft") {}
@@ -108,7 +108,7 @@ class CH_MODELS_API M113_SprocketCBLeft : public M113_SprocketCB {
     static const std::string m_meshFile;
 };
 
-/// M113 sprocket subsystem, suitable for interaction with drigid continuous band track shoes (right side).
+/// M113 sprocket subsystem for continuous band track (right side).
 class CH_MODELS_API M113_SprocketCBRight : public M113_SprocketCB {
   public:
     M113_SprocketCBRight() : M113_SprocketCB("M113_SprocketRight") {}
