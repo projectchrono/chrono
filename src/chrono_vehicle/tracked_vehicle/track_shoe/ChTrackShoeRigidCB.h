@@ -40,6 +40,7 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
 
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
+
     /// Return the pitch length of the track shoe.
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const override;
@@ -58,9 +59,8 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     /// Initialize this track shoe system.
     /// This version specifies the locations and orientations of the tread body and of
     /// the web link bodies (relative to the chassis frame).
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,                    ///< [in] handle to chassis body
-                    const std::vector<ChCoordsys<>> shoe_components_coordsys  ///< [in] location & orientation of the
-                                                                              /// tread body followed by each web
+    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,          ///< [in] handle to chassis body
+                    const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
                     );
 
     /// Connect this track shoe to the specified neighbor.
@@ -75,10 +75,19 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    /// Return the mass of the shoe body.
-    virtual std::vector<double> GetShoeMasses() const = 0;
-    /// Return the moments of inertia of the shoe body.
-    virtual std::vector<ChVector<>> GetShoeInertias() const = 0;
+    /// Return the mass of the tread body.
+    virtual double GetTreadMass() const = 0;
+
+    /// Return the mass of the web.
+    /// This will be equally distributed over the specified number of web segments.
+    virtual double GetWebMass() const = 0;
+
+    /// Return the moments of inertia of the tread body.
+    virtual const ChVector<>& GetTreadInertia() const = 0;
+
+    /// Return the moments of inertia of the web.
+    /// These will be distributed over the specified number of web segments.
+    virtual const ChVector<>& GetWebInertia() const = 0;
 
     /// Return the dimensions of the contact box for the guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.
@@ -86,25 +95,25 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     virtual const ChVector<>& GetGuideBoxDimensions() const = 0;
 
     /// Return the offset (in X direction) of the guiding pin.
-    virtual const double GetGuideBoxOffsetX() const = 0;
+    virtual double GetGuideBoxOffsetX() const = 0;
 
     //// TODO - Add comments here
     /// Return belt geometry parameters
-    virtual const double GetBeltWidth() const = 0;
-    virtual const double GetToothWidth() const = 0;
-    virtual const double GetToothTipLength() const = 0;
-    virtual const double GetToothBaseLength() const = 0;
-    virtual const double GetToothHeight() const = 0;
-    virtual const double GetToothArcRadius() const = 0;
-    virtual ChVector2<> GetToothArcCenter() const = 0;
-    virtual const double GetBushingDepth() const = 0;
-    virtual const double GetWebThickness() const = 0;
-    virtual const int GetNumWebSegments() const = 0;
-    virtual std::vector<double> GetWebLengths() const = 0;
-    virtual const double GetTreadThickness() const = 0;
-    virtual const double GetTreadLength() const = 0;
+    virtual double GetBeltWidth() const = 0;
 
-    std::vector<std::shared_ptr<ChBody>> m_web_segments;  ///< handles to track shoe's web segment bodies
+    virtual double GetToothTipLength() const = 0;
+    virtual double GetToothBaseLength() const = 0;
+    virtual double GetToothWidth() const = 0;
+    virtual double GetToothHeight() const = 0;
+    virtual double GetToothArcRadius() const = 0;
+    virtual const ChVector2<>& GetToothArcCenter() const = 0;
+
+    virtual int GetNumWebSegments() const = 0;
+    virtual double GetWebLength() const = 0;
+    virtual double GetWebThickness() const = 0;
+
+    virtual double GetTreadLength() const = 0;
+    virtual double GetTreadThickness() const = 0;
 
     /// Add contact geometry for the tread body.
     /// Note that this is for contact with wheels, idler, and ground only.
@@ -114,7 +123,7 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     /// Add contact geometry for a web segment body.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual void AddWebContact();
+    virtual void AddWebContact(std::shared_ptr<ChBody> segment);
 
     friend class ChSprocketCB;
     friend class SprocketCBContactCB;
@@ -125,7 +134,12 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     void AddShoeVisualization();
 
     /// Add visualization of a web segment, body based on primitives corresponding to the contact shapes.
-    void AddWebVisualization();
+    void AddWebVisualization(std::shared_ptr<ChBody> segment);
+
+    std::vector<std::shared_ptr<ChBody>> m_web_segments;  ///< handles to track shoe's web segment bodies
+    double m_seg_length;                                  ///< length of a web segment
+    double m_seg_mass;                                    ///< mass of a web segment
+    ChVector<> m_seg_inertia;                             ///< moments of inertia of a web segment
 };
 
 /// Vector of handles to continuous band rigid-link track shoe subsystems.

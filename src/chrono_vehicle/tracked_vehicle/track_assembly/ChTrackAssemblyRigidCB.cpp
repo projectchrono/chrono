@@ -76,9 +76,9 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     ChVectorDynamic<> ShoeConnectionLengths(1 + m_shoes[0]->GetNumWebSegments());
     ShoeConnectionLengths(0) = m_shoes[0]->GetToothBaseLength();
 
-    auto web_lengths = m_shoes[0]->GetWebLengths();
+    double seg_length = m_shoes[0]->GetWebLength() / m_shoes[0]->GetNumWebSegments();
     for (size_t web = 0; web < m_shoes[0]->GetNumWebSegments(); web++) {
-        ShoeConnectionLengths(1 + web) = web_lengths[web];
+        ShoeConnectionLengths(1 + web) = seg_length;
     }
 
     // X & Y coordinates for the sprocket, idler, and all of the road wheels
@@ -524,7 +524,6 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     }
 
     // Now create all of the track shoes at the located points
-    auto bushing_depth = m_shoes[0]->GetBushingDepth();
     auto num_shoe_elements = ShoeConnectionLengths.GetRows();
     for (size_t s = 0; s < num_shoes; s++) {
         std::vector<ChCoordsys<>> shoe_components_coordsys;
@@ -538,10 +537,6 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 std::atan2(ShoePoints(i + 1 + s * num_shoe_elements, 1) - ShoePoints(i + s * num_shoe_elements, 1),
                            ShoePoints(i + 1 + s * num_shoe_elements, 0) - ShoePoints(i + s * num_shoe_elements, 0));
             ChQuaternion<> rot = Q_from_AngY(-ang);  // Negative of the angle in 3D
-
-            // Adjust the coordinate system from the bushing plane up to the web inner surface
-            loc.x() += bushing_depth * (-std::sin(ang));
-            loc.z() += bushing_depth * (std::cos(ang));
 
             shoe_components_coordsys.push_back(ChCoordsys<>(loc, rot));
         }
