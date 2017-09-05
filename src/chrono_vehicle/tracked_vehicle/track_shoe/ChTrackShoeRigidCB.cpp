@@ -155,7 +155,7 @@ void ChTrackShoeRigidCB::AddShoeContact() {
     m_shoe->GetCollisionModel()->AddBox(g_hdims.x(), g_hdims.y(), g_hdims.z(), g_loc);
 
     // Main box
-    ChVector<> b_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, (GetWebThickness() + GetTreadThickness()) / 2);
+    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, (GetWebThickness() + GetTreadThickness()) / 2);
     ChVector<> b_loc(0, 0, -GetTreadThickness() / 2);
     m_shoe->GetCollisionModel()->AddBox(b_hdims.x(), b_hdims.y(), b_hdims.z(), b_loc);
 
@@ -214,7 +214,7 @@ void ChTrackShoeRigidCB::AddShoeVisualization() {
     m_shoe->AddAsset(box_pin);
 
     // Main box
-    ChVector<> b_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, (GetWebThickness() + GetTreadThickness()) / 2);
+    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, (GetWebThickness() + GetTreadThickness()) / 2);
     ChVector<> b_loc(0, 0, -GetTreadThickness() / 2);
     auto box_main = std::make_shared<ChBoxShape>();
     box_main->GetBoxGeometry().Size = b_hdims;
@@ -225,8 +225,8 @@ void ChTrackShoeRigidCB::AddShoeVisualization() {
     double radius = GetWebThickness() / 4;
     auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = radius;
-    cyl->GetCylinderGeometry().p1 = ChVector<>(GetTreadLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(GetTreadLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
+    cyl->GetCylinderGeometry().p1 = ChVector<>(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
     m_shoe->AddAsset(cyl);
 }
 
@@ -236,6 +236,13 @@ void ChTrackShoeRigidCB::AddWebVisualization(std::shared_ptr<ChBody> segment) {
     auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(m_seg_length, GetBeltWidth(), GetWebThickness()));
     segment->AddAsset(box);
+
+    auto cyl = std::make_shared<ChCylinderShape>();
+    double radius = GetWebThickness() / 4;
+    cyl->GetCylinderGeometry().rad = radius;
+    cyl->GetCylinderGeometry().p1 = ChVector<>(m_seg_length / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
+    cyl->GetCylinderGeometry().p2 = ChVector<>(m_seg_length / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
+    segment->AddAsset(cyl);
 }
 
 // -----------------------------------------------------------------------------
