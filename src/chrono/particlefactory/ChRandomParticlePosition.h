@@ -21,6 +21,8 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChDistribution.h"
+#include "chrono/geometry/ChSurface.h"
+#include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
 namespace particlefactory {
@@ -85,8 +87,19 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
     /// Function that creates a random position each
     /// time it is called.
     virtual ChVector<> RandomPosition() override {
-        ChVector<> mpos;
-        geometry->Evaluate(mpos, ChRandom(), ChRandom(), ChRandom());
+        ChVector<> mpos = VNULL;
+        if (auto mline = std::dynamic_pointer_cast<geometry::ChLine>(geometry)) {
+            mline->Evaluate(mpos, ChRandom());
+            return mpos;
+        }
+        if (auto msurface = std::dynamic_pointer_cast<geometry::ChSurface>(geometry)) {
+            msurface->Evaluate(mpos, ChRandom(), ChRandom());
+            return mpos;
+        }
+        if (auto mvolume = std::dynamic_pointer_cast<geometry::ChVolume>(geometry)) {
+            mvolume->Evaluate(mpos, ChRandom(), ChRandom(), ChRandom());
+            return mpos;
+        }
         return mpos;
     }
 

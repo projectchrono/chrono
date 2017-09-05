@@ -506,6 +506,10 @@ protected:
     ChMatrixNM<double,6,6> stiffness;
     ChMatrixNM<double,6,6> damping;
    
+    ChVector<> neutral_force;
+    ChVector<> neutral_torque;
+    ChFrame<>  neutral_displacement;
+
 public:
     ChLoadBodyBodyBushingGeneric(
                           std::shared_ptr<ChBody> mbodyA,   ///< object A
@@ -516,7 +520,7 @@ public:
                         ) 
          : ChLoadBodyBody(mbodyA,mbodyB,abs_application), 
            stiffness(mstiffness),
-           damping(mdamping) {         
+           damping(mdamping) {
         }
 
         /// Implement the computation of bushing force, in local 
@@ -530,16 +534,17 @@ public:
         ChVectorDynamic<> mF(6);
         ChVectorDynamic<> mS(6);
         ChVectorDynamic<> mSdt(6);
-        ChQuaternion<> rel_rot = rel_AB.GetRot();
-        mS.PasteVector(rel_AB.GetPos(), 0,0);
+        ChVector<>     rel_pos = rel_AB.GetPos() + this->neutral_displacement.GetPos();
+        ChQuaternion<> rel_rot = rel_AB.GetRot() * this->neutral_displacement.GetRot();
+        mS.PasteVector(rel_pos, 0,0);
         mS.PasteVector(rel_rot.Q_to_Rotv(), 3,0);
         mSdt.PasteVector(rel_AB.GetPos_dt(), 0,0);
         mSdt.PasteVector(rel_AB.GetWvel_par(), 3,0);
         
         mF = stiffness * mS + damping * mSdt;
         
-        loc_force   = mF.ClipVector(0,0);
-        loc_torque  = mF.ClipVector(3,0);
+        loc_force   = mF.ClipVector(0,0) - this->neutral_force;
+        loc_torque  = mF.ClipVector(3,0) - this->neutral_torque;
     }
 
     virtual bool IsStiff() {return true;}
@@ -554,6 +559,23 @@ public:
         /// coordinate system of loc_application_B.
     void SetDampingMatrix(const ChMatrix<>& mdamping) {this->damping = mdamping;}
     const ChMatrix<>& GetDampingMatrix() const {return this->damping;}
+
+        /// Set the initial pre-load of the bushing, applied to loc_application_A, 
+        /// expressed in local coordinate system of loc_application_B.
+        /// By default it is zero.
+    void SetNeutralForce(const ChVector<> mf) {this->neutral_force = mf;}
+    ChVector<> GetNeutralForce() const {return this->neutral_force;}
+
+        /// Set the initial pre-load torque of the bushing, appliet to loc_application_A, 
+        /// expressed in local coordinate system of loc_application_B. 
+        /// By default it is zero.
+    void SetNeutralTorque(const ChVector<> mt) {this->neutral_torque = mt;}
+    ChVector<> GetNeutralTorque() const {return this->neutral_torque;}
+
+        /// Set/get the initial pre-displacement of the bushing, as the pre-displacement
+        /// of A, expressed in local coordinate system of loc_application_B. 
+        /// Default behavior is no initial pre-displacement.
+    ChFrame<>& NeutralDisplacement() {return this->neutral_displacement;}
 
 };
 

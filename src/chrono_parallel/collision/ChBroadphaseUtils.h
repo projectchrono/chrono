@@ -33,24 +33,6 @@ namespace collision {
 /// @addtogroup parallel_collision
 /// @{
 
-typedef thrust::pair<real3, real3> bbox;
-
-/// Reduce a pair of bounding boxes (a,b) to a bounding box containing a and b.
-struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
-    bbox operator()(bbox a, bbox b) {
-        real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
-                         Min(a.first.z, b.first.z));  // lower left corner
-        real3 ur = real3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
-                         Max(a.second.z, b.second.z));  // upper right corner
-        return bbox(ll, ur);
-    }
-};
-
-/// Convert a point to a bbox containing that point, (point) -> (point, point).
-struct bbox_transformation : public thrust::unary_function<real3, bbox> {
-    bbox operator()(real3 point) { return bbox(point, point); }
-};
-
 // HASHING FUNCTIONS =======================================================================================
 
 /// Convert a position into a bin index ("lower" corner).

@@ -550,7 +550,7 @@ public:
 
  
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
-        unsigned int rowQ = 0;
+        unsigned int mQoffset = 0;
         for (int k= 0; k<loadables.size(); ++k) {
             std::vector<ChVariables*> kvars;
             loadables[k]->LoadableGetVariables(kvars);
@@ -558,13 +558,13 @@ public:
                 if (kvars[i]->IsActive()) {
                     unsigned int mblockoffset = loadables[k]->GetSubBlockOffset(i);
                     for (unsigned int row =0; row< loadables[k]->GetSubBlockSize(i); ++row) {
-                        R(row + mblockoffset) += this->load_Q(rowQ) * c;
-                        ++rowQ;
+                        R(row + mblockoffset) += this->load_Q(row + mQoffset) * c;
                     }
                 }
+                mQoffset += loadables[k]->GetSubBlockSize(i);
             }
         }
-        // GetLog() << " debug: R=" << R << "\n";
+       //GetLog() << " debug: R=" << R << "\n";
     };
 
         /// Return true if stiff load. 

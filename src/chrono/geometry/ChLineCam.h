@@ -136,9 +136,7 @@ class ChApi ChLineCam : public ChLine {
     /// Given a parameter "u", finds position on line of the
     /// kind p=p(u); note that u is in the range 0...1, to make a complete cycle along the cam
     virtual void Evaluate(ChVector<>& pos,
-                          const double parU,
-                          const double parV = 0.,
-                          const double parW = 0.) const override;
+                          const double parU) const override;
 
     /// Weight evaluation.
     /// Given that the shape is defined by a Ch_function, the

@@ -35,7 +35,7 @@ ChLineArc::ChLineArc(const ChLineArc& source) : ChLine(source) {
     counterclockwise = source.counterclockwise;
 }
 
-void ChLineArc::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
+void ChLineArc::Evaluate(ChVector<>& pos, const double parU) const {
     double ang1 = this->angle1;
     double ang2 = this->angle2;
     if (this->counterclockwise) {

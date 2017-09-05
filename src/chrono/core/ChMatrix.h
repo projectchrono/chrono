@@ -364,7 +364,7 @@ class ChMatrix {
             for (int i = 0; i < rows; i++) {
                 mascii->indent();
                 for (int j = 0; j < columns; j++) {
-                    mascii->GetStream()->operator<<(Element(i, j));
+                    (*mascii->GetStream()) << Element(i, j);
                     mascii->GetStream()->operator<<(", ");
                 }
                 mascii->GetStream()->operator<<("\n");
