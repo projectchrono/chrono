@@ -48,7 +48,6 @@ const double M113_TrackShoeRigidCB::m_tooth_base_length = 0.0529;
 const double M113_TrackShoeRigidCB::m_tooth_width = 0.0508;  // 2 in
 const double M113_TrackShoeRigidCB::m_tooth_height = 0.0385;
 const double M113_TrackShoeRigidCB::m_tooth_arc_radius = 0.0540;
-const ChVector2<> M113_TrackShoeRigidCB::m_tooth_arc_center(-0.027424882274996, -0.003673834489381);
 
 const int M113_TrackShoeRigidCB::m_num_web_segments = 1;
 const double M113_TrackShoeRigidCB::m_web_length = 0.0335;

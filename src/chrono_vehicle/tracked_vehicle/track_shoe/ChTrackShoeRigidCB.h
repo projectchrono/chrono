@@ -106,7 +106,6 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     virtual double GetToothWidth() const = 0;
     virtual double GetToothHeight() const = 0;
     virtual double GetToothArcRadius() const = 0;
-    virtual const ChVector2<>& GetToothArcCenter() const = 0;
 
     virtual int GetNumWebSegments() const = 0;
     virtual double GetWebLength() const = 0;
@@ -140,6 +139,8 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     double m_seg_length;                                  ///< length of a web segment
     double m_seg_mass;                                    ///< mass of a web segment
     ChVector<> m_seg_inertia;                             ///< moments of inertia of a web segment
+    ChVector2<> m_center_p;                               ///< center of (+x) arc, in tread body x-z plane
+    ChVector2<> m_center_m;                               ///< center of (-x) arc, in tread body x-z plane
 };
 
 /// Vector of handles to continuous band rigid-link track shoe subsystems.

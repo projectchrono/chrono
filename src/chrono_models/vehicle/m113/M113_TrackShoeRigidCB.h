@@ -81,7 +81,6 @@ class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
     virtual double GetToothWidth() const override { return m_tooth_width; }
     virtual double GetToothHeight() const override { return m_tooth_height; }
     virtual double GetToothArcRadius() const override { return m_tooth_arc_radius; }
-    virtual const ChVector2<>& GetToothArcCenter() const override { return m_tooth_arc_center; }
 
     virtual int GetNumWebSegments() const override { return m_num_web_segments; }
     virtual double GetWebLength() const override { return m_web_length; }
@@ -105,7 +104,6 @@ class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
     static const double m_tooth_base_length;
     static const double m_tooth_height;
     static const double m_tooth_arc_radius;
-    static const ChVector2<> m_tooth_arc_center;
     static const double m_web_length;
     static const double m_web_thickness;
     static const int m_num_web_segments;

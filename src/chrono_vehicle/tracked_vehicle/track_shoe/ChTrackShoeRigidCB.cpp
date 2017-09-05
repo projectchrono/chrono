@@ -30,11 +30,55 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+
+// Utility function to calculate the center of a circle of given radius which
+// passes through two given points.
+ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
+    // midpoint
+    ChVector2<> C = (A + B) / 2;
+    // distance between A and B
+    double l = (B - A).Length();
+    // distance between C and O
+    double d = std::sqrt(r * r - l * l / 4);
+    // slope of line AB
+    double mAB = (B.y() - A.y()) / (B.x() - A.x());
+    // slope of line CO (perpendicular to AB)
+    double mCO = -1 / mAB;
+    // x offset from C
+    double x_offset = d / std::sqrt(1 + mCO * mCO);
+    // y offset from C
+    double y_offset = mCO * x_offset;
+    // circle center
+    ChVector2<> O(C.x() + direction * x_offset, C.y() + direction * y_offset);
+
+    ////std::cout << std::endl;
+    ////std::cout << "radius: " << r << std::endl;
+    ////std::cout << A.x() << "  " << A.y() << std::endl;
+    ////std::cout << B.x() << "  " << B.y() << std::endl;
+    ////std::cout << O.x() << "  " << O.y() << std::endl;
+    ////std::cout << "Check: " << (A - O).Length() - r << "  " << (B - O).Length() - r << std::endl;
+    ////std::cout << std::endl;
+
+    return O;
+}
+
 ChTrackShoeRigidCB::ChTrackShoeRigidCB(const std::string& name) : ChTrackShoe(name) {}
 
 void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                     const ChVector<>& location,
                                     const ChQuaternion<>& rotation) {
+    // Cache values calculated from template parameters.
+    m_seg_length = GetWebLength() / GetNumWebSegments();
+    m_seg_mass = GetWebMass() / GetNumWebSegments();
+    m_seg_inertia = GetWebInertia();  //// TODO - properly distribute web inertia
+
+    m_center_p = CalcCircleCenter(ChVector2<>(GetToothBaseLength() / 2, GetWebThickness() / 2),
+                                  ChVector2<>(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2),
+                                  GetToothArcRadius(), -1);
+    m_center_m = CalcCircleCenter(ChVector2<>(-GetToothBaseLength() / 2, GetWebThickness() / 2),
+                                  ChVector2<>(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2),
+                                  GetToothArcRadius(), +1);
+
     // Express the tread body location and orientation in global frame.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
@@ -70,11 +114,6 @@ void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     AddShoeContact();
-
-    // Cache parameters for a single web segment.
-    m_seg_length = GetWebLength() / GetNumWebSegments();
-    m_seg_mass = GetWebMass() / GetNumWebSegments();
-    m_seg_inertia = GetWebInertia();  //// TODO - properly distribute web inertia
 
     // Create the required number of web segment bodies
     ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
