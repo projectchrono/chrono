@@ -35,20 +35,10 @@ ChTrackShoeRigidCB::ChTrackShoeRigidCB(const std::string& name) : ChTrackShoe(na
 void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                     const ChVector<>& location,
                                     const ChQuaternion<>& rotation) {
-    //// TODO
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                    const std::vector<ChCoordsys<>>& component_pos) {
-    // Check to make sure that the correct number of coordinate systems were provided for
-    // this shoe (tread + associated web segments)
-    assert(component_pos.size() == GetNumWebSegments() + 1);
-
-    // Express the tread body's location and orientation in global frame.
-    ChVector<> loc = chassis->TransformPointLocalToParent(component_pos[0].pos);
-    ChQuaternion<> rot = chassis->GetRot() * component_pos[0].rot;
+    // Express the tread body location and orientation in global frame.
+    ChVector<> loc = chassis->TransformPointLocalToParent(location);
+    ChQuaternion<> rot = chassis->GetRot() * rotation;
+    ChVector<> xdir = rot.GetXaxis();
 
     // Create the tread body
     m_shoe = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -87,13 +77,11 @@ void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_seg_inertia = GetWebInertia();  //// TODO - properly distribute web inertia
 
     // Create the required number of web segment bodies
-    for (size_t is = 0; is < GetNumWebSegments(); is++) {
+    ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
+    for (int is = 0; is < GetNumWebSegments(); is++) {
         m_web_segments.push_back(std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody()));
-
         m_web_segments[is]->SetNameString(m_name + "_web_" + std::to_string(is));
-        ChVector<> loc = chassis->TransformPointLocalToParent(component_pos[is + 1].pos);
-        ChQuaternion<> rot = chassis->GetRot() * component_pos[is + 1].rot;
-        m_web_segments[is]->SetPos(loc);
+        m_web_segments[is]->SetPos(seg_loc + ((2 * is + 1) * m_seg_length / 2) * xdir);
         m_web_segments[is]->SetRot(rot);
         m_web_segments[is]->SetMass(m_seg_mass);
         m_web_segments[is]->SetInertiaXX(m_seg_inertia);
@@ -120,6 +108,26 @@ void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         }
 
         AddWebContact(m_web_segments[is]);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                    const std::vector<ChCoordsys<>>& component_pos) {
+    // Check the number of provided locations and orientations.
+    assert(component_pos.size() == GetNumWebSegments() + 1);
+
+    // Initialize at origin.
+    Initialize(chassis, VNULL, QUNIT);
+
+    // Overwrite absolute body locations and orientations.
+    m_shoe->SetPos(chassis->TransformPointLocalToParent(component_pos[0].pos));
+    m_shoe->SetRot(chassis->GetRot() * component_pos[0].rot);
+
+    for (int is = 0; is < GetNumWebSegments(); is++) {
+        m_web_segments[is]->SetPos(chassis->TransformPointLocalToParent(component_pos[is + 1].pos));
+        m_web_segments[is]->SetRot(chassis->GetRot() * component_pos[is + 1].rot);
     }
 }
 
@@ -185,7 +193,7 @@ void ChTrackShoeRigidCB::RemoveVisualizationAssets() {
     }
 }
 
-ChColor GetColor(int index) {
+ChColor GetColor(size_t index) {
     if (index == 0)
         return ChColor(0.7f, 0.4f, 0.4f);
     else if (index % 2 == 0)
