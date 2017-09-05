@@ -27,8 +27,10 @@ int num_threads;
 double tilt_angle = 0;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
-int count_X = 10;  // 10  // 20
-int count_Y = 10;  // 10  // 4
+int count_X = 5;  // 10  // 20
+int count_Y = 5;  // 10  // 4
+
+int count_Z = 4;
 
 // Material properties (same on bin and balls)
 float Y = 2e6f;
@@ -149,7 +151,7 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
     // TODO generate randomly. Need to seed though.
-    for (double z = 10; z < 15; z += 0.35) {
+    for (double z = 10; count_Z > 0; z += 0.35, count_Z--) {
         for (int ix = -count_X; ix <= count_X; ix++) {
             for (int iy = -count_Y; iy <= count_Y; iy++) {
                 ChVector<> pos(0.35 * ix, 0.35 * iy, z);  //.4*ix, .4*iy,z
@@ -176,46 +178,25 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     }
 }
 
-void AddBigBall(ChSystemDistributed* my_sys) {
-    double ball_radius = 1.0;
-    auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
-    ballMat->SetYoungModulus(Y);
-    ballMat->SetFriction(mu);
-    ballMat->SetRestitution(cr);
-    ballMat->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
-
-    double mass = 10;
-    ChVector<> inertia = (2.0 / 5.0) * mass * ball_radius * ball_radius * ChVector<>(1, 1, 1);
-
-    ChVector<> ball_pos(0, 0, 23);
-
-    auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-    ball->SetMaterialSurface(ballMat);
-
-    ball->SetMass(mass);
-    ball->SetPos(ball_pos);
-    ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetBodyFixed(false);
-    ball->SetCollide(true);
-
-    ball->GetCollisionModel()->ClearModel();
-    ChVector<> ball_hdim(2, 2, 2);
-
-    utils::AddSphereGeometry(ball.get(), ball_radius);
-
-    ball->GetCollisionModel()->BuildModel();
-
-    my_sys->AddBody(ball);
-}
-
 int main(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
+
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
+    if (my_rank == 0) {
+        int foo;
+        std::cout << "Enter something to continue..." << std::endl;
+        std::cin >> foo;
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    bool monitor;
+
     int num_threads = 1;
-    if (argc > 1) {
+    if (argc > 2) {
         num_threads = atoi(argv[1]);
+        monitor = (bool)atoi(argv[2]);
     }
 
     omp_set_num_threads(num_threads);
@@ -227,8 +208,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Running on " << num_ranks << " MPI ranks.\n";
     std::cout << "Running on " << thread_count << " OpenMP threads.\n";
 
-    double time_step = 1e-3;
-    double time_end = 24;
+    double time_step = 1e-4;
+    double time_end = 28;
 
     double out_fps = 50;
 
@@ -267,14 +248,16 @@ int main(int argc, char* argv[]) {
     // Run simulation for specified time
     int num_steps = std::ceil(time_end / time_step);
     int out_steps = std::ceil((1 / time_step) / out_fps);
+    std::cout << "out_steps: " << out_steps << "\n";
     int out_frame = 0;
     double time = 0;
 
-    int checkpoints[4];
+    int checkpoints[5];
     checkpoints[0] = std::ceil(2 / time_step);
     checkpoints[1] = std::ceil(8 / time_step);
     checkpoints[2] = std::ceil(12 / time_step);
     checkpoints[3] = std::ceil(16 / time_step);
+    checkpoints[4] = std::ceil(24 / time_step);
 
     // Run initial settling 2 sec
     for (int i = 0; i < num_steps; i++) {
@@ -296,21 +279,26 @@ int main(int argc, char* argv[]) {
             //    AddFallingBalls(&my_sys);
         }
 
-        if (i == checkpoints[1]) {
-            std::cout << "Resetting gravity: (0, 5, -10)\n";
-            my_sys.Set_G_acc(ChVector<>(0, 5, -10));
-        }
+        /*        if (i == checkpoints[1]) {
+                    std::cout << "Resetting gravity: (0, 5, -10)\n";
+                    my_sys.Set_G_acc(ChVector<>(0, 5, -10));
+                }*/
         if (i == checkpoints[2]) {
             std::cout << "Resetting gravity: (5, 0, -10)\n";
             my_sys.Set_G_acc(ChVector<>(5, 0, -10));
         }
+        /*
+                if (i == checkpoints[3]) {
+                    std::cout << "Resetting gravity: (0, -5, -10)\n";
+                    my_sys.Set_G_acc(ChVector<>(0, -5, -10));
+                }*/
 
-        if (i == checkpoints[3]) {
-            std::cout << "Resetting gravity: (0, -5, -10)\n";
-            my_sys.Set_G_acc(ChVector<>(0, -5, -10));
+        if (i == checkpoints[4]) {
+            std::cout << "Resetting gravity: (0, 5, -10)\n";
+            my_sys.Set_G_acc(ChVector<>(-5, 0, -10));
         }
-
-        Monitor(&my_sys);
+        if (monitor)
+            Monitor(&my_sys);
         my_sys.DoStepDynamics(time_step);
         time += time_step;
     }
