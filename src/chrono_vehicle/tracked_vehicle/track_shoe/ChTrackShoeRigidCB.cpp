@@ -267,6 +267,10 @@ void ChTrackShoeRigidCB::AddShoeVisualization() {
     cyl->GetCylinderGeometry().p1 = ChVector<>(GetToothBaseLength() / 2, -GetBeltWidth() / 2 - 2 * radius, 0);
     cyl->GetCylinderGeometry().p2 = ChVector<>(GetToothBaseLength() / 2, +GetBeltWidth() / 2 + 2 * radius, 0);
     m_shoe->AddAsset(cyl);
+
+    // Create tooth meshes
+    m_shoe->AddAsset(ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2));
+    m_shoe->AddAsset(ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2));
 }
 
 void ChTrackShoeRigidCB::AddWebVisualization(std::shared_ptr<ChBody> segment) {
@@ -317,6 +321,132 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
     system->AddLink(revolute1);
     revolute1->SetNameString(m_name + "_revolute");
     revolute1->Initialize(m_web_segments[is], next->GetShoeBody(), ChCoordsys<>(loc, rot));
+}
+
+// -----------------------------------------------------------------------------
+// Utilities for creating tooth mesh
+// -----------------------------------------------------------------------------
+size_t ChTrackShoeRigidCB::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
+    int np = 4;
+    double step = 1.0 / (np - 1);
+
+    // Start from point on left tooth base (Am).
+    ChVector2<> Am(-GetToothBaseLength() / 2, GetWebThickness() / 2);
+    ChVector2<> Bm(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
+    for (int i = 0; i < np; i++) {
+        ChVector2<> pc(Am.x() + (i * step) * (Bm.x() - Am.x()), Am.y() + (i * step) * (Bm.y() - Am.y()));
+        ChVector2<> nrm = (pc - m_center_m).GetNormalized();
+        ChVector2<> pt = m_center_m + nrm * GetToothArcRadius();
+        points.push_back(pt);
+        normals.push_back(nrm);
+    }
+
+    // Mid-point on tooth tip.
+    points.push_back(ChVector2<>(0, GetToothHeight() + GetWebThickness() / 2));
+    normals.push_back(ChVector2<>(0, 1));
+
+    // Continue from point on right tooth tip (Bp).
+    ChVector2<> Ap(GetToothBaseLength() / 2, GetWebThickness() / 2);
+    ChVector2<> Bp(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
+    for (int i = 0; i < np; i++) {
+        ChVector2<> pc(Bp.x() + (i * step) * (Ap.x() - Bp.x()), Bp.y() + (i * step) * (Ap.y() - Bp.y()));
+        ChVector2<> nrm = (pc - m_center_p).GetNormalized();
+        ChVector2<> pt = m_center_p + nrm * GetToothArcRadius();
+        points.push_back(pt);
+        normals.push_back(nrm);
+    }
+
+    ////std::cout << std::endl << std::endl;
+    ////for (auto p : points)
+    ////    std::cout << p.x() << "  " << p.y() << std::endl;
+
+    return points.size();
+}
+
+std::shared_ptr<ChTriangleMeshShape> ChTrackShoeRigidCB::ToothMesh(double y) {
+    // Obtain profile points.
+    std::vector<ChVector2<>> points2;
+    std::vector<ChVector2<>> normals2;
+    size_t np = ProfilePoints(points2, normals2);
+
+    // Create the triangular mesh.
+    geometry::ChTriangleMeshConnected trimesh;
+    std::vector<ChVector<> >& vertices = trimesh.getCoordsVertices();
+    std::vector<ChVector<> >& normals = trimesh.getCoordsNormals();
+    std::vector<ChVector<int> >& idx_vertices = trimesh.getIndicesVertexes();
+    std::vector<ChVector<int> >& idx_normals = trimesh.getIndicesNormals();
+
+    // Number of vertices:
+    //   - 1 for the middle of the tooth base on +y side
+    //   - np for the +y tooth side
+    //   - 1 for the middle of the tooth base on -y side
+    //   - np for the -y tooth side
+    size_t num_vertices = 2 * (np + 1);
+    vertices.resize(num_vertices);
+
+    // Number of normals:
+    //   - 1 for the +y face
+    //   - 1 for the -y face
+    //   - np for the tooth surface
+    size_t num_normals = 2 + np;
+    normals.resize(num_normals);
+
+    // Number of faces:
+    //    - np-1 for the +y side
+    //    - np-1 for the -y side
+    //    - 2 * (np-1) for the tooth surface
+    size_t num_faces = 4 * (np - 1);
+    idx_vertices.resize(num_faces);
+    idx_normals.resize(num_faces);
+
+    // Load vertices.
+    double yp = y + GetToothWidth() / 2;
+    double ym = y - GetToothWidth() / 2;
+
+    size_t iv = 0;
+    vertices[iv++] = ChVector<>(0, yp, GetWebThickness() / 2);
+    for (size_t i = 0; i < np; i++)
+        vertices[iv++] = ChVector<>(points2[i].x(), yp, points2[i].y());
+    vertices[iv++] = ChVector<>(0, ym, GetWebThickness() / 2);
+    for (size_t i = 0; i < np; i++)
+        vertices[iv++] = ChVector<>(points2[i].x(), ym, points2[i].y());
+
+    // Load normals.
+    size_t in = 0;
+    normals[in++] = ChVector<>(0, +1, 0);
+    normals[in++] = ChVector<>(0, -1, 0);
+    for (size_t i = 0; i < np; i++)
+        normals[in++] = ChVector<>(normals2[i].x(), 0, normals2[i].y());
+
+    // Load triangles on +y side.
+    size_t it = 0;
+    for (size_t i = 0; i < np - 1; i++) {
+        idx_vertices[it] = ChVector<int>(0, i + 1, i + 2);
+        idx_normals[it] = ChVector<int>(0, 0, 0);
+        it++;
+    }
+
+    // Load triangles on -y side.
+    for (size_t i = 0; i < np - 1; i++) {
+        idx_vertices[it] = ChVector<int>(0, i + 1, i + 2) + (np + 1);
+        idx_normals[it] = ChVector<int>(1, 1, 1);
+        it++;
+    }
+
+    // Load triangles on tooth surface.
+    for (size_t i = 0; i < np - 1; i++) {
+        idx_vertices[it] = ChVector<int>(i + 1, i + 1 + (np + 1), i + 2 + (np + 1));
+        idx_normals[it] = ChVector<int>(i + 2, i + 2, i + 3);
+        it++;
+        idx_vertices[it] = ChVector<int>(i + 1, i + 2 + (np + 1), i + 2);
+        idx_normals[it] = ChVector<int>(i + 2, i + 3, i + 3);
+        it++;
+    }
+
+    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    trimesh_shape->SetMesh(trimesh);
+    
+    return trimesh_shape;
 }
 
 }  // end namespace vehicle

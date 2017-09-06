@@ -19,6 +19,8 @@
 #ifndef CH_TRACK_SHOE_RIGID_CB_H
 #define CH_TRACK_SHOE_RIGID_CB_H
 
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
@@ -134,6 +136,10 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
 
     /// Add visualization of a web segment, body based on primitives corresponding to the contact shapes.
     void AddWebVisualization(std::shared_ptr<ChBody> segment);
+
+    /// Utilities for creating the tooth mesh.
+    size_t ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals);
+    std::shared_ptr<ChTriangleMeshShape> ToothMesh(double y);
 
     std::vector<std::shared_ptr<ChBody>> m_web_segments;  ///< handles to track shoe's web segment bodies
     double m_seg_length;                                  ///< length of a web segment
