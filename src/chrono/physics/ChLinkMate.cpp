@@ -158,9 +158,10 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
         ChVector<> p2_abs = aframe2.GetPos();
         ChFrame<> bframe;
-        static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(aframe, bframe);
-        this->frame2.TransformParentToLocal(bframe, aframe);
-        // Now 'aframe' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
+        static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(aframe, bframe); 
+        this->frame2.TransformParentToLocal(bframe, aframe); 
+        // Now 'aframe' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords. 
+        //***TODO*** check if it is faster to do   aframe2.TransformParentToLocal(aframe, bframe); instead of two transforms above
 
         ChMatrix33<> Jx1, Jx2, Jr1, Jr2, Jw1, Jw2;
         ChMatrix33<> mtempM, mtempQ;
@@ -193,14 +194,14 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         // For small misalignment this effect is almost insignificant cause [Fp(q_resid)]=[I],
         // but otherwise it is needed (if you want to use the stabilization term - if not, you can live without).
         mtempM.Set_X_matrix((aframe.GetRot().GetVector()) * 0.5);
-        mtempM(0, 0) = aframe.GetRot().e0();
-        mtempM(1, 1) = aframe.GetRot().e0();
-        mtempM(2, 2) = aframe.GetRot().e0();
+        mtempM(0, 0) = 0.5 * aframe.GetRot().e0();
+        mtempM(1, 1) = 0.5 * aframe.GetRot().e0();
+        mtempM(2, 2) = 0.5 * aframe.GetRot().e0();
         mtempQ.MatrTMultiply(mtempM, Jw1);
         Jw1 = mtempQ;
         mtempQ.MatrTMultiply(mtempM, Jw2);
         Jw2 = mtempQ;
-
+        
         int nc = 0;
 
         if (c_x) {
@@ -251,16 +252,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 2, 0, 1, 3, 0, 3);
             nc++;
         }
-        /*
-                if (this->c_x)
-                    GetLog()<< "err.x() ="<< aframe.GetPos().x() << "\n";
-                if (this->c_y)
-                    GetLog()<< "err.y() ="<< aframe.GetPos().y() << "\n";
-                if (this->c_z)
-                    GetLog()<< "err.z() ="<< aframe.GetPos().z() << "\n";
-                if (this->c_x || this->c_y || this->c_z)
-                        GetLog()<< *this->C << "\n";
-        */
+
     }
 }
 
