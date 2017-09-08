@@ -143,6 +143,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRevoluteSpherical.cpp
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
+	physics/ChLinkMotor.cpp
     physics/ChSystem.cpp
     physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
@@ -235,6 +236,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkRevoluteSpherical.h
     physics/ChLinkRevoluteTranslational.h
     physics/ChLinkUniversal.h
+	physics/ChLinkMotor.h
     physics/ChMarker.h
     physics/ChMaterialSurface.h
     physics/ChMaterialSurfaceNSC.h
