@@ -287,6 +287,15 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     }
 }
 
+ 
+void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1, 
+                            std::shared_ptr<ChBodyFrame> mbody2,  
+                            ChFrame<> mabsframe                 
+                            ) {
+    this->Initialize(mbody1, mbody2, false, mabsframe, mabsframe);
+}
+
+
 void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                    std::shared_ptr<ChBodyFrame> mbody2,
                                    bool pos_are_relative,
