@@ -548,6 +548,7 @@ set(ChronoEngine_motion_functions_SOURCES
     motion_functions/ChFunction_Sequence.cpp
     motion_functions/ChFunction_Sigma.cpp
     motion_functions/ChFunction_Sine.cpp
+	motion_functions/ChFunction_Setpoint.cpp
     )
 
 set(ChronoEngine_motion_functions_HEADERS
@@ -571,7 +572,9 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_Repeat.h
     motion_functions/ChFunction_Sequence.h
     motion_functions/ChFunction_Sigma.h
-    motion_functions/ChFunction_Sine.h)
+    motion_functions/ChFunction_Sine.h
+	motion_functions/ChFunction_Setpoint.h
+	)
 
 if(CH_CXX14)
   set(ChronoEngine_motion_functions_HEADERS ${ChronoEngine_motion_functions_HEADERS}
