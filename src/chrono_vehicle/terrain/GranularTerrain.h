@@ -98,9 +98,10 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
                             );
 
     /// Enable moving patch and set parameters.
-    void EnableMovingPatch(std::shared_ptr<ChBody> body,  ///< monitored body
-                           double buffer_distance,        ///< look-ahead distance
-                           double shift_distance          ///< chunk size of relocated particles
+    void EnableMovingPatch(std::shared_ptr<ChBody> body,              ///< monitored body
+                           double buffer_distance,                    ///< look-ahead distance
+                           double shift_distance,                     ///< chunk size of relocated particles
+                           const ChVector<>& init_vel = ChVector<>()  ///< initial particle velocity
                            );
 
     /// Set start value for body identifiers of generated particles (default: 1000000).
@@ -141,12 +142,13 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// using the specified generator, until the number of particles exceeds the specified value.
     /// The initial particle locations are obtained with Poisson Disk sampling, using the
     /// given minimum separation distance.
-    void Initialize(const ChVector<>& center,    ///< [in] center of bottom
-                    double length,               ///< [in] patch dimension in X direction
-                    double width,                ///< [in] patch dimension in Y direction
-                    unsigned int num_particles,  ///< [in] minimum number of particles
-                    double radius,               ///< [in] particle radius
-                    double density               ///< [in] particle density
+    void Initialize(const ChVector<>& center,                  ///< [in] center of bottom
+                    double length,                             ///< [in] patch dimension in X direction
+                    double width,                              ///< [in] patch dimension in Y direction
+                    unsigned int num_particles,                ///< [in] minimum number of particles
+                    double radius,                             ///< [in] particle radius
+                    double density,                            ///< [in] particle density
+                    const ChVector<>& init_vel = ChVector<>()  ///< [in] particle initial velocity
                     );
 
     /// Update the state of the terrain system at the specified time.
@@ -198,6 +200,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChBody> m_body;  ///< tracked body
     double m_buffer_distance;        ///< minimum distance to front boundary
     double m_shift_distance;         ///< size (X direction) of relocated volume
+    ChVector<> m_init_part_vel;      ///< initial particle velocity
 
     // Rough surface (ground-fixed spheres)
     bool m_rough_surface;  ///< rough surface feature enabled?

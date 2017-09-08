@@ -171,6 +171,8 @@ set(CV_UTILS_FILES
     utils/ChSpeedController.cpp
     utils/ChAdaptiveSpeedController.h
     utils/ChAdaptiveSpeedController.cpp
+    utils/ChVehiclePath.h
+    utils/ChVehiclePath.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_UTILS_FILES

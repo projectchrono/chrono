@@ -35,27 +35,30 @@ int main(int argc, char* argv[]) {
 
     // Simulation parameters
     double time_step = 5e-3;  // Integration time step (s)
-    double time_end = 5;      // Final simulation time (s)
+    double time_pitch = 1;    // Time when gravity is rotated (s)
+    double time_end = 10;     // Final simulation time (s)
 
     // Terrain parameters
     ChVector<> center(0, 0, 0);          // Center of initial patch
     double hdimX = 1.5;                  // Length of patch
     double hdimY = 0.75;                 // Width of patch
-    unsigned int num_particles = 10000;  // Minimum requested number of particles
+    unsigned int num_particles = 12500;  // Minimum requested number of particles
     bool rough = false;                  // Fixed base layer?
     bool moving_patch = true;            // Enable moving patch feature?
+    double slope = 0;                    // Terrain slope (degrees)
     double radius = 20;                  // Particle radius (mm)
     double rho = 2000;                   // Granular material density (kg/m3)
     double mu = 0.9;                     // Coefficient of friction
-    double coh = 50;                     // Cohesion pressure (kPa)
+    double coh = 20;                     // Cohesion pressure (kPa)
 
     // Convert terrain parameters
-    double r_g = radius / 1000;             // Particle radius (m)
-    double rho_g = rho;                     // Granular material density (kg/m3)
-    double mu_g = mu;                       // Coefficient of friction
-    double area = CH_C_PI * r_g * r_g;      // Particle cross-area (m2)
-    double coh_force = area * (coh * 1e3);  // Cohesion force (N)
-    double coh_g = coh_force * time_step;   // Cohesion impulse (Ns)
+    double slope_g = slope * CH_C_DEG_TO_RAD;  // Slope (rad)
+    double r_g = radius / 1000;                // Particle radius (m)
+    double rho_g = rho;                        // Granular material density (kg/m3)
+    double mu_g = mu;                          // Coefficient of friction
+    double area = CH_C_PI * r_g * r_g;         // Particle cross-area (m2)
+    double coh_force = area * (coh * 1e3);     // Cohesion force (N)
+    double coh_g = coh_force * time_step;      // Cohesion impulse (Ns)
 
     // Tire parameters
     double tire_rad = 0.8;           // Radius (m)
@@ -64,12 +67,20 @@ int main(int argc, char* argv[]) {
     // Collision envelope (10% of particle radius)
     double envelope = 0.1 * r_g;
 
+    // Camera location
+    enum CameraType { FIXED, FRONT, TRACK };
+    CameraType cam_type = FIXED;
+
     // ---------------------------------
     // Create the parallel Chrono system
     // ---------------------------------
 
+    // Prepare rotated acceleration vector
+    ChVector<> gravity(0, 0, -9.81);
+    ChVector<> gravityR = ChMatrix33<>(slope_g, ChVector<>(0, 1, 0)) * gravity;
+
     ChSystemParallelNSC* system = new ChSystemParallelNSC();
-    system->Set_G_acc(ChVector<>(0, 0, -9.81));
+    system->Set_G_acc(gravity);
 
     // Set number of threads
     int threads = 4;
@@ -178,9 +189,18 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    bool is_pitched = false;
     double time = 0;
 
     while (time < time_end) {
+        // Rotate gravity vector
+        if (!is_pitched && time > time_pitch) {
+            std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
+                      << std::endl;
+            system->Set_G_acc(gravityR);
+            is_pitched = true;
+        }
+
         terrain.Synchronize(time);
         system->DoStepDynamics(time_step);
 
@@ -193,10 +213,25 @@ int main(int argc, char* argv[]) {
         ////}
 
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        if (gl_window.Active())
+        if (gl_window.Active()) {
+            switch (cam_type) {
+                case FRONT: {
+                    ChVector<> cam_loc(terrain.GetPatchFront(), -3, 0);
+                    ChVector<> cam_point(terrain.GetPatchFront(), 0, 0);
+                    gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
+                    break;
+                }
+                case TRACK: {
+                    ChVector<> cam_point = body->GetPos();
+                    ChVector<> cam_loc = cam_point + ChVector<>(-3 * tire_rad, -1, 0.6);
+                    gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
+                    break;
+                }
+            }
             gl_window.Render();
-        else
+        } else {
             break;
+        }
 
         time += time_step;
     }

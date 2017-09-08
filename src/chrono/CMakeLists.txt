@@ -900,6 +900,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChProfiler.cpp
     utils/ChFilters.cpp
     utils/ChCompositeInertia.cpp
+    utils/ChParserOpenSim.cpp
     )
 
 set(ChronoEngine_utils_HEADERS
@@ -913,6 +914,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChProfiler.h
     utils/ChFilters.h
     utils/ChCompositeInertia.h
+    utils/ChParserOpenSim.h
 )
 
 source_group(utils FILES
