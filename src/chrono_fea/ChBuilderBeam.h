@@ -19,8 +19,14 @@
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChElementCableANCF.h"
 
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/physics/ChLinkMotor.h"
+
 namespace chrono {
 namespace fea {
+
+class ChContactSurfaceNodeCloud;
 
 /// Class for an helper object that provides easy functions to create
 /// complex beams, for example subdivides a segment in multiple finite
@@ -109,6 +115,68 @@ class ChApiFea ChBuilderBeamANCF {
     /// This list is reset all times a 'Build...' function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzD> >& GetLastBeamNodes() { return beam_nodes; }
 };
+
+
+
+/// Class for object that continuously extrude a beam
+/// with prescribed velocity
+
+class ChApiFea ChExtruderBeamEuler {
+  protected:
+    std::vector<std::shared_ptr<ChElementBeamEuler> > beam_elems;
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot> > beam_nodes;
+
+    std::shared_ptr<ChBody> ground;
+    std::shared_ptr<ChLinkMotorLinearSpeed> actuator;
+    std::shared_ptr<ChLinkMateGeneric> guide;
+
+    ChSystem* mysystem; 
+    std::shared_ptr<ChMesh> mesh;
+    
+    std::shared_ptr<ChBeamSectionAdvanced> beam_section;
+    double h;                                  
+    ChCoordsys<> outlet;                                         
+    double mytime;
+    double speed;
+  
+    std::shared_ptr<ChMaterialSurfaceSMC> contact_material;
+
+    std::shared_ptr<ChContactSurfaceNodeCloud> contactcloud;
+    double contact_radius;
+
+  public:
+    /// Initialize and add required constraints to system
+    ChExtruderBeamEuler(
+                    ChSystem* msystem,         ///< system to store the constraints
+                    std::shared_ptr<ChMesh> mmesh,             ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionAdvanced> sect,///< section material for beam elements
+                   double mh,                                  ///< element length
+                   const ChCoordsys<> moutlet,                 ///< outlet pos & orientation (x is extrusion direction)
+                   double mspeed                               ///< speed 
+                   );
+
+    ~ChExtruderBeamEuler();
+
+    /// Sets the material for the beam, and enables collision detection for the beam nodes.
+    /// By default, collision not enabled.
+    void SetContact(
+            std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, ///< material to use for surface
+            double mcontact_radius  ///< radius of colliding spheres at each node (usually = to avg.beam thickness)
+            );    
+
+    /// Create beam elements, if needed, and update the constraint that 
+    /// imposes the extrusion speed
+    void Update();
+
+    /// Access the list of created elements
+    std::vector<std::shared_ptr<ChElementBeamEuler> >& GetLastBeamElements() { return beam_elems; }
+
+    /// Access the list of created nodes 
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot> >& GetLastBeamNodes() { return beam_nodes; }
+};
+
+
+
 
 }  // end namespace fea
 }  // end namespace chrono
