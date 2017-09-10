@@ -31,6 +31,7 @@ SET(FEA_DEMOS_IRR_MKL
     demo_FEA_beams
     demo_FEA_beams_static
     demo_FEA_beams_constr
+	demo_FEA_beams_extrude
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
     demo_FEA_shells
