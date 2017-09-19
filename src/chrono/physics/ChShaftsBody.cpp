@@ -58,11 +58,11 @@ void ChShaftsBody::Update(double mytime, bool update_assets) {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChShaftsBody::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L) = torque_react;
+    L(off_L) = - torque_react;
 }
 
 void ChShaftsBody::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    torque_react = L(off_L);
+    torque_react = - L(off_L);
 }
 
 void ChShaftsBody::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -154,7 +154,7 @@ void ChShaftsBody::ConstraintsLoadJacobians() {
 
 void ChShaftsBody::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    torque_react = constraint.Get_l_i() * factor;
+    torque_react = - constraint.Get_l_i() * factor;
 }
 
 //////// FILE I/O
