@@ -19,6 +19,8 @@
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/motion_functions/ChFunction.h"
 #include "chrono/solver/ChVariablesGeneric.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsBody.h"
 
 namespace chrono {
 
@@ -93,13 +95,13 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
     void SetGuideConstraint(bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz); 
 
     /// Get the current actuator displacement [m], including error etc.
-    virtual double GetActualPos() const {return mpos;}
+    virtual double GetMotorPos() const {return mpos;}
     /// Get the current actuator speed [m/s], including error etc.
-    virtual double GetActualPos_dt() const {return mpos_dt;}
+    virtual double GetMotorPos_dt() const {return mpos_dt;}
     /// Get the current actuator acceleration [m/s^2], including error etc.
-    virtual double GetActualPos_dtdt() const {return mpos_dtdt;}
+    virtual double GetMotorPos_dtdt() const {return mpos_dtdt;}
     /// Get the current actuator reaction force [N]
-    virtual double GetActualForce() const = 0;
+    virtual double GetMotorForce() const = 0;
 
 
     void Update(double mytime, bool update_assets) override;
@@ -169,8 +171,8 @@ class ChApi ChLinkMotorLinearPosition : public ChLinkMotorLinear {
     double GetMotionOffset() { return pos_offset; }
 
 
-    /// Get the current actuator reaction force [N]
-    virtual double GetActualForce() const { return this->react_force.x();}
+    /// Get the current actuator reaction force [N], as applied to slider
+    virtual double GetMotorForce() const { return - this->react_force.x();}
 
 
     void Update(double mytime, bool update_assets) override;
@@ -262,7 +264,7 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
 
 
     /// Get the current actuator reaction force [N]
-    virtual double GetActualForce() const { return this->react_force.x();}
+    virtual double GetMotorForce() const { return - this->react_force.x();}
 
 
     void Update(double mytime, bool update_assets) override;
@@ -323,7 +325,7 @@ CH_CLASS_VERSION(ChLinkMotorLinearSpeed,0)
 ///   some feedback (that is up to you too implement)
 /// - force that is updated by a cosimulation
 /// - force from a man-in-the-loop setpoint
-/// Use SetForceFunction() to change to other speed function (by
+/// Use SetForceFunction() to change to other force function (by
 /// default is no force), possibly introduce some custom ChFunction
 /// of yours that is updated at each time step.
 
@@ -348,7 +350,7 @@ class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
     
 
     /// Get the current actuator reaction force [N]
-    virtual double GetActualForce() const { return this->f_force->Get_y(this->GetChTime());}
+    virtual double GetMotorForce() const { return this->f_force->Get_y(this->GetChTime());}
 
     
     void Update(double mytime, bool update_assets) override;
@@ -560,14 +562,25 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     /// this option.
     void SetSpindleConstraint(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry); 
 
-    /// Get the current actuator displacement [rad], including error etc.
-    virtual double GetActualRot() const {return mrot;}
+    /// Get the current actuator rotation [rad], including error etc.
+    /// This rotation keeps track of multiple turns, so it is not limited in periodic -PI..+PI,
+    /// and rotation accumulates indefinitely. Use GetMotorRotTurns() and GetMotorRotPeriodic() otherwise.
+    virtual double GetMotorRot() const {return mrot;}
+
+    /// In case of multi-turns, gets the current actuator number of (integer) rotations, 
+    virtual int    GetMotorRotTurns() const {return int(mrot / CH_C_2PI);}
+
+    /// In case of multi-turns, gets the current actuator rotation angle [rad], in periodic -PI..+PI.
+    virtual double GetMotorRotPeriodic() const {return fmod(mrot, CH_C_2PI);}
+
     /// Get the current actuator speed [rad/s], including error etc.
-    virtual double GetActualRot_dt() const {return mrot_dt;}
+    virtual double GetMotorRot_dt() const {return mrot_dt;}
+
     /// Get the current actuator acceleration [rad/s^2], including error etc.
-    virtual double GetActualRot_dtdt() const {return mrot_dtdt;}
+    virtual double GetMotorRot_dtdt() const {return mrot_dtdt;}
+
     /// Get the current actuator reaction torque [Nm]
-    virtual double GetActualTorque() const = 0;
+    virtual double GetMotorTorque() const = 0;
 
 
     void Update(double mytime, bool update_assets) override;
@@ -631,14 +644,14 @@ class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
     /// Get initial angle offset for f(t)=0, in [rad]. Rotation on Z of the two axes
     /// will be r(t) = f(t) + offset.
     /// By default, offset = 0
-    void SetMotionOffset(double mo) { rot_offset = mo; }
+    void SetAngleOffset(double mo) { rot_offset = mo; }
 
     /// Get initial offset for f(t)=0, in [rad]
-    double GetMotionOffset() { return rot_offset; }
+    double GetAngleOffset() { return rot_offset; }
 
 
     /// Get the current actuator reaction torque [Nm]
-    virtual double GetActualTorque() const { return this->react_torque.x();}
+    virtual double GetMotorTorque() const { return - this->react_torque.z();}
 
 
     void Update(double mytime, bool update_assets) override;
@@ -730,7 +743,7 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
 
 
     /// Get the current actuator reaction torque [Nm]
-    virtual double GetActualTorque() const { return this->react_torque.x();}
+    virtual double GetMotorTorque() const { return - this->react_torque.z();}
 
 
     void Update(double mytime, bool update_assets) override;
@@ -791,8 +804,8 @@ CH_CLASS_VERSION(ChLinkMotorRotationSpeed,0)
 ///   some feedback (that is up to you too implement)
 /// - force that is updated by a cosimulation
 /// - force from a man-in-the-loop setpoint
-/// Use SetTorqueFunction() to change to other speed function (by
-/// default is no force), possibly introduce some custom ChFunction
+/// Use SetTorqueFunction() to change to other torque function (by
+/// default is no torque), possibly introduce some custom ChFunction
 /// of yours that is updated at each time step.
 
 class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {
@@ -816,7 +829,7 @@ class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {
     
 
     /// Get the current actuator reaction torque [Nm]
-    virtual double GetActualTorque() const { return this->f_torque->Get_y(this->GetChTime());}
+    virtual double GetMotorTorque() const { return this->f_torque->Get_y(this->GetChTime());}
 
     
     void Update(double mytime, bool update_assets) override;

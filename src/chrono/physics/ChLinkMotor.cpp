@@ -1082,7 +1082,18 @@ void ChLinkMotorRotation::Update(double mytime, bool update_assets) {
     ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->Body2);
     ChFrameMoving<> aframe12;
     aframe2.TransformParentToLocal(aframe1, aframe12);
-    this->mrot = aframe12.GetRot().Q_to_Rotv().z(); //***TODO*** multi-turn
+
+    // multi-turn rotation code
+    double last_totrot = this->mrot;
+    double last_rot = remainder(last_totrot, CH_C_2PI);
+    double last_turns = last_totrot - last_rot;
+    double new_rot  = remainder(aframe12.GetRot().Q_to_Rotv().z(), CH_C_2PI);
+    this->mrot = last_turns + new_rot;
+    if (fabs(new_rot + CH_C_2PI - last_rot) < fabs(new_rot-last_rot) )
+        this->mrot = last_turns + new_rot + CH_C_2PI;
+    if (fabs(new_rot - CH_C_2PI - last_rot) < fabs(new_rot-last_rot) )
+        this->mrot = last_turns + new_rot - CH_C_2PI;
+    
     this->mrot_dt = aframe12.GetWvel_loc().z();
     this->mrot_dtdt = aframe12.GetWacc_loc().z();
 }
@@ -1231,7 +1242,7 @@ void ChLinkMotorRotationAngle::IntLoadConstraint_Ct(const unsigned int off_L, Ch
     double mCt = - 0.5 * this->f_rot->Get_y_dx(this->GetChTime());
     int ncrz = mask->nconstr - 1;
     if (mask->Constr_N(ncrz).IsActive()) {
-        Qc(off_L + ncrz) += c * mCt; //***TODO** x2 term?
+        Qc(off_L + ncrz) += c * mCt; 
     }
 }
 
@@ -1243,7 +1254,7 @@ void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
     double mCt = - 0.5 * this->f_rot->Get_y_dx(this->GetChTime());
     int ncrz = mask->nconstr - 1;
     if (mask->Constr_N(ncrz).IsActive()) {
-            mask->Constr_N(ncrz).Set_b_i(mask->Constr_N(ncrz).Get_b_i() + factor * mCt); //***TODO** x2 term?
+            mask->Constr_N(ncrz).Set_b_i(mask->Constr_N(ncrz).Get_b_i() + factor * mCt); 
     }
 }
 
