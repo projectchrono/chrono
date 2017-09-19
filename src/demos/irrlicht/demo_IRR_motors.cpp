@@ -22,6 +22,10 @@
 #include "chrono/motion_functions/ChFunction_Sine.h"
 #include "chrono/physics/ChLinkMotor.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono/physics/ChShaftsMotorSpeed.h"
+#include "chrono/physics/ChShaftsMotorAngle.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChShaftsGear.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -130,11 +134,6 @@ int main(int argc, char* argv[]) {
     // geometrically; no compliance is allowed, this means that if the
     // rotating body hits some hard contact, the solver might give unpredictable 
     // oscillatory or diverging results because of the contradiction.
-    // It contains a hidden state that performs the time integration
-    // of the required speed, such rotation is then imposed too to the
-    // constraint at the positional level, thus avoiding angle error
-    // accumulation (angular drift). Optionally, such constraint at the
-    // position level can be disabled if you are not interested in angle drift.
 
     ChVector<> positionA1(-3, 2, -3);
     std::shared_ptr<ChBody> stator1;
@@ -152,7 +151,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(rotmotor1);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationSpeed
-    auto mwspeed = std::make_shared<ChFunction_Const>(CH_C_PI); // constant angular speed, in [rad/s], 1PI/s =180°/s
+    auto mwspeed = std::make_shared<ChFunction_Const>(CH_C_PI_2); // constant angular speed, in [rad/s], 1PI/s =180°/s
     // Let the motor use this motion function:
     rotmotor1->SetSpeedFunction(mwspeed);
   
@@ -200,7 +199,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChFunction to be used for the ChLinkMotorRotationAngle
     auto msineangle = std::make_shared<ChFunction_Sine>(0,    // phase [rad]
-                                                   0.5,  // frequency [Hz]
+                                                   0.05,  // frequency [Hz]
                                                    CH_C_PI // amplitude [rad]
                                                    ); 
     // Let the motor use this motion function as a motion profile:
@@ -213,11 +212,10 @@ int main(int argc, char* argv[]) {
     // - type:    rotational motor 
     // - control: impose a (time-dependent) torque=T(t) 
     //
-    // Fro this motor, you must specify a time-dependent torque as torque = T(t). 
-    // If you want to use this motor to follow some desired motion profiles, you
+    // For this motor, you must specify a time-dependent torque as torque = T(t). 
+    // (If you want to use this motor to follow some desired motion profiles, you
     // must implement a PID controller that continuously adjusts the value of the
-    // torque during the simulation. In this example we show a simple open-loop
-    // case without controllers: the motor just follows a torque(speed) curve.
+    // torque during the simulation). 
 
     ChVector<> positionA3(-3, 2, -1);
     std::shared_ptr<ChBody> stator3;
@@ -248,7 +246,7 @@ int main(int argc, char* argv[]) {
     //
     // As before, use a ChLinkMotorRotationTorque, but this time compute
     // torque by a custom function. In this example we implement a
-    // bsic torque(speed) model of a three-phase induction electric motor..
+    // basic torque(speed) model of a three-phase induction electric motor..
 
     ChVector<> positionA4(-3, 2, 0);
     std::shared_ptr<ChBody> stator4;
@@ -265,7 +263,7 @@ int main(int argc, char* argv[]) {
                           );
     mphysicalSystem.Add(rotmotor4);
 
-    // Implement our custom  torque(curve)  function.
+    // Implement our custom  torque function.
     // We could use pre-defined ChFunction classes like sine, constant, ramp, etc.,
     // but in this example we show how to implement a custom function: a 
     // torque(speed) function that represents a three-phase electric induction motor.
@@ -284,7 +282,7 @@ int main(int argc, char* argv[]) {
 
         virtual double Get_y(double x) const override { 
             // The three-phase torque(speed) model
-            double w = mymotor->GetActualRot_dt(); 
+            double w = mymotor->GetMotorRot_dt(); 
             double s = (ns-w)/ns;// slip
             double T = (3.0/2*CH_C_PI*ns)*(s * E2*E2 * R2) / (R2*R2 + pow(s*X2,2)); // electric torque curve
             T -= w*5; // simulate also a viscous brake
@@ -304,6 +302,114 @@ int main(int argc, char* argv[]) {
 
 
 
+    // EXAMPLE A.5 
+    //
+    //
+    // - class:   ChLinkMotorRotationDriveline
+    // - type:    rotational motor 
+    // - control: delegated to an embedded user-defined driveline/powertrain
+    //
+    // This is the most powerful motor type. It allows the creation of 
+    // generic 1D powertrain inside this 3D motor.
+    // Powertrains/drivelines are defined by connecting a variable number of 
+    // 1D objects such as ChShaft, ChClutch, ChShaftsMotor, etc. In this way, for
+    // example, you can represent a drive+flywheel+reducer, hence taking into account 
+    // of the inertia of the flywheel without the complication of adding a full 3D shape that 
+    // represents the flywheel, and withoput needing 3D constraint for gears, bearings, etc.
+    // The 1D driveline is "interfaced" to the two connected threedimensional
+    // parts using two "inner" 1D shafts, each rotating as the connected 3D part;
+    // it is up to the user to build the driveline that connects those two shafts.
+    // Most often the driveline is like a graph starting at inner shaft 2 (consider 
+    // it to be the truss for holding the motor drive, also the support for reducers 
+    // if any) and ending at inner shaft 1 (consider it to be the output, i.e. the 
+    // slow-rotation spindle).
+
+    ChVector<> positionA5(-3, 2, 1);
+    std::shared_ptr<ChBody> stator5;
+    std::shared_ptr<ChBody> rotor5;
+    CreateStatorRotor(stator5, rotor5, mphysicalSystem, positionA5);
+
+    // Create the motor
+    auto rotmotor5 = std::make_shared<ChLinkMotorRotationDriveline>();
+
+    // Connect the rotor and the stator and add the motor to the system:
+    rotmotor5->Initialize(rotor5,                // body A (slave)
+                          stator5,               // body B (master)
+                          ChFrame<>(positionA5)  // motor frame, in abs. coords
+                          );
+    mphysicalSystem.Add(rotmotor5);
+
+    // You may want to change the inertia of 'inner' 1d shafts, (each has default 1kg/m^2)
+    // Note: they adds up to 3D inertia when 3D parts rotate about the link shaft.
+    // Note: do not use too small values compared to 3D inertias: it might negatively affect
+    // the precision of some solvers; if so, rather diminish the 3D inertia of stator/rotor parts and add to these.
+    rotmotor5->GetInnerShaft1()->SetInertia(0.2); // [kg/m^2]
+    rotmotor5->GetInnerShaft2()->SetInertia(0.2); // [kg/m^2]
+
+    // Now create the driveline. We want to model a drive+reducer sytem.
+    // This driveline must connect "inner shafts" of s1 and s2, where:
+    //  s1, is the 3D "rotor5"  part A (ex. a robot arm) and 
+    //  s2, is the 3D "stator5" part B (ex. a robot base). 
+    // In the following scheme, the motor is [ DRIVE ], the reducer is [ REDUCER ], 
+    // the shafts ( shown with symbol || to mean inertia) are: 
+    //  S1: the 1D inner shaft for s1 robot arm (already present in ChLinkMotorRotationDriveline)
+    //  S2: the 1D inner shaft for s2 robot base (already present in ChLinkMotorRotationDriveline) 
+    //  A : the shaft of the electric drive
+    //
+    //      S2                A                    S1
+    // 3d<--||---[ DRIVE ]---||-----[ REDUCER ]----||-->3d
+    // s2   ||                      [         ]         s1
+    //      ||----------------------[         ]
+    //                    
+
+    // Create 'A', a 1D shaft. This is the shaft of the electric drive, representing its inertia.
+
+    auto my_shaftA = std::make_shared<ChShaft>();
+    my_shaftA->SetInertia(0.03);
+    mphysicalSystem.Add(my_shaftA);
+
+    // Create 'DRIVE', the hi-speed motor model - as a simple example use a 'imposed speed' motor: this 
+    // is the equivalent of the ChLinkMotorRotationSpeed, but for 1D elements:
+
+    auto my_drive = std::make_shared<ChShaftsMotorSpeed>();
+    my_drive->Initialize(
+            my_shaftA,                   // A , the rotor of the drive
+            rotmotor5->GetInnerShaft2()  // S2, the stator of the drive 
+            );
+    mphysicalSystem.Add(my_drive);
+    // Create a speed(time) function, and use it in my_drive:
+    auto my_driveangle = std::make_shared<ChFunction_Const>(25*CH_C_2PI);  // 25 [rps] = 1500 [rpm]
+    my_drive->SetSpeedFunction(my_driveangle); 
+    
+    
+
+    // Create the REDUCER. We should not use the simple ChShaftsGear because
+    // it does not transmit torque to the support. So use ChShaftsPlanetary 
+    // and use it in ordinary mode, keeping the carrier as truss: so it
+    // will connect three parts: the carrier(here the truss), the in shaft, the out shaft.
+
+    auto my_reducer = std::make_shared<ChShaftsPlanetary>();
+    my_reducer->Initialize(
+        rotmotor5->GetInnerShaft2(),// S2, the carrier (truss) 
+        my_shaftA,                  // A , the input shaft
+        rotmotor5->GetInnerShaft1() // S1, the output shaft
+        );
+    my_reducer->SetTransmissionRatioOrdinary(1.0/100.0); // ratio between wR/wA
+    mphysicalSystem.Add(my_reducer);
+
+    // Btw:  later, if you want, you can access / plot speeds and 
+    // torques for whatever part of the driveline by putting lines like the following
+    // in the  while() {...} simulation loop:
+    //   
+    // GetLog() << " 1D shaft 'A' angular speed: "      << my_shaftA->GetPos_dt() << " [rad/s] \n";
+    // GetLog() << " 1D Drive angular speed: rot-stat " << my_drive->GetMotorRot_dt() << " [rad/s] \n";
+    // GetLog() << " 1D Drive torque: "                 << my_drive->GetMotorTorque() << " [Ns] \n";
+    // GetLog() << " 3D motor angular speed: rot-stat " << rotmotor5->GetMotorRot_dt() << " [rad/s] \n";
+    // GetLog() << " 3D motor torque: "                 << rotmotor5->GetMotorTorque() << " [Ns] \n";
+    // etc.
+
+
+
     // EXAMPLE B.1 
     //
     // - class:   ChLinkMotorLinearPosition
@@ -318,7 +424,7 @@ int main(int argc, char* argv[]) {
     // sliding body hits some hard contact, the solver might give unpredictable 
     // oscillatory or diverging results because of the contradiction.
 
-    ChVector<> positionB1(0, 0, -2);
+    ChVector<> positionB1(0, 0, -3);
     std::shared_ptr<ChBody> guide1;
     std::shared_ptr<ChBody> slider1;
     CreateSliderGuide(guide1, slider1, mphysicalSystem, positionB1);
@@ -362,7 +468,7 @@ int main(int argc, char* argv[]) {
     // accumulation (position drift). Optionally, such constraint on
     // position level can be disabled if you are not interested in pos.drift.
 
-    ChVector<> positionB2(0, 0, -1);
+    ChVector<> positionB2(0, 0, -2);
     std::shared_ptr<ChBody> guide2;
     std::shared_ptr<ChBody> slider2;
     CreateSliderGuide(guide2, slider2, mphysicalSystem, positionB2);
@@ -418,7 +524,7 @@ int main(int argc, char* argv[]) {
     // some hard contact, it just stops and keeps pushing, and no troubles
     // with the solver happen.
 
-    ChVector<> positionB3(0, 0, 0);
+    ChVector<> positionB3(0, 0, -1);
     std::shared_ptr<ChBody> guide3;
     std::shared_ptr<ChBody> slider3;
     CreateSliderGuide(guide3, slider3, mphysicalSystem, positionB3);
@@ -451,13 +557,14 @@ int main(int argc, char* argv[]) {
     //motor3->SetForceFunction(mF2); // uncomment to test this
 
 
+
     // EXAMPLE B.4
     //
     // As before, use a ChLinkMotorLinearForce, but this time compute
     // F by a user-defined procedure (as a callback). For example, here we write a very
     // basic PID control algorithm that adjusts F trying to chase a sinusoidal position.
 
-    ChVector<> positionB4(0, 0, 1);
+    ChVector<> positionB4(0, 0, 0);
     std::shared_ptr<ChBody> guide4;
     std::shared_ptr<ChBody> slider4;
     CreateSliderGuide(guide4, slider4, mphysicalSystem, positionB4);
@@ -495,7 +602,7 @@ int main(int argc, char* argv[]) {
 
         // Here we will compute F(t) by emulating a very basic PID scheme.
         // In practice, it works like a callback that is executed at each time step.
-        // Implementation of this function is mandatory! 
+        // Implementation of this function is mandatory!!! 
         virtual double SetpointCallback(const double x) override { 
             // Trick: in this PID example, we need the following if(..)  to update PID 
             // only when time changes (as the callback could be invoked more than once per timestep):
@@ -504,7 +611,7 @@ int main(int argc, char* argv[]) {
                 double dt = time - last_time;
                 // for example, the position to chase is this sine formula:
                 double setpoint = setpoint_position_sine_amplitude * sin(setpoint_position_sine_freq*CH_C_2PI* x );
-                double error    = setpoint - linearmotor->GetActualPos();
+                double error    = setpoint - linearmotor->GetMotorPos();
                 double error_dt = (error-last_error)/dt;
                 // for example, finally compute the force using the PID idea:
                 F =  controller_P * error + controller_D * error_dt;
@@ -515,9 +622,9 @@ int main(int argc, char* argv[]) {
         }
      };
 
-    // Create the function from the custom class:
+    // 2. Create the function from the custom class...
     auto mFcallback = std::make_shared<MyForceClass>();
-    // and initialize its custom data
+    //    ...and initialize its custom data
     mFcallback->setpoint_position_sine_amplitude = 1.6;
     mFcallback->setpoint_position_sine_freq = 0.5;
     mFcallback->controller_P = 42000; // proportional P term in PID, the higher, the "stiffer" the control
@@ -527,16 +634,193 @@ int main(int argc, char* argv[]) {
     mFcallback->F = 0;
     mFcallback->linearmotor = motor4;
 
-    // Let the motor use our custom procedure:
+    // 3. Let the motor use our custom force:
     motor4->SetForceFunction(mFcallback);
 
 
 
+    // EXAMPLE B.5 
+    //
+    //
+    // - class:   ChLinkMotorLinearDriveline
+    // - type:    linear motor 
+    // - control: delegated to an embedded user-defined driveline/powertrain
+    //
+    // This is the most powerful linear actuator type. It allows the creation of 
+    // generic 1D powertrain inside this 3D motor.
+    // Powertrains/drivelines are defined by connecting a variable number of 
+    // 1D objects such as ChShaft, ChClutch, ChShaftsMotor, etc. In this way, for
+    // example, you can represent a drive+flywheel+reducer+pulley system, hence taking into account 
+    // of the inertia of the flywheel and the elasticity of the synchro belt without 
+    // the complication of adding full 3D shapes that represents all parts.
+    // The 1D driveline is "interfaced" to the two connected threedimensional
+    // parts using two "inner" 1D shafts, each translating as the connected 3D part;
+    // it is up to the user to build the driveline that connects those two shafts.
+    // Most often the driveline is like a graph starting at inner shaft 2 and ending 
+    // at inner shaft 1. 
+    // Note: in the part 2 there is an additional inner shaft that operates on rotation;
+    // this is needed because, for example, maybe you want to model a driveline like a 
+    // drive+screw; you will anchor the drive to part 2 using this rotational shaft; so 
+    // reaction torques arising because of inner flywheel accelerations can be transmitted to this shaft. 
+
+    ChVector<> positionB5(0, 0, 1);
+    std::shared_ptr<ChBody> guide5;
+    std::shared_ptr<ChBody> slider5;
+    CreateSliderGuide(guide5, slider5, mphysicalSystem, positionB5);
+
+    // Create the motor
+    auto motor5 = std::make_shared<ChLinkMotorLinearDriveline>();
+
+    // Connect the rotor and the stator and add the motor to the system:
+    motor5->Initialize(   slider5,              // body A (slave)
+                          guide5,               // body B (master)
+                          ChFrame<>(positionB5) // motor frame, in abs. coords
+                          );
+    mphysicalSystem.Add(motor5);
+
+    // You may want to change the inertia of 'inner' 1D shafts, ("translating" shafts: each has default 1kg)
+    // Note: they adds up to 3D inertia when 3D parts translate about the link shaft.
+    // Note: do not use too small values compared to 3D inertias: it might negatively affect
+    // the precision of some solvers; if so, rather diminish the 3D inertia of guide/slider parts and add to these.
+    motor5->GetInnerShaft1lin()->SetInertia(3.0); // [kg]
+    motor5->GetInnerShaft2lin()->SetInertia(3.0); // [kg]
+    motor5->GetInnerShaft2rot()->SetInertia(0.8); // [kg/m^2] 
+
+    // Now create the driveline. We want to model a drive+reducer sytem.
+    // This driveline must connect "inner shafts" of s1 and s2, where:
+    //  s1, is the 3D "slider5" part B (ex. a gantry robot gripper) and 
+    //  s2, is the 3D "guide5"  part A (ex. a gantry robot base). 
+    // In the following scheme, the motor is [ DRIVE ], the reducer is [ RACKPINION ], 
+    // the shafts ( shown with symbol || to mean inertia) are: 
+    //  S1: the 1D inner shaft for s1 robot arm (already present in ChLinkMotorLinearDriveline)
+    //  S2: the 1D inner shaft for s2 robot base (already present in ChLinkMotorLinearDriveline) 
+    //  B : the shaft of the electric drive
+    // Note that s1 and s2 are translational degrees of freedom, differently 
+    // from ChLinkMotorLinearDriveline.
+    //
+    //     S2rot              B                      S1lin
+    //    <--||---[ DRIVE ]---||-----[ RACKPINION ]----||--> 3d 
+    // 3d <                          [            ]          s1 
+    // s2 < S2lin                    [            ]
+    //    <--||----------------------[            ]
+    //  
+
+    // Tell the motor that the inner shaft  'S2rot' is Z, orthogonal to 
+    // the X direction of the guide (default was X, as for screw actuators)
+
+    motor5->SetInnerShaft2RotDirection(VECT_Z); // in link coordinates
+
+    // Create 'B', a 1D shaft. This is the shaft of the electric drive, representing its inertia. 
+
+    auto my_shaftB = std::make_shared<ChShaft>();
+    my_shaftB->SetInertia(0.33);  // [kg/m^2]
+    mphysicalSystem.Add(my_shaftB);
+
+    // Create 'DRIVE', the hispeed motor - as a simple example use a 'imposed speed' motor: this 
+    // is the equivalent of the ChLinkMotorRotationAngle, but for 1D elements:
+
+    auto my_driveli = std::make_shared<ChShaftsMotorAngle>();
+    my_driveli->Initialize(
+                        my_shaftB,                   // B    , the rotor of the drive
+                        motor5->GetInnerShaft2rot()  // S2rot, the stator of the drive  
+            );
+    mphysicalSystem.Add(my_driveli);
+    
+    // Create a angle(time) function. It could be something as simple as
+    //   auto my_functangle = std::make_shared<ChFunction_Ramp>(0,  180);  
+    // but here we'll rather do a back-forth motion, made with a repetition of a sequence of 4 basic functions:
+
+    auto my_functsequence = std::make_shared<ChFunction_Sequence>();
+    auto my_funcsigma1 = std::make_shared<ChFunction_Sigma>( 180, 0 , 0.5); // diplacement, t_start, t_end 
+    auto my_funcpause1 = std::make_shared<ChFunction_Const>(0);  
+    auto my_funcsigma2 = std::make_shared<ChFunction_Sigma>(-180, 0 , 0.3); // diplacement, t_start, t_end 
+    auto my_funcpause2 = std::make_shared<ChFunction_Const>(0);  
+    my_functsequence->InsertFunct(my_funcsigma1, 0.5, 1.0, true); // fx, duration, weight, enforce C0 continuity
+    my_functsequence->InsertFunct(my_funcpause1, 0.2, 1.0, true); // fx, duration, weight, enforce C0 continuity
+    my_functsequence->InsertFunct(my_funcsigma2, 0.3, 1.0, true); // fx, duration, weight, enforce C0 continuity
+    my_functsequence->InsertFunct(my_funcpause2, 0.2, 1.0, true); // fx, duration, weight, enforce C0 continuity
+    auto my_functangle = std::make_shared<ChFunction_Repeat>();
+    my_functangle->Set_fa(my_functsequence);
+    my_functangle->Set_window_length(0.5+0.2+0.3+0.2);
+    my_driveli->SetAngleFunction(my_functangle); 
+
+    // Create the RACKPINION. 
+    // It will connect three parts: 
+    // - S2lin, the carrier (here the truss) to transmit reaction force, 
+    // - B,     the in (rotational) shaft, 
+    // - S1lin, the out (translational) shaft.
+
+    auto my_rackpinion = std::make_shared<ChShaftsPlanetary>();
+    my_rackpinion->Initialize(
+        motor5->GetInnerShaft2lin(),// S2lin, the carrier (truss) 
+        my_shaftB,                  // B,     the input shaft
+        motor5->GetInnerShaft1lin() // S1lin, the output shaft
+        );
+    my_rackpinion->SetTransmissionRatios(-1, -1.0/100.0, 1);
+    mphysicalSystem.Add(my_rackpinion);
+
+    // Btw:  later, if you want, you can access / plot speeds and 
+    // torques for whatever part of the driveline by putting lines like the   following
+    // in the  while() {...} simulation loop:
+    //   
+    // GetLog() << " 1D shaft 'B' angular speed: "      << my_shaftB->GetPos_dt() << " [rad/s] \n";
+    // GetLog() << " 1D Drive angular speed: rot-stat " << my_driveli->GetMotorRot_dt() << " [rad/s] \n";
+    // GetLog() << " 1D Drive torque: "                 << my_driveli->GetMotorTorque() << " [Ns] \n";
+    // GetLog() << " 3D actuator speed: rot-stat " << motor5->GetMotorPos() << " [rad/s] \n";
+    // GetLog() << " 3D actuator force: "                 << motor5->GetMotorForce() << " [Ns] \n";
+    // etc.
+
+
+    // EXAMPLE B.6 
+    //
+    // - class:   ChLinkMotorLinearPosition
+    // - type:    linear motor 
+    // - control: impose a position by continuously changing it during the while{} simulation 
+    //
+    // We use again the  ChLinkMotorLinearPosition as in EXAMPLE B.1, but
+    // this time we change its position using a "brute force" approach, that is: 
+    // we put a line in the while{...} simulation loop that continuously changes the
+    // position by setting a value from some computation.
+    //  Well: here one might be tempted to do  motor6->SetMotionFunction(myconst); where
+    // myconst is a ChFunction_Const object where you would continuously change the value
+    // of the constant by doing  myconst->Set_yconst() in the while{...} loop; this would
+    // work somehow but it would miss the derivative of the function, something that is used
+    // in the guts of ChLinkMotorLinearPosition. To overcome this, we'll use a  ChFunction_Setpoint
+    // function, that is able to guess the derivative of the changing setpoint by doing numerical
+    // differentiation each time you call  myfunction->SetSetpoint().
+    //  Note: A more elegant solution would be to inherit our custom motion function
+    // from  ChFunction_SetpointCallback  as explained in EXAMPLE B.4, and then setting
+    // motor6->SetMotionFunction(mycallback); this would avoid polluting the while{...} loop;
+    // but sometimes is faster to do the quick & dirty approach of this example.
+
+
+    ChVector<> positionB6(0, 0, 2);
+    std::shared_ptr<ChBody> guide6;
+    std::shared_ptr<ChBody> slider6;
+    CreateSliderGuide(guide6, slider6, mphysicalSystem, positionB6);
+
+    // Create the linear motor
+    auto motor6 = std::make_shared<ChLinkMotorLinearPosition>();
+
+    // Connect the guide and the slider and add the motor to the system:
+    motor6->Initialize(slider6,              // body A (slave)
+                       guide6,               // body B (master)
+                       ChFrame<>(positionB6)  // motor frame, in abs. coords
+                       );
+    mphysicalSystem.Add(motor6);
+
+    // Create a ChFunction to be used for the ChLinkMotorLinearPosition;
+    // Note! look later in the while{...} simulation loop, we'll continuously 
+    // update its value using  motor6setpoint->SetSetpoint();
+    auto motor6setpoint = std::make_shared<ChFunction_Setpoint>();
+    // Let the motor use this motion function:
+    motor6->SetMotionFunction(motor6setpoint);
 
 
 
-
-    //-----------------------------------------------------------------------------------------
+    //
+    // THE VISUALIZATION SYSTEM
+    //
 
 
     // Create the Irrlicht visualization (open the Irrlicht device,
@@ -563,25 +847,32 @@ int main(int argc, char* argv[]) {
     application.AddShadowAll();
 
 
+    
 
-    // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetSolverType(ChSolver::Type::SOR);
-    mphysicalSystem.SetMaxItersSolverSpeed(50);
-    mphysicalSystem.SetMaxItersSolverStab(5);
-
-
-    application.SetStepManage(true);
-    application.SetTimestep(0.005);
-    application.SetTryRealtime(true);
 
     //
     // THE SOFT-REAL-TIME CYCLE
     //
 
+
+    // Modify some setting of the physical system for the simulation, if you want
+    mphysicalSystem.SetSolverType(ChSolver::Type::SOR);
+    mphysicalSystem.SetMaxItersSolverSpeed(50);
+
+    application.SetTimestep(0.005);
+    application.SetTryRealtime(true);
+
+
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
         application.DrawAll();
+
+        // Example B.6 requires the setpoint to be changed in the simulation loop:
+        // for example use a clamped sinusoid, just for fun:
+        double t  = mphysicalSystem.GetChTime();
+        double Sp = ChMin(ChMax(2.6*sin(t*1.8),-1.4),1.4);
+        motor6setpoint->SetSetpoint(Sp, t);
 
         application.DoStep();
 
