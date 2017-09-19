@@ -174,6 +174,9 @@ set(ChronoEngine_physics_SOURCES
     physics/ChShaftsClutch.cpp
     physics/ChShaftsPlanetary.cpp
     physics/ChShaftsMotor.cpp
+	physics/ChShaftsMotorAngle.cpp
+	physics/ChShaftsMotorSpeed.cpp
+	physics/ChShaftsMotorTorque.cpp
     physics/ChShaftsBody.cpp
     physics/ChShaftsTorqueBase.cpp
     physics/ChShaftsTorque.cpp
@@ -260,6 +263,9 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsGearbox.h
     physics/ChShaftsGearboxAngled.h
     physics/ChShaftsMotor.h
+	physics/ChShaftsMotorAngle.h
+	physics/ChShaftsMotorSpeed.h
+	physics/ChShaftsMotorTorque.h
     physics/ChShaftsPlanetary.h
     physics/ChShaftsTorqueBase.h
     physics/ChShaftsTorque.h
