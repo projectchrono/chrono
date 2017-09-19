@@ -18,13 +18,41 @@
 
 namespace chrono {
 
+
+void ChShaftsMotorBase::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChShaftsMotorBase>();
+
+    // serialize parent class
+    ChShaftsCouple::ArchiveOUT(marchive);
+
+    // serialize all member data:
+
+}
+
+/// Method to allow de serialization of transient data from archives.
+void ChShaftsMotorBase::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChShaftsMotorBase>();
+
+    // deserialize parent class:
+    ChShaftsCouple::ArchiveIN(marchive);
+
+    // deserialize all member data:
+
+}
+
+
+
+
+
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsMotor)
 
 ChShaftsMotor::ChShaftsMotor() : motor_torque(0), motor_mode(MOT_MODE_TORQUE), motor_set_rot(0), motor_set_rot_dt(0) {
 }
 
-ChShaftsMotor::ChShaftsMotor(const ChShaftsMotor& other) : ChShaftsCouple(other) {
+ChShaftsMotor::ChShaftsMotor(const ChShaftsMotor& other) : ChShaftsMotorBase(other) {
     motor_torque = other.motor_torque;
     motor_mode = other.motor_mode;
     motor_set_rot = other.motor_set_rot;
@@ -33,7 +61,7 @@ ChShaftsMotor::ChShaftsMotor(const ChShaftsMotor& other) : ChShaftsCouple(other)
 
 bool ChShaftsMotor::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
     // Parent class initialize
-    if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))
+    if (!ChShaftsMotorBase::Initialize(mshaft1, mshaft2))
         return false;
 
     ChShaft* mm1 = mshaft1.get();
@@ -48,7 +76,7 @@ bool ChShaftsMotor::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr
 
 void ChShaftsMotor::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
-    ChShaftsCouple::Update(mytime, update_assets);
+    ChShaftsMotorBase::Update(mytime, update_assets);
 
     // update class data
     // ...
@@ -58,12 +86,12 @@ void ChShaftsMotor::Update(double mytime, bool update_assets) {
 
 void ChShaftsMotor::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     if (motor_mode != MOT_MODE_TORQUE)
-        L(off_L) = motor_torque;
+        L(off_L) =  motor_torque;
 }
 
 void ChShaftsMotor::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     if (motor_mode != MOT_MODE_TORQUE)
-        motor_torque = L(off_L);
+        motor_torque =  L(off_L);
 }
 
 void ChShaftsMotor::IntLoadResidual_F(const unsigned int off,  // offset in R residual
@@ -115,7 +143,7 @@ void ChShaftsMotor::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in
                                          const double c             // a scaling factor
                                          ) {
     if (motor_mode == MOT_MODE_SPEED) {
-        double ct = motor_set_rot_dt;
+        double ct = - motor_set_rot_dt;
         Qc(off_L) += c * ct;
     }
 }
@@ -177,7 +205,7 @@ void ChShaftsMotor::ConstraintsBiLoad_Ct(double factor) {
     //	return;
 
     if (motor_mode == MOT_MODE_SPEED) {
-        double ct = motor_set_rot_dt;
+        double ct = - motor_set_rot_dt;
         constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
     }
 }
@@ -199,7 +227,7 @@ void ChShaftsMotor::ConstraintsLoadJacobians() {
 void ChShaftsMotor::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     if (motor_mode != MOT_MODE_TORQUE)
-        motor_torque = constraint.Get_l_i() * factor;
+        motor_torque = - constraint.Get_l_i() * factor;
 }
 
 //////// FILE I/O
@@ -220,7 +248,7 @@ void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChShaftsMotor>();
 
     // serialize parent class
-    ChShaftsCouple::ArchiveOUT(marchive);
+    ChShaftsMotorBase::ArchiveOUT(marchive);
 
     // serialize all member data:
     my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
@@ -236,7 +264,7 @@ void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChShaftsMotor>();
 
     // deserialize parent class:
-    ChShaftsCouple::ArchiveIN(marchive);
+    ChShaftsMotorBase::ArchiveIN(marchive);
 
     // deserialize all member data:
     my_enum_mappers::eCh_shaftsmotor_mode_mapper mmapper;
@@ -245,5 +273,8 @@ void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(motor_set_rot);
     marchive >> CHNVP(motor_set_rot_dt);
 }
+
+
+
 
 }  // end namespace chrono
