@@ -65,7 +65,7 @@ Tutorials {#tutorial_root}
     
 ## Chrono training materials
 
--   @subpage tutorial_slides_300
+-   [Tutorial slides](@ref tutorial_slides_300)
 
     Set of tutorial slides for Chrono release 3.0.0
 

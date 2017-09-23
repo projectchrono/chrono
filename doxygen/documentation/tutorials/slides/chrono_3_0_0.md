@@ -1,4 +1,4 @@
-Chrono 3.0.0 tutorial {#tutorial_slides_300}
+Chrono 3.0.0 training material {#tutorial_slides_300}
 ============================================
 
 The following sets of slides contain material used in various week-long Chrono tutorials offered in the past.

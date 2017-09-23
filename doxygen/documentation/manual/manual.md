@@ -41,6 +41,11 @@ Reference Manual {#manual_root}
 	
 * @subpage links
 
+* @subpage motors
+	* [3D rotational motors](@ref rotational_motors)
+	* [3D linear motors](@ref linear_motors)
+	* [1D motors](@ref shaft_motors)
+	
 * @subpage simulation_system
 	* [ChSystem](@ref manual_ChSystem)
 	* [Time steppers](@ref time_steppers)
