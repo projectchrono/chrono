@@ -187,6 +187,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
         Terrain();
         virtual double GetHeight(double x, double y) const override;
         virtual ChVector<> GetNormal(double x, double y) const override;
+        virtual float GetCoefficientFriction(double x, double y) const override;
         double m_height_L;
         double m_height_R;
     };

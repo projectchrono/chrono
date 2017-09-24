@@ -522,5 +522,9 @@ double GranularTerrain::GetHeight(double x, double y) const {
     return highest + m_radius;
 }
 
+float GranularTerrain::GetCoefficientFriction(double x, double y) const {
+    return m_friction_fun ? (*m_friction_fun)(x, y) : m_friction;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
