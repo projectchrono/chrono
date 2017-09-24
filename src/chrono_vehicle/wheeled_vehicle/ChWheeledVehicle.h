@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     std::shared_ptr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
 
     /// Get the specified steering subsystem.
-    std::shared_ptr<ChSteering> GetSteering(int id) { return m_steerings[id]; }
+    std::shared_ptr<ChSteering> GetSteering(int id) const { return m_steerings[id]; }
 
     /// Get a handle to the specified vehicle wheel subsystem.
     std::shared_ptr<ChWheel> GetWheel(const WheelID& wheel_id) const { return m_wheels[wheel_id.id()]; }
