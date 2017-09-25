@@ -144,6 +144,16 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
 	physics/ChLinkMotor.cpp
+	physics/ChLinkMotorRotation.cpp
+	physics/ChLinkMotorRotationAngle.cpp
+	physics/ChLinkMotorRotationSpeed.cpp
+	physics/ChLinkMotorRotationTorque.cpp
+	physics/ChLinkMotorRotationDriveline.cpp
+	physics/ChLinkMotorLinear.cpp
+	physics/ChLinkMotorLinearPosition.cpp
+	physics/ChLinkMotorLinearSpeed.cpp
+	physics/ChLinkMotorLinearForce.cpp
+	physics/ChLinkMotorLinearDriveline.cpp
     physics/ChSystem.cpp
     physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
@@ -240,6 +250,16 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkRevoluteTranslational.h
     physics/ChLinkUniversal.h
 	physics/ChLinkMotor.h
+	physics/ChLinkMotorRotation.h
+	physics/ChLinkMotorRotationAngle.h
+	physics/ChLinkMotorRotationSpeed.h
+	physics/ChLinkMotorRotationTorque.h
+	physics/ChLinkMotorRotationDriveline.h
+	physics/ChLinkMotorLinear.h
+	physics/ChLinkMotorLinearPosition.h
+	physics/ChLinkMotorLinearSpeed.h
+	physics/ChLinkMotorLinearForce.h
+	physics/ChLinkMotorLinearDriveline.h
     physics/ChMarker.h
     physics/ChMaterialSurface.h
     physics/ChMaterialSurfaceNSC.h
