@@ -978,8 +978,64 @@ So you may need to implement some time-varying torque. This lead us to two inter
 
 
   
+# How to control motors  {#how_to_control_motors}
+
+A typical scenario is where you want to control an actuator during the simulation. The basic behavior of the motors described above is not enough, as the simple approach of setting positions as function of time is something that can be done once at the beginning of the simulation, and it does not support run-time updates. Here we discuss how to implement run-time control of motors: this can happen, for instance, in the following cases:
+
+- for **man-in-the-loop** interactive simulations, for instance in videogames, where someone operates on 
+  a joystick in order to steer the wheels, or to drive the arm of an excavator, etc.
   
+- for **hardware-in-the-loop** simulations, where the actuator rotation (or speed, or torque, etc.)
+  depends on the input from some external device
   
+- for **simulation of closed-loop control** like PID controllers, digital servos with feedback 
+  algorithms, etc.
+
+- etc.
+
+In all these cases, the common denominator is that you need to change the motor properties continuously during the simulation.
+There are many ways to do this, but here we list the suggested approaches:
+
+- **Constraint-based approach**.
+  1. First create a motor that *imposes position exactly via a constraint*, that is one of the
+     following:
+     - **chrono::ChLinkMotorRotationAngle**, if you deal with a rotational actuator
+     - **chrono::ChLinkMotorLinearPosition**, if you deal with a linear actuator
+     - whatever constraint that interfaces with a 1D driveline (chrono::ChLinkMotorRotationDriveline or 
+       chrono::ChLinkMotorLinearDriveline), then add a **chrono::ChShaftsMotorAngle** in the driveline.
+  2. You might be tempted to use a ChFunction_Const for the angle/position, and then 
+     continuously change its value using myfunct->Set_yconst() during the simulation loop: this
+     would work only roughly, because these constraint-based motors require also the derivative in 
+     order to work smoothly. So the proper ways to control the angle/position of the motor, with
+     automatic computation of derivative of the setpoint, is one of the following:
+     - provide a custom custom function inherited from chrono::ChFunction_SetpointCallback, where you
+       implement the SetpointCallback() method (containing code that computes angle/position, automatically
+       called at each timestep); 
+     - or just use a concrete chrono::ChFunction_Setpoint function, in this case you just have to 
+       manually call myfunction->SetSetpoint(...) in your simulation loop, specifying the angle/position.
+       
+- **Load-based approach**
+  1. First create a motor that *applies a load*, that is one of the
+     following:
+     - **chrono::ChLinkMotorRotationTorque**, if you deal with a rotational actuator
+     - **chrono::ChLinkMotorLinearForce**, if you deal with a linear actuator
+     - whatever constraint that interfaces with a 1D driveline (chrono::ChLinkMotorRotationDriveline or 
+       chrono::ChLinkMotorLinearDriveline), then add a **chrono::ChShaftsMotorTorque** in the driveline.
+  2. Use SetMotorForce() or SetMotorTorque() methods and pass one of the following:
+     - provide a custom custom function inherited from chrono::ChFunction_SetpointCallback, where you
+       implement the SetpointCallback() method (containing code that computes torque/force, automatically
+       called at each timestep); 
+     - or just use a concrete chrono::ChFunction_Setpoint function, in this case you just have to 
+       manually call myfunction->SetSetpoint(...) in your simulation loop, specifying the torque/force.
+  
+The constraint-based approach is suggested if you need a very efficient and idealized actuator model, and you do not care about the control model: the motor reacts instantly to your input, regardless if in real life the control system would be able to reach the set-point or not (assumption of infinitely reactive, infinitely stiff control). Ex: videogames, real-time simulators, etc. 
+
+Remember that a side effect of constraint-based motors is that if the moving parts hit some immovable obstacles you may fall into a contradictory situation where constraints cannot be satisfied at once, so the solver might give oscillatory or unstable results.
+
+The load-based approach is suggested if you want to introduce a control model, usually a closed-loop PID controller. It is up to you to compute a position setpoint, to compute the current error, and to compute the PID control output to be used in the motor as a torque/force setpoint. 
+
+Since a controller must be implemented, the load-based approach is more complicate; however there is the benefit of a more realistic behavior of the actuator (the motion has oscillatory errors, delays, latencies, overshooting, elastic compliance, etc. exactly in a real servo actuator). Also, differently from constraint-based motors, you do not have problems in case the moving parts hit some immovable obstacles, as there are no contradictions with other constraints.
+
 
 # Examples
 
