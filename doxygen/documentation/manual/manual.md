@@ -45,6 +45,7 @@ Reference Manual {#manual_root}
 	* [3D rotational motors](@ref rotational_motors)
 	* [3D linear motors](@ref linear_motors)
 	* [1D motors](@ref shaft_motors)
+	* [How to control motors](@ref how_to_control_motors)
 	
 * @subpage simulation_system
 	* [ChSystem](@ref manual_ChSystem)
