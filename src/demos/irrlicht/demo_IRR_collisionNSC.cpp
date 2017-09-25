@@ -21,6 +21,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -135,12 +136,12 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
 
     mphysicalSystem.Add(rotatingBody);
 
-    // .. an engine between mixer and truss
-    auto my_motor = std::make_shared<ChLinkEngine>();
-    my_motor->Initialize(rotatingBody, floorBody, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_motor->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI / 2.0);  // speed w=90°/s
+    // .. a motor between mixer and truss
+
+    auto my_motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    my_motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    auto mfun = std::make_shared<ChFunction_Const>(CH_C_PI / 2.0);  // speed w=90°/s
+    my_motor->SetSpeedFunction(mfun);
     mphysicalSystem.AddLink(my_motor);
 
     /*
