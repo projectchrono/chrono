@@ -20,12 +20,20 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
-#include "chrono/physics/ChLinkMotor.h"
-#include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChLinkMotorRotationTorque.h"
+#include "chrono/physics/ChLinkMotorRotationDriveline.h"
+#include "chrono/physics/ChLinkMotorLinearPosition.h"
+#include "chrono/physics/ChLinkMotorLinearSpeed.h"
+#include "chrono/physics/ChLinkMotorLinearForce.h"
+#include "chrono/physics/ChLinkMotorLinearDriveline.h"
 #include "chrono/physics/ChShaftsMotorSpeed.h"
 #include "chrono/physics/ChShaftsMotorAngle.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsGear.h"
+#include "chrono_irrlicht/ChIrrApp.h"
+
 
 // Use the namespaces of Chrono
 using namespace chrono;
