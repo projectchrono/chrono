@@ -119,6 +119,24 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Return true if an anti-roll bar system is attached.
     bool HasAntirollbar() const { return m_antirollbar != nullptr; }
 
+    /// Get the suspension subsystem.
+    std::shared_ptr<ChSuspension> GetSuspension() const { return m_suspension; }
+
+    /// Get the steering subsystem.
+    std::shared_ptr<ChSteering> GetSteering() const { return m_steering; }
+
+    /// Get the anti-roll bar subsystem.
+    std::shared_ptr<ChAntirollBar> GetAntirollBar() const { return m_antirollbar; }
+
+    /// Get a handle to the specified wheel subsystem.
+    std::shared_ptr<ChWheel> GetWheel(VehicleSide side) const { return m_wheel[side]; }
+
+    /// Get a handle to the vehicle's driveshaft body.
+    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
+
+    /// Get the angular speed of the driveshaft.
+    virtual double GetDriveshaftSpeed() const override { return 0; }
+
     /// Get the rig total mass.
     /// This includes the mass of the suspension and wheels, and (if present) the mass of the
     /// steering mechanism.
@@ -129,12 +147,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
         //// TODO
         return ChVector<>(0, 0, 0);
     }
-
-    /// Get a handle to the vehicle's driveshaft body.
-    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
-
-    /// Get the angular speed of the driveshaft.
-    virtual double GetDriveshaftSpeed() const override { return 0; }
 
     /// Initialize this chassis at the specified global location and orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
@@ -175,6 +187,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
         Terrain();
         virtual double GetHeight(double x, double y) const override;
         virtual ChVector<> GetNormal(double x, double y) const override;
+        virtual float GetCoefficientFriction(double x, double y) const override;
         double m_height_L;
         double m_height_R;
     };

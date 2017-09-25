@@ -178,6 +178,15 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Get the terrain normal at the specified (x,y) location.
     virtual chrono::ChVector<> GetNormal(double x, double y) const override { return ChVector<>(1, 0, 0); }
 
+    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// This coefficient of friction value may be used by certain tire models to modify
+    /// the tire characteristics, but it will have no effect on the interaction of the terrain
+    /// with other objects (including tire models that do not explicitly use it).
+    /// For GranularTerrain, this function defers to the user-provided functor object of type
+    /// ChTerrain::FrictionFunctor, if one was specified.
+    /// Otherwise, it returns the constant value specified through SetContactFrictionCoefficient.
+    virtual float GetCoefficientFriction(double x, double y) const override;
+
   private:
     unsigned int m_num_particles;  ///< requested minimum number of particles
     int m_start_id;                ///< start body identifier for particles

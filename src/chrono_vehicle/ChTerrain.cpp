@@ -20,5 +20,8 @@
 
 namespace chrono {
 namespace vehicle {
+
+ChTerrain::ChTerrain() : m_friction_fun(nullptr) {}
+
 }  // end namespace vehicle
 }  // end namespace chrono
