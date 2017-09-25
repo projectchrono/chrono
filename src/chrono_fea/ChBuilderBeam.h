@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
-#include "chrono/physics/ChLinkMotor.h"
+#include "chrono/physics/ChLinkMotorLinearSpeed.h"
 
 namespace chrono {
 namespace fea {
