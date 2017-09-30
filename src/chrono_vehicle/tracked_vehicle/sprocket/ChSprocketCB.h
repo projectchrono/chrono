@@ -70,6 +70,8 @@ class CH_VEHICLE_API ChSprocketCB : public ChSprocket {
 
     /// Return the radius of the (concave) tooth circular arcs.
     virtual double GetArcRadius() const = 0;
+
+    friend class SprocketCBContactCB;
 };
 
 /// @} vehicle_tracked_sprocket

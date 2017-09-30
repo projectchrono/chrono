@@ -68,7 +68,7 @@ class CH_MODELS_API M113_TrackShoeRigidCB : public ChTrackShoeRigidCB {
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
     virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
- 
+
     /// Return the offset (in X direction) of the guiding pin.
     virtual double GetGuideBoxOffsetX() const override { return m_guide_box_offset_x; }
 

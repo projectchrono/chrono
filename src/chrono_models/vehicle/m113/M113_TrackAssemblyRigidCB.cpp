@@ -77,11 +77,11 @@ M113_TrackAssemblyRigidCB::M113_TrackAssemblyRigidCB(VehicleSide side) : ChTrack
     switch (side) {
         case LEFT:
             m_sprocket = std::make_shared<M113_SprocketCBLeft>();
-            num_shoes = 120;
+            num_shoes = 105;
             break;
         case RIGHT:
             m_sprocket = std::make_shared<M113_SprocketCBRight>();
-            num_shoes = 120;
+            num_shoes = 106;
             break;
     }
 

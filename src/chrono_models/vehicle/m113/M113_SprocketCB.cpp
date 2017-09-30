@@ -38,12 +38,12 @@ const double M113_SprocketCB::m_separation = 0.278;
 
 // Gear profile data
 const int M113_SprocketCB::m_num_teeth = 17;
-const double M113_SprocketCB::m_gear_outer_radius = 0.2307;
-const double M113_SprocketCB::m_gear_base_width = 0.0530;
-const double M113_SprocketCB::m_gear_tip_width = 0.0128;
-const double M113_SprocketCB::m_gear_tooth_depth = 0.0387;
-const double M113_SprocketCB::m_gear_arc_radius = 0.0542;
-const double M113_SprocketCB::m_gear_RA = 0.2307;
+const double M113_SprocketCB::m_gear_outer_radius = 0.2307 * 1.04;
+const double M113_SprocketCB::m_gear_base_width = 0.0530 * 1.04;
+const double M113_SprocketCB::m_gear_tip_width = 0.0128 * 1.04;
+const double M113_SprocketCB::m_gear_tooth_depth = 0.0387 * 1.04;
+const double M113_SprocketCB::m_gear_arc_radius = 0.0542 * 1.04;
+const double M113_SprocketCB::m_gear_RA = 0.2307 * 1.04;
 
 const std::string M113_SprocketCBLeft::m_meshName = "Sprocket2_L_POV_geom";
 const std::string M113_SprocketCBLeft::m_meshFile = "M113/Sprocket2_L.obj";

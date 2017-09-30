@@ -72,26 +72,36 @@ class CH_VEHICLE_API ChTrackAssemblyRigidCB : public ChTrackAssembly {
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) override;
 
     /// Assembly Algorithm Utility Functions
-    void FindCircleTangentPoints(ChVector2<> Circle1Pos,
-                                 double Circle1Rad,
-                                 ChVector2<> Circle2Pos,
-                                 double Circle2Rad,
-                                 ChVector2<>& Tan1Pnt1,
-                                 ChVector2<>& Tan1Pnt2,
-                                 ChVector2<>& Tan2Pnt1,
-                                 ChVector2<>& Tan2Pnt2);
-    void CheckCircleCircle(bool& found,
-                           ChVector2<>& Point,
-                           ChMatrixDynamic<>& Features,
-                           int FeatureIdx,
-                           ChVector2<> StartingPoint,
-                           double Radius);
-    void CheckCircleLine(bool& found,
-                         ChVector2<>& Point,
-                         ChMatrixDynamic<>& Features,
-                         int FeatureIdx,
-                         ChVector2<> StartingPoint,
-                         double Radius);
+    void FindCircleTangentPoints(
+        ChVector2<> Circle1Pos,  ///< Center Position of Circle 1
+        double Circle1Rad,       ///< Radius of Circle 1
+        ChVector2<> Circle2Pos,  ///< Center Position of Circle 2
+        double Circle2Rad,       ///< Radius of Circle 2
+        ChVector2<>& Tan1Pnt1,   ///> Point on Circle 1 for the first calculated outside tangent
+        ChVector2<>& Tan1Pnt2,   ///> Point on Circle 2 for the first calculated outside tangent
+        ChVector2<>& Tan2Pnt1,   ///> Point on Circle 1 for the second calculated outside tangent
+        ChVector2<>& Tan2Pnt2    ///> Point on Circle 2 for the second calculated outside tangent
+        );
+    void CheckCircleCircle(
+        bool& found,  ///> Does an intersection point exist between the circle formed by StartingPoint and Radius with
+                      /// the current circle belt feature
+        ChVector2<>& Point,  ///> Intersection Point, if it exists between the circle formed by StartingPoint and Radius
+                             /// with the current circle belt feature
+        ChMatrixDynamic<>& Features,  ///< Table with the tagent or arc information for the entire belt wrap
+        int FeatureIdx,               ///< Current belt feature to check the intersection of
+        ChVector2<>& StartingPoint,   ///< Current Point on the belt wrap
+        double Radius                 ///< Length of the current belt segment that needs to be placed on the belt wrap
+        );
+    void CheckCircleLine(
+        bool& found,  ///> Does an intersection point exist between the circle formed by StartingPoint and Radius with
+                      /// the current circle belt feature
+        ChVector2<>& Point,  ///> Intersection Point, if it exists between the circle formed by StartingPoint and Radius
+                             /// with the current circle belt feature
+        ChMatrixDynamic<>& Features,  ///< Table with the tagent or arc information for the entire belt wrap
+        int FeatureIdx,               ///< Current belt feature to check the intersection of
+        ChVector2<>& StartingPoint,   ///< Current Point on the belt wrap
+        double Radius                 ///< Length of the current belt segment that needs to be placed on the belt wrap
+        );
 
     std::shared_ptr<ChBodyAuxRef> m_chassis;
     double m_sprocket_offset;

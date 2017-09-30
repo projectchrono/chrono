@@ -32,7 +32,7 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Assemble track shoes over wheels.
+// Assemble the track shoes over the wheels.
 //
 // Returns true if the track shoes were initialized in a counter clockwise
 // direction and false otherwise.
@@ -85,7 +85,6 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Radii for the sprocket, idler, and all of the road wheels
     ChVectorDynamic<> CircleRadiusAll(2 + num_wheels);
 
-    // ChVector<> sprocket_pos_3d = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
     ChVector<> idler_pos_3d = chassis->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
 
     CirclePosAll(0, 0) = sprocket_pos_3d.x();
@@ -121,15 +120,17 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     int Current_Circle = 0;
     int NumCirclesOnPath = 0;
-    ChMatrixDynamic<> TangentPoints(CirclePosAll.GetRows(), 4);  // Will be resized later
-    ChVectorDynamic<int> CircleIndex(CirclePosAll.GetRows());    // Will be resized later
+    ChMatrixDynamic<> TangentPoints(CirclePosAll.GetRows(),
+                                    4);  // Matrix to save the tangent points between consecutive circles
+    ChVectorDynamic<int> CircleIndex(
+        CirclePosAll.GetRows());  // Vector to save the indices of the circles that form the boundaries of the belt wrap
 
     // At most each circle is visted once.  Something went wrong if
     // the loop is not closed within this many passes through the algorithm
     int iter;
     for (iter = 0; iter < CirclePosAll.GetRows(); iter++) {
         // Step 2: Create an ordered list of the circles with repect to their
-        // distance from the starting circle;
+        // distance from the starting circle
 
         std::vector<double> Distances;
         std::vector<int> DistanceIndices;
@@ -208,7 +209,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             }
 
             if (Angle1 < minAngle) {
-                // Save Tangent
+                // Save Tangent as it currently has the smallest change in the belt angle to wrap around to it
                 minAngle = Angle1;
                 TangentPoints(iter, 0) = Tan1Pnt1.x();
                 TangentPoints(iter, 1) = Tan1Pnt1.y();
@@ -219,7 +220,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             }
 
             if (Angle2 < minAngle) {
-                // Save Tangent
+                // Save Tangent as it currently has the smallest change in the belt angle to wrap around to it
                 minAngle = Angle2;
                 TangentPoints(iter, 0) = Tan2Pnt1.x();
                 TangentPoints(iter, 1) = Tan2Pnt1.y();
@@ -239,7 +240,8 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             StartingAngle += CH_C_2PI;
         }
 
-        // Check to see if the wrap has made it back onto the strating circle (sprocket)
+        // Check to see if the wrap has made it back onto the starting circle (sprocket) and therefore would complete
+        // the belt wrap
         if (Current_Circle == 0) {
             break;
         }
@@ -265,15 +267,15 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     //--------------------------------------------------------------------------
     // Fit the track around the outermost wrapping.
     //
-    // TODO: Make sure that there is too
-    // much, rather than too little track left over so that last two shoes can
-    // be very slightly folded to exactly fit.
-    //
     // Start the iterations with the scale such that the belt length equals the
     // outer wrapping circumferance(too small of a scale, but not by much).
     // After that, overshoot the extra length by a factor of 10 to make sure
     // that the scale is too large.
     // Then binary search tree on the scale to converge.
+    //
+    // TODO: Make sure that there is too
+    // much, rather than too little track left over so that last two shoes can
+    // be very slightly folded to exactly fit.
     //--------------------------------------------------------------------------
 
     double ScaleMin = 0;
@@ -338,7 +340,7 @@ bool ChTrackAssemblyRigidCB::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Calculate how the arcs need to be scaled to fit so that tangent length +
     // the arc lengths = the belt length.This should be a slight underestimate
-    // of the needed scale.
+    // of the needed scale to place all of the belt wrapping positions.
 
     double DeltaRadius = (CombineShoeLength - (LengthOfArcs + LengthOfTangents)) /
                          (CH_C_2PI);  // Divide by 2*PI since the belt wrap forms a closed loop/circle
@@ -587,7 +589,7 @@ void ChTrackAssemblyRigidCB::CheckCircleCircle(bool& found,
                                                ChVector2<>& Point,
                                                ChMatrixDynamic<>& Features,
                                                int FeatureIdx,
-                                               ChVector2<> StartingPoint,
+                                               ChVector2<>& StartingPoint,
                                                double Radius) {
     // Code was based on http://mathworld.wolfram.com/Circle-CircleIntersection.html
 
@@ -659,7 +661,7 @@ void ChTrackAssemblyRigidCB::CheckCircleLine(bool& found,
                                              ChVector2<>& Point,
                                              ChMatrixDynamic<>& Features,
                                              int FeatureIdx,
-                                             ChVector2<> StartingPoint,
+                                             ChVector2<>& StartingPoint,
                                              double Radius) {
     // Code was based on http://mathworld.wolfram.com/Circle-LineIntersection.html
 

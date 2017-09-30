@@ -43,20 +43,20 @@ const double M113_TrackShoeRigidCB::m_shoe_height = 0.06;
 
 const double M113_TrackShoeRigidCB::m_belt_width = 0.3175;  // 12.5 in
 
-const double M113_TrackShoeRigidCB::m_tooth_tip_length = 0.0126;
-const double M113_TrackShoeRigidCB::m_tooth_base_length = 0.0529;
+const double M113_TrackShoeRigidCB::m_tooth_tip_length = 0.0126 * 1.04;
+const double M113_TrackShoeRigidCB::m_tooth_base_length = 0.0529 * 1.04;
 const double M113_TrackShoeRigidCB::m_tooth_width = 0.0508;  // 2 in
-const double M113_TrackShoeRigidCB::m_tooth_height = 0.0385;
-const double M113_TrackShoeRigidCB::m_tooth_arc_radius = 0.0540;
+const double M113_TrackShoeRigidCB::m_tooth_height = 0.0385 * 1.04;
+const double M113_TrackShoeRigidCB::m_tooth_arc_radius = 0.0540 * 1.04;
 
 const int M113_TrackShoeRigidCB::m_num_web_segments = 1;
-const double M113_TrackShoeRigidCB::m_web_length = 0.0335;
-const double M113_TrackShoeRigidCB::m_web_thickness = 0.0188;
+const double M113_TrackShoeRigidCB::m_web_length = 0.0335 * 1.04;
+const double M113_TrackShoeRigidCB::m_web_thickness = 0.0188 * 1.04;
 
-const double M113_TrackShoeRigidCB::m_tread_length = 0.0724;
-const double M113_TrackShoeRigidCB::m_tread_thickness = 0.0157;
+const double M113_TrackShoeRigidCB::m_tread_length = 0.0724 * 1.04;
+const double M113_TrackShoeRigidCB::m_tread_thickness = 0.0157 * 1.04;
 
-const ChVector<> M113_TrackShoeRigidCB::m_guide_box_dims(0.0529, 0.0114, 0.1016);
+const ChVector<> M113_TrackShoeRigidCB::m_guide_box_dims(0.0529, 0.0114, 0.075);
 const double M113_TrackShoeRigidCB::m_guide_box_offset_x = 0;
 
 const std::string M113_TrackShoeRigidCB::m_meshName = "TrackShoeRigidCB_POV_geom";

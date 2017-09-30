@@ -22,6 +22,9 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 
+#include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLoadContainer.h"
+
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeRigidCB.h"
 
@@ -72,12 +75,33 @@ void ChTrackShoeRigidCB::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_seg_mass = GetWebMass() / GetNumWebSegments();
     m_seg_inertia = GetWebInertia();  //// TODO - properly distribute web inertia
 
-    m_center_p = CalcCircleCenter(ChVector2<>(GetToothBaseLength() / 2, GetWebThickness() / 2),
-                                  ChVector2<>(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2),
-                                  GetToothArcRadius(), -1);
-    m_center_m = CalcCircleCenter(ChVector2<>(-GetToothBaseLength() / 2, GetWebThickness() / 2),
-                                  ChVector2<>(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2),
-                                  GetToothArcRadius(), +1);
+    // Cache the postive (+x) tooth arc position and arc starting and ending angles
+    ChVector2<> tooth_base_p(GetToothBaseLength() / 2, GetWebThickness() / 2);
+    ChVector2<> tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
+    m_center_p = CalcCircleCenter(tooth_base_p, tooth_tip_p, GetToothArcRadius(), -1);
+    m_center_p_arc_start = std::atan2(tooth_base_p.y() - m_center_p.y(), tooth_base_p.x() - m_center_p.x());
+    m_center_p_arc_start = m_center_p_arc_start < 0 ? m_center_p_arc_start + CH_C_2PI : m_center_p_arc_start;
+    m_center_p_arc_end = std::atan2(tooth_tip_p.y() - m_center_p.y(), tooth_tip_p.x() - m_center_p.x());
+    m_center_p_arc_end = m_center_p_arc_end < 0 ? m_center_p_arc_end + CH_C_2PI : m_center_p_arc_end;
+    if (m_center_p_arc_start > m_center_p_arc_end) {
+        double temp = m_center_p_arc_start;
+        m_center_p_arc_start = m_center_p_arc_end;
+        m_center_p_arc_end = temp;
+    }
+
+    // Cache the negative (-x) tooth arc position and arc starting and ending angles
+    ChVector2<> tooth_base_m(-GetToothBaseLength() / 2, GetWebThickness() / 2);
+    ChVector2<> tooth_tip_m(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
+    m_center_m = CalcCircleCenter(tooth_base_m, tooth_tip_m, GetToothArcRadius(), +1);
+    m_center_m_arc_start = std::atan2(tooth_base_m.y() - m_center_m.y(), tooth_base_m.x() - m_center_m.x());
+    m_center_m_arc_start = m_center_m_arc_start < 0 ? m_center_m_arc_start + CH_C_2PI : m_center_m_arc_start;
+    m_center_m_arc_end = std::atan2(tooth_tip_m.y() - m_center_m.y(), tooth_tip_m.x() - m_center_m.x());
+    m_center_m_arc_end = m_center_m_arc_end < 0 ? m_center_m_arc_end + CH_C_2PI : m_center_m_arc_end;
+    if (m_center_m_arc_start > m_center_m_arc_end) {
+        double temp = m_center_m_arc_start;
+        m_center_m_arc_start = m_center_m_arc_end;
+        m_center_m_arc_end = temp;
+    }
 
     // Express the tread body location and orientation in global frame.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
@@ -194,9 +218,14 @@ void ChTrackShoeRigidCB::AddShoeContact() {
     m_shoe->GetCollisionModel()->AddBox(g_hdims.x(), g_hdims.y(), g_hdims.z(), g_loc);
 
     // Main box
-    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, (GetWebThickness() + GetTreadThickness()) / 2);
-    ChVector<> b_loc(0, 0, -GetTreadThickness() / 2);
+    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+    ChVector<> b_loc(0, 0, 0);
     m_shoe->GetCollisionModel()->AddBox(b_hdims.x(), b_hdims.y(), b_hdims.z(), b_loc);
+
+    // Tread box
+    ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
+    ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
+    m_shoe->GetCollisionModel()->AddBox(t_hdims.x(), t_hdims.y(), t_hdims.z(), t_loc);
 
     m_shoe->GetCollisionModel()->BuildModel();
 }
@@ -253,12 +282,20 @@ void ChTrackShoeRigidCB::AddShoeVisualization() {
     m_shoe->AddAsset(box_pin);
 
     // Main box
-    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, (GetWebThickness() + GetTreadThickness()) / 2);
-    ChVector<> b_loc(0, 0, -GetTreadThickness() / 2);
+    ChVector<> b_hdims(GetToothBaseLength() / 2, GetBeltWidth() / 2, GetWebThickness() / 2);
+    ChVector<> b_loc(0, 0, 0);
     auto box_main = std::make_shared<ChBoxShape>();
     box_main->GetBoxGeometry().Size = b_hdims;
     box_main->GetBoxGeometry().Pos = b_loc;
     m_shoe->AddAsset(box_main);
+
+    // Tread box
+    ChVector<> t_hdims(GetTreadLength() / 2, GetBeltWidth() / 2, GetTreadThickness() / 2);
+    ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
+    auto box_tread = std::make_shared<ChBoxShape>();
+    box_tread->GetBoxGeometry().Size = t_hdims;
+    box_tread->GetBoxGeometry().Pos = t_loc;
+    m_shoe->AddAsset(box_tread);
 
     // Connection to first web segment
     double radius = GetWebThickness() / 4;
@@ -295,6 +332,73 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
     ChVector<> loc;
     ChQuaternion<> rot;
 
+#if FALSE  // Use busing elements to connect the belt segments, otherwise use revolute joints
+    // Bushings are inherited from ChLoad, so they require a 'load container'
+
+    auto my_loadcontainer = std::make_shared<ChLoadContainer>();
+    system->Add(my_loadcontainer);
+
+    ChMatrixNM<double, 6, 6> K_matrix;
+    ChMatrixNM<double, 6, 6> R_matrix;
+
+    //Sample Stiffness and Damping matrix values for testing purposes
+    for (unsigned int ii = 0; ii < 3; ii++) {
+        K_matrix(ii, ii) = 20000.0;
+        R_matrix(ii, ii) = 0.05 * K_matrix(ii, ii);
+    }
+    for (unsigned int ii = 3; ii < 6; ii++) {
+        K_matrix(ii, ii) = 1000.0;
+        R_matrix(ii, ii) = 0.05 * K_matrix(ii, ii);
+    }
+    K_matrix(4, 4) = 0;
+    R_matrix(4, 4) = 0;
+
+    // Connect tread body to the first web segment.
+    loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
+    rot = m_shoe->GetRot();
+    auto my_loadbushingg0 = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        m_shoe,               // body A
+        m_web_segments[0],    // body B
+        ChFrame<>(loc, rot),  // initial frame of bushing in abs space
+        K_matrix,             // the 6x6 (translation+rotation) K matrix in local frame
+        R_matrix              // the 6x6 (translation+rotation) R matrix in local frame
+        );
+    my_loadbushingg0->SetApplicationFrameA(ChFrame<>(ChVector<>(GetToothBaseLength() / 2, 0, 0)));
+    my_loadbushingg0->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
+    my_loadcontainer->Add(my_loadbushingg0);
+
+    // Connect the web segments to each other.
+    for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
+        loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
+        rot = m_web_segments[is]->GetRot();
+        auto my_loadbushingg = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+            m_web_segments[is],      // body A
+            m_web_segments[is + 1],  // body B
+            ChFrame<>(loc, rot),     // initial frame of bushing in abs space
+            K_matrix,                // the 6x6 (translation+rotation) K matrix in local frame
+            R_matrix                 // the 6x6 (translation+rotation) R matrix in local frame
+            );
+        my_loadbushingg->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
+        my_loadbushingg->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
+        my_loadcontainer->Add(my_loadbushingg);
+    }
+
+    // Connect the last web segment to the tread body from the next track shoe.
+    int is = GetNumWebSegments() - 1;
+    loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
+    rot = m_web_segments[is]->GetRot();
+    auto my_loadbushingg1 = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        m_web_segments[is],   // body A
+        next->GetShoeBody(),  // body B
+        ChFrame<>(loc, rot),  // initial frame of bushing in abs space
+        K_matrix,             // the 6x6 (translation+rotation) K matrix in local frame
+        R_matrix              // the 6x6 (translation+rotation) R matrix in local frame
+        );
+    my_loadbushingg1->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
+    my_loadbushingg1->SetApplicationFrameB(ChFrame<>(ChVector<>(-GetToothBaseLength() / 2, 0, 0)));
+    my_loadcontainer->Add(my_loadbushingg1);
+
+#else
     // Connect tread body to the first web segment.
     loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
     rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
@@ -321,6 +425,8 @@ void ChTrackShoeRigidCB::Connect(std::shared_ptr<ChTrackShoe> next) {
     system->AddLink(revolute1);
     revolute1->SetNameString(m_name + "_revolute");
     revolute1->Initialize(m_web_segments[is], next->GetShoeBody(), ChCoordsys<>(loc, rot));
+
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -371,10 +477,10 @@ std::shared_ptr<ChTriangleMeshShape> ChTrackShoeRigidCB::ToothMesh(double y) {
 
     // Create the triangular mesh.
     geometry::ChTriangleMeshConnected trimesh;
-    std::vector<ChVector<> >& vertices = trimesh.getCoordsVertices();
-    std::vector<ChVector<> >& normals = trimesh.getCoordsNormals();
-    std::vector<ChVector<int> >& idx_vertices = trimesh.getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = trimesh.getIndicesNormals();
+    std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
+    std::vector<ChVector<>>& normals = trimesh.getCoordsNormals();
+    std::vector<ChVector<int>>& idx_vertices = trimesh.getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = trimesh.getIndicesNormals();
 
     // Number of vertices:
     //   - 1 for the middle of the tooth base on +y side
@@ -445,7 +551,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTrackShoeRigidCB::ToothMesh(double y) {
 
     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
-    
+
     return trimesh_shape;
 }
 

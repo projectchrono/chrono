@@ -99,22 +99,49 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     /// Return the offset (in X direction) of the guiding pin.
     virtual double GetGuideBoxOffsetX() const = 0;
 
-    //// TODO - Add comments here
-    /// Return belt geometry parameters
+    /// Return the width of the CB track belt (in the Y direction)
     virtual double GetBeltWidth() const = 0;
 
+    /// Return the length of the flat tip of the tread tooth tip (in the X direction)
     virtual double GetToothTipLength() const = 0;
+    /// Return the length of the base of the tread tooth (in the X direction) where the tooth circular profile ends
     virtual double GetToothBaseLength() const = 0;
+    /// Return the width of the one of the tooth profile sections of the tread tooth (in the Y direction)
     virtual double GetToothWidth() const = 0;
+    /// Return the height from the base to the tip of the tread tooth profile (in the Z direction)
     virtual double GetToothHeight() const = 0;
+    /// Return the radius of the tooth profile arc that connects the tooth tip and base lines
     virtual double GetToothArcRadius() const = 0;
 
+    /// Return the number of segments that the web section is broken up into
     virtual int GetNumWebSegments() const = 0;
+    /// Return the combined length of all of the web sections (in the X direction)
     virtual double GetWebLength() const = 0;
+    /// Return the thickness of the web section (in the Z direction)
     virtual double GetWebThickness() const = 0;
+    /// Return the length of just one of the web sections (in the X direction)
+    double GetGetWebSegmentLength() { return m_seg_length; };
+    /// Return a pointer to the web segment body with the provided index
+    std::shared_ptr<ChBody> GetGetWebSegment(size_t index) { return m_web_segments[index]; };
 
+    /// Return the length of the tread below the web area (in the X direction, tread pad that would contact with the
+    /// ground)
     virtual double GetTreadLength() const = 0;
+    /// Return the thickness of the tread below the web area (tread pad that would contact with the ground)
     virtual double GetTreadThickness() const = 0;
+
+    /// Return the center of the tread circle for the arc on the positive x side of the shoe
+    ChVector2<> GetTreadCircleCenterP() { return m_center_p; };
+    /// Return the center of the tread circle for the arc on the negative x side of the shoe
+    ChVector2<> GetTreadCircleCenterM() { return m_center_m; };
+    /// Return the starting (smallest) angle for the starting point for the postive tooth arc
+    double GetTreadCircleCenterPArcStart() { return m_center_p_arc_start; };
+    /// Return the ending (largest) angle for the starting point for the postive tooth arc
+    double GetTreadCircleCenterPArcEnd() { return m_center_p_arc_end; };
+    /// Return the starting (smallest) angle for the starting point for the negative tooth arc
+    double GetTreadCircleCenterMArcStart() { return m_center_m_arc_start; };
+    /// Return the ending (largest) angle for the starting point for the negative tooth arc
+    double GetTreadCircleCenterMArcEnd() { return m_center_m_arc_end; };
 
     /// Add contact geometry for the tread body.
     /// Note that this is for contact with wheels, idler, and ground only.
@@ -147,6 +174,10 @@ class CH_VEHICLE_API ChTrackShoeRigidCB : public ChTrackShoe {
     ChVector<> m_seg_inertia;                             ///< moments of inertia of a web segment
     ChVector2<> m_center_p;                               ///< center of (+x) arc, in tread body x-z plane
     ChVector2<> m_center_m;                               ///< center of (-x) arc, in tread body x-z plane
+    double m_center_p_arc_start;                          ///< starting angle of the (+x) arc, in tread body x-z plane
+    double m_center_p_arc_end;                            ///< ending angle of the (+x) arc, in tread body x-z plane
+    double m_center_m_arc_start;                          ///< starting angle of the (-x) arc, in tread body x-z plane
+    double m_center_m_arc_end;                            ///< ending angle of the (-x) arc, in tread body x-z plane
 };
 
 /// Vector of handles to continuous band rigid-link track shoe subsystems.
