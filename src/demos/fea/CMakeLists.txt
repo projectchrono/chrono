@@ -17,6 +17,7 @@ SET(FEA_DEMOS_IRR
     demo_FEA_contacts
     demo_FEA_cables
     demo_FEA_ancfShell
+    demo_FEA_ancfShell_8
     demo_FEA_brick
     demo_FEA_cosimulate_load
 )

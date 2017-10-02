@@ -27,6 +27,7 @@ SET(ChronoEngine_FEA_SOURCES
     ChElementHexa_8.cpp
     ChElementHexa_20.cpp 
     ChElementShellANCF.cpp
+    ChElementShellANCF_8.cpp
 	ChElementShellReissner4.cpp
     ChElementBrick.cpp
     ChElementBrick_9.cpp
@@ -91,6 +92,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementHexa_20.h
     ChElementShell.h
     ChElementShellANCF.h
+    ChElementShellANCF_8.h
 	ChElementShellReissner4.h
 	  ChFaceTetra_4.h
     ChFaceBrick_9.h
