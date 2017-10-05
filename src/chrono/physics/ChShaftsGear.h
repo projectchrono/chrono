@@ -33,6 +33,9 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     double ratio;                       ///< transmission ratio t, as in w2=t*w1, or t=w2/w1
     double torque_react;                ///< reaction torque
     ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
+    bool avoid_phase_drift; 
+    double phase1;
+    double phase2;
 
   public:
     ChShaftsGear();
@@ -97,6 +100,17 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     void SetTransmissionRatio(double mt) { ratio = mt; }
     /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1
     double GetTransmissionRatio() const { return ratio; }
+
+
+    /// Set if the constraint must avoid phase drift. If true, phasing is always 
+    /// tracked and the constraint is satisfied also at the position level.
+    /// If false, microslipping can accumulate (as in friction wheels).
+    /// Default is enabled.
+    void SetAvoidPhaseDrift(bool mb) {this->avoid_phase_drift = mb;}
+
+    /// Set if the constraint is in "avoid phase drift" mode.
+    bool GetAvoidPhaseDrift() { return this->avoid_phase_drift;}
+
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.

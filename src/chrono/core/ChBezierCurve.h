@@ -91,10 +91,19 @@ class ChApi ChBezierCurve {
     const ChVector<>& getPoint(size_t i) const { return m_points[i]; }
 
     /// Evaluate the value of the Bezier curve.
+    /// This function calculates and returns the point on the curve at the
+    /// given curve parameter (assumed to be in [0,1]).  
+    /// A value t=0 returns the first point on the curve.
+    /// A value t=1 returns the last point on the curve.
+    ChVector<> eval(double t) const;
+
+    /// Evaluate the value of the Bezier curve.
     /// This function calculates and returns the point on the curve in the
     /// specified interval between two knot points and at the given curve
-    /// parameter (assumed to be in [0,1]). It uses the Bernstein polynomial
-    /// representation of a Bezier curve.
+    /// parameter (assumed to be in [0,1]).
+    /// A value t-0 returns the first end of the specified interval.
+    /// A value t=1 return the second end of the specified interval.
+    /// It uses the Bernstein polynomial representation of a Bezier curve.
     ChVector<> eval(size_t i, double t) const;
 
     /// Evaluate the tangent vector to the Bezier curve.

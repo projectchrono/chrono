@@ -6,7 +6,7 @@ set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib64")
 
@@ -69,7 +69,7 @@ if(ENABLE_MODULE_MKL)
 		add_subdirectory(mkl)
 	endif()
 endif()
-	
+
 #if(ENABLE_MODULE_MPI)
 #	add_subdirectory(mpi)
 #endif()
@@ -138,4 +138,10 @@ if(ENABLE_MODULE_FSI)
   	endif()
 endif()
 
-
+if(ENABLE_MODULE_DISTRIBUTED)
+	option(BUILD_DEMOS_DISTRIBUTED "Build demo programs for Distributed module" TRUE)
+ 	mark_as_advanced(FORCE BUILD_DEMOS_DISTRIBUTED)
+	if(BUILD_DEMOS_DISTRIBUTED)
+  		add_subdirectory(distributed)
+  	endif()
+endif()

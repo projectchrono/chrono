@@ -326,6 +326,23 @@ ChVector<> ChBezierCurve::evalDD(size_t i, double t) const {
 }
 
 // -----------------------------------------------------------------------------
+// ChBezierCurve::eval()
+//
+// This function evaluates the value of this Bezier curve at the specified value.
+// A value t=0 returns the first point of the Bezier curve.
+// A value t=1 returns the last point of the Bezier curve.
+// -----------------------------------------------------------------------------
+ChVector<> ChBezierCurve::eval(double t) const {
+    double par = ChClamp(t, 0.0, 1.0);
+    size_t numIntervals = getNumPoints() - 1;
+    double epar = par * numIntervals;
+    size_t i = static_cast<size_t>(std::floor(par * numIntervals));
+    ChClampValue(i, size_t(0), numIntervals - 1);
+
+    return eval(i, epar - (double)i);
+}
+
+// -----------------------------------------------------------------------------
 // ChBezierCurve::calcClosestPoint()
 //
 // This function calculates and returns the closest point in the specified

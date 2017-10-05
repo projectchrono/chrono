@@ -464,8 +464,8 @@ void ChLinkEngine::IntStateGatherReactions(const unsigned int off_L, ChVectorDyn
     ChLinkLock::IntStateGatherReactions(off_L, L);
 
     if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innershaft1->IntStateGatherReactions(off_L + 0, L);
-        innershaft2->IntStateGatherReactions(off_L + 1, L);
+        innerconstraint1->IntStateGatherReactions(off_L + 0, L);
+        innerconstraint2->IntStateGatherReactions(off_L + 1, L);
     }
 }
 
@@ -474,8 +474,8 @@ void ChLinkEngine::IntStateScatterReactions(const unsigned int off_L, const ChVe
     ChLinkLock::IntStateScatterReactions(off_L, L);
 
     if (eng_mode == ENG_MODE_TO_POWERTRAIN_SHAFT) {
-        innershaft1->IntStateScatterReactions(off_L + 0, L);
-        innershaft2->IntStateScatterReactions(off_L + 1, L);
+        innerconstraint1->IntStateScatterReactions(off_L + 0, L);
+        innerconstraint2->IntStateScatterReactions(off_L + 1, L);
     }
 }
 

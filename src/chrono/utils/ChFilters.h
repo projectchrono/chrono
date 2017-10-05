@@ -44,9 +44,13 @@ class ChApi ChRunningAverage {
     /// Insert the specified value and return the current moving average.
     double Add(double val);
 
+    /// Return the standard deviation of data in current filter span.
+    double GetStdDev() const { return m_std; }
+
   private:
     int m_n;
     int m_index;
+    double m_std;
     std::valarray<double> m_data;
 };
 

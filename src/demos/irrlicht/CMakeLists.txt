@@ -42,6 +42,9 @@ SET(DEMOS
   demo_IRR_prismatic_limits
   demo_IRR_callbackNSC
   demo_IRR_callbackSMC
+  demo_IRR_OpenSim_parser
+  demo_IRR_report_collisions
+  demo_IRR_motors
 )
 
 #--------------------------------------------------------------

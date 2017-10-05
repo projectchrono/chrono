@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono demonstration of using contact callbacks for non-smooth contacts
-// (complementarity-based).
+// Chrono demonstration of using contact callbacks for smooth contacts
+// (penalty-based).
 //
 // The global reference frame has Y up.
 //
@@ -34,7 +34,7 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
-    ContactReporter(std::shared_ptr<ChBody> box) : m_box(box) {}
+    ContactReporter(std::shared_ptr<ChBody> box1, std::shared_ptr<ChBody> box2) : m_box1(box1), m_box2(box2) {}
 
   private:
     virtual bool OnReportContact(const ChVector<>& pA,
@@ -45,15 +45,32 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
                                  const ChVector<>& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
-        if (modA == m_box.get()) {
-            printf("  %6.3f  %6.3f  %6.3f\n", pA.x(), pA.y(), pA.z());
-        } else if (modB == m_box.get()) {
-            printf("  %6.3f  %6.3f  %6.3f\n", pB.x(), pB.y(), pB.z());
+        // Convert force in absolute frame
+        ChVector<> frc = plane_coord * cforce;
+
+        // Check if contact involves box1
+        if (modA == m_box1.get()) {
+            printf("  contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
+            printf("  frc: %7.3f  %7.3f  %7.3f\n", frc.x(), frc.y(), frc.z());
+        } else if (modB == m_box1.get()) {
+            printf("  contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
+            printf("  frc: %7.3f  %7.3f  %7.3f\n", frc.x(), frc.y(), frc.z());
         }
+
+        // Check if contact involves box2
+        if (modA == m_box2.get()) {
+            printf("  contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
+            printf("  frc: %7.3f  %7.3f  %7.3f\n", frc.x(), frc.y(), frc.z());
+        } else if (modB == m_box2.get()) {
+            printf("  contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
+            printf("  frc: %7.3f  %7.3f  %7.3f\n", frc.x(), frc.y(), frc.z());
+        }
+
         return true;
     }
 
-    std::shared_ptr<ChBody> m_box;
+    std::shared_ptr<ChBody> m_box1;
+    std::shared_ptr<ChBody> m_box2;
 };
 
 // -----------------------------------------------------------------------------
@@ -163,7 +180,7 @@ int main(int argc, char* argv[]) {
     // Simulate system
     // ---------------
 
-    ContactReporter creporter(box1);
+    ContactReporter creporter(box1, box2);
 
     ContactMaterial cmaterial;
     system.GetContactContainer()->RegisterAddContactCallback(&cmaterial);
@@ -175,12 +192,24 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         irrlicht::ChIrrTools::drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
                                        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
+        irrlicht::ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 1.0);
+
         application.DoStep();
         application.EndScene();
 
         // Process contacts
         std::cout << system.GetChTime() << "  " << system.GetNcontacts() << std::endl;
         system.GetContactContainer()->ReportAllContacts(&creporter);
+
+        // Cumulative contact force and torque on boxes (as applied to COM)
+        ChVector<> frc1 = box1->GetContactForce();
+        ChVector<> trq1 = box1->GetContactTorque();
+        printf("  Box 1 contact force at COM: %7.3f  %7.3f  %7.3f", frc1.x(), frc1.y(), frc1.z());
+        printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq1.x(), trq1.y(), trq1.z());
+        ChVector<> frc2 = box2->GetContactForce();
+        ChVector<> trq2 = box2->GetContactTorque();
+        printf("  Box 2 contact force at COM: %7.3f  %7.3f  %7.3f", frc2.x(), frc2.y(), frc2.z());
+        printf("  contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq2.x(), trq2.y(), trq2.z());
     }
 
     return 0;

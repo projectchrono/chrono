@@ -17,6 +17,7 @@ SET(FEA_DEMOS_IRR
     demo_FEA_contacts
     demo_FEA_cables
     demo_FEA_ancfShell
+    demo_FEA_ancfShell_8
     demo_FEA_brick
     demo_FEA_cosimulate_load
 )
@@ -31,6 +32,7 @@ SET(FEA_DEMOS_IRR_MKL
     demo_FEA_beams
     demo_FEA_beams_static
     demo_FEA_beams_constr
+	demo_FEA_beams_extrude
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
     demo_FEA_shells
