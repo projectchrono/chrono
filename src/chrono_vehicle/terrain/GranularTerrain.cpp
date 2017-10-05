@@ -67,6 +67,7 @@ const double offset_factor = 3;
 // -----------------------------------------------------------------------------
 GranularTerrain::GranularTerrain(ChSystem* system)
     : m_start_id(1000000),
+      m_min_num_particles(0),
       m_num_particles(0),
       m_rough_surface(false),
       m_vis_enabled(false),
@@ -331,7 +332,7 @@ void BoundaryContact::CheckRear(ChBody* body, const ChVector<>& center) {
 void GranularTerrain::Initialize(const ChVector<>& center,
                                  double length,
                                  double width,
-                                 unsigned int num_particles,
+                                 unsigned int num_layers,
                                  double radius,
                                  double density,
                                  const ChVector<>& init_vel) {
@@ -427,16 +428,18 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     // Create particles, in layers, until exceeding the specified number.
     double r = safety_factor * radius;
+    unsigned int layer = 0;
     ChVector<> layer_hdims(length / 2 - r, width / 2 - r, 0);
     ChVector<> layer_center = center;
     layer_center.z() += offset_factor * r;
 
-    while (m_num_particles < num_particles) {
+    while (layer < num_layers || m_num_particles < m_min_num_particles) {
         if (m_verbose)
             std::cout << "Create layer at height: " << layer_center.z() << std::endl;
         generator.createObjectsBox(utils::POISSON_DISK, 2 * r, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
         m_num_particles = generator.getTotalNumBodies();
+        layer++;
     }
 
     // If enabled, create visualization assets for the boundaries.

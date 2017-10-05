@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono/utils/ChFilters.h"
 #include "chrono/core/ChMathematics.h"
 
@@ -23,13 +25,16 @@ namespace chrono {
 namespace utils {
 
 // -----------------------------------------------------------------------------
-ChRunningAverage::ChRunningAverage(int n) : m_n(n), m_index(0) {
+ChRunningAverage::ChRunningAverage(int n) : m_n(n), m_index(0), m_std(0) {
     m_data.resize(n, 0.0);
 }
 
 double ChRunningAverage::Add(double val) {
     m_data[(m_index++) % m_n] = val;
-    return (m_index < m_n) ? m_data.sum() / m_index : m_data.sum() / m_n;
+    int size = std::min(m_index, m_n);
+    double mean = m_data.sum() / size;
+    m_std = std::sqrt(std::pow(m_data - mean, 2.0).sum() / (size - 1));
+    return mean;
 }
 
 // -----------------------------------------------------------------------------
