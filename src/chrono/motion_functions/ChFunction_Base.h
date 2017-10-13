@@ -121,6 +121,9 @@ class ChApi ChFunction {
     /// Note that only order = 0, 1, or 2 is supported.
     virtual double Get_y_dN(double x, int derivate) const;
 
+    /// Update could be implemented by children classes, ex. to launch callbacks
+    virtual void Update(const double x) {};
+
     //
     // Some analysis functions. If derivate=0, they are applied on y(x), if derivate =1, on dy/dx, etc.
     //

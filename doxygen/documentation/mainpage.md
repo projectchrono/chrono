@@ -22,11 +22,19 @@ Basic example code for various features in Chrono. Rather verbose, good place to
 
 @subpage manual_root
 
-More detailed documentation of Chrono's main features.
+Detailed documentation of Chrono's main features.
 
 Download the reference manual as a single [PDF](refman.pdf) file. 
 
 ---
+
+@subpage tutorial_slides_300
+
+Training material (PowerPoint slides and PDF) used in various week-long Chrono tutorials offered in the past.
+
+
+---
+
 
 Plugins
 

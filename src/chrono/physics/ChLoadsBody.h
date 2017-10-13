@@ -471,7 +471,16 @@ public:
 
         // compute local torque using small rotations:
         ChQuaternion<> rel_rot = rel_AB.GetRot();
-        ChVector<> vect_rot = rel_rot.Q_to_Rotv();
+
+        ChVector<> dir_rot; 
+        double angle_rot;
+        rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
+        if (angle_rot> CH_C_PI_2) 
+            angle_rot -= CH_C_PI;
+        if (angle_rot<-CH_C_PI_2) 
+            angle_rot += CH_C_PI;
+        ChVector<> vect_rot = dir_rot * angle_rot;
+
         loc_torque  = vect_rot  * this->rot_stiffness  // element-wise product!
                     + rel_AB.GetWvel_par() * this->damping;   // element-wise product!
     }
@@ -536,8 +545,17 @@ public:
         ChVectorDynamic<> mSdt(6);
         ChVector<>     rel_pos = rel_AB.GetPos() + this->neutral_displacement.GetPos();
         ChQuaternion<> rel_rot = rel_AB.GetRot() * this->neutral_displacement.GetRot();
+        ChVector<> dir_rot; 
+        double angle_rot;
+        rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
+        if (angle_rot> CH_C_PI_2) 
+            angle_rot -= CH_C_PI;
+        if (angle_rot<-CH_C_PI_2) 
+            angle_rot += CH_C_PI;
+        ChVector<> vect_rot = dir_rot * angle_rot;
+
         mS.PasteVector(rel_pos, 0,0);
-        mS.PasteVector(rel_rot.Q_to_Rotv(), 3,0);
+        mS.PasteVector(vect_rot, 3,0);
         mSdt.PasteVector(rel_AB.GetPos_dt(), 0,0);
         mSdt.PasteVector(rel_AB.GetWvel_par(), 3,0);
         

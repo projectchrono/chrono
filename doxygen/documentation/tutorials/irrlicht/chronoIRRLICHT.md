@@ -31,6 +31,10 @@ These are among the most important examples for learning Chrono::Engine.
 
   Simulate articulated pendulums that interact with a force field
   
+- @subpage  tutorial_demo_motors
+
+  Different ways of using motors in Chrono
+  
 - @subpage  tutorial_demo_gears
 
   Create a transmission made of pulleys, spur gears, bevel gears.

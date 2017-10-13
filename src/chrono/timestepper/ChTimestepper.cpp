@@ -328,7 +328,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
     // use Newton Raphson iteration to solve implicit Euler for v_new
     //
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f + dt*Cq'*l ]
-    // [ Cq                           0   ] [ -dt*Dl ] = [ C/dt  ]
+    // [ Cq                           0   ] [ -dt*Dl ] = [ -C/dt  ]
 
     numiters = 0;
     numsetups = 0;
@@ -413,12 +413,12 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
     // solve only 1st NR step, using v_new = 0, so  Dv = v_new , therefore
     //
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Dv     ] = [ M*(v_old - v_new) + dt*f]
-    // [ Cq                           0   ] [ -dt*Dl ] = [ C/dt + Ct ]
+    // [ Cq                           0   ] [ -dt*Dl ] = [ -C/dt - Ct ]
     //
     // becomes the Anitescu/Trinkle timestepper:
     //
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
-    // [ Cq                           0   ] [ -dt*l  ] = [ C/dt + Ct ]
+    // [ Cq                           0   ] [ -dt*l  ] = [ -C/dt - Ct ]
 
     mintegrable->LoadResidual_F(R, dt);
     mintegrable->LoadResidual_Mv(R, V, 1.0);
@@ -477,14 +477,14 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
     Vold = V;
 
     // 1
-    // Do a  Anitescu/Trinkle timestepper but without the C/dt correction:
+    // Do a  Anitescu/Trinkle timestepper (it could be without the C/dt correction):
     //
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
-    // [ Cq                           0   ] [ -dt*l  ] = [ Ct ]
+    // [ Cq                           0   ] [ -dt*l  ] = [ -Ct ]
 
     mintegrable->LoadResidual_F(R, dt);
     mintegrable->LoadResidual_Mv(R, V, 1.0);
-    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, 0);
+    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, 0); // may be avoided
     mintegrable->LoadConstraint_Ct(Qc, 1.0);
 
     mintegrable->StateSolveCorrection(
@@ -519,8 +519,8 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
     Vold.Reset(mintegrable->GetNcoords_v(), V.GetIntegrable());
 
     //
-    // [ M       Cq' ] [ dpos ] = [ 0 ]
-    // [ Cq       0  ] [ l    ] = [ C ]
+    // [ M       Cq' ] [ dpos ] = [  0 ]
+    // [ Cq       0  ] [ l    ] = [ -C ]
 
     mintegrable->LoadConstraint_C(Qc, 1.0, false, 0);
 
@@ -577,9 +577,8 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
 
     // use Newton Raphson iteration to solve implicit trapezoidal for v_new
     //
-    // [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ Dv       ] = [ M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old +
-    // Cq*l_new)]
-    // [ Cq                               0   ] [ -dt/2*Dl ] = [ C/dt ]
+    // [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ Dv       ] = [ M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old + Cq*l_new)]
+    // [ Cq                               0   ] [ -dt/2*Dl ] = [ -C/dt ]
 
     mintegrable->LoadResidual_F(Rold, dt * 0.5);  // dt/2*f_old
     mintegrable->LoadResidual_Mv(Rold, V, 1.0);   // M*v_old
@@ -596,7 +595,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
         mintegrable->LoadResidual_F(R, dt * 0.5);                               // + dt/2*f_new
         mintegrable->LoadResidual_Mv(R, Vnew, -1.0);                            // - M*v_new
         mintegrable->LoadResidual_CqL(R, L, dt * 0.5);                          // + dt/2*Cq*l_new
-        mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // C/dt
+        mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // -C/dt
 
         if (verbose)
             GetLog() << " Trapezoidal iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";
@@ -671,9 +670,8 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
 
     // solve implicit trapezoidal for v_new
     //
-    // [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ Dv       ] = [ M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old +
-    // Cq*l_new)]
-    // [ Cq                               0   ] [ -dt/2*Dl ] = [ C/dt ]
+    // [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ Dv       ] = [ M*(v_old - v_new) + dt/2(f_old + f_new  + Cq*l_old + Cq*l_new)]
+    // [ Cq                               0   ] [ -dt/2*Dl ] = [ -C/dt ]
 
     mintegrable->LoadResidual_F(Rold, dt * 0.5);  // dt/2*f_old
     mintegrable->LoadResidual_Mv(Rold, V, 1.0);   // M*v_old
@@ -685,7 +683,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     mintegrable->LoadResidual_F(R, dt * 0.5);     // + dt/2*f_new
     mintegrable->LoadResidual_Mv(R, Vnew, -1.0);  // - M*v_new
     // mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new  assume l_old = 0;
-    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // C/dt
+    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // -C/dt
 
     mintegrable->StateSolveCorrection(
         Dv, Dl, R, Qc,
@@ -750,7 +748,7 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
     // use Newton Raphson iteration to solve implicit trapezoidal for v_new
     //
     // [ M - dt/2*dF/dv - dt^2/4*dF/dx    Cq' ] [ v_new    ] = [ M*(v_old) + dt/2(f_old + f_new)]
-    // [ Cq                               0   ] [ -dt/2*L ] m= [ C/dt                           ]
+    // [ Cq                               0   ] [ -dt/2*L ] m= [ -C/dt                          ]
 
     mintegrable->LoadResidual_F(R, dt * 0.5);  // dt/2*f_old
     mintegrable->LoadResidual_Mv(R, V, 1.0);   // M*v_old
@@ -758,7 +756,7 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
     mintegrable->StateScatter(Xnew, Vnew, T + dt);  // state -> system
     Qc.Reset();
     mintegrable->LoadResidual_F(R, dt * 0.5);                               // + dt/2*f_new
-    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // C/dt
+    mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // -C/dt
 
     mintegrable->StateSolveCorrection(
         Vnew, L, R, Qc,
@@ -839,7 +837,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
 
     //
     // [ M - dt*gamma*dF/dv - dt^2*beta*dF/dx    Cq' ] [ Da   ] = [ -M*(a_new) + f_new + Cq*l_new ]
-    // [ Cq                                      0   ] [ Dl   ] = [ 1/(beta*dt^2)*C               ] ]
+    // [ Cq                                      0   ] [ Dl   ] = [ -1/(beta*dt^2)*C              ]
 
     numiters = 0;
     numsetups = 0;
@@ -853,7 +851,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
         mintegrable->LoadResidual_F(R, 1.0);                                                    //  f_new
         mintegrable->LoadResidual_CqL(R, L, 1.0);                                               //   Cq'*l_new
         mintegrable->LoadResidual_Mv(R, Anew, -1.0);                                            //  - M*a_new
-        mintegrable->LoadConstraint_C(Qc, (1.0 / (beta * dt * dt)), Qc_do_clamp, Qc_clamping);  //  1/(beta*dt^2)*C
+        mintegrable->LoadConstraint_C(Qc, (1.0 / (beta * dt * dt)), Qc_do_clamp, Qc_clamping);  //  - 1/(beta*dt^2)*C
 
         if (verbose)
             GetLog() << " Newmark iteration=" << i << "  |R|=" << R.NormTwo() << "  |Qc|=" << Qc.NormTwo() << "\n";

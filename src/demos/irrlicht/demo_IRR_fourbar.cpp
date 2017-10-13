@@ -20,7 +20,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -50,7 +50,7 @@ IGUIStaticText* text_enginespeed = 0;
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChSystemNSC* asystem, IrrlichtDevice* adevice, std::shared_ptr<ChLinkEngine> aengine) {
+    MyEventReceiver(ChSystemNSC* asystem, IrrlichtDevice* adevice, std::shared_ptr<ChLinkMotorRotationSpeed> aengine) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
         msystem = asystem;
         mdevice = adevice;
@@ -70,7 +70,7 @@ class MyEventReceiver : public IEventReceiver {
                         s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
                         double newspeed = 10 * (double)pos / 100.0;
                         // set the speed into engine object
-                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mengine->Get_spe_funct()))
+                        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(mengine->GetSpeedFunction()))
                             mfun->Set_yconst(newspeed);
                         // show speed as formatted text in interface screen
                         char message[50];
@@ -89,7 +89,7 @@ class MyEventReceiver : public IEventReceiver {
   private:
     ChSystemNSC* msystem;
     IrrlichtDevice* mdevice;
-    std::shared_ptr<ChLinkEngine> mengine;
+    std::shared_ptr<ChLinkMotorRotationSpeed> mengine;
 };
 
 int main(int argc, char* argv[]) {
@@ -136,13 +136,12 @@ int main(int argc, char* argv[]) {
     // 3- Create constraints: the mechanical joints between the
     //    rigid bodies. Doesn't matter if some constraints are redundant.
 
-    // .. an engine between flywheel and truss
-    auto my_link_AB = std::make_shared<ChLinkEngine>();
-    my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0, 0, 0)));
-    my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_AB->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI);  // speed w=3.145 rad/sec
+    // .. a motor between flywheel and truss
+    auto my_link_AB = std::make_shared<ChLinkMotorRotationSpeed>();
+    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
     my_system.AddLink(my_link_AB);
+    auto my_speed_function = std::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    my_link_AB->SetSpeedFunction(my_speed_function);
 
     // .. a revolute joint between flywheel and rod
     auto my_link_BC = std::make_shared<ChLinkLockRevolute>();

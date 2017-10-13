@@ -32,5 +32,6 @@
 #include "chrono/motion_functions/ChFunction_Sequence.h"
 #include "chrono/motion_functions/ChFunction_Sigma.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
+#include "chrono/motion_functions/ChFunction_Setpoint.h"
 
 #endif

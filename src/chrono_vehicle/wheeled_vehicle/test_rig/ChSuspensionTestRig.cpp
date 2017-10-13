@@ -672,5 +672,9 @@ ChVector<> ChSuspensionTestRig::Terrain::GetNormal(double x, double y) const {
     return ChVector<>(0, 0, 1);
 }
 
+float ChSuspensionTestRig::Terrain::GetCoefficientFriction(double x, double y) const {
+    return 0.8f;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

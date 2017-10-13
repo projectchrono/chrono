@@ -61,6 +61,11 @@ ChVector<> FEADeformableTerrain::GetNormal(double x, double y) const {
     return ChVector<>(0, 0, 1);
 }
 
+// Return the terrain coefficient of friction at the specified location
+float FEADeformableTerrain::GetCoefficientFriction(double x, double y) const {
+    return m_friction_fun ? (*m_friction_fun)(x, y) : 0.8f;
+}
+
 // Set properties of the FEA soil model
 void FEADeformableTerrain::SetSoilParametersFEA(double rho,              ///< Soil density
                                                 double Emod,             ///< Soil modulus of elasticity

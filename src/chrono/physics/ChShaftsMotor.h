@@ -20,18 +20,66 @@
 
 namespace chrono {
 
-///  Class for defining a 'motor' (a 1D model of 'imposed torque'
+
+
+/// Base class for all "motors" between two 1D elements of ChShaft class.
+/// You can consider the usage of its inherited  classes such as ChShaftsMotor,
+/// ChShaftsMotorAngle, ChShaftsMotorSpeed or ChShaftsMotorTorque.
+
+class ChApi ChShaftsMotorBase : public ChShaftsCouple {
+  public:
+    ChShaftsMotorBase(){};
+    ChShaftsMotorBase(const ChShaftsMotorBase& other){};
+    virtual ~ChShaftsMotorBase(){};
+
+    /// Get the actual angle rotation [rad] of the motor, in terms of phase of shaft 1 respect to 2.
+    virtual double GetMotorRot() const { return (shaft1->GetPos() - shaft2->GetPos()); }
+    /// Get the actual speed [rad/s] of the motor, in terms of speed of shaft 1 respect to 2.
+    virtual double GetMotorRot_dt() const { return (shaft1->GetPos_dt() - shaft2->GetPos_dt()); }
+    /// Get the actual acceleration [rad/s^2] of the motor, in terms of accel. of shaft 1 respect to 2.
+    virtual double GetMotorRot_dtdt() const { return (shaft1->GetPos_dtdt() - shaft2->GetPos_dtdt()); }
+
+    /// In case of multi-turns, gets the current actuator number of (integer) rotations:
+    virtual int GetMotorRotTurns() const { return int(GetMotorRot() / CH_C_2PI); }
+
+    /// In case of multi-turns, gets the current actuator rotation angle [rad], in periodic -PI..+PI.
+    virtual double GetMotorRotPeriodic() const { return fmod(GetMotorRot(), CH_C_2PI); }
+
+    /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1
+    virtual double GetMotorTorque() const = 0;
+
+    /// Get the reaction torque exchanged between the two shafts,
+    /// considered as applied to the 1st axis.
+    virtual double GetTorqueReactionOn1() const override { return (GetMotorTorque()); }
+
+    /// Get the reaction torque exchanged between the two shafts,
+    /// considered as applied to the 2nd axis.
+    virtual double GetTorqueReactionOn2() const override { return -(GetMotorTorque()); }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+};
+
+CH_CLASS_VERSION(ChShaftsMotorBase, 0)
+
+
+
+
+///  Class for a multipurpose motor (a 1D model of 'imposed torque'
 ///  or 'imposed velocity' or 'imposed rotation')
 ///  between two one-degree-of-freedom parts, that is,
 ///  shafts that can be used to build 1D models
 ///  of power trains. This is more efficient than
 ///  simulating power trains modeled with full 3D ChBody
 ///  objects.
-///  Note, it is not inherited from ChShaftsTorqueBase because
-///  it might introduce also a constraint, in case it is working in
-///  MOT_MODE_ROTATION or MOT_MODE_SPEED.
+///  Consider also the more specific ChShaftsMotorAngle, 
+///  ChShaftsMotorSpeed or ChShaftsMotorTorque  for more advanced 
+///  models.
 
-class ChApi ChShaftsMotor : public ChShaftsCouple {
+class ChApi ChShaftsMotor : public ChShaftsMotorBase {
 
   private:
     double motor_torque;
@@ -124,16 +172,9 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
         motor_torque = mt;
     }
 
-    /// Get the motor torque applied between shaft2 and shaft1.
-    double GetMotorTorque() const { return motor_torque; }
+    /// Get the currnet motor torque between shaft2 and shaft1, expressed as applied to shaft1
+    virtual double GetMotorTorque() const override { return motor_torque; }
 
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const override { return (GetMotorTorque()); }
-
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const override { return -(GetMotorTorque()); }
 
     /// Set the motor rotation phase between shaft2 and shaft1.
     /// If the rotation is not constant, you also must use SetMotorRot_dt()
@@ -150,14 +191,9 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
         motor_set_rot_dt = mt;
     }
 
-    /// Get the actual angle rotation of the motor, in terms of phase of shaft 1 respect to 2.
-    double GetMotorRot() const { return (shaft1->GetPos() - shaft2->GetPos()); }
-    /// Get the actual speed of the motor, in terms of speed of shaft 1 respect to 2.
-    double GetMotorRot_dt() const { return (shaft1->GetPos_dt() - shaft2->GetPos_dt()); }
-    /// Get the actual acceleration of the motor, in terms of accel. of shaft 1 respect to 2.
-    double GetMotorRot_dtdt() const { return (shaft1->GetPos_dtdt() - shaft2->GetPos_dtdt()); }
 
-    /// Update all auxiliary data of the gear transmission at given time
+
+    /// Update all auxiliary data 
     virtual void Update(double mytime, bool update_assets = true) override;
 
     //
@@ -172,6 +208,14 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
 };
 
 CH_CLASS_VERSION(ChShaftsMotor,0)
+
+
+
+
+
+
+
+
 
 }  // end namespace chrono
 

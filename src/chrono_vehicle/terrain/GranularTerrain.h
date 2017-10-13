@@ -89,6 +89,9 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// using a penalty-based contact method), the envelope is automatically set to 0.
     void SetCollisionEnvelope(double envelope) { m_envelope = envelope; }
 
+    /// Set the minimum number of particles to be generated (default: 0).
+    void SetMinNumParticles(unsigned int min_num_particles) { m_min_num_particles = min_num_particles; }
+
     /// Enable/disable verbose output (default: false).
     void EnableVerbose(bool val) { m_verbose = val; }
 
@@ -139,13 +142,14 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
 
     /// Initialize the granular terrain system.
     /// The granular material is created in successive layers within the specified volume,
-    /// using the specified generator, until the number of particles exceeds the specified value.
+    /// using the specified generator, until the number of particles exceeds the specified
+    /// minimum value (see SetMinNumParticles).
     /// The initial particle locations are obtained with Poisson Disk sampling, using the
     /// given minimum separation distance.
     void Initialize(const ChVector<>& center,                  ///< [in] center of bottom
                     double length,                             ///< [in] patch dimension in X direction
                     double width,                              ///< [in] patch dimension in Y direction
-                    unsigned int num_particles,                ///< [in] minimum number of particles
+                    unsigned int num_layers,                   ///< [in] number of layers
                     double radius,                             ///< [in] particle radius
                     double density,                            ///< [in] particle density
                     const ChVector<>& init_vel = ChVector<>()  ///< [in] particle initial velocity
@@ -178,10 +182,20 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Get the terrain normal at the specified (x,y) location.
     virtual chrono::ChVector<> GetNormal(double x, double y) const override { return ChVector<>(1, 0, 0); }
 
+    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// This coefficient of friction value may be used by certain tire models to modify
+    /// the tire characteristics, but it will have no effect on the interaction of the terrain
+    /// with other objects (including tire models that do not explicitly use it).
+    /// For GranularTerrain, this function defers to the user-provided functor object of type
+    /// ChTerrain::FrictionFunctor, if one was specified.
+    /// Otherwise, it returns the constant value specified through SetContactFrictionCoefficient.
+    virtual float GetCoefficientFriction(double x, double y) const override;
+
   private:
-    unsigned int m_num_particles;  ///< requested minimum number of particles
-    int m_start_id;                ///< start body identifier for particles
-    double m_radius;               ///< particle radius
+    unsigned int m_min_num_particles;  ///< requested minimum number of particles
+    unsigned int m_num_particles;      ///< actual number of particles
+    int m_start_id;                    ///< start body identifier for particles
+    double m_radius;                   ///< particle radius
 
     // Patch dimensions
     double m_length;  ///< length (X direction) of granular patch

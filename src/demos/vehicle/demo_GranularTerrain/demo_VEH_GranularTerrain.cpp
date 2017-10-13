@@ -39,17 +39,17 @@ int main(int argc, char* argv[]) {
     double time_end = 10;     // Final simulation time (s)
 
     // Terrain parameters
-    ChVector<> center(0, 0, 0);          // Center of initial patch
-    double hdimX = 1.5;                  // Length of patch
-    double hdimY = 0.75;                 // Width of patch
-    unsigned int num_particles = 12500;  // Minimum requested number of particles
-    bool rough = false;                  // Fixed base layer?
-    bool moving_patch = true;            // Enable moving patch feature?
-    double slope = 0;                    // Terrain slope (degrees)
-    double radius = 20;                  // Particle radius (mm)
-    double rho = 2000;                   // Granular material density (kg/m3)
-    double mu = 0.9;                     // Coefficient of friction
-    double coh = 20;                     // Cohesion pressure (kPa)
+    ChVector<> center(0, 0, 0);   // Center of initial patch
+    double hdimX = 1.5;           // Length of patch
+    double hdimY = 0.75;          // Width of patch
+    unsigned int num_layers = 8;  // Requested number of layers
+    bool rough = false;           // Fixed base layer?
+    bool moving_patch = true;     // Enable moving patch feature?
+    double slope = 0;             // Terrain slope (degrees)
+    double radius = 20;           // Particle radius (mm)
+    double rho = 2000;            // Granular material density (kg/m3)
+    double mu = 0.9;              // Coefficient of friction
+    double coh = 20;              // Cohesion pressure (kPa)
 
     // Convert terrain parameters
     double slope_g = slope * CH_C_DEG_TO_RAD;  // Slope (rad)
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     terrain.EnableVisualization(true);
     terrain.EnableVerbose(true);
 
-    terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_particles, r_g, rho_g);
+    terrain.Initialize(center, 2 * hdimX, 2 * hdimY, num_layers, r_g, rho_g);
     uint actual_num_particles = terrain.GetNumParticles();
     double terrain_height = terrain.GetHeight(0, 0);
 

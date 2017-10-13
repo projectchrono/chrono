@@ -143,6 +143,17 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRevoluteSpherical.cpp
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
+	physics/ChLinkMotor.cpp
+	physics/ChLinkMotorRotation.cpp
+	physics/ChLinkMotorRotationAngle.cpp
+	physics/ChLinkMotorRotationSpeed.cpp
+	physics/ChLinkMotorRotationTorque.cpp
+	physics/ChLinkMotorRotationDriveline.cpp
+	physics/ChLinkMotorLinear.cpp
+	physics/ChLinkMotorLinearPosition.cpp
+	physics/ChLinkMotorLinearSpeed.cpp
+	physics/ChLinkMotorLinearForce.cpp
+	physics/ChLinkMotorLinearDriveline.cpp
     physics/ChSystem.cpp
     physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
@@ -173,6 +184,9 @@ set(ChronoEngine_physics_SOURCES
     physics/ChShaftsClutch.cpp
     physics/ChShaftsPlanetary.cpp
     physics/ChShaftsMotor.cpp
+	physics/ChShaftsMotorAngle.cpp
+	physics/ChShaftsMotorSpeed.cpp
+	physics/ChShaftsMotorTorque.cpp
     physics/ChShaftsBody.cpp
     physics/ChShaftsTorqueBase.cpp
     physics/ChShaftsTorque.cpp
@@ -235,6 +249,17 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkRevoluteSpherical.h
     physics/ChLinkRevoluteTranslational.h
     physics/ChLinkUniversal.h
+	physics/ChLinkMotor.h
+	physics/ChLinkMotorRotation.h
+	physics/ChLinkMotorRotationAngle.h
+	physics/ChLinkMotorRotationSpeed.h
+	physics/ChLinkMotorRotationTorque.h
+	physics/ChLinkMotorRotationDriveline.h
+	physics/ChLinkMotorLinear.h
+	physics/ChLinkMotorLinearPosition.h
+	physics/ChLinkMotorLinearSpeed.h
+	physics/ChLinkMotorLinearForce.h
+	physics/ChLinkMotorLinearDriveline.h
     physics/ChMarker.h
     physics/ChMaterialSurface.h
     physics/ChMaterialSurfaceNSC.h
@@ -258,6 +283,9 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsGearbox.h
     physics/ChShaftsGearboxAngled.h
     physics/ChShaftsMotor.h
+	physics/ChShaftsMotorAngle.h
+	physics/ChShaftsMotorSpeed.h
+	physics/ChShaftsMotorTorque.h
     physics/ChShaftsPlanetary.h
     physics/ChShaftsTorqueBase.h
     physics/ChShaftsTorque.h
@@ -548,6 +576,7 @@ set(ChronoEngine_motion_functions_SOURCES
     motion_functions/ChFunction_Sequence.cpp
     motion_functions/ChFunction_Sigma.cpp
     motion_functions/ChFunction_Sine.cpp
+	motion_functions/ChFunction_Setpoint.cpp
     )
 
 set(ChronoEngine_motion_functions_HEADERS
@@ -571,7 +600,9 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_Repeat.h
     motion_functions/ChFunction_Sequence.h
     motion_functions/ChFunction_Sigma.h
-    motion_functions/ChFunction_Sine.h)
+    motion_functions/ChFunction_Sine.h
+	motion_functions/ChFunction_Setpoint.h
+	)
 
 if(CH_CXX14)
   set(ChronoEngine_motion_functions_HEADERS ${ChronoEngine_motion_functions_HEADERS}
