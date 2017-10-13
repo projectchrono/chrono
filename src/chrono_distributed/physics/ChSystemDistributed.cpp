@@ -12,27 +12,29 @@
 // Authors: Nic Olsen
 // =============================================================================
 
+#include <cstdlib>
+
 #include <mpi.h>
-#include <string>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <numeric>
-#include <iostream>
-#include <fstream>
+#include <string>
 
-#include "chrono/physics/ChBody.h"
 #include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/physics/ChBody.h"
 
-#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
+#include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 #include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
-#include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/other_types.h"
+#include "chrono_parallel/math/real3.h"
 
 using namespace chrono;
 using namespace collision;
@@ -208,11 +210,16 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
 }
 
+// Should only be called to add a body when there are no free spaces to insert it into
 void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status) {
     ddm->comm_status.push_back(status);
     ddm->global_id.push_back(newbody->GetGid());
     newbody->SetId(data_manager->num_rigid_bodies);
     bodylist.push_back(newbody);
+
+    ddm->body_shape_start.push_back(0);  // TODO: 0?
+    ddm->body_shape_count.push_back(0);
+
     data_manager->num_rigid_bodies++;
     newbody->SetBodyFixed(false);
 
@@ -256,10 +263,9 @@ void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
 void ChSystemDistributed::ErrorAbort(std::string msg) {
     if (my_rank == 0)
         GetLog() << msg << '\n';
-    MPI_Abort(world, MPI_ERR_OTHER);
+    std::abort();
 }
 
-#ifdef DistrDebug
 void ChSystemDistributed::PrintBodyStatus() {
     GetLog() << "Rank: " << my_rank << "\n";
     GetLog() << "\tBodylist:\n";
@@ -281,11 +287,18 @@ void ChSystemDistributed::PrintBodyStatus() {
             float static_fric = (*bl_itr)->GetMaterialSurfaceSMC()->static_friction;
             float young = (*bl_itr)->GetMaterialSurfaceSMC()->young_modulus;
             double mass = (*bl_itr)->GetMass();
-
-            printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d Rank: %d\n", (*bl_itr)->GetGid(),
-                   pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(), my_rank);
             /*
-                    "Adhesion: %.3f, gn: %.3f, gt: %.3f, kn: %.3f, kt: %.3f, poisson: %.3f,"
+                        printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d Rank: %d\n",
+               (*bl_itr)->GetGid(),
+                               pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(), my_rank);
+            */
+
+            printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Vel: %.2f, %.2f, %.2f, Active: %d Collide: %d Rank: %d\n",
+                   (*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), vel.x(), vel.y(), vel.z(), (*bl_itr)->IsActive(),
+                   (*bl_itr)->GetCollide(), my_rank);
+
+            /*
+            "Adhesion: %.3f, gn: %.3f, gt: %.3f, kn: %.3f, kt: %.3f, poisson: %.3f,"
                     "restit: %.3f, sliding fric: %.3f, static fric: %.3f, young: %.3f, mass: %.3f\n",
                 (*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(),
                 adhesion, gn, gt, kn, kt, poisson, restit, sliding_fric, static_fric, young, mass);
@@ -321,7 +334,6 @@ void ChSystemDistributed::PrintBodyStatus() {
     }
 }
 
-#endif
 void ChSystemDistributed::PrintShapeData() {
     std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
     int i = 0;
@@ -428,4 +440,25 @@ void ChSystemDistributed::WriteCSV(std::string filedir, std::string filename) {
 
     file << ss_particles.str();
     file.close();
+}
+
+double ChSystemDistributed::GetLowestZ(uint* local_id) {
+    double min = 0;
+    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+        if (ddm->comm_status[i] != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] < min) {
+            min = data_manager->host_data.pos_rigid[i][2];
+            *local_id = i;
+            GetLog() << "SubZero: " << i << " Rank: "
+                     << "\n";
+        }
+    }
+    return min;
+}
+
+void ChSystemDistributed::CheckIds() {
+    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+        if (bodylist[i]->GetId() != i) {
+            GetLog() << "Mismatched ID " << i << " Ranks " << my_rank << "\n";
+        }
+    }
 }

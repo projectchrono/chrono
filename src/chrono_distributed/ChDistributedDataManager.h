@@ -15,11 +15,11 @@
 #pragma once
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/other_types.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/ChDataManager.h"
+#include "chrono_parallel/math/other_types.h"
 
 #include <vector>
 
@@ -27,11 +27,12 @@ namespace chrono {
 
 class ChSystemDistributed;
 
+// Linked-list node for free shapes
 struct LocalShapeNode {
-    struct LocalShapeNode* next;
-    int body_shapes_index;
-    int size;
-    bool free;
+    struct LocalShapeNode* next;  // Next node in the free list
+    int body_shapes_index;        // Index into ChDistributedDataManager::body_shapes
+    int size;                     // Number of
+    bool free;                    // True if this index is free
 };
 
 class CH_DISTR_API ChDistributedDataManager {
@@ -39,32 +40,44 @@ class CH_DISTR_API ChDistributedDataManager {
     ChDistributedDataManager(ChSystemDistributed* my_sys);
     virtual ~ChDistributedDataManager();
 
+    /* Basic distributed values */
     std::vector<unsigned int> global_id;                ///< Global id of each body
     std::vector<distributed::COMM_STATUS> comm_status;  ///< Communication status of each body
     std::vector<distributed::COMM_STATUS> curr_status;  ///< Used as a reference only by ChCommDistributed
 
     std::unordered_map<uint, int> gid_to_localid;  ///< Maps gloabl id to local id on this rank
 
+    /* Pointers to the rest of the system's data */
     ChParallelDataManager* data_manager;  ///< Pointer to the main Chrono::Parallel Data Manager
     ChSystemDistributed* my_sys;          ///< Pointer to the main dynamical system
 
-    std::vector<int> body_shape_start;  ///< Start index in body_shapes of the shapes associated with this BODY index
-    std::vector<int> body_shape_count;  ///< Number of shapes associated with this BODY index
-    std::vector<int> body_shapes;       ///< Indices of shape in DATA_MANAGER->shape_data for a given SHAPE
-    // The values in body_shapes for a given shape begin at body_shape_start[index] and there are
-    // body_shape_count[index] consecutive
-    // values starting there for the body at index index.
+    /* Collision system tracking */
+    std::vector<int>
+        body_shape_start;  ///< Start index in this->body_shapes of the shapes associated with this local BODY index
+    std::vector<int> body_shape_count;  ///< Number of shapes associated with this local BODY index
+    std::vector<int> body_shapes;       ///< Indices of shape in DATA_MANAGER->shape_data struct for a given SHAPE
 
-    // TODO: Need to track open spots in: data_manager->shape_data, this->body_shapes
-    // DON'T need to track open spots in this->body_shape_start/count because those correspond with a BODY index
-    // and therefore can be checked for validity by checking the body status
+    /*
+     * NOTE: The values in this->body_shapes for a given BODY begin at body_shape_start[local_id] and there are
+     * body_shape_count[local_id] consecutive values starting there for the body at index local_id.
+     */
 
-    // When receiving a body and adding its collision shapes, need 1)to find a spot in body shapes large enough for all
-    // of the
-    // body's shapes, 2) Find individual slots in data_manager->shape_data to index to from body_shapes
+    // TODO: Need to track open spots in: data_manager->shape_data,this->body_shapes
+    /*
+     * NOTE: DON'T need to track open spots in this->body_shape_start/count because those correspond with a BODY
+     * local_id and therefore can be checked for validity by checking the body comm_status
+     */
 
-    // TODO make linked list like allocator
-    struct LocalShapeNode* local_free_shapes;  ///< Indicates the free spaces in this->body_shapes
+    /*
+     * NOTE: When receiving a body and adding its collision shapes, need to
+     * 1) Find ONE block in ddm->body_shapes large enough for ALL of the body's
+     * 	shape indices into data_manager->shape_data
+     *
+     * 2) Find individual indices in data_manager->shape_data to index to from body_shapes
+     */
+
+    // TODO make linked list like allocator? / use std::list?
+    struct LocalShapeNode* local_free_shapes;  ///< Linked-list of BLOCKS in ddm->body_shapes, indicating free/alloc'd
 
     std::vector<bool> dm_free_shapes;  ///< Indicates that the space in the data_manager->shape_data is available
 

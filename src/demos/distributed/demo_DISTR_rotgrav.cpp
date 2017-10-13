@@ -1,10 +1,11 @@
 #include <mpi.h>
 #include <omp.h>
-#include <cstdio>
-#include <vector>
 #include <cmath>
-#include <memory>
+#include <cstdio>
+#include <fstream>
 #include <iostream>
+#include <memory>
+#include <vector>
 
 #include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "../../chrono_distributed/physics/ChSystemDistributed.h"
@@ -27,15 +28,17 @@ int num_threads;
 double tilt_angle = 0;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
-int count_X = 5;  // 10  // 20
-int count_Y = 5;  // 10  // 4
+int count_X;  // 10  // 20
+int count_Y;  // 10  // 4
 
-int count_Z = 4;
+int count_Z;
 
 // Material properties (same on bin and balls)
 float Y = 2e6f;
 float mu = 0.4f;
 float cr = 0.4f;
+
+void WriteCSV(std::ofstream* file, int timestep, ChSystemDistributed* sys);
 
 void print(std::string msg) {
     if (my_rank == MASTER) {
@@ -80,15 +83,6 @@ void Monitor(chrono::ChSystemParallel* system) {
 }
 
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
-    std::string filedir;
-    if (num_ranks == 1) {
-        filedir = "../reference";
-    } else {
-        filedir = "../granular";
-    }
-    std::string filename = "data" + std::to_string(out_frame);
-    sys->WriteCSV(filedir, filename);
-
     std::cout << "time = " << time << std::flush << std::endl;
 }
 
@@ -184,19 +178,34 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
+    /* Make the program wait while attaching debuggers */
     if (my_rank == 0) {
         int foo;
-        std::cout << "Enter something to continue..." << std::endl;
+        std::cout << "Enter something too continue..." << std::endl;
         std::cin >> foo;
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
+    std::string outfile_name = "../granular/Rank";
+    outfile_name += my_rank + ".csv";
+
+    std::ofstream outfile;
+    outfile.open(outfile_name);
+
+    outfile << "g,t,x,y,z,vx,vy,vz,U\n";
+
     bool monitor;
 
     int num_threads = 1;
-    if (argc > 2) {
+    if (argc > 5) {
         num_threads = atoi(argv[1]);
         monitor = (bool)atoi(argv[2]);
+        count_X = atoi(argv[3]);
+        count_Y = atoi(argv[4]);
+        count_Z = atoi(argv[5]);
+    } else {
+        std::cout << "Usage: ./exe <nthreads> <monitorflag> <count_X> <count_Y> <count_Z>\n";
+        return 1;
     }
 
     omp_set_num_threads(num_threads);
@@ -209,22 +218,25 @@ int main(int argc, char* argv[]) {
     std::cout << "Running on " << thread_count << " OpenMP threads.\n";
 
     double time_step = 1e-4;
-    double time_end = 28;
+    double time_end = 10000;
 
-    double out_fps = 50;
+    double out_fps = 10;
 
     unsigned int max_iteration = 100;
     double tolerance = 1e-3;
 
     print("Constructing the system...\n");
-    ChSystemDistributed my_sys(MPI_COMM_WORLD, 1.0, 100000, std::string("../out") + std::to_string(my_rank) + ".txt");
+    ChSystemDistributed my_sys(MPI_COMM_WORLD, 0.25, 100000, std::string("../out") + std::to_string(my_rank) + ".txt");
+
+    my_sys.data_manager->shape_data.id_rigid.reserve(1000);
+    std::cout << "Addr of id_rigid[88] " << &(my_sys.data_manager->shape_data.id_rigid[88]) << "\n";
 
     std::cout << "Node " << my_sys.node_name << "\n";
 
     my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
-    my_sys.Set_G_acc(ChVector<double>(0.01, 0.01, -9.8));
+    my_sys.Set_G_acc(ChVector<double>(5, 0.01, -9.8));
 
     // Set solver parameters
     my_sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
@@ -252,58 +264,58 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     double time = 0;
 
-    int checkpoints[5];
-    checkpoints[0] = std::ceil(2 / time_step);
-    checkpoints[1] = std::ceil(8 / time_step);
-    checkpoints[2] = std::ceil(12 / time_step);
-    checkpoints[3] = std::ceil(16 / time_step);
-    checkpoints[4] = std::ceil(24 / time_step);
-
-    // Run initial settling 2 sec
+    int checkpoint = std::ceil(3 / time_step);
     for (int i = 0; i < num_steps; i++) {
         if (i % out_steps == 0) {
             OutputData(&my_sys, out_frame, time);
             out_frame++;
+            WriteCSV(&outfile, time_step, &my_sys);
+
             real3 min = my_sys.data_manager->measures.collision.rigid_min_bounding_point;
             real3 max = my_sys.data_manager->measures.collision.rigid_max_bounding_point;
             std::cout << "Min: " << min[0] << " " << min[1] << " " << min[2] << " Max: " << max[0] << " " << max[1]
                       << " " << max[2] << "\n";
         }
 
-        // OutputData(&my_sys, i, time);
-        // my_sys.PrintShapeData();
-
-        if (i == checkpoints[0]) {
-            std::cout << "Resetting gravity: (-5, 0, -10)\n";
-            my_sys.Set_G_acc(ChVector<>(-5, 0, -10));
-            //    AddFallingBalls(&my_sys);
+        if (i % checkpoint == 0) {
+            ChVector<double> g(my_sys.Get_G_acc());
+            my_sys.Set_G_acc(ChVector<>(-1 * g.x(), g.y(), g.z()));
         }
 
-        /*        if (i == checkpoints[1]) {
-                    std::cout << "Resetting gravity: (0, 5, -10)\n";
-                    my_sys.Set_G_acc(ChVector<>(0, 5, -10));
-                }*/
-        if (i == checkpoints[2]) {
-            std::cout << "Resetting gravity: (5, 0, -10)\n";
-            my_sys.Set_G_acc(ChVector<>(5, 0, -10));
-        }
-        /*
-                if (i == checkpoints[3]) {
-                    std::cout << "Resetting gravity: (0, -5, -10)\n";
-                    my_sys.Set_G_acc(ChVector<>(0, -5, -10));
-                }*/
-
-        if (i == checkpoints[4]) {
-            std::cout << "Resetting gravity: (0, 5, -10)\n";
-            my_sys.Set_G_acc(ChVector<>(-5, 0, -10));
-        }
         if (monitor)
             Monitor(&my_sys);
         my_sys.DoStepDynamics(time_step);
+
+        uint lowest_local_id;
+        if (my_sys.GetLowestZ(&lowest_local_id) < 0) {
+            GetLog() << "Lowest Local " << lowest_local_id << "\n";
+            int waste_time = 10230;
+            my_sys.CheckIds();
+        }
+
         time += time_step;
     }
 
+    outfile.close();
     MPI_Finalize();
 
     return 0;
+}
+
+void WriteCSV(std::ofstream* file, int timestep, ChSystemDistributed* sys) {
+    std::stringstream ss_particles;
+
+    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = sys->data_manager->body_list->begin();
+    int i = 0;
+    for (; bl_itr != sys->data_manager->body_list->end(); bl_itr++, i++) {
+        if (sys->ddm->comm_status[i] != chrono::distributed::EMPTY) {
+            ChVector<> pos = (*bl_itr)->GetPos();
+            ChVector<> vel = (*bl_itr)->GetPos_dt();
+
+            ss_particles << (*bl_itr)->GetGid() << "," << timestep << "," << pos.x() << "," << pos.y() << "," << pos.z()
+                         << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length() << std::endl;
+        }
+    }
+
+    *file << ss_particles.str();
 }

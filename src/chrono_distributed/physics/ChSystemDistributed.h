@@ -15,17 +15,16 @@
 #pragma once
 
 #include <mpi.h>
-#include <string>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <string>
-#include <iostream>
-#include <fstream>
 
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
+#include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 
@@ -70,9 +69,7 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     /// Prints msg to the user and ends execution with an MPI error
     void ErrorAbort(std::string msg);
 
-#ifdef DistrDebug
     void PrintBodyStatus();
-#endif
     void PrintShapeData();
 #ifdef DistrProfile
     void PrintEfficiency();
@@ -91,6 +88,8 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 #ifdef DistrDebug
     std::ofstream debug_stream;
 #endif
+    double GetLowestZ(uint* gid);
+    void CheckIds();
 
   protected:
     // MPI

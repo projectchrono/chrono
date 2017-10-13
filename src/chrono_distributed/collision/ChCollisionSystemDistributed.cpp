@@ -14,14 +14,14 @@
 
 #include <climits>
 
-#include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
-#include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
+#include "chrono_distributed/collision/ChCollisionModelDistributed.h"
+#include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/collision/ChBroadphaseUtils.h"
+#include "chrono_parallel/collision/ChCollisionModelParallel.h"
+#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 
 using namespace chrono;
 using namespace collision;
@@ -42,12 +42,10 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 
     // Find space in ddm vectors - need one index for both start and count
     // need a chunk of body_shapes large enough for all shapes on this body
-
     int my_rank = ddm->my_sys->GetMyRank();
 
-    // Can't assume model is associated with a body_shapes?
-    int body_index = pmodel->GetBody()->GetId();
-    int needed_count = pmodel->GetNObjects();
+    int body_index = pmodel->GetBody()->GetId();  // TODO assuming this is set: see calling fxn
+    int needed_count = pmodel->GetNObjects();     // Minimum size needed in ddm->body_shapes
 
     /* TODO: Choose and crop shapes from a global body.
     // If this is a global body, construct a new collision model with only the shapes that
@@ -85,18 +83,18 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
         pmodel = newmodel;
     }*/
 
+    // Find free chunk in ddm->body_shapes large enough for this model
     bool found = false;
     struct LocalShapeNode* curr = ddm->local_free_shapes;
     struct LocalShapeNode* prev = NULL;
 
-    // TODO could add counter for total frees spaces and do some compression if it gets too fragmented
-
     while (curr != NULL && !found) {
+        // If curr is a large enough free chunk
         if (curr->free && curr->size >= needed_count) {
             found = true;
             curr->free = false;
 
-            // If there is leftover space, make a new node
+            // If there is leftover space, insert a new node in the free list
             if (curr->size != needed_count) {
                 struct LocalShapeNode* new_next = new struct LocalShapeNode();
                 new_next->free = true;
@@ -107,14 +105,19 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
                 curr->next = new_next;
                 curr->size = needed_count;
             }
-        } else {
+        }
+        // If curr is not free or not large enough
+        else {
             prev = curr;
             curr = curr->next;
         }
-    }  // curr could be null from empty list OR going off the end?
+    }
+    // NOTE: curr could be NULL for two reasons: empty list and going off the end.
+    // found == true => curr identifies a large-enough free chunk
 
-    // The first free index of the portion of body_shapes
+    // The first index of the free chunk of body_shapes
     int begin_shapes;
+
     // If a free portion of body_shapes was found, set up the body to use it
     if (found) {
         ddm->body_shape_start[body_index] = curr->body_shapes_index;
@@ -124,10 +127,12 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     // If there was no free portion of body_shapes large enough, create more space
     // in body_shapes and a new free-list node
     else {
-        ddm->body_shape_count[body_index] = needed_count;  // TODO
+        ddm->body_shape_count[body_index] = needed_count;
 
-        struct LocalShapeNode* new_end;
         // Add a node at the end
+        struct LocalShapeNode* new_end;
+
+        // If the above while loop went off the end searching
         if (curr == NULL && prev != NULL) {
             new_end = new struct LocalShapeNode();
             prev->next = new_end;
@@ -138,13 +143,13 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             ddm->local_free_shapes = new struct LocalShapeNode();
             new_end = ddm->local_free_shapes;
         }
+
         new_end->size = needed_count;
         new_end->free = false;
         new_end->body_shapes_index = ddm->body_shapes.size();  // This portion will begin right
                                                                // after the end of the current vector
 
-        ddm->body_shape_start[body_index] =
-            ddm->body_shapes.size();  // TODO make sure bsstart and bscount are pushed back at body add
+        ddm->body_shape_start[body_index] = ddm->body_shapes.size();
 
         begin_shapes = new_end->body_shapes_index;
 
@@ -154,27 +159,42 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
         }
     }
 
-    // At this point there is space in ddm->body_shapes that is NOT set
+    /*
+     * NOTE: At this point there is a large-enough chunk in ddm->body_shapes that is NOT set
+     * beginning at begin_shapes
+     */
 
-    // TODO need places for ALL shapes in the model, else need to call collsyspar::add
+    // TODO need places for ALL shapes in the model in data_manager->shape_data,
+    // else need to call collsyspar::add
 
     // Check for free spaces to insert into (DO need same shape type else can't deactivate that)
     std::vector<int> free_dm_shapes;
     for (int i = 0; i < needed_count; i++) {
-        // Search data_manager->shape_data for an open and shape-matching spot
+        // i identifies a shape in the model
+
+        // Search data_manager->shape_data for a free and shape-matching spot
         for (int j = 0; j < dm->shape_data.id_rigid.size(); j++) {
             // If the index in the data manager is open and corresponds to the same shape type
             if (dm->shape_data.id_rigid[j] == UINT_MAX && dm->shape_data.typ_rigid[j] == pmodel->mData[i].type) {
                 free_dm_shapes.push_back(j);
             }
-        }  // End of for loop over the slots in data_manager->shape_data
-    }      // End of for loop over the shapes for this model
+        }  // End for loop over the slots in data_manager->shape_data
+    }      // End for loop over the shapes for this model
 
     // If there is space for ALL shapes in the model in the data_manager
     // unload them.
+    // TODO never getting in here ??? no
     if (free_dm_shapes.size() == needed_count) {
+        GetLog() << "HERE\n";
+        GetLog() << "needed_count " << needed_count << "\n";
         for (int i = 0; i < needed_count; i++) {
-            int j = free_dm_shapes[i];
+            GetLog() << "NEXT";
+            // i identifies a shape in the model
+
+            int j = free_dm_shapes[i];  // Index into dm->shape_data
+
+            GetLog() << "Setting id_rigid. gid " << pmodel->GetBody()->GetGid() << " local id " << body_index << "\n";
+
             dm->shape_data.id_rigid[j] = body_index;
             ddm->body_shapes[begin_shapes] = j;
             begin_shapes++;
@@ -230,6 +250,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     // If there was not enough space in the data_manager for all shapes in the model,
     // call the regular add
     else {
+        GetLog() << "ChCollisionSystemParallel::Add GID " << pmodel->GetBody()->GetGid() << "\n";
         this->ChCollisionSystemParallel::Add(model);
         for (int i = 0; i < needed_count; i++) {
             ddm->dm_free_shapes.push_back(false);
@@ -239,11 +260,13 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     }
 }
 
+// Id must be set before calling
 // Deactivates all shapes associated with the collision model
 void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
     ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
+    uint id = pmodel->GetBody()->GetId();  // TODO could be wrong model with this ID OR could be calling Remove on the
+                                           // body at wrong time TODO called by clearmodel
 
-    uint id = pmodel->GetBody()->GetId();
     int count = pmodel->GetNObjects();
     int start = ddm->body_shape_start[id];
 
@@ -252,6 +275,8 @@ void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
         ddm->dm_free_shapes[ddm->body_shapes[index]] = true;  // Marks the spot in data_manager->shape_data as open
 
         // Forces collision detection to ignore this shape
+        GetLog() << "Deactivating shape for local ID " << id << " GID " << ddm->global_id[id] << " Rank "
+                 << ddm->my_sys->GetMyRank() << "\n";
         ddm->data_manager->shape_data.id_rigid[ddm->body_shapes[index]] = UINT_MAX;
     }
 

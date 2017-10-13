@@ -29,7 +29,13 @@ typedef enum COMM_STATUS {
     UNDEFINED
 } COMM_STATUS;
 
-typedef enum MESSAGE_TYPE { EXCHANGE, UPDATE, FINAL_UPDATE_GIVE, FINAL_UPDATE_TAKE } MESSAGE_TYPE;
+typedef enum MESSAGE_TYPE {
+    EXCHANGE,
+    UPDATE,
+    FINAL_UPDATE_GIVE,
+    FINAL_UPDATE_TAKE,
+    UPDATE_TRANSFER_SHARE
+} MESSAGE_TYPE;
 
 }  // End namespace distributed
 }  // End namespace chrono

@@ -13,32 +13,27 @@
 // =============================================================================
 
 #include <mpi.h>
-#include <memory>
 #include <omp.h>
 #include <forward_list>
+#include <memory>
 
-#include "chrono_distributed/comm/ChCommDistributed.h"
-#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
+#include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/other_types.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"
 
-#include "chrono/physics/ChBody.h"
-#include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
-#include "chrono/core/ChMatrix33.h"
 
 using namespace chrono;
 using namespace collision;
-
-void nic_stop() {
-    ;
-}
 
 ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     this->my_sys = my_sys;
@@ -47,7 +42,6 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     ddm = my_sys->ddm;
 
     /* Create and Commit all custom MPI Data Types */
-
     // Exchange
     MPI_Datatype type_exchange[4] = {MPI_UNSIGNED, MPI_BYTE, MPI_DOUBLE, MPI_FLOAT};
     int blocklen_exchange[4] = {1, 1, 20, 6};
@@ -110,8 +104,10 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
             }
         }
         ddm->data_manager->system_timer.stop("FirstEmpty");
+
         // GetLog() << "Rank " << my_sys->GetMyRank() << " First Empty: " <<
         // ddm->data_manager->system_timer.GetTime("FirstEmpty") << "\n";
+
         // If there are no empty spaces in the data manager, create
         // a new body to add
         if (ddm->first_empty == data_manager->num_rigid_bodies) {
@@ -122,18 +118,18 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
         else {
             body = (*data_manager->body_list)[ddm->first_empty];
         }
-        body->SetSystem(my_sys);
 
         UnpackExchange(buf + n, body);
 
         // Add the new body
         distributed::COMM_STATUS status = (updown == 1) ? distributed::GHOST_UP : distributed::GHOST_DOWN;
         if (ddm->first_empty == data_manager->num_rigid_bodies) {
-            my_sys->AddBodyExchange(body, status);
+            my_sys->AddBodyExchange(body, status);  // collsys::add
         } else {
             ddm->comm_status[ddm->first_empty] = status;
             body->SetBodyFixed(false);
             ddm->gid_to_localid[body->GetGid()] = body->GetId();
+            body->SetSystem(my_sys);  // collsys::add TODO need to wait until after process shapes
         }
     }
 }
@@ -162,10 +158,11 @@ void ChCommDistributed::ProcessUpdates(int num_recv, BodyUpdate* buf) {
             UnpackUpdate(buf + n, body);
             if ((buf + n)->update_type == distributed::FINAL_UPDATE_GIVE) {
                 ddm->comm_status[index] = distributed::OWNED;
-#ifdef DistrDebug
                 GetLog() << "Owning gid " << (buf + n)->gid << " index " << index << " rank " << my_sys->GetMyRank()
                          << "\n";
-#endif
+            } else if ((buf + n)->update_type == distributed::UPDATE_TRANSFER_SHARE) {
+                ddm->comm_status[index] = (ddm->comm_status[index] == distributed::GHOST_UP) ? distributed::SHARED_UP
+                                                                                             : distributed::SHARED_DOWN;
             }
         } else {
 #ifdef DistrDebug
@@ -238,7 +235,6 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
                 default:
                     GetLog() << "Error gid " << gid << " rank " << my_sys->GetMyRank() << " type " << (buf + n)->type
                              << "\n";
-                    nic_stop();
                     my_sys->ErrorAbort("Unpacking undefined collision shape\n");
             }
             n++;  // Advance to next shape in the buffer
@@ -306,11 +302,8 @@ void ChCommDistributed::Exchange() {
                 // If the body is being marked as shared for the first time, the whole
                 // body must be packed to create a ghost on another rank
                 if ((location == distributed::GHOST_UP || location == distributed::SHARED_UP)) {
-#ifdef DistrDebug
                     GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank "
                              << my_rank + 1 << " index " << i << "\n";
-                    exchange_string += std::string("eu,") + std::to_string(ddm->global_id[i]) + "\n";
-#endif
                     PackExchange(exchange_up_buf + num_exchange_up, i);
                     num_exchange_up++;
                     ddm->comm_status[i] = distributed::SHARED_UP;
@@ -318,14 +311,12 @@ void ChCommDistributed::Exchange() {
                 }
 
                 // If the body now affects the previous sub-domain:
-                // If the body is being marked as shared for the first time, the whole
+                // If the body is being
+                // marked as shared for the first time, the whole
                 // body must be packed to create a ghost on another rank
                 else if ((location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN)) {
-#ifdef DistrDebug
                     GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank "
                              << my_rank - 1 << " index " << i << "\n";
-                    exchange_string += std::string("ed,") + std::to_string(ddm->global_id[i]) + "\n";
-#endif
                     PackExchange(exchange_down_buf + num_exchange_down, i);
                     num_exchange_down++;
                     ddm->comm_status[i] = distributed::SHARED_DOWN;
@@ -346,11 +337,9 @@ void ChCommDistributed::Exchange() {
                 if (curr_status != distributed::SHARED_UP && curr_status != distributed::SHARED_DOWN)
                     continue;
 
-                // If the body now affects the next sub-domain
                 // If the body has already been shared, it need only update its
                 // corresponding ghost
-                if ((location == distributed::GHOST_UP || location == distributed::SHARED_UP) &&
-                    curr_status == distributed::SHARED_UP) {
+                if (location == distributed::SHARED_UP && curr_status == distributed::SHARED_UP) {
 #ifdef DistrDebug
                     GetLog() << "Update: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank + 1
                              << "\n";
@@ -358,13 +347,20 @@ void ChCommDistributed::Exchange() {
 #endif
                     PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE);
                     num_update_up++;
+                } else if (location == distributed::GHOST_UP && curr_status == distributed::SHARED_UP) {
+#ifdef DistrDebug
+                    GetLog() << "Update: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank + 1
+                             << "\n";
+                    update_string += std::string("uu,") + std::to_string(ddm->global_id[i]) + "\n";
+#endif
+                    ddm->comm_status[i] = distributed::GHOST_UP;
+                    PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE_TRANSFER_SHARE);
+                    num_update_up++;
                 }
 
-                // If the body now affects the previous sub-domain:
                 // If the body has already been shared, it need only update its
                 // corresponding ghost
-                else if ((location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN) &&
-                         curr_status == distributed::SHARED_DOWN) {
+                else if (location == distributed::SHARED_DOWN && curr_status == distributed::SHARED_DOWN) {
 #ifdef DistrDebug
                     GetLog() << "Update: rank " << my_rank << "--" << ddm->global_id[i] << "-->rank " << my_rank - 1
                              << "\n";
@@ -372,11 +368,22 @@ void ChCommDistributed::Exchange() {
 #endif
                     PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE);
                     num_update_down++;
+                } else if (location == distributed::GHOST_DOWN && curr_status == distributed::SHARED_DOWN) {
+#ifdef DistrDebug
+                    GetLog() << "Update: rank " << my_rank << "--" << ddm->global_id[i] << "-->rank " << my_rank - 1
+                             << "\n";
+                    update_string += std::string("ud,") + std::to_string(ddm->global_id[i]) + "\n";
+#endif
+                    ddm->comm_status[i] = distributed::GHOST_DOWN;
+                    PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE_TRANSFER_SHARE);
+                    num_update_down++;
                 }
-
+                // If is shared up/down AND
                 // If the body is no longer involved with this rank, it must be removed from
                 // this rank
-                else if (location == distributed::UNOWNED_UP || location == distributed::UNOWNED_DOWN) {
+                else if ((location == distributed::UNOWNED_UP || location == distributed::UNOWNED_DOWN) &&
+                         (ddm->comm_status[i] == distributed::SHARED_UP ||
+                          ddm->comm_status[i] == distributed::SHARED_DOWN)) {
                     int up;
                     if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
 #ifdef DistrDebug
@@ -393,9 +400,7 @@ void ChCommDistributed::Exchange() {
                         num_update_down++;
                         up = -1;
                     }
-#ifdef DistrDebug
                     GetLog() << "Give: " << my_rank << " -- " << ddm->global_id[i] << " --> " << my_rank + up << "\n";
-#endif
                     my_sys->RemoveBodyExchange(i);
                 }
             }  // End of packing for loop
@@ -420,13 +425,16 @@ void ChCommDistributed::Exchange() {
 #ifdef DistrDebug
                         take_string += std::string("tu,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
+                        GetLog() << "Taking " << my_rank << " <-- " << ddm->global_id[i] << " -- " << my_rank + 1
+                                 << "\n";
                         PackUpdateTake(update_take_up + num_take_up, i);
                         num_take_up++;
-
                     } else if (curr_status == distributed::SHARED_DOWN) {
 #ifdef DistrDebug
                         take_string += std::string("td,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
+                        GetLog() << "Taking " << my_rank << " <-- " << ddm->global_id[i] << " -- " << my_rank - 1
+                                 << "\n";
                         PackUpdateTake(update_take_down + num_take_down, i);
                         num_take_down++;
                     }
@@ -664,6 +672,16 @@ void ChCommDistributed::Exchange() {
         ProcessShapes(num_recv_shapes_down, recv_shapes_down);
     if (my_rank != num_ranks - 1)
         ProcessShapes(num_recv_shapes_up, recv_shapes_up);
+
+    // Free all dynamic memory used
+    delete[] recv_exchange_down;
+    delete[] recv_exchange_up;
+    delete[] recv_update_down;
+    delete[] recv_update_up;
+    delete[] recv_take_down;
+    delete[] recv_take_up;
+    delete[] recv_shapes_down;
+    delete[] recv_shapes_up;
 }
 
 void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
@@ -772,8 +790,8 @@ void ChCommDistributed::UnpackExchange(BodyExchange* buf, std::shared_ptr<ChBody
 
     body->SetMaterialSurface(mat);
 
-    body->SetCollide(buf->collide);
     body->GetCollisionModel()->ClearModel();
+    body->SetCollide(buf->collide);
 }
 
 // Only packs the essentials for a body update
