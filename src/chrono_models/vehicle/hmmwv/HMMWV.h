@@ -35,6 +35,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 
 #ifdef CHRONO_FEA
 #include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"

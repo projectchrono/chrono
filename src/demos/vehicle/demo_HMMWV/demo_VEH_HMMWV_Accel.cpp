@@ -52,7 +52,7 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 // Drive type (FWD, RWD, or AWD)
 DrivelineType drive_type = DrivelineType::AWD;
 
-// Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89)
+// Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89, TMEASY)
 TireModelType tire_model = TireModelType::FIALA;
 
 // Terrain length (X direction)

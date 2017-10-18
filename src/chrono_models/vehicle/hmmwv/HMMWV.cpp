@@ -177,6 +177,26 @@ void HMMWV::Initialize() {
 
             break;
         }
+        case TireModelType::TMEASY: {
+            HMMWV_TMeasyTire* tire_FL = new HMMWV_TMeasyTire("FL");
+            HMMWV_TMeasyTire* tire_FR = new HMMWV_TMeasyTire("FR");
+            HMMWV_TMeasyTire* tire_RL = new HMMWV_TMeasyTire("RL");
+            HMMWV_TMeasyTire* tire_RR = new HMMWV_TMeasyTire("RR");
+
+            if (m_tire_step_size > 0) {
+                tire_FL->SetStepsize(m_tire_step_size);
+                tire_FR->SetStepsize(m_tire_step_size);
+                tire_RL->SetStepsize(m_tire_step_size);
+                tire_RR->SetStepsize(m_tire_step_size);
+            }
+
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
+
+            break;
+        }
         case TireModelType::PAC89: {
             HMMWV_Pac89Tire* tire_FL = new HMMWV_Pac89Tire("FL");
             HMMWV_Pac89Tire* tire_FR = new HMMWV_Pac89Tire("FR");

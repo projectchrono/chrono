@@ -23,8 +23,8 @@
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
-#include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkSpringCB.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -381,7 +381,8 @@ enum class TireModelType {
     ANCF,        ///< ANCF shell element-based tire
     REISSNER,    ///< Reissner 6-field shell element-based tire
     FEA,         ///< FEA co-rotational tire
-    PAC89        ///< Pacejka 89 (magic formula) tire
+    PAC89,       ///< Pacejka 89 (magic formula) tire
+    TMEASY       ///< Tire Model Made Easy tire (G. Rill)
 };
 
 /// Enum for available powertrain model templates.
@@ -416,7 +417,7 @@ enum Enum {
     CHASSIS = 0,  ///< chassis collision family
     TIRES = 1     ///< collision family for tire systems
 };
-}
+}  // namespace WheeledCollisionFamily
 
 /// Enum for track shoe types.
 enum class TrackShoeType {
@@ -448,7 +449,7 @@ enum Enum {
     ROLLERS_RIGHT = 1 << 10,
     ALL = 0xFFFF
 };
-}
+}  // namespace TrackedCollisionFlag
 
 /// Enumerations for tracked vehicle collision families.
 namespace TrackedCollisionFamily {
@@ -460,7 +461,7 @@ enum Enum {
     ROLLERS = 3,  ///< collision family for roller subsystems
     SHOES = 4     ///< collision family for track shoe subsystems
 };
-}
+}  // namespace TrackedCollisionFamily
 
 /// Flags for output (log/debug).
 /// These flags can be bit-wise ORed and used as a mask.

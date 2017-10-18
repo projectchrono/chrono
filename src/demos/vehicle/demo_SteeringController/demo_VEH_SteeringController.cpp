@@ -43,7 +43,7 @@ using namespace chrono::vehicle::hmmwv;
 // Contact method type
 ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 
-// Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
+// Type of tire model (RIGID, LUGRE, FIALA, PACEJKA, or TMEASY)
 TireModelType tire_model = TireModelType::RIGID;
 
 // Input file name for PACEJKA tires if they are selected
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactFrictionCoefficient(0.8f);
     terrain.SetContactRestitutionCoefficient(0.01f);
     terrain.SetContactMaterialProperties(2e7f, 0.3f);
     terrain.SetColor(ChColor(1, 1, 1));
