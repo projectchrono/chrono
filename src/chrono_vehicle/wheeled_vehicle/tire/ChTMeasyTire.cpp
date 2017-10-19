@@ -169,7 +169,7 @@ void ChTMeasyTire::Advance(double step) {
     if (!m_data.in_contact)
         return;
 
-    double vnum = 0.01;  // numerical value to prevend singularties
+    double vnum = 0.01;  // numerical value to prevent singularities
     double v;            // vector sum of slip velocities
     double vu;           // long. slip velocity
     double vt;           // transport velocity
@@ -202,12 +202,13 @@ void ChTMeasyTire::Advance(double step) {
     ChClampValue(m_states.cp_side_slip, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);
 
     // Express alpha and gamma in degrees. Express kappa as percentage.
-    m_gamma = 90.0 - std::acos(m_states.disc_normal.z()) * CH_C_RAD_TO_DEG;
+    // m_gamma = 90.0 - std::acos(m_states.disc_normal.z()) * CH_C_RAD_TO_DEG; from Pac89
+    m_gamma = GetCamberAngle() * CH_C_RAD_TO_DEG;
     m_alpha = m_states.cp_side_slip * CH_C_RAD_TO_DEG;
     m_kappa = m_states.cp_long_slip * 100.0;
 
     // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.
-    double gamma = ChClamp(m_gamma, -m_gamma_limit, m_gamma_limit) * CH_C_DEG_TO_RAD;
+    double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit* CH_C_DEG_TO_RAD, m_gamma_limit* CH_C_DEG_TO_RAD);
 
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).

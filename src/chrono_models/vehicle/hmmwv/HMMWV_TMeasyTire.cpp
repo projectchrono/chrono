@@ -36,7 +36,7 @@ const std::string HMMWV_TMeasyTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_TMeasyTire::HMMWV_TMeasyTire(const std::string& name) : ChTMeasyTire(name) {
-    ChTMeasyTire::SetGammaLimit(10);
+    SetTMeasyParams();
 }
 
 // -----------------------------------------------------------------------------
@@ -51,7 +51,7 @@ void HMMWV_TMeasyTire::SetTMeasyParams() {
     double w = 12.5 * in2m;
     double r = h / w;
     double rimdia = 16.5 * in2m;
-    double m = 25.0;
+    double m = 45.4;
 
     GuessTruck80Par(li,      // load index
                     w,       // tire width

@@ -174,9 +174,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     typedef struct {
         double pn;
 
-        double mu_0;  // local friction coefficient of the road for given parameters
-        double cz;
-        double dz, czq;
+        double mu_0;  		// local friction coefficient of the road for given parameters
+        double cz, czq;		// linear / quadratic coefficients of stiffness
+        double dz;			// linear damping coefficient
 
         double dfx0_pn, dfx0_p2n;
         double fxm_pn, fxm_p2n;
