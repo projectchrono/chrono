@@ -102,13 +102,13 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Get the tire longitudinal slip.
     virtual double GetLongitudinalSlip() const override { return m_states.cp_long_slip; }
 
-    /// Get the longitudinal slip used in Pac89 (expressed as a percentage).
+    /// Get the longitudinal slip used in the TMeasy model (expressed as a percentage).
     double GetKappa() const { return m_kappa; }
 
     /// Get the slip angle used in Pac89 (expressed in degrees).
     double GetAlpha() const { return m_alpha; }
 
-    /// Get the camber angle used in Pac89 (expressed in degrees).
+    /// Get the camber angle used in the TMeasy model (expressed in degrees).
     double GetGamma() { return m_gamma; }
 
     /// Get Max. Tire Load from Load Index (LI) in N [0:279]
@@ -156,6 +156,14 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Set the parameters in the TMeasy model.
     virtual void SetTMeasyParams() = 0;
 
+    /// Get the tire mass.
+    /// Note that this should not include the mass of the wheel (rim).
+    virtual double GetMass() const = 0;
+
+    /// Get the tire moments of inertia.
+    /// Note that these should not include the inertia of the wheel (rim).
+    virtual ChVector<> GetInertia() const = 0;
+
     double m_kappa;  ///< longitudinal slip (percentage)
     double m_alpha;  ///< slip angle (degrees)
     double m_gamma;  ///< camber angle (degrees)
@@ -165,18 +173,17 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// TMeasy tire model parameters
     double m_unloaded_radius;
     double m_width;
-    double m_rolling_resistance;
-    // double m_lateral_stiffness;     // actually unused
-    double m_mu;  // local friction coefficient of the road
+    double m_rolling_resistance;  // double m_lateral_stiffness (actually unused)
+    double m_mu;                  // local friction coefficient of the road
 
     VehicleSide m_measured_side;
 
     typedef struct {
         double pn;
 
-        double mu_0;  		// local friction coefficient of the road for given parameters
-        double cz, czq;		// linear / quadratic coefficients of stiffness
-        double dz;			// linear damping coefficient
+        double mu_0;     // local friction coefficient of the road for given parameters
+        double cz, czq;  // linear / quadratic coefficients of stiffness
+        double dz;       // linear damping coefficient
 
         double dfx0_pn, dfx0_p2n;
         double fxm_pn, fxm_p2n;

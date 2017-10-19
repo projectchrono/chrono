@@ -55,6 +55,10 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     SetTMeasyParams();
 
+    // Increment mass and inertia of the wheel body.
+    wheel->SetMass(wheel->GetMass() + GetMass());
+    wheel->SetInertiaXX(wheel->GetInertiaXX() + GetInertia());
+
     // Initialize contact patch state variables to 0;
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;

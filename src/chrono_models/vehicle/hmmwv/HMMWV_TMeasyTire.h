@@ -41,6 +41,8 @@ class CH_MODELS_API HMMWV_TMeasyTire : public ChTMeasyTire {
     virtual double GetVisualizationWidth() const override { return m_width; }
 
     virtual void SetTMeasyParams() override;
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -48,8 +50,10 @@ class CH_MODELS_API HMMWV_TMeasyTire : public ChTMeasyTire {
   private:
     static const std::string m_meshName;
     static const std::string m_meshFile;
-    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    static const double m_mass;
+    static const ChVector<> m_inertia;
 
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
     ChFunction_Recorder m_stiffnessMap;
 };
 
