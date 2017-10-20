@@ -522,9 +522,10 @@ public:
           this->_archive_out_constructor(marchive);
       }
 
-      virtual void CallOut(ChArchiveOut& marchive) {
-          marchive.out(CHNVP(*this->_ptr_to_val,this->_name.c_str()));
-      }
+      virtual void CallOut(ChArchiveOut& marchive); 
+      //{
+      //    marchive.out(CHNVP(*this->_ptr_to_val,this->_name.c_str()));
+      //}
 
 private:
 
@@ -1383,6 +1384,13 @@ class  ChArchiveIn : public ChArchive {
           return mver;
       }
 };
+
+
+template <class TClass> 
+void ChValueSpecific<TClass>::CallOut(ChArchiveOut& marchive) {
+          marchive.out(CHNVP(*this->_ptr_to_val,this->_name.c_str()));
+}
+
 
 /// @} chrono_serialization
 
