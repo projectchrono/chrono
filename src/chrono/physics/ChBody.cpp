@@ -954,23 +954,8 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     mflag = BFlagGet(BodyFlag::SLEEPING);
     marchive << CHNVP(mflag, "is_sleeping");
 
-    // marchive << CHNVP(marklist);
-    // do rather a custom array save:
-    marchive.out_array_pre("markers", marklist.size(), "ChMarker");
-    for (int i = 0; i < marklist.size(); i++) {
-        marchive << CHNVP(marklist[i], "");
-        marchive.out_array_between(marklist.size(), "markers");
-    }
-    marchive.out_array_end(marklist.size(), "markers");
-
-    // marchive << CHNVP(forcelist);
-    // do rather a custom array save:
-    marchive.out_array_pre("forces", forcelist.size(), "ChForce");
-    for (int i = 0; i < forcelist.size(); i++) {
-        marchive << CHNVP(forcelist[i], "");
-        marchive.out_array_between(forcelist.size(), "forces");
-    }
-    marchive.out_array_end(forcelist.size(), "forces");
+    marchive << CHNVP(marklist, "markers");
+    marchive << CHNVP(forcelist, "forces");
 
     marchive << CHNVP(body_id);
     marchive << CHNVP(collision_model);
@@ -1020,31 +1005,19 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(mflag, "is_sleeping");
     BFlagSet(BodyFlag::SLEEPING, mflag);
 
-    // marchive >> CHNVP(marklist);
-    // do rather a custom array load:
+    std::vector< std::shared_ptr<ChMarker>> tempmarkers;
+    std::vector< std::shared_ptr<ChForce>> tempforces;
+    marchive >> CHNVP(tempmarkers, "markers");
+    marchive >> CHNVP(tempforces,  "forces");
+    // trick needed because the "Add...() functions are required
     this->RemoveAllMarkers();
-    size_t nummarkers;
-    marchive.in_array_pre("markers", nummarkers);
-    for (int i = 0; i < nummarkers; i++) {
-        std::shared_ptr<ChMarker> a_marker;
-        marchive >> CHNVP(a_marker, "");
-        this->AddMarker(a_marker);
-        marchive.in_array_between("markers");
+    for (auto i : tempmarkers) {
+        this->AddMarker(i);
     }
-    marchive.in_array_end("markers");
-
-    // marchive >> CHNVP(forcelist);
-    // do rather a custom array load:
     this->RemoveAllForces();
-    size_t numforces;
-    marchive.in_array_pre("forces", numforces);
-    for (int i = 0; i < numforces; i++) {
-        std::shared_ptr<ChForce> a_force;
-        marchive >> CHNVP(a_force, "");
-        this->AddForce(a_force);
-        marchive.in_array_between("forces");
+    for (auto i : tempforces) {
+        this->AddForce(i);
     }
-    marchive.in_array_end("forces");
 
     marchive >> CHNVP(body_id);
     marchive >> CHNVP(collision_model);
