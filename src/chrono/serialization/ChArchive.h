@@ -360,7 +360,7 @@ public:
     virtual const char* GetTypeidName() =0;
 
         /// Get platform-dependent typeid of referenced data
-    virtual const type_info* GetTypeid() =0;
+    virtual const std::type_info* GetTypeid() =0;
 
         /// Tell if it is a null pointer    
     virtual bool IsNull()=0;
@@ -477,7 +477,7 @@ public:
           return chrono::class_factory::ChClassVersion<TClass>::version;
         }
 
-      virtual const type_info* GetTypeid() {
+      virtual const std::type_info* GetTypeid() {
           return &typeid(TClass);
       }
 
