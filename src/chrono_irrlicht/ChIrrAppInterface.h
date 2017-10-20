@@ -68,6 +68,10 @@ class ChApiIrr ChIrrAppInterface {
     void SetShowProfiler(bool val) { show_profiler = val; }
     bool GetShowProfiler() { return show_profiler; }
 
+    /// Show the object explorer
+    void SetShowExplorer(bool val) { show_explorer = val; }
+    bool GetShowExplorer() { return show_explorer; }
+
     /// Set/Get the time step for time integration. This value is used when
     /// calling DoStep() in a loop, to advance the simulation by one timestep.
     void SetTimestep(double val);
@@ -239,6 +243,7 @@ class ChApiIrr ChIrrAppInterface {
 
     bool show_infos;
     bool show_profiler;
+    bool show_explorer;
 
     bool step_manage;
     bool pause_step;
@@ -294,6 +299,8 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIEditBox* gad_symbolscale;
     irr::gui::IGUIStaticText* gad_symbolscale_info;
     irr::gui::IGUIStaticText* gad_textHelp;
+
+    irr::gui::IGUITreeView* gad_treeview;
 
   public:
     std::shared_ptr<ChLinkSpring>* selectedspring;
