@@ -896,9 +896,9 @@ inline void ChVector<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // suggested: use versioning
     marchive.VersionWrite<ChVector<double>>();  // must use specialized template (any)
     // stream out all member data
-    marchive << CHNVP(data[0]);
-    marchive << CHNVP(data[1]);
-    marchive << CHNVP(data[2]);
+    marchive << CHNVP(data[0],"x");
+    marchive << CHNVP(data[1],"y");
+    marchive << CHNVP(data[2],"z");
 }
 
 template <class Real>
@@ -906,9 +906,9 @@ inline void ChVector<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // suggested: use versioning
     int version = marchive.VersionRead<ChVector<double>>();  // must use specialized template (any)
     // stream in all member data
-    marchive >> CHNVP(data[0]);
-    marchive >> CHNVP(data[1]);
-    marchive >> CHNVP(data[2]);
+    marchive >> CHNVP(data[0],"x");
+    marchive >> CHNVP(data[1],"y");
+    marchive >> CHNVP(data[2],"z");
 }
 
 // -----------------------------------------------------------------------------

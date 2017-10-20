@@ -1247,10 +1247,10 @@ inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChQuaternion<double>>();  // must use specialized template (any)
     // stream out all member data
-    marchive << CHNVP(data[0]);
-    marchive << CHNVP(data[1]);
-    marchive << CHNVP(data[2]);
-    marchive << CHNVP(data[3]);
+    marchive << CHNVP(data[0],"e0");
+    marchive << CHNVP(data[1],"e1");
+    marchive << CHNVP(data[2],"e2");
+    marchive << CHNVP(data[3],"e3");
 }
 
 template <class Real>
@@ -1258,10 +1258,10 @@ inline void ChQuaternion<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
     // stream in all member data
-    marchive >> CHNVP(data[0]);
-    marchive >> CHNVP(data[1]);
-    marchive >> CHNVP(data[2]);
-    marchive >> CHNVP(data[3]);
+    marchive >> CHNVP(data[0],"e0");
+    marchive >> CHNVP(data[1],"e1");
+    marchive >> CHNVP(data[2],"e2");
+    marchive >> CHNVP(data[3],"e3");
 }
 
 }  // end namespace chrono
