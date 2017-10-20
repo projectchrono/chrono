@@ -65,29 +65,30 @@ class  ChArchiveOutBinary : public ChArchiveOut {
             (*ostream) << bVal.value().GetValueAsInt();
       }
 
-      virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
+      virtual void out_array_pre (ChValue& bVal, size_t msize) {
             (*ostream) << msize;
       }
-      virtual void out_array_between (size_t msize, const char* classname) {}
-      virtual void out_array_end (size_t msize,const char* classname) {}
+      virtual void out_array_between (size_t msize) {}
+      virtual void out_array_end (size_t msize) {}
 
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) {
-          bVal.value().CallArchiveOut(*this);
+      virtual void out     (ChValue& bVal, bool tracked, size_t obj_ID) {
+          bVal.CallArchiveOut(*this);
       }
 
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
+      virtual void out_ref          (ChValue& bVal, bool already_inserted, size_t obj_ID, size_t ext_ID) 
       {
+          const char* classname = bVal.GetClassRegisteredName().c_str();
           if (!already_inserted) {
             // New Object, we have to full serialize it
             std::string str(classname); 
             (*ostream) << str;    
-            bVal.value().CallArchiveOutConstructor(*this);
-            bVal.value().CallArchiveOut(*this);
+            bVal.CallArchiveOutConstructor(*this);
+            bVal.CallArchiveOut(*this);
           } else {
-              if (obj_ID || bVal.value().IsNull() ) {
+              if (obj_ID || bVal.IsNull() ) {
                 // Object already in list. Only store obj_ID as ID
                 std::string str("oID");
                 (*ostream) << str;       // serialize 'this was already saved' info as "oID" string

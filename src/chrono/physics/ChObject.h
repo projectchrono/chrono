@@ -91,6 +91,9 @@ class ChApi ChObj {
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
+
+    // Method to allow mnemonic names in (de)serialization of containers (std::vector, arrays, etc.) 
+    virtual std::string& ArchiveContainerName() {return name;}
 };
 
 CH_CLASS_VERSION(ChObj,0)
