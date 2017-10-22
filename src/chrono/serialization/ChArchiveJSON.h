@@ -163,12 +163,12 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++nitems.top();
       }
 
-      virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
+      virtual void out_array_pre (ChValue& bVal, size_t msize) {
             comma_cr();
             if (is_array.top()==false)
             {
                 indent();
-                (*ostream) << "\"" << name << "\"" << "\t: ";
+                (*ostream) << "\"" << bVal.name() << "\"" << "\t: ";
             }
             (*ostream) << "\n";
             indent();
@@ -178,10 +178,10 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             nitems.push(0);
             is_array.push(true);
       }
-      virtual void out_array_between (size_t msize, const char* classname) {
+      virtual void out_array_between (size_t msize) {
 
       }
-      virtual void out_array_end (size_t msize,const char* classname) {
+      virtual void out_array_end (size_t msize) {
             --tablevel;
             nitems.pop();
             is_array.pop();
@@ -193,7 +193,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) {
+      virtual void out     (ChValue& bVal, bool tracked, size_t obj_ID) {
             comma_cr();
             if (is_array.top()==false)
             {
@@ -214,7 +214,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
                 ++nitems.top();
             }
 
-            bVal.value().CallArchiveOut(*this);
+            bVal.CallArchiveOut(*this);
             
             --tablevel;
             nitems.pop();
@@ -227,7 +227,8 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname)  {
+      virtual void out_ref          (ChValue& bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID)  {
+          const char* classname = bVal.GetClassRegisteredName().c_str();
           comma_cr();
           indent();
           if (is_array.top()==false)
@@ -253,10 +254,10 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++nitems.top();
           
             // New Object, we have to full serialize it
-            bVal.value().CallArchiveOutConstructor(*this);
-            bVal.value().CallArchiveOut(*this);
+            bVal.CallArchiveOutConstructor(*this);
+            bVal.CallArchiveOut(*this);
           } else {
-              if (obj_ID || bVal.value().IsNull() ) {
+              if (obj_ID || bVal.IsNull() ) {
                 comma_cr();
                 indent();
                 (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;

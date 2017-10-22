@@ -52,9 +52,7 @@ class ChApi ChLineArc : public ChLine {
 
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(ChVector<>& pos,
-                          const double parU,
-                          const double parV = 0.,
-                          const double parW = 0.) const override;
+                          const double parU) const override;
 
     /// Returns curve length. sampling does not matter
     double Length(int sampling) const override { return fabs(radius * (angle1 - angle2)); }

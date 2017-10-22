@@ -17,14 +17,14 @@
 
 #include <cmath>
 
-#include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
 namespace geometry {
 
 /// A rounded box (sphere-swept box) geometric object for collisions and visualization.
 
-class ChApi ChRoundedBox : public ChGeometry {
+class ChApi ChRoundedBox : public ChVolume {
 
   public:
     ChMatrix33<> Rot;  /// rotation of box
@@ -62,8 +62,9 @@ class ChApi ChRoundedBox : public ChGeometry {
     /// Evaluate position in cube volume
     virtual void Evaluate(ChVector<>& pos,
                           const double parU,
-                          const double parV = 0.,
-                          const double parW = 0.) const override;
+                          const double parV,
+                          const double parW ) const override;
+
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
@@ -106,7 +107,7 @@ class ChApi ChRoundedBox : public ChGeometry {
         // version number
         marchive.VersionWrite<ChRoundedBox>();
         // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
+        ChVolume::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(Pos);
         marchive << CHNVP(Rot);
@@ -120,7 +121,7 @@ class ChApi ChRoundedBox : public ChGeometry {
         // version number
         int version = marchive.VersionRead<ChRoundedBox>();
         // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
+        ChVolume::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(Pos);
         marchive >> CHNVP(Rot);

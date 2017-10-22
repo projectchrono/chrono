@@ -22,6 +22,8 @@ namespace chrono {
 /// Class for linear actuators between two markers,
 /// as the actuator were joined with two spherical
 /// bearing at the origin of the two markers.
+/// **NOTE! THIS IS OBSOLETE**. Prefer using the new classes 
+/// inherited from chrono::ChLinkMotor.
 
 class ChApi ChLinkLinActuator : public ChLinkLock {
 

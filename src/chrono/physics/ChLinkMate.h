@@ -105,8 +105,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Its position is expressed in the coordinate system of body1.
     ChFrame<>& GetFrame1() { return frame1; }
 
-    /// Access the coordinate system considered attached to body1.
-    /// Its position is expressed in the coordinate system of body1.
+    /// Access the coordinate system considered attached to body2.
+    /// Its position is expressed in the coordinate system of body2.
     ChFrame<>& GetFrame2() { return frame2; };
 
     bool IsConstrainedX() { return c_x; }
@@ -127,6 +127,13 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
                             bool pos_are_relative,  ///< true: following pos. are relative to bodies.
                             ChFrame<> mframe1,      ///< mate frame (slave), for 1st body (rel. or abs., see flag above)
                             ChFrame<> mframe2       ///< mate frame (master), for 2nd body (rel. or abs., see flag above)
+                            );
+
+    /// Specialized initialization for generic mate, given the two bodies to be connected, and
+    /// the absolute position of the mate (the two frames to connect on the bodies will be initially cohincindent to that frame)
+    virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
+                            std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
+                            ChFrame<> mabsframe                   ///< mate frame (both for slave and master), in abs. coordinate
                             );
 
     /// Initialization based on passing two vectors (point + dir) on the

@@ -97,23 +97,7 @@ class ChApi ChGeometry {
     /// Returns the radius of the sphere which can enclose the geometry
     virtual double Size() const;
 
-    /// Evaluates a point on a geometry, given parametric coordinates,
-    /// if possible. Parameters  U,V,W should be usually in 0..1 range.
-    /// For a line, only U parameter is needed, for a surface also V.
-    /// Computed value goes into the 'pos' reference.
-    /// It should be overridden by inherited classes.
-    virtual void Evaluate(ChVector<>& pos, const double parU, const double parV = 0., const double parW = 0.) const {
-        pos = VNULL;
-    }
 
-    /// Evaluates a tangent versor on a geometry, given parametric coordinates,
-    /// if possible. Parameters  U,V,W should be usually in 0..1 range.
-    /// For a line, only U parameter is needed, for a surface also V.
-    /// Computed value goes into the 'pos' reference.
-    /// It could be overridden by inherited classes if a precise solution is
-    /// known (otherwise it defaults to numerical BDF using the Evaluate()
-    /// function.
-    virtual void Derive(ChVector<>& dir, const double parU, const double parV = 0., const double parW = 0.) const;
 
     /// Compute center of mass
     /// It should be overridden by inherited classes

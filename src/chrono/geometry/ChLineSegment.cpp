@@ -25,7 +25,7 @@ ChLineSegment::ChLineSegment(const ChLineSegment& source) : ChLine(source) {
     pB = source.pB;
 }
 
-void ChLineSegment::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
+void ChLineSegment::Evaluate(ChVector<>& pos, const double parU) const {
     pos = pA * (1 - parU) + pB * parU;
 }
 

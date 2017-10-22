@@ -204,6 +204,8 @@ using namespace chrono::geometry;
 
 %shared_ptr(chrono::ChShaft)
 %shared_ptr(chrono::ChShaftsBody)
+%shared_ptr(chrono::ChShaftsBodyTranslation)
+%shared_ptr(chrono::ChShaftsMotorBase)
 %shared_ptr(chrono::ChShaftsClutch)
 %shared_ptr(chrono::ChShaftsCouple)
 %shared_ptr(chrono::ChShaftsGear)

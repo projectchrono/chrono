@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/solver/ChSolverSMC.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -146,12 +147,11 @@ void AddContainer(ChIrrApp& application) {
     application.GetSystem()->AddBody(rotatingBody);
 
     // An engine between the two
-    auto my_motor = std::make_shared<ChLinkEngine>();
+    auto my_motor = std::make_shared<ChLinkMotorRotationSpeed>();
 
-    my_motor->Initialize(rotatingBody, fixedBody, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_motor->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI / 2);  // speed w=90°/s
+    my_motor->Initialize(rotatingBody, fixedBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    auto mfun = std::make_shared<ChFunction_Const>(CH_C_PI / 2.0);  // speed w=90°/s
+    my_motor->SetSpeedFunction(mfun);
 
     application.GetSystem()->AddLink(my_motor);
 }

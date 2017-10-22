@@ -99,6 +99,7 @@ set(ChronoEngine_serialization_HEADERS
     serialization/ChArchiveBinary.h
     serialization/ChArchiveAsciiDump.h
     serialization/ChArchiveJSON.h
+	serialization/ChArchiveExplorer.h
     )
 
 source_group(serialization FILES
@@ -143,6 +144,17 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRevoluteSpherical.cpp
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
+	physics/ChLinkMotor.cpp
+	physics/ChLinkMotorRotation.cpp
+	physics/ChLinkMotorRotationAngle.cpp
+	physics/ChLinkMotorRotationSpeed.cpp
+	physics/ChLinkMotorRotationTorque.cpp
+	physics/ChLinkMotorRotationDriveline.cpp
+	physics/ChLinkMotorLinear.cpp
+	physics/ChLinkMotorLinearPosition.cpp
+	physics/ChLinkMotorLinearSpeed.cpp
+	physics/ChLinkMotorLinearForce.cpp
+	physics/ChLinkMotorLinearDriveline.cpp
     physics/ChSystem.cpp
     physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
@@ -173,6 +185,9 @@ set(ChronoEngine_physics_SOURCES
     physics/ChShaftsClutch.cpp
     physics/ChShaftsPlanetary.cpp
     physics/ChShaftsMotor.cpp
+	physics/ChShaftsMotorAngle.cpp
+	physics/ChShaftsMotorSpeed.cpp
+	physics/ChShaftsMotorTorque.cpp
     physics/ChShaftsBody.cpp
     physics/ChShaftsTorqueBase.cpp
     physics/ChShaftsTorque.cpp
@@ -235,6 +250,17 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkRevoluteSpherical.h
     physics/ChLinkRevoluteTranslational.h
     physics/ChLinkUniversal.h
+	physics/ChLinkMotor.h
+	physics/ChLinkMotorRotation.h
+	physics/ChLinkMotorRotationAngle.h
+	physics/ChLinkMotorRotationSpeed.h
+	physics/ChLinkMotorRotationTorque.h
+	physics/ChLinkMotorRotationDriveline.h
+	physics/ChLinkMotorLinear.h
+	physics/ChLinkMotorLinearPosition.h
+	physics/ChLinkMotorLinearSpeed.h
+	physics/ChLinkMotorLinearForce.h
+	physics/ChLinkMotorLinearDriveline.h
     physics/ChMarker.h
     physics/ChMaterialSurface.h
     physics/ChMaterialSurfaceNSC.h
@@ -258,6 +284,9 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsGearbox.h
     physics/ChShaftsGearboxAngled.h
     physics/ChShaftsMotor.h
+	physics/ChShaftsMotorAngle.h
+	physics/ChShaftsMotorSpeed.h
+	physics/ChShaftsMotorTorque.h
     physics/ChShaftsPlanetary.h
     physics/ChShaftsTorqueBase.h
     physics/ChShaftsTorque.h
@@ -308,6 +337,7 @@ set(ChronoEngine_geometry_SOURCES
     geometry/ChLineSegment.cpp
     geometry/ChLinePath.cpp
     geometry/ChLineBezier.cpp
+	geometry/ChLineNurbs.cpp
     geometry/ChLineCam.cpp
     geometry/ChLinePoly.cpp
     geometry/ChTriangle.cpp
@@ -316,6 +346,9 @@ set(ChronoEngine_geometry_SOURCES
     geometry/ChRoundedBox.cpp
     geometry/ChRoundedCylinder.cpp
     geometry/ChRoundedCone.cpp
+	geometry/ChSurface.cpp
+	geometry/ChSurfaceNurbs.cpp
+	geometry/ChVolume.cpp
     )
 
 set(ChronoEngine_geometry_HEADERS
@@ -333,6 +366,7 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChLineSegment.h
     geometry/ChLinePath.h
     geometry/ChLineBezier.h
+	geometry/ChLineNurbs.h
     geometry/ChTriangle.h
     geometry/ChTriangleMesh.h
     geometry/ChTriangleMeshSoup.h
@@ -340,6 +374,11 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChRoundedBox.h
     geometry/ChRoundedCylinder.h
     geometry/ChRoundedCone.h
+	geometry/ChSurface.h
+	geometry/ChSurfaceNurbs.h
+	geometry/ChVolume.h
+	geometry/ChBasisToolsBspline.h
+	geometry/ChBasisToolsNurbs.h
     )
 
 source_group(geometry FILES
@@ -372,6 +411,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChLineShape.cpp
     assets/ChEmitterAsset.cpp
     assets/ChPointPointDrawing.cpp
+	assets/ChSurfaceShape.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
@@ -400,6 +440,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChLineShape.h
     assets/ChEmitterAsset.h
     assets/ChPointPointDrawing.h
+	assets/ChSurfaceShape.h
     )
 
 source_group(assets FILES
@@ -536,6 +577,7 @@ set(ChronoEngine_motion_functions_SOURCES
     motion_functions/ChFunction_Sequence.cpp
     motion_functions/ChFunction_Sigma.cpp
     motion_functions/ChFunction_Sine.cpp
+	motion_functions/ChFunction_Setpoint.cpp
     )
 
 set(ChronoEngine_motion_functions_HEADERS
@@ -559,7 +601,9 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_Repeat.h
     motion_functions/ChFunction_Sequence.h
     motion_functions/ChFunction_Sigma.h
-    motion_functions/ChFunction_Sine.h)
+    motion_functions/ChFunction_Sine.h
+	motion_functions/ChFunction_Setpoint.h
+	)
 
 if(CH_CXX14)
   set(ChronoEngine_motion_functions_HEADERS ${ChronoEngine_motion_functions_HEADERS}
@@ -883,6 +927,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChProfiler.cpp
     utils/ChFilters.cpp
     utils/ChCompositeInertia.cpp
+    utils/ChParserOpenSim.cpp
     )
 
 set(ChronoEngine_utils_HEADERS
@@ -896,6 +941,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChProfiler.h
     utils/ChFilters.h
     utils/ChCompositeInertia.h
+    utils/ChParserOpenSim.h
 )
 
 source_group(utils FILES

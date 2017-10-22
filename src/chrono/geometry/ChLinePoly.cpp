@@ -57,7 +57,7 @@ bool ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
 // Curve evaluation.
 //
 
-void ChLinePoly::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
+void ChLinePoly::Evaluate(ChVector<>& pos, const double parU) const {
     double par = parU;
     pos = VNULL;
 

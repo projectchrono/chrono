@@ -27,6 +27,7 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -42,7 +43,7 @@ using namespace chrono::vehicle::hmmwv;
 // Contact method type
 ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 
-// Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
+// Type of tire model (RIGID, LUGRE, FIALA, PACEJKA, or TMEASY)
 TireModelType tire_model = TireModelType::RIGID;
 
 // Input file name for PACEJKA tires if they are selected
@@ -64,9 +65,9 @@ VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");
 std::string speed_controller_file("generic/driver/SpeedController.json");
-// std::string path_file("paths/straight.txt");
-// std::string path_file("paths/curve.txt");
-// std::string path_file("paths/NATO_double_lane_change.txt");
+////std::string path_file("paths/straight.txt");
+////std::string path_file("paths/curve.txt");
+////std::string path_file("paths/NATO_double_lane_change.txt");
 std::string path_file("paths/ISO_double_lane_change.txt");
 
 // Initial vehicle location and orientation
@@ -213,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactFrictionCoefficient(0.8f);
     terrain.SetContactRestitutionCoefficient(0.01f);
     terrain.SetContactMaterialProperties(2e7f, 0.3f);
     terrain.SetColor(ChColor(1, 1, 1));
@@ -224,7 +225,15 @@ int main(int argc, char* argv[]) {
     // Create the Bezier path
     // ----------------------
 
+    // From data file
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
+
+    // Parameterized ISO double lane change (to left)
+    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
+
+    // Parameterized NATO double lane change (to right)
+    ////auto path = DoubleLaneChangePath(ChVector<>(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
+ 
     ////path->write("my_path.txt");
 
     // ---------------------------------------

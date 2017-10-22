@@ -482,12 +482,12 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             for (unsigned int ig = 0; ig < 200; ig++) {
                 double mU = maxU * ((double)ig / (double)(200 - 1));  // abscyssa
                 ChVector<> t2;
-                mline->Evaluate(t2, mU, 0, 0);
+                mline->Evaluate(t2, mU);
                 t2 = pos_final + lrot.Rotate(t2);
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
 
                 mU = maxU * ((double)(ig + 1) / (double)(200 - 1));  // abscyssa
-                mline->Evaluate(t2, mU, 0, 0);
+                mline->Evaluate(t2, mU);
                 t2 = pos_final + lrot.Rotate(t2);
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
             }

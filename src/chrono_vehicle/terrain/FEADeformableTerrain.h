@@ -50,6 +50,15 @@ class CH_VEHICLE_API FEADeformableTerrain : public ChTerrain {
     /// Get the terrain normal at the specified (x,y) location.
     virtual chrono::ChVector<> GetNormal(double x, double y) const override;
 
+    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// This coefficient of friction value may be used by certain tire models to modify
+    /// the tire characteristics, but it will have no effect on the interaction of the terrain
+    /// with other objects (including tire models that do not explicitly use it).
+    /// For FEADeformableTerrain, this function defers to the user-provided functor object
+    /// of type ChTerrain::FrictionFunctor, if one was specified.
+    /// Otherwise, it returns the constant value of 0.8.
+    virtual float GetCoefficientFriction(double x, double y) const override;
+
     /// Set the properties of the Drucker-Prager FEA soil.
     void SetSoilParametersFEA(double rho,              ///< [in] Soil density
                               double Emod,             ///< [in] Soil modulus of elasticity

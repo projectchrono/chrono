@@ -21,11 +21,14 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsGear)
 
-ChShaftsGear::ChShaftsGear() : ratio(1), torque_react(0) {}
+ChShaftsGear::ChShaftsGear() : ratio(1), torque_react(0), avoid_phase_drift(true), phase1(0), phase2(0) {}
 
 ChShaftsGear::ChShaftsGear(const ChShaftsGear& other) : ChShaftsCouple(other) {
     ratio = other.ratio;
     torque_react = other.torque_react;
+    avoid_phase_drift = other.avoid_phase_drift;
+    phase1 = other.phase1;
+    phase2 = other.phase2;
 }
 
 bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
@@ -35,6 +38,9 @@ bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<
 
     ChShaft* mm1 = mshaft1.get();
     ChShaft* mm2 = mshaft2.get();
+
+    phase1 = shaft1->GetPos();
+    phase2 = shaft2->GetPos();
 
     constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
 
@@ -74,7 +80,10 @@ void ChShaftsGear::IntLoadConstraint_C(const unsigned int off_L,  // offset in Q
                                        bool do_clamp,             // apply clamping to c*C?
                                        double recovery_clamp      // value for min/max clamping of c*C
                                        ) {
-    double res = 0;  // no residual anyway! allow drifting...
+    double res = this->ratio * (this->shaft1->GetPos() - phase1) + 
+                 -1.0        * (this->shaft2->GetPos() - phase2);
+    if (!avoid_phase_drift) 
+        res = 0;
 
     double cnstr_violation = c * res;
 
@@ -147,6 +156,9 @@ void ChShaftsGear::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
     marchive << CHNVP(ratio);
+    marchive << CHNVP(avoid_phase_drift);
+    marchive << CHNVP(phase1);
+    marchive << CHNVP(phase2);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -159,6 +171,9 @@ void ChShaftsGear::ArchiveIN(ChArchiveIn& marchive) {
 
     // deserialize all member data:
     marchive >> CHNVP(ratio);
+    marchive >> CHNVP(avoid_phase_drift);
+    marchive >> CHNVP(phase1);
+    marchive >> CHNVP(phase2);
 }
 
 }  // end namespace chrono

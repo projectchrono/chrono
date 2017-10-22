@@ -58,6 +58,11 @@ ChVector<> SCMDeformableTerrain::GetNormal(double x, double y) const {
     return m_ground->plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
 }
 
+// Return the terrain coefficient of friction at the specified location
+float SCMDeformableTerrain::GetCoefficientFriction(double x, double y) const {
+    return m_friction_fun ? (*m_friction_fun)(x, y) : 0.8f;
+}
+
 // Set the color of the visualization assets
 void SCMDeformableTerrain::SetColor(ChColor color) {
     m_ground->m_color->SetColor(color);

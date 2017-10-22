@@ -32,7 +32,7 @@ namespace vehicle {
 /// Base class for a terrain system.
 class CH_VEHICLE_API ChTerrain {
   public:
-    ChTerrain() {}
+    ChTerrain();
 
     virtual ~ChTerrain() {}
 
@@ -47,6 +47,27 @@ class CH_VEHICLE_API ChTerrain {
 
     /// Get the terrain normal at the specified (x,y) location.
     virtual ChVector<> GetNormal(double x, double y) const = 0;
+
+    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// This coefficient of friction value may be used by certain tire models to modify
+    /// the tire characteristics, but it will have no effect on the interaction of the terrain
+    /// with other objects (including tire models that do not explicitly use it).
+    virtual float GetCoefficientFriction(double x, double y) const = 0;
+
+    /// Class to be used as a functor interface for location-dependent coefficient of friction.
+    class ChApi FrictionFunctor {
+      public:
+        virtual ~FrictionFunctor() {}
+
+        /// Return the coefficient of friction at a given (x,y) location.
+        virtual float operator()(double x, double y) = 0;
+    };
+
+    /// Specify the functor object to provide the coefficient of friction at given (x,y) locations.
+    void RegisterFrictionFunctor(FrictionFunctor* functor) { m_friction_fun = functor; }
+
+  protected:
+    FrictionFunctor* m_friction_fun;  ///< functor for location-dependent coefficient of friction
 };
 
 /// @} vehicle_terrain

@@ -17,14 +17,14 @@
 
 #include <cmath>
 
-#include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
 namespace geometry {
 
 /// A box geometric object for collisions and visualization.
 
-class ChApi ChBox : public ChGeometry {
+class ChApi ChBox : public ChVolume {
 
   public:
     ChMatrix33<> Rot;  ///< box rotation
@@ -40,7 +40,7 @@ class ChApi ChBox : public ChGeometry {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChBox* Clone() const override { return new ChBox(*this); }
 
-    virtual GeometryType GetClassType() const override { return BOX; }
+    virtual ChGeometry::GeometryType GetClassType() const override { return BOX; }
 
     virtual void GetBoundingBox(double& xmin,
                                 double& xmax,
@@ -59,8 +59,9 @@ class ChApi ChBox : public ChGeometry {
     /// Evaluate position in cube volume
     virtual void Evaluate(ChVector<>& pos,
                           const double parU,
-                          const double parV = 0.,
-                          const double parW = 0.) const override;
+                          const double parV,
+                          const double parW) const override;
+    
 
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
@@ -101,7 +102,7 @@ class ChApi ChBox : public ChGeometry {
         // version number
         marchive.VersionWrite<ChBox>();
         // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
+        ChVolume::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(Pos);
         marchive << CHNVP(Rot);
@@ -114,7 +115,7 @@ class ChApi ChBox : public ChGeometry {
         // version number
         int version = marchive.VersionRead<ChBox>();
         // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
+        ChVolume::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(Pos);
         marchive >> CHNVP(Rot);

@@ -31,20 +31,22 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_Driveline2WD.h
     hmmwv/HMMWV_Driveline4WD.cpp
     hmmwv/HMMWV_Driveline4WD.h
+    hmmwv/HMMWV_RigidTire.cpp
+    hmmwv/HMMWV_RigidTire.h
     hmmwv/HMMWV_FialaTire.cpp
     hmmwv/HMMWV_FialaTire.h
     hmmwv/HMMWV_LugreTire.cpp
     hmmwv/HMMWV_LugreTire.h
     hmmwv/HMMWV_Pac89Tire.cpp
-    hmmwv/HMMWV_Pac89Tire.h	
+    hmmwv/HMMWV_Pac89Tire.h
+    hmmwv/HMMWV_TMeasyTire.cpp
+    hmmwv/HMMWV_TMeasyTire.h
     hmmwv/HMMWV_PitmanArm.cpp
     hmmwv/HMMWV_PitmanArm.h
     hmmwv/HMMWV_Powertrain.cpp
     hmmwv/HMMWV_Powertrain.h
     hmmwv/HMMWV_RackPinion.cpp
     hmmwv/HMMWV_RackPinion.h
-    hmmwv/HMMWV_RigidTire.cpp
-    hmmwv/HMMWV_RigidTire.h
     hmmwv/HMMWV_SimpleDriveline.cpp
     hmmwv/HMMWV_SimpleDriveline.h
     hmmwv/HMMWV_SimplePowertrain.cpp

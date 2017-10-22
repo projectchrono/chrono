@@ -488,5 +488,12 @@ ChVector<> RigidTerrain::GetNormal(double x, double y) const {
     }
 }
 
+// -----------------------------------------------------------------------------
+// Return the terrain coefficient of friction at the specified location.
+// -----------------------------------------------------------------------------
+float RigidTerrain::GetCoefficientFriction(double x, double y) const {
+    return m_friction_fun ? (*m_friction_fun)(x, y) : m_friction;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
