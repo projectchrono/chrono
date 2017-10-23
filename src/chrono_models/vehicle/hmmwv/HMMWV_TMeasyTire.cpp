@@ -60,14 +60,13 @@ void HMMWV_TMeasyTire::SetTMeasyParams() {
                     r,      // aspect ratio
                     rimdia  // rim diameter
     );
+}
 
-    // optional: write a plot file (gnuplot) to check the characteristics
-    // the plots are being generated at initialization of this class
-    // look at the plot: gnuplot 37x12.5x16.5_FL.gpl
-    // inside gnuplot use the command load '37x12.5x16.5_FL.gpl'
-    std::string plotName = "37x12.5x16.5";
-    plotName += this->GetName() + ".gpl";
-    WritePlots(plotName, "37x12.5x16.5");
+void HMMWV_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname) {
+    // Write a plot file (gnuplot) to check the tire characteristics.
+    // Inside gnuplot use the command load 'filename'
+    std::string filename = dirname + "/37x12.5x16.5_" + GetName() + ".gpl";
+    WritePlots(filename, "37x12.5x16.5");
 }
 
 // -----------------------------------------------------------------------------

@@ -520,7 +520,7 @@ double ChTMeasyTire::GetTireMaxLoad(unsigned int li) {
     return fmax;
 }
 
-void ChTMeasyTire::WritePlots(std::string plName, std::string plTitle) {
+void ChTMeasyTire::WritePlots(const std::string& plName, const std::string& plTitle) {
     if (m_TMeasyCoeff.mu_0 == 0.0 || m_TMeasyCoeff.cz == 0.0) {
         std::cout << "Tire Object not initialised - nothing to plot!" << std::endl;
         return;

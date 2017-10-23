@@ -47,6 +47,8 @@ class CH_MODELS_API HMMWV_TMeasyTire : public ChTMeasyTire {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
+    void GenerateCharacteristicPlots(const std::string& dirname);
+
   private:
     static const std::string m_meshName;
     static const std::string m_meshFile;

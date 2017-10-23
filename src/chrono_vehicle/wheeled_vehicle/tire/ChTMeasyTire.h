@@ -134,8 +134,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
     void VerticalStiffnessByTable(std::vector<double>& defl, std::vector<double>& frc);
 
-    /// Generate Basic Tire Plots
-    void WritePlots(std::string plFileName, std::string plTireFormat);
+    /// Generate basic tire plots.
+    /// This function creates a Gnuplot script file with the specified name.
+    void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
 
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
