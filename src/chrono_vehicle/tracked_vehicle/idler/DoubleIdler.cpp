@@ -19,6 +19,7 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -26,16 +27,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -73,22 +64,22 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
     m_wheel_width = d["Wheel"]["Width"].GetDouble();
     m_wheel_gap = d["Wheel"]["Gap"].GetDouble();
     m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
-    m_wheel_inertia = loadVector(d["Wheel"]["Inertia"]);
-    m_points[WHEEL] = loadVector(d["Wheel"]["COM"]);
+    m_wheel_inertia = LoadVectorJSON(d["Wheel"]["Inertia"]);
+    m_points[WHEEL] = LoadVectorJSON(d["Wheel"]["COM"]);
 
     // Read carrier geometry and mass properties
     assert(d.HasMember("Carrier"));
     m_carrier_mass = d["Carrier"]["Mass"].GetDouble();
-    m_carrier_inertia = loadVector(d["Carrier"]["Inertia"]);
-    m_points[CARRIER] = loadVector(d["Carrier"]["COM"]);
-    m_points[CARRIER_CHASSIS] = loadVector(d["Carrier"]["Location Chassis"]);
+    m_carrier_inertia = LoadVectorJSON(d["Carrier"]["Inertia"]);
+    m_points[CARRIER] = LoadVectorJSON(d["Carrier"]["COM"]);
+    m_points[CARRIER_CHASSIS] = LoadVectorJSON(d["Carrier"]["Location Chassis"]);
     m_carrier_vis_radius = d["Carrier"]["Visualization Radius"].GetDouble();
     m_pitch_angle = d["Carrier"]["Pitch Angle"].GetDouble();
 
     // Read tensioner data
     assert(d.HasMember("Tensioner"));
-    m_points[TSDA_CARRIER] = loadVector(d["Tensioner"]["Location Carrier"]);
-    m_points[TSDA_CHASSIS] = loadVector(d["Tensioner"]["Location Chassis"]);
+    m_points[TSDA_CARRIER] = LoadVectorJSON(d["Tensioner"]["Location Carrier"]);
+    m_points[TSDA_CHASSIS] = LoadVectorJSON(d["Tensioner"]["Location Chassis"]);
     m_tensioner_l0 = d["Tensioner"]["Free Length"].GetDouble();
     double tensioner_f = d["Tensioner"]["Preload"].GetDouble();
     if (d["Tensioner"].HasMember("Spring Coefficient")) {

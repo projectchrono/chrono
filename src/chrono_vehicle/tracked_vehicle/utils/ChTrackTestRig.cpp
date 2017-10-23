@@ -36,6 +36,8 @@
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -85,21 +87,7 @@ void ChTrackTestRigChassis::AddVisualizationAssets(VisualizationType vis) {
 }
 
 // -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion, respectively,
-// from the specified JSON array.
 // -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-static ChQuaternion<> loadQuaternion(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 4);
-    return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
-}
-
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
                                const ChVector<>& location,
                                ChMaterialSurface::ContactMethod contact_method)

@@ -173,6 +173,8 @@ set(CV_UTILS_FILES
     utils/ChAdaptiveSpeedController.cpp
     utils/ChVehiclePath.h
     utils/ChVehiclePath.cpp
+    utils/ChUtilsJSON.h
+    utils/ChUtilsJSON.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_UTILS_FILES

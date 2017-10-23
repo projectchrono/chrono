@@ -19,6 +19,7 @@
 #include <cstdio>
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -26,16 +27,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // Construct a multi-link suspension using data from the specified JSON
@@ -85,8 +76,8 @@ void MultiLink::Create(const rapidjson::Document& d) {
     assert(d["Spindle"].IsObject());
 
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = loadVector(d["Spindle"]["COM"]);
-    m_spindleInertia = loadVector(d["Spindle"]["Inertia"]);
+    m_points[SPINDLE] = LoadVectorJSON(d["Spindle"]["COM"]);
+    m_spindleInertia = LoadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
@@ -95,8 +86,8 @@ void MultiLink::Create(const rapidjson::Document& d) {
     assert(d["Upright"].IsObject());
 
     m_uprightMass = d["Upright"]["Mass"].GetDouble();
-    m_points[UPRIGHT] = loadVector(d["Upright"]["COM"]);
-    m_uprightInertia = loadVector(d["Upright"]["Inertia"]);
+    m_points[UPRIGHT] = LoadVectorJSON(d["Upright"]["COM"]);
+    m_uprightInertia = LoadVectorJSON(d["Upright"]["Inertia"]);
     m_uprightRadius = d["Upright"]["Radius"].GetDouble();
 
     // Read Upper Arm data
@@ -104,52 +95,52 @@ void MultiLink::Create(const rapidjson::Document& d) {
     assert(d["Upper Arm"].IsObject());
 
     m_upperArmMass = d["Upper Arm"]["Mass"].GetDouble();
-    m_points[UA_CM] = loadVector(d["Upper Arm"]["COM"]);
-    m_upperArmInertia = loadVector(d["Upper Arm"]["Inertia"]);
+    m_points[UA_CM] = LoadVectorJSON(d["Upper Arm"]["COM"]);
+    m_upperArmInertia = LoadVectorJSON(d["Upper Arm"]["Inertia"]);
     m_upperArmRadius = d["Upper Arm"]["Radius"].GetDouble();
-    m_points[UA_F] = loadVector(d["Upper Arm"]["Location Chassis Front"]);
-    m_points[UA_B] = loadVector(d["Upper Arm"]["Location Chassis Back"]);
-    m_points[UA_U] = loadVector(d["Upper Arm"]["Location Upright"]);
+    m_points[UA_F] = LoadVectorJSON(d["Upper Arm"]["Location Chassis Front"]);
+    m_points[UA_B] = LoadVectorJSON(d["Upper Arm"]["Location Chassis Back"]);
+    m_points[UA_U] = LoadVectorJSON(d["Upper Arm"]["Location Upright"]);
 
     // Read Lateral data
     assert(d.HasMember("Lateral"));
     assert(d["Lateral"].IsObject());
 
     m_lateralMass = d["Lateral"]["Mass"].GetDouble();
-    m_points[LAT_CM] = loadVector(d["Lateral"]["COM"]);
-    m_lateralInertia = loadVector(d["Lateral"]["Inertia"]);
+    m_points[LAT_CM] = LoadVectorJSON(d["Lateral"]["COM"]);
+    m_lateralInertia = LoadVectorJSON(d["Lateral"]["Inertia"]);
     m_lateralRadius = d["Lateral"]["Radius"].GetDouble();
-    m_points[LAT_C] = loadVector(d["Lateral"]["Location Chassis"]);
-    m_points[LAT_U] = loadVector(d["Lateral"]["Location Upright"]);
-    m_directions[UNIV_AXIS_LINK_LAT] = loadVector(d["Lateral"]["Universal Joint Axis Link"]);
-    m_directions[UNIV_AXIS_CHASSIS_LAT] = loadVector(d["Lateral"]["Universal Joint Axis Chassis"]);
+    m_points[LAT_C] = LoadVectorJSON(d["Lateral"]["Location Chassis"]);
+    m_points[LAT_U] = LoadVectorJSON(d["Lateral"]["Location Upright"]);
+    m_directions[UNIV_AXIS_LINK_LAT] = LoadVectorJSON(d["Lateral"]["Universal Joint Axis Link"]);
+    m_directions[UNIV_AXIS_CHASSIS_LAT] = LoadVectorJSON(d["Lateral"]["Universal Joint Axis Chassis"]);
 
     // Read Trailing Link data
     assert(d.HasMember("Trailing Link"));
     assert(d["Trailing Link"].IsObject());
 
     m_trailingLinkMass = d["Trailing Link"]["Mass"].GetDouble();
-    m_points[TL_CM] = loadVector(d["Trailing Link"]["COM"]);
-    m_trailingLinkInertia = loadVector(d["Trailing Link"]["Inertia"]);
+    m_points[TL_CM] = LoadVectorJSON(d["Trailing Link"]["COM"]);
+    m_trailingLinkInertia = LoadVectorJSON(d["Trailing Link"]["Inertia"]);
     m_trailingLinkRadius = d["Trailing Link"]["Radius"].GetDouble();
-    m_points[TL_C] = loadVector(d["Trailing Link"]["Location Chassis"]);
-    m_points[TL_U] = loadVector(d["Trailing Link"]["Location Upright"]);
-    m_directions[UNIV_AXIS_LINK_TL] = loadVector(d["Trailing Link"]["Universal Joint Axis Link"]);
-    m_directions[UNIV_AXIS_CHASSIS_TL] = loadVector(d["Trailing Link"]["Universal Joint Axis Chassis"]);
+    m_points[TL_C] = LoadVectorJSON(d["Trailing Link"]["Location Chassis"]);
+    m_points[TL_U] = LoadVectorJSON(d["Trailing Link"]["Location Upright"]);
+    m_directions[UNIV_AXIS_LINK_TL] = LoadVectorJSON(d["Trailing Link"]["Universal Joint Axis Link"]);
+    m_directions[UNIV_AXIS_CHASSIS_TL] = LoadVectorJSON(d["Trailing Link"]["Universal Joint Axis Chassis"]);
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
 
-    m_points[TIEROD_C] = loadVector(d["Tierod"]["Location Chassis"]);
-    m_points[TIEROD_U] = loadVector(d["Tierod"]["Location Upright"]);
+    m_points[TIEROD_C] = LoadVectorJSON(d["Tierod"]["Location Chassis"]);
+    m_points[TIEROD_U] = LoadVectorJSON(d["Tierod"]["Location Upright"]);
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
     assert(d["Spring"].IsObject());
 
-    m_points[SPRING_C] = loadVector(d["Spring"]["Location Chassis"]);
-    m_points[SPRING_L] = loadVector(d["Spring"]["Location Link"]);
+    m_points[SPRING_C] = LoadVectorJSON(d["Spring"]["Location Chassis"]);
+    m_points[SPRING_L] = LoadVectorJSON(d["Spring"]["Location Link"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
 
     if (d["Spring"].HasMember("Spring Coefficient")) {
@@ -168,8 +159,8 @@ void MultiLink::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
 
-    m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_L] = loadVector(d["Shock"]["Location Link"]);
+    m_points[SHOCK_C] = LoadVectorJSON(d["Shock"]["Location Chassis"]);
+    m_points[SHOCK_L] = LoadVectorJSON(d["Shock"]["Location Link"]);
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
         m_shockForceCB = new LinearDamperForce(d["Shock"]["Damping Coefficient"].GetDouble());
