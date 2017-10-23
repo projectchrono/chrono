@@ -80,6 +80,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementBeam.h
     ChElementBeamANCF.h
     ChElementBeamEuler.h
+	ChElementBeamIGA.h
     ChElementCableANCF.h
     ChElementBrick.h 
     ChElementBrick_9.h
