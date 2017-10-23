@@ -1,4 +1,4 @@
-// =============================================================================
+//
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <string>
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChTransform.h"
@@ -23,6 +24,8 @@
 #include "chrono/physics/ChBody.h"
 
 using namespace chrono;
+
+static void checkTriadAndPrint(std::string desc, const ChVector<double>& o, const ChVector<double>& x, const ChVector<double>& y);
 
 int main(int argc, char* argv[]) {
     // To write something to the console, use the chrono::GetLog()
@@ -324,70 +327,123 @@ int main(int argc, char* argv[]) {
      GetLog() << "Test 3 frame transf. with >> ChFrame operator: " <<  timer() << " \n";
 
 
-     timer.start();
-     for (i= 0; i<1000000; i++)
-     {
-     testa.SetCoord(vtraslA,qrotA);
-     }
-     timer.stop();
-     GetLog() << "Test ChFrame::SetPos() " <<  timer() << " \n";
+	 timer.start();
+	 for (i= 0; i<1000000; i++)
+	 {
+	 testa.SetCoord(vtraslA,qrotA);
+	 }
+	 timer.stop();
+	 GetLog() << "Test ChFrame::SetPos() " <<  timer() << " \n";
 
 
-     //ChQuaternion<> mqdt(1, 2, 3, 4);
-     timer.start();
-     for (i= 0; i<1000000; i++)
-     {
-     testa.SetRot_dt(mqdt);
-     }
-     timer.stop();
-     GetLog() << "Test ChFrame::SetRot_dt() " <<  timer() << " \n";
+	 //ChQuaternion<> mqdt(1, 2, 3, 4);
+	 timer.start();
+	 for (i= 0; i<1000000; i++)
+	 {
+	 testa.SetRot_dt(mqdt);
+	 }
+	 timer.stop();
+	 GetLog() << "Test ChFrame::SetRot_dt() " <<  timer() << " \n";
 
-     timer.start();
-     for (i= 0; i<1000000; i++)
-     {
-     testa.SetRot_dtdt(mqdt);
-     }
-     timer.stop()
-     GetLog() << "Test ChFrame::SetRot_dtdt() " <<  timer() << " \n";
-
-
-     ChVector<> mv(1, 2, 3);
-     timer.start();
-     for (i= 0; i<1000000; i++)
-     {
-     testa.SetWvel_loc(mv);
-     }
-     timer.stop();
-     GetLog() << "Test ChFrame::SetWvel_loc() " <<  timer() << " \n";
-
-     timer.start();
-     for (i= 0; i<1000000; i++)
-     {
-     testa.SetWacc_loc(mv);
-     }
-     timer.stop();
-     GetLog() << "Test ChFrame::SetWacc_loc() " <<  timer() << " \n";
-
-     timer.start();
-     for (i= 0; i<1000000; i++)
-     {
-     Vector p= testa.GetWvel_loc();
-     }
-     timer.stop();
-     GetLog() << "Test ChFrame::GetWvel_loc() " <<  timer() << " \n";
-
-     timer.start();
-     for (i= 0; i<1000000; i++)
-     {
-     ChVector<> p= testa.GetWacc_loc();
-     }
-     timer.stop();
-     GetLog() << "Test ChFrame::GetWacc_loc() " <<  timer() << " \n";
+	 timer.start();
+	 for (i= 0; i<1000000; i++)
+	 {
+	 testa.SetRot_dtdt(mqdt);
+	 }
+	 timer.stop()
+	 GetLog() << "Test ChFrame::SetRot_dtdt() " <<  timer() << " \n";
 
 
-     */
+	 ChVector<> mv(1, 2, 3);
+	 timer.start();
+	 for (i= 0; i<1000000; i++)
+	 {
+	 testa.SetWvel_loc(mv);
+	 }
+	 timer.stop();
+	 GetLog() << "Test ChFrame::SetWvel_loc() " <<  timer() << " \n";
 
-    GetLog() << "\n  CHRONO execution terminated.";
+	 timer.start();
+	 for (i= 0; i<1000000; i++)
+	 {
+	 testa.SetWacc_loc(mv);
+	 }
+	 timer.stop();
+	 GetLog() << "Test ChFrame::SetWacc_loc() " <<  timer() << " \n";
 
-    return 0;
+	 timer.start();
+	 for (i= 0; i<1000000; i++)
+	 {
+	 Vector p= testa.GetWvel_loc();
+	 }
+	 timer.stop();
+	 GetLog() << "Test ChFrame::GetWvel_loc() " <<  timer() << " \n";
+
+	 timer.start();
+	 for (i= 0; i<1000000; i++)
+	 {
+	 ChVector<> p= testa.GetWacc_loc();
+	 }
+	 timer.stop();
+	 GetLog() << "Test ChFrame::GetWacc_loc() " <<  timer() << " \n";
+
+
+	 */
+
+GetLog() << "\n Test Triad Constructor\n";
+
+ChVector<>origin, xdir, ydir;
+
+origin = ChVector<>(0., 0., 0.);
+xdir = ChVector<>(1., 0., 0.);
+ydir = ChVector<>(0., 1., 0.);
+checkTriadAndPrint("Identity", origin, xdir, ydir);
+
+xdir = ChVector<>(1., 0., 0.);
+ydir = ChVector<>(1., 1., 0.);
+checkTriadAndPrint("Identity", origin, xdir, ydir);
+
+
+xdir = ChVector<>(1., 0., 0.);
+ydir = ChVector<>(0, -1, 0.);
+checkTriadAndPrint("180 deg about X, Expect: q(0, 1, 0, 0)", origin, xdir, ydir);
+
+xdir = ChVector<>(-1., 0., 0.);
+ydir = ChVector<>(0, 1, 0.);
+checkTriadAndPrint("180 deg about Y, Expect: q(0, 0, 1, 0)", origin, xdir, ydir);
+
+
+xdir = ChVector<>(-1., 0., 0.);
+ydir = ChVector<>(0, -1, 0.);
+checkTriadAndPrint("180 deg about Z, Expect: q(0, 0, 0, 1)", origin, xdir, ydir);
+
+xdir = ChVector<>(1., 0., 0.);
+ydir = ChVector<>(1., 1.0e-5, 0.);
+checkTriadAndPrint("Y almost parallel to X, Expect: q(1,0,0,0)", origin, xdir, ydir);
+
+xdir = ChVector<>(1., 0., 0.);
+ydir = ChVector<>(1., -1.0e-5, 0.);
+checkTriadAndPrint("Y almost parallel to X, Expect: q(0, 1, 0, 0)", origin, xdir, ydir);
+
+xdir = ChVector<>(1., 1., 0.);
+ydir = ChVector<>(0., 1., 0.);
+checkTriadAndPrint("",origin, xdir, ydir);
+
+xdir = ChVector<>(0., 1., 0.);
+ydir = ChVector<>(0., 0., -1.);
+checkTriadAndPrint("",origin, xdir, ydir);
+
+
+GetLog() << "\n  CHRONO execution terminated.";
+return 0;
+}
+
+static void checkTriadAndPrint(std::string desc, const ChVector<double>& o, const ChVector<double>& x, const ChVector<double>& y) {
+	ChCoordsys<double> t(o, x, y);
+	GetLog() << desc << ": ";
+	GetLog() << "o(" << o.x() << ", " << o.y() << ", " << o.z() << "), ";
+	GetLog() << "x(" << x.x() << ", " << x.y() << ", " << x.z() << "), ";
+	GetLog() << "y(" << y.x() << ", " << y.y() << ", " << y.z() << ") ";
+	GetLog() << " -->> v(" << t.pos.x() << ", " << t.pos.y() << ", " << t.pos.z() << "), ";
+	GetLog() << "q(" << t.rot.e0() << ", " << t.rot.e1() << ", " << t.rot.e2() << ", " << t.rot.e3() << ")\n";
 }
