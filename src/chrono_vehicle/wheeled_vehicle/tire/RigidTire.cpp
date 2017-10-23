@@ -29,6 +29,16 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+// This utility function returns a ChVector from the specified JSON array
+// -----------------------------------------------------------------------------
+static ChVector<> loadVector(const Value& a) {
+    assert(a.IsArray());
+    assert(a.Size() == 3);
+
+    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 RigidTire::RigidTire(const std::string& filename) : ChRigidTire(""), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
@@ -60,6 +70,8 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
     m_radius = d["Radius"].GetDouble();
     m_width = d["Width"].GetDouble();
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = loadVector(d["inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

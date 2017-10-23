@@ -37,13 +37,9 @@ void ChTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     m_wheel = wheel;
     m_side = side;
 
-    ////WheelState state;
-    ////state.pos = wheel->GetPos();
-    ////state.rot = wheel->GetRot();
-    ////state.lin_vel = wheel->GetPos_dt();
-    ////state.ang_vel = wheel->GetWvel_par();
-    ////ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    ////state.omega = ang_vel_loc.y();
+    // Increment mass and inertia of the wheel body.
+    wheel->SetMass(wheel->GetMass() + GetMass());
+    wheel->SetInertiaXX(wheel->GetInertiaXX() + GetInertia());
 }
 
 // -----------------------------------------------------------------------------

@@ -35,6 +35,9 @@ namespace hmmwv {
 
 const double HMMWV_Pac89Tire::m_normalDamping = 250;
 
+const double HMMWV_Pac89Tire::m_mass = 37.6482;
+const ChVector<> HMMWV_Pac89Tire::m_inertia(17.0254, 31.9445, 17.0254);
+
 const std::string HMMWV_Pac89Tire::m_meshName = "hmmwv_tire_POV_geom";
 const std::string HMMWV_Pac89Tire::m_meshFile = "hmmwv/hmmwv_tire.obj";
 

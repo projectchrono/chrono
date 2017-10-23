@@ -150,8 +150,9 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Get the tire width.
     virtual double GetWidth() const = 0;
 
-    /// Get total tire mass.
-    double GetMass() const;
+    /// Calculate and return the tire mass.
+    /// The return value is the mass of the underlying FEA mesh.
+    double GetTireMass() const;
 
     /// Get the tire force and moment.
     /// A ChDeformableTire always returns zero forces and moments if the tire is simulated
@@ -174,6 +175,14 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override final;
+
+  private:
+    /// The following two functions are marked as final.
+    /// The mass properties of a deformable tire are implicitly included through
+    /// the FEA mesh.  To prevent double counting the mass and inertia of a
+    /// deformable tire, these functions must always return 0.
+    virtual double GetMass() const final { return 0; }
+    virtual ChVector<> GetInertia() const final { return ChVector<>(0, 0, 0); }
 
   protected:
     /// Return the default tire pressure.

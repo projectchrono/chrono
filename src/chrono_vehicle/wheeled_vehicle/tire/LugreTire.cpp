@@ -72,8 +72,10 @@ void LugreTire::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
-    // Read tire radius
+    // Read tire radius, mass, and inertia
     m_radius = d["Radius"].GetDouble();
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = loadVector(d["inertia"]);
 
     // Read disc locations
     m_numDiscs = d["Disc Locations"].Size();

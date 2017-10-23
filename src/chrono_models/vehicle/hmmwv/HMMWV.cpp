@@ -40,7 +40,6 @@ HMMWV::HMMWV()
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_pacejkaParamFile(""),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}) {}
@@ -57,7 +56,6 @@ HMMWV::HMMWV(ChSystem* system)
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_pacejkaParamFile(""),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
@@ -218,15 +216,10 @@ void HMMWV::Initialize() {
             break;
         }
         case TireModelType::PACEJKA: {
-            if (m_pacejkaParamFile.empty())
-                throw ChException("Pacejka parameter file not specified.");
-
-            std::string param_file = vehicle::GetDataFile(m_pacejkaParamFile);
-
-            ChPacejkaTire* tire_FL = new ChPacejkaTire("FL", param_file);
-            ChPacejkaTire* tire_FR = new ChPacejkaTire("FR", param_file);
-            ChPacejkaTire* tire_RL = new ChPacejkaTire("RL", param_file);
-            ChPacejkaTire* tire_RR = new ChPacejkaTire("RR", param_file);
+            ChPacejkaTire* tire_FL = new HMMWV_Pac02Tire("FL");
+            ChPacejkaTire* tire_FR = new HMMWV_Pac02Tire("FR");
+            ChPacejkaTire* tire_RL = new HMMWV_Pac02Tire("RL");
+            ChPacejkaTire* tire_RR = new HMMWV_Pac02Tire("RR");
 
             tire_FL->SetDrivenWheel(false);
             tire_FR->SetDrivenWheel(false);

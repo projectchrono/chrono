@@ -5,6 +5,8 @@
 
   "Radius":                     0.6,
   "Width":                      0.3,
+  "Mass":                       37.6482,
+  "Inertia":                    [17.0254, 31.9445, 17.0254],
 
   "Contact Material":
   {

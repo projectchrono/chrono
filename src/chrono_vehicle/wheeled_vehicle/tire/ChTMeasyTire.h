@@ -114,32 +114,23 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Get Max. Tire Load from Load Index (LI) in N [0:279]
     static double GetTireMaxLoad(unsigned int li);
 
-    /// Guess Tire Parameters from chracteristic truck tire parameter pattern (Ratio = 80%)
-    void GuessTruck80Par(unsigned int li,
-                         double tireWidth,
-                         double ratio,
-                         double rimDia,
-                         double tireMass = 70.0,
-                         double pinfl_li = 1.0,
-                         double pinfl_use = 1.0);
+    /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%)
+    void GuessTruck80Par(unsigned int li,        ///< tire load index
+                         double tireWidth,       ///< tire width [m]
+                         double ratio,           ///< use 0.75 meaning 75%
+                         double rimDia,          ///< rim diameter [m]
+                         double pinfl_li = 1.0,  ///< inflation pressure at load index
+                         double pinfl_use = 1.0  ///< inflation pressure in this configuration
+    );
 
-    /// Guess Tire Parameters from chracteristic passenger car tire parameter pattern (Ratio = 70%)
-    void GuessPassCar70Par(unsigned int li,
-                           double tireWidth,
-                           double ratio,
-                           double rimDia,
-                           double tireMass = 15.0,
-                           double pinfl_li = 1.0,
-                           double pinfl_use = 1.0);
-
-    /// Guess Tire Parameters from chracteristic passenger car tire parameter pattern (Ratio = 65%)
-    void GuessPassCar65Par(unsigned int li,
-                           double tireWidth,
-                           double ratio,
-                           double rimDia,
-                           double tireMass = 15.0,
-                           double pinfl_li = 1.0,
-                           double pinfl_use = 1.0);
+    /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%)
+    void GuessPassCar70Par(unsigned int li,        ///< tire load index
+                           double tireWidth,       ///< tire width [m]
+                           double ratio,           ///< use 0.75 meaning 75%
+                           double rimDia,          ///< rim diameter [m]
+                           double pinfl_li = 1.0,  ///< inflation pressure at load index
+                           double pinfl_use = 1.0  ///< inflation pressure in this configuration
+    );
 
     void VerticalStiffnessByTable(std::vector<double>& defl, std::vector<double>& frc);
 
@@ -155,14 +146,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
     /// Set the parameters in the TMeasy model.
     virtual void SetTMeasyParams() = 0;
-
-    /// Get the tire mass.
-    /// Note that this should not include the mass of the wheel (rim).
-    virtual double GetMass() const = 0;
-
-    /// Get the tire moments of inertia.
-    /// Note that these should not include the inertia of the wheel (rim).
-    virtual ChVector<> GetInertia() const = 0;
 
     double m_kappa;  ///< longitudinal slip (percentage)
     double m_alpha;  ///< slip angle (degrees)

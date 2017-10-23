@@ -71,6 +71,9 @@ void FialaTire::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = loadVector(d["inertia"]);
+
     // Read in Fiala tire model parameters
     m_unloaded_radius = d["Fiala Parameters"]["Unloaded Radius"].GetDouble();
     m_width = d["Fiala Parameters"]["Width"].GetDouble();

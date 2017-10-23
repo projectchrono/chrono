@@ -46,9 +46,6 @@ ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 // Type of tire model (RIGID, LUGRE, FIALA, PACEJKA, or TMEASY)
 TireModelType tire_model = TireModelType::RIGID;
 
-// Input file name for PACEJKA tires if they are selected
-std::string pacejka_tire_file("hmmwv/tire/HMMWV_pacejka.tir");
-
 // Type of powertrain model (SHAFTS or SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
@@ -203,7 +200,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetPacejkaParamfile(pacejka_tire_file);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);

@@ -54,14 +54,13 @@ void HMMWV_TMeasyTire::SetTMeasyParams() {
     double w = 12.5 * in2m;
     double r = h / w;
     double rimdia = 16.5 * in2m;
-    double m = 45.4;
 
-    GuessTruck80Par(li,      // load index
-                    w,       // tire width
-                    r,       // aspect ratio
-                    rimdia,  // rim diameter
-                    m        // rubber mass
+    GuessTruck80Par(li,     // load index
+                    w,      // tire width
+                    r,      // aspect ratio
+                    rimdia  // rim diameter
     );
+
     // optional: write a plot file (gnuplot) to check the characteristics
     // the plots are being generated at initialization of this class
     // look at the plot: gnuplot 37x12.5x16.5_FL.gpl

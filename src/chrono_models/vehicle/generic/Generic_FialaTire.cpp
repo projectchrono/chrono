@@ -31,6 +31,9 @@ namespace generic {
 const double Generic_FialaTire::m_normalStiffness = 310000;
 const double Generic_FialaTire::m_normalDamping = 3100;
 
+const double Generic_FialaTire::m_mass = 35.0;
+const ChVector<> Generic_FialaTire::m_inertia(17.0, 30.0, 17.0);
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Generic_FialaTire::Generic_FialaTire(const std::string& name) : ChFialaTire(name) {}
