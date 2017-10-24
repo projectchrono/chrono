@@ -59,7 +59,7 @@ class  ChElementBeamIGA :   public ChElementBeam
 
     virtual ~ChElementBeamIGA() {}
 
-    virtual int GetNnodes() override { return nodes.size(); }
+    virtual int GetNnodes() override { return (int)nodes.size(); }
     virtual int GetNdofs() override { return GetNnodes() * 6; }
     virtual int GetNodeNdofs(int n) override { return 6; }
 
@@ -137,7 +137,7 @@ class  ChElementBeamIGA :   public ChElementBeam
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     virtual void GetStateBlock(ChMatrixDynamic<>& mD) override {
-        mD.Reset(this->nodes.size()*7, 1);
+        mD.Reset((int)this->nodes.size()*7, 1);
 
         for (int i= 0; i< nodes.size(); ++i) {
             mD.PasteVector( nodes[i]->coord.pos, i*7, 0);
@@ -158,7 +158,7 @@ class  ChElementBeamIGA :   public ChElementBeam
         //
 
         // ChMatrixDynamic<> K(12, 12); // only if linear...
-        ChMatrixDynamic<> K(6 * nodes.size(), 6 * nodes.size()); 
+        ChMatrixDynamic<> K(6 * (int)nodes.size(), 6 * (int)nodes.size()); 
 
         // ***KASSEM*** calcola la matrice K (per il singolo knot span) 
         // valutandola per gli n punti di collocation (che stanno in questo knot span)
@@ -201,7 +201,7 @@ class  ChElementBeamIGA :   public ChElementBeam
         // The M mass matrix of this element span:
         //
 
-        ChMatrixDynamic<> Mloc(6 * nodes.size(), 6 * nodes.size());
+        ChMatrixDynamic<> Mloc(6 * (int)nodes.size(), 6 * (int)nodes.size());
 
         double lmass = mass /(double)nodes.size();
         double lineryz = (1. / 50.) * mass * pow(length, 2);  // note: 1/50 can be even less (this is 0 in many texts)
@@ -262,10 +262,9 @@ class  ChElementBeamIGA :   public ChElementBeam
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double eta,
-                                             const ChMatrix<>& displ,
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) override {
-        ChMatrixDynamic<> N(1, nodes.size());
+        ChMatrixDynamic<> N(1, (int)nodes.size());
         
         /* To be completed: Created to be consistent with base class implementation*/
         
@@ -284,11 +283,11 @@ class  ChElementBeamIGA :   public ChElementBeam
         double tau2 = knots[knots.size()-order-1];
         double u = tau1 + ((eta+1)/2.0)*(tau2-tau1);
         int nspan = order;
-        ChVectorDynamic<> knotU(knots.size());
+        ChVectorDynamic<> knotU((int)knots.size());
         for (int i = 0; i< knots.size(); ++i) {
             knotU(i) = knots[i];
         }
-        ChVectorDynamic<> N(nodes.size());
+        ChVectorDynamic<> N((int)nodes.size());
 
         geometry::ChBasisToolsBspline::BasisEvaluate(
                this->order,  
