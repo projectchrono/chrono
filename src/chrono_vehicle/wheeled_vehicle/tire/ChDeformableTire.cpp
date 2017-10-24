@@ -139,7 +139,7 @@ std::shared_ptr<ChContactSurface> ChDeformableTire::GetContactSurface() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChDeformableTire::GetMass() const {
+double ChDeformableTire::GetTireMass() const {
     double mass;
     ChVector<> com;
     ChMatrix33<> inertia;

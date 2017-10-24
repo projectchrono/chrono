@@ -20,6 +20,8 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -60,6 +62,8 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
     m_radius = d["Radius"].GetDouble();
     m_width = d["Width"].GetDouble();
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = LoadVectorJSON(d["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

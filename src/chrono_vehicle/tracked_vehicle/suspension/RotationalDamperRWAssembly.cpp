@@ -18,8 +18,9 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/suspension/RotationalDamperRWAssembly.h"
-#include "chrono_vehicle/tracked_vehicle/road_wheel/SingleRoadWheel.h"
 #include "chrono_vehicle/tracked_vehicle/road_wheel/DoubleRoadWheel.h"
+#include "chrono_vehicle/tracked_vehicle/road_wheel/SingleRoadWheel.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
@@ -30,16 +31,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -115,10 +106,10 @@ void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
     assert(d["Suspension Arm"].IsObject());
 
     m_arm_mass = d["Suspension Arm"]["Mass"].GetDouble();
-    m_points[ARM] = loadVector(d["Suspension Arm"]["COM"]);
-    m_arm_inertia = loadVector(d["Suspension Arm"]["Inertia"]);
-    m_points[ARM_CHASSIS] = loadVector(d["Suspension Arm"]["Location Chassis"]);
-    m_points[ARM_WHEEL] = loadVector(d["Suspension Arm"]["Location Wheel"]);
+    m_points[ARM] = LoadVectorJSON(d["Suspension Arm"]["COM"]);
+    m_arm_inertia = LoadVectorJSON(d["Suspension Arm"]["Inertia"]);
+    m_points[ARM_CHASSIS] = LoadVectorJSON(d["Suspension Arm"]["Location Chassis"]);
+    m_points[ARM_WHEEL] = LoadVectorJSON(d["Suspension Arm"]["Location Wheel"]);
     m_arm_radius = d["Suspension Arm"]["Radius"].GetDouble();
 
     // Read data for torsional spring

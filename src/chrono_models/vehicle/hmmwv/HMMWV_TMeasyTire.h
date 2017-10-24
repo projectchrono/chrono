@@ -9,49 +9,59 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Generic rigid tire subsystem
+// HMMWV TMeasy tire subsystem
 //
 // =============================================================================
 
-#ifndef GENERIC_RIGID_TIRE_H
-#define GENERIC_RIGID_TIRE_H
+#ifndef HMMWV_TMEASY_TIRE_H
+#define HMMWV_TMEASY_TIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+
+#include "chrono_vehicle/wheeled_vehicle/tire/ChTMeasyTire.h"
 
 #include "chrono_models/ChApiModels.h"
 
 namespace chrono {
 namespace vehicle {
-namespace generic {
+namespace hmmwv {
 
-/// @addtogroup vehicle_models_generic
+/// @addtogroup vehicle_models_wvp
 /// @{
 
-/// Rigid tire model for the generic vehicle.
-class CH_MODELS_API Generic_RigidTire : public ChRigidTire {
+/// TMeasy tire model for the WVP vehicle.
+class CH_MODELS_API HMMWV_TMeasyTire : public ChTMeasyTire {
   public:
-    Generic_RigidTire(const std::string& name);
+    HMMWV_TMeasyTire(const std::string& name);
+    ~HMMWV_TMeasyTire() {}
 
-    ~Generic_RigidTire() {}
+    virtual double GetVisualizationWidth() const override { return m_width; }
 
-    virtual double GetRadius() const override { return m_radius; }
-    virtual double GetWidth() const override { return m_width; }
+    virtual void SetTMeasyParams() override;
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }
 
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
+
+    void GenerateCharacteristicPlots(const std::string& dirname);
+
   private:
-    static const double m_radius;
-    static const double m_width;
+    static const std::string m_meshName;
+    static const std::string m_meshFile;
     static const double m_mass;
     static const ChVector<> m_inertia;
+
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+    ChFunction_Recorder m_stiffnessMap;
 };
 
-/// @} vehicle_models_generic
+/// @} vehicle_models_hmmwv
 
-}  // end namespace generic
+}  // end namespace hmmwv
 }  // end namespace vehicle
 }  // end namespace chrono
 

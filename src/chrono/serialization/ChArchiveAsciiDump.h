@@ -122,20 +122,20 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
             (*ostream) << "\"\n";
       }
 
-      virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
+      virtual void out_array_pre (ChValue& bVal, size_t msize) {
             indent();
             if (!suppress_names) {
-                (*ostream) << name << "  ";
+                (*ostream) << bVal.name() << "  ";
             }
-            (*ostream) << "array of "<< msize << " [" << classname << "]\n";
+            (*ostream) << "container of "<< msize << " items, [" << bVal.GetTypeidName() << "]\n";
             ++tablevel;
             indent();
             (*ostream) << "[ \n";
             ++tablevel;
       }
-      virtual void out_array_between (size_t msize, const char* classname) {
+      virtual void out_array_between (size_t msize) {
       }
-      virtual void out_array_end (size_t msize,const char* classname) {
+      virtual void out_array_end (size_t msize) {
             --tablevel;
             indent();
             (*ostream) << "] \n";
@@ -143,23 +143,24 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) {
+      virtual void out     (ChValue& bVal, bool tracked, size_t obj_ID) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "  "; 
-            (*ostream) << "[" << classname << "]";
+            (*ostream) << "[" << bVal.GetTypeidName() << "]";
             if (tracked)
                 (*ostream) << " (tracked)   ID= " << obj_ID; 
             if (this->use_versions)
-                (*ostream) << " version=" << bVal.value().GetClassVersion();
+                (*ostream) << " version=" << bVal.GetClassRegisteredVersion();
             (*ostream) << " \n";
             ++tablevel;
-            bVal.value().CallArchiveOut(*this);
+            bVal.CallArchiveOut(*this);
             --tablevel;
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
+      virtual void out_ref          (ChValue& bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID) 
       {
+          const char* classname = bVal.GetClassRegisteredName().c_str();
           indent();
           if (!suppress_names) 
                 (*ostream) << bVal.name(); 
@@ -167,20 +168,20 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
           if(strlen(classname)>0) {
                 (*ostream) << " [" << classname << "] (registered type)";
           } else {
-                (*ostream) << " [" << bVal.value().GetTypeidName() << "]";
+                (*ostream) << " [" << bVal.GetTypeidName() << "]";
           }
           if (obj_ID)
             (*ostream) << "  ID=" << obj_ID;
           if (ext_ID)
             (*ostream) << "  external_ID=" << ext_ID;
           if (this->use_versions)
-            (*ostream) << " version=" << bVal.value().GetClassVersion();
+            (*ostream) << " version=" << bVal.GetClassRegisteredVersion();
           (*ostream) << "\n";
           ++tablevel;
           if (!already_inserted) {
-             if (!bVal.value().IsNull()) {
+             if (!bVal.IsNull()) {
                     // New Object, we have to full serialize it
-                    bVal.value().CallArchiveOut(*this);
+                    bVal.CallArchiveOut(*this);
               } else {
                   (*ostream) << "NULL\n";
               }

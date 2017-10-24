@@ -12,31 +12,34 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// HMMWV wheel subsystem
+// Utility functions for parsing JSON files.
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/generic/Generic_Wheel.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
+using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-namespace generic {
 
-// -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
+ChVector<> LoadVectorJSON(const Value& a) {
+    assert(a.IsArray());
+    assert(a.Size() == 3);
+    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+}
 
-const double Generic_Wheel::m_mass = 18.0;
-const ChVector<> Generic_Wheel::m_inertia(0.100, 0.100, 0.100);
+ChQuaternion<> LoadQuaternionJSON(const Value& a) {
+    assert(a.IsArray());
+    assert(a.Size() == 4);
+    return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
+}
 
-const double Generic_Wheel::m_radius = 0.3099;
-const double Generic_Wheel::m_width = 0.235;
+ChColor LoadColorJSON(const Value& a) {
+    assert(a.IsArray());
+    assert(a.Size() == 3);
+    return ChColor(a[0u].GetFloat(), a[1u].GetFloat(), a[2u].GetFloat());
+}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-Generic_Wheel::Generic_Wheel(const std::string& name) : ChWheel(name) {}
-
-
-}  // end namespace generic
 }  // end namespace vehicle
 }  // end namespace chrono

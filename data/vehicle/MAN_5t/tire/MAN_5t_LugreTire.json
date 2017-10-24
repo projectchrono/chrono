@@ -4,6 +4,8 @@
   "Template":        "LugreTire",
 
   "Radius":           0.4699,
+  "Mass":             37.6,
+  "Inertia":          [3.84, 6.69, 3.84],
 
   "Disc Locations":   [-0.127, 0, 0.127],
 

@@ -48,8 +48,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual ~ChTire() {}
 
     /// Initialize this tire subsystem.
-    /// A derived class must call this base implementation (which simply caches the
-    /// associated wheel body and vehicle side flag).
+    /// Cache the associated wheel body and vehicle side flag, and add tire mass and
+    /// inertia to the wheel body. A derived class must first call this base implementation.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
                             VehicleSide side                ///< [in] left/right vehicle side
                             );
@@ -69,6 +69,14 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     /// Get the tire radius.
     virtual double GetRadius() const = 0;
+
+    /// Get the tire mass.
+    /// Note that this should not include the mass of the wheel (rim).
+    virtual double GetMass() const = 0;
+
+    /// Get the tire moments of inertia.
+    /// Note that these should not include the inertia of the wheel (rim).
+    virtual ChVector<> GetInertia() const = 0;
 
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
@@ -95,6 +103,16 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// wheel body. A derived class may override this function with a more appropriate
     /// calculation based on its specific tire model.
     virtual double GetCamberAngle() const { return m_camber_angle; }
+
+    /// Utility function for estimating the tire moments of inertia.
+    /// The tire is assumed to be specified with the common scheme (e.g. 215/65R15)
+    /// and the mass of the tire (excluding the wheel) provided.
+    static ChVector<> EstimateInertia(double tire_width,    ///< tire width [mm]
+                                      double aspect_ratio,  ///< aspect ratio: height to width [percentage]
+                                      double rim_diameter,  ///< rim diameter [in]
+                                      double tire_mass,     ///< mass of the tire [kg]
+                                      double t_factor = 2   ///< tread to sidewall thickness factor
+    );
 
   protected:
     /// Perform disc-terrain collision detection.

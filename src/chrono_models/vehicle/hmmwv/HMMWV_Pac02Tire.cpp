@@ -9,18 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
-// HMMWV wheel subsystem
+// HMMWV Pacejka 2002 tire subsystem
 //
 // =============================================================================
 
 #include <algorithm>
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-
-#include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,50 +29,42 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_Wheel::m_mass = 18.8;
-const ChVector<> HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
+const double HMMWV_Pac02Tire::m_mass = 37.6;
+const ChVector<> HMMWV_Pac02Tire::m_inertia(3.84, 6.69, 3.84);
 
-const double HMMWV_Wheel::m_radius = 0.268;
-const double HMMWV_Wheel::m_width = 0.22;
+const std::string HMMWV_Pac02Tire::m_pacTireFile = "hmmwv/tire/HMMWV_pacejka.tir";
 
-const std::string HMMWV_WheelLeft::m_meshName = "wheel_L_POV_geom";
-const std::string HMMWV_WheelLeft::m_meshFile = "hmmwv/wheel_L.obj";
-
-const std::string HMMWV_WheelRight::m_meshName = "wheel_R_POV_geom";
-const std::string HMMWV_WheelRight::m_meshFile = "hmmwv/wheel_R.obj";
+const std::string HMMWV_Pac02Tire::m_meshName = "hmmwv_tire_POV_geom";
+const std::string HMMWV_Pac02Tire::m_meshFile = "hmmwv/hmmwv_tire.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Wheel::HMMWV_Wheel(const std::string& name) : ChWheel(name) {}
-
-HMMWV_WheelLeft::HMMWV_WheelLeft(const std::string& name) : HMMWV_Wheel(name) {}
-
-HMMWV_WheelRight::HMMWV_WheelRight(const std::string& name) : HMMWV_Wheel(name) {}
+HMMWV_Pac02Tire::HMMWV_Pac02Tire(const std::string& name) : ChPacejkaTire(name, vehicle::GetDataFile(m_pacTireFile)) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_Wheel::AddVisualizationAssets(VisualizationType vis) {
+void HMMWV_Pac02Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
         geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(GetMeshName());
-        m_spindle->AddAsset(m_trimesh_shape);
+        m_trimesh_shape->SetName(m_meshName);
+        m_wheel->AddAsset(m_trimesh_shape);
     } else {
-        ChWheel::AddVisualizationAssets(vis);
+        ChPacejkaTire::AddVisualizationAssets(vis);
     }
 }
 
-void HMMWV_Wheel::RemoveVisualizationAssets() {
-    ChWheel::RemoveVisualizationAssets();
+void HMMWV_Pac02Tire::RemoveVisualizationAssets() {
+    ChPacejkaTire::RemoveVisualizationAssets();
 
-    // Make sure we only remove the assets added by HMMWV_Wheel::AddVisualizationAssets.
-    // This is important for the ChWheel object because a tire may add its own assets
-    // to the same body (the spindle).
-    auto it = std::find(m_spindle->GetAssets().begin(), m_spindle->GetAssets().end(), m_trimesh_shape);
-    if (it != m_spindle->GetAssets().end())
-        m_spindle->GetAssets().erase(it);
+    // Make sure we only remove the assets added by HMMWV_Pac02Tire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
+    if (it != m_wheel->GetAssets().end())
+        m_wheel->GetAssets().erase(it);
 }
 
 }  // end namespace hmmwv
