@@ -104,6 +104,16 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// calculation based on its specific tire model.
     virtual double GetCamberAngle() const { return m_camber_angle; }
 
+    /// Utility function for estimating the tire moments of inertia.
+    /// The tire is assumed to be specified with the common scheme (e.g. 215/65R15)
+    /// and the mass of the tire (excluding the wheel) provided.
+    static ChVector<> EstimateInertia(double tire_width,    ///< tire width [mm]
+                                      double aspect_ratio,  ///< aspect ratio: height to width [percentage]
+                                      double rim_diameter,  ///< rim diameter [in]
+                                      double tire_mass,     ///< mass of the tire [kg]
+                                      double t_factor = 2   ///< tread to sidewall thickness factor
+    );
+
   protected:
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified
