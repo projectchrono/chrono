@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belement2);
 
     // Apply a force or a torque to a node:
-    hnode2->SetForce(ChVector<>(4, 2, 0));
+    // hnode2->SetForce(ChVector<>(4, 2, 0));
     // hnode3->SetTorque( ChVector<>(0, -0.04, 0));
 
     // Fix a node to ground:
