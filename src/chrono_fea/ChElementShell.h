@@ -41,31 +41,26 @@ class ChApiFea ChElementShell : public ChElementGeneric {
     /// Gets the xyz displacement of a point on the shell,
     /// and the rotation RxRyRz of section reference, at parametric coordinates 'u' and 'v'.
     /// Note, u=-1..+1 , v= -1..+1.
-    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
-                                             const ChMatrix<>& displ,
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) = 0;
 
     /// Gets the absolute xyz position of a point on the shell,
     /// and the absolute rotation of section reference,  at parametric coordinates 'u' and 'v'.
     /// Note, u=-1..+1 , v= -1..+1.
-    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetStateBlock()
     /// Results are corotated.
     virtual void EvaluateSectionFrame(const double u,
                                       const double v,
-                                      const ChMatrix<>& displ,
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) = 0;
 
     /// Gets the absolute xyz position of a point on the shell,
     /// at parametric coordinates 'u' and 'v'.
     /// Note, u=-1..+1 , v= -1..+1.
-    /// Note, 'displ' is the displ.state of nodes, ex. get it as GetStateBlock()
     /// Results are corotated.
-    virtual void EvaluateSectionPoint(const double u, const double v, const ChMatrix<>& displ, ChVector<>& point) = 0;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector<>& point) = 0;
 
     /// Virtual method to plot velocity field distribution
     virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) = 0;
@@ -75,10 +70,8 @@ class ChApiFea ChElementShell : public ChElementGeneric {
         /// Gets the tensional state at a point on the shell
         /// at parametric coordinates 'u' and 'v'.
         /// Note, u=-1..+1 , v= -1..+1.
-        /// Note, 'displ' is the displ.state of  nodes, ex. get it as GetStateBlock().
         /// Results are not corotated, and are expressed in the reference system of beam.
         virtual void EvaluateSectionForceTorque(const double eta,
-                                                const ChMatrix<>& displ,
                                                 ChVector<>& Fforce,
                                                 ChVector<>& Mtorque) = 0;
     */

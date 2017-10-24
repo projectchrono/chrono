@@ -1107,27 +1107,24 @@ void ChElementShellReissner4::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x
 
 void ChElementShellReissner4::EvaluateSectionDisplacement(const double u,
                                                           const double v,
-                                                          const ChMatrix<>& displ,
                                                           ChVector<>& u_displ,
                                                           ChVector<>& u_rotaz) {
     // this is not a corotational element, so just do:
-    EvaluateSectionPoint(u, v, displ, u_displ);
+    EvaluateSectionPoint(u, v, u_displ);
     u_rotaz = VNULL;  // no angles.. this is ANCF (or maybe return here the slope derivatives?)
 }
 
 void ChElementShellReissner4::EvaluateSectionFrame(const double u,
                                                    const double v,
-                                                   const ChMatrix<>& displ,
                                                    ChVector<>& point,
                                                    ChQuaternion<>& rot) {
     // this is not a corotational element, so just do:
-    EvaluateSectionPoint(u, v, displ, point);
+    EvaluateSectionPoint(u, v, point);
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
 
 void ChElementShellReissner4::EvaluateSectionPoint(const double u,
                                                    const double v,
-                                                   const ChMatrix<>& displ,
                                                    ChVector<>& point) {
     ChMatrixNM<double, 1, 4> N;
     this->ShapeFunctions(N, u, v);

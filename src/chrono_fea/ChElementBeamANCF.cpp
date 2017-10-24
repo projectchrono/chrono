@@ -1869,7 +1869,6 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
 }
 // void ChElementBeamANCF::EvaluateSectionDisplacement(const double u,
 //                                                    const double v,
-//                                                    const ChMatrix<>& displ,
 //                                                    ChVector<>& u_displ,
 //                                                    ChVector<>& u_rotaz) {
 //    // this is not a corotational element, so just do:
@@ -1879,7 +1878,6 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
 //
 // void ChElementBeamANCF::EvaluateSectionFrame(const double u,
 //                                             const double v,
-//                                             const ChMatrix<>& displ,
 //                                             ChVector<>& point,
 //                                             ChQuaternion<>& rot) {
 //    // this is not a corotational element, so just do:
@@ -1889,7 +1887,6 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
 //
 // void ChElementBeamANCF::EvaluateSectionPoint(const double u,
 //                                             const double v,
-//                                             const ChMatrix<>& displ,
 //                                             ChVector<>& point) {
 //    ChVector<> u_displ;
 //

@@ -627,16 +627,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 unsigned int ivert_el = i_verts;
                 unsigned int inorm_el = i_vnorms;
 
-                // displacements & rotations state of the nodes:
-                ChMatrixDynamic<> displ(mybeam->GetNdofs(), 1);
-                mybeam->GetStateBlock(displ);  // for field of corotated element, u_displ will be always 0 at ends
 
                 for (int in = 0; in < beam_resolution; ++in) {
                     double eta = -1.0 + (2.0 * in / (beam_resolution - 1));
 
                     ChVector<> P;
                     ChQuaternion<> msectionrot;
-                    mybeam->EvaluateSectionFrame(eta, displ, P,
+                    mybeam->EvaluateSectionFrame(eta, P,
                                                  msectionrot);  // compute abs. pos and rot of section plane
 
                     ChVector<> vresult;
@@ -644,35 +641,35 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     double sresult = 0;
                     switch (this->fem_data_type) {
                         case E_PLOT_ELEM_BEAM_MX:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresultB.x();
                             break;
                         case E_PLOT_ELEM_BEAM_MY:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresultB.y();
                             break;
                         case E_PLOT_ELEM_BEAM_MZ:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresultB.z();
                             break;
                         case E_PLOT_ELEM_BEAM_TX:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresult.x();
                             break;
                         case E_PLOT_ELEM_BEAM_TY:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresult.y();
                             break;
                         case E_PLOT_ELEM_BEAM_TZ:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresult.z();
                             break;
                         case E_PLOT_ANCF_BEAM_AX:
-                            mybeam->EvaluateSectionStrain(eta, displ, vresult);
+                            mybeam->EvaluateSectionStrain(eta, vresult);
                             sresult = vresult.x();
                             break;
                         case E_PLOT_ANCF_BEAM_BD:
-                            mybeam->EvaluateSectionStrain(eta, displ, vresult);
+                            mybeam->EvaluateSectionStrain(eta, vresult);
                             sresult = vresult.y();
                             break;
                         default:
@@ -809,17 +806,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 unsigned int ivert_el = i_verts;
                 unsigned int inorm_el = i_vnorms;
 
-                // displacements & rotations state of the nodes:
-                ChMatrixDynamic<> displ(myshell->GetNdofs(), 1);
-                myshell->GetStateBlock(displ);
-
                 for (int iu = 0; iu < shell_resolution; ++iu)
                     for (int iv = 0; iv < shell_resolution; ++iv) {
                         double u = -1.0 + (2.0 * iu / (shell_resolution - 1));
                         double v = -1.0 + (2.0 * iv / (shell_resolution - 1));
 
                         ChVector<> P;
-                        myshell->EvaluateSectionPoint(u, v, displ, P);  // compute abs. pos and rot of section plane
+                        myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
                         ChVector<float> mcol(1, 1, 1);
                         /*
@@ -829,7 +822,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         switch(this->fem_data_type)
                         {
                             case E_PLOT_ELEM_SHELL_blabla:
-                                myshell->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                                myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
                                 sresult = vresultB.x();
                                 break;
 

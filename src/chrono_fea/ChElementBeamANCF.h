@@ -245,11 +245,9 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
 
     // Dummy method definitions.
     virtual void EvaluateSectionStrain(const double,
-                                       const chrono::ChMatrix<double>&,
                                        chrono::ChVector<double>&) override {}
 
     virtual void EvaluateSectionForceTorque(const double,
-                                            const chrono::ChMatrix<double>&,
                                             chrono::ChVector<double>&,
                                             chrono::ChVector<double>&) override {}
 
@@ -259,7 +257,6 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double eta,
-                                             const ChMatrix<>& displ,
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) override {}
 
@@ -269,7 +266,6 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
     virtual void EvaluateSectionFrame(const double eta,
-                                      const ChMatrix<>& displ,
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) override {}
     // Internal computations

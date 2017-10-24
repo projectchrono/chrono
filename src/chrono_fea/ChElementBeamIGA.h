@@ -242,9 +242,12 @@ class  ChElementBeamIGA :   public ChElementBeam
         }
         
         //***KASSEM** se vuoi fare del test/debug, è comodo aggiungere dei GetLog() per stampare su schermo dei dati che vuoi controllare, es: 
-        GetLog() << "\nInternal forces (local): \n";
-        for (int c = 0; c < 6; c++)
-            GetLog() << Fi(c) << "  ";
+        GetLog() << "\nInternal forces, F and M for each node: \n";
+        for (int i = 0; i < nodes.size(); i++) {
+            GetLog() << "\n  at node " << i << " is: ";
+            for (int c = 0; c < 6; c++)
+                GetLog() << Fi(i*6 + c) << "  ";
+        }
         GetLog() << "\n";
         
     }
@@ -274,7 +277,6 @@ class  ChElementBeamIGA :   public ChElementBeam
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
     virtual void EvaluateSectionFrame(const double eta,
-                                      const ChMatrix<>& displ,
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) override {
         // compute parameter in knot space from eta-1..+1
@@ -297,14 +299,11 @@ class  ChElementBeamIGA :   public ChElementBeam
 
         point = VNULL;
         for (int i = 0 ; i< nodes.size(); ++i) {
-            //  point += N(i) * nodes[i]->coord.pos;   no....
-            ChVector<> mypos = displ.ClipVector(i*7,0);
-            point += N(i) * mypos;
+            point += N(i) * nodes[i]->coord.pos;
         }
         rot  = QNULL;
         for (int i = 0 ; i< nodes.size(); ++i) {
-            ChQuaternion<> myrot = displ.ClipQuaternion(i*7+3,0);
-            //rot.e0() += N(i) * nodes[i]->coord.rot.e0();   no....
+            ChQuaternion<> myrot = nodes[i]->coord.rot;
             rot.e0() += N(i) * myrot.e0();
             rot.e1() += N(i) * myrot.e1();
             rot.e2() += N(i) * myrot.e2();
@@ -320,7 +319,6 @@ class  ChElementBeamIGA :   public ChElementBeam
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.
     virtual void EvaluateSectionForceTorque(const double eta,
-                                            const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) override {
 
@@ -330,7 +328,6 @@ class  ChElementBeamIGA :   public ChElementBeam
 
     virtual void EvaluateSectionStrain(
         const double eta,
-        const ChMatrix<>& displ,
         ChVector<>& StrainV) override { 
 
         /* To be completed: Created to be consistent with base class implementation*/
