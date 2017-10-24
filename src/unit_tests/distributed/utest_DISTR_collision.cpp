@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
     MPI_Init(&argc, &argv);
     int my_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-    ChSystemDistributed sys(MPI_COMM_WORLD, 1.0, 10000, std::string("../out") + std::to_string(my_rank) + ".txt");
+    ChSystemDistributed sys(MPI_COMM_WORLD, 1.0, 10000);
     sys.GetDomain()->SetSimDomain(0, 10, 0, 10, 0, 20);
 
     sys.Set_G_acc(ChVector<double>(0, 0, -9.8));

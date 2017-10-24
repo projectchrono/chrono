@@ -60,6 +60,7 @@ typedef struct Shape {
     double A[3];
     double R[3];
     double data[3];
+    /*short2 fam;*/
 } Shape;
 
 /// This class holds functions for processing the system's bodies to determine

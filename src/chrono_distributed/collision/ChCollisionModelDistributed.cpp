@@ -12,6 +12,7 @@
 // Authors: Nic Olsen
 // =============================================================================
 
+#include "chrono/physics/ChBody.h"
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 
 using namespace chrono;
@@ -28,6 +29,7 @@ bool ChCollisionModelDistributed::AddBox(double hx,
                                          double hz,
                                          const ChVector<>& pos,
                                          const ChMatrix33<>& rot) {
+    // TODO pos is relative to body pos, add to body pos
     // Generate 8 corners of the box
     ChVector<> rx = rot * ChVector<>(hx, 0, 0);
     ChVector<> ry = rot * ChVector<>(0, hy, 0);
@@ -77,8 +79,10 @@ bool ChCollisionModelDistributed::AddBox(double hx,
 }
 
 bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos = ChVector<>()) {
-    ChVector<double> max = pos + ChVector<double>(radius, radius, radius);
-    ChVector<double> min = pos - ChVector<double>(radius, radius, radius);
+    ChVector<double> body_pos(this->GetBody()->GetPos());
+
+    ChVector<double> max = body_pos + pos + ChVector<double>(radius, radius, radius);
+    ChVector<double> min = body_pos + pos - ChVector<double>(radius, radius, radius);
 
     // If this is the first shape being added to the model,
     // set the first reference points

@@ -39,49 +39,32 @@ ChCollisionSystemDistributed::~ChCollisionSystemDistributed() {}
 void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     ChParallelDataManager* dm = ddm->data_manager;
     ChCollisionModelDistributed* pmodel = static_cast<ChCollisionModelDistributed*>(model);
-
     // Find space in ddm vectors - need one index for both start and count
     // need a chunk of body_shapes large enough for all shapes on this body
     int my_rank = ddm->my_sys->GetMyRank();
-
     int body_index = pmodel->GetBody()->GetId();  // TODO assuming this is set: see calling fxn
     int needed_count = pmodel->GetNObjects();     // Minimum size needed in ddm->body_shapes
+    ChVector<> pos(pmodel->GetBody()->GetPos());
 
-    /* TODO: Choose and crop shapes from a global body.
-    // If this is a global body, construct a new collision model with only the shapes that
-    // affect this sub-domain, and cut down shapes so that they don't extend out of the sub-domain
-    if (ddm->comm_status[body_index] == distributed::GLOBAL) {
-        ChCollisionModelDistributed* newmodel = new ChCollisionModelDistributed();
-        ChVector<> sl(ddm->my_sys->GetDomain()->GetSubLo());
-        ChVector<> sh(ddm->my_sys->GetDomain()->GetSubHi());
-
-        real3 sublo(sl.x(), sl.y(), sl.z());
-        real3 subhi(sh.x(), sh.y(), sh.z());
-
-        // Check each shape // TODO account for ghost layer.
-        for (int i = 0; i < needed_count; i++) {
-            if (overlap(pmodel->shape_aabb_min[i], pmodel->shape_aabb_max[i], sublo, subhi)) {
-                // TODO cut off shape
-                switch (pmodel->mdata[i].type) {
-                    case chrono::collision::SPHERE:
-                        ChVector<> pos(pmodel->mData[i].A[0], pmodel->mData[i].A[1], pmodel->mData[i].A[2]);
-                        // Can't cut off a sphere
-                        newmodel->AddSphere(pmodel->mdata[i].B[0], pos);
-                        break;
-                    case chrono::collision::BOX:
-                        ChVector<> pos(pmodel->mData[i].A[0], pmodel->mData[i].A[1], pmodel->mData[i].A[2]);
-                        newmodel->AddBox(pmodel->mData[i].B[0], pmodel->mData[i].B[1], pmodel->mData[i].B[2], pos,
-                                         ChMatrix33<>(ChQuaternion(pmodel->mData[i].R[0], pmodel->mData[i].R[1],
-                                                                   pmodel->mData[i].R[2], pmodel->mData[i].R[3])));
-                        break;
-                    default:
-                        break;
-                }
+    /* TODO Only include shapes relevant to this sub-domain
+        if (ddm->comm_status[body_index] == distributed::GLOBAL) {
+            int splitaxis = my_sys->GetDomain()->GetSplitAxis();
+            ChVector<> subhi(my_sys->GetDomain()->GetSubHi());
+            ChVector<> sublo(my_sys->GetDomain()->GetSublo());
+            double ghost_layer = my_sys->GetGhostLayer();
+            for (int i = 0; i < needed_count; i++) {
+                // TODO: If in this sub-domain, add to new pmodel
+                real3 A = pmodel.mdata[i].A;
+                quaternion R = pmodel.mdata[i].R;
+                // TODO posalongsplitaxis
+                if (posalongsplitaxis >= sublo[splitaxis] - ghost_layer &&
+                    posalongsplitaxis <= subhi[splitaxis] + ghost_layer) {
+                        // Add to new model
+                        newmodel->Add
+                    }
             }
         }
-
-        pmodel = newmodel;
-    }*/
+    */
 
     // Find free chunk in ddm->body_shapes large enough for this model
     bool found = false;
@@ -183,12 +166,13 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 
     // If there is space for ALL shapes in the model in the data_manager
     // unload them.
-    // TODO never getting in here ??? no
+    // TODO needed_count == 0... add called too early
     if (free_dm_shapes.size() == needed_count) {
-        GetLog() << "HERE\n";
+#ifdef DistrDebug
         GetLog() << "needed_count " << needed_count << "\n";
+#endif
         for (int i = 0; i < needed_count; i++) {
-            GetLog() << "NEXT";
+            GetLog() << "BIG DEAL\n";
             // i identifies a shape in the model
 
             int j = free_dm_shapes[i];  // Index into dm->shape_data
@@ -206,6 +190,8 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             real3 obA = pmodel->mData[i].A;
             real3 obB = pmodel->mData[i].B;
             real3 obC = pmodel->mData[i].C;
+
+            short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
 
             switch (pmodel->mData[i].type) {
                 case chrono::collision::SPHERE:
@@ -245,12 +231,15 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 
             dm->shape_data.ObA_rigid[j] = obA;
             dm->shape_data.ObR_rigid[j] = pmodel->mData[i].R;
+            dm->shape_data.fam_rigid[j] = fam;
         }
     }
     // If there was not enough space in the data_manager for all shapes in the model,
     // call the regular add
     else {
+#ifdef DistrDebug
         GetLog() << "ChCollisionSystemParallel::Add GID " << pmodel->GetBody()->GetGid() << "\n";
+#endif
         this->ChCollisionSystemParallel::Add(model);
         for (int i = 0; i < needed_count; i++) {
             ddm->dm_free_shapes.push_back(false);
@@ -273,10 +262,11 @@ void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
     for (int i = 0; i < count; i++) {
         int index = start + i;
         ddm->dm_free_shapes[ddm->body_shapes[index]] = true;  // Marks the spot in data_manager->shape_data as open
-
+#ifdef DistrDebug
         // Forces collision detection to ignore this shape
         GetLog() << "Deactivating shape for local ID " << id << " GID " << ddm->global_id[id] << " Rank "
                  << ddm->my_sys->GetMyRank() << "\n";
+#endif
         ddm->data_manager->shape_data.id_rigid[ddm->body_shapes[index]] = UINT_MAX;
     }
 

@@ -1,9 +1,5 @@
 #--------------------------------------------------------------
 set(DISTRIBUTED_TESTS
-    demo_DISTR_system
-    demo_DISTR_exchange
-    demo_DISTR_separate
-    demo_DISTR_settling
     demo_DISTR_rotgrav
 )
 

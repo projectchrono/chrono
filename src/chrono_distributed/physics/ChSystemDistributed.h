@@ -45,7 +45,7 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 
   public:
     /// world specifies on which MPI_Comm the simulation should run.
-    ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects, std::string debug_file);
+    ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects);
     virtual ~ChSystemDistributed();
 
     int GetNumRanks() { return num_ranks; }
@@ -74,20 +74,12 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 #ifdef DistrProfile
     void PrintEfficiency();
 #endif
-    /// Writes out the positions and velocities of all bodies in the system
-    /// to a csv format file in in filedir. Prepends the MPI rank to
-    /// the beginning of the file.
-    void WriteCSV(std::string filedir, std::string filename);
-
     MPI_Comm GetMPIWorld() { return world; }
 
     ChDistributedDataManager* ddm;
 
     char* node_name;
 
-#ifdef DistrDebug
-    std::ofstream debug_stream;
-#endif
     double GetLowestZ(uint* gid);
     void CheckIds();
 

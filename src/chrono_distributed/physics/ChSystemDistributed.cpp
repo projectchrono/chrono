@@ -38,11 +38,8 @@
 
 using namespace chrono;
 using namespace collision;
-
-ChSystemDistributed::ChSystemDistributed(MPI_Comm world,
-                                         double ghost_layer,
-                                         unsigned int max_objects,
-                                         std::string debug_file) {
+// TODO reserve space for max_objects ish or for something?
+ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects) {
     this->world = world;
     MPI_Comm_size(world, &num_ranks);
     MPI_Comm_rank(world, &my_rank);
@@ -57,9 +54,6 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world,
     this->ghost_layer = ghost_layer;
     this->num_bodies_global = 0;
 
-#ifdef DistrDebug
-    this->debug_stream.open(debug_file);
-#endif
     data_manager->system_timer.AddTimer("B1");
     data_manager->system_timer.AddTimer("B2");
     data_manager->system_timer.AddTimer("B3");
@@ -93,8 +87,6 @@ bool ChSystemDistributed::Integrate_Y() {
         data_manager->system_timer.start("Exchange");
         comm->Exchange();
         data_manager->system_timer.stop("Exchange");
-
-        //		comm->CheckExchange(); // TODO: Not every timestep
     }
 #ifdef DistrProfile
     PrintEfficiency();
@@ -114,11 +106,11 @@ void ChSystemDistributed::UpdateRigidBodies() {
 void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     // Regardless of whether the body is on this rank,
     // increment the global id counter to maintain unique
-    // global ids.
+    // global ids over all ranks.
     newbody->SetGid(num_bodies_global);
     num_bodies_global++;
 
-    // Makes space for shapes TODO Does this work for mid-simulation add?
+    // Makes space for shapes TODO Does this work for mid-simulation add by user?
     ddm->body_shape_start.push_back(0);
     ddm->body_shape_count.push_back(0);
 
@@ -126,22 +118,23 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
 
     // Check for collision with this sub-domain
     if (newbody->GetBodyFixed()) {
-        ChVector<double> min;
-        ChVector<double> max;
+        ChVector<double> body_min;
+        ChVector<double> body_max;
         ChVector<double> sublo(domain->GetSubLo());
         ChVector<double> subhi(domain->GetSubHi());
 
-        newbody->GetCollisionModel()->GetAABB(min, max);
+        newbody->GetCollisionModel()->GetAABB(body_min, body_max);
 
 #ifdef DistrDebug
-        printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", min.x(), min.y(), min.z(), max.x(), max.y(),
-               max.z());
+        printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", body_min.x(), body_min.y(), body_min.z(),
+               body_max.x(), body_max.y(), body_max.z());
 #endif
         // If the part of the body lies in this sub-domain, add it
-        if ((min.x() <= subhi.x() && sublo.x() <= max.x()) && (min.y() <= subhi.y() && sublo.y() <= max.y()) &&
-            (min.z() <= subhi.z() && sublo.z() <= max.z())) {
+        if ((body_min.x() <= subhi.x() && sublo.x() <= body_max.x()) &&
+            (body_min.y() <= subhi.y() && sublo.y() <= body_max.y()) &&
+            (body_min.z() <= subhi.z() && sublo.z() <= body_max.z())) {
             status = distributed::GLOBAL;
-            // TODO cut off the shapes and parts of shapes that don't affect this sub-domain
+            // TODO cut off the shapes that don't affect this sub-domain?
         }
     }
 
@@ -153,7 +146,6 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     ddm->comm_status.push_back(status);
     ddm->global_id.push_back(num_bodies_global - 1);
 
-#ifdef DistrDebug
     switch (status) {
         // Shared up
         case distributed::SHARED_UP:
@@ -191,7 +183,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     }
 
     GetLog() << " GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
-#endif
+
     newbody->SetId(data_manager->num_rigid_bodies);
     bodylist.push_back(newbody);
 
@@ -217,7 +209,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
     newbody->SetId(data_manager->num_rigid_bodies);
     bodylist.push_back(newbody);
 
-    ddm->body_shape_start.push_back(0);  // TODO: 0?
+    ddm->body_shape_start.push_back(0);
     ddm->body_shape_count.push_back(0);
 
     data_manager->num_rigid_bodies++;
@@ -275,34 +267,9 @@ void ChSystemDistributed::PrintBodyStatus() {
         ChVector<double> pos = (*bl_itr)->GetPos();
         ChVector<double> vel = (*bl_itr)->GetPos_dt();
         if (ddm->comm_status[i] != distributed::EMPTY) {
-            float adhesion = (*bl_itr)->GetMaterialSurfaceSMC()->adhesionMultDMT;
-            float const_ad = (*bl_itr)->GetMaterialSurfaceSMC()->constant_adhesion;
-            float gn = (*bl_itr)->GetMaterialSurfaceSMC()->gn;
-            float gt = (*bl_itr)->GetMaterialSurfaceSMC()->gt;
-            float kn = (*bl_itr)->GetMaterialSurfaceSMC()->kn;
-            float kt = (*bl_itr)->GetMaterialSurfaceSMC()->kt;
-            float poisson = (*bl_itr)->GetMaterialSurfaceSMC()->poisson_ratio;
-            float restit = (*bl_itr)->GetMaterialSurfaceSMC()->restitution;
-            float sliding_fric = (*bl_itr)->GetMaterialSurfaceSMC()->sliding_friction;
-            float static_fric = (*bl_itr)->GetMaterialSurfaceSMC()->static_friction;
-            float young = (*bl_itr)->GetMaterialSurfaceSMC()->young_modulus;
-            double mass = (*bl_itr)->GetMass();
-            /*
-                        printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d Rank: %d\n",
-               (*bl_itr)->GetGid(),
-                               pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(), my_rank);
-            */
-
             printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Vel: %.2f, %.2f, %.2f, Active: %d Collide: %d Rank: %d\n",
                    (*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), vel.x(), vel.y(), vel.z(), (*bl_itr)->IsActive(),
                    (*bl_itr)->GetCollide(), my_rank);
-
-            /*
-            "Adhesion: %.3f, gn: %.3f, gt: %.3f, kn: %.3f, kt: %.3f, poisson: %.3f,"
-                    "restit: %.3f, sliding fric: %.3f, static fric: %.3f, young: %.3f, mass: %.3f\n",
-                (*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(),
-                adhesion, gn, gt, kn, kt, poisson, restit, sliding_fric, static_fric, young, mass);
-            */
         }
     }
 
@@ -337,7 +304,6 @@ void ChSystemDistributed::PrintBodyStatus() {
 void ChSystemDistributed::PrintShapeData() {
     std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
     int i = 0;
-    // printf("Shape data: Rank %d:\n", my_rank);
     for (; bl_itr != bodylist.end(); bl_itr++, i++) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
             int body_start = ddm->body_shape_start[i];
@@ -395,52 +361,6 @@ void ChSystemDistributed::PrintEfficiency() {
     }
 }
 #endif
-
-// Outputs all bodies in the system to a CSV file
-void ChSystemDistributed::WriteCSV(std::string filedir, std::string filename) {
-    const std::string file_name = filedir + "/node" + std::to_string(my_rank) + filename + ".csv";
-
-    std::ofstream file;
-    file.open(file_name);
-    std::stringstream ss_particles;
-    ss_particles << "g,x,y,z,vx,vy,vz,U,r,adhesion,con_ad,gn,gt,kn,kt,poisson,restit,sliding_fric,static_fric,young,"
-                    "mass,rw,rx,ry,rz,wx,wy,wz\n";
-
-    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
-    int i = 0;
-    for (; bl_itr != bodylist.end(); bl_itr++, i++) {
-        if (ddm->comm_status[i] != distributed::EMPTY) {
-            ChVector<> pos = (*bl_itr)->GetPos();
-            ChVector<> vel = (*bl_itr)->GetPos_dt();
-            ChQuaternion<> rot = (*bl_itr)->GetRot();
-            ChVector<> omega = (*bl_itr)->GetWvel_par();
-
-            double r = 0.005;  // TODO
-            float adhesion = (*bl_itr)->GetMaterialSurfaceSMC()->adhesionMultDMT;
-            float const_ad = (*bl_itr)->GetMaterialSurfaceSMC()->constant_adhesion;
-            float gn = (*bl_itr)->GetMaterialSurfaceSMC()->gn;
-            float gt = (*bl_itr)->GetMaterialSurfaceSMC()->gt;
-            float kn = (*bl_itr)->GetMaterialSurfaceSMC()->kn;
-            float kt = (*bl_itr)->GetMaterialSurfaceSMC()->kt;
-            float poisson = (*bl_itr)->GetMaterialSurfaceSMC()->poisson_ratio;
-            float restit = (*bl_itr)->GetMaterialSurfaceSMC()->restitution;
-            float sliding_fric = (*bl_itr)->GetMaterialSurfaceSMC()->sliding_friction;
-            float static_fric = (*bl_itr)->GetMaterialSurfaceSMC()->static_friction;
-            float young = (*bl_itr)->GetMaterialSurfaceSMC()->young_modulus;
-            double mass = (*bl_itr)->GetMass();
-
-            ss_particles << (*bl_itr)->GetGid() << "," << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x()
-                         << "," << vel.y() << "," << vel.z() << "," << vel.Length() << "," << r << "," << adhesion
-                         << "," << const_ad << "," << gn << "," << gt << "," << kn << "," << kt << "," << poisson << ","
-                         << restit << "," << sliding_fric << "," << static_fric << "," << young << "," << mass << ","
-                         << rot[0] << "," << rot[1] << "," << rot[2] << "," << rot[3] << "," << omega.x() << ","
-                         << omega.y() << "," << omega.z() << std::endl;
-        }
-    }
-
-    file << ss_particles.str();
-    file.close();
-}
 
 double ChSystemDistributed::GetLowestZ(uint* local_id) {
     double min = 0;
