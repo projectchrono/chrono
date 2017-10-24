@@ -4,7 +4,7 @@
   "Template":        "FialaTire",
 
   "Mass":            35.0,
-  "Inertia":         [17.0, 30.0, 17.0],
+  "Inertia":         [3.0, 6.0, 3.0],
 
   "Fiala Parameters" :
   {

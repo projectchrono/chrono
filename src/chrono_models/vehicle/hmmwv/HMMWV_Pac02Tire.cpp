@@ -29,8 +29,8 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_Pac02Tire::m_mass = 37.6482;
-const ChVector<> HMMWV_Pac02Tire::m_inertia(17.0254, 31.9445, 17.0254);
+const double HMMWV_Pac02Tire::m_mass = 37.6;
+const ChVector<> HMMWV_Pac02Tire::m_inertia(3.84, 6.69, 3.84);
 
 const std::string HMMWV_Pac02Tire::m_pacTireFile = "hmmwv/tire/HMMWV_pacejka.tir";
 
