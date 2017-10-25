@@ -310,8 +310,9 @@ void ChTMeasyTire::Advance(double step) {
 
     Fy += fy_c;
 
-    {                                                                       // Overturning Torque
-        double c_t = GetNormalStiffnessForce(m_data.depth) / m_data.depth;  // actual vertical tire stiffness
+    // Overturning Torque
+    {
+        double c_t = m_TMeasyCoeff.cz + 2.0 * m_TMeasyCoeff.czq * m_data.depth;  // actual vertical tire stiffness
         double cg = std::pow(m_width, 2.0) * c_t / 12.0;
         Mx = -cg * gamma;
     }
