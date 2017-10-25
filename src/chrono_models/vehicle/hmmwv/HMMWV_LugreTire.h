@@ -39,6 +39,8 @@ class CH_MODELS_API HMMWV_LugreTire : public ChLugreTire {
     ~HMMWV_LugreTire() {}
 
     virtual double GetRadius() const override { return m_radius; }
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
     virtual int GetNumDiscs() const override { return m_numDiscs; }
     virtual const double* GetDiscLocations() const override { return m_discLocs; }
 
@@ -52,6 +54,8 @@ class CH_MODELS_API HMMWV_LugreTire : public ChLugreTire {
 
   private:
     static const double m_radius;
+    static const double m_mass;
+    static const ChVector<> m_inertia;
     static const int m_numDiscs = 3;
     static const double m_discLocs[m_numDiscs];
 

@@ -35,6 +35,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 
 #ifdef CHRONO_FEA
@@ -74,7 +75,6 @@ class CH_MODELS_API HMMWV {
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
-    void SetPacejkaParamfile(const std::string& filename) { m_pacejkaParamFile = filename; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
@@ -117,7 +117,6 @@ class CH_MODELS_API HMMWV {
     TireModelType m_tireType;
 
     double m_tire_step_size;
-    std::string m_pacejkaParamFile;
 
     ChCoordsys<> m_initPos;
     double m_initFwdVel;

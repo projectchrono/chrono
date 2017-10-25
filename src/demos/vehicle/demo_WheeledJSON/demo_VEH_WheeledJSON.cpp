@@ -76,7 +76,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // JSON files tire models (rigid)
-std::string rigidtire_file("generic/tire/RigidTire.json");
+std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
 //std::string rigidtire_file("hmmwv/tire/HMMWV_RigidMeshTire.json");
 //std::string rigidtire_file("MAN_5t/tire/MAN_5t_RigidTire.json");
 

@@ -41,11 +41,16 @@ class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
         return m_normalDamping * velocity;
     }
 
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
+
     virtual void SetFialaParams() override;
 
   private:
     static const double m_normalStiffness;
     static const double m_normalDamping;
+    static const double m_mass;
+    static const ChVector<> m_inertia;
 };
 
 /// @} vehicle_models_generic

@@ -50,6 +50,8 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -57,22 +59,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion, respectively,
-// from the specified JSON array.
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-static ChQuaternion<> loadQuaternion(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 4);
-    return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -428,8 +414,8 @@ void WheeledVehicle::Create(const std::string& filename) {
             output = d["Steering Subsystems"][i]["Output"].GetBool() ? +1 : -1;
         }
         LoadSteering(vehicle::GetDataFile(file_name), i, output);
-        m_strLocations[i] = loadVector(d["Steering Subsystems"][i]["Location"]);
-        m_strRotations[i] = loadQuaternion(d["Steering Subsystems"][i]["Orientation"]);
+        m_strLocations[i] = LoadVectorJSON(d["Steering Subsystems"][i]["Location"]);
+        m_strRotations[i] = LoadQuaternionJSON(d["Steering Subsystems"][i]["Orientation"]);
     }
 
     // --------------------
@@ -464,7 +450,7 @@ void WheeledVehicle::Create(const std::string& filename) {
             output = d["Axles"][i]["Output"].GetBool() ? +1 : -1;
         }
         LoadSuspension(vehicle::GetDataFile(file_name), i, output);
-        m_suspLocations[i] = loadVector(d["Axles"][i]["Suspension Location"]);
+        m_suspLocations[i] = LoadVectorJSON(d["Axles"][i]["Suspension Location"]);
 
         // Index of steering subsystem (if applicable)
         if (d["Axles"][i].HasMember("Steering Index")) {
@@ -477,7 +463,7 @@ void WheeledVehicle::Create(const std::string& filename) {
             assert(d["Axles"][i].HasMember("Antirollbar Location"));
             file_name = d["Axles"][i]["Antirollbar Input File"].GetString();
             LoadAntirollbar(vehicle::GetDataFile(file_name), output);
-            m_arbLocations.push_back(loadVector(d["Axles"][i]["Antirollbar Location"]));
+            m_arbLocations.push_back(LoadVectorJSON(d["Axles"][i]["Antirollbar Location"]));
             m_arbSuspension.push_back(i);
         }
 

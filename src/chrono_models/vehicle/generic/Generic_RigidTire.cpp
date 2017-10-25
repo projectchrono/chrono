@@ -29,6 +29,9 @@ namespace generic {
 const double Generic_RigidTire::m_radius = 0.3099;
 const double Generic_RigidTire::m_width = 0.235;
 
+const double Generic_RigidTire::m_mass = 35.0;
+const ChVector<> Generic_RigidTire::m_inertia(3.0, 6.0, 3.0);
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Generic_RigidTire::Generic_RigidTire(const std::string& name) : ChRigidTire(name) {

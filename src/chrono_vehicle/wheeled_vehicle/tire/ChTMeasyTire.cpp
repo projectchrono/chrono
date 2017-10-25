@@ -55,10 +55,6 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     SetTMeasyParams();
 
-    // Increment mass and inertia of the wheel body.
-    wheel->SetMass(wheel->GetMass() + GetMass());
-    wheel->SetInertiaXX(wheel->GetInertiaXX() + GetInertia());
-
     // Initialize contact patch state variables to 0;
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;
@@ -314,8 +310,9 @@ void ChTMeasyTire::Advance(double step) {
 
     Fy += fy_c;
 
-    {                                                                       // Overturning Torque
-        double c_t = GetNormalStiffnessForce(m_data.depth) / m_data.depth;  // actual vertical tire stiffness
+    // Overturning Torque
+    {
+        double c_t = m_TMeasyCoeff.cz + 2.0 * m_TMeasyCoeff.czq * m_data.depth;  // actual vertical tire stiffness
         double cg = std::pow(m_width, 2.0) * c_t / 12.0;
         Mx = -cg * gamma;
     }
@@ -524,7 +521,7 @@ double ChTMeasyTire::GetTireMaxLoad(unsigned int li) {
     return fmax;
 }
 
-void ChTMeasyTire::WritePlots(std::string plName, std::string plTitle) {
+void ChTMeasyTire::WritePlots(const std::string& plName, const std::string& plTitle) {
     if (m_TMeasyCoeff.mu_0 == 0.0 || m_TMeasyCoeff.cz == 0.0) {
         std::cout << "Tire Object not initialised - nothing to plot!" << std::endl;
         return;
@@ -610,7 +607,6 @@ void ChTMeasyTire::GuessTruck80Par(unsigned int li,   // tire load index
                                    double tireWidth,  // [m]
                                    double ratio,      // [] = use 0.75 meaning 75%
                                    double rimDia,     // rim diameter [m]
-                                   double tireMass,   // estimated mass of the tire
                                    double pinfl_li,   // inflation pressure at load index
                                    double pinfl_use   // inflation pressure in this configuration
 ) {
@@ -626,7 +622,7 @@ void ChTMeasyTire::GuessTruck80Par(unsigned int li,   // tire load index
     m_TMeasyCoeff.pn = 0.5 * GetTireMaxLoad(li) * pow(pinfl_use / pinfl_li, 0.8);
     m_TMeasyCoeff.cz = 2.0 * m_TMeasyCoeff.pn / defl_max;
     m_TMeasyCoeff.czq = 0.0;  // linear function assumed
-    m_TMeasyCoeff.dz = 2.0 * xi * sqrt(m_TMeasyCoeff.cz * tireMass);
+    m_TMeasyCoeff.dz = 2.0 * xi * sqrt(m_TMeasyCoeff.cz * GetMass());
 
     m_TMeasyCoeff.dfx0_pn = 17.6866 * m_TMeasyCoeff.pn;
     m_TMeasyCoeff.sxm_pn = 0.12;
@@ -665,7 +661,6 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,   // tire load index
                                      double tireWidth,  // [m]
                                      double ratio,      // [] = use 0.75 meaning 75%
                                      double rimDia,     // rim diameter [m]
-                                     double tireMass,   // estimated mass of the tire
                                      double pinfl_li,   // inflation pressure at load index
                                      double pinfl_use   // inflation pressure in this configuration
 ) {
@@ -681,7 +676,7 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,   // tire load index
     m_TMeasyCoeff.pn = 0.5 * GetTireMaxLoad(li) * pow(pinfl_use / pinfl_li, 0.8);
     m_TMeasyCoeff.cz = 2.0 * m_TMeasyCoeff.pn / defl_max;
     m_TMeasyCoeff.czq = 0.0;  // linear function assumed
-    m_TMeasyCoeff.dz = 2.0 * xi * sqrt(m_TMeasyCoeff.cz * tireMass);
+    m_TMeasyCoeff.dz = 2.0 * xi * sqrt(m_TMeasyCoeff.cz * GetMass());
 
     m_TMeasyCoeff.dfx0_pn = 18.6758 * m_TMeasyCoeff.pn;
     m_TMeasyCoeff.sxm_pn = 0.17;

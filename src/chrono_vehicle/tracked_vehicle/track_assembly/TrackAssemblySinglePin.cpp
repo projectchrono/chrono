@@ -31,6 +31,7 @@
 #include "chrono_vehicle/tracked_vehicle/roller/DoubleRoller.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -39,16 +40,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -297,7 +288,7 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
             output = d["Sprocket"]["Output"].GetBool() ? +1 : -1;
         }
         LoadSprocket(vehicle::GetDataFile(file_name), output);
-        m_sprocket_loc = loadVector(d["Sprocket"]["Location"]);
+        m_sprocket_loc = LoadVectorJSON(d["Sprocket"]["Location"]);
     }
 
     // Create the brake
@@ -320,7 +311,7 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
             output = d["Idler"]["Output"].GetBool() ? +1 : -1;
         }
         LoadIdler(vehicle::GetDataFile(file_name), output);
-        m_idler_loc = loadVector(d["Idler"]["Location"]);
+        m_idler_loc = LoadVectorJSON(d["Idler"]["Location"]);
     }
 
     // Create the suspensions
@@ -337,7 +328,7 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
             output = d["Suspension Subsystems"][i]["Output"].GetBool() ? +1 : -1;
         }
         LoadSuspension(vehicle::GetDataFile(file_name), i, has_shock, output);
-        m_susp_locs[i] = loadVector(d["Suspension Subsystems"][i]["Location"]);
+        m_susp_locs[i] = LoadVectorJSON(d["Suspension Subsystems"][i]["Location"]);
     }
 
     // Create the rollers
@@ -354,7 +345,7 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
                 output = d["Rollers"][i]["Output"].GetBool() ? +1 : -1;
             }
             LoadRoller(vehicle::GetDataFile(file_name), i, output);
-            m_roller_locs[i] = loadVector(d["Rollers"][i]["Location"]);
+            m_roller_locs[i] = LoadVectorJSON(d["Rollers"][i]["Location"]);
         }
     }
 
