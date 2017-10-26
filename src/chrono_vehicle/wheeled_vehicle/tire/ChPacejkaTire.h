@@ -93,13 +93,13 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     virtual double GetVisualizationWidth() const { return 0.25; }
 
     /// return the reactions for the combined slip EQs, in global coords
-    virtual TireForce GetTireForce(bool cosim = false) const override;
+    virtual TerrainForce GetTireForce(bool cosim = false) const override;
 
     ///  Return the reactions for the pure slip EQs, in local or global coords
-    TireForce GetTireForce_pureSlip(const bool local = true) const;
+    TerrainForce GetTireForce_pureSlip(const bool local = true) const;
 
     /// Return the reactions for the combined slip EQs, in local or global coords
-    TireForce GetTireForce_combinedSlip(const bool local = true) const;
+    TerrainForce GetTireForce_combinedSlip(const bool local = true) const;
 
     /// Update the state of this tire system at the current time.
     /// Set the PacTire spindle state data from the global wheel body state.
@@ -370,11 +370,11 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     int m_num_Advance_calls;
     double m_sum_Advance_time;
 
-    TireForce m_FM_pure;      // output tire forces, based on pure slip
-    TireForce m_FM_combined;  // output tire forces, based on combined slip
+    TerrainForce m_FM_pure;      // output tire forces, based on pure slip
+    TerrainForce m_FM_combined;  // output tire forces, based on combined slip
     // previous steps calculated reaction
-    TireForce m_FM_pure_last;
-    TireForce m_FM_combined_last;
+    TerrainForce m_FM_pure_last;
+    TerrainForce m_FM_combined_last;
 
     // TODO: could calculate these using sigma_kappa_adams and sigma_alpha_adams, in getRelaxationLengths()
     // HARDCODED IN Initialize() for now

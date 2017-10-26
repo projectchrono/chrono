@@ -475,10 +475,10 @@ public:
         ChVector<> dir_rot; 
         double angle_rot;
         rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
-        if (angle_rot> CH_C_PI_2) 
-            angle_rot -= CH_C_PI;
-        if (angle_rot<-CH_C_PI_2) 
-            angle_rot += CH_C_PI;
+        if (angle_rot> CH_C_PI) 
+            angle_rot -= CH_C_2PI;
+        if (angle_rot<-CH_C_PI) 
+            angle_rot += CH_C_2PI;
         ChVector<> vect_rot = dir_rot * angle_rot;
 
         loc_torque  = vect_rot  * this->rot_stiffness  // element-wise product!
@@ -548,10 +548,10 @@ public:
         ChVector<> dir_rot; 
         double angle_rot;
         rel_rot.Q_to_AngAxis(angle_rot, dir_rot);
-        if (angle_rot> CH_C_PI_2) 
-            angle_rot -= CH_C_PI;
-        if (angle_rot<-CH_C_PI_2) 
-            angle_rot += CH_C_PI;
+        if (angle_rot> CH_C_PI) 
+            angle_rot -= CH_C_2PI;
+        if (angle_rot<-CH_C_PI) 
+            angle_rot += CH_C_2PI;
         ChVector<> vect_rot = dir_rot * angle_rot;
 
         mS.PasteVector(rel_pos, 0,0);

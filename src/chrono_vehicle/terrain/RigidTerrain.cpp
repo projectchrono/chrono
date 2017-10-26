@@ -29,6 +29,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
 #include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -71,13 +73,6 @@ RigidTerrain::RigidTerrain(ChSystem* system)
 // -----------------------------------------------------------------------------
 // Constructor from JSON file
 // -----------------------------------------------------------------------------
-static ChColor loadColor(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChColor(a[0u].GetFloat(), a[1u].GetFloat(), a[2u].GetFloat());
-}
-
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     : m_friction(0.7f),
       m_restitution(0.1f),
@@ -142,7 +137,7 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     // Read visualization data
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Color")) {
-            ChColor color = loadColor(d["Visualization"]["Color"]);
+            ChColor color = LoadColorJSON(d["Visualization"]["Color"]);
             SetColor(color);
         }
 

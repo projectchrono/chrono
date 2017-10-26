@@ -164,8 +164,8 @@ class RigidTireContactReporter : public ChContactContainer::ReportContactCallbac
     ChVector<> m_torque;
 };
 
-TireForce ChRigidTire::GetTireForce(bool cosim) const {
-    TireForce tire_force;
+TerrainForce ChRigidTire::GetTireForce(bool cosim) const {
+    TerrainForce tire_force;
 
     // If the tire is simulated together with the associated vehicle, return zero
     // force and moment. In this case, the tire forces are automatically applied

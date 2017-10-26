@@ -139,7 +139,7 @@ std::shared_ptr<ChContactSurface> ChDeformableTire::GetContactSurface() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChDeformableTire::GetMass() const {
+double ChDeformableTire::GetTireMass() const {
     double mass;
     ChVector<> com;
     ChMatrix33<> inertia;
@@ -150,8 +150,8 @@ double ChDeformableTire::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TireForce ChDeformableTire::GetTireForce(bool cosim) const {
-    TireForce tire_force;
+TerrainForce ChDeformableTire::GetTireForce(bool cosim) const {
+    TerrainForce tire_force;
     tire_force.force = ChVector<>(0, 0, 0);
     tire_force.point = ChVector<>(0, 0, 0);
     tire_force.moment = ChVector<>(0, 0, 0);

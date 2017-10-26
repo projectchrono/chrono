@@ -19,6 +19,7 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/roller/DoubleRoller.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -26,16 +27,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -73,7 +64,7 @@ void DoubleRoller::Create(const rapidjson::Document& d) {
     m_roller_width = d["Roller"]["Width"].GetDouble();
     m_roller_gap = d["Roller"]["Gap"].GetDouble();
     m_roller_mass = d["Roller"]["Mass"].GetDouble();
-    m_roller_inertia = loadVector(d["Roller"]["Inertia"]);
+    m_roller_inertia = LoadVectorJSON(d["Roller"]["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

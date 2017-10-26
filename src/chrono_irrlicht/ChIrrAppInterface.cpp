@@ -15,6 +15,7 @@
 #include "chrono/physics/ChLinkSpring.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
+#include "chrono/serialization/ChArchiveExplorer.h"
 #include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChProfiler.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
@@ -57,6 +58,9 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 return true;
             case irr::KEY_KEY_O:
                 app->SetShowProfiler(!app->GetShowProfiler());
+                return true;
+            case irr::KEY_KEY_U:
+                app->SetShowExplorer(!app->GetShowExplorer());
                 return true;
             case irr::KEY_SPACE:
                 app->pause_step = !app->pause_step;
@@ -584,6 +588,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     hstr += "\nKEYBOARD\n\n";
     hstr += " 'i' key: show/hide settings\n";
     hstr += " 'o' key: show/hide profiler\n";
+    hstr += " 'u' key: show/hide property tree\n";
     hstr += " arrows keys: camera X/Z translate\n";
     hstr += " Pg Up/Dw keys: camera Y translate\n";
     hstr += " 'spacebar' key: stop/start simul.\n";
@@ -598,11 +603,20 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     gad_textHelp->setText(hstr.c_str());
 
     ///
+    this->device->getVideoDriver()->getScreenSize().Height;
+    gad_treeview = GetIGUIEnvironment()->addTreeView(
+                                      irr::core::rect<irr::s32>(2, 80, 
+                                      300, // this->device->getVideoDriver()->getScreenSize().Width
+                                      this->device->getVideoDriver()->getScreenSize().Height-4), 
+                                      0, 9919,true, true, true);
+    auto child = gad_treeview->getRoot()->addChildBack(L"System",0);
+    child->setExpanded(true);
 
     system = psystem;
 
     show_infos = false;
     show_profiler = false;
+    show_explorer = false;
 
     // the container, a level that contains all chrono nodes
     container = device->getSceneManager()->addEmptySceneNode();
@@ -713,6 +727,73 @@ void ChIrrAppInterface::DoStep() {
     }
 }
 
+void recurse_update_tree_node(ChValue* mvalue, irr::gui::IGUITreeViewNode* mnode) {
+    ChArchiveExplorer mexplorer2;
+    mexplorer2.FetchValues(*mvalue,"*");
+    int ni = 0;
+    auto subnode = mnode->getFirstChild();
+    for (auto j : mexplorer2.GetFetchResults()) {
+        ++ni;
+        if (!subnode) {
+            subnode = mnode->addChildBack(L"_to_set_");
+            subnode->setExpanded(false);
+        }
+        // update the subnode visual info:
+        irr::core::stringw jstr(j->name());
+        if (j->HasArchiveContainerName()) {
+            jstr = L"'";
+            jstr += j->CallArchiveContainerName().c_str();
+            jstr += "'";
+        }
+        if (j->GetClassRegisteredName() !="") {
+            jstr += L",  [";
+            jstr += irr::core::stringw(j->GetClassRegisteredName().c_str());
+            jstr += L"] ";
+        }
+        if (auto mydouble = j->PointerUpCast<double>()) {
+            jstr += " =";
+            auto stringval = std::to_string(*mydouble);
+            jstr += irr::core::stringw(stringval.c_str());
+        }
+        if (auto myfloat = j->PointerUpCast<float>()) {
+            jstr += " =";
+            auto stringval = std::to_string(*myfloat);
+            jstr += irr::core::stringw(stringval.c_str());
+        }
+        if (auto myint = j->PointerUpCast<int>()) {
+            jstr += " =";
+            auto stringval = std::to_string(*myint);
+            jstr += irr::core::stringw(stringval.c_str());
+        }
+        if (auto mybool = j->PointerUpCast<bool>()) {
+            jstr += " =";
+            auto stringval = std::to_string(*mybool);
+            jstr += irr::core::stringw(stringval.c_str());
+        }
+        subnode->setText(jstr.c_str());
+
+        // recursion to update children nodes
+        if (subnode->getExpanded())
+            recurse_update_tree_node(j, subnode);
+        
+        // this to show the "+" symbol for not yet explored nodes
+        ChArchiveExplorer mexplorer3;
+        mexplorer3.FetchValues(*j,"*");
+        if (subnode->getChildCount()==0 && mexplorer3.GetFetchResults().size()) {
+                subnode->addChildBack(L"_foo_to_set_");
+        }
+        
+        // process next sub property and corresponding sub node
+        subnode = subnode->getNextSibling();
+    }
+    auto subnode_to_remove = subnode;
+    while(subnode_to_remove) {
+        auto othernode = subnode_to_remove->getNextSibling();
+        mnode->deleteChild(subnode_to_remove);
+        subnode_to_remove = othernode;
+    }
+}
+
 // Redraw all 3D shapes and GUI elements
 void ChIrrAppInterface::DrawAll() {
     CH_PROFILE("DrawAll");
@@ -775,6 +856,11 @@ void ChIrrAppInterface::DrawAll() {
         ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0, 500.0);
 
     gad_tabbed->setVisible(show_infos);
+    gad_treeview->setVisible(show_explorer);
+    if (show_explorer) {
+        chrono::ChValueSpecific<ChSystem> root(*this->system,"system",0);
+        recurse_update_tree_node(&root, gad_treeview->getRoot());
+    }
 
     if (gad_speed_iternumber_info->isVisible()) {
         gad_warmstart->setChecked(GetSystem()->GetSolverWarmStarting());

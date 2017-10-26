@@ -39,10 +39,14 @@ class CH_MODELS_API Generic_RigidTire : public ChRigidTire {
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
 
   private:
     static const double m_radius;
     static const double m_width;
+    static const double m_mass;
+    static const ChVector<> m_inertia;
 };
 
 /// @} vehicle_models_generic

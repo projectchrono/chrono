@@ -173,6 +173,8 @@ set(CV_UTILS_FILES
     utils/ChAdaptiveSpeedController.cpp
     utils/ChVehiclePath.h
     utils/ChVehiclePath.cpp
+    utils/ChUtilsJSON.h
+    utils/ChUtilsJSON.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_UTILS_FILES
@@ -318,12 +320,14 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.cpp
     wheeled_vehicle/tire/ChPacejkaTire.h
     wheeled_vehicle/tire/ChPacejkaTire.cpp
-	wheeled_vehicle/tire/ChPac89Tire.h
+    wheeled_vehicle/tire/ChPac89Tire.h
     wheeled_vehicle/tire/ChPac89Tire.cpp
     wheeled_vehicle/tire/ChLugreTire.h
     wheeled_vehicle/tire/ChLugreTire.cpp
     wheeled_vehicle/tire/ChFialaTire.h
     wheeled_vehicle/tire/ChFialaTire.cpp
+    wheeled_vehicle/tire/ChTMeasyTire.h
+    wheeled_vehicle/tire/ChTMeasyTire.cpp
 
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp

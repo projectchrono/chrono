@@ -40,6 +40,8 @@ class CH_MODELS_API HMMWV_RigidTire : public ChRigidTire {
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -47,6 +49,8 @@ class CH_MODELS_API HMMWV_RigidTire : public ChRigidTire {
   private:
     static const double m_radius;
     static const double m_width;
+    static const double m_mass;
+    static const ChVector<> m_inertia;
 
     static const std::string m_meshName;
     static const std::string m_meshFile;
