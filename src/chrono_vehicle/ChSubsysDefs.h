@@ -101,25 +101,15 @@ struct WheelState {
 /// Vector of wheel state structures
 typedef std::vector<WheelState> WheelStates;
 
-/// Structure to communicate a set of generalized tire forces.
-struct TireForce {
+/// Structure to communicate a set of generalized terrain contact forces (tire or track shoe).
+struct TerrainForce {
     ChVector<> force;   ///< force vector, epxressed in the global frame
     ChVector<> point;   ///< global location of the force application point
     ChVector<> moment;  ///< moment vector, expressed in the global frame
 };
 
-/// Vector of tire force structures.
-typedef std::vector<TireForce> TireForces;
-
-/// Structure to communicate a set of generalized track shoe forces.
-struct TrackShoeForce {
-    ChVector<> force;   ///< force vector, epxressed in the global frame
-    ChVector<> point;   ///< global location of the force application point
-    ChVector<> moment;  ///< moment vector, expressed in the global frame
-};
-
-/// Vector of tire force structures.
-typedef std::vector<TrackShoeForce> TrackShoeForces;
+/// Vector of terrain conatct force structures.
+typedef std::vector<TerrainForce> TerrainForces;
 
 // -----------------------------------------------------------------------------
 // Utility functor classes for force elements

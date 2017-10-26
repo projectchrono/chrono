@@ -64,7 +64,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// encapsulate the tire-terrain forces (i.e. the resultant of all contact
     /// forces acting on the tire); in this case, the force and moment are expressed
     /// in global frame, as applied to the center of the associated wheel.
-    virtual TireForce GetTireForce(bool cosim = false) const override;
+    virtual TerrainForce GetTireForce(bool cosim = false) const override;
 
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the

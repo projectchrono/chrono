@@ -83,8 +83,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TireForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
-                                   ) const = 0;
+    virtual TerrainForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
+                                      ) const = 0;
 
     /// Get the tire slip angle.
     /// Return the slip angle calculated based on the current state of the associated

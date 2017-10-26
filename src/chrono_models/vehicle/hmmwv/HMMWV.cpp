@@ -293,7 +293,7 @@ void HMMWV::Synchronize(double time,
                         double braking_input,
                         double throttle_input,
                         const ChTerrain& terrain) {
-    TireForces tire_forces(4);
+    TerrainForces tire_forces(4);
     WheelState wheel_states[4];
 
     tire_forces[0] = m_tires[0]->GetTireForce();

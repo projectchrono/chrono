@@ -173,8 +173,8 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    TireForces tire_front_forces(2);
-    TireForces tire_rear_forces(2);
+    TerrainForces tire_front_forces(2);
+    TerrainForces tire_rear_forces(2);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;

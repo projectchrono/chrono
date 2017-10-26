@@ -160,8 +160,8 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// to the associated wheel through the tire-wheel connections). If the tire is
     /// co-simulated, the tire force and moment encapsulate the tire-terrain forces
     /// as well as the weight of the tire itself.
-    virtual TireForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
-                                   ) const override;
+    virtual TerrainForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
+                                      ) const override;
 
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the

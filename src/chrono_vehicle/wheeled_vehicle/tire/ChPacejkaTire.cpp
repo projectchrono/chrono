@@ -215,16 +215,16 @@ void ChPacejkaTire::RemoveVisualizationAssets() {
 // local or global frame). The main GetTireForce() function returns the combined
 // slip tire forces, expressed in the global frame.
 // -----------------------------------------------------------------------------
-TireForce ChPacejkaTire::GetTireForce(bool cosim) const {
+TerrainForce ChPacejkaTire::GetTireForce(bool cosim) const {
     return GetTireForce_combinedSlip(false);
 }
 
-TireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
+TerrainForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
     if (local)
         return m_FM_pure;
 
     // reactions are on wheel CM
-    TireForce m_FM_global;
+    TerrainForce m_FM_global;
     m_FM_global.point = m_tireState.pos;
     // only transform the directions of the forces, moments, from local to global
     m_FM_global.force = m_W_frame.TransformDirectionLocalToParent(m_FM_pure.force);
@@ -234,12 +234,12 @@ TireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
 }
 
 /// Return the reactions for the combined slip EQs, in local or global coordinates
-TireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
+TerrainForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
     if (local)
         return m_FM_combined;
 
     // reactions are on wheel CM
-    TireForce m_FM_global;
+    TerrainForce m_FM_global;
     m_FM_global.point = m_W_frame.pos;
     // only transform the directions of the forces, moments, from local to global
     m_FM_global.force = m_W_frame.TransformDirectionLocalToParent(m_FM_combined.force);
@@ -1800,7 +1800,7 @@ void ChPacejkaTire::WriteOutData(double time, const std::string& outFilename) {
         // open file, append
         std::ofstream appFile(outFilename.c_str(), std::ios_base::app);
         // global force/moments applied to wheel rigid body
-        TireForce global_FM = GetTireForce_combinedSlip(false);
+        TerrainForce global_FM = GetTireForce_combinedSlip(false);
         // write the slip info, reaction forces for pure & combined slip cases
         appFile << time << "," << m_slip->kappa << "," << m_slip->alpha * 180. / 3.14159 << "," << m_slip->gamma << ","
                 << m_slip->kappaP << "," << m_slip->alphaP << "," << m_slip->gammaP << "," << m_slip->V_cx << ","
