@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef M113_TRACK_SHOE_DOUBLE_PIN_H
-#define M113_TRACK_SHOE_DOUBLE_PIN_H
+#ifndef M113_TRACK_SHOE_RIGID_CB_H
+#define M113_TRACK_SHOE_RIGID_CB_H
 
 #include <string>
 
