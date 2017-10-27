@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <string>
+#include <iomanip> 
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChTransform.h"
@@ -390,60 +391,95 @@ int main(int argc, char* argv[]) {
 
 	 */
 
-GetLog() << "\n Test Triad Constructor\n";
+	GetLog() << "\n Test Triad Constructor\n";
 
-ChVector<>origin, xdir, ydir;
+	ChVector<>origin, xdir, ydir;
 
-origin = ChVector<>(0., 0., 0.);
-xdir = ChVector<>(1., 0., 0.);
-ydir = ChVector<>(0., 1., 0.);
-checkTriadAndPrint("Identity", origin, xdir, ydir);
+	origin = ChVector<>(0., 0., 0.);
+	xdir = ChVector<>(1., 0., 0.);
+	ydir = ChVector<>(0., 1., 0.);
+	checkTriadAndPrint("Identity", origin, xdir, ydir);
 
-xdir = ChVector<>(1., 0., 0.);
-ydir = ChVector<>(1., 1., 0.);
-checkTriadAndPrint("Identity", origin, xdir, ydir);
+	xdir = ChVector<>(1., 0., 0.);
+	ydir = ChVector<>(1., 1., 0.);
+	checkTriadAndPrint("Identity", origin, xdir, ydir);
 
+	xdir = ChVector<>(1., 0., 0.);
+	ydir = ChVector<>(-1., 1., 0.);
+	checkTriadAndPrint("Identity", origin, xdir, ydir);
 
-xdir = ChVector<>(1., 0., 0.);
-ydir = ChVector<>(0, -1, 0.);
-checkTriadAndPrint("180 deg about X, Expect: q(0, 1, 0, 0)", origin, xdir, ydir);
+	xdir = ChVector<>(1., 0., 0.);
+	ydir = ChVector<>(0, -1, 0.);
+	checkTriadAndPrint("180 deg about X, Expect: q(0, 1, 0, 0)", origin, xdir, ydir);
 
-xdir = ChVector<>(-1., 0., 0.);
-ydir = ChVector<>(0, 1, 0.);
-checkTriadAndPrint("180 deg about Y, Expect: q(0, 0, 1, 0)", origin, xdir, ydir);
+	xdir = ChVector<>(-1., 0., 0.);
+	ydir = ChVector<>(0, 1, 0.);
+	checkTriadAndPrint("180 deg about Y, Expect: q(0, 0, 1, 0)", origin, xdir, ydir);
 
+	xdir = ChVector<>(-1., 0., 0.);
+	ydir = ChVector<>(0, -1, 0.);
+	checkTriadAndPrint("180 deg about Z, Expect: q(0, 0, 0, 1)", origin, xdir, ydir);
 
-xdir = ChVector<>(-1., 0., 0.);
-ydir = ChVector<>(0, -1, 0.);
-checkTriadAndPrint("180 deg about Z, Expect: q(0, 0, 0, 1)", origin, xdir, ydir);
+	xdir = ChVector<>(1., 0., 0.);
+	ydir = ChVector<>(1., 1.0e-5, 0.);
+	checkTriadAndPrint("Y almost parallel to X, Expect: q(1,0,0,0)", origin, xdir, ydir);
 
-xdir = ChVector<>(1., 0., 0.);
-ydir = ChVector<>(1., 1.0e-5, 0.);
-checkTriadAndPrint("Y almost parallel to X, Expect: q(1,0,0,0)", origin, xdir, ydir);
+	xdir = ChVector<>(1., 0., 0.);
+	ydir = ChVector<>(1., -1.0e-5, 0.);
+	checkTriadAndPrint("Y almost parallel to X, Expect: q(0, 1, 0, 0)", origin, xdir, ydir);
 
-xdir = ChVector<>(1., 0., 0.);
-ydir = ChVector<>(1., -1.0e-5, 0.);
-checkTriadAndPrint("Y almost parallel to X, Expect: q(0, 1, 0, 0)", origin, xdir, ydir);
+	xdir = ChVector<>(1., 1., 0.);
+	ydir = ChVector<>(0., 1., 0.);
+	checkTriadAndPrint("X at 45deg in X-Y plane, Y in X-Y Plane, Z reversed, Expect: q(0.92388, 0, 0, -0.382683)",origin, xdir, ydir);
 
-xdir = ChVector<>(1., 1., 0.);
-ydir = ChVector<>(0., 1., 0.);
-checkTriadAndPrint("",origin, xdir, ydir);
+	xdir = ChVector<>(1., -1., 0.);
+	ydir = ChVector<>(0., 1., 0.);
+	checkTriadAndPrint("X at -45deg in X-Y plane, Y in X-Y Plane, Z up, Expect: q(0.92388, 0, 0, 0.382683)", origin, xdir, ydir);
 
-xdir = ChVector<>(0., 1., 0.);
-ydir = ChVector<>(0., 0., -1.);
-checkTriadAndPrint("",origin, xdir, ydir);
+	xdir = ChVector<>(-1., 1., 0.);
+	ydir = ChVector<>(0., 1., 0.);
+	checkTriadAndPrint("X at 135deg in X-Y plane, Y in X-Y Plane, Z reversed, Expect: q[0,  0.3826843, 0.9238792, 0]", origin, xdir, ydir);
 
+	xdir = ChVector<>(-1., 0.1, 0.);
+	ydir = ChVector<>(0., -1., 0.);
+	checkTriadAndPrint("X at almost 180 deg X-Y plane, Y in X-Y Plane, Z up", origin, xdir, ydir);
 
-GetLog() << "\n  CHRONO execution terminated.";
-return 0;
+	xdir = ChVector<>(1., 0., 0.);
+	ydir = ChVector<>(0., -1., 0.01);
+	checkTriadAndPrint("Rotation about X almost 180", origin, xdir, ydir);
+
+	xdir = ChVector<>(-1., 0.01, 0.);
+	ydir = ChVector<>(0., -1., 0.);
+	checkTriadAndPrint("Rotation about Z almost 180", origin, xdir, ydir);
+
+	xdir = ChVector<>(-1., -0.01, 0.);
+	ydir = ChVector<>(0., -1.,0.);
+	checkTriadAndPrint("Rotation about Z almost -180", origin, xdir, ydir);
+
+	xdir = ChVector<>(0., 1., 0.);
+	ydir = ChVector<>(0., 0., -1.);
+	checkTriadAndPrint("X along Y, Y along -Z",origin, xdir, ydir);
+
+	xdir = ChVector<>(0., 0., 1.);
+	ydir = ChVector<>(0., 1., 0.);
+	checkTriadAndPrint("X along Z, Y along Y, Z along -X", origin, xdir, ydir);
+
+	xdir = origin + ChVector<>(1., 0., 0.);
+	ydir = origin + ChVector<>(-10., 0.001, 0.);
+	checkTriadAndPrint("Non-zero origin, identity rotation", origin, xdir, ydir);
+
+	GetLog() << "\n  CHRONO execution terminated.";
+	return 0;
 }
 
 static void checkTriadAndPrint(std::string desc, const ChVector<double>& o, const ChVector<double>& x, const ChVector<double>& y) {
 	ChCoordsys<double> t(o, x, y);
-	GetLog() << desc << ": ";
-	GetLog() << "o(" << o.x() << ", " << o.y() << ", " << o.z() << "), ";
-	GetLog() << "x(" << x.x() << ", " << x.y() << ", " << x.z() << "), ";
-	GetLog() << "y(" << y.x() << ", " << y.y() << ", " << y.z() << ") ";
-	GetLog() << " -->> v(" << t.pos.x() << ", " << t.pos.y() << ", " << t.pos.z() << "), ";
-	GetLog() << "q(" << t.rot.e0() << ", " << t.rot.e1() << ", " << t.rot.e2() << ", " << t.rot.e3() << ")\n";
+	char buff[256];
+	GetLog() << desc << ":\n";
+	GetLog() << "  o(" << o.x() << ", " << o.y() << ", " << o.z() << "), ";
+	GetLog() << "  x(" << x.x() << ", " << x.y() << ", " << x.z() << "), ";
+	GetLog() << "  y(" << y.x() << ", " << y.y() << ", " << y.z() << ") \n";
+	GetLog() << "    -->> v(" << t.pos.x() << ", " << t.pos.y() << ", " << t.pos.z() << "), ";
+	snprintf(buff, 256, "q(%.10f, %.10f, %.10f, %.10f)\n\n", t.rot.e0(), t.rot.e1(), t.rot.e2(), t.rot.e3());
+	GetLog() << buff;
 }
