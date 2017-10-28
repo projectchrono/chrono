@@ -155,13 +155,16 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     double GetTireMass() const;
 
     /// Get the tire force and moment.
-    /// A ChDeformableTire always returns zero forces and moments if the tire is simulated
-    /// together with the associated vehicle (the tire forces are implicitly applied
-    /// to the associated wheel through the tire-wheel connections). If the tire is
-    /// co-simulated, the tire force and moment encapsulate the tire-terrain forces
-    /// as well as the weight of the tire itself.
-    virtual TerrainForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
-                                      ) const override;
+    /// A ChDeformableTire always returns zero forces and moments since tire forces
+    /// are implicitly applied to the associated wheel through the tire-wheel connections.
+    virtual TerrainForce GetTireForce() const override;
+
+    /// Report the tire force and moment.
+    /// This generalized force encapsulates the tire-terrain forces, as well as the weight
+    /// of the tire itself and is calculated as the resultant of all reaction forces and
+    /// torques in the tire-wheel connections, as applied at the wheel body center of mass.
+    /// The force and moment are expressed in the global frame.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the

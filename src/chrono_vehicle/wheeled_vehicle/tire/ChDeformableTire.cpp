@@ -150,27 +150,25 @@ double ChDeformableTire::GetTireMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TerrainForce ChDeformableTire::GetTireForce(bool cosim) const {
+TerrainForce ChDeformableTire::GetTireForce() const {
+    auto body_frame = m_connections[0]->GetConstrainedBodyFrame();
     TerrainForce tire_force;
+    tire_force.point = body_frame->GetPos();
     tire_force.force = ChVector<>(0, 0, 0);
-    tire_force.point = ChVector<>(0, 0, 0);
+    tire_force.moment = ChVector<>(0, 0, 0);
+    return tire_force;
+}
+
+TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
+    auto body_frame = m_connections[0]->GetConstrainedBodyFrame();
+    TerrainForce tire_force;
+    tire_force.point = body_frame->GetPos();
+    tire_force.force = ChVector<>(0, 0, 0);
     tire_force.moment = ChVector<>(0, 0, 0);
 
-    // If the tire is simulated together with the associated vehicle, return zero
-    // force and moment. In this case, the tire forces are implicitly applied to
-    // the wheel body through the tire-wheel connections.
-    // Also return zero forces if the tire is not connected to the wheel.
-    if (!cosim || m_connections.size() == 0) {
-        return tire_force;
-    }
-
-    // If the tire is co-simulated, calculate and return the resultant of all reaction
-    // forces and torques in the tire-wheel connections as applied to the wheel body
-    // center of mass.  These encapsulate the tire-terrain interaction forces and the
-    // inertia of the tire itself.
-    auto body_frame = m_connections[0]->GetConstrainedBodyFrame();
-    tire_force.point = body_frame->GetPos();
-
+    // Calculate and return the resultant of all reaction forces and torques in the
+    // tire-wheel connections, as applied at the wheel body center of mass.
+    // These encapsulate the tire-terrain interaction forces and the inertia of the tire itself.
     ChVector<> force;
     ChVector<> moment;
     for (size_t ic = 0; ic < m_connections.size(); ic++) {

@@ -24,6 +24,8 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
+#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -164,28 +166,32 @@ class RigidTireContactReporter : public ChContactContainer::ReportContactCallbac
     ChVector<> m_torque;
 };
 
-TerrainForce ChRigidTire::GetTireForce(bool cosim) const {
+TerrainForce ChRigidTire::GetTireForce() const {
+    // A ChRigidTire always returns zero force and moment since tire
+    // forces are automatically applied to the associated wheel through Chrono's
+    // frictional contact system.
     TerrainForce tire_force;
+    tire_force.point = m_wheel->GetPos();
+    tire_force.force = ChVector<>(0, 0, 0);
+    tire_force.moment = ChVector<>(0, 0, 0);
 
-    // If the tire is simulated together with the associated vehicle, return zero
-    // force and moment. In this case, the tire forces are automatically applied
-    // to the associated wheel through Chrono's frictional contact system.
-    if (!cosim) {
-        tire_force.point = ChVector<>(0, 0, 0);
-        tire_force.force = ChVector<>(0, 0, 0);
-        tire_force.moment = ChVector<>(0, 0, 0);
+    return tire_force;
+}
 
-        return tire_force;
+TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
+    // If interacting with an SCM terrain, interrogate the terrain system
+    // for the cumulative force on the associated rigid body.
+    if (auto scm = dynamic_cast<SCMDeformableTerrain*>(terrain)) {
+        return scm->GetContactForce(m_wheel);
     }
 
-    // If the tire is co-simulated, calculate and return the resultant of the
-    // contact forces acting on the tire.  The resulting tire force and moment
-    // are expressed in global frame, as applied at the center of the associated
-    // wheel body.
+    // Otherwise, calculate and return the resultant of the contact forces acting
+    // on the tire.  The resulting tire force and moment are expressed in global frame,
+    // as applied at the center of the associated wheel body.
     RigidTireContactReporter reporter(m_wheel);
-    
     m_wheel->GetSystem()->GetContactContainer()->ReportAllContacts(&reporter);
 
+    TerrainForce tire_force;
     tire_force.point = m_wheel->GetPos();
     tire_force.force = reporter.GetAccumulatedForce();
     tire_force.moment = reporter.GetAccumulatedTorque();

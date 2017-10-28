@@ -92,8 +92,15 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Get visualization tire width.
     virtual double GetVisualizationWidth() const { return 0.25; }
 
-    /// return the reactions for the combined slip EQs, in global coords
-    virtual TerrainForce GetTireForce(bool cosim = false) const override;
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override;
+
+    /// Report the tire force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
     ///  Return the reactions for the pure slip EQs, in local or global coords
     TerrainForce GetTireForce_pureSlip(const bool local = true) const;
