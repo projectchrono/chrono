@@ -194,6 +194,19 @@ class ChCoordsys {
         rot = ChQuaternion<Real>(1, 0, 0, 0);
     }
 
+	/// Cycles the rotation axes by the given number.  
+	ChCoordsys<Real>& Cycle(int n)
+	{
+		int steps;  // 0, 1 or 2
+		if (n < 0)  steps = (n - 3 * n) % 3;
+		else steps = n % 3;
+		Real e[3];
+		if (steps == 0) /* Do nothing */;
+		if (steps == 1) rot.SetVector(ChVector<Real>(rot.e3(), rot.e1(), rot.e2()));
+		if (steps == 2) rot.SetVector(ChVector<Real>(rot.e2(), rot.e3(), rot.e1()));
+		return *this;
+	}
+
     // FUNCTIONS TO TRANSFORM THE FRAME ITSELF
 
     /// Apply a transformation (rotation and translation) represented by
