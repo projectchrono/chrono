@@ -16,18 +16,18 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChParserOpenSim.h"
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/utils/ChParserOpenSim.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
 
-#include <functional>
 #include <cassert>
 #include <cmath>
+#include <functional>
 
 using namespace chrono;
 using namespace chrono::utils;
@@ -55,7 +55,6 @@ int main(int argc, char* argv[]) {
     // - use PRIMITIVES for models without visualization mesh data.
     ChParserOpenSim parser;
     parser.SetVisualizationType(ChParserOpenSim::VisType::PRIMITIVES);
-    parser.EnableCollision();
     parser.SetVerbose(true);
     parser.Parse(my_system, filename);
 
@@ -77,6 +76,10 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     application.SetTimestep(0.005);
+    parser.PrintReport();
+    auto rep = parser.GetReport();
+    // std::cout << "---------" << std::endl;
+    // rep.Print();
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

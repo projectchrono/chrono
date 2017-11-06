@@ -25,15 +25,15 @@
 #include "chrono_thirdparty/rapidxml/rapidxml_print.hpp"
 #include "chrono_thirdparty/rapidxml/rapidxml_utils.hpp"
 
+#include "chrono/core/ChCubicSpline.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/core/ChFrame.h"
-#include "chrono/core/ChCubicSpline.h"
 
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include <utility>
@@ -135,6 +135,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     auto newBody = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
     newBody->SetName(bodyNode->first_attribute("name")->value());
     system.AddBody(newBody);
+    m_report.bodiesList.push_back(newBody);
 
     // If body collision is enabled, set the contact material properties
     if (m_collide) {
@@ -450,48 +451,53 @@ void ChParserOpenSim::initFunctionTable() {
                  << "," << newBody->GetFrame_REF_to_abs().GetRot().e3() << endl;
         }
 
-        // Due to the weird inheritance of the ChLink family, this has a lot of code duplication
-
+        // This is slightly cleaner than before, but still gross
+        std::shared_ptr<ChLink> joint;
+        std::string jointType;
         // Make a joint, depending on what it actually is
         if (std::string(jointNode->name()) == std::string("PinJoint")) {
-            auto joint = std::make_shared<ChLinkLockRevolute>();
-            joint->Initialize(parent, newBody, jointFrame.GetCoord());
-            joint->SetNameString(jointNode->first_attribute("name")->value());
-            system->AddLink(joint);
-            m_jointList.push_back(joint);
-
+            auto revJoint = std::make_shared<ChLinkLockRevolute>();
+            revJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            revJoint->SetNameString(jointNode->first_attribute("name")->value());
+            joint = revJoint;
+            jointType = "Revolute Joint";
         } else if ((std::string(jointNode->name()) == std::string("WeldJoint"))) {
-            auto joint = std::make_shared<ChLinkLockLock>();
-            joint->Initialize(parent, newBody, jointFrame.GetCoord());
-            joint->SetNameString(jointNode->first_attribute("name")->value());
-            system->AddLink(joint);
-            m_jointList.push_back(joint);
+            auto weldJoint = std::make_shared<ChLinkLockLock>();
+            weldJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            weldJoint->SetNameString(jointNode->first_attribute("name")->value());
+            joint = weldJoint;
+            jointType = "Weld Joint";
 
         } else if ((std::string(jointNode->name()) == std::string("UniversalJoint"))) {
             // Do some universal magic here
-            auto joint = std::make_shared<ChLinkUniversal>();
-            joint->Initialize(parent, newBody, jointFrame);
-            joint->SetNameString(jointNode->first_attribute("name")->value());
-            system->AddLink(joint);
-            m_jointList.push_back(joint);
+            auto uniJoint = std::make_shared<ChLinkUniversal>();
+            uniJoint->Initialize(parent, newBody, jointFrame);
+            uniJoint->SetNameString(jointNode->first_attribute("name")->value());
+            joint = uniJoint;
+            jointType = "Universal Joint";
 
         } else if ((std::string(jointNode->name()) == std::string("BallJoint"))) {
             // Add a spherical joint
-            auto joint = std::make_shared<ChLinkLockSpherical>();
-            joint->Initialize(parent, newBody, jointFrame.GetCoord());
-            joint->SetNameString(jointNode->first_attribute("name")->value());
-            system->AddLink(joint);
-            m_jointList.push_back(joint);
+            auto spherJoint = std::make_shared<ChLinkLockSpherical>();
+            spherJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            spherJoint->SetNameString(jointNode->first_attribute("name")->value());
+            joint = spherJoint;
+            jointType = "Spherical Joint";
+
         } else {
             // Unknown joint type.  Replace with a spherical
             cout << "Unknown Joint type " << jointNode->name() << " between " << parent->GetName() << " and "
                  << newBody->GetName() << " -- making spherical standin." << endl;
-            auto joint = std::make_shared<ChLinkLockSpherical>();
-            joint->Initialize(parent, newBody, jointFrame.GetCoord());
-            joint->SetNameString(std::string(jointNode->first_attribute("name")->value()) + "_standin");
-            system->AddLink(joint);
-            m_jointList.push_back(joint);
+            auto customJoint = std::make_shared<ChLinkLockSpherical>();
+            customJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            customJoint->SetNameString(std::string(jointNode->first_attribute("name")->value()) + "_standin");
+            joint = customJoint;
+            jointType = "Spherical Standin";
         }
+        system->AddLink(joint);
+        m_jointList.push_back(joint);
+        m_report.jointsList.push_back(std::tuple<std::shared_ptr<ChLink>, std::string, std::string>(
+            joint, std::string(jointNode->name()), jointType));
 
     };
 
