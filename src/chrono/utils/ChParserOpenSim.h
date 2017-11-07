@@ -21,6 +21,7 @@
 
 #include <functional>
 #include <map>
+#include <tuple>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBodyAuxRef.h"

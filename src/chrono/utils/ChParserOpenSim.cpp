@@ -104,7 +104,25 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
         parseBody(bodyNode, system);
         bodyNode = bodyNode->next_sibling();
     }
+    xml_node<>* controllerSet =
+        doc.first_node()->first_node("Model")->first_node("ControllerSet")->first_node("objects");
+    xml_node<>* controllerNode = controllerSet->first_node();
 
+    while (controllerNode != NULL) {
+        auto actuators = strToSTLVector<std::string>(controllerNode->first_node("actuator_list")->value());
+        controllerNode = controllerNode->next_sibling();
+        // Read function as controllerNode->first_node("FunctionSet")
+    }
+
+    xml_node<>* forceSet = doc.first_node()->first_node("Model")->first_node("ForceSet")->first_node("objects");
+    xml_node<>* forceNode = forceSet->first_node();
+    while (forceNode != NULL) {
+        std::string name(forceNode->first_attribute("name")->value());
+        std::cout << "Actuator " << name << std::endl;
+        auto point = strToSTLVector<double>(forceNode->first_node("body")->value());
+        forceNode = forceNode->next_sibling();
+        // Read function as controllerNode->first_node("FunctionSet")
+    }
     initShapes(bodyNode, system);
 }
 
