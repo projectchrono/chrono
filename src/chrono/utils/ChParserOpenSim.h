@@ -24,6 +24,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
@@ -42,6 +43,7 @@ class ChApi ChParserOpenSim {
     /// Report containing information about objects parsed from file
     class ChApi Report {
       public:
+        /// Custom structure that holds information about a joint read in from OpenSim
         struct OpenSimJoint {
             /// Pointer to the joint so it can be modified
             std::shared_ptr<ChLink> Joint;
@@ -130,6 +132,9 @@ class ChApi ChParserOpenSim {
     void initFunctionTable();
     Report m_report;
 
+    /// Creates load object and parses its various properties from its XML child nodes
+    bool parseForce(rapidxml::xml_node<>* bodyNode, ChSystem& system, std::shared_ptr<ChLoadContainer> container);
+
     /// Creates body and parses its various properties from its XML child nodes
     bool parseBody(rapidxml::xml_node<>* bodyNode, ChSystem& system);
 
@@ -143,6 +148,15 @@ class ChApi ChParserOpenSim {
         std::istream_iterator<T> beg(buf), end;
         return std::vector<T>(beg, end);
     }
+
+    // Convert a space-delimited string into a ChVector
+    template <typename T>
+    static inline ChVector<T> strToChVector(const char* string) {
+        auto elems = strToSTLVector<T>(string);
+        return ChVector<T>(elems.at(0), elems.at(1), elems.at(2));
+    }
+    // Convert a lowercase string to a boolean
+    static inline bool strToBool(const char* string) { return std::strcmp(string, "true") == 0; }
 
     // Maps child fields of a body node to functions that handle said fields
     std::map<std::string, std::function<void(rapidxml::xml_node<>*, std::shared_ptr<ChBodyAuxRef>)>> function_table;

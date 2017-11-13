@@ -182,7 +182,7 @@
 					<FunctionSet name="ControlFunctions">
 						<objects>
 							<Constant name="f">
-        						<value> 9.8 </value>
+        						<value> 1 </value>
 							</Constant>
 						</objects>
 					</FunctionSet>
@@ -192,21 +192,18 @@
 		</ControllerSet>
 		<ForceSet>
 			<objects>
-				<!--Apply a force at a point in the direction specified in the body frame -->
-				<PointActuator name="grav">
-				 <!--Name of Body to which this actuator is applied.-->
-				 <body>rod1</body>
-				 <!--Location of application point; in body frame unless point_is_global=true-->
-				 <point>0 -1 0</point>
-				 <!--Interpret point in Ground frame if true; otherwise, body frame.-->
-				 <point_is_global>false</point_is_global>
-				 <!--Force application direction; in body frame unless force_is_global=true.-->
-				 <direction>0 -1 0</direction>
-				 <!--Interpret direction in Ground frame if true; otherwise, body frame.-->
-				 <force_is_global> true </force_is_global>
-				 <!--The maximum force produced by this actuator when fully activated.-->
-				 <optimal_force>1</optimal_force>
-				</PointActuator>
+				<TorqueActuator name="grav">
+					<!--Name of Body to which the torque actuator is applied.-->
+					<bodyA>ground</bodyA>
+					<!--Name of Body to which the equal and opposite torque is applied.-->
+					<bodyB>rod1</bodyB>
+					<!--Interpret axis in Ground frame if true; otherwise, body A's frame.-->
+					<torque_is_global>true</torque_is_global>
+					<!--Fixed direction about which torque is applied, in Ground or body A frame depending on 'torque_is_global' property.-->
+					<axis>0 0 1</axis>
+					<!--The maximum torque produced by this actuator when fully activated.-->
+					<optimal_force>9.8</optimal_force>
+				</TorqueActuator>
 			</objects>
 			<groups />
 		</ForceSet>

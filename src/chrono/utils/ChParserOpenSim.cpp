@@ -27,6 +27,7 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono/core/ChFrame.h"
+#include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -36,6 +37,7 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
+#include <cstring>
 #include <utility>
 
 namespace chrono {
@@ -114,38 +116,46 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
     xml_document<> doc;
     doc.parse<0>(file.data());
 
-    // Hold list of bodies
-    xml_node<>* bodySet = doc.first_node()->first_node("Model")->first_node("BodySet")->first_node("objects");
-
     // Get gravity from model and set it in system
     auto elems = strToSTLVector<double>(doc.first_node()->first_node("Model")->first_node("gravity")->value());
     system.Set_G_acc(ChVector<>(elems[0], elems[1], elems[2]));
 
     // Traverse the list of bodies and parse the information for each one
-    xml_node<>* bodyNode = bodySet->first_node();
+    xml_node<>* bodySet = doc.first_node()->first_node("Model")->first_node("BodySet");
+    if (bodySet == NULL && bodySet->first_node("objects") != NULL) {
+        std::cout << "No body set detected for this model." << std::endl;
+        return;
+    }
+    xml_node<>* bodyNode = bodySet->first_node("objects")->first_node();
     while (bodyNode != NULL) {
         parseBody(bodyNode, system);
         bodyNode = bodyNode->next_sibling();
     }
-    xml_node<>* controllerSet =
-        doc.first_node()->first_node("Model")->first_node("ControllerSet")->first_node("objects");
-    xml_node<>* controllerNode = controllerSet->first_node();
 
-    while (controllerNode != NULL) {
-        auto actuators = strToSTLVector<std::string>(controllerNode->first_node("actuator_list")->value());
-        controllerNode = controllerNode->next_sibling();
-        // Read function as controllerNode->first_node("FunctionSet")
+    ////xml_node<>* controllerSet =
+    ////    doc.first_node()->first_node("Model")->first_node("ControllerSet")->first_node("objects");
+    ////xml_node<>* controllerNode = controllerSet->first_node();
+    ////while (controllerNode != NULL) {
+    ////    auto actuators = strToSTLVector<std::string>(controllerNode->first_node("actuator_list")->value());
+    ////    controllerNode = controllerNode->next_sibling();
+    ////    // Read function as controllerNode->first_node("FunctionSet")
+    ////}
+
+    auto loadcontainer = std::make_shared<ChLoadContainer>();
+    system.Add(loadcontainer);
+
+    xml_node<>* forceSet = doc.first_node()->first_node("Model")->first_node("ForceSet");
+    if (forceSet != NULL && forceSet->first_node("objects") != NULL) {
+        std::cout << forceSet << forceSet->first_node("objects") << std::endl;
+        xml_node<>* forceNode = forceSet->first_node("objects")->first_node();
+        while (forceNode != NULL) {
+            parseForce(forceNode, system, loadcontainer);
+            forceNode = forceNode->next_sibling();
+        }
+    } else {
+        std::cout << "No forces detected." << std::endl;
     }
 
-    xml_node<>* forceSet = doc.first_node()->first_node("Model")->first_node("ForceSet")->first_node("objects");
-    xml_node<>* forceNode = forceSet->first_node();
-    while (forceNode != NULL) {
-        std::string name(forceNode->first_attribute("name")->value());
-        std::cout << "Actuator " << name << std::endl;
-        auto point = strToSTLVector<double>(forceNode->first_node("body")->value());
-        forceNode = forceNode->next_sibling();
-        // Read function as controllerNode->first_node("FunctionSet")
-    }
     initShapes(bodyNode, system);
 }
 
@@ -166,6 +176,34 @@ ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChMaterialSurface:
 // Create and add a new body.
 // Parse its various properties from its XML child nodes.
 // -----------------------------------------------------------------------------
+bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
+                                 ChSystem& system,
+                                 std::shared_ptr<ChLoadContainer> container) {
+    if (std::string(forceNode->name()) == std::string("PointActuator")) {
+        std::string name(forceNode->first_attribute("name")->value());
+        std::cout << "Actuator " << name << std::endl;
+        auto body = system.SearchBody(forceNode->first_node("body")->value());
+        ChVector<> point = strToChVector<double>(forceNode->first_node("point")->value());
+        auto point_global = strToBool(forceNode->first_node("point_is_global")->value());
+        ChVector<> direction = strToChVector<double>(forceNode->first_node("direction")->value());
+        auto force_global = strToBool(forceNode->first_node("force_is_global")->value());
+        auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
+
+        auto load = std::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
+        container->Add(load);
+        return true;
+    } else if (std::string(forceNode->name()) == std::string("TorqueActuator")) {
+        auto bodyA = system.SearchBody(forceNode->first_node("bodyA")->value());
+        auto bodyB = system.SearchBody(forceNode->first_node("bodyB")->value());
+        auto torque_is_global = strToBool(forceNode->first_node("torque_is_global")->value());
+        ChVector<> axis = strToChVector<double>(forceNode->first_node("axis")->value());
+        auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
+
+    } else {
+        std::cout << "Unknown actuator type: " << forceNode->name() << std::endl;
+        return false;
+    }
+}
 
 bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     // Make a new body and name it for later
@@ -237,9 +275,9 @@ void ChParserOpenSim::initFunctionTable() {
 
     function_table["mass_center"] = [this](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set COM in reference frame
-        auto elems = strToSTLVector<double>(fieldNode->value());
+        auto COM = strToChVector<double>(fieldNode->value());
         // Opensim doesn't really use a rotated COM to REF frame, so unit quaternion
-        newBody->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(elems[0], elems[1], elems[2]), ChQuaternion<>(1, 0, 0, 0)));
+        newBody->SetFrame_COG_to_REF(ChFrame<>(COM, ChQuaternion<>(1, 0, 0, 0)));
         // Only add vis balls if we're using primitives
     };
 
