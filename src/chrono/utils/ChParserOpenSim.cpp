@@ -49,6 +49,29 @@ using std::endl;
 // Constructor for the OpenSim parser.
 // Initializes lambda table.
 // -----------------------------------------------------------------------------
+void ChParserOpenSim::Report::Print() const {
+    printf("Parsed %u bodies:\n", bodiesList.size());
+    for (auto body : bodiesList) {
+        std::cout << body->GetNameString() << std::endl;
+    }
+    printf("Parsed %u bodies:\n", jointsList.size());
+    for (auto joint : jointsList) {
+        printf("Joint %12s, OpenSim: %14s, Chrono: %14s, standin: %d\r\n", joint.Joint->GetName(),
+               joint.OpenSimType.c_str(), joint.ChronoType.c_str(), joint.standin);
+    }
+}
+
+void ChParserOpenSim::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
+    m_kn = kn;
+    m_gn = gn;
+    m_kt = kt;
+    m_gt = gt;
+}
+
+void ChParserOpenSim::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
+    m_young_modulus = young_modulus;
+    m_poisson_ratio = poisson_ratio;
+}
 
 ChParserOpenSim::ChParserOpenSim()
     : m_collide(false),
@@ -472,6 +495,7 @@ void ChParserOpenSim::initFunctionTable() {
         // This is slightly cleaner than before, but still gross
         std::shared_ptr<ChLink> joint;
         std::string jointType;
+        bool standin = false;
         // Make a joint, depending on what it actually is
         if (std::string(jointNode->name()) == std::string("PinJoint")) {
             auto revJoint = std::make_shared<ChLinkLockRevolute>();
@@ -503,6 +527,7 @@ void ChParserOpenSim::initFunctionTable() {
             jointType = "Spherical Joint";
 
         } else {
+            standin = true;
             // Unknown joint type.  Replace with a spherical
             cout << "Unknown Joint type " << jointNode->name() << " between " << parent->GetName() << " and "
                  << newBody->GetName() << " -- making spherical standin." << endl;
@@ -514,8 +539,9 @@ void ChParserOpenSim::initFunctionTable() {
         }
         system->AddLink(joint);
         m_jointList.push_back(joint);
-        m_report.jointsList.push_back(std::tuple<std::shared_ptr<ChLink>, std::string, std::string>(
-            joint, std::string(jointNode->name()), jointType));
+        // Set up report entry
+        m_report.jointsList.push_back(
+            ChParserOpenSim::Report::OpenSimJoint{joint, std::string(jointNode->name()), jointType, standin});
 
     };
 

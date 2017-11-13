@@ -21,7 +21,6 @@
 
 #include <functional>
 #include <map>
-#include <tuple>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBodyAuxRef.h"
@@ -40,27 +39,25 @@ namespace utils {
 class ChApi ChParserOpenSim {
   public:
     enum VisType { PRIMITIVES, MESH, NONE };
-
-    class ChApi ChOpenSimReport {
+    /// Report containing information about objects parsed from file
+    class ChApi Report {
       public:
-        // List of ChBodies read in
+        struct OpenSimJoint {
+            /// Pointer to the joint so it can be modified
+            std::shared_ptr<ChLink> Joint;
+            /// The type listed in the .osim file
+            std::string OpenSimType;
+            /// The corresponding Chrono type
+            std::string ChronoType;
+            /// Whether or not it was loaded exactly
+            bool standin;
+        };
+        /// List of ChBodies read in
         std::vector<std::shared_ptr<ChBody>> bodiesList;
-        // List of joints read in, their OpenSim, and Chrono representations
-        // Tuples are gross
-        std::vector<std::tuple<std::shared_ptr<ChLink>, std::string, std::string>> jointsList;
-        void Print() {
-            printf("Parsed %u bodies:\n", bodiesList.size());
-            for (auto body : bodiesList) {
-                std::cout << body->GetNameString() << std::endl;
-            }
-            printf("Parsed %u bodies:\n", jointsList.size());
-            for (auto joint_tuple : jointsList) {
-                std::string JointName = std::get<0>(joint_tuple)->GetNameString(),
-                            OpenSimType = std::get<1>(joint_tuple), ChronoType = std::get<2>(joint_tuple);
-                printf("Joint %25s: OpenSim: %20s, Chrono: %20s\r\n", JointName.c_str(), OpenSimType.c_str(),
-                       ChronoType.c_str());
-            }
-        }
+        /// List of joints read in, their OpenSim, and Chrono representations
+        std::vector<OpenSimJoint> jointsList;
+        /// Print the bodies and joints read
+        void Print() const;
     };
 
     ChParserOpenSim();
@@ -122,13 +119,16 @@ class ChApi ChParserOpenSim {
     /// Get the list of joints in the model.
     const std::vector<std::shared_ptr<ChLink>>& GetJointList() const { return m_jointList; }
 
-    const ChOpenSimReport& GetReport() { return m_report; }
-    void PrintReport() { m_report.Print(); }
+    /// Get the report for this parser
+    const Report& GetReport() const { return m_report; }
+
+    /// Get print the parser's report
+    void PrintReport() const { m_report.Print(); }
 
   private:
     /// Setup lambda table for body parsing
     void initFunctionTable();
-    ChOpenSimReport m_report;
+    Report m_report;
 
     /// Creates body and parses its various properties from its XML child nodes
     bool parseBody(rapidxml::xml_node<>* bodyNode, ChSystem& system);
