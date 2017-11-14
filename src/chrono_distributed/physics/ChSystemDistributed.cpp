@@ -15,6 +15,7 @@
 #include <cstdlib>
 
 #include <mpi.h>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -38,7 +39,7 @@
 
 using namespace chrono;
 using namespace collision;
-// TODO reserve space for max_objects ish or for something?
+
 ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects) {
     this->world = world;
     MPI_Comm_size(world, &num_ranks);
@@ -46,6 +47,8 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
     int name_len;
     node_name = new char[50];
     MPI_Get_processor_name(node_name, &name_len);
+
+    rank_digits = std::pow(10, std::floor(std::log10(num_ranks)) + 1);
 
     ddm = new ChDistributedDataManager(this);
     domain = new ChDomainDistributed(this);
@@ -67,12 +70,45 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
     data_manager->system_timer.AddTimer("UnpackBody");
     data_manager->system_timer.AddTimer("Exchange");
 
+    // Reserve starting space
+    int init = max_objects;  // / num_ranks;
+    bodylist.reserve(init);
+
+    ddm->global_id.reserve(init);
+    ddm->comm_status.reserve(init);
+    ddm->body_shapes.reserve(init);
+    ddm->body_shape_start.reserve(init);
+    ddm->body_shape_count.reserve(init);
+
+    data_manager->host_data.pos_rigid.reserve(init);
+    data_manager->host_data.rot_rigid.reserve(init);
+    data_manager->host_data.active_rigid.reserve(init);
+    data_manager->host_data.collide_rigid.reserve(init);
+    data_manager->host_data.mass_rigid.reserve(init);
+
+    data_manager->host_data.elastic_moduli.reserve(init);
+    data_manager->host_data.mu.reserve(init);
+    data_manager->host_data.cr.reserve(init);
+    data_manager->host_data.smc_coeffs.reserve(init);
+    data_manager->host_data.adhesionMultDMT_data.reserve(init);
+
+    data_manager->shape_data.fam_rigid.reserve(init);
+    data_manager->shape_data.id_rigid.reserve(init);
+    data_manager->shape_data.typ_rigid.reserve(init);
+    data_manager->shape_data.start_rigid.reserve(init);
+    data_manager->shape_data.length_rigid.reserve(init);
+    data_manager->shape_data.ObR_rigid.reserve(init);
+    data_manager->shape_data.ObA_rigid.reserve(init);
+
+    data_manager->shape_data.sphere_rigid.reserve(init);
+
     collision_system = std::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
 }
 
 ChSystemDistributed::~ChSystemDistributed() {
     delete domain;
     delete comm;
+
 #ifdef DistrDebug
     debug_stream.close();
 #endif
@@ -103,17 +139,12 @@ void ChSystemDistributed::UpdateRigidBodies() {
     }
 }
 
-void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
-    // Regardless of whether the body is on this rank,
-    // increment the global id counter to maintain unique
-    // global ids over all ranks.
-    newbody->SetGid(num_bodies_global);
+// The bodies added this way must be guarenteed to be OWNED, SHARED_UP, or SHARED_DOWN
+// on this rank.
+// TODO do an update to create GHOST_UP and GHOST_DOWN bodies before first time step - could call an UpdateRigidBodies before first timestep
+void ChSystemDistributed::AddBodyTrust(std::shared_ptr<ChBody> newbody) {
+    newbody->SetGid(num_bodies_global * rank_digits + my_rank);  // gid = <lgid><rank>
     num_bodies_global++;
-
-    // Makes space for shapes TODO Does this work for mid-simulation add by user?
-    ddm->body_shape_start.push_back(0);
-    ddm->body_shape_count.push_back(0);
-
     distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);
 
     // Check for collision with this sub-domain
@@ -138,14 +169,74 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
         }
     }
 
-    if (status == distributed::UNOWNED_UP || status == distributed::UNOWNED_DOWN) {
-        GetLog() << "Not adding GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
-        return;
-    }
+    // Makes space for shapes
+    ddm->body_shape_start.push_back(0);
+    ddm->body_shape_count.push_back(0);
 
     ddm->comm_status.push_back(status);
-    ddm->global_id.push_back(num_bodies_global - 1);
+    ddm->global_id.push_back(newbody->GetGid());
 
+    newbody->SetId(data_manager->num_rigid_bodies);
+    bodylist.push_back(newbody);
+
+    ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
+
+    data_manager->num_rigid_bodies++;
+    newbody->SetSystem(this);  // TODO Syncs collision model // TODO collision add expensive
+
+    // actual data is set in UpdateBodies().
+    data_manager->host_data.pos_rigid.push_back(real3());
+    data_manager->host_data.rot_rigid.push_back(quaternion());
+    data_manager->host_data.active_rigid.push_back(true);
+    data_manager->host_data.collide_rigid.push_back(true);
+
+    // Let derived classes reserve space for specific material surface data
+    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+}
+
+void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
+    // Regardless of whether the body is on this rank,
+    // increment the global id counter to maintain unique
+    // global ids over all ranks.
+    newbody->SetGid(num_bodies_global * rank_digits + my_rank);
+    num_bodies_global++;
+    distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);  // TODO expensive
+
+    // Check for collision with this sub-domain
+    if (newbody->GetBodyFixed()) {
+        ChVector<double> body_min;
+        ChVector<double> body_max;
+        ChVector<double> sublo(domain->GetSubLo());
+        ChVector<double> subhi(domain->GetSubHi());
+
+        newbody->GetCollisionModel()->GetAABB(body_min, body_max);
+
+#ifdef DistrDebug
+        printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", body_min.x(), body_min.y(), body_min.z(),
+               body_max.x(), body_max.y(), body_max.z());
+#endif
+        // If the part of the body lies in this sub-domain, add it
+        if ((body_min.x() <= subhi.x() && sublo.x() <= body_max.x()) &&
+            (body_min.y() <= subhi.y() && sublo.y() <= body_max.y()) &&
+            (body_min.z() <= subhi.z() && sublo.z() <= body_max.z())) {
+            status = distributed::GLOBAL;
+            // TODO cut off the shapes that don't affect this sub-domain?
+        }
+    }
+
+    if (status == distributed::UNOWNED_UP || status == distributed::UNOWNED_DOWN) {
+#ifdef DistrDebug
+        GetLog() << "Not adding GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
+#endif
+        return;
+    }
+    // Makes space for shapes TODO Does this work for mid-simulation add by user?
+    ddm->body_shape_start.push_back(0);
+    ddm->body_shape_count.push_back(0);  // TODO these two lines were moved from above
+
+    ddm->comm_status.push_back(status);
+    ddm->global_id.push_back(newbody->GetGid());
+#ifdef DistrDebug
     switch (status) {
         // Shared up
         case distributed::SHARED_UP:
@@ -183,6 +274,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     }
 
     GetLog() << " GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
+#endif
 
     newbody->SetId(data_manager->num_rigid_bodies);
     bodylist.push_back(newbody);
@@ -190,7 +282,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
 
     data_manager->num_rigid_bodies++;
-    newbody->SetSystem(this);  // TODO Syncs collision model
+    newbody->SetSystem(this);  // TODO Syncs collision model // TODO collision add expensive
 
     // actual data is set in UpdateBodies().
     data_manager->host_data.pos_rigid.push_back(real3());

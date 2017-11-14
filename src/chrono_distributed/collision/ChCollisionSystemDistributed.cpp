@@ -61,7 +61,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
                     posalongsplitaxis <= subhi[splitaxis] + ghost_layer) {
                         // Add to new model
                         newmodel->Add
-                    }
+                }
             }
         }
     */

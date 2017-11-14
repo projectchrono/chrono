@@ -126,6 +126,6 @@ class CH_DISTR_API ChCommDistributed {
 
     /// Packs all shapes for the body at index into buf and returns
     /// the number of shapes that it has packed.
-    int PackShapes(Shape* buf, int index);
+    int PackShapes(std::vector<Shape>* buf, int index);
 };
 } /* namespace chrono */

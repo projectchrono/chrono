@@ -28,11 +28,11 @@ int num_threads;
 // Tilt angle (about global Y axis) of the container.
 double tilt_angle = 0;
 
-// Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
-int count_X;
-int count_Y;
+// Number of balls: (2 * count_X + 1) * (2 * count_Y + 1) * count_Z
+int count_X = 111;  // low x -35.52
+int count_Y = 112;  // low y -35.84
 
-int count_Z;
+int count_Z = 200;  // height: 67
 
 // Material properties (same on bin and balls)
 float Y = 2e6f;
@@ -105,51 +105,10 @@ void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
     std::cout << "time = " << time << std::flush << std::endl;
 }
 
-// -----------------------------------------------------------------------------
-// Create a bin consisting of five boxes attached to the ground.
-// -----------------------------------------------------------------------------
-void AddContainer(ChSystemDistributed* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-
-    // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceSMC>();
-    mat->SetYoungModulus(Y);
-    mat->SetFriction(mu);
-    mat->SetRestitution(cr);
-
-    // Create the containing bin
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-    bin->SetMaterialSurface(mat);
-    bin->SetIdentifier(binId);
-    bin->SetMass(1);
-    bin->SetPos(ChVector<>(0, 0, 0));
-    bin->SetRot(Q_from_AngY(tilt_angle));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(true);
-
-    ChVector<> hdim(30, 30, 20);
-    double hthick = 0.1;
-
-    bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, hdim.y() + hthick, hdim.z()));
-    bin->GetCollisionModel()->BuildModel();
-
-    sys->AddBody(bin);
-}
-
 // Returns points to put spheres at
 void BoxSphereDecomp(std::vector<ChVector<double>>& points, ChVector<double> min, ChVector<double> max, double radius) {
-	double incr = radius; // TODO tune
-	
+    double incr = radius;  // TODO tune
+
     for (double x = min.x(); x <= max.x(); x += incr) {
         for (double y = min.y(); y <= max.y(); y += incr) {
             for (double z = min.z(); z <= max.z(); z += incr) {
@@ -173,7 +132,7 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
     std::vector<ChVector<double>> side3;
     std::vector<ChVector<double>> side4;
 
-    ChVector<> hdim(5, 5, 15);  // except z...?
+    ChVector<> hdim(38, 38, 68);  // except z is actual height
     double hthick = 0.0;
     double fill_radius = 1;  // TODO: ?
 
@@ -196,64 +155,97 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
         bin->SetCollide(true);
         bin->SetBodyFixed(true);
         bin->GetCollisionModel()->ClearModel();
-		bin->GetCollisionModel()->AddSphere(fill_radius);
+        bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
     }
     for (auto itr = side1.begin(); itr != side1.end(); itr++) {
-		auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
         bin->SetMaterialSurface(mat);
         bin->SetMass(1);
         bin->SetPos(*itr);
         bin->SetCollide(true);
         bin->SetBodyFixed(true);
         bin->GetCollisionModel()->ClearModel();
-		bin->GetCollisionModel()->AddSphere(fill_radius);
+        bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
     }
     for (auto itr = side2.begin(); itr != side2.end(); itr++) {
-		auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
         bin->SetMaterialSurface(mat);
         bin->SetMass(1);
         bin->SetPos(*itr);
         bin->SetCollide(true);
         bin->SetBodyFixed(true);
         bin->GetCollisionModel()->ClearModel();
-		bin->GetCollisionModel()->AddSphere(fill_radius);
+        bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
     }
     for (auto itr = side3.begin(); itr != side3.end(); itr++) {
-		auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
         bin->SetMaterialSurface(mat);
         bin->SetMass(1);
         bin->SetPos(*itr);
         bin->SetCollide(true);
         bin->SetBodyFixed(true);
         bin->GetCollisionModel()->ClearModel();
-		bin->GetCollisionModel()->AddSphere(fill_radius);
+        bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
     }
     for (auto itr = side4.begin(); itr != side4.end(); itr++) {
-		auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
         bin->SetMaterialSurface(mat);
         bin->SetMass(1);
         bin->SetPos(*itr);
         bin->SetCollide(true);
         bin->SetBodyFixed(true);
         bin->GetCollisionModel()->ClearModel();
-		bin->GetCollisionModel()->AddSphere(fill_radius);
+        bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
     }
+}
+
+inline std::shared_ptr<ChBody> CreateBall(double x,
+                                          double y,
+                                          double z,
+                                          std::shared_ptr<ChMaterialSurfaceSMC> ballMat,
+                                          int* ballId,
+                                          double mass,
+                                          ChVector<> inertia,
+                                          double radius) {
+    ChVector<> pos(0.32 * x, 0.32 * y, z);
+
+    auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    ball->SetMaterialSurface(ballMat);
+
+    ball->SetIdentifier(*ballId++);
+    ball->SetMass(mass);
+    ball->SetInertiaXX(inertia);
+    ball->SetPos(pos);
+    ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    ball->SetBodyFixed(false);
+    ball->SetCollide(true);
+
+    ball->GetCollisionModel()->ClearModel();
+    utils::AddSphereGeometry(ball.get(), radius);
+    ball->GetCollisionModel()->BuildModel();
+    return ball;
 }
 
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemDistributed* sys) {
+    ChVector<> subhi(sys->GetDomain()->GetSubHi());
+    ChVector<> sublo(sys->GetDomain()->GetSubLo());
+    const int split_axis = sys->GetDomain()->GetSplitAxis();
+    const double ghost = sys->GetGhostLayer();
+    // int num_bodies_local = ; TODO large heap allocation
+
     // Common material
     auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
     ballMat->SetYoungModulus(Y);
@@ -265,31 +257,23 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     int ballId = 0;
     double mass = 1;
     double radius = 0.15;
+    double spacing = 2 * radius + 0.02;
     ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
-    // TODO generate randomly. Need to seed though.
-    for (double z = 10; count_Z > 0; z += 0.35, count_Z--) {
-        for (int ix = -count_X; ix <= count_X; ix++) {
-            for (int iy = -count_Y; iy <= count_Y; iy++) {
-                ChVector<> pos(0.35 * ix, 0.35 * iy, z);
+    int count_down_Z = count_Z;
+    for (double z = 3; count_down_Z > 0; z += spacing, count_down_Z--) {
+		print(std::string("Layers remaining: ") + std::to_string(count_down_Z) + "\n");
+        if (split_axis == 2 && z >= sublo.z() && z < subhi.z())
+            continue;
+        for (double x = spacing * -count_X; x <= spacing * count_X; x += spacing) {
+            if (split_axis == 0 && x >= sublo.x() && x < subhi.x())
+                continue;
+            for (double y = spacing * -count_Y; y <= spacing * count_Y; y += spacing) {
+                if (split_axis == 1 && y >= sublo.y() && y < subhi.y())
+                    continue;
 
-                auto ball =
-                    std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-                ball->SetMaterialSurface(ballMat);
-
-                ball->SetIdentifier(ballId++);
-                ball->SetMass(mass);
-                ball->SetInertiaXX(inertia);
-                ball->SetPos(pos);
-                ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-                ball->SetBodyFixed(false);
-                ball->SetCollide(true);
-
-                ball->GetCollisionModel()->ClearModel();
-                utils::AddSphereGeometry(ball.get(), radius);
-                ball->GetCollisionModel()->BuildModel();
-
-                sys->AddBody(ball);
+                auto ball = CreateBall(x, y, z, ballMat, &ballId, mass, inertia, radius);
+                sys->AddBodyTrust(ball);
             }
         }
     }
@@ -305,21 +289,25 @@ int main(int argc, char* argv[]) {
 
     int num_threads = 1;
     std::string outdir;
-
-    if (argc > 6) {
+    /*
+        // Make the program wait while attaching debuggers
+        if (my_rank == 0) {
+            int foo;
+            std::cout << "Enter something too continue..." << std::endl;
+            std::cin >> foo;
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    */
+    if (argc > 3) {
         num_threads = atoi(argv[1]);
         monitor = (bool)atoi(argv[2]);
-        count_X = atoi(argv[3]);
-        count_Y = atoi(argv[4]);
-        count_Z = atoi(argv[5]);
-        outdir = std::string(argv[6]);
+        outdir = std::string(argv[3]);
     } else {
-        std::cout << "Usage: mpirun -np <num_ranks> ./demo_DISTR_rotgrav <nthreads> <monitorflag> <count_X> <count_Y> <count_Z> "
-                     "<outdir (without /)>\n";
+        std::cout << "Usage: mpirun -np <num_ranks> ./demo_DISTR_rotgrav <nthreads> <monitorflag> <outdir (with /)>\n";
         return 1;
     }
 
-    std::string outfile_name = outdir + "/Rank";
+    std::string outfile_name = outdir + "Rank";
     outfile_name += std::to_string(my_rank) + ".csv";
     std::cout << "Outfile name: " << outfile_name << "\n";
     std::ofstream outfile;
@@ -329,26 +317,23 @@ int main(int argc, char* argv[]) {
 
     omp_set_num_threads(num_threads);
 
-    int thread_count = 0;
-
     std::cout << "Running on " << num_ranks << " MPI ranks.\n";
-    std::cout << "Running on " << thread_count << " OpenMP threads.\n";
 
-    double time_step = 1e-4; // TODO ?
-    double time_end = 30;
+    double time_step = 1e-4;  // TODO ?
+    double time_end = 15;     // TODO
 
-    double out_fps = 10;
+    double out_fps = 10;  // TODO
 
     unsigned int max_iteration = 100;
     double tolerance = 1e-3;
 
-    ChSystemDistributed my_sys(MPI_COMM_WORLD, 0.25, 300000); // TODO
+    ChSystemDistributed my_sys(MPI_COMM_WORLD, 0.25, 11000000);  // TODO
 
     std::cout << "Node " << my_sys.node_name << "\n";
     my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
-    my_sys.Set_G_acc(ChVector<double>(5, 0.01, -9.8)); // TODO
+    my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));  // TODO
 
     // Set solver parameters
     my_sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
@@ -360,14 +345,15 @@ int main(int argc, char* argv[]) {
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
-    ChVector<double> domlo(-6, -6, -1); // TODO
-    ChVector<double> domhi(6, 6, 25); // TODO
-    my_sys.GetDomain()->SetSplitAxis(0);
+    ChVector<double> domlo(-38, -38, -1);  // TODO
+    ChVector<double> domhi(38, 38, 70);    // TODO
+    my_sys.GetDomain()->SetSplitAxis(1);   // TODO
     my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
     my_sys.GetDomain()->PrintDomain();
 
     AddContainerSphereDecomp(&my_sys);
     AddFallingBalls(&my_sys);
+    my_sys.UpdateRigidBodies();  // NOTE: Must be called to finish body sharing
 
     // Run simulation for specified time
     int num_steps = std::ceil(time_end / time_step);
@@ -375,40 +361,19 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     double time = 0;
 
-    int checkpoint = std::ceil(3 / time_step); // TODO
     for (int i = 0; i < num_steps; i++) {
-        if (i % checkpoint == 0) {
-            ChVector<double> g(my_sys.Get_G_acc());
-            my_sys.Set_G_acc(ChVector<>(-1 * g.x(), g.y(), g.z()));
-        }
-
-        if (monitor)
-            Monitor(&my_sys);
         my_sys.DoStepDynamics(time_step);
-
-        uint lowest_local_id;
-        if (my_sys.GetLowestZ(&lowest_local_id) < 0) {
-            GetLog() << "Lowest Local " << lowest_local_id << "\n";
-            int waste_time = 10230;
-            my_sys.CheckIds();
-        }
 
         if (i % out_steps == 0) {
             OutputData(&my_sys, out_frame, time);
             out_frame++;
-            WriteCSV(&outfile, i, &my_sys);
-			
-            real3 min = my_sys.data_manager->measures.collision.rigid_min_bounding_point;
-            real3 max = my_sys.data_manager->measures.collision.rigid_max_bounding_point;
-            std::cout << "Min: " << min[0] << " " << min[1] << " " << min[2] << " Max: " << max[0] << " " << max[1]
-                      << " " << max[2] << "\n";
+            WriteCSV(&outfile, out_frame, &my_sys);
         }
-
         time += time_step;
     }
 
     outfile.close();
-    MPI_Finalize();
 
+    MPI_Finalize();
     return 0;
 }

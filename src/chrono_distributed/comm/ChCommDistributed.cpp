@@ -265,6 +265,7 @@ void ChCommDistributed::Exchange() {
 
     // TODO TODO TODO TODO do scans to count sizes before allocating TODO TODO
     // Send Buffers
+    /*
     BodyExchange exchange_up_buf[1000];
     BodyExchange exchange_down_buf[1000];
     BodyUpdate update_up_buf[1000];
@@ -273,18 +274,17 @@ void ChCommDistributed::Exchange() {
     Shape shapes_down[1000];
     uint update_take_up[1000];
     uint update_take_down[1000];
-
-    /*
-    std:vector<BodyExchange> exchange_up_buf;
-    std:vector<BodyExchange> exchange_down_buf;
-    std:vector<BodyUpdate> update_up_buf;
-    std::vector<BodyUpdate> update_down_buf;
-    std:vector<Shape> shapes_up;
-    std:vector<Shape> shapes_down;
-    std:vector<uint> update_take_up;
-    std:vector<uint> update_take_down;
     */
+    std::vector<BodyExchange> exchange_up_buf;
+    std::vector<BodyExchange> exchange_down_buf;
+    std::vector<BodyUpdate> update_up_buf;
+    std::vector<BodyUpdate> update_down_buf;
+    std::vector<Shape> shapes_up;
+    std::vector<Shape> shapes_down;
+    std::vector<uint> update_take_up;
+    std::vector<uint> update_take_down;
 
+    // TODO might not need any of these when using vectors
     // Send Counts
     int num_exchange_up = 0;
     int num_exchange_down = 0;
@@ -322,8 +322,13 @@ void ChCommDistributed::Exchange() {
                     GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank "
                              << my_rank + 1 << " index " << i << "\n";
 #endif
-                    PackExchange(exchange_up_buf + num_exchange_up, i);
-                    num_exchange_up++;
+
+                    BodyExchange b_ex;
+                    PackExchange(&b_ex, i);
+                    exchange_up_buf.push_back(b_ex);
+
+                    // PackExchange(exchange_up_buf + num_exchange_up, i);
+                    num_exchange_up++;  // TODO might be able to eliminate
                     ddm->comm_status[i] = distributed::SHARED_UP;
                     exchanges_up.push_front(i);
                 }
@@ -337,8 +342,13 @@ void ChCommDistributed::Exchange() {
                     GetLog() << "Exchange: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank "
                              << my_rank - 1 << " index " << i << "\n";
 #endif
-                    PackExchange(exchange_down_buf + num_exchange_down, i);
-                    num_exchange_down++;
+
+                    BodyExchange b_ex;
+                    PackExchange(&b_ex, i);
+                    exchange_down_buf.push_back(b_ex);
+
+                    // PackExchange(exchange_down_buf + num_exchange_down, i);
+                    num_exchange_down++;  // TODO might be able to eliminate
                     ddm->comm_status[i] = distributed::SHARED_DOWN;
                     exchanges_down.push_front(i);
                 }
@@ -365,17 +375,27 @@ void ChCommDistributed::Exchange() {
                              << "\n";
                     update_string += std::string("uu,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
-                    PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE);
-                    num_update_up++;
+
+                    BodyUpdate b_upd;
+                    PackUpdate(&b_upd, i, distributed::UPDATE);
+                    update_up_buf.push_back(b_upd);
+
+                    // PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE);
+                    num_update_up++;  // TODO might be able to eliminate
                 } else if (location == distributed::GHOST_UP && curr_status == distributed::SHARED_UP) {
 #ifdef DistrDebug
                     GetLog() << "Update: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank + 1
                              << "\n";
                     update_string += std::string("uu,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
+
+                    BodyUpdate b_upd;
+                    PackUpdate(&b_upd, i, distributed::UPDATE_TRANSFER_SHARE);
+                    update_up_buf.push_back(b_upd);
+
                     ddm->comm_status[i] = distributed::GHOST_UP;
-                    PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE_TRANSFER_SHARE);
-                    num_update_up++;
+                    // PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE_TRANSFER_SHARE);
+                    num_update_up++;  // TODO might be able to eliminate
                 }
 
                 // If the body has already been shared, it need only update its
@@ -386,17 +406,27 @@ void ChCommDistributed::Exchange() {
                              << "\n";
                     update_string += std::string("ud,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
-                    PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE);
-                    num_update_down++;
+
+                    BodyUpdate b_upd;
+                    PackUpdate(&b_upd, i, distributed::UPDATE);
+                    update_down_buf.push_back(b_upd);
+
+                    // PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE);
+                    num_update_down++;  // TODO might be able to eliminate
                 } else if (location == distributed::GHOST_DOWN && curr_status == distributed::SHARED_DOWN) {
 #ifdef DistrDebug
                     GetLog() << "Update: rank " << my_rank << "--" << ddm->global_id[i] << "-->rank " << my_rank - 1
                              << "\n";
                     update_string += std::string("ud,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
+
+                    BodyUpdate b_upd;
+                    PackUpdate(&b_upd, i, distributed::UPDATE_TRANSFER_SHARE);
+                    update_down_buf.push_back(b_upd);
+
                     ddm->comm_status[i] = distributed::GHOST_DOWN;
-                    PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE_TRANSFER_SHARE);
-                    num_update_down++;
+                    // PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE_TRANSFER_SHARE);
+                    num_update_down++;  // TODO might be able to eliminate
                 }
                 // If is shared up/down AND
                 // If the body is no longer involved with this rank, it must be removed from
@@ -409,15 +439,25 @@ void ChCommDistributed::Exchange() {
 #ifdef DistrDebug
                         update_string += std::string("gu,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
-                        PackUpdate(update_up_buf + num_update_up, i, distributed::FINAL_UPDATE_GIVE);
-                        num_update_up++;
+
+                        BodyUpdate b_upd;
+                        PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
+                        update_up_buf.push_back(b_upd);
+
+                        // PackUpdate(update_up_buf + num_update_up, i, distributed::FINAL_UPDATE_GIVE);
+                        num_update_up++;  // TODO might be able to eliminate
                         up = 1;
                     } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
 #ifdef DistrDebug
                         update_string += std::string("gd,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
-                        PackUpdate(update_down_buf + num_update_down, i, distributed::FINAL_UPDATE_GIVE);
-                        num_update_down++;
+
+                        BodyUpdate b_upd;
+                        PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
+                        update_down_buf.push_back(b_upd);
+
+                        // PackUpdate(update_down_buf + num_update_down, i, distributed::FINAL_UPDATE_GIVE);
+                        num_update_down++;  // TODO might be able to eliminate
                         up = -1;
                     }
                     GetLog() << "Give: " << my_rank << " -- " << ddm->global_id[i] << " --> " << my_rank + up << "\n";
@@ -448,8 +488,14 @@ void ChCommDistributed::Exchange() {
                         GetLog() << "Taking " << my_rank << " <-- " << ddm->global_id[i] << " -- " << my_rank + 1
                                  << "\n";
 #endif
-                        PackUpdateTake(update_take_up + num_take_up, i);
-                        num_take_up++;
+
+                        uint b_ut;
+                        PackUpdateTake(&b_ut, i);
+                        update_take_up.push_back(b_ut);
+
+                        // PackUpdateTake(update_take_up + num_take_up, i);
+                        num_take_up++;  // TODO might be able to eliminate
+
                     } else if (curr_status == distributed::SHARED_DOWN) {
 #ifdef DistrDebug
                         take_string += std::string("td,") + std::to_string(ddm->global_id[i]) + "\n";
@@ -457,8 +503,13 @@ void ChCommDistributed::Exchange() {
                         GetLog() << "Taking " << my_rank << " <-- " << ddm->global_id[i] << " -- " << my_rank - 1
                                  << "\n";
 #endif
-                        PackUpdateTake(update_take_down + num_take_down, i);
-                        num_take_down++;
+
+                        uint b_ut;
+                        PackUpdateTake(&b_ut, i);
+                        update_take_down.push_back(b_ut);
+
+                        // PackUpdateTake(update_take_down + num_take_down, i);
+                        num_take_down++;  // TODO might be able to eliminate
                     }
                     ddm->comm_status[i] = distributed::OWNED;
                 }
@@ -526,37 +577,45 @@ void ChCommDistributed::Exchange() {
 
             // Send empty message if there is nothing to send
             if (num_exchange_up == 0) {
-                exchange_up_buf->gid = UINT_MAX;
+				BodyExchange b_e;
+				b_e.gid = UINT_MAX;
+				exchange_up_buf.push_back(b_e);
                 num_exchange_up = 1;
             }
             if (num_exchange_down == 0) {
-                exchange_down_buf->gid = UINT_MAX;
+				BodyExchange b_e;
+				b_e.gid = UINT_MAX;
+                exchange_down_buf.push_back(b_e);
                 num_exchange_down = 1;
             }
             if (num_update_up == 0) {
-                update_up_buf->gid = UINT_MAX;
+				BodyUpdate b_u;
+                b_u.gid = UINT_MAX;
+				update_up_buf.push_back(b_u);
                 num_update_up = 1;
             }
             if (num_update_down == 0) {
-                update_down_buf->gid = UINT_MAX;
+				BodyUpdate b_u;
+				b_u.gid = UINT_MAX;
+				update_down_buf.push_back(b_u);
                 num_update_down = 1;
             }
             if (num_take_up == 0) {
-                update_take_up[0] = UINT_MAX;
+                update_take_up.push_back(UINT_MAX);
                 num_take_up = 1;
             }
             if (num_take_down == 0) {
-                update_take_down[0] = UINT_MAX;
+                update_take_down.push_back(UINT_MAX);
                 num_take_down = 1;
             }
 
             // Send Exchanges
             if (my_rank != num_ranks - 1) {
-                PMPI_Isend(exchange_up_buf, num_exchange_up, BodyExchangeType, my_rank + 1, 1, my_sys->world,
+                PMPI_Isend(exchange_up_buf.data(), num_exchange_up, BodyExchangeType, my_rank + 1, 1, my_sys->world,
                            &rq_exchange_up);
             }
             if (my_rank != 0) {
-                PMPI_Isend(exchange_down_buf, num_exchange_down, BodyExchangeType, my_rank - 1, 2, my_sys->world,
+                PMPI_Isend(exchange_down_buf.data(), num_exchange_down, BodyExchangeType, my_rank - 1, 2, my_sys->world,
                            &rq_exchange_down);
             }
 
@@ -578,10 +637,11 @@ void ChCommDistributed::Exchange() {
 
             // Send Updates
             if (my_rank != num_ranks - 1) {
-                PMPI_Isend(update_up_buf, num_update_up, BodyUpdateType, my_rank + 1, 3, my_sys->world, &rq_update_up);
+                PMPI_Isend(update_up_buf.data(), num_update_up, BodyUpdateType, my_rank + 1, 3, my_sys->world,
+                           &rq_update_up);
             }
             if (my_rank != 0) {
-                PMPI_Isend(update_down_buf, num_update_down, BodyUpdateType, my_rank - 1, 4, my_sys->world,
+                PMPI_Isend(update_down_buf.data(), num_update_down, BodyUpdateType, my_rank - 1, 4, my_sys->world,
                            &rq_update_down);
             }
 
@@ -603,10 +663,12 @@ void ChCommDistributed::Exchange() {
 
             // Send Takes
             if (my_rank != num_ranks - 1) {
-                PMPI_Isend(update_take_up, num_take_up, MPI_UNSIGNED, my_rank + 1, 5, my_sys->world, &rq_take_up);
+                PMPI_Isend(update_take_up.data(), num_take_up, MPI_UNSIGNED, my_rank + 1, 5, my_sys->world,
+                           &rq_take_up);
             }
             if (my_rank != 0) {
-                PMPI_Isend(update_take_down, num_take_down, MPI_UNSIGNED, my_rank - 1, 6, my_sys->world, &rq_take_down);
+                PMPI_Isend(update_take_down.data(), num_take_down, MPI_UNSIGNED, my_rank - 1, 6, my_sys->world,
+                           &rq_take_down);
             }
 
             // Recv Takes
@@ -631,11 +693,14 @@ void ChCommDistributed::Exchange() {
 #pragma omp section
         {
             for (auto itr_up = exchanges_up.begin(); itr_up != exchanges_up.end(); itr_up++) {
-                num_shapes_up += PackShapes(shapes_up + num_shapes_up, *itr_up);
+				num_shapes_up += PackShapes(&shapes_up, *itr_up);
+                //num_shapes_up += PackShapes(shapes_up + num_shapes_up, *itr_up);
             }
 
             if (num_shapes_up == 0) {
-                shapes_up->gid = UINT_MAX;
+				Shape shape;
+				shape.gid = UINT_MAX;
+                shapes_up.push_back(shape);
                 num_shapes_up = 1;
             }
         }  // End of pack shapes up section
@@ -644,10 +709,14 @@ void ChCommDistributed::Exchange() {
 #pragma omp section
         {
             for (auto itr_down = exchanges_down.begin(); itr_down != exchanges_down.end(); itr_down++) {
-                num_shapes_down += PackShapes(shapes_down + num_shapes_down, *itr_down);
+				num_shapes_down += PackShapes(&shapes_down, *itr_down);
+				
+				//num_shapes_down += PackShapes(shapes_down + num_shapes_down, *itr_down);
             }
             if (num_shapes_down == 0) {
-                shapes_down->gid = UINT_MAX;
+				Shape shape;
+				shape.gid = UINT_MAX;
+                shapes_down.push_back(shape);
                 num_shapes_down = 1;
             }
         }  // End of pack shapes down section
@@ -669,10 +738,10 @@ void ChCommDistributed::Exchange() {
 
     // Send Shapes
     if (my_rank != num_ranks - 1) {
-        PMPI_Isend(shapes_up, num_shapes_up, ShapeType, my_rank + 1, 7, my_sys->world, &rq_shapes_up);
+        PMPI_Isend(shapes_up.data(), num_shapes_up, ShapeType, my_rank + 1, 7, my_sys->world, &rq_shapes_up);
     }
     if (my_rank != 0) {
-        PMPI_Isend(shapes_down, num_shapes_down, ShapeType, my_rank - 1, 8, my_sys->world, &rq_shapes_down);
+        PMPI_Isend(shapes_down.data(), num_shapes_down, ShapeType, my_rank - 1, 8, my_sys->world, &rq_shapes_down);
     }
 
     // Recv Shapes
@@ -695,7 +764,7 @@ void ChCommDistributed::Exchange() {
     if (my_rank != num_ranks - 1)
         ProcessShapes(num_recv_shapes_up, recv_shapes_up);
 
-    // Free all dynamic memory used
+    // Free all dynamic memory used for recving
     delete[] recv_exchange_down;
     delete[] recv_exchange_up;
     delete[] recv_update_down;
@@ -865,12 +934,13 @@ void ChCommDistributed::UnpackUpdate(BodyUpdate* buf, std::shared_ptr<ChBody> bo
 }
 
 // Packs all shapes for a single body into the buffer
-int ChCommDistributed::PackShapes(Shape* buf, int index) {
+int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
     int shape_count = ddm->body_shape_count[index];
 
     // Pack each shape on the body
     for (int i = 0; i < shape_count; i++) {
-        (buf + i)->gid = ddm->global_id[index];
+		Shape shape;
+        shape.gid = ddm->global_id[index];
 #ifdef DistrDebug
         GetLog() << "Packing shapes for gid " << ddm->global_id[index];
 #endif
@@ -879,34 +949,35 @@ int ChCommDistributed::PackShapes(Shape* buf, int index) {
 
         int type = data_manager->shape_data.typ_rigid[shape_index];
         int start = data_manager->shape_data.start_rigid[shape_index];
-        (buf + i)->type = type;
+        shape.type = type;
 
-        (buf + i)->A[0] = data_manager->shape_data.ObA_rigid[shape_index].x;
-        (buf + i)->A[1] = data_manager->shape_data.ObA_rigid[shape_index].y;
-        (buf + i)->A[2] = data_manager->shape_data.ObA_rigid[shape_index].z;
+        shape.A[0] = data_manager->shape_data.ObA_rigid[shape_index].x;
+        shape.A[1] = data_manager->shape_data.ObA_rigid[shape_index].y;
+        shape.A[2] = data_manager->shape_data.ObA_rigid[shape_index].z;
 
-        (buf + i)->R[0] = data_manager->shape_data.ObR_rigid[shape_index].x;  // TODO the order of array is wxyz
-        (buf + i)->R[1] = data_manager->shape_data.ObR_rigid[shape_index].y;
-        (buf + i)->R[2] = data_manager->shape_data.ObR_rigid[shape_index].z;
-        (buf + i)->R[3] = data_manager->shape_data.ObR_rigid[shape_index].w;
+        shape.R[0] = data_manager->shape_data.ObR_rigid[shape_index].x;  // TODO the order of array is wxyz
+        shape.R[1] = data_manager->shape_data.ObR_rigid[shape_index].y;
+        shape.R[2] = data_manager->shape_data.ObR_rigid[shape_index].z;
+        shape.R[3] = data_manager->shape_data.ObR_rigid[shape_index].w;
 
         /*(buf + i)->fam = data_manager->shape_data.fam_rigid[shape_index];*/
 
         switch (type) {
             case chrono::collision::SPHERE:
-                (buf + i)->data[0] = data_manager->shape_data.sphere_rigid[start];
+                shape.data[0] = data_manager->shape_data.sphere_rigid[start];
 #ifdef DistrDebug
                 GetLog() << "Packing sphere: " << (buf + i)->data[0];
 #endif
                 break;
             case chrono::collision::BOX:
-                (buf + i)->data[0] = data_manager->shape_data.box_like_rigid[start].x;
-                (buf + i)->data[1] = data_manager->shape_data.box_like_rigid[start].y;
-                (buf + i)->data[2] = data_manager->shape_data.box_like_rigid[start].z;
+                shape.data[0] = data_manager->shape_data.box_like_rigid[start].x;
+                shape.data[1] = data_manager->shape_data.box_like_rigid[start].y;
+                shape.data[2] = data_manager->shape_data.box_like_rigid[start].z;
                 break;
             default:
                 GetLog() << "Invalid shape for transfer\n";
         }
+		buf->push_back(shape);
     }
     return shape_count;
 }
