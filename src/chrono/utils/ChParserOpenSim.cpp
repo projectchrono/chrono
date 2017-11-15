@@ -51,29 +51,6 @@ using std::endl;
 // Constructor for the OpenSim parser.
 // Initializes lambda table.
 // -----------------------------------------------------------------------------
-void ChParserOpenSim::Report::Print() const {
-    printf("Parsed %u bodies:\n", bodiesList.size());
-    for (auto body : bodiesList) {
-        std::cout << body->GetNameString() << std::endl;
-    }
-    printf("Parsed %u bodies:\n", jointsList.size());
-    for (auto joint : jointsList) {
-        printf("Joint %12s, OpenSim: %14s, Chrono: %14s, standin: %d\r\n", joint.Joint->GetName(),
-               joint.OpenSimType.c_str(), joint.ChronoType.c_str(), joint.standin);
-    }
-}
-
-void ChParserOpenSim::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
-}
-
-void ChParserOpenSim::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
 
 ChParserOpenSim::ChParserOpenSim()
     : m_collide(false),
@@ -104,6 +81,22 @@ void ChParserOpenSim::EnableCollision(int family_1, int family_2) {
     m_family_1 = family_1;
     m_family_2 = family_2;
     m_collide = true;
+}
+
+// -----------------------------------------------------------------------------
+// Set contact material properties (SMC contact)
+// -----------------------------------------------------------------------------
+
+void ChParserOpenSim::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
+    m_kn = kn;
+    m_gn = gn;
+    m_kt = kt;
+    m_gt = gt;
+}
+
+void ChParserOpenSim::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
+    m_young_modulus = young_modulus;
+    m_poisson_ratio = poisson_ratio;
 }
 
 // -----------------------------------------------------------------------------
@@ -173,9 +166,25 @@ ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChMaterialSurface:
 }
 
 // -----------------------------------------------------------------------------
+// Print report
+// -----------------------------------------------------------------------------
+
+void ChParserOpenSim::Report::Print() const {
+    printf("Parsed %u bodies:\n", bodyList.size());
+    for (auto body : bodyList) {
+        printf("   %s\n", body.name.c_str());
+    }
+    printf("Parsed %u joints:\n", jointList.size());
+    for (auto joint : jointList) {
+        printf("   %s  type: %s  standin: %s\n", joint.name.c_str(), joint.type.c_str(), (joint.standin ? "yes" : "no"));
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Create and add a new body.
 // Parse its various properties from its XML child nodes.
 // -----------------------------------------------------------------------------
+
 bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
                                  ChSystem& system,
                                  std::shared_ptr<ChLoadContainer> container) {
@@ -191,6 +200,7 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
 
         auto load = std::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
         container->Add(load);
+
         return true;
     } else if (std::string(forceNode->name()) == std::string("TorqueActuator")) {
         auto bodyA = system.SearchBody(forceNode->first_node("bodyA")->value());
@@ -199,10 +209,13 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         ChVector<> axis = strToChVector<double>(forceNode->first_node("axis")->value());
         auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
 
-    } else {
-        std::cout << "Unknown actuator type: " << forceNode->name() << std::endl;
-        return false;
+        //// TODO
+
+        return true;
     }
+
+    std::cout << "Unknown actuator type: " << forceNode->name() << std::endl;
+    return false;
 }
 
 bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
@@ -214,7 +227,6 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     auto newBody = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
     newBody->SetName(bodyNode->first_attribute("name")->value());
     system.AddBody(newBody);
-    m_report.bodiesList.push_back(newBody);
 
     // If body collision is enabled, set the contact material properties
     if (m_collide) {
@@ -246,6 +258,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     }
 
     m_bodyList.push_back(newBody);
+    m_report.bodyList.push_back(Report::BodyInfo{ newBody->GetNameString(), newBody });
 
     return true;
 }
@@ -337,10 +350,13 @@ void ChParserOpenSim::initFunctionTable() {
         // Deduce child body from joint orientation
         xml_node<>* jointNode = fieldNode->first_node();
 
+        // Name/type of OpenSim joint
+        std::string name(jointNode->first_attribute("name")->value());
+        std::string type(jointNode->name());
+
         // Make a joint here
         if (m_verbose)
-            cout << "Making a " << jointNode->name() << " with " << jointNode->first_node("parent_body")->value()
-                 << endl;
+            cout << "Making a " << type << " with " << jointNode->first_node("parent_body")->value() << endl;
 
         // Get other body for joint
         auto parent = system->SearchBody(jointNode->first_node("parent_body")->value());
@@ -372,15 +388,15 @@ void ChParserOpenSim::initFunctionTable() {
         // Offset location and orientation caused by joint initial configuration, default is identity
         ChFrame<> X_F_M(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
         // Get offsets, depending on joint type
-        if (std::string(jointNode->name()) == std::string("PinJoint")) {
+        if (type == std::string("PinJoint")) {
             xml_node<>* coordinates =
                 jointNode->first_node("CoordinateSet")->first_node("objects")->first_node("Coordinate");
             // Just a rotation about Z
             double thetaZ = std::stod(coordinates->first_node("default_value")->value());
             X_F_M = Q_from_AngZ(thetaZ) * X_F_M;
-        } else if ((std::string(jointNode->name()) == std::string("WeldJoint"))) {
+        } else if (type == std::string("WeldJoint")) {
             // Do absolutely nothing, they're stuck together
-        } else if ((std::string(jointNode->name()) == std::string("UniversalJoint"))) {
+        } else if (type == std::string("UniversalJoint")) {
             xml_node<>* coordinates =
                 jointNode->first_node("CoordinateSet")->first_node("objects")->first_node("Coordinate");
             // Body-fixed X,Y rotations
@@ -388,7 +404,7 @@ void ChParserOpenSim::initFunctionTable() {
             coordinates = coordinates->next_sibling();
             double thetaY = std::stod(coordinates->first_node("default_value")->value());
             X_F_M = Q_from_AngX(thetaX) * Q_from_AngY(thetaY) * X_F_M;
-        } else if ((std::string(jointNode->name()) == std::string("BallJoint"))) {
+        } else if (type == std::string("BallJoint")) {
             xml_node<>* coordinates =
                 jointNode->first_node("CoordinateSet")->first_node("objects")->first_node("Coordinate");
             // Body-fixed X,Y,Z rotations
@@ -398,7 +414,7 @@ void ChParserOpenSim::initFunctionTable() {
             coordinates = coordinates->next_sibling();
             double thetaZ = std::stod(coordinates->first_node("default_value")->value());
             X_F_M = Q_from_AngX(thetaX) * Q_from_AngY(thetaY) * Q_from_AngZ(thetaZ) * X_F_M;
-        } else if ((std::string(jointNode->name()) == std::string("CustomJoint"))) {
+        } else if (type == std::string("CustomJoint")) {
             // Make a map of generalized coordinates' default values so we can get initial position
             std::map<std::string, double> coordVals;
             xml_node<>* coordinates =
@@ -532,55 +548,41 @@ void ChParserOpenSim::initFunctionTable() {
 
         // This is slightly cleaner than before, but still gross
         std::shared_ptr<ChLink> joint;
-        std::string jointType;
         bool standin = false;
         // Make a joint, depending on what it actually is
-        if (std::string(jointNode->name()) == std::string("PinJoint")) {
+        if (type == std::string("PinJoint")) {
             auto revJoint = std::make_shared<ChLinkLockRevolute>();
             revJoint->Initialize(parent, newBody, jointFrame.GetCoord());
-            revJoint->SetNameString(jointNode->first_attribute("name")->value());
             joint = revJoint;
-            jointType = "Revolute Joint";
-        } else if ((std::string(jointNode->name()) == std::string("WeldJoint"))) {
+        } else if (type == std::string("WeldJoint")) {
             auto weldJoint = std::make_shared<ChLinkLockLock>();
             weldJoint->Initialize(parent, newBody, jointFrame.GetCoord());
-            weldJoint->SetNameString(jointNode->first_attribute("name")->value());
             joint = weldJoint;
-            jointType = "Weld Joint";
-
-        } else if ((std::string(jointNode->name()) == std::string("UniversalJoint"))) {
+        } else if (type == std::string("UniversalJoint")) {
             // Do some universal magic here
             auto uniJoint = std::make_shared<ChLinkUniversal>();
             uniJoint->Initialize(parent, newBody, jointFrame);
-            uniJoint->SetNameString(jointNode->first_attribute("name")->value());
             joint = uniJoint;
-            jointType = "Universal Joint";
-
-        } else if ((std::string(jointNode->name()) == std::string("BallJoint"))) {
+        } else if (type == std::string("BallJoint")) {
             // Add a spherical joint
             auto spherJoint = std::make_shared<ChLinkLockSpherical>();
             spherJoint->Initialize(parent, newBody, jointFrame.GetCoord());
-            spherJoint->SetNameString(jointNode->first_attribute("name")->value());
             joint = spherJoint;
-            jointType = "Spherical Joint";
-
         } else {
             standin = true;
             // Unknown joint type.  Replace with a spherical
-            cout << "Unknown Joint type " << jointNode->name() << " between " << parent->GetName() << " and "
-                 << newBody->GetName() << " -- making spherical standin." << endl;
+            cout << "Unknown Joint type " << type << " between " << parent->GetName() << " and " << newBody->GetName()
+                 << " -- making spherical standin." << endl;
             auto customJoint = std::make_shared<ChLinkLockSpherical>();
             customJoint->Initialize(parent, newBody, jointFrame.GetCoord());
-            customJoint->SetNameString(std::string(jointNode->first_attribute("name")->value()) + "_standin");
             joint = customJoint;
-            jointType = "Spherical Standin";
         }
-        system->AddLink(joint);
-        m_jointList.push_back(joint);
-        // Set up report entry
-        m_report.jointsList.push_back(
-            ChParserOpenSim::Report::OpenSimJoint{joint, std::string(jointNode->name()), jointType, standin});
 
+        joint->SetNameString(name);
+        system->AddLink(joint);
+
+        m_jointList.push_back(joint);
+        m_report.jointList.push_back(Report::JointInfo{name, type, joint, standin});
     };
 
     function_table["VisibleObject"] = [this](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {

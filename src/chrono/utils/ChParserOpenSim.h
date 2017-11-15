@@ -36,28 +36,31 @@ namespace utils {
 /// @addtogroup chrono_utils
 /// @{
 
-/// OpenSim input file parser
+/// OpenSim input file parser.
 class ChApi ChParserOpenSim {
   public:
     enum VisType { PRIMITIVES, MESH, NONE };
+
     /// Report containing information about objects parsed from file
     class ChApi Report {
       public:
-        /// Custom structure that holds information about a joint read in from OpenSim
-        struct OpenSimJoint {
-            /// Pointer to the joint so it can be modified
-            std::shared_ptr<ChLink> Joint;
-            /// The type listed in the .osim file
-            std::string OpenSimType;
-            /// The corresponding Chrono type
-            std::string ChronoType;
-            /// Whether or not it was loaded exactly
-            bool standin;
+        /// Information about a body read in from OpenSim.
+        struct BodyInfo {
+            std::string name;              ///< body name in osim file
+            std::shared_ptr<ChBody> body;  ///< Chrono body
         };
-        /// List of ChBodies read in
-        std::vector<std::shared_ptr<ChBody>> bodiesList;
-        /// List of joints read in, their OpenSim, and Chrono representations
-        std::vector<OpenSimJoint> jointsList;
+
+        /// Information about a joint read in from OpenSim.
+        struct JointInfo {
+            std::string name;               ///< joint name in osim file
+            std::string type;               ///< joint type as shown in osim file
+            std::shared_ptr<ChLink> joint;  ///< Chrono link (joint)
+            bool standin;                   ///< true if OpenSim joint replaced with spherical
+        };
+
+        std::vector<BodyInfo> bodyList;    ///< list of body information
+        std::vector<JointInfo> jointList;  ///< list of joint information
+
         /// Print the bodies and joints read
         void Print() const;
     };
