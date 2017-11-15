@@ -158,8 +158,15 @@ class ChApi ChParserOpenSim {
         auto elems = strToSTLVector<T>(string);
         return ChVector<T>(elems.at(0), elems.at(1), elems.at(2));
     }
+
+    static inline std::string stringStripCStr(const char* c_str) {
+        std::string str(c_str);
+        str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+        return str;
+    }
+
     // Convert a lowercase string to a boolean
-    static inline bool strToBool(const char* string) { return std::strcmp(string, "true") == 0; }
+    static inline bool CStrToBool(const char* string) { return stringStripCStr(string) == std::string("true") == 0; }
 
     // Maps child fields of a body node to functions that handle said fields
     std::map<std::string, std::function<void(rapidxml::xml_node<>*, std::shared_ptr<ChBodyAuxRef>)>> function_table;

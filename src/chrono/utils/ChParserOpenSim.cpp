@@ -176,7 +176,8 @@ void ChParserOpenSim::Report::Print() const {
     }
     printf("Parsed %u joints:\n", jointList.size());
     for (auto joint : jointList) {
-        printf("   %s  type: %s  standin: %s\n", joint.name.c_str(), joint.type.c_str(), (joint.standin ? "yes" : "no"));
+        printf("   %s  type: %s  standin: %s\n", joint.name.c_str(), joint.type.c_str(),
+               (joint.standin ? "yes" : "no"));
     }
 }
 
@@ -188,24 +189,25 @@ void ChParserOpenSim::Report::Print() const {
 bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
                                  ChSystem& system,
                                  std::shared_ptr<ChLoadContainer> container) {
-    if (std::string(forceNode->name()) == std::string("PointActuator")) {
-        std::string name(forceNode->first_attribute("name")->value());
+    if (stringStripCStr(forceNode->name()) == std::string("PointActuator")) {
+        std::string name = stringStripCStr(forceNode->first_attribute("name")->value());
         std::cout << "Actuator " << name << std::endl;
-        auto body = system.SearchBody(forceNode->first_node("body")->value());
+        // Chrono should be using std::string
+        auto body = system.SearchBody(stringStripCStr(forceNode->first_node("body")->value()).c_str());
         ChVector<> point = strToChVector<double>(forceNode->first_node("point")->value());
-        auto point_global = strToBool(forceNode->first_node("point_is_global")->value());
+        auto point_global = CStrToBool(forceNode->first_node("point_is_global")->value());
         ChVector<> direction = strToChVector<double>(forceNode->first_node("direction")->value());
-        auto force_global = strToBool(forceNode->first_node("force_is_global")->value());
-        auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
+        auto force_global = CStrToBool(forceNode->first_node("force_is_global")->value());
+        auto max_force = std::stod(stringStripCStr(forceNode->first_node("optimal_force")->value()));
 
         auto load = std::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
         container->Add(load);
 
         return true;
-    } else if (std::string(forceNode->name()) == std::string("TorqueActuator")) {
-        auto bodyA = system.SearchBody(forceNode->first_node("bodyA")->value());
-        auto bodyB = system.SearchBody(forceNode->first_node("bodyB")->value());
-        auto torque_is_global = strToBool(forceNode->first_node("torque_is_global")->value());
+    } else if (stringStripCStr(forceNode->name()) == std::string("TorqueActuator")) {
+        auto bodyA = system.SearchBody(stringStripCStr(forceNode->first_node("bodyA")->value()).c_str());
+        auto bodyB = system.SearchBody(stringStripCStr(forceNode->first_node("bodyB")->value()).c_str());
+        auto torque_is_global = CStrToBool(forceNode->first_node("torque_is_global")->value());
         ChVector<> axis = strToChVector<double>(forceNode->first_node("axis")->value());
         auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
 
@@ -258,7 +260,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     }
 
     m_bodyList.push_back(newBody);
-    m_report.bodyList.push_back(Report::BodyInfo{ newBody->GetNameString(), newBody });
+    m_report.bodyList.push_back(Report::BodyInfo{newBody->GetNameString(), newBody});
 
     return true;
 }
@@ -351,15 +353,15 @@ void ChParserOpenSim::initFunctionTable() {
         xml_node<>* jointNode = fieldNode->first_node();
 
         // Name/type of OpenSim joint
-        std::string name(jointNode->first_attribute("name")->value());
-        std::string type(jointNode->name());
+        std::string name = stringStripCStr(jointNode->first_attribute("name")->value());
+        std::string type = stringStripCStr(jointNode->name());
 
         // Make a joint here
         if (m_verbose)
             cout << "Making a " << type << " with " << jointNode->first_node("parent_body")->value() << endl;
 
         // Get other body for joint
-        auto parent = system->SearchBody(jointNode->first_node("parent_body")->value());
+        auto parent = system->SearchBody(stringStripCStr(jointNode->first_node("parent_body")->value()).c_str());
 
         if (parent != nullptr) {
             if (m_verbose)
