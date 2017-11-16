@@ -166,7 +166,7 @@ class ChApi ChParserOpenSim {
     }
 
     // Convert a lowercase string to a boolean
-    static inline bool CStrToBool(const char* string) { return stringStripCStr(string) == std::string("true") == 0; }
+    static inline bool CStrToBool(const char* string) { return stringStripCStr(string) == std::string("true"); }
 
     // Maps child fields of a body node to functions that handle said fields
     std::map<std::string, std::function<void(rapidxml::xml_node<>*, std::shared_ptr<ChBodyAuxRef>)>> function_table;
