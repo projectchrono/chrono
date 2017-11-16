@@ -170,11 +170,11 @@ ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChMaterialSurface:
 // -----------------------------------------------------------------------------
 
 void ChParserOpenSim::Report::Print() const {
-    printf("Parsed %u bodies:\n", bodyList.size());
+    std::cout << "Parsed" << bodyList.size() << " bodies:\n";
     for (auto body : bodyList) {
         printf("   %s\n", body.name.c_str());
     }
-    printf("Parsed %u joints:\n", jointList.size());
+    std::cout << "Parsed" << jointList.size() << " joints:\n";
     for (auto joint : jointList) {
         printf("   %s  type: %s  standin: %s\n", joint.name.c_str(), joint.type.c_str(),
                (joint.standin ? "yes" : "no"));
