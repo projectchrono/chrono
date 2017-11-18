@@ -54,8 +54,8 @@ class ChApi ChParserOpenSim {
 
         /// Information about a custom load created from OpenSim.
         struct ForceInfo {
-            std::string type;                    ///< load type as shown in osim file
-            std::shared_ptr<ChLoadCustom> load;  ///< Chrono load object
+            std::string type;                  ///< load type as shown in osim file
+            std::shared_ptr<ChLoadBase> load;  ///< Chrono load object
         };
 
         std::unordered_map<std::string, std::shared_ptr<ChBodyAuxRef>> bodies;  ///< list of body information
@@ -79,7 +79,7 @@ class ChApi ChParserOpenSim {
         /// Get a handle to the force element with specified name.
         /// If none exists, an empty shared pointer is returned.
         /// The caller may need to downcast to the appropriate type.
-        std::shared_ptr<ChLoadCustom> GetForce(const std::string& name) const;
+        std::shared_ptr<ChLoadBase> GetForce(const std::string& name) const;
     };
 
     ChParserOpenSim();
@@ -123,6 +123,13 @@ class ChApi ChParserOpenSim {
     /// Enable/disable verbose parsing output (default: false).
     void SetVerbose(bool val) { m_verbose = val; }
 
+    /// Activate actuators.
+    /// By default, any actuator read in from the osim file is inactive (zero excitation).
+    /// If enabled, all actuators will receive a constant excitation function with value 1.
+    /// The excitation function for an actuator can be specified, after parsing,
+    /// using SetExcitationFunction().
+    void ActivateActuators(bool val) { m_activate_actuators = val; }
+
     /// Parse the specified OpenSim input file and create the model in the given system.
     void Parse(ChSystem& system,            ///< [in] containing Chrono system
                const std::string& filename  ///< [in] OpenSim input file name
@@ -141,6 +148,10 @@ class ChApi ChParserOpenSim {
 
     /// Print the parser's report.
     void PrintReport() const { m_report.Print(); }
+
+    /// Set excitation function for the actuator with the specified name.
+    /// This method should be invoked only after parsing an osim file.
+    void SetExcitationFunction(const std::string& name, std::shared_ptr<ChFunction> modulation);
 
   private:
     /// Setup lambda table for body parsing
@@ -183,11 +194,12 @@ class ChApi ChParserOpenSim {
     // Maps child fields of a body node to functions that handle said fields
     std::map<std::string, std::function<void(rapidxml::xml_node<>*, std::shared_ptr<ChBodyAuxRef>)>> function_table;
 
-    bool m_verbose;     ///< verbose output
-    VisType m_visType;  ///< Body visualization type
-    bool m_collide;     ///< Do bodies have collision shapes?
-    int m_family_1;     ///< First collision family
-    int m_family_2;     ///< Second collision family
+    bool m_verbose;             ///< verbose output
+    VisType m_visType;          ///< body visualization type
+    bool m_collide;             ///< do bodies have collision shapes?
+    int m_family_1;             ///< first collision family
+    int m_family_2;             ///< second collision family
+    bool m_activate_actuators;  ///< are actuators activated at construction?
 
     float m_friction;       ///< contact coefficient of friction
     float m_restitution;    ///< contact coefficient of restitution

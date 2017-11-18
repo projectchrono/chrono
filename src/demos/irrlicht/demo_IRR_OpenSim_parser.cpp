@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
     ChParserOpenSim parser;
     parser.SetVisualizationType(ChParserOpenSim::VisType::PRIMITIVES);
     parser.SetVerbose(true);
+    ////parser.ActivateActuators(true);
     parser.Parse(my_system, filename);
 
     // Print information about parsed elements
@@ -67,13 +68,17 @@ int main(int argc, char* argv[]) {
     rep.Print();
     std::cout << "---------" << std::endl;
 
-    // Find the actuator named "grav"
-    if (auto force = rep.GetForce("grav")) {
-        if (auto body_force = std::dynamic_pointer_cast<ChLoadBodyForce>(force)) {
-            auto val = body_force->GetForce();
-            std::cout << val.x() << " " << val.y() << " " << val.z() << std::endl;
-        }
-    }
+    // Find the actuator named "grav" and directly set its excitation function
+    ////if (auto force = rep.GetForce("grav")) {
+    ////    if (auto body_force = std::dynamic_pointer_cast<ChLoadBodyForce>(force)) {
+    ////        auto excitation = std::make_shared<ChFunction_Ramp>(0, 1);
+    ////        body_force->SetModulationFunction(excitation);
+    ////    }
+    ////}
+
+    // Use parser wrapper method to set excitation for named actuator.
+    auto excitation = std::make_shared<ChFunction_Ramp>(0, 1);
+    parser.SetExcitationFunction("grav", excitation);
 
     auto my_ground = std::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
     my_system.AddBody(my_ground);
@@ -92,7 +97,8 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Simulation loop
-    application.SetTimestep(0.005);
+    application.SetTryRealtime(true);
+    application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

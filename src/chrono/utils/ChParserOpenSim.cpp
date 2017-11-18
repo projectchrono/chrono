@@ -57,6 +57,7 @@ ChParserOpenSim::ChParserOpenSim()
       m_family_2(2),
       m_visType(VisType::NONE),
       m_verbose(false),
+      m_activate_actuators(false),
       m_friction(0.6f),
       m_restitution(0.4f),
       m_young_modulus(2e5f),
@@ -144,7 +145,8 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
             parseForce(forceNode, system, loadcontainer);
             forceNode = forceNode->next_sibling();
         }
-    } else {
+    }
+    else {
         std::cout << "No forces detected." << std::endl;
     }
 
@@ -157,7 +159,7 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
 
 ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChMaterialSurface::ContactMethod contact_method) {
     ChSystem* sys = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                               : static_cast<ChSystem*>(new ChSystemSMC);
+        : static_cast<ChSystem*>(new ChSystemSMC);
 
     Parse(*sys, filename);
 
@@ -177,7 +179,7 @@ void ChParserOpenSim::Report::Print() const {
     std::cout << "Parsed " << joints.size() << " joints:\n";
     for (auto const& joint : joints) {
         std::cout << "   name: \"" << joint.first << "\", type: \"" << joint.second.type
-                  << "\", standin: " << (joint.second.standin ? "yes" : "no") << std::endl;
+            << "\", standin: " << (joint.second.standin ? "yes" : "no") << std::endl;
     }
 
     std::cout << "Parsed " << forces.size() << " forces:\n";
@@ -204,13 +206,30 @@ std::shared_ptr<ChLink> ChParserOpenSim::Report::GetJoint(const std::string& nam
     return joint;
 }
 
-std::shared_ptr<ChLoadCustom> ChParserOpenSim::Report::GetForce(const std::string& name) const {
-    std::shared_ptr<ChLoadCustom> force;
+std::shared_ptr<ChLoadBase> ChParserOpenSim::Report::GetForce(const std::string& name) const {
+    std::shared_ptr<ChLoadBase> force;
     auto force_info = forces.find(name);
     if (force_info != forces.end()) {
         force = force_info->second.load;
     }
     return force;
+}
+
+// -----------------------------------------------------------------------------
+// Set excitation function for the actuator with the specified name.
+// -----------------------------------------------------------------------------
+
+void ChParserOpenSim::SetExcitationFunction(const std::string& name, std::shared_ptr<ChFunction> modulation) {
+    // Get the force element from the report object
+    auto force = m_report.GetForce(name);
+    if (!force)
+        return;
+
+    if (auto b_force = std::dynamic_pointer_cast<ChLoadBodyForce>(force)) {
+        b_force->SetModulationFunction(modulation);
+    } else if (auto bb_torque = std::dynamic_pointer_cast<ChLoadBodyBodyTorque>(force)) {
+        bb_torque->SetModulationFunction(modulation);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -233,6 +252,8 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         auto max_force = std::stod(stringStripCStr(forceNode->first_node("optimal_force")->value()));
 
         auto load = std::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
+        if (!m_activate_actuators)
+            load->SetModulationFunction(std::make_shared<ChFunction_Const>(0));
         container->Add(load);
 
         m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("PointActuator"), load}));
@@ -246,11 +267,12 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         ChVector<> axis = strToChVector<double>(forceNode->first_node("axis")->value());
         auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
 
-        //// TODO
-        ////auto load = std::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, max_force * axis, !torque_is_global);
-        ////container->Add(load);
+        auto load = std::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, max_force * axis, !torque_is_global);
+        if (!m_activate_actuators)
+            load->SetModulationFunction(std::make_shared<ChFunction_Const>(0));
+        container->Add(load);
 
-        ////m_report.forces.insert(std::make_pair(name, Report::ForceInfo{ std::string("TorqueActuator"), load }));
+        m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("TorqueActuator"), load}));
 
         return true;
     }
