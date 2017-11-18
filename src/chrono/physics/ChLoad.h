@@ -121,7 +121,7 @@ public:
         /// - It recomputes the jacobian(s) K,R,M in case of stiff load 
         /// Q and jacobians assumed evaluated at the current state.
         /// Jacobian structures are automatically allocated if needed.
-    virtual void Update(){
+    virtual void Update(double time) {
             // current state speed & position
         ChState      mstate_x(this->LoadGet_ndof_x(),0); 
         this->LoadGetStateBlock_x(mstate_x);

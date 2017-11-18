@@ -36,6 +36,7 @@
 #ifndef CHLOADSBODY_H
 #define CHLOADSBODY_H
 
+#include "chrono/motion_functions/ChFunction.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoad.h"
 
@@ -44,34 +45,36 @@ namespace chrono {
 /// Load representing a concentrated force acting on a rigid body.
 /// The force can rotate together with the body (if in body local coordinates) or not.
 /// The application point can follow the body (if in body local coordinates) or not.
+/// The magnitude of the applied force can be optionally modulated by a function of time.
+/// The default modulation is the constant function with value 1.
 class ChApi ChLoadBodyForce : public ChLoadCustom {
   public:
-    ChLoadBodyForce(std::shared_ptr<ChBody> mbody,   ///< object to apply load to
-                    const ChVector<>& mforce,        ///< force to apply
-                    bool mlocal_force,               ///< force is in body local coords
-                    const ChVector<>& mapplication,  ///< application point for the force
-                    bool mlocal_application = true   ///< application point is in body local coords
+    ChLoadBodyForce(std::shared_ptr<ChBody> body,  ///< object to apply load to
+                    const ChVector<>& force,       ///< force to apply
+                    bool local_force,              ///< force is in body local coords
+                    const ChVector<>& point,       ///< application point for the force
+                    bool local_point = true        ///< application point is in body local coords
     );
 
-    /// Set force assumed to be constant.
-    /// It can be expressed in absolute coordinates or body local coordinates
-    void SetForce(const ChVector<>& mf, const bool is_local) {
-        force = mf;
-        local_force = is_local;
-    }
+    /// Set the constant force vector.
+    /// It can be expressed in absolute coordinates or body local coordinates.
+    /// This value is optionally modulated by a function of time.
+    void SetForce(const ChVector<>& force, bool is_local);
 
-    /// Return the force value
-    ChVector<> GetForce() const { return force; }
+    /// Return the current force vector (scaled by the current modulation value).
+    ChVector<> GetForce() const;
 
     /// Set the application point of force, assumed to be constant.
     /// It can be expressed in absolute coordinates or body local coordinates
-    void SetApplicationPoint(const ChVector<>& ma, const bool is_local) {
-        application = ma;
-        local_application = is_local;
-    }
+    void SetApplicationPoint(const ChVector<>& point, const bool is_local);
 
     /// Return the location of the application point.
-    ChVector<> GetApplicationPoint() const { return application; }
+    ChVector<> GetApplicationPoint() const { return m_point; }
+
+    /// Set modulation function.
+    /// This is a function of time which (optionally) modulates the specified applied force.
+    /// By default the modulation is a constant function, always returning a value of 1.
+    void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
 
     /// Compute Q, the generalized load.
     /// Called automatically at each Update().
@@ -80,30 +83,43 @@ class ChApi ChLoadBodyForce : public ChLoadCustom {
                           ) override;
 
   private:
-    ChVector<> force;
-    ChVector<> application;
-    bool local_force;
-    bool local_application;
+    ChVector<> m_force;  ///< base force value
+    ChVector<> m_point;  ///< application point
+    bool m_local_force;  ///< is force expressed in local frame?
+    bool m_local_point;  ///< is application expressed in local frame?
+
+    std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
+    double m_scale;                            ///< scaling factor (current modulation value)
 
     virtual bool IsStiff() override { return false; }
+
+    virtual void Update(double time) override;
 };
 
 //------------------------------------------------------------------------------------------------
 
 /// Load representing a torque applied to a rigid body.
 /// Torque direction does not rotate with the body.
+/// The magnitude of the applied torque can be optionally modulated by a function of time.
+/// The default modulation is the constant function with value 1.
 class ChApi ChLoadBodyTorque : public ChLoadCustom {
   public:
-    ChLoadBodyTorque(std::shared_ptr<ChBody> mbody,  ///< object to apply load to
-                     const ChVector<>& torque,       ///< torque to apply
-                     bool mlocal_torque              ///< torque is in body local coords
+    ChLoadBodyTorque(std::shared_ptr<ChBody> body,  ///< object to apply load to
+                     const ChVector<>& torque,      ///< torque to apply
+                     bool local_torque              ///< torque is in body local coords
     );
 
-    /// Set torque, assumed to be constant in space and time.
-    void SetTorque(const ChVector<>& mf) { torque = mf; }
+    /// Set the constant torque vector.
+    /// This value is optionally modulated by a function of time.
+    void SetTorque(const ChVector<>& torque, bool is_local);
 
-    /// Return the current torque value.
-    ChVector<> GetTorque() const { return torque; }
+    /// Return the current torque vector (scaled by the current modulation value).
+    ChVector<> GetTorque() const;
+
+    /// Set modulation function.
+    /// This is a function of time which (optionally) modulates the specified applied force.
+    /// By default the modulation is a constant function, always returning a value of 1.
+    void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
 
     /// Compute Q, the generalized load.
     /// Called automatically at each Update().
@@ -112,10 +128,15 @@ class ChApi ChLoadBodyTorque : public ChLoadCustom {
                           ) override;
 
   private:
-    ChVector<> torque;
-    bool local_torque;
+    ChVector<> m_torque;  ///< base torque value
+    bool m_local_torque;  ///< is torque expressed in local frame?
+
+    std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
+    double m_scale;                            ///< scaling factor (current modulation value)
 
     virtual bool IsStiff() override { return false; }
+
+    virtual void Update(double time) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -124,8 +145,8 @@ class ChApi ChLoadBodyTorque : public ChLoadCustom {
 /// See children classes for concrete implementations.
 class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
   public:
-    ChLoadBodyBody(std::shared_ptr<ChBody> mbodyA,   ///< body A
-                   std::shared_ptr<ChBody> mbodyB,   ///< body B
+    ChLoadBodyBody(std::shared_ptr<ChBody> bodyA,    ///< body A
+                   std::shared_ptr<ChBody> bodyB,    ///< body B
                    const ChFrame<>& abs_application  ///< location of load element (in abs. coordinates)
     );
 
@@ -133,9 +154,9 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
     /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B.
     /// Force is assumed applied to body B, and its opposite to A.
     /// Inherited classes MUST IMPLEMENT THIS.
-    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                           ChVector<>& loc_force,
-                                           ChVector<>& loc_torque) = 0;
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) = 0;
 
     // Optional: inherited classes could implement this to avoid the
     // default numerical computation of jacobians:
@@ -143,11 +164,11 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
 
     /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied force, expressed in coordinate system of loc_application_B, assumed applied to body B
-    ChVector<> GetBushingForce() const { return locB_force; }
+    ChVector<> GetForce() const { return locB_force; }
 
     /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied torque, expressed in coordinate system of loc_application_B, assumed applied to body B
-    ChVector<> GetBushingTorque() const { return locB_torque; }
+    ChVector<> GetTorque() const { return locB_torque; }
 
     /// Set the application frame of bushing on bodyA
     void SetApplicationFrameA(const ChFrame<>& mpA) { loc_application_A = mpA; }
@@ -174,12 +195,49 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
     ChFrameMoving<> frame_Aw;     ///< for results
     ChFrameMoving<> frame_Bw;     ///< for results
 
-    /// Compute Q, the generalized load. It calls ComputeBushingForceTorque, so in
+    /// Compute Q, the generalized load. It calls ComputeBodyBodyForceTorque, so in
     /// children classes you do not need to implement it.
     /// Called automatically at each Update().
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
+};
+
+//------------------------------------------------------------------------------------------------
+
+/// Load representing a torque applied between two bodies.
+/// The magnitude of the applied torque can be optionally modulated by a function of time.
+/// The default modulation is the constant function with value 1.
+class ChApi ChLoadBodyBodyTorque : public ChLoadBodyBody {
+  public:
+    ChLoadBodyBodyTorque(std::shared_ptr<ChBody> bodyA,  ///< first body
+                         std::shared_ptr<ChBody> bodyB,  ///< second body
+                         const ChVector<> torque,        ///< applied torque
+                         bool local_torque               ///< torque is in bodyB local coords
+    );
+
+    /// Set modulation function.
+    /// This is a function of time which (optionally) modulates the specified applied torque.
+    /// By default the modulation is a constant function, always returning a value of 1.
+    void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
+
+  private:
+    ChVector<> m_torque;  ///< base torque value
+    bool m_local_torque;  ///< is torque expressed in local frame (bodyB)?
+
+    std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
+    double m_scale;                            ///< scaling factor (current modulation value)
+
+    virtual bool IsStiff() override { return false; }
+
+    virtual void Update(double time) override;
+
+    /// Implement the computation of the body-body force, in local
+    /// coordinates of the loc_application_B.
+    /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -211,12 +269,12 @@ class ChApi ChLoadBodyBodyBushingSpherical : public ChLoadBodyBody {
 
     virtual bool IsStiff() override { return true; }
 
-    /// Implement the computation of bushing force, in local
+    /// Implement the computation of the bushing force, in local
     /// coordinates of the loc_application_B.
     /// Force is assumed applied to body B, and its opposite to A.
-    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                           ChVector<>& loc_force,
-                                           ChVector<>& loc_torque) override;
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -249,12 +307,12 @@ class ChApi ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical
     ChVector<> yield;
     ChVector<> plastic_def;
 
-    /// Implement the computation of bushing force, in local
+    /// Implement the computation of the bushing force, in local
     /// coordinates of the loc_application_B.
     /// Force is assumed applied to body B, and its opposite to A.
-    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                           ChVector<>& loc_force,
-                                           ChVector<>& loc_torque) override;
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -288,12 +346,12 @@ class ChApi ChLoadBodyBodyBushingMate : public ChLoadBodyBodyBushingSpherical {
     ChVector<> rot_stiffness;
     ChVector<> rot_damping;
 
-    /// Implement the computation of bushing force, in local
+    /// Implement the computation of the bushing force, in local
     /// coordinates of the loc_application_B.
     /// Force is assumed applied to body B, and its opposite to A.
-    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                           ChVector<>& loc_force,
-                                           ChVector<>& loc_torque) override;
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -352,12 +410,12 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
 
     virtual bool IsStiff() override { return true; }
 
-    /// Implement the computation of bushing force, in local
+    /// Implement the computation of the bushing force, in local
     /// coordinates of the loc_application_B.
     /// Force is assumed applied to body B, and its opposite to A.
-    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                           ChVector<>& loc_force,
-                                           ChVector<>& loc_torque) override;
+    virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque) override;
 };
 
 }  // end namespace chrono

@@ -20,32 +20,37 @@ namespace chrono {
 // ChLoadBodyForce
 // -----------------------------------------------------------------------------
 
-ChLoadBodyForce::ChLoadBodyForce(std::shared_ptr<ChBody> mbody,
-                                 const ChVector<>& mforce,
-                                 bool mlocal_force,
-                                 const ChVector<>& mapplication,
-                                 bool mlocal_application)
-    : ChLoadCustom(mbody),
-      force(mforce),
-      application(mapplication),
-      local_force(mlocal_force),
-      local_application(mlocal_application) {}
+ChLoadBodyForce::ChLoadBodyForce(std::shared_ptr<ChBody> body,
+                                 const ChVector<>& force,
+                                 bool local_force,
+                                 const ChVector<>& point,
+                                 bool local_point)
+    : ChLoadCustom(body),
+      m_force(force),
+      m_point(point),
+      m_local_force(local_force),
+      m_local_point(local_point),
+      m_scale(1) {
+    m_modulation = std::make_shared<ChFunction_Const>(1.0);
+}
 
 void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
     double detJ;  // not used
 
     ChVector<> abs_force;
-    if (this->local_force)
-        abs_force = mbody->TransformDirectionLocalToParent(force);
+    if (m_local_force)
+        abs_force = mbody->TransformDirectionLocalToParent(m_force);
     else
-        abs_force = force;
+        abs_force = m_force;
 
-    ChVector<> abs_application;
-    if (this->local_application)
-        abs_application = mbody->TransformPointLocalToParent(application);
+    abs_force *= m_scale;
+
+    ChVector<> abs_point;
+    if (m_local_point)
+        abs_point = mbody->TransformPointLocalToParent(m_point);
     else
-        abs_application = application;
+        abs_point = m_point;
 
     // ChBody assumes F={force_abs, torque_abs}
     ChVectorDynamic<> mF(loadable->Get_field_ncoords());
@@ -54,34 +59,73 @@ void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     mF(2) = abs_force.z();
 
     // Compute Q = N(u,v,w)'*F
-    mbody->ComputeNF(abs_application.x(), abs_application.y(), abs_application.z(), load_Q, detJ, mF, state_x, state_w);
+    mbody->ComputeNF(abs_point.x(), abs_point.y(), abs_point.z(), load_Q, detJ, mF, state_x, state_w);
+}
+
+void ChLoadBodyForce::Update(double time) {
+    m_modulation->Update(time);
+    m_scale = m_modulation->Get_y(time);
+    ChLoadCustom::Update(time);
+}
+
+void ChLoadBodyForce::SetForce(const ChVector<>& force, bool is_local) {
+    m_force = force;
+    m_local_force = is_local;
+}
+
+void ChLoadBodyForce::SetApplicationPoint(const ChVector<>& point, const bool is_local) {
+    m_point = point;
+    m_local_point = is_local;
+}
+
+ChVector<> ChLoadBodyForce::GetForce() const {
+    return m_force * m_scale;
 }
 
 // -----------------------------------------------------------------------------
 // ChLoadBodyTorque
 // -----------------------------------------------------------------------------
 
-ChLoadBodyTorque::ChLoadBodyTorque(std::shared_ptr<ChBody> mbody, const ChVector<>& torque, bool mlocal_torque)
-    : ChLoadCustom(mbody), torque(torque), local_torque(mlocal_torque) {}
+ChLoadBodyTorque::ChLoadBodyTorque(std::shared_ptr<ChBody> body, const ChVector<>& torque, bool local_torque)
+    : ChLoadCustom(body), m_torque(torque), m_local_torque(local_torque), m_scale(1) {
+    m_modulation = std::make_shared<ChFunction_Const>(1.0);
+}
 
 void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
     double detJ;  // not used
 
     ChVector<> abs_torque;
-    if (this->local_torque)
-        abs_torque = mbody->TransformDirectionLocalToParent(torque);
+    if (m_local_torque)
+        abs_torque = mbody->TransformDirectionLocalToParent(m_torque);
     else
-        abs_torque = torque;
+        abs_torque = m_torque;
+
+    abs_torque *= m_scale;
 
     // ChBody assumes F={force_abs, torque_abs}
     ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-    mF(3) = torque.x();
-    mF(4) = torque.y();
-    mF(5) = torque.z();
+    mF(3) = abs_torque.x();
+    mF(4) = abs_torque.y();
+    mF(5) = abs_torque.z();
 
     // Compute Q = N(u,v,w)'*F
     mbody->ComputeNF(0, 0, 0, load_Q, detJ, mF, state_x, state_w);
+}
+
+void ChLoadBodyTorque::Update(double time) {
+    m_modulation->Update(time);
+    m_scale = m_modulation->Get_y(time);
+    ChLoadCustom::Update(time);
+}
+
+void ChLoadBodyTorque::SetTorque(const ChVector<>& torque, bool is_local) {
+    m_torque = torque;
+    m_local_torque = is_local;
+}
+
+ChVector<> ChLoadBodyTorque::GetTorque() const {
+    return m_torque * m_scale;
 }
 
 // -----------------------------------------------------------------------------
@@ -127,7 +171,7 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     // OMPUTE THE FORCE
 
-    this->ComputeBushingForceTorque(rel_AB, locB_force, locB_torque);
+    ComputeBodyBodyForceTorque(rel_AB, locB_force, locB_torque);
 
     ChVector<> abs_force = frame_Bw.TransformDirectionLocalToParent(locB_force);
     ChVector<> abs_torque = frame_Bw.TransformDirectionLocalToParent(locB_torque);
@@ -154,19 +198,52 @@ std::shared_ptr<ChBody> ChLoadBodyBody::GetBodyB() const {
 }
 
 // -----------------------------------------------------------------------------
+// ChLoadBodyBodyTorque
+// -----------------------------------------------------------------------------
+
+ChLoadBodyBodyTorque::ChLoadBodyBodyTorque(std::shared_ptr<ChBody> bodyA,
+                                           std::shared_ptr<ChBody> bodyB,
+                                           const ChVector<> torque,
+                                           bool local_torque)
+    : ChLoadBodyBody(bodyA, bodyB, ChFrame<>()), m_torque(torque), m_local_torque(local_torque), m_scale(1) {
+    m_modulation = std::make_shared<ChFunction_Const>(1.0);
+}
+
+void ChLoadBodyBodyTorque::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                                      ChVector<>& loc_force,
+                                                      ChVector<>& loc_torque) {
+    loc_force = VNULL;
+
+    if (m_local_torque)
+        loc_torque = m_torque;
+    else {
+        auto bodyB = std::dynamic_pointer_cast<ChBody>(this->loadables[1]);
+        loc_torque = bodyB->TransformDirectionParentToLocal(m_torque);
+    }
+
+    loc_torque *= m_scale;
+}
+
+void ChLoadBodyBodyTorque::Update(double time) {
+    m_modulation->Update(time);
+    m_scale = m_modulation->Get_y(time);
+    ChLoadCustomMultiple::Update(time);
+}
+
+// -----------------------------------------------------------------------------
 // ChLoadBodyBodyBushingSpherical
 // -----------------------------------------------------------------------------
 
-ChLoadBodyBodyBushingSpherical::ChLoadBodyBodyBushingSpherical(std::shared_ptr<ChBody> mbodyA,
-                                                               std::shared_ptr<ChBody> mbodyB,
+ChLoadBodyBodyBushingSpherical::ChLoadBodyBodyBushingSpherical(std::shared_ptr<ChBody> bodyA,
+                                                               std::shared_ptr<ChBody> bodyB,
                                                                const ChFrame<>& abs_application,
                                                                const ChVector<>& mstiffness,
                                                                const ChVector<>& mdamping)
-    : ChLoadBodyBody(mbodyA, mbodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
+    : ChLoadBodyBody(bodyA, bodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
-void ChLoadBodyBodyBushingSpherical::ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                                               ChVector<>& loc_force,
-                                                               ChVector<>& loc_torque) {
+void ChLoadBodyBodyBushingSpherical::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                                                ChVector<>& loc_force,
+                                                                ChVector<>& loc_torque) {
     loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
                 + rel_AB.GetPos_dt() * damping;  // element-wise product!
     loc_torque = VNULL;
@@ -186,9 +263,9 @@ ChLoadBodyBodyBushingPlastic::ChLoadBodyBodyBushingPlastic(std::shared_ptr<ChBod
       yield(myield),
       plastic_def(VNULL) {}
 
-void ChLoadBodyBodyBushingPlastic::ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                                             ChVector<>& loc_force,
-                                                             ChVector<>& loc_torque) {
+void ChLoadBodyBodyBushingPlastic::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                                              ChVector<>& loc_force,
+                                                              ChVector<>& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
                 + rel_AB.GetPos_dt() * damping;              // element-wise product!
 
@@ -239,11 +316,11 @@ ChLoadBodyBodyBushingMate::ChLoadBodyBodyBushingMate(std::shared_ptr<ChBody> mbo
       rot_stiffness(mrotstiffness),
       rot_damping(mrotdamping) {}
 
-void ChLoadBodyBodyBushingMate::ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                                          ChVector<>& loc_force,
-                                                          ChVector<>& loc_torque) {
+void ChLoadBodyBodyBushingMate::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                                           ChVector<>& loc_force,
+                                                           ChVector<>& loc_torque) {
     // inherit parent to compute loc_force = ...
-    ChLoadBodyBodyBushingSpherical::ComputeBushingForceTorque(rel_AB, loc_force, loc_torque);
+    ChLoadBodyBodyBushingSpherical::ComputeBodyBodyForceTorque(rel_AB, loc_force, loc_torque);
 
     // compute local torque using small rotations:
     ChQuaternion<> rel_rot = rel_AB.GetRot();
@@ -272,9 +349,9 @@ ChLoadBodyBodyBushingGeneric::ChLoadBodyBodyBushingGeneric(std::shared_ptr<ChBod
                                                            const ChMatrix<>& mdamping)
     : ChLoadBodyBody(mbodyA, mbodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
-void ChLoadBodyBodyBushingGeneric::ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB,
-                                                             ChVector<>& loc_force,
-                                                             ChVector<>& loc_torque) {
+void ChLoadBodyBodyBushingGeneric::ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
+                                                              ChVector<>& loc_force,
+                                                              ChVector<>& loc_torque) {
     // compute local force & torque (assuming small rotations):
     ChVectorDynamic<> mF(6);
     ChVectorDynamic<> mS(6);
