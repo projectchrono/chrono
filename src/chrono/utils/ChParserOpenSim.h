@@ -25,6 +25,7 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
@@ -44,25 +45,41 @@ class ChApi ChParserOpenSim {
     /// Report containing information about objects parsed from file
     class ChApi Report {
       public:
-        /// Information about a body read in from OpenSim.
-        struct BodyInfo {
-            std::string name;              ///< body name in osim file
-            std::shared_ptr<ChBody> body;  ///< Chrono body
-        };
-
         /// Information about a joint read in from OpenSim.
         struct JointInfo {
-            std::string name;               ///< joint name in osim file
             std::string type;               ///< joint type as shown in osim file
             std::shared_ptr<ChLink> joint;  ///< Chrono link (joint)
             bool standin;                   ///< true if OpenSim joint replaced with spherical
         };
 
-        std::vector<BodyInfo> bodyList;    ///< list of body information
-        std::vector<JointInfo> jointList;  ///< list of joint information
+        /// Information about a custom load created from OpenSim.
+        struct ForceInfo {
+            std::string type;                    ///< load type as shown in osim file
+            std::shared_ptr<ChLoadCustom> load;  ///< Chrono load object
+        };
 
-        /// Print the bodies and joints read
+        std::unordered_map<std::string, std::shared_ptr<ChBodyAuxRef>> bodies;  ///< list of body information
+        std::unordered_map<std::string, JointInfo> joints;                      ///< list of joint information
+        std::unordered_map<std::string, ForceInfo> forces;                      ///< list of force information
+
+        /// Print information on all modeling elements parsed from osim file.
         void Print() const;
+
+        /// Get a handle to the body with specified name.
+        /// If none exists, an empty shared pointer is returned.
+        /// Note that all bodies created by the parser are of type ChBodyAuxRef
+        /// (i.e., using a non-centroidal reference frame).
+        std::shared_ptr<ChBodyAuxRef> GetBody(const std::string& name) const;
+
+        /// Get a handle to the joint with specified name.
+        /// If none exists, an empty shared pointer is returned.
+        /// The caller may need to downcast to the appropriate type.
+        std::shared_ptr<ChLink> GetJoint(const std::string& name) const;
+
+        /// Get a handle to the force element with specified name.
+        /// If none exists, an empty shared pointer is returned.
+        /// The caller may need to downcast to the appropriate type.
+        std::shared_ptr<ChLoadCustom> GetForce(const std::string& name) const;
     };
 
     ChParserOpenSim();
@@ -118,16 +135,11 @@ class ChApi ChParserOpenSim {
                     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
     );
 
-    /// Get the list of bodies in the model.
-    const std::vector<std::shared_ptr<ChBodyAuxRef>>& GetBodyList() const { return m_bodyList; }
-
-    /// Get the list of joints in the model.
-    const std::vector<std::shared_ptr<ChLink>>& GetJointList() const { return m_jointList; }
-
-    /// Get the report for this parser
+    /// Get the report for this parser.
+    /// This contains the lists of bodies, joints, and forces that were created from the input osim file.
     const Report& GetReport() const { return m_report; }
 
-    /// Get print the parser's report
+    /// Print the parser's report.
     void PrintReport() const { m_report.Print(); }
 
   private:
@@ -186,8 +198,8 @@ class ChApi ChParserOpenSim {
     float m_kt;             ///< tangential contact stiffness
     float m_gt;             ///< tangential contact damping
 
-    std::vector<std::shared_ptr<ChBodyAuxRef>> m_bodyList;  ///< List of bodies in model
-    std::vector<std::shared_ptr<ChLink>> m_jointList;       ///< List of joints in model
+    // List of joints in model (loaded in order of outward, base-to-tip, traversal)
+    std::vector<std::shared_ptr<ChLink>> m_jointList;
 };
 
 /// @} chrono_utils

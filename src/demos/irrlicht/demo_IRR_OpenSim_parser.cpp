@@ -58,6 +58,23 @@ int main(int argc, char* argv[]) {
     parser.SetVerbose(true);
     parser.Parse(my_system, filename);
 
+    // Print information about parsed elements
+    ////parser.PrintReport();
+
+    // Get a full report on parsed elements
+    auto rep = parser.GetReport();
+    std::cout << "---------" << std::endl;
+    rep.Print();
+    std::cout << "---------" << std::endl;
+
+    // Find the actuator named "grav"
+    if (auto force = rep.GetForce("grav")) {
+        if (auto body_force = std::dynamic_pointer_cast<ChLoadBodyForce>(force)) {
+            auto val = body_force->GetForce();
+            std::cout << val.x() << " " << val.y() << " " << val.z() << std::endl;
+        }
+    }
+
     auto my_ground = std::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
     my_system.AddBody(my_ground);
     my_ground->SetBodyFixed(true);
@@ -76,10 +93,6 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     application.SetTimestep(0.005);
-    parser.PrintReport();
-    auto rep = parser.GetReport();
-    // std::cout << "---------" << std::endl;
-    // rep.Print();
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

@@ -27,7 +27,6 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono/core/ChFrame.h"
-#include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -166,19 +165,52 @@ ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChMaterialSurface:
 }
 
 // -----------------------------------------------------------------------------
-// Print report
+// Implementation of ChParserOpenSim::Report methods
 // -----------------------------------------------------------------------------
 
 void ChParserOpenSim::Report::Print() const {
-    std::cout << "Parsed" << bodyList.size() << " bodies:\n";
-    for (auto body : bodyList) {
-        printf("   %s\n", body.name.c_str());
+    std::cout << "Parsed " << bodies.size() << " bodies:\n";
+    for (auto const& body : bodies) {
+        std::cout << "   name: \"" << body.first << "\"" << std::endl;
     }
-    std::cout << "Parsed" << jointList.size() << " joints:\n";
-    for (auto joint : jointList) {
-        printf("   %s  type: %s  standin: %s\n", joint.name.c_str(), joint.type.c_str(),
-               (joint.standin ? "yes" : "no"));
+
+    std::cout << "Parsed " << joints.size() << " joints:\n";
+    for (auto const& joint : joints) {
+        std::cout << "   name: \"" << joint.first << "\", type: \"" << joint.second.type
+                  << "\", standin: " << (joint.second.standin ? "yes" : "no") << std::endl;
     }
+
+    std::cout << "Parsed " << forces.size() << " forces:\n";
+    for (auto const& force : forces) {
+        std::cout << "   name: \"" << force.first << "\", type: \"" << force.second.type << "\"" << std::endl;
+    }
+}
+
+std::shared_ptr<ChBodyAuxRef> ChParserOpenSim::Report::GetBody(const std::string& name) const {
+    std::shared_ptr<ChBodyAuxRef> body;
+    auto body_info = bodies.find(name);
+    if (body_info != bodies.end()) {
+        body = body_info->second;
+    }
+    return body;
+}
+
+std::shared_ptr<ChLink> ChParserOpenSim::Report::GetJoint(const std::string& name) const {
+    std::shared_ptr<ChLink> joint;
+    auto joint_info = joints.find(name);
+    if (joint_info != joints.end()) {
+        joint = joint_info->second.joint;
+    }
+    return joint;
+}
+
+std::shared_ptr<ChLoadCustom> ChParserOpenSim::Report::GetForce(const std::string& name) const {
+    std::shared_ptr<ChLoadCustom> force;
+    auto force_info = forces.find(name);
+    if (force_info != forces.end()) {
+        force = force_info->second.load;
+    }
+    return force;
 }
 
 // -----------------------------------------------------------------------------
@@ -203,8 +235,11 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         auto load = std::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
         container->Add(load);
 
+        m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("PointActuator"), load}));
+
         return true;
     } else if (stringStripCStr(forceNode->name()) == std::string("TorqueActuator")) {
+        std::string name = stringStripCStr(forceNode->first_attribute("name")->value());
         auto bodyA = system.SearchBody(stringStripCStr(forceNode->first_node("bodyA")->value()).c_str());
         auto bodyB = system.SearchBody(stringStripCStr(forceNode->first_node("bodyB")->value()).c_str());
         auto torque_is_global = CStrToBool(forceNode->first_node("torque_is_global")->value());
@@ -212,6 +247,10 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
 
         //// TODO
+        ////auto load = std::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, max_force * axis, !torque_is_global);
+        ////container->Add(load);
+
+        ////m_report.forces.insert(std::make_pair(name, Report::ForceInfo{ std::string("TorqueActuator"), load }));
 
         return true;
     }
@@ -226,8 +265,9 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
         cout << "New body " << bodyNode->first_attribute("name")->value() << endl;
     }
     // Create a new body, consistent with the type of the containing system
+    auto name = std::string(bodyNode->first_attribute("name")->value());
     auto newBody = std::shared_ptr<ChBodyAuxRef>(system.NewBodyAuxRef());
-    newBody->SetName(bodyNode->first_attribute("name")->value());
+    newBody->SetNameString(name);
     system.AddBody(newBody);
 
     // If body collision is enabled, set the contact material properties
@@ -259,9 +299,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
         fieldNode = fieldNode->next_sibling();
     }
 
-    m_bodyList.push_back(newBody);
-    m_report.bodyList.push_back(Report::BodyInfo{newBody->GetNameString(), newBody});
-
+    m_report.bodies.insert(std::make_pair(name, newBody));
     return true;
 }
 
@@ -584,7 +622,7 @@ void ChParserOpenSim::initFunctionTable() {
         system->AddLink(joint);
 
         m_jointList.push_back(joint);
-        m_report.jointList.push_back(Report::JointInfo{name, type, joint, standin});
+        m_report.joints.insert(std::make_pair(name, Report::JointInfo{type, joint, standin}));
     };
 
     function_table["VisibleObject"] = [this](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
