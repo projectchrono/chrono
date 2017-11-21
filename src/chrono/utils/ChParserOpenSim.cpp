@@ -267,7 +267,10 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         ChVector<> axis = strToChVector<double>(forceNode->first_node("axis")->value());
         auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
 
-        auto load = std::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, max_force * axis, !torque_is_global);
+        // Note: OpenSim assumes the specified torque is applied to bodyA (with an equal and opposite
+        // torque applied to bodyB).  In ChLoadBodyBodyTorque, the torque is applied to the 2nd body
+        // passed in its constructor.
+        auto load = std::make_shared<ChLoadBodyBodyTorque>(bodyB, bodyA, max_force * axis, !torque_is_global);
         if (!m_activate_actuators)
             load->SetModulationFunction(std::make_shared<ChFunction_Const>(0));
         container->Add(load);
