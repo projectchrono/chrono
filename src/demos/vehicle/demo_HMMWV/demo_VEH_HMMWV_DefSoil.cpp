@@ -319,6 +319,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    std::cout << "Total vehicle mass: " << my_hmmwv.GetTotalMass() << std::endl;
+
     // Solver settings.
     ////system->SetSolverType(ChSolver::Type::MINRES);
     system->SetMaxItersSolverSpeed(50);
@@ -339,6 +341,9 @@ int main(int argc, char* argv[]) {
 
     while (app.GetDevice()->run()) {
         double time = system->GetChTime();
+
+        ////auto frc = static_cast<ChRigidTire*>(my_hmmwv.GetTire(0))->ReportTireForce(terrain);
+        ////std::cout << frc.force.x() << " " << frc.force.y() << " " << frc.force.z() << std::endl;
 
         // Render scene
         if (step_number % render_steps == 0) {

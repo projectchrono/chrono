@@ -164,10 +164,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     void SetTrackShoeVisualizationType(VisualizationType vis);
 
     /// Update the state of this track assembly at the current time.
-    void Synchronize(double time,                        ///< [in] current time
-                     double braking,                     ///< [in] braking driver input
-                     const TrackShoeForces& shoe_forces  ///< [in] vector of tire force structures
-                     );
+    void Synchronize(double time,                      ///< [in] current time
+                     double braking,                   ///< [in] braking driver input
+                     const TerrainForces& shoe_forces  ///< [in] vector of tire force structures
+    );
 
     /// Log current constraint violations.
     void LogConstraintViolations();

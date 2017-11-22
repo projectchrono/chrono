@@ -16,18 +16,18 @@
 //
 // =============================================================================
 
-#include "chrono/utils/ChParserOpenSim.h"
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/utils/ChParserOpenSim.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
 
-#include <functional>
 #include <cassert>
 #include <cmath>
+#include <functional>
 
 using namespace chrono;
 using namespace chrono::utils;
@@ -55,9 +55,30 @@ int main(int argc, char* argv[]) {
     // - use PRIMITIVES for models without visualization mesh data.
     ChParserOpenSim parser;
     parser.SetVisualizationType(ChParserOpenSim::VisType::PRIMITIVES);
-    parser.EnableCollision();
     parser.SetVerbose(true);
+    ////parser.ActivateActuators(true);
     parser.Parse(my_system, filename);
+
+    // Print information about parsed elements
+    ////parser.PrintReport();
+
+    // Get a full report on parsed elements
+    auto rep = parser.GetReport();
+    std::cout << "---------" << std::endl;
+    rep.Print();
+    std::cout << "---------" << std::endl;
+
+    // Find the actuator named "grav" and directly set its excitation function
+    ////if (auto force = rep.GetForce("grav")) {
+    ////    if (auto body_force = std::dynamic_pointer_cast<ChLoadBodyForce>(force)) {
+    ////        auto excitation = std::make_shared<ChFunction_Ramp>(0, 1);
+    ////        body_force->SetModulationFunction(excitation);
+    ////    }
+    ////}
+
+    // Use parser wrapper method to set excitation for named actuator.
+    auto excitation = std::make_shared<ChFunction_Ramp>(0, 1);
+    parser.SetExcitationFunction("grav", excitation);
 
     auto my_ground = std::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
     my_system.AddBody(my_ground);
@@ -76,7 +97,8 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Simulation loop
-    application.SetTimestep(0.005);
+    application.SetTryRealtime(true);
+    application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

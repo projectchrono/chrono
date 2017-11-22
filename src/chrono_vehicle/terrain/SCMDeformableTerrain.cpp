@@ -177,6 +177,18 @@ void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
     m_ground->Initialize(heightmap_file, mesh_name, sizeX, sizeY, hMin, hMax);
 }
 
+TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body) const {
+    auto itr = m_ground->m_contact_forces.find(body.get());
+    if (itr != m_ground->m_contact_forces.end())
+        return itr->second;
+
+    TerrainForce frc;
+    frc.point = body->GetPos();
+    frc.force = ChVector<>(0, 0, 0);
+    frc.moment = ChVector<>(0, 0, 0);
+    return frc;
+}
+
 // -----------------------------------------------------------------------------
 // Implementation of SCMDeformableSoil
 // -----------------------------------------------------------------------------
@@ -469,10 +481,11 @@ void SCMDeformableSoil::ComputeInternalForces() {
     std::vector<ChVector<int> >& idx_normals = m_trimesh_shape->GetMesh().getIndicesNormals();
     
     // 
-    // Reset the load list
+    // Reset the load list and map of contact forces
     //
 
     this->GetLoadList().clear();
+    m_contact_forces.clear();
 
     //
     // Compute (pseudo)areas per node
@@ -496,15 +509,14 @@ void SCMDeformableSoil::ComputeInternalForces() {
         p_area[idx_normals[it][2]] += triangle_area /3.0;
     }
 
-    ChVector<> N    = plane.TransformDirectionLocalToParent(ChVector<>(0,1,0));
+    ChVector<> N = plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
 
     //
     // Perform ray-hit test to detect the contact point sinkage
     // 
     
-    
 //#pragma omp parallel for
-    for (int i=0; i< vertices.size(); ++i) {
+    for (int i = 0; i < vertices.size(); ++i) {
         collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
@@ -589,24 +601,44 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 Ft = T * p_area[i] * p_tau[i];
 
                 if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
-                    // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody() 
-                    // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem() 
+                    // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
+                    // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
                     // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
-                    std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*){}); 
+                    std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
                     std::shared_ptr<ChLoadBodyForce> mload(
                         new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
                     this->Add(mload);
-                }
-                if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
+
+                    // Accumulate contact force for this rigid body.
+                    // The resultant force is assumed to be applied at the body COM.
+                    // All components of the generalized terrain force are expressed in the global frame.
+                    auto itr = m_contact_forces.find(contactable);
+                    if (itr == m_contact_forces.end()) {
+                        // Create new entry and initialize generalized force.
+                        ChVector<> force = Fn + Ft;
+                        TerrainForce frc;
+                        frc.point = srigidbody->GetPos();
+                        frc.force = force;
+                        frc.moment = Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
+                        m_contact_forces.insert(std::make_pair(contactable, frc));
+                    } else {
+                        // Update generalized force.
+                        ChVector<> force = Fn + Ft;
+                        itr->second.force += force;
+                        itr->second.moment += Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
+                    }
+                } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
                     // [](){} Trick: no deletion for this shared ptr
-                    std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*){});
-                    std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(
-                        new ChLoad<ChLoaderForceOnSurface>(ssurf));
-                    mload->loader.SetForce( Fn +Ft );
-                    mload->loader.SetApplication(0.5, 0.5); //***TODO*** set UV, now just in middle
+                    std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
+                    std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
+                    mload->loader.SetForce(Fn + Ft);
+                    mload->loader.SetApplication(0.5, 0.5);  //***TODO*** set UV, now just in middle
                     this->Add(mload);
+
+                    // Accumulate contact forces for this surface.
+                    //// TODO
                 }
-                
+
                 // Update mesh representation
                 vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
 

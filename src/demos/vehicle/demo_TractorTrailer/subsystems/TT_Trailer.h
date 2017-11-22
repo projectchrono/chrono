@@ -41,7 +41,7 @@ class TT_Trailer {
                             const bool connect_to_puller,
                             std::shared_ptr<chrono::ChBodyAuxRef> pulling_vehicle);
 
-    virtual void Synchronize(double time, double braking, const chrono::vehicle::TireForces& tire_forces);
+    virtual void Synchronize(double time, double braking, const chrono::vehicle::TerrainForces& tire_forces);
 
     void SetSuspensionVisualizationType(chrono::vehicle::VisualizationType vis);
     void SetWheelVisualizationType(chrono::vehicle::VisualizationType vis);

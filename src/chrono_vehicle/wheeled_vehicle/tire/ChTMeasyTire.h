@@ -69,7 +69,10 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TireForce GetTireForce(bool cosim = false) const override { return m_tireforce; }
+    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
+    /// Report the tire force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
     /// Update the state of this tire system at the current time.
     /// The tire system is provided the current state of its associated wheel.
@@ -224,7 +227,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     ContactData m_data;
     TireStates m_states;
 
-    TireForce m_tireforce;
+    TerrainForce m_tireforce;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
     std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset

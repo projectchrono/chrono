@@ -121,7 +121,7 @@ public:
         /// - It recomputes the jacobian(s) K,R,M in case of stiff load 
         /// Q and jacobians assumed evaluated at the current state.
         /// Jacobian structures are automatically allocated if needed.
-    virtual void Update(){
+    virtual void Update(double time) {
             // current state speed & position
         ChState      mstate_x(this->LoadGet_ndof_x(),0); 
         this->LoadGetStateBlock_x(mstate_x);
@@ -299,7 +299,7 @@ public:
 /// so one must inherit from this and implement ComputeQ() directly. The ComputeQ() must
 /// write the generalized forces Q into the "load_Q" vector of this object.
 
-class ChLoadCustom : public ChLoadBase  {
+class ChApi ChLoadCustom : public ChLoadBase  {
     
 public:
     std::shared_ptr<ChLoadable> loadable;
@@ -420,7 +420,7 @@ public:
 /// used in the std::vector "mloadables" for ChLoadCustomMultiple creation. 
 /// The same applies for the order of the sub-matrices of jacobians K,R etc.
 
-class ChLoadCustomMultiple : public ChLoadBase  {
+class ChApi ChLoadCustomMultiple : public ChLoadBase  {
     
 public:
     std::vector< std::shared_ptr<ChLoadable> > loadables;

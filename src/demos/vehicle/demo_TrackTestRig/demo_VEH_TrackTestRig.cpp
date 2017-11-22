@@ -146,13 +146,10 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    TireForces tire_forces(2);
-    WheelStates wheel_states(2);
+    TerrainForces shoe_forces(1);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
-
-    TrackShoeForces shoe_forces(1);
 
     // Initialize simulation frame counter
     int step_number = 0;

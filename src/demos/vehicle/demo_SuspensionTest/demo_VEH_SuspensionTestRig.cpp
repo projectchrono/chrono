@@ -198,8 +198,8 @@ int main(int argc, char* argv[]) {
         // Write output data
         if (collect_output && step_number % out_steps == 0) {
             // Current tire forces
-            auto tire_force_L = tire_L->GetTireForce(true);
-            auto tire_force_R = tire_R->GetTireForce(true);
+            auto tire_force_L = tire_L->ReportTireForce(nullptr);
+            auto tire_force_R = tire_R->ReportTireForce(nullptr);
             out_csv << time << left_input << right_input << steering_input;
             out_csv << rig->GetActuatorDisp(VehicleSide::LEFT) << rig->GetActuatorDisp(VehicleSide::RIGHT);
             out_csv << tire_force_L.point << tire_force_L.force << tire_force_L.moment;

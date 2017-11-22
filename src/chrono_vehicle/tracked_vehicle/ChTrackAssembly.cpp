@@ -145,7 +145,7 @@ double ChTrackAssembly::GetMass() const {
 // -----------------------------------------------------------------------------
 // Update the state of this track assembly at the current time.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Synchronize(double time, double braking, const TrackShoeForces& shoe_forces) {
+void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForces& shoe_forces) {
     // Apply track shoe forces
     for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
         GetTrackShoe(i)->m_shoe->Empty_forces_accumulators();

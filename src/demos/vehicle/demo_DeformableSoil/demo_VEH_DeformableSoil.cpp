@@ -175,6 +175,10 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
+
+        ////vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
+        ////std::cout << frc.force.x() << " " << frc.force.y() << " " << frc.force.z() << std::endl;
+
         application.BeginScene();
 
         application.DrawAll();
