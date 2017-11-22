@@ -56,10 +56,12 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     /// A running count of the number of global bodies for
     /// identification purposes
     int GetNumBodiesGlobal() { return num_bodies_global; }
+    int IncrementGID() { return num_bodies_global++; }
+    bool InSub(ChVector<double> pos);
 
     void AddBody(std::shared_ptr<ChBody> newbody) override;
     void AddBodyTrust(std::shared_ptr<ChBody> newbody);
-	void RemoveBody(std::shared_ptr<ChBody> body) override;
+    void RemoveBody(std::shared_ptr<ChBody> body) override;
     virtual bool Integrate_Y() override;
     virtual void UpdateRigidBodies() override;
 
@@ -88,9 +90,9 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     // MPI
     int num_ranks;
     int my_rank;
-	
-	int rank_digits; // 10^(number of digits in highest rank)
-	
+
+    int rank_digits;  // 10^(number of digits in highest rank)
+
     double ghost_layer;
 
     unsigned int num_bodies_global;

@@ -108,11 +108,17 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
 ChSystemDistributed::~ChSystemDistributed() {
     delete domain;
     delete comm;
-
-#ifdef DistrDebug
-    debug_stream.close();
-#endif
     // delete ddm;
+}
+
+bool ChSystemDistributed::InSub(ChVector<double> pos) {
+    int split_axis = domain->GetSplitAxis();
+
+    double pos_axis = pos[split_axis];
+    double lo = domain->sublo[split_axis];
+    double hi = domain->subhi[split_axis];
+
+    return (pos_axis >= lo - this->ghost_layer) && (pos_axis <= hi + this->ghost_layer);
 }
 
 bool ChSystemDistributed::Integrate_Y() {
@@ -139,69 +145,15 @@ void ChSystemDistributed::UpdateRigidBodies() {
     }
 }
 
-// The bodies added this way must be guarenteed to be OWNED, SHARED_UP, or SHARED_DOWN
-// on this rank.
-// TODO do an update to create GHOST_UP and GHOST_DOWN bodies before first time step - could call an UpdateRigidBodies before first timestep
-void ChSystemDistributed::AddBodyTrust(std::shared_ptr<ChBody> newbody) {
-    newbody->SetGid(num_bodies_global * rank_digits + my_rank);  // gid = <lgid><rank>
-    num_bodies_global++;
-    distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);
-
-    // Check for collision with this sub-domain
-    if (newbody->GetBodyFixed()) {
-        ChVector<double> body_min;
-        ChVector<double> body_max;
-        ChVector<double> sublo(domain->GetSubLo());
-        ChVector<double> subhi(domain->GetSubHi());
-
-        newbody->GetCollisionModel()->GetAABB(body_min, body_max);
-
-#ifdef DistrDebug
-        printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", body_min.x(), body_min.y(), body_min.z(),
-               body_max.x(), body_max.y(), body_max.z());
-#endif
-        // If the part of the body lies in this sub-domain, add it
-        if ((body_min.x() <= subhi.x() && sublo.x() <= body_max.x()) &&
-            (body_min.y() <= subhi.y() && sublo.y() <= body_max.y()) &&
-            (body_min.z() <= subhi.z() && sublo.z() <= body_max.z())) {
-            status = distributed::GLOBAL;
-            // TODO cut off the shapes that don't affect this sub-domain?
-        }
-    }
-
-    // Makes space for shapes
-    ddm->body_shape_start.push_back(0);
-    ddm->body_shape_count.push_back(0);
-
-    ddm->comm_status.push_back(status);
-    ddm->global_id.push_back(newbody->GetGid());
-
-    newbody->SetId(data_manager->num_rigid_bodies);
-    bodylist.push_back(newbody);
-
-    ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
-
-    data_manager->num_rigid_bodies++;
-    newbody->SetSystem(this);  // TODO Syncs collision model // TODO collision add expensive
-
-    // actual data is set in UpdateBodies().
-    data_manager->host_data.pos_rigid.push_back(real3());
-    data_manager->host_data.rot_rigid.push_back(quaternion());
-    data_manager->host_data.active_rigid.push_back(true);
-    data_manager->host_data.collide_rigid.push_back(true);
-
-    // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
-}
-
 void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     // Regardless of whether the body is on this rank,
     // increment the global id counter to maintain unique
     // global ids over all ranks.
-    newbody->SetGid(num_bodies_global * rank_digits + my_rank);
-    num_bodies_global++;
-    distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);  // TODO expensive
-
+    newbody->SetGid(num_bodies_global);
+    distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);
+    if (newbody->GetGid() == 27184) {
+        int waste_time = 10;
+    }
     // Check for collision with this sub-domain
     if (newbody->GetBodyFixed()) {
         ChVector<double> body_min;

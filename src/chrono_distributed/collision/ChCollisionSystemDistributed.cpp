@@ -36,6 +36,7 @@ ChCollisionSystemDistributed::~ChCollisionSystemDistributed() {}
 
 // Called by chcollisionmodel::buildmodel (if system set), chbody::setcollide(true), chbody::setsystem (if system set)
 // (called by addbody AND addbodyexchange)
+// TODO VERY EXPENSIVE
 void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     ChParallelDataManager* dm = ddm->data_manager;
     ChCollisionModelDistributed* pmodel = static_cast<ChCollisionModelDistributed*>(model);
@@ -46,31 +47,15 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     int needed_count = pmodel->GetNObjects();     // Minimum size needed in ddm->body_shapes
     ChVector<> pos(pmodel->GetBody()->GetPos());
 
-    /* TODO Only include shapes relevant to this sub-domain
-        if (ddm->comm_status[body_index] == distributed::GLOBAL) {
-            int splitaxis = my_sys->GetDomain()->GetSplitAxis();
-            ChVector<> subhi(my_sys->GetDomain()->GetSubHi());
-            ChVector<> sublo(my_sys->GetDomain()->GetSublo());
-            double ghost_layer = my_sys->GetGhostLayer();
-            for (int i = 0; i < needed_count; i++) {
-                // TODO: If in this sub-domain, add to new pmodel
-                real3 A = pmodel.mdata[i].A;
-                quaternion R = pmodel.mdata[i].R;
-                // TODO posalongsplitaxis
-                if (posalongsplitaxis >= sublo[splitaxis] - ghost_layer &&
-                    posalongsplitaxis <= subhi[splitaxis] + ghost_layer) {
-                        // Add to new model
-                        newmodel->Add
-                }
-            }
-        }
-    */
+    // TODO Only include shapes relevant to this sub-domain
 
-    // Find free chunk in ddm->body_shapes large enough for this model
     bool found = false;
     struct LocalShapeNode* curr = ddm->local_free_shapes;
     struct LocalShapeNode* prev = NULL;
 
+    // Find free chunk in ddm->body_shapes large enough for this model using free list TODO free list expensive
+    // TODO consider first set of adds: could be adding a bunch of list nodes that just say one slot is full. Should
+    // consolidate them together to say that a big chunk is taken.
     while (curr != NULL && !found) {
         // If curr is a large enough free chunk
         if (curr->free && curr->size >= needed_count) {
@@ -117,24 +102,45 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 
         // If the above while loop went off the end searching
         if (curr == NULL && prev != NULL) {
-            new_end = new struct LocalShapeNode();
-            prev->next = new_end;
+            // If the previous chunk is taken, merge new and previous
+            if (prev->free == false) {
+                prev->size += needed_count;
+                // This portion will begin right after the end of the current vector
+                begin_shapes = ddm->body_shapes.size();
+            }
+            // If the previous chunk is free, add new node at end
+            else {
+                new_end = new struct LocalShapeNode();
+                prev->next = new_end;
+                new_end->size = needed_count;
+                new_end->free = false;
+                new_end->body_shapes_index = ddm->body_shapes.size();  // This portion will begin right
+                                                                       // after the end of the current vector
+                begin_shapes = new_end->body_shapes_index;
+            }
         }
         // If the first node doesn't exist yet
         else if (curr == NULL) {
             // Create first node
             ddm->local_free_shapes = new struct LocalShapeNode();
             new_end = ddm->local_free_shapes;
+            new_end->size = needed_count;
+            new_end->free = false;
+            new_end->body_shapes_index = ddm->body_shapes.size();  // This portion will begin right
+            // after the end of the current vector
+            begin_shapes = new_end->body_shapes_index;
         }
 
+        ddm->body_shape_start[body_index] = ddm->body_shapes.size();
+
+        // TODO should be done replacing this above now - Check correctness
+        /*
         new_end->size = needed_count;
         new_end->free = false;
         new_end->body_shapes_index = ddm->body_shapes.size();  // This portion will begin right
                                                                // after the end of the current vector
-
-        ddm->body_shape_start[body_index] = ddm->body_shapes.size();
-
         begin_shapes = new_end->body_shapes_index;
+        */
 
         // Create the space in body_shapes
         for (int i = 0; i < needed_count; i++) {
@@ -166,7 +172,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 
     // If there is space for ALL shapes in the model in the data_manager
     // unload them.
-    // TODO needed_count == 0... add called too early
+    // TODO needed_count == 0... add called too early TODO***
     if (free_dm_shapes.size() == needed_count) {
 #ifdef DistrDebug
         GetLog() << "needed_count " << needed_count << "\n";
@@ -199,6 +205,11 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
                     GetLog() << "Adding sphere\n";
 #endif
                     dm->shape_data.sphere_rigid[start] = obB.x;
+                    break;
+                case chrono::collision::TRIANGLEMESH:  // TODO make sure there is space for all three
+                    dm->shape_data.triangle_rigid[start] = obA;
+                    dm->shape_data.triangle_rigid[start + 1] = obB;
+                    dm->shape_data.triangle_rigid[start + 2] = obC;
                     break;
                 case chrono::collision::ELLIPSOID:
                     dm->shape_data.box_like_rigid[start] = obB;
@@ -235,7 +246,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
         }
     }
     // If there was not enough space in the data_manager for all shapes in the model,
-    // call the regular add
+    // call the regular add // TODO faster jump to here
     else {
 #ifdef DistrDebug
         GetLog() << "ChCollisionSystemParallel::Add GID " << pmodel->GetBody()->GetGid() << "\n";

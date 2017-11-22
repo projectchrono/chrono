@@ -19,9 +19,9 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/other_types.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 
 namespace chrono {
 
@@ -141,16 +141,15 @@ class CH_DISTR_API ChDomainDistributed {
     /// Prints basic information about the domain decomposition
     virtual void PrintDomain();
 
-  protected:
-    ChSystemDistributed* my_sys;
-
-    int split_axis;  ///< Index of the dimension of the longest edge of the global domain
-
     ChVector<double> boxlo;  ///< Lower coordinates of the global domain
     ChVector<double> boxhi;  ///< Upper coordinates of the global domain
 
     ChVector<double> sublo;  ///< Lower coordinates of this subdomain
     ChVector<double> subhi;  ///< Upper coordinates of this subdomain
+  protected:
+    ChSystemDistributed* my_sys;
+
+    int split_axis;  ///< Index of the dimension of the longest edge of the global domain
 
     /// Calculates the borders of this subdomain based on the rank
     virtual void SplitDomain();

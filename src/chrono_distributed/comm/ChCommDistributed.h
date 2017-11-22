@@ -21,8 +21,8 @@
 #include "chrono_parallel/ChDataManager.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 
 namespace chrono {
 
@@ -57,9 +57,9 @@ typedef struct BodyUpdate {
 typedef struct Shape {
     uint gid;
     int type;
-    double A[3];
+    double A[3];  // A
     double R[3];
-    double data[3];
+    double data[6];  // B C and shape-specific data
     /*short2 fam;*/
 } Shape;
 

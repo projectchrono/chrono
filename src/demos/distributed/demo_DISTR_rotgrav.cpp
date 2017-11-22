@@ -61,7 +61,7 @@ void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
 
 void print(std::string msg) {
     if (my_rank == MASTER) {
-        std::cout << msg;
+        std::cout << msg << std::flush;
     }
 }
 
@@ -158,6 +158,7 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
         bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
+        sys->IncrementGID();
     }
     for (auto itr = side1.begin(); itr != side1.end(); itr++) {
         auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
@@ -170,6 +171,7 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
         bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
+        sys->IncrementGID();
     }
     for (auto itr = side2.begin(); itr != side2.end(); itr++) {
         auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
@@ -182,6 +184,7 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
         bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
+        sys->IncrementGID();
     }
     for (auto itr = side3.begin(); itr != side3.end(); itr++) {
         auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
@@ -194,6 +197,7 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
         bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
+        sys->IncrementGID();
     }
     for (auto itr = side4.begin(); itr != side4.end(); itr++) {
         auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
@@ -206,6 +210,7 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
         bin->GetCollisionModel()->AddSphere(fill_radius);
         bin->GetCollisionModel()->BuildModel();
         sys->AddBody(bin);
+        sys->IncrementGID();
     }
 }
 
@@ -217,7 +222,7 @@ inline std::shared_ptr<ChBody> CreateBall(double x,
                                           double mass,
                                           ChVector<> inertia,
                                           double radius) {
-    ChVector<> pos(0.32 * x, 0.32 * y, z);
+    ChVector<> pos(x, y, z);
 
     auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
     ball->SetMaterialSurface(ballMat);
@@ -260,23 +265,27 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     double spacing = 2 * radius + 0.02;
     ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
+    // TODO TODO: Generate all positions in this loop (get rid of continues), have a function
+    // in system that checks if in the subdomain using only the postion vector, have an incrementor
+    // for num_bodies_global, get rid of the increment in AddBody, get rid of AddBodyTrust?, get rid of
+    // appending the rank number to the gid
+    int count = 0;
     int count_down_Z = count_Z;
-    for (double z = 3; count_down_Z > 0; z += spacing, count_down_Z--) {
-		print(std::string("Layers remaining: ") + std::to_string(count_down_Z) + "\n");
-        if (split_axis == 2 && z >= sublo.z() && z < subhi.z())
-            continue;
+    for (double z = 3.; count_down_Z > 0; z += spacing, count_down_Z--) {
+        print(std::string("Layers remaining: ") + std::to_string(count_down_Z) + "\n");
         for (double x = spacing * -count_X; x <= spacing * count_X; x += spacing) {
-            if (split_axis == 0 && x >= sublo.x() && x < subhi.x())
-                continue;
             for (double y = spacing * -count_Y; y <= spacing * count_Y; y += spacing) {
-                if (split_axis == 1 && y >= sublo.y() && y < subhi.y())
-                    continue;
-
-                auto ball = CreateBall(x, y, z, ballMat, &ballId, mass, inertia, radius);
-                sys->AddBodyTrust(ball);
+                ChVector<double> pos(x, y, z);
+                if (sys->InSub(pos)) {
+                    auto ball = CreateBall(x, y, z, ballMat, &ballId, mass, inertia, radius);
+                    sys->AddBody(ball);
+                    count++;
+                }
+                sys->IncrementGID();
             }
         }
     }
+    std::cout << "Done adding " << count << " bodies on rank " << my_rank << "\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -309,7 +318,7 @@ int main(int argc, char* argv[]) {
 
     std::string outfile_name = outdir + "Rank";
     outfile_name += std::to_string(my_rank) + ".csv";
-    std::cout << "Outfile name: " << outfile_name << "\n";
+    std::cout << "Outfile: " << outfile_name << "\n";
     std::ofstream outfile;
     outfile.open(outfile_name);
 
@@ -319,13 +328,13 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Running on " << num_ranks << " MPI ranks.\n";
 
-    double time_step = 1e-4;  // TODO ?
+    double time_step = 1e-4;  // TODO
     double time_end = 15;     // TODO
 
     double out_fps = 10;  // TODO
 
-    unsigned int max_iteration = 100;
-    double tolerance = 1e-3;
+    unsigned int max_iteration = 100;  // TODO
+    double tolerance = 1e-3;           // TODO
 
     ChSystemDistributed my_sys(MPI_COMM_WORLD, 0.25, 11000000);  // TODO
 
@@ -333,14 +342,14 @@ int main(int argc, char* argv[]) {
     my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
-    my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));  // TODO
+    my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
 
     // Set solver parameters
     my_sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
     my_sys.GetSettings()->solver.tolerance = tolerance;
 
     my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
-    my_sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    my_sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);  // TODO
 
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
@@ -353,7 +362,9 @@ int main(int argc, char* argv[]) {
 
     AddContainerSphereDecomp(&my_sys);
     AddFallingBalls(&my_sys);
-    my_sys.UpdateRigidBodies();  // NOTE: Must be called to finish body sharing
+
+    MPI_Barrier(my_sys.GetMPIWorld());
+    print("Done adding bodies\n");
 
     // Run simulation for specified time
     int num_steps = std::ceil(time_end / time_step);
@@ -361,6 +372,7 @@ int main(int argc, char* argv[]) {
     int out_frame = 0;
     double time = 0;
 
+    print("Starting Simulation\n");
     for (int i = 0; i < num_steps; i++) {
         my_sys.DoStepDynamics(time_step);
 

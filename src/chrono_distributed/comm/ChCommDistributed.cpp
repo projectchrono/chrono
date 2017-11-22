@@ -162,9 +162,7 @@ void ChCommDistributed::ProcessUpdates(int num_recv, BodyUpdate* buf) {
                                                                                              : distributed::SHARED_DOWN;
             }
         } else {
-#ifdef DistrDebug
-            GetLog() << "GID " << buf->gid << " NOT found rank " << my_sys->GetMyRank() << "\n";
-#endif
+            GetLog() << "GID " << (buf + n)->gid << " NOT found rank " << my_sys->GetMyRank() << "\n";
             my_sys->ErrorAbort("Body to be updated not found\n");
         }
     }
@@ -218,27 +216,20 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
 
             switch ((buf + n)->type) {
                 case chrono::collision::SPHERE:
-#ifdef DistrDebug
-                    GetLog() << "Unpacking Sphere rank " << my_sys->GetMyRank() << "\n";
-#endif
                     body->GetCollisionModel()->AddSphere(data[0], A);
-#ifdef DistrDebug
-                    GetLog() << "A: " << A[0] << ", " << A[1] << ", " << A[2] << "\n";
-#endif
                     break;
-
                 case chrono::collision::BOX:
-#ifdef DistrDebug
-                    GetLog() << "Unpacking Box\n";
-#endif
+
                     body->GetCollisionModel()->AddBox(data[0], data[1], data[2], A,
                                                       ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
-
-                /*                case chrono::collision::TRIANGLE:
-                                    body->GetCollisionModel()->AddTriangle(A, B, C, pos, rot);
-                                    break;
-                */
+                case chrono::collision::TRIANGLEMESH:
+                    // AddTriangle(A, B, C, pos, rot)
+                    // pos == (0,0,0) because the addition to the position is done at the initial add TODO ?
+                    std::static_pointer_cast<ChCollisionModelDistributed>(body->GetCollisionModel())
+                        ->AddTriangle(A, ChVector<>(data[0], data[1], data[2]), ChVector<>(data[3], data[4], data[5]),
+                                      ChVector<>(0, 0, 0), ChQuaternion<>(rot[0], rot[1], rot[2], rot[3]));
+                    break;
                 default:
                     GetLog() << "Error gid " << gid << " rank " << my_sys->GetMyRank() << " type " << (buf + n)->type
                              << "\n";
@@ -294,13 +285,6 @@ void ChCommDistributed::Exchange() {
     int num_shapes_down = 0;
     int num_take_up = 0;
     int num_take_down = 0;
-
-#ifdef DistrDebug
-    // Output buffers for thread-safety
-    std::string exchange_string = "";
-    std::string update_string = "";
-    std::string take_string = "";
-#endif
 
 #pragma omp parallel sections
     {
@@ -373,7 +357,6 @@ void ChCommDistributed::Exchange() {
 #ifdef DistrDebug
                     GetLog() << "Update: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank + 1
                              << "\n";
-                    update_string += std::string("uu,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
 
                     BodyUpdate b_upd;
@@ -386,7 +369,6 @@ void ChCommDistributed::Exchange() {
 #ifdef DistrDebug
                     GetLog() << "Update: rank " << my_rank << " -- " << ddm->global_id[i] << " --> rank " << my_rank + 1
                              << "\n";
-                    update_string += std::string("uu,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
 
                     BodyUpdate b_upd;
@@ -404,7 +386,6 @@ void ChCommDistributed::Exchange() {
 #ifdef DistrDebug
                     GetLog() << "Update: rank " << my_rank << "--" << ddm->global_id[i] << "-->rank " << my_rank - 1
                              << "\n";
-                    update_string += std::string("ud,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
 
                     BodyUpdate b_upd;
@@ -417,7 +398,6 @@ void ChCommDistributed::Exchange() {
 #ifdef DistrDebug
                     GetLog() << "Update: rank " << my_rank << "--" << ddm->global_id[i] << "-->rank " << my_rank - 1
                              << "\n";
-                    update_string += std::string("ud,") + std::to_string(ddm->global_id[i]) + "\n";
 #endif
 
                     BodyUpdate b_upd;
@@ -436,10 +416,6 @@ void ChCommDistributed::Exchange() {
                           ddm->comm_status[i] == distributed::SHARED_DOWN)) {
                     int up;
                     if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
-#ifdef DistrDebug
-                        update_string += std::string("gu,") + std::to_string(ddm->global_id[i]) + "\n";
-#endif
-
                         BodyUpdate b_upd;
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_up_buf.push_back(b_upd);
@@ -448,10 +424,6 @@ void ChCommDistributed::Exchange() {
                         num_update_up++;  // TODO might be able to eliminate
                         up = 1;
                     } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
-#ifdef DistrDebug
-                        update_string += std::string("gd,") + std::to_string(ddm->global_id[i]) + "\n";
-#endif
-
                         BodyUpdate b_upd;
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_down_buf.push_back(b_upd);
@@ -483,8 +455,6 @@ void ChCommDistributed::Exchange() {
                 if (location == distributed::OWNED) {
                     if (curr_status == distributed::SHARED_UP) {
 #ifdef DistrDebug
-                        take_string += std::string("tu,") + std::to_string(ddm->global_id[i]) + "\n";
-
                         GetLog() << "Taking " << my_rank << " <-- " << ddm->global_id[i] << " -- " << my_rank + 1
                                  << "\n";
 #endif
@@ -498,8 +468,6 @@ void ChCommDistributed::Exchange() {
 
                     } else if (curr_status == distributed::SHARED_DOWN) {
 #ifdef DistrDebug
-                        take_string += std::string("td,") + std::to_string(ddm->global_id[i]) + "\n";
-
                         GetLog() << "Taking " << my_rank << " <-- " << ddm->global_id[i] << " -- " << my_rank - 1
                                  << "\n";
 #endif
@@ -516,12 +484,6 @@ void ChCommDistributed::Exchange() {
             }  // End of packing for loop
         }      // End of update take loop
     }          // End of parallel sections
-
-#ifdef DistrDebug
-    std::string output_string = exchange_string + update_string + take_string;
-    my_sys->debug_stream << output_string;
-    my_sys->debug_stream << "*\n";
-#endif
 
     MPI_Status status_exchange_up;
     MPI_Status status_exchange_down;
@@ -577,27 +539,27 @@ void ChCommDistributed::Exchange() {
 
             // Send empty message if there is nothing to send
             if (num_exchange_up == 0) {
-				BodyExchange b_e;
-				b_e.gid = UINT_MAX;
-				exchange_up_buf.push_back(b_e);
+                BodyExchange b_e;
+                b_e.gid = UINT_MAX;
+                exchange_up_buf.push_back(b_e);
                 num_exchange_up = 1;
             }
             if (num_exchange_down == 0) {
-				BodyExchange b_e;
-				b_e.gid = UINT_MAX;
+                BodyExchange b_e;
+                b_e.gid = UINT_MAX;
                 exchange_down_buf.push_back(b_e);
                 num_exchange_down = 1;
             }
             if (num_update_up == 0) {
-				BodyUpdate b_u;
+                BodyUpdate b_u;
                 b_u.gid = UINT_MAX;
-				update_up_buf.push_back(b_u);
+                update_up_buf.push_back(b_u);
                 num_update_up = 1;
             }
             if (num_update_down == 0) {
-				BodyUpdate b_u;
-				b_u.gid = UINT_MAX;
-				update_down_buf.push_back(b_u);
+                BodyUpdate b_u;
+                b_u.gid = UINT_MAX;
+                update_down_buf.push_back(b_u);
                 num_update_down = 1;
             }
             if (num_take_up == 0) {
@@ -693,13 +655,13 @@ void ChCommDistributed::Exchange() {
 #pragma omp section
         {
             for (auto itr_up = exchanges_up.begin(); itr_up != exchanges_up.end(); itr_up++) {
-				num_shapes_up += PackShapes(&shapes_up, *itr_up);
-                //num_shapes_up += PackShapes(shapes_up + num_shapes_up, *itr_up);
+                num_shapes_up += PackShapes(&shapes_up, *itr_up);
+                // num_shapes_up += PackShapes(shapes_up + num_shapes_up, *itr_up);
             }
 
             if (num_shapes_up == 0) {
-				Shape shape;
-				shape.gid = UINT_MAX;
+                Shape shape;
+                shape.gid = UINT_MAX;
                 shapes_up.push_back(shape);
                 num_shapes_up = 1;
             }
@@ -709,13 +671,13 @@ void ChCommDistributed::Exchange() {
 #pragma omp section
         {
             for (auto itr_down = exchanges_down.begin(); itr_down != exchanges_down.end(); itr_down++) {
-				num_shapes_down += PackShapes(&shapes_down, *itr_down);
-				
-				//num_shapes_down += PackShapes(shapes_down + num_shapes_down, *itr_down);
+                num_shapes_down += PackShapes(&shapes_down, *itr_down);
+
+                // num_shapes_down += PackShapes(shapes_down + num_shapes_down, *itr_down);
             }
             if (num_shapes_down == 0) {
-				Shape shape;
-				shape.gid = UINT_MAX;
+                Shape shape;
+                shape.gid = UINT_MAX;
                 shapes_down.push_back(shape);
                 num_shapes_down = 1;
             }
@@ -939,7 +901,7 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
 
     // Pack each shape on the body
     for (int i = 0; i < shape_count; i++) {
-		Shape shape;
+        Shape shape;
         shape.gid = ddm->global_id[index];
 #ifdef DistrDebug
         GetLog() << "Packing shapes for gid " << ddm->global_id[index];
@@ -966,7 +928,7 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
             case chrono::collision::SPHERE:
                 shape.data[0] = data_manager->shape_data.sphere_rigid[start];
 #ifdef DistrDebug
-                GetLog() << "Packing sphere: " << (buf + i)->data[0];
+                GetLog() << "Packing sphere: " << (*buf)[i].data[0];
 #endif
                 break;
             case chrono::collision::BOX:
@@ -974,10 +936,21 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
                 shape.data[1] = data_manager->shape_data.box_like_rigid[start].y;
                 shape.data[2] = data_manager->shape_data.box_like_rigid[start].z;
                 break;
+            case chrono::collision::TRIANGLEMESH:
+                // Pack B
+                shape.data[0] = data_manager->shape_data.triangle_rigid[start + 1].x;
+                shape.data[1] = data_manager->shape_data.triangle_rigid[start + 1].y;
+                shape.data[2] = data_manager->shape_data.triangle_rigid[start + 1].z;
+
+                // Pack C
+                shape.data[3] = data_manager->shape_data.triangle_rigid[start + 2].x;
+                shape.data[4] = data_manager->shape_data.triangle_rigid[start + 2].y;
+                shape.data[5] = data_manager->shape_data.triangle_rigid[start + 2].z;
+
             default:
                 GetLog() << "Invalid shape for transfer\n";
         }
-		buf->push_back(shape);
+        buf->push_back(shape);
     }
     return shape_count;
 }

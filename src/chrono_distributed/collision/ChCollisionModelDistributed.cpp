@@ -112,7 +112,7 @@ bool ChCollisionModelDistributed::AddTriangle(ChVector<> A,
                                               ChVector<> C,
                                               const ChVector<>& pos = ChVector<>(),
                                               const ChMatrix33<>& rot = ChMatrix33<>(1)) {
-    // TODO
+    // TODO doesn't allow for global triangle bodies
     return this->ChCollisionModelParallel::AddTriangle(A, B, C, pos, rot);
 }
 
