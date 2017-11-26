@@ -22,6 +22,7 @@
 
 #include <set>
 #include <string>
+#include <unordered_map>
 
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -31,6 +32,7 @@
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
@@ -192,6 +194,8 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     double hMax                         ///< [in] maximum height (white level)
                     );
 
+    TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
+
   private:
     std::shared_ptr<SCMDeformableSoil> m_ground;
 };
@@ -318,9 +322,11 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double test_high_offset;
     double test_low_offset;
 
-    friend class SCMDeformableTerrain;
-
     double last_t;  // for optimization
+
+    std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
+
+    friend class SCMDeformableTerrain;
 };
 
 /// @} vehicle_terrain

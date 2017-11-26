@@ -417,8 +417,8 @@ int main(int argc, char* argv[]) {
     // Inter-module communication data
     BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
     BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TrackShoeForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TrackShoeForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
+    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
+    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     while (time < time_end) {
         // Collect output data from modules

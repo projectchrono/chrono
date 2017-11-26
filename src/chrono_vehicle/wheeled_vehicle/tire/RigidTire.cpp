@@ -20,7 +20,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
