@@ -130,15 +130,18 @@ class ChApi ChCollisionSystem {
 
     /// Recover results from RayHit() raycasting.
     struct ChRayhitResult {
-        bool hit;                    ///< if true, there was an hit - look following date for infos
+        bool hit;                    ///< if true, there was an hit
         ChVector<> abs_hitPoint;     ///< hit point in absolute space coordinates
         ChVector<> abs_hitNormal;    ///< normal to surface in absolute space coordinates
         double dist_factor;          ///< from 0 .. 1 means the distance of hit point along the segment
-        ChCollisionModel* hitModel;  ///< pointer to hitten model
+        ChCollisionModel* hitModel;  ///< pointer to intersected model
     };
 
     /// Perform a ray-hit test with the collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) = 0;
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const = 0;
+
+    /// Perform a ray-hit test with the specified collision model.
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChCollisionModel* model, ChRayhitResult& mresult) const = 0;
 
     // SERIALIZATION
 

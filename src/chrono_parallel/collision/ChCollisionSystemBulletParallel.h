@@ -91,8 +91,20 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
     /// EndAddProximities() of the proximity container.
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) {}
 
-    /// Perform a raycast (ray-hit test with the collision models).
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) { return false; }
+    /// Perform a ray-hit test with all collision models.
+    /// Currently not implemented.
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override {
+        return false;
+    }
+
+    /// Perform a ray-hit test with the specified collision model.
+    /// Currently not implemented.
+    virtual bool RayHit(const ChVector<>& from,
+                        const ChVector<>& to,
+                        ChCollisionModel* model,
+                        ChRayhitResult& mresult) const override {
+        return false;
+    }
 
     // For Bullet related stuff
     btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
