@@ -274,12 +274,14 @@ int main(int argc, char* argv[]) {
 
         case RIGID_SOIL: {
             RigidTerrain* terrainR = new RigidTerrain(system);
-            terrainR->SetContactFrictionCoefficient(0.9f);
-            terrainR->SetContactRestitutionCoefficient(0.01f);
-            terrainR->SetContactMaterialProperties(2e7f, 0.3f);
-            terrainR->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-            terrainR->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-            terrainR->Initialize(terrainHeight, terrainLength, terrainWidth);
+            auto patch = terrainR->AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+                                            ChVector<>(terrainLength, terrainWidth, 10));
+            patch->SetContactFrictionCoefficient(0.9f);
+            patch->SetContactRestitutionCoefficient(0.01f);
+            patch->SetContactMaterialProperties(2e7f, 0.3f);
+            patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            terrainR->Initialize();
 
             terrain = terrainR;
 

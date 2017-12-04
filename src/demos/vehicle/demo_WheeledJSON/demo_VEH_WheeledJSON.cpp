@@ -70,8 +70,14 @@ std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
 ////std::string vehicle_file("generic/vehicle/Vehicle_SemiTrailingArm.json");
 ////std::string vehicle_file("generic/vehicle/Vehicle_ThreeLinkIRS.json");
 
-// JSON files for terrain (rigid plane), and powertrain (simple)
+// JSON files for terrain
 std::string rigidterrain_file("terrain/RigidPlane.json");
+////std::string rigidterrain_file("terrain/RigidMesh.json");
+////std::string rigidterrain_file("terrain/RigidHeightMap.json");
+////std::string rigidterrain_file("terrain/RigidSlope10.json");
+////std::string rigidterrain_file("terrain/RigidSlope20.json");
+
+// JSON file for powertrain (simple)
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // JSON files tire models (rigid)
@@ -83,7 +89,7 @@ std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.0);
+ChVector<> initLoc(0, 0, 1.6);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
