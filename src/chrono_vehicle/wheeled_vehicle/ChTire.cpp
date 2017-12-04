@@ -42,6 +42,15 @@ void ChTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 }
 
 // -----------------------------------------------------------------------------
+// Default implementation of ReportMass simply returns the value from GetMass.
+// However, concrete tire models which need to return 0 from GetMass (so that
+// the mass of the tire is not double counted) will override this function.
+// -----------------------------------------------------------------------------
+double ChTire::ReportMass() const {
+    return GetMass();
+}
+
+// -----------------------------------------------------------------------------
 // Calculate kinematics quantities (slip angle, longitudinal slip, camber angle,
 // and toe-in angle using the current state of the associated wheel body.
 // -----------------------------------------------------------------------------
