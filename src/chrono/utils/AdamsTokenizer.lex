@@ -1,5 +1,7 @@
 %option nodefault
 %option noyywrap
+%option nounistd
+%option never-interactive
 
 %{
 #include "chrono/utils/ChParserAdams.h"
