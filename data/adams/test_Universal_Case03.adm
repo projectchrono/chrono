@@ -1,0 +1,111 @@
+ADAMS/View model name: test_Universal_Case03
+!
+! NOTE: The ADAMS Hooke joint matches the Chrono Universal Joint
+!
+!-------------------------------- SYSTEM UNITS ---------------------------------
+!
+UNITS/
+, FORCE = NEWTON
+, MASS = KILOGRAM
+, LENGTH = METER
+, TIME = SECOND
+!
+!----------------------------------- PARTS -------------------------------------
+!
+!----------------------------------- Ground ------------------------------------
+PART/01, GROUND
+!                	World Coordinate System Marker
+MARKER/0101, PART = 01
+!			Hooke Joint Attachment Marker 
+!			(Aligned with 90D Rotation about the X=-Y Axis)
+MARKER/0102, PART = 01
+, QP = 0, 0, 0
+, REULER = -45D, 90D, 45D
+!
+!
+!                       Joint Geometry
+MARKER/0103, PART = 01
+, QP = -0.2, 0.2, -0.282842712474619
+, REULER = 45D, 45D, 0D
+!
+GRAPHICS/0101
+, CYLINDER
+, CM = 0103
+, LENGTH = .8
+, RADIUS = 0.05
+!
+!
+!---------------------------------- Pedulum ------------------------------------
+!
+PART/02, MASS = 1
+, CM = 0201, IP = 0.1, 0.1, 0.04
+!
+!			Pedulum Center Marker
+!			(Points along the Global X=Y Axis)
+MARKER/0201, PART = 02
+, QP = 1.414213562373095, 1.414213562373095, 0
+, REULER = -45D, 90D, 45D
+!
+!			Pedulum Hooke Joint Attachment Marker
+!			(Aligned with 90D Rotation about the X=-Y Axis)
+MARKER/0202, PART = 02
+, QP = 0, 0, 0
+, REULER = -45D, 90D, 45D
+!
+!
+!                       Draw Geometry
+!                       Main Pendulum Body
+MARKER/0203, PART = 02
+, QP = 2.828427124746190, 2.828427124746190, -0.141421356237310
+, REULER = -45D, 90D, 45D
+!                          Draw a Box (to show rotation)
+GRAPHICS/0201
+, BOX
+, CORNER = 0203
+, X = 0.2, Y = 0.2, Z = 4
+!
+!                       Joint Cylinder
+MARKER/0204, PART = 02
+, QP = 0.15, -0.15, -0.212132034355964 
+, REULER = 45D, -45D, 0D
+!
+GRAPHICS/0202
+, CYLINDER
+, CM = 0204
+, LENGTH = .6
+, RADIUS = 0.05
+!
+!
+!
+!-------------------------------- CONSTRAINTS ----------------------------------
+!
+!                           Pendulum Hooke Joint (ADAMS Hooke matches Chrono Universal)
+JOINT/1, HOOKE
+, I = 0102, J = 0202
+!
+!------------------------------ DATA STRUCTURES --------------------------------
+!
+!
+!------------------------- GRAVITATIONAL ACCELERATION --------------------------
+!
+ACCGRAV/
+, KGRAV = -9.80665
+!
+!------------------------------ OUTPUT REQUESTS --------------------------------
+!
+REQUEST/01, D,I=0201,J=0101,C=DISPLACEMENT: X Y Z PSI THETA PHI (body-fixed-3-1-3)
+REQUEST/02, V,I=0201,J=0101,C=VELOCITY X Y Z WX WY WZ
+REQUEST/03, A,I=0201,J=0101,C=ACCELERATION X Y Z WDX WDY WDZ
+REQUEST/04, F2=ORIENT(27,1,0201,0101)\F3=ORIENT(27,2,0201,0101)\F4=ORIENT(27,3,0201,0101)\F6=ORIENT(27,4,0201,0101),C=EULER PARAMETERS
+REQUEST/05, F2=JOINT(1,0,2,0)\F3=JOINT(1,0,3,0)\F4=JOINT(1,0,4,0)\F6=JOINT(1,0,6,0)\F7=JOINT(1,0,7,0)\F8=JOINT(1,0,8,0),C=RForce X Y Z RTorque X Y Z
+!
+!----------------------------- ANALYSIS SETTINGS -------------------------------
+!
+OUTPUT/
+, REQSAVE
+!, GRSAVE
+!
+!RESULTS/
+!, XRF
+!
+END
