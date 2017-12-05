@@ -1,7 +1,7 @@
 #--------------------------------------------------------------
 set(DISTRIBUTED_TESTS
     demo_DISTR_rotgrav
-    demo_PAR_add
+    demo_DISTR_scaling
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")

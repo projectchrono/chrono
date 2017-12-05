@@ -20,24 +20,39 @@
 using namespace chrono;
 using namespace chrono::collision;
 
+// MPI
 int my_rank;
 int num_ranks;
 
+// OpenMP
 int num_threads;
 
-// Tilt angle (about global Y axis) of the container.
-double tilt_angle = 0;
-
-// Number of balls: (2 * count_X + 1) * (2 * count_Y + 1) * count_Z
-int count_X = 111;  // low x -35.52
-int count_Y = 112;  // low y -35.84
-
-int count_Z = 200;  // height: 67
-
-// Material properties (same on bin and balls)
+// Granular Properties
 float Y = 2e6f;
 float mu = 0.4f;
 float cr = 0.4f;
+double gran_radius = 0.00125;  // 2.5mm radius
+double rho = 4000;
+double mass = rho * 4 / 3 * 3.14159265 * gran_radius * gran_radius * gran_radius;  // (4000 kg/m^3)*(4/3 Pi (0.0025m)^3)
+double spacing = 1.02 * (2 * gran_radius);
+
+// Dimensions
+double h_x = 0.5;  // 1 m^2 base
+double h_y = 0.5;
+double height;                                           // Set by user implicitly
+int count_X;                                             // Determined by width
+int count_Y;                                             // Determined by depth
+int count_Z;                                             // Set by user implicitly
+double fill_radius = 0.01;                               // Radius used for sphereical decomposition of the container
+double lowest_layer = fill_radius + 1.01 * gran_radius;  // Lowest possible CENTER of granular material
+int extra_container_layers = 10;
+
+// Simulation
+double time_step = 1e-4;           // TODO
+double time_end = 6;               // TODO
+double out_fps = 10;               // TODO
+unsigned int max_iteration = 100;  // TODO
+double tolerance = 1e-3;           // TODO
 
 void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
     std::stringstream ss_particles;
@@ -107,7 +122,7 @@ void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
 
 // Returns points to put spheres at
 void BoxSphereDecomp(std::vector<ChVector<double>>& points, ChVector<double> min, ChVector<double> max, double radius) {
-    double incr = radius;  // TODO tune
+    double incr = radius;
 
     for (double x = min.x(); x <= max.x(); x += incr) {
         for (double y = min.y(); y <= max.y(); y += incr) {
@@ -132,9 +147,8 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
     std::vector<ChVector<double>> side3;
     std::vector<ChVector<double>> side4;
 
-    ChVector<> hdim(38, 38, 68);  // except z is actual height
+    ChVector<> hdim(h_x, h_y, height);  // except z is actual height
     double hthick = 0.0;
-    double fill_radius = 1;  // TODO: ?
 
     BoxSphereDecomp(bottom, ChVector<>(-hdim.x(), -hdim.y(), -hthick), ChVector<>(hdim.x(), hdim.y(), hthick),
                     fill_radius);
@@ -219,7 +233,7 @@ inline std::shared_ptr<ChBody> CreateBall(double x,
                                           double z,
                                           std::shared_ptr<ChMaterialSurfaceSMC> ballMat,
                                           int* ballId,
-                                          double mass,
+                                          double m,
                                           ChVector<> inertia,
                                           double radius) {
     ChVector<> pos(x, y, z);
@@ -228,7 +242,7 @@ inline std::shared_ptr<ChBody> CreateBall(double x,
     ball->SetMaterialSurface(ballMat);
 
     ball->SetIdentifier(*ballId++);
-    ball->SetMass(mass);
+    ball->SetMass(m);
     ball->SetInertiaXX(inertia);
     ball->SetPos(pos);
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
@@ -249,7 +263,6 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     ChVector<> sublo(sys->GetDomain()->GetSubLo());
     const int split_axis = sys->GetDomain()->GetSplitAxis();
     const double ghost = sys->GetGhostLayer();
-    // int num_bodies_local = ; TODO large heap allocation
 
     // Common material
     auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
@@ -260,10 +273,7 @@ void AddFallingBalls(ChSystemDistributed* sys) {
 
     // Create the falling balls
     int ballId = 0;
-    double mass = 1;
-    double radius = 0.15;
-    double spacing = 2 * radius + 0.02;
-    ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+    ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
 
     // TODO TODO: Generate all positions in this loop (get rid of continues), have a function
     // in system that checks if in the subdomain using only the postion vector, have an incrementor
@@ -271,13 +281,13 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     // appending the rank number to the gid
     int count = 0;
     int count_down_Z = count_Z;
-    for (double z = 3.; count_down_Z > 0; z += spacing, count_down_Z--) {
+    for (double z = lowest_layer; count_down_Z > 0; z += spacing, count_down_Z--) {
         print(std::string("Layers remaining: ") + std::to_string(count_down_Z) + "\n");
-        for (double x = spacing * -count_X; x <= spacing * count_X; x += spacing) {
-            for (double y = spacing * -count_Y; y <= spacing * count_Y; y += spacing) {
+        for (double x = -h_x + fill_radius + gran_radius; x <= h_x - fill_radius - gran_radius; x += spacing) {
+            for (double y = -h_y + fill_radius + gran_radius; y <= h_y - fill_radius - gran_radius; y += spacing) {
                 ChVector<double> pos(x, y, z);
                 if (sys->InSub(pos)) {
-                    auto ball = CreateBall(x, y, z, ballMat, &ballId, mass, inertia, radius);
+                    auto ball = CreateBall(x, y, z, ballMat, &ballId, mass, inertia, gran_radius);
                     sys->AddBody(ball);
                     count++;
                 }
@@ -295,48 +305,53 @@ int main(int argc, char* argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
     bool monitor;
+    bool output_data;
 
     int num_threads = 1;
     std::string outdir;
-    /*
-        // Make the program wait while attaching debuggers
-        if (my_rank == 0) {
-            int foo;
-            std::cout << "Enter something too continue..." << std::endl;
-            std::cin >> foo;
-        }
-        MPI_Barrier(MPI_COMM_WORLD);
-    */
-    if (argc > 3) {
+    int num_bodies;
+
+    double open_X =
+        (2 * h_x - 2 * fill_radius - 2 * 1.02 * gran_radius);  // Open length in which a sphere CENTERED can be placed
+    double open_Y = (2 * h_y - 2 * fill_radius - 2 * 1.02 * gran_radius);  // Open width " " "
+
+    count_X = open_X / (2 * 1.02 * gran_radius);
+    count_Y = open_Y / (2 * 1.02 * gran_radius);
+
+    int balls_per_layer = count_X * count_Y;
+    std::cout << "Balls per layer: " << balls_per_layer << std::endl;
+
+    if (argc == 6) {
         num_threads = atoi(argv[1]);
         monitor = (bool)atoi(argv[2]);
         outdir = std::string(argv[3]);
+        num_bodies = atoi(argv[4]);
+        output_data = (bool)atoi(argv[5]);
     } else {
-        std::cout << "Usage: mpirun -np <num_ranks> ./demo_DISTR_rotgrav <nthreads> <monitorflag> <outdir (with /)>\n";
+        std::cout << "Usage: mpirun -np <num_ranks> " << argv[0]
+                  << " <nthreads> <monitor flag> <outdir (with /)> "
+                     "<approx num_bodies> <output_data flag>\n";
         return 1;
     }
 
-    std::string outfile_name = outdir + "Rank";
-    outfile_name += std::to_string(my_rank) + ".csv";
-    std::cout << "Outfile: " << outfile_name << "\n";
+    count_Z = (num_bodies + balls_per_layer - 1) / balls_per_layer;
+    height = lowest_layer + (count_Z + extra_container_layers) * spacing;
+
     std::ofstream outfile;
-    outfile.open(outfile_name);
+    if (output_data) {
+        std::string outfile_name = outdir + "Rank";
+        outfile_name += std::to_string(my_rank) + ".csv";
+        std::cout << "Outfile: " << outfile_name << "\n";
+        outfile.open(outfile_name);
 
-    outfile << "t,g,x,y,z,vx,vy,vz,U\n";
-
-    omp_set_num_threads(num_threads);
+        outfile << "t,g,x,y,z,vx,vy,vz,U\n";
+    } else {
+        std::cout << "Not writing data files\n";
+    }
 
     std::cout << "Running on " << num_ranks << " MPI ranks.\n";
 
-    double time_step = 1e-4;  // TODO
-    double time_end = 15;     // TODO
-
-    double out_fps = 10;  // TODO
-
-    unsigned int max_iteration = 100;  // TODO
-    double tolerance = 1e-3;           // TODO
-
-    ChSystemDistributed my_sys(MPI_COMM_WORLD, 0.25, 11000000);  // TODO
+    ChSystemDistributed my_sys(MPI_COMM_WORLD, gran_radius * 2, balls_per_layer * count_Z);  // TODO
 
     std::cout << "Node " << my_sys.node_name << "\n";
     my_sys.SetParallelThreadNumber(num_threads);
@@ -349,14 +364,14 @@ int main(int argc, char* argv[]) {
     my_sys.GetSettings()->solver.tolerance = tolerance;
 
     my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
-    my_sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);  // TODO
+    my_sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
-    ChVector<double> domlo(-38, -38, -1);  // TODO
-    ChVector<double> domhi(38, 38, 70);    // TODO
-    my_sys.GetDomain()->SetSplitAxis(1);   // TODO
+    ChVector<double> domlo(-h_x - 0.0001, -h_y - 0.0001, -fill_radius - 0.0001);
+    ChVector<double> domhi(h_x + 0.0001, h_y + 0.0001, height + 0.0001);
+    my_sys.GetDomain()->SetSplitAxis(1);
     my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
     my_sys.GetDomain()->PrintDomain();
 
@@ -376,18 +391,22 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < num_steps; i++) {
         my_sys.DoStepDynamics(time_step);
 
+        // Output CSV file
         if (i % out_steps == 0) {
             OutputData(&my_sys, out_frame, time);
             out_frame++;
-            WriteCSV(&outfile, out_frame, &my_sys);
+            if (output_data)
+                WriteCSV(&outfile, out_frame, &my_sys);
         }
-		if (monitor)
-			Monitor(&my_sys);
-			
+
+        if (monitor)
+            Monitor(&my_sys);
+
         time += time_step;
     }
 
-    outfile.close();
+    if (output_data)
+        outfile.close();
 
     MPI_Finalize();
     return 0;

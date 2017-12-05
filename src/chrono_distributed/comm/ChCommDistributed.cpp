@@ -253,19 +253,6 @@ void ChCommDistributed::Exchange() {
 
     // Saves a reference copy for consistency in the threads.
     ddm->curr_status = ddm->comm_status;
-
-    // TODO TODO TODO TODO do scans to count sizes before allocating TODO TODO
-    // Send Buffers
-    /*
-    BodyExchange exchange_up_buf[1000];
-    BodyExchange exchange_down_buf[1000];
-    BodyUpdate update_up_buf[1000];
-    BodyUpdate update_down_buf[1000];
-    Shape shapes_up[1000];
-    Shape shapes_down[1000];
-    uint update_take_up[1000];
-    uint update_take_down[1000];
-    */
     std::vector<BodyExchange> exchange_up_buf;
     std::vector<BodyExchange> exchange_down_buf;
     std::vector<BodyUpdate> update_up_buf;
@@ -275,7 +262,6 @@ void ChCommDistributed::Exchange() {
     std::vector<uint> update_take_up;
     std::vector<uint> update_take_down;
 
-    // TODO might not need any of these when using vectors
     // Send Counts
     int num_exchange_up = 0;
     int num_exchange_down = 0;
@@ -311,7 +297,6 @@ void ChCommDistributed::Exchange() {
                     PackExchange(&b_ex, i);
                     exchange_up_buf.push_back(b_ex);
 
-                    // PackExchange(exchange_up_buf + num_exchange_up, i);
                     num_exchange_up++;  // TODO might be able to eliminate
                     ddm->comm_status[i] = distributed::SHARED_UP;
                     exchanges_up.push_front(i);
@@ -331,7 +316,6 @@ void ChCommDistributed::Exchange() {
                     PackExchange(&b_ex, i);
                     exchange_down_buf.push_back(b_ex);
 
-                    // PackExchange(exchange_down_buf + num_exchange_down, i);
                     num_exchange_down++;  // TODO might be able to eliminate
                     ddm->comm_status[i] = distributed::SHARED_DOWN;
                     exchanges_down.push_front(i);
@@ -363,7 +347,6 @@ void ChCommDistributed::Exchange() {
                     PackUpdate(&b_upd, i, distributed::UPDATE);
                     update_up_buf.push_back(b_upd);
 
-                    // PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE);
                     num_update_up++;  // TODO might be able to eliminate
                 } else if (location == distributed::GHOST_UP && curr_status == distributed::SHARED_UP) {
 #ifdef DistrDebug
@@ -376,7 +359,6 @@ void ChCommDistributed::Exchange() {
                     update_up_buf.push_back(b_upd);
 
                     ddm->comm_status[i] = distributed::GHOST_UP;
-                    // PackUpdate(update_up_buf + num_update_up, i, distributed::UPDATE_TRANSFER_SHARE);
                     num_update_up++;  // TODO might be able to eliminate
                 }
 
@@ -392,7 +374,6 @@ void ChCommDistributed::Exchange() {
                     PackUpdate(&b_upd, i, distributed::UPDATE);
                     update_down_buf.push_back(b_upd);
 
-                    // PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE);
                     num_update_down++;  // TODO might be able to eliminate
                 } else if (location == distributed::GHOST_DOWN && curr_status == distributed::SHARED_DOWN) {
 #ifdef DistrDebug
@@ -405,7 +386,6 @@ void ChCommDistributed::Exchange() {
                     update_down_buf.push_back(b_upd);
 
                     ddm->comm_status[i] = distributed::GHOST_DOWN;
-                    // PackUpdate(update_down_buf + num_update_down, i, distributed::UPDATE_TRANSFER_SHARE);
                     num_update_down++;  // TODO might be able to eliminate
                 }
                 // If is shared up/down AND
@@ -419,16 +399,12 @@ void ChCommDistributed::Exchange() {
                         BodyUpdate b_upd;
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_up_buf.push_back(b_upd);
-
-                        // PackUpdate(update_up_buf + num_update_up, i, distributed::FINAL_UPDATE_GIVE);
                         num_update_up++;  // TODO might be able to eliminate
                         up = 1;
                     } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
                         BodyUpdate b_upd;
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_down_buf.push_back(b_upd);
-
-                        // PackUpdate(update_down_buf + num_update_down, i, distributed::FINAL_UPDATE_GIVE);
                         num_update_down++;  // TODO might be able to eliminate
                         up = -1;
                     }
@@ -462,8 +438,6 @@ void ChCommDistributed::Exchange() {
                         uint b_ut;
                         PackUpdateTake(&b_ut, i);
                         update_take_up.push_back(b_ut);
-
-                        // PackUpdateTake(update_take_up + num_take_up, i);
                         num_take_up++;  // TODO might be able to eliminate
 
                     } else if (curr_status == distributed::SHARED_DOWN) {
@@ -475,8 +449,6 @@ void ChCommDistributed::Exchange() {
                         uint b_ut;
                         PackUpdateTake(&b_ut, i);
                         update_take_down.push_back(b_ut);
-
-                        // PackUpdateTake(update_take_down + num_take_down, i);
                         num_take_down++;  // TODO might be able to eliminate
                     }
                     ddm->comm_status[i] = distributed::OWNED;
@@ -656,7 +628,6 @@ void ChCommDistributed::Exchange() {
         {
             for (auto itr_up = exchanges_up.begin(); itr_up != exchanges_up.end(); itr_up++) {
                 num_shapes_up += PackShapes(&shapes_up, *itr_up);
-                // num_shapes_up += PackShapes(shapes_up + num_shapes_up, *itr_up);
             }
 
             if (num_shapes_up == 0) {
@@ -672,8 +643,6 @@ void ChCommDistributed::Exchange() {
         {
             for (auto itr_down = exchanges_down.begin(); itr_down != exchanges_down.end(); itr_down++) {
                 num_shapes_down += PackShapes(&shapes_down, *itr_down);
-
-                // num_shapes_down += PackShapes(shapes_down + num_shapes_down, *itr_down);
             }
             if (num_shapes_down == 0) {
                 Shape shape;
