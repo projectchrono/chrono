@@ -44,8 +44,6 @@ namespace utils {
 using std::cout;
 using std::endl;
 
-std::vector<std::pair<int, std::string>> ChParserAdams::tokens;
-
 struct adams_part {
     bool fixed;
     double mass;               // if -1; it is fixed to ground
@@ -197,8 +195,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
     // Has to be in lex file
     tokenize(filename);
 
-    auto iter = tokens.begin();
-    while (iter != tokens.end()) {
+    auto iter = m_tokens.begin();
+    while (iter != m_tokens.end()) {
         auto token = iter->second;
         switch (iter->first) {
             case DELIMITER: {
