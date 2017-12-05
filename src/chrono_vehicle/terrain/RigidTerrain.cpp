@@ -193,7 +193,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& position,
                                                             const ChVector<>& size,
                                                             bool tiled,
-                                                            double max_tile_size) {
+                                                            double max_tile_size,
+                                                            bool visualization) {
     auto patch = AddPatch(position);
 
     // Create collision model (box) attached to the patch body
@@ -216,10 +217,12 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     patch->m_body->GetCollisionModel()->BuildModel();
 
     // Create visualization asset
-    auto box = std::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().SetLengths(size);
-    box->GetBoxGeometry().Pos = VNULL;
-    patch->m_body->AddAsset(box);
+    if (visualization) {
+        auto box = std::make_shared<ChBoxShape>();
+        box->GetBoxGeometry().SetLengths(size);
+        box->GetBoxGeometry().Pos = VNULL;
+        patch->m_body->AddAsset(box);
+    }
 
     patch->m_type = BOX;
 
@@ -231,7 +234,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& position,
                                                             const std::string& mesh_file,
                                                             const std::string& mesh_name,
-                                                            double sweep_sphere_radius) {
+                                                            double sweep_sphere_radius,
+                                                            bool visualization) {
     auto patch = AddPatch(position);
 
     // Load mesh from file
@@ -244,10 +248,12 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     patch->m_body->GetCollisionModel()->BuildModel();
 
     // Create the visualization asset.
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(patch->m_trimesh);
-    trimesh_shape->SetName(mesh_name);
-    patch->m_body->AddAsset(trimesh_shape);
+    if (visualization) {
+        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(patch->m_trimesh);
+        trimesh_shape->SetName(mesh_name);
+        patch->m_body->AddAsset(trimesh_shape);
+    }
 
     patch->m_mesh_name = mesh_name;
     patch->m_type = MESH;
@@ -263,7 +269,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
                                                             double sizeX,
                                                             double sizeY,
                                                             double hMin,
-                                                            double hMax) {
+                                                            double hMax,
+                                                            bool visualization) {
     auto patch = AddPatch(position);
 
     // Read the BMP file and extract number of pixels.
@@ -379,10 +386,12 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     patch->m_body->GetCollisionModel()->BuildModel();
 
     // Create the visualization asset.
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(patch->m_trimesh);
-    trimesh_shape->SetName(mesh_name);
-    patch->m_body->AddAsset(trimesh_shape);
+    if (visualization) {
+        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(patch->m_trimesh);
+        trimesh_shape->SetName(mesh_name);
+        patch->m_body->AddAsset(trimesh_shape);
+    }
 
     patch->m_mesh_name = mesh_name;
     patch->m_type = HEIGHT_MAP;

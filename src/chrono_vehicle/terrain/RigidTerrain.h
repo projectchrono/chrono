@@ -117,27 +117,33 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Add a terrain patch represented by a rigid box.
     /// If tiled = true, multiple side-by-side boxes are used.
-    std::shared_ptr<Patch> AddPatch(const ChCoordsys<>& position,  ///< [in] box location and orientation
-                                    const ChVector<>& size,        ///< [in] box dimensions (x, y, z)
-                                    bool tiled = false,            ///< [in] terrain created from multiple tiled boxes
-                                    double max_tile_size = 1       ///< [in] maximum tile size
+    std::shared_ptr<Patch> AddPatch(
+        const ChCoordsys<>& position,  ///< [in] box location and orientation
+        const ChVector<>& size,        ///< [in] box dimensions (x, y, z)
+        bool tiled = false,            ///< [in] terrain created from multiple tiled boxes
+        double max_tile_size = 1,      ///< [in] maximum tile size
+        bool visualization = true      ///< [in] enable/disable construction of visualization assets
     );
 
     /// Add a terrain patch represented by a triangular mesh.
     /// The mesh is specified through a Wavefront file and is used for both contact and visualization.
-    std::shared_ptr<Patch> AddPatch(const ChCoordsys<>& position,   ///< [in] patch location and orientation
-                                    const std::string& mesh_file,   ///< [in] filename of the input mesh (OBJ)
-                                    const std::string& mesh_name,   ///< [in] name of the mesh asset
-                                    double sweep_sphere_radius = 0  ///< [in] radius of sweep sphere
+    std::shared_ptr<Patch> AddPatch(
+        const ChCoordsys<>& position,    ///< [in] patch location and orientation
+        const std::string& mesh_file,    ///< [in] filename of the input mesh (OBJ)
+        const std::string& mesh_name,    ///< [in] name of the mesh asset
+        double sweep_sphere_radius = 0,  ///< [in] radius of sweep sphere
+        bool visualization = true        ///< [in] enable/disable construction of visualization assets
     );
 
-    std::shared_ptr<Patch> AddPatch(const ChCoordsys<>& position,       ///< [in] patch location and orientation
-                                    const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)
-                                    const std::string& mesh_name,       ///< [in] name of the mesh asset
-                                    double sizeX,                       ///< [in] terrain dimension in the X direction
-                                    double sizeY,                       ///< [in] terrain dimension in the Y direction
-                                    double hMin,                        ///< [in] minimum height (black level)
-                                    double hMax                         ///< [in] maximum height (white level)
+    std::shared_ptr<Patch> AddPatch(
+        const ChCoordsys<>& position,       ///< [in] patch location and orientation
+        const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)
+        const std::string& mesh_name,       ///< [in] name of the mesh asset
+        double sizeX,                       ///< [in] terrain dimension in the X direction
+        double sizeY,                       ///< [in] terrain dimension in the Y direction
+        double hMin,                        ///< [in] minimum height (black level)
+        double hMax,                        ///< [in] maximum height (white level)
+        bool visualization = true           ///< [in] enable/disable construction of visualization assets
     );
 
     /// Initialize all defined terrain patches.
