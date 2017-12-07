@@ -32,6 +32,16 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 namespace chrono {
+typedef struct CosimForce {
+    uint gid;
+    int owner_rank;
+    double force[3];
+} CosimForce;
+
+typedef struct CosimDispl {
+    double vertices[9];
+	uint gid;
+} CosimDispl;
 
 class ChDomainDistributed;
 class ChCommDistributed;
@@ -86,6 +96,20 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     double GetLowestZ(uint* gid);
     void CheckIds();
 
+    // Co-Simulation
+    /// User functions for setting the range of GIDs that correspond to co-simulation triangles
+    void SetFirstCosimGID(uint gid);
+    void SetLastCosimGID(uint gid);
+
+    /// Tells the simulation to send all forces on co-simulation bodies to the master rank
+    /// Output: GIDS <- array of global IDS reporting force; forces <- array of corresponding forces
+    /// Call on all ranks
+    void CollectCosimForces(uint* GIDs, real3* forces);
+
+    /// Updates the positions of all cosimulation bodies in the system
+    /// Call on all ranks?TODO
+    void DistributedCosimPositions(uint* GID, ChVector<double>* vertices);
+
   protected:
     // MPI
     int num_ranks;
@@ -107,6 +131,10 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     ChCommDistributed* comm;
 
     void AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status);
+
+    // Co-simulation
+	MPI_Datatype CosimForceType;
+	MPI_Datatype CosimDisplType;
 };
 
 } /* namespace chrono */

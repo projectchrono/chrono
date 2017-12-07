@@ -154,7 +154,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
      */
 
     // TODO need places for ALL shapes in the model in data_manager->shape_data,
-    // else need to call collsyspar::add
+    // else need to call collsysPAR::add
 
     // Check for free spaces to insert into (DO need same shape type else can't deactivate that)
     std::vector<int> free_dm_shapes;

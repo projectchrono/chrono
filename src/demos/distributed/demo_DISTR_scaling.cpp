@@ -31,13 +31,13 @@ int num_threads;
 float Y = 2e6f;
 float mu = 0.4f;
 float cr = 0.4f;
-double gran_radius = 0.00125;  // 2.5mm radius
+double gran_radius = 0.00125;  // 1.25mm radius
 double rho = 4000;
 double mass = rho * 4 / 3 * 3.14159265 * gran_radius * gran_radius * gran_radius;  // (4000 kg/m^3)*(4/3 Pi (0.0025m)^3)
-double spacing = 1.02 * (2 * gran_radius);
+double spacing = 1.02 * (2 * gran_radius);  // Distance between adjacent centers of particles
 
 // Dimensions
-double h_x = 0.5;  // 1 m^2 base
+double h_x = 0.5;  // 0.5    1 m^2 base
 double h_y = 0.5;
 double height;                                           // Set by user implicitly
 int count_X;                                             // Determined by width
@@ -45,14 +45,14 @@ int count_Y;                                             // Determined by depth
 int count_Z;                                             // Set by user implicitly
 double fill_radius = 0.01;                               // Radius used for sphereical decomposition of the container
 double lowest_layer = fill_radius + 1.01 * gran_radius;  // Lowest possible CENTER of granular material
-int extra_container_layers = 10;
+int extra_container_layers = 3;
 
 // Simulation
 double time_step = 1e-4;           // TODO
 double time_end = 6;               // TODO
 double out_fps = 10;               // TODO
 unsigned int max_iteration = 100;  // TODO
-double tolerance = 1e-3;           // TODO
+double tolerance = 1e-4;           // TODO
 
 void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
     std::stringstream ss_particles;
@@ -117,7 +117,7 @@ void Monitor(chrono::ChSystemParallel* system) {
 }
 
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
-    std::cout << "time = " << time << std::flush << std::endl;
+    print(std::string("time = ") + std::to_string(time) + "\n");
 }
 
 // Returns points to put spheres at
@@ -312,14 +312,14 @@ int main(int argc, char* argv[]) {
     int num_bodies;
 
     double open_X =
-        (2 * h_x - 2 * fill_radius - 2 * 1.02 * gran_radius);  // Open length in which a sphere CENTERED can be placed
+        (2 * h_x - 2 * fill_radius - 2 * 1.02 * gran_radius);  // Open length in which a sphere CENTER can be placed
     double open_Y = (2 * h_y - 2 * fill_radius - 2 * 1.02 * gran_radius);  // Open width " " "
 
     count_X = open_X / (2 * 1.02 * gran_radius);
     count_Y = open_Y / (2 * 1.02 * gran_radius);
 
     int balls_per_layer = count_X * count_Y;
-    std::cout << "Balls per layer: " << balls_per_layer << std::endl;
+    print(std::string("Balls per layer: ") + std::to_string(balls_per_layer) + "\n");
 
     if (argc == 6) {
         num_threads = atoi(argv[1]);
@@ -328,9 +328,9 @@ int main(int argc, char* argv[]) {
         num_bodies = atoi(argv[4]);
         output_data = (bool)atoi(argv[5]);
     } else {
-        std::cout << "Usage: mpirun -np <num_ranks> " << argv[0]
-                  << " <nthreads> <monitor flag> <outdir (with /)> "
-                     "<approx num_bodies> <output_data flag>\n";
+        print(std::string("Usage: mpirun -np <num_ranks> ") + std::string(argv[0]) +
+              " <nthreads> <monitor flag> <outdir (with /)> "
+              "<approx num_bodies> <output_data flag>\n");
         return 1;
     }
 
@@ -341,15 +341,15 @@ int main(int argc, char* argv[]) {
     if (output_data) {
         std::string outfile_name = outdir + "Rank";
         outfile_name += std::to_string(my_rank) + ".csv";
-        std::cout << "Outfile: " << outfile_name << "\n";
+        print(std::string("Outfile: ") + outfile_name + "\n");
         outfile.open(outfile_name);
 
         outfile << "t,g,x,y,z,vx,vy,vz,U\n";
     } else {
-        std::cout << "Not writing data files\n";
+        print("Not writing data files\n");
     }
 
-    std::cout << "Running on " << num_ranks << " MPI ranks.\n";
+    print(std::string("Running on ") + std::to_string(num_ranks) + " MPI ranks.\n");
 
     ChSystemDistributed my_sys(MPI_COMM_WORLD, gran_radius * 2, balls_per_layer * count_Z);  // TODO
 

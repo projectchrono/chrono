@@ -55,7 +55,7 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     MPI_Aint lb, extent;
     MPI_Type_get_extent(temp_type, &lb, &extent);
     MPI_Type_create_resized(temp_type, lb, extent, &BodyExchangeType);
-    PMPI_Type_commit(&BodyExchangeType);
+    MPI_Type_commit(&BodyExchangeType);
 
     // Update
     MPI_Datatype type_update[3] = {MPI_UNSIGNED, MPI_INT, MPI_DOUBLE};
@@ -65,11 +65,11 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     disp_update[1] = offsetof(BodyUpdate, update_type);
     disp_update[2] = offsetof(BodyUpdate, pos);
     MPI_Type_create_struct(3, blocklen_update, disp_update, type_update, &BodyUpdateType);
-    PMPI_Type_commit(&BodyUpdateType);
+    MPI_Type_commit(&BodyUpdateType);
 
     // Shape
     MPI_Datatype type_shape[3] = {MPI_UNSIGNED, MPI_INT, MPI_DOUBLE};
-    int blocklen_shape[3] = {1, 1, 9};
+    int blocklen_shape[3] = {1, 1, 12};
     MPI_Aint disp_shape[3];
     disp_shape[0] = offsetof(Shape, gid);
     disp_shape[1] = offsetof(Shape, type);
@@ -80,7 +80,7 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     MPI_Aint lb_s, extent_s;
     MPI_Type_get_extent(temp_type_s, &lb_s, &extent_s);
     MPI_Type_create_resized(temp_type_s, lb_s, extent_s, &ShapeType);
-    PMPI_Type_commit(&ShapeType);
+    MPI_Type_commit(&ShapeType);
 }
 
 ChCommDistributed::~ChCommDistributed() {}
@@ -181,8 +181,16 @@ void ChCommDistributed::ProcessTakes(int num_recv, uint* buf) {
 // TODO might be able to do in parallel if check the number of shapes per body in a first pass
 void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
     if (buf->gid == UINT_MAX) {
+#ifdef DistrDebug
+        GetLog() << "No shapes to unpack on rank " << my_sys->GetMyRank() << "\n";
+#endif
         return;
     }
+
+#ifdef DistrDebug
+    GetLog() << num_recv << " shapes to unpack on rank " << my_sys->GetMyRank() << "\n";
+#endif
+
     int n = 0;
     uint gid;
 
@@ -190,11 +198,15 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
     while (n < num_recv) {
         gid = (buf + n)->gid;
         // Create a collision model
-#ifdef DistrDebug
-        GetLog() << "Unpacking shapes for gid " << (buf + n)->gid << "\n";
-#endif
+        GetLog() << "Unpacking shapes for gid " << (buf + n)->gid << " rank " << my_sys->GetMyRank() << "\n";
+
         // Done creating this body's model
-        std::shared_ptr<ChBody> body = (*ddm->data_manager->body_list)[ddm->GetLocalIndex(gid)];
+        int local_id = ddm->GetLocalIndex(gid);
+        if (local_id == -1) {
+            my_sys->ErrorAbort(std::string("ProcessShapes: GID ") + std::to_string(gid) + " not found on rank " +
+                               std::to_string(my_sys->GetMyRank()) + "\n");
+        }
+        std::shared_ptr<ChBody> body = (*ddm->data_manager->body_list)[local_id];
 
         body->GetCollisionModel()->ClearModel();  // TODO could call collsys::remove
         /*
@@ -511,25 +523,25 @@ void ChCommDistributed::Exchange() {
 
             // Send empty message if there is nothing to send
             if (num_exchange_up == 0) {
-                BodyExchange b_e;
+                BodyExchange b_e = {};
                 b_e.gid = UINT_MAX;
                 exchange_up_buf.push_back(b_e);
                 num_exchange_up = 1;
             }
             if (num_exchange_down == 0) {
-                BodyExchange b_e;
+                BodyExchange b_e = {};
                 b_e.gid = UINT_MAX;
                 exchange_down_buf.push_back(b_e);
                 num_exchange_down = 1;
             }
             if (num_update_up == 0) {
-                BodyUpdate b_u;
+                BodyUpdate b_u = {};
                 b_u.gid = UINT_MAX;
                 update_up_buf.push_back(b_u);
                 num_update_up = 1;
             }
             if (num_update_down == 0) {
-                BodyUpdate b_u;
+                BodyUpdate b_u = {};
                 b_u.gid = UINT_MAX;
                 update_down_buf.push_back(b_u);
                 num_update_down = 1;
@@ -545,77 +557,76 @@ void ChCommDistributed::Exchange() {
 
             // Send Exchanges
             if (my_rank != num_ranks - 1) {
-                PMPI_Isend(exchange_up_buf.data(), num_exchange_up, BodyExchangeType, my_rank + 1, 1, my_sys->world,
-                           &rq_exchange_up);
+                MPI_Isend(&(exchange_up_buf[0]), num_exchange_up, BodyExchangeType, my_rank + 1, 1, my_sys->world,
+                          &rq_exchange_up);
             }
             if (my_rank != 0) {
-                PMPI_Isend(exchange_down_buf.data(), num_exchange_down, BodyExchangeType, my_rank - 1, 2, my_sys->world,
-                           &rq_exchange_down);
+                MPI_Isend(&(exchange_down_buf[0]), num_exchange_down, BodyExchangeType, my_rank - 1, 2, my_sys->world,
+                          &rq_exchange_down);
             }
 
             // Recv Exchanges
             if (my_sys->GetMyRank() != 0) {
-                PMPI_Probe(my_rank - 1, 1, my_sys->world, &recv_status_exchange_down);
-                PMPI_Get_count(&recv_status_exchange_down, BodyExchangeType, &num_recv_exchange_down);
+                MPI_Probe(my_rank - 1, 1, my_sys->world, &recv_status_exchange_down);
+                MPI_Get_count(&recv_status_exchange_down, BodyExchangeType, &num_recv_exchange_down);
                 recv_exchange_down = new BodyExchange[num_recv_exchange_down];
-                PMPI_Recv(recv_exchange_down, num_recv_exchange_down, BodyExchangeType, my_rank - 1, 1, my_sys->world,
-                          &recv_status_exchange_down);
+                MPI_Recv(recv_exchange_down, num_recv_exchange_down, BodyExchangeType, my_rank - 1, 1, my_sys->world,
+                         &recv_status_exchange_down);
             }
             if (my_rank != num_ranks - 1) {
-                PMPI_Probe(my_rank + 1, 2, my_sys->world, &recv_status_exchange_up);
-                PMPI_Get_count(&recv_status_exchange_up, BodyExchangeType, &num_recv_exchange_up);
+                MPI_Probe(my_rank + 1, 2, my_sys->world, &recv_status_exchange_up);
+                MPI_Get_count(&recv_status_exchange_up, BodyExchangeType, &num_recv_exchange_up);
                 recv_exchange_up = new BodyExchange[num_recv_exchange_up];
-                PMPI_Recv(recv_exchange_up, num_recv_exchange_up, BodyExchangeType, my_rank + 1, 2, my_sys->world,
-                          &recv_status_exchange_up);
+                MPI_Recv(recv_exchange_up, num_recv_exchange_up, BodyExchangeType, my_rank + 1, 2, my_sys->world,
+                         &recv_status_exchange_up);
             }
 
             // Send Updates
             if (my_rank != num_ranks - 1) {
-                PMPI_Isend(update_up_buf.data(), num_update_up, BodyUpdateType, my_rank + 1, 3, my_sys->world,
-                           &rq_update_up);
+                MPI_Isend(&(update_up_buf[0]), num_update_up, BodyUpdateType, my_rank + 1, 3, my_sys->world,
+                          &rq_update_up);
             }
             if (my_rank != 0) {
-                PMPI_Isend(update_down_buf.data(), num_update_down, BodyUpdateType, my_rank - 1, 4, my_sys->world,
-                           &rq_update_down);
+                MPI_Isend(&(update_down_buf[0]), num_update_down, BodyUpdateType, my_rank - 1, 4, my_sys->world,
+                          &rq_update_down);
             }
 
             // Recv Updates
             if (my_sys->GetMyRank() != 0) {
-                PMPI_Probe(my_rank - 1, 3, my_sys->world, &recv_status_update_down);
-                PMPI_Get_count(&recv_status_update_down, BodyUpdateType, &num_recv_update_down);
+                MPI_Probe(my_rank - 1, 3, my_sys->world, &recv_status_update_down);
+                MPI_Get_count(&recv_status_update_down, BodyUpdateType, &num_recv_update_down);
                 recv_update_down = new BodyUpdate[num_recv_update_down];
-                PMPI_Recv(recv_update_down, num_recv_update_down, BodyUpdateType, my_rank - 1, 3, my_sys->world,
-                          &recv_status_update_down);
+                MPI_Recv(recv_update_down, num_recv_update_down, BodyUpdateType, my_rank - 1, 3, my_sys->world,
+                         &recv_status_update_down);
             }
             if (my_rank != num_ranks - 1) {
-                PMPI_Probe(my_rank + 1, 4, my_sys->world, &recv_status_update_up);
-                PMPI_Get_count(&recv_status_update_up, BodyUpdateType, &num_recv_update_up);
+                MPI_Probe(my_rank + 1, 4, my_sys->world, &recv_status_update_up);
+                MPI_Get_count(&recv_status_update_up, BodyUpdateType, &num_recv_update_up);
                 recv_update_up = new BodyUpdate[num_recv_update_up];
-                PMPI_Recv(recv_update_up, num_recv_update_up, BodyUpdateType, my_rank + 1, 4, my_sys->world,
-                          &recv_status_update_up);
+                MPI_Recv(recv_update_up, num_recv_update_up, BodyUpdateType, my_rank + 1, 4, my_sys->world,
+                         &recv_status_update_up);
             }
 
             // Send Takes
             if (my_rank != num_ranks - 1) {
-                PMPI_Isend(update_take_up.data(), num_take_up, MPI_UNSIGNED, my_rank + 1, 5, my_sys->world,
-                           &rq_take_up);
+                MPI_Isend(&(update_take_up[0]), num_take_up, MPI_UNSIGNED, my_rank + 1, 5, my_sys->world, &rq_take_up);
             }
             if (my_rank != 0) {
-                PMPI_Isend(update_take_down.data(), num_take_down, MPI_UNSIGNED, my_rank - 1, 6, my_sys->world,
-                           &rq_take_down);
+                MPI_Isend(&(update_take_down[0]), num_take_down, MPI_UNSIGNED, my_rank - 1, 6, my_sys->world,
+                          &rq_take_down);
             }
 
             // Recv Takes
             if (my_sys->GetMyRank() != 0) {
-                PMPI_Probe(my_rank - 1, 5, my_sys->world, &recv_status_take_down);
-                PMPI_Get_count(&recv_status_take_down, MPI_UNSIGNED, &num_recv_take_down);
+                MPI_Probe(my_rank - 1, 5, my_sys->world, &recv_status_take_down);
+                MPI_Get_count(&recv_status_take_down, MPI_UNSIGNED, &num_recv_take_down);
                 recv_take_down = new uint[num_recv_take_down];
-                PMPI_Recv(recv_take_down, num_recv_take_down, MPI_UNSIGNED, my_rank - 1, 5, my_sys->world,
-                          &recv_status_take_down);
+                MPI_Recv(recv_take_down, num_recv_take_down, MPI_UNSIGNED, my_rank - 1, 5, my_sys->world,
+                         &recv_status_take_down);
             }
             if (my_rank != num_ranks - 1) {
-                PMPI_Probe(my_rank + 1, 6, my_sys->world, &recv_status_take_up);
-                PMPI_Get_count(&recv_status_take_up, MPI_UNSIGNED, &num_recv_take_up);
+                MPI_Probe(my_rank + 1, 6, my_sys->world, &recv_status_take_up);
+                MPI_Get_count(&recv_status_take_up, MPI_UNSIGNED, &num_recv_take_up);
                 recv_take_up = new uint[num_recv_take_up];
                 MPI_Recv(recv_take_up, num_recv_take_up, MPI_UNSIGNED, my_rank + 1, 6, my_sys->world,
                          &recv_status_take_up);
@@ -669,25 +680,40 @@ void ChCommDistributed::Exchange() {
 
     // Send Shapes
     if (my_rank != num_ranks - 1) {
-        PMPI_Isend(shapes_up.data(), num_shapes_up, ShapeType, my_rank + 1, 7, my_sys->world, &rq_shapes_up);
+#ifdef DistrDebug
+        GetLog() << "Shapes up = " << shapes_up[0].gid << " rank " << my_rank << "\n";
+        if (shapes_up[0].gid != UINT_MAX) {
+            GetLog() << "Sending shape: " << shapes_up[0].gid << "\n";
+            GetLog() << "Sending " << num_shapes_up << " shapes - rank " << my_rank << "\n";
+        }
+#endif
+        MPI_Isend(&(shapes_up[0]), num_shapes_up, ShapeType, my_rank + 1, 7, my_sys->world, &rq_shapes_up);
     }
     if (my_rank != 0) {
-        PMPI_Isend(shapes_down.data(), num_shapes_down, ShapeType, my_rank - 1, 8, my_sys->world, &rq_shapes_down);
+#ifdef DistrDebug
+        GetLog() << "Shapes down = " << shapes_down[0].gid << " rank " << my_rank << "\n";
+        if (shapes_down[0].gid != UINT_MAX) {
+            GetLog() << "Sending shape: " << shapes_down[0].gid << "\n";
+            GetLog() << "Sending " << num_shapes_down << " shapes - rank " << my_rank << "\n";
+        }
+#endif
+        MPI_Isend(&(shapes_down[0]), num_shapes_down, ShapeType, my_rank - 1, 8, my_sys->world, &rq_shapes_down);
     }
 
     // Recv Shapes
     if (my_sys->GetMyRank() != 0) {
-        PMPI_Probe(my_rank - 1, 7, my_sys->world, &recv_status_shapes_down);
-        PMPI_Get_count(&recv_status_shapes_down, ShapeType, &num_recv_shapes_down);
+        MPI_Probe(my_rank - 1, 7, my_sys->world, &recv_status_shapes_down);
+        MPI_Get_count(&recv_status_shapes_down, ShapeType, &num_recv_shapes_down);
         recv_shapes_down = new Shape[num_recv_shapes_down];
-        PMPI_Recv(recv_shapes_down, num_recv_shapes_down, ShapeType, my_rank - 1, 7, my_sys->world,
-                  &recv_status_shapes_down);
+        MPI_Recv(recv_shapes_down, num_recv_shapes_down, ShapeType, my_rank - 1, 7, my_sys->world,
+                 &recv_status_shapes_down);
     }
     if (my_rank != num_ranks - 1) {
-        PMPI_Probe(my_rank + 1, 8, my_sys->world, &recv_status_shapes_up);
-        PMPI_Get_count(&recv_status_shapes_up, ShapeType, &num_recv_shapes_up);
+        MPI_Probe(my_rank + 1, 8, my_sys->world, &recv_status_shapes_up);
+        MPI_Get_count(&recv_status_shapes_up, ShapeType, &num_recv_shapes_up);
+        GetLog() << "num_recv_shapes_up" << num_recv_shapes_up << "\n";
         recv_shapes_up = new Shape[num_recv_shapes_up];
-        PMPI_Recv(recv_shapes_up, num_recv_shapes_up, ShapeType, my_rank + 1, 8, my_sys->world, &recv_status_shapes_up);
+        MPI_Recv(recv_shapes_up, num_recv_shapes_up, ShapeType, my_rank + 1, 8, my_sys->world, &recv_status_shapes_up);
     }
 
     if (my_rank != 0)
@@ -873,7 +899,8 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
         Shape shape;
         shape.gid = ddm->global_id[index];
 #ifdef DistrDebug
-        GetLog() << "Packing shapes for gid " << ddm->global_id[index];
+        GetLog() << "Packing shapes for gid " << ddm->global_id[index] << " index " << index << " rank "
+                 << my_sys->GetMyRank() << "\n";
 #endif
         int shape_index =
             ddm->body_shapes[ddm->body_shape_start[index] + i];  // index of the shape in data_manager->shape_data

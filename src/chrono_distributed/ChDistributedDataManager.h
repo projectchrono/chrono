@@ -83,6 +83,8 @@ class CH_DISTR_API ChDistributedDataManager {
 
     int first_empty;  ///< Index of the first unused body in the bodylist (internal)
 
+    int first_cosim, last_cosim;  // Global ID range [first, last] of co-simulation triangles
+
     /// Returns the local index of a body, given its global id
     /// Returns -1 if the body is not found on this rank
     int GetLocalIndex(unsigned int gid);
