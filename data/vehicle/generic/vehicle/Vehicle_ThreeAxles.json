@@ -11,8 +11,8 @@
   "Axles":
   [
     {
-      "Suspension Input File":   "generic/suspension/DoubleWishbone.json",
-      "Suspension Location":     [1.25, 0, -0.1],
+      "Suspension Input File":   "generic/suspension/MacPhersonStrut.json",
+      "Suspension Location":     [3.0, 0, -0.3],
       "Steering Index":          0,
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
       "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
@@ -21,8 +21,8 @@
     },
 
     {
-      "Suspension Input File":   "generic/suspension/SolidAxle.json",
-      "Suspension Location":     [-1.25, 0, -0.21],
+      "Suspension Input File":   "generic/suspension/MacPhersonStrut.json",
+      "Suspension Location":     [0.0, 0, -0.3],
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
       "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
       "Left Brake Input File":   "generic/brake/BrakeSimple.json",
@@ -30,8 +30,8 @@
     },
 
     {
-      "Suspension Input File":   "generic/suspension/SolidAxle.json",
-      "Suspension Location":     [-3.00, 0, -0.21],
+      "Suspension Input File":   "generic/suspension/MacPhersonStrut.json",
+      "Suspension Location":     [-1.50, 0, -0.3],
       "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
       "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
       "Left Brake Input File":   "generic/brake/BrakeSimple.json",
@@ -52,6 +52,6 @@
   "Driveline":
   {
     "Input File":           "generic/driveline/Driveline4WD.json",
-    "Suspension Indexes":   [0, 2]
+    "Suspension Indexes":   [0, 1]
   }
 }

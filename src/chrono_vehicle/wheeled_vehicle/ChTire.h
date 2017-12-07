@@ -74,6 +74,12 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Note that this should not include the mass of the wheel (rim).
     virtual double GetMass() const = 0;
 
+    /// Report the tire mass.
+    /// Certain tire models (e.g. those based on FEA) must return 0 in GetMass()
+    /// so that the tire mass is not double counted in the underlying mechanical system.
+    /// For reporting purposes, use this function instead.
+    virtual double ReportMass() const;
+
     /// Get the tire moments of inertia.
     /// Note that these should not include the inertia of the wheel (rim).
     virtual ChVector<> GetInertia() const = 0;

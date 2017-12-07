@@ -33,7 +33,7 @@ namespace generic {
 /// Chassis subsystem for a generic vehicle.
 class CH_MODELS_API Generic_Chassis : public ChRigidChassis {
   public:
-    Generic_Chassis(const std::string& name);
+    Generic_Chassis(const std::string& name, bool fixed = false);
     ~Generic_Chassis() {}
 
     /// Return the mass of the chassis body.

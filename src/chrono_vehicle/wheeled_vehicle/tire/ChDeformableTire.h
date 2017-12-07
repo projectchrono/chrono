@@ -154,6 +154,9 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// The return value is the mass of the underlying FEA mesh.
     double GetTireMass() const;
 
+    /// Report the tire mass.
+    virtual double ReportMass() const override { return GetTireMass(); }
+
     /// Get the tire force and moment.
     /// A ChDeformableTire always returns zero forces and moments since tire forces
     /// are implicitly applied to the associated wheel through the tire-wheel connections.
