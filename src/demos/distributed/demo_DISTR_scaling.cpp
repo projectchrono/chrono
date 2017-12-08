@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <omp.h>
+
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -12,6 +13,9 @@
 #include "../../chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/filesystem/resolver.h"
 
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
@@ -33,7 +37,7 @@ float mu = 0.4f;
 float cr = 0.4f;
 double gran_radius = 0.00125;  // 1.25mm radius
 double rho = 4000;
-double mass = rho * 4 / 3 * 3.14159265 * gran_radius * gran_radius * gran_radius;  // (4000 kg/m^3)*(4/3 Pi (0.0025m)^3)
+double mass = rho * 4 / 3 * CH_C_PI * gran_radius * gran_radius * gran_radius;  // (4000 kg/m^3)*(4/3 Pi (0.0025m)^3)
 double spacing = 1.02 * (2 * gran_radius);  // Distance between adjacent centers of particles
 
 // Dimensions
@@ -67,7 +71,7 @@ void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
 
             ss_particles << timestep_i << "," << (*bl_itr)->GetGid() << "," << pos.x() << "," << pos.y() << ","
                          << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length()
-                         << std::endl;
+                         << (((*bl_itr)->GetBodyFixed()) ? 1 : 0) << std::endl;
         }
     }
 
@@ -339,12 +343,29 @@ int main(int argc, char* argv[]) {
 
     std::ofstream outfile;
     if (output_data) {
-        std::string outfile_name = outdir + "Rank";
-        outfile_name += std::to_string(my_rank) + ".csv";
-        print(std::string("Outfile: ") + outfile_name + "\n");
-        outfile.open(outfile_name);
+        // Create output directory and output file
+        std::string out_file_name = outdir + "Rank";
+        out_file_name += std::to_string(my_rank) + ".csv";
+        if (my_rank == MASTER) {
+            bool out_dir_exists = filesystem::path(outdir).exists();
+            if (out_dir_exists) {
+                print("Output directory already exists\n");
+                return 1;  // Don't overwrite existing data
+            } else if (filesystem::create_directory(filesystem::path(outdir))) {
+                std::cout << "Create directory = " << filesystem::path(outdir).make_absolute()
+                          << std::endl;
+            } else {
+                print("Error creating output directory\n");
+                return 1;
+            }
+        }
 
-        outfile << "t,g,x,y,z,vx,vy,vz,U\n";
+        // Once the directory has been created, all ranks can make their output files
+        MPI_Barrier(MPI_COMM_WORLD);
+        print(std::string("Outfile: ") + out_file_name + "\n");
+        outfile.open(out_file_name);
+
+        outfile << "t,gid,x,y,z,vx,vy,vz,U,fixed\n";
     } else {
         print("Not writing data files\n");
     }
