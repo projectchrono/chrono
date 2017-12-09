@@ -711,7 +711,7 @@ void ChCommDistributed::Exchange() {
     if (my_rank != num_ranks - 1) {
         MPI_Probe(my_rank + 1, 8, my_sys->world, &recv_status_shapes_up);
         MPI_Get_count(&recv_status_shapes_up, ShapeType, &num_recv_shapes_up);
-        GetLog() << "num_recv_shapes_up" << num_recv_shapes_up << "\n";
+        ////GetLog() << "num_recv_shapes_up" << num_recv_shapes_up << "\n";
         recv_shapes_up = new Shape[num_recv_shapes_up];
         MPI_Recv(recv_shapes_up, num_recv_shapes_up, ShapeType, my_rank + 1, 8, my_sys->world, &recv_status_shapes_up);
     }
