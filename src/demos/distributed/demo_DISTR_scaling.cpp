@@ -70,7 +70,7 @@ void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
             ChVector<> vel = (*bl_itr)->GetPos_dt();
 
             ss_particles << timestep_i << "," << (*bl_itr)->GetGid() << "," << pos.x() << "," << pos.y() << ","
-                         << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length()
+                         << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length() << ","
                          << (((*bl_itr)->GetBodyFixed()) ? 1 : 0) << std::endl;
         }
     }
