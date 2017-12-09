@@ -33,7 +33,7 @@ double ChRunningAverage::Add(double val) {
     m_data[(m_index++) % m_n] = val;
     int size = std::min(m_index, m_n);
     double mean = m_data.sum() / size;
-    m_std = std::sqrt(std::pow(m_data - mean, 2.0).sum() / (size - 1));
+    m_std = (size == 1) ? 0 : std::sqrt(std::pow(m_data - mean, 2.0).sum() / (size - 1));
     return mean;
 }
 
