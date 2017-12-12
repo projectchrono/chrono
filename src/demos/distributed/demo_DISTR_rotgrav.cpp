@@ -69,20 +69,9 @@ void Monitor(chrono::ChSystemParallel* system) {
     double TIME = system->GetChTime();
     double STEP = system->GetTimerStep();
     double BROD = system->GetTimerCollisionBroad();
-
-    double B1 = system->data_manager->system_timer.GetTime("B1");
-    double B2 = system->data_manager->system_timer.GetTime("B2");
-    double B3 = system->data_manager->system_timer.GetTime("B3");
-    double B4 = system->data_manager->system_timer.GetTime("B4");
-    double B5 = system->data_manager->system_timer.GetTime("B5");
-
-    double A = system->data_manager->system_timer.GetTime("A");
-
     double NARR = system->GetTimerCollisionNarrow();
     double SOLVER = system->GetTimerSolver();
     double UPDT = system->GetTimerUpdate();
-    double SEND = system->data_manager->system_timer.GetTime("Send");
-    double RECV = system->data_manager->system_timer.GetTime("Recv");
     double EXCH = system->data_manager->system_timer.GetTime("Exchange");
     int BODS = system->GetNbodies();
     int CNTC = system->GetNcontacts();
@@ -95,10 +84,8 @@ void Monitor(chrono::ChSystemParallel* system) {
     }
 
     printf(
-        "%d|   %8.5f | %7.4f | E%7.4f | S%7.4f | R%7.4f | B%7.4f | B1%7.4f | B2%7.4f | B3%7.4f | B4%7.4f | B5%7.4f | "
-        "A%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n",
-        my_rank, TIME, STEP, EXCH, SEND, RECV, BROD, B1, B2, B3, B4, B5, A, NARR, SOLVER, UPDT, BODS, CNTC, REQ_ITS,
-        RESID);
+        "%d|   %8.5f | %7.4f | E%7.4f | S%7.4f | R%7.4f | B%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n",
+        my_rank, TIME, STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, REQ_ITS, RESID);
 }
 
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
@@ -381,9 +368,9 @@ int main(int argc, char* argv[]) {
             out_frame++;
             WriteCSV(&outfile, out_frame, &my_sys);
         }
-		if (monitor)
-			Monitor(&my_sys);
-			
+        if (monitor)
+            Monitor(&my_sys);
+
         time += time_step;
     }
 

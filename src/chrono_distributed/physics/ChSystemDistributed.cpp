@@ -58,17 +58,6 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
     this->ghost_layer = ghost_layer;
     this->num_bodies_global = 0;
 
-    data_manager->system_timer.AddTimer("B1");
-    data_manager->system_timer.AddTimer("B2");
-    data_manager->system_timer.AddTimer("B3");
-    data_manager->system_timer.AddTimer("B4");
-    data_manager->system_timer.AddTimer("B5");
-    data_manager->system_timer.AddTimer("A");
-
-    data_manager->system_timer.AddTimer("Send");
-    data_manager->system_timer.AddTimer("Recv");
-    data_manager->system_timer.AddTimer("FirstEmpty");
-    data_manager->system_timer.AddTimer("UnpackBody");
     data_manager->system_timer.AddTimer("Exchange");
 
     // Reserve starting space
@@ -314,8 +303,8 @@ void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
 
 // Used to end the program on an error and print a message.
 void ChSystemDistributed::ErrorAbort(std::string msg) {
-    GetLog() << msg << "\n";;
-    std::abort();
+    GetLog() << msg << "\n";
+    MPI_Abort(world, MPI_ERR_OTHER);
 }
 
 void ChSystemDistributed::PrintBodyStatus() {
@@ -428,8 +417,6 @@ double ChSystemDistributed::GetLowestZ(uint* local_id) {
         if (ddm->comm_status[i] != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] < min) {
             min = data_manager->host_data.pos_rigid[i][2];
             *local_id = i;
-            GetLog() << "SubZero: " << i << " Rank: "
-                     << "\n";
         }
     }
     return min;
@@ -455,9 +442,10 @@ void ChSystemDistributed::CheckIds() {
 //             // Get force on body at index local
 //             int contact_index = data_manager->host_data.ct_body_map[local];
 //             real3 f = data_manager->host_data.ct_body_force[contact_index];
-//             send.push_back(std::move((CosimForce) {i, my_rank, .force[0] = f[0], .force[1] = f[1], .force[2] = f[2]}));
+//             send.push_back(std::move((CosimForce) {i, my_rank, .force[0] = f[0], .force[1] = f[1], .force[2] =
+//             f[2]}));
 //         }
-// 
+//
 //         // Rank 0 recvs all messages sent to it and appends the values into its gid vector
 //         MPI_Request r_bar;
 //         MPI_Status s_bar;
@@ -468,12 +456,12 @@ void ChSystemDistributed::CheckIds() {
 //             //     buf += send.size();                                        // TODO
 //             //     num_gids += send.size();                                   // TODO
 //         }
-// 
+//
 //         MPI_Ibarrier(MPI_COMM_WORLD, &r_bar);
 //         MPI_Status s_prob;
 //         int message_waiting = 0;
 //         int r_bar_flag = 0;
-// 
+//
 //         MPI_Test(&r_bar, &r_bar_flag, &s_bar);
 //         while (!r_bar_flag) {
 //             MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &message_waiting, &s_prob);
@@ -494,14 +482,14 @@ void ChSystemDistributed::CheckIds() {
 //             MPI_Request r_send;
 //             // Non-blocking synchronous Send
 //             MPI_Issend(send.data(), send.size(), CosimForceType, 0, 0, MPI_COMM_WORLD, &r_send);
-// 
+//
 //             MPI_Status s_send;
 //             MPI_Wait(&r_send, &s_send);
 //         }
 //         // Reaching here indicates to the comm that this rank's message has been recved by rank 0
 //         MPI_Ibarrier(MPI_COMM_WORLD, &r_bar);
 //     }
-// 
+//
 //     MPI_Status stat;
 //     MPI_Wait(&r_bar, &stat);  // TODO makes all ranks wait? Could non-masters be doing anything?
 //                               // At this point send is full.

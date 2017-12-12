@@ -94,7 +94,6 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
     std::shared_ptr<ChBody> body;
 
     for (int n = 0; n < num_recv; n++) {
-        ddm->data_manager->system_timer.start("FirstEmpty");
         // Find the next empty slot in the data manager.
         if (ddm->first_empty != data_manager->num_rigid_bodies &&
             ddm->comm_status[ddm->first_empty] != distributed::EMPTY) {
@@ -103,7 +102,6 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
                 ddm->first_empty++;
             }
         }
-        ddm->data_manager->system_timer.stop("FirstEmpty");
 
         // If there are no empty spaces in the data manager, create
         // a new body to add
@@ -155,8 +153,10 @@ void ChCommDistributed::ProcessUpdates(int num_recv, BodyUpdate* buf) {
             UnpackUpdate(buf + n, body);
             if ((buf + n)->update_type == distributed::FINAL_UPDATE_GIVE) {
                 ddm->comm_status[index] = distributed::OWNED;
+#ifdef DistrDebug
                 GetLog() << "Owning gid " << (buf + n)->gid << " index " << index << " rank " << my_sys->GetMyRank()
                          << "\n";
+#endif
             } else if ((buf + n)->update_type == distributed::UPDATE_TRANSFER_SHARE) {
                 ddm->comm_status[index] = (ddm->comm_status[index] == distributed::GHOST_UP) ? distributed::SHARED_UP
                                                                                              : distributed::SHARED_DOWN;
@@ -198,8 +198,9 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
     while (n < num_recv) {
         gid = (buf + n)->gid;
         // Create a collision model
+#ifdef DistrDebug
         GetLog() << "Unpacking shapes for gid " << (buf + n)->gid << " rank " << my_sys->GetMyRank() << "\n";
-
+#endif
         // Done creating this body's model
         int local_id = ddm->GetLocalIndex(gid);
         if (local_id == -1) {
@@ -243,7 +244,7 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
                                       ChVector<>(0, 0, 0), ChQuaternion<>(rot[0], rot[1], rot[2], rot[3]));
                     break;
                 default:
-                    GetLog() << "Error gid " << gid << " rank " << my_sys->GetMyRank() << " type " << (buf + n)->type
+                    GetLog() << "Error: gid " << gid << " rank " << my_sys->GetMyRank() << " type " << (buf + n)->type
                              << "\n";
                     my_sys->ErrorAbort("Unpacking undefined collision shape\n");
             }
@@ -420,7 +421,9 @@ void ChCommDistributed::Exchange() {
                         num_update_down++;  // TODO might be able to eliminate
                         up = -1;
                     }
+#ifdef DistrDebug
                     GetLog() << "Give: " << my_rank << " -- " << ddm->global_id[i] << " --> " << my_rank + up << "\n";
+#endif
                     my_sys->RemoveBodyExchange(i);
                 }
             }  // End of packing for loop
@@ -944,7 +947,7 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
                 shape.data[5] = data_manager->shape_data.triangle_rigid[start + 2].z;
 
             default:
-                GetLog() << "Invalid shape for transfer\n";
+                my_sys->ErrorAbort("Invalid shape for transfer\n");
         }
         buf->push_back(shape);
     }

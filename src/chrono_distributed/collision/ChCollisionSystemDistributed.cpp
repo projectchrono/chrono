@@ -178,12 +178,13 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
         GetLog() << "needed_count " << needed_count << "\n";
 #endif
         for (int i = 0; i < needed_count; i++) {
-            GetLog() << "BIG DEAL\n";
             // i identifies a shape in the model
 
             int j = free_dm_shapes[i];  // Index into dm->shape_data
 
+#ifdef DistrDebug
             GetLog() << "Setting id_rigid. gid " << pmodel->GetBody()->GetGid() << " local id " << body_index << "\n";
+#endif
 
             dm->shape_data.id_rigid[j] = body_index;
             ddm->body_shapes[begin_shapes] = j;
@@ -215,7 +216,9 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
                     dm->shape_data.box_like_rigid[start] = obB;
                     break;
                 case chrono::collision::BOX:
+#ifdef DistrDebug
                     GetLog() << "Adding box\n";
+#endif
                     dm->shape_data.box_like_rigid[start] = obB;
                     break;
                 case chrono::collision::CYLINDER:
