@@ -79,7 +79,7 @@ while (my_system.GetChTime() < 1.2) :
 
     my_system.DoStepDynamics(0.01)
 
-    print ('time=', my_system.GetChTime(), ' bodyB y=', my_shbodyB.GetPos().y())
+    print ('time=', my_system.GetChTime(), ' bodyB y=', my_shbodyB.GetPos().y)
 
     my_system.GetContactContainer().ReportAllContacts(my_rep)
 
