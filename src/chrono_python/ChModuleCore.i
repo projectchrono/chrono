@@ -49,6 +49,7 @@
 #include <cstddef>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChBodyEasy.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -133,6 +134,14 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChForce)
 %shared_ptr(chrono::ChBody)
 %shared_ptr(chrono::ChBodyAuxRef)
+%shared_ptr(chrono::ChBodyEasySphere)
+%shared_ptr(chrono::ChBodyEasyBox)
+%shared_ptr(chrono::ChBodyEasyEllipsoid)
+%shared_ptr(chrono::ChBodyEasyCylinder)
+%shared_ptr(chrono::ChBodyEasyConvexHull)
+%shared_ptr(chrono::ChBodyEasyConvexHullAuxRef)
+%shared_ptr(chrono::ChBodyEasyMesh)
+%shared_ptr(chrono::ChBodyEasyClusterOfSpheres)
 %shared_ptr(chrono::ChConveyor)
 %shared_ptr(chrono::ChAparticle)
 %shared_ptr(chrono::ChParticleBase)
@@ -289,6 +298,7 @@ using namespace chrono::geometry;
 %include "ChForce.i"
 %include "ChBody.i"
 %include "ChBodyAuxRef.i"
+%include "../chrono/physics/ChBodyEasy.h"
 %include "ChConveyor.i"
 %include "ChIndexedParticles.i"
 %include "ChParticlesClones.i"
@@ -323,9 +333,9 @@ using namespace chrono::geometry;
 %include "ChShaftsBody.i"
 %include "ChShaftsClutch.i"
 %include "ChShaftsMotor.i"
+%include "ChShaftsTorqueBase.i"
 %include "ChShaftsTorsionSpring.i"
 %include "ChShaftsPlanetary.i"
-%include "ChShaftsTorqueBase.i"
 %include "ChShaftsThermalEngine.i"
 
 
