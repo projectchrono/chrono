@@ -199,6 +199,43 @@ chrono.ChFrameMovingD     # as ChFrameMoving<double>  in c++
 chrono.ChCoordsysD        # as ChCoordsys<double>  in c++
 ~~~~~~~~~~~~~~~
 
+There is a (quite limited) support for templates of templates, especially
+for the std::vector<> container. The concept is the same: the C++ template 
+is translated in a special name in Python. For std::vector, we prepend
+the vector_ prefix: 
+
+~~~~~~~~~~~~~~~{.py}
+chrono.vector_ChVectorD   # as std::vector<ChVector<double>>  in c++
+~~~~~~~~~~~~~~~
+
+
+### ChVector x y z members
+
+In C++ you access the x y z components of a 3D vector using the 
+functions ```x() y() z()```, that return a reference to the components. 
+To avoid some issues, we drop the () parentheses and we 
+mapped these functions to direct access to ```x y z``` class 
+members in Python, so:
+
+~~~~{.cpp}
+chrono::ChVector<double>  my_vector;
+my_vector.x() = 123;
+double sum = my_vector.y() + my_vector.z();
+~~~~
+
+becomes
+
+~~~~~~~~~~~~~~~{.py}
+chrono.ChVectorD  my_vector
+my_vector.x = 123
+sum = my_vector.y + my_vector.z
+~~~~~~~~~~~~~~~
+
+A similar concept is applied for quaternions components e0 e1 e2 e3, 
+eg. one uses myquaternion.e0 in Python, instead of myquaternion.e0() in C++.
+
+
+
 ### Shared pointers
 
 Except for vectors, matrices, etc., most of the complex objects that you
