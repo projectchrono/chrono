@@ -16,11 +16,17 @@
 //
 // Ref: Georg Rill, "Road Vehicle Dynamics - Fundamentals and Modelling",
 //          @2012 CRC Press, ISBN 978-1-4398-3898-3
-//      Georg Rill, "An Engineer's Guess On Tyre Model Parameter Mmade Possible With TMeasy",
+//      Georg Rill, "An Engineer's Guess On Tyre Model Parameter Made Possible With TMeasy",
 //          https://hps.hs-regensburg.de/rig39165/Rill_Tyre_Coll_2015.pdf
 //
 // This implementation does not include transient slip state modifications.
 // No parking slip calculations.
+//
+// Changes:
+// 2017-12-21 - There is a simple form of contact smoothing now. It works on flat
+//			    terrain as well.
+//			  - The parameter estimation routines have changed, know you have the
+//				option to use either the load index or the load force as input.
 //
 // =============================================================================
 
@@ -126,8 +132,23 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                          double pinfl_use = 1.0  ///< inflation pressure in this configuration
     );
 
+    void GuessTruck80Par(double loadForce,       ///< tire nominal load force [N]
+                         double tireWidth,       ///< tire width [m]
+                         double ratio,           ///< use 0.75 meaning 75%
+                         double rimDia,          ///< rim diameter [m]
+                         double pinfl_li = 1.0,  ///< inflation pressure at load index
+                         double pinfl_use = 1.0  ///< inflation pressure in this configuration
+    );
+
     /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%)
     void GuessPassCar70Par(unsigned int li,        ///< tire load index
+                           double tireWidth,       ///< tire width [m]
+                           double ratio,           ///< use 0.75 meaning 75%
+                           double rimDia,          ///< rim diameter [m]
+                           double pinfl_li = 1.0,  ///< inflation pressure at load index
+                           double pinfl_use = 1.0  ///< inflation pressure in this configuration
+    );
+    void GuessPassCar70Par(double loadForce,       ///< tire nominal load force [N]
                            double tireWidth,       ///< tire width [m]
                            double ratio,           ///< use 0.75 meaning 75%
                            double rimDia,          ///< rim diameter [m]
@@ -142,6 +163,27 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
 
   protected:
+    /// Perform disc-terrain collision detection considering the curvature of the road
+    /// surface. The surface normal is calculated based on 4 different height values below
+    /// the wheel center. The effective height is calculated as average value of the four
+    /// height values.
+    /// This utility function checks for contact between a disc of specified
+    /// radius with given position and orientation (specified as the location of
+    /// its center and a unit vector normal to the disc plane) and the terrain
+    /// system associated with this tire. It returns true if the disc contacts the
+    /// terrain and false otherwise.  If contact occurs, it returns a coordinate
+    /// system with the Z axis along the contact normal and the X axis along the
+    /// "rolling" direction, as well as a positive penetration depth (i.e. the
+    /// height below the terrain of the lowest point on the disc).
+    bool disc_terrain_contact_3d(
+        const ChTerrain& terrain,       ///< [in] reference to terrain system
+        const ChVector<>& disc_center,  ///< [in] global location of the disc center
+        const ChVector<>& disc_normal,  ///< [in] disc normal, expressed in the global frame
+        double disc_radius,             ///< [in] disc radius
+        ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
+        double& depth                   ///< [out] penetration depth (positive if contact occurred)
+    );
+
     /// Return the vertical tire stiffness contribution to the normal force.
     double GetNormalStiffnessForce(double depth);
 
