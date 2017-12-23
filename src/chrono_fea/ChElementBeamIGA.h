@@ -21,6 +21,7 @@
 #include "chrono_fea/ChBeamSection.h"
 #include "chrono_fea/ChNodeFEAxyzrot.h"
 #include "chrono/geometry/ChBasisToolsBspline.h"
+#include "chrono/core/ChQuadrature.h"
 
 
 namespace chrono {
@@ -45,15 +46,17 @@ class  ChElementBeamIGA :   public ChElementBeam
     std::vector< double > knots;
     int order;
 
+    std::vector< double > Jacobian;  
+
     std::shared_ptr<ChBeamSectionAdvanced> section;
 
     double cose; // esempio..
 
   public:
     ChElementBeamIGA() {
-        order = 1;
-        nodes.resize(2); // controllare se ordine = -> 2 nodi, 2 control points, o di più
-        knots.resize(4);
+        order = 3;
+        nodes.resize(4); // controllare se ordine = -> 2 nodi, 2 control points, o di più
+        knots.resize(8);
 
     }
 
@@ -65,22 +68,32 @@ class  ChElementBeamIGA :   public ChElementBeam
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
-    virtual void SetNodesLinear(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB, double knotA1, double knotA2, double knotB1, double knotB2) {
-        nodes.resize(2);
+	virtual void SetNodesCubic(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB, std::shared_ptr<ChNodeFEAxyzrot> nodeC, std::shared_ptr<ChNodeFEAxyzrot> nodeD, double knotA1, double knotA2, double knotB1, double knotB2, double knotB3, double knotB4, double knotB5, double knotB6) {
+        nodes.resize(4);
         nodes[0] = nodeA;
         nodes[1] = nodeB;
-        knots.resize(4);
+		nodes[2] = nodeC;
+		nodes[3] = nodeD;
+        knots.resize(8);
         knots[0] = knotA1;
         knots[1] = knotA2;
         knots[2] = knotB1;
         knots[3] = knotB2;
+		knots[4] = knotB3;
+		knots[5] = knotB4;
+		knots[6] = knotB5;
+		knots[7] = knotB6;
         std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
+		mvars.push_back(&nodes[2]->Variables());
+		mvars.push_back(&nodes[3]->Variables());
         Kmatr.SetVariables(mvars);
     }
 
     virtual void SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes, std::vector<double> myknots, int myorder) {
+		this->order = myorder;
+
         nodes.resize(myorder+1);
         for (int i= 0; i< mynodes.size(); ++i) {
             nodes[i] = mynodes[i];
@@ -119,15 +132,60 @@ class  ChElementBeamIGA :   public ChElementBeam
 
 
     /// Setup. Precompute mass and matrices that do not change during the
-    /// simulation, such as the local tangent stiffness Kl of each element, if needed, etc.
+    /// simulation.
+    /// In particular, compute the arc-length parametrization.
 
     virtual void SetupInitial(ChSystem* system) override {
         assert(section);
 
-        // Kassem:*** metti cose da calcolare una volta per tutte all'inizio
-        // this->length = ... 
-        // this->mass = ....
-        this->length = 1; //***TEST*** ***TODO***
+        this->length=0;
+
+        // get two values of absyssa at extreme of span
+        double tau1 = knots[order]; 
+		double tau2 = knots[knots.size() - order - 1];
+
+        double c1 = (tau2 - tau1) / 2;
+        double c2 = (tau2 + tau1) / 2;
+
+        int int_order = this->order;
+
+        this->Jacobian.resize(int_order);
+
+        for (int ig = 0; ig < int_order; ++ig) {
+
+            // absyssa in typical -1,+1 range:
+            double t = ChQuadrature::GetStaticTables()->Lroots[int_order-1][ig];
+            // absyssa in span range:
+            double tau = (c1 * t + c2);
+            // scaling = gauss weight * change of range:
+            double w = ChQuadrature::GetStaticTables()->Weight[int_order-1][ig] * c1;
+
+            // compute the basis functions at given tau:
+            int nspan = order;
+		    ChVectorDynamic<> knotU((int)knots.size());
+		    for (int i = 0; i< knots.size(); ++i) {
+			    knotU(i) = knots[i];
+            }
+
+            ChMatrixDynamic<> N(2,(int)nodes.size()); // row n.0 contains N, row n.1 contains dN/ds
+
+            geometry::ChBasisToolsBspline::BasisEvaluateDeriv(
+                   this->order,  
+                   nspan,
+                   tau,  
+                   knotU, 
+                   N);           ///< here return N and dN/dt 
+
+            // compute spline gradient r0'
+            ChVector<> dr0; 
+            for (int i = 0 ; i< nodes.size(); ++i) {
+                dr0 += nodes[i]->GetX0ref().coord.pos * N(1,i);
+            }
+            this->Jacobian[ig] = dr0.Length();
+
+            this->length += w*this->Jacobian[ig];
+        } 
+
         this->mass = this->length * this->section->density;
         this->cose = 0;
     }
@@ -226,30 +284,85 @@ class  ChElementBeamIGA :   public ChElementBeam
     /// in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override {
 
-        //***KASSEM**** calcolare i valori in Fi: !!!!!!!!!!!!!!!!!!!!!!!
-        
+        // get two values of absyssa at extreme of span
+        double tau1 = knots[order]; 
+		double tau2 = knots[knots.size() - order - 1];
+
+
+        double c1 = (tau2 - tau1) / 2;
+        double c2 = (tau2 + tau1) / 2;
+
+        // Do quadrature over the Gauss points
+        int int_order = this->order;
+        for (int ig = 0; ig < int_order; ++ig) {
+
+            // absyssa in typical -1,+1 range:
+            double t = ChQuadrature::GetStaticTables()->Lroots[int_order-1][ig];
+            // absyssa in span range:
+            double tau = (c1 * t + c2);
+            // scaling = gauss weight * change of range:
+            double w = ChQuadrature::GetStaticTables()->Weight[int_order-1][ig] * c1;
+
+            // compute the basis functions at given tau:
+            int nspan = order;
+		    ChVectorDynamic<> knotU((int)knots.size());
+		    for (int i = 0; i< knots.size(); ++i) {
+			    knotU(i) = knots[i];
+            }
+
+            ChMatrixDynamic<> N(2,(int)nodes.size()); // row n.0 contains N, row n.1 contains dN/ds
+
+            geometry::ChBasisToolsBspline::BasisEvaluateDeriv(
+                   this->order,  
+                   nspan,
+                   tau,  
+                   knotU, 
+                   N);           ///< here return N and dN/dt 
+            
+            // interpolate rotation of section at given tau, to compute R.
+            // Note: this is approximate, in fact quaternion must be normalized at the end.
+            // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
+            ChQuaternion<> qR = QNULL;
+            for (int i = 0 ; i< nodes.size(); ++i) {
+                qR += nodes[i]->coord.rot * N(0,i);
+            }
+            qR.Normalize();
+            
+            // compute the 3x3 rotation matrix R equivalent to quaternion above
+            ChMatrix33<> R(qR);
+
+            // compute spline gradient r'  
+            ChVector<> dr; 
+            for (int i = 0 ; i< nodes.size(); ++i) {
+                dr += nodes[i]->coord.pos * N(1,i);  // dr/dt = N_i'*r_i
+            }
+            // (note r'= dr/ds = dr/dt * 1/J   where J computed in SetupInitial)
+            dr *=  1.0/this->Jacobian[ig];
+
+            // compute strain epsilon:  e= R^t * r' - {1, 0, 0}
+            ChVector<> strain_e = R.MatrT_x_Vect(dr) - VECT_X;
+
+            //GetLog() << "     gp n." << ig <<   "  J=" << this->Jacobian[ig] << "   strain_e= " << strain_e << "\n";
+
+        } 
+
         // Fi(0) = ....;
         // Fi(1) = ....;
         // Fi(2) = ....;
         //
-        // meglio: credo serva un ciclo for tipo: (e forse questo all'interno di un ciclo sui punti di collocazione?)
-        // 
-        //
-        for (int i = 0; i< nodes.size(); ++i) {
-            // Fi(i*6 + 0) =
-            // Fi(i*6 + 1) =
-            //...
-        }
+        
         
         //***KASSEM** se vuoi fare del test/debug, è comodo aggiungere dei GetLog() per stampare su schermo dei dati che vuoi controllare, es: 
+        /*
         GetLog() << "\nInternal forces, F and M for each node: \n";
         for (int i = 0; i < nodes.size(); i++) {
             GetLog() << "\n  at node " << i << " is: ";
-            for (int c = 0; c < 6; c++)
+            for (int c = 0; c < 6; c++) {
                 GetLog() << Fi(i*6 + c) << "  ";
+            }
         }
         GetLog() << "\n";
-        
+        */
     }
 
     //
@@ -279,13 +392,14 @@ class  ChElementBeamIGA :   public ChElementBeam
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) override {
         // compute parameter in knot space from eta-1..+1
-        double tau1 = knots[order]; // extreme of span
-        double tau2 = knots[knots.size()-order-1];
-        double u = tau1 + ((eta+1)/2.0)*(tau2-tau1);
-        int nspan = order;
-        ChVectorDynamic<> knotU((int)knots.size());
-        for (int i = 0; i< knots.size(); ++i) {
-            knotU(i) = knots[i];
+		
+		double tau1 = knots[order]; // extreme of span
+		double tau2 = knots[knots.size() - order - 1];
+		double u = tau1 + ((eta + 1) / 2.0)*(tau2 - tau1);
+		int nspan = order;
+		ChVectorDynamic<> knotU((int)knots.size());
+		for (int i = 0; i< knots.size(); ++i) {
+			knotU(i) = knots[i];
         }
         ChVectorDynamic<> N((int)nodes.size());
 
@@ -310,7 +424,7 @@ class  ChElementBeamIGA :   public ChElementBeam
         }
         rot.Normalize();
     }
-
+	
     /// Gets the force (traction x, shear y, shear z) and the
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscissa 'eta'.
