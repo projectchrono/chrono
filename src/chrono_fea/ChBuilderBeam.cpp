@@ -135,6 +135,132 @@ void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///<
     }
 }
 
+
+/////////////////////////////////////////////////////////
+//
+// ChBuilderBeamIGA
+
+
+void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
+                              std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                              const int N,                                  ///< number of elements in the segment
+                              const ChVector<> A,                           ///< starting point
+                              const ChVector<> B,                           ///< ending point
+                              const ChVector<> Ydir,                        ///< the 'up' Y direction of the beam
+                              const int order                               ///< the order of spline (default=3,cubic)
+                              ) {
+    beam_elems.clear();
+    beam_nodes.clear();
+
+    // rotation of all nodes
+    ChMatrix33<> mrot;
+    mrot.Set_A_Xdir(B - A, Ydir);
+
+	int p = order; 
+
+	// Create the 'complete' knot vector, with multiple at the ends
+	ChVectorDynamic<> myknots(N + p + p + 1);
+	geometry::ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(myknots, p,  0.0, 1.0);
+
+	// Create the 'complete' stl vector of control points, with uniform distribution
+	std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;
+	for (int i_node = 0; i_node < N + p; ++i_node)
+	{
+		double abscyssa = ((double)i_node / (double)(N + p - 1));
+        
+        // position of node
+        ChVector<> pos = A + (B - A) * abscyssa;
+
+		auto hnode_i = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos,mrot));
+		mesh->AddNode(hnode_i);
+		mynodes.push_back(hnode_i);
+        this->beam_nodes.push_back(hnode_i);
+	}
+	
+	// Create the single elements by picking a subset of the nodes and control points
+	for (int i_el = 0; i_el < N; ++i_el)
+	{
+		std::vector<double > my_el_knots;
+		for (int i_el_knot = 0; i_el_knot < p + p + 1 + 1; ++i_el_knot) 
+		{
+			my_el_knots.push_back(myknots(i_el + i_el_knot));
+		}
+
+		std::vector<std::shared_ptr<ChNodeFEAxyzrot>> my_el_nodes;
+		for (int i_el_node = 0; i_el_node < p + 1; ++i_el_node)
+		{
+			my_el_nodes.push_back(mynodes[i_el + i_el_node]);
+		}
+
+		auto belement_i = std::make_shared<ChElementBeamIGA>();
+		belement_i->SetNodesGenericOrder(my_el_nodes, my_el_knots, p);
+		belement_i->SetSection(sect);
+		mesh->AddElement(belement_i);
+        this->beam_elems.push_back(belement_i);
+	}
+}
+
+
+
+void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,   ///< mesh to store the resulting elements
+                   std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
+                   geometry::ChLineBspline& spline,              ///< the B-spline to be used as the centerline
+                   const ChVector<> Ydir                         ///< the 'up' Y direction of the beam
+                   ) {
+    beam_elems.clear();
+    beam_nodes.clear();
+
+	int p = spline.GetOrder();
+
+    // compute N of spans (excluding start and end multiple knots with zero lenght span):
+    int N = spline.Knots().GetRows() -p -p -1; // = n+p+1 -p-p-1 = n-p
+
+	// Create the 'complete' stl vector of control points, with uniform distribution
+	std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;
+	for (int i_node = 0; i_node < spline.Points().size(); ++i_node)
+	{
+		double abscyssa = ((double)i_node / (double)(spline.Points().size() - 1));
+        
+        // position of node
+        ChVector<> pos = spline.Points()[i_node];
+
+        // rotation of node, x aligned to tangent at input spline
+        ChMatrix33<> mrot;
+        ChVector<> tangent;
+        spline.Derive(tangent, abscyssa);
+        mrot.Set_A_Xdir(tangent, Ydir);
+
+		auto hnode_i = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos,mrot));
+		mesh->AddNode(hnode_i);
+		mynodes.push_back(hnode_i);
+        this->beam_nodes.push_back(hnode_i);
+	}
+	
+	// Create the single elements by picking a subset of the nodes and control points
+	for (int i_el = 0; i_el < N; ++i_el)
+	{
+		std::vector<double > my_el_knots;
+		for (int i_el_knot = 0; i_el_knot < p + p + 1 + 1; ++i_el_knot) 
+		{
+			my_el_knots.push_back(spline.Knots()(i_el + i_el_knot));
+		}
+
+		std::vector<std::shared_ptr<ChNodeFEAxyzrot>> my_el_nodes;
+		for (int i_el_node = 0; i_el_node < p + 1; ++i_el_node)
+		{
+			my_el_nodes.push_back(mynodes[i_el + i_el_node]);
+		}
+
+		auto belement_i = std::make_shared<ChElementBeamIGA>();
+		belement_i->SetNodesGenericOrder(my_el_nodes, my_el_knots, p);
+		belement_i->SetSection(sect);
+		mesh->AddElement(belement_i);
+        this->beam_elems.push_back(belement_i);
+	}
+}
+
+
+
 /////////////////////////////////////////////////////////
 //
 // ChBuilderBeamANCF
