@@ -39,67 +39,115 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+	GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+	// Create a Chrono::Engine physical system
+	ChSystemNSC my_system;
 
 
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+	// Create a mesh, that is a container for groups
+	// of elements and their referenced nodes.
+	auto my_mesh = std::make_shared<ChMesh>();
 
-    // Create a section, i.e. thickness and material properties
-    // for beams. This will be shared among some beams.
+	// Create a section, i.e. thickness and material properties
+	// for beams. This will be shared among some beams.
 
-    auto msection = std::make_shared<ChBeamSectionAdvanced>();
+	auto msection = std::make_shared<ChBeamSectionAdvanced>();
 
-    double beam_wy = 0.012;
-    double beam_wz = 0.025;
-    msection->SetAsRectangularSection(beam_wy, beam_wz);
-    msection->SetYoungModulus(0.01e9);
-    msection->SetGshearModulus(0.01e9 * 0.3);
-    msection->SetBeamRaleyghDamping(0.000);
-    // msection->SetCentroid(0,0.02);
-    // msection->SetShearCenter(0,0.1);
-    // msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
+	double beam_wy = 0.012;
+	double beam_wz = 0.025;
+	msection->SetAsRectangularSection(beam_wy, beam_wz);
+	msection->SetYoungModulus(0.01e9);
+	msection->SetGshearModulus(0.01e9 * 0.3);
+	msection->SetBeamRaleyghDamping(0.000);
+	// msection->SetCentroid(0,0.02);
+	// msection->SetShearCenter(0,0.1);
+	// msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
+
+	//
+	// Add some IGA BEAMS:
+	//
 
     //
-    // Add some IGA BEAMS:
+    // Example A: create nodes and elements (low level approach):
     //
 
-    double beam_L = 0.1;
+	double beam_L = 0.1;
 
-    auto hnode1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0)));
-    auto hnode2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
-    auto hnode3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 2, 0, 0)));
-
+	auto hnode1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*0,           0, 0)));
+    auto hnode2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*0.5,	  0.00,	0)));
+    auto hnode3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.0,      0.00,	0)));
+	auto hnode4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.5,      0.00, 0)));
+	auto hnode5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*2.0,      0.00, 0)));
+	
     my_mesh->AddNode(hnode1);
     my_mesh->AddNode(hnode2);
     my_mesh->AddNode(hnode3);
+	my_mesh->AddNode(hnode4);
+	my_mesh->AddNode(hnode5);
+	
+    // spline cubica con 2 span, 5 points e 9 knots= {0 0 0 0 1/2 1 1 1 1}
 
-    // spline lineare con tre control points e 5 knots= {0 0 1 2 2}
     auto belement1 = std::make_shared<ChElementBeamIGA>();
+	
+	belement1->SetNodesCubic(hnode1, hnode2, hnode3, hnode4, 0, 0, 0, 0, 1./2., 1, 1, 1);
+	belement1->SetSection(msection);
 
-    belement1->SetNodesLinear(hnode1, hnode2, 0,0, 1,2);
-    belement1->SetSection(msection);
-
-    my_mesh->AddElement(belement1);
-
+	my_mesh->AddElement(belement1);
+	
     auto belement2 = std::make_shared<ChElementBeamIGA>();
 
-    belement2->SetNodesLinear(hnode2, hnode3, 0,1, 2,2);
+	belement2->SetNodesCubic(hnode2, hnode3, hnode4, hnode5, 0, 0, 0, 1./2., 1, 1, 1, 1);
     belement2->SetSection(msection);
 
     my_mesh->AddElement(belement2);
+	
 
-    // Apply a force or a torque to a node:
-    // hnode2->SetForce(ChVector<>(4, 2, 0));
-    // hnode3->SetTorque( ChVector<>(0, -0.04, 0));
+    //
+    // Example B: Automatic creation of the nodes and knots 
+    // using the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements: 
+    //
 
-    // Fix a node to ground:
-    hnode1->SetFixed(true);
+    ChBuilderBeamIGA builder;
+    builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
+                            msection,           // section of the beam
+                            8,                  // number of sections (spans)
+                            ChVector<>(0,  0,1),// start point 
+                            ChVector<>(0.5,0,1),// end point 
+                            VECT_Y,             // suggested Y direction of section
+                            3);                 // order (3 = cubic, etc)
+    
+    // in case you want to acces one of the created nodes, ex. to apply a tip force:
+    builder.GetLastBeamNodes().back()->SetFixed(true);
+    builder.GetLastBeamNodes().front()->SetForce(ChVector<>(0, -1, 0));
 
+    /*
+    ChBuilderBeamIGA builder;
+    builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
+                            msection,           // section of the beam
+                            1,                  // number of sections (spans)
+                            ChVector<>(0,  0,1),// start point 
+                            ChVector<>(0.2,0,1),// end point 
+                            VECT_Y,             // suggested Y direction of section
+                            1);                 // order (3 = cubic, etc)
+    builder.GetLastBeamNodes().back()->SetPos(ChVector<>(0.21,0,1)); // move a bit the 2nd node respect to initial X0 state to test strain computation
+    */
+
+
+    //
+    // Example C: Automatic creation of the nodes and knots using the 
+    // ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
+    //
+    
+    std::vector< ChVector<> > my_points = { {0,0,0}, {0,0.1,0}, {0,0.2,0}, {0,0.3,0.1} };
+    
+    geometry::ChLineBspline my_spline(  3,          // order (3 = cubic, etc)
+                                        my_points); // control points, will become the IGA nodes
+
+    builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
+                            msection,           // section of the beam
+                            my_spline,          // Bspline to match (also order will be matched)
+                            VECT_Z);            // suggested Y direction of section
 
 
     //
@@ -143,11 +191,10 @@ int main(int argc, char* argv[]) {
     my_mesh->AddAsset(mvisualizebeamC);
 
 
-
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"IGA beams (SPACE for dynamics, F10 / F11 statics)", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"IGA beams DEMO (SPACE for dynamics, F10 / F11 statics)", core::dimension2d<u32>(800, 600),
+                         false, true); 
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -194,7 +241,7 @@ int main(int argc, char* argv[]) {
 
     ChVector<> F, M;
     ChMatrixDynamic<> displ;
-
+	/*
     belement1->GetStateBlock(displ);
     GetLog() << displ;
     for (double eta = -1; eta <= 1; eta += 0.4) {
@@ -202,14 +249,16 @@ int main(int argc, char* argv[]) {
         GetLog() << "  b1_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
                  << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
     }
+	*/
     GetLog() << "\n";
+	/*
     belement2->GetStateBlock(displ);
     for (double eta = -1; eta <= 1; eta += 0.4) {
         belement2->EvaluateSectionForceTorque(eta, F, M);
         GetLog() << "  b2_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
                  << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
     }
-
+	*/
     GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
              << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
 
