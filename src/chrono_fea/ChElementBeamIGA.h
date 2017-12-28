@@ -43,7 +43,9 @@ class  ChElementBeamIGA :   public ChElementBeam
   protected:
 
     std::vector< std::shared_ptr<ChNodeFEAxyzrot> > nodes; // also "control points" 
-    std::vector< double > knots;
+    //std::vector< double > knots;
+    ChVectorDynamic<> knots;
+
     int order;
 
     std::vector< double > Jacobian;  
@@ -74,15 +76,15 @@ class  ChElementBeamIGA :   public ChElementBeam
         nodes[1] = nodeB;
 		nodes[2] = nodeC;
 		nodes[3] = nodeD;
-        knots.resize(8);
-        knots[0] = knotA1;
-        knots[1] = knotA2;
-        knots[2] = knotB1;
-        knots[3] = knotB2;
-		knots[4] = knotB3;
-		knots[5] = knotB4;
-		knots[6] = knotB5;
-		knots[7] = knotB6;
+        knots.Resize(8);
+        knots(0) = knotA1;
+        knots(1) = knotA2;
+        knots(2) = knotB1;
+        knots(3) = knotB2;
+		knots(4) = knotB3;
+		knots(5) = knotB4;
+		knots(6) = knotB5;
+		knots(7) = knotB6;
         std::vector<ChVariables*> mvars;
         mvars.push_back(&nodes[0]->Variables());
         mvars.push_back(&nodes[1]->Variables());
@@ -98,9 +100,9 @@ class  ChElementBeamIGA :   public ChElementBeam
         for (int i= 0; i< mynodes.size(); ++i) {
             nodes[i] = mynodes[i];
         }
-        knots.resize(nodes.size()+myorder+1);
+        knots.Resize(nodes.size()+myorder+1);
         for (int i= 0; i< myknots.size(); ++i) {
-            knots[i] = myknots[i];
+            knots(i) = myknots[i];
         }
 
         std::vector<ChVariables*> mvars;
@@ -141,11 +143,11 @@ class  ChElementBeamIGA :   public ChElementBeam
         this->length=0;
 
         // get two values of absyssa at extreme of span
-        double tau1 = knots[order]; 
-		double tau2 = knots[knots.size() - order - 1];
+        double u1 = knots(order); 
+		double u2 = knots(knots.GetRows() - order - 1);
 
-        double c1 = (tau2 - tau1) / 2;
-        double c2 = (tau2 + tau1) / 2;
+        double c1 = (u2 - u1) / 2;
+        double c2 = (u2 + u1) / 2;
 
         int int_order = this->order;
 
@@ -393,21 +395,23 @@ class  ChElementBeamIGA :   public ChElementBeam
                                       ChQuaternion<>& rot) override {
         // compute parameter in knot space from eta-1..+1
 		
-		double tau1 = knots[order]; // extreme of span
-		double tau2 = knots[knots.size() - order - 1];
-		double u = tau1 + ((eta + 1) / 2.0)*(tau2 - tau1);
+		double u1 = knots(order); // extreme of span
+		double u2 = knots(knots.GetRows() - order - 1);
+		double u = u1 + ((eta + 1) / 2.0)*(u2 - u1);
 		int nspan = order;
+        /*
 		ChVectorDynamic<> knotU((int)knots.size());
 		for (int i = 0; i< knots.size(); ++i) {
 			knotU(i) = knots[i];
         }
+        */
         ChVectorDynamic<> N((int)nodes.size());
-
+        
         geometry::ChBasisToolsBspline::BasisEvaluate(
                this->order,  
                nspan,
                u,  
-               knotU, 
+               knots, 
                N);           ///< here return  in N
 
         point = VNULL;
