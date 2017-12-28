@@ -50,16 +50,14 @@ class  ChElementBeamIGA :   public ChElementBeam
 
     std::vector< double > Jacobian;  
 
-    std::shared_ptr<ChBeamSectionAdvanced> section;
 
-    double cose; // esempio..
+    std::shared_ptr<ChBeamSectionAdvanced> section;
 
   public:
     ChElementBeamIGA() {
         order = 3;
         nodes.resize(4); // controllare se ordine = -> 2 nodi, 2 control points, o di più
-        knots.resize(8);
-
+        knots.Resize(8);
     }
 
     virtual ~ChElementBeamIGA() {}
@@ -149,47 +147,48 @@ class  ChElementBeamIGA :   public ChElementBeam
         double c1 = (u2 - u1) / 2;
         double c2 = (u2 + u1) / 2;
 
-        int int_order = this->order;
+        //int int_order = (int)std::ceil((this->order+1.0)/2.0);
+        int int_order = 2;
 
         this->Jacobian.resize(int_order);
 
         for (int ig = 0; ig < int_order; ++ig) {
 
             // absyssa in typical -1,+1 range:
-            double t = ChQuadrature::GetStaticTables()->Lroots[int_order-1][ig];
+            double eta = ChQuadrature::GetStaticTables()->Lroots[int_order-1][ig];
             // absyssa in span range:
-            double tau = (c1 * t + c2);
+            double u = (c1 * eta + c2); 
             // scaling = gauss weight * change of range:
             double w = ChQuadrature::GetStaticTables()->Weight[int_order-1][ig] * c1;
 
-            // compute the basis functions at given tau:
+            // compute the basis functions N(u) at given u:
             int nspan = order;
+            /*
 		    ChVectorDynamic<> knotU((int)knots.size());
 		    for (int i = 0; i< knots.size(); ++i) {
-			    knotU(i) = knots[i];
+			    this->knotU(i) = knots[i];
             }
-
-            ChMatrixDynamic<> N(2,(int)nodes.size()); // row n.0 contains N, row n.1 contains dN/ds
+            */
+            ChMatrixDynamic<> N(2,(int)nodes.size()); // row n.0 contains N, row n.1 contains dN/du
 
             geometry::ChBasisToolsBspline::BasisEvaluateDeriv(
                    this->order,  
                    nspan,
-                   tau,  
-                   knotU, 
-                   N);           ///< here return N and dN/dt 
+                   u,  
+                   knots, 
+                   N);           ///< here return N and dN/du 
 
-            // compute spline gradient r0'
+            // compute reference spline gradient \dot{dr_0} = dr0/du
             ChVector<> dr0; 
             for (int i = 0 ; i< nodes.size(); ++i) {
                 dr0 += nodes[i]->GetX0ref().coord.pos * N(1,i);
             }
-            this->Jacobian[ig] = dr0.Length();
+            this->Jacobian[ig] = dr0.Length(); // J = |dr0/du|
 
             this->length += w*this->Jacobian[ig];
         } 
 
         this->mass = this->length * this->section->density;
-        this->cose = 0;
     }
 
 
@@ -210,7 +209,7 @@ class  ChElementBeamIGA :   public ChElementBeam
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override {
-        assert((H.GetRows() == 12) && (H.GetColumns() == 12));
+        assert((H.GetRows() == 6 * (int)nodes.size()) && (H.GetColumns() == 6 * (int)nodes.size()));
         assert(section);
 
         //
@@ -286,42 +285,58 @@ class  ChElementBeamIGA :   public ChElementBeam
     /// in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override {
 
+        // shortcuts:
+        double Area = section->Area;
+        double E = section->E;
+        double Izz = section->Izz;
+        double Iyy = section->Iyy;
+        double G = section->G;
+        double Jpolar = section->J;
+        double Ky = section->Ks_y;
+        double Kz = section->Ks_z;
+
         // get two values of absyssa at extreme of span
-        double tau1 = knots[order]; 
-		double tau2 = knots[knots.size() - order - 1];
+        double u1 = knots(order); 
+		double u2 = knots(knots.GetRows() - order - 1);
 
+        double c1 = (u2 - u1) / 2;
+        double c2 = (u2 + u1) / 2;
 
-        double c1 = (tau2 - tau1) / 2;
-        double c2 = (tau2 + tau1) / 2;
+        // zeroes the Fi accumulator
+        Fi.Reset();
 
-        // Do quadrature over the Gauss points
-        int int_order = this->order;
+        // Do quadrature over the Gauss points, exact for polynomial of order p= 2n-1; ie n= (p+1)/2 minimum
+
+        //int int_order = (int)std::ceil((this->order+1.0)/2.0);
+        int int_order = 2;
+
         for (int ig = 0; ig < int_order; ++ig) {
 
             // absyssa in typical -1,+1 range:
-            double t = ChQuadrature::GetStaticTables()->Lroots[int_order-1][ig];
+            double eta = ChQuadrature::GetStaticTables()->Lroots[int_order-1][ig];
             // absyssa in span range:
-            double tau = (c1 * t + c2);
+            double u = (c1 * eta + c2);
             // scaling = gauss weight * change of range:
             double w = ChQuadrature::GetStaticTables()->Weight[int_order-1][ig] * c1;
 
-            // compute the basis functions at given tau:
+            // compute the basis functions N(u) at given u:
             int nspan = order;
+            /*
 		    ChVectorDynamic<> knotU((int)knots.size());
 		    for (int i = 0; i< knots.size(); ++i) {
 			    knotU(i) = knots[i];
             }
-
-            ChMatrixDynamic<> N(2,(int)nodes.size()); // row n.0 contains N, row n.1 contains dN/ds
+            */
+            ChMatrixDynamic<> N(2,(int)nodes.size()); // row n.0 contains N, row n.1 contains dN/du
 
             geometry::ChBasisToolsBspline::BasisEvaluateDeriv(
                    this->order,  
                    nspan,
-                   tau,  
-                   knotU, 
-                   N);           ///< here return N and dN/dt 
+                   u,  
+                   knots, 
+                   N);           ///< here return N and dN/du 
             
-            // interpolate rotation of section at given tau, to compute R.
+            // interpolate rotation of section at given u, to compute R.
             // Note: this is approximate, in fact quaternion must be normalized at the end.
             // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
             ChQuaternion<> qR = QNULL;
@@ -333,25 +348,73 @@ class  ChElementBeamIGA :   public ChElementBeam
             // compute the 3x3 rotation matrix R equivalent to quaternion above
             ChMatrix33<> R(qR);
 
-            // compute spline gradient r'  
+            // compute abs. spline gradient r'  = dr/ds
             ChVector<> dr; 
             for (int i = 0 ; i< nodes.size(); ++i) {
                 dr += nodes[i]->coord.pos * N(1,i);  // dr/dt = N_i'*r_i
             }
-            // (note r'= dr/ds = dr/dt * 1/J   where J computed in SetupInitial)
+            // (note r'= dr/ds = dr/du * 1/J   where J computed in SetupInitial)
             dr *=  1.0/this->Jacobian[ig];
 
-            // compute strain epsilon:  e= R^t * r' - {1, 0, 0}
+            // compute abs spline rotation gradient q' = dq/ds 
+            // But.. easier to compute local gradient of spin vector a' = da/ds
+            //ChQuaternion<> dq;
+            ChQuaternion<> q_delta;
+            ChVector<> da; 
+            ChVector<> delta_rot_dir;
+            double delta_rot_angle;
+            for (int i = 0 ; i< nodes.size(); ++i) {
+                //dq += nodes[i]->coord.rot * N(1,i);  // dq/dt = N_i'*q_i  (in abs reference)
+                q_delta = qR.GetConjugate() % nodes[i]->coord.rot;
+                q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference)
+                if (delta_rot_angle > CH_C_PI)
+                    delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
+                da += delta_rot_dir * delta_rot_angle * N(1,i);  // da/dt = N_i'*a_i
+            }
+            // (note a'= da/ds = da/dt * 1/J   where J computed in SetupInitial)
+            da *=  1.0/this->Jacobian[ig];
+
+            // compute local epsilon strain:  strain_e= R^t * r' - {1, 0, 0}
             ChVector<> strain_e = R.MatrT_x_Vect(dr) - VECT_X;
 
+            // compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
+            ChVector<> strain_k = da;
+
+            // compute stress n  (local cut forces) = C * (strain_e - strain_e0)
+            ChVector<> stress_n;
+            stress_n.x() = strain_e.x() * E * Area;
+            stress_n.y() = strain_e.y() * Ky * G * Area;
+            stress_n.z() = strain_e.z() * Kz * G * Area;
+
+            // compute stress_m  (local cut torque) = D * (strain_k - strain_k0)
+            ChVector<> stress_m;
+            stress_m.x() = strain_k.x() * G * Jpolar;
+            stress_m.y() = strain_k.y() * E * Iyy;
+            stress_m.z() = strain_k.z() * E * Izz;
+
+            // compute internal force, in generalized coordinates:
+
+            ChVector<> stress_n_abs = R * stress_n;
+            ChVector<> stress_m_abs = R * stress_m;
+
+            for (int i = 0; i< nodes.size(); ++i) {
+
+                // -Force_i = w * N' * R * C * (strain_e - strain_e0)
+                ChVector<> Force_i = stress_n_abs* N(1,i) * -w;
+			    Fi.PasteSumVector(Force_i, i *6, 0);
+
+                // -Torque_i = w * R_i^t * N'^t * R * D * (strain_k - strain_k0) + 
+                //           + w * R_i^t * N^t  * skew(r')^t *  R * C * (strain_e - strain_e0)
+                ChVector<> Torque_i = nodes[i]->coord.rot.RotateBack(
+                    stress_m_abs * N(1,i) * -w 
+                    - Vcross(dr, stress_n_abs) *  N(0,i) * -w
+                    );
+                Fi.PasteSumVector(Torque_i, 3+ i *6, 0);
+            }
+
             //GetLog() << "     gp n." << ig <<   "  J=" << this->Jacobian[ig] << "   strain_e= " << strain_e << "\n";
-
+            //GetLog() << "                    stress_n= " << stress_n << "\n";
         } 
-
-        // Fi(0) = ....;
-        // Fi(1) = ....;
-        // Fi(2) = ....;
-        //
         
         
         //***KASSEM** se vuoi fare del test/debug, è comodo aggiungere dei GetLog() per stampare su schermo dei dati che vuoi controllare, es: 
