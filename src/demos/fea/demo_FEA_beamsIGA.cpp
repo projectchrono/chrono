@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     auto hnode3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.0,      0.00,	0)));
 	auto hnode4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.5,      0.00, 0)));
 	auto hnode5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*2.0,      0.00, 0)));
-	
+/*	
     my_mesh->AddNode(hnode1);
     my_mesh->AddNode(hnode2);
     my_mesh->AddNode(hnode3);
@@ -101,13 +101,13 @@ int main(int argc, char* argv[]) {
     belement2->SetSection(msection);
 
     my_mesh->AddElement(belement2);
-	
+*/	
 
     //
     // Example B: Automatic creation of the nodes and knots 
     // using the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements: 
     //
-
+/*
     ChBuilderBeamIGA builder;
     builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
                             msection,           // section of the beam
@@ -120,25 +120,26 @@ int main(int argc, char* argv[]) {
     // in case you want to acces one of the created nodes, ex. to apply a tip force:
     builder.GetLastBeamNodes().back()->SetFixed(true);
     builder.GetLastBeamNodes().front()->SetForce(ChVector<>(0, -1, 0));
-
-    /*
+*/
+    
     ChBuilderBeamIGA builder;
     builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
                             msection,           // section of the beam
-                            1,                  // number of sections (spans)
-                            ChVector<>(0,  0,1),// start point 
-                            ChVector<>(0.2,0,1),// end point 
+                            10,                  // number of sections (spans)
+                            ChVector<>(0,  0,0),// start point 
+                            ChVector<>(0.4,0,0),// end point 
                             VECT_Y,             // suggested Y direction of section
-                            1);                 // order (3 = cubic, etc)
-    builder.GetLastBeamNodes().back()->SetPos(ChVector<>(0.21,0,1)); // move a bit the 2nd node respect to initial X0 state to test strain computation
-    */
+                            2);                 // order (3 = cubic, etc)
+    builder.GetLastBeamNodes().front()->SetFixed(true);
+    //builder.GetLastBeamNodes().back()->SetPos(ChVector<>(0.42,0.01,1)); // move a bit the 2nd node respect to initial X0 state to test strain computation
+    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-3,0));
 
 
     //
     // Example C: Automatic creation of the nodes and knots using the 
     // ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
     //
-    
+/*    
     std::vector< ChVector<> > my_points = { {0,0,0}, {0,0.1,0}, {0,0.2,0}, {0,0.3,0.1} };
     
     geometry::ChLineBspline my_spline(  3,          // order (3 = cubic, etc)
@@ -148,7 +149,7 @@ int main(int argc, char* argv[]) {
                             msection,           // section of the beam
                             my_spline,          // Bspline to match (also order will be matched)
                             VECT_Z);            // suggested Y direction of section
-
+*/
 
     //
     // Final touches..
