@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
 
     /// Get the vehicle total mass.
-    /// This includes the mass of the chassis and all vehicle subsystems.
+    /// This includes the mass of the chassis and all vehicle subsystems, but not the mass of tires.
     virtual double GetVehicleMass() const override;
 
     /// Get the current global vehicle COM location.

@@ -34,7 +34,7 @@ void ChLoadContainer::Add(std::shared_ptr<ChLoadBase> newload) {
 
 void ChLoadContainer::Update(double mytime, bool update_assets) {
     for (size_t i = 0; i < loadlist.size(); ++i) {
-        loadlist[i]->Update();
+        loadlist[i]->Update(mytime);
     }
     // Overloading of base class:
     ChPhysicsItem::Update(mytime, update_assets);

@@ -150,33 +150,29 @@ double ChDeformableTire::GetTireMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TerrainForce ChDeformableTire::GetTireForce(bool cosim) const {
+TerrainForce ChDeformableTire::GetTireForce() const {
     TerrainForce tire_force;
+    tire_force.point = m_wheel->GetPos();
     tire_force.force = ChVector<>(0, 0, 0);
-    tire_force.point = ChVector<>(0, 0, 0);
+    tire_force.moment = ChVector<>(0, 0, 0);
+    return tire_force;
+}
+
+TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
+    TerrainForce tire_force;
+    tire_force.point = m_wheel->GetPos();
+    tire_force.force = ChVector<>(0, 0, 0);
     tire_force.moment = ChVector<>(0, 0, 0);
 
-    // If the tire is simulated together with the associated vehicle, return zero
-    // force and moment. In this case, the tire forces are implicitly applied to
-    // the wheel body through the tire-wheel connections.
-    // Also return zero forces if the tire is not connected to the wheel.
-    if (!cosim || m_connections.size() == 0) {
-        return tire_force;
-    }
-
-    // If the tire is co-simulated, calculate and return the resultant of all reaction
-    // forces and torques in the tire-wheel connections as applied to the wheel body
-    // center of mass.  These encapsulate the tire-terrain interaction forces and the
-    // inertia of the tire itself.
-    auto body_frame = m_connections[0]->GetConstrainedBodyFrame();
-    tire_force.point = body_frame->GetPos();
-
+    // Calculate and return the resultant of all reaction forces and torques in the
+    // tire-wheel connections, as applied at the wheel body center of mass.
+    // These encapsulate the tire-terrain interaction forces and the inertia of the tire itself.
     ChVector<> force;
     ChVector<> moment;
     for (size_t ic = 0; ic < m_connections.size(); ic++) {
         ChCoordsys<> csys = m_connections[ic]->GetLinkAbsoluteCoords();
         ChVector<> react = csys.TransformDirectionLocalToParent(m_connections[ic]->GetReactionOnBody());
-        body_frame->To_abs_forcetorque(react, csys.pos, false, force, moment);
+        m_wheel->To_abs_forcetorque(react, csys.pos, false, force, moment);
         tire_force.force += force;
         tire_force.moment += moment;
     }
@@ -184,14 +180,14 @@ TerrainForce ChDeformableTire::GetTireForce(bool cosim) const {
     for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
         ChCoordsys<> csys = m_connectionsD[ic]->GetLinkAbsoluteCoords();
         ChVector<> react = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
-        body_frame->To_abs_torque(react, false, moment);
+        m_wheel->To_abs_torque(react, false, moment);
         tire_force.moment += moment;
     }
 
     for (size_t ic = 0; ic < m_connectionsF.size(); ic++) {
         ChCoordsys<> csys = m_connectionsF[ic]->GetLinkAbsoluteCoords();
         ChVector<> react = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->Get_react_force());
-        body_frame->To_abs_forcetorque(react, csys.pos, false, force, moment);
+        m_wheel->To_abs_forcetorque(react, csys.pos, false, force, moment);
         tire_force.force += force;
         tire_force.moment += moment;
         ChVector<> reactMoment = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->Get_react_torque());

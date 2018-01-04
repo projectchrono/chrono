@@ -59,7 +59,7 @@ double terrainWidth = 100.0;   // size in Y direction
 // Simulation step size
 double step_size = 1e-3;
 
-// Use MKL
+// Use HHT + MKL
 bool use_mkl = false;
 
 // Time interval between two render frames
@@ -98,16 +98,21 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::SMC, chassis_collision_type);
-
-#ifndef CHRONO_MKL
-    // Do not use MKL if not available
-    use_mkl = false;
-#endif
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::NSC, chassis_collision_type);
 
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
+
+    // Cannot use HHT + MKL with NSC contact
+    if (vehicle.GetSystem()->GetContactMethod() == ChMaterialSurface::NSC) {
+        use_mkl = false;
+    }
+
+#ifndef CHRONO_MKL
+    // Cannot use HHT + MKL if Chrono::MKL not available
+    use_mkl = false;
+#endif
 
     if (use_mkl) {
 #ifdef CHRONO_MKL
@@ -120,20 +125,21 @@ int main(int argc, char* argv[]) {
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(50);
         integrator->SetAbsTolerances(1e-4, 1e2);
-        integrator->SetMode(ChTimestepperHHT::POSITION);
+        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+        integrator->SetStepControl(false);
         integrator->SetModifiedNewton(false);
         integrator->SetScaling(true);
         integrator->SetVerbose(true);
 #endif
     } else {
-        ////vehicle.GetSystem()->SetSolverType(ChSolver::Type::MINRES);
+        vehicle.GetSystem()->SetSolverType(ChSolver::Type::SOR);
         vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
         vehicle.GetSystem()->SetMaxItersSolverStab(50);
-        ////vehicle.GetSystem()->SetTol(0);
-        ////vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        ////vehicle.GetSystem()->SetMinBounceSpeed(2.0);
-        ////vehicle.GetSystem()->SetSolverOverrelaxationParam(0.8);
-        ////vehicle.GetSystem()->SetSolverSharpnessParam(1.0);
+        vehicle.GetSystem()->SetTol(0);
+        vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+        vehicle.GetSystem()->SetMinBounceSpeed(2.0);
+        vehicle.GetSystem()->SetSolverOverrelaxationParam(0.8);
+        vehicle.GetSystem()->SetSolverSharpnessParam(1.0);
     }
 
     // Disable gravity in this simulation
@@ -189,12 +195,14 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem());
-    terrain.SetContactFrictionCoefficient(0.9f);
-    terrain.SetContactRestitutionCoefficient(0.01f);
-    terrain.SetContactMaterialProperties(2e7f, 0.3f);
-    terrain.SetColor(ChColor(0.5f, 0.8f, 0.5f));
-    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+                                  ChVector<>(terrainLength, terrainWidth, 10));
+    patch->SetContactFrictionCoefficient(0.9f);
+    patch->SetContactRestitutionCoefficient(0.01f);
+    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
+    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    terrain.Initialize();
 
     // --------------------------------
     // Add fixed and/or falling objects

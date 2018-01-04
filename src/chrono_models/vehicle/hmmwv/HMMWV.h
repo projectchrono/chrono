@@ -82,6 +82,7 @@ class CH_MODELS_API HMMWV {
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
     ChPowertrain& GetPowertrain() const { return *m_powertrain; }
     ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
+    double GetTotalMass() const;
 
     void Initialize();
 
@@ -131,6 +132,8 @@ class CH_MODELS_API HMMWV {
     HMMWV_Vehicle* m_vehicle;
     ChPowertrain* m_powertrain;
     std::array<ChTire*, 4> m_tires;
+
+    double m_tire_mass;
 };
 
 /// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using full

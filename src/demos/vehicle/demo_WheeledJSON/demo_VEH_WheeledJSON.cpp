@@ -57,34 +57,39 @@ using namespace chrono::vehicle;
 
 // JSON file for vehicle model
 std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
-// std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
-// std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
-// std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
-// std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Independent.json");
-// std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_MacPhersonStruts.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_SemiTrailingArm.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_ThreeLinkIRS.json");
+////std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
+////std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
+////std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Independent.json");
+////std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_MacPhersonStruts.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_SemiTrailingArm.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_ThreeLinkIRS.json");
 
-// JSON files for terrain (rigid plane), and powertrain (simple)
+// JSON files for terrain
 std::string rigidterrain_file("terrain/RigidPlane.json");
+////std::string rigidterrain_file("terrain/RigidMesh.json");
+////std::string rigidterrain_file("terrain/RigidHeightMap.json");
+////std::string rigidterrain_file("terrain/RigidSlope10.json");
+////std::string rigidterrain_file("terrain/RigidSlope20.json");
+
+// JSON file for powertrain (simple)
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // JSON files tire models (rigid)
 std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
-//std::string rigidtire_file("hmmwv/tire/HMMWV_RigidMeshTire.json");
-//std::string rigidtire_file("MAN_5t/tire/MAN_5t_RigidTire.json");
+////std::string rigidtire_file("hmmwv/tire/HMMWV_RigidMeshTire.json");
+////std::string rigidtire_file("generic/tire/RigidTire.json");
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.0);
+ChVector<> initLoc(0, 0, 1.6);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -127,7 +132,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);

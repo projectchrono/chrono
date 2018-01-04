@@ -74,17 +74,30 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Note that this should not include the mass of the wheel (rim).
     virtual double GetMass() const = 0;
 
+    /// Report the tire mass.
+    /// Certain tire models (e.g. those based on FEA) must return 0 in GetMass()
+    /// so that the tire mass is not double counted in the underlying mechanical system.
+    /// For reporting purposes, use this function instead.
+    virtual double ReportMass() const;
+
     /// Get the tire moments of inertia.
     /// Note that these should not include the inertia of the wheel (rim).
     virtual ChVector<> GetInertia() const = 0;
 
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// vehicle system. Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TerrainForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
-                                      ) const = 0;
+    /// force on the wheel body.
+    /// NOTE: tire models that rely on underlying Chrono functionality (e.g., the
+    /// Chrono contact system or Chrono constraints) must always return zero forces
+    /// and moments, else tire forces are double counted.
+    virtual TerrainForce GetTireForce() const = 0;
+
+    /// Report the tire force and moment.
+    /// This function can be used for reporting purposes or else to calculate tire
+    /// forces in a co-simulation framework.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const = 0;
 
     /// Get the tire slip angle.
     /// Return the slip angle calculated based on the current state of the associated

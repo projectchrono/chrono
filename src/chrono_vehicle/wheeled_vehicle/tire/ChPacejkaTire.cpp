@@ -215,7 +215,11 @@ void ChPacejkaTire::RemoveVisualizationAssets() {
 // local or global frame). The main GetTireForce() function returns the combined
 // slip tire forces, expressed in the global frame.
 // -----------------------------------------------------------------------------
-TerrainForce ChPacejkaTire::GetTireForce(bool cosim) const {
+TerrainForce ChPacejkaTire::GetTireForce() const {
+    return GetTireForce_combinedSlip(false);
+}
+
+TerrainForce ChPacejkaTire::ReportTireForce(ChTerrain* terrain) const {
     return GetTireForce_combinedSlip(false);
 }
 
