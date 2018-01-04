@@ -94,10 +94,10 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis).
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                    const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                    ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
-                    );
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
+    );
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the axle. This function provides the interface
@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Remove visualization assets for the sprocket subsystem.
-    virtual void RemoveVisualizationAssets() override final;
+    virtual void RemoveVisualizationAssets() override;
 
     /// Log current constraint violations.
     void LogConstraintViolations();
