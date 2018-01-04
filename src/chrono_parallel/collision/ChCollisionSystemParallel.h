@@ -85,8 +85,20 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     /// is passed, a more rapid buffer copy might be performed).
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) {}
 
-    /// Perform a raycast (ray-hit test with the collision models).
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) { return false; }
+    /// Perform a ray-hit test with all collision models.
+    /// Currently not implemented.
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override {
+        return false;
+    }
+
+    /// Perform a ray-hit test with the specified collision model.
+    /// Currently not implemented.
+    virtual bool RayHit(const ChVector<>& from,
+                        const ChVector<>& to,
+                        ChCollisionModel* model,
+                        ChRayhitResult& mresult) const override {
+        return false;
+    }
 
     std::vector<vec2> GetOverlappingPairs();
     void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax);

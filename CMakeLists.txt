@@ -18,6 +18,8 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
+#-----------------------------------------------------------------------------
+
 enable_testing()
 set(VALGRIND_COMMAND "/usr/bin/valgrind")
 set(VALGRIND_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
@@ -25,18 +27,14 @@ set(MEMORYCHECK_COMMAND "/usr/bin/valgrind")
 set(CTEST_MEMORYCHECK_COMMAND "/usr/bin/valgrind")
 set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
 
-find_program(CCACHE_EXE ccache)
-if(CCACHE_EXE)
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_EXE}")
+if (NOT WIN32)
+    find_program(CCACHE_EXE ccache)
+    if(CCACHE_EXE)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_EXE}")
+    endif()
 endif()
 
 #-----------------------------------------------------------------------------
-# Disable the warning when adding a subdir that has not CMakeLists.txt
-#-----------------------------------------------------------------------------
-
-if(COMMAND cmake_policy)
-    cmake_policy(SET CMP0014 OLD)
-endif(COMMAND cmake_policy)
 
 # Be sure to avoid troubles with library paths when using old policy
 if(COMMAND cmake_policy)

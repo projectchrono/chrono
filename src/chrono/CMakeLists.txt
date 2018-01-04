@@ -929,7 +929,9 @@ set(ChronoEngine_utils_SOURCES
     utils/ChFilters.cpp
     utils/ChCompositeInertia.cpp
     utils/ChParserOpenSim.cpp
-    )
+    utils/ChParserAdams.cpp
+    utils/ChAdamsTokenizer.yy.cpp
+)
 
 set(ChronoEngine_utils_HEADERS
     utils/ChUtilsGeometry.h

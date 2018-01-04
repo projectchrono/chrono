@@ -123,7 +123,7 @@ void ChTMeasyTire::Synchronize(double time, const WheelState& wheel_state, const
 
     // Assuming the tire is a disc, check contact with terrain
     m_data.in_contact =
-        disc_terrain_contact(terrain, wheel_state.pos, disc_normal, m_unloaded_radius, m_data.frame, m_data.depth);
+        disc_terrain_contact_3d(terrain, wheel_state.pos, disc_normal, m_unloaded_radius, m_data.frame, m_data.depth);
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector<> vel = wheel_state.lin_vel;
@@ -203,12 +203,13 @@ void ChTMeasyTire::Advance(double step) {
 
     // Express alpha and gamma in degrees. Express kappa as percentage.
     // m_gamma = 90.0 - std::acos(m_states.disc_normal.z()) * CH_C_RAD_TO_DEG; from Pac89
-    m_gamma = GetCamberAngle() * CH_C_RAD_TO_DEG;
+    // calculation of gamma in disc_terrain_contact_3d() now!
+    // m_gamma = GetCamberAngle() * CH_C_RAD_TO_DEG;
     m_alpha = m_states.cp_side_slip * CH_C_RAD_TO_DEG;
     m_kappa = m_states.cp_long_slip * 100.0;
 
     // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.
-    double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit* CH_C_DEG_TO_RAD, m_gamma_limit* CH_C_DEG_TO_RAD);
+    double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).
@@ -348,6 +349,85 @@ void ChTMeasyTire::Advance(double step) {
     // Move the tire forces from the contact patch to the wheel center
     m_tireforce.moment +=
         Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
+}
+
+bool ChTMeasyTire::disc_terrain_contact_3d(
+    const ChTerrain& terrain,       ///< [in] reference to terrain system
+    const ChVector<>& disc_center,  ///< [in] global location of the disc center
+    const ChVector<>& disc_normal,  ///< [in] disc normal, expressed in the global frame
+    double disc_radius,             ///< [in] disc radius
+    ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
+    double& depth                   ///< [out] penetration depth (positive if contact occurred)
+) {
+    double dx = 0.1 * m_unloaded_radius;
+    double dy = 0.3 * m_width;
+
+    // Find terrain height below disc center. There is no contact if the disc
+    // center is below the terrain or farther away by more than its radius.
+    double hc = terrain.GetHeight(disc_center.x(), disc_center.y());
+    if (disc_center.z() <= hc || disc_center.z() >= hc + disc_radius)
+        return false;
+
+    // Find the lowest point on the disc. There is no contact if the disc is
+    // (almost) horizontal.
+    ChVector<> dir1 = Vcross(disc_normal, ChVector<>(0, 0, 1));
+    double sinTilt2 = dir1.Length2();
+
+    if (sinTilt2 < 1e-3)
+        return false;
+
+    // Contact point (lowest point on disc).
+    ChVector<> ptD = disc_center + disc_radius * Vcross(disc_normal, dir1 / sqrt(sinTilt2));
+
+    // Approximate the terrain with a plane. Define the projection of the lowest
+    // point onto this plane as the contact point on the terrain.
+    ChVector<> normal = terrain.GetNormal(ptD.x(), ptD.y());
+    ChVector<> longitudinal = Vcross(disc_normal, normal);
+    longitudinal.Normalize();
+    ChVector<> lateral = Vcross(normal, longitudinal);
+
+    // Calculate four contact points in the contact patch
+    ChVector<> ptQ1 = ptD + dx * longitudinal;
+    ptQ1.z() = terrain.GetHeight(ptQ1.x(), ptQ1.y());
+
+    ChVector<> ptQ2 = ptD - dx * longitudinal;
+    ptQ2.z() = terrain.GetHeight(ptQ2.x(), ptQ2.y());
+
+    ChVector<> ptQ3 = ptD + dy * lateral;
+    ptQ3.z() = terrain.GetHeight(ptQ3.x(), ptQ3.y());
+
+    ChVector<> ptQ4 = ptD - dy * lateral;
+    ptQ4.z() = terrain.GetHeight(ptQ4.x(), ptQ4.y());
+
+    // Calculate a smoothed road surface normal
+    ChVector<> rQ2Q1 = ptQ1 - ptQ2;
+    ChVector<> rQ4Q3 = ptQ3 - ptQ4;
+
+    ChVector<> terrain_normal = Vcross(rQ2Q1, rQ4Q3);
+    terrain_normal.Normalize();
+
+    // Find terrain height as average of four points. No contact if lowest point is above
+    // the terrain.
+    ptD = 0.25 * (ptQ1 + ptQ2 + ptQ3 + ptQ4);
+    ChVector<> d = ptD - disc_center;
+    double da = d.Length();
+
+    if (da >= m_unloaded_radius)
+        return false;
+
+    // Calculate an improved value for the camber angle, for consistency reasons in [deg]
+    m_gamma = std::asin(Vdot(disc_normal, terrain_normal)) * CH_C_RAD_TO_DEG;
+
+    ChMatrix33<> rot;
+    rot.Set_A_axis(longitudinal, lateral, terrain_normal);
+
+    contact.pos = ptD;
+    contact.rot = rot.Get_A_quaternion();
+
+    depth = m_unloaded_radius - da;
+    assert(depth > 0);
+
+    return true;
 }
 
 void ChTMeasyTire::tmxy_combined(double& f,
@@ -610,6 +690,18 @@ void ChTMeasyTire::GuessTruck80Par(unsigned int li,   // tire load index
                                    double pinfl_li,   // inflation pressure at load index
                                    double pinfl_use   // inflation pressure in this configuration
 ) {
+    double tireLoad = GetTireMaxLoad(li);
+    GuessTruck80Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use);
+}
+
+// No Data available? Try this to get a working truck tire
+void ChTMeasyTire::GuessTruck80Par(double tireLoad,   // tire load force [N]
+                                   double tireWidth,  // [m]
+                                   double ratio,      // [] = use 0.75 meaning 75%
+                                   double rimDia,     // rim diameter [m]
+                                   double pinfl_li,   // inflation pressure at load index
+                                   double pinfl_use   // inflation pressure in this configuration
+) {
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
     double xi = 0.05;                  // damping ration
@@ -619,7 +711,7 @@ void ChTMeasyTire::GuessTruck80Par(unsigned int li,   // tire load index
     m_rolling_resistance = 0.015;
     m_TMeasyCoeff.mu_0 = 0.8;
 
-    m_TMeasyCoeff.pn = 0.5 * GetTireMaxLoad(li) * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
     m_TMeasyCoeff.cz = 2.0 * m_TMeasyCoeff.pn / defl_max;
     m_TMeasyCoeff.czq = 0.0;  // linear function assumed
     m_TMeasyCoeff.dz = 2.0 * xi * sqrt(m_TMeasyCoeff.cz * GetMass());
@@ -664,6 +756,17 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,   // tire load index
                                      double pinfl_li,   // inflation pressure at load index
                                      double pinfl_use   // inflation pressure in this configuration
 ) {
+    double tireLoad = GetTireMaxLoad(li);
+    GuessPassCar70Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use);
+}
+
+void ChTMeasyTire::GuessPassCar70Par(double tireLoad,   // tire load force [N]
+                                     double tireWidth,  // [m]
+                                     double ratio,      // [] = use 0.75 meaning 75%
+                                     double rimDia,     // rim diameter [m]
+                                     double pinfl_li,   // inflation pressure at load index
+                                     double pinfl_use   // inflation pressure in this configuration
+) {
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
     double xi = 0.05;                  // damping ration
@@ -673,7 +776,7 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,   // tire load index
     m_rolling_resistance = 0.015;
     m_TMeasyCoeff.mu_0 = 0.8;
 
-    m_TMeasyCoeff.pn = 0.5 * GetTireMaxLoad(li) * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
     m_TMeasyCoeff.cz = 2.0 * m_TMeasyCoeff.pn / defl_max;
     m_TMeasyCoeff.czq = 0.0;  // linear function assumed
     m_TMeasyCoeff.dz = 2.0 * xi * sqrt(m_TMeasyCoeff.cz * GetMass());

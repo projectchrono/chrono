@@ -1,38 +1,40 @@
 {
-  "Name":     "Rigid plane",
-  "Type":     "Terrain",
+  "Name": "Rigid plane",
+  "Type": "Terrain",
   "Template": "RigidTerrain",
 
-  "Contact Material":
-  {
-      "Coefficient of Friction":    0.9,
-      "Coefficient of Restitution": 0.01,
+  "Patches": [
+    {
+      "Location": [ 0, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ],
 
-      "Properties": {
-          "Young Modulus":          2e7,
-          "Poisson Ratio":          0.3
+      "Geometry": {
+        "Height Map Filename": "terrain/height_maps/test64.bmp",
+        "Mesh Name": "terrain_test64_POV_geom",
+        "Size": [ 128, 128 ],
+        "Height Range": [ 0, 4 ]
       },
 
-      "Coefficients": {
-          "Normal Stiffness":       2e5,
-          "Normal Damping":         40.0,
-          "Tangential Stiffness":   2e5,
-          "Tangential Damping":     20.0
+      "Contact Material": {
+        "Coefficient of Friction": 0.9,
+        "Coefficient of Restitution": 0.01,
+        "Properties": {
+          "Young Modulus": 2e7,
+          "Poisson Ratio": 0.3
+        },
+        "Coefficients": {
+          "Normal Stiffness": 2e5,
+          "Normal Damping": 40.0,
+          "Tangential Stiffness": 2e5,
+          "Tangential Damping": 20.0
+        }
+      },
+
+      "Visualization": {
+        "Color": [ 1.0, 1.0, 1.0 ],
+        "Texture File": "terrain/textures/grass.jpg",
+        "Texture Scaling": [ 16, 16 ]
       }
-  },
-
-  "Geometry":
-  {
-    "Height Map Filename":  "terrain/height_maps/test64.bmp",
-    "Mesh Name":            "terrain_test64_POV_geom",
-    "Size":                 [128, 128],
-    "Height Range":         [0, 4]
-  },
-
-  "Visualization":
-  {
-    "Color": [1.0, 1.0, 1.0],
-    "Texture File": "terrain/textures/grass.jpg",
-    "Texture Scaling": [16, 16]
-  }
+    }
+  ]
 }

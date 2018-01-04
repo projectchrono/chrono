@@ -145,8 +145,7 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
             parseForce(forceNode, system, loadcontainer);
             forceNode = forceNode->next_sibling();
         }
-    }
-    else {
+    } else {
         std::cout << "No forces detected." << std::endl;
     }
 
@@ -159,7 +158,7 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
 
 ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChMaterialSurface::ContactMethod contact_method) {
     ChSystem* sys = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-        : static_cast<ChSystem*>(new ChSystemSMC);
+                                                               : static_cast<ChSystem*>(new ChSystemSMC);
 
     Parse(*sys, filename);
 
@@ -179,7 +178,7 @@ void ChParserOpenSim::Report::Print() const {
     std::cout << "Parsed " << joints.size() << " joints:\n";
     for (auto const& joint : joints) {
         std::cout << "   name: \"" << joint.first << "\", type: \"" << joint.second.type
-            << "\", standin: " << (joint.second.standin ? "yes" : "no") << std::endl;
+                  << "\", standin: " << (joint.second.standin ? "yes" : "no") << std::endl;
     }
 
     std::cout << "Parsed " << forces.size() << " forces:\n";
@@ -744,7 +743,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             collision_cylinder_specs new_cyl;
             new_cyl.rad = .075;
             new_cyl.hlen = (p1 - p2).Length() / 2;
-            new_cyl.pos = (p1 - p2) / 2;
+            new_cyl.pos = (p2 - p1) / 2;
             new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngZ(-CH_C_PI / 2);
             body_collision_info[parent->GetName()].cylinders.push_back(new_cyl);
         }

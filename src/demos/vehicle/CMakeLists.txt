@@ -30,3 +30,4 @@ ADD_SUBDIRECTORY(demo_TrackedJSON)
 ADD_SUBDIRECTORY(demo_TrackTestRig)
 
 ADD_SUBDIRECTORY(demo_Paths)
+ADD_SUBDIRECTORY(demo_RigidTerrain)
