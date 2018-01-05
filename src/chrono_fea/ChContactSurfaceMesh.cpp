@@ -18,6 +18,7 @@
 
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChElementShellANCF_8.h"
 #include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChElementBrick_9.h"
@@ -305,6 +306,46 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                 triangles.push_back({{nB.get(), nC.get(), nD.get()}});
                 triangles_ptrs.push_back({{nA, nB, nD}});
                 triangles_ptrs.push_back({{nB, nC, nD}});
+            }
+        }
+    }
+
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_8>(mmesh->GetElement(ie))) {
+            auto nA = mshell->GetNodeA();
+            auto nB = mshell->GetNodeB();
+            auto nC = mshell->GetNodeC();
+            auto nD = mshell->GetNodeD();
+            auto nE = mshell->GetNodeE();
+            auto nF = mshell->GetNodeF();
+            auto nG = mshell->GetNodeG();
+            auto nH = mshell->GetNodeH();
+            if (ccw) {
+                triangles.push_back({{nA.get(), nH.get(), nE.get()}});
+                triangles.push_back({{nB.get(), nE.get(), nF.get()}});
+                triangles.push_back({{nC.get(), nF.get(), nG.get()}});
+                triangles.push_back({{nD.get(), nG.get(), nH.get()}});
+                triangles.push_back({{nH.get(), nG.get(), nE.get()}});
+                triangles.push_back({{nF.get(), nE.get(), nG.get()}});
+                triangles_ptrs.push_back({{nA, nH, nE}});
+                triangles_ptrs.push_back({{nB, nE, nF}});
+                triangles_ptrs.push_back({{nC, nF, nG}});
+                triangles_ptrs.push_back({{nD, nG, nH}});
+                triangles_ptrs.push_back({{nH, nG, nE}});
+                triangles_ptrs.push_back({{nF, nE, nG}});
+            } else {
+                triangles.push_back({{nA.get(), nE.get(), nH.get()}});
+                triangles.push_back({{nB.get(), nF.get(), nE.get()}});
+                triangles.push_back({{nC.get(), nG.get(), nF.get()}});
+                triangles.push_back({{nD.get(), nH.get(), nG.get()}});
+                triangles.push_back({{nH.get(), nE.get(), nG.get()}});
+                triangles.push_back({{nF.get(), nG.get(), nE.get()}});
+                triangles_ptrs.push_back({{nA, nE, nH}});
+                triangles_ptrs.push_back({{nB, nF, nE}});
+                triangles_ptrs.push_back({{nC, nG, nF}});
+                triangles_ptrs.push_back({{nD, nH, nG}});
+                triangles_ptrs.push_back({{nH, nE, nG}});
+                triangles_ptrs.push_back({{nF, nG, nE}});
             }
         }
     }
