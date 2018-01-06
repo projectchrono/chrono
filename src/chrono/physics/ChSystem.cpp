@@ -466,6 +466,7 @@ void ChSystem::SetupInitial() {
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SetupInitial();
     }
+    this->Update();
 }
 
 // PROBE STUFF
