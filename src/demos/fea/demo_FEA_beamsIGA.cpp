@@ -32,6 +32,12 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
+#define USE_MKL
+
+#ifdef USE_MKL
+    #include "chrono_mkl/ChSolverMKL.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
@@ -57,9 +63,10 @@ int main(int argc, char* argv[]) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
-	msection->SetYoungModulus(0.01e9);
-	msection->SetGshearModulus(0.01e9 * 0.3);
-	msection->SetBeamRaleyghDamping(0.000);
+	msection->SetYoungModulus(0.02e10);
+	msection->SetGshearModulus(0.02e10 * 0.3);
+	msection->SetBeamRaleyghDamping(0.0000);
+    msection->SetDensity(1000);
 	// msection->SetCentroid(0,0.02);
 	// msection->SetShearCenter(0,0.1);
 	// msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
@@ -107,39 +114,25 @@ int main(int argc, char* argv[]) {
     // Example B: Automatic creation of the nodes and knots 
     // using the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements: 
     //
-/*
-    ChBuilderBeamIGA builder;
-    builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
-                            msection,           // section of the beam
-                            8,                  // number of sections (spans)
-                            ChVector<>(0,  0,1),// start point 
-                            ChVector<>(0.5,0,1),// end point 
-                            VECT_Y,             // suggested Y direction of section
-                            3);                 // order (3 = cubic, etc)
-    
-    // in case you want to acces one of the created nodes, ex. to apply a tip force:
-    builder.GetLastBeamNodes().back()->SetFixed(true);
-    builder.GetLastBeamNodes().front()->SetForce(ChVector<>(0, -1, 0));
-*/
     
     ChBuilderBeamIGA builder;
     builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
                             msection,           // section of the beam
-                            10,                  // number of sections (spans)
+                            15,                 // number of sections (spans)
                             ChVector<>(0,  0,0),// start point 
                             ChVector<>(0.4,0,0),// end point 
                             VECT_Y,             // suggested Y direction of section
-                            2);                 // order (3 = cubic, etc)
+                            3);                 // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    //builder.GetLastBeamNodes().back()->SetPos(ChVector<>(0.42,0.01,1)); // move a bit the 2nd node respect to initial X0 state to test strain computation
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-3,0));
-
+    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-2,-4));
+    //builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(0,0, 1.2));
 
     //
     // Example C: Automatic creation of the nodes and knots using the 
     // ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
     //
-/*    
+
+    /*    
     std::vector< ChVector<> > my_points = { {0,0,0}, {0,0.1,0}, {0,0.2,0}, {0,0.3,0.1} };
     
     geometry::ChLineBspline my_spline(  3,          // order (3 = cubic, etc)
@@ -149,7 +142,7 @@ int main(int argc, char* argv[]) {
                             msection,           // section of the beam
                             my_spline,          // Bspline to match (also order will be matched)
                             VECT_Z);            // suggested Y direction of section
-*/
+    */
 
     //
     // Final touches..
@@ -169,18 +162,10 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
-    /*
+    
     auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
     mvisualizebeamA->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizebeamA);
-    */
-
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_ELEM_BEAM_MZ);
-    mvisualizebeamA->SetColorscaleMinMax(-0.4, 0.4);
-    mvisualizebeamA->SetSmoothFaces(true);
-    mvisualizebeamA->SetWireframe(false);
     my_mesh->AddAsset(mvisualizebeamA);
 
     auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
@@ -190,6 +175,7 @@ int main(int argc, char* argv[]) {
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
     my_mesh->AddAsset(mvisualizebeamC);
+
 
 
     // Create the Irrlicht visualization (open the Irrlicht device,
@@ -223,26 +209,31 @@ int main(int argc, char* argv[]) {
     //
     my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(460);
-    my_system.SetMaxItersSolverStab(460);
-    my_system.SetTolForce(1e-13);
+    my_system.SetMaxItersSolverSpeed(500);
+    my_system.SetMaxItersSolverStab(500);
+    my_system.SetTolForce(1e-14);
 
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 
+    #ifdef USE_MKL
+        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        my_system.SetSolver(mkl_solver);
+    #endif
 
-    application.SetTimestep(0.001);
+    application.SetTimestep(0.01);
 
+    /*
     GetLog() << "\n\n\n===========STATICS======== \n\n\n";
 
-//    application.GetSystem()->DoStaticLinear();
+    application.GetSystem()->DoStaticLinear();
 
     GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
 
     ChVector<> F, M;
     ChMatrixDynamic<> displ;
-	/*
+	
     belement1->GetStateBlock(displ);
     GetLog() << displ;
     for (double eta = -1; eta <= 1; eta += 0.4) {
@@ -250,18 +241,20 @@ int main(int argc, char* argv[]) {
         GetLog() << "  b1_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
                  << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
     }
-	*/
+	
     GetLog() << "\n";
-	/*
+	
     belement2->GetStateBlock(displ);
     for (double eta = -1; eta <= 1; eta += 0.4) {
         belement2->EvaluateSectionForceTorque(eta, F, M);
         GetLog() << "  b2_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
                  << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
     }
-	*/
+	
     GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
              << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
+
+    */
 
     GetLog() << "Press SPACE bar to start/stop dynamic simulation \n\n";
     GetLog() << "Press F10 for nonlinear static solution \n\n";
