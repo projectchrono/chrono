@@ -45,12 +45,9 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
     this->world = world;
     MPI_Comm_size(world, &num_ranks);
     MPI_Comm_rank(world, &my_rank);
-    int name_len;
-    node_name = new char[50];
+    int name_len = -1;
     MPI_Get_processor_name(node_name, &name_len);
-
-    rank_digits = std::pow(10, std::floor(std::log10(num_ranks)) + 1);
-
+	
     ddm = new ChDistributedDataManager(this);
     domain = new ChDomainDistributed(this);
     comm = new ChCommDistributed(this);

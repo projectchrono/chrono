@@ -2,6 +2,7 @@
 set(DISTRIBUTED_TESTS
     demo_DISTR_rotgrav
     demo_DISTR_scaling
+	demo_DISTR_wavetank
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")

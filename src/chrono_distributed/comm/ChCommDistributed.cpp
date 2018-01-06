@@ -306,7 +306,7 @@ void ChCommDistributed::Exchange() {
                              << my_rank + 1 << " index " << i << "\n";
 #endif
 
-                    BodyExchange b_ex;
+                    BodyExchange b_ex = {};
                     PackExchange(&b_ex, i);
                     exchange_up_buf.push_back(b_ex);
 
@@ -325,7 +325,7 @@ void ChCommDistributed::Exchange() {
                              << my_rank - 1 << " index " << i << "\n";
 #endif
 
-                    BodyExchange b_ex;
+                    BodyExchange b_ex = {};
                     PackExchange(&b_ex, i);
                     exchange_down_buf.push_back(b_ex);
 
@@ -356,7 +356,7 @@ void ChCommDistributed::Exchange() {
                              << "\n";
 #endif
 
-                    BodyUpdate b_upd;
+                    BodyUpdate b_upd = {};
                     PackUpdate(&b_upd, i, distributed::UPDATE);
                     update_up_buf.push_back(b_upd);
 
@@ -367,7 +367,7 @@ void ChCommDistributed::Exchange() {
                              << "\n";
 #endif
 
-                    BodyUpdate b_upd;
+                    BodyUpdate b_upd = {};
                     PackUpdate(&b_upd, i, distributed::UPDATE_TRANSFER_SHARE);
                     update_up_buf.push_back(b_upd);
 
@@ -383,7 +383,7 @@ void ChCommDistributed::Exchange() {
                              << "\n";
 #endif
 
-                    BodyUpdate b_upd;
+                    BodyUpdate b_upd = {};
                     PackUpdate(&b_upd, i, distributed::UPDATE);
                     update_down_buf.push_back(b_upd);
 
@@ -394,7 +394,7 @@ void ChCommDistributed::Exchange() {
                              << "\n";
 #endif
 
-                    BodyUpdate b_upd;
+                    BodyUpdate b_upd = {};
                     PackUpdate(&b_upd, i, distributed::UPDATE_TRANSFER_SHARE);
                     update_down_buf.push_back(b_upd);
 
@@ -409,13 +409,13 @@ void ChCommDistributed::Exchange() {
                           ddm->comm_status[i] == distributed::SHARED_DOWN)) {
                     int up;
                     if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
-                        BodyUpdate b_upd;
+                        BodyUpdate b_upd = {};
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_up_buf.push_back(b_upd);
                         num_update_up++;  // TODO might be able to eliminate
                         up = 1;
                     } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
-                        BodyUpdate b_upd;
+                        BodyUpdate b_upd = {};
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_down_buf.push_back(b_upd);
                         num_update_down++;  // TODO might be able to eliminate
@@ -733,6 +733,8 @@ void ChCommDistributed::Exchange() {
     delete[] recv_take_up;
     delete[] recv_shapes_down;
     delete[] recv_shapes_up;
+	
+	MPI_Barrier(my_sys->GetMPIWorld());
 }
 
 void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {

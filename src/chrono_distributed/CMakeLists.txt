@@ -16,9 +16,9 @@ if(NOT MPI_CXX_FOUND)
 	message("Chrono::Distributed requires MPI")
 	return()
 endif()
-
 # Return now if Chrono::Parallel is not enabled
 if(NOT ENABLE_MODULE_PARALLEL)
+
     message("Chrono::Distributed depends on Chrono::Parallel")
     return()
 endif()
@@ -92,6 +92,7 @@ SET(ChronoEngine_distributed_COLLISION
 	collision/ChCollisionSystemDistributed.h
 	collision/ChCollisionModelDistributed.cpp
 	collision/ChCollisionSystemDistributed.cpp
+	collision/ChAAPlaneCB.cpp
     )
 
 SOURCE_GROUP(collision FILES ${ChronoEngine_distributed_COLLISION})

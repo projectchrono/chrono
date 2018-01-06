@@ -91,7 +91,7 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 
     ChDistributedDataManager* ddm;
 
-    char* node_name;
+    char node_name[50];
 
     double GetLowestZ(uint* gid);
     void CheckIds();
@@ -114,9 +114,7 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     // MPI
     int num_ranks;
     int my_rank;
-
-    int rank_digits;  // 10^(number of digits in highest rank)
-
+	
     double ghost_layer;
 
     unsigned int num_bodies_global;
