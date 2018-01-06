@@ -19,6 +19,7 @@
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChElementCableANCF.h"
 #include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementBeamIGA.h"
 #include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChElementHexa_20.h"
@@ -622,6 +623,12 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     z_thick = 0.5 * mybeamancf->GetSection()->GetDrawThicknessZ();
                     m_circular = mybeamancf->GetSection()->IsCircular();
                     m_rad = mybeamancf->GetSection()->GetDrawCircularRadius();
+                } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(mybeam)) {
+                    // if the beam has a section info, use section specific thickness for drawing
+                    y_thick = 0.5 * mybeamiga->GetSection()->GetDrawThicknessY();
+                    z_thick = 0.5 * mybeamiga->GetSection()->GetDrawThicknessZ();
+                    m_circular = mybeamiga->GetSection()->IsCircular();
+                    m_rad = mybeamiga->GetSection()->GetDrawCircularRadius();
                 }
 
                 unsigned int ivert_el = i_verts;
