@@ -61,7 +61,7 @@ class ChAAPlaneCB : public ChSystem::CustomCollisionCallback {
         m_nonconst_max[1] = max_2;
     }
 
-    void SetPos(double new_const_coord) { m_const_coord = new_const_coord; }
+    void SetPos(double new_const_coord) { m_const_coord_val = new_const_coord; }
 
     // Main method called by the system at each collision detection phase
     virtual void OnCustomCollision(ChSystem* system) override;
@@ -133,6 +133,8 @@ void ChAAPlaneCB::CheckSphereProfile(std::shared_ptr<ChBody> sphere) {
     contact.vpB = vpB;
     contact.distance = delta.Length() - radius;
 
+	m_sys->data_manager->host_data.erad_rigid_rigid.push_back(std::abs(delta.Length() - radius));
+	
     m_sys->GetContactContainer()->AddContact(contact);  // NOTE: Not thread-safe
 }
 

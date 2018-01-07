@@ -72,13 +72,11 @@ double rho = 4000;
 double spacing = 2.001 * gran_radius;  // Distance between adjacent centers of particles
 
 // Dimensions
-double fill_radius =
-    0.01;  // Radius used for spherical decomposition of the container TODO remove in favor of custom collision planes
-double lowest_layer = 2 * spacing;   // Lowest possible CENTER of granular material TODO adapt for collision planes
-int extra_container_layers = 3;  // TODO adapt for collision planes
+double lowest_layer = 2 * spacing;  // Lowest possible CENTER of granular material TODO adapt for collision planes
+int extra_container_layers = 3;     // TODO adapt for collision planes
 
 // Oscillation
-double period = 2;                   // TODO adjust
+double period = 1;                   // TODO adjust
 double amplitude = gran_radius * 4;  // TODO adjust
 double lower_start;
 
@@ -151,12 +149,17 @@ void AddContainer(ChSystemDistributed* sys,
     container->GetCollisionModel()->ClearModel();
     container->GetCollisionModel()->BuildModel();
 
-	// TODO little extra space on sides
-    *bottom_wall = new ChAAPlaneCB(sys, container.get(), 2, 0, ChVector<>(0, 0, 1), -h_x, h_x, -h_y, h_y);
-    *low_x_wall = new ChAAPlaneCB(sys, container.get(), 0, -h_x - 0.002, ChVector<>(1, 0, 0), -h_y, h_y, 0, height);
-    *high_x_wall = new ChAAPlaneCB(sys, container.get(), 0, h_x + 0.002, ChVector<>(-1, 0, 0), -h_y, h_y, 0, height);
-    *low_y_wall = new ChAAPlaneCB(sys, container.get(), 1, -h_y - 0.002, ChVector<>(0, 1, 0), -h_x, h_x, 0, height);
-    *high_y_wall = new ChAAPlaneCB(sys, container.get(), 1, h_y + 0.002, ChVector<>(0, -1, 0), -h_x, h_x, 0, height);
+    // TODO little extra space on sides
+    *bottom_wall =
+        new ChAAPlaneCB(sys, container.get(), 2, 0, ChVector<>(0, 0, 1), -2 * h_x, 2 * h_x, -2 * h_y, 2 * h_y);
+    *low_x_wall =
+        new ChAAPlaneCB(sys, container.get(), 0, -h_x - 0.002, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+    *high_x_wall =
+        new ChAAPlaneCB(sys, container.get(), 0, h_x + 0.002, ChVector<>(-1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+    *low_y_wall =
+        new ChAAPlaneCB(sys, container.get(), 1, -h_y - 0.002, ChVector<>(0, 1, 0), -2 * h_x, 2 * h_x, -height, height);
+    *high_y_wall =
+        new ChAAPlaneCB(sys, container.get(), 1, h_y + 0.002, ChVector<>(0, -1, 0), -2 * h_x, 2 * h_x, -height, height);
 
     sys->RegisterCustomCollisionCallback(*bottom_wall);
     sys->RegisterCustomCollisionCallback(*low_x_wall);
