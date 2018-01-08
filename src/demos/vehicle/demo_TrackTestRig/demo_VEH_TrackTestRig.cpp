@@ -167,17 +167,16 @@ int main(int argc, char* argv[]) {
         ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
 
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
 
+        if (step_number % render_steps == 0) {
             if (img_output && step_number > 1000) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", out_dir.c_str(), render_frame + 1);
                 app.WriteImageToFile(filename);
             }
-
             render_frame++;
         }
 
