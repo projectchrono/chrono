@@ -47,7 +47,7 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
     MPI_Comm_rank(world, &my_rank);
     int name_len = -1;
     MPI_Get_processor_name(node_name, &name_len);
-	
+
     ddm = new ChDistributedDataManager(this);
     domain = new ChDomainDistributed(this);
     comm = new ChCommDistributed(this);
@@ -151,6 +151,34 @@ void ChSystemDistributed::UpdateRigidBodies() {
     for (int i = 0; i < bodylist.size(); i++) {
         ddm->global_id[i] = bodylist[i]->GetGid();
     }
+}
+
+void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
+    newbody->SetGid(num_bodies_global);
+    distributed::COMM_STATUS status = distributed::GLOBAL;
+
+    ddm->body_shape_start.push_back(0);
+    ddm->body_shape_count.push_back(0);  // TODO these two lines were moved from above
+
+    ddm->comm_status.push_back(status);
+    ddm->global_id.push_back(newbody->GetGid());
+
+    newbody->SetId(data_manager->num_rigid_bodies);
+    bodylist.push_back(newbody);
+
+    ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
+
+    data_manager->num_rigid_bodies++;
+    newbody->SetSystem(this);  // TODO Syncs collision model // TODO collision add expensive
+
+    // actual data is set in UpdateBodies().
+    data_manager->host_data.pos_rigid.push_back(real3());
+    data_manager->host_data.rot_rigid.push_back(quaternion());
+    data_manager->host_data.active_rigid.push_back(true);
+    data_manager->host_data.collide_rigid.push_back(true);
+
+    // Let derived classes reserve space for specific material surface data
+    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {

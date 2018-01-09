@@ -40,7 +40,7 @@ typedef struct CosimForce {
 
 typedef struct CosimDispl {
     double vertices[9];
-	uint gid;
+    uint gid;
 } CosimDispl;
 
 class ChDomainDistributed;
@@ -110,11 +110,13 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     /// Call on all ranks?TODO
     void DistributedCosimPositions(uint* GID, ChVector<double>* vertices);
 
+    void AddBodyAllRanks(std::shared_ptr<ChBody> body);
+
   protected:
     // MPI
     int num_ranks;
     int my_rank;
-	
+
     double ghost_layer;
 
     unsigned int num_bodies_global;
@@ -131,8 +133,8 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     void AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status);
 
     // Co-simulation
-	MPI_Datatype CosimForceType;
-	MPI_Datatype CosimDisplType;
+    MPI_Datatype CosimForceType;
+    MPI_Datatype CosimDisplType;
 };
 
 } /* namespace chrono */

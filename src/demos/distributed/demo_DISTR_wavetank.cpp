@@ -144,9 +144,10 @@ void AddContainer(ChSystemDistributed* sys,
     container->SetMaterialSurface(mat);
     container->SetMass(1);
     container->SetPos(ChVector<>(0));
-    container->SetCollide(true);
+    container->SetCollide(false);
     container->SetBodyFixed(true);
     container->GetCollisionModel()->ClearModel();
+    utils::AddSphereGeometry(container.get(), 2);
     container->GetCollisionModel()->BuildModel();
 
     // TODO little extra space on sides
@@ -167,7 +168,7 @@ void AddContainer(ChSystemDistributed* sys,
     sys->RegisterCustomCollisionCallback(*low_y_wall);
     sys->RegisterCustomCollisionCallback(*high_y_wall);
 
-    sys->AddBody(container);
+    sys->AddBodyAllRanks(container);
     sys->IncrementGID();
 }
 
