@@ -8,6 +8,7 @@ option(ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
 
 # Return now if this module is not enabled
 if(NOT ENABLE_MODULE_VEHICLE)
+   mark_as_advanced(ENABLE_OPENCRG)
    mark_as_advanced(FORCE ENABLE_IRRKLANG)
    mark_as_advanced(FORCE CH_IRRKLANG_SDKDIR)
    mark_as_advanced(FORCE CH_IRRKLANGLIB)
@@ -16,13 +17,60 @@ endif()
 
 message(STATUS "==== Chrono Vehicle module ====")
 
+mark_as_advanced(CLEAR ENABLE_OPENCRG)
 mark_as_advanced(CLEAR ENABLE_IRRKLANG)
 mark_as_advanced(CLEAR CH_IRRKLANG_SDKDIR)
 mark_as_advanced(CLEAR CH_IRRKLANGLIB)
 
+# Provide option to add OpenCRG support.
+option(ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
+
 # If Irrlicht support was enabled, provide option to add Irrklang support.
 cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
                        "ENABLE_MODULE_IRRLICHT" OFF)
+
+# ----------------------------------------------------------------------------
+# Find the OpenCRG library
+# ----------------------------------------------------------------------------
+if (ENABLE_OPENCRG)
+   
+   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+      set(OPENCRG_INCLUDE_DIR ""  CACHE PATH   "The directory where crgBaseLib.h resides")
+      set(OPENCRG_LIBRARY   "" CACHE FILEPATH "The OpenCRG library")
+      set(OPENCRG_DLL  "" CACHE FILEPATH "The OpenCRG DLL")
+   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+      find_path(OPENCRG_INCLUDE_DIR NAMES crgBaseLib.h PATHS "/usr/local/include")
+      find_library(OPENCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
+   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+      find_path(OPENCRG_INCLUDE_DIR NAMES crgBaseLib.h PATHS "/usr/local/include")
+      find_library(OPENCRG_LIBRARY NAMES OpenCRG PATHS "/usr/local/lib")
+   endif()
+
+   mark_as_advanced(CLEAR OPENCRG_INCLUDE_DIR)
+   mark_as_advanced(CLEAR OPENCRG_LIBRARY)
+   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+     mark_as_advanced(CLEAR OPENCRG_DLL)
+   endif()
+
+   if(EXISTS "${OPENCRG_INCLUDE_DIR}/crgBaseLib.h" AND EXISTS "${OPENCRG_LIBRARY}")
+     set(HAVE_OPENCRG ON)
+  else()
+     set(HAVE_OPENCRG OFF)
+   endif()
+
+else()
+
+   mark_as_advanced(FORCE OPENCRG_INCLUDE_DIR)
+   mark_as_advanced(FORCE OPENCRG_LIBRARY)
+   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+     mark_as_advanced(FORCE OPENCRG_DLL)
+   endif()
+
+   set(HAVE_OPENCRG OFF)
+
+endif()
+
+SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Find IrrKlang library
@@ -43,7 +91,13 @@ if(ENABLE_IRRKLANG)
       set(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}")
   endif()
 
-  include_directories(${CH_IRRKLANGINC})
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
+        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Win32-VisualStudio/irrKlang.dll")
+    elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
+        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Winx64-VisualStudio/irrKlang.dll")
+    endif()
+  endif()
 
   mark_as_advanced(CLEAR CH_IRRKLANG_SDKDIR)
   mark_as_advanced(CLEAR CH_IRRKLANGLIB)
@@ -60,6 +114,11 @@ endif()
 # ----------------------------------------------------------------------------
 
 # Prepare replacement variables
+if(HAVE_OPENCRG)
+  set(CHRONO_OPENCRG "#define CHRONO_OPENCRG")
+else()
+  set(CHRONO_OPENCRG "#undef CHRONO_OPENCRG")
+endif()
 
 if(ENABLE_IRRKLANG)
   set(CHRONO_IRRKLANG "#define CHRONO_IRRKLANG")
@@ -153,7 +212,6 @@ set(CV_TERRAIN_FILES
     terrain/GranularTerrain.h
     terrain/GranularTerrain.cpp
 )
-
 if(ENABLE_MODULE_FEA)
     set(CV_FEATERRAIN_FILES
         terrain/FEADeformableTerrain.h
@@ -162,7 +220,15 @@ if(ENABLE_MODULE_FEA)
 else()
     set(CV_FEATERRAIN_FILES "")
 endif()
-source_group("terrain" FILES ${CV_TERRAIN_FILES} ${CV_FEATERRAIN_FILES})
+if(HAVE_OPENCRG)
+    set(CV_OPENCRG_FILES
+        terrain/CRGTerrain.h
+        terrain/CRGTerrain.cpp
+    )
+else()
+    set(CV_OPENCRG_FILES "")
+endif()
+source_group("terrain" FILES ${CV_TERRAIN_FILES} ${CV_FEATERRAIN_FILES} ${CV_OPENCRG_FILES})
 
 set(CV_UTILS_FILES
     utils/ChSteeringController.h
@@ -583,8 +649,7 @@ set(LIBRARIES "ChronoEngine")
 
 if(ENABLE_MODULE_IRRLICHT)
     set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_irrlicht)
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+    list(APPEND LIBRARIES ChronoEngine_irrlicht) 
     include_directories(${CH_IRRLICHTINC})
 endif()
 
@@ -599,6 +664,16 @@ if(MPI_CXX_FOUND)
     list(APPEND LIBRARIES ${MPI_CXX_LIBRARIES})
 endif()
 
+if(HAVE_OPENCRG)
+    include_directories(${OPENCRG_INCLUDE_DIR})
+    list(APPEND LIBRARIES ${OPENCRG_LIBRARY})
+endif()
+
+if(ENABLE_IRRKLANG)
+    include_directories(${CH_IRRKLANGINC})
+    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+endif()
+
 add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_BASE_FILES}
@@ -608,6 +683,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_POVERTRAIN_FILES}
     ${CV_TERRAIN_FILES}
     ${CV_FEATERRAIN_FILES}
+    ${CV_OPENCRG_FILES}
     ${CV_UTILS_FILES}
     ${CVIRR_UTILS_FILES}
 #
@@ -661,17 +737,23 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         FILES_MATCHING PATTERN "*.h")
 
 #-------------------------------------------------------------------------------
-# On Windows, copy the Irrklang DLL (if enabled)
+# On Windows, copy DLLs (if specified)
 #-------------------------------------------------------------------------------
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ENBALE_IRRKLANG)
-    if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Win32-VisualStudio/irrKlang.dll")
-    elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Winx64-VisualStudio/irrKlang.dll")
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
+    if(EXISTS ${CH_IRRKLANG_DLL})
+        add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CH_IRRKLANG_DLL}"
+            "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
     endif()
 
-    add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CH_IRRKLANG_DLL}"
-        "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
+    if(EXISTS ${OPENCRG_DLL})
+        add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${OPENCRG_DLL}"
+            "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
+    endif()
+
 endif()
