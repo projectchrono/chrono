@@ -14,13 +14,13 @@
 
 #pragma once
 
-#include <thrust/count.h>
+// #include <thrust/count.h>
 
 #include "chrono/solver/ChSystemDescriptor.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include "chrono_parallel/math/ChParallelMath.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
 namespace chrono {
 
@@ -79,4 +79,4 @@ class CH_PARALLEL_API ChSystemDescriptorParallel : public ChSystemDescriptor {
 
 /// @} parallel_solver
 
-} // end namespace chrono
+}  // end namespace chrono
