@@ -9,8 +9,9 @@
 #include <memory>
 #include <vector>
 
-#include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
-#include "../../chrono_distributed/physics/ChSystemDistributed.h"
+#include "chrono_distributed/collision/ChAAPlaneCB.cpp"
+#include "chrono_distributed/collision/ChCollisionModelDistributed.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -71,9 +72,14 @@ double rho = 4000;
 double spacing = 2 * gran_radius;  // Distance between adjacent centers of particles
 
 // Dimensions
-double fill_radius = 0.01;                        // Radius used for spherical decomposition of the container TODO remove in favor of custom collision planes
-double lowest_layer = fill_radius + 3 * spacing;  // Lowest possible CENTER of granular material TODO adapt for collision planes
-int extra_container_layers = 3;	// TODO adapt for collision planes
+double fill_radius = 0.01;                        // Radius used for spherical decomposition of the container
+double lowest_layer = fill_radius + 3 * spacing;  // Lowest possible CENTER of granular material
+int extra_container_layers = 3;
+
+// Oscillation
+double period = 1;                   // TODO adjust
+double amplitude = gran_radius * 4;  // TODO adjust
+double lower_start;
 
 // Simulation
 double time_step = 1e-4;
@@ -118,22 +124,16 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
            rank, TIME, STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
 }
 
-// TODO: Remove in favor of custom collision planes
-// Returns points to put spheres at
-void BoxSphereDecomp(std::vector<ChVector<double>>& points, ChVector<double> min, ChVector<double> max, double radius) {
-    double incr = radius;
-
-    for (double x = min.x(); x <= max.x(); x += incr) {
-        for (double y = min.y(); y <= max.y(); y += incr) {
-            for (double z = min.z(); z <= max.z(); z += incr) {
-                points.push_back(ChVector<double>(x, y, z));
-            }
-        }
-    }
-}
-
-// TODO: Remove in favor of custom collision planes
-void AddContainerSphereDecomp(ChSystemDistributed* sys, double h_x, double h_y, double height) {
+void AddContainer(ChSystemDistributed* sys,
+                  double h_x,
+                  double h_y,
+                  double height,
+                  ChAAPlaneCB** bottom_wall,
+                  ChAAPlaneCB** low_x_wall,
+                  ChAAPlaneCB** high_x_wall,
+                  ChAAPlaneCB** low_y_wall,
+                  ChAAPlaneCB** high_y_wall) {
+    // TODO Any of this body stuff needed for custom collision?
     int binId = -200;
 
     auto mat = std::make_shared<ChMaterialSurfaceSMC>();
@@ -141,92 +141,35 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys, double h_x, double h_y, 
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
-    std::vector<ChVector<double>> bottom;
-    std::vector<ChVector<double>> side1;
-    std::vector<ChVector<double>> side2;
-    std::vector<ChVector<double>> side3;
-    std::vector<ChVector<double>> side4;
+    auto container = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    container->SetMaterialSurface(mat);
+    container->SetMass(1);
+    container->SetPos(ChVector<>(0));
+    container->SetCollide(false);
+    container->SetBodyFixed(true);
+    container->GetCollisionModel()->ClearModel();
+    container->GetCollisionModel()->BuildModel();
 
-    // Leaves 2*h_x X 2*h_y open for granular material
-    ChVector<> hdim(h_x + fill_radius, h_y + fill_radius, height);  // except z is actual height
-    double hthick = 0.0;
+    // TODO little extra space on sides
+    *bottom_wall =
+        new ChAAPlaneCB(sys, container.get(), 2, 0, ChVector<>(0, 0, 1), -2 * h_x, 2 * h_x, -2 * h_y, 2 * h_y);
+    *low_x_wall =
+        new ChAAPlaneCB(sys, container.get(), 0, -h_x, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+    *high_x_wall =
+        new ChAAPlaneCB(sys, container.get(), 0, h_x, ChVector<>(-1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+    *low_y_wall =
+        new ChAAPlaneCB(sys, container.get(), 1, -h_y, ChVector<>(0, 1, 0), -2 * h_x, 2 * h_x, -height, height);
+    *high_y_wall =
+        new ChAAPlaneCB(sys, container.get(), 1, h_y, ChVector<>(0, -1, 0), -2 * h_x, 2 * h_x, -height, height);
 
-    BoxSphereDecomp(bottom, ChVector<>(-hdim.x(), -hdim.y(), -hthick), ChVector<>(hdim.x(), hdim.y(), hthick),
-                    fill_radius);
-    BoxSphereDecomp(side1, ChVector<>(-hdim.x() - hthick, -hdim.y() - hthick, -hthick),
-                    ChVector<>(-hdim.x() + hthick, hdim.y() + hthick, hdim.z()), fill_radius);
-    BoxSphereDecomp(side2, ChVector<>(hdim.x() - hthick, -hdim.y() - hthick, -hthick),
-                    ChVector<>(hdim.x() + hthick, hdim.y() + hthick, hdim.z()), fill_radius);
-    BoxSphereDecomp(side3, ChVector<>(-hdim.x() - hthick, -hdim.y() - hthick, -hthick),
-                    ChVector<>(hdim.x() + hthick, -hdim.y() + hthick, hdim.z()), fill_radius);
-    BoxSphereDecomp(side4, ChVector<>(-hdim.x() - hthick, hdim.y() - hthick, -hthick),
-                    ChVector<>(hdim.x() + hthick, hdim.y() + hthick, hdim.z()), fill_radius);
+    sys->RegisterCustomCollisionCallback(*bottom_wall);
+    sys->RegisterCustomCollisionCallback(*low_x_wall);
+    sys->RegisterCustomCollisionCallback(*high_x_wall);
+    sys->RegisterCustomCollisionCallback(*low_y_wall);
+    sys->RegisterCustomCollisionCallback(*high_y_wall);
 
-    for (auto itr = bottom.begin(); itr != bottom.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
-    for (auto itr = side1.begin(); itr != side1.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
-    for (auto itr = side2.begin(); itr != side2.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
-    for (auto itr = side3.begin(); itr != side3.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
-    for (auto itr = side4.begin(); itr != side4.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
+    sys->AddBodyAllRanks(container);
+    sys->IncrementGID();
 }
 
 inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
@@ -305,28 +248,28 @@ int main(int argc, char* argv[]) {
         MPI_Finalize();
         return 1;
     }
-	
-	// Output directory and files
-	std::ofstream outfile;
-	if (output_data) {
-		// Create output directory
-		if (my_rank == MASTER) {
-			bool out_dir_exists = filesystem::path(outdir).exists();
-			if (out_dir_exists) {
-				std::cout << "Output directory already exists" << std::endl;
-				MPI_Abort(MPI_COMM_WORLD, MPI_ERR_OTHER);
-				return 1;
-			} else if (filesystem::create_directory(filesystem::path(outdir)) && verbose) {
-				std::cout << "Create directory = " << filesystem::path(outdir).make_absolute() << std::endl;
-			} else {
-				std::cout << "Error creating output directory" << std::endl;
-				MPI_Abort(MPI_COMM_WORLD, MPI_ERR_OTHER);
-				return 1;
-			}
-		}
-	} else if (verbose && my_rank == MASTER) {
-		std::cout << "Not writing data files" << std::endl;
-	}
+
+    // Output directory and files
+    std::ofstream outfile;
+    if (output_data) {
+        // Create output directory
+        if (my_rank == MASTER) {
+            bool out_dir_exists = filesystem::path(outdir).exists();
+            if (out_dir_exists) {
+                std::cout << "Output directory already exists" << std::endl;
+                MPI_Abort(MPI_COMM_WORLD, MPI_ERR_OTHER);
+                return 1;
+            } else if (filesystem::create_directory(filesystem::path(outdir)) && verbose) {
+                std::cout << "Create directory = " << filesystem::path(outdir).make_absolute() << std::endl;
+            } else {
+                std::cout << "Error creating output directory" << std::endl;
+                MPI_Abort(MPI_COMM_WORLD, MPI_ERR_OTHER);
+                return 1;
+            }
+        }
+    } else if (verbose && my_rank == MASTER) {
+        std::cout << "Not writing data files" << std::endl;
+    }
 
     if (verbose && my_rank == MASTER) {
         std::cout << "Number of threads:          " << num_threads << std::endl;
@@ -400,20 +343,27 @@ int main(int argc, char* argv[]) {
         printf("Rank: %d   bins: %d %d %d\n", my_rank, binX, binY, binZ);
 
     // Create objects
-    AddContainerSphereDecomp(&my_sys, h_x, h_y, height);
+    ChAAPlaneCB* bottom_wall;
+    ChAAPlaneCB* low_x_wall;
+    ChAAPlaneCB* high_x_wall;
+    ChAAPlaneCB* low_y_wall;
+    ChAAPlaneCB* high_y_wall;
+
+    AddContainer(&my_sys, h_x, h_y, height, &bottom_wall, &low_x_wall, &high_x_wall, &low_y_wall, &high_y_wall);
+
+    // Create objects
     auto actual_num_bodies = AddFallingBalls(&my_sys, h_x, h_y, gran_height);
     MPI_Barrier(my_sys.GetMPIWorld());
     if (my_rank == MASTER)
         std::cout << "Total number of particles: " << actual_num_bodies << std::endl;
 
-
-        // Once the directory has been created, all ranks can make their output files
-        MPI_Barrier(MPI_COMM_WORLD);
-        std::string out_file_name = outdir + "/Rank" + std::to_string(my_rank) + ".csv";
-        outfile.open(out_file_name);
-        outfile << "t,gid,x,y,z,vx,vy,vz,U,fixed\n";
-        if (verbose)
-            std::cout << "Rank: " << my_rank << "  Output file name: " << out_file_name << std::endl;
+    // Once the directory has been created, all ranks can make their output files
+    MPI_Barrier(MPI_COMM_WORLD);
+    std::string out_file_name = outdir + "/Rank" + std::to_string(my_rank) + ".csv";
+    outfile.open(out_file_name);
+    outfile << "t,gid,x,y,z,vx,vy,vz,U,fixed\n";
+    if (verbose)
+        std::cout << "Rank: " << my_rank << "  Output file name: " << out_file_name << std::endl;
 
     // Run simulation for specified time
     int num_steps = (int)std::ceil(time_end / time_step);

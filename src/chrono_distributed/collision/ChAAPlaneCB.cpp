@@ -23,15 +23,15 @@ namespace chrono {
 class ChAAPlaneCB : public ChSystem::CustomCollisionCallback {
   public:
     ChAAPlaneCB(ChSystemDistributed* sys,  ///< Main system pointer
-              ChBody* body,              ///< Associate body
-              int const_coord,           ///< Coordinate which is kept constant (x=0, y=1, z=2)
-              double const_coord_val,    ///< Value of constant coordinate
-              ChVector<> inward_normal,   ///< Inward normal
-              double min_1,              ///< Min value along lowest non-const axis
-              double max_1,              ///< Max value along lowest non-const axis
-              double min_2,              ///< Min value along highest non-const axis
-              double max_2               ///< Max value along highest non-const axis
-              )
+                ChBody* body,              ///< Associate body
+                int const_coord,           ///< Coordinate which is kept constant (x=0, y=1, z=2)
+                double const_coord_val,    ///< Value of constant coordinate
+                ChVector<> inward_normal,  ///< Inward normal
+                double min_1,              ///< Min value along lowest non-const axis
+                double max_1,              ///< Max value along lowest non-const axis
+                double min_2,              ///< Min value along highest non-const axis
+                double max_2               ///< Max value along highest non-const axis
+                )
         : m_sys(sys),
           m_body(body),
           m_const_coord(const_coord),
@@ -51,7 +51,7 @@ class ChAAPlaneCB : public ChSystem::CustomCollisionCallback {
                 m_nonconst_coords[1] = 1;
                 break;
             default:
-				break;
+                break;
                 // TODO yell
         }
 
@@ -85,9 +85,10 @@ void ChAAPlaneCB::OnCustomCollision(ChSystem* sys) {
     for (int i = 0; i < m_sys->data_manager->body_list->size(); i++) {
         auto sphere = (*m_sys->data_manager->body_list)[i];
         // TODO switch on shape type to be added later
-		// Avoid colliding with other planes
-		if ((std::dynamic_pointer_cast<collision::ChCollisionModelParallel>(sphere->GetCollisionModel()))->GetNObjects() > 0)
-        	CheckSphereProfile(sphere);
+        // Avoid colliding with other planes
+        if ((std::dynamic_pointer_cast<collision::ChCollisionModelParallel>(sphere->GetCollisionModel()))
+                ->GetNObjects() > 0)
+            CheckSphereProfile(sphere);
     }
 }
 
@@ -96,7 +97,7 @@ void ChAAPlaneCB::OnCustomCollision(ChSystem* sys) {
 void ChAAPlaneCB::CheckSphereProfile(std::shared_ptr<ChBody> sphere) {
     // Mini broad-phase
     ChVector<> centerS(sphere->GetPos());
-	auto pmodel = std::dynamic_pointer_cast<collision::ChCollisionModelParallel>(sphere->GetCollisionModel());
+    auto pmodel = std::dynamic_pointer_cast<collision::ChCollisionModelParallel>(sphere->GetCollisionModel());
     double radius = pmodel->mData[0].B[0];
     if (centerS[m_nonconst_coords[0]] + radius < m_nonconst_min[0] ||
         centerS[m_nonconst_coords[0]] - radius > m_nonconst_max[0] ||
@@ -105,14 +106,13 @@ void ChAAPlaneCB::CheckSphereProfile(std::shared_ptr<ChBody> sphere) {
         std::abs(centerS[m_const_coord] - m_const_coord_val) > radius)
         return;
 
-    ChVector<> normal = m_inward_normal / m_inward_normal.Length();
-
-    ChVector<> plane_point = ChVector<>(0);
+    ChVector<> plane_point = ChVector<>(0);  // A point on the plane
     plane_point[m_const_coord] = m_const_coord_val;
     plane_point[m_nonconst_coords[0]] = m_nonconst_min[0];
     plane_point[m_nonconst_coords[1]] = m_nonconst_min[1];
 
-    ChVector<> delta = normal.Dot(centerS - plane_point);
+    // Distance from the sphere center to the plane
+    double delta = m_inward_normal.Dot(centerS - plane_point);
 
     // Contact point on the plane
     ChVector<> vpA = ChVector<>(0);
@@ -121,20 +121,20 @@ void ChAAPlaneCB::CheckSphereProfile(std::shared_ptr<ChBody> sphere) {
     vpA[m_nonconst_coords[1]] = centerS[m_nonconst_coords[1]];
 
     // Contact point on sphere
-    ChVector<> vpB = centerS - radius * normal;
+    ChVector<> vpB = centerS - radius * m_inward_normal;
 
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
     collision::ChCollisionInfo contact;
     contact.modelA = m_body->GetCollisionModel().get();
     contact.modelB = sphere->GetCollisionModel().get();
-    contact.vN = normal;
+    contact.vN = m_inward_normal;
     contact.vpA = vpA;
     contact.vpB = vpB;
-    contact.distance = delta.Length() - radius;
+    contact.distance = delta - radius;
 
-	m_sys->data_manager->host_data.erad_rigid_rigid.push_back(std::abs(delta.Length() - radius));
-	
+    m_sys->data_manager->host_data.erad_rigid_rigid.push_back(radius);
+
     m_sys->GetContactContainer()->AddContact(contact);  // NOTE: Not thread-safe
 }
 

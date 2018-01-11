@@ -76,12 +76,12 @@ double lowest_layer = 2 * spacing;  // Lowest possible CENTER of granular materi
 int extra_container_layers = 3;     // TODO adapt for collision planes
 
 // Oscillation
-double period = 1;                   // TODO adjust
+double period = 1;                  // TODO adjust
 double amplitude = gran_radius * 4;  // TODO adjust
 double lower_start;
 
 // Simulation
-double time_step = 1e-4;
+double time_step = 1e-5;
 double out_fps = 120;
 unsigned int max_iteration = 100;
 double tolerance = 1e-4;
@@ -119,8 +119,8 @@ void Monitor(chrono::ChSystemParallel* system, int rank) {
     double RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetResidual();
     int ITER = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetTotalIterations();
 
-    printf("%d|   %8.5f | %7.4f | E%7.4f | B%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n",  ////
-           rank, TIME, STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
+    printf("%d|   %8.5f | %7.4f | E%7.4f | B%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n", rank, TIME,
+           STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
 }
 
 void AddContainer(ChSystemDistributed* sys,
@@ -147,20 +147,19 @@ void AddContainer(ChSystemDistributed* sys,
     container->SetCollide(false);
     container->SetBodyFixed(true);
     container->GetCollisionModel()->ClearModel();
-    utils::AddSphereGeometry(container.get(), 2);
     container->GetCollisionModel()->BuildModel();
 
     // TODO little extra space on sides
     *bottom_wall =
         new ChAAPlaneCB(sys, container.get(), 2, 0, ChVector<>(0, 0, 1), -2 * h_x, 2 * h_x, -2 * h_y, 2 * h_y);
     *low_x_wall =
-        new ChAAPlaneCB(sys, container.get(), 0, -h_x - 0.002, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+        new ChAAPlaneCB(sys, container.get(), 0, -h_x, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
     *high_x_wall =
-        new ChAAPlaneCB(sys, container.get(), 0, h_x + 0.002, ChVector<>(-1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+        new ChAAPlaneCB(sys, container.get(), 0, h_x, ChVector<>(-1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
     *low_y_wall =
-        new ChAAPlaneCB(sys, container.get(), 1, -h_y - 0.002, ChVector<>(0, 1, 0), -2 * h_x, 2 * h_x, -height, height);
+        new ChAAPlaneCB(sys, container.get(), 1, -h_y, ChVector<>(0, 1, 0), -2 * h_x, 2 * h_x, -height, height);
     *high_y_wall =
-        new ChAAPlaneCB(sys, container.get(), 1, h_y + 0.002, ChVector<>(0, -1, 0), -2 * h_x, 2 * h_x, -height, height);
+        new ChAAPlaneCB(sys, container.get(), 1, h_y, ChVector<>(0, -1, 0), -2 * h_x, 2 * h_x, -height, height);
 
     sys->RegisterCustomCollisionCallback(*bottom_wall);
     sys->RegisterCustomCollisionCallback(*low_x_wall);
@@ -316,11 +315,11 @@ int main(int argc, char* argv[]) {
     my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
-    my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
+    my_sys.Set_G_acc(ChVector<double>(0.00001, 0.0001, -9.8));
 
     // Domain decomposition
-    ChVector<double> domlo(-h_x - 0.0001, -h_y - 0.0001, -0.0001);
-    ChVector<double> domhi(h_x + 0.0001, h_y + 0.0001, height + 0.0001);
+    ChVector<double> domlo(-h_x - amplitude, -h_y, -0.0001);
+    ChVector<double> domhi(h_x + amplitude, h_y, height + 0.0001);
     my_sys.GetDomain()->SetSplitAxis(0);  // Split along the x-axis
     my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
 
