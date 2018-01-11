@@ -35,9 +35,9 @@ SET(DEMOS
    # demo_PAR_cylinder_flow_SMC
     DST_main
     DST_set
-    CPT
-    STT
-    STT_Settling
+    #CPT
+    #STT
+    #STT_Settling
 )
 
 # ------------------------------------------------------------------------------
