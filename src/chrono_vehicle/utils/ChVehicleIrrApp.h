@@ -76,9 +76,13 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
                         );
     /// Set the step size for integration of the chase-cam dynamics.
     void SetStepsize(double val) { m_stepsize = val; }
+    /// Set camera state (mode).
+    void SetChaseCameraState(utils::ChChaseCamera::State state) { m_camera.SetState(state); }
     /// Set camera position.
     /// Note that this forces the chase-cam in Track mode.
     void SetChaseCameraPosition(const ChVector<>& pos) { m_camera.SetCameraPos(pos); }
+    /// Set camera angle.
+    void SetChaseCameraAngle(double angle) { m_camera.SetCameraAngle(angle); }
     /// Set camera zoom multipliers.
     void SetChaseCameraMultipliers(double minMult, double maxMult) { m_camera.SetMultLimits(minMult, maxMult); }
 

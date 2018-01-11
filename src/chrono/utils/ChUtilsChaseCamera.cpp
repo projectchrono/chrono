@@ -27,6 +27,8 @@
 //
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono/utils/ChUtilsChaseCamera.h"
 
 namespace chrono {
@@ -37,7 +39,7 @@ namespace utils {
 // -----------------------------------------------------------------------------
 
 const double ChChaseCamera::m_maxTrackDist2 = 100 * 100;
-const std::string ChChaseCamera::m_stateNames[] = {"Chase", "Follow", "Track", "Inside"};
+const std::string ChChaseCamera::m_stateNames[] = {"Chase", "Follow", "Track", "Inside", "Free"};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -72,10 +74,23 @@ void ChChaseCamera::Initialize(const ChVector<>& ptOnChassis,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChChaseCamera::SetState(State s) {
+    if (m_state == Free) {
+        m_mult = 1;
+        m_angle = 0;
+    }
+
     m_lastLoc = m_loc;
     m_state = s;
-    if (m_state == Chase)
+
+    if (m_state == Chase) {
         m_angle = 0;
+    }
+    if (m_state == Free) {
+        m_loc = GetCameraPos();
+        m_mult = 0;
+        m_locZ = m_loc.z();
+        m_angle = 0;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -84,7 +99,13 @@ void ChChaseCamera::Zoom(int val) {
     if (val == 0 || m_state == Track)
         return;
 
-    if (m_state != Inside) {
+    if (m_state == Inside) {
+        if (val > 0)
+            SetState(Chase);
+        return;
+    }
+        
+    if (m_state == Chase || m_state == Follow) {
         if (val < 0 && m_mult > m_minMult)
             m_mult /= 1.01;
         else if (val > 0 && m_mult < m_maxMult)
@@ -92,16 +113,41 @@ void ChChaseCamera::Zoom(int val) {
 
         if (m_mult <= m_minMult)
             SetState(Inside);
-    } else if (val > 0) {
-        SetState(Chase);
     }
+
+    if (m_state == Free) {
+        if (val < 0)
+            m_mult += 0.01;
+        else
+            m_mult -= 0.01;
+    }
+
+}
+
+void ChChaseCamera::Raise(int val) {
+    if (val == 0 || m_state != Free)
+        return;
+
+    if (val < 0)
+        m_loc.z() += 0.01;
+    else
+        m_loc.z() -= 0.01;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChChaseCamera::Turn(int val) {
-    if (val == 0 || m_state != Chase)
+    if (val == 0 || m_state == Follow || m_state == Track)
         return;
+
+    if (m_state == Free) {
+        if (val < 0)
+            m_angle += CH_C_PI / 600;
+        else
+            m_angle -= CH_C_PI / 600;
+
+        return;
+    }
 
     if (val < 0 && m_angle > -CH_C_PI)
         m_angle -= CH_C_PI / 100;
@@ -120,6 +166,13 @@ void ChChaseCamera::SetCameraPos(const ChVector<>& pos) {
 }
 
 // -----------------------------------------------------------------------------
+// Set the camera angle
+// -----------------------------------------------------------------------------
+void ChChaseCamera::SetCameraAngle(double angle) {
+    m_angle = angle;
+}
+
+// -----------------------------------------------------------------------------
 // Return the camera location and the camera target (look at) location,
 // respectively.
 // Note that in Inside mode, in order to accommodate a narrow field of view, we
@@ -134,12 +187,20 @@ ChVector<> ChChaseCamera::GetCameraPos() const {
         return driverPos - 1.1 * driverViewDir;
     }
 
-    return (m_state == Track) ? m_lastLoc : m_loc;
+    if (m_state == Track)
+        return m_lastLoc;
+
+    return m_loc;
 }
 
 ChVector<> ChChaseCamera::GetTargetPos() const {
     if (m_state == Inside) {
         return m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
+    }
+
+    if(m_state == Free) {
+        ChMatrix33<> rot(m_angle, ChVector<>(0, 0, 1));
+        return m_loc + rot.Get_A_Xaxis() * 1.0;
     }
 
     return m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis);
@@ -170,6 +231,20 @@ void ChChaseCamera::Update(double step) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc) {
+    if (m_state == Free) {
+        ChVector<> targetLoc = GetTargetPos();
+        ChVector<> uC2T = targetLoc - m_loc;
+        uC2T.Normalize();
+        ChVector<> desCamLoc = m_loc + uC2T * m_mult;
+        ChVector<> deriv;
+
+        deriv.x() = m_horizGain * (desCamLoc.x() - m_loc.x());
+        deriv.y() = m_horizGain * (desCamLoc.y() - m_loc.y());
+        deriv.z() = m_vertGain * (desCamLoc.z() - m_loc.z());
+
+        return deriv;
+    }
+
     // Calculate the desired camera location, based on the current state of the
     // chassis.
     ChVector<> targetLoc = GetTargetPos();
