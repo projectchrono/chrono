@@ -31,6 +31,8 @@
 //
 //==============================================================================
 
+#include <algorithm>
+
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChFilters.h"
@@ -187,14 +189,14 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
     std::vector<ChVector<>> pathpoints;
 
     // damp z oscillation for the path definition
-    chrono::utils::ChRunningAverage avg(5);
+    utils::ChRunningAverage avg(5);
 
     double dp = 3.0;
     size_t np = static_cast<size_t>(m_uend / dp);
 
     double du = (m_uend - m_ubeg) / double(np - 1);
 
-    double vm = m_vbeg + (m_vend - m_vbeg) / 2.0;
+    double vm = (m_vbeg + m_vend) / 2.0;
 
     for (size_t i = 0; i < np; i++) {
         double u = m_ubeg + double(i) * du;
@@ -207,7 +209,7 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
         if (z_ok != 1) {
             std::cout << "CRGTerrain::SetupGraphics(): error during uv -> z coordinate transformation" << std::endl;
         }
-        zm = avg.Add(zm);
+        ////zm = avg.Add(zm);
         pathpoints.push_back(ChVector<>(xm, ym, zm + 0.2));
     }
 
@@ -218,17 +220,14 @@ std::shared_ptr<ChBezierCurve> CRGTerrain::GetPath() {
     return std::make_shared<ChBezierCurve>(pathpoints);
 }
 
-using namespace chrono::geometry;
-
 void CRGTerrain::SetupLineGraphics() {
     double dp = 3.0;
     size_t np = static_cast<size_t>(m_uend / dp);
     std::vector<ChVector<>> pl, pr;
-    unsigned int num_render_points = static_cast<unsigned int>(3 * np);
+    unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
 
     double du = (m_uend - m_ubeg) / double(np - 1);
 
-    double vm = m_vbeg + (m_vend - m_vbeg) / 2.0;
     for (size_t i = 0; i < np; i++) {
         double u = m_ubeg + double(i) * du;
         double xl, yl, zl;

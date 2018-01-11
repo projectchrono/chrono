@@ -150,10 +150,13 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Final time
-    double t_end = road_length / target_speed;
+    double t_end = 2 + road_length / target_speed;
     if (path_is_closed) {
         t_end += 30.0;
     }
+    std::cout << "Road length:     " << road_length << std::endl;
+    std::cout << "Closed loop?     " << path_is_closed << std::endl;
+    std::cout << "Set end time to: " << t_end << std::endl;
 
     // Number of simulation steps between image outputs
     double render_step_size = 1 / fps;
