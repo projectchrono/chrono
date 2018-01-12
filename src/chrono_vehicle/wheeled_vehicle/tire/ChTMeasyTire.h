@@ -162,6 +162,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// This function creates a Gnuplot script file with the specified name.
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
 
+	/// Get the tire deflection
+	virtual double GetDeflection() const override { return m_data.depth; }
+	
   protected:
     /// Perform disc-terrain collision detection considering the curvature of the road
     /// surface. The surface normal is calculated based on 4 different height values below
