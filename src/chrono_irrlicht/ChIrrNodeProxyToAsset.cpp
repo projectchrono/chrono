@@ -381,10 +381,17 @@ void ChIrrNodeProxyToAsset::Update() {
     auto line_shape = std::dynamic_pointer_cast<ChLineShape>(visualization_asset);
     if (path_shape || line_shape) {
         std::shared_ptr<geometry::ChLine> mline;
-        if (path_shape)
+        unsigned int nvertexes;
+        if (path_shape) {
             mline = path_shape->GetPathGeometry();
-        if (line_shape)
+            nvertexes = path_shape->GetNumRenderPoints();
+        }
+        if (line_shape) {
             mline = line_shape->GetLineGeometry();
+            nvertexes = line_shape->GetNumRenderPoints();
+        }
+
+        unsigned int ntriangles = nvertexes - 1;
 
         // Set color.
         auto vis = std::static_pointer_cast<ChVisualization>(visualization_asset);
@@ -404,9 +411,6 @@ void ChIrrNodeProxyToAsset::Update() {
 
         // SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
         scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
-
-        size_t nvertexes = 200;
-        size_t ntriangles = nvertexes - 1;
 
         // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
         if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)

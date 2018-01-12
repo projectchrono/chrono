@@ -18,4 +18,28 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineShape)
 
+ChLineShape::ChLineShape() : npoints(200) {
+    gline = std::make_shared<geometry::ChLineSegment>();
+}
+
+ChLineShape::ChLineShape(std::shared_ptr<geometry::ChLine>& mline) : npoints(200), gline(mline) {}
+
+void ChLineShape::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChLineShape>();
+    // serialize parent class
+    ChVisualization::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(gline);
+}
+
+void ChLineShape::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChLineShape>();
+    // deserialize parent class
+    ChVisualization::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(gline);
+}
+
 }  // end namespace chrono

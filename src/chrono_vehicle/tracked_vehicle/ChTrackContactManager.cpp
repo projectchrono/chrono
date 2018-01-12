@@ -167,8 +167,8 @@ bool ChTrackContactManager::OnReportContact(const ChVector<>& pA,
                                             ChContactable* modB) {
     ChTrackContactInfo info;
 
-    // Ignore contacts with zero force.
-    if (react_forces.IsNull())
+    // Ignore contacts with zero force or positive separation.
+    if (distance > 0 || react_forces.IsNull())
         return true;
 
     // Extract contacts on chassis.

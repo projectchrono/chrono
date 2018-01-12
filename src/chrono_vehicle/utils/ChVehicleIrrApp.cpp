@@ -67,6 +67,12 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
             case KEY_RIGHT:
                 m_app->m_camera.Turn(-1);
                 return true;
+            case KEY_NEXT:
+                m_app->m_camera.Raise(1);
+                return true;
+            case KEY_PRIOR:
+                m_app->m_camera.Raise(-1);
+                return true;
             default:
                 break;
         }
@@ -83,6 +89,9 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
                 return true;
             case KEY_KEY_4:
                 m_app->m_camera.SetState(utils::ChChaseCamera::Inside);
+                return true;
+            case KEY_KEY_5:
+                m_app->m_camera.SetState(utils::ChChaseCamera::Free);
                 return true;
             case KEY_KEY_V:
                 m_app->m_vehicle->LogConstraintViolations();

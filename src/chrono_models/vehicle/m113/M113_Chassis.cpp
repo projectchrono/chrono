@@ -32,8 +32,8 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_Chassis::m_mass = 5489.24;
-const ChVector<> M113_Chassis::m_inertiaXX(1786.92, 10449.67, 10721.22);
+const double M113_Chassis::m_mass = 7819.24;
+const ChVector<> M113_Chassis::m_inertiaXX(13983.08, 27287.61, 28805.57);
 const ChVector<> M113_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> M113_Chassis::m_COM_loc(-2.006, 0, 0.406);
 const ChCoordsys<> M113_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));

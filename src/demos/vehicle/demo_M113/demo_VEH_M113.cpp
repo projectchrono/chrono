@@ -325,23 +325,21 @@ int main(int argc, char* argv[]) {
         }
 
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
 
+        if (step_number % render_steps == 0) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
                 utils::WriteShapesPovray(vehicle.GetSystem(), filename);
             }
-
             if (img_output && step_number > 200) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
                 app.WriteImageToFile(filename);
             }
-
             render_frame++;
         }
 
