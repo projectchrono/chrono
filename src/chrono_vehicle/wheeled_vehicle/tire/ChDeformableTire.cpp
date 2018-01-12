@@ -33,30 +33,7 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
       m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0),
-      m_young_modulus(2e5f),
-      m_poisson_ratio(0.3f),
-      m_friction(0.6f),
-      m_restitution(0.1f),
-      m_kn(2e5),
-      m_kt(2e5),
-      m_gn(40),
-      m_gt(20),
       m_pressure(-1) {}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChDeformableTire::SetContactMaterialProperties(float young_modulus,
-                                                    float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
-
-void ChDeformableTire::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
