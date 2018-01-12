@@ -25,11 +25,9 @@
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 ////#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
-////#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyRigidCB.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyRigidCB.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -80,11 +78,6 @@ int main(int argc, char* argv[]) {
             }
             case TrackShoeType::DOUBLE_PIN: {
                 auto assembly = std::make_shared<M113_TrackAssemblyDoublePin>(side);
-                track_assembly = assembly;
-                break;
-            }
-            case TrackShoeType::RIGID_CB: {
-                auto assembly = std::make_shared<M113_TrackAssemblyRigidCB>(side);
                 track_assembly = assembly;
                 break;
             }

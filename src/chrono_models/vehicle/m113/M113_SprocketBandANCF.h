@@ -16,14 +16,14 @@
 //
 // =============================================================================
 
-#ifndef M113_SPROCKET_CB_H
-#define M113_SPROCKET_CB_H
+#ifndef M113_SPROCKET_RIGID_ANCF_CB_H
+#define M113_SPROCKET_RIGID_ANCF_CB_H
 
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketCB.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBandANCF.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -35,9 +35,9 @@ namespace m113 {
 /// @{
 
 /// M113 sprocket subsystem for continuous band track (base class).
-class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
+class CH_MODELS_API M113_SprocketBandANCF : public ChSprocketBandANCF {
   public:
-    virtual ~M113_SprocketCB() {}
+    virtual ~M113_SprocketBandANCF() {}
 
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const override { return m_num_teeth; }
@@ -69,11 +69,17 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
     /// Return the radius of the (concave) tooth circular arc.
     virtual double GetArcRadius() const override { return m_gear_arc_radius; }
 
+    /// Return the total width of the sprocket guiding wheel that acts similar to another road wheel
+    virtual double GetGuideWheelWidth() const override { return m_gear_guide_wheel_width; }
+
+    /// Return the gap width of the sprocket guiding wheel that acts similar to another road wheel
+    virtual double GetGuideWheelGap() const override { return m_gear_guide_wheel_gap; }
+
     /// Add visualization of the sprocket.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   protected:
-    M113_SprocketCB(const std::string& name);
+    M113_SprocketBandANCF(const std::string& name);
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
@@ -92,13 +98,16 @@ class CH_MODELS_API M113_SprocketCB : public ChSprocketCB {
     static const double m_gear_tooth_depth;
     static const double m_gear_arc_radius;
     static const double m_gear_RA;
+
+    static const double m_gear_guide_wheel_width;
+    static const double m_gear_guide_wheel_gap;
 };
 
 /// M113 sprocket subsystem for continuous band track (left side).
-class CH_MODELS_API M113_SprocketCBLeft : public M113_SprocketCB {
+class CH_MODELS_API M113_SprocketBandANCFLeft : public M113_SprocketBandANCF {
   public:
-    M113_SprocketCBLeft() : M113_SprocketCB("M113_SprocketLeft") {}
-    ~M113_SprocketCBLeft() {}
+    M113_SprocketBandANCFLeft() : M113_SprocketBandANCF("M113_SprocketLeft") {}
+    ~M113_SprocketBandANCFLeft() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
@@ -109,10 +118,10 @@ class CH_MODELS_API M113_SprocketCBLeft : public M113_SprocketCB {
 };
 
 /// M113 sprocket subsystem for continuous band track (right side).
-class CH_MODELS_API M113_SprocketCBRight : public M113_SprocketCB {
+class CH_MODELS_API M113_SprocketBandANCFRight : public M113_SprocketBandANCF {
   public:
-    M113_SprocketCBRight() : M113_SprocketCB("M113_SprocketRight") {}
-    ~M113_SprocketCBRight() {}
+    M113_SprocketBandANCFRight() : M113_SprocketBandANCF("M113_SprocketRight") {}
+    ~M113_SprocketBandANCFRight() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }

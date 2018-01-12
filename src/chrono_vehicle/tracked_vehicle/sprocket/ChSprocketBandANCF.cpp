@@ -19,9 +19,12 @@
 
 #include <cmath>
 
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketCB.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeRigidCB.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
+
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketBandANCF.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,7 +34,7 @@ namespace vehicle {
 
 // Utility function to calculate the center of a circle of given radius which
 // passes through two given points.
-ChVector2<> CalcCircleCenterSprocket(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
+static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, double r, double direction) {
     // midpoint
     ChVector2<> C = (A + B) / 2;
     // distance between A and B
@@ -60,17 +63,17 @@ ChVector2<> CalcCircleCenterSprocket(const ChVector2<>& A, const ChVector2<>& B,
     return O;
 }
 
-class SprocketCBContactCB : public ChSystem::CustomCollisionCallback {
+class SprocketBandANCFContactCB : public ChSystem::CustomCollisionCallback {
   public:
     //// TODO Add in a collision envelope to the contact algorithm for NSC
-    SprocketCBContactCB(ChTrackAssembly* track,  ///< containing track assembly
-                        double envelope,         ///< collision detection envelope
-                        int gear_nteeth,         ///< number of teeth of the sprocket gear
-                        double separation        ///< separation between sprocket gears
-                        )
+    SprocketBandANCFContactCB(ChTrackAssembly* track,  ///< containing track assembly
+                              double envelope,         ///< collision detection envelope
+                              int gear_nteeth,         ///< number of teeth of the sprocket gear
+                              double separation        ///< separation between sprocket gears
+                              )
         : m_track(track), m_envelope(envelope), m_gear_nteeth(gear_nteeth), m_separation(separation) {
-        m_sprocket = std::dynamic_pointer_cast<ChSprocketCB>(m_track->GetSprocket());
-        auto shoe = std::dynamic_pointer_cast<ChTrackShoeRigidCB>(track->GetTrackShoe(0));
+        m_sprocket = std::dynamic_pointer_cast<ChSprocketBandANCF>(m_track->GetSprocket());
+        auto shoe = std::dynamic_pointer_cast<ChTrackShoeBandANCF>(track->GetTrackShoe(0));
 
         // The angle between the centers of two sequential teeth on the sprocket
         m_beta = CH_C_2PI / m_sprocket->GetNumTeeth();
@@ -81,7 +84,7 @@ class SprocketCBContactCB : public ChSystem::CustomCollisionCallback {
         // and the outer line segment edge of the tooth's base width
         double HalfBaseWidthCordAng = std::asin((m_sprocket->GetBaseWidth() / 2) / OutRad);
 
-        // The angle measured at the center of the sprocket bewteen the end of one tooth profile
+        // The angle measured at the center of the sprocket between the end of one tooth profile
         // and the start of the next (angle where the profile runs along the outer radius
         // of the sprocket)
         double OuterRadArcAng = m_beta - 2 * HalfBaseWidthCordAng;
@@ -108,9 +111,9 @@ class SprocketCBContactCB : public ChSystem::CustomCollisionCallback {
         // Cache the points for the first sprocket tooth profile for the tooth arc centers, positive arc is in the CCW
         // direction for the first tooth profile and the negative arc is in the CW direction for the first tooth profile
         m_gear_center_p =
-            CalcCircleCenterSprocket(ToothBaseWidthUpperPnt, ToothTipWidthUpperPnt, m_sprocket->GetArcRadius(), 1);
+            CalcCircleCenter(ToothBaseWidthUpperPnt, ToothTipWidthUpperPnt, m_sprocket->GetArcRadius(), 1);
         m_gear_center_m =
-            CalcCircleCenterSprocket(ToothBaseWidthLowerPnt, ToothTipWidthLowerPnt, m_sprocket->GetArcRadius(), 1);
+            CalcCircleCenter(ToothBaseWidthLowerPnt, ToothTipWidthLowerPnt, m_sprocket->GetArcRadius(), 1);
 
         // Cache the starting (smallest) and ending (largest) arc angles for the positive sprocket tooth arc (ensuring
         // that both angles are positive)
@@ -155,7 +158,7 @@ class SprocketCBContactCB : public ChSystem::CustomCollisionCallback {
     // Test collision between a tread segment body and the sprocket's gear profile
     void CheckTreadSegmentSprocket(std::shared_ptr<ChBody> treadsegment,  // tread segment body
                                    const ChVector<>& locS_abs             // center of sprocket (global frame)
-                                   );
+    );
 
     // Test for collision between an arc on a tread segment body and the matching arc on the sprocket's gear profile
     void CheckTreadArcSprocketArc(
@@ -168,7 +171,7 @@ class SprocketCBContactCB : public ChSystem::CustomCollisionCallback {
         double tooth_arc_angle_start,          // Starting (smallest & positive) angle for the belt tooth arc
         double tooth_arc_angle_end,            // Ending (largest & positive) angle for the belt tooth arc
         double tooth_arc_radius                // Radius for the tooth arc
-        );
+    );
 
     void CheckTreadTipSprocketTip(std::shared_ptr<ChBody> treadsegment);
 
@@ -177,16 +180,16 @@ class SprocketCBContactCB : public ChSystem::CustomCollisionCallback {
                                  const ChVector<>& locS_abs,          // center of sprocket (global frame)
                                  const double web_thickness,          // thickness of the web (z direction)
                                  const double web_segment_length      // length of the web segment (x direction)
-                                 );
+    );
 
     void CheckSegmentCircle(std::shared_ptr<ChBody> BeltSegment,  // connector body
                             double cr,                            // circle radius
                             const ChVector<>& p1,                 // segment end point 1
                             const ChVector<>& p2                  // segment end point 2
-                            );
+    );
 
-    ChTrackAssembly* m_track;                  // pointer to containing track assembly
-    std::shared_ptr<ChSprocketCB> m_sprocket;  // handle to the sprocket
+    ChTrackAssembly* m_track;                        // pointer to containing track assembly
+    std::shared_ptr<ChSprocketBandANCF> m_sprocket;  // handle to the sprocket
 
     double m_envelope;  // collision detection envelope
 
@@ -220,18 +223,18 @@ class SprocketCBContactCB : public ChSystem::CustomCollisionCallback {
 };
 
 // Add contacts between the sprocket and track shoes.
-void SprocketCBContactCB::OnCustomCollision(ChSystem* system) {
+void SprocketBandANCFContactCB::OnCustomCollision(ChSystem* system) {
     // Temporary workaround since the shoe has not been intialized by the time the collision constructor is called.
     if (m_update_tread) {
         m_update_tread = false;
 
-        auto shoe = std::dynamic_pointer_cast<ChTrackShoeRigidCB>(m_track->GetTrackShoe(0));
+        auto shoe = std::dynamic_pointer_cast<ChTrackShoeBandANCF>(m_track->GetTrackShoe(0));
 
-        // Broadphase collision distance squared check for web to sprocket contact
-        m_gear_web_broadphase_dist_squared = std::pow(
-            m_sprocket->GetOuterRadius() +
-                std::sqrt(std::pow(shoe->GetWebThickness() / 2, 2) + std::pow(shoe->GetGetWebSegmentLength(), 2)),
-            2);
+        //// Broadphase collision distance squared check for web to sprocket contact
+        // m_gear_web_broadphase_dist_squared = std::pow(
+        //    m_sprocket->GetOuterRadius() +
+        //        std::sqrt(std::pow(shoe->GetWebThickness() / 2, 2) + std::pow(shoe->GetGetWebSegmentLength(), 2)),
+        //    2);
 
         // Broadphase collision distance squared check for tread tooth to sprocket contact
         m_gear_tread_broadphase_dist_squared = std::pow(
@@ -267,21 +270,22 @@ void SprocketCBContactCB::OnCustomCollision(ChSystem* system) {
 
     // Loop over all track shoes in the associated track
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {
-        auto shoe = std::static_pointer_cast<ChTrackShoeRigidCB>(m_track->GetTrackShoe(is));
+        auto shoe = std::static_pointer_cast<ChTrackShoeBandANCF>(m_track->GetTrackShoe(is));
 
         CheckTreadSegmentSprocket(shoe->GetShoeBody(), locS_abs);
 
-        for (size_t web = 0; web < shoe->GetNumWebSegments(); web++) {
-            // Perform collision test for the ith web segment
-            CheckWebSegmentSprocket(shoe->GetGetWebSegment(web), locS_abs, shoe->GetWebThickness(),
-                                    shoe->GetGetWebSegmentLength());
-        }
+        // for (size_t web = 0; web < shoe->GetNumWebSegments(); web++) {
+        //    // Perform collision test for the ith web segment
+        //    CheckWebSegmentSprocket(shoe->GetGetWebSegment(web), locS_abs, shoe->GetWebThickness(),
+        //                            shoe->GetGetWebSegmentLength());
+        //}
     }
 }
 
-void SprocketCBContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChBody> treadsegment,  // tread segment body
-                                                    const ChVector<>& locS_abs  // center of sprocket (global frame)
-                                                    ) {
+void SprocketBandANCFContactCB::CheckTreadSegmentSprocket(
+    std::shared_ptr<ChBody> treadsegment,  // tread segment body
+    const ChVector<>& locS_abs             // center of sprocket (global frame)
+) {
     // (1) Express the center of the web segment body in the sprocket frame
     ChVector<> loc = m_sprocket->GetGearBody()->TransformPointParentToLocal(treadsegment->GetPos());
 
@@ -402,7 +406,7 @@ void SprocketCBContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChBody> trea
                              tooth_center_m_end_angle, m_tread_arc_radius);
 }
 
-void SprocketCBContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChBody> treadsegment) {
+void SprocketBandANCFContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChBody> treadsegment) {
     // Check the tooth tip to outer sprocket arc
     // Check to see if any of the points are within the angle of an outer sprocket arc
     // If so, clip the part of the tip line segment that is out of the arc, if need and run a line segment to circle
@@ -482,15 +486,15 @@ void SprocketCBContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChBody> tread
     }
 }
 
-void SprocketCBContactCB::CheckTreadArcSprocketArc(std::shared_ptr<ChBody> treadsegment,
-                                                   ChVector2<> sprocket_arc_center,
-                                                   double sprocket_arc_angle_start,
-                                                   double sprocket_arc_angle_end,
-                                                   double sprocket_arc_radius,
-                                                   ChVector2<> tooth_arc_center,
-                                                   double tooth_arc_angle_start,
-                                                   double tooth_arc_angle_end,
-                                                   double tooth_arc_radius) {
+void SprocketBandANCFContactCB::CheckTreadArcSprocketArc(std::shared_ptr<ChBody> treadsegment,
+                                                         ChVector2<> sprocket_arc_center,
+                                                         double sprocket_arc_angle_start,
+                                                         double sprocket_arc_angle_end,
+                                                         double sprocket_arc_radius,
+                                                         ChVector2<> tooth_arc_center,
+                                                         double tooth_arc_angle_start,
+                                                         double tooth_arc_angle_end,
+                                                         double tooth_arc_radius) {
     // Find the angle from the sprocket arc center through the tooth arc center.  If the angle lies within
     // the sprocket arc, use the point on the sprocket arc at that angle as the sprocket collision point.
     // If it does not lie within the arc, determine which sprocket end point is closest to that angle and use
@@ -572,10 +576,10 @@ void SprocketCBContactCB::CheckTreadArcSprocketArc(std::shared_ptr<ChBody> tread
 }
 
 // Perform collision test between the specified connector body and the associated sprocket.
-void SprocketCBContactCB::CheckWebSegmentSprocket(std::shared_ptr<ChBody> websegment,
-                                                  const ChVector<>& locS_abs,
-                                                  const double web_thickness,
-                                                  const double web_segment_length) {
+void SprocketBandANCFContactCB::CheckWebSegmentSprocket(std::shared_ptr<ChBody> websegment,
+                                                        const ChVector<>& locS_abs,
+                                                        const double web_thickness,
+                                                        const double web_segment_length) {
     // (1) Express the center of the web segment body in the sprocket frame
     ChVector<> loc = m_sprocket->GetGearBody()->TransformPointParentToLocal(websegment->GetPos());
 
@@ -598,11 +602,11 @@ void SprocketCBContactCB::CheckWebSegmentSprocket(std::shared_ptr<ChBody> webseg
 // Working in the (x-z) plane, perform a 2D collision test between the circle of radius 'cr'
 // centered at the origin (on the sprocket body) and the line segment with endpoints 'p1' and 'p2'
 // (on the Belt Segement body).
-void SprocketCBContactCB::CheckSegmentCircle(std::shared_ptr<ChBody> BeltSegment,  // connector body
-                                             double cr,                            // circle radius
-                                             const ChVector<>& p1,                 // segment end point 1
-                                             const ChVector<>& p2                  // segment end point 2
-                                             ) {
+void SprocketBandANCFContactCB::CheckSegmentCircle(std::shared_ptr<ChBody> BeltSegment,  // connector body
+                                                   double cr,                            // circle radius
+                                                   const ChVector<>& p1,                 // segment end point 1
+                                                   const ChVector<>& p2                  // segment end point 2
+) {
     // Find closest point on segment to circle center: X = p1 + t * (p2-p1)
     ChVector<> s = p2 - p1;
     double t = Vdot(-p1, s) / Vdot(s, s);
@@ -635,27 +639,84 @@ void SprocketCBContactCB::CheckSegmentCircle(std::shared_ptr<ChBody> BeltSegment
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSprocketCB::ChSprocketCB(const std::string& name) : ChSprocket(name) {}
+ChSprocketBandANCF::ChSprocketBandANCF(const std::string& name) : ChSprocket(name) {}
+
+// -----------------------------------------------------------------------------
+// Initialize this sprocket subsystem.
+// -----------------------------------------------------------------------------
+void ChSprocketBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                    const ChVector<>& location,
+                                    ChTrackAssembly* track) {
+    // Invoke the base class method
+    ChSprocket::Initialize(chassis, location, track);
+
+    double radius = GetOuterRadius();
+    double width = 0.5 * (GetGuideWheelWidth() - GetGuideWheelGap());
+    double offset = 0.25 * (GetGuideWheelWidth() + GetGuideWheelGap());
+
+    m_gear->GetCollisionModel()->ClearModel();
+
+    m_gear->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
+    m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
+
+    m_gear->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, offset, 0));
+    m_gear->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, -offset, 0));
+
+    m_gear->GetCollisionModel()->BuildModel();
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSystem::CustomCollisionCallback* ChSprocketCB::GetCollisionCallback(ChTrackAssembly* track) {
+void ChSprocketBandANCF::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    ChSprocket::AddVisualizationAssets(vis);
+
+    double radius = GetOuterRadius();
+    double width = GetGuideWheelWidth();
+    double gap = GetGuideWheelGap();
+
+    auto cyl_1 = std::make_shared<ChCylinderShape>();
+    cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
+    cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
+    cyl_1->GetCylinderGeometry().rad = radius;
+    m_gear->AddAsset(cyl_1);
+
+    auto cyl_2 = std::make_shared<ChCylinderShape>();
+    cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
+    cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
+    cyl_2->GetCylinderGeometry().rad = radius;
+    m_gear->AddAsset(cyl_2);
+
+    auto tex = std::make_shared<ChTexture>();
+    tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
+    m_gear->AddAsset(tex);
+}
+
+void ChSprocketBandANCF::RemoveVisualizationAssets() {
+    m_gear->GetAssets().clear();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChSystem::CustomCollisionCallback* ChSprocketBandANCF::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChSinglePinShoe.
-    auto shoe = std::dynamic_pointer_cast<ChTrackShoeRigidCB>(track->GetTrackShoe(0));
+    auto shoe = std::dynamic_pointer_cast<ChTrackShoeBandANCF>(track->GetTrackShoe(0));
     assert(shoe);
 
     // Extract parameterization of sprocket profile
     int sprocket_nteeth = GetNumTeeth();
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
-    return new SprocketCBContactCB(track, 0.005, GetNumTeeth(), GetSeparation());
+    return new SprocketBandANCFContactCB(track, 0.005, GetNumTeeth(), GetSeparation());
 }
 
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChLinePath> ChSprocketCB::GetProfile() {
+std::shared_ptr<geometry::ChLinePath> ChSprocketBandANCF::GetProfile() {
     auto profile = std::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();

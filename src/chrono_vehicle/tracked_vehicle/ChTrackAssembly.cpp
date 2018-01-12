@@ -122,6 +122,7 @@ void ChTrackAssembly::SetRollerVisualizationType(VisualizationType vis) {
 }
 
 void ChTrackAssembly::SetTrackShoeVisualizationType(VisualizationType vis) {
+    SetVisualizationType(vis);
     for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
         GetTrackShoe(i)->SetVisualizationType(vis);
     }

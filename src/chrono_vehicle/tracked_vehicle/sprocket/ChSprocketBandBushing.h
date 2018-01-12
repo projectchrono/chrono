@@ -33,12 +33,27 @@ namespace vehicle {
 /// Base class for a sprocket template with gear profile composed of circular arcs
 /// and a flat seat. This sprocket type is suitable for interaction with a continuous
 /// band track.
-class CH_VEHICLE_API ChSprocketCB : public ChSprocket {
+class CH_VEHICLE_API ChSprocketBandBushing : public ChSprocket {
   public:
-    ChSprocketCB(const std::string& name  ///< [in] name of the subsystem
-                 );
+    ChSprocketBandBushing(const std::string& name  ///< [in] name of the subsystem
+    );
 
-    virtual ~ChSprocketCB() {}
+    virtual ~ChSprocketBandBushing() {}
+
+    /// Initialize this sprocket subsystem.
+    /// The sprocket subsystem is initialized by attaching it to the specified
+    /// chassis body at the specified location (with respect to and expressed in
+    /// the reference frame of the chassis).
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
+                            ) override;
+
+    /// Add visualization assets for the sprocket subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the sprocket subsystem.
+    virtual void RemoveVisualizationAssets() override;
 
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
@@ -71,7 +86,13 @@ class CH_VEHICLE_API ChSprocketCB : public ChSprocket {
     /// Return the radius of the (concave) tooth circular arcs.
     virtual double GetArcRadius() const = 0;
 
-    friend class SprocketCBContactCB;
+    /// Return the total width of the sprocket guiding wheel that acts similar to another road wheel
+    virtual double GetGuideWheelWidth() const = 0;
+
+    /// Return the gap width of the sprocket guiding wheel that acts similar to another road wheel
+    virtual double GetGuideWheelGap() const = 0;
+
+    friend class SprocketBandBushingContactCB;
 };
 
 /// @} vehicle_tracked_sprocket
