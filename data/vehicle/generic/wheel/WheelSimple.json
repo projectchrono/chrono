@@ -3,8 +3,8 @@
   "Type":                       "Wheel",
   "Template":                   "Wheel",
 
-  "Mass":                       88.39,
-  "Inertia":                    [0.113, 0.113, 0.113],
+  "Mass":                       18.0,
+  "Inertia":                    [0.1, 0.1, 0.1],
 
   "Visualization":
   {

@@ -53,6 +53,8 @@ void ChLink::ArchiveOUT(ChArchiveOut& marchive) {
     ChLinkBase::ArchiveOUT(marchive);
 
     // serialize all member data:
+    marchive << CHNVP(react_force);
+    marchive << CHNVP(react_torque);
 }
 
 void ChLink::ArchiveIN(ChArchiveIn& marchive) {
@@ -63,6 +65,8 @@ void ChLink::ArchiveIN(ChArchiveIn& marchive) {
     ChLinkBase::ArchiveIN(marchive);
 
     // deserialize all member data:
+    marchive >> CHNVP(react_force);
+    marchive >> CHNVP(react_torque);
 }
 
 }  // end namespace chrono

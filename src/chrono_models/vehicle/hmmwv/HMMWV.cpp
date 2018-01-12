@@ -40,10 +40,10 @@ HMMWV::HMMWV()
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_pacejkaParamFile(""),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
-      m_initOmega({0, 0, 0, 0}) {}
+      m_initOmega({0, 0, 0, 0}),
+      m_apply_drag(false) {}
 
 HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
@@ -57,7 +57,6 @@ HMMWV::HMMWV(ChSystem* system)
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_pacejkaParamFile(""),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
@@ -177,6 +176,26 @@ void HMMWV::Initialize() {
 
             break;
         }
+        case TireModelType::TMEASY: {
+            HMMWV_TMeasyTire* tire_FL = new HMMWV_TMeasyTire("FL");
+            HMMWV_TMeasyTire* tire_FR = new HMMWV_TMeasyTire("FR");
+            HMMWV_TMeasyTire* tire_RL = new HMMWV_TMeasyTire("RL");
+            HMMWV_TMeasyTire* tire_RR = new HMMWV_TMeasyTire("RR");
+
+            if (m_tire_step_size > 0) {
+                tire_FL->SetStepsize(m_tire_step_size);
+                tire_FR->SetStepsize(m_tire_step_size);
+                tire_RL->SetStepsize(m_tire_step_size);
+                tire_RR->SetStepsize(m_tire_step_size);
+            }
+
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
+
+            break;
+        }
         case TireModelType::PAC89: {
             HMMWV_Pac89Tire* tire_FL = new HMMWV_Pac89Tire("FL");
             HMMWV_Pac89Tire* tire_FR = new HMMWV_Pac89Tire("FR");
@@ -198,15 +217,10 @@ void HMMWV::Initialize() {
             break;
         }
         case TireModelType::PACEJKA: {
-            if (m_pacejkaParamFile.empty())
-                throw ChException("Pacejka parameter file not specified.");
-
-            std::string param_file = vehicle::GetDataFile(m_pacejkaParamFile);
-
-            ChPacejkaTire* tire_FL = new ChPacejkaTire("FL", param_file);
-            ChPacejkaTire* tire_FR = new ChPacejkaTire("FR", param_file);
-            ChPacejkaTire* tire_RL = new ChPacejkaTire("RL", param_file);
-            ChPacejkaTire* tire_RR = new ChPacejkaTire("RR", param_file);
+            ChPacejkaTire* tire_FL = new HMMWV_Pac02Tire("FL");
+            ChPacejkaTire* tire_FR = new HMMWV_Pac02Tire("FR");
+            ChPacejkaTire* tire_RL = new HMMWV_Pac02Tire("RL");
+            ChPacejkaTire* tire_RR = new HMMWV_Pac02Tire("RR");
 
             tire_FL->SetDrivenWheel(false);
             tire_FR->SetDrivenWheel(false);
@@ -264,6 +278,8 @@ void HMMWV::Initialize() {
     m_tires[1]->Initialize(m_vehicle->GetWheelBody(FRONT_RIGHT), RIGHT);
     m_tires[2]->Initialize(m_vehicle->GetWheelBody(REAR_LEFT), LEFT);
     m_tires[3]->Initialize(m_vehicle->GetWheelBody(REAR_RIGHT), RIGHT);
+
+    m_tire_mass = m_tires[0]->ReportMass();
 }
 
 // -----------------------------------------------------------------------------
@@ -280,7 +296,7 @@ void HMMWV::Synchronize(double time,
                         double braking_input,
                         double throttle_input,
                         const ChTerrain& terrain) {
-    TireForces tire_forces(4);
+    TerrainForces tire_forces(4);
     WheelState wheel_states[4];
 
     tire_forces[0] = m_tires[0]->GetTireForce();
@@ -317,6 +333,11 @@ void HMMWV::Advance(double step) {
     m_powertrain->Advance(step);
 
     m_vehicle->Advance(step);
+}
+
+// -----------------------------------------------------------------------------
+double HMMWV::GetTotalMass() const {
+    return m_vehicle->GetVehicleMass() + 4 * m_tire_mass;
 }
 
 }  // end namespace hmmwv

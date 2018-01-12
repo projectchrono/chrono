@@ -47,6 +47,9 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
     virtual double GetNormalStiffness() const override { return m_normalStiffness; }
     virtual double GetNormalDamping() const override { return m_normalDamping; }
 
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
+
     virtual void SetLugreParams() override {}
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -61,6 +64,9 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
 
     double m_normalStiffness;
     double m_normalDamping;
+
+    double m_mass;
+    ChVector<> m_inertia;
 
     bool m_has_mesh;
     std::string m_meshName;

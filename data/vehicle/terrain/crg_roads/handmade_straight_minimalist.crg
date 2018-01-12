@@ -1,0 +1,67 @@
+* Emacs major mode to be selected automagically: -*-CASCaDE-*-
+* $Id: handmade_straight_minimalist.crg 21 2009-06-23 15:03:13Z jorauh $
+$CT
+CRG file example for road surface description (width: 3m, length: 22m)
+with default straight reference line and grid of 0.5m x 1.0m.
+
+A minimalist file can have an empty $CT, a minimalist $ROAD_CRG block,
+and no comments marked by asterisk "*" in column 1 or marked by "!" in
+other columns. So this file is completely equivalent to its commented
+version in handmade_straight.crg .
+
+Copyright 2005-2009 OpenCRG - Daimler AG - Jochen Rauh
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+More Information on OpenCRG open file formats and tools can be found at
+
+    http://www.opencrg.org
+$
+$ROAD_CRG
+REFERENCE_LINE_INCREMENT = 1.0
+LONG_SECTION_V_INCREMENT = 0.50
+$
+$KD_Definition
+#:LRFI
+D:long section 1,m
+D:long section 2,m
+D:long section 3,m
+D:long section 4,m
+D:long section 5,m
+D:long section 6,m
+D:long section 7,m
+$
+$$$$
+ 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0111111 0.0111111 0.0111111 0.0000000 0.0000000
+ 0.0000000 0.0111111 0.0111111 0.0111111 0.0111111 0.0111111 0.0000000
+ 0.0000000 0.0000000 0.0111111 0.0111111 0.0111111 0.0000000 0.0000000
+ 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0111111
+ 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000 0.0111111 0.0222222
+ *missing* 0.0111111 0.0111111 0.0000000 0.0111111 0.0222222 *missing*
+ *missing* 0.0111111 0.0000000 0.0000000 0.0000000 0.0111111 0.0222222
+ 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0111111
+ 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0000000 0.0111111 0.0222222 0.0222222 0.0222222 0.0111111 0.0000000
+ 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000-0.0111111
+ 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000-0.0111111-0.0222222
+ 0.0111111 0.0111111 0.0111111 0.0000000-0.0111111-0.0222222-0.0333333
+ 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000-0.0111111-0.0222222
+ 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000-0.0111111
+ 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0000000 0.0111111 0.0222222 0.0333333 0.0222222 0.0111111 0.0000000
+ 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000

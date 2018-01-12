@@ -1267,32 +1267,9 @@ void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
 
-    // marchive << CHNVP(bodylist);
-    // do rather a custom array save:
-    marchive.out_array_pre("bodies", bodylist.size(), "ChBody");
-    for (int i = 0; i < bodylist.size(); i++) {
-        marchive << CHNVP(bodylist[i], "");
-        marchive.out_array_between(bodylist.size(), "bodies");
-    }
-    marchive.out_array_end(bodylist.size(), "bodies");
-
-    // marchive << CHNVP(linklist);
-    // do rather a custom array save:
-    marchive.out_array_pre("links", linklist.size(), "ChLink");
-    for (int i = 0; i < linklist.size(); i++) {
-        marchive << CHNVP(linklist[i], "");
-        marchive.out_array_between(linklist.size(), "links");
-    }
-    marchive.out_array_end(linklist.size(), "links");
-
-    // marchive << CHNVP(otherphysicsitems);
-    // do rather a custom array save:
-    marchive.out_array_pre("other_physics_list", otherphysicslist.size(), "ChPhysicsItem");
-    for (int i = 0; i < otherphysicslist.size(); i++) {
-        marchive << CHNVP(otherphysicslist[i], "");
-        marchive.out_array_between(otherphysicslist.size(), "other_physics_list");
-    }
-    marchive.out_array_end(otherphysicslist.size(), "other_physics_list");
+    marchive << CHNVP(bodylist, "bodies");
+    marchive << CHNVP(linklist, "links");
+    marchive << CHNVP(otherphysicslist , "other_physics_items");
 }
 
 void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
@@ -1303,45 +1280,25 @@ void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
     ChPhysicsItem::ArchiveIN(marchive);
 
     // stream in all member data:
-
-    // marchive >> CHNVP(bodylist);
-    // do rather a custom array load:
+    std::vector< std::shared_ptr<ChBody>> tempbodies;
+    std::vector< std::shared_ptr<ChLink>> templinks;
+    std::vector< std::shared_ptr<ChPhysicsItem>> tempitems;
+    marchive >> CHNVP(tempbodies, "bodies");
+    marchive >> CHNVP(templinks,  "links");
+    marchive >> CHNVP(tempitems , "other_physics_items");
+    // trick needed because the "Add...()" functions are required
     this->RemoveAllBodies();
-    size_t num_bodies;
-    marchive.in_array_pre("bodies", num_bodies);
-    for (int i = 0; i < num_bodies; i++) {
-        std::shared_ptr<ChBody> a_body;
-        marchive >> CHNVP(a_body, "");
-        this->AddBody(a_body);
-        marchive.in_array_between("bodies");
+    for (auto i : tempbodies) {
+        this->AddBody(i);
     }
-    marchive.in_array_end("bodies");
-
-    // marchive >> CHNVP(linklist);
-    // do rather a custom array load:
     this->RemoveAllLinks();
-    size_t num_links;
-    marchive.in_array_pre("links", num_links);
-    for (int i = 0; i < num_links; i++) {
-        std::shared_ptr<ChLink> a_link;
-        marchive >> CHNVP(a_link, "");
-        this->AddLink(a_link);
-        marchive.in_array_between("links");
+    for (auto i : templinks) {
+        this->AddLink(i);
     }
-    marchive.in_array_end("links");
-
-    // marchive >> CHNVP(otherphysiscslist);
-    // do rather a custom array load:
     this->RemoveAllOtherPhysicsItems();
-    size_t num_otherphysics;
-    marchive.in_array_pre("other_physics_list", num_otherphysics);
-    for (int i = 0; i < num_otherphysics; i++) {
-        std::shared_ptr<ChPhysicsItem> a_item;
-        marchive >> CHNVP(a_item, "");
-        this->AddOtherPhysicsItem(a_item);
-        marchive.in_array_between("other_physics_list");
-    }
-    marchive.in_array_end("other_physics_list");
+    for (auto i : tempitems) {
+        this->AddOtherPhysicsItem(i);
+    }  
 
     // Recompute statistics, offsets, etc.
     this->Setup();

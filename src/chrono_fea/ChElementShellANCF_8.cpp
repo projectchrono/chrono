@@ -19,12 +19,13 @@
 // Dynamics, To be published, 2017
 // =============================================================================
 
+#include <cmath>
+
+#include "chrono_fea/ChElementShellANCF_8.h"
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChElementShellANCF_8.h"
 #include "chrono_fea/ChUtilsFEA.h"
-#include <cmath>
 
 namespace chrono {
 namespace fea {
@@ -104,7 +105,7 @@ void ChElementShellANCF_8::SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
 // Add a layer.
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF_8::AddLayer(double thickness, double theta, std::shared_ptr<ChMaterialShellANCF_8> material) {
+void ChElementShellANCF_8::AddLayer(double thickness, double theta, std::shared_ptr<ChMaterialShellANCF> material) {
     m_layers.push_back(Layer(this, thickness, theta, material));
 }
 
@@ -291,7 +292,7 @@ void ChElementShellANCF_8::ComputeMassMatrix() {
                                                                -1, 1,           // y limits
                                                                m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                                3                                // order of integration
-                                                               );
+        );
         TempMassMatrix *= rho;
         m_MassMatrix += TempMassMatrix;
     }
@@ -364,7 +365,7 @@ void ChElementShellANCF_8::ComputeGravityForce(const ChVector<>& g_acc) {
                                                               -1, 1,      // y limits
                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                               3                                // order of integration
-                                                              );
+        );
 
         Fgravity *= rho;
         m_GravForce += Fgravity;
@@ -661,7 +662,7 @@ void ChElementShellANCF_8::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                                                               -1, 1,                           // y limits
                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                               5                                // order of integration
-                                                              );
+        );
 
         // Accumulate internal force
         Fi -= Finternal;
@@ -1040,7 +1041,7 @@ void ChElementShellANCF_8::ComputeInternalJacobians(double Kfactor, double Rfact
                                                                 -1, 1,    // y limits
                                                                 m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                                 3                                // order of integration
-                                                                );
+        );
 
         // Extract matrices from result of integration
         ChMatrixNM<double, 72, 72> KTE;
@@ -1361,7 +1362,7 @@ void ChElementShellANCF_8::CalcCoordDerivMatrix(ChMatrixNM<double, 72, 1>& dt) {
     dt(7, 0) = ddA_dt.y();
     dt(8, 0) = ddA_dt.z();
 
-    dt(9, 0)  = pB_dt.x();
+    dt(9, 0) = pB_dt.x();
     dt(10, 0) = pB_dt.y();
     dt(11, 0) = pB_dt.z();
     dt(12, 0) = dB_dt.x();
@@ -1617,12 +1618,12 @@ void ChElementShellANCF_8::EvaluateSectionPoint(const double u,
     const ChVector<>& pG = m_nodes[6]->GetPos();
     const ChVector<>& pH = m_nodes[7]->GetPos();
 
-    point.x() = N(0) * pA.x() + N(3) * pB.x() + N(6) * pC.x() + N(9) * pD.x() + N(12) * pE.x() + N(15) * pF.x() + N(18) * pG.x() +
-              N(21) * pH.x();
-    point.y() = N(0) * pA.y() + N(3) * pB.y() + N(6) * pC.y() + N(9) * pD.y() + N(12) * pE.y() + N(15) * pF.y() + N(18) * pG.y() +
-              N(21) * pH.y();
-    point.z() = N(0) * pA.z() + N(3) * pB.z() + N(6) * pC.z() + N(9) * pD.z() + N(12) * pE.z() + N(15) * pF.z() + N(18) * pG.z() +
-              N(21) * pH.z();
+    point.x() = N(0) * pA.x() + N(3) * pB.x() + N(6) * pC.x() + N(9) * pD.x() + N(12) * pE.x() + N(15) * pF.x() +
+                N(18) * pG.x() + N(21) * pH.x();
+    point.y() = N(0) * pA.y() + N(3) * pB.y() + N(6) * pC.y() + N(9) * pD.y() + N(12) * pE.y() + N(15) * pF.y() +
+                N(18) * pG.y() + N(21) * pH.y();
+    point.z() = N(0) * pA.z() + N(3) * pB.z() + N(6) * pC.z() + N(9) * pD.z() + N(12) * pE.z() + N(15) * pF.z() +
+                N(18) * pG.z() + N(21) * pH.z();
 }
 
 // -----------------------------------------------------------------------------
@@ -1685,7 +1686,11 @@ void ChElementShellANCF_8::LoadableGetStateBlock_w(int block_offset, ChStateDelt
     mD.PasteVector(m_nodes[7]->GetDD_dt(), block_offset + 69, 0);
 }
 
-void ChElementShellANCF_8::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+void ChElementShellANCF_8::LoadableStateIncrement(const unsigned int off_x,
+                                                  ChState& x_new,
+                                                  const ChState& x,
+                                                  const unsigned int off_v,
+                                                  const ChStateDelta& Dv) {
     for (int i = 0; i < 8; i++) {
         this->m_nodes[i]->NodeIntStateIncrement(off_x + 9 * i, x_new, x, off_v + 9 * i, Dv);
     }
@@ -1717,7 +1722,7 @@ void ChElementShellANCF_8::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is =n. field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ChMatrixNM<double, 1, 24> N;
     ShapeFunctions(N, U, V, 0);
 
@@ -1786,7 +1791,7 @@ void ChElementShellANCF_8::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is = n.field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ChMatrixNM<double, 1, 24> N;
     ShapeFunctions(N, U, V, W);
 
@@ -1898,52 +1903,6 @@ ChVector<> ChElementShellANCF_8::ComputeNormal(const double U, const double V) {
 }
 
 // ============================================================================
-// Implementation of ChMaterialShellANCF_8 methods
-// ============================================================================
-
-// Construct an isotropic material.
-ChMaterialShellANCF_8::ChMaterialShellANCF_8(double rho,  // material density
-                                             double E,    // Young's modulus
-                                             double nu    // Poisson ratio
-                                             )
-    : m_rho(rho) {
-    double G = 0.5 * E / (1 + nu);
-    Calc_E_eps(ChVector<>(E), ChVector<>(nu), ChVector<>(G));
-}
-
-// Construct a (possibly) orthotropic material.
-ChMaterialShellANCF_8::ChMaterialShellANCF_8(double rho,            // material density
-                                             const ChVector<>& E,   // elasticity moduli (E_x, E_y, E_z)
-                                             const ChVector<>& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
-                                             const ChVector<>& G    // shear moduli (G_xy, G_xz, G_yz)
-                                             )
-    : m_rho(rho) {
-    Calc_E_eps(E, nu, G);
-}
-
-// Calculate the matrix of elastic coefficients.
-// Always assume that the material could be orthotropic
-void ChMaterialShellANCF_8::Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
-    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() - (nu.z() * nu.z()) * E.z() / E.y() -
-                   2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
-    double nu_yx = nu.x() * E.y() / E.x();
-    double nu_zx = nu.y() * E.z() / E.x();
-    double nu_zy = nu.z() * E.z() / E.y();
-    m_E_eps(0, 0) = E.x() * (1.0 - (nu.z() * nu.z()) * E.z() / E.y()) / delta;
-    m_E_eps(1, 1) = E.y() * (1.0 - (nu.y() * nu.y()) * E.z() / E.x()) / delta;
-    m_E_eps(3, 3) = E.z() * (1.0 - (nu.x() * nu.x()) * E.y() / E.x()) / delta;
-    m_E_eps(0, 1) = E.y() * (nu.x() + nu.y() * nu.z() * E.z() / E.y()) / delta;
-    m_E_eps(0, 3) = E.z() * (nu.y() + nu.z() * nu.x()) / delta;
-    m_E_eps(1, 0) = E.y() * (nu.x() + nu.y() * nu.z() * E.z() / E.y()) / delta;
-    m_E_eps(1, 3) = E.z() * (nu.z() + nu.y() * nu.x() * E.y() / E.x()) / delta;
-    m_E_eps(3, 0) = E.z() * (nu.y() + nu.z() * nu.x()) / delta;
-    m_E_eps(3, 1) = E.z() * (nu.z() + nu.y() * nu.x() * E.y() / E.x()) / delta;
-    m_E_eps(2, 2) = G.x();
-    m_E_eps(4, 4) = G.y();
-    m_E_eps(5, 5) = G.z();
-}
-
-// ============================================================================
 // Implementation of ChElementShellANCF_8::Layer methods
 // ============================================================================
 
@@ -1951,7 +1910,7 @@ void ChMaterialShellANCF_8::Calc_E_eps(const ChVector<>& E, const ChVector<>& nu
 ChElementShellANCF_8::Layer::Layer(ChElementShellANCF_8* element,
                                    double thickness,
                                    double theta,
-                                   std::shared_ptr<ChMaterialShellANCF_8> material)
+                                   std::shared_ptr<ChMaterialShellANCF> material)
     : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
 
 // Initial setup for this layer: calculate T0 and detJ0 at the element center.

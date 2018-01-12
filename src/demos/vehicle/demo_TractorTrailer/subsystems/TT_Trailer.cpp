@@ -274,7 +274,7 @@ double TT_Trailer::GetShockVelocity(const WheelID& wheel_id) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TT_Trailer::Synchronize(double time, double braking, const TireForces& tire_forces) {
+void TT_Trailer::Synchronize(double time, double braking, const TerrainForces& tire_forces) {
     // Apply tire forces to spindle bodies.
     m_suspensions[0]->Synchronize(LEFT, tire_forces[FRONT_LEFT.id()]);
     m_suspensions[0]->Synchronize(RIGHT, tire_forces[FRONT_RIGHT.id()]);

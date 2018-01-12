@@ -51,7 +51,7 @@ void ChWheeledVehicle::Synchronize(double time,
                                    double steering,
                                    double braking,
                                    double powertrain_torque,
-                                   const TireForces& tire_forces) {
+                                   const TerrainForces& tire_forces) {
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(powertrain_torque);
 

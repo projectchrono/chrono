@@ -29,7 +29,7 @@ void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
     m_axle[side]->SetAppliedTorque(torque);
 }
 
-void ChSuspension::Synchronize(VehicleSide side, const TireForce& tire_force) {
+void ChSuspension::Synchronize(VehicleSide side, const TerrainForce& tire_force) {
     m_spindle[side]->Empty_forces_accumulators();
     m_spindle[side]->Accumulate_force(tire_force.force, tire_force.point, false);
     m_spindle[side]->Accumulate_torque(tire_force.moment, false);

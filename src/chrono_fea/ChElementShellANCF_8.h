@@ -17,6 +17,9 @@
 // elasticity'
 // H.C.J. Ebel, M.K.Matikainen, V.V.T. Hurskainen, A.M.Mikkola, Multibody System
 // Dynamics, To be published, 2017
+//
+// Note: this element uses the ChMaterailShellANCF class for the material
+// properties of a layer.
 // =============================================================================
 
 #ifndef CHELEMENTSHELLANCF8_H
@@ -24,49 +27,14 @@
 
 #include <vector>
 
-#include "chrono/core/ChQuadrature.h"
-#include "chrono_fea/ChApiFEA.h"
-#include "chrono_fea/ChElementShell.h"
+#include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChNodeFEAxyzDD.h"
-#include "chrono_fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {
 
 /// @addtogroup fea_elements
 /// @{
-
-// ----------------------------------------------------------------------------
-/// Material definition.
-/// This class implements material properties for a layer.
-class ChApiFea ChMaterialShellANCF_8 {
-  public:
-    /// Construct an isotropic material.
-    ChMaterialShellANCF_8(double rho,  ///< material density
-                          double E,    ///< Young's modulus
-                          double nu    ///< Poisson ratio
-                          );
-
-    /// Construct a (possibly) orthotropic material.
-    ChMaterialShellANCF_8(double rho,            ///< material density
-                          const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
-                          const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
-                          const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
-                          );
-
-    /// Return the material density.
-    double Get_rho() const { return m_rho; }
-
-    /// Return the matrix of elastic coefficients.
-    const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
-
-  private:
-    /// Calculate the matrix of elastic coefficients.
-    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
-
-    double m_rho;                      ///< density
-    ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
-};
 
 // ----------------------------------------------------------------------------
 /// ANCF laminated shell element with eight nodes.
@@ -96,15 +64,15 @@ class ChApiFea ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV
         double Get_theta() const { return m_theta; }
 
         /// Return the layer material.
-        std::shared_ptr<ChMaterialShellANCF_8> GetMaterial() const { return m_material; }
+        std::shared_ptr<ChMaterialShellANCF> GetMaterial() const { return m_material; }
 
       private:
         /// Private constructor (a layer can be created only by adding it to an element)
-        Layer(ChElementShellANCF_8* element,                   ///< containing element
-              double thickness,                                ///< layer thickness
-              double theta,                                    ///< fiber angle
-              std::shared_ptr<ChMaterialShellANCF_8> material  ///< layer material
-              );
+        Layer(ChElementShellANCF_8* element,                 ///< containing element
+              double thickness,                              ///< layer thickness
+              double theta,                                  ///< fiber angle
+              std::shared_ptr<ChMaterialShellANCF> material  ///< layer material
+        );
 
         double Get_detJ0C() const { return m_detJ0C; }
         const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
@@ -112,10 +80,10 @@ class ChApiFea ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV
         /// Initial setup for this layer: calculate T0 and detJ0 at the element center.
         void SetupInitial();
 
-        ChElementShellANCF_8* m_element;                    ///< containing ANCF shell element
-        std::shared_ptr<ChMaterialShellANCF_8> m_material;  ///< layer material
-        double m_thickness;                                 ///< layer thickness
-        double m_theta;                                     ///< fiber angle
+        ChElementShellANCF_8* m_element;                  ///< containing ANCF shell element
+        std::shared_ptr<ChMaterialShellANCF> m_material;  ///< layer material
+        double m_thickness;                               ///< layer thickness
+        double m_theta;                                   ///< fiber angle
 
         double m_detJ0C;
         ChMatrixNM<double, 6, 6> m_T0;
@@ -177,10 +145,10 @@ class ChApiFea ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV
     /// Get a handle to the fourth node of this element.
     std::shared_ptr<ChNodeFEAxyzDD> GetNodeH() const { return m_nodes[7]; }
     /// Add a layer.
-    void AddLayer(double thickness,                                ///< layer thickness
-                  double theta,                                    ///< fiber angle (radians)
-                  std::shared_ptr<ChMaterialShellANCF_8> material  ///< layer material
-                  );
+    void AddLayer(double thickness,                              ///< layer thickness
+                  double theta,                                  ///< fiber angle (radians)
+                  std::shared_ptr<ChMaterialShellANCF> material  ///< layer material
+    );
 
     /// Get the number of layers.
     size_t GetNumLayers() const { return m_numLayers; }
@@ -369,7 +337,11 @@ class ChApiFea ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mDD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.

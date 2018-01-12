@@ -1,0 +1,73 @@
+* Emacs major mode to be selected automagically: -*-CASCaDE-*-
+$CT                                                 ! comment text block
+CRG file example for road surface description (width: 3m, length: 22m)
+with an arc reference line and grid of (0.25m...1.0m) x 1.0m
+
+Copyright 2009 OpenCRG - VIRES GmbH - Marius Dupuis
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+More Information on OpenCRG open file formats and tools can be found at
+
+    http://www.opencrg.org
+
+$!**********************************************************************
+$ROAD_CRG                                          ! crg road parameters
+REFERENCE_LINE_START_U   = 0.0
+REFERENCE_LINE_START_X   = 0.0
+REFERENCE_LINE_START_Y   = 0.0
+REFERENCE_LINE_START_PHI = 0.0
+REFERENCE_LINE_END_U     = 88.0
+REFERENCE_LINE_END_PHI   = 3.125
+REFERENCE_LINE_INCREMENT = 4.0
+LONG_SECTION_V_RIGHT     =-1.50         ! with explicit definition below
+LONG_SECTION_V_LEFT      = 1.50         ! with explicit definition below
+$!**********************************************************************
+$KD_Definition                                   ! data definition block
+#:LRFI                           ! one of the men readable IPLOS formats
+U:reference line x,m,0,1.0     ! virtual channel, only for IPLOS viewing
+D:reference line phi,rad                                 ! heading angle
+D:long section at v = -1.500,m           ! 1.50m right of reference line
+D:long section at v = -1.250,m           ! 1.25m right of reference line
+D:long section at v = -1.000,m           ! 1.00m right of reference line
+D:long section at v =  0.000,m           !             on reference line
+D:long section at v =  1.000,m           ! 1.00m left  of reference line
+D:long section at v =  1.250,m           ! 1.25m left  of reference line
+D:long section at v =  1.500,m           ! 1.50m left  of reference line
+$!**********************************************************************
+* phi       l_sec 1   l_sec 2   l_sec 3   l_sec 4   l_sec 5   l_sec 6   l_sec 7
+*           v=-1.50   v=-1.25   v=-1.00   v= 0.00   v= 1.00   v= 1.25   v= 1.50
+$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0
+**unused** 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0000000
+ 0.1250000 0.0000000 0.0000000 0.0111111 0.0111111 0.0111111 0.0000000 0.0000000
+ 0.2500000 0.0000000 0.0111111 0.0111111 0.0111111 0.0111111 0.0111111 0.0000000
+ 0.3750000 0.0000000 0.0000000 0.0111111 0.0111111 0.0111111 0.0000000 0.0000000
+ 0.5000000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0111111
+ 0.6250000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000 0.0111111 0.0222222
+ 0.7500000 0.0111111 0.0111111 0.0111111 0.0000000 0.0111111 0.0222222 0.0333333
+ 0.8750000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000 0.0111111 0.0222222
+ 1.0000000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0111111
+ 2.1250000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 2.2500000 0.0000000 0.0111111 0.0222222 0.0222222 0.0222222 0.0111111 0.0000000
+ 2.3750000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 2.5000000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000-0.0111111
+ 2.6250000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000-0.0111111-0.0222222
+ 2.7500000 0.0111111 0.0111111 0.0111111 0.0000000-0.0111111-0.0222222-0.0333333
+ 2.8750000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000-0.0111111-0.0222222
+ 3.0000000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000-0.0111111
+ 3.1250000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 3.1250000 0.0000000 0.0111111 0.0222222 0.0333333 0.0222222 0.0111111 0.0000000
+ 3.1250000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 3.1250000 0.0000000 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0000000
+ 3.1250000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000

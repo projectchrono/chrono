@@ -122,6 +122,8 @@ int main(int argc, char* argv[]) {
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
     app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
+    app.SetChaseCameraState(utils::ChChaseCamera::Free);
+    app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -146,13 +148,10 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    TireForces tire_forces(2);
-    WheelStates wheel_states(2);
+    TerrainForces shoe_forces(1);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
-
-    TrackShoeForces shoe_forces(1);
 
     // Initialize simulation frame counter
     int step_number = 0;
@@ -170,17 +169,16 @@ int main(int argc, char* argv[]) {
         ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
 
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
 
+        if (step_number % render_steps == 0) {
             if (img_output && step_number > 1000) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", out_dir.c_str(), render_frame + 1);
                 app.WriteImageToFile(filename);
             }
-
             render_frame++;
         }
 

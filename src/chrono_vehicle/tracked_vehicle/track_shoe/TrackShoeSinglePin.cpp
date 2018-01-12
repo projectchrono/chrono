@@ -19,6 +19,7 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeSinglePin.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -26,16 +27,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -72,17 +63,17 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     m_shoe_height = d["Shoe"]["Height"].GetDouble();
     m_shoe_pitch = d["Shoe"]["Pitch"].GetDouble();
     m_shoe_mass = d["Shoe"]["Mass"].GetDouble();
-    m_shoe_inertia = loadVector(d["Shoe"]["Inertia"]);
+    m_shoe_inertia = LoadVectorJSON(d["Shoe"]["Inertia"]);
 
     // Read contact geometry data
     assert(d.HasMember("Contact Geometry"));
     assert(d["Contact Geometry"].HasMember("Shoe"));
     assert(d["Contact Geometry"].HasMember("Cylinder"));
 
-    m_pad_box_dims = loadVector(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
-    m_pad_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Pad Location"]);
-    m_guide_box_dims = loadVector(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
-    m_guide_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Guide Location"]);
+    m_pad_box_dims = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
+    m_pad_box_loc = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Location"]);
+    m_guide_box_dims = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
+    m_guide_box_loc = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Guide Location"]);
 
     m_cyl_radius = d["Contact Geometry"]["Cylinder"]["Radius"].GetDouble();
     m_front_cyl_loc = d["Contact Geometry"]["Cylinder"]["Front Offset"].GetDouble();

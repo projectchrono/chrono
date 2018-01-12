@@ -46,7 +46,7 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
 
     /// Class to be used as a functor interface for calculating the general spring-damper torque.
     /// A derived class must implement the virtual operator().
-    class TorqueFunctor {
+    class ChApi TorqueFunctor {
       public:
         virtual ~TorqueFunctor() {}
 

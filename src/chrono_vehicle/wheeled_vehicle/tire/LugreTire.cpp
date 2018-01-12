@@ -20,6 +20,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -27,16 +28,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -72,8 +63,10 @@ void LugreTire::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
-    // Read tire radius
+    // Read tire radius, mass, and inertia
     m_radius = d["Radius"].GetDouble();
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = LoadVectorJSON(d["Inertia"]);
 
     // Read disc locations
     m_numDiscs = d["Disc Locations"].Size();

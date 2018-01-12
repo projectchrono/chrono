@@ -157,6 +157,17 @@ void SCMDeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double m
     m_ground->plot_v_max = mmax;
 }
 
+// Enable moving patch
+void SCMDeformableTerrain::EnableMovingPatch(std::shared_ptr<ChBody> body,
+                                             const ChVector<>& point_on_body,
+                                             double dimX,
+                                             double dimY) {
+    m_ground->m_body = body;
+    m_ground->m_body_point = point_on_body;
+    m_ground->m_patch_dim = ChVector2<>(dimX, dimY);
+    m_ground->m_moving_patch = true;
+}
+
 // Initialize the terrain as a flat grid
 void SCMDeformableTerrain::Initialize(double height, double sizeX, double sizeY, int divX, int divY) {
     m_ground->Initialize(height, sizeX, sizeY, divX, divY);
@@ -175,6 +186,36 @@ void SCMDeformableTerrain::Initialize(const std::string& heightmap_file,
                                    double hMin,
                                    double hMax) {
     m_ground->Initialize(heightmap_file, mesh_name, sizeX, sizeY, hMin, hMax);
+}
+
+TerrainForce SCMDeformableTerrain::GetContactForce(std::shared_ptr<ChBody> body) const {
+    auto itr = m_ground->m_contact_forces.find(body.get());
+    if (itr != m_ground->m_contact_forces.end())
+        return itr->second;
+
+    TerrainForce frc;
+    frc.point = body->GetPos();
+    frc.force = ChVector<>(0, 0, 0);
+    frc.moment = ChVector<>(0, 0, 0);
+    return frc;
+}
+
+void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
+    os << " Timers:" << std::endl;
+    os << "   Calculate areas:         " << m_ground->m_timer_calc_areas() << std::endl;
+    os << "   Ray casting:             " << m_ground->m_timer_ray_casting() << std::endl;
+    if (m_ground->do_refinement)
+        os << "   Refinements:             " << m_ground->m_timer_refinement() << std::endl;
+    if (m_ground->do_bulldozing)
+        os << "   Bulldozing:              " << m_ground->m_timer_bulldozing() << std::endl;
+    os << "   Visualization:           " << m_ground->m_timer_visualization() << std::endl;
+
+    os << " Counters:" << std::endl;
+    os << "   Number vertices:         " << m_ground->m_num_vertices << std::endl;
+    os << "   Number ray-casts:        " << m_ground->m_num_ray_casts << std::endl;
+    os << "   Number faces:            " << m_ground->m_num_faces << std::endl;
+    if (m_ground->do_refinement)
+        os << "   Number faces refinement: " << m_ground->m_num_marked_faces << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -222,6 +263,8 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system) {
     test_low_offset = 0.5;
 
     last_t = 0;
+
+    m_moving_patch = false;
 }
 
 // Initialize the terrain as a flat grid
@@ -460,6 +503,11 @@ void SCMDeformableSoil::SetupAuxData() {
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void SCMDeformableSoil::ComputeInternalForces() {
+    m_timer_calc_areas.reset();
+    m_timer_ray_casting.reset();
+    m_timer_refinement.reset();
+    m_timer_bulldozing.reset();
+    m_timer_visualization.reset();
 
     // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
@@ -469,15 +517,20 @@ void SCMDeformableSoil::ComputeInternalForces() {
     std::vector<ChVector<int> >& idx_normals = m_trimesh_shape->GetMesh().getIndicesNormals();
     
     // 
-    // Reset the load list
+    // Reset the load list and map of contact forces
     //
 
     this->GetLoadList().clear();
+    m_contact_forces.clear();
 
     //
     // Compute (pseudo)areas per node
     //
     
+    m_num_vertices = vertices.size();
+    m_num_faces = idx_vertices.size();
+    m_timer_calc_areas.start();
+
     // for a X-Z rectangular grid-like mesh it is simply area[i]= xsize/xsteps * zsize/zsteps, 
     // but the following is more general, also for generic meshes:
     for (unsigned int iv = 0; iv < vertices.size(); ++iv) {
@@ -496,15 +549,29 @@ void SCMDeformableSoil::ComputeInternalForces() {
         p_area[idx_normals[it][2]] += triangle_area /3.0;
     }
 
-    ChVector<> N    = plane.TransformDirectionLocalToParent(ChVector<>(0,1,0));
+    m_timer_calc_areas.stop();
+
+    ChVector<> N = plane.TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
 
     //
     // Perform ray-hit test to detect the contact point sinkage
     // 
     
-    
+    m_timer_ray_casting.start();
+    m_num_ray_casts = 0;
+
+    ChVector2<> patch_min;
+    ChVector2<> patch_max;
+    if (m_moving_patch) {
+        ChVector<> center = m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(m_body_point);
+        patch_min.x() = center.x() - m_patch_dim.x() / 2;
+        patch_min.y() = center.y() - m_patch_dim.y() / 2;
+        patch_max.x() = center.x() + m_patch_dim.x() / 2;
+        patch_max.y() = center.y() + m_patch_dim.y() / 2;
+    }
+
 //#pragma omp parallel for
-    for (int i=0; i< vertices.size(); ++i) {
+    for (int i = 0; i < vertices.size(); ++i) {
         collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
@@ -513,14 +580,22 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         p_level[i] = plane.TransformParentToLocal(vertices[i]).y();
 
-        ChVector<> to   = vertices[i] +N*test_high_offset; 
-        ChVector<> from = to - N*test_low_offset;
-        
         p_hit_level[i] = 1e9;
         double p_hit_offset = 1e9;
 
+        if (m_moving_patch) {
+            if (vertices[i].x() < patch_min.x() || vertices[i].x() > patch_max.x() || vertices[i].y() < patch_min.y() ||
+                vertices[i].y() > patch_max.y()) {
+                continue;
+            }
+        }
+
+        ChVector<> to = vertices[i] + N * test_high_offset;
+        ChVector<> from = to - N * test_low_offset;
+
         // DO THE RAY-HIT TEST HERE:
         this->GetSystem()->GetCollisionSystem()->RayHit(from,to,mrayhit_result);
+        m_num_ray_casts++;
 
         if (mrayhit_result.hit == true) {
 
@@ -589,24 +664,44 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 Ft = T * p_area[i] * p_tau[i];
 
                 if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
-                    // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody() 
-                    // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem() 
+                    // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody()
+                    // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem()
                     // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
-                    std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*){}); 
+                    std::shared_ptr<ChBody> srigidbody(rigidbody, [](ChBody*) {});
                     std::shared_ptr<ChLoadBodyForce> mload(
                         new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
                     this->Add(mload);
-                }
-                if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
+
+                    // Accumulate contact force for this rigid body.
+                    // The resultant force is assumed to be applied at the body COM.
+                    // All components of the generalized terrain force are expressed in the global frame.
+                    auto itr = m_contact_forces.find(contactable);
+                    if (itr == m_contact_forces.end()) {
+                        // Create new entry and initialize generalized force.
+                        ChVector<> force = Fn + Ft;
+                        TerrainForce frc;
+                        frc.point = srigidbody->GetPos();
+                        frc.force = force;
+                        frc.moment = Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
+                        m_contact_forces.insert(std::make_pair(contactable, frc));
+                    } else {
+                        // Update generalized force.
+                        ChVector<> force = Fn + Ft;
+                        itr->second.force += force;
+                        itr->second.moment += Vcross(Vsub(vertices[i], srigidbody->GetPos()), force);
+                    }
+                } else if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
                     // [](){} Trick: no deletion for this shared ptr
-                    std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*){});
-                    std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(
-                        new ChLoad<ChLoaderForceOnSurface>(ssurf));
-                    mload->loader.SetForce( Fn +Ft );
-                    mload->loader.SetApplication(0.5, 0.5); //***TODO*** set UV, now just in middle
+                    std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
+                    std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
+                    mload->loader.SetForce(Fn + Ft);
+                    mload->loader.SetApplication(0.5, 0.5);  //***TODO*** set UV, now just in middle
                     this->Add(mload);
+
+                    // Accumulate contact forces for this surface.
+                    //// TODO
                 }
-                
+
                 // Update mesh representation
                 vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
 
@@ -616,14 +711,18 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     } // end loop on vertexes
 
-    
+    m_timer_ray_casting.stop();
+
     //
     // Refine the mesh detail
     //
 
-    if (do_refinement) {  
-        
-        std::vector<std::vector<double>*> aux_data_double; 
+    m_num_marked_faces = 0;
+    m_timer_refinement.start();
+
+    if (do_refinement) {
+
+        std::vector<std::vector<double>*> aux_data_double;
         aux_data_double.push_back(&p_level);
         aux_data_double.push_back(&p_level_initial);
         aux_data_double.push_back(&p_hit_level);
@@ -637,9 +736,9 @@ void SCMDeformableSoil::ComputeInternalForces() {
         aux_data_double.push_back(&p_sigma_yeld);
         aux_data_double.push_back(&p_tau);
         aux_data_double.push_back(&p_massremainder);
-        std::vector<std::vector<int>*> aux_data_int;  
+        std::vector<std::vector<int>*> aux_data_int;
         aux_data_int.push_back(&p_id_island);
-        std::vector<std::vector<bool>*> aux_data_bool; 
+        std::vector<std::vector<bool>*> aux_data_bool;
         aux_data_bool.push_back(&p_erosion);
         std::vector<std::vector<ChVector<>>*> aux_data_vect;
         aux_data_vect.push_back(&p_vertices_initial);
@@ -647,15 +746,16 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         // loop on triangles to see which needs refinement
         std::vector<int> marked_tris;
-        for (int it = 0; it< idx_vertices.size(); ++it) {
+        for (int it = 0; it < idx_vertices.size(); ++it) {
             // see if at least one of the vertexes are touching
-            if ( p_sigma[idx_vertices[it][0]] >0 || 
-                 p_sigma[idx_vertices[it][1]] >0 ||
-                 p_sigma[idx_vertices[it][2]] >0 ) {
+            if (p_sigma[idx_vertices[it][0]] > 0 ||
+                p_sigma[idx_vertices[it][1]] > 0 ||
+                p_sigma[idx_vertices[it][2]] > 0) {
                 marked_tris.push_back(it);
             }
         }
-    
+        m_num_marked_faces = marked_tris.size();
+
         // custom edge refinement criterion: do not use default edge length, 
         // length of the edge as projected on soil plane
         class MyRefinement : public geometry::ChTriangleMeshConnected::ChRefineEdgeCriterion {
@@ -672,21 +772,21 @@ void SCMDeformableSoil::ComputeInternalForces() {
         refinement_criterion.A = ChMatrix33<>(this->plane.rot);
 
         // perform refinement using the LEPP  algorithm, also refining the soil-specific vertex attributes
-        for (int i=0; i<1; ++i) {
+        for (int i = 0; i < 1; ++i) {
             m_trimesh_shape->GetMesh().RefineMeshEdges(
-                marked_tris, 
-                refinement_resolution, 
+                marked_tris,
+                refinement_resolution,
                 &refinement_criterion,
                 0, //&tri_map, // note, update triangle connectivity map incrementally
-                aux_data_double, 
-                aux_data_int, 
-                aux_data_bool, 
+                aux_data_double,
+                aux_data_int,
+                aux_data_bool,
                 aux_data_vect);
         }
         // TO DO adjust this incrementally
-        
+
         connected_vertexes.clear();
-        connected_vertexes.resize( vertices.size() );
+        connected_vertexes.resize(vertices.size());
         for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
             connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][1]);
             connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][2]);
@@ -708,15 +808,19 @@ void SCMDeformableSoil::ComputeInternalForces() {
             AB.y() = 0;
             AC.y() = 0;
             double triangle_area = 0.5 * (Vcross(AB, AC)).Length();
-            p_area[idx_normals[it][0]] += triangle_area /3.0;
-            p_area[idx_normals[it][1]] += triangle_area /3.0;
-            p_area[idx_normals[it][2]] += triangle_area /3.0;
+            p_area[idx_normals[it][0]] += triangle_area / 3.0;
+            p_area[idx_normals[it][1]] += triangle_area / 3.0;
+            p_area[idx_normals[it][2]] += triangle_area / 3.0;
         }
     }
+
+    m_timer_refinement.stop();
 
     //
     // Flow material to the side of rut, using heuristics
     // 
+
+    m_timer_bulldozing.start();
 
     if (do_bulldozing) {
         std::set<int> touched_vertexes;
@@ -791,12 +895,13 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
             domain_boundaries.insert(boundary.begin(), boundary.end());
 
-        }// end for islands
- //***TEST***
-//int mm = p_massremainder.size();
-//p_massremainder.clear();p_massremainder.resize(mm);
+        }  // end for islands
 
-        // Erosion domain area select, by topologically dilation of all the 
+        //***TEST***
+        // int mm = p_massremainder.size();
+        // p_massremainder.clear();p_massremainder.resize(mm);
+
+        // Erosion domain area select, by topologically dilation of all the
         // boundaries of the islands:
         std::set<int> domain_erosion= domain_boundaries;
         for (auto ie : domain_boundaries)
@@ -926,11 +1031,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     } // end bulldozing flow 
 
+    m_timer_bulldozing.stop();
 
+
+    m_timer_visualization.start();
 
     //
     // Update the visualization colors
     // 
+
     if (plot_type != SCMDeformableTerrain::PLOT_NONE) {
         colors.resize(vertices.size());
         for (size_t iv = 0; iv< vertices.size(); ++iv) {
@@ -1017,6 +1126,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
     for (unsigned int in = 0; in < vertices.size(); ++in) {
         normals[in] /= (double)accumulators[in];
     }
+
+    m_timer_visualization.stop();
 
     // 
     // Compute the forces 

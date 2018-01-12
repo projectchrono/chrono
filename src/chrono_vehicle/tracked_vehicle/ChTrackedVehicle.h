@@ -176,13 +176,13 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
     /// from the powertrain, and tire forces (expressed in the global reference
     /// frame).
-    void Synchronize(double time,                              ///< [in] current time
-                     double steering,                          ///< [in] current steering input [-1,+1]
-                     double braking,                           ///< [in] current braking input [0,1]
-                     double powertrain_torque,                 ///< [in] input torque from powertrain
-                     const TrackShoeForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
-                     const TrackShoeForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
-                     );
+    void Synchronize(double time,                            ///< [in] current time
+                     double steering,                        ///< [in] current steering input [-1,+1]
+                     double braking,                         ///< [in] current braking input [0,1]
+                     double powertrain_torque,               ///< [in] input torque from powertrain
+                     const TerrainForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
+                     const TerrainForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
+    );
 
     /// Advance the state of this vehicle by the specified time step.
     virtual void Advance(double step) final;

@@ -66,8 +66,8 @@ void ChTrackedVehicle::Synchronize(double time,
                                    double steering,
                                    double braking,
                                    double powertrain_torque,
-                                   const TrackShoeForces& shoe_forces_left,
-                                   const TrackShoeForces& shoe_forces_right) {
+                                   const TerrainForces& shoe_forces_left,
+                                   const TerrainForces& shoe_forces_right) {
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(steering, powertrain_torque);
 

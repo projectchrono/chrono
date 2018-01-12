@@ -19,6 +19,7 @@
 #include <cstdio>
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -26,16 +27,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // Construct a trailing arm suspension using data from the specified JSON file.
@@ -86,8 +77,8 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
     assert(d["Spindle"].IsObject());
 
     m_spindleMass = d["Spindle"]["Mass"].GetDouble();
-    m_points[SPINDLE] = loadVector(d["Spindle"]["COM"]);
-    m_spindleInertia = loadVector(d["Spindle"]["Inertia"]);
+    m_points[SPINDLE] = LoadVectorJSON(d["Spindle"]["COM"]);
+    m_spindleInertia = LoadVectorJSON(d["Spindle"]["Inertia"]);
     m_spindleRadius = d["Spindle"]["Radius"].GetDouble();
     m_spindleWidth = d["Spindle"]["Width"].GetDouble();
 
@@ -96,19 +87,19 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
     assert(d["Trailing Arm"].IsObject());
 
     m_armMass = d["Trailing Arm"]["Mass"].GetDouble();
-    m_points[TA_CM] = loadVector(d["Trailing Arm"]["COM"]);
-    m_armInertia = loadVector(d["Trailing Arm"]["Inertia"]);
+    m_points[TA_CM] = LoadVectorJSON(d["Trailing Arm"]["COM"]);
+    m_armInertia = LoadVectorJSON(d["Trailing Arm"]["Inertia"]);
     m_armRadius = d["Trailing Arm"]["Radius"].GetDouble();
-    m_points[TA_O] = loadVector(d["Trailing Arm"]["Location Chassis Outer"]);
-    m_points[TA_I] = loadVector(d["Trailing Arm"]["Location Chassis Inner"]);
-    m_points[TA_S] = loadVector(d["Trailing Arm"]["Location Spindle"]);
+    m_points[TA_O] = LoadVectorJSON(d["Trailing Arm"]["Location Chassis Outer"]);
+    m_points[TA_I] = LoadVectorJSON(d["Trailing Arm"]["Location Chassis Inner"]);
+    m_points[TA_S] = LoadVectorJSON(d["Trailing Arm"]["Location Spindle"]);
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
     assert(d["Spring"].IsObject());
 
-    m_points[SPRING_C] = loadVector(d["Spring"]["Location Chassis"]);
-    m_points[SPRING_A] = loadVector(d["Spring"]["Location Arm"]);
+    m_points[SPRING_C] = LoadVectorJSON(d["Spring"]["Location Chassis"]);
+    m_points[SPRING_A] = LoadVectorJSON(d["Spring"]["Location Arm"]);
     m_springRestLength = d["Spring"]["Free Length"].GetDouble();
 
     if (d["Spring"].HasMember("Spring Coefficient")) {
@@ -127,8 +118,8 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Shock"));
     assert(d["Shock"].IsObject());
 
-    m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_A] = loadVector(d["Shock"]["Location Arm"]);
+    m_points[SHOCK_C] = LoadVectorJSON(d["Shock"]["Location Chassis"]);
+    m_points[SHOCK_A] = LoadVectorJSON(d["Shock"]["Location Arm"]);
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
         m_shockForceCB = new LinearDamperForce(d["Shock"]["Damping Coefficient"].GetDouble());
