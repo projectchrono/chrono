@@ -48,7 +48,7 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
                             VehicleSide side          ///< [in] assembly on left/right vehicle side
     );
 
-    virtual ~ChTrackAssemblyBandANCF() {}
+    virtual ~ChTrackAssemblyBandANCF();
 
     /// Set the type of contact surface (default: TRIANGLE_MESH).
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
@@ -65,6 +65,17 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
     ContactSurfaceType m_contact_type;          ///< type of contact surface model (node cloud or mesh)
 
   private:
+    /// Custom callback class for culling broadphase collisions.
+    class BroadphaseCulling : public collision::ChCollisionSystem::BroadphaseCallback {
+      public:
+        BroadphaseCulling(ChTrackAssemblyBandANCF* assembly);
+
+      private:
+        virtual bool OnBroadphase(collision::ChCollisionModel* modelA, collision::ChCollisionModel* modelB) override;
+
+        ChTrackAssemblyBandANCF* m_assembly;
+    };
+
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
@@ -75,6 +86,10 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
 
     /// Remove visualization assets for the track shoe subsystem.
     virtual void RemoveVisualizationAssets() override final;
+
+    BroadphaseCulling* m_callback;  ///< custom broadphase callback object
+
+    friend class BroadphaseCulling;
 };
 
 /// @} vehicle_tracked

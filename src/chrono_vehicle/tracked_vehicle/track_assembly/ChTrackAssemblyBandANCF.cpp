@@ -31,11 +31,46 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+// Implementation of the custom callback class for culling broadphase collisions
 // -----------------------------------------------------------------------------
-ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name,
+ChTrackAssemblyBandANCF::BroadphaseCulling::BroadphaseCulling(ChTrackAssemblyBandANCF* assembly)
+    : m_assembly(assembly) {}
 
-                                                 VehicleSide side)
-    : ChTrackAssemblyBand(name, side), m_contact_type(TRIANGLE_MESH) {}
+bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(collision::ChCollisionModel* modelA,
+                                                              collision::ChCollisionModel* modelB) {
+    auto contactableA = modelA->GetContactable();
+    auto contactableB = modelB->GetContactable();
+
+    if (dynamic_cast<fea::ChContactNodeXYZsphere*>(contactableA) ||
+        dynamic_cast<fea::ChContactTriangleXYZ*>(contactableA)) {
+        // Reject this candidate pair if contactableB is a track shoe tread body
+        for (auto shoe : m_assembly->m_shoes) {
+            if (contactableB == shoe->GetShoeBody().get())
+                return false;
+        }
+    }
+
+    if (dynamic_cast<fea::ChContactNodeXYZsphere*>(contactableB) ||
+        dynamic_cast<fea::ChContactTriangleXYZ*>(contactableB)) {
+        // Reject this candidate pair if contactableA is a track shoe tread body
+        for (auto shoe : m_assembly->m_shoes) {
+            if (contactableA == shoe->GetShoeBody().get())
+                return false;
+        }
+    }
+
+    // Accept this candidate
+    return true;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name, VehicleSide side)
+    : ChTrackAssemblyBand(name, side), m_contact_type(TRIANGLE_MESH), m_callback(nullptr) {}
+
+ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
+    delete m_callback;
+}
 
 // -----------------------------------------------------------------------------
 // Assemble the track shoes over the wheels.
@@ -64,7 +99,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     std::vector<double> connection_lengths(2);
     connection_lengths[0] = m_shoes[0]->GetToothBaseLength();
     connection_lengths[1] = m_shoes[0]->GetWebLength();
-    
+
     // Calculate assembly points
     std::vector<ChVector2<>> shoe_points;
     bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
@@ -133,6 +168,10 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             break;
         }
     }
+
+    // Create and register the custom broadphase callback.
+    m_callback = new BroadphaseCulling(this);
+    chassis->GetSystem()->GetCollisionSystem()->RegisterBroadphaseCallback(m_callback);
 
     return ccw;
 }
