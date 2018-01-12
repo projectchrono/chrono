@@ -608,15 +608,15 @@ int main(int argc, char* argv[]) {
         std::cerr << "Not enough args!" << std::endl;
         exit(1);
     }
-//-------------------------------------------------
-// use input data from argv vector
-//---------------------------------------------------
-#ifdef USE_DEMP
-    out_folder = argv[1];  //"DST/DEMP" + argv[1];
-    std::cout << out_folder << "\n";
-#else
-    out_folder = argv[1];  //"DST/DEMC" + argv[1];
-#endif
+    //-------------------------------------------------
+    // use input data from argv vector
+    //---------------------------------------------------
+    // #ifdef USE_DEMP
+    //     out_folder = argv[1];  //"DST/DEMP" + argv[1];
+    //     std::cout << out_folder << "\n";
+    // #else
+    //     out_folder = argv[1];  //"DST/DEMC" + argv[1];
+    // #endif
     KinEn_file = out_folder + "/KinEnFile_set.dat";
     howManyParticles_file = out_folder + "/howManyParticles.dat";
 
