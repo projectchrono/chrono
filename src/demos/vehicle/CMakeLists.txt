@@ -31,3 +31,4 @@ ADD_SUBDIRECTORY(demo_TrackTestRig)
 
 ADD_SUBDIRECTORY(demo_Paths)
 ADD_SUBDIRECTORY(demo_RigidTerrain)
+ADD_SUBDIRECTORY(demo_CRGTerrain)

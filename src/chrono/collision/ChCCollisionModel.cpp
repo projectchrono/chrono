@@ -90,14 +90,14 @@ bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int mfamily) {
 
 // Set the collision family group of this model.
 // In order to properly encode a collision family, the value 'group' must be a power of 2.
-void ChCollisionModel::SetFamilyGroup(short group) {
+void ChCollisionModel::SetFamilyGroup(short int group) {
     assert(group > 0 && !(group & (group - 1)));
     family_group = group;
 }
 
 // Set the collision mask for this model.
 // In order to properly encode a collision mask, the value 'mask' must not exceed 0x7FFFF (i.e. 15 right bits all set)
-void ChCollisionModel::SetFamilyMask(short mask) {
+void ChCollisionModel::SetFamilyMask(short int mask) {
     assert(mask >= 0 && mask <= 0x7FFF);
     family_mask = mask;
 }

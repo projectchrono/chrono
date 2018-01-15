@@ -12,20 +12,20 @@
 // Authors: Conlain Kelly
 // =============================================================================
 //
-// Demo for the OpenSim -> Chrono parser
+// Demo for the ADAMS -> Chrono parser
 //
 // =============================================================================
 
-#include "chrono/utils/ChParserAdams.h"
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/utils/ChParserAdams.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include <functional>
 #include <cassert>
 #include <cmath>
+#include <functional>
 
 using namespace chrono;
 using namespace chrono::utils;
@@ -34,13 +34,12 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
-    // Get OpenSim input file (relative to the 'data' directory)
+    // Get ADAMS input file (relative to the 'data' directory)
     std::string filename;
     if (argc > 1) {
         filename = std::string(argv[1]);
     } else {
         filename = "adams/test_Revolute_Case01.adm";
-        ////filename = "opensim/Rajagopal2015-objs.osim";
     }
     filename = GetChronoDataFile(filename);
 
@@ -48,13 +47,19 @@ int main(int argc, char* argv[]) {
     ChSystemSMC my_system;
 
     // Create parser instance and set options.
-    // - Use MESH visualization and no collision for the Rajagopal model.
-    // - use PRIMITIVES for models without visualization mesh data.
+    // Use LOADED to read the ADAMS primitives
     ChParserAdams parser;
-    parser.SetVisualizationType(ChParserAdams::VisType::PRIMITIVES);
+    parser.SetVisualizationType(ChParserAdams::VisType::LOADED);
     parser.SetVerbose(true);
     parser.Parse(my_system, filename);
-    //
+
+    // Get a full report on parsed elements
+    auto rep = parser.GetReport();
+    std::cout << "---------" << std::endl;
+    rep.Print();
+    std::cout << "---------" << std::endl;
+
+    // Adda a ground for perspective
     auto my_ground = std::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
     my_system.AddBody(my_ground);
     my_ground->SetBodyFixed(true);
@@ -62,17 +67,8 @@ int main(int argc, char* argv[]) {
     my_ground->SetNameString(std::string("ground"));
     my_ground->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
 
-    auto left = std::make_shared<ChBody>();
-    left->SetPos(ChVector<>(2, 0, 0));
-    left->AddAsset(std::make_shared<ChColorAsset>(0, .5f, 0));
-    auto sphere = std::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = 0.2;
-    left->AddAsset(sphere);
-    // my_system.Add(left);
-    // left->SetBodyFixed(true);
-
     // Set up Irrlicht
-    ChIrrApp application(&my_system, L"Model loaded from OpenSim file", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Model loaded from ADAMS file", core::dimension2d<u32>(800, 600), false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
