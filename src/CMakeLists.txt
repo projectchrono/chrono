@@ -232,39 +232,56 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 #-----------------------------------------------------------------------------
-# HDF5 support
+# HDF5 support (optional)
 #-----------------------------------------------------------------------------
 
-# LIB_TYPE can be one of STATIC or SHARED.
-# If using shared libraries on Windows, MUST define H5_BUILT_AS_DYNAMIC_LIB to 
-# have the symbols imported from the DLL.
-# Note also that the path to the HDF5 DLLs must be in the search path (or else
-# copied in the working directory).
+option(ENABLE_HDF5 "Enable HDF5 support" OFF)
 
-message(STATUS "Searching for HDF5...")
+if(ENABLE_HDF5)
 
-set (LIB_TYPE SHARED) # STATIC or SHARED
-string(TOLOWER ${LIB_TYPE} SEARCH_TYPE)
-find_package (HDF5 NAMES hdf5 COMPONENTS CXX ${SEARCH_TYPE})
-
-if(HDF5_FOUND)
-    message(STATUS "  HDF5 include dir   HDF5_INCLUDE_DIR:             ${HDF5_INCLUDE_DIR}")
-    message(STATUS "  HDF5 C library     HDF5_C_${LIB_TYPE}_LIBRARY:   ${HDF5_C_${LIB_TYPE}_LIBRARY}")
-    message(STATUS "  HDF5 C++ library   HDF5_CXX_${LIB_TYPE}_LIBRARY: ${HDF5_CXX_${LIB_TYPE}_LIBRARY}")
-
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        set(HDF5_COMPILE_DEFINITIONS "H5_BUILT_AS_DYNAMIC_LIB")
-        message(STATUS "  HDF5 compile defs  HDF5_COMPILE_DEFINITIONS:     ${HDF5_COMPILE_DEFINITIONS}")
+    message(STATUS "Searching for HDF5...")
+    
+    # First look for a FindHDF5.cmake module
+    # If found, this will define the following relevant variables:
+    #    HDF5_INCLUDE_DIRS
+    #    HDF5_C_LIBRARIES
+    #    HDF5_CXX_LIBRARIES
+    find_package(HDF5 COMPONENTS CXX)
+    
+    if(NOT HDF5_FOUND) 
+        # Look for a package configuration file
+        # LIB_TYPE can be one of STATIC or SHARED.
+        set(LIB_TYPE SHARED) # STATIC or SHARED
+        string(TOLOWER ${LIB_TYPE} SEARCH_TYPE)
+        find_package(HDF5 NAMES hdf5 COMPONENTS CXX ${SEARCH_TYPE})
+    
+        if (HDF5_FOUND)
+            set(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
+            set(HDF5_C_LIBRARIES ${HDF5_C_${LIB_TYPE{_LIBRARY})
+            set(HDF5_CXX_LIBRARIES ${HDF5_CXX_${LIB_TYPE}_LIBRARY)
+        endif()
+    endif()
+    
+    if (HDF5_FOUND)
+        message(STATUS "  HDF5 found         (HDF5_FOUND)         ${HDF5_FOUND}")
+        message(STATUS "  HDF5 include dirs  (HDF5_INCLUDE_DIR)   ${HDF5_INCLUDE_DIRS}")
+        message(STATUS "  HDF5 C libraries   (HDF5_C_LIBRARIES)   ${HDF5_C_LIBRARIES}")
+        message(STATUS "  HDF5 C++ libraries (HDF5_CXX_LIBRARIES) ${HDF5_CXX_LIBRARIES}")
+    
+        # If using shared libraries on Windows, MUST define H5_BUILT_AS_DYNAMIC_LIB to have
+        # the symbols imported from the DLL.  Note also that the path to the HDF5 DLLs must
+        # be in the search path (or else copied in the working directory).
+        if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            set(HDF5_COMPILE_DEFS "H5_BUILT_AS_DYNAMIC_LIB")
+            message(STATUS "  HDF5 compile defs  (HDF5_COMPILE_DEFS)  ${HDF5_COMPILE_DEFS}")
+        endif()
+    
+        set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
+    else()
+        message(STATUS "  Could not find HDF5")
     endif()
 
-    set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
-else()
-    message(STATUS "  Cannot find HDF5 library")
-    return()
 endif()
-
-
-
 
 #-----------------------------------------------------------------------------
 # Set the base compilation flags
