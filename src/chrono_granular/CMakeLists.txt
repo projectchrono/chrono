@@ -179,27 +179,25 @@ SET(ChronoEngine_Granular_PHYSICS
     physics/ChSettingsGranularSMC.h
     )
 
-SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})
+SOURCE_GROUP(physics FILES ${ChronoEngine_Granular_PHYSICS})
 
-SET(ChronoEngine_Parallel_CUDA
-    physics/ChGranDynGPU_SMC.cu
-    physics/ChGranDynGPU.cu
+SET(ChronoEngine_Granular_CUDA
+    physics/ChGranularGPU_SMC.cu
+    physics/ChGranular.cpp
     )
 
-SOURCE_GROUP(cuda FILES ${ChronoEngine_Parallel_CUDA})
+SOURCE_GROUP(cuda FILES ${ChronoEngine_Granular_CUDA})
     
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_granular library
 # ------------------------------------------------------------------------------
 
 CUDA_ADD_LIBRARY(ChronoEngine_granular SHARED
-            ${ChronoEngine_Parallel_BASE}
-            ${ChronoEngine_Parallel_PHYSICS}
-            ${ChronoEngine_Parallel_CUDA}
-            ${ChronoEngine_Parallel_COLLISION}
-            ${ChronoEngine_Parallel_MATH}
+            ${ChronoEngine_Granular_BASE}
+            ${ChronoEngine_Granular_PHYSICS}
+            ${ChronoEngine_Granular_CUDA}
             )
-SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
+SET(CHRONO_GRANULAR_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
 
 SET_TARGET_PROPERTIES(ChronoEngine_granular PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
