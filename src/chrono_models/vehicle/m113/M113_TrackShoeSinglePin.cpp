@@ -49,7 +49,7 @@ const std::string M113_TrackShoeSinglePin::m_meshFile = "M113/TrackShoe.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeSinglePin::M113_TrackShoeSinglePin() : ChTrackShoeSinglePin("M113_TrackShoe") {
+M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTrackShoeSinglePin(name) {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
