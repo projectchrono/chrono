@@ -1,0 +1,29 @@
+# Warnings
+WFLAGS	:= -Wall -Wextra -Wsign-conversion -Wsign-compare
+MOREFLAGS	:= -lm -fopenmp #-g -pg -no-pie 
+# Optimization and architecture
+OPT		:= -O3 -mavx -msse #-fno-inline-small-functions 
+ARCH   	:= -march=native
+
+# Language standard
+CCSTD	:= -std=c99
+CXXSTD	:= -std=c++11
+
+# Linker options
+LDOPT 	:= $(OPT) 
+LDFLAGS := -g -pg
+EXEC 	:=  distance
+.DEFAULT_GOAL := all
+
+.PHONY: debug
+debug : OPT  := -O0 -g 
+debug : clean $(EXEC)
+
+all : Makefile $(EXEC)
+
+distance: distance.cpp
+	$(CXX) $(MOREFLAGS) $(CXXSTD) $(WFLAGS) $(FLAGS) $(OPT) $(CXXFLAGS) $< -o $@
+
+.PHONY: clean
+clean:
+	rm -f *.o $(EXEC)
