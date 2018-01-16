@@ -215,10 +215,10 @@ WheelState ChWheeledVehicle::GetWheelState(const WheelID& wheel_id) const {
     state.lin_vel = GetWheelLinVel(wheel_id);
     state.ang_vel = GetWheelAngVel(wheel_id);
 
-    ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    state.omega = ang_vel_loc.y();
+ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
+state.omega = ang_vel_loc.y();
 
-    return state;
+return state;
 }
 
 // -----------------------------------------------------------------------------
@@ -257,7 +257,7 @@ std::string ChWheeledVehicle::ExportComponentList() const {
     std::string template_name = GetTemplateName();
     jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
     jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
-                           jsonDocument.GetAllocator());
+        jsonDocument.GetAllocator());
 
     {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
@@ -312,6 +312,44 @@ std::string ChWheeledVehicle::ExportComponentList() const {
 void ChWheeledVehicle::ExportComponentList(const std::string& filename) const {
     std::ofstream of(filename);
     of << ExportComponentList();
+    of.close();
+}
+
+void ChWheeledVehicle::Output(ChVehicleOutput& database) const {
+    database.WriteTime(m_system->GetChTime());
+
+    if (m_chassis->OutputEnabled()) {
+        database.WriteSection(m_chassis->GetName());
+        m_chassis->Output(database);
+    }
+
+    for (auto suspension : m_suspensions) {
+        if (suspension->OutputEnabled()) {
+            database.WriteSection(suspension->GetName());
+            suspension->Output(database);
+        }
+    }
+
+    for (auto steering : m_steerings) {
+        if (steering->OutputEnabled()) {
+            database.WriteSection(steering->GetName());
+            steering->Output(database);
+        }
+    }
+
+    for (auto brake : m_brakes) {
+        if (brake->OutputEnabled()) {
+            database.WriteSection(brake->GetName());
+            brake->Output(database);
+        }
+    }
+
+    for (auto antirollbar : m_antirollbars) {
+        if (antirollbar->OutputEnabled()) {
+            database.WriteSection(antirollbar->GetName());
+            antirollbar->Output(database);
+        }
+    }
 }
 
 }  // end namespace vehicle

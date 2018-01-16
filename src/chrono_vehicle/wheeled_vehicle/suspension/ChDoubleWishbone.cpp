@@ -534,5 +534,41 @@ void ChDoubleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) co
     ChPart::ExportLinSpringList(jsonDocument, springs);
 }
 
+
+void ChDoubleWishbone::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_spindle[0]);
+    database.WriteBody(m_spindle[1]);
+    database.WriteBody(m_upright[0]);
+    database.WriteBody(m_upright[1]);
+    database.WriteBody(m_UCA[0]);
+    database.WriteBody(m_UCA[1]);
+    database.WriteBody(m_LCA[0]);
+    database.WriteBody(m_LCA[1]);
+
+    database.WriteShaft(m_axle[0]);
+    database.WriteShaft(m_axle[1]);
+
+    database.WriteJoint(m_revolute[0]);
+    database.WriteJoint(m_revolute[1]);
+    database.WriteJoint(m_revoluteUCA[0]);
+    database.WriteJoint(m_revoluteUCA[1]);
+    database.WriteJoint(m_sphericalUCA[0]);
+    database.WriteJoint(m_sphericalUCA[1]);
+    database.WriteJoint(m_revoluteLCA[0]);
+    database.WriteJoint(m_revoluteLCA[1]);
+    database.WriteJoint(m_sphericalLCA[0]);
+    database.WriteJoint(m_sphericalLCA[1]);
+    database.WriteJoint(m_distTierod[0]);
+    database.WriteJoint(m_distTierod[1]);
+
+    database.WriteLinSpring(m_spring[0]);
+    database.WriteLinSpring(m_spring[1]);
+    database.WriteLinSpring(m_shock[0]);
+    database.WriteLinSpring(m_shock[1]);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

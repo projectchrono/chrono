@@ -260,6 +260,11 @@ std::string ChTrackedVehicle::ExportComponentList() const {
 void ChTrackedVehicle::ExportComponentList(const std::string& filename) const {
     std::ofstream of(filename);
     of << ExportComponentList();
+    of.close();
+}
+
+void ChTrackedVehicle::Output(ChVehicleOutput& database) const {
+    //// TODO
 }
 
 }  // end namespace vehicle

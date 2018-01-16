@@ -670,6 +670,10 @@ void ChSuspensionTestRig::ExportComponentList(const std::string& filename) const
     of << ExportComponentList();
 }
 
+void ChSuspensionTestRig::Output(ChVehicleOutput& database) const {
+    //// TODO
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& color) {

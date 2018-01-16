@@ -304,6 +304,10 @@ void ChTrackTestRig::ExportComponentList(const std::string& filename) const {
     of << ExportComponentList();
 }
 
+void ChTrackTestRig::Output(ChVehicleOutput& database) const {
+    //// TODO
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::AddVisualize_post(std::shared_ptr<ChBody> post_body,

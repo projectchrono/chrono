@@ -157,6 +157,7 @@ set(CV_BASE_FILES
     ChVehicle.cpp
     ChVehicleModelData.h
     ChVehicleModelData.cpp
+    ChVehicleOutput.h
 )
 source_group("base" FILES ${CV_BASE_FILES})
 
@@ -251,6 +252,13 @@ else()
     set(CVIRR_UTILS_FILES "")
 endif()
 source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
+
+
+set(CV_OUTPUT_FILES
+    output/ChVehicleOutputASCII.h
+    output/ChVehicleOutputASCII.cpp
+)
+source_group("output" FILES ${CV_OUTPUT_FILES})
 
 # --------------- WHEELED VEHICLE FILES
 
@@ -686,6 +694,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_OPENCRG_FILES}
     ${CV_UTILS_FILES}
     ${CVIRR_UTILS_FILES}
+    ${CV_OUTPUT_FILES}
 #
     ${CV_WV_BASE_FILES}
     ${CV_WV_ANTIROLL_FILES}

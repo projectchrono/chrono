@@ -29,6 +29,8 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -188,6 +190,13 @@ int main(int argc, char* argv[]) {
     std::string driver_file = out_dir + "/driver_inputs.txt";
     utils::CSV_writer driver_csv(" ");
 
+    // Set up vehicle output
+    my_hmmwv.GetVehicle().SetChassisOutput(true);
+    my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
+    my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
+    ChVehicleOutputASCII db(out_dir + "/output_dbg.txt");
+    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
     // Generate JSON information with available output channels
     std::string out_json = my_hmmwv.GetVehicle().ExportComponentList();
     std::cout << out_json << std::endl;
@@ -247,6 +256,10 @@ int main(int argc, char* argv[]) {
         // End simulation
         if (time >= t_end)
             break;
+
+        // Vehicle output (DEBUGGING)
+        if (step_number == 17)
+            my_hmmwv.GetVehicle().Output(db);
 
         // Render scene and output POV-Ray data
         if (step_number % render_steps == 0) {

@@ -283,5 +283,17 @@ void ChPitmanArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportJointList(jsonDocument, joints);
 }
 
+void ChPitmanArm::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_link);
+    database.WriteBody(m_arm);
+
+    database.WriteJoint(m_revolute);
+    database.WriteJoint(m_revsph);
+    database.WriteJoint(m_universal);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

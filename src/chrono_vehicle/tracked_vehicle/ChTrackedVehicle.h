@@ -201,6 +201,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
     virtual void ExportComponentList(const std::string& filename) const override;
 
+    /// Output data for all modeling components in the vehicle system.
+    virtual void Output(ChVehicleOutput& database) const override;
+
   protected:
     std::shared_ptr<ChTrackAssembly> m_tracks[2];   ///< handles to the track assemblies (left/right)
     std::shared_ptr<ChTrackDriveline> m_driveline;  ///< handle to the driveline subsystem

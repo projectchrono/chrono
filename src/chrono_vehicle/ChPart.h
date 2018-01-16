@@ -29,6 +29,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleOutput.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -112,10 +113,16 @@ class CH_VEHICLE_API ChPart {
     /// Enable/disable output for this subsystem.
     virtual void SetOutput(bool state) { m_output = state; }
 
+    /// Return the output state for this subsystem.
+    bool OutputEnabled() const { return m_output; }
+
     /// Export this subsystem's component list to the specified JSON object.
     /// Derived classes should override this function and first invoke the base class implementation,
     /// followed by calls to the various static Export***List functions, as appropriate.
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const;
+
+    /// Output data for this subsystem's component list to the specified database.
+    virtual void Output(ChVehicleOutput& database) const {}
 
     /// Utility function for transforming inertia tensors between centroidal frames.
     /// It converts an inertia matrix specified in a centroidal frame aligned with the

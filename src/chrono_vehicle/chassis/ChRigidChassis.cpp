@@ -159,5 +159,16 @@ void ChRigidChassis::ExportComponentList(rapidjson::Document& jsonDocument) cons
     ChPart::ExportMarkerList(jsonDocument, m_markers);
 }
 
+void ChRigidChassis::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBodyAuxRef(m_body);
+
+    for (auto marker : m_markers) {
+        database.WriteMarker(marker);
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

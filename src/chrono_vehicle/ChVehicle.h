@@ -22,8 +22,11 @@
 #ifndef CH_VEHICLE_H
 #define CH_VEHICLE_H
 
+#include <numeric>
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
@@ -111,6 +114,13 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the global location of the driver.
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
+    /// Enable output for this vehicle system.
+    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of ooutput DB
+                   const std::string& out_dir,   ///< [in] output directory name
+                   const std::string& out_name,  ///< [in] rootname of output file
+                   double output_step            ///< [in] interval between output times
+    );
+
     /// Initialize this vehicle at the specified global location and orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
@@ -151,6 +161,9 @@ class CH_VEHICLE_API ChVehicle {
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
     virtual void ExportComponentList(const std::string& filename) const = 0;
 
+    /// Output data for all modeling components in the vehicle system.
+    virtual void Output(ChVehicleOutput& database) const = 0;
+
   protected:
     /// Construct a vehicle system with an underlying ChSystem.
     ChVehicle(const std::string& name,                                                  ///< [in] vehicle name
@@ -163,9 +176,22 @@ class CH_VEHICLE_API ChVehicle {
               ChSystem* system          ///< [in] containing mechanical system
               );
 
+    /// Utility function for testing if any subsystem in a list generates output.
+    template <typename T>
+    static bool AnyOutput(const std::vector<std::shared_ptr<T>>& list) {
+        bool val = std::accumulate(list.begin(), list.end(), false,
+            [](bool a, std::shared_ptr<T> b) {return a || b->OutputEnabled(); });
+        return val;
+    }
+
     std::string m_name;  ///< vehicle name
     ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_ownsSystem;   ///< true if system created at construction
+
+    bool m_output;                 ///< generate ouput for this vehicle system
+    ChVehicleOutput* m_output_db;  ///< vehicle output database
+    double m_output_step;          ///< output time step
+    double m_next_output_time;     ///< time for next output
 
     std::shared_ptr<ChChassis> m_chassis;  ///< handle to the chassis subsystem
 
