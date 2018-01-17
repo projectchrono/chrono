@@ -78,11 +78,11 @@ M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side) : ChT
     }
 
     m_suspensions.resize(5);
-    m_suspensions[0] = std::make_shared<M113_Suspension>(suspName + "0", side, true);
-    m_suspensions[1] = std::make_shared<M113_Suspension>(suspName + "1", side, true);
-    m_suspensions[2] = std::make_shared<M113_Suspension>(suspName + "2", side, false);
-    m_suspensions[3] = std::make_shared<M113_Suspension>(suspName + "3", side, false);
-    m_suspensions[4] = std::make_shared<M113_Suspension>(suspName + "4", side, true);
+    m_suspensions[0] = std::make_shared<M113_Suspension>(suspName + "0", side, 0, true);
+    m_suspensions[1] = std::make_shared<M113_Suspension>(suspName + "1", side, 1, true);
+    m_suspensions[2] = std::make_shared<M113_Suspension>(suspName + "2", side, 2, false);
+    m_suspensions[3] = std::make_shared<M113_Suspension>(suspName + "3", side, 3, false);
+    m_suspensions[4] = std::make_shared<M113_Suspension>(suspName + "4", side, 4, true);
 
     for (size_t it = 0; it < num_shoes; it++) {
         m_shoes.push_back(std::make_shared<M113_TrackShoeDoublePin>(shoeName + std::to_string(it)));

@@ -93,7 +93,7 @@ class M113a_ShockForce : public ChLinkSpringCB::ForceFunctor {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113a_Suspension::M113a_Suspension(const std::string& name, VehicleSide side, bool has_shock)
+M113a_Suspension::M113a_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock)
     : ChLinearDamperRWAssembly(name, has_shock), m_side(side) {
     // Instantiate the force callback for the shock (damper).
     m_shock_forceCB = new M113a_ShockForce();
@@ -104,9 +104,9 @@ M113a_Suspension::M113a_Suspension(const std::string& name, VehicleSide side, bo
 
     // Create the associated road wheel.
     if (side == LEFT)
-        m_road_wheel = std::make_shared<M113a_RoadWheelLeft>();
+        m_road_wheel = std::make_shared<M113a_RoadWheelLeft>(index);
     else
-        m_road_wheel = std::make_shared<M113a_RoadWheelRight>();
+        m_road_wheel = std::make_shared<M113a_RoadWheelRight>(index);
 }
 
 M113a_Suspension::~M113a_Suspension() {
