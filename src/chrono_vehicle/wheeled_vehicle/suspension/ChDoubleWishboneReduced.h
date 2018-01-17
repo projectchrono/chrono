@@ -182,6 +182,10 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 };
 
 /// @} vehicle_wheeled_suspension

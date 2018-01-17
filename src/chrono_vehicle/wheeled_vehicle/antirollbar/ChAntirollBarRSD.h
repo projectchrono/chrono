@@ -111,6 +111,10 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
                              const ChVector<>& pt_3,
                              double radius,
                              const ChColor& color);
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 };
 
 /// @} vehicle_wheeled_antirollbar

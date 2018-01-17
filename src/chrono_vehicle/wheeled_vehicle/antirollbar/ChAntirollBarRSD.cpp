@@ -198,5 +198,36 @@ void ChAntirollBarRSD::AddVisualizationArm(std::shared_ptr<ChBody> arm,
     arm->AddAsset(col);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChAntirollBarRSD::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_arm_left);
+    bodies.push_back(m_arm_right);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute_ch);
+    joints.push_back(m_revolute);
+    joints.push_back(m_link_left);
+    joints.push_back(m_link_right);
+    ChPart::ExportJointList(jsonDocument, joints);
+}
+
+void ChAntirollBarRSD::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_arm_left);
+    database.WriteBody(m_arm_right);
+
+    database.WriteJoint(m_revolute_ch);
+    database.WriteJoint(m_revolute);
+    database.WriteJoint(m_link_left);
+    database.WriteJoint(m_link_right);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

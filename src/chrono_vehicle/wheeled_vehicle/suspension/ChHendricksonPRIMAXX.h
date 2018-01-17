@@ -300,6 +300,10 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
                                         const ChVector<> pt_T,
                                         double radius);
 
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     static const std::string m_pointNames[NUM_POINTS];
 };
 

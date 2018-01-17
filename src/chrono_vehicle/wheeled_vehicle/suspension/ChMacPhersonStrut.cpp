@@ -489,6 +489,84 @@ void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     upright->AddAsset(col);
 }
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChMacPhersonStrut::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_upright[0]);
+    bodies.push_back(m_upright[1]);
+    bodies.push_back(m_strut[0]);
+    bodies.push_back(m_strut[1]);
+    bodies.push_back(m_LCA[0]);
+    bodies.push_back(m_LCA[1]);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    ChPart::ExportShaftList(jsonDocument, shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_cylindricalStrut[0]);
+    joints.push_back(m_cylindricalStrut[1]);
+    joints.push_back(m_universalStrut[0]);
+    joints.push_back(m_universalStrut[1]);
+    joints.push_back(m_revoluteLCA[0]);
+    joints.push_back(m_revoluteLCA[1]);
+    joints.push_back(m_sphericalLCA[0]);
+    joints.push_back(m_sphericalLCA[1]);
+    joints.push_back(m_distTierod[0]);
+    joints.push_back(m_distTierod[1]);
+    ChPart::ExportJointList(jsonDocument, joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_spring[0]);
+    springs.push_back(m_spring[1]);
+    springs.push_back(m_shock[0]);
+    springs.push_back(m_shock[1]);
+    ChPart::ExportLinSpringList(jsonDocument, springs);
+}
+
+void ChMacPhersonStrut::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_spindle[0]);
+    database.WriteBody(m_spindle[1]);
+    database.WriteBody(m_upright[0]);
+    database.WriteBody(m_upright[1]);
+    database.WriteBody(m_strut[0]);
+    database.WriteBody(m_strut[1]);
+    database.WriteBody(m_LCA[0]);
+    database.WriteBody(m_LCA[1]);
+
+    database.WriteShaft(m_axle[0]);
+    database.WriteShaft(m_axle[1]);
+
+    database.WriteJoint(m_revolute[0]);
+    database.WriteJoint(m_revolute[1]);
+    database.WriteJoint(m_cylindricalStrut[0]);
+    database.WriteJoint(m_cylindricalStrut[1]);
+    database.WriteJoint(m_universalStrut[0]);
+    database.WriteJoint(m_universalStrut[1]);
+    database.WriteJoint(m_revoluteLCA[0]);
+    database.WriteJoint(m_revoluteLCA[1]);
+    database.WriteJoint(m_sphericalLCA[0]);
+    database.WriteJoint(m_sphericalLCA[1]);
+    database.WriteJoint(m_distTierod[0]);
+    database.WriteJoint(m_distTierod[1]);
+
+    database.WriteLinSpring(m_spring[0]);
+    database.WriteLinSpring(m_spring[1]);
+    database.WriteLinSpring(m_shock[0]);
+    database.WriteLinSpring(m_shock[1]);
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

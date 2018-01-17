@@ -277,6 +277,10 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
                                         const ChVector<> pt_U,
                                         double radius);
 
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     static const std::string m_pointNames[NUM_POINTS];
 };
 

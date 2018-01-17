@@ -202,6 +202,10 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
                                     const ChVector<> pt_S,
                                     double radius);
 
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     static const std::string m_pointNames[NUM_POINTS];
 };
 

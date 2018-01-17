@@ -659,6 +659,105 @@ void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     knuckle->AddAsset(col);
 }
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSolidAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_axleTube);
+    bodies.push_back(m_tierod);
+    bodies.push_back(m_bellCrank);
+    bodies.push_back(m_draglink);
+    bodies.push_back(m_knuckle[0]);
+    bodies.push_back(m_knuckle[1]);
+    bodies.push_back(m_upperLink[0]);
+    bodies.push_back(m_upperLink[1]);
+    bodies.push_back(m_lowerLink[0]);
+    bodies.push_back(m_lowerLink[1]);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    ChPart::ExportShaftList(jsonDocument, shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_revoluteBellCrank);
+    joints.push_back(m_sphericalTierod);
+    joints.push_back(m_sphericalDraglink);
+    joints.push_back(m_universalDraglink);
+    joints.push_back(m_universalTierod);
+    joints.push_back(m_pointPlaneBellCrank);
+    joints.push_back(m_revoluteKingpin[0]);
+    joints.push_back(m_revoluteKingpin[1]);
+    joints.push_back(m_sphericalUpperLink[0]);
+    joints.push_back(m_sphericalUpperLink[1]);
+    joints.push_back(m_sphericalLowerLink[0]);
+    joints.push_back(m_sphericalLowerLink[1]);
+    joints.push_back(m_universalUpperLink[0]);
+    joints.push_back(m_universalUpperLink[1]);
+    joints.push_back(m_universalLowerLink[0]);
+    joints.push_back(m_universalLowerLink[1]);
+    ChPart::ExportJointList(jsonDocument, joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_spring[0]);
+    springs.push_back(m_spring[1]);
+    springs.push_back(m_shock[0]);
+    springs.push_back(m_shock[1]);
+    ChPart::ExportLinSpringList(jsonDocument, springs);
+}
+
+void ChSolidAxle::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_spindle[0]);
+    database.WriteBody(m_spindle[1]);
+    database.WriteBody(m_axleTube);
+    database.WriteBody(m_tierod);
+    database.WriteBody(m_bellCrank);
+    database.WriteBody(m_draglink);
+    database.WriteBody(m_knuckle[0]);
+    database.WriteBody(m_knuckle[1]);
+    database.WriteBody(m_upperLink[0]);
+    database.WriteBody(m_upperLink[1]);
+    database.WriteBody(m_lowerLink[0]);
+    database.WriteBody(m_lowerLink[1]);
+
+    database.WriteShaft(m_axle[0]);
+    database.WriteShaft(m_axle[1]);
+
+    database.WriteJoint(m_revolute[0]);
+    database.WriteJoint(m_revolute[1]);
+    database.WriteJoint(m_revoluteBellCrank);
+    database.WriteJoint(m_sphericalTierod);
+    database.WriteJoint(m_sphericalDraglink);
+    database.WriteJoint(m_universalDraglink);
+    database.WriteJoint(m_universalTierod);
+    database.WriteJoint(m_pointPlaneBellCrank);
+    database.WriteJoint(m_revoluteKingpin[0]);
+    database.WriteJoint(m_revoluteKingpin[1]);
+    database.WriteJoint(m_sphericalUpperLink[0]);
+    database.WriteJoint(m_sphericalUpperLink[1]);
+    database.WriteJoint(m_sphericalLowerLink[0]);
+    database.WriteJoint(m_sphericalLowerLink[1]);
+    database.WriteJoint(m_universalUpperLink[0]);
+    database.WriteJoint(m_universalUpperLink[1]);
+    database.WriteJoint(m_universalLowerLink[0]);
+    database.WriteJoint(m_universalLowerLink[1]);
+
+    database.WriteLinSpring(m_spring[0]);
+    database.WriteLinSpring(m_spring[1]);
+
+    database.WriteLinSpring(m_shock[0]);
+    database.WriteLinSpring(m_shock[1]);
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

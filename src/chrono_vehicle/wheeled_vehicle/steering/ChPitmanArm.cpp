@@ -268,6 +268,8 @@ void ChPitmanArm::LogConstraintViolations() {
     }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChPitmanArm::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);
 

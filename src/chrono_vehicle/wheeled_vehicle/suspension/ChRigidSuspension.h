@@ -121,6 +121,10 @@ class CH_VEHICLE_API ChRigidSuspension : public ChSuspension {
                         std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<>>& points,
                         double ang_vel);
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 };
 
 /// @} vehicle_wheeled_suspension

@@ -492,6 +492,8 @@ void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     upright->AddAsset(col);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChDoubleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);
 
