@@ -200,5 +200,18 @@ void ChRotationalDamperRWAssembly::ExportComponentList(rapidjson::Document& json
     ChPart::ExportRotSpringList(jsonDocument, rot_springs);
 }
 
+void ChRotationalDamperRWAssembly::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    ChRoadWheelAssembly::Output(database);
+
+    database.WriteBody(m_arm);
+    database.WriteJoint(m_revolute);
+    database.WriteRotSpring(m_spring);
+    if (m_has_shock)
+        database.WriteRotSpring(m_shock);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

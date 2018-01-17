@@ -211,15 +211,28 @@ void ChLinearDamperRWAssembly::ExportComponentList(rapidjson::Document& jsonDocu
     joints.push_back(m_revolute);
     ChPart::ExportJointList(jsonDocument, joints);
 
+    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
+    rot_springs.push_back(m_spring);
+    ChPart::ExportRotSpringList(jsonDocument, rot_springs);
+
     if (m_has_shock) {
         std::vector<std::shared_ptr<ChLinkSpringCB>> lin_springs;
         lin_springs.push_back(m_shock);
         ChPart::ExportLinSpringList(jsonDocument, lin_springs);
     }
+}
 
-    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
-    rot_springs.push_back(m_spring);
-    ChPart::ExportRotSpringList(jsonDocument, rot_springs);
+void ChLinearDamperRWAssembly::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    ChRoadWheelAssembly::Output(database);
+
+    database.WriteBody(m_arm);
+    database.WriteJoint(m_revolute);
+    database.WriteRotSpring(m_spring);
+    if (m_has_shock)
+        database.WriteLinSpring(m_shock);
 }
 
 }  // end namespace vehicle

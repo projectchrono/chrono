@@ -162,6 +162,7 @@ void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForc
 void ChTrackAssembly::SetOutput(bool state) {
     m_output = state;
     GetSprocket()->SetOutput(state);
+    m_brake->SetOutput(state);
     m_idler->SetOutput(state);
     for (auto suspension : m_suspensions)
         suspension->SetOutput(state);

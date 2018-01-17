@@ -111,6 +111,8 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_arm;                   ///< handle to the trailing arm body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
     std::shared_ptr<ChLinkRotSpringCB> m_spring;     ///< handle to the rotational spring link

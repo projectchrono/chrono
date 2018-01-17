@@ -59,5 +59,12 @@ void ChRoadWheelAssembly::ExportComponentList(rapidjson::Document& jsonDocument)
     }
 }
 
+void ChRoadWheelAssembly::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    m_road_wheel->Output(database);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

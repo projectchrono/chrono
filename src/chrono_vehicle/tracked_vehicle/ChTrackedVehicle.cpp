@@ -283,7 +283,20 @@ void ChTrackedVehicle::ExportComponentList(const std::string& filename) const {
 }
 
 void ChTrackedVehicle::Output(ChVehicleOutput& database) const {
-    //// TODO
+    database.WriteTime(m_system->GetChTime());
+
+    if (m_chassis->OutputEnabled()) {
+        database.WriteSection(m_chassis->GetName());
+        m_chassis->Output(database);
+    }
+    
+    if (m_tracks[LEFT]->OutputEnabled()) {
+        m_tracks[LEFT]->Output(database);
+    }
+
+    if (m_tracks[RIGHT]->OutputEnabled()) {
+        m_tracks[RIGHT]->Output(database);
+    }
 }
 
 }  // end namespace vehicle

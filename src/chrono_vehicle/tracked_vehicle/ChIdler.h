@@ -134,6 +134,8 @@ class CH_VEHICLE_API ChIdler : public ChPart {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_wheel;                   ///< handle to the idler wheel body
     std::shared_ptr<ChBody> m_carrier;                 ///< handle to the carrier body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;    ///< handle to wheel-carrier revolute joint

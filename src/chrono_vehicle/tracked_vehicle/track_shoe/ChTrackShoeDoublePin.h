@@ -116,6 +116,8 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_connector_L;  ///< handle to left connector body
     std::shared_ptr<ChBody> m_connector_R;  ///< handle to right connector body
 

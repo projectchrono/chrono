@@ -227,5 +227,12 @@ void ChTrackShoeSinglePin::ExportComponentList(rapidjson::Document& jsonDocument
     ChPart::ExportBodyList(jsonDocument, bodies);
 }
 
+void ChTrackShoeSinglePin::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_shoe);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

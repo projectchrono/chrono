@@ -212,5 +212,16 @@ void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportLinSpringList(jsonDocument, springs);
 }
 
+void ChIdler::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_wheel);
+    database.WriteBody(m_carrier);
+    database.WriteJoint(m_revolute);
+    database.WriteJoint(m_prismatic);
+    database.WriteLinSpring(m_tensioner);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

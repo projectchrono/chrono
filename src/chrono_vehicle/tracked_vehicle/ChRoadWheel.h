@@ -83,6 +83,8 @@ class CH_VEHICLE_API ChRoadWheel : public ChPart {
   protected:
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_wheel;                 ///< handle to the road wheel body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to wheel revolute joint
 

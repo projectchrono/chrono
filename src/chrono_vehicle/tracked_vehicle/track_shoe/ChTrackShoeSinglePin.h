@@ -101,6 +101,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
+    virtual void Output(ChVehicleOutput& database) const override;
+
     friend class ChSprocketSinglePin;
     friend class ChTrackAssemblySinglePin;
 };

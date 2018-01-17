@@ -22,6 +22,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
@@ -272,9 +274,12 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Set up vehicle output
+    vehicle.SetChassisOutput(true);
+    vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
     // Generate JSON information with available output channels
-    std::string out_json = vehicle.ExportComponentList();
-    std::cout << out_json << std::endl;
     vehicle.ExportComponentList(out_dir + "/component_list.json");
 
     // ---------------

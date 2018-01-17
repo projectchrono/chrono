@@ -346,5 +346,17 @@ void ChTrackShoeDoublePin::ExportComponentList(rapidjson::Document& jsonDocument
     ChPart::ExportJointList(jsonDocument, joints);
 }
 
+void ChTrackShoeDoublePin::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_shoe);
+    database.WriteBody(m_connector_L);
+    database.WriteBody(m_connector_R);
+
+    database.WriteJoint(m_revolute_L);
+    database.WriteJoint(m_revolute_R);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

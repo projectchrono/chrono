@@ -99,5 +99,13 @@ void ChRoadWheel::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportJointList(jsonDocument, joints);
 }
 
+void ChRoadWheel::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteBody(m_wheel);
+    database.WriteJoint(m_revolute);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
