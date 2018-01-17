@@ -127,6 +127,13 @@ void ChTrackedVehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
 }
 
 // -----------------------------------------------------------------------------
+// Enable/disable output for the various subsystems
+// -----------------------------------------------------------------------------
+void ChTrackedVehicle::SetTrackAssemblyOutput(VehicleSide side, bool state) {
+    m_tracks[side]->SetOutput(state);
+}
+
+// -----------------------------------------------------------------------------
 // Enable/disable collision for the various subsystems
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::SetSprocketCollide(bool state) {
@@ -248,7 +255,19 @@ std::string ChTrackedVehicle::ExportComponentList() const {
         jsonDocument.AddMember("chassis", jsonSubDocument, jsonDocument.GetAllocator());
     }
 
-    //// TODO
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_tracks[0]->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("left track", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_tracks[1]->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("right track", jsonSubDocument, jsonDocument.GetAllocator());
+    }
 
     rapidjson::StringBuffer jsonBuffer;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonWriter(jsonBuffer);

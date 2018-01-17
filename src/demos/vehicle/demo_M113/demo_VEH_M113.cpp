@@ -272,6 +272,11 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Generate JSON information with available output channels
+    std::string out_json = vehicle.ExportComponentList();
+    std::cout << out_json << std::endl;
+    vehicle.ExportComponentList(out_dir + "/component_list.json");
+
     // ---------------
     // Simulation loop
     // ---------------

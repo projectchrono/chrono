@@ -83,5 +83,19 @@ void ChRoller::LogConstraintViolations() {
     GetLog() << "  " << C->GetElement(4, 0) << "\n";
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRoller::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_wheel);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    ChPart::ExportJointList(jsonDocument, joints);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -192,5 +192,25 @@ void ChIdler::LogConstraintViolations() {
     }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_wheel);
+    bodies.push_back(m_carrier);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    joints.push_back(m_prismatic);
+    ChPart::ExportJointList(jsonDocument, joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_tensioner);
+    ChPart::ExportLinSpringList(jsonDocument, springs);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

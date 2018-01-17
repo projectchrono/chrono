@@ -166,6 +166,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// contact information is written (in CSV format) to the specified file.
     void WriteContacts(const std::string& filename) { m_contacts->WriteContacts(filename); }
 
+    /// Enable/disable output for the track assemblies.
+    void SetTrackAssemblyOutput(VehicleSide side, bool state);
+
     /// Initialize this vehicle at the specified global location and orientation.
     /// This base class implementation only initializes the chassis subsystem.
     /// Derived classes must extend this function to initialize all other tracked

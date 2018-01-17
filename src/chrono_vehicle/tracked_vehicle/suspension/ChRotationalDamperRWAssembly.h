@@ -106,19 +106,14 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return the functor object for the rotational shock force.
     virtual ChLinkRotSpringCB::TorqueFunctor* GetShockTorqueCallback() const = 0;
 
-    bool m_has_shock;                                ///< specifies whether or not the suspension has a damper
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
     std::shared_ptr<ChBody> m_arm;                   ///< handle to the trailing arm body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
     std::shared_ptr<ChLinkRotSpringCB> m_spring;     ///< handle to the rotational spring link
     std::shared_ptr<ChLinkRotSpringCB> m_shock;      ///< handle to the rotational shock link
 
   private:
-    void AddVisualizationArm(const ChVector<>& pt_O,   ///< wheel center (in global frame)
-                             const ChVector<>& pt_A,   ///< arm location (in global frame)
-                             const ChVector<>& pt_AW,  ///< connection to wheel (in global frame)
-                             const ChVector<>& pt_AC
-                             );
-
     // Points for arm visualization
     ChVector<> m_pO;
     ChVector<> m_pA;

@@ -114,8 +114,13 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     /// This contact geometry does not affect contact with the sprocket.
     virtual void AddShoeContact();
 
-    std::shared_ptr<ChBody> m_connector_L;             ///< handle to left connector body
-    std::shared_ptr<ChBody> m_connector_R;             ///< handle to right connector body
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    std::shared_ptr<ChBody> m_connector_L;  ///< handle to left connector body
+    std::shared_ptr<ChBody> m_connector_R;  ///< handle to right connector body
+
+    std::shared_ptr<ChLinkLockRevolute> m_revolute_L;  ///< handle to shoe - left connector joint
+    std::shared_ptr<ChLinkLockRevolute> m_revolute_R;  ///< handle to shoe - right connector joint
 
     friend class ChSprocketDoublePin;
     friend class SprocketDoublePinContactCB;

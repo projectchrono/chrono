@@ -99,6 +99,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// The default implementation uses contact boxes for the pad and central guiding pin.
     virtual void AddShoeContact();
 
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
     friend class ChSprocketSinglePin;
     friend class ChTrackAssemblySinglePin;
 };
