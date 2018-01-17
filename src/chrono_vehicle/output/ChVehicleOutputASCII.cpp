@@ -38,12 +38,11 @@ void ChVehicleOutputASCII::WriteTime(double time) {
 }
 
 void ChVehicleOutputASCII::WriteSection(const std::string& name) {
-    m_stream << "  ----------\n";
     m_stream << "  \"" << name << "\"" << std::endl;
 }
 
 void ChVehicleOutputASCII::WriteBody(std::shared_ptr<ChBody> body) {
-    m_stream << "    body: \"" << body->GetNameString() << "\" ";
+    m_stream << "    body: " << body->GetIdentifier() << " \"" << body->GetNameString() << "\" ";
     m_stream << body->GetPos() << " " << body->GetRot() << " ";
     m_stream << body->GetPos_dt() << " " << body->GetWvel_par() << std::endl;
     //// TODO
@@ -55,31 +54,31 @@ void ChVehicleOutputASCII::WriteBodyAuxRef(std::shared_ptr<ChBodyAuxRef> body) {
 }
 
 void ChVehicleOutputASCII::WriteMarker(std::shared_ptr<ChMarker> marker) {
-    m_stream << "    marker: \"" << marker->GetNameString() << "\" ";
+    m_stream << "    marker: " << marker->GetIdentifier() << " \"" << marker->GetNameString() << "\" ";
     m_stream << marker->GetAbsCoord().pos << " " << marker->GetAbsCoord_dt().pos << std::endl;
     //// TODO
 }
 
 void ChVehicleOutputASCII::WriteShaft(std::shared_ptr<ChShaft> shaft) {
-    m_stream << "    shaft: \"" << shaft->GetNameString() << "\" ";
+    m_stream << "    shaft: " << shaft->GetIdentifier() << " \"" << shaft->GetNameString() << "\" ";
     m_stream << std::endl;
     //// TODO
 }
 
 void ChVehicleOutputASCII::WriteJoint(std::shared_ptr<ChLink> joint) {
-    m_stream << "    joint: \"" << joint->GetNameString() << "\" ";
+    m_stream << "    joint: " << joint->GetIdentifier() << " \"" << joint->GetNameString() << "\" ";
     m_stream << std::endl;
     //// TODO
 }
 
 void ChVehicleOutputASCII::WriteLinSpring(std::shared_ptr<ChLinkSpringCB> spring) {
-    m_stream << "    lin spring: \"" << spring->GetNameString() << "\" ";
+    m_stream << "    lin spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
     m_stream << std::endl;
     //// TODO
 }
 
 void ChVehicleOutputASCII::WriteRotSpring(std::shared_ptr<ChLinkRotSpringCB> spring) {
-    m_stream << "    rot spring: \"" << spring->GetNameString() << "\" ";
+    m_stream << "    rot spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
     m_stream << std::endl;
     //// TODO
 }
