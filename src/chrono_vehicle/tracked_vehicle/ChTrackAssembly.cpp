@@ -243,6 +243,8 @@ void ChTrackAssembly::Output(ChVehicleOutput& database) const {
     for (auto suspension : m_suspensions) {
         database.WriteSection(suspension->GetName());
         suspension->Output(database);
+        database.WriteSection(suspension->GetRoadWheel()->GetName());
+        suspension->GetRoadWheel()->Output(database);
     }
 
     for (auto roller : m_rollers) {

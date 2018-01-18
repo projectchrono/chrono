@@ -18,12 +18,17 @@
 
 #include <algorithm>
 
+#include "chrono/ChConfig.h"
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+#ifdef CHRONO_HAS_HDF5
+#include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
@@ -90,10 +95,12 @@ void ChVehicle::SetOutput(ChVehicleOutput::Type type,
             m_output_db = new ChVehicleOutputASCII(out_dir + "/" + out_name + ".txt");
             break;
         case ChVehicleOutput::JSON:
-
+            //// TODO
             break;
         case ChVehicleOutput::HDF5:
-
+#ifdef CHRONO_HAS_HDF5
+            m_output_db = new ChVehicleOutputHDF5(out_dir + "/" + out_name + ".h5");
+#endif
             break;
     }
 }

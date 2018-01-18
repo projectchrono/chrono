@@ -45,7 +45,7 @@ void ChVehicleOutputASCII::WriteSection(const std::string& name) {
     m_stream << "  \"" << name << "\"" << std::endl;
 }
 
-void ChVehicleOutputASCII::WriteBodies(std::vector<std::shared_ptr<ChBody>> bodies) {
+void ChVehicleOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) {
     for (auto body : bodies) {
         m_stream << "    body: " << body->GetIdentifier() << " \"" << body->GetNameString() << "\" ";
         m_stream << body->GetPos() << " " << body->GetRot() << " ";
@@ -56,7 +56,7 @@ void ChVehicleOutputASCII::WriteBodies(std::vector<std::shared_ptr<ChBody>> bodi
     }
 }
 
-void ChVehicleOutputASCII::WriteAuxRefBodies(std::vector<std::shared_ptr<ChBodyAuxRef>> bodies) {
+void ChVehicleOutputASCII::WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) {
     for (auto body : bodies) {
         auto& ref_pos = body->GetFrame_REF_to_abs().GetPos();
         auto& ref_vel = body->GetFrame_REF_to_abs().GetPos_dt();
@@ -72,7 +72,7 @@ void ChVehicleOutputASCII::WriteAuxRefBodies(std::vector<std::shared_ptr<ChBodyA
     }
 }
 
-void ChVehicleOutputASCII::WriteMarkers(std::vector<std::shared_ptr<ChMarker>> markers) {
+void ChVehicleOutputASCII::WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) {
     for (auto marker : markers) {
         m_stream << "    marker: " << marker->GetIdentifier() << " \"" << marker->GetNameString() << "\" ";
         m_stream << marker->GetAbsCoord().pos << " ";
@@ -83,7 +83,7 @@ void ChVehicleOutputASCII::WriteMarkers(std::vector<std::shared_ptr<ChMarker>> m
     }
 }
 
-void ChVehicleOutputASCII::WriteShafts(std::vector<std::shared_ptr<ChShaft>> shafts) {
+void ChVehicleOutputASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) {
     for (auto shaft : shafts) {
         m_stream << "    shaft: " << shaft->GetIdentifier() << " \"" << shaft->GetNameString() << "\" ";
         m_stream << shaft->GetPos() << " " << shaft->GetPos_dt() << " " << shaft->GetPos_dtdt() << " ";
@@ -93,7 +93,7 @@ void ChVehicleOutputASCII::WriteShafts(std::vector<std::shared_ptr<ChShaft>> sha
     }
 }
 
-void ChVehicleOutputASCII::WriteJoints(std::vector<std::shared_ptr<ChLink>> joints) {
+void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
     for (auto joint : joints) {
         std::vector<double> violations;
         //// TODO: Fix this mess in Chrono
@@ -122,7 +122,7 @@ void ChVehicleOutputASCII::WriteJoints(std::vector<std::shared_ptr<ChLink>> join
     }
 }
 
-void ChVehicleOutputASCII::WriteLinSprings(std::vector<std::shared_ptr<ChLinkSpringCB>> springs) {
+void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) {
     for (auto spring : springs) {
         m_stream << "    lin spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
         m_stream << spring->GetSpringLength() << " " << spring->GetSpringVelocity() << " ";
@@ -132,7 +132,7 @@ void ChVehicleOutputASCII::WriteLinSprings(std::vector<std::shared_ptr<ChLinkSpr
     }
 }
 
-void ChVehicleOutputASCII::WriteRotSprings(std::vector<std::shared_ptr<ChLinkRotSpringCB>> springs) {
+void ChVehicleOutputASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) {
     for (auto spring : springs) {
         m_stream << "    rot spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
         m_stream << spring->GetRotSpringAngle() << " " << spring->GetRotSpringSpeed() << " ";

@@ -54,13 +54,13 @@ class CH_VEHICLE_API ChVehicleOutput {
 
     virtual void WriteSection(const std::string& name) = 0;
 
-    virtual void WriteBodies(std::vector<std::shared_ptr<ChBody>> bodies) = 0;
-    virtual void WriteAuxRefBodies(std::vector<std::shared_ptr<ChBodyAuxRef>> bodies) = 0;
-    virtual void WriteMarkers(std::vector<std::shared_ptr<ChMarker>> markers) = 0;
-    virtual void WriteShafts(std::vector<std::shared_ptr<ChShaft>> shafts) = 0;
-    virtual void WriteJoints(std::vector<std::shared_ptr<ChLink>> joints) = 0;
-    virtual void WriteLinSprings(std::vector<std::shared_ptr<ChLinkSpringCB>> springs) = 0;
-    virtual void WriteRotSprings(std::vector<std::shared_ptr<ChLinkRotSpringCB>> springs) = 0;
+    virtual void WriteBodies(const std::vector<std::shared_ptr<ChBody>>& bodies) = 0;
+    virtual void WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) = 0;
+    virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
+    virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
+    virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) = 0;
+    virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) = 0;
+    virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) = 0;
 
 };
 

@@ -226,8 +226,6 @@ void ChLinearDamperRWAssembly::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    ChRoadWheelAssembly::Output(database);
-
     std::vector<std::shared_ptr<ChBody>> bodies;
     bodies.push_back(m_arm);
     database.WriteBodies(bodies);

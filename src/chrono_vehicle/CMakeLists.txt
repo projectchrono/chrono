@@ -258,7 +258,15 @@ set(CV_OUTPUT_FILES
     output/ChVehicleOutputASCII.h
     output/ChVehicleOutputASCII.cpp
 )
-source_group("output" FILES ${CV_OUTPUT_FILES})
+if (HDF5_FOUND)
+    set(CVHDF5_OUTPUT_FILES
+        output/ChVehicleOutputHDF5.h
+        output/ChVehicleOutputHDF5.cpp
+    )
+else()
+    set(CVHDF5_OUTPUT_FILES "")
+endif()
+source_group("output" FILES ${CV_OUTPUT_FILES} ${CVHDF5_OUTPUT_FILES})
 
 # --------------- WHEELED VEHICLE FILES
 
@@ -652,6 +660,7 @@ source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
 # ----------------------------------------------------------------------------
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
+set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
 set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
 set(LIBRARIES "ChronoEngine")
 
@@ -670,6 +679,12 @@ if(MPI_CXX_FOUND)
     set(LINK_FLAGS "${LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
     include_directories(${MPI_CXX_INCLUDE_PATH})
     list(APPEND LIBRARIES ${MPI_CXX_LIBRARIES})
+endif()
+
+if(HDF5_FOUND)
+    set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+    include_directories(${HDF5_INCLUDE_DIRS})
+    list(APPEND LIBRARIES ${HDF5_CXX_LIBRARIES})
 endif()
 
 if(HAVE_OPENCRG)
@@ -695,6 +710,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_UTILS_FILES}
     ${CVIRR_UTILS_FILES}
     ${CV_OUTPUT_FILES}
+    ${CVHDF5_OUTPUT_FILES}
 #
     ${CV_WV_BASE_FILES}
     ${CV_WV_ANTIROLL_FILES}
