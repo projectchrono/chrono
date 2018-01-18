@@ -125,7 +125,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
   private:
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
 
     static void AddVisualize_post(std::shared_ptr<ChBody> post_body,
                                   std::shared_ptr<ChBody> chassis_body,

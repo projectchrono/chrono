@@ -185,7 +185,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const override;
 
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
 
   protected:
     ChSuspensionList m_suspensions;            ///< list of handles to suspension subsystems

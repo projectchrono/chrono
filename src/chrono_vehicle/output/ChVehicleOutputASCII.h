@@ -37,15 +37,16 @@ class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
     ~ChVehicleOutputASCII();
 
   private:
-    virtual void WriteTime(double time) override;
+    virtual void WriteTime(int frame, double time) override;
     virtual void WriteSection(const std::string& name) override;
-    virtual void WriteBody(std::shared_ptr<ChBody> body) override;
-    virtual void WriteBodyAuxRef(std::shared_ptr<ChBodyAuxRef> body) override;
-    virtual void WriteMarker(std::shared_ptr<ChMarker> marker) override;
-    virtual void WriteShaft(std::shared_ptr<ChShaft> shaft) override;
-    virtual void WriteJoint(std::shared_ptr<ChLink> joint) override;
-    virtual void WriteLinSpring(std::shared_ptr<ChLinkSpringCB> spring) override;
-    virtual void WriteRotSpring(std::shared_ptr<ChLinkRotSpringCB> spring) override;
+
+    virtual void WriteBodies(std::vector<std::shared_ptr<ChBody>> bodies) override;
+    virtual void WriteAuxRefBodies(std::vector<std::shared_ptr<ChBodyAuxRef>> bodies) override;
+    virtual void WriteMarkers(std::vector<std::shared_ptr<ChMarker>> markers) override;
+    virtual void WriteShafts(std::vector<std::shared_ptr<ChShaft>> shafts) override;
+    virtual void WriteJoints(std::vector<std::shared_ptr<ChLink>> joints) override;
+    virtual void WriteLinSprings(std::vector<std::shared_ptr<ChLinkSpringCB>> springs) override;
+    virtual void WriteRotSprings(std::vector<std::shared_ptr<ChLinkRotSpringCB>> springs) override;
 
     std::ofstream m_stream;
 };

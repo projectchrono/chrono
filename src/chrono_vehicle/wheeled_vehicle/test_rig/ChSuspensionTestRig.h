@@ -204,7 +204,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     };
 
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(ChVehicleOutput& database) const override;
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
 
     /// Utility functions to load subsystems from JSON files.
     void LoadSteering(const std::string& filename);

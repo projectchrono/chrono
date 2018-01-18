@@ -216,11 +216,19 @@ void ChIdler::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_wheel);
-    database.WriteBody(m_carrier);
-    database.WriteJoint(m_revolute);
-    database.WriteJoint(m_prismatic);
-    database.WriteLinSpring(m_tensioner);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_wheel);
+    bodies.push_back(m_carrier);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    joints.push_back(m_prismatic);
+    database.WriteJoints(joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_tensioner);
+    database.WriteLinSprings(springs);
 }
 
 }  // end namespace vehicle

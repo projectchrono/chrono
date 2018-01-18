@@ -315,8 +315,8 @@ void ChWheeledVehicle::ExportComponentList(const std::string& filename) const {
     of.close();
 }
 
-void ChWheeledVehicle::Output(ChVehicleOutput& database) const {
-    database.WriteTime(m_system->GetChTime());
+void ChWheeledVehicle::Output(int frame, ChVehicleOutput& database) const {
+    database.WriteTime(frame, m_system->GetChTime());
 
     if (m_chassis->OutputEnabled()) {
         database.WriteSection(m_chassis->GetName());

@@ -206,11 +206,19 @@ void ChRotationalDamperRWAssembly::Output(ChVehicleOutput& database) const {
 
     ChRoadWheelAssembly::Output(database);
 
-    database.WriteBody(m_arm);
-    database.WriteJoint(m_revolute);
-    database.WriteRotSpring(m_spring);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_arm);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    database.WriteJoints(joints);
+
+    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
+    rot_springs.push_back(m_spring);
     if (m_has_shock)
-        database.WriteRotSpring(m_shock);
+        rot_springs.push_back(m_shock);
+    database.WriteRotSprings(rot_springs);
 }
 
 }  // end namespace vehicle

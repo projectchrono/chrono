@@ -502,35 +502,43 @@ void ChThreeLinkIRS::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_spindle[0]);
-    database.WriteBody(m_spindle[1]);
-    database.WriteBody(m_arm[0]);
-    database.WriteBody(m_arm[1]);
-    database.WriteBody(m_upper[0]);
-    database.WriteBody(m_upper[1]);
-    database.WriteBody(m_lower[0]);
-    database.WriteBody(m_lower[1]);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_arm[0]);
+    bodies.push_back(m_arm[1]);
+    bodies.push_back(m_upper[0]);
+    bodies.push_back(m_upper[1]);
+    bodies.push_back(m_lower[0]);
+    bodies.push_back(m_lower[1]);
+    database.WriteBodies(bodies);
 
-    database.WriteShaft(m_axle[0]);
-    database.WriteShaft(m_axle[1]);
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    database.WriteShafts(shafts);
 
-    database.WriteJoint(m_revolute[0]);
-    database.WriteJoint(m_revolute[1]);
-    database.WriteJoint(m_sphericalArm[0]);
-    database.WriteJoint(m_sphericalArm[1]);
-    database.WriteJoint(m_sphericalUpper[0]);
-    database.WriteJoint(m_sphericalUpper[1]);
-    database.WriteJoint(m_sphericalLower[0]);
-    database.WriteJoint(m_sphericalLower[1]);
-    database.WriteJoint(m_universalUpper[0]);
-    database.WriteJoint(m_universalUpper[1]);
-    database.WriteJoint(m_universalLower[0]);
-    database.WriteJoint(m_universalLower[1]);
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_sphericalArm[0]);
+    joints.push_back(m_sphericalArm[1]);
+    joints.push_back(m_sphericalUpper[0]);
+    joints.push_back(m_sphericalUpper[1]);
+    joints.push_back(m_sphericalLower[0]);
+    joints.push_back(m_sphericalLower[1]);
+    joints.push_back(m_universalUpper[0]);
+    joints.push_back(m_universalUpper[1]);
+    joints.push_back(m_universalLower[0]);
+    joints.push_back(m_universalLower[1]);
+    database.WriteJoints(joints);
 
-    database.WriteLinSpring(m_spring[0]);
-    database.WriteLinSpring(m_spring[1]);
-    database.WriteLinSpring(m_shock[0]);
-    database.WriteLinSpring(m_shock[1]);
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_spring[0]);
+    springs.push_back(m_spring[1]);
+    springs.push_back(m_shock[0]);
+    springs.push_back(m_shock[1]);
+    database.WriteLinSprings(springs);
 }
 
 }  // end namespace vehicle

@@ -19,8 +19,8 @@
 #ifndef CH_VEHICLE_OUTPUT_H
 #define CH_VEHICLE_OUTPUT_H
 
+#include <vector>
 #include <string>
-#include <fstream>
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -50,15 +50,18 @@ class CH_VEHICLE_API ChVehicleOutput {
     ChVehicleOutput() {}
     virtual ~ChVehicleOutput() {}
 
-    virtual void WriteTime(double time) = 0;
+    virtual void WriteTime(int frame, double time) = 0;
+
     virtual void WriteSection(const std::string& name) = 0;
-    virtual void WriteBody(std::shared_ptr<ChBody> body) = 0;
-    virtual void WriteBodyAuxRef(std::shared_ptr<ChBodyAuxRef> body) = 0;
-    virtual void WriteMarker(std::shared_ptr<ChMarker> marker) = 0;
-    virtual void WriteShaft(std::shared_ptr<ChShaft> shaft) = 0;
-    virtual void WriteJoint(std::shared_ptr<ChLink> joint) = 0;
-    virtual void WriteLinSpring(std::shared_ptr<ChLinkSpringCB> spring) = 0;
-    virtual void WriteRotSpring(std::shared_ptr<ChLinkRotSpringCB> spring) = 0;
+
+    virtual void WriteBodies(std::vector<std::shared_ptr<ChBody>> bodies) = 0;
+    virtual void WriteAuxRefBodies(std::vector<std::shared_ptr<ChBodyAuxRef>> bodies) = 0;
+    virtual void WriteMarkers(std::vector<std::shared_ptr<ChMarker>> markers) = 0;
+    virtual void WriteShafts(std::vector<std::shared_ptr<ChShaft>> shafts) = 0;
+    virtual void WriteJoints(std::vector<std::shared_ptr<ChLink>> joints) = 0;
+    virtual void WriteLinSprings(std::vector<std::shared_ptr<ChLinkSpringCB>> springs) = 0;
+    virtual void WriteRotSprings(std::vector<std::shared_ptr<ChLinkRotSpringCB>> springs) = 0;
+
 };
 
 /// @} vehicle

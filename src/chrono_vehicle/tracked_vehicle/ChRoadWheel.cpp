@@ -103,8 +103,13 @@ void ChRoadWheel::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_wheel);
-    database.WriteJoint(m_revolute);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_wheel);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

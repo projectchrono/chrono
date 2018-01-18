@@ -163,11 +163,11 @@ void ChRigidChassis::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBodyAuxRef(m_body);
+    std::vector<std::shared_ptr<ChBodyAuxRef>> bodies;
+    bodies.push_back(m_body);
+    database.WriteAuxRefBodies(bodies);
 
-    for (auto marker : m_markers) {
-        database.WriteMarker(marker);
-    }
+    database.WriteMarkers(m_markers);
 }
 
 }  // end namespace vehicle

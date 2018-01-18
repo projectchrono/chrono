@@ -350,12 +350,16 @@ void ChTrackShoeDoublePin::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_shoe);
-    database.WriteBody(m_connector_L);
-    database.WriteBody(m_connector_R);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_shoe);
+    bodies.push_back(m_connector_L);
+    bodies.push_back(m_connector_R);
+    database.WriteBodies(bodies);
 
-    database.WriteJoint(m_revolute_L);
-    database.WriteJoint(m_revolute_R);
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute_L);
+    joints.push_back(m_revolute_R);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

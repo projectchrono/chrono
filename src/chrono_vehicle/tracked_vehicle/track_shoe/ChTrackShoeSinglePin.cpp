@@ -231,7 +231,9 @@ void ChTrackShoeSinglePin::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_shoe);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_shoe);
+    database.WriteBodies(bodies);
 }
 
 }  // end namespace vehicle

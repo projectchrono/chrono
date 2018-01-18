@@ -304,7 +304,7 @@ void ChTrackTestRig::ExportComponentList(const std::string& filename) const {
     of << ExportComponentList();
 }
 
-void ChTrackTestRig::Output(ChVehicleOutput& database) const {
+void ChTrackTestRig::Output(int frame, ChVehicleOutput& database) const {
     //// TODO
 }
 

@@ -173,10 +173,14 @@ void ChRackPinion::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_link);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    database.WriteBodies(bodies);
 
-    database.WriteJoint(m_prismatic);
-    database.WriteJoint(m_actuator);
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_prismatic);
+    joints.push_back(m_actuator);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

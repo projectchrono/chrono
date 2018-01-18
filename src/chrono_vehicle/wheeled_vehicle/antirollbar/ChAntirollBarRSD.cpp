@@ -220,13 +220,17 @@ void ChAntirollBarRSD::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_arm_left);
-    database.WriteBody(m_arm_right);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_arm_left);
+    bodies.push_back(m_arm_right);
+    database.WriteBodies(bodies);
 
-    database.WriteJoint(m_revolute_ch);
-    database.WriteJoint(m_revolute);
-    database.WriteJoint(m_link_left);
-    database.WriteJoint(m_link_right);
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute_ch);
+    joints.push_back(m_revolute);
+    joints.push_back(m_link_left);
+    joints.push_back(m_link_right);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

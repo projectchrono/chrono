@@ -162,7 +162,7 @@ class CH_VEHICLE_API ChVehicle {
     virtual void ExportComponentList(const std::string& filename) const = 0;
 
     /// Output data for all modeling components in the vehicle system.
-    virtual void Output(ChVehicleOutput& database) const = 0;
+    virtual void Output(int frame, ChVehicleOutput& database) const = 0;
 
   protected:
     /// Construct a vehicle system with an underlying ChSystem.
@@ -192,6 +192,7 @@ class CH_VEHICLE_API ChVehicle {
     ChVehicleOutput* m_output_db;  ///< vehicle output database
     double m_output_step;          ///< output time step
     double m_next_output_time;     ///< time for next output
+    int m_output_frame;            ///< current output frame
 
     std::shared_ptr<ChChassis> m_chassis;  ///< handle to the chassis subsystem
 

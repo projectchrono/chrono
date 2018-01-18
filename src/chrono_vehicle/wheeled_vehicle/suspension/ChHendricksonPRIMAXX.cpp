@@ -619,41 +619,49 @@ void ChHendricksonPRIMAXX::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_spindle[0]);
-    database.WriteBody(m_spindle[1]);
-    database.WriteBody(m_knuckle[0]);
-    database.WriteBody(m_knuckle[1]);
-    database.WriteBody(m_torquerod[0]);
-    database.WriteBody(m_torquerod[1]);
-    database.WriteBody(m_lowerbeam[0]);
-    database.WriteBody(m_lowerbeam[1]);
-    database.WriteBody(m_transversebeam);
-    database.WriteBody(m_axlehousing);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_knuckle[0]);
+    bodies.push_back(m_knuckle[1]);
+    bodies.push_back(m_torquerod[0]);
+    bodies.push_back(m_torquerod[1]);
+    bodies.push_back(m_lowerbeam[0]);
+    bodies.push_back(m_lowerbeam[1]);
+    bodies.push_back(m_transversebeam);
+    bodies.push_back(m_axlehousing);
+    database.WriteBodies(bodies);
 
-    database.WriteShaft(m_axle[0]);
-    database.WriteShaft(m_axle[1]);
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    database.WriteShafts(shafts);
 
-    database.WriteJoint(m_revolute[0]);
-    database.WriteJoint(m_revolute[1]);
-    database.WriteJoint(m_revoluteKingpin[0]);
-    database.WriteJoint(m_revoluteKingpin[1]);
-    database.WriteJoint(m_sphericalTorquerod[0]);
-    database.WriteJoint(m_sphericalTorquerod[1]);
-    database.WriteJoint(m_revoluteTorquerod[0]);
-    database.WriteJoint(m_revoluteTorquerod[1]);
-    database.WriteJoint(m_sphericalLowerbeam[0]);
-    database.WriteJoint(m_sphericalLowerbeam[1]);
-    database.WriteJoint(m_revoluteLowerbeam[0]);
-    database.WriteJoint(m_revoluteLowerbeam[1]);
-    database.WriteJoint(m_sphericalTB[0]);
-    database.WriteJoint(m_sphericalTB[1]);
-    database.WriteJoint(m_distTierod[0]);
-    database.WriteJoint(m_distTierod[1]);
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_revoluteKingpin[0]);
+    joints.push_back(m_revoluteKingpin[1]);
+    joints.push_back(m_sphericalTorquerod[0]);
+    joints.push_back(m_sphericalTorquerod[1]);
+    joints.push_back(m_revoluteTorquerod[0]);
+    joints.push_back(m_revoluteTorquerod[1]);
+    joints.push_back(m_sphericalLowerbeam[0]);
+    joints.push_back(m_sphericalLowerbeam[1]);
+    joints.push_back(m_revoluteLowerbeam[0]);
+    joints.push_back(m_revoluteLowerbeam[1]);
+    joints.push_back(m_sphericalTB[0]);
+    joints.push_back(m_sphericalTB[1]);
+    joints.push_back(m_distTierod[0]);
+    joints.push_back(m_distTierod[1]);
+    database.WriteJoints(joints);
 
-    database.WriteLinSpring(m_shockLB[0]);
-    database.WriteLinSpring(m_shockLB[1]);
-    database.WriteLinSpring(m_shockAH[0]);
-    database.WriteLinSpring(m_shockAH[1]);
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_shockLB[0]);
+    springs.push_back(m_shockLB[1]);
+    springs.push_back(m_shockAH[0]);
+    springs.push_back(m_shockAH[1]);
+    database.WriteLinSprings(springs);
 }
 
 }  // end namespace vehicle

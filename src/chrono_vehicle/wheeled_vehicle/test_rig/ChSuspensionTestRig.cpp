@@ -670,7 +670,7 @@ void ChSuspensionTestRig::ExportComponentList(const std::string& filename) const
     of << ExportComponentList();
 }
 
-void ChSuspensionTestRig::Output(ChVehicleOutput& database) const {
+void ChSuspensionTestRig::Output(int frame, ChVehicleOutput& database) const {
     //// TODO
 }
 

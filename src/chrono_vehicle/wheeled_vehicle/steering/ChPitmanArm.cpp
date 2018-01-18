@@ -289,12 +289,16 @@ void ChPitmanArm::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_link);
-    database.WriteBody(m_arm);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    bodies.push_back(m_arm);
+    database.WriteBodies(bodies);
 
-    database.WriteJoint(m_revolute);
-    database.WriteJoint(m_revsph);
-    database.WriteJoint(m_universal);
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    joints.push_back(m_revsph);
+    joints.push_back(m_universal);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

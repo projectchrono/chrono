@@ -180,9 +180,17 @@ void ChSprocket::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_gear);
-    database.WriteShaft(m_axle);
-    database.WriteJoint(m_revolute);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_gear);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle);
+    database.WriteShafts(shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

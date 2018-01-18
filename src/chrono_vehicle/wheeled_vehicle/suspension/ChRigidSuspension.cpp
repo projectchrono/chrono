@@ -168,14 +168,20 @@ void ChRigidSuspension::Output(ChVehicleOutput& database) const {
     if (!m_output)
         return;
 
-    database.WriteBody(m_spindle[0]);
-    database.WriteBody(m_spindle[1]);
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    database.WriteBodies(bodies);
 
-    database.WriteShaft(m_axle[0]);
-    database.WriteShaft(m_axle[1]);
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    database.WriteShafts(shafts);
 
-    database.WriteJoint(m_revolute[0]);
-    database.WriteJoint(m_revolute[1]);
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle
