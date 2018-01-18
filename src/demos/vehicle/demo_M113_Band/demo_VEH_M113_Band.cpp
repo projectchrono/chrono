@@ -20,14 +20,19 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
+
+#define USE_IRRLICHT
+#undef USE_IRRLICHT
+#ifdef USE_IRRLICHT
+#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -44,21 +49,17 @@ ChVector<> initLoc(0, 0, 1.1);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
+// Simulation length
+double t_end = 1.0;
+
 // Simulation step size
 double step_size = 5e-5;
-
-// Use HHT + MKL
-bool use_mkl = true;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -83,6 +84,20 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // =============================================================================
 
+// Dummy driver class (always returns 1 for throttle, 0 for all other inputs)
+class MyDriver {
+  public:
+    MyDriver() {}
+    double GetThrottle() const { return 1; }
+    double GetSteering() const { return 0; }
+    double GetBraking() const { return 0; }
+    double GetDisplacement() const { return 0; }
+    void Synchronize(double time) {}
+    void Advance(double step) {}
+};
+
+// =============================================================================
+
 // Forward declarations
 void AddFixedObstacles(ChSystem* system);
 
@@ -95,7 +110,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::BAND_ANCF, ChMaterialSurface::SMC, chassis_collision_type);
+    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, ChMaterialSurface::SMC, chassis_collision_type);
 
     // ------------------------------
     // Solver and integrator settings
@@ -114,7 +129,7 @@ int main(int argc, char* argv[]) {
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(false);
     integrator->SetScaling(true);
-    integrator->SetVerbose(true);
+    integrator->SetVerbose(false);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -191,12 +206,14 @@ int main(int argc, char* argv[]) {
     M113_SimplePowertrain powertrain;
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
+#ifdef USE_IRRLICHT
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
     ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
     app.SetSkyBox();
+    irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
     ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
@@ -220,6 +237,12 @@ int main(int argc, char* argv[]) {
     driver.SetBrakingDelta(render_step_size / braking_time);
 
     driver.Initialize();
+#else
+
+    // Create a default driver (always returns 1 for throttle, 0 for all other inputs)
+    MyDriver driver;
+
+#endif
 
     // -----------------
     // Initialize output
@@ -258,14 +281,20 @@ int main(int argc, char* argv[]) {
     TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
     TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
+    // Number of steps to run for the simulation
+    int sim_steps = (int)std::ceil(t_end / step_size);
+
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
+
+    // Total execution time (for integration)
+    double total_timing = 0;
 
     // Initialize simulation frame counter
     int step_number = 0;
     int render_frame = 0;
 
-    while (app.GetDevice()->run()) {
+    while (step_number < sim_steps) {
         // Debugging output
         if (dbg_output) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
@@ -300,11 +329,15 @@ int main(int argc, char* argv[]) {
             cout << endl;
         }
 
+#ifdef USE_IRRLICHT
+        if (!app.GetDevice()->run())
+            break;
+
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         app.EndScene();
-
+#endif
         if (step_number % render_steps == 0) {
             if (povray_output) {
                 char filename[100];
@@ -312,12 +345,13 @@ int main(int argc, char* argv[]) {
                 utils::WriteShapesPovray(vehicle.GetSystem(), filename);
             }
 
+#ifdef USE_IRRLICHT
             if (img_output && step_number > 200) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
                 app.WriteImageToFile(filename);
             }
-
+#endif
             render_frame++;
         }
 
@@ -337,14 +371,18 @@ int main(int argc, char* argv[]) {
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left,
                             shoe_forces_right);
+#ifdef USE_IRRLICHT
         app.Synchronize("", steering_input, throttle_input, braking_input);
+#endif
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
         powertrain.Advance(step_size);
         vehicle.Advance(step_size);
+#ifdef USE_IRRLICHT
         app.Advance(step_size);
+#endif
 
         // Report if the chassis experienced a collision
         if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
@@ -353,6 +391,20 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        double step_timing = vehicle.GetSystem()->GetTimerStep();
+        total_timing += step_timing;
+
+        std::cout << "Step: " << step_number;
+        std::cout << "   Time: " << time;
+        std::cout << "   Number of Iterations: " << integrator->GetNumIterations();
+        std::cout << "   Step Time: " << step_timing;
+        std::cout << "   Total Time: " << total_timing;
+        std::cout << std::endl;
+
+        // if (time > 1.0) {
+        //    break;
+        //}
     }
 
     vehicle.WriteContacts("M113_contacts.out");
@@ -386,10 +438,12 @@ void AddFixedObstacles(ChSystem* system) {
     color->SetColor(ChColor(1, 1, 1));
     obstacle->AddAsset(color);
 
+#ifdef USE_IRRLICHT
     auto texture = std::make_shared<ChTexture>();
     texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
     texture->SetTextureScale(10, 10);
     obstacle->AddAsset(texture);
+#endif
 
     // Contact
     obstacle->GetCollisionModel()->ClearModel();
