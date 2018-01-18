@@ -55,10 +55,10 @@ double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-5;
+double step_size = 5e-5;
 
 // Use HHT + MKL
-bool use_mkl = false;
+bool use_mkl = true;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::BAND_ANCF, ChMaterialSurface::NSC, chassis_collision_type);
+    M113_Vehicle vehicle(false, TrackShoeType::BAND_ANCF, ChMaterialSurface::SMC, chassis_collision_type);
 
     // ------------------------------
     // Solver and integrator settings
@@ -108,10 +108,10 @@ int main(int argc, char* argv[]) {
     vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(200);
+    integrator->SetMaxiters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-    integrator->SetStepControl(true);
+    integrator->SetStepControl(false);
     integrator->SetModifiedNewton(false);
     integrator->SetScaling(true);
     integrator->SetVerbose(true);
