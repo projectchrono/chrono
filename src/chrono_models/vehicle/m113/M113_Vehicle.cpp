@@ -25,11 +25,14 @@
 #include "chrono_models/vehicle/m113/M113_Chassis.h"
 #include "chrono_models/vehicle/m113/M113_DrivelineBDS.h"
 #include "chrono_models/vehicle/m113/M113_SimpleDriveline.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
+
+#ifdef CHRONO_FEA
+#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
@@ -58,6 +61,12 @@ void M113_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_typ
     // Create the chassis subsystem
     m_chassis = std::make_shared<M113_Chassis>("Chassis", fixed, chassis_collision_type);
 
+#ifndef CHRONO_FEA
+    // If BAND_ANCF type track was selected but is not available, force BAND_BUSHING.
+    if (m_type == TrackShoeType::BAND_ANCF)
+        m_type = TrackShoeType::BAND_BUSHING;
+#endif
+
     // Create the track assembly subsystems
     switch (m_type) {
         case TrackShoeType::SINGLE_PIN:
@@ -73,8 +82,10 @@ void M113_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_typ
             m_tracks[1] = std::make_shared<M113_TrackAssemblyBandBushing>(RIGHT);
             break;
         case TrackShoeType::BAND_ANCF:
+#ifdef CHRONO_FEA
             m_tracks[0] = std::make_shared<M113_TrackAssemblyBandANCF>(LEFT);
             m_tracks[1] = std::make_shared<M113_TrackAssemblyBandANCF>(RIGHT);
+#endif
             break;
     }
 
