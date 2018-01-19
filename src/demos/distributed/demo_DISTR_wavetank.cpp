@@ -61,23 +61,24 @@ bool GetProblemSpecs(int argc,
                      bool& verbose,
                      bool& output_data,
                      std::string& outdir);
+
 void ShowUsage();
 
 // Granular Properties
 float Y = 2e6f;
 float mu = 0.4f;
-float cr = 0.4f;
+float cr = 0.05f;
 double gran_radius = 0.00125;  // 1.25mm radius
 double rho = 4000;
 double spacing = 2.001 * gran_radius;  // Distance between adjacent centers of particles
 
 // Dimensions
-double lowest_layer = 2 * spacing;  // Lowest possible CENTER of granular material TODO adapt for collision planes
-int extra_container_layers = 3;     // TODO adapt for collision planes
+double lowest_layer = 2 * spacing;  // Lowest possible CENTER of body
+int extra_container_layers = 3;
 
 // Oscillation
-double period = 1;                  // TODO adjust
-double amplitude = gran_radius * 4;  // TODO adjust
+double period = 0.5;                 // TODO adjust
+double amplitude = gran_radius * 5;  // TODO adjust
 double lower_start;
 
 // Simulation
@@ -98,8 +99,7 @@ void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
             ChVector<> vel = (*bl_itr)->GetPos_dt();
 
             ss_particles << timestep_i << "," << (*bl_itr)->GetGid() << "," << pos.x() << "," << pos.y() << ","
-                         << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length() << ","
-                         << (((*bl_itr)->GetBodyFixed()) ? 1 : 0) << std::endl;
+                         << pos.z() << "," << vel.Length() << std::endl;
         }
     }
 
@@ -128,6 +128,7 @@ void AddContainer(ChSystemDistributed* sys,
                   double h_y,
                   double height,
                   ChAAPlaneCB** bottom_wall,
+                  ChAAPlaneCB** top_wall,
                   ChAAPlaneCB** low_x_wall,
                   ChAAPlaneCB** high_x_wall,
                   ChAAPlaneCB** low_y_wall,
@@ -147,19 +148,20 @@ void AddContainer(ChSystemDistributed* sys,
     container->SetCollide(false);
     container->SetBodyFixed(true);
     container->GetCollisionModel()->ClearModel();
-    container->GetCollisionModel()->BuildModel();
 
     // TODO little extra space on sides
     *bottom_wall =
         new ChAAPlaneCB(sys, container.get(), 2, 0, ChVector<>(0, 0, 1), -2 * h_x, 2 * h_x, -2 * h_y, 2 * h_y);
-    *low_x_wall =
-        new ChAAPlaneCB(sys, container.get(), 0, -h_x, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+    *top_wall = new ChAAPlaneCB(sys, container.get(), 2, 1.25 * height, ChVector<>(0, 0, -1), -2 * h_x, 2 * h_x,
+                                -2 * h_y, 2 * h_y);
+    *low_x_wall = new ChAAPlaneCB(sys, container.get(), 0, -h_x - gran_radius, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y,
+                                  -height, 2 * height);
     *high_x_wall =
-        new ChAAPlaneCB(sys, container.get(), 0, h_x, ChVector<>(-1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
-    *low_y_wall =
-        new ChAAPlaneCB(sys, container.get(), 1, -h_y, ChVector<>(0, 1, 0), -2 * h_x, 2 * h_x, -height, height);
+        new ChAAPlaneCB(sys, container.get(), 0, h_x, ChVector<>(-1, 0, 0), -2 * h_y, 2 * h_y, -height, 2 * height);
+    *low_y_wall = new ChAAPlaneCB(sys, container.get(), 1, -h_y - gran_radius, ChVector<>(0, 1, 0), -2 * h_x, 2 * h_x,
+                                  -height, 2 * height);
     *high_y_wall =
-        new ChAAPlaneCB(sys, container.get(), 1, h_y, ChVector<>(0, -1, 0), -2 * h_x, 2 * h_x, -height, height);
+        new ChAAPlaneCB(sys, container.get(), 1, h_y, ChVector<>(0, -1, 0), -2 * h_x, 2 * h_x, -height, 2 * height);
 
     sys->RegisterCustomCollisionCallback(*bottom_wall);
     sys->RegisterCustomCollisionCallback(*low_x_wall);
@@ -213,7 +215,6 @@ size_t AddFallingBalls(ChSystemDistributed* sys, double h_x, double h_y, double 
     int ballId = 0;
     double mass = rho * 4 / 3 * CH_C_PI * gran_radius * gran_radius * gran_radius;
     ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
-
     for (int i = 0; i < points.size(); i++) {
         if (sys->InSub(points[i])) {
             auto ball = CreateBall(points[i], ballMat, &ballId, mass, inertia, gran_radius);
@@ -237,6 +238,7 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
+    MPI_Barrier(MPI_COMM_WORLD);
     // Parse program arguments
     int num_threads;
     double time_end;
@@ -265,8 +267,10 @@ int main(int argc, char* argv[]) {
                 std::cout << "Output directory already exists" << std::endl;
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_OTHER);
                 return 1;
-            } else if (filesystem::create_directory(filesystem::path(outdir)) && verbose) {
-                std::cout << "Create directory = " << filesystem::path(outdir).make_absolute() << std::endl;
+            } else if (filesystem::create_directory(filesystem::path(outdir))) {
+                if (verbose) {
+                    std::cout << "Create directory = " << filesystem::path(outdir).make_absolute() << std::endl;
+                }
             } else {
                 std::cout << "Error creating output directory" << std::endl;
                 MPI_Abort(MPI_COMM_WORLD, MPI_ERR_OTHER);
@@ -297,7 +301,7 @@ int main(int argc, char* argv[]) {
     int balls_per_layer = count_X * count_Y;
     double gran_height = count_Z * spacing;
 
-    // // Hexagonal Close packing
+    // Hexagonal Close packing
     // double volume_needed = (4 / 3 * CH_C_PI * gran_radius * gran_radius * gran_radius * num_bodies) / 0.74;
     // double gran_height = volume_needed / (h_x * h_y * 4);
 
@@ -315,12 +319,12 @@ int main(int argc, char* argv[]) {
     my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
-    my_sys.Set_G_acc(ChVector<double>(0.00001, 0.0001, -9.8));
+    my_sys.Set_G_acc(ChVector<double>(0.00001, 0.00001, -9.8));
 
     // Domain decomposition
     ChVector<double> domlo(-h_x - amplitude, -h_y, -0.0001);
     ChVector<double> domhi(h_x + amplitude, h_y, height + 0.0001);
-    my_sys.GetDomain()->SetSplitAxis(0);  // Split along the x-axis
+    my_sys.GetDomain()->SetSplitAxis(1);  // Split along the y-axis
     my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
 
     if (verbose)
@@ -343,19 +347,27 @@ int main(int argc, char* argv[]) {
     ChVector<> sublo = my_sys.GetDomain()->GetSubLo();
     ChVector<> subsize = (subhi - sublo) / (2 * gran_radius);
     binX = (int)std::ceil(subsize.x()) / factor;
+    if (binX == 0)
+        binX = 1;
+
     binY = (int)std::ceil(subsize.y()) / factor;
+    if (binY == 0)
+        binY = 1;
+
     my_sys.GetSettings()->collision.bins_per_axis = vec3(binX, binY, binZ);
     if (verbose)
         printf("Rank: %d   bins: %d %d %d\n", my_rank, binX, binY, binZ);
 
     // Create objects
     ChAAPlaneCB* bottom_wall;
+    ChAAPlaneCB* top_wall;
     ChAAPlaneCB* low_x_wall;
     ChAAPlaneCB* high_x_wall;
     ChAAPlaneCB* low_y_wall;
     ChAAPlaneCB* high_y_wall;
 
-    AddContainer(&my_sys, h_x, h_y, height, &bottom_wall, &low_x_wall, &high_x_wall, &low_y_wall, &high_y_wall);
+    AddContainer(&my_sys, h_x, h_y, height, &bottom_wall, &top_wall, &low_x_wall, &high_x_wall, &low_y_wall,
+                 &high_y_wall);
     auto actual_num_bodies = AddFallingBalls(&my_sys, h_x, h_y, gran_height);
     MPI_Barrier(my_sys.GetMPIWorld());
     if (my_rank == MASTER)
@@ -365,7 +377,7 @@ int main(int argc, char* argv[]) {
     MPI_Barrier(MPI_COMM_WORLD);
     std::string out_file_name = outdir + "/Rank" + std::to_string(my_rank) + ".csv";
     outfile.open(out_file_name);
-    outfile << "t,gid,x,y,z,vx,vy,vz,U,fixed\n";
+    outfile << "t,gid,x,y,z,U\n";
     if (verbose)
         std::cout << "Rank: " << my_rank << "  Output file name: " << out_file_name << std::endl;
 

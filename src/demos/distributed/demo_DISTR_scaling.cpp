@@ -66,7 +66,7 @@ void ShowUsage();
 // Granular Properties
 float Y = 2e6f;
 float mu = 0.4f;
-float cr = 0.4f;
+float cr = 0.05f;
 double gran_radius = 0.00125;  // 1.25mm radius
 double rho = 4000;
 double spacing = 2 * gran_radius;  // Distance between adjacent centers of particles
@@ -99,8 +99,7 @@ void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
             ChVector<> vel = (*bl_itr)->GetPos_dt();
 
             ss_particles << timestep_i << "," << (*bl_itr)->GetGid() << "," << pos.x() << "," << pos.y() << ","
-                         << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length() << ","
-                         << (((*bl_itr)->GetBodyFixed()) ? 1 : 0) << std::endl;
+                         << pos.z() << "," << vel.Length() << std::endl;
         }
     }
 
@@ -361,7 +360,7 @@ int main(int argc, char* argv[]) {
     MPI_Barrier(MPI_COMM_WORLD);
     std::string out_file_name = outdir + "/Rank" + std::to_string(my_rank) + ".csv";
     outfile.open(out_file_name);
-    outfile << "t,gid,x,y,z,vx,vy,vz,U,fixed\n";
+    outfile << "t,gid,x,y,z,U\n";
     if (verbose)
         std::cout << "Rank: " << my_rank << "  Output file name: " << out_file_name << std::endl;
 
