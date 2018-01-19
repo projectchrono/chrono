@@ -21,7 +21,7 @@ debug : clean $(EXEC)
 
 all : Makefile $(EXEC)
 
-distance: distance.cpp
+distance: distance.cpp Makefile timer.h # Rebuild on Makefile or header changes
 	$(CXX) $(MOREFLAGS) $(CXXSTD) $(WFLAGS) $(FLAGS) $(OPT) $(CXXFLAGS) $< -o $@
 
 .PHONY: clean

@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include "stopwatch.hpp"
+#include "timer.h"
 
 #include <immintrin.h>
 #include <pmmintrin.h>
@@ -153,8 +153,8 @@ inline int insideBoxV(vec3* p1, OOB* box) {
 
 // Test if a each point is inside a box
 inline double testBox(vec3* points, int* results) {
-    stopwatch<std::milli, double> sw;
-    sw.start();
+    milliTimer timer;
+    timer.start();
 
     OOB box;
     box.dimensions = {.25, .25, .25, 0};
@@ -166,14 +166,14 @@ inline double testBox(vec3* points, int* results) {
     for (size_t i = 0; i < N; i++) {
         results[i] = insideBox(points + i, &box);
     }
-    sw.stop();
-    return sw.count();
+    timer.stop();
+    return timer.count();
 }
 
 // Test if a each point is inside a box, vectorized
 double testBoxV(vec3* points, int* results) {
-    stopwatch<std::milli, double> sw;
-    sw.start();
+    milliTimer timer;
+    timer.start();
 
     OOB box;
     box.dimensions = {.25, .25, .25, 0};
@@ -185,13 +185,13 @@ double testBoxV(vec3* points, int* results) {
     for (size_t i = 0; i < N; i++) {
         results[i] = insideBoxV(points + i, &box);
     }
-    sw.stop();
-    return sw.count();
+    timer.stop();
+    return timer.count();
 }
 
 double testBoxAAB(vec3* points, int* results) {
-    stopwatch<std::milli, double> sw;
-    sw.start();
+    milliTimer timer;
+    timer.start();
 
     AAB box;
     box.min = {0, 0, 0, 0};
@@ -201,8 +201,8 @@ double testBoxAAB(vec3* points, int* results) {
     for (size_t i = 0; i < N; i++) {
         results[i] = insideBoxAAB(points + i, &box);
     }
-    sw.stop();
-    return sw.count();
+    timer.stop();
+    return timer.count();
 }
 
 // Regular distance for array of structs
@@ -258,14 +258,14 @@ double testStructsBFV(vec3* points, float* distances) {
     // Reference point, twice as wide as necessary
     vec3 ref[2] = {points[REF], points[REF]};
     // Allocate distances
-    stopwatch<std::milli, double> sw;
-    sw.start();
+    milliTimer timer;
+    timer.start();
 #pragma omp parallel for
     for (size_t i = 0; i < N; i += 2) {
         getDistanceBFV(distances + i, points + i, ref);
     }
-    sw.stop();
-    double elapsed = sw.count();
+    timer.stop();
+    double elapsed = timer.count();
     printf("distance time is %f ms\n", elapsed);
     return elapsed;
 }
@@ -277,14 +277,14 @@ double testStructsVectorized(vec3* points, float* distances) {
     // Reference point
     vec3 pr = points[REF];
     // Allocate distances
-    stopwatch<std::milli, double> sw;
-    sw.start();
+    milliTimer timer;
+    timer.start();
 #pragma omp parallel for
     for (size_t i = 0; i < N; i++) {
         distances[i] = getDistanceV(points + i, &pr);
     }
-    sw.stop();
-    double elapsed = sw.count();
+    timer.stop();
+    double elapsed = timer.count();
     printf("distance time is %f ms\n", elapsed);
     return elapsed;
 }
@@ -296,14 +296,14 @@ double testStructs(vec3* points, float* distances) {
     // Reference point
     vec3 pr = points[REF];
     // Allocate distances
-    stopwatch<std::milli, double> sw;
-    sw.start();
+    milliTimer timer;
+    timer.start();
 #pragma omp parallel for
     for (size_t i = 0; i < N; i++) {
         distances[i] = getDistanceStruct(&points[i], &pr);
     }
-    sw.stop();
-    double elapsed = sw.count();
+    timer.stop();
+    double elapsed = timer.count();
     printf("distance time is %f ms\n", elapsed);
     return elapsed;
 }
@@ -317,16 +317,16 @@ double testArrays(float* x, float* y, float* z, float* distances) {
     float yr = y[REF];
     float zr = z[REF];
 
-    stopwatch<std::milli, double> sw;
-    sw.start();
+    milliTimer timer;
+    timer.start();
 #pragma omp parallel for
     for (size_t i = 0; i < N; i++) {
         distances[i] = getDistance(x[i], xr, y[i], yr, z[i], zr);
         // printf("x is %f, y is %f, z is %f, dist is %f\n", x[i], y[i], z[i],
         //        distances[i]);
     }
-    sw.stop();
-    double elapsed = sw.count();
+    timer.stop();
+    double elapsed = timer.count();
     printf("distance time is %f ms\n", elapsed);
 
     return elapsed;
