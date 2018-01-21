@@ -41,7 +41,13 @@ namespace vehicle {
 /// (template definition)
 class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
   public:
-    ChTrackShoeBandANCF(const std::string& name  ///< [in] name of the subsystem
+    enum class ElementType {
+        ANCF_4,  ///< 4-node ANCF shell element
+        ANCF_8   ///< 8-node ANCF shell element
+    };
+
+    ChTrackShoeBandANCF(const std::string& name,                        ///< [in] name of the subsystem
+                        ElementType element_type = ElementType::ANCF_4  ///< [in] ANCF shell element type
     );
 
     virtual ~ChTrackShoeBandANCF() {}
@@ -104,7 +110,7 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
 
   private:
     /// Set the FEA mesh container to which this track shoe will add its nodes and elements.
-    void SetWebMesh(std::shared_ptr<fea::ChMesh> mesh);
+    void SetWebMesh(std::shared_ptr<fea::ChMesh> mesh) { m_web_mesh = mesh; }
 
     /// Initialize this track shoe system.
     /// This version specifies the locations and orientations of the tread body and of
@@ -112,6 +118,8 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,          ///< [in] handle to chassis body
                     const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
     );
+
+    ElementType m_element_type;
 
     std::shared_ptr<fea::ChMesh> m_web_mesh;
 
