@@ -49,9 +49,55 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name)
+    : ChTrackShoeBand(name),
+      m_rubber_rho(1100),
+      m_rubber_E(1e7),
+      m_rubber_nu(0.49),
+      m_rubber_G(0.5 * 1e7 / (1 + 0.49)),
+      m_steel_rho(7900),
+      m_steel_E(210e9),
+      m_steel_nu(0.3),
+      m_steel_G(0.5 * 210e9 / (1 + 0.3)),
+      m_angle_1(0),
+      m_angle_2(0),
+      m_angle_3(0),
+      m_alpha(0.05) {}
 
-ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name) : ChTrackShoeBand(name) {}
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeBandANCF::SetRubberLayerMaterial(double rho,
+                                                 const ChVector<>& E,
+                                                 const ChVector<>& nu,
+                                                 const ChVector<>& G) {
+    m_rubber_rho = rho;
+    m_rubber_E = E;
+    m_rubber_nu = nu;
+    m_rubber_G = G;
+}
 
+void ChTrackShoeBandANCF::SetSteelLayerMaterial(double rho,
+                                                const ChVector<>& E,
+                                                const ChVector<>& nu,
+                                                const ChVector<>& G) {
+    m_steel_rho = rho;
+    m_steel_E = E;
+    m_steel_nu = nu;
+    m_steel_G = G;
+}
+
+void ChTrackShoeBandANCF::SetElementStructuralDamping(double alpha) {
+    m_alpha = alpha;
+}
+
+void ChTrackShoeBandANCF::SetLayerFiberAngles(double angle_1, double angle_2, double angle_3) {
+    m_angle_1 = angle_1;
+    m_angle_2 = angle_2;
+    m_angle_3 = angle_3;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                      const ChVector<>& location,
                                      const ChQuaternion<>& rotation) {
@@ -72,33 +118,22 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     assert(m_web_mesh);
     m_starting_node_index = m_web_mesh->GetNnodes();
 
+    int num_elements_length = GetNumElementsLength();
+    int num_elements_width = GetNumElementsWidth();
+
+    // Create material for the layers (isotropic materials)
+    auto rubber_mat = std::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
+    auto steel_mat = std::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
+
 #ifdef USE_ANCF_4
-    int N_x = m_num_elements_length + 1;
-    int N_y = m_num_elements_width + 1;
+    int N_x = num_elements_length + 1;
+    int N_y = num_elements_width + 1;
 
-    double dx = GetWebLength() / m_num_elements_length;
-    double dy = GetBeltWidth() / m_num_elements_width;
+    double dx = GetWebLength() / num_elements_length;
+    double dy = GetBeltWidth() / num_elements_width;
 
-    double dz_steel = 0.05 * 25.4 / 1000.0;
+    double dz_steel = GetSteelLayerThickness();
     double dz_rubber = (GetWebThickness() - dz_steel) / 2;
-
-    // Create an orthotropic material.
-    // All layers for all elements share the same material.
-    double rho_rubber = 1.1e3;
-    ChVector<> E_rubber(0.01e9, 0.01e9, 0.01e9);
-    ChVector<> nu_rubber(0.3, 0.3, 0.3);
-    // ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
-    ChVector<> G_rubber = E_rubber / (2 * (1 + .49));
-    auto mat_rubber = std::make_shared<ChMaterialShellANCF>(rho_rubber, E_rubber, nu_rubber, G_rubber);
-
-    // Create an orthotropic material.
-    // All layers for all elements share the same material.
-    double rho_steel = 7900.0;
-    ChVector<> E_steel(210e9, 210e9, 210e9);
-    ChVector<> nu_steel(0.3, 0.3, 0.3);
-    // ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
-    ChVector<> G_steel = E_steel / (2 * (1 + .3));
-    auto mat_steel = std::make_shared<ChMaterialShellANCF>(rho_steel, E_steel, nu_steel, G_steel);
 
     // Create and add the nodes
     for (int x_idx = 0; x_idx < N_x; x_idx++) {
@@ -120,8 +155,8 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Create the elements
-    for (int x_idx = 0; x_idx < m_num_elements_length; x_idx++) {
-        for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
+    for (int x_idx = 0; x_idx < num_elements_length; x_idx++) {
+        for (int y_idx = 0; y_idx < num_elements_width; y_idx++) {
             // Adjacent nodes
             unsigned int node0 = m_starting_node_index + y_idx + x_idx * N_y;
             unsigned int node1 = m_starting_node_index + y_idx + (x_idx + 1) * N_y;
@@ -139,12 +174,12 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             element->SetDimensions(dx, dy);
 
             // Add a single layers with a fiber angle of 0 degrees.
-            element->AddLayer(dz_rubber, 0 * CH_C_DEG_TO_RAD, mat_rubber);
-            element->AddLayer(dz_steel, 0 * CH_C_DEG_TO_RAD, mat_steel);
-            element->AddLayer(dz_rubber, 0 * CH_C_DEG_TO_RAD, mat_rubber);
+            element->AddLayer(dz_rubber, m_angle_1, rubber_mat);
+            element->AddLayer(dz_steel, m_angle_2, steel_mat);
+            element->AddLayer(dz_rubber, m_angle_3, rubber_mat);
 
             // Set other element properties
-            element->SetAlphaDamp(0.05);   // Structural damping for this element
+            element->SetAlphaDamp(m_alpha);
             element->SetGravityOn(false);  // turn internal gravitational force calculation off
 
             // Add element to mesh
@@ -155,34 +190,16 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 #endif
 
 #ifdef USE_ANCF_8
-    int N_x_edge = 2 * m_num_elements_length + 1;
-    int N_y_edge = 2 * m_num_elements_width + 1;
-    int N_x_mid = m_num_elements_length + 1;
-    int N_y_mid = m_num_elements_width + 1;
+    int N_x_edge = 2 * num_elements_length + 1;
+    int N_y_edge = 2 * num_elements_width + 1;
+    int N_x_mid = num_elements_length + 1;
+    int N_y_mid = num_elements_width + 1;
 
-    double dx = GetWebLength() / (2 * m_num_elements_length);
-    double dy = GetBeltWidth() / (2 * m_num_elements_width);
+    double dx = GetWebLength() / (2 * num_elements_length);
+    double dy = GetBeltWidth() / (2 * num_elements_width);
 
-    double dz_steel = 0.05 * 25.4 / 1000.0;
+    double dz_steel = GetSteelLayerThickness();
     double dz_rubber = (GetWebThickness() - dz_steel) / 2;
-
-    // Create an orthotropic material.
-    // All layers for all elements share the same material.
-    double rho_rubber = 1.1e3;
-    ChVector<> E_rubber(0.01e9, 0.01e9, 0.01e9);
-    ChVector<> nu_rubber(0.3, 0.3, 0.3);
-    // ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
-    ChVector<> G_rubber = E_rubber / (2 * (1 + .49));
-    auto mat_rubber = std::make_shared<ChMaterialShellANCF>(rho_rubber, E_rubber, nu_rubber, G_rubber);
-
-    // Create an orthotropic material.
-    // All layers for all elements share the same material.
-    double rho_steel = 7900.0;
-    ChVector<> E_steel(210e9, 210e9, 210e9);
-    ChVector<> nu_steel(0.3, 0.3, 0.3);
-    // ChVector<> G(0.0003e9, 0.0003e9, 0.0003e9);
-    ChVector<> G_steel = E_steel / (2 * (1 + .3));
-    auto mat_steel = std::make_shared<ChMaterialShellANCF>(rho_steel, E_steel, nu_steel, G_steel);
 
     // Create and add the nodes
     for (int x_idx = 0; x_idx < N_x_edge; x_idx++) {
@@ -210,8 +227,8 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Create the elements
-    for (int x_idx = 0; x_idx < m_num_elements_length; x_idx++) {
-        for (int y_idx = 0; y_idx < m_num_elements_width; y_idx++) {
+    for (int x_idx = 0; x_idx < num_elements_length; x_idx++) {
+        for (int y_idx = 0; y_idx < num_elements_width; y_idx++) {
             // Adjacent nodes
             /// The node numbering is in ccw fashion as in the following scheme:
             ///         v
@@ -247,12 +264,12 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             element->SetDimensions(2 * dx, 2 * dy);
 
             // Add a single layers with a fiber angle of 0 degrees.
-            element->AddLayer(dz_rubber, 0 * CH_C_DEG_TO_RAD, mat_rubber);
-            element->AddLayer(dz_steel, 0 * CH_C_DEG_TO_RAD, mat_steel);
-            element->AddLayer(dz_rubber, 0 * CH_C_DEG_TO_RAD, mat_rubber);
+            element->AddLayer(dz_rubber, m_angle_1, rubber_mat);
+            element->AddLayer(dz_steel, m_angle_2, steel_mat);
+            element->AddLayer(dz_rubber, m_angle_3, rubber_mat);
 
             // Set other element properties
-            element->SetAlphaDamp(0.05);   // Structural damping for this element
+            element->SetAlphaDamp(m_alpha);
             element->SetGravityOn(false);  // turn internal gravitational force calculation off
 
             // Add element to mesh
@@ -287,12 +304,15 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector<> seg_loc = chassis->TransformPointLocalToParent(component_pos[1].pos) - (0.5 * GetWebLength()) * xdir -
                          (0.5 * GetBeltWidth()) * ydir;
 
-#ifdef USE_ANCF_4
-    int N_x = m_num_elements_length + 1;
-    int N_y = m_num_elements_width + 1;
+    int num_elements_length = GetNumElementsLength();
+    int num_elements_width = GetNumElementsWidth();
 
-    double dx = GetWebLength() / m_num_elements_length;
-    double dy = GetBeltWidth() / m_num_elements_width;
+#ifdef USE_ANCF_4
+    int N_x = num_elements_length + 1;
+    int N_y = num_elements_width + 1;
+
+    double dx = GetWebLength() / num_elements_length;
+    double dy = GetBeltWidth() / num_elements_width;
 
     // Move the nodes on the mesh to the correct location
     for (int x_idx = 0; x_idx < N_x; x_idx++) {
@@ -315,13 +335,13 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 #ifdef USE_ANCF_8
 
-    int N_x_edge = 2 * m_num_elements_length + 1;
-    int N_y_edge = 2 * m_num_elements_width + 1;
-    int N_x_mid = m_num_elements_length + 1;
-    int N_y_mid = m_num_elements_width + 1;
+    int N_x_edge = 2 * num_elements_length + 1;
+    int N_y_edge = 2 * num_elements_width + 1;
+    int N_x_mid = num_elements_length + 1;
+    int N_y_mid = num_elements_width + 1;
 
-    double dx = GetWebLength() / (2 * m_num_elements_length);
-    double dy = GetBeltWidth() / (2 * m_num_elements_width);
+    double dx = GetWebLength() / (2 * num_elements_length);
+    double dy = GetBeltWidth() / (2 * num_elements_width);
 
     // Move the nodes on the mesh to the correct location
     int node_idx = m_starting_node_index;
@@ -371,9 +391,12 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
     ;
     ChQuaternion<> rot_next_shoe = next->GetShoeBody()->GetRot();
 
+    int num_elements_length = GetNumElementsLength();
+    int num_elements_width = GetNumElementsWidth();
+
 #ifdef USE_ANCF_4
-    int N_x = m_num_elements_length + 1;
-    int N_y = m_num_elements_width + 1;
+    int N_x = num_elements_length + 1;
+    int N_y = num_elements_width + 1;
 
     // Change the gradient on the web boundary nodes that will connect to the current shoe body
     // and then connect those web nodes to the show tread body
@@ -395,7 +418,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Change the gradient on the boundary nodes that will connect to the second fixed body
     // and then connect those nodes to the body
     for (int y_idx = 0; y_idx < N_y; y_idx++) {
-        int node_idx = m_starting_node_index + y_idx + m_num_elements_length * N_y;
+        int node_idx = m_starting_node_index + y_idx + num_elements_length * N_y;
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
         node->SetD(rot_next_shoe.GetZaxis());
@@ -411,13 +434,13 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
 #endif
 
 #ifdef USE_ANCF_8
-    int N_x_edge = 2 * m_num_elements_length + 1;
-    int N_y_edge = 2 * m_num_elements_width + 1;
-    int N_x_mid = m_num_elements_length + 1;
-    int N_y_mid = m_num_elements_width + 1;
+    int N_x_edge = 2 * num_elements_length + 1;
+    int N_y_edge = 2 * num_elements_width + 1;
+    int N_x_mid = num_elements_length + 1;
+    int N_y_mid = num_elements_width + 1;
 
-    double dx = GetWebLength() / (2 * m_num_elements_length);
-    double dy = GetBeltWidth() / (2 * m_num_elements_width);
+    double dx = GetWebLength() / (2 * num_elements_length);
+    double dy = GetBeltWidth() / (2 * num_elements_width);
 
     // Change the gradient on the web boundary nodes that will connect to the current shoe body
     // and then connect those web nodes to the show tread body
@@ -439,7 +462,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Change the gradient on the boundary nodes that will connect to the second fixed body
     // and then connect those nodes to the body
     for (int y_idx = 0; y_idx < N_y_edge; y_idx++) {
-        int node_idx = m_starting_node_index + y_idx + m_num_elements_length * (N_y_edge + N_y_mid);
+        int node_idx = m_starting_node_index + y_idx + num_elements_length * (N_y_edge + N_y_mid);
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node_idx));
 
         node->SetD(rot_next_shoe.GetZaxis());

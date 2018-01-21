@@ -72,20 +72,38 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
     /// Return the offset (in X direction) of the guiding pin.
     virtual double GetGuideBoxOffsetX() const override { return m_guide_box_offset_x; }
 
-    //// TODO - Add comments here
-    /// Return belt geometry parameters
+    /// Return belt geometry parameters.
     virtual double GetBeltWidth() const override { return m_belt_width; }
 
+    /// Return the length of the flat tip of the tread tooth tip (in the X direction)
     virtual double GetToothTipLength() const override { return m_tooth_tip_length; }
+    /// Return the length of the base of the tread tooth (in the X direction) where the tooth circular profile ends
     virtual double GetToothBaseLength() const override { return m_tooth_base_length; }
+    /// Return the width of the one of the tooth profile sections of the tread tooth (in the Y direction)
     virtual double GetToothWidth() const override { return m_tooth_width; }
+    /// Return the height from the base to the tip of the tread tooth profile (in the Z direction)
     virtual double GetToothHeight() const override { return m_tooth_height; }
+    /// Return the radius of the tooth profile arc that connects the tooth tip and base lines
     virtual double GetToothArcRadius() const override { return m_tooth_arc_radius; }
 
+    /// Return the combined length of all of the web sections (in the X direction)
     virtual double GetWebLength() const override { return m_web_length; }
+    /// Return the thickness of the web section (in the Z direction)
     virtual double GetWebThickness() const override { return m_web_thickness; }
 
+    /// Get the number of shell elements across the web length (from tread body to tread body).
+    virtual int GetNumElementsLength() const override { return m_num_elements_length; }
+
+    /// Get the number of shell elements across the web width (side to side).
+    virtual int GetNumElementsWidth() const override { return m_num_elements_width; }
+
+    /// Get thickness of the inner steel layer.
+    /// The rubber layer thicknesses are obtained from the total web thickness.
+    virtual double GetSteelLayerThickness() const override { return m_steel_thickness; }
+
+    /// Return the length of the tread below the web area (in the X direction, tread pad for ground contact)
     virtual double GetTreadLength() const override { return m_tread_length; }
+    /// Return the thickness of the tread below the web area (tread pad for ground contact)
     virtual double GetTreadThickness() const override { return m_tread_thickness; }
 
   private:
@@ -94,6 +112,9 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
 
     static const double m_web_mass;
     static const ChVector<> m_web_inertias;
+    static const double m_steel_thickness;
+    static const int m_num_elements_length;
+    static const int m_num_elements_width;
 
     static const double m_shoe_height;
 

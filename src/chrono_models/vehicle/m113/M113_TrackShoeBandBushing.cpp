@@ -69,6 +69,8 @@ M113_TrackShoeBandBushing::M113_TrackShoeBandBushing() : ChTrackShoeBandBushing(
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
     SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
+
+    SetBushingParameters(7e7, 500, 1e5, 0.05 * 7e7, 0.05 * 500, 0.05 * 1e5);
 }
 
 // -----------------------------------------------------------------------------

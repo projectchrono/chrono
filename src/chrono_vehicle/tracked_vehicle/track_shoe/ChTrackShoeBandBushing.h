@@ -60,14 +60,24 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-    /// Return the number of segments that the web section is broken up into
+    /// Return the number of segments that the web section is broken up into.
     virtual int GetNumWebSegments() const = 0;
-    
-    /// Return the length of just one of the web sections (in the X direction)
-    double GetGetWebSegmentLength() { return m_seg_length; }
 
-    /// Return a pointer to the web segment body with the provided index
-    std::shared_ptr<ChBody> GetGetWebSegment(size_t index) { return m_web_segments[index]; }
+    /// Return the length of just one of the web sections (in the X direction).
+    double GetWebSegmentLength() { return m_seg_length; }
+
+    /// Return a pointer to the web segment body with the provided index.
+    std::shared_ptr<ChBody> GetWebSegment(size_t index) { return m_web_segments[index]; }
+
+    /// Set bushing stiffness and damping information.
+    void SetBushingParameters(
+        double Klin,        ///< linear stiffness in all directions  (default: 7e7 N/m)
+        double Krot_dof,    ///< rotational stifness in the DOF direction (default: 500 N.m/rad)
+        double Krot_other,  ///< rotatioal stiffness in other two directions (default: 1e5 N.m/rad)
+        double Dlin,        ///< linear damping in all directions (defaalt: 0.05 * 7e7 N/m.s)
+        double Drot_dof,    ///< rottional damping in the DOF direction (default: 0.05 * 500 N.m/rad.s)
+        double Drot_other   ///< rotational damping in other two direction (default: 0.05 * 1e5 N.m/rad.s)
+    );
 
     /// Add contact geometry for a web segment body.
     virtual void AddWebContact(std::shared_ptr<ChBody> segment);
@@ -87,6 +97,13 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     double m_seg_length;                                  ///< length of a web segment
     double m_seg_mass;                                    ///< mass of a web segment
     ChVector<> m_seg_inertia;                             ///< moments of inertia of a web segment
+
+    double m_Klin;
+    double m_Krot_dof;
+    double m_Krot_other;
+    double m_Dlin;
+    double m_Drot_dof;
+    double m_Drot_other;
 
     friend class ChTrackAssemblyBandBushing;
 };

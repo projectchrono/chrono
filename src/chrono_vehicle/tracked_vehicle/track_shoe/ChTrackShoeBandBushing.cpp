@@ -34,9 +34,33 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+ChTrackShoeBandBushing::ChTrackShoeBandBushing(const std::string& name)
+    : ChTrackShoeBand(name),
+      m_Klin(7e7),
+      m_Krot_dof(500),
+      m_Krot_other(1e5),
+      m_Dlin(0.05 * 7e7),
+      m_Drot_dof(0.05 * 500),
+      m_Drot_other(0.05 * 1e5) {}
 
-ChTrackShoeBandBushing::ChTrackShoeBandBushing(const std::string& name) : ChTrackShoeBand(name) {}
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeBandBushing::SetBushingParameters(double Klin,
+                                                  double Krot_dof,
+                                                  double Krot_other,
+                                                  double Dlin,
+                                                  double Drot_dof,
+                                                  double Drot_other) {
+    m_Klin = Klin;
+    m_Krot_dof = Krot_dof;
+    m_Krot_other = Krot_other;
+    m_Dlin = Dlin;
+    m_Drot_dof = Drot_dof;
+    m_Drot_other = Drot_other;
+}
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                         const ChVector<>& location,
                                         const ChQuaternion<>& rotation) {
@@ -161,26 +185,27 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     ChVector<> loc;
     ChQuaternion<> rot;
 
-#if TRUE  // Use busing elements to connect the belt segments, otherwise use revolute joints
     // Bushings are inherited from ChLoad, so they require a 'load container'
-
     auto my_loadcontainer = std::make_shared<ChLoadContainer>();
     system->Add(my_loadcontainer);
 
+    // Stiffness and Damping matrix values
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
 
-    // Sample Stiffness and Damping matrix values for testing purposes
-    for (unsigned int ii = 0; ii < 3; ii++) {
-        K_matrix(ii, ii) = 70000000.0;
-        R_matrix(ii, ii) = 0.05 * K_matrix(ii, ii);
-    }
-    for (unsigned int ii = 3; ii < 6; ii++) {
-        K_matrix(ii, ii) = 100000.0;
-        R_matrix(ii, ii) = 0.05 * K_matrix(ii, ii);
-    }
-    K_matrix(4, 4) = 500;
-    R_matrix(4, 4) = 0.05 * K_matrix(4, 4);
+    K_matrix(0, 0) = m_Klin;
+    K_matrix(1, 1) = m_Klin;
+    K_matrix(2, 2) = m_Klin;
+    K_matrix(3, 3) = m_Krot_other;
+    K_matrix(4, 4) = m_Krot_dof;
+    K_matrix(5, 5) = m_Krot_other;
+
+    R_matrix(0, 0) = m_Dlin;
+    R_matrix(1, 1) = m_Dlin;
+    R_matrix(2, 2) = m_Dlin;
+    R_matrix(3, 3) = m_Drot_other;
+    R_matrix(4, 4) = m_Drot_dof;
+    R_matrix(5, 5) = m_Drot_other;
 
     // Connect tread body to the first web segment.
     loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
@@ -226,48 +251,6 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     my_loadbushingg1->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
     my_loadbushingg1->SetApplicationFrameB(ChFrame<>(ChVector<>(-GetToothBaseLength() / 2, 0, 0)));
     my_loadcontainer->Add(my_loadbushingg1);
-
-#else
-
-    if (m_index == 0) {
-        // Create and initialize a point-line joint (sliding line along X)
-        loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
-        rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
-
-        auto pointline = std::make_shared<ChLinkLockPointLine>();
-        pointline->SetNameString(m_name + "_pointline");
-        pointline->Initialize(m_shoe, m_web_segments[0], ChCoordsys<>(loc, rot));
-        system->AddLink(pointline);
-    } else {
-        // Connect tread body to the first web segment Via a Revolute Joint
-        loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
-        rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
-        auto revolute0 = std::make_shared<ChLinkLockRevolute>();
-        system->AddLink(revolute0);
-        revolute0->SetNameString(m_name + "_revolute_0");
-        revolute0->Initialize(m_shoe, m_web_segments[0], ChCoordsys<>(loc, rot));
-    }
-
-    // Connect the web segments to each other.
-    for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
-        loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
-        rot = m_web_segments[is]->GetRot() * Q_from_AngX(CH_C_PI_2);
-        auto revolute = std::make_shared<ChLinkLockRevolute>();
-        system->AddLink(revolute);
-        revolute->SetNameString(m_name + "_revolute_" + std::to_string(is + 1));
-        revolute->Initialize(m_web_segments[is], m_web_segments[is + 1], ChCoordsys<>(loc, rot));
-    }
-
-    // Connect the last web segment to the tread body from the next track shoe.
-    int is = GetNumWebSegments() - 1;
-    loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
-    rot = m_web_segments[is]->GetRot() * Q_from_AngX(CH_C_PI_2);
-    auto revolute1 = std::make_shared<ChLinkLockRevolute>();
-    system->AddLink(revolute1);
-    revolute1->SetNameString(m_name + "_revolute");
-    revolute1->Initialize(m_web_segments[is], next->GetShoeBody(), ChCoordsys<>(loc, rot));
-
-#endif
 }
 
 }  // end namespace vehicle
