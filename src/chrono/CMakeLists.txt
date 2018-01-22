@@ -1017,6 +1017,10 @@ if(XCODE_VERSION)
     set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})
 endif()
 
+if(MSVC AND MSVC_VERSION EQUAL 1900)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
+endif()
+
 # Install the main ChronoEngine library
 install(TARGETS ChronoEngine
     RUNTIME DESTINATION bin
