@@ -529,17 +529,20 @@ class  ChElementBeamIGA :   public ChElementBeam,
             for (int i = 0; i< nodes.size(); ++i) {
                 
                 if (int_order_b == int_order_s) {
-                    // -Force_i = w * N' * R * C * (strain_e - strain_e0)
-                    ChVector<> Force_i = stress_n_abs* N(1,i) * -w;
+                    // -Force_i = w * Jue * Jsu * Jsu^-1 * N' * R * C * (strain_e - strain_e0)
+                    //          = w * Jue * N'            * stress_n_abs
+                    ChVector<> Force_i = stress_n_abs* N(1,i) * (-w*Jue);
 			        Fi.PasteSumVector(Force_i, i *6, 0);
                 }
 
-                // -Torque_i = w * R_i^t * N'^t * R * D * (strain_k - strain_k0) + 
-                //           + w * R_i^t * N^t  * skew(r')^t *  R * C * (strain_e - strain_e0)
+                // -Torque_i =   w * Jue * Jsu * Jsu^-1 * R_i^t * N'               * R * D * (strain_k - strain_k0) + 
+                //             + w * Jue * Jsu *        R_i^t * N  * skew(r')^t  * R * C * (strain_e - strain_e0)
+                //           =   w * Jue * R_i^t * N'                          * stress_m_abs + 
+                //             + w * Jue * Jsu * R_i^t * N * skew(r')^t          * stress_n_abs 
                 ChQuaternion<> q_i = state_x.ClipQuaternion(i*7+3, 0);
                 ChVector<> Torque_i = q_i.RotateBack(
-                    stress_m_abs * N(1,i) * -w 
-                    - Vcross(dr, stress_n_abs) *  N(0,i) * -w
+                    stress_m_abs * N(1,i) * (-w*Jue) 
+                    - Vcross(dr, stress_n_abs) *  N(0,i) * (-w*Jue*Jsu)
                     );
                 Fi.PasteSumVector(Torque_i, 3+ i *6, 0);
             }
