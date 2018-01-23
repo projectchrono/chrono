@@ -117,15 +117,15 @@ enum {
 // The last entry must be SO_END_OF_OPTIONS
 CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_THREADS, "-n", SO_REQ_SEP},
-                                    {OPT_TIMESTEP, "-t", SO_REQ_SEP },
-                                    {OPT_TIMEEND, "-e", SO_REQ_SEP },
+                                    {OPT_TIMESTEP, "-t", SO_REQ_SEP},
+                                    {OPT_TIMEEND, "-e", SO_REQ_SEP},
                                     {OPT_R1, "--radius1", SO_REQ_CMB},
                                     {OPT_R2, "--radius2", SO_REQ_CMB},
                                     {OPT_ROTSPEED, "-w", SO_REQ_SEP},
                                     {OPT_F_BALL, "--fball", SO_REQ_SEP},
                                     {OPT_F_WALL, "--fwall", SO_REQ_SEP},
-                                    {OPT_LID_FALL, "--falling-lid", SO_NONE },
-                                    {OPT_WRITEOUT, "--write-output", SO_NONE },
+                                    {OPT_LID_FALL, "--falling-lid", SO_NONE},
+                                    {OPT_WRITEOUT, "--write-output", SO_NONE},
                                     {OPT_COHESION, "--cohesion", SO_REQ_SEP},
                                     {OPT_SUFFIX, "--suffix", SO_REQ_SEP},
                                     {OPT_PREFIX, "--prefix", SO_REQ_SEP},
@@ -252,7 +252,6 @@ void AddContainer(ChSystemParallelSMC* sys) {
     cylinder1->SetName("cyl1");
     cylinder1->SetBodyFixed(false);
 
-
     cylinder1->GetCollisionModel()->ClearModel();
     utils::AddCylinderGeometry(cylinder1.get(), r1, 2 * h, ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI / 2), true);
     cylinder1->GetCollisionModel()->BuildModel();
@@ -348,7 +347,6 @@ void AddFallingBalls(ChSystemParallel* sys) {
     }
 }
 
-
 void WriteCSV(const std::string& filename, ChSystemParallelSMC& sys) {
     std::ofstream file{filename};
     std::stringstream outstream;
@@ -374,7 +372,6 @@ int main(int argc, char* argv[]) {
     if (GetProblemSpecs(argc, argv) == false)
         return 1;
 
-
     // Figure out which file the output goes out to
     // ---------------------
     std::string demo_dir(GetChronoOutputPath());
@@ -383,7 +380,6 @@ int main(int argc, char* argv[]) {
         std::cout << "outputting to " << demo_dir << std::endl;
     else
         std::cout << "no output generated!\n";
-
 
     std::cout << "time step is " << time_step << std::endl;
     std::cout << "ball mu is " << muBall << std::endl;
@@ -430,7 +426,8 @@ int main(int argc, char* argv[]) {
     AddFallingBalls(&msystem);
     std::cout << "balls added!" << std::endl;
     std::cout << msystem.Get_bodylist()->size() << " bodies!" << std::endl;
-    std::cout << "lid Mass is " << lidMass << ", wall mass is " << wallMass << ", ball mass is " << ballMass << std::endl;
+    std::cout << "lid Mass is " << lidMass << ", wall mass is " << wallMass << ", ball mass is " << ballMass
+              << std::endl;
 
     // Perform the simulation
     // ----------------------
@@ -519,7 +516,7 @@ int main(int argc, char* argv[]) {
         }
         msystem.DoStepDynamics(time_step);
 
-        if ( i % render_steps == 0) {
+        if (i % render_steps == 0) {
             std::cout << "frame " << frames_rendered++ << std::endl;
             if (write_output) {
                 char filename[100];
@@ -555,6 +552,9 @@ bool GetProblemSpecs(int argc, char** argv) {
                 return false;
             case OPT_BALL_RADIUS:
                 ball_radius = std::stod(args.OptionArg());
+                // Recalculate params
+                ballMass = 4.0 / 3.0 * ballDensity * CH_C_PI * ball_radius * ball_radius * ball_radius;
+                lidMass = ballMass * 200;
                 break;
             case OPT_R1:
                 r1 = std::stod(args.OptionArg());
