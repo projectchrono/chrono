@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
                             VECT_Y,             // suggested Y direction of section
                             3);                 // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-2,-4));
+    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-2,0));
     //builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(0,0, 1.2));
 
     //
@@ -224,37 +224,21 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.01);
 
-    /*
-    GetLog() << "\n\n\n===========STATICS======== \n\n\n";
+    //****TEST**** do a linear static analysis:
 
     application.GetSystem()->DoStaticLinear();
 
-    GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
+    GetLog() << "\n\n\ TEST LINEAR STATIC: \n  tip displacement y = " 
+             << builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y()
+             << "\n"
+             << "  exact should be: y = " << 
+             (4*-2*pow(0.4,3)/(msection->GetYoungModulus()*beam_wz*pow(beam_wy,3)))
+             +(-2*0.4)/((5./6.)*msection->GetGshearModulus()*beam_wz*beam_wy)
+             << "\n";
 
-    ChVector<> F, M;
-    ChMatrixDynamic<> displ;
-	
-    belement1->GetStateBlock(displ);
-    GetLog() << displ;
-    for (double eta = -1; eta <= 1; eta += 0.4) {
-        belement1->EvaluateSectionForceTorque(eta, F, M);
-        GetLog() << "  b1_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
-                 << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
-    }
-	
-    GetLog() << "\n";
-	
-    belement2->GetStateBlock(displ);
-    for (double eta = -1; eta <= 1; eta += 0.4) {
-        belement2->EvaluateSectionForceTorque(eta, F, M);
-        GetLog() << "  b2_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
-                 << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
-    }
-	
-    GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
-             << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
 
-    */
+    ChStreamOutAsciiFile my_file("output.txt");
+    my_file << builder.GetLastBeamNodes().back()->GetPos().x() << "  " << builder.GetLastBeamNodes().back()->GetPos().y() << "\n";
 
     GetLog() << "Press SPACE bar to start/stop dynamic simulation \n\n";
     GetLog() << "Press F10 for nonlinear static solution \n\n";
