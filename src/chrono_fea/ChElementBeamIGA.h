@@ -414,8 +414,13 @@ class  ChElementBeamIGA :   public ChElementBeam,
             double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b-1][ig];
             // absyssa in span range:
             double u = (c1 * eta + c2);
-            // scaling = gauss weight * change of range:
-            double w = ChQuadrature::GetStaticTables()->Weight[int_order_b-1][ig] * c1;
+            // scaling = gauss weight
+            double w = ChQuadrature::GetStaticTables()->Weight[int_order_b-1][ig];
+
+            // Jacobian Jsu = ds/du
+            double Jsu = this->Jacobian_b[ig];
+            // Jacobian Jue = du/deta
+            double Jue = c1;
 
             // compute the basis functions N(u) at given u:
             int nspan = order;
@@ -455,8 +460,8 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 ChVector<> r_i = state_x.ClipVector(i*7, 0);
                 dr += r_i * N(1,i);  // dr/du = N_i'*r_i
             }
-            // (note r'= dr/ds = dr/du * 1/J   where J computed in SetupInitial)
-            dr *=  1.0/this->Jacobian_b[ig];
+            // (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
+            dr *=  1.0/Jsu;
 
             // compute abs. time rate of spline gradient  dr'/dt
             ChVector<> drdt; 
@@ -464,7 +469,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 ChVector<> drdt_i = state_w.ClipVector(i*6, 0);
                 drdt += drdt_i * N(1,i); 
             }
-            drdt *=  1.0/this->Jacobian_b[ig];
+            drdt *=  1.0/Jsu;
 
             // compute abs spline rotation gradient q' = dq/ds 
             // But.. easier to compute local gradient of spin vector a' = da/ds
@@ -475,9 +480,8 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
                 da += delta_rot_dir * delta_rot_angle * N(1,i);  // da/du = N_i'*a_i
             }
-            // (note a'= da/ds = da/du * du/ds = da/du * 1/J   where J computed in SetupInitial)
-            da *=  1.0/this->Jacobian_b[ig];
-            //GetLog() << " da = " << da << "\n";
+            // (note a= da/ds = da/du du/ds = da/du * 1/Jsu   where Jsu computed in SetupInitial)
+            da *=  1.0/Jsu;
 
             // compute abs rate of spline rotation gradient da'/dt
             ChVector<> dadt;
@@ -487,7 +491,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 ChVector<> w_i = q_i.Rotate(wl_i); // w in absolute csys
                 dadt += w_i * N(1,i);  
             }
-            dadt *=  1.0/this->Jacobian_b[ig];
+            dadt *=  1.0/Jsu;
 
             // compute local epsilon strain:  strain_e= R^t * r' - {1, 0, 0}
             ChVector<> strain_e = R.MatrT_x_Vect(dr) - VECT_X;
