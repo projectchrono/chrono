@@ -25,6 +25,9 @@ namespace irrlicht {
 /// @{
 
 /// Some functions to allow easy creation of meshes for Irrlicht visualization
+
+/// Create an Irrlicht mesh representing an ellipsoid. 
+/// Ellispoid is centered in the origin.
 ChApiIrr irr::scene::IAnimatedMesh* createEllipticalMesh(irr::f32 radiusH,
                                                          irr::f32 radiusV,
                                                          irr::f32 Ylow,
@@ -33,18 +36,32 @@ ChApiIrr irr::scene::IAnimatedMesh* createEllipticalMesh(irr::f32 radiusH,
                                                          irr::u32 polyCountX,
                                                          irr::u32 polyCountY);
 
-/// Same as irr::CGeomentryCreator::createCubeMesh(), but with no shared normals
-/// between faces.
+/// Create an Irrlicht mesh representing a box. 
+/// Box is centered in origin, extending +/- size in each direction.
 ChApiIrr irr::scene::IMesh* createCubeMesh(const irr::core::vector3df& size);
 
-/// Same as irr::CGeomentryCreator::createCylinderMesh(), but with no shared
-/// normals between caps and hull
-ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 length, irr::u32 tesselation);
+/// Create an Irrlicht mesh representing a cylinder.
+/// Cylinder axis is in Y direction, centered in origin. 
+/// Cylinder tot length is 2*height, ranging from y=-height to y=+height.
+ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 height, irr::u32 tesselation);
+
+/// Create an Irrlicht mesh representing a truncated cone.
+/// Truncated cone axis is in Y direction, centered in origin. 
+/// Truncated cone tot length is 2*height, ranging from y=-height to y=+height.
+ChApiIrr irr::scene::IMesh* createTruncatedConeMesh(irr::f32 radius_top, irr::f32 radius_low, irr::f32 height, irr::u32 tesselation);
+
+/// Create an Irrlicht mesh representing a cone.
+/// Truncated cone axis is in Y direction, centered in origin. 
+/// Truncated cone tot length is 2*height, ranging from y=-height to y=+height.
+ChApiIrr irr::scene::IMesh* createConeMesh(irr::f32 radius_low, irr::f32 height, irr::u32 tesselation);
 
 /// This function is based on a modified version of the irrlicht_bullet demo,
 /// see  http://www.continuousphysics.com
 /// It is used to convert an Irrlicht mesh into a ChTriangleMesh, which is used
 /// for collision detection in Chrono.
+///
+/// ***OBSOLETE***
+///
 ChApiIrr void fillChTrimeshFromIrlichtMesh(geometry::ChTriangleMesh* chTrimesh, irr::scene::IMesh* pMesh);
 
 /// Given a ChTriangleMesh object, computes an Irrlicht mesh.
