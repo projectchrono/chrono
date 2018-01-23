@@ -121,11 +121,10 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     u = Vcross(v, dirs[REV_AXIS]);
     rot.Set_A_axis(u, v, dirs[REV_AXIS]);
 
-    m_revolute = std::make_shared<ChLinkEngine>();
-    m_revolute->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
-    m_revolute->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(chassis, m_arm, ChCoordsys<>(points[REV], rot.Get_A_quaternion()));
+    m_revolute = std::make_shared<ChLinkMotorRotationAngle>();
+    m_revolute->Initialize(chassis, m_arm, ChFrame<>(points[REV], rot.Get_A_quaternion()));
+    auto motor_fun = std::make_shared<ChFunction_Setpoint>();
+    m_revolute->SetAngleFunction(motor_fun);
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the universal joint between the Pitman arm and steering link.
@@ -161,8 +160,8 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::Synchronize(double time, double steering) {
-    if (auto fun = std::dynamic_pointer_cast<ChFunction_Const>(m_revolute->Get_rot_funct()))
-        fun->Set_yconst(getMaxAngle() * steering);
+    auto fun = std::static_pointer_cast<ChFunction_Setpoint>(m_revolute->GetAngleFunction());
+    fun->SetSetpoint(getMaxAngle() * steering, time);
 }
 
 // -----------------------------------------------------------------------------
@@ -239,15 +238,15 @@ void ChPitmanArm::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 void ChPitmanArm::LogConstraintViolations() {
     // Revolute joint
-    {
-        ChMatrix<>* C = m_revolute->GetC();
-        GetLog() << "Revolute              ";
-        GetLog() << "  " << C->GetElement(0, 0) << "  ";
-        GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
-        GetLog() << "  " << C->GetElement(4, 0) << "\n";
-    }
+    ////{
+    ////    ChMatrix<>* C = m_revolute->GetC();
+    ////    GetLog() << "Revolute              ";
+    ////    GetLog() << "  " << C->GetElement(0, 0) << "  ";
+    ////    GetLog() << "  " << C->GetElement(1, 0) << "  ";
+    ////    GetLog() << "  " << C->GetElement(2, 0) << "  ";
+    ////    GetLog() << "  " << C->GetElement(3, 0) << "  ";
+    ////    GetLog() << "  " << C->GetElement(4, 0) << "\n";
+    ////}
 
     // Universal joint
     {
