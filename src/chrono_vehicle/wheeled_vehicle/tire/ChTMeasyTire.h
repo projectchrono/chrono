@@ -156,7 +156,13 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                            double pinfl_use = 1.0  ///< inflation pressure in this configuration
     );
 
-    void VerticalStiffnessByTable(std::vector<double>& defl, std::vector<double>& frc);
+	// Set vertical tire stiffness as linear function by coefficient [N/m]
+	void SetVerticalStiffness(double Cz) { SetVerticalStiffness(Cz,Cz); };	
+	// Set vertical tire stiffness as nonlinear function by coefficients at nominal load 1 [N/m]
+	// and nominal load 2 [N/m]
+	void SetVerticalStiffness(double Cz1, double Cz2);
+	// Set vertical tire stiffness as nonlinear function by calculation from tire test data (least squares)
+    void SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc);
 
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
@@ -164,6 +170,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
 	/// Get the tire deflection
 	virtual double GetDeflection() const override { return m_data.depth; }
+	
+	/// Simple parameter consistency test
+	bool CheckParameters();
 	
   protected:
     /// Perform disc-terrain collision detection considering the curvature of the road
@@ -208,13 +217,16 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     double m_rolling_resistance;  // double m_lateral_stiffness (actually unused)
     double m_mu;                  // local friction coefficient of the road
 
+	double m_a1;				  // polynomial coefficient a1 in cz = a1 + 2.0*a2 * deflection
+	double m_a2;				  // polynomial coefficient a2 in cz = a1 + 2.0*a2 * deflection
+	
     VehicleSide m_measured_side;
 
     typedef struct {
         double pn;
 
         double mu_0;     // local friction coefficient of the road for given parameters
-        double cz, czq;  // linear / quadratic coefficients of stiffness
+        double cz;       // stiffness, may vary with the vertical force
         double dz;       // linear damping coefficient
 
         double dfx0_pn, dfx0_p2n;
@@ -247,6 +259,11 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   private:
     double m_stepsize;
 
+	void UpdateVerticalStiffness();
+	
+	std::vector<double> 	m_tire_test_defl;	// set, when test data are used for vertical 			
+	std::vector<double> 	m_tire_test_frc;	// stiffness calculation
+	
     void tmxy_combined(double& f, double& fos, double s, double df0, double sm, double fm, double ss, double fs);
     double tmy_tireoff(double sy, double nto0, double synto0, double syntoE);
 
