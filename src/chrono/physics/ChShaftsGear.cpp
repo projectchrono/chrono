@@ -21,9 +21,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsGear)
 
-ChShaftsGear::ChShaftsGear() : ratio(1), torque_react(0), avoid_phase_drift(true), phase1(0), phase2(0) {}
+ChShaftsGear::ChShaftsGear() : ratio(1), torque_react(0), avoid_phase_drift(true), phase1(0), phase2(0), violation(0) {}
 
-ChShaftsGear::ChShaftsGear(const ChShaftsGear& other) : ChShaftsCouple(other) {
+ChShaftsGear::ChShaftsGear(const ChShaftsGear& other) : ChShaftsCouple(other), violation(0) {
     ratio = other.ratio;
     torque_react = other.torque_react;
     avoid_phase_drift = other.avoid_phase_drift;
@@ -53,7 +53,7 @@ void ChShaftsGear::Update(double mytime, bool update_assets) {
     ChShaftsCouple::Update(mytime, update_assets);
 
     // update class data
-    // ...
+    violation = ratio * (shaft1->GetPos() - phase1) - 1.0 * (shaft2->GetPos() - phase2);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS

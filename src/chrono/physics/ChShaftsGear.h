@@ -31,6 +31,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
 
   private:
     double ratio;                       ///< transmission ratio t, as in w2=t*w1, or t=w2/w1
+    double violation;                   ///< constraint violation
     double torque_react;                ///< reaction torque
     ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
     bool avoid_phase_drift; 
@@ -119,6 +120,9 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
     double GetTorqueReactionOn2() const override { return -torque_react; }
+
+    /// Return current constraint violation
+    double GetConstraintViolation() const { return violation; }
 
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;
