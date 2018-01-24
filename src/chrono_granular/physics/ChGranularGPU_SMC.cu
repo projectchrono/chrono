@@ -8,13 +8,13 @@
 using namespace cub;
 
 
-__device__ size_t whichSD_SphCenterIs(const float* const sphereXYZ, const float3& xyzOriginBox, const float4& eulerParamBox, const ushort3& SDdims, const dim3& RectangularBoxDims)
+__device__ dim3 whichSD_SphCenterIs(const float* const sphereXYZ, const float3& xyzOriginBox, const float4& eulerParamBox, const ushort3& SDdims, const dim3& RectangularBoxDims)
 {
     return BLAH_I;
 }
 
 /**
-* This kernel call prepres information that will be used in a subsequent kernel that performs the actual time stepping.
+* This kernel call prepares information that will be used in a subsequent kernel that performs the actual time stepping.
 * 
 * Assumptions:
 *   - Granular material is made up of spheres. 
@@ -39,8 +39,8 @@ template<unsigned short int BLOCK_THREADS>
 __global__ void primingOperationsRectangularBox(
     float3 xyzOriginBox,        //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
     float4 eulerParamBox,       //!< Set of four floats that provide the orientation of the rectangular box in the Global Reference Frame
-    ushort3 SD_dims,
-    dim3 RectangularBox_dims,
+    ushort3 SD_dims,            //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
+    dim3 RectangularBox_dims,   //!< The dimension of the rectangular box. The 3D box is expressed in multpiples of SD, in the X, Y, and Z directions, respectively
     float* pRawDataArray,       //!< Pointer to array containing data related to the spheres in the box
     size_t nSpheres             //!< Number of spheres in the box
 )
@@ -68,7 +68,7 @@ __global__ void primingOperationsRectangularBox(
         // Find out which SDs are touched by this sphere
         // NOTE: A sphere might also touch the "catchAll_SD"
         // "catchAll_SD": subdomain that encompasses all the universe except the RectangularBox of interest
-        size_t whichSD_SphCenterIs = whereSphCenterIs(sphereXYZ, xyzOriginBox, eulerParamBox, SD_dims, RectangularBox_dims);
+        dim3 whichSD_SphCenterIs = whereSphCenterIs(sphereXYZ, xyzOriginBox, eulerParamBox, SD_dims, RectangularBox_dims);
         
 
     }
