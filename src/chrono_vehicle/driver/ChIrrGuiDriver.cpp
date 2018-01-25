@@ -40,9 +40,16 @@ namespace vehicle {
 ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleIrrApp& app)
     : ChDriver(*app.m_vehicle),
       m_app(app),
-      m_throttleDelta(1.0 / 50),
-      m_steeringDelta(1.0 / 50),
-      m_brakingDelta(1.0 / 50),
+      m_steering_target(0),
+      m_throttle_target(0),
+      m_braking_target(0),
+      m_stepsize(1e-3),
+      m_steering_delta(1.0 / 50),
+      m_throttle_delta(1.0 / 50),
+      m_braking_delta(1.0 / 50),
+      m_steering_gain(4.0),
+      m_throttle_gain(4.0),
+      m_braking_gain(4.0),
       m_mode(KEYBOARD) {
     app.SetUserEventReceiver(this);
     m_dT = 0;
@@ -137,24 +144,24 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
         switch (event.KeyInput.Key) {
             case KEY_KEY_A:
                 if (m_mode == KEYBOARD)
-                    SetSteering(m_steering - m_steeringDelta);
+                    m_steering_target = ChClamp(m_steering_target - m_steering_delta, -1.0, +1.0);
                 return true;
             case KEY_KEY_D:
                 if (m_mode == KEYBOARD)
-                    SetSteering(m_steering + m_steeringDelta);
+                    m_steering_target = ChClamp(m_steering_target + m_steering_delta, -1.0, +1.0);
                 return true;
             case KEY_KEY_W:
                 if (m_mode == KEYBOARD) {
-                    SetThrottle(m_throttle + m_throttleDelta);
-                    if (m_throttle > 0)
-                        SetBraking(m_braking - m_brakingDelta * 3.0);
+                    m_throttle_target = ChClamp(m_throttle_target + m_throttle_delta, 0.0, +1.0);
+                    if (m_throttle_target > 0)
+                        m_braking_target = ChClamp(m_braking_target - m_braking_delta * 3, 0.0, +1.0);
                 }
                 return true;
             case KEY_KEY_S:
                 if (m_mode == KEYBOARD) {
-                    SetThrottle(m_throttle - m_throttleDelta * 3.0);
-                    if (m_throttle <= 0)
-                        SetBraking(m_braking + m_brakingDelta);
+                    m_throttle_target = ChClamp(m_throttle_target - m_throttle_delta * 3, 0.0, +1.0);
+                    if (m_throttle_target <= 0)
+                        m_braking_target = ChClamp(m_braking_target + m_braking_delta, 0.0, +1.0);
                 }
                 return true;
             default:
@@ -202,22 +209,38 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChIrrGuiDriver::SetThrottleDelta(double delta) {
+    m_throttle_delta = delta;
+}
+
+void ChIrrGuiDriver::SetSteeringDelta(double delta) {
+    m_steering_delta = delta;
+}
+
+void ChIrrGuiDriver::SetBrakingDelta(double delta) {
+    m_braking_delta = delta;
+}
+
+void ChIrrGuiDriver::SetGains(double steering_gain, double throttle_gain, double braking_gain) {
+    m_steering_gain = steering_gain;
+    m_throttle_gain = throttle_gain;
+    m_braking_gain = braking_gain;
+}
+
 void ChIrrGuiDriver::SetInputDataFile(const std::string& filename) {
     // Embed a DataDriver.
     m_data_driver = std::make_shared<ChDataDriver>(m_vehicle, filename, false);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChIrrGuiDriver::SetInputMode(InputMode mode) {
     switch (mode) {
         case LOCK:
             m_mode = LOCK;
             break;
         case KEYBOARD:
-            m_throttle = 0;
-            m_steering = 0;
-            m_braking = 0;
+            m_throttle_target = 0;
+            m_steering_target = 0;
+            m_braking_target = 0;
             m_mode = KEYBOARD;
             break;
         case DATAFILE:
@@ -246,6 +269,30 @@ void ChIrrGuiDriver::Synchronize(double time) {
     m_throttle = m_data_driver->GetThrottle();
     m_steering = m_data_driver->GetSteering();
     m_braking = m_data_driver->GetBraking();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChIrrGuiDriver::Advance(double step) {
+    // Do nothing if not in KEYBOARD mode.
+    if (m_mode != KEYBOARD)
+        return;
+
+    // Integrate dynamics, taking as many steps as required to reach the value 'step'
+    double t = 0;
+    while (t < step) {
+        double h = std::min<>(m_stepsize, step - t);
+
+        double throttle_deriv = m_throttle_gain * (m_throttle_target - m_throttle);
+        double steering_deriv = m_steering_gain * (m_steering_target - m_steering);
+        double braking_deriv = m_braking_gain * (m_braking_target - m_braking);
+
+        SetThrottle(m_throttle + h * throttle_deriv);
+        SetSteering(m_steering + h * steering_deriv);
+        SetBraking(m_braking + h * braking_deriv);
+
+        t += h;
+    }
 }
 
 // -----------------------------------------------------------------------------

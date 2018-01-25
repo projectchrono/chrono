@@ -37,6 +37,11 @@ double ChRunningAverage::Add(double val) {
     return mean;
 }
 
+void ChRunningAverage::Reset() {
+    m_index = 0;
+    m_std = 0;
+}
+
 // -----------------------------------------------------------------------------
 ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) : m_n(n) {
     int np = (int) data.size();
