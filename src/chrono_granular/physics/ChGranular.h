@@ -1,17 +1,35 @@
+#include "../ChApiGranular.h"
+
 #pragma once
 
+
 namespace chrono {
-    /// Global data manager for Chrono::Granular.
-    class CH_GRANULAR_API ChGranularDataManager {
+
+    class CH_GRANULAR_API ChGRN_host_SphContainer {
+    private:
+        size_t nSpheres;                  ///< Number of sph
+        float* pGRN_xyzSpheres;
     public:
-        ChGranularDataManager();
-        ~ChGranularDataManager();
+        ChGRN_host_SphContainer() : nSpheres(0), pGRN_xyzSpheres(nullptr) {}
+        ~ChGRN_host_SphContainer() {
+            if (pGRN_xyzSpheres != nullptr)
+                delete[] pGRN_xyzSpheres;
+        }
 
-        /// Structure that contains the data on the host, the naming convention is
-        /// from when the code supported the GPU (host vs device).
-        host_container host_data;
-        shape_container shape_data;
+        void allocate_xyzSphereSpace(const size_t& nS) {
+            nSpheres = nS;
+            pGRN_xyzSpheres = new float[nS];
+        }
 
+        inline size_t sphereCount() const { return nSpheres; }
+        inline float* pXYZsphereLocation() const { return pGRN_xyzSpheres; }
 
+    } ;
+
+    class ChGRN_device_SphContainer {
+    public:
+        //
+        float* pGRN_device_xyzSpheres;
     };
+
 }

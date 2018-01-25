@@ -1,17 +1,16 @@
 #include <cuda.h>
 #include<stdint.h>
 #include "../../chrono_thirdparty/cub/cub.cuh"
-
+#include "../ChGranularDefines.h"
 #define BLAH_F 0.f
 #define BLAH_I 0
 
-using namespace cub;
-
-
-__device__ dim3 whichSD_SphCenterIs(const float* const sphereXYZ, const float3& xyzOriginBox, const float4& eulerParamBox, const ushort3& SDdims, const dim3& RectangularBoxDims)
+__device__ dim3 whereSphCenterIs(const float* const sphereXYZ, const float3& xyzOriginBox, const float4& eulerParamBox, const ushort3& SDdims, const dim3& RectangularBoxDims)
 {
     return BLAH_I;
 }
+
+__device__ size_t figureOutTouchedSDs(const dim3& , int* touchedSDs);
 
 /**
 * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time stepping.
@@ -34,6 +33,10 @@ __device__ dim3 whichSD_SphCenterIs(const float* const sphereXYZ, const float3& 
 *   - SD: subdomain.
 *   - BD: the big-domain, which is the union of all SDs
 *
+* Notes:
+*   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular box. Usually, there is no sphere in this SD
+*
+*
 */
 template<unsigned short int BLOCK_THREADS>
 __global__ void primingOperationsRectangularBox(
@@ -55,29 +58,29 @@ __global__ void primingOperationsRectangularBox(
     // We work with a 1D block structure and a 3D grid structure
     size_t mySphereID = threadIdx.x + blockIdx.x * blockDim.x * blockDim.y * blockDim.z;
 
-    size_t N_SDsTouched = 0;     /// stores the number of SDs touched by this sphere
-    float sphereXYZ[3];          /// the coordinates of the sphere
+    size_t N_SDsTouched = 0;                       /// stores the number of SDs touched by this sphere
+    float sphereXYZ[3];                            /// the coordinates of the sphere
+    int touchedSDs[8] = {-1, -1, -1, -1, -1, -1, -1, -1};  /// Making an assumption that only 8 SDs can be touched by a sphere 
     if (mySphereID < nSpheres) {
-        // Bring the sphere information and place via CUB
-        typedef cub::BlockLoad<float, BLOCK_THREADS, 3, BLOCK_LOAD_WARP_TRANSPOSE> BlockLoad;
+        // Bring the sphere information via CUB
+        typedef cub::BlockLoad<float, BLOCK_THREADS, 3, cub::BLOCK_LOAD_WARP_TRANSPOSE> BlockLoad;
         // Allocate shared memory for BlockLoad
         __shared__ typename BlockLoad::TempStorage temp_storage;
         // Load a segment of consecutive items that are blocked across threads
-        BlockLoad(temp_storage).Load(pRawDataArray, sphereXYZ);
+        BlockLoad(temp_storage).Load(pRawDataArray + 3*mySphereID, sphereXYZ);
 
         // Find out which SDs are touched by this sphere
         // NOTE: A sphere might also touch the "catchAll_SD"
         // "catchAll_SD": subdomain that encompasses all the universe except the RectangularBox of interest
-        dim3 whichSD_SphCenterIs = whereSphCenterIs(sphereXYZ, xyzOriginBox, eulerParamBox, SD_dims, RectangularBox_dims);
-        
-
+        dim3 whichSD_SphCenterIsIn = whereSphCenterIs(sphereXYZ, xyzOriginBox, eulerParamBox, SD_dims, RectangularBox_dims);
+        N_SDsTouched = figureOutTouchedSDs(whichSD_SphCenterIsIn, touchedSDs); ///NOT DONE YET
     }
 
     // Do a collective SIMT operation: "reduce_op" to figure out how much memory needs to be set aside  
     __shared__ size_t totalNumberOfSphere_SD_touches;
-    typedef cub::BlockReduce<size_t, BLOCK_THREADS, BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY> BlockReduceT;
+    typedef cub::BlockReduce<size_t, BLOCK_THREADS, cub::BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY> BlockReduceT;
     __shared__ typename BlockReduceT::TempStorage temp_storage;
-    size_t dummy = BlockReduceT(temp_storage).Sum(N_SDsTouched); 
+    size_t dummy = BlockReduceT(temp_storage).Sum(N_SDsTouched);
     if (threadIdx.x == 0) {
         totalNumberOfSphere_SD_touches = dummy;
     }

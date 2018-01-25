@@ -1,1 +1,1 @@
-#include "ChChronoGranular.h"
+#include "ChGranular.h"

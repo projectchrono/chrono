@@ -171,13 +171,13 @@ SET(CH_GRANULAR_INCLUDES "${CH_GRANULAR_INCLUDES}" PARENT_SCOPE)
 SET(ChronoEngine_Granular_BASE
     ChApiGranular.h
     ChGranularDefines.h
-    ChGranular.h
-    ChGranular.cpp
     )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_Granular_BASE})
 
 SET(ChronoEngine_Granular_PHYSICS
+    ChGranular.h
+    ChGranular.cpp
     physics/ChSettingsGranularSMC.h
     )
 
