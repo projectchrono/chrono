@@ -115,6 +115,7 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 
     void AddBodyAllRanks(std::shared_ptr<ChBody> body);
 
+	void SanityCheck();
   protected:
     // MPI
     int num_ranks;

@@ -238,7 +238,6 @@ int main(int argc, char* argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
-    MPI_Barrier(MPI_COMM_WORLD);
     // Parse program arguments
     int num_threads;
     double time_end;
@@ -255,6 +254,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+	// if (my_rank == 0) {
+	// 	int foo;
+	// 	std::cout << "Enter something too continue..." << std::endl;
+	// 	std::cin >> foo;
+	// }
+	// MPI_Barrier(MPI_COMM_WORLD);
+	
     lower_start = -h_x;
 
     // Output directory and files
@@ -377,7 +383,7 @@ int main(int argc, char* argv[]) {
     MPI_Barrier(MPI_COMM_WORLD);
     std::string out_file_name = outdir + "/Rank" + std::to_string(my_rank) + ".csv";
     outfile.open(out_file_name);
-    outfile << "t,gid,x,y,z,U\n";
+    outfile << "t,gid,x,y,z,U\n" << std::flush;
     if (verbose)
         std::cout << "Rank: " << my_rank << "  Output file name: " << out_file_name << std::endl;
 
@@ -407,6 +413,7 @@ int main(int argc, char* argv[]) {
         low_x_wall->SetPos(lower_wall_pos);
         high_x_wall->SetPos(lower_wall_pos + 2 * h_x);
 
+		// my_sys.SanityCheck();
         if (monitor)
             Monitor(&my_sys, my_rank);
     }

@@ -41,6 +41,11 @@
 using namespace chrono;
 using namespace collision;
 
+static void PrintNode(LocalShapeNode* node) {
+    std::cout << "| index = " << node->body_shapes_index << " size = " << node->size << " free = " << node->free
+              << "| ---> ";
+}
+
 ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects) {
     this->world = world;
     MPI_Comm_size(world, &num_ranks);
@@ -312,6 +317,8 @@ void ChSystemDistributed::RemoveBodyExchange(int index) {
     bodylist[index]->SetBodyFixed(true);
     bodylist[index]->SetCollide(false);                  // NOTE: Calls collisionsystem::remove
     bodylist[index]->GetCollisionModel()->ClearModel();  // NOTE: Ensures new model is clear
+
+    // GetLog() << "ERASE: RemoveBodyExchange(index = " << index << "). GID: " << ddm->global_id[index] << "\n";
     ddm->gid_to_localid.erase(ddm->global_id[index]);
 }
 
@@ -326,6 +333,7 @@ void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
     bodylist[index]->SetCollide(false);
     if (index < ddm->first_empty)
         ddm->first_empty = index;
+    GetLog() << "REMOVEBODY\n";
     ddm->gid_to_localid.erase(body->GetGid());
 }
 
@@ -581,7 +589,6 @@ void ChSystemDistributed::DistributeCosimPositions(CosimDispl* displacements, ui
             // Overwrite triangle data
             shape_data.ObA_rigid[cs_index] = real3(displ[i].A[0], displ[i].A[1], displ[i].A[2]);
             shape_data.ObR_rigid[cs_index] = quaternion(displ[i].R[0], displ[i].R[1], displ[i].R[2], displ[i].R[3]);
-
             shape_data.triangle_rigid[cs_start] = real3(displ[i].A[0], displ[i].A[1], displ[i].A[2]);
             shape_data.triangle_rigid[cs_start + 1] = real3(displ[i].B[0], displ[i].B[1], displ[i].B[2]);
             shape_data.triangle_rigid[cs_start + 2] = real3(displ[i].C[0], displ[i].C[1], displ[i].C[2]);
@@ -596,4 +603,48 @@ void ChSystemDistributed::SetFirstCosimGID(uint gid) {
 }
 void ChSystemDistributed::SetLastCosimGID(uint gid) {
     ddm->last_cosim = gid;
+}
+
+void ChSystemDistributed::SanityCheck() {
+    // Check all shapes
+    for (auto itr = data_manager->shape_data.id_rigid.begin(); itr != data_manager->shape_data.id_rigid.end(); itr++) {
+        if (*itr != UINT_MAX) {
+            int local_id = *itr;
+            distributed::COMM_STATUS stat = ddm->comm_status[local_id];
+            if (stat == distributed::UNOWNED_UP || stat == distributed::UNOWNED_DOWN) {
+                GetLog() << "ERROR: Deactivated shape on Activated id. ID: " << local_id << " rank " << my_rank << "\n";
+            }
+        }
+    }
+
+    // Check gid mapping
+    for (int i = 0; i < ddm->global_id.size(); i++) {
+        uint gid = ddm->global_id[i];
+        int local_id = ddm->GetLocalIndex(gid);
+        if (ddm->comm_status[i] != distributed::EMPTY && i != local_id) {
+            GetLog() << "ERROR: Mismatched local index. i: " << i << ". gid " << gid << ". local_id " << local_id
+                     << ". rank " << my_rank << "\n";
+        }
+    }
+
+    // Check comm_status
+    for (uint local_id = 0; local_id < ddm->comm_status.size(); local_id++) {
+        uint gid = ddm->global_id[local_id];
+        if (ddm->GetLocalIndex(gid) == -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
+            GetLog() << "ERROR: Unmapped GID with non-EMPTY comm_status rank " << my_rank << "\n";
+        }
+    }
+
+    // Check free list and shape mapping
+    // GetLog() << "rank " << my_rank << " ";
+    LocalShapeNode* curr = ddm->local_free_shapes;
+    while (curr != NULL) {
+        // PrintNode(curr);
+        if (curr->next != NULL && (curr->body_shapes_index + curr->size != curr->next->body_shapes_index)) {
+            GetLog() << "ERROR: Free list has gap or overlap rank " << my_rank << "\n";
+        }
+
+        curr = curr->next;
+    }
+    // std::cout << " NULL\n";
 }

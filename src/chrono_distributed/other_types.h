@@ -18,15 +18,15 @@ namespace chrono {
 namespace distributed {
 typedef enum COMM_STATUS {
     EMPTY = 0,
-    OWNED,
-    GHOST_UP,
-    GHOST_DOWN,
-    SHARED_UP,
-    SHARED_DOWN,
-    UNOWNED_UP,
-    UNOWNED_DOWN,
-    GLOBAL,
-    UNDEFINED
+    OWNED = 1,
+    GHOST_UP = 2,
+    GHOST_DOWN = 3,
+    SHARED_UP = 4,
+    SHARED_DOWN = 5,
+    UNOWNED_UP = 6,
+    UNOWNED_DOWN = 7,
+    GLOBAL = 8,
+    UNDEFINED = 9
 } COMM_STATUS;
 
 typedef enum MESSAGE_TYPE {

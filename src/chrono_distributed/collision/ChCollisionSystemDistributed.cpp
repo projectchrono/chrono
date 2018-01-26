@@ -71,8 +71,8 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
                 new_next->body_shapes_index = curr->body_shapes_index + needed_count;
 
                 curr->next = new_next;
-                curr->size = needed_count;
             }
+            curr->size = needed_count;
         }
         // If curr is not free or not large enough
         else {
@@ -264,23 +264,60 @@ void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
     // TODO better Search.
     struct LocalShapeNode* curr = ddm->local_free_shapes;
     while (curr != NULL) {
-        if (curr->body_shapes_index == start) {
-            curr->free = true;
+        // iterate until curr contains start
+        if (curr->body_shapes_index == start || curr->next == NULL || curr->next->body_shapes_index > start) {
             break;
         }
-        // If the chunks is part of a coalesced block (the next block)
-        else if (curr->next == NULL || curr->next->body_shapes_index > start) {
-            // make free block for newly freed bit
+        curr = curr->next;
+    }
+    if (curr == NULL) {
+        ddm->my_sys->ErrorAbort("ERROR: Went of end of free list ChCollisionModelDistributed::Remove()");
+    }
+    // At this point, curr contains start
+    if (curr->body_shapes_index == start) {
+        if (curr->size == count) {
+            curr->free = true;
+        } else {
             struct LocalShapeNode* new_next = new LocalShapeNode();
-            new_next->size = count;
-            new_next->body_shapes_index = start;
-            new_next->free = true;
+            new_next->size = curr->size - count;
+            new_next->free = false;
+            new_next->body_shapes_index = start + count;
             new_next->next = curr->next;
 
+            curr->size = count;
+            curr->free = true;
             curr->next = new_next;
-            curr->size -= count;
         }
+    } else if (curr->body_shapes_index < start) {
+        if (curr->size == count + start - curr->body_shapes_index) {
+            struct LocalShapeNode* new_next = new LocalShapeNode();
+            new_next->size = count;
+            new_next->free = true;
+            new_next->body_shapes_index = start;
+            new_next->next = curr->next;
 
-        curr = curr->next;
+            curr->size -= count;
+            curr->next = new_next;
+        } else if (count + start - curr->body_shapes_index < curr->size) {
+            LocalShapeNode* node1 = new LocalShapeNode();
+            LocalShapeNode* node2 = new LocalShapeNode();
+
+            node1->size = count;
+            node1->free = true;
+            node1->body_shapes_index = start;
+            node1->next = node2;
+
+            node2->size = curr->size - (start - curr->body_shapes_index + count);
+            node2->free = false;
+            node2->body_shapes_index = start + count;
+            node2->next = curr->next;
+
+            curr->size = start - curr->body_shapes_index;
+            curr->next = node1;
+        } else {
+            GetLog() << "ERROR: Unexpected case in ChCollisionSystemDistributed::Remove()\n";
+        }
+    } else {
+        GetLog() << "ERROR: curr not set correctly ChCollisionSystemDistributed::Remove()\n";
     }
 }
