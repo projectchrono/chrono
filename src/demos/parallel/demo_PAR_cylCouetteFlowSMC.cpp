@@ -63,12 +63,12 @@ bool lidFall = false;
 // Indicate if you want to write out data for rendering
 bool write_output = false;
 
-// Inner cylinder ball_radius
+// Inner cylinder radius
 double r1 = 1;
-// Outer cylinder ball_radius
+// Outer cylinder radius
 double r2 = 2 * r1;
-// quarter-height of big cylinder
-double h = 1;
+// half-height of big cylinder
+double hh = 1;
 
 // Material properties (same on bin and balls)
 float Y = 2e5f;
@@ -84,9 +84,9 @@ float cr = 0.4f;
 
 double rotspeed = CH_C_2PI / 2;
 
-double ball_radius = 0.25;
+double ball_radius = 0.1;
 
-double ballDensity = 78;
+double ballDensity = 100;
 double ballMass = 4.0 / 3.0 * ballDensity * CH_C_PI * ball_radius * ball_radius * ball_radius;
 double lidMass = ballMass * 200;
 double wallMass = 500;
@@ -107,7 +107,9 @@ enum {
     OPT_COHESION,
     OPT_THREADS,
     OPT_TIMESTEP,
-    OPT_TIMEEND
+    OPT_TIMEEND,
+    OPT_DENSITY,
+    OPT_HEIGHT
 };
 
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
@@ -129,10 +131,32 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_COHESION, "--cohesion", SO_REQ_SEP},
                                     {OPT_SUFFIX, "--suffix", SO_REQ_SEP},
                                     {OPT_PREFIX, "--prefix", SO_REQ_SEP},
+                                    {OPT_DENSITY, "--density", SO_REQ_SEP},
+                                    {OPT_HEIGHT, "--height", SO_REQ_SEP},
                                     {OPT_HELP, "-?", SO_NONE},
                                     {OPT_HELP, "-h", SO_NONE},
                                     {OPT_HELP, "--help", SO_NONE},
                                     SO_END_OF_OPTIONS};
+
+void showUsage() {
+    std::cout << "Options:" << std::endl;
+    std::cout << "-br <ball_radius>" << std::endl;
+    std::cout << "-n <num_threads>" << std::endl;
+    std::cout << "-t <timestep>" << std::endl;
+    std::cout << "-w <rotspeed>" << std::endl;
+    std::cout << "--radius1=<inner_radius>" << std::endl;
+    std::cout << "--radius2=<outer_radius>" << std::endl;
+    std::cout << "--fball=<mu_ball>" << std::endl;
+    std::cout << "--fwall=<mu_wall>" << std::endl;
+    std::cout << "--cohesion=<cohesion_value>" << std::endl;
+    std::cout << "--prefix=<output_prefix>" << std::endl;
+    std::cout << "--suffix=<output_suffix>" << std::endl;
+    std::cout << "--density=<density>" << std::endl;
+    std::cout << "--height=<height>" << std::endl;
+    std::cout << "--falling-lid\t Enable falling lid" << std::endl;
+    std::cout << "--write-output\t Enable CSV output" << std::endl;
+    std::cout << "-h / --help / -? \t Show this help." << std::endl;
+}
 
 bool GetProblemSpecs(int argc, char** argv);
 
@@ -253,7 +277,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
     cylinder1->SetBodyFixed(false);
 
     cylinder1->GetCollisionModel()->ClearModel();
-    utils::AddCylinderGeometry(cylinder1.get(), r1, 2 * h, ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI / 2), true);
+    utils::AddCylinderGeometry(cylinder1.get(), r1, 2 * hh, ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI / 2), true);
     cylinder1->GetCollisionModel()->BuildModel();
 
     cylinder1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(5);
@@ -277,7 +301,8 @@ void AddContainer(ChSystemParallelSMC* sys) {
         lid->SetMaterialSurface(mat);
         lid->SetMass(lidMass);
 
-        lid->SetPos({0, 0, 2.2 * h + 2 * ball_radius});
+        // Set lid too high
+        lid->SetPos({0, 0, 2.2 * hh + 2 * ball_radius});
         lid->SetPos_dt({0, 0, -.1});
         lid->SetCollide(true);
         lid->SetName("lid");
@@ -296,9 +321,9 @@ void AddContainer(ChSystemParallelSMC* sys) {
         sys->AddLink(lidJoint);
     }
 
-    auto outercyl =
-        CreateCylindricalContainerFromBoxes(sys, -201, mat, ChVector<>(r2, r2, 2 * h), .5, 50, ChVector<>(0, 0, -h),
-                                            ChQuaternion<>(1, 0, 0, 0), true, true, false, true, true);
+    auto outercyl = CreateCylindricalContainerFromBoxes(sys, -201, mat, ChVector<>(r2, r2, 2 * hh), 2 * ball_radius,
+                                                        100, ChVector<>(0, 0, -hh), ChQuaternion<>(1, 0, 0, 0), true,
+                                                        true, false, true, true);
     outercyl->SetMass(wallMass);
     outercyl->SetCollide(true);
 }
@@ -312,10 +337,10 @@ void AddFallingBalls(ChSystemParallel* sys) {
     // Create the falling balls
     int ballId = 0;
 
-    utils::HCPSampler<> sampler(2.05 * ball_radius);
+    utils::HCPSampler<> sampler(2.1 * ball_radius);
 
-    ChVector<double> parCenter(0, 0, h / 2 + ball_radius);
-    auto points = sampler.SampleCylinderZ(parCenter, r2 - 1.05 * ball_radius, 1.5 * h - 1.05 * ball_radius);
+    ChVector<double> parCenter(0, 0, hh / 2 + ball_radius);
+    auto points = sampler.SampleCylinderZ(parCenter, r2 - 1.05 * ball_radius, 1.5 * hh - 1.05 * ball_radius);
     for (int i = 0; i < points.size(); i++) {
         if (pow(points[i].x(), 2) + pow(points[i].y(), 2) < pow(r1 + 1.05 * ball_radius, 2)) {
             continue;
@@ -406,8 +431,8 @@ int main(int argc, char* argv[]) {
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
-    uint max_iteration = 10000;
-    real tolerance = 1e-6;
+    uint max_iteration = 100;
+    real tolerance = 1e-3;
 
     msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;
     msystem.GetSettings()->solver.tolerance = tolerance;
@@ -441,7 +466,8 @@ int main(int argc, char* argv[]) {
     // Start the motion of the inner cylinder after 2 seconds
     int init_steps = int(2. / time_step);
     std::cout << "init after " << init_steps << std::endl;
-
+    ChTimer<> timer;
+    timer.start();
 #if defined(CHRONO_OPENGL) && defined(VISUALIZE)
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "ballsNSC", &msystem);
@@ -478,18 +504,17 @@ int main(int argc, char* argv[]) {
             i++;
             gl_window.DoStepDynamics(time_step);
             gl_window.Render();
-            ////if (gl_window.Running()) {
-            ////  msystem.CalculateContactForces();
-            ////  real3 frc = msystem.GetBodyContactForce(0);
-            ////  std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
-            ////}
+            // if (gl_window.Running()) {
+            //     msystem.CalculateContactForces();
+            //     real3 frc = msystem.GetBodyContactForce(-200);
+            //     std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
+            // }
         } else {
             break;
         }
     }
 #else
-    ChTimer<> timer;
-    timer.start();
+
     int frames_rendered = 0;
     for (int i = 0; i < num_steps; i++) {
         // This stops when the lid slows down too much
@@ -541,20 +566,30 @@ bool GetProblemSpecs(int argc, char** argv) {
         // Exit immediately if we encounter an invalid argument.
         if (args.LastError() != SO_SUCCESS) {
             std::cout << "Invalid argument: " << args.OptionText() << std::endl;
-
+            showUsage();
             return false;
         }
 
         // Process the current argument.
         switch (args.OptionId()) {
             case OPT_HELP:
-                std::cout << "help!" << std::endl;
+                showUsage();
                 return false;
+            case OPT_DENSITY:
+                ballDensity = std::stod(args.OptionArg());
+                // Recalculate params
+                ballMass = 4.0 / 3.0 * ballDensity * CH_C_PI * ball_radius * ball_radius * ball_radius;
+                lidMass = ballMass * 200;
+                break;
             case OPT_BALL_RADIUS:
                 ball_radius = std::stod(args.OptionArg());
                 // Recalculate params
                 ballMass = 4.0 / 3.0 * ballDensity * CH_C_PI * ball_radius * ball_radius * ball_radius;
                 lidMass = ballMass * 200;
+                break;
+            case OPT_HEIGHT:
+                // Store quarter-height
+                hh = std::stod(args.OptionArg()) / 2;
                 break;
             case OPT_R1:
                 r1 = std::stod(args.OptionArg());
@@ -591,9 +626,6 @@ bool GetProblemSpecs(int argc, char** argv) {
                 break;
             case OPT_PREFIX:
                 output_prefix = args.OptionArg();
-                break;
-            case OPT_SUFFIX:
-                output_suffix = args.OptionArg();
                 break;
         }
     }
