@@ -627,6 +627,9 @@ bool GetProblemSpecs(int argc, char** argv) {
             case OPT_PREFIX:
                 output_prefix = args.OptionArg();
                 break;
+            case OPT_SUFFIX:
+                output_suffix = args.OptionArg();
+                break;
         }
     }
 
