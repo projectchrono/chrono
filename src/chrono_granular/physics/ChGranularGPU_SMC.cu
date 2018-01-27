@@ -4,17 +4,16 @@
 #include "../ChGranularDefines.h"
 #include "assert.h"
 
-#define BLAH_F 0.f
-#define BLAH_I 0
-#define NULL_SD UINT_MAX-1 
-#define NULL_SphID UINT_MAX-1 
+#define BLAH_BLAH_I 0
+#define NULL_GRANULAR_ID UINT_MAX-1 
+
 
 __device__ dim3 whereSphCenterIs(const float* const sphereXYZ, const float3& xyzOriginBox, const float4& eulerParamBox, const ushort3& SDdims, const dim3& RectangularBoxDims)
 {
-    return BLAH_I;
+    return BLAH_BLAH_I;
 }
 
-__device__ size_t figureOutTouchedSDs(const dim3& , unsigned int* touchedSDs);
+__device__ size_t figureOutTouchedSDs(const dim3& );
 
 /**
 * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time stepping.
@@ -39,13 +38,16 @@ __device__ size_t figureOutTouchedSDs(const dim3& , unsigned int* touchedSDs);
 * Nomenclature:
 *   - SD: subdomain.
 *   - BD: the big-domain, which is the union of all SDs
+*   - NULL_SD: the equivalent of a non-sphere SD
+*   - NULL_SphID: the equivalent of a non-sphere ID
 *
 * Notes:
 *   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular box. Usually, there is no sphere in this SD
 *
 *
+*
 */
-template<unsigned short int BLOCK_THREADS, unsigned short int SHMEM_UINT, unsigned short int SHMEM_FL>
+template<unsigned short int CUB_THREADS, unsigned short int SHMEM_UINT, unsigned short int SHMEM_FL>
 __global__ void primingOperationsRectangularBox(
     float3 xyzOriginBox,                      //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
     float4 eulerParamBox,                     //!< Set of four floats that provide the orientation of the rectangular box in the Global Reference Frame
@@ -59,70 +61,89 @@ __global__ void primingOperationsRectangularBox(
 {
     /// Set aside some shared memory (need to look how this gets word aligned)
     __shared__ unsigned int shMem_UINT[SHMEM_UINT];
-    __shared__ float shMem_float[SHMEM_FL];
+    __shared__ unsigned int defaultSetting[16]; 
 
+    // I don't think i need a __syncthreads here owing to a later CUB call that hits these 16 lanes
+    if (threadIdx.x < 16)
+        defaultSetting[threadIdx.x] = NULL_GRANULAR_ID; 
 
     // We work with a 1D block structure and a 3D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x * blockDim.y * blockDim.z;
 
-    unsigned short int N_SDsTouched = 0;           /// stores the number of SDs touched by this sphere
+    unsigned int N_SDsTouched = 0;                 /// stores the number of SDs touched by this sphere
+    unsigned int thisSphereOffset = 0;             /// says where this sphere should deposit info in the SD array 
     float sphereXYZ[3];                            /// the coordinates of the sphere
-    unsigned int touchedSDs[8] = { NULL_SD, NULL_SD, NULL_SD, NULL_SD, NULL_SD, NULL_SD, NULL_SD, NULL_SD };  /// The equivalent of a non-touchable SD
-    unsigned int sphereID  [8] = { NULL_SphID, NULL_SphID, NULL_SphID, NULL_SphID, NULL_SphID, NULL_SphID, NULL_SphID, NULL_SphID };  /// The equivalent of a non-existent sphere
+    dim3 whichSD_SphCenterIsIn;                    /// the XYZ coordinates of the SD that contains the center of this sphere
+
     if (mySphereID < nSpheres) {
         // Bring the "center of sphere" information via CUB
-        typedef cub::BlockLoad<float, BLOCK_THREADS, 3, cub::BLOCK_LOAD_WARP_TRANSPOSE> BlockLoad;
+        typedef cub::BlockLoad<float, CUB_THREADS, 3, cub::BLOCK_LOAD_WARP_TRANSPOSE> BlockLoad;
         // Allocate shared memory for BlockLoad
         __shared__ typename BlockLoad::TempStorage temp_storage;
         // Load a segment of consecutive items that are blocked across threads
-        BlockLoad(temp_storage).Load(pRawDataArray + 3*mySphereID, sphereXYZ);
+        BlockLoad(temp_storage).Load(pRawDataArray + 3 * mySphereID, sphereXYZ);
 
         // Find out which SDs are touched by this sphere
         // NOTE: A sphere might also touch the "catchAll_SD"
         // "catchAll_SD": subdomain that encompasses all the universe except the RectangularBox of interest
-        dim3 whichSD_SphCenterIsIn = whereSphCenterIs(sphereXYZ, xyzOriginBox, eulerParamBox, SD_dims, RectangularBox_dims);
-        N_SDsTouched = figureOutTouchedSDs(whichSD_SphCenterIsIn, touchedSDs); ///NOT DONE YET
-
-        // Load the proper value, to be used later for key-value sort
-        sphereID[0] = mySphereID;
-        sphereID[1] = mySphereID;
-        sphereID[2] = mySphereID;
-        sphereID[3] = mySphereID;
-        sphereID[4] = mySphereID;
-        sphereID[5] = mySphereID;
-        sphereID[6] = mySphereID;
-        sphereID[7] = mySphereID;
+        whichSD_SphCenterIsIn = whereSphCenterIs(sphereXYZ, xyzOriginBox, eulerParamBox, SD_dims, RectangularBox_dims);
+        N_SDsTouched = figureOutTouchedSDs(whichSD_SphCenterIsIn); /// <--- TAKE CARE; NOT IMPLEMENTED YET
     }
 
-    __syncthreads();
 
-    // Do a collective SIMT operation: "reduce_op" to figure out how much memory needs to be set aside  
-    __shared__ unsigned short int totalNumberOfSphere_SD_touches;
-    typedef cub::BlockReduce<unsigned short int, BLOCK_THREADS, cub::BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY> BlockReduceT;
-    __shared__ typename BlockReduceT::TempStorage temp_storage;
-    unsigned short int dummy = BlockReduceT(temp_storage).Sum(N_SDsTouched);
-    if (threadIdx.x == 0) {
-        totalNumberOfSphere_SD_touches = dummy;
+    // Do a collective SIMT operation: "inclusive prefix scan" to figure out how much shared memory needs to be set aside  
+    unsigned int totalNumberOfSphere_SD_touches;
+    unsigned int halfShMemNeeds_INTS;
+    typedef cub::BlockScan<unsigned int, CUB_THREADS> BlockScan;
+    __shared__ typename BlockScan::TempStorage temp_storage_SCAN;
+    BlockScan(temp_storage_SCAN).InclusiveSum(N_SDsTouched, thisSphereOffset, totalNumberOfSphere_SD_touches);
+    thisSphereOffset -= N_SDsTouched; // correction necessary given that this was an inclusive scan (necessary to produce "totalNumberOfSphere_SD_touches")
+
+    // Figure out how to divvy up the store & sorting operations
+    unsigned int dummyUINT = (totalNumberOfSphere_SD_touches + CUB_THREADS - 1) / CUB_THREADS;
+    halfShMemNeeds_INTS = dummyUINT * CUB_THREADS;
+    // Is enough ShMem available? Each sphere-in-SD event needs to store two pieces of information, each stored as an unsigned int
+    if (2 * halfShMemNeeds_INTS > SHMEM_UINT) // Asking for too much memory? If so, I need to abort.
+        asm("trap;"); // Signal an error to the host (general launch failure IIRC); i'll change later to something tamer
+
+
+    // Figure out the memory bounds...
+    unsigned int* touchedSDs = shMem_UINT;
+    unsigned int* sphereID   = shMem_UINT + halfShMemNeeds_INTS;
+
+    // Start with a clean slate of data in shared memory. Note that dummyUINT cannot be larger than 16, which explains the way "defaultSettings" was set up.
+    // The value 16 is tied to the fact that each sphere can touch at the most 8 SDs
+    dummyUINT = (2 * halfShMemNeeds_INTS)/CUB_THREADS;
+    typedef cub::BlockStore<unsigned int, CUB_THREADS, dummyUINT, cub::BLOCK_STORE_WARP_TRANSPOSE> BlockStore; // is BLOCK_STORE_WARP_TRANSPOSE what i want?
+    __shared__ typename BlockStore::TempStorage temp_storageOP;
+    BlockStore(temp_storageOP).Store(shMem_UINT, defaultSetting);
+
+    // Now that I have mem set aside, get the actual work done
+    if (mySphereID < nSpheres) {
+        // Find out which SDs are touched by this sphere
+        // NOTE: A sphere might also touch the "catchAll_SD"
+        // "catchAll_SD": subdomain that encompasses all the universe except the RectangularBox of interest
+
+        // Load the proper value, to be used later for key-value sort
+        for (dummyUINT = 0; dummyUINT < N_SDsTouched; dummyUINT++) {
+            touchedSDs[thisSphereOffset + dummyUINT] = BLAH_BLAH_I; // <-- TAKE CARE OF THIS
+            sphereID[thisSphereOffset + dummyUINT] = mySphereID;
+        }
     }
 
     // Do a sort by key, sorting in increasing order; note that the entries that store the 
     // untouchable SD; i.e., NULL_SD, will migrate to the end of the array
     // The key: the domain touched by this Sphere
     // The value: the sphere ID
-    typedef cub::BlockRadixSort<unsigned int, BLOCK_THREADS, 8, unsigned int> BlockRadixSort;
+    dummyUINT = halfShMemNeeds_INTS / CUB_THREADS;
+    dummyUINT = dummyUINT * threadIdx.x;
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, dummyUINT, unsigned int> BlockRadixSort;
     __shared__ typename BlockRadixSort::TempStorage temp_storage_sort;
-    BlockRadixSort(temp_storage_sort).Sort(touchedSDs, sphereID);
-
-    // Stitch together in ShMem the unsorted array containing the SDs touched by the sphere handled in this block
-    // Specialize BlockStore for a 1D block using BLOCK_THREADS threads each and owning 8 unsigned integer items each
-    typedef cub::BlockStore<unsigned int, BLOCK_THREADS, 8, cub::BLOCK_STORE_VECTORIZE > BlockStore; // make sure address is quadword-aligned
-    // Allocate shared memory for BlockStore
-    __shared__ typename BlockStore::TempStorage temp_storage_stitching;
-    BlockStore(temp_storage_stitching).Store(shMem_UINT, touchedSDs);
+    BlockRadixSort(temp_storage_sort).Sort(touchedSDs+ dummyUINT, sphereID+dummyUINT);
 
     // Figure out what each thread needs to check in terms of Heaviside-step in the array of SDs 
-    // touched; the BLOCK_THREADS is promoted to unsigned int here
-    unsigned int dummyUINT = (totalNumberOfSphere_SD_touches + BLOCK_THREADS - 1) / BLOCK_THREADS;
+    // touched; the CUB_THREADS is promoted to unsigned int here
+    dummyUINT = (totalNumberOfSphere_SD_touches + CUB_THREADS - 1) / CUB_THREADS;
 
     unsigned int startPoint = threadIdx.x * dummyUINT;
     unsigned int endPoint   = startPoint + dummyUINT;
