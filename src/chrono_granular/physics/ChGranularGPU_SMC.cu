@@ -47,12 +47,14 @@ __device__ size_t figureOutTouchedSDs(const dim3& , unsigned int* touchedSDs);
 */
 template<unsigned short int BLOCK_THREADS, unsigned short int SHMEM_UINT, unsigned short int SHMEM_FL>
 __global__ void primingOperationsRectangularBox(
-    float3 xyzOriginBox,        //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
-    float4 eulerParamBox,       //!< Set of four floats that provide the orientation of the rectangular box in the Global Reference Frame
-    ushort3 SD_dims,            //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
-    dim3 RectangularBox_dims,   //!< The dimension of the rectangular box. The 3D box is expressed in multpiples of SD, in the X, Y, and Z directions, respectively
-    float* pRawDataArray,       //!< Pointer to array containing data related to the spheres in the box
-    size_t nSpheres             //!< Number of spheres in the box
+    float3 xyzOriginBox,                      //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
+    float4 eulerParamBox,                     //!< Set of four floats that provide the orientation of the rectangular box in the Global Reference Frame
+    ushort3 SD_dims,                          //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
+    dim3 RectangularBox_dims,                 //!< The dimension of the rectangular box. The 3D box is expressed in multpiples of SD, in the X, Y, and Z directions, respectively
+    float* pRawDataArray,                     //!< Pointer to array containing data related to the spheres in the box
+    unsigned int* SD_countsOfSheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
+    unsigned int* spheres_in_SD_composite,    //!< Big array that works in conjunction with SD_countsOfSheresTouching. "spheres_in_SD_composite" says which SD contains what spheres
+    size_t nSpheres                           //!< Number of spheres in the box
 )
 {
     /// Set aside some shared memory (need to look how this gets word aligned)
@@ -107,8 +109,8 @@ __global__ void primingOperationsRectangularBox(
     // untouchable SD; i.e., NULL_SD, will migrate to the end of the array
     // The key: the domain touched by this Sphere
     // The value: the sphere ID
-    typedef cub::BlockRadixSort<unsigned int, BLOCK_TREADS, 8, unsigned int> BlockRadixSort;
-    _shared__ typename cub::BlockRadixSort::TempStorage temp_storage_sort;
+    typedef cub::BlockRadixSort<unsigned int, BLOCK_THREADS, 8, unsigned int> BlockRadixSort;
+    __shared__ typename BlockRadixSort::TempStorage temp_storage_sort;
     BlockRadixSort(temp_storage_sort).Sort(touchedSDs, sphereID);
 
     // Stitch together in ShMem the unsorted array containing the SDs touched by the sphere handled in this block
@@ -120,44 +122,42 @@ __global__ void primingOperationsRectangularBox(
 
     // Figure out what each thread needs to check in terms of Heaviside-step in the array of SDs 
     // touched; the BLOCK_THREADS is promoted to unsigned int here
-    unsigned int nChecks = (totalNumberOfSphere_SD_touches + BLOCK_THREADS - 1) / BLOCK_THREADS;
+    unsigned int dummyUINT = (totalNumberOfSphere_SD_touches + BLOCK_THREADS - 1) / BLOCK_THREADS;
 
-    unsigned int endPoint   = threadIdx.x * nChecks;
-    unsigned int startPoint = endPoint - nChecks;
-    unsigned int seed_SDid;
-    if (threadIdx.x == 0) {
-        // There is no left term for this guy
-        assert(startPoint == 0);
-        seed_SDid = shMem_UINT[startPoint];
-    }
-    else {
-        seed_SDid = shMem_UINT[startPoint-1];
-    }
+    unsigned int startPoint = threadIdx.x * dummyUINT;
+    unsigned int endPoint   = startPoint + dummyUINT;
 
-    for (int i = startPoint; i < endPoint; i++) {
-        ;
-    }
-
-    // Note: totalNumberOfSphere_SD_touches is always greater than zero since 
-    // at a minimum there is the catchAllSD that is touched
-    if (threadIdx.x < totalNumberOfSphere_SD_touches) {
-        if (threadIdx.x == 0) {
-            
+    // From spheres with IDs between startPoint to endPoint, figure out in which SD each sphere goes and 
+    // do prep work to place it in there. No need to synchronize the block threads since although we
+    // write to shared memory, we only work within the startPoint to endPoint bounds. There is some 
+    // atomicAdd overhead, but that's going to be cached in L2 --> something to look into in the future
+    unsigned int ref_SDid = shMem_UINT[startPoint];
+    unsigned int n_repetitions = 0;
+    for (unsigned int i = startPoint; i < endPoint; i++) {
+        if (ref_SDid == shMem_UINT[i]) {
+            // This is guaranteed to be hit for i=startPoint
+            n_repetitions++;
         }
         else {
-            // Check if this thread is a "SD discontinuity thread", and if so, see how many spheres happen to touch the SD
-            // "SD discontinuity thread": a thread which when looking at left, sees an SD that is unlike the SD it has
+            dummyUINT = atomicAdd(SD_countsOfSheresTouching + ref_SDid, n_repetitions);
+            ref_SDid = i - n_repetitions; // using ref_SDid as a dummy; soon to be set to something meaningful
+            do {
+                // Compute the offset in the SD data array where this sphere should deposit its information.
+                // The "this sphere" is the sphere with ID stored in sphereID[i]. Note that we're 
+                // overwritting what used to be in shMem_UINT; i.e., which SD this sphere touches, since
+                // this information is not needed anymore
+                shMem_UINT[ref_SDid++] = dummyUINT++; // exptected to give a coalesced mem access later on
+                n_repetitions--;
+            } while (n_repetitions > 0);
+            ref_SDid = shMem_UINT[i]; // we have a new reference at this point; 
+            n_repetitions = 1;        // set to 1 since each SD is hit at least once
         }
-
     }
-    __syncthreads(); // needed in preparation for the sort operations
 
-    // Do a collective SIMT operation: sort by key
+    __syncthreads(); // Wating here on all threads to finish before writing the data to global memory.
 
-
-
-    // add the spheres to the right SD
-
-    /// 
+    if (threadIdx.x < totalNumberOfSphere_SD_touches)
+        spheres_in_SD_composite[shMem_UINT[threadIdx.x]] = sphereID[threadIdx.x];
+    
     return;
 }
