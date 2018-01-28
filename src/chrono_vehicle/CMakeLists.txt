@@ -312,6 +312,8 @@ source_group("wheeled_vehicle\\driveline" FILES ${CV_WV_DRIVELINE_FILES})
 set(CV_WV_STEERING_FILES
     wheeled_vehicle/steering/ChPitmanArm.h
     wheeled_vehicle/steering/ChPitmanArm.cpp
+    wheeled_vehicle/steering/ChPitmanArmShafts.h
+    wheeled_vehicle/steering/ChPitmanArmShafts.cpp
     wheeled_vehicle/steering/ChRackPinion.h
     wheeled_vehicle/steering/ChRackPinion.cpp
 

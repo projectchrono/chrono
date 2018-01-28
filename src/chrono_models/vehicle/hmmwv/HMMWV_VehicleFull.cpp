@@ -32,21 +32,23 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
                                      DrivelineType drive_type,
+                                     SteeringType steering_type,
                                      ChMaterialSurface::ContactMethod contact_method,
                                      ChassisCollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", contact_method, drive_type) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, steering_type, chassis_collision_type);
 }
 
 HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
                                      const bool fixed,
                                      DrivelineType drive_type,
+                                     SteeringType steering_type,
                                      ChassisCollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", system, drive_type) {
-    Create(fixed, chassis_collision_type);
+    Create(fixed, steering_type, chassis_collision_type);
 }
 
-void HMMWV_VehicleFull::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
+void HMMWV_VehicleFull::Create(bool fixed, SteeringType steering_type, ChassisCollisionType chassis_collision_type) {
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
@@ -63,7 +65,16 @@ void HMMWV_VehicleFull::Create(bool fixed, ChassisCollisionType chassis_collisio
     // Create the steering subsystem
     // -----------------------------
     m_steerings.resize(1);
-    m_steerings[0] = std::make_shared<HMMWV_PitmanArm>("Steering");
+    switch (steering_type) {
+        case SteeringType::PITMAN_ARM:
+            m_steerings[0] = std::make_shared<HMMWV_PitmanArm>("Steering");
+            break;
+        case SteeringType::PITMAN_ARM_SHAFTS:
+            // Passing second argument 'true' locks the steering colum (i.e. makes it rigid)
+            m_steerings[0] = std::make_shared<HMMWV_PitmanArmShafts>("Steering", false);
+            ////m_steerings[0] = std::make_shared<HMMWV_PitmanArmShafts>("Steering", true);
+            break;
+    }
 
     // -----------------
     // Create the wheels

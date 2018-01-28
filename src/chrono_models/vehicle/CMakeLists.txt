@@ -45,6 +45,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_TMeasyTire.h
     hmmwv/HMMWV_PitmanArm.cpp
     hmmwv/HMMWV_PitmanArm.h
+    hmmwv/HMMWV_PitmanArmShafts.cpp
+    hmmwv/HMMWV_PitmanArmShafts.h
     hmmwv/HMMWV_Powertrain.cpp
     hmmwv/HMMWV_Powertrain.h
     hmmwv/HMMWV_RackPinion.cpp
