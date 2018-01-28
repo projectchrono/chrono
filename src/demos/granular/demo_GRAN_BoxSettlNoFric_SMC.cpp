@@ -14,9 +14,10 @@
 //
 // Chrono::Granular demo program using SMC method for frictional contact.
 //
-// Basic simulation of a settling scenario; box is rectangular. 
+// Basic simulation of a settling scenario; 
+//  - box is rectangular 
+//  - there is no friction
 //
-// The box has square cross section.
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
 //
@@ -40,7 +41,7 @@ double time_step = 1e-5;
 double time_end = 6.;
 std::string output_prefix = "settlingSMC";
 
-
+ 
 
 // Material properties 
 float Y = 2e5f;

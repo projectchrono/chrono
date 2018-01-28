@@ -34,7 +34,10 @@ __device__ size_t figureOutTouchedSDs(const dim3&);
 * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time stepping.
 *
 * Template arguments:
-*   - CUB_THREADS: the number of , unsigned short int SHMEM_UINT_SIZE
+*   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
+*   - AMOUNT_SHMEM_KB: amount of shared memory in KB to be set aside; perhaps we should pass this as a kernel call argument
+*
+*
 * Assumptions:
 *   - Granular material is made up of spheres.
 *   - For now, all spheres are of constant radius. The radius of the sphere is 1.f
