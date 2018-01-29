@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     // Create the powertrain system
     // ----------------------------
 
-    M113_SimplePowertrain powertrain;
+    M113_SimplePowertrain powertrain("powertrain");
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
 #ifdef USE_IRRLICHT
