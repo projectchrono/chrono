@@ -213,6 +213,24 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << pov_dir << std::endl;
+        return 1;
+    }
+
+    // Generate JSON information with available output channels
+    std::string out_json = vehicle.ExportComponentList();
+    std::cout << out_json << std::endl;
+    vehicle.ExportComponentList(out_dir + "/component_list.json");
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -298,15 +316,6 @@ int main(int argc, char* argv[]) {
 #else
 
     int render_frame = 0;
-
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
-        return 1;
-    }
 
     char filename[100];
 

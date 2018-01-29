@@ -362,5 +362,71 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
     auto coords = m_revolute->GetLinkRelativeCoords();
 }
 
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    bodies.push_back(m_arm);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_shaft_C);
+    shafts.push_back(m_shaft_C1);
+    shafts.push_back(m_shaft_A1);
+    shafts.push_back(m_shaft_A);
+    ChPart::ExportShaftList(jsonDocument, shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    joints.push_back(m_revsph);
+    joints.push_back(m_universal);
+    ChPart::ExportJointList(jsonDocument, joints);
+
+    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
+    couples.push_back(m_shaft_motor);
+    couples.push_back(m_shaft_gear);
+    if (m_rigid)
+        couples.push_back(m_rigid_connection);
+    else
+        couples.push_back(m_spring_connection);
+    ChPart::ExportCouplesList(jsonDocument, couples);
+}
+
+void ChPitmanArmShafts::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    bodies.push_back(m_arm);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_shaft_C);
+    shafts.push_back(m_shaft_C1);
+    shafts.push_back(m_shaft_A1);
+    shafts.push_back(m_shaft_A);
+    database.WriteShafts(shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    joints.push_back(m_revsph);
+    joints.push_back(m_universal);
+    database.WriteJoints(joints);
+
+    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
+    couples.push_back(m_shaft_motor);
+    couples.push_back(m_shaft_gear);
+    if (m_rigid)
+        couples.push_back(m_rigid_connection);
+    else
+        couples.push_back(m_spring_connection);
+    database.WriteCouples(couples);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

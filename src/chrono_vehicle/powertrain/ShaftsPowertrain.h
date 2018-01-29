@@ -55,7 +55,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
         std::vector<double> m_y;
     };
 
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     void ReadMapData(const rapidjson::Value& a, MapData& map_data);
     void SetMapData(const MapData& map_data, std::shared_ptr<ChFunction_Recorder>& map);

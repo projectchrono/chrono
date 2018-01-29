@@ -40,6 +40,9 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
 
     virtual ~ChTrackShoeSinglePin() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "TrackShoeSinglePin"; }
+
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
 
@@ -95,6 +98,10 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// This contact geometry does not affect contact with the sprocket.
     /// The default implementation uses contact boxes for the pad and central guiding pin.
     virtual void AddShoeContact();
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 
     friend class ChSprocketSinglePin;
     friend class ChTrackAssemblySinglePin;

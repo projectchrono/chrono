@@ -65,7 +65,7 @@ class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     ChLinkSpringCB::ForceFunctor* m_springForceCB;
     ChLinkSpringCB::ForceFunctor* m_shockForceCB;

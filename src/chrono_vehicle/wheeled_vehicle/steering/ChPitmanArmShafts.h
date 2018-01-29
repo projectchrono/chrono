@@ -57,6 +57,9 @@ class CH_VEHICLE_API ChPitmanArmShafts : public ChSteering {
 
     virtual ~ChPitmanArmShafts() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "PitmanArmShafts"; }
+
     /// Initialize this steering subsystem.
     /// The steering subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -189,6 +192,10 @@ class CH_VEHICLE_API ChPitmanArmShafts : public ChSteering {
     std::shared_ptr<ChShaftsTorsionSpring> m_spring_connection;  ///< compliant connection between shaft_A1 and shaft_C1
 
   private:
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     bool m_rigid;  ///< true for a rigid steering column
 
     // Flag indicating that the inertia matrices for the upright and control arms

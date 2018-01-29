@@ -36,7 +36,7 @@ namespace generic {
 /// Simple powertrain model for the generic vehicle (purely kinematic).
 class CH_MODELS_API Generic_SimplePowertrain : public ChSimplePowertrain {
   public:
-    Generic_SimplePowertrain();
+    Generic_SimplePowertrain(const std::string& name);
     ~Generic_SimplePowertrain() {}
 
     virtual double GetForwardGearRatio() const override { return m_fwd_gear_ratio; }

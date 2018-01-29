@@ -60,7 +60,7 @@ void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // handle to the chassis body
                                  const ChVector<>& location              // location relative to the chassis frame
-                                 ) {
+) {
     // Initialize the sprocket, idler, and brake
     GetSprocket()->Initialize(chassis, location + GetSprocketLocation(), this);
     m_idler->Initialize(chassis, location + GetIdlerLocation());
@@ -96,7 +96,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // hand
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::SetSprocketVisualizationType(VisualizationType vis) {
-    GetSprocket()->SetVisualizationType(vis); 
+    GetSprocket()->SetVisualizationType(vis);
 }
 
 void ChTrackAssembly::SetIdlerVisualizationType(VisualizationType vis) {
@@ -156,6 +156,105 @@ void ChTrackAssembly::Synchronize(double time, double braking, const TerrainForc
 
     // Apply braking input
     m_brake->Synchronize(braking);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::SetOutput(bool state) {
+    m_output = state;
+    GetSprocket()->SetOutput(state);
+    m_brake->SetOutput(state);
+    m_idler->SetOutput(state);
+    for (auto suspension : m_suspensions)
+        suspension->SetOutput(state);
+    for (auto roller : m_rollers)
+        roller->SetOutput(state);
+    GetTrackShoe(0)->SetOutput(state);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    jsonDocument.AddMember("number shoes", static_cast<int>(GetNumTrackShoes()), jsonDocument.GetAllocator());
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        GetSprocket()->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("sprocket", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_brake->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("brake", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_idler->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("idler", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    rapidjson::Value suspArray(rapidjson::kArrayType);
+    for (auto suspension : m_suspensions) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        suspension->ExportComponentList(jsonSubDocument);
+        suspArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
+    }
+    jsonDocument.AddMember("suspensions", suspArray, jsonDocument.GetAllocator());
+
+    rapidjson::Value rollerArray(rapidjson::kArrayType);
+    for (auto roller : m_rollers) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        roller->ExportComponentList(jsonSubDocument);
+        rollerArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
+    }
+    jsonDocument.AddMember("rollers", rollerArray, jsonDocument.GetAllocator());
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        GetTrackShoe(0)->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("shoe 0", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    database.WriteSection(GetSprocket()->GetName());
+    GetSprocket()->Output(database);
+
+    database.WriteSection(m_brake->GetName());
+    m_brake->Output(database);
+
+    database.WriteSection(m_idler->GetName());
+    m_idler->Output(database);
+
+    for (auto suspension : m_suspensions) {
+        database.WriteSection(suspension->GetName());
+        suspension->Output(database);
+        database.WriteSection(suspension->GetRoadWheel()->GetName());
+        suspension->GetRoadWheel()->Output(database);
+    }
+
+    for (auto roller : m_rollers) {
+        database.WriteSection(roller->GetName());
+        roller->Output(database);
+    }
+
+    database.WriteSection(GetTrackShoe(0)->GetName());
+    GetTrackShoe(0)->Output(database);
 }
 
 // -----------------------------------------------------------------------------

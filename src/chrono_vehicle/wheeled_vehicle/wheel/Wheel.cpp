@@ -52,12 +52,8 @@ Wheel::Wheel(const rapidjson::Document& d) : ChWheel(""), m_radius(0), m_width(0
 }
 
 void Wheel::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read mass and inertia
     m_mass = d["Mass"].GetDouble();

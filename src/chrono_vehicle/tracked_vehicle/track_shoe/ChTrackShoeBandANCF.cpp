@@ -478,5 +478,24 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next) {
     }  // end switch
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeBandANCF::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_shoe);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+}
+
+void ChTrackShoeBandANCF::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_shoe);
+    database.WriteBodies(bodies);
+}
+
 }  // end namespace vehicle
 }  // namespace chrono

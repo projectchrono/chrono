@@ -158,5 +158,40 @@ void ChSprocket::LogConstraintViolations() {
     GetLog() << "  " << C->GetElement(4, 0) << "\n";
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChSprocket::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_gear);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle);
+    ChPart::ExportShaftList(jsonDocument, shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    ChPart::ExportJointList(jsonDocument, joints);
+}
+
+void ChSprocket::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_gear);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle);
+    database.WriteShafts(shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    database.WriteJoints(joints);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

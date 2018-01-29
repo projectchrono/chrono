@@ -42,8 +42,9 @@ namespace vehicle {
 /// Base class for tracked vehicle suspension (road-wheel assembly) subsystem.
 class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
   public:
-    ChRoadWheelAssembly(const std::string& name  ///< [in] name of the subsystem
-                        );
+    ChRoadWheelAssembly(const std::string& name,  ///< [in] name of the subsystem
+                        bool has_shock            ///< [in] specify whether or not the suspension has a damper
+    );
 
     virtual ~ChRoadWheelAssembly() {}
 
@@ -86,12 +87,21 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
                             const ChVector<>& location              ///< [in] location relative to the chassis frame
                             );
 
+    /// Enable/disable output for this subsystem.
+    /// This function overrides the output setting for all components of this suspension assembly.
+    virtual void SetOutput(bool state) override;
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() = 0;
 
   protected:
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
     GuidePinType m_type;                        ///< type of the track shoe matching this road wheel
+    bool m_has_shock;                           ///< specifies whether or not the suspension has a damper
     std::shared_ptr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem
+
+    friend class ChTrackAssembly;
 };
 
 /// Vector of handles to road wheel assembly subsystems.

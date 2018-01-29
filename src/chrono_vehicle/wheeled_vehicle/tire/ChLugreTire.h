@@ -42,6 +42,9 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     virtual ~ChLugreTire() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "LugreTire"; }
+
     /// Initialize this tire system and enable visualization of the discs.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
                             VehicleSide side                ///< left/right vehicle side

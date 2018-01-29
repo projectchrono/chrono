@@ -51,12 +51,8 @@ RigidChassis::RigidChassis(const rapidjson::Document& d) : ChRigidChassis("") {
 }
 
 void RigidChassis::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read inertia properties for all sub-components
     // and calculate composite inertia properties

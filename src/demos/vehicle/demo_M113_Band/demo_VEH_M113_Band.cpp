@@ -28,7 +28,7 @@
 #include "chrono_mkl/ChSolverMKL.h"
 
 #define USE_IRRLICHT
-#undef USE_IRRLICHT
+//#undef USE_IRRLICHT
 #ifdef USE_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
@@ -68,7 +68,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 ChVector<> trackPoint(0.0, 0.0, 0.0);
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "M113";
+const std::string out_dir = GetChronoOutputPath() + "M113_BAND";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
 
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     // Create the powertrain system
     // ----------------------------
 
-    M113_SimplePowertrain powertrain;
+    M113_SimplePowertrain powertrain("powertrain");
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
 #ifdef USE_IRRLICHT
@@ -267,6 +267,14 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
+
+    // Set up vehicle output
+    vehicle.SetChassisOutput(true);
+    vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
+    // Generate JSON information with available output channels
+    vehicle.ExportComponentList(out_dir + "/component_list.json");
 
     // ---------------
     // Simulation loop

@@ -44,6 +44,9 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
 
     virtual ~ChLinearDamperRWAssembly() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "LinearDamperRWAssembly"; }
+
     /// Get a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
 
@@ -106,20 +109,16 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return the functor object for the translational shock force.
     virtual ChLinkSpringCB::ForceFunctor* GetShockForceFunctor() const = 0;
 
-    bool m_has_shock;                                ///< specifies whether or not the suspension has a damper
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_arm;                   ///< handle to the trailing arm body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
     std::shared_ptr<ChLinkRotSpringCB> m_spring;     ///< handle to the rotational spring link
     std::shared_ptr<ChLinkSpringCB> m_shock;         ///< handle to the translational shock link
 
   private:
-    void AddVisualizationArm(const ChVector<>& pt_O,   ///< wheel center (in global frame)
-                             const ChVector<>& pt_A,   ///< arm location (in global frame)
-                             const ChVector<>& pt_AW,  ///< connection to wheel (in global frame)
-                             const ChVector<>& pt_AC,  ///< connection to chassis (in global frame)
-                             const ChVector<>& pt_AS   ///< connection to shock absorber (in global frame)
-                             );
-
     // Points for arm visualization
     ChVector<> m_pO;
     ChVector<> m_pA;

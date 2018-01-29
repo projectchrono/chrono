@@ -48,12 +48,8 @@ SimpleDriveline::SimpleDriveline(const rapidjson::Document& d) : ChSimpleDriveli
 }
 
 void SimpleDriveline::Create(const rapidjson::Document& d) {
-    // Read top-level data.
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     m_front_torque_frac = d["Front Torque Fraction"].GetDouble();
     m_front_diff_bias = d["Front Differential Max Bias"].GetDouble();

@@ -48,7 +48,7 @@ class CH_VEHICLE_API RackPinion : public ChRackPinion {
     virtual double GetMaxAngle() const override { return m_maxAngle; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_steeringLinkMass;
     ChVector<> m_steeringLinkInertia;

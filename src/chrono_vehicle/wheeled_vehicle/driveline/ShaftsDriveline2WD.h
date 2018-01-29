@@ -45,7 +45,7 @@ class CH_VEHICLE_API ShaftsDriveline2WD : public ChShaftsDriveline2WD {
     virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     // Shaft inertias.
     double m_driveshaft_inertia;

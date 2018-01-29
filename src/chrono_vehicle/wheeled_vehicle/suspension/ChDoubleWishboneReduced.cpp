@@ -323,5 +323,80 @@ void ChDoubleWishboneReduced::LogConstraintViolations(VehicleSide side) {
     GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChDoubleWishboneReduced::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_upright[0]);
+    bodies.push_back(m_upright[1]);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    ChPart::ExportShaftList(jsonDocument, shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_distUCA_F[0]);
+    joints.push_back(m_distUCA_F[1]);
+    joints.push_back(m_distUCA_B[0]);
+    joints.push_back(m_distUCA_B[1]);
+    joints.push_back(m_distLCA_F[0]);
+    joints.push_back(m_distLCA_F[1]);
+    joints.push_back(m_distLCA_B[0]);
+    joints.push_back(m_distLCA_B[1]);
+    joints.push_back(m_distTierod[0]);
+    joints.push_back(m_distTierod[1]);
+    ChPart::ExportJointList(jsonDocument, joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_shock[0]);
+    springs.push_back(m_shock[1]);
+    ChPart::ExportLinSpringList(jsonDocument, springs);
+}
+
+void ChDoubleWishboneReduced::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_upright[0]);
+    bodies.push_back(m_upright[1]);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    database.WriteShafts(shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_distUCA_F[0]);
+    joints.push_back(m_distUCA_F[1]);
+    joints.push_back(m_distUCA_B[0]);
+    joints.push_back(m_distUCA_B[1]);
+    joints.push_back(m_distLCA_F[0]);
+    joints.push_back(m_distLCA_F[1]);
+    joints.push_back(m_distLCA_B[0]);
+    joints.push_back(m_distLCA_B[1]);
+    joints.push_back(m_distTierod[0]);
+    joints.push_back(m_distTierod[1]);
+    database.WriteJoints(joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_shock[0]);
+    springs.push_back(m_shock[1]);
+    database.WriteLinSprings(springs);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

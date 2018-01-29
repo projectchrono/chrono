@@ -18,10 +18,17 @@
 
 #include <algorithm>
 
+#include "chrono/ChConfig.h"
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicle.h"
+
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+#ifdef CHRONO_HAS_HDF5
+#include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
@@ -31,7 +38,7 @@ namespace vehicle {
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
 ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
-    : m_name(name), m_ownsSystem(true), m_stepsize(1e-3) {
+    : m_name(name), m_ownsSystem(true), m_stepsize(1e-3), m_output(false), m_output_db(nullptr), m_next_output_time(0), m_output_frame(0) {
     m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                           : static_cast<ChSystem*>(new ChSystemSMC);
 
@@ -55,14 +62,47 @@ ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod c
 // Constructor for a ChVehicle using the specified Chrono ChSystem.
 // -----------------------------------------------------------------------------
 ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
-    : m_name(name), m_system(system), m_ownsSystem(false), m_stepsize(1e-3) {}
+    : m_name(name),
+      m_system(system),
+      m_ownsSystem(false),
+      m_stepsize(1e-3),
+      m_output(false),
+      m_output_db(nullptr),
+      m_next_output_time(0),
+      m_output_frame(0) {}
 
 // -----------------------------------------------------------------------------
 // Destructor for ChVehicle
 // -----------------------------------------------------------------------------
 ChVehicle::~ChVehicle() {
+    delete m_output_db;
     if (m_ownsSystem)
         delete m_system;
+}
+
+// -----------------------------------------------------------------------------
+// Enable output for this vehicle system.
+// -----------------------------------------------------------------------------
+void ChVehicle::SetOutput(ChVehicleOutput::Type type,
+                          const std::string& out_dir,
+                          const std::string& out_name,
+                          double output_step) {
+    m_output = true;
+    m_output_step = output_step;
+
+    switch (type) {
+        case ChVehicleOutput::ASCII:
+            m_output_db = new ChVehicleOutputASCII(out_dir + "/" + out_name + ".txt");
+            break;
+        case ChVehicleOutput::JSON:
+            //// TODO
+            break;
+        case ChVehicleOutput::HDF5:
+#ifdef CHRONO_HAS_HDF5
+            m_output_db = new ChVehicleOutputHDF5(out_dir + "/" + out_name + ".h5");
+#endif
+            break;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -70,6 +110,12 @@ ChVehicle::~ChVehicle() {
 // reach the specified value 'step'.
 // ---------------------------------------------------------------------------- -
 void ChVehicle::Advance(double step) {
+    if (m_output && m_system->GetChTime() >= m_next_output_time) {
+        Output(m_output_frame, *m_output_db);
+        m_next_output_time += m_output_step;
+        m_output_frame++;
+    }
+
     double t = 0;
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);
@@ -84,10 +130,12 @@ void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
     m_chassis->SetVisualizationType(vis);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChVehicle::SetChassisCollide(bool state) {
     m_chassis->SetCollide(state);
+}
+
+void ChVehicle::SetChassisOutput(bool state) {
+    m_chassis->SetOutput(state);
 }
 
 }  // end namespace vehicle

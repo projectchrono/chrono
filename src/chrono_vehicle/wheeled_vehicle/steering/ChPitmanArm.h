@@ -49,6 +49,9 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
   public:
     virtual ~ChPitmanArm() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "PitmanArm"; }
+
     /// Initialize this steering subsystem.
     /// The steering subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -154,6 +157,10 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     std::shared_ptr<ChLinkUniversal> m_universal;          ///< handle to the arm-link universal joint
 
   private:
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     // Flag indicating that the inertia matrices for the upright and control arms
     // are provided in vehicle-aligned centroidal frames
     bool m_vehicle_frame_inertia;

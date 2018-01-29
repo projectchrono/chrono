@@ -141,12 +141,19 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) = 0;
 
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_gear;                   ///< handle to the sprocket gear body
     std::shared_ptr<ChShaft> m_axle;                  ///< handle to gear shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
 
     ChSystem::CustomCollisionCallback* m_callback;  ///< custom collision functor object
+
+    friend class ChTrackAssembly;
 };
 
 /// Vector of handles to sprocket subsystems.

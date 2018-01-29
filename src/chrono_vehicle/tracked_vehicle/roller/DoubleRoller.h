@@ -47,7 +47,7 @@ class CH_VEHICLE_API DoubleRoller : public ChDoubleRoller {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_roller_radius;
     double m_roller_width;

@@ -29,7 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChLinearDamperRWAssembly::ChLinearDamperRWAssembly(const std::string& name, bool has_shock)
-    : ChRoadWheelAssembly(name), m_has_shock(has_shock) {
+    : ChRoadWheelAssembly(name, has_shock) {
 }
 
 // -----------------------------------------------------------------------------
@@ -196,6 +196,53 @@ void ChLinearDamperRWAssembly::LogConstraintViolations() {
     GetLog() << "  " << C->GetElement(4, 0) << "\n";
 
     m_road_wheel->LogConstraintViolations();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChLinearDamperRWAssembly::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChRoadWheelAssembly::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_arm);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    ChPart::ExportJointList(jsonDocument, joints);
+
+    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
+    rot_springs.push_back(m_spring);
+    ChPart::ExportRotSpringList(jsonDocument, rot_springs);
+
+    if (m_has_shock) {
+        std::vector<std::shared_ptr<ChLinkSpringCB>> lin_springs;
+        lin_springs.push_back(m_shock);
+        ChPart::ExportLinSpringList(jsonDocument, lin_springs);
+    }
+}
+
+void ChLinearDamperRWAssembly::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_arm);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    database.WriteJoints(joints);
+
+    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
+    rot_springs.push_back(m_spring);
+    database.WriteRotSprings(rot_springs);
+
+    if (m_has_shock) {
+        std::vector<std::shared_ptr<ChLinkSpringCB>> lin_springs;
+        lin_springs.push_back(m_shock);
+        database.WriteLinSprings(lin_springs);
+    }
 }
 
 }  // end namespace vehicle

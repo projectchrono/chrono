@@ -94,12 +94,8 @@ LinearDamperRWAssembly::~LinearDamperRWAssembly() {
 }
 
 void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read suspension arm data
     assert(d.HasMember("Suspension Arm"));

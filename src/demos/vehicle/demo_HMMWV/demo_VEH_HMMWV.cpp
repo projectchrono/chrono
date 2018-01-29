@@ -29,6 +29,8 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -188,8 +190,18 @@ int main(int argc, char* argv[]) {
         terrain.ExportMeshPovray(out_dir);
     }
 
+    // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
     utils::CSV_writer driver_csv(" ");
+
+    // Set up vehicle output
+    my_hmmwv.GetVehicle().SetChassisOutput(true);
+    my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
+    my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
+    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
+    // Generate JSON information with available output channels
+    my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------
     // Create the driver system
@@ -266,6 +278,12 @@ int main(int argc, char* argv[]) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
             my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+
+            auto marker_driver = my_hmmwv.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
+            auto marker_com = my_hmmwv.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
+            GetLog() << "Markers\n";
+            std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " " << marker_driver.z() << std::endl;
+            std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z() << std::endl;
         }
 
         // Collect output data from modules (for inter-module communication)

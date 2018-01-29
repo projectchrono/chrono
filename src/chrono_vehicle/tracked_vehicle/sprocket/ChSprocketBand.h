@@ -40,6 +40,9 @@ class CH_VEHICLE_API ChSprocketBand : public ChSprocket {
 
     virtual ~ChSprocketBand() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "SprocketBand"; }
+
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in

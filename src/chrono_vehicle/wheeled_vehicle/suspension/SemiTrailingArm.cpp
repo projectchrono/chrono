@@ -65,12 +65,8 @@ SemiTrailingArm::~SemiTrailingArm() {
 // specified RapidJSON document.
 // -----------------------------------------------------------------------------
 void SemiTrailingArm::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read Spindle data
     assert(d.HasMember("Spindle"));

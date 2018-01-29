@@ -58,6 +58,9 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
 
     virtual ~ChDoubleWishboneReduced() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "DoubleWishboneReduced"; }
+
     /// Specify whether or not this suspension can be steered.
     virtual bool IsSteerable() const final override { return true; }
 
@@ -179,6 +182,10 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 };
 
 /// @} vehicle_wheeled_suspension

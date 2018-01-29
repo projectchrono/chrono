@@ -49,12 +49,8 @@ PitmanArm::PitmanArm(const rapidjson::Document& d) : ChPitmanArm("") {
 }
 
 void PitmanArm::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read flag indicating that inertia matrices are expressed in
     // vehicle-aligned centroidal frame.

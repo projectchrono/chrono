@@ -35,6 +35,9 @@ class CH_VEHICLE_API ChANCFTire : public ChDeformableTire {
 
     virtual ~ChANCFTire() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "ANCFTire"; }
+
   protected:
     /// Create the ChLoad for applying pressure to the tire.
     virtual void CreatePressureLoad() override final;
