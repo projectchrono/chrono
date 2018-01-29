@@ -253,5 +253,32 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     my_loadcontainer->Add(my_loadbushingg1);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeBandBushing::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_shoe);
+    bodies.insert(bodies.end(), m_web_segments.begin(), m_web_segments.end());
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    //// TODO
+    //// Export bushings
+}
+
+void ChTrackShoeBandBushing::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_shoe);
+    bodies.insert(bodies.end(), m_web_segments.begin(), m_web_segments.end());
+    database.WriteBodies(bodies);
+
+    //// TODO
+    //// Output bushings
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -122,6 +122,10 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
                     const std::vector<ChCoordsys<>>& component_pos  ///< [in] location & orientation of the shoe bodies
     );
 
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     ElementType m_element_type;
 
     std::shared_ptr<fea::ChMesh> m_web_mesh;
