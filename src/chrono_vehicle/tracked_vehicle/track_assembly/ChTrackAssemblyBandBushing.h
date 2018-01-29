@@ -47,6 +47,9 @@ class CH_VEHICLE_API ChTrackAssemblyBandBushing : public ChTrackAssemblyBand {
 
     virtual ~ChTrackAssemblyBandBushing() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "TrackAssemblyBandBushing"; }
+
     /// Get the number of track shoes.
     virtual size_t GetNumTrackShoes() const override { return m_shoes.size(); }
 

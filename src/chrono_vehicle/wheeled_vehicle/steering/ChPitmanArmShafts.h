@@ -57,6 +57,9 @@ class CH_VEHICLE_API ChPitmanArmShafts : public ChSteering {
 
     virtual ~ChPitmanArmShafts() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "PitmanArmShafts"; }
+
     /// Initialize this steering subsystem.
     /// The steering subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in

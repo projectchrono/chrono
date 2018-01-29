@@ -50,6 +50,9 @@ class CH_VEHICLE_API ChTrackAssemblyBandANCF : public ChTrackAssemblyBand {
 
     virtual ~ChTrackAssemblyBandANCF();
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "TrackAssemblyBandANCF"; }
+
     /// Set the type of contact surface (default: TRIANGLE_MESH).
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
 
