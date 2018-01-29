@@ -23,7 +23,7 @@ ENDIF()
 
 # Programs that can work with or without OpenGL
 SET(DEMOS
-    demo_GRAN_SettlingSMC
+    demo_GRAN_BoxSettlNoFric_SMC
     demo_GRAN_PoiseuilleCylSMC
 )
 

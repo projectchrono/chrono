@@ -176,8 +176,8 @@ SET(ChronoEngine_Granular_BASE
 SOURCE_GROUP("" FILES ${ChronoEngine_Granular_BASE})
 
 SET(ChronoEngine_Granular_PHYSICS
-    ChGranular.h
-    ChGranular.cpp
+    physics/ChGranular.h
+    physics/ChGranular.cpp
     physics/ChSettingsGranularSMC.h
     )
 
@@ -185,7 +185,6 @@ SOURCE_GROUP(physics FILES ${ChronoEngine_Granular_PHYSICS})
 
 SET(ChronoEngine_Granular_CUDA
     physics/ChGranularGPU_SMC.cu
-    physics/ChGranularGPU_SMC.cuh
     )
 
 SOURCE_GROUP(cuda FILES ${ChronoEngine_Granular_CUDA})

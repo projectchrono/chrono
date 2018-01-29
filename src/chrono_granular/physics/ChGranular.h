@@ -25,11 +25,11 @@
 */
 namespace chrono {
 
-    enum GRN_TIME_STEPPING = { AUTO, USER_CONTROL };
+    enum GRN_TIME_STEPPING { AUTO, USER_SET };
 
-    class ChGRN_DE_Container {
+    class CH_GRANULAR_API ChGRN_DE_Container {
     protected:
-        size_t nDE;                  ///< Number of discrete elements
+        size_t nDEs;                  ///< Number of discrete elements
         float* pGRN_xyz_DE;
         float* pGRN_xyzDOT_DE;
 
@@ -39,7 +39,7 @@ namespace chrono {
 
     public:
 
-        ChGRN_DE_Container() : time_stepping(GRN_TIME_STEPPING::AUTO), nSpheres(0), pGRN_xyz_DE(nullptr), pGRN_xyzDOT_DE(nullptr) {}
+        ChGRN_DE_Container() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), pGRN_xyz_DE(nullptr), pGRN_xyzDOT_DE(nullptr) {}
         ~ChGRN_DE_Container() {
             if (pGRN_xyz_DE != nullptr)
                 delete[] pGRN_xyz_DE;
@@ -47,13 +47,13 @@ namespace chrono {
                 delete[] pGRN_xyzDOT_DE;
         }
 
-        void setup(const size_t& nS) {
-            nSpheres = nS;
-            pGRN_xyz_DE = new float[nS * 3 * sizeof(float)];
-            pGRN_xyzDOT_DE = new float[nS * 3 * sizeof(float)];
+        void setup(const size_t& nElems) {
+            nDEs = nElems;
+            pGRN_xyz_DE = new float[nDEs * 3 * sizeof(float)];
+            pGRN_xyzDOT_DE = new float[nDEs * 3 * sizeof(float)];
         }
 
-        inline size_t sphereCount() const { return nSpheres; }
+        inline size_t elementCount() const { return nDEs; }
         inline float* pXYZsphereLocation() const { return pGRN_xyz_DE; }
         inline float* pXYZsphereVelocity() const { return pGRN_xyzDOT_DE; }
 
@@ -63,30 +63,29 @@ namespace chrono {
     /**
     * ChGRN_DE_MONODISP_SPH_IN_BOX: Mono-disperse setup, one radius for all spheres
     */
-    class ChGRN_DE_MONODISP_SPH_IN_BOX_SMC: public ChGRN_DE_Container {
+    class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC: public ChGRN_DE_Container {
     protected:
         //!< Reference Frame of the box
         float sphere_radius;
         //!< XYZ location of the center of the box
         //!< Euler params for orientation of the box
         float modulusYoung_SPH2SPH;
+        float modulusYoung_SPH2WALL;
 
         unsigned int PRECISION_FACTOR_SPACE; //!< Everthing is measured as multiples of sphere_radius/PRECISION_FACTOR_SPACE. Ex.: the radius of the sphere is 1000 units
         unsigned int PRECISION_FACTOR_TIME;  //!< Any time quanity is measured as a multiple of 
 
     public:
-        ChGRN_DE_MONODISP_SPH_IN_BOX(float radiusSPH = 1.f, unsigned int countSPHs = 0) : ChGRN_DE_Container(){
+        ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH = 1.f, unsigned int countSPHs = 0) : ChGRN_DE_Container(){
             this->setup(countSPHs);
         }
 
-        ~ChGRN_DE_MONODISP_SPH_IN_BOX(){}
+        ~ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(){}
 
         virtual void settle(float t_end) = 0;
         void setBOXdims(float xDIM, float yDIM, float zDIM);
         inline void YoungModulus_SPH2SPH (float someValue) { modulusYoung_SPH2SPH  = someValue; }
         inline void YoungModulus_SPH2WALL(float someValue) { modulusYoung_SPH2WALL = someValue; }
-
-        enum TIME_STEPPING {AUTO, USER_SET};
 
     };
 

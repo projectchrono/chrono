@@ -44,7 +44,7 @@ using namespace chrono;
 int main(int argc, char* argv[]) {
     double time_step = 1e-5;
     double time_end = 6.;
-    std::string output_prefix = "settlingSMC";
+    std::string output_prefix = "settling_MONODISP_SPHERES_SMC";
 
 
 
