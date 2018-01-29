@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly
+// Authors: Dan Negrut
 // =============================================================================
 //
 // Chrono::Granular demo program using SMC method for frictional contact.
@@ -28,7 +28,7 @@
 
 #include<iostream>
 #include "chrono/core/ChTimer.h"
-#include "chrono_granular/physics/ChSettingsGranularSMC.h"
+#include "chrono_granular/physics/ChGranular.h"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
@@ -37,22 +37,25 @@
 
 using namespace chrono;
 
-double time_step = 1e-5;
-double time_end = 6.;
-std::string output_prefix = "settlingSMC";
-
- 
-
-// Material properties 
-float Y = 2e5f;
-float wallY = 1e7f;
-
-double ball_radius = 0.25;
-
-
 // -----------------------------------------------------------------------------
-// FOR ALL PURPOSES, THIS IS A STUB.
+// Demo for settling a monodisperse collection of shperes in a rectangular box.
+// There is no friction.
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
+    double time_step = 1e-5;
+    double time_end = 6.;
+    std::string output_prefix = "settlingSMC";
+
+
+
+    // Material properties 
+    float Y = 2e5f;
+    float wallY = 1e7f;
+
+    ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC experiment(1.f, 80000);
+    experiment.setBOXdims(20.f, 20.f, 30.f);
+    experiment.YoungModulus_SPH2SPH (  200000.f);
+    experiment.YoungModulus_SPH2WALL(10000000.f);
+    experiment.settle(10.f);
     return 0;
 }

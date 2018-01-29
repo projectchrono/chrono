@@ -16,10 +16,18 @@
 
 #pragma once
 
-
+/**
+* Discrete Elment info 
+*
+* Observations:
+*   - The units are not specified; they are user units. Additionally, internally, Chrono::Grnular adimensiolizes evertyhing using element characteristic size, etc.
+*
+*/
 namespace chrono {
 
-    class CH_GRANULAR_API ChGRN_DE_Container {
+    enum GRN_TIME_STEPPING = { AUTO, USER_CONTROL };
+
+    class ChGRN_DE_Container {
     protected:
         size_t nDE;                  ///< Number of discrete elements
         float* pGRN_xyz_DE;
@@ -27,9 +35,11 @@ namespace chrono {
 
         float slide_mu_kin;
         float slide_mu_dyn;
+        GRN_TIME_STEPPING time_stepping;
 
     public:
-        ChGRN_DE_Container() : nSpheres(0), pGRN_xyz_DE(nullptr), pGRN_xyzDOT_DE(nullptr) {}
+
+        ChGRN_DE_Container() : time_stepping(GRN_TIME_STEPPING::AUTO), nSpheres(0), pGRN_xyz_DE(nullptr), pGRN_xyzDOT_DE(nullptr) {}
         ~ChGRN_DE_Container() {
             if (pGRN_xyz_DE != nullptr)
                 delete[] pGRN_xyz_DE;
@@ -49,19 +59,50 @@ namespace chrono {
 
     };
 
-    class CH_GRANULAR_API ChGRN_DE_MONOSPH_IN_BOX : public ChGRN_DE_Container {
-    private:
+
+    /**
+    * ChGRN_DE_MONODISP_SPH_IN_BOX: Mono-disperse setup, one radius for all spheres
+    */
+    class ChGRN_DE_MONODISP_SPH_IN_BOX_SMC: public ChGRN_DE_Container {
+    protected:
         //!< Reference Frame of the box
         float sphere_radius;
         //!< XYZ location of the center of the box
         //!< Euler params for orientation of the box
+        float modulusYoung_SPH2SPH;
+
+        unsigned int PRECISION_FACTOR_SPACE; //!< Everthing is measured as multiples of sphere_radius/PRECISION_FACTOR_SPACE. Ex.: the radius of the sphere is 1000 units
+        unsigned int PRECISION_FACTOR_TIME;  //!< Any time quanity is measured as a multiple of 
 
     public:
-        ChGRN_DE_MONOSPH_IN_BOX(float radiusSPH = 1.f, unsigned int countSPHs = 0) : ChGRN_DE_Container(){
+        ChGRN_DE_MONODISP_SPH_IN_BOX(float radiusSPH = 1.f, unsigned int countSPHs = 0) : ChGRN_DE_Container(){
             this->setup(countSPHs);
         }
 
-        ~ChGRN_DE_MONOSPH_IN_BOX(){}
+        ~ChGRN_DE_MONODISP_SPH_IN_BOX(){}
+
+        virtual void settle(float t_end) = 0;
+        void setBOXdims(float xDIM, float yDIM, float zDIM);
+        inline void YoungModulus_SPH2SPH (float someValue) { modulusYoung_SPH2SPH  = someValue; }
+        inline void YoungModulus_SPH2WALL(float someValue) { modulusYoung_SPH2WALL = someValue; }
+
+        enum TIME_STEPPING {AUTO, USER_SET};
+
+    };
+
+    /**
+    * ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC: Mono-disperse setup, one radius for all spheres. There is no friction,
+    * which means that there is no need to keep data that stores history for contacts
+    */
+    class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MONODISP_SPH_IN_BOX_SMC {
+    protected:
+
+    public:
+        ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH = 1.f, unsigned int countSPHs = 0) : ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, countSPHs){}
+
+        ~ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC(){}
+
+        virtual void settle(float t_end);
     };
 
 }
