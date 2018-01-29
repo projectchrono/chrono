@@ -76,11 +76,6 @@ double fill_radius = 0.01;                        // Radius used for spherical d
 double lowest_layer = fill_radius + 3 * spacing;  // Lowest possible CENTER of granular material
 int extra_container_layers = 3;
 
-// Oscillation
-double period = 1;                   // TODO adjust
-double amplitude = gran_radius * 4;  // TODO adjust
-double lower_start;
-
 // Simulation
 double time_step = 1e-4;
 double out_fps = 120;

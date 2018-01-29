@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <omp.h>
+
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -8,36 +9,81 @@
 #include <memory>
 #include <vector>
 
-#include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
-#include "../../chrono_distributed/physics/ChSystemDistributed.h"
+#include "chrono_distributed/collision/ChAAPlaneCB.cpp"
+#include "chrono_distributed/collision/ChCollisionModelDistributed.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
+
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsSamplers.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_thirdparty/filesystem/resolver.h"
+
+#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
-
-#define MASTER 0
 
 using namespace chrono;
 using namespace chrono::collision;
 
-int my_rank;
-int num_ranks;
+#define MASTER 0
 
-int num_threads;
+// ID values to identify command line arguments
+enum { OPT_HELP, OPT_THREADS, OPT_X, OPT_Y, OPT_Z, OPT_TIME, OPT_MONITOR, OPT_OUTPUT_DIR, OPT_VERBOSE };
 
-// Tilt angle (about global Y axis) of the container.
-double tilt_angle = 0;
+// Table of CSimpleOpt::Soption structures. Each entry specifies:
+// - the ID for the option (returned from OptionId() during processing)
+// - the option as it should appear on the command line
+// - type of the option
+// The last entry must be SO_END_OF_OPTIONS
+CSimpleOptA::SOption g_options[] = {{OPT_HELP, "--help", SO_NONE},
+                                    {OPT_HELP, "-h", SO_NONE},
+                                    {OPT_THREADS, "-n", SO_REQ_CMB},
+                                    {OPT_X, "-x", SO_REQ_CMB},
+                                    {OPT_Y, "-y", SO_REQ_CMB},
+                                    {OPT_Z, "-z", SO_REQ_CMB},
+                                    {OPT_TIME, "-t", SO_REQ_CMB},
+                                    {OPT_MONITOR, "-m", SO_NONE},
+                                    {OPT_OUTPUT_DIR, "-o", SO_REQ_CMB},
+                                    {OPT_VERBOSE, "-v", SO_NONE},
+                                    SO_END_OF_OPTIONS};
 
-// Number of balls: (2 * count_X + 1) * (2 * count_Y + 1) * count_Z
-int count_X = 111;  // low x -35.52
-int count_Y = 112;  // low y -35.84
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     int rank,
+                     int& num_threads,
+                     double& time_end,
+                     double& h_x,
+                     double& h_y,
+                     double& h_z,
+                     bool& monitor,
+                     bool& verbose,
+                     bool& output_data,
+                     std::string& outdir);
+void ShowUsage();
 
-int count_Z = 200;  // height: 67
-
-// Material properties (same on bin and balls)
+// Granular Properties
 float Y = 2e6f;
 float mu = 0.4f;
-float cr = 0.4f;
+float cr = 0.05f;
+double gran_radius = 0.00125;  // 1.25mm radius
+double rho = 4000;
+double spacing = 2 * gran_radius;  // Distance between adjacent centers of particles
+
+// Dimensions
+double fill_radius = 0.01;                        // Radius used for spherical decomposition of the container
+double lowest_layer = fill_radius + 3 * spacing;  // Lowest possible CENTER of granular material
+int extra_container_layers = 3;
+
+// Simulation
+double time_step = 1e-4;
+double out_fps = 120;
+unsigned int max_iteration = 100;
+double tolerance = 1e-4;
+
+// Oscillation
+double period = 0.5;
 
 void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
     std::stringstream ss_particles;
@@ -51,21 +97,14 @@ void WriteCSV(std::ofstream* file, int timestep_i, ChSystemDistributed* sys) {
             ChVector<> vel = (*bl_itr)->GetPos_dt();
 
             ss_particles << timestep_i << "," << (*bl_itr)->GetGid() << "," << pos.x() << "," << pos.y() << ","
-                         << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length()
-                         << std::endl;
+                         << pos.z() << "," << vel.Length() << std::endl;
         }
     }
 
     *file << ss_particles.str();
 }
 
-void print(std::string msg) {
-    if (my_rank == MASTER) {
-        std::cout << msg << std::flush;
-    }
-}
-
-void Monitor(chrono::ChSystemParallel* system) {
+void Monitor(chrono::ChSystemParallel* system, int rank) {
     double TIME = system->GetChTime();
     double STEP = system->GetTimerStep();
     double BROD = system->GetTimerCollisionBroad();
@@ -75,37 +114,23 @@ void Monitor(chrono::ChSystemParallel* system) {
     double EXCH = system->data_manager->system_timer.GetTime("Exchange");
     int BODS = system->GetNbodies();
     int CNTC = system->GetNcontacts();
-    double RESID = 0;
-    int REQ_ITS = 0;
-    if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(system)) {
-        RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetResidual();
-        REQ_ITS =
-            std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetTotalIterations();
-    }
+    double RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetResidual();
+    int ITER = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetTotalIterations();
 
-    printf(
-        "%d|   %8.5f | %7.4f | E%7.4f | S%7.4f | R%7.4f | B%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n",
-        my_rank, TIME, STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, REQ_ITS, RESID);
+    printf("%d|   %8.5f | %7.4f | E%7.4f | B%7.4f | N%7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n",  ////
+           rank, TIME, STEP, EXCH, BROD, NARR, SOLVER, UPDT, BODS, CNTC, ITER, RESID);
 }
 
-void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
-    std::cout << "time = " << time << std::flush << std::endl;
-}
-
-// Returns points to put spheres at
-void BoxSphereDecomp(std::vector<ChVector<double>>& points, ChVector<double> min, ChVector<double> max, double radius) {
-    double incr = radius;  // TODO tune
-
-    for (double x = min.x(); x <= max.x(); x += incr) {
-        for (double y = min.y(); y <= max.y(); y += incr) {
-            for (double z = min.z(); z <= max.z(); z += incr) {
-                points.push_back(ChVector<double>(x, y, z));
-            }
-        }
-    }
-}
-
-void AddContainerSphereDecomp(ChSystemDistributed* sys) {
+void AddContainer(ChSystemDistributed* sys,
+                  double h_x,
+                  double h_y,
+                  double height,
+                  ChAAPlaneCB** bottom_wall,
+                  ChAAPlaneCB** low_x_wall,
+                  ChAAPlaneCB** high_x_wall,
+                  ChAAPlaneCB** low_y_wall,
+                  ChAAPlaneCB** high_y_wall) {
+    // TODO Any of this body stuff needed for custom collision?
     int binId = -200;
 
     auto mat = std::make_shared<ChMaterialSurfaceSMC>();
@@ -113,109 +138,48 @@ void AddContainerSphereDecomp(ChSystemDistributed* sys) {
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
-    std::vector<ChVector<double>> bottom;
-    std::vector<ChVector<double>> side1;
-    std::vector<ChVector<double>> side2;
-    std::vector<ChVector<double>> side3;
-    std::vector<ChVector<double>> side4;
+    auto container = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+    container->SetMaterialSurface(mat);
+    container->SetMass(1);
+    container->SetPos(ChVector<>(0));
+    container->SetCollide(false);
+    container->SetBodyFixed(true);
+    container->GetCollisionModel()->ClearModel();
+    container->GetCollisionModel()->BuildModel();
 
-    ChVector<> hdim(38, 38, 68);  // except z is actual height
-    double hthick = 0.0;
-    double fill_radius = 1;  // TODO: ?
+    // TODO little extra space on sides
+    *bottom_wall =
+        new ChAAPlaneCB(sys, container.get(), 2, 0, ChVector<>(0, 0, 1), -2 * h_x, 2 * h_x, -2 * h_y, 2 * h_y);
+    *low_x_wall =
+        new ChAAPlaneCB(sys, container.get(), 0, -h_x, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+    *high_x_wall =
+        new ChAAPlaneCB(sys, container.get(), 0, h_x, ChVector<>(-1, 0, 0), -2 * h_y, 2 * h_y, -height, height);
+    *low_y_wall =
+        new ChAAPlaneCB(sys, container.get(), 1, -h_y, ChVector<>(0, 1, 0), -2 * h_x, 2 * h_x, -height, height);
+    *high_y_wall =
+        new ChAAPlaneCB(sys, container.get(), 1, h_y, ChVector<>(0, -1, 0), -2 * h_x, 2 * h_x, -height, height);
 
-    BoxSphereDecomp(bottom, ChVector<>(-hdim.x(), -hdim.y(), -hthick), ChVector<>(hdim.x(), hdim.y(), hthick),
-                    fill_radius);
-    BoxSphereDecomp(side1, ChVector<>(-hdim.x() - hthick, -hdim.y() - hthick, -hthick),
-                    ChVector<>(-hdim.x() + hthick, hdim.y() + hthick, hdim.z()), fill_radius);
-    BoxSphereDecomp(side2, ChVector<>(hdim.x() - hthick, -hdim.y() - hthick, -hthick),
-                    ChVector<>(hdim.x() + hthick, hdim.y() + hthick, hdim.z()), fill_radius);
-    BoxSphereDecomp(side3, ChVector<>(-hdim.x() - hthick, -hdim.y() - hthick, -hthick),
-                    ChVector<>(hdim.x() + hthick, -hdim.y() + hthick, hdim.z()), fill_radius);
-    BoxSphereDecomp(side4, ChVector<>(-hdim.x() - hthick, hdim.y() - hthick, -hthick),
-                    ChVector<>(hdim.x() + hthick, hdim.y() + hthick, hdim.z()), fill_radius);
+    sys->RegisterCustomCollisionCallback(*bottom_wall);
+    sys->RegisterCustomCollisionCallback(*low_x_wall);
+    sys->RegisterCustomCollisionCallback(*high_x_wall);
+    sys->RegisterCustomCollisionCallback(*low_y_wall);
+    sys->RegisterCustomCollisionCallback(*high_y_wall);
 
-    for (auto itr = bottom.begin(); itr != bottom.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
-    for (auto itr = side1.begin(); itr != side1.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
-    for (auto itr = side2.begin(); itr != side2.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
-    for (auto itr = side3.begin(); itr != side3.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
-    for (auto itr = side4.begin(); itr != side4.end(); itr++) {
-        auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
-        bin->SetMaterialSurface(mat);
-        bin->SetMass(1);
-        bin->SetPos(*itr);
-        bin->SetCollide(true);
-        bin->SetBodyFixed(true);
-        bin->GetCollisionModel()->ClearModel();
-        bin->GetCollisionModel()->AddSphere(fill_radius);
-        bin->GetCollisionModel()->BuildModel();
-        sys->AddBody(bin);
-        sys->IncrementGID();
-    }
+    sys->AddBodyAllRanks(container);
+    sys->IncrementGID();
 }
 
-inline std::shared_ptr<ChBody> CreateBall(double x,
-                                          double y,
-                                          double z,
+inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
                                           std::shared_ptr<ChMaterialSurfaceSMC> ballMat,
                                           int* ballId,
-                                          double mass,
+                                          double m,
                                           ChVector<> inertia,
                                           double radius) {
-    ChVector<> pos(x, y, z);
-
     auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
     ball->SetMaterialSurface(ballMat);
 
     ball->SetIdentifier(*ballId++);
-    ball->SetMass(mass);
+    ball->SetMass(m);
     ball->SetInertiaXX(inertia);
     ball->SetPos(pos);
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
@@ -228,154 +192,325 @@ inline std::shared_ptr<ChBody> CreateBall(double x,
     return ball;
 }
 
-// -----------------------------------------------------------------------------
-// Create the falling spherical objects in a uniform rectangular grid.
-// -----------------------------------------------------------------------------
-void AddFallingBalls(ChSystemDistributed* sys) {
-    ChVector<> subhi(sys->GetDomain()->GetSubHi());
-    ChVector<> sublo(sys->GetDomain()->GetSubLo());
-    const int split_axis = sys->GetDomain()->GetSplitAxis();
-    const double ghost = sys->GetGhostLayer();
-    // int num_bodies_local = ; TODO large heap allocation
+size_t AddFallingBalls(ChSystemDistributed* sys, double h_x, double h_y, double gran_height) {
+    ChVector<double> box_center(0, 0, lowest_layer + gran_height / 2);
+    ChVector<double> half_dims(h_x, h_y, gran_height / 2.0001);
 
-    // Common material
+    utils::GridSampler<> sampler(spacing);
+    // utils::HCPSampler<> sampler(gran_radius * 2.0);
+
+    auto points = sampler.SampleBox(box_center, half_dims);
+
     auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
     ballMat->SetYoungModulus(Y);
     ballMat->SetFriction(mu);
     ballMat->SetRestitution(cr);
-    ballMat->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
+    ballMat->SetAdhesion(0);
 
     // Create the falling balls
     int ballId = 0;
-    double mass = 1;
-    double radius = 0.15;
-    double spacing = 2 * radius + 0.02;
-    ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
+    double mass = rho * 4 / 3 * CH_C_PI * gran_radius * gran_radius * gran_radius;
+    ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
 
-    // TODO TODO: Generate all positions in this loop (get rid of continues), have a function
-    // in system that checks if in the subdomain using only the postion vector, have an incrementor
-    // for num_bodies_global, get rid of the increment in AddBody, get rid of AddBodyTrust?, get rid of
-    // appending the rank number to the gid
-    int count = 0;
-    int count_down_Z = count_Z;
-    for (double z = 3.; count_down_Z > 0; z += spacing, count_down_Z--) {
-        print(std::string("Layers remaining: ") + std::to_string(count_down_Z) + "\n");
-        for (double x = spacing * -count_X; x <= spacing * count_X; x += spacing) {
-            for (double y = spacing * -count_Y; y <= spacing * count_Y; y += spacing) {
-                ChVector<double> pos(x, y, z);
-                if (sys->InSub(pos)) {
-                    auto ball = CreateBall(x, y, z, ballMat, &ballId, mass, inertia, radius);
-                    sys->AddBody(ball);
-                    count++;
-                }
-                sys->IncrementGID();
-            }
+    for (int i = 0; i < points.size(); i++) {
+        if (sys->InSub(points[i])) {
+            auto ball = CreateBall(points[i], ballMat, &ballId, mass, inertia, gran_radius);
+            sys->AddBody(ball);
         }
+        sys->IncrementGID();
     }
-    std::cout << "Done adding " << count << " bodies on rank " << my_rank << "\n";
+
+    return points.size();
 }
 
 int main(int argc, char* argv[]) {
+    int num_ranks;
+    int my_rank;
     MPI_Init(&argc, &argv);
-
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
-    bool monitor;
-
-    int num_threads = 1;
+    // Parse program arguments
+    int num_threads;
+    double time_end;
+    double h_x;
+    double h_y;
+    double h_z;
     std::string outdir;
-    /*
-        // Make the program wait while attaching debuggers
-        if (my_rank == 0) {
-            int foo;
-            std::cout << "Enter something too continue..." << std::endl;
-            std::cin >> foo;
-        }
-        MPI_Barrier(MPI_COMM_WORLD);
-    */
-    if (argc > 3) {
-        num_threads = atoi(argv[1]);
-        monitor = (bool)atoi(argv[2]);
-        outdir = std::string(argv[3]);
-    } else {
-        std::cout << "Usage: mpirun -np <num_ranks> ./demo_DISTR_rotgrav <nthreads> <monitorflag> <outdir (with /)>\n";
+    bool verbose;
+    bool monitor;
+    bool output_data;
+    if (!GetProblemSpecs(argc, argv, my_rank, num_threads, time_end, h_x, h_y, h_z, monitor, verbose, output_data,
+                         outdir)) {
+        MPI_Finalize();
         return 1;
     }
 
-    std::string outfile_name = outdir + "Rank";
-    outfile_name += std::to_string(my_rank) + ".csv";
-    std::cout << "Outfile: " << outfile_name << "\n";
+    ChVector<double> gravity[2];
+    gravity[0] = ChVector<>(-5, 0.00001, -9.8);
+    gravity[1] = ChVector<>(5, 0.00001, -9.8);
+
+    // Output directory and files
     std::ofstream outfile;
-    outfile.open(outfile_name);
+    if (output_data) {
+        // Create output directory
+        if (my_rank == MASTER) {
+            bool out_dir_exists = filesystem::path(outdir).exists();
+            if (out_dir_exists) {
+                std::cout << "Output directory already exists" << std::endl;
+                MPI_Abort(MPI_COMM_WORLD, MPI_ERR_OTHER);
+                return 1;
+            } else if (filesystem::create_directory(filesystem::path(outdir)) && verbose) {
+                std::cout << "Create directory = " << filesystem::path(outdir).make_absolute() << std::endl;
+            } else {
+                std::cout << "Error creating output directory" << std::endl;
+                MPI_Abort(MPI_COMM_WORLD, MPI_ERR_OTHER);
+                return 1;
+            }
+        }
+    } else if (verbose && my_rank == MASTER) {
+        std::cout << "Not writing data files" << std::endl;
+    }
 
-    outfile << "t,g,x,y,z,vx,vy,vz,U\n";
+    if (verbose && my_rank == MASTER) {
+        std::cout << "Number of threads:          " << num_threads << std::endl;
+        std::cout << "Domain:                     " << 2 * h_x << " x " << 2 * h_y << " x " << 2 * h_z << std::endl;
+        std::cout << "Simulation length:          " << time_end << std::endl;
+        std::cout << "Monitor?                    " << monitor << std::endl;
+        std::cout << "Output?                     " << output_data << std::endl;
+        if (output_data)
+            std::cout << "Output directory:           " << outdir << std::endl;
+    }
 
-    omp_set_num_threads(num_threads);
+    // Simple Cubic packing density computations:
+    double open_X = 2 * h_x;
+    double open_Y = 2 * h_y;
+    double open_Z = 2 * h_z;
+    int count_X = (int)(open_X / spacing);
+    int count_Y = (int)(open_Y / spacing);
+    int count_Z = (int)(open_Z / spacing);
+    int balls_per_layer = count_X * count_Y;
+    double gran_height = count_Z * spacing;
 
-    std::cout << "Running on " << num_ranks << " MPI ranks.\n";
+    // // Hexagonal Close packing
+    // double volume_needed = (4 / 3 * CH_C_PI * gran_radius * gran_radius * gran_radius * num_bodies) / 0.74;
+    // double gran_height = volume_needed / (h_x * h_y * 4);
 
-    double time_step = 1e-4;  // TODO
-    double time_end = 15;     // TODO
+    double height = lowest_layer + gran_height + extra_container_layers * spacing;
 
-    double out_fps = 10;  // TODO
+    // Create distributed system
+    ChSystemDistributed my_sys(MPI_COMM_WORLD, gran_radius * 2, balls_per_layer * count_Z);  // TODO
 
-    unsigned int max_iteration = 100;  // TODO
-    double tolerance = 1e-3;           // TODO
+    if (verbose) {
+        if (my_rank == MASTER)
+            std::cout << "Running on " << num_ranks << " MPI ranks" << std::endl;
+        std::cout << "Rank: " << my_rank << " Node name: " << my_sys.node_name << std::endl;
+    }
 
-    ChSystemDistributed my_sys(MPI_COMM_WORLD, 0.25, 11000000);  // TODO
-
-    std::cout << "Node " << my_sys.node_name << "\n";
     my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
 
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
 
+    // Domain decomposition
+    ChVector<double> domlo(-h_x - fill_radius - 0.0001, -h_y - fill_radius - 0.0001, -fill_radius - 0.0001);
+    ChVector<double> domhi(h_x + fill_radius + 0.0001, h_y + fill_radius + 0.0001, height + 0.0001);
+    my_sys.GetDomain()->SetSplitAxis(0);  // Split along the x-axis
+    my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
+
+    if (verbose)
+        my_sys.GetDomain()->PrintDomain();
+
     // Set solver parameters
     my_sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
     my_sys.GetSettings()->solver.tolerance = tolerance;
 
-    my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
-    my_sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);  // TODO
-
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
-    ChVector<double> domlo(-38, -38, -1);  // TODO
-    ChVector<double> domhi(38, 38, 70);    // TODO
-    my_sys.GetDomain()->SetSplitAxis(1);   // TODO
-    my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
-    my_sys.GetDomain()->PrintDomain();
+    my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
 
-    AddContainerSphereDecomp(&my_sys);
-    AddFallingBalls(&my_sys);
+    int binX;
+    int binY;
+    int binZ = 1;
+    int factor = 4;
+    ChVector<> subhi = my_sys.GetDomain()->GetSubHi();
+    ChVector<> sublo = my_sys.GetDomain()->GetSubLo();
+    ChVector<> subsize = (subhi - sublo) / (2 * gran_radius);
+    binX = (int)std::ceil(subsize.x()) / factor;
+    binY = (int)std::ceil(subsize.y()) / factor;
+    my_sys.GetSettings()->collision.bins_per_axis = vec3(binX, binY, binZ);
+    if (verbose)
+        printf("Rank: %d   bins: %d %d %d\n", my_rank, binX, binY, binZ);
 
+    // Create objects
+    ChAAPlaneCB* bottom_wall;
+    ChAAPlaneCB* low_x_wall;
+    ChAAPlaneCB* high_x_wall;
+    ChAAPlaneCB* low_y_wall;
+    ChAAPlaneCB* high_y_wall;
+
+    AddContainer(&my_sys, h_x, h_y, height, &bottom_wall, &low_x_wall, &high_x_wall, &low_y_wall, &high_y_wall);
+
+    // Create objects
+    auto actual_num_bodies = AddFallingBalls(&my_sys, h_x, h_y, gran_height);
     MPI_Barrier(my_sys.GetMPIWorld());
-    print("Done adding bodies\n");
+    if (my_rank == MASTER)
+        std::cout << "Total number of particles: " << actual_num_bodies << std::endl;
+
+    // Once the directory has been created, all ranks can make their output files
+    MPI_Barrier(MPI_COMM_WORLD);
+    std::string out_file_name = outdir + "/Rank" + std::to_string(my_rank) + ".csv";
+    outfile.open(out_file_name);
+    outfile << "t,gid,x,y,z,U\n";
+    if (verbose)
+        std::cout << "Rank: " << my_rank << "  Output file name: " << out_file_name << std::endl;
 
     // Run simulation for specified time
-    int num_steps = std::ceil(time_end / time_step);
-    int out_steps = std::ceil((1 / time_step) / out_fps);
+    int num_steps = (int)std::ceil(time_end / time_step);
+    int out_steps = (int)std::ceil((1 / time_step) / out_fps);
     int out_frame = 0;
     double time = 0;
 
-    print("Starting Simulation\n");
+    int num_steps_rot = (int)std::ceil(period / time_step);
+    int g_val = 0;
+
+    if (verbose && my_rank == MASTER)
+        std::cout << "Starting Simulation" << std::endl;
+
+    double t_start = MPI_Wtime();
     for (int i = 0; i < num_steps; i++) {
         my_sys.DoStepDynamics(time_step);
+        time += time_step;
 
         if (i % out_steps == 0) {
-            OutputData(&my_sys, out_frame, time);
-            out_frame++;
-            WriteCSV(&outfile, out_frame, &my_sys);
+            if (my_rank == MASTER)
+                std::cout << "Time: " << time << "    elapsed: " << MPI_Wtime() - t_start << std::endl;
+            if (output_data) {
+                WriteCSV(&outfile, out_frame, &my_sys);
+                out_frame++;
+            }
         }
+
+        if (i % num_steps_rot == 0) {
+            g_val = (g_val == 0) ? 1 : 0;
+            my_sys.Set_G_acc(gravity[g_val]);
+        }
+		
         if (monitor)
-            Monitor(&my_sys);
-
-        time += time_step;
+            Monitor(&my_sys, my_rank);
     }
+    double elapsed = MPI_Wtime() - t_start;
 
-    outfile.close();
+    if (my_rank == MASTER)
+        std::cout << "\n\nTotal elapsed time = " << elapsed << std::endl;
+
+    if (output_data)
+        outfile.close();
 
     MPI_Finalize();
     return 0;
+}
+
+bool GetProblemSpecs(int argc,
+                     char** argv,
+                     int rank,
+                     int& num_threads,
+                     double& time_end,
+                     double& h_x,
+                     double& h_y,
+                     double& h_z,
+                     bool& monitor,
+                     bool& verbose,
+                     bool& output_data,
+                     std::string& outdir) {
+    // Initialize parameters.
+    num_threads = -1;
+    time_end = -1;
+    h_x = -1;
+    h_y = -1;
+    h_z = -1;
+    verbose = false;
+    monitor = false;
+    output_data = false;
+
+    // Create the option parser and pass it the program arguments and the array of valid options.
+    CSimpleOptA args(argc, argv, g_options);
+
+    // Then loop for as long as there are arguments to be processed.
+    while (args.Next()) {
+        // Exit immediately if we encounter an invalid argument.
+        if (args.LastError() != SO_SUCCESS) {
+            if (rank == MASTER) {
+                std::cout << "Invalid argument: " << args.OptionText() << std::endl;
+                ShowUsage();
+            }
+            return false;
+        }
+
+        // Process the current argument.
+        switch (args.OptionId()) {
+            case OPT_HELP:
+                if (rank == MASTER)
+                    ShowUsage();
+                return false;
+
+            case OPT_THREADS:
+                num_threads = std::stoi(args.OptionArg());
+                break;
+
+            case OPT_OUTPUT_DIR:
+                output_data = true;
+                outdir = args.OptionArg();
+                break;
+
+            case OPT_X:
+                h_x = std::stod(args.OptionArg()) / 2.0;
+                break;
+
+            case OPT_Y:
+                h_y = std::stod(args.OptionArg()) / 2.0;
+                break;
+
+            case OPT_Z:
+                h_z = std::stod(args.OptionArg()) / 2.0;
+                break;
+
+            case OPT_TIME:
+                time_end = std::stod(args.OptionArg());
+                break;
+
+            case OPT_MONITOR:
+                monitor = true;
+                break;
+
+            case OPT_VERBOSE:
+                verbose = true;
+                break;
+        }
+    }
+
+    // Check that required parameters were specified
+    if (num_threads == -1 || time_end <= 0 || h_x < 0 || h_y < 0 || h_z < 0) {
+        if (rank == MASTER) {
+            std::cout << "Invalid parameter or missing required parameter." << std::endl;
+            ShowUsage();
+        }
+        return false;
+    }
+
+    return true;
+}
+
+void ShowUsage() {
+    std::cout << "Usage: mpirun -np <num_ranks> ./demo_DISTR_scaling [ARGS]" << std::endl;
+    std::cout << "-n=<nthreads>   Number of OpenMP threads on each rank [REQUIRED]" << std::endl;
+    std::cout << "-x=<xsize>      Patch dimension in X direction [REQUIRED]" << std::endl;
+    std::cout << "-y=<ysize>      Patch dimension in Y direction [REQUIRED]" << std::endl;
+    std::cout << "-z=<zsize>      Patch dimension in Z direction [REQUIRED]" << std::endl;
+    std::cout << "-t=<end_time>   Simulation length [REQUIRED]" << std::endl;
+    std::cout << "-o=<outdir>     Output directory (must not exist)" << std::endl;
+    std::cout << "-m              Enable performance monitoring (default: false)" << std::endl;
+    std::cout << "-v              Enable verbose output (default: false)" << std::endl;
+    std::cout << "-h              Print usage help" << std::endl;
 }

@@ -82,7 +82,7 @@ double amplitude = gran_radius * 5;  // TODO adjust
 double lower_start;
 
 // Simulation
-double time_step = 1e-5;
+double time_step = 7e-5;
 double out_fps = 120;
 unsigned int max_iteration = 100;
 double tolerance = 1e-4;
@@ -149,13 +149,14 @@ void AddContainer(ChSystemDistributed* sys,
     container->SetBodyFixed(true);
     container->GetCollisionModel()->ClearModel();
 
+    lower_start = -h_x - gran_radius;
     // TODO little extra space on sides
     *bottom_wall =
         new ChAAPlaneCB(sys, container.get(), 2, 0, ChVector<>(0, 0, 1), -2 * h_x, 2 * h_x, -2 * h_y, 2 * h_y);
     *top_wall = new ChAAPlaneCB(sys, container.get(), 2, 1.25 * height, ChVector<>(0, 0, -1), -2 * h_x, 2 * h_x,
                                 -2 * h_y, 2 * h_y);
-    *low_x_wall = new ChAAPlaneCB(sys, container.get(), 0, -h_x - gran_radius, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y,
-                                  -height, 2 * height);
+    *low_x_wall = new ChAAPlaneCB(sys, container.get(), 0, lower_start, ChVector<>(1, 0, 0), -2 * h_y, 2 * h_y, -height,
+                                  2 * height);
     *high_x_wall =
         new ChAAPlaneCB(sys, container.get(), 0, h_x, ChVector<>(-1, 0, 0), -2 * h_y, 2 * h_y, -height, 2 * height);
     *low_y_wall = new ChAAPlaneCB(sys, container.get(), 1, -h_y - gran_radius, ChVector<>(0, 1, 0), -2 * h_x, 2 * h_x,
@@ -254,14 +255,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-	// if (my_rank == 0) {
-	// 	int foo;
-	// 	std::cout << "Enter something too continue..." << std::endl;
-	// 	std::cin >> foo;
-	// }
-	// MPI_Barrier(MPI_COMM_WORLD);
-	
-    lower_start = -h_x;
+    // if (my_rank == 0) {
+    // 	int foo;
+    // 	std::cout << "Enter something too continue..." << std::endl;
+    // 	std::cin >> foo;
+    // }
+    // MPI_Barrier(MPI_COMM_WORLD);
 
     // Output directory and files
     std::ofstream outfile;
@@ -413,7 +412,7 @@ int main(int argc, char* argv[]) {
         low_x_wall->SetPos(lower_wall_pos);
         high_x_wall->SetPos(lower_wall_pos + 2 * h_x);
 
-		// my_sys.SanityCheck();
+        // my_sys.SanityCheck();
         if (monitor)
             Monitor(&my_sys, my_rank);
     }

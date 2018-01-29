@@ -12,18 +12,18 @@
 // Authors: Nic Olsen
 // =============================================================================
 
+#include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
-#include "chrono_distributed/other_types.h"
 
 #include "chrono_parallel/ChDataManager.h"
 
-#include "chrono/physics/ChBody.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/physics/ChBody.h"
 
-#include <iostream>
-#include <stdlib.h>
 #include <mpi.h>
+#include <stdlib.h>
+#include <iostream>
 #include <memory>
 
 using namespace chrono;
@@ -47,7 +47,6 @@ void ChDomainDistributed::SetSplitAxis(int i) {
     }
 }
 
-// Takes in the user specified coordinates of the bounding box for the simulation.
 void ChDomainDistributed::SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi) {
     assert(!split);
 
@@ -70,9 +69,6 @@ void ChDomainDistributed::SetSimDomain(double xlo, double xhi, double ylo, doubl
     SplitDomain();
 }
 
-///  Divides the domain into equal-volume, orthogonal, axis-aligned regions along
-/// the longest axis. Needs to be called right after the system is created so that
-/// bodies are added correctly.
 void ChDomainDistributed::SplitDomain() {
     // Length of this subdomain along the long axis
     double sub_len = (boxhi[split_axis] - boxlo[split_axis]) / (double)my_sys->GetNumRanks();
@@ -161,17 +157,23 @@ void ChDomainDistributed::PrintDomain() {
     GetLog() << "Domain:\n"
                 "Box:\n"
                 "\tX: "
-             << boxlo.x() << " to " << boxhi.x() << "\n"
-                                                    "\tY: "
-             << boxlo.y() << " to " << boxhi.y() << "\n"
-                                                    "\tZ: "
-             << boxlo.z() << " to " << boxhi.z() << "\n"
-                                                    "Subdomain: Rank "
-             << my_sys->GetMyRank() << "\n"
-                                       "\tX: "
-             << sublo.x() << " to " << subhi.x() << "\n"
-                                                    "\tY: "
-             << sublo.y() << " to " << subhi.y() << "\n"
-                                                    "\tZ: "
+             << boxlo.x() << " to " << boxhi.x()
+             << "\n"
+                "\tY: "
+             << boxlo.y() << " to " << boxhi.y()
+             << "\n"
+                "\tZ: "
+             << boxlo.z() << " to " << boxhi.z()
+             << "\n"
+                "Subdomain: Rank "
+             << my_sys->GetMyRank()
+             << "\n"
+                "\tX: "
+             << sublo.x() << " to " << subhi.x()
+             << "\n"
+                "\tY: "
+             << sublo.y() << " to " << subhi.y()
+             << "\n"
+                "\tZ: "
              << sublo.z() << " to " << subhi.z() << "\n";
 }

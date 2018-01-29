@@ -24,7 +24,7 @@ namespace collision {
 
 /// This class scaffolds on ChCollisionSystemParallel in order to manage
 /// collision data for the system during MPI exchanges.
-/// Maintains a mapping from a body to its shapes
+/// Maintains a mapping from a body to its shapes.
 class ChCollisionSystemDistributed : public ChCollisionSystemParallel {
   public:
     ChCollisionSystemDistributed(ChParallelDataManager* dm, ChDistributedDataManager* ddm);

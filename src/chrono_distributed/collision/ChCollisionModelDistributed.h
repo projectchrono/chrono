@@ -29,10 +29,10 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     ChCollisionModelDistributed();
     virtual ~ChCollisionModelDistributed();
 
-    /// Adds a box collision shape to the model
+    /// Adds a box collision shape to the model and calculates the model's new AABB
     virtual bool AddBox(double hx, double hy, double hz, const ChVector<>& pos, const ChMatrix33<>& rot) override;
 
-    /// Adds a sphere collision shape to the model
+    /// Adds a sphere collision shape to the model and calculates the model's new AABB
     virtual bool AddSphere(double radius, const ChVector<>& pos) override;
 
     /// Adds a triangle collision shape to the model
@@ -46,7 +46,6 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     /// Only valid at beginning of simulation
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const override;
 
-    // TODO getters
     std::vector<real3> shape_aabb_max;
     std::vector<real3> shape_aabb_min;
 
@@ -58,5 +57,5 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     /// Indicates that the bounding box has been computed
     bool aabb_valid;
 };
-}
-}
+}  // namespace collision
+}  // namespace chrono

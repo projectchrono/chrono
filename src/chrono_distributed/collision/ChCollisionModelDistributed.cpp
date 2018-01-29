@@ -116,6 +116,8 @@ bool ChCollisionModelDistributed::AddTriangle(ChVector<> A,
     return this->ChCollisionModelParallel::AddTriangle(A, B, C, pos, rot);
 }
 
+// TODO: Add other adds for shapes that can be global
+
 void ChCollisionModelDistributed::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
     bbmin.Set(aabb_min);
     bbmax.Set(aabb_max);

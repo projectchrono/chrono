@@ -27,23 +27,25 @@ namespace chrono {
 
 class ChSystemDistributed;
 
-// Linked-list node for free shapes
+/// Linked-list node for tracking free shapes
 struct LocalShapeNode {
-    struct LocalShapeNode* next;  // Next node in the free list
-    int body_shapes_index;        // Index into ChDistributedDataManager::body_shapes
-    int size;                     // Number of
-    bool free;                    // True if this index is free
+    struct LocalShapeNode* next;  ///< Next node in the free list
+    int body_shapes_index;        ///< Index into ChDistributedDataManager::body_shapes
+    int size;                     ///< Number of
+    bool free;                    ///< True if this index is free
 };
 
+/// A class for storing data for maintaining a consistent view of a distributed
+/// simulation consisting of multiple wrapped instances of ChSystemParallelSMC.
 class CH_DISTR_API ChDistributedDataManager {
   public:
     ChDistributedDataManager(ChSystemDistributed* my_sys);
     virtual ~ChDistributedDataManager();
 
     /* Basic distributed values */
-    std::vector<unsigned int> global_id;                ///< Global id of each body
-    std::vector<distributed::COMM_STATUS> comm_status;  ///< Communication status of each body
-    std::vector<distributed::COMM_STATUS> curr_status;  ///< Used as a reference only by ChCommDistributed
+    std::vector<unsigned int> global_id;                ///< Global id of each body. Maps local index to global index.
+    std::vector<distributed::COMM_STATUS> comm_status;  ///< Communication status of each body.
+    std::vector<distributed::COMM_STATUS> curr_status;  ///< Used as a reference only by ChCommDistributed.
 
     std::unordered_map<uint, int> gid_to_localid;  ///< Maps gloabl id to local id on this rank
 
@@ -62,7 +64,6 @@ class CH_DISTR_API ChDistributedDataManager {
      * body_shape_count[local_id] consecutive values starting there for the body at index local_id.
      */
 
-    // TODO: Need to track open spots in: data_manager->shape_data,this->body_shapes
     /*
      * NOTE: DON'T need to track open spots in this->body_shape_start/count because those correspond with a BODY
      * local_id and therefore can be checked for validity by checking the body comm_status
@@ -76,7 +77,6 @@ class CH_DISTR_API ChDistributedDataManager {
      * 2) Find individual indices in data_manager->shape_data to index to from body_shapes
      */
 
-    // TODO make linked list like allocator? / use std::list?
     struct LocalShapeNode* local_free_shapes;  ///< Linked-list of BLOCKS in ddm->body_shapes, indicating free/alloc'd
 
     std::vector<bool> dm_free_shapes;  ///< Indicates that the space in the data_manager->shape_data is available
@@ -85,11 +85,12 @@ class CH_DISTR_API ChDistributedDataManager {
 
     int first_cosim, last_cosim;  // Global ID range [first, last] of co-simulation triangles
 
-    /// Returns the local index of a body, given its global id
-    /// Returns -1 if the body is not found on this rank
+    /// Returns the local index of a body, given its global id.
+    /// Returns -1 if the body is not found on this rank.
     int GetLocalIndex(unsigned int gid);
 
-    /// Clean free list that tracks space for shapes // TODO belongs here?
+    /// Internal function for cleaning free list that tracks space for shapes.
+    /// Should not be called by the user.
     void DefragmentFreeList();
 };
 } /* namespace chrono */

@@ -20,6 +20,8 @@
 
 namespace chrono {
 
+/// This class implements a custom collison callback that can be used to add
+/// collision events with a plane to a system at each timestep.
 class ChAAPlaneCB : public ChSystem::CustomCollisionCallback {
   public:
     ChAAPlaneCB(ChSystemDistributed* sys,  ///< Main system pointer
@@ -69,17 +71,19 @@ class ChAAPlaneCB : public ChSystem::CustomCollisionCallback {
   private:
     // Checks for collision between the plane and a sphere
     void CheckSphereProfile(std::shared_ptr<ChBody> sphere);
-    ChSystemDistributed* m_sys;
-    ChBody* m_body;
+    ChSystemDistributed* m_sys;  ///< Associated ChSystem
+    ChBody* m_body;              ///< Associated ChBody object
 
-    int m_const_coord;
-    double m_const_coord_val;
-    int m_nonconst_coords[2];
-    double m_nonconst_max[2];
-    double m_nonconst_min[2];
-    ChVector<> m_inward_normal;
+    int m_const_coord;           ///< Index of coordinate which is constant on the whole plane
+    double m_const_coord_val;    ///< Value of coordinate that is constant on the whole plane
+    int m_nonconst_coords[2];    ///< Indices of non-constant coordinates on the plane
+    double m_nonconst_max[2];    ///< Max values of the non-constant coordinates
+    double m_nonconst_min[2];    ///< Min values of the non-constant coordinates
+    ChVector<> m_inward_normal;  ///< Inward normal of the plane
 };
 
+/// Function called once every timestep by the system to add all custom collisions
+/// associated with the callback to the system.
 void ChAAPlaneCB::OnCustomCollision(ChSystem* sys) {
     // Loop over all bodies in the system
     for (int i = 0; i < m_sys->data_manager->body_list->size(); i++) {
@@ -92,8 +96,8 @@ void ChAAPlaneCB::OnCustomCollision(ChSystem* sys) {
     }
 }
 
-// Check for collision between a sphere shape and the plane
-// Add a new contact to the associated system if there is contact
+/// Checks for collision between a sphere shape and the plane
+/// Adds a new contact to the associated system if there is contact
 void ChAAPlaneCB::CheckSphereProfile(std::shared_ptr<ChBody> sphere) {
     // Mini broad-phase
     ChVector<> centerS(sphere->GetPos());

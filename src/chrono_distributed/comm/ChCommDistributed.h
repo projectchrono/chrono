@@ -67,14 +67,15 @@ typedef struct Shape {
 /// when a body needs to be sent to another rank for either an update or for
 /// creation of a ghost. The class also decides how to update the comm_status of
 /// each body based on its position and its comm_status.
-/// --------------------------------------------------------------------------------
+/// 
 /// Actions:
 ///
 /// A body with an OWNED comm_status will be packed for exchange to create a ghost body on another rank when it
 /// passes into one of this rank's shared regions, at which point the body is given a SHARED comm_status on this rank.
 ///
 /// A body with a SHARED comm_status will become OWNED when it moves into the owned region on this rank.
-/// A body with a SHARED comm_status will be removed when it moves into one of this rank's unowned regions.
+/// A body with a SHARED comm_status will become GHOST when it crosses subhi or sublo and the other rank will change its
+/// comm_status for the body to SHARED.
 ///
 /// A body with a GHOST comm_status will become OWNED when it moves into the owned region of this rank.
 /// A body with a GHOST comm_status will be removed when it moves into the one of this rank's unowned regions.
@@ -85,7 +86,7 @@ class CH_DISTR_API ChCommDistributed {
 
     /// Scans the system's data structures for bodies that:
     ///	- need to be sent to another rank to create ghosts
-    ///  - need to be sent to another rank to update ghosts
+    /// - need to be sent to another rank to update ghosts
     ///	- need to update their comm_status
     /// Sends updates via mpi to the appropriate rank
     /// Processes incoming updates from other ranks
@@ -103,9 +104,16 @@ class CH_DISTR_API ChCommDistributed {
     ChDistributedDataManager* ddm;
 
   private:
+    /// Helper function for processing incoming exchange messages.
     void ProcessExchanges(int num_recv, BodyExchange* buf, int updown);
+
+    /// Helper function for processing incoming update messages.
     void ProcessUpdates(int num_recv, BodyUpdate* buf);
+
+    /// Helper function for processing incoming take messages.
     void ProcessTakes(int num_recv, uint* buf);
+
+    /// Helper function for processing incoming shape messages.
     void ProcessShapes(int num_recv, Shape* buf);
 
     /// Packages the body data into buf.

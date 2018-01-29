@@ -31,7 +31,7 @@ class ChSystemDistributed;
 /// The global domain is split along the longest axis.
 /// Within each sub-domain, there are layers of ownership:
 ///
-/// ---------------------------------------------------
+/// 
 /// 0 < RANK < NUM_RANKS - 1:
 ///
 /// Unowned_up (high + ghostlayer <= pos)
@@ -42,7 +42,7 @@ class ChSystemDistributed;
 /// Ghost_down (low - ghost_layer <= pos < low)
 /// Unowned_down (pos < low - ghostlayer)
 ///
-/// ---------------------------------------------------
+/// 
 /// RANK = 0:
 ///
 /// Unowned_up (high + ghostlayer <= pos)
@@ -51,7 +51,7 @@ class ChSystemDistributed;
 /// Owned (low <= pos < high - ghostlayer)
 /// Unowned_down (pos < low)
 ///
-///----------------------------------------------------
+///
 /// RANK = NUM_RANKS - 1:
 ///
 /// Unowned_up (high <= pos)
@@ -59,7 +59,7 @@ class ChSystemDistributed;
 /// Shared_down (low <= pos < low + ghostlayer)
 /// Ghost_down (low - ghost_layer <= pos < low)
 /// Unowned_down (pos < low - ghostlayer)
-///-----------------------------------------------------
+///
 ///
 /// At AddBody:
 /// ** Unowned_up/Unowned_down:
@@ -91,15 +91,14 @@ class ChSystemDistributed;
 /// 		Bodies in this region are simulated only on this rank.
 ///
 ///
-/// ============================================================================================================
-///
 /// Actions:
 ///
 /// A body with an OWNED comm_status will be packed for exchange to create a ghost body on another rank when it
 /// passes into one of this rank's shared regions, at which point the body is given a SHARED comm_status on this rank.
 ///
 /// A body with a SHARED comm_status will become OWNED when it moves into the owned region on this rank.
-/// A body with a SHARED comm_status will be removed when it moves into one of this rank's unowned regions.
+/// A body with a SHARED comm_status will become GHOST when it moves outside of [sublo, subhi), the other rank
+/// updates its comm_status for that body to SHARED and takes charge of updating the body.
 ///
 /// A body with a GHOST comm_status will become OWNED when it moves into the owned region of this rank.
 /// A body with a GHOST comm_status will be removed when it moves into the one of this rank's unowned regions.
@@ -151,12 +150,16 @@ class CH_DISTR_API ChDomainDistributed {
 
     int split_axis;  ///< Index of the dimension of the longest edge of the global domain
 
-    /// Calculates the borders of this subdomain based on the rank
+    /// Divides the domain into equal-volume, orthogonal, axis-aligned regions along
+    /// the longest axis. Needs to be called right after the system is created so that
+    /// bodies are added correctly.
     virtual void SplitDomain();
-    bool split;
-    bool axis_set;
+    bool split;     ///< Flag indicating that the domain has been divided into sub-domains.
+    bool axis_set;  ///< Flag indicating that the splitting axis has been set.
 
   private:
+    /// Helper function that is called by the public GetRegion methods to get
+    /// the region classification for a body based on the center position.
     distributed::COMM_STATUS GetRegion(double pos);
 };
 

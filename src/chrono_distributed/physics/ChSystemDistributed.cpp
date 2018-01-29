@@ -41,6 +41,7 @@
 using namespace chrono;
 using namespace collision;
 
+/// Helper function for visualizing the shapes free list.
 static void PrintNode(LocalShapeNode* node) {
     std::cout << "| index = " << node->body_shapes_index << " size = " << node->size << " free = " << node->free
               << "| ---> ";
@@ -163,7 +164,7 @@ void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
     distributed::COMM_STATUS status = distributed::GLOBAL;
 
     ddm->body_shape_start.push_back(0);
-    ddm->body_shape_count.push_back(0);  // TODO these two lines were moved from above
+    ddm->body_shape_count.push_back(0);
 
     ddm->comm_status.push_back(status);
     ddm->global_id.push_back(newbody->GetGid());
@@ -174,7 +175,7 @@ void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
 
     data_manager->num_rigid_bodies++;
-    newbody->SetSystem(this);  // TODO Syncs collision model // TODO collision add expensive
+    newbody->SetSystem(this);
 
     // actual data is set in UpdateBodies().
     data_manager->host_data.pos_rigid.push_back(real3());
@@ -199,10 +200,6 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
 
         newbody->GetCollisionModel()->GetAABB(body_min, body_max);
 
-#ifdef DistrDebug
-        printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", body_min.x(), body_min.y(), body_min.z(),
-               body_max.x(), body_max.y(), body_max.z());
-#endif
         // If the part of the body lies in this sub-domain, add it
         if ((body_min.x() <= subhi.x() && sublo.x() <= body_max.x()) &&
             (body_min.y() <= subhi.y() && sublo.y() <= body_max.y()) &&
@@ -213,56 +210,14 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     }
 
     if (status == distributed::UNOWNED_UP || status == distributed::UNOWNED_DOWN) {
-#ifdef DistrDebug
-        GetLog() << "Not adding GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
-#endif
         return;
     }
     // Makes space for shapes TODO Does this work for mid-simulation add by user?
     ddm->body_shape_start.push_back(0);
-    ddm->body_shape_count.push_back(0);  // TODO these two lines were moved from above
+    ddm->body_shape_count.push_back(0);
 
     ddm->comm_status.push_back(status);
     ddm->global_id.push_back(newbody->GetGid());
-#ifdef DistrDebug
-    switch (status) {
-        // Shared up
-        case distributed::SHARED_UP:
-            GetLog() << "Adding shared up";
-            break;
-
-        // Shared down
-        case distributed::SHARED_DOWN:
-            GetLog() << "Adding shared down";
-            break;
-
-        // Owned
-        case distributed::OWNED:
-            GetLog() << "Adding owned";
-            break;
-
-        // Ghost up
-        case distributed::GHOST_UP:
-            GetLog() << "Adding ghost up";
-            break;
-
-        // Ghost down
-        case distributed::GHOST_DOWN:
-            GetLog() << "Adding ghost down";
-            break;
-
-        // Global
-        case distributed::GLOBAL:
-            GetLog() << "Adding global";
-            break;
-
-        // Not involved with this rank
-        default:
-            break;
-    }
-
-    GetLog() << " GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
-#endif
 
     newbody->SetId(data_manager->num_rigid_bodies);
     bodylist.push_back(newbody);
@@ -317,8 +272,6 @@ void ChSystemDistributed::RemoveBodyExchange(int index) {
     bodylist[index]->SetBodyFixed(true);
     bodylist[index]->SetCollide(false);                  // NOTE: Calls collisionsystem::remove
     bodylist[index]->GetCollisionModel()->ClearModel();  // NOTE: Ensures new model is clear
-
-    // GetLog() << "ERASE: RemoveBodyExchange(index = " << index << "). GID: " << ddm->global_id[index] << "\n";
     ddm->gid_to_localid.erase(ddm->global_id[index]);
 }
 
@@ -418,7 +371,7 @@ void ChSystemDistributed::PrintShapeData() {
     printf("%d | num_rigid_shapes: %d, num_rigid_bodies: %d\n", my_rank, ddm->data_manager->num_rigid_shapes,
            ddm->data_manager->num_rigid_bodies);
 }
-#ifdef DistrProfile
+
 void ChSystemDistributed::PrintEfficiency() {
     double used = 0.0;
     for (int i = 0; i < bodylist.size(); i++) {
@@ -445,7 +398,6 @@ void ChSystemDistributed::PrintEfficiency() {
         fclose(fp);
     }
 }
-#endif
 
 double ChSystemDistributed::GetLowestZ(uint* local_id) {
     double min = 0;
