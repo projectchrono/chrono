@@ -6,6 +6,7 @@ INCLUDE_DIRECTORIES(${CH_GRANULAR_INCLUDES})
 
 SET(LIBRARIES
     ChronoEngine
+    ChronoEngine_granular
 )
 
 IF(ENABLE_MODULE_OPENGL)
