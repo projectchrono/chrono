@@ -29,6 +29,7 @@
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 
@@ -59,6 +60,7 @@ class CH_VEHICLE_API ChVehicleOutput {
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) = 0;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) = 0;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) = 0;
+    virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) = 0;
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) = 0;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) = 0;
 

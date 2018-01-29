@@ -47,6 +47,7 @@ class CH_VEHICLE_API ChVehicleOutputHDF5 : public ChVehicleOutput {
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) override;
+    virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override;
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) override;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) override;
 
@@ -59,6 +60,7 @@ class CH_VEHICLE_API ChVehicleOutputHDF5 : public ChVehicleOutput {
     static H5::CompType* m_shaft_type;
     static H5::CompType* m_marker_type;
     static H5::CompType* m_joint_type;
+    static H5::CompType* m_couple_type;
     static H5::CompType* m_linspring_type;
     static H5::CompType* m_rotspring_type;
 
@@ -67,6 +69,7 @@ class CH_VEHICLE_API ChVehicleOutputHDF5 : public ChVehicleOutput {
     static const H5::CompType& getShaftType();
     static const H5::CompType& getMarkerType();
     static const H5::CompType& getJointType();
+    static const H5::CompType& getCoupleType();
     static const H5::CompType& getLinSpringType();
     static const H5::CompType& getRotSpringType();
 };

@@ -386,8 +386,14 @@ void ChPitmanArmShafts::ExportComponentList(rapidjson::Document& jsonDocument) c
     joints.push_back(m_universal);
     ChPart::ExportJointList(jsonDocument, joints);
 
-    //// TODO
-    //// Export ShaftsCouple
+    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
+    couples.push_back(m_shaft_motor);
+    couples.push_back(m_shaft_gear);
+    if (m_rigid)
+        couples.push_back(m_rigid_connection);
+    else
+        couples.push_back(m_spring_connection);
+    ChPart::ExportCouplesList(jsonDocument, couples);
 }
 
 void ChPitmanArmShafts::Output(ChVehicleOutput& database) const {
@@ -412,8 +418,14 @@ void ChPitmanArmShafts::Output(ChVehicleOutput& database) const {
     joints.push_back(m_universal);
     database.WriteJoints(joints);
 
-    //// TODO
-    //// Output ShaftsCouple
+    std::vector<std::shared_ptr<ChShaftsCouple>> couples;
+    couples.push_back(m_shaft_motor);
+    couples.push_back(m_shaft_gear);
+    if (m_rigid)
+        couples.push_back(m_rigid_connection);
+    else
+        couples.push_back(m_spring_connection);
+    database.WriteCouples(couples);
 }
 
 }  // end namespace vehicle

@@ -76,6 +76,12 @@ struct joint_info {
     double tx, ty, tz;  // joint reaction torque
 };
 
+struct couple_info {
+    int id;             // couple identifier
+    double x, xd, xdd;  // relative angle, angular velocity, angular acceleration
+    double t1, t2;      // reaction torque on shaft 1 and on shaft 2
+};
+
 struct linspring_info {
     int id;        // spring identifier
     double x, xd;  // length and velocity
@@ -93,6 +99,7 @@ H5::CompType* ChVehicleOutputHDF5::m_bodyaux_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_shaft_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_marker_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_joint_type = nullptr;
+H5::CompType* ChVehicleOutputHDF5::m_couple_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_linspring_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_rotspring_type = nullptr;
 
@@ -194,6 +201,24 @@ const H5::CompType& ChVehicleOutputHDF5::getJointType() {
     return *m_joint_type;
 }
 
+const H5::CompType& ChVehicleOutputHDF5::getCoupleType() {
+    if (!m_couple_type) {
+        struct Initializer {
+            Initializer() {
+                m_couple_type = new H5::CompType(sizeof(couple_info));
+                m_couple_type->insertMember("id", HOFFSET(couple_info, id), H5::PredType::NATIVE_INT);
+                m_couple_type->insertMember("x", HOFFSET(couple_info, x), H5::PredType::NATIVE_DOUBLE);
+                m_couple_type->insertMember("xd", HOFFSET(couple_info, xd), H5::PredType::NATIVE_DOUBLE);
+                m_couple_type->insertMember("xdd", HOFFSET(couple_info, xdd), H5::PredType::NATIVE_DOUBLE);
+                m_couple_type->insertMember("torque1", HOFFSET(couple_info, t1), H5::PredType::NATIVE_DOUBLE);
+                m_couple_type->insertMember("torque2", HOFFSET(couple_info, t1), H5::PredType::NATIVE_DOUBLE);
+            }
+        };
+        static Initializer ListInitializationGuard;
+    }
+    return *m_couple_type;
+}
+
 const H5::CompType& ChVehicleOutputHDF5::getLinSpringType() {
     if (!m_linspring_type) {
         struct Initializer {
@@ -250,6 +275,7 @@ ChVehicleOutputHDF5::~ChVehicleOutputHDF5() {
     delete m_shaft_type;
     delete m_marker_type;
     delete m_joint_type;
+    delete m_couple_type;
     delete m_linspring_type;
     delete m_rotspring_type;
 
@@ -394,6 +420,24 @@ void ChVehicleOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>
 
     H5::DataSet set = m_section_group->createDataSet("Joints", getJointType(), dataspace);
     set.write(info.data(), getJointType());
+}
+
+void ChVehicleOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
+    if (couples.empty())
+        return;
+
+    auto ncouples = couples.size();
+    hsize_t dim[] = {ncouples};
+    H5::DataSpace dataspace(1, dim);
+    std::vector<couple_info> info(ncouples);
+    for (auto i = 0; i < ncouples; i++) {
+        info[i] = {couples[i]->GetIdentifier(),          couples[i]->GetRelativeRotation(),
+                   couples[i]->GetRelativeRotation_dt(), couples[i]->GetRelativeRotation_dtdt(),
+                   couples[i]->GetTorqueReactionOn1(),   couples[i]->GetTorqueReactionOn2()};
+    }
+
+    H5::DataSet set = m_section_group->createDataSet("Couples", getCoupleType(), dataspace);
+    set.write(info.data(), getCoupleType());
 }
 
 void ChVehicleOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) {

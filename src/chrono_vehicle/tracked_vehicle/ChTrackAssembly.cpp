@@ -177,7 +177,7 @@ void ChTrackAssembly::SetOutput(bool state) {
 void ChTrackAssembly::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);
 
-    jsonDocument.AddMember("number shoes", GetNumTrackShoes(), jsonDocument.GetAllocator());
+    jsonDocument.AddMember("number shoes", static_cast<int>(GetNumTrackShoes()), jsonDocument.GetAllocator());
 
     {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());

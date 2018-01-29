@@ -164,6 +164,25 @@ void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std:
     jsonDocument.AddMember("joints", jsonArray, allocator);
 }
 
+void ChPart::ExportCouplesList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChShaftsCouple>> couples) {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (auto couple : couples) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.SetObject();
+        obj.AddMember("name", rapidjson::StringRef(couple->GetName()), allocator);
+        obj.AddMember("id", couple->GetIdentifier(), allocator);
+        obj.AddMember("shaft1 name", rapidjson::StringRef(couple->GetShaft1()->GetName()), allocator);
+        obj.AddMember("shaft2 name", rapidjson::StringRef(couple->GetShaft2()->GetName()), allocator);
+        obj.AddMember("shaft1 id", couple->GetShaft1()->GetIdentifier(), allocator);
+        obj.AddMember("shaft2 id", couple->GetShaft2()->GetIdentifier(), allocator);
+        jsonArray.PushBack(obj, allocator);
+    }
+    jsonDocument.AddMember("couples", jsonArray, allocator);
+
+}
+
 void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChMarker>> markers) {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 

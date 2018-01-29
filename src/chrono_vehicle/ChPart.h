@@ -24,6 +24,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
 
@@ -148,6 +149,9 @@ class CH_VEHICLE_API ChPart {
 
     /// Export the list of joints to the specified JSON document.
     static void ExportJointList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLink>> joints);
+
+    /// Export the list of shaft couples to the specified JSON document.
+    static void ExportCouplesList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChShaftsCouple>> couples);
 
     /// Export the list of markers to the specified JSON document.
     static void ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChMarker>> markers);

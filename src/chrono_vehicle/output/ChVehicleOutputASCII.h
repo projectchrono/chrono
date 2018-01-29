@@ -45,6 +45,7 @@ class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
     virtual void WriteMarkers(const std::vector<std::shared_ptr<ChMarker>>& markers) override;
     virtual void WriteShafts(const std::vector<std::shared_ptr<ChShaft>>& shafts) override;
     virtual void WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) override;
+    virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override;
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) override;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) override;
 
