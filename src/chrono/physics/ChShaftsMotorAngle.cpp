@@ -20,17 +20,16 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsMotorAngle)
 
-ChShaftsMotorAngle::ChShaftsMotorAngle() : motor_torque(0) {
+ChShaftsMotorAngle::ChShaftsMotorAngle() : rot_offset(0), motor_torque(0), violation(0) {
     // default motion function : a ramp
     this->f_rot = std::make_shared<ChFunction_Ramp>(
         0.0,   // default y(0)
         1.0    // default dy/dx , i.e.   1 [rad/s]
         );
     
-    rot_offset = 0;
 }
 
-ChShaftsMotorAngle::ChShaftsMotorAngle(const ChShaftsMotorAngle& other) : ChShaftsMotorBase(other) {
+ChShaftsMotorAngle::ChShaftsMotorAngle(const ChShaftsMotorAngle& other) : ChShaftsMotorBase(other), motor_torque(0), violation(0) {
    this->f_rot = other.f_rot;
    this->rot_offset = other.rot_offset;
 }
@@ -54,10 +53,9 @@ void ChShaftsMotorAngle::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChShaftsMotorBase::Update(mytime, update_assets);
 
-    // update class data
-
+    // Update class data
     this->f_rot->Update(mytime); // call callbacks if any
-
+    violation = GetMotorRot() - f_rot->Get_y(mytime) - rot_offset;
 }
 
 //// STATE BOOKKEEPING FUNCTIONS

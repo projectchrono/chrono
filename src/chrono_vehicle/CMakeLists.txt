@@ -328,6 +328,8 @@ source_group("wheeled_vehicle\\driveline" FILES ${CV_WV_DRIVELINE_FILES})
 set(CV_WV_STEERING_FILES
     wheeled_vehicle/steering/ChPitmanArm.h
     wheeled_vehicle/steering/ChPitmanArm.cpp
+    wheeled_vehicle/steering/ChPitmanArmShafts.h
+    wheeled_vehicle/steering/ChPitmanArmShafts.cpp
     wheeled_vehicle/steering/ChRackPinion.h
     wheeled_vehicle/steering/ChRackPinion.cpp
 
@@ -575,6 +577,8 @@ set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/ChSprocketSinglePin.cpp
     tracked_vehicle/sprocket/ChSprocketDoublePin.h
     tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
+    tracked_vehicle/sprocket/ChSprocketBand.h
+    tracked_vehicle/sprocket/ChSprocketBand.cpp
 
     tracked_vehicle/sprocket/SprocketSinglePin.h
     tracked_vehicle/sprocket/SprocketSinglePin.cpp
@@ -601,26 +605,50 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeBand.h
+    tracked_vehicle/track_shoe/ChTrackShoeBand.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h
+    tracked_vehicle/track_shoe/ChTrackShoeBandBushing.cpp
 
     tracked_vehicle/track_shoe/TrackShoeSinglePin.h
     tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/TrackShoeDoublePin.h
     tracked_vehicle/track_shoe/TrackShoeDoublePin.cpp
 )
-source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
+if(ENABLE_MODULE_FEA)
+    set(CV_TV_FEATRACKSHOE_FILES
+        tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h
+        tracked_vehicle/track_shoe/ChTrackShoeBandANCF.cpp
+    )
+else()
+    set(CV_TV_FEATRACKSHOE_FILES "")
+endif()
+source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES} ${CV_TV_FEATRACKSHOE_FILES})
 
 set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.cpp
+    tracked_vehicle/track_assembly/ChTrackAssemblyBand.h
+    tracked_vehicle/track_assembly/ChTrackAssemblyBand.cpp
+    tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h
+    tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.cpp
 
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.cpp
 )
-source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
+if(ENABLE_MODULE_FEA)
+    set(CV_TV_FEATRACKASSEMBLY_FILES
+        tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h
+        tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.cpp
+    )
+else()
+    set(CV_TV_FEATRACKASSEMBLY_FILES "")
+endif()
+source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES} ${CV_TV_FEATRACKASSEMBLY_FILES})
 
 set(CV_TV_UTILS_FILES
     tracked_vehicle/utils/ChTrackTestRig.h
@@ -737,7 +765,9 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_SPROCKET_FILES}
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
+    ${CV_TV_FEATRACKSHOE_FILES}
     ${CV_TV_TRACKASSEMBLY_FILES}
+    ${CV_TV_FEATRACKASSEMBLY_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}

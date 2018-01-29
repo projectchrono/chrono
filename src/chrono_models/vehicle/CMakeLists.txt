@@ -45,6 +45,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_TMeasyTire.h
     hmmwv/HMMWV_PitmanArm.cpp
     hmmwv/HMMWV_PitmanArm.h
+    hmmwv/HMMWV_PitmanArmShafts.cpp
+    hmmwv/HMMWV_PitmanArmShafts.h
     hmmwv/HMMWV_Powertrain.cpp
     hmmwv/HMMWV_Powertrain.h
     hmmwv/HMMWV_RackPinion.cpp
@@ -138,20 +140,36 @@ set(CVM_M113_FILES
     m113/M113_SprocketSinglePin.h
     m113/M113_SprocketDoublePin.cpp
     m113/M113_SprocketDoublePin.h
+    m113/M113_SprocketBand.cpp
+    m113/M113_SprocketBand.h
     m113/M113_Suspension.cpp
     m113/M113_Suspension.h
     m113/M113_TrackAssemblySinglePin.cpp
     m113/M113_TrackAssemblySinglePin.h
     m113/M113_TrackAssemblyDoublePin.cpp
     m113/M113_TrackAssemblyDoublePin.h
+	m113/M113_TrackAssemblyBandBushing.cpp
+	m113/M113_TrackAssemblyBandBushing.h
     m113/M113_TrackShoeSinglePin.cpp
     m113/M113_TrackShoeSinglePin.h
     m113/M113_TrackShoeDoublePin.cpp
     m113/M113_TrackShoeDoublePin.h
+    m113/M113_TrackShoeBandBushing.cpp
+    m113/M113_TrackShoeBandBushing.h
     m113/M113_Vehicle.cpp
     m113/M113_Vehicle.h
 )
-source_group("m113" FILES ${CVM_M113_FILES})
+if(ENABLE_MODULE_FEA)
+    set(CVM_M113_FEA_FILES
+        m113/M113_TrackShoeBandANCF.cpp
+        m113/M113_TrackShoeBandANCF.h
+	    m113/M113_TrackAssemblyBandANCF.cpp
+	    m113/M113_TrackAssemblyBandANCF.h	
+    )
+else()
+    set(CVM_M113_FEA_FILES "")
+endif()
+source_group("m113" FILES ${CVM_M113_FILES} ${CVM_M113_FEA_FILES})
 
 set(CVM_M113_A_FILES
     m113a/M113a_BrakeSimple.h
@@ -206,6 +224,7 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_GENERIC_FILES}
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
+    ${CVM_M113_FEA_FILES}
  )
 
 set_target_properties(ChronoModels_vehicle PROPERTIES

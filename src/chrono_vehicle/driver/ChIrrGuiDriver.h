@@ -68,23 +68,24 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Update the state of this driver system at the specified time.
     virtual void Synchronize(double time) override;
 
-    /// Set the time response for throttle control.
-    void SetThrottleDelta(double delta  ///< time (in seconds) to go from 0 to 1
-                          ) {
-        m_throttleDelta = delta;
-    }
+    /// Advance the state of this driver system by the specified time step.
+    virtual void Advance(double step) override;
 
-    /// Set the time response for steering control.
-    void SetSteeringDelta(double delta  ///< time (in seconds) to go from 0 to 1 (or to -1)
-                          ) {
-        m_steeringDelta = delta;
-    }
+    /// Set the increment in throttle input for each recorded keypress (default 1/50).
+    void SetThrottleDelta(double delta);
 
-    /// Set the time response for braking control.
-    void SetBrakingDelta(double delta  ///< time (in seconds) to go from 0 to 1
-                         ) {
-        m_brakingDelta = delta;
-    }
+    /// Set the increment in steering input for each recorded keypress (default 1/50).
+    void SetSteeringDelta(double delta);
+
+    /// Set the increment in braking input for each recorded keypress (default 1/50).
+    void SetBrakingDelta(double delta);
+
+    /// Set the step size for integration of the internal driver dynamics.
+    void SetStepsize(double val) { m_stepsize = val; }
+
+    /// Set gains for internal dynamics.
+    /// Default values are 4.0.
+    void SetGains(double steering_gain, double throttle_gain, double braking_gain);
 
     /// Set the input file for the underlying data driver.
     void SetInputDataFile(const std::string& filename);
@@ -98,14 +99,29 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
   protected:
     ChVehicleIrrApp& m_app;
 
-    double m_throttleDelta;
-    double m_steeringDelta;
-    double m_brakingDelta;
+    InputMode m_mode; ///< current mode of the driver
+
+    // Variables for mode=KEYBOARD
+    double m_steering_target;  ///< current target value for steering input
+    double m_throttle_target;  ///< current target value for throttle input
+    double m_braking_target;   ///< current target value for braking input
+
+    double m_stepsize;  ///< time step for internal dynamics
+
+    double m_steering_delta;  ///< steering increment on each keypress
+    double m_throttle_delta;  ///< throttle increment on each keypress
+    double m_braking_delta;   ///< braking increment on each keypress
+
+    double m_steering_gain;  ///< gain for steering internal dynamics
+    double m_throttle_gain;  ///< gain for throttle internal dynamics
+    double m_braking_gain;   ///< gain for braking internal dynamics
+
+    // Variables for mode=JOYSTICK
     int m_dT;
 
-    InputMode m_mode;
-    double m_time_shift;
-    std::shared_ptr<ChDataDriver> m_data_driver;
+    // Variables for mode=DATAFILE
+    double m_time_shift;                          ///< time at which mode was switched to DATAFILE
+    std::shared_ptr<ChDataDriver> m_data_driver;  ///< embedded data driver (for playback)
 };
 
 /// @} vehicle_driver

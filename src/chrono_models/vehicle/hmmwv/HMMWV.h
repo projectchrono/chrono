@@ -141,17 +141,21 @@ class CH_MODELS_API HMMWV {
 /// and lower control arms).
 class CH_MODELS_API HMMWV_Full : public HMMWV {
   public:
-    HMMWV_Full() {}
-    HMMWV_Full(ChSystem* system) : HMMWV(system) {}
+    HMMWV_Full() : m_steeringType(SteeringType::PITMAN_ARM) {}
+    HMMWV_Full(ChSystem* system) : HMMWV(system), m_steeringType(SteeringType::PITMAN_ARM) {}
+
+    void SetSteeringType(SteeringType val) { m_steeringType = val; }
 
     void LogHardpointLocations() { ((HMMWV_VehicleFull*)m_vehicle)->LogHardpointLocations(); }
     void DebugLog(int what) { ((HMMWV_VehicleFull*)m_vehicle)->DebugLog(what); }
 
   private:
     virtual HMMWV_Vehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_chassisCollisionType)
-                        : new HMMWV_VehicleFull(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
+        return m_system ? new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_steeringType, m_chassisCollisionType)
+                        : new HMMWV_VehicleFull(m_fixed, m_driveType, m_steeringType, m_contactMethod, m_chassisCollisionType);
     }
+
+    SteeringType m_steeringType;
 };
 
 /// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using reduced

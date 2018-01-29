@@ -52,6 +52,10 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 // Drive type (FWD, RWD, or AWD)
 DrivelineType drive_type = DrivelineType::RWD;
 
+// Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
+// Note: Compliant steering requires higher PID gains.
+SteeringType steering_type = SteeringType::PITMAN_ARM;
+
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
@@ -60,8 +64,6 @@ VisualizationType wheel_vis_type = VisualizationType::NONE;
 VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
 
 // Input file names for the path-follower driver model
-std::string steering_controller_file("generic/driver/SteeringController.json");
-std::string speed_controller_file("generic/driver/SpeedController.json");
 ////std::string path_file("paths/straight.txt");
 ////std::string path_file("paths/curve.txt");
 ////std::string path_file("paths/NATO_double_lane_change.txt");
@@ -198,6 +200,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
+    my_hmmwv.SetSteeringType(steering_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
@@ -266,15 +269,12 @@ int main(int argc, char* argv[]) {
     // Create both a GUI driver and a path-follower and allow switching between them
     ChIrrGuiDriver driver_gui(app);
     driver_gui.Initialize();
-
-    /*
+    
     ChPathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed);
     driver_follower.GetSteeringController().SetLookAheadDistance(5);
-    driver_follower.GetSteeringController().SetGains(0.5, 0, 0);
+    driver_follower.GetSteeringController().SetGains(0.8, 0, 0);
     driver_follower.GetSpeedController().SetGains(0.4, 0, 0);
-    */
-    ChPathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), vehicle::GetDataFile(steering_controller_file),
-                                         vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
+    
     driver_follower.Initialize();
 
     // Create and register a custom Irrlicht event receiver to allow selecting the

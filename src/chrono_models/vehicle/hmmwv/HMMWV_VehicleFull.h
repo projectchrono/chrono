@@ -30,6 +30,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArmShafts.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 namespace chrono {
@@ -44,12 +45,14 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleFull(const bool fixed = false,
                       DrivelineType drive_type = DrivelineType::AWD,
+                      SteeringType steering_type = SteeringType::PITMAN_ARM,
                       ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
                       ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     HMMWV_VehicleFull(ChSystem* system,
                       const bool fixed = false,
                       DrivelineType drive_type = DrivelineType::AWD,
+                      SteeringType steering_type = SteeringType::PITMAN_ARM,
                       ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~HMMWV_VehicleFull();
@@ -69,7 +72,7 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed, SteeringType steering_type, ChassisCollisionType chassis_collision_type);
 };
 
 /// @} vehicle_models_hmmwv

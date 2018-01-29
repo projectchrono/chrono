@@ -389,7 +389,18 @@ enum class SuspensionType {
     SOLID_AXLE,               ///< solid axle
     MULTI_LINK,               ///< multi-link
     HENDRICKSON_PRIMAXX,      ///< Hendrickson PRIMAXX (walking beam)
-    MACPHERSON_STRUT          ///< MacPherson strut
+    MACPHERSON_STRUT,         ///< MacPherson strut
+    SEMI_TRAILING_ARM,        ///< semi trailing arm
+    THREE_LINK_IRS,           ///< three-link independent rear suspension
+    RIGID_PINNED,             ///< pinned rigid beam
+    RIGID_SUSPENSION          ///< rigid suspension
+};
+
+/// Enum for available wheeled-vehicle steering model templates.
+enum class SteeringType {
+    PITMAN_ARM,         ///< Pitman arm (input to revolute joint)
+    PITMAN_ARM_SHAFTS,  ///< Pitman arm with compliant column (input to steering wheel)
+    RACK_PINION         ///< rack-pinion (input to pinion)
 };
 
 /// Enum for drive types.
@@ -411,8 +422,10 @@ enum Enum {
 
 /// Enum for track shoe types.
 enum class TrackShoeType {
-    SINGLE_PIN,  ///< single-pin track shoe and sprocket
-    DOUBLE_PIN   ///< double-pin track shoe and sprocket
+    SINGLE_PIN,   ///< single-pin track shoe and sprocket
+    DOUBLE_PIN,   ///< double-pin track shoe and sprocket
+    BAND_BUSHING, ///< rigid tooth-rigid web continuous band track shoe and sprocket
+    BAND_ANCF     ///< rigid tooth-ANCF web continuous band track shoe and sprocket
 };
 
 /// Enum for guide pin (track shoe/roadwheel/idler).
