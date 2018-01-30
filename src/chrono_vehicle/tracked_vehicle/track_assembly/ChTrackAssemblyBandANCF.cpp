@@ -66,10 +66,56 @@ bool ChTrackAssemblyBandANCF::BroadphaseCulling::OnBroadphase(collision::ChColli
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name, VehicleSide side)
-    : ChTrackAssemblyBand(name, side), m_contact_type(TRIANGLE_MESH), m_callback(nullptr) {}
+    : ChTrackAssemblyBand(name, side),
+      m_contact_type(TRIANGLE_MESH),
+      m_callback(nullptr),
+      m_rubber_rho(1100),
+      m_rubber_E(1e7),
+      m_rubber_nu(0.49),
+      m_rubber_G(0.5 * 1e7 / (1 + 0.49)),
+      m_steel_rho(7900),
+      m_steel_E(210e9),
+      m_steel_nu(0.3),
+      m_steel_G(0.5 * 210e9 / (1 + 0.3)),
+      m_angle_1(0),
+      m_angle_2(0),
+      m_angle_3(0),
+      m_alpha(0.05) {}
 
 ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
     delete m_callback;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackAssemblyBandANCF::SetRubberLayerMaterial(double rho,
+    const ChVector<>& E,
+    const ChVector<>& nu,
+    const ChVector<>& G) {
+    m_rubber_rho = rho;
+    m_rubber_E = E;
+    m_rubber_nu = nu;
+    m_rubber_G = G;
+}
+
+void ChTrackAssemblyBandANCF::SetSteelLayerMaterial(double rho,
+    const ChVector<>& E,
+    const ChVector<>& nu,
+    const ChVector<>& G) {
+    m_steel_rho = rho;
+    m_steel_E = E;
+    m_steel_nu = nu;
+    m_steel_G = G;
+}
+
+void ChTrackAssemblyBandANCF::SetElementStructuralDamping(double alpha) {
+    m_alpha = alpha;
+}
+
+void ChTrackAssemblyBandANCF::SetLayerFiberAngles(double angle_1, double angle_2, double angle_3) {
+    m_angle_1 = angle_1;
+    m_angle_2 = angle_2;
+    m_angle_3 = angle_3;
 }
 
 // -----------------------------------------------------------------------------
@@ -100,6 +146,10 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     connection_lengths[0] = m_shoes[0]->GetToothBaseLength();
     connection_lengths[1] = m_shoes[0]->GetWebLength();
 
+    // Create ANCF materials (shared by all track shoes)
+    auto rubber_mat = std::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
+    auto steel_mat = std::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
+
     // Calculate assembly points
     std::vector<ChVector2<>> shoe_points;
     bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
@@ -122,10 +172,12 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             shoe_components_coordsys.push_back(ChCoordsys<>(loc, rot));
         }
 
-        // Set index within the track assembly
+        // Set shoe index within the track assembly
         m_shoes[s]->SetIndex(s);
         // Pass the track mesh container to the shoe so that it adds to it
         m_shoes[s]->SetWebMesh(m_track_mesh);
+        // Pass material properties to the shoe
+        m_shoes[s]->SetWebMeshProperties(rubber_mat, steel_mat, m_angle_1, m_angle_2, m_angle_3, m_alpha);
         // Initialize the track shoe system
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }

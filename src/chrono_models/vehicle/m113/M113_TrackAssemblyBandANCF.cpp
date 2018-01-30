@@ -87,6 +87,21 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side) : ChTra
         m_shoes.push_back(std::make_shared<M113_TrackShoeBandANCF>());
     }
 
+    // Specify material properties for the web mesh
+    double E_rubber = 0.01e9;
+    double nu_rubber = 0.3;
+    double G_rubber = 0.5 * E_rubber / (1 + 0.49);
+    SetRubberLayerMaterial(1100, ChVector<>(E_rubber), ChVector<>(nu_rubber), ChVector<>(G_rubber));
+
+    double E_steel = 210e9;
+    double nu_steel = 0.3;
+    double G_steel = 0.5 * E_steel / (1 + 0.3);
+    SetSteelLayerMaterial(7900, ChVector<>(E_steel), ChVector<>(nu_steel), ChVector<>(G_steel));
+
+    SetLayerFiberAngles(0 * CH_C_DEG_TO_RAD, 0 * CH_C_DEG_TO_RAD, 0 * CH_C_DEG_TO_RAD);
+
+    SetElementStructuralDamping(0.05);
+
     // Specify contact properties for the web mesh
     SetContactSurfaceType(ChTrackAssemblyBandANCF::TRIANGLE_MESH);
 
