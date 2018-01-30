@@ -84,7 +84,7 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side) : ChTra
     m_suspensions[4] = std::make_shared<M113_Suspension>(suspName + "4", side, 0, true);
 
     for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(std::make_shared<M113_TrackShoeBandANCF>());
+        m_shoes.push_back(std::make_shared<M113_TrackShoeBandANCF>(shoeName + std::to_string(it)));
     }
 
     // Specify material properties for the web mesh

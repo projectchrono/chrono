@@ -67,7 +67,7 @@ const std::string M113_TrackShoeBandANCF::m_meshFile = "M113/TrackShoeBandANCF.o
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeBandANCF::M113_TrackShoeBandANCF() : ChTrackShoeBandANCF("M113_TrackShoe") {
+M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrackShoeBandANCF(name) {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);

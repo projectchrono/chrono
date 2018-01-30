@@ -64,7 +64,7 @@ const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/TrackShoeBandBus
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeBandBushing::M113_TrackShoeBandBushing() : ChTrackShoeBandBushing("M113_TrackShoe") {
+M113_TrackShoeBandBushing::M113_TrackShoeBandBushing(const std::string& name) : ChTrackShoeBandBushing(name) {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);

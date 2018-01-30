@@ -36,7 +36,7 @@ namespace m113 {
 /// Continuous band rigid-link track shoe subsystem for the M113 vehicle.
 class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
   public:
-    M113_TrackShoeBandANCF();
+    M113_TrackShoeBandANCF(const std::string& name);
     ~M113_TrackShoeBandANCF() {}
 
     /// Return the type of track shoe (guiding pin).
