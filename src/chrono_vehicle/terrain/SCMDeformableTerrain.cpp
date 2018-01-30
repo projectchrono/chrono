@@ -853,8 +853,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
             while (fill_front.size() >0) {
                 // fill next front
                 std::set<int> fill_front_2;
-                for (auto ifront : fill_front) {
-                    for (auto ivconnect : connected_vertexes[ifront]) {
+                for (const auto& ifront : fill_front) {
+                    for (const auto& ivconnect : connected_vertexes[ifront]) {
                         if ((p_sigma[ivconnect]>0) && (p_id_island[ivconnect]==0)) {
                             ++n_vert_island;
                             tot_step_flow_island += p_area[ivconnect] * p_step_plastic_flow[ivconnect] * this->GetSystem()->GetStep();
@@ -880,7 +880,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
             // Raise the boundary because of material flow (it gives a sharp spike around the
             // island boundary, but later we'll use the erosion algorithm to smooth it out)
 
-            for (auto ibv : boundary) {
+            for (const auto& ibv : boundary) {
                 double d_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
                 double clamped_d_y = d_y; // ChMin(d_y, ChMin(p_hit_level[ibv]-p_level[ibv], test_high_offset) );
                 if (d_y > p_hit_level[ibv]-p_level[ibv]) {
@@ -904,13 +904,13 @@ void SCMDeformableSoil::ComputeInternalForces() {
         // Erosion domain area select, by topologically dilation of all the
         // boundaries of the islands:
         std::set<int> domain_erosion= domain_boundaries;
-        for (auto ie : domain_boundaries)
+        for (const auto& ie : domain_boundaries)
             p_erosion[ie] = true;
         std::set<int> front_erosion = domain_boundaries;
         for (int iloop = 0; iloop <10; ++iloop) {
             std::set<int> front_erosion2;
-            for(auto is : front_erosion) {
-                for (auto ivconnect : connected_vertexes[is]) {
+            for(const auto& is : front_erosion) {
+                for (const auto& ivconnect : connected_vertexes[is]) {
                     if ((p_id_island[ivconnect]==0) && (p_erosion[ivconnect]==0)) {
                         front_erosion2.insert(ivconnect);
                         p_erosion[ivconnect] = true;
@@ -922,8 +922,8 @@ void SCMDeformableSoil::ComputeInternalForces() {
         }
         // Erosion smoothing algorithm on domain
         for (int ismo = 0; ismo <3; ++ismo) {
-            for (auto is : domain_erosion) {
-                for (auto ivc : connected_vertexes[is]) {
+            for (const auto& is : domain_erosion) {
+                for (const auto& ivc : connected_vertexes[is]) {
                     ChVector<> vis = this->plane.TransformParentToLocal(vertices[is]);
                     // flow remainder material 
                     if (true) {
