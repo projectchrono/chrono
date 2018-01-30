@@ -37,7 +37,7 @@ namespace hmmwv {
 /// Simple HMMWV powertrain subsystem (purely kinematic).
 class CH_MODELS_API HMMWV_SimplePowertrain : public ChSimplePowertrain {
   public:
-    HMMWV_SimplePowertrain();
+    HMMWV_SimplePowertrain(const std::string& name);
 
     ~HMMWV_SimplePowertrain() {}
 

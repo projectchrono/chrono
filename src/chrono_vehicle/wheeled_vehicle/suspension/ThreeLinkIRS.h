@@ -63,7 +63,7 @@ class CH_VEHICLE_API ThreeLinkIRS : public ChThreeLinkIRS {
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
     virtual const ChVector<> getDirection(DirectionId which) override { return m_dirs[which]; }
 
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     ChLinkSpringCB::ForceFunctor* m_springForceCB;
     ChLinkSpringCB::ForceFunctor* m_shockForceCB;

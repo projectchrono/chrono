@@ -32,7 +32,7 @@ namespace m113 {
 
 class CH_MODELS_API M113a_TrackShoeSinglePin : public ChTrackShoeSinglePin {
   public:
-    M113a_TrackShoeSinglePin();
+    M113a_TrackShoeSinglePin(const std::string& name);
     ~M113a_TrackShoeSinglePin() {}
 
     /// Return the type of track shoe (guiding pin).

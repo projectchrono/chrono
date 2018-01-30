@@ -22,6 +22,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
@@ -215,7 +217,7 @@ int main(int argc, char* argv[]) {
     // Create the powertrain system
     // ----------------------------
 
-    M113_SimplePowertrain powertrain;
+    M113_SimplePowertrain powertrain("Powertrain");
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // ---------------------------------------
@@ -272,6 +274,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Set up vehicle output
+    vehicle.SetChassisOutput(true);
+    vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
+    // Generate JSON information with available output channels
+    vehicle.ExportComponentList(out_dir + "/component_list.json");
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -325,23 +335,21 @@ int main(int argc, char* argv[]) {
         }
 
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
 
+        if (step_number % render_steps == 0) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
                 utils::WriteShapesPovray(vehicle.GetSystem(), filename);
             }
-
             if (img_output && step_number > 200) {
                 char filename[100];
                 sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
                 app.WriteImageToFile(filename);
             }
-
             render_frame++;
         }
 

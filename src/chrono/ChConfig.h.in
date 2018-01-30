@@ -140,4 +140,13 @@
 
 @CHRONO_HAS_FMA@
 
+
+// -----------------------------------------------------------------------------
+
+// If HDF5 was found, then
+//   #define CHRONO_HAS_HDF5
+
+@CHRONO_HAS_HDF5@
+
+
 #endif

@@ -39,6 +39,9 @@ class CH_VEHICLE_API ChDoubleIdler : public ChIdler {
 
     virtual ~ChDoubleIdler() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "DoubleIdler"; }
+
     /// Return the type of track shoe consistent with this idler.
     virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
 

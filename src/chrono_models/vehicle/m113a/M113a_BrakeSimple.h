@@ -29,7 +29,7 @@ namespace m113 {
 
 class CH_MODELS_API M113a_BrakeSimple : public ChTrackBrakeSimple {
   public:
-    M113a_BrakeSimple() : ChTrackBrakeSimple("M113a_Brake") {}
+    M113a_BrakeSimple(const std::string& name) : ChTrackBrakeSimple(name) {}
     ~M113a_BrakeSimple() {}
 
     virtual double GetMaxBrakingTorque() override { return 10000.0; }

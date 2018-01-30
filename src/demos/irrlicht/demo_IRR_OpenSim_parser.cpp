@@ -20,6 +20,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChParserOpenSim.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -42,7 +43,7 @@ int main(int argc, char* argv[]) {
     if (argc > 1) {
         filename = std::string(argv[1]);
     } else {
-        filename = "opensim/dancing_dude.osim";
+        filename = "opensim/newton_cradle.osim";
         ////filename = "opensim/Rajagopal2015-objs.osim";
     }
     filename = GetChronoDataFile(filename);
@@ -56,6 +57,7 @@ int main(int argc, char* argv[]) {
     ChParserOpenSim parser;
     parser.SetVisualizationType(ChParserOpenSim::VisType::PRIMITIVES);
     parser.SetVerbose(true);
+    parser.EnableCollision(true);
     ////parser.ActivateActuators(true);
     parser.Parse(my_system, filename);
 
@@ -68,6 +70,8 @@ int main(int argc, char* argv[]) {
     rep.Print();
     std::cout << "---------" << std::endl;
 
+    // my_system.GetSolver()->SetTolerance(1e-4);
+
     // Find the actuator named "grav" and directly set its excitation function
     ////if (auto force = rep.GetForce("grav")) {
     ////    if (auto body_force = std::dynamic_pointer_cast<ChLoadBodyForce>(force)) {
@@ -77,8 +81,17 @@ int main(int argc, char* argv[]) {
     ////}
 
     // Use parser wrapper method to set excitation for named actuator.
-    auto excitation = std::make_shared<ChFunction_Ramp>(0, 1);
-    parser.SetExcitationFunction("grav", excitation);
+    // auto excitation = std::make_shared<ChFunction_Ramp>(0, 1);
+    // parser.SetExcitationFunction("grav", excitation);
+
+    const char* names[] = {"ball1", "ball2", "ball3", "ball4", "ball5"};
+    // If we're still doing the newton cradle
+    if (argc == 1) {
+        for (int i = 0; i < 5; i++) {
+            auto b = my_system.SearchBody(names[i]);
+            AddSphereGeometry(b.get(), .12505, {0, 0, 0}, ChQuaternion<>(1, 0, 0, 0), true);
+        }
+    }
 
     auto my_ground = std::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, my_system.GetContactMethod());
     my_system.AddBody(my_ground);
@@ -98,7 +111,7 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     application.SetTryRealtime(true);
-    application.SetTimestep(0.002);
+    application.SetTimestep(0.001);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

@@ -281,15 +281,15 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
     ChVector<> loc_R = m_shoe->TransformPointLocalToParent(ChVector<>(GetShoeLength() / 2, -GetShoeWidth() / 2, 0));
     ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
-    auto rev_L = std::make_shared<ChLinkLockRevolute>();
-    rev_L->SetNameString(m_name + "_rev_this_L");
-    rev_L->Initialize(m_shoe, m_connector_L, ChCoordsys<>(loc_L, rot));
-    system->AddLink(rev_L);
+    m_revolute_L = std::make_shared<ChLinkLockRevolute>();
+    m_revolute_L->SetNameString(m_name + "_rev_this_L");
+    m_revolute_L->Initialize(m_shoe, m_connector_L, ChCoordsys<>(loc_L, rot));
+    system->AddLink(m_revolute_L);
 
-    auto rev_R = std::make_shared<ChLinkLockRevolute>();
-    rev_R->SetNameString(m_name + "_rev_this_R");
-    rev_R->Initialize(m_shoe, m_connector_R, ChCoordsys<>(loc_R, rot));
-    system->AddLink(rev_R);
+    m_revolute_R = std::make_shared<ChLinkLockRevolute>();
+    m_revolute_R->SetNameString(m_name + "_rev_this_R");
+    m_revolute_R->Initialize(m_shoe, m_connector_R, ChCoordsys<>(loc_R, rot));
+    system->AddLink(m_revolute_R);
 
     // Create connections between these connector bodies and the next shoe body
     if (m_index == 0) {
@@ -327,6 +327,39 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
         sph_R->Initialize(next->GetShoeBody(), m_connector_R, ChCoordsys<>(loc_R));
         system->AddLink(sph_R);
     }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeDoublePin::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_shoe);
+    bodies.push_back(m_connector_L);
+    bodies.push_back(m_connector_R);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute_L);
+    joints.push_back(m_revolute_R);
+    ChPart::ExportJointList(jsonDocument, joints);
+}
+
+void ChTrackShoeDoublePin::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_shoe);
+    bodies.push_back(m_connector_L);
+    bodies.push_back(m_connector_R);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute_L);
+    joints.push_back(m_revolute_R);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

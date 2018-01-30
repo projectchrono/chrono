@@ -45,14 +45,14 @@ class CH_VEHICLE_API TrackAssemblyDoublePin : public ChTrackAssemblyDoublePin {
     virtual const ChVector<> GetRollerLocation(int which) const override { return m_roller_locs[which]; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
-    void LoadSprocket(const std::string& filename);
-    void LoadBrake(const std::string& filename);
-    void LoadIdler(const std::string& filename);
-    void LoadSuspension(const std::string& filename, int which, bool has_shock);
-    void LoadRoller(const std::string& filename, int which);
-    void LoadTrackShoes(const std::string& filename, int num_shoes);
+    void LoadSprocket(const std::string& filename, int output);
+    void LoadBrake(const std::string& filename, int output);
+    void LoadIdler(const std::string& filename, int output);
+    void LoadSuspension(const std::string& filename, int which, bool has_shock, int output);
+    void LoadRoller(const std::string& filename, int which, int output);
+    void LoadTrackShoes(const std::string& filename, int num_shoes, int output);
 
   private:
     int m_num_susp;

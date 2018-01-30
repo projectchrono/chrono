@@ -44,9 +44,12 @@ namespace vehicle {
 class CH_VEHICLE_API ChSimpleMapPowertrain : public ChPowertrain {
   public:
     // Construct the powertrain model, by default with an automatic transmission.
-    ChSimpleMapPowertrain();
+    ChSimpleMapPowertrain(const std::string& name);
 
     virtual ~ChSimpleMapPowertrain() {}
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "SimpleMapPowertrain"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motor_speed; }

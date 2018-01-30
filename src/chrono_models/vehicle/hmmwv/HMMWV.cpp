@@ -95,17 +95,17 @@ void HMMWV::Initialize() {
     // Create and initialize the powertrain system
     switch (m_powertrainType) {
         case PowertrainModelType::SHAFTS: {
-            HMMWV_Powertrain* ptrain = new HMMWV_Powertrain;
+            HMMWV_Powertrain* ptrain = new HMMWV_Powertrain("Powertrain");
             m_powertrain = ptrain;
             break;
         }
         case PowertrainModelType::SIMPLE_MAP: {
-            HMMWV_SimpleMapPowertrain* ptrain = new HMMWV_SimpleMapPowertrain;
+            HMMWV_SimpleMapPowertrain* ptrain = new HMMWV_SimpleMapPowertrain("Powertrain");
             m_powertrain = ptrain;
             break;
         }
         case PowertrainModelType::SIMPLE: {
-            HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain;
+            HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain("Powertrain");
             m_powertrain = ptrain;
             break;
         }

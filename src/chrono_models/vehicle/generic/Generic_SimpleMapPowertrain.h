@@ -40,7 +40,7 @@ namespace generic {
 /// from ChPowertrain.
 class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
   public:
-    Generic_SimpleMapPowertrain();
+    Generic_SimpleMapPowertrain(const std::string& name);
 
     ~Generic_SimpleMapPowertrain() {}
 

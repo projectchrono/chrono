@@ -49,12 +49,8 @@ AntirollBarRSD::AntirollBarRSD(const rapidjson::Document& d) : ChAntirollBarRSD(
 }
 
 void AntirollBarRSD::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read arm data
     m_arm_mass = d["Arm"]["Mass"].GetDouble();

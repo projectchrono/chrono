@@ -56,7 +56,7 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_radius;
     int m_numDiscs;

@@ -28,7 +28,7 @@ namespace hmmwv {
 
 const double rpm2rads = CH_C_PI / 30;
 
-HMMWV_SimpleMapPowertrain::HMMWV_SimpleMapPowertrain() : ChSimpleMapPowertrain() {}
+HMMWV_SimpleMapPowertrain::HMMWV_SimpleMapPowertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
 
 double HMMWV_SimpleMapPowertrain::GetMaxEngineSpeed() {
     return 2700 * rpm2rads;

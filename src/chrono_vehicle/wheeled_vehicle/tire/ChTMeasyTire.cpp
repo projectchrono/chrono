@@ -46,6 +46,8 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
+    
+    m_TMeasyCoeff.pn = 0.0;
 }
 
 // -----------------------------------------------------------------------------
@@ -58,6 +60,7 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     // Initialize contact patch state variables to 0;
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;
+    
 }
 
 // -----------------------------------------------------------------------------
@@ -94,7 +97,7 @@ void ChTMeasyTire::RemoveVisualizationAssets() {
 }
 
 double ChTMeasyTire::GetNormalStiffnessForce(double depth) {
-    return depth * (m_TMeasyCoeff.cz + m_TMeasyCoeff.czq * depth);
+    return m_TMeasyCoeff.cz * depth;
 }
 
 double ChTMeasyTire::GetNormalDampingForce(double depth, double velocity) {
@@ -123,7 +126,8 @@ void ChTMeasyTire::Synchronize(double time, const WheelState& wheel_state, const
 
     // Assuming the tire is a disc, check contact with terrain
     m_data.in_contact =
-        disc_terrain_contact(terrain, wheel_state.pos, disc_normal, m_unloaded_radius, m_data.frame, m_data.depth);
+        disc_terrain_contact_3d(terrain, wheel_state.pos, disc_normal, m_unloaded_radius, m_data.frame, m_data.depth);
+    UpdateVerticalStiffness();
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector<> vel = wheel_state.lin_vel;
@@ -203,12 +207,13 @@ void ChTMeasyTire::Advance(double step) {
 
     // Express alpha and gamma in degrees. Express kappa as percentage.
     // m_gamma = 90.0 - std::acos(m_states.disc_normal.z()) * CH_C_RAD_TO_DEG; from Pac89
-    m_gamma = GetCamberAngle() * CH_C_RAD_TO_DEG;
+    // calculation of gamma in disc_terrain_contact_3d() now!
+    // m_gamma = GetCamberAngle() * CH_C_RAD_TO_DEG;
     m_alpha = m_states.cp_side_slip * CH_C_RAD_TO_DEG;
     m_kappa = m_states.cp_long_slip * 100.0;
 
     // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.
-    double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit* CH_C_DEG_TO_RAD, m_gamma_limit* CH_C_DEG_TO_RAD);
+    double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).
@@ -312,8 +317,7 @@ void ChTMeasyTire::Advance(double step) {
 
     // Overturning Torque
     {
-        double c_t = m_TMeasyCoeff.cz + 2.0 * m_TMeasyCoeff.czq * m_data.depth;  // actual vertical tire stiffness
-        double cg = std::pow(m_width, 2.0) * c_t / 12.0;
+        double cg = std::pow(m_width, 2.0) * m_TMeasyCoeff.cz / 12.0;
         Mx = -cg * gamma;
     }
 
@@ -350,6 +354,85 @@ void ChTMeasyTire::Advance(double step) {
         Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
 }
 
+bool ChTMeasyTire::disc_terrain_contact_3d(
+    const ChTerrain& terrain,       ///< [in] reference to terrain system
+    const ChVector<>& disc_center,  ///< [in] global location of the disc center
+    const ChVector<>& disc_normal,  ///< [in] disc normal, expressed in the global frame
+    double disc_radius,             ///< [in] disc radius
+    ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
+    double& depth                   ///< [out] penetration depth (positive if contact occurred)
+) {
+    double dx = 0.1 * m_unloaded_radius;
+    double dy = 0.3 * m_width;
+
+    // Find terrain height below disc center. There is no contact if the disc
+    // center is below the terrain or farther away by more than its radius.
+    double hc = terrain.GetHeight(disc_center.x(), disc_center.y());
+    if (disc_center.z() <= hc || disc_center.z() >= hc + disc_radius)
+        return false;
+
+    // Find the lowest point on the disc. There is no contact if the disc is
+    // (almost) horizontal.
+    ChVector<> dir1 = Vcross(disc_normal, ChVector<>(0, 0, 1));
+    double sinTilt2 = dir1.Length2();
+
+    if (sinTilt2 < 1e-3)
+        return false;
+
+    // Contact point (lowest point on disc).
+    ChVector<> ptD = disc_center + disc_radius * Vcross(disc_normal, dir1 / sqrt(sinTilt2));
+
+    // Approximate the terrain with a plane. Define the projection of the lowest
+    // point onto this plane as the contact point on the terrain.
+    ChVector<> normal = terrain.GetNormal(ptD.x(), ptD.y());
+    ChVector<> longitudinal = Vcross(disc_normal, normal);
+    longitudinal.Normalize();
+    ChVector<> lateral = Vcross(normal, longitudinal);
+
+    // Calculate four contact points in the contact patch
+    ChVector<> ptQ1 = ptD + dx * longitudinal;
+    ptQ1.z() = terrain.GetHeight(ptQ1.x(), ptQ1.y());
+
+    ChVector<> ptQ2 = ptD - dx * longitudinal;
+    ptQ2.z() = terrain.GetHeight(ptQ2.x(), ptQ2.y());
+
+    ChVector<> ptQ3 = ptD + dy * lateral;
+    ptQ3.z() = terrain.GetHeight(ptQ3.x(), ptQ3.y());
+
+    ChVector<> ptQ4 = ptD - dy * lateral;
+    ptQ4.z() = terrain.GetHeight(ptQ4.x(), ptQ4.y());
+
+    // Calculate a smoothed road surface normal
+    ChVector<> rQ2Q1 = ptQ1 - ptQ2;
+    ChVector<> rQ4Q3 = ptQ3 - ptQ4;
+
+    ChVector<> terrain_normal = Vcross(rQ2Q1, rQ4Q3);
+    terrain_normal.Normalize();
+
+    // Find terrain height as average of four points. No contact if lowest point is above
+    // the terrain.
+    ptD = 0.25 * (ptQ1 + ptQ2 + ptQ3 + ptQ4);
+    ChVector<> d = ptD - disc_center;
+    double da = d.Length();
+
+    if (da >= m_unloaded_radius)
+        return false;
+
+    // Calculate an improved value for the camber angle, for consistency reasons in [deg]
+    m_gamma = std::asin(Vdot(disc_normal, terrain_normal)) * CH_C_RAD_TO_DEG;
+
+    ChMatrix33<> rot;
+    rot.Set_A_axis(longitudinal, lateral, terrain_normal);
+
+    contact.pos = ptD;
+    contact.rot = rot.Get_A_quaternion();
+
+    depth = m_unloaded_radius - da;
+    assert(depth > 0);
+
+    return true;
+}
+
 void ChTMeasyTire::tmxy_combined(double& f,
                                  double& fos,
                                  double s,
@@ -358,6 +441,7 @@ void ChTMeasyTire::tmxy_combined(double& f,
                                  double fm,
                                  double ss,
                                  double fs) {
+    const double kN2N = 1000.0; 
     double df0loc = 0.0;
     if (sm > 0.0) {
         df0loc = std::max(2.0 * fm / sm, df0);
@@ -398,6 +482,10 @@ void ChTMeasyTire::tmxy_combined(double& f,
         f = 0.0;
         fos = 0.0;
     }
+    
+    // scale up from kN to N
+    f   *= kN2N;
+    fos *= kN2N;
 }
 
 double ChTMeasyTire::tmy_tireoff(double sy, double nto0, double synto0, double syntoE) {
@@ -425,17 +513,39 @@ double ChTMeasyTire::tmy_tireoff(double sy, double nto0, double synto0, double s
     return nto;
 }
 
-void ChTMeasyTire::VerticalStiffnessByTable(std::vector<double>& defl, std::vector<double>& frc) {
+void ChTMeasyTire::SetVerticalStiffness(double Cz1, double Cz2) {
+	const double N2kN = 0.001;
+	
+	double cz1 = N2kN * Cz1; 
+	double cz2 = N2kN * Cz2;
+	
+	if(m_TMeasyCoeff.pn <= 0.0) {
+		std::cout << "Fatal error in TMeasyTire: nominal tire load has not been set." << std::endl;
+		exit(99);
+	}
+	
+	m_a1 = sqrt(2.0 * pow(cz1,2) - pow(cz2,2));
+	m_a2 = (pow(cz2,2) - pow(cz1,2))/(4.0 * N2kN * m_TMeasyCoeff.pn);
+}
+
+void ChTMeasyTire::SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc) {
+	// for numerical reasons we scale down the force values form N to kN
+	double const N2kN = 0.001;
     // polynomial regression of the type y = a*t + b*t^2
     // at least 3 table entries, no identical pairs, no 0,0 pair
     double sat2 = 0.0, sat3 = 0.0, sbt3, sbt4 = 0.0, syt = 0.0, syt2 = 0.0;
 
+	m_tire_test_defl.resize(defl.size());
+	m_tire_test_frc.resize(defl.size());
+	
     for (int i = 0; i < defl.size(); i++) {
+    	m_tire_test_defl[i] = defl[i]; // needed for plotting
+    	m_tire_test_frc[i]  = frc[i];
         sat2 += defl[i] * defl[i];
         sat3 += defl[i] * defl[i] * defl[i];
         sbt4 += defl[i] * defl[i] * defl[i] * defl[i];
-        syt += frc[i] * defl[i];
-        syt2 += frc[i] * defl[i] * defl[i];
+        syt  += N2kN * frc[i] * defl[i];
+        syt2 += N2kN * frc[i] * defl[i] * defl[i];
     }
     sbt3 = sat3;
 
@@ -465,11 +575,15 @@ void ChTMeasyTire::VerticalStiffnessByTable(std::vector<double>& defl, std::vect
     double a = (Aa[0][0] * Aa[1][1] - Aa[1][0] * Aa[0][1]) / dA;
     double b = (Ab[0][0] * Ab[1][1] - Ab[1][0] * Ab[0][1]) / dA;
 
-    std::cout << "Stiffness Function Fz = " << a << "*defl + " << b << "*defl^2" << std::endl;
 
-    // Change Stiffness Model
-    m_TMeasyCoeff.cz = a;
-    m_TMeasyCoeff.czq = b;
+    // set stiffness ploynomial coefficients
+    m_a1 = a;
+    m_a2 = b;
+}
+
+void ChTMeasyTire::UpdateVerticalStiffness() {
+	const double kN2N = 1000.0;
+	m_TMeasyCoeff.cz = kN2N * (m_a1 + 2.0 * m_a2 * m_data.depth);
 }
 
 double ChTMeasyTire::RampSignum(double x) {
@@ -522,7 +636,37 @@ double ChTMeasyTire::GetTireMaxLoad(unsigned int li) {
 }
 
 void ChTMeasyTire::WritePlots(const std::string& plName, const std::string& plTitle) {
-    if (m_TMeasyCoeff.mu_0 == 0.0 || m_TMeasyCoeff.cz == 0.0) {
+    double fz[5], dfx0[5], sxm[5], sxs[5], fxm[5], fxs[5];
+    double 		  dfy0[5], sym[5], sys[5], fym[5], fys[5];
+    double		  nto0[5], synto0[5], syntoE[5]; 
+    double		  len[5];
+    
+    for(int i=0; i<5; i++) {
+    	fz[i]    = 0.5 * double(i+1) * m_TMeasyCoeff.pn;
+    	
+    	dfx0[i]  = InterpQ(fz[i],m_TMeasyCoeff.dfx0_pn,m_TMeasyCoeff.dfx0_p2n);
+    	fxm[i]   = InterpQ(fz[i],m_TMeasyCoeff.fxm_pn,m_TMeasyCoeff.fxm_p2n);
+    	fxs[i]   = InterpQ(fz[i],m_TMeasyCoeff.fxs_pn,m_TMeasyCoeff.fxs_p2n);
+    	sxm[i]   = InterpL(fz[i],m_TMeasyCoeff.sxm_pn,m_TMeasyCoeff.sxm_p2n);
+    	sxs[i]   = InterpL(fz[i],m_TMeasyCoeff.sxs_pn,m_TMeasyCoeff.sxs_p2n);
+    	
+    	dfy0[i]  = InterpQ(fz[i],m_TMeasyCoeff.dfy0_pn,m_TMeasyCoeff.dfy0_p2n);
+    	fym[i]   = InterpQ(fz[i],m_TMeasyCoeff.fym_pn,m_TMeasyCoeff.fym_p2n);
+    	fys[i]   = InterpQ(fz[i],m_TMeasyCoeff.fys_pn,m_TMeasyCoeff.fys_p2n);
+    	sym[i]   = InterpL(fz[i],m_TMeasyCoeff.sym_pn,m_TMeasyCoeff.sym_p2n);
+    	sys[i]   = InterpL(fz[i],m_TMeasyCoeff.sys_pn,m_TMeasyCoeff.sys_p2n);
+    	
+    	nto0[i]  = InterpL(fz[i],m_TMeasyCoeff.nto0_pn,m_TMeasyCoeff.nto0_p2n);
+    	synto0[i] = InterpL(fz[i],m_TMeasyCoeff.synto0_pn,m_TMeasyCoeff.synto0_p2n);
+    	syntoE[i] = InterpL(fz[i],m_TMeasyCoeff.syntoE_pn,m_TMeasyCoeff.syntoE_p2n);
+
+    	double d = (-m_a1 + sqrt(m_a1*m_a1+4.0*m_a2*fz[i]/1000.0))/(2.0*m_a2);
+    	len[i] 	 = 2.0 * sqrt(m_unloaded_radius * d);
+		std::cout << "d = " << d << "   len = " << len[i] << std::endl;
+    }
+
+
+    if (m_TMeasyCoeff.mu_0 == 0.0 || m_a1 == 0.0) {
         std::cout << "Tire Object not initialised - nothing to plot!" << std::endl;
         return;
     }
@@ -531,74 +675,106 @@ void ChTMeasyTire::WritePlots(const std::string& plName, const std::string& plTi
     std::ofstream plot(plName);
     double plen1 = 2.0 * sqrt(m_unloaded_radius * m_TMeasyCoeff.pn / m_TMeasyCoeff.cz);
     double plen2 = 2.0 * sqrt(m_unloaded_radius * 2.0 * m_TMeasyCoeff.pn / m_TMeasyCoeff.cz);
-    int ndat = 201;
+    int ndat = 101;
     double step = 0.01;
-    plot << "a = " << m_TMeasyCoeff.cz << std::endl;
-    plot << "b = " << m_TMeasyCoeff.czq << std::endl;
-    plot << "f(x) = a*x+b*x*x" << std::endl;
+    plot << "a = " << m_a1 << std::endl;
+    plot << "b = " << m_a2 << std::endl;
+    plot << "f(x) = 1000.0*(a*x+b*x*x)" << std::endl;
+    if(m_tire_test_defl.size() > 2) {
+    	plot << "$TestDat << EOD" << std::endl;
+    	for(int i=0; i<m_tire_test_defl.size(); i++) {
+    		plot << m_tire_test_defl[i] << "\t" << m_tire_test_frc[i] << std::endl;
+    	}
+    	plot << "EOD" << std::endl;
+    }
     plot << "$Fx << EOD" << std::endl;
     for (int i = 0; i < ndat; i++) {
-        double sx = -1.0 + step * double(i);
-        double fx1, fx2, fos;
-        tmxy_combined(fx1, fos, std::abs(sx), m_TMeasyCoeff.dfx0_pn, m_TMeasyCoeff.sxm_pn, m_TMeasyCoeff.fxm_pn,
-                      m_TMeasyCoeff.sxs_pn, m_TMeasyCoeff.fxs_pn);
-        tmxy_combined(fx2, fos, std::abs(sx), m_TMeasyCoeff.dfx0_p2n, m_TMeasyCoeff.sxm_p2n, m_TMeasyCoeff.fxm_p2n,
-                      m_TMeasyCoeff.sxs_p2n, m_TMeasyCoeff.fxs_p2n);
-        if (sx >= 0.0) {
-            plot << sx << "\t" << fx1 << "\t" << fx2 << std::endl;
-        } else {
-            plot << sx << "\t" << -fx1 << "\t" << -fx2 << std::endl;
+        double sx = step * double(i);
+        double fx[5], fos;
+        plot << sx;
+        for(int j = 0; j<5; j++) {
+        	tmxy_combined(fx[j], fos, std::abs(sx), dfx0[j], sxm[j], fxm[j], sxs[j], fxs[j]);
+        	plot  << "\t" << fx[j];
         }
+        plot << std::endl;
     }
     plot << "EOD" << std::endl;
 
     plot << "$Fy << EOD" << std::endl;
     for (int i = 0; i < ndat; i++) {
-        double sy = -1.0 + step * double(i);
-        double fy1, fy2, fos;
-        double mz1, mz2, lev1, lev2;
-        tmxy_combined(fy1, fos, std::abs(sy), m_TMeasyCoeff.dfy0_pn, m_TMeasyCoeff.sym_pn, m_TMeasyCoeff.fym_pn,
-                      m_TMeasyCoeff.sys_pn, m_TMeasyCoeff.fys_pn);
-        tmxy_combined(fy2, fos, std::abs(sy), m_TMeasyCoeff.dfy0_p2n, m_TMeasyCoeff.sym_p2n, m_TMeasyCoeff.fym_p2n,
-                      m_TMeasyCoeff.sys_p2n, m_TMeasyCoeff.fys_p2n);
-        lev1 = tmy_tireoff(std::abs(sy), m_TMeasyCoeff.nto0_pn, m_TMeasyCoeff.synto0_pn, m_TMeasyCoeff.syntoE_pn);
-        lev2 = tmy_tireoff(std::abs(sy), m_TMeasyCoeff.nto0_p2n, m_TMeasyCoeff.synto0_p2n, m_TMeasyCoeff.syntoE_p2n);
-        if (sy >= 0.0) {
-            mz1 = -plen1 * lev1 * fy1;
-            mz2 = -plen2 * lev2 * fy2;
-            plot << sy << "\t" << fy1 << "\t" << fy2 << "\t" << mz1 << "\t" << mz2 << std::endl;
-        } else {
-            mz1 = plen1 * lev1 * fy1;
-            mz2 = plen2 * lev2 * fy2;
-            plot << sy << "\t" << -fy1 << "\t" << -fy2 << "\t" << mz1 << "\t" << mz2 << std::endl;
+        double sy = step * double(i);
+        double fy[5], fos;
+        plot << sy;
+        for(int j = 0; j<5; j++) {
+        	tmxy_combined(fy[j], fos, std::abs(sy), dfy0[j], sym[j], fym[j], sys[j], fys[j]);
+        	plot  << "\t" << fy[j];
         }
+        plot << std::endl;
+    }
+    plot << "EOD" << std::endl;
+
+    plot << "$Mz << EOD" << std::endl;
+    for (int i = 0; i < ndat; i++) {
+        double sy = step * double(i);
+        double mz[5], fy[5], fos;
+        plot << sy;
+        for(int j = 0; j<5; j++) {
+        	tmxy_combined(fy[j], fos, std::abs(sy), dfy0[j], sym[j], fym[j], sys[j], fys[j]);
+    		mz[j] = fy[j] * len[j] * tmy_tireoff(std::abs(sy), nto0[j], synto0[j], syntoE[j]);
+        	plot  << "\t" << mz[j];
+        }
+        plot << std::endl;
     }
     plot << "EOD" << std::endl;
     plot << "set title '" << titleName.c_str() << "'" << std::endl;
     plot << "set xlabel 'Vertcal Tire Deflection z []'" << std::endl;
     plot << "set ylabel 'Vertical Force Fz [N]'" << std::endl;
     plot << "set xrange [0:0.1]" << std::endl;
-    plot << "plot f(x) notitle wit lines" << std::endl;
+    if(m_tire_test_defl.size() > 2) {
+    	plot << "plot $TestDat t 'Test Data' with points, f(x) t 'Interpolation' with lines" << std::endl;
+    } else {
+    	plot << "plot $TestDat f(x) with lines" << std::endl;
+    }
     plot << "pause -1" << std::endl;
     plot << "set title '" << titleName.c_str() << "'" << std::endl;
     plot << "set xlabel 'Longitudinal Slip sx []'" << std::endl;
     plot << "set ylabel 'Longitudinal Force Fx [N]'" << std::endl;
-    plot << "set xrange [-1:1]" << std::endl;
-    plot << "plot $Fx title 'Fz = " << m_TMeasyCoeff.pn
-         << " N' with lines, $Fx u 1:3 title 'Fz = " << (2.0 * m_TMeasyCoeff.pn) << " N' with lines" << std::endl;
+    plot << "set xrange [0:1]" << std::endl;
+    plot << "plot ";
+    for(int i=0; i<5; i++) {
+    	if(i < 5-1) {
+    		plot << " $Fx u 1:" << (i+2) << " title 'Fz = " << fz[i] << " N' with lines, \\" << std::endl;
+    	} else {
+    		plot << " $Fx u 1:" << (i+2) << " title 'Fz = " << fz[i] << " N' with lines" << std::endl;
+    	}
+    }
     plot << "pause -1" << std::endl;
     plot << "set title '" << titleName.c_str() << "'" << std::endl;
     plot << "set xlabel 'Lateral Slip sy []'" << std::endl;
     plot << "set ylabel 'Lateral Force Fy [N]'" << std::endl;
-    plot << "plot $Fy title 'Fz = " << m_TMeasyCoeff.pn
-         << " N' with lines, $Fy u 1:3 title 'Fz = " << (2.0 * m_TMeasyCoeff.pn) << " N' with lines" << std::endl;
+    plot << "plot ";
+    for(int i=0; i<5; i++) {
+    	if(i < 5-1) {
+    		plot << " $Fy u 1:" << (i+2) << " title 'Fz = " << fz[i] << " N' with lines, \\" << std::endl;
+    	} else {
+    		plot << " $Fy u 1:" << (i+2) << " title 'Fz = " << fz[i] << " N' with lines" << std::endl;
+    	}
+    }
     plot << "pause -1" << std::endl;
+    
     plot << "set title '" << titleName.c_str() << "'" << std::endl;
     plot << "set xlabel 'Lateral Slip sy []'" << std::endl;
     plot << "set ylabel 'Self Aligning Torque Mz [Nm]'" << std::endl;
-    plot << "plot $Fy u 1:4 title 'Fz = " << m_TMeasyCoeff.pn
-         << " N' with lines, $Fy u 1:5 title 'Fz = " << (2.0 * m_TMeasyCoeff.pn) << " N' with lines" << std::endl;
+    plot << "plot ";
+    for(int i=0; i<5; i++) {
+    	if(i < 5-1) {
+    		plot << " $Mz u 1:" << (i+2) << " title 'Fz = " << fz[i] << " N' with lines, \\" << std::endl;
+    	} else {
+    		plot << " $Mz u 1:" << (i+2) << " title 'Fz = " << fz[i] << " N' with lines" << std::endl;
+    	}
+    }
     plot << "pause -1" << std::endl;
+    
     plot.close();
 }
 
@@ -610,43 +786,58 @@ void ChTMeasyTire::GuessTruck80Par(unsigned int li,   // tire load index
                                    double pinfl_li,   // inflation pressure at load index
                                    double pinfl_use   // inflation pressure in this configuration
 ) {
+    double tireLoad = GetTireMaxLoad(li);
+    GuessTruck80Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use);
+}
+
+// No Data available? Try this to get a working truck tire
+void ChTMeasyTire::GuessTruck80Par(double tireLoad,   // tire load force [N]
+                                   double tireWidth,  // [m]
+                                   double ratio,      // [] = use 0.75 meaning 75%
+                                   double rimDia,     // rim diameter [m]
+                                   double pinfl_li,   // inflation pressure at load index
+                                   double pinfl_use   // inflation pressure in this configuration
+) {
+	const double N2kN = 0.001;
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
     double xi = 0.05;                  // damping ration
 
+    m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+
+	double CZ = m_TMeasyCoeff.pn / defl_max;
+	double DZ = xi * sqrt(CZ * GetMass());
+	
+	SetVerticalStiffness(CZ);
+	
     m_width = tireWidth;
     m_unloaded_radius = secth + rimDia / 2.0;
     m_rolling_resistance = 0.015;
     m_TMeasyCoeff.mu_0 = 0.8;
 
-    m_TMeasyCoeff.pn = 0.5 * GetTireMaxLoad(li) * pow(pinfl_use / pinfl_li, 0.8);
-    m_TMeasyCoeff.cz = 2.0 * m_TMeasyCoeff.pn / defl_max;
-    m_TMeasyCoeff.czq = 0.0;  // linear function assumed
-    m_TMeasyCoeff.dz = 2.0 * xi * sqrt(m_TMeasyCoeff.cz * GetMass());
-
-    m_TMeasyCoeff.dfx0_pn = 17.6866 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.dfx0_pn = 17.6866 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sxm_pn = 0.12;
-    m_TMeasyCoeff.fxm_pn = 0.88468 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fxm_pn = 0.88468 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sxs_pn = 0.9;
-    m_TMeasyCoeff.fxs_pn = 0.54397 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fxs_pn = 0.54397 * m_TMeasyCoeff.pn * N2kN;
 
-    m_TMeasyCoeff.dfx0_p2n = 13.8046 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.dfx0_p2n = 13.8046 * 2.0 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sxm_p2n = 0.15;
-    m_TMeasyCoeff.fxm_p2n = 0.7479 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fxm_p2n = 0.7479 * 2.0 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sxs_p2n = 0.95;
-    m_TMeasyCoeff.fxs_p2n = 0.50365 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fxs_p2n = 0.50365 * 2.0 * m_TMeasyCoeff.pn * N2kN;
 
-    m_TMeasyCoeff.dfy0_pn = 5.948 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.dfy0_pn = 5.948 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sym_pn = 0.38786;
-    m_TMeasyCoeff.fym_pn = 0.77253 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fym_pn = 0.77253 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sys_pn = 0.82534;
-    m_TMeasyCoeff.fys_pn = 0.71139 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fys_pn = 0.71139 * m_TMeasyCoeff.pn * N2kN;
 
-    m_TMeasyCoeff.dfy0_p2n = 5.506 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.dfy0_p2n = 5.506 * 2.0 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sym_p2n = 0.38786;
-    m_TMeasyCoeff.fym_p2n = 0.73048 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fym_p2n = 0.73048 * 2.0 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sys_p2n = 0.91309;
-    m_TMeasyCoeff.fys_p2n = 0.66823 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fys_p2n = 0.66823 * 2.0 * m_TMeasyCoeff.pn * N2kN;
 
     m_TMeasyCoeff.nto0_pn = 0.178;
     m_TMeasyCoeff.synto0_pn = 0.40726;
@@ -664,43 +855,57 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,   // tire load index
                                      double pinfl_li,   // inflation pressure at load index
                                      double pinfl_use   // inflation pressure in this configuration
 ) {
+    double tireLoad = GetTireMaxLoad(li);
+    GuessPassCar70Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use);
+}
+
+void ChTMeasyTire::GuessPassCar70Par(double tireLoad,   // tire load force [N]
+                                     double tireWidth,  // [m]
+                                     double ratio,      // [] = use 0.75 meaning 75%
+                                     double rimDia,     // rim diameter [m]
+                                     double pinfl_li,   // inflation pressure at load index
+                                     double pinfl_use   // inflation pressure in this configuration
+) {
+	const double N2kN = 0.001;
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
     double xi = 0.05;                  // damping ration
+
+    m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
 
     m_width = tireWidth;
     m_unloaded_radius = secth + rimDia / 2.0;
     m_rolling_resistance = 0.015;
     m_TMeasyCoeff.mu_0 = 0.8;
 
-    m_TMeasyCoeff.pn = 0.5 * GetTireMaxLoad(li) * pow(pinfl_use / pinfl_li, 0.8);
-    m_TMeasyCoeff.cz = 2.0 * m_TMeasyCoeff.pn / defl_max;
-    m_TMeasyCoeff.czq = 0.0;  // linear function assumed
-    m_TMeasyCoeff.dz = 2.0 * xi * sqrt(m_TMeasyCoeff.cz * GetMass());
+	double CZ = m_TMeasyCoeff.pn / defl_max;
+	double DZ = xi * sqrt(CZ * GetMass());
+	
+	SetVerticalStiffness(CZ);
 
-    m_TMeasyCoeff.dfx0_pn = 18.6758 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.dfx0_pn = 18.6758 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sxm_pn = 0.17;
-    m_TMeasyCoeff.fxm_pn = 1.1205 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fxm_pn = 1.1205 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sxs_pn = 0.9;
-    m_TMeasyCoeff.fxs_pn = 0.8766 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fxs_pn = 0.8766 * m_TMeasyCoeff.pn * N2kN;
 
-    m_TMeasyCoeff.dfx0_p2n = 20.1757 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.dfx0_p2n = 20.1757 * 2.0 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sxm_p2n = 0.15;
-    m_TMeasyCoeff.fxm_p2n = 1.072 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fxm_p2n = 1.072 * 2.0 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sxs_p2n = 0.95;
-    m_TMeasyCoeff.fxs_p2n = 0.8245 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fxs_p2n = 0.8245 * 2.0 * m_TMeasyCoeff.pn * N2kN;
 
-    m_TMeasyCoeff.dfy0_pn = 14.9858 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.dfy0_pn = 14.9858 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sym_pn = 0.18197;
-    m_TMeasyCoeff.fym_pn = 1.0084 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fym_pn = 1.0084 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sys_pn = 0.82534;
-    m_TMeasyCoeff.fys_pn = 0.83941 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fys_pn = 0.83941 * m_TMeasyCoeff.pn * N2kN;
 
-    m_TMeasyCoeff.dfy0_p2n = 10.0505 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.dfy0_p2n = 10.0505 * 2.0 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sym_p2n = 0.24472;
-    m_TMeasyCoeff.fym_p2n = 0.90003 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fym_p2n = 0.90003 * 2.0 * m_TMeasyCoeff.pn * N2kN;
     m_TMeasyCoeff.sys_p2n = 0.91309;
-    m_TMeasyCoeff.fys_p2n = 0.76782 * 2.0 * m_TMeasyCoeff.pn;
+    m_TMeasyCoeff.fys_p2n = 0.76782 * 2.0 * m_TMeasyCoeff.pn * N2kN;
 
     m_TMeasyCoeff.nto0_pn = 0.178;
     m_TMeasyCoeff.synto0_pn = 0.19107;
@@ -709,6 +914,116 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,   // tire load index
     m_TMeasyCoeff.nto0_p2n = 0.19;
     m_TMeasyCoeff.synto0_p2n = 0.25695;
     m_TMeasyCoeff.syntoE_p2n = 0.91309;
+}
+
+// Do some rough constency checks
+bool ChTMeasyTire::CheckParameters() {
+	bool isOk = false;
+	
+	// Nominal Load set?
+	if(m_TMeasyCoeff.pn < GetTireMaxLoad(0)) {
+		std::cout << "TMeasyCheckParameters(): Tire Nominal Load Problem!" << std::endl;
+		return isOk;
+	}
+	
+	// Stiffness parameters, spring
+	if(m_a1 <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): Tire Vertical Stiffness Problem!" << std::endl;
+		return isOk;
+	}
+	
+	// Stiffness parameters, spring
+	if(m_TMeasyCoeff.mu_0 <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): Friction Coefficien Mu_0 unset!" << std::endl;
+		return isOk;
+	}
+
+	if(m_TMeasyCoeff.dz <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): Tire Vertical Damping Problem!" << std::endl;
+		return isOk;
+	}
+	
+	// Stiffness sx
+	if(m_TMeasyCoeff.dfx0_pn <= 0.0 
+		|| m_TMeasyCoeff.dfx0_pn < (2.0*m_TMeasyCoeff.fxm_pn/m_TMeasyCoeff.sxm_pn)) {
+		std::cout << "TMeasyCheckParameters(): fx(sx) slope at sx=0 too low, load level 1!" << std::endl;
+		std::cout << m_TMeasyCoeff.dfx0_pn << " < " << (2.0*m_TMeasyCoeff.fxm_pn/m_TMeasyCoeff.sxm_pn) << std::endl;
+		return isOk;
+	}
+	if(m_TMeasyCoeff.dfx0_p2n <= 0.0 
+		|| m_TMeasyCoeff.dfx0_p2n < (2.0*m_TMeasyCoeff.fxm_p2n/m_TMeasyCoeff.sxm_p2n)) {
+		std::cout << "TMeasyCheckParameters(): fx(sx) slope at sx=0 too low, load level 2!" << std::endl;
+		return isOk;
+	}
+	
+	// Stiffness sy
+	if(m_TMeasyCoeff.dfy0_pn <= 0.0 
+		|| m_TMeasyCoeff.dfy0_pn < (2.0*m_TMeasyCoeff.fym_pn/m_TMeasyCoeff.sym_pn)) {
+		std::cout << "TMeasyCheckParameters(): fy(sy) slope at sy=0 too low, load level 1!" << std::endl;
+		return isOk;
+	}
+	if(m_TMeasyCoeff.dfy0_p2n <= 0.0 
+		|| m_TMeasyCoeff.dfy0_p2n < (2.0*m_TMeasyCoeff.fym_p2n/m_TMeasyCoeff.sym_p2n)) {
+		std::cout << "TMeasyCheckParameters(): fy(sy) slope at sy=0 too low, load level 2!" << std::endl;
+		return isOk;
+	}
+	
+	// Check single curve parameters
+	if(m_TMeasyCoeff.sxm_pn <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): sxm load level 1 not set!" << std::endl;
+		return isOk;
+	}
+	if(m_TMeasyCoeff.sxm_p2n <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): sxm load level 2 not set!" << std::endl;
+		return isOk;
+	}
+	if(m_TMeasyCoeff.fxm_pn <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): fxm load level 1 not set!" << std::endl;
+		return isOk;
+	}
+	if(m_TMeasyCoeff.fxm_p2n <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): fxm load level 2 not set!" << std::endl;
+		return isOk;
+	}
+
+	if(m_TMeasyCoeff.sym_pn <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): sym load level 1 not set!" << std::endl;
+		return isOk;
+	}
+	if(m_TMeasyCoeff.sym_p2n <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): sym load level 2 not set!" << std::endl;
+		return isOk;
+	}
+	if(m_TMeasyCoeff.fym_pn <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): fym load level 1 not set!" << std::endl;
+		return isOk;
+	}
+	if(m_TMeasyCoeff.fym_p2n <= 0.0) {
+		std::cout << "TMeasyCheckParameters(): fym load level 2 not set!" << std::endl;
+		return isOk;
+	}
+
+	if(m_TMeasyCoeff.sxm_pn >= m_TMeasyCoeff.sxs_pn) {
+		std::cout << "TMeasyCheckParameters(): sxm >= sxs load level 1!" << std::endl;
+		return isOk;
+	} 
+	if(m_TMeasyCoeff.sxm_p2n >= m_TMeasyCoeff.sxs_p2n) {
+		std::cout << "TMeasyCheckParameters(): sxm >= sxs load level 2!" << std::endl;
+		return isOk;
+	} 
+
+	if(m_TMeasyCoeff.sym_pn >= m_TMeasyCoeff.sys_pn) {
+		std::cout << "TMeasyCheckParameters(): sym >= sys load level 1!" << std::endl;
+		return isOk;
+	} 
+	if(m_TMeasyCoeff.sym_p2n >= m_TMeasyCoeff.sys_p2n) {
+		std::cout << "TMeasyCheckParameters(): sym >= sys load level 2!" << std::endl;
+		return isOk;
+	} 
+	
+	isOk = true;
+	
+	return isOk;
 }
 
 }  // end namespace vehicle

@@ -1,0 +1,67 @@
+* Emacs major mode to be selected automagically: -*-CASCaDE-*-
+* $Id: handmade_curved_minimalist.crg 21 2009-06-23 15:03:13Z jorauh $
+$CT
+CRG file example for road surface description (width: 3m, length: 22m)
+with curved reference line and grid of (0.25m...1.0m) x 1.0m.
+
+A minimalist file can have an empty $CT, a minimalist $ROAD_CRG block,
+and no comments marked by asterisk "*" in column 1 or marked by "!" in
+other columns. So this file is completely equivalent to its commented
+version in handmade_curved.crg .
+
+Copyright 2005-2009 OpenCRG - Daimler AG - Jochen Rauh
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+More Information on OpenCRG open file formats and tools can be found at
+
+    http://www.opencrg.org
+$
+$ROAD_CRG
+REFERENCE_LINE_INCREMENT = 1.0
+$
+$KD_Definition
+#:LRFI
+D:reference line phi,rad
+D:long section at v = -1.500,m
+D:long section at v = -1.250,m
+D:long section at v = -1.000,m
+D:long section at v =  0.000,m
+D:long section at v =  1.000,m
+D:long section at v =  1.250,m
+D:long section at v =  1.500,m
+$
+$$$$
+**unused** 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0000000
+ 0.0110000 0.0000000 0.0000000 0.0111111 0.0111111 0.0111111 0.0000000 0.0000000
+ 0.0220000 0.0000000 0.0111111 0.0111111 0.0111111 0.0111111 0.0111111 0.0000000
+ 0.0330000 0.0000000 0.0000000 0.0111111 0.0111111 0.0111111 0.0000000 0.0000000
+ 0.0440000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0111111
+ 0.0550000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000 0.0111111 0.0222222
+ 0.0660000 0.0111111 0.0111111 0.0111111 0.0000000 0.0111111 0.0222222 0.0333333
+ 0.0770000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000 0.0111111 0.0222222
+ 0.0880000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0111111
+ 0.0990000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.1100000 0.0000000 0.0111111 0.0222222 0.0222222 0.0222222 0.0111111 0.0000000
+ 0.1100000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0990000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000-0.0111111
+ 0.0880000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000-0.0111111-0.0222222
+ 0.0770000 0.0111111 0.0111111 0.0111111 0.0000000-0.0111111-0.0222222-0.0333333
+ 0.0660000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000-0.0111111-0.0222222
+ 0.0550000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000-0.0111111
+ 0.0440000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0330000 0.0000000 0.0111111 0.0222222 0.0333333 0.0222222 0.0111111 0.0000000
+ 0.0220000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0110000 0.0000000 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000

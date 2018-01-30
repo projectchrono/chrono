@@ -58,7 +58,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
   private:
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
 
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     ChVector<> m_points[NUM_POINTS];
 

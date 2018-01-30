@@ -33,7 +33,7 @@ namespace m113 {
 /// Simple M113 brake subsystem (torque applied directly to the spindle joint).
 class CH_MODELS_API M113_BrakeSimple : public ChTrackBrakeSimple {
   public:
-    M113_BrakeSimple() : ChTrackBrakeSimple("M113_Brake") {}
+    M113_BrakeSimple(const std::string& name) : ChTrackBrakeSimple(name) {}
     ~M113_BrakeSimple() {}
 
     virtual double GetMaxBrakingTorque() override { return 10000.0; }

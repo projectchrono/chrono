@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     ////AddMovingObstacles(vehicle.GetSystem());
 
     // Create the powertrain system
-    M113_SimplePowertrain powertrain;
+    M113_SimplePowertrain powertrain("Powertrain");
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the vehicle Irrlicht application

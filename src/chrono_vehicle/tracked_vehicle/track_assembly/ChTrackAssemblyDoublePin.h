@@ -51,6 +51,9 @@ class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssembly {
 
     virtual ~ChTrackAssemblyDoublePin() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "TrackAssemblyDoublePin"; }
+
     /// Get the number of track shoes.
     virtual size_t GetNumTrackShoes() const override { return m_shoes.size(); }
 

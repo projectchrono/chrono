@@ -28,6 +28,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -135,17 +137,26 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     if (povray_output) {
-        // Create output directories (if not already present)
-        if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return 1;
-        }
         if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
     }
+
+    // Set up vehicle output
+    my_hmmwv.GetVehicle().SetChassisOutput(true);
+    my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
+    my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
+    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
+    // Generate JSON information with available output channels
+    my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ---------------
     // Simulation loop

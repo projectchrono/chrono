@@ -54,7 +54,7 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_normalStiffness;
     double m_normalDamping;

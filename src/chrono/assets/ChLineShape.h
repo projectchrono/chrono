@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #ifndef CHLINESHAPE_H
@@ -25,68 +25,33 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChLineShape : public ChVisualization {
-
-  protected:
-    //
-    // DATA
-    //
-    std::shared_ptr<geometry::ChLine> gline;
-    std::string name;
-
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChLineShape();
+    ChLineShape(std::shared_ptr<geometry::ChLine>& mline);
+    virtual ~ChLineShape() {}
 
-    ChLineShape() {
-        // default path
-        gline = std::make_shared<geometry::ChLineSegment>();
-    };
-
-    ChLineShape(std::shared_ptr<geometry::ChLine>& mline) : gline(mline){};
-
-    virtual ~ChLineShape(){};
-
-    //
-    // FUNCTIONS
-    //
-
-    // Access the line geometry
+    /// Access the line geometry.
     std::shared_ptr<geometry::ChLine> GetLineGeometry() { return gline; }
 
-    // Set the line geometry
+    /// Set the line geometry.
     void SetLineGeometry(std::shared_ptr<geometry::ChLine> mline) { gline = mline; }
 
     const std::string& GetName() const { return name; }
     void SetName(const std::string& mname) { name = mname; }
 
-    //
-    // SERIALIZATION
-    //
+    unsigned int GetNumRenderPoints() const { return npoints; }
+    void SetNumRenderPoints(unsigned int n) { npoints = n; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChLineShape>();
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(gline);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChLineShape>();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(gline);
-    }
+  protected:
+    std::shared_ptr<geometry::ChLine> gline;  ///< underlying line geometry
+    std::string name;                         ///< asset name
+    unsigned int npoints;                     ///< number of points evaluated when rendering
 };
 
-CH_CLASS_VERSION(ChLineShape,0)
+CH_CLASS_VERSION(ChLineShape, 0)
 
 }  // end namespace chrono
 

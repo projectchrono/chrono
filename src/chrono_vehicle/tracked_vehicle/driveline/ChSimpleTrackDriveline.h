@@ -36,7 +36,11 @@ namespace vehicle {
 class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
   public:
     ChSimpleTrackDriveline(const std::string& name);
+
     virtual ~ChSimpleTrackDriveline() {}
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "SimpleTrackDriveline"; }
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the sprockets of the

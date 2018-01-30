@@ -75,7 +75,7 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_shoe_mass;
     ChVector<> m_shoe_inertia;

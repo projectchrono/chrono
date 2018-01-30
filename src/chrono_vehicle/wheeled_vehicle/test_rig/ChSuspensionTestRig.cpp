@@ -52,6 +52,8 @@
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 using namespace rapidjson;
 
@@ -615,6 +617,61 @@ void ChSuspensionTestRig::LogConstraintViolations() {
     }
 
     GetLog().SetNumFormat("%g");
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+std::string ChSuspensionTestRig::ExportComponentList() const {
+    rapidjson::Document jsonDocument;
+    jsonDocument.SetObject();
+
+    std::string template_name = GetTemplateName();
+    jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
+    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
+                           jsonDocument.GetAllocator());
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_chassis->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("chassis", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_suspension->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("suspension", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    if (HasSteering()) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_steering->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("steering", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    if (HasAntirollbar()) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_antirollbar->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("anti-roll bar", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    rapidjson::StringBuffer jsonBuffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonWriter(jsonBuffer);
+    jsonDocument.Accept(jsonWriter);
+
+    return jsonBuffer.GetString();
+}
+
+void ChSuspensionTestRig::ExportComponentList(const std::string& filename) const {
+    std::ofstream of(filename);
+    of << ExportComponentList();
+}
+
+void ChSuspensionTestRig::Output(int frame, ChVehicleOutput& database) const {
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------

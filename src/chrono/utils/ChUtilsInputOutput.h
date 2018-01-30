@@ -115,6 +115,13 @@ inline CSV_writer& operator<<(CSV_writer& out, const ChColor& c) {
   return out;
 }
 
+template <typename T>
+inline CSV_writer& operator<<(CSV_writer& out, const std::vector<T>& vec) {
+    for (const auto& v : vec)
+        out << v;
+    return out;
+}
+
 // -----------------------------------------------------------------------------
 // Free function declarations
 // -----------------------------------------------------------------------------

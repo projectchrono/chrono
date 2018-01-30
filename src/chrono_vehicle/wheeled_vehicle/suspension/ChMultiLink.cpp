@@ -604,6 +604,104 @@ void ChMultiLink::AddVisualizationTrailingLink(std::shared_ptr<ChBody> link,
     col->SetColor(ChColor(0.2f, 0.6f, 0.6f));
     link->AddAsset(col);
 }
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChMultiLink::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_upright[0]);
+    bodies.push_back(m_upright[1]);
+    bodies.push_back(m_upperArm[0]);
+    bodies.push_back(m_upperArm[1]);
+    bodies.push_back(m_lateral[0]);
+    bodies.push_back(m_lateral[1]);
+    bodies.push_back(m_trailingLink[0]);
+    bodies.push_back(m_trailingLink[1]);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    ChPart::ExportShaftList(jsonDocument, shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_revoluteUA[0]);
+    joints.push_back(m_revoluteUA[1]);
+    joints.push_back(m_sphericalUA[0]);
+    joints.push_back(m_sphericalUA[1]);
+    joints.push_back(m_universalLateralChassis[0]);
+    joints.push_back(m_universalLateralChassis[1]);
+    joints.push_back(m_sphericalLateralUpright[0]);
+    joints.push_back(m_sphericalLateralUpright[1]);
+    joints.push_back(m_universalTLChassis[0]);
+    joints.push_back(m_universalTLChassis[1]);
+    joints.push_back(m_sphericalTLUpright[0]);
+    joints.push_back(m_sphericalTLUpright[1]);
+    joints.push_back(m_distTierod[0]);
+    joints.push_back(m_distTierod[1]);
+    ChPart::ExportJointList(jsonDocument, joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_spring[0]);
+    springs.push_back(m_spring[1]);
+    springs.push_back(m_shock[0]);
+    springs.push_back(m_shock[1]);
+    ChPart::ExportLinSpringList(jsonDocument, springs);
+}
+
+void ChMultiLink::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_upright[0]);
+    bodies.push_back(m_upright[1]);
+    bodies.push_back(m_upperArm[0]);
+    bodies.push_back(m_upperArm[1]);
+    bodies.push_back(m_lateral[0]);
+    bodies.push_back(m_lateral[1]);
+    bodies.push_back(m_trailingLink[0]);
+    bodies.push_back(m_trailingLink[1]);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    database.WriteShafts(shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_revoluteUA[0]);
+    joints.push_back(m_revoluteUA[1]);
+    joints.push_back(m_sphericalUA[0]);
+    joints.push_back(m_sphericalUA[1]);
+    joints.push_back(m_universalLateralChassis[0]);
+    joints.push_back(m_universalLateralChassis[1]);
+    joints.push_back(m_sphericalLateralUpright[0]);
+    joints.push_back(m_sphericalLateralUpright[1]);
+    joints.push_back(m_universalTLChassis[0]);
+    joints.push_back(m_universalTLChassis[1]);
+    joints.push_back(m_sphericalTLUpright[0]);
+    joints.push_back(m_sphericalTLUpright[1]);
+    joints.push_back(m_distTierod[0]);
+    joints.push_back(m_distTierod[1]);
+    database.WriteJoints(joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_spring[0]);
+    springs.push_back(m_spring[1]);
+    springs.push_back(m_shock[0]);
+    springs.push_back(m_shock[1]);
+    database.WriteLinSprings(springs);
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

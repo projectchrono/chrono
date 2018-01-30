@@ -62,7 +62,7 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     ChLinkSpringCB::ForceFunctor* m_springForceCB;
     ChLinkSpringCB::ForceFunctor* m_shockForceCB;

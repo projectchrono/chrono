@@ -30,7 +30,7 @@ namespace vehicle {
 /// @addtogroup vehicle
 /// @{
 
-/// Vehicle rigid chassis model constructed with data from file(JSON format).
+/// Vehicle rigid chassis model constructed with data from file (JSON format).
 class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
   public:
     RigidChassis(const std::string& filename);
@@ -51,7 +51,7 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_mass;           ///< chassis mass
     ChMatrix33<> m_inertia;  ///< chassis inertia tensor, w.r.t. centroidal frame

@@ -42,7 +42,7 @@ class CH_VEHICLE_API SimpleDriveline : public ChSimpleDriveline {
     virtual double GetRearDifferentialMaxBias() const override { return m_rear_diff_bias; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_front_torque_frac;
     double m_front_diff_bias;

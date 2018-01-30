@@ -24,6 +24,7 @@
 #include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChPart.h"
 
 namespace chrono {
 namespace vehicle {
@@ -32,7 +33,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a powertrain system.
-class CH_VEHICLE_API ChPowertrain {
+class CH_VEHICLE_API ChPowertrain : public ChPart {
   public:
     /// Driving modes.
     enum DriveMode {
@@ -41,7 +42,7 @@ class CH_VEHICLE_API ChPowertrain {
         REVERSE   ///< vehicle moving backward
     };
 
-    ChPowertrain();
+    ChPowertrain(const std::string& name);
 
     virtual ~ChPowertrain() {}
 

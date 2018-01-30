@@ -34,7 +34,7 @@ namespace m113 {
 /// Shafts-based powertrain model for the M113 vehicle.
 class CH_MODELS_API M113_ShaftsPowertrain : public ChShaftsPowertrain {
   public:
-    M113_ShaftsPowertrain();
+    M113_ShaftsPowertrain(const std::string& name);
 
     ~M113_ShaftsPowertrain() {}
 

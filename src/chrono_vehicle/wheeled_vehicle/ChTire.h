@@ -127,6 +127,9 @@ class CH_VEHICLE_API ChTire : public ChPart {
                                       double t_factor = 2   ///< tread to sidewall thickness factor
     );
 
+	/// Report the tire deflection 
+	virtual double GetDeflection() const { return 0; }
+	
   protected:
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified

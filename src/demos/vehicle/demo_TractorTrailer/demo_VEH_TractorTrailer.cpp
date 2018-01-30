@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create and initialize the powertrain system
-    Generic_SimplePowertrain powertrain;
+    Generic_SimplePowertrain powertrain("Powertrain");
 
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 

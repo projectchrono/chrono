@@ -41,7 +41,7 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
 
     /// Class to be used as a functor interface for calculating the general spring-damper force.
     /// A derived class must implement the virtual operator().
-    class ForceFunctor {
+    class ChApi ForceFunctor {
       public:
         virtual ~ForceFunctor() {}
 

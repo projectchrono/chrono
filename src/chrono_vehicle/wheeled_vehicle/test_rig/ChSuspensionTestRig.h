@@ -76,6 +76,9 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Destructor
     ~ChSuspensionTestRig() {}
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "SuspensionTestRig"; }
+
     /// Set the limits for post displacement.
     /// Each post will move between [-val, +val].
     void SetDisplacementLimit(double val) { m_displ_limit = val; }
@@ -180,6 +183,14 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const override;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const override;
+
   private:
     /// Definition of a terrain object for use by a suspension test rig.
     class Terrain : public ChTerrain {
@@ -191,6 +202,9 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
         double m_height_L;
         double m_height_R;
     };
+
+    /// Output data for all modeling components in the vehicle system.
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
 
     /// Utility functions to load subsystems from JSON files.
     void LoadSteering(const std::string& filename);
