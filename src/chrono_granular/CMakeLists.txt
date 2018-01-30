@@ -185,6 +185,7 @@ SOURCE_GROUP(physics FILES ${ChronoEngine_Granular_PHYSICS})
 
 SET(ChronoEngine_Granular_CUDA
     physics/ChGranularGPU_SMC.cu
+	utils/ChGranularUtilities_CUDA.cuh
     )
 
 SOURCE_GROUP(cuda FILES ${ChronoEngine_Granular_CUDA})

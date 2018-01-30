@@ -46,16 +46,11 @@ int main(int argc, char* argv[]) {
     double time_end = 6.;
     std::string output_prefix = "settling_MONODISP_SPHERES_SMC";
 
-
-
-    // Material properties 
-    float Y = 2e5f;
-    float wallY = 1e7f;
-
-    ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC experiment(1.f, 80000);
+    ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC experiment(1.f, 80000);
     experiment.setBOXdims(20.f, 20.f, 30.f);
     experiment.YoungModulus_SPH2SPH (  200000.f);
     experiment.YoungModulus_SPH2WALL(10000000.f);
     experiment.settle(10.f);
+
     return 0;
 }

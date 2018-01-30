@@ -11,10 +11,10 @@
 // =============================================================================
 // Authors: Dan Negrut
 // =============================================================================
+#pragma once
+
 #include <cstddef>
 #include "../ChApiGranular.h"
-
-#pragma once
 
 /**
  * Discrete Elment info
@@ -34,24 +34,23 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     float* pGRN_xyz_DE;
     float* pGRN_xyzDOT_DE;
 
-    float slide_mu_kin;
-    float slide_mu_dyn;
+    float* p_device_GRN_xyz_DE;
+    float* p_device_GRN_xyzDOT_DE;
+
     GRN_TIME_STEPPING time_stepping;
 
   public:
     ChGRN_DE_Container()
-        : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), pGRN_xyz_DE(nullptr), pGRN_xyzDOT_DE(nullptr) {}
-    ~ChGRN_DE_Container() {
-        if (pGRN_xyz_DE != nullptr)
-            delete[] pGRN_xyz_DE;
-        if (pGRN_xyzDOT_DE != nullptr)
-            delete[] pGRN_xyzDOT_DE;
-    }
+        : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), pGRN_xyz_DE(nullptr), pGRN_xyzDOT_DE(nullptr), p_device_GRN_xyz_DE(nullptr), p_device_GRN_xyzDOT_DE(nullptr) {}
+
+    ~ChGRN_DE_Container();
 
     void setup(const size_t& nElems) {
-        nDEs = nElems;
-        pGRN_xyz_DE = new float[nDEs * 3 * sizeof(float)];
-        pGRN_xyzDOT_DE = new float[nDEs * 3 * sizeof(float)];
+        if (nElems) {
+            nDEs = nElems;
+            pGRN_xyz_DE = new float[nDEs * 3 * sizeof(float)];
+            pGRN_xyzDOT_DE = new float[nDEs * 3 * sizeof(float)];
+        }
     }
 
     inline size_t elementCount() const { return nDEs; }
@@ -76,31 +75,39 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
                                           //!< 1000 units
     unsigned int PRECISION_FACTOR_TIME;   //!< Any time quanity is measured as a multiple of
 
+    unsigned int* p_device_SD_countsOfSheresTouching;  //!< Entry "i" says how many spheres touch SD i
+    unsigned int* p_device_spheres_in_SD_composite;    //!< Array containing the IDs of the spheres stored in the SDs associated with the box
+
   public:
-    ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH = 1.f, unsigned int countSPHs = 0) : ChGRN_DE_Container() {
+    ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH, unsigned int countSPHs) : ChGRN_DE_Container() {
         this->setup(countSPHs);
+        sphere_radius = radiusSPH;
     }
 
     ~ChGRN_DE_MONODISP_SPH_IN_BOX_SMC() {}
 
     virtual void settle(float t_end) = 0;
+    virtual void setup_simulation() = 0;
     void setBOXdims(float xDIM, float yDIM, float zDIM) {}  /// Set unimplemented for now
     inline void YoungModulus_SPH2SPH(float someValue) { modulusYoung_SPH2SPH = someValue; }
     inline void YoungModulus_SPH2WALL(float someValue) { modulusYoung_SPH2WALL = someValue; }
+
+    inline size_t  nSpheres() { return nDEs; }
 };
 
 /**
- * ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC: Mono-disperse setup, one radius for all spheres. There is no friction,
+ * ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC: Mono-disperse setup, one radius for all spheres. There is no friction,
  * which means that there is no need to keep data that stores history for contacts
  */
-class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MONODISP_SPH_IN_BOX_SMC {
+class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MONODISP_SPH_IN_BOX_SMC {
   protected:
   public:
-    ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH = 1.f, unsigned int countSPHs = 0)
+    ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH, unsigned int countSPHs)
         : ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, countSPHs) {}
 
-    ~ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC() {}
+    ~ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC() {}
 
+    virtual void setup_simulation(); //!< set up data structures and carry out pre-processing tasks
     virtual void settle(float t_end);
 };
 

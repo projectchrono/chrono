@@ -16,13 +16,20 @@
 #include <climits>
 #include "../../chrono_thirdparty/cub/cub.cuh"
 #include "../ChGranularDefines.h"
+#include "../chrono_granular/physics/ChGranular.h"
 #include "assert.h"
 
 #define BLAH_BLAH_I 0
 #define NULL_GRANULAR_ID UINT_MAX-1 
 
+extern __constant__ float3 xyzOriginBox;       //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
+extern __constant__ float4 eulerParamBox;      //!< Set of four floats that provide the orientation of the rectangular box in the Global Reference Frame
+extern __constant__ dim3 SD_dims;              //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
+extern __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in multpiples of SD, in the X, Y, and Z directions, respectively
 
-__device__ dim3 whereSphCenterIs(const float* const sphereXYZ, const float3& xyzOriginBox, const float4& eulerParamBox, const ushort3& SDdims, const dim3& RectangularBoxDims)
+
+
+__device__ dim3 whereSphCenterIs(const float* const sphereXYZ, const float3& xyzOriginBox, const float4& eulerParamBox, const dim3& SDdims, const dim3& RectangularBoxDims)
 {
     assert(0);
     return BLAH_BLAH_I;
@@ -71,10 +78,6 @@ template <
     unsigned short int AMOUNT_SHMEM_KB        //!< The amount of shared mem to be used (in KB). Asking for lots of shared memory will make the occupancy go down
 >
 __global__ void primingOperationsRectangularBox(
-    float3 xyzOriginBox,                      //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
-    float4 eulerParamBox,                     //!< Set of four floats that provide the orientation of the rectangular box in the Global Reference Frame
-    ushort3 SD_dims,                          //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
-    dim3 RectangularBox_dims,                 //!< The dimension of the rectangular box. The 3D box is expressed in multpiples of SD, in the X, Y, and Z directions, respectively
     float* pRawDataArray,                     //!< Pointer to array containing data related to the spheres in the box
     unsigned int* SD_countsOfSheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
     unsigned int* spheres_in_SD_composite,    //!< Big array that works in conjunction with SD_countsOfSheresTouching. "spheres_in_SD_composite" says which SD contains what spheres
@@ -106,9 +109,9 @@ __global__ void primingOperationsRectangularBox(
 
     if (mySphereID < nSpheres) {
         // Bring over the "center of sphere" information via CUB
-        typedef cub::BlockLoad<float, CUB_THREADS, 3, cub::BLOCK_LOAD_WARP_TRANSPOSE> BlockLoad;
+        typedef cub::BlockLoad<float, CUB_THREADS, 3, cub::BLOCK_LOAD_WARP_TRANSPOSE> Block_Load;
         // Allocate shared memory for BlockLoad
-        __shared__ typename BlockLoad::TempStorage temp_storage;
+        __shared__ typename Block_Load::TempStorage temp_storage;
         // Load a segment of consecutive items that are blocked across threads
         BlockLoad(temp_storage).Load(pRawDataArray + 3 * mySphereID, sphereXYZ);
 
@@ -199,6 +202,16 @@ __global__ void primingOperationsRectangularBox(
 
     if (threadIdx.x < totalNumberOfSphere_SD_touches)
         spheres_in_SD_composite[shMem_UINT[threadIdx.x]] = sphereID[threadIdx.x];
+
+    return;
+}
+
+
+
+
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
+    dim3 grid3D_dims(256, 256, 256);
+    primingOperationsRectangularBox<256, 32> <<<grid3D_dims, 128 >>>(p_device_GRN_xyz_DE, p_device_SD_countsOfSheresTouching, p_device_spheres_in_SD_composite, nSpheres());
 
     return;
 }
