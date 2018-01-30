@@ -50,6 +50,7 @@ class CH_VEHICLE_API ChVehicleOutputHDF5 : public ChVehicleOutput {
     virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override;
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) override;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) override;
+    virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
 
     H5::H5File* m_fileHDF5;
     H5::Group* m_frame_group;
@@ -63,6 +64,7 @@ class CH_VEHICLE_API ChVehicleOutputHDF5 : public ChVehicleOutput {
     static H5::CompType* m_couple_type;
     static H5::CompType* m_linspring_type;
     static H5::CompType* m_rotspring_type;
+    static H5::CompType* m_bodyload_type;
 
     static const H5::CompType& getBodyType();
     static const H5::CompType& getBodyAuxType();
@@ -72,6 +74,7 @@ class CH_VEHICLE_API ChVehicleOutputHDF5 : public ChVehicleOutput {
     static const H5::CompType& getCoupleType();
     static const H5::CompType& getLinSpringType();
     static const H5::CompType& getRotSpringType();
+    static const H5::CompType& getBodyLoadType();
 };
 
 /// @} vehicle

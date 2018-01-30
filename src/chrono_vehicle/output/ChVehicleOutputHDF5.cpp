@@ -94,6 +94,12 @@ struct rotspring_info {
     double t;      // reaction torque
 };
 
+struct bodyload_info {
+    int id;             // joint identifier
+    double fx, fy, fz;  // joint reaction force
+    double tx, ty, tz;  // joint reaction torque
+};
+
 H5::CompType* ChVehicleOutputHDF5::m_body_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_bodyaux_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_shaft_type = nullptr;
@@ -102,6 +108,7 @@ H5::CompType* ChVehicleOutputHDF5::m_joint_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_couple_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_linspring_type = nullptr;
 H5::CompType* ChVehicleOutputHDF5::m_rotspring_type = nullptr;
+H5::CompType* ChVehicleOutputHDF5::m_bodyload_type = nullptr;
 
 const H5::CompType& ChVehicleOutputHDF5::getBodyType() {
     if (!m_body_type) {
@@ -249,6 +256,25 @@ const H5::CompType& ChVehicleOutputHDF5::getRotSpringType() {
         static Initializer ListInitializationGuard;
     }
     return *m_rotspring_type;
+}
+
+const H5::CompType& ChVehicleOutputHDF5::getBodyLoadType() {
+    if (!m_bodyload_type) {
+        struct Initializer {
+            Initializer() {
+                m_bodyload_type = new H5::CompType(sizeof(bodyload_info));
+                m_bodyload_type->insertMember("id", HOFFSET(bodyload_info, id), H5::PredType::NATIVE_INT);
+                m_bodyload_type->insertMember("Fx", HOFFSET(bodyload_info, fx), H5::PredType::NATIVE_DOUBLE);
+                m_bodyload_type->insertMember("Fy", HOFFSET(bodyload_info, fy), H5::PredType::NATIVE_DOUBLE);
+                m_bodyload_type->insertMember("Fz", HOFFSET(bodyload_info, fz), H5::PredType::NATIVE_DOUBLE);
+                m_bodyload_type->insertMember("Tx", HOFFSET(bodyload_info, tx), H5::PredType::NATIVE_DOUBLE);
+                m_bodyload_type->insertMember("Ty", HOFFSET(bodyload_info, ty), H5::PredType::NATIVE_DOUBLE);
+                m_bodyload_type->insertMember("Tz", HOFFSET(bodyload_info, tz), H5::PredType::NATIVE_DOUBLE);
+            }
+        };
+        static Initializer ListInitializationGuard;
+    }
+    return *m_bodyload_type;
 }
 
 // -----------------------------------------------------------------------------
@@ -472,6 +498,24 @@ void ChVehicleOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLi
 
     H5::DataSet set = m_section_group->createDataSet("Rot Springs", getRotSpringType(), dataspace);
     set.write(info.data(), getRotSpringType());
+}
+
+void ChVehicleOutputHDF5::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
+    if (loads.empty())
+        return;
+
+    auto nloads = loads.size();
+    hsize_t dim[] = { nloads };
+    H5::DataSpace dataspace(1, dim);
+    std::vector<bodyload_info> info(nloads);
+    for (auto i = 0; i < nloads; i++) {
+        ChVector<> f = loads[i]->GetForce();
+        ChVector<> t = loads[i]->GetTorque();
+        info[i] = { loads[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z() };
+    }
+
+    H5::DataSet set = m_section_group->createDataSet("Body-body Loads", getBodyLoadType(), dataspace);
+    set.write(info.data(), getBodyLoadType());
 }
 
 }  // end namespace vehicle
