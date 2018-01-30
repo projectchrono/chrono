@@ -201,8 +201,10 @@ set(ChronoEngine_physics_SOURCES
     physics/ChMaterialSurfaceNSC.cpp
     physics/ChContinuumMaterial.cpp
     physics/ChLoadContainer.cpp
+    physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
-    )
+    physics/ChLoadBodyMesh.cpp
+   )
 
 set(ChronoEngine_physics_HEADERS
     physics/ChBodyFrame.h
