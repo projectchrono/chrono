@@ -49,8 +49,8 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
-    std::vector<ChVector<> > points(NUM_POINTS);
-    std::vector<ChVector<> > dirs(NUM_DIRS);
+    std::vector<ChVector<>> points(NUM_POINTS);
+    std::vector<ChVector<>> dirs(NUM_DIRS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
@@ -119,6 +119,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     rot.Set_A_axis(u, v, dirs[REV_AXIS]);
 
     m_revolute = std::make_shared<ChLinkLockRevolute>();
+    m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_arm, ChCoordsys<>(points[REV], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_revolute);
 
@@ -160,35 +161,42 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     double inertia = getSteeringColumnInertia();
 
     m_shaft_C = std::make_shared<ChShaft>();
+    m_shaft_C->SetNameString(m_name + "_shaftC");
     m_shaft_C->SetInertia(inertia);
     m_shaft_C->SetShaftFixed(true);
     chassis->GetSystem()->Add(m_shaft_C);
 
     m_shaft_C1 = std::make_shared<ChShaft>();
+    m_shaft_C1->SetNameString(m_name + "_shaftC1");
     m_shaft_C1->SetInertia(inertia);
     chassis->GetSystem()->Add(m_shaft_C1);
 
     m_shaft_A1 = std::make_shared<ChShaft>();
+    m_shaft_A1->SetNameString(m_name + "_shaftA1");
     m_shaft_A1->SetInertia(inertia);
     chassis->GetSystem()->Add(m_shaft_A1);
 
     m_shaft_A = std::make_shared<ChShaft>();
+    m_shaft_A->SetNameString(m_name + "_shaftA");
     m_shaft_A->SetInertia(inertia);
     chassis->GetSystem()->Add(m_shaft_A);
 
     // Rigidly attach shaftA to the arm body
     m_shaft_arm = std::make_shared<ChShaftsBody>();
+    m_shaft_arm->SetNameString(m_name + "_shaftA_to_arm");
     m_shaft_arm->Initialize(m_shaft_A, m_arm, dirs[REV_AXIS]);
     chassis->GetSystem()->Add(m_shaft_arm);
 
     // Rigidly attach shaftC to the chassis body
     ////m_shaft_chassis = std::make_shared<ChShaftsBody>();
+    ////m_shaft_chassis->SetNameString(m_name + "_shaftC_to_chassis");
     ////m_shaft_chassis->Initialize(m_shaft_C, chassis, dirs[REV_AXIS]);
     ////chassis->GetSystem()->Add(m_shaft_chassis);
 
     // A motor (for steering input) between shaftC and shaftC1
     // The setpoint for the motor angle function is set in Synchronize()
     m_shaft_motor = std::make_shared<ChShaftsMotorAngle>();
+    m_shaft_motor->SetNameString(m_name + "_motor");
     m_shaft_motor->Initialize(m_shaft_C, m_shaft_C1);
     auto motor_fun = std::make_shared<ChFunction_Setpoint>();
     m_shaft_motor->SetAngleFunction(motor_fun);
@@ -197,6 +205,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // A reduction gear between shaftA and shaftA1
     // (note order of connected shafts for gear_ratio > 1)
     m_shaft_gear = std::make_shared<ChShaftsGear>();
+    m_shaft_gear->SetNameString(m_name + "_transmission");
     m_shaft_gear->SetTransmissionRatio(getGearRatio());
     m_shaft_gear->Initialize(m_shaft_A, m_shaft_A1);
     chassis->GetSystem()->Add(m_shaft_gear);
@@ -205,12 +214,14 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     if (m_rigid) {
         // Use a gear couple with ratio=1
         m_rigid_connection = std::make_shared<ChShaftsGear>();
+        m_rigid_connection->SetNameString(m_name + "_rigid_column");
         m_rigid_connection->SetTransmissionRatio(1.0);
         m_rigid_connection->Initialize(m_shaft_A1, m_shaft_C1);
         chassis->GetSystem()->Add(m_rigid_connection);
     } else {
         // Use a torsional spring between shaftA1 and shaftC1
         m_spring_connection = std::make_shared<ChShaftsTorsionSpring>();
+        m_spring_connection->SetNameString(m_name + "_compliant_column");
         m_spring_connection->SetTorsionalStiffness(getSteeringCompliance());
         ////m_spring_connection->SetTorsionalDamping(10);
         m_spring_connection->Initialize(m_shaft_C1, m_shaft_A1);
@@ -361,7 +372,6 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
 
     auto coords = m_revolute->GetLinkRelativeCoords();
 }
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
