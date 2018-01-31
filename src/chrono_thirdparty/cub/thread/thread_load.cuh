@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -121,17 +121,17 @@ template <int COUNT, int MAX>
 struct IterateThreadLoad
 {
     template <CacheLoadModifier MODIFIER, typename T>
-    static __device__ __forceinline__ void Load(T *ptr, T *vals)
+    static __device__ __forceinline__ void Load(T const *ptr, T *vals)
     {
         vals[COUNT] = ThreadLoad<MODIFIER>(ptr + COUNT);
         IterateThreadLoad<COUNT + 1, MAX>::template Load<MODIFIER>(ptr, vals);
     }
 
     template <typename InputIteratorT, typename T>
-    static __device__ __forceinline__ void Dereference(InputIteratorT ptr, T *vals)
+    static __device__ __forceinline__ void Dereference(InputIteratorT itr, T *vals)
     {
-        vals[COUNT] = ptr[COUNT];
-        IterateThreadLoad<COUNT + 1, MAX>::Dereference(ptr, vals);
+        vals[COUNT] = itr[COUNT];
+        IterateThreadLoad<COUNT + 1, MAX>::Dereference(itr, vals);
     }
 };
 
@@ -141,19 +141,19 @@ template <int MAX>
 struct IterateThreadLoad<MAX, MAX>
 {
     template <CacheLoadModifier MODIFIER, typename T>
-    static __device__ __forceinline__ void Load(T *ptr, T *vals) {}
+    static __device__ __forceinline__ void Load(T const * /*ptr*/, T * /*vals*/) {}
 
     template <typename InputIteratorT, typename T>
-    static __device__ __forceinline__ void Dereference(InputIteratorT ptr, T *vals) {}
+    static __device__ __forceinline__ void Dereference(InputIteratorT /*itr*/, T * /*vals*/) {}
 };
 
 
 /**
  * Define a uint4 (16B) ThreadLoad specialization for the given Cache load modifier
  */
-#define CUB_LOAD_16(cub_modifier, ptx_modifier)                                             \
+#define _CUB_LOAD_16(cub_modifier, ptx_modifier)                                             \
     template<>                                                                              \
-    __device__ __forceinline__ uint4 ThreadLoad<cub_modifier, uint4*>(uint4* ptr)           \
+    __device__ __forceinline__ uint4 ThreadLoad<cub_modifier, uint4 const *>(uint4 const *ptr)                   \
     {                                                                                       \
         uint4 retval;                                                                       \
         asm volatile ("ld."#ptx_modifier".v4.u32 {%0, %1, %2, %3}, [%4];" :                 \
@@ -165,7 +165,7 @@ struct IterateThreadLoad<MAX, MAX>
         return retval;                                                                      \
     }                                                                                       \
     template<>                                                                              \
-    __device__ __forceinline__ ulonglong2 ThreadLoad<cub_modifier, ulonglong2*>(ulonglong2* ptr)              \
+    __device__ __forceinline__ ulonglong2 ThreadLoad<cub_modifier, ulonglong2 const *>(ulonglong2 const *ptr)    \
     {                                                                                       \
         ulonglong2 retval;                                                                  \
         asm volatile ("ld."#ptx_modifier".v2.u64 {%0, %1}, [%2];" :                         \
@@ -178,9 +178,9 @@ struct IterateThreadLoad<MAX, MAX>
 /**
  * Define a uint2 (8B) ThreadLoad specialization for the given Cache load modifier
  */
-#define CUB_LOAD_8(cub_modifier, ptx_modifier)                                              \
+#define _CUB_LOAD_8(cub_modifier, ptx_modifier)                                              \
     template<>                                                                              \
-    __device__ __forceinline__ ushort4 ThreadLoad<cub_modifier, ushort4*>(ushort4* ptr)     \
+    __device__ __forceinline__ ushort4 ThreadLoad<cub_modifier, ushort4 const *>(ushort4 const *ptr)             \
     {                                                                                       \
         ushort4 retval;                                                                     \
         asm volatile ("ld."#ptx_modifier".v4.u16 {%0, %1, %2, %3}, [%4];" :                 \
@@ -192,7 +192,7 @@ struct IterateThreadLoad<MAX, MAX>
         return retval;                                                                      \
     }                                                                                       \
     template<>                                                                              \
-    __device__ __forceinline__ uint2 ThreadLoad<cub_modifier, uint2*>(uint2* ptr)           \
+    __device__ __forceinline__ uint2 ThreadLoad<cub_modifier, uint2 const *>(uint2 const *ptr)                   \
     {                                                                                       \
         uint2 retval;                                                                       \
         asm volatile ("ld."#ptx_modifier".v2.u32 {%0, %1}, [%2];" :                         \
@@ -202,7 +202,7 @@ struct IterateThreadLoad<MAX, MAX>
         return retval;                                                                      \
     }                                                                                       \
     template<>                                                                              \
-    __device__ __forceinline__ unsigned long long ThreadLoad<cub_modifier, unsigned long long*>(unsigned long long* ptr)                 \
+    __device__ __forceinline__ unsigned long long ThreadLoad<cub_modifier, unsigned long long const *>(unsigned long long const *ptr)    \
     {                                                                                       \
         unsigned long long retval;                                                          \
         asm volatile ("ld."#ptx_modifier".u64 %0, [%1];" :                                  \
@@ -214,9 +214,9 @@ struct IterateThreadLoad<MAX, MAX>
 /**
  * Define a uint (4B) ThreadLoad specialization for the given Cache load modifier
  */
-#define CUB_LOAD_4(cub_modifier, ptx_modifier)                                              \
+#define _CUB_LOAD_4(cub_modifier, ptx_modifier)                                              \
     template<>                                                                              \
-    __device__ __forceinline__ unsigned int ThreadLoad<cub_modifier, unsigned int*>(unsigned int* ptr)                 \
+    __device__ __forceinline__ unsigned int ThreadLoad<cub_modifier, unsigned int const *>(unsigned int const *ptr)                      \
     {                                                                                       \
         unsigned int retval;                                                                \
         asm volatile ("ld."#ptx_modifier".u32 %0, [%1];" :                                  \
@@ -229,9 +229,9 @@ struct IterateThreadLoad<MAX, MAX>
 /**
  * Define a unsigned short (2B) ThreadLoad specialization for the given Cache load modifier
  */
-#define CUB_LOAD_2(cub_modifier, ptx_modifier)                                              \
+#define _CUB_LOAD_2(cub_modifier, ptx_modifier)                                              \
     template<>                                                                              \
-    __device__ __forceinline__ unsigned short ThreadLoad<cub_modifier, unsigned short*>(unsigned short* ptr)           \
+    __device__ __forceinline__ unsigned short ThreadLoad<cub_modifier, unsigned short const *>(unsigned short const *ptr)                \
     {                                                                                       \
         unsigned short retval;                                                              \
         asm volatile ("ld."#ptx_modifier".u16 %0, [%1];" :                                  \
@@ -244,9 +244,9 @@ struct IterateThreadLoad<MAX, MAX>
 /**
  * Define an unsigned char (1B) ThreadLoad specialization for the given Cache load modifier
  */
-#define CUB_LOAD_1(cub_modifier, ptx_modifier)                                              \
+#define _CUB_LOAD_1(cub_modifier, ptx_modifier)                                              \
     template<>                                                                              \
-    __device__ __forceinline__ unsigned char ThreadLoad<cub_modifier, unsigned char*>(unsigned char* ptr)              \
+    __device__ __forceinline__ unsigned char ThreadLoad<cub_modifier, unsigned char const *>(unsigned char const *ptr)                   \
     {                                                                                       \
         unsigned short retval;                                                              \
         asm volatile (                                                                      \
@@ -257,51 +257,51 @@ struct IterateThreadLoad<MAX, MAX>
         "}" :                                                                               \
             "=h"(retval) :                                                                  \
             _CUB_ASM_PTR_(ptr));                                                            \
-        return (unsigned char) retval;                                                               \
+        return (unsigned char) retval;                                                      \
     }
 
 
 /**
  * Define powers-of-two ThreadLoad specializations for the given Cache load modifier
  */
-#define CUB_LOAD_ALL(cub_modifier, ptx_modifier)                                            \
-    CUB_LOAD_16(cub_modifier, ptx_modifier)                                                 \
-    CUB_LOAD_8(cub_modifier, ptx_modifier)                                                  \
-    CUB_LOAD_4(cub_modifier, ptx_modifier)                                                  \
-    CUB_LOAD_2(cub_modifier, ptx_modifier)                                                  \
-    CUB_LOAD_1(cub_modifier, ptx_modifier)                                                  \
+#define _CUB_LOAD_ALL(cub_modifier, ptx_modifier)                                            \
+    _CUB_LOAD_16(cub_modifier, ptx_modifier)                                                 \
+    _CUB_LOAD_8(cub_modifier, ptx_modifier)                                                  \
+    _CUB_LOAD_4(cub_modifier, ptx_modifier)                                                  \
+    _CUB_LOAD_2(cub_modifier, ptx_modifier)                                                  \
+    _CUB_LOAD_1(cub_modifier, ptx_modifier)                                                  \
 
 
 /**
  * Define powers-of-two ThreadLoad specializations for the various Cache load modifiers
  */
 #if CUB_PTX_ARCH >= 200
-    CUB_LOAD_ALL(LOAD_CA, ca)
-    CUB_LOAD_ALL(LOAD_CG, cg)
-    CUB_LOAD_ALL(LOAD_CS, cs)
-    CUB_LOAD_ALL(LOAD_CV, cv)
+    _CUB_LOAD_ALL(LOAD_CA, ca)
+    _CUB_LOAD_ALL(LOAD_CG, cg)
+    _CUB_LOAD_ALL(LOAD_CS, cs)
+    _CUB_LOAD_ALL(LOAD_CV, cv)
 #else
-    CUB_LOAD_ALL(LOAD_CA, global)
+    _CUB_LOAD_ALL(LOAD_CA, global)
     // Use volatile to ensure coherent reads when this PTX is JIT'd to run on newer architectures with L1
-    CUB_LOAD_ALL(LOAD_CG, volatile.global)
-    CUB_LOAD_ALL(LOAD_CS, global)
-    CUB_LOAD_ALL(LOAD_CV, volatile.global)
+    _CUB_LOAD_ALL(LOAD_CG, volatile.global)
+    _CUB_LOAD_ALL(LOAD_CS, global)
+    _CUB_LOAD_ALL(LOAD_CV, volatile.global)
 #endif
 
 #if CUB_PTX_ARCH >= 350
-    CUB_LOAD_ALL(LOAD_LDG, global.nc)
+    _CUB_LOAD_ALL(LOAD_LDG, global.nc)
 #else
-    CUB_LOAD_ALL(LOAD_LDG, global)
+    _CUB_LOAD_ALL(LOAD_LDG, global)
 #endif
 
 
 // Macro cleanup
-#undef CUB_LOAD_ALL
-#undef CUB_LOAD_1
-#undef CUB_LOAD_2
-#undef CUB_LOAD_4
-#undef CUB_LOAD_8
-#undef CUB_LOAD_16
+#undef _CUB_LOAD_ALL
+#undef _CUB_LOAD_1
+#undef _CUB_LOAD_2
+#undef _CUB_LOAD_4
+#undef _CUB_LOAD_8
+#undef _CUB_LOAD_16
 
 
 
@@ -311,8 +311,8 @@ struct IterateThreadLoad<MAX, MAX>
 template <typename InputIteratorT>
 __device__ __forceinline__ typename std::iterator_traits<InputIteratorT>::value_type ThreadLoad(
     InputIteratorT          itr,
-    Int2Type<LOAD_DEFAULT>  modifier,
-    Int2Type<false>         is_pointer)
+    Int2Type<LOAD_DEFAULT>  /*modifier*/,
+    Int2Type<false>         /*is_pointer*/)
 {
     return *itr;
 }
@@ -324,8 +324,8 @@ __device__ __forceinline__ typename std::iterator_traits<InputIteratorT>::value_
 template <typename T>
 __device__ __forceinline__ T ThreadLoad(
     T                       *ptr,
-    Int2Type<LOAD_DEFAULT>  modifier,
-    Int2Type<true>          is_pointer)
+    Int2Type<LOAD_DEFAULT>  /*modifier*/,
+    Int2Type<true>          /*is_pointer*/)
 {
     return *ptr;
 }
@@ -337,14 +337,9 @@ __device__ __forceinline__ T ThreadLoad(
 template <typename T>
 __device__ __forceinline__ T ThreadLoadVolatilePointer(
     T                       *ptr,
-    Int2Type<true>          is_primitive)
+    Int2Type<true>          /*is_primitive*/)
 {
     T retval = *reinterpret_cast<volatile T*>(ptr);
-
-#if (CUB_PTX_ARCH <= 130)
-    if (sizeof(T) == 1) __threadfence_block();
-#endif
-
     return retval;
 }
 
@@ -355,17 +350,8 @@ __device__ __forceinline__ T ThreadLoadVolatilePointer(
 template <typename T>
 __device__ __forceinline__ T ThreadLoadVolatilePointer(
     T                       *ptr,
-    Int2Type<false>          is_primitive)
+    Int2Type<false>         /*is_primitive*/)
 {
-
-#if CUB_PTX_ARCH <= 130
-
-    T retval = *ptr;
-    __threadfence_block();
-    return retval;
-
-#else
-
     typedef typename UnitWord<T>::VolatileWord VolatileWord;   // Word type for memcopying
 
     const int VOLATILE_MULTIPLE = sizeof(T) / sizeof(VolatileWord);
@@ -385,8 +371,6 @@ __device__ __forceinline__ T ThreadLoadVolatilePointer(
         reinterpret_cast<volatile VolatileWord*>(ptr),
         words);
     return retval;
-
-#endif  // CUB_PTX_ARCH <= 130
 }
 
 
@@ -396,8 +380,8 @@ __device__ __forceinline__ T ThreadLoadVolatilePointer(
 template <typename T>
 __device__ __forceinline__ T ThreadLoad(
     T                       *ptr,
-    Int2Type<LOAD_VOLATILE> modifier,
-    Int2Type<true>          is_pointer)
+    Int2Type<LOAD_VOLATILE> /*modifier*/,
+    Int2Type<true>          /*is_pointer*/)
 {
     // Apply tags for partial-specialization
     return ThreadLoadVolatilePointer(ptr, Int2Type<Traits<T>::PRIMITIVE>());
@@ -409,9 +393,9 @@ __device__ __forceinline__ T ThreadLoad(
  */
 template <typename T, int MODIFIER>
 __device__ __forceinline__ T ThreadLoad(
-    T                       *ptr,
-    Int2Type<MODIFIER>      modifier,
-    Int2Type<true>          is_pointer)
+    T const                 *ptr,
+    Int2Type<MODIFIER>      /*modifier*/,
+    Int2Type<true>          /*is_pointer*/)
 {
     typedef typename UnitWord<T>::DeviceWord DeviceWord;
 
@@ -420,7 +404,7 @@ __device__ __forceinline__ T ThreadLoad(
     DeviceWord words[DEVICE_MULTIPLE];
 
     IterateThreadLoad<0, DEVICE_MULTIPLE>::template Load<CacheLoadModifier(MODIFIER)>(
-        reinterpret_cast<DeviceWord*>(ptr),
+        reinterpret_cast<DeviceWord*>(const_cast<T*>(ptr)),
         words);
 
     return *reinterpret_cast<T*>(words);

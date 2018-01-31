@@ -36,9 +36,8 @@
 #include <iterator>
 #include <iostream>
 
-#include "../thread/thread_load.cuh"
-#include "../thread/thread_store.cuh"
 #include "../util_namespace.cuh"
+#include "../util_macro.cuh"
 
 #if (THRUST_VERSION >= 100700)
     // This iterator is compatible with Thrust API 1.7 and newer
@@ -61,48 +60,19 @@ namespace cub {
 
 
 /**
- * \brief A random-access input generator for dereferencing a sequence of homogeneous values
- *
- * \par Overview
- * - Read references to a ConstantInputIteratorTiterator always return the supplied constant
- *   of type \p ValueType.
- * - Can be used with any data type.
- * - Can be constructed, manipulated, dereferenced, and exchanged within and between host and device
- *   functions.
- * - Compatible with Thrust API v1.7 or newer.
- *
- * \par Snippet
- * The code snippet below illustrates the use of \p ConstantInputIteratorTto
- * dereference a sequence of homogeneous doubles.
- * \par
- * \code
- * #include <cub/cub.cuh>   // or equivalently <cub/iterator/constant_input_iterator.cuh>
- *
- * cub::ConstantInputIterator<double> itr(5.0);
- *
- * printf("%f\n", itr[0]);      // 5.0
- * printf("%f\n", itr[1]);      // 5.0
- * printf("%f\n", itr[2]);      // 5.0
- * printf("%f\n", itr[50]);     // 5.0
- *
- * \endcode
- *
- * \tparam ValueType            The value type of this iterator
- * \tparam OffsetT              The difference type of this iterator (Default: \p ptrdiff_t)
+ * \brief A discard iterator
  */
-template <
-    typename ValueType,
-    typename OffsetT = ptrdiff_t>
-class ConstantInputIterator
+template <typename OffsetT = ptrdiff_t>
+class DiscardOutputIterator
 {
 public:
 
     // Required iterator traits
-    typedef ConstantInputIterator               self_type;              ///< My own type
-    typedef OffsetT                             difference_type;        ///< Type to express the result of subtracting one iterator from another
-    typedef ValueType                           value_type;             ///< The type of the element the iterator can point to
-    typedef ValueType*                          pointer;                ///< The type of a pointer to an element the iterator can point to
-    typedef ValueType                           reference;              ///< The type of a reference to an element the iterator can point to
+    typedef DiscardOutputIterator   self_type;              ///< My own type
+    typedef OffsetT                 difference_type;        ///< Type to express the result of subtracting one iterator from another
+    typedef void                    value_type;             ///< The type of the element the iterator can point to
+    typedef void                    pointer;                ///< The type of a pointer to an element the iterator can point to
+    typedef void                    reference;              ///< The type of a reference to an element the iterator can point to
 
 #if (THRUST_VERSION >= 100700)
     // Use Thrust's iterator categories so we can use these iterators in Thrust 1.7 (or newer) methods
@@ -118,20 +88,19 @@ public:
 
 private:
 
-    ValueType   val;
-    OffsetT     offset;
-#ifdef _WIN32
-    OffsetT     pad[CUB_MAX(1, (16 / sizeof(OffsetT) - 1))];        // Workaround for win32 parameter-passing bug (ulonglong2 argmin DeviceReduce)
+    OffsetT offset;
+
+#if defined(_WIN32) || !defined(_WIN64)
+    // Workaround for win32 parameter-passing bug (ulonglong2 argmin DeviceReduce)
+    OffsetT pad[CUB_MAX(1, (16 / sizeof(OffsetT) - 1))];
 #endif
 
 public:
 
     /// Constructor
-    __host__ __device__ __forceinline__ ConstantInputIterator(
-        ValueType   val,            ///< Starting value for the iterator instance to report
-        OffsetT     offset = 0)     ///< Base offset
+    __host__ __device__ __forceinline__ DiscardOutputIterator(
+        OffsetT offset = 0)     ///< Base offset
     :
-        val(val),
         offset(offset)
     {}
 
@@ -151,16 +120,17 @@ public:
     }
 
     /// Indirection
-    __host__ __device__ __forceinline__ reference operator*() const
+    __host__ __device__ __forceinline__ self_type& operator*()
     {
-        return val;
+        // return self reference, which can be assigned to anything
+        return *this;
     }
 
     /// Addition
     template <typename Distance>
     __host__ __device__ __forceinline__ self_type operator+(Distance n) const
     {
-        self_type retval(val, offset + n);
+        self_type retval(offset + n);
         return retval;
     }
 
@@ -176,7 +146,7 @@ public:
     template <typename Distance>
     __host__ __device__ __forceinline__ self_type operator-(Distance n) const
     {
-        self_type retval(val, offset - n);
+        self_type retval(offset - n);
         return retval;
     }
 
@@ -196,33 +166,48 @@ public:
 
     /// Array subscript
     template <typename Distance>
-    __host__ __device__ __forceinline__ reference operator[](Distance /*n*/) const
+    __host__ __device__ __forceinline__ self_type& operator[](Distance n)
     {
-        return val;
+        // return self reference, which can be assigned to anything
+        return *this;
     }
 
     /// Structure dereference
     __host__ __device__ __forceinline__ pointer operator->()
     {
-        return &val;
+        return;
     }
+
+    /// Assignment to self (no-op)
+    __host__ __device__ __forceinline__ void operator=(self_type const& other)
+    {
+        offset = other.offset;
+    }
+
+    /// Assignment to anything else (no-op)
+    template<typename T>
+    __host__ __device__ __forceinline__ void operator=(T const&)
+    {}
+
+    /// Cast to void* operator
+    __host__ __device__ __forceinline__ operator void*() const { return NULL; }
 
     /// Equal to
     __host__ __device__ __forceinline__ bool operator==(const self_type& rhs)
     {
-        return (offset == rhs.offset) && ((val == rhs.val));
+        return (offset == rhs.offset);
     }
 
     /// Not equal to
     __host__ __device__ __forceinline__ bool operator!=(const self_type& rhs)
     {
-        return (offset != rhs.offset) || (val!= rhs.val);
+        return (offset != rhs.offset);
     }
 
     /// ostream operator
     friend std::ostream& operator<<(std::ostream& os, const self_type& itr)
     {
-        os << "[" << itr.val << "," << itr.offset << "]";
+        os << "[" << itr.offset << "]";
         return os;
     }
 

@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,7 @@
 
 /**
  * \file
- * cub::DeviceHistogram provides device-wide parallel operations for constructing histogram(s) from a sequence of samples data residing within global memory.
+ * cub::DeviceHistogram provides device-wide parallel operations for constructing histogram(s) from a sequence of samples data residing within device-accessible memory.
  */
 
 #pragma once
@@ -329,6 +329,17 @@ struct DipatchHistogram
     // Tuning policies
     //---------------------------------------------------------------------
 
+    template <int NOMINAL_ITEMS_PER_THREAD>
+    struct TScale
+    {
+        enum
+        {
+            V_SCALE = (sizeof(SampleT) + sizeof(int) - 1) / sizeof(int),
+            VALUE   = CUB_MAX((NOMINAL_ITEMS_PER_THREAD / NUM_ACTIVE_CHANNELS / V_SCALE), 1)
+        };
+    };
+
+
     /// SM11
     struct Policy110
     {
@@ -380,7 +391,7 @@ struct DipatchHistogram
         // HistogramSweepPolicy
         typedef AgentHistogramPolicy<
                 128,
-                (NUM_CHANNELS == 1) ? 8 : 7,
+                TScale<8>::VALUE,
                 BLOCK_LOAD_DIRECT,
                 LOAD_LDG,
                 true,
@@ -394,13 +405,13 @@ struct DipatchHistogram
     {
         // HistogramSweepPolicy
         typedef AgentHistogramPolicy<
-                256,
-                8,
+                384,
+                TScale<16>::VALUE,
                 BLOCK_LOAD_DIRECT,
                 LOAD_LDG,
                 true,
                 SMEM,
-                true>
+                false>
             HistogramSweepPolicy;
     };
 
@@ -516,7 +527,7 @@ struct DipatchHistogram
         typename                            DeviceHistogramSweepKernelT>                    ///< Function type of cub::DeviceHistogramSweepKernel
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t PrivatizedDispatch(
-        void*                               d_temp_storage,                                 ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                               d_temp_storage,                                 ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                             temp_storage_bytes,                             ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT                     d_samples,                                      ///< [in] The pointer to the input sequence of sample items. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four RGBA 8-bit samples).
         CounterT*                           d_output_histograms[NUM_ACTIVE_CHANNELS],       ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histograms[i]</tt> should be <tt>num_output_levels[i]</tt> - 1.
@@ -548,10 +559,6 @@ struct DipatchHistogram
             int device_ordinal;
             if (CubDebug(error = cudaGetDevice(&device_ordinal))) break;
 
-            // Get device SM version
-            int sm_version;
-            if (CubDebug(error = SmVersion(sm_version, device_ordinal))) break;
-
             // Get SM count
             int sm_count;
             if (CubDebug(error = cudaDeviceGetAttribute (&sm_count, cudaDevAttrMultiProcessorCount, device_ordinal))) break;
@@ -560,7 +567,6 @@ struct DipatchHistogram
             int histogram_sweep_sm_occupancy;
             if (CubDebug(error = MaxSmOccupancy(
                 histogram_sweep_sm_occupancy,
-                sm_version,
                 histogram_sweep_kernel,
                 histogram_sweep_config.block_threads))) break;
 
@@ -577,10 +583,12 @@ struct DipatchHistogram
 
             // Get grid dimensions, trying to keep total blocks ~histogram_sweep_occupancy
             int pixels_per_tile     = histogram_sweep_config.block_threads * histogram_sweep_config.pixels_per_thread;
-            int tiles_per_row       = (num_row_pixels + pixels_per_tile - 1) / pixels_per_tile;
+            int tiles_per_row       = int(num_row_pixels + pixels_per_tile - 1) / pixels_per_tile;
             int blocks_per_row      = CUB_MIN(histogram_sweep_occupancy, tiles_per_row);
-            int blocks_per_col      = CUB_MIN(histogram_sweep_occupancy / blocks_per_row, num_rows);
-            int num_threadblocks    = blocks_per_row * blocks_per_col;
+            int blocks_per_col      = (blocks_per_row > 0) ?
+                                        int(CUB_MIN(histogram_sweep_occupancy / blocks_per_row, num_rows)) :
+                                        0;
+            int num_thread_blocks   = blocks_per_row * blocks_per_col;
 
             dim3 sweep_grid_dims;
             sweep_grid_dims.x = (unsigned int) blocks_per_row;
@@ -593,7 +601,7 @@ struct DipatchHistogram
             size_t      allocation_sizes[NUM_ALLOCATIONS];
 
             for (int CHANNEL = 0; CHANNEL < NUM_ACTIVE_CHANNELS; ++CHANNEL)
-                allocation_sizes[CHANNEL] = num_threadblocks * (num_privatized_levels[CHANNEL] - 1) * sizeof(CounterT);
+                allocation_sizes[CHANNEL] = size_t(num_thread_blocks) * (num_privatized_levels[CHANNEL] - 1) * sizeof(CounterT);
 
             allocation_sizes[NUM_ALLOCATIONS - 1] = GridQueue<int>::AllocationSize();
 
@@ -602,7 +610,7 @@ struct DipatchHistogram
             if (d_temp_storage == NULL)
             {
                 // Return if the caller is simply requesting the size of the storage allocation
-                return cudaSuccess;
+                break;
             }
 
             // Construct the grid queue descriptor
@@ -642,7 +650,7 @@ struct DipatchHistogram
             int histogram_init_grid_dims        = (max_num_output_bins + histogram_init_block_threads - 1) / histogram_init_block_threads;
 
             // Log DeviceHistogramInitKernel configuration
-            if (debug_synchronous) CubLog("Invoking DeviceHistogramInitKernel<<<%d, %d, 0, %lld>>>()\n",
+            if (debug_synchronous) _CubLog("Invoking DeviceHistogramInitKernel<<<%d, %d, 0, %lld>>>()\n",
                 histogram_init_grid_dims, histogram_init_block_threads, (long long) stream);
 
             // Invoke histogram_init_kernel
@@ -651,8 +659,12 @@ struct DipatchHistogram
                 d_output_histograms_wrapper,
                 tile_queue);
 
+            // Return if empty problem
+            if ((blocks_per_row == 0) || (blocks_per_col == 0))
+                break;
+
             // Log histogram_sweep_kernel configuration
-            if (debug_synchronous) CubLog("Invoking histogram_sweep_kernel<<<{%d, %d, %d}, %d, 0, %lld>>>(), %d pixels per thread, %d SM occupancy\n",
+            if (debug_synchronous) _CubLog("Invoking histogram_sweep_kernel<<<{%d, %d, %d}, %d, 0, %lld>>>(), %d pixels per thread, %d SM occupancy\n",
                 sweep_grid_dims.x, sweep_grid_dims.y, sweep_grid_dims.z,
                 histogram_sweep_config.block_threads, (long long) stream, histogram_sweep_config.pixels_per_thread, histogram_sweep_sm_occupancy);
 
@@ -692,10 +704,10 @@ struct DipatchHistogram
      */
     CUB_RUNTIME_FUNCTION
     static cudaError_t DispatchRange(
-        void*               d_temp_storage,                            ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
-        size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
+        void*               d_temp_storage,                                ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        size_t&             temp_storage_bytes,                            ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four RGBA 8-bit samples).
-        CounterT*           d_output_histograms[NUM_ACTIVE_CHANNELS],  ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histograms[i]</tt> should be <tt>num_output_levels[i]</tt> - 1.
+        CounterT*           d_output_histograms[NUM_ACTIVE_CHANNELS],      ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histograms[i]</tt> should be <tt>num_output_levels[i]</tt> - 1.
         int                 num_output_levels[NUM_ACTIVE_CHANNELS],     ///< [in] The number of boundaries (levels) for delineating histogram samples in each active channel.  Implies that the number of bins for channel<sub><em>i</em></sub> is <tt>num_output_levels[i]</tt> - 1.
         LevelT              *d_levels[NUM_ACTIVE_CHANNELS],             ///< [in] The pointers to the arrays of boundaries (levels), one for each active channel.  Bin ranges are defined by consecutive boundary pairings: lower sample value boundaries are inclusive and upper sample value boundaries are exclusive.
         OffsetT             num_row_pixels,                             ///< [in] The number of multi-channel pixels per row in the region of interest
@@ -800,7 +812,7 @@ struct DipatchHistogram
      */
     CUB_RUNTIME_FUNCTION
     static cudaError_t DispatchRange(
-        void*               d_temp_storage,                             ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                         ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the multi-channel input sequence of data samples. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four RGBA 8-bit samples).
         CounterT*           d_output_histograms[NUM_ACTIVE_CHANNELS],   ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histograms[i]</tt> should be <tt>num_output_levels[i]</tt> - 1.
@@ -882,7 +894,7 @@ struct DipatchHistogram
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t DispatchEven(
-        void*               d_temp_storage,                            ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                            ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the input sequence of sample items. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four RGBA 8-bit samples).
         CounterT*           d_output_histograms[NUM_ACTIVE_CHANNELS],  ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histograms[i]</tt> should be <tt>num_output_levels[i]</tt> - 1.
@@ -994,7 +1006,7 @@ struct DipatchHistogram
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t DispatchEven(
-        void*               d_temp_storage,                            ///< [in] %Device allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*               d_temp_storage,                            ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&             temp_storage_bytes,                        ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         SampleIteratorT     d_samples,                                  ///< [in] The pointer to the input sequence of sample items. The samples from different channels are assumed to be interleaved (e.g., an array of 32-bit pixels where each pixel consists of four RGBA 8-bit samples).
         CounterT*           d_output_histograms[NUM_ACTIVE_CHANNELS],  ///< [out] The pointers to the histogram counter output arrays, one for each active channel.  For channel<sub><em>i</em></sub>, the allocation length of <tt>d_histograms[i]</tt> should be <tt>num_output_levels[i]</tt> - 1.

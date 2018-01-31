@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2015, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -114,7 +114,7 @@ struct BlockHistogramSort
 
     // Thread fields
     _TempStorage &temp_storage;
-    int linear_tid;
+    unsigned int linear_tid;
 
 
     /// Constructor
@@ -161,14 +161,14 @@ struct BlockHistogramSort
         typename            CounterT     >
     __device__ __forceinline__ void Composite(
         T                   (&items)[ITEMS_PER_THREAD],     ///< [in] Calling thread's input values to histogram
-        CounterT            histogram[BINS])                 ///< [out] Reference to shared/global memory histogram
+        CounterT            histogram[BINS])                 ///< [out] Reference to shared/device-accessible memory histogram
     {
         enum { TILE_SIZE = BLOCK_THREADS * ITEMS_PER_THREAD };
 
         // Sort bytes in blocked arrangement
         BlockRadixSortT(temp_storage.sort).Sort(items);
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Initialize the shared memory's run_begin and run_end for each bin
         int histo_offset = 0;
@@ -186,7 +186,7 @@ struct BlockHistogramSort
             temp_storage.run_end[histo_offset + linear_tid] = TILE_SIZE;
         }
 
-        __syncthreads();
+        CTA_SYNC();
 
         int flags[ITEMS_PER_THREAD];    // unused
 
@@ -197,7 +197,7 @@ struct BlockHistogramSort
         // Update begin for first item
         if (linear_tid == 0) temp_storage.run_begin[items[0]] = 0;
 
-        __syncthreads();
+        CTA_SYNC();
 
         // Composite into histogram
         histo_offset = 0;

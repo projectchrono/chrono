@@ -29,7 +29,7 @@
 
 /**
  * \file
- * cub::DeviceRadixSort provides device-wide, parallel operations for computing a radix sort across a sequence of data items residing within device-accessible memory.
+ * cub::DeviceSegmentedRadixSort provides device-wide, parallel operations for computing a batched radix sort across multiple, non-overlapping sequences of data items residing within device-accessible memory.
  */
 
 #pragma once
@@ -49,8 +49,8 @@ namespace cub {
 
 
 /**
- * \brief DeviceRadixSort provides device-wide, parallel operations for computing a radix sort across a sequence of data items residing within device-accessible memory. ![](sorting_logo.png)
- * \ingroup SingleModule
+ * \brief DeviceSegmentedRadixSort provides device-wide, parallel operations for computing a batched radix sort across multiple, non-overlapping sequences of data items residing within device-accessible memory. ![](segmented_sorting_logo.png)
+ * \ingroup SegmentedModule
  *
  * \par Overview
  * The [<em>radix sorting method</em>](http://en.wikipedia.org/wiki/Radix_sort) arranges
@@ -62,96 +62,94 @@ namespace cub {
  * ordering of those keys.
  *
  * \par
- * DeviceRadixSort can sort all of the built-in C++ numeric primitive types, e.g.:
+ * DeviceSegmentedRadixSort can sort all of the built-in C++ numeric primitive types, e.g.:
  * <tt>unsigned char</tt>, \p int, \p double, etc.  Although the direct radix sorting
- * method can only be applied to unsigned integral types, DeviceRadixSort
+ * method can only be applied to unsigned integral types, DeviceSegmentedRadixSort
  * is able to sort signed and floating-point types via simple bit-wise transformations
  * that ensure lexicographic key ordering.
  *
  * \par Usage Considerations
- * \cdp_class{DeviceRadixSort}
- *
- * \par Performance
- * \linear_performance{radix sort} The following chart illustrates DeviceRadixSort::SortKeys
- * performance across different CUDA architectures for uniform-random \p uint32 keys.
- * \plots_below
- *
- * \image html lsb_radix_sort_int32_keys.png
+ * \cdp_class{DeviceSegmentedRadixSort}
  *
  */
-struct DeviceRadixSort
+struct DeviceSegmentedRadixSort
 {
 
     /******************************************************************//**
-     * \name KeyT-value pairs
+     * \name Key-value pairs
      *********************************************************************/
     //@{
 
     /**
-     * \brief Sorts key-value pairs into ascending order. (~<em>2N </em>auxiliary storage required)
+     * \brief Sorts segments of key-value pairs into ascending order. (~<em>2N </em>auxiliary storage required)
      *
      * \par
      * - The contents of the input data are not altered by the sorting operation
+     * - When input a contiguous sequence of segments, a single sequence
+     *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
+     *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
+     *   the latter is specified as <tt>segment_offsets+1</tt>).
      * - An optional bit subrange <tt>[begin_bit, end_bit)</tt> of differentiating key bits can be specified.  This can reduce overall sorting overhead and yield a corresponding performance improvement.
      * - \devicestorageNP  For sorting using only <em>O</em>(<tt>P</tt>) temporary storage, see the sorting interface using DoubleBuffer wrappers below.
      * - \devicestorage
      *
-     * \par Performance
-     * The following charts illustrate saturated sorting performance across different
-     * CUDA architectures for uniform-random <tt>uint32,uint32</tt> and
-     * <tt>uint64,uint64</tt> pairs, respectively.
-     *
-     * \image html lsb_radix_sort_int32_pairs.png
-     * \image html lsb_radix_sort_int64_pairs.png
-     *
      * \par Snippet
-     * The code snippet below illustrates the sorting of a device vector of \p int keys
+     * The code snippet below illustrates the batched sorting of three segments (with one zero-length segment) of \p int keys
      * with associated vector of \p int values.
      * \par
      * \code
-     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_radix_sort.cuh>
+     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_segmentd_radix_sort.cuh>
      *
      * // Declare, allocate, and initialize device-accessible pointers for sorting data
      * int  num_items;          // e.g., 7
+     * int  num_segments;       // e.g., 3
+     * int  *d_offsets;         // e.g., [0, 3, 3, 7]
      * int  *d_keys_in;         // e.g., [8, 6, 7, 5, 3, 0, 9]
-     * int  *d_keys_out;        // e.g., [        ...        ]
+     * int  *d_keys_out;        // e.g., [-, -, -, -, -, -, -]
      * int  *d_values_in;       // e.g., [0, 1, 2, 3, 4, 5, 6]
-     * int  *d_values_out;      // e.g., [        ...        ]
+     * int  *d_values_out;      // e.g., [-, -, -, -, -, -, -]
      * ...
      *
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
-     *     d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
+     * cub::DeviceSegmentedRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
+     *     d_keys_in, d_keys_out, d_values_in, d_values_out,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run sorting operation
-     * cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
-     *     d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
+     * cub::DeviceSegmentedRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
+     *     d_keys_in, d_keys_out, d_values_in, d_values_out,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
-     * // d_keys_out            <-- [0, 3, 5, 6, 7, 8, 9]
-     * // d_values_out          <-- [5, 4, 3, 1, 2, 0, 6]
+     * // d_keys_out            <-- [6, 7, 8, 0, 3, 5, 9]
+     * // d_values_out          <-- [1, 2, 0, 5, 4, 3, 6]
      *
      * \endcode
      *
-     * \tparam KeyT      <b>[inferred]</b> KeyT type
-     * \tparam ValueT    <b>[inferred]</b> ValueT type
+     * \tparam KeyT             <b>[inferred]</b> Key type
+     * \tparam ValueT           <b>[inferred]</b> Value type
+     * \tparam OffsetIteratorT  <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
      */
     template <
         typename            KeyT,
-        typename            ValueT>
+        typename            ValueT,
+        typename            OffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortPairs(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
-        KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
-        const ValueT        *d_values_in,                           ///< [in] Pointer to the corresponding input sequence of associated value items
-        ValueT              *d_values_out,                          ///< [out] Pointer to the correspondingly-reordered output sequence of associated value items
-        int                 num_items,                              ///< [in] Number of items to sort
+        const KeyT          *d_keys_in,                             ///< [in] %Device-accessible pointer to the input data of key data to sort
+        KeyT                *d_keys_out,                            ///< [out] %Device-accessible pointer to the sorted output sequence of key data
+        const ValueT        *d_values_in,                           ///< [in] %Device-accessible pointer to the corresponding input sequence of associated value items
+        ValueT              *d_values_out,                          ///< [out] %Device-accessible pointer to the correspondingly-reordered output sequence of associated value items
+        int                 num_items,                              ///< [in] The total number of items to sort (across all segments)
+        int                 num_segments,                           ///< [in] The number of segments that comprise the sorting data
+        OffsetIteratorT     d_begin_offsets,                        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        OffsetIteratorT     d_end_offsets,                          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -163,12 +161,15 @@ struct DeviceRadixSort
         DoubleBuffer<KeyT>       d_keys(const_cast<KeyT*>(d_keys_in), d_keys_out);
         DoubleBuffer<ValueT>     d_values(const_cast<ValueT*>(d_values_in), d_values_out);
 
-        return DispatchRadixSort<false, KeyT, ValueT, OffsetT>::Dispatch(
+        return DispatchSegmentedRadixSort<false, KeyT, ValueT, OffsetIteratorT, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_keys,
             d_values,
             num_items,
+            num_segments,
+            d_begin_offsets,
+            d_end_offsets,
             begin_bit,
             end_bit,
             false,
@@ -178,7 +179,7 @@ struct DeviceRadixSort
 
 
     /**
-     * \brief Sorts key-value pairs into ascending order. (~<em>N </em>auxiliary storage required)
+     * \brief Sorts segments of key-value pairs into ascending order. (~<em>N </em>auxiliary storage required)
      *
      * \par
      * - The sorting operation is given a pair of key buffers and a corresponding
@@ -191,31 +192,29 @@ struct DeviceRadixSort
      *   within each DoubleBuffer wrapper to reference which of the two buffers
      *   now contains the sorted output sequence (a function of the number of key bits
      *   specified and the targeted device architecture).
+     * - When input a contiguous sequence of segments, a single sequence
+     *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
+     *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
+     *   the latter is specified as <tt>segment_offsets+1</tt>).
      * - An optional bit subrange <tt>[begin_bit, end_bit)</tt> of differentiating key bits can be specified.  This can reduce overall sorting overhead and yield a corresponding performance improvement.
      * - \devicestorageP
      * - \devicestorage
      *
-     * \par Performance
-     * The following charts illustrate saturated sorting performance across different
-     * CUDA architectures for uniform-random <tt>uint32,uint32</tt> and
-     * <tt>uint64,uint64</tt> pairs, respectively.
-     *
-     * \image html lsb_radix_sort_int32_pairs.png
-     * \image html lsb_radix_sort_int64_pairs.png
-     *
      * \par Snippet
-     * The code snippet below illustrates the sorting of a device vector of \p int keys
+     * The code snippet below illustrates the batched sorting of three segments (with one zero-length segment) of \p int keys
      * with associated vector of \p int values.
      * \par
      * \code
-     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_radix_sort.cuh>
+     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_segmentd_radix_sort.cuh>
      *
      * // Declare, allocate, and initialize device-accessible pointers for sorting data
      * int  num_items;          // e.g., 7
+     * int  num_segments;       // e.g., 3
+     * int  *d_offsets;         // e.g., [0, 3, 3, 7]
      * int  *d_key_buf;         // e.g., [8, 6, 7, 5, 3, 0, 9]
-     * int  *d_key_alt_buf;     // e.g., [        ...        ]
+     * int  *d_key_alt_buf;     // e.g., [-, -, -, -, -, -, -]
      * int  *d_value_buf;       // e.g., [0, 1, 2, 3, 4, 5, 6]
-     * int  *d_value_alt_buf;   // e.g., [        ...        ]
+     * int  *d_value_alt_buf;   // e.g., [-, -, -, -, -, -, -]
      * ...
      *
      * // Create a set of DoubleBuffers to wrap pairs of device pointers
@@ -225,32 +224,39 @@ struct DeviceRadixSort
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys, d_values, num_items);
+     * cub::DeviceSegmentedRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys, d_values,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run sorting operation
-     * cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys, d_values, num_items);
+     * cub::DeviceSegmentedRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys, d_values,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
-     * // d_keys.Current()      <-- [0, 3, 5, 6, 7, 8, 9]
+     * // d_keys.Current()      <-- [6, 7, 8, 0, 3, 5, 9]
      * // d_values.Current()    <-- [5, 4, 3, 1, 2, 0, 6]
      *
      * \endcode
      *
-     * \tparam KeyT      <b>[inferred]</b> KeyT type
-     * \tparam ValueT    <b>[inferred]</b> ValueT type
+     * \tparam KeyT             <b>[inferred]</b> Key type
+     * \tparam ValueT           <b>[inferred]</b> Value type
+     * \tparam OffsetIteratorT  <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
      */
     template <
-        typename            KeyT,
-        typename            ValueT>
+        typename                KeyT,
+        typename                ValueT,
+        typename                OffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortPairs(
         void                    *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t                  &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         DoubleBuffer<KeyT>      &d_keys,                                ///< [in,out] Reference to the double-buffer of keys whose "current" device-accessible buffer contains the unsorted input keys and, upon return, is updated to point to the sorted output keys
         DoubleBuffer<ValueT>    &d_values,                              ///< [in,out] Double-buffer of values whose "current" device-accessible buffer contains the unsorted input values and, upon return, is updated to point to the sorted output values
-        int                     num_items,                              ///< [in] Number of items to sort
+        int                     num_items,                              ///< [in] The total number of items to sort (across all segments)
+        int                     num_segments,                           ///< [in] The number of segments that comprise the sorting data
+        OffsetIteratorT         d_begin_offsets,                        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        OffsetIteratorT         d_end_offsets,                          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
         int                     begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                     end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t            stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -259,12 +265,15 @@ struct DeviceRadixSort
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        return DispatchRadixSort<false, KeyT, ValueT, OffsetT>::Dispatch(
+        return DispatchSegmentedRadixSort<false, KeyT, ValueT, OffsetIteratorT, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_keys,
             d_values,
             num_items,
+            num_segments,
+            d_begin_offsets,
+            d_end_offsets,
             begin_bit,
             end_bit,
             true,
@@ -274,65 +283,75 @@ struct DeviceRadixSort
 
 
     /**
-     * \brief Sorts key-value pairs into descending order. (~<em>2N</em> auxiliary storage required).
+     * \brief Sorts segments of key-value pairs into descending order. (~<em>2N</em> auxiliary storage required).
      *
      * \par
      * - The contents of the input data are not altered by the sorting operation
+     * - When input a contiguous sequence of segments, a single sequence
+     *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
+     *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
+     *   the latter is specified as <tt>segment_offsets+1</tt>).
      * - An optional bit subrange <tt>[begin_bit, end_bit)</tt> of differentiating key bits can be specified.  This can reduce overall sorting overhead and yield a corresponding performance improvement.
      * - \devicestorageNP  For sorting using only <em>O</em>(<tt>P</tt>) temporary storage, see the sorting interface using DoubleBuffer wrappers below.
      * - \devicestorage
      *
-     * \par Performance
-     * Performance is similar to DeviceRadixSort::SortPairs.
-     *
      * \par Snippet
-     * The code snippet below illustrates the sorting of a device vector of \p int keys
+     * The code snippet below illustrates the batched sorting of three segments (with one zero-length segment) of \p int keys
      * with associated vector of \p int values.
      * \par
      * \code
-     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_radix_sort.cuh>
+     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_segmentd_radix_sort.cuh>
      *
      * // Declare, allocate, and initialize device-accessible pointers for sorting data
      * int  num_items;          // e.g., 7
+     * int  num_segments;       // e.g., 3
+     * int  *d_offsets;         // e.g., [0, 3, 3, 7]
      * int  *d_keys_in;         // e.g., [8, 6, 7, 5, 3, 0, 9]
-     * int  *d_keys_out;        // e.g., [        ...        ]
+     * int  *d_keys_out;        // e.g., [-, -, -, -, -, -, -]
      * int  *d_values_in;       // e.g., [0, 1, 2, 3, 4, 5, 6]
-     * int  *d_values_out;      // e.g., [        ...        ]
+     * int  *d_values_out;      // e.g., [-, -, -, -, -, -, -]
      * ...
      *
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceRadixSort::SortPairsDescending(d_temp_storage, temp_storage_bytes,
-     *     d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
+     * cub::DeviceSegmentedRadixSort::SortPairsDescending(d_temp_storage, temp_storage_bytes,
+     *     d_keys_in, d_keys_out, d_values_in, d_values_out,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run sorting operation
-     * cub::DeviceRadixSort::SortPairsDescending(d_temp_storage, temp_storage_bytes,
-     *     d_keys_in, d_keys_out, d_values_in, d_values_out, num_items);
+     * cub::DeviceSegmentedRadixSort::SortPairsDescending(d_temp_storage, temp_storage_bytes,
+     *     d_keys_in, d_keys_out, d_values_in, d_values_out,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
-     * // d_keys_out            <-- [9, 8, 7, 6, 5, 3, 0]
-     * // d_values_out          <-- [6, 0, 2, 1, 3, 4, 5]
+     * // d_keys_out            <-- [8, 7, 6, 9, 5, 3, 0]
+     * // d_values_out          <-- [0, 2, 1, 6, 3, 4, 5]
      *
      * \endcode
      *
-     * \tparam KeyT      <b>[inferred]</b> KeyT type
-     * \tparam ValueT    <b>[inferred]</b> ValueT type
+     * \tparam KeyT             <b>[inferred]</b> Key type
+     * \tparam ValueT           <b>[inferred]</b> Value type
+     * \tparam OffsetIteratorT  <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
      */
     template <
         typename            KeyT,
-        typename            ValueT>
+        typename            ValueT,
+        typename            OffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortPairsDescending(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
-        KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
-        const ValueT        *d_values_in,                           ///< [in] Pointer to the corresponding input sequence of associated value items
-        ValueT              *d_values_out,                          ///< [out] Pointer to the correspondingly-reordered output sequence of associated value items
-        int                 num_items,                              ///< [in] Number of items to sort
+        const KeyT          *d_keys_in,                             ///< [in] %Device-accessible pointer to the input data of key data to sort
+        KeyT                *d_keys_out,                            ///< [out] %Device-accessible pointer to the sorted output sequence of key data
+        const ValueT        *d_values_in,                           ///< [in] %Device-accessible pointer to the corresponding input sequence of associated value items
+        ValueT              *d_values_out,                          ///< [out] %Device-accessible pointer to the correspondingly-reordered output sequence of associated value items
+        int                 num_items,                              ///< [in] The total number of items to sort (across all segments)
+        int                 num_segments,                           ///< [in] The number of segments that comprise the sorting data
+        OffsetIteratorT     d_begin_offsets,                        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        OffsetIteratorT     d_end_offsets,                          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -344,12 +363,15 @@ struct DeviceRadixSort
         DoubleBuffer<KeyT>       d_keys(const_cast<KeyT*>(d_keys_in), d_keys_out);
         DoubleBuffer<ValueT>     d_values(const_cast<ValueT*>(d_values_in), d_values_out);
 
-        return DispatchRadixSort<true, KeyT, ValueT, OffsetT>::Dispatch(
+        return DispatchSegmentedRadixSort<true, KeyT, ValueT, OffsetIteratorT, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_keys,
             d_values,
             num_items,
+            num_segments,
+            d_begin_offsets,
+            d_end_offsets,
             begin_bit,
             end_bit,
             false,
@@ -359,7 +381,7 @@ struct DeviceRadixSort
 
 
     /**
-     * \brief Sorts key-value pairs into descending order. (~<em>N </em>auxiliary storage required).
+     * \brief Sorts segments of key-value pairs into descending order. (~<em>N </em>auxiliary storage required).
      *
      * \par
      * - The sorting operation is given a pair of key buffers and a corresponding
@@ -372,26 +394,29 @@ struct DeviceRadixSort
      *   within each DoubleBuffer wrapper to reference which of the two buffers
      *   now contains the sorted output sequence (a function of the number of key bits
      *   specified and the targeted device architecture).
+     * - When input a contiguous sequence of segments, a single sequence
+     *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
+     *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
+     *   the latter is specified as <tt>segment_offsets+1</tt>).
      * - An optional bit subrange <tt>[begin_bit, end_bit)</tt> of differentiating key bits can be specified.  This can reduce overall sorting overhead and yield a corresponding performance improvement.
      * - \devicestorageP
      * - \devicestorage
      *
-     * \par Performance
-     * Performance is similar to DeviceRadixSort::SortPairs.
-     *
      * \par Snippet
-     * The code snippet below illustrates the sorting of a device vector of \p int keys
+     * The code snippet below illustrates the batched sorting of three segments (with one zero-length segment) of \p int keys
      * with associated vector of \p int values.
      * \par
      * \code
-     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_radix_sort.cuh>
+     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_segmentd_radix_sort.cuh>
      *
      * // Declare, allocate, and initialize device-accessible pointers for sorting data
      * int  num_items;          // e.g., 7
+     * int  num_segments;       // e.g., 3
+     * int  *d_offsets;         // e.g., [0, 3, 3, 7]
      * int  *d_key_buf;         // e.g., [8, 6, 7, 5, 3, 0, 9]
-     * int  *d_key_alt_buf;     // e.g., [        ...        ]
+     * int  *d_key_alt_buf;     // e.g., [-, -, -, -, -, -, -]
      * int  *d_value_buf;       // e.g., [0, 1, 2, 3, 4, 5, 6]
-     * int  *d_value_alt_buf;   // e.g., [        ...        ]
+     * int  *d_value_alt_buf;   // e.g., [-, -, -, -, -, -, -]
      * ...
      *
      * // Create a set of DoubleBuffers to wrap pairs of device pointers
@@ -401,32 +426,39 @@ struct DeviceRadixSort
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceRadixSort::SortPairsDescending(d_temp_storage, temp_storage_bytes, d_keys, d_values, num_items);
+     * cub::DeviceSegmentedRadixSort::SortPairsDescending(d_temp_storage, temp_storage_bytes, d_keys, d_values,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run sorting operation
-     * cub::DeviceRadixSort::SortPairsDescending(d_temp_storage, temp_storage_bytes, d_keys, d_values, num_items);
+     * cub::DeviceSegmentedRadixSort::SortPairsDescending(d_temp_storage, temp_storage_bytes, d_keys, d_values,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
-     * // d_keys.Current()      <-- [9, 8, 7, 6, 5, 3, 0]
-     * // d_values.Current()    <-- [6, 0, 2, 1, 3, 4, 5]
+     * // d_keys.Current()      <-- [8, 7, 6, 9, 5, 3, 0]
+     * // d_values.Current()    <-- [0, 2, 1, 6, 3, 4, 5]
      *
      * \endcode
      *
-     * \tparam KeyT      <b>[inferred]</b> KeyT type
-     * \tparam ValueT    <b>[inferred]</b> ValueT type
+     * \tparam KeyT             <b>[inferred]</b> Key type
+     * \tparam ValueT           <b>[inferred]</b> Value type
+     * \tparam OffsetIteratorT  <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
      */
     template <
-        typename            KeyT,
-        typename            ValueT>
+        typename                KeyT,
+        typename                ValueT,
+        typename                OffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortPairsDescending(
         void                    *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t                  &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         DoubleBuffer<KeyT>      &d_keys,                                ///< [in,out] Reference to the double-buffer of keys whose "current" device-accessible buffer contains the unsorted input keys and, upon return, is updated to point to the sorted output keys
         DoubleBuffer<ValueT>    &d_values,                              ///< [in,out] Double-buffer of values whose "current" device-accessible buffer contains the unsorted input values and, upon return, is updated to point to the sorted output values
-        int                     num_items,                              ///< [in] Number of items to sort
+        int                     num_items,                              ///< [in] The total number of items to sort (across all segments)
+        int                     num_segments,                           ///< [in] The number of segments that comprise the sorting data
+        OffsetIteratorT         d_begin_offsets,                        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        OffsetIteratorT         d_end_offsets,                          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
         int                     begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                     end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t            stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -435,12 +467,15 @@ struct DeviceRadixSort
         // Signed integer type for global offsets
         typedef int OffsetT;
 
-        return DispatchRadixSort<true, KeyT, ValueT, OffsetT>::Dispatch(
+        return DispatchSegmentedRadixSort<true, KeyT, ValueT, OffsetIteratorT, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_keys,
             d_values,
             num_items,
+            num_segments,
+            d_begin_offsets,
+            d_end_offsets,
             begin_bit,
             end_bit,
             true,
@@ -457,58 +492,65 @@ struct DeviceRadixSort
 
 
     /**
-     * \brief Sorts keys into ascending order. (~<em>2N </em>auxiliary storage required)
+     * \brief Sorts segments of keys into ascending order. (~<em>2N </em>auxiliary storage required)
      *
      * \par
      * - The contents of the input data are not altered by the sorting operation
      * - An optional bit subrange <tt>[begin_bit, end_bit)</tt> of differentiating key bits can be specified.  This can reduce overall sorting overhead and yield a corresponding performance improvement.
+     * - When input a contiguous sequence of segments, a single sequence
+     *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
+     *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
+     *   the latter is specified as <tt>segment_offsets+1</tt>).
      * - \devicestorageNP  For sorting using only <em>O</em>(<tt>P</tt>) temporary storage, see the sorting interface using DoubleBuffer wrappers below.
      * - \devicestorage
      *
-     * \par Performance
-     * The following charts illustrate saturated sorting performance across different
-     * CUDA architectures for uniform-random \p uint32 and \p uint64 keys, respectively.
-     *
-     * \image html lsb_radix_sort_int32_keys.png
-     * \image html lsb_radix_sort_int64_keys.png
-     *
      * \par Snippet
-     * The code snippet below illustrates the sorting of a device vector of \p int keys.
+     * The code snippet below illustrates the batched sorting of three segments (with one zero-length segment) of \p int keys.
      * \par
      * \code
-     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_radix_sort.cuh>
+     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_segmentd_radix_sort.cuh>
      *
      * // Declare, allocate, and initialize device-accessible pointers for sorting data
      * int  num_items;          // e.g., 7
+     * int  num_segments;       // e.g., 3
+     * int  *d_offsets;         // e.g., [0, 3, 3, 7]
      * int  *d_keys_in;         // e.g., [8, 6, 7, 5, 3, 0, 9]
-     * int  *d_keys_out;        // e.g., [        ...        ]
+     * int  *d_keys_out;        // e.g., [-, -, -, -, -, -, -]
      * ...
      *
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out, num_items);
+     * cub::DeviceSegmentedRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run sorting operation
-     * cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out, num_items);
+     * cub::DeviceSegmentedRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
-     * // d_keys_out            <-- [0, 3, 5, 6, 7, 8, 9]
+     * // d_keys_out            <-- [6, 7, 8, 0, 3, 5, 9]
      *
      * \endcode
      *
-     * \tparam KeyT      <b>[inferred]</b> KeyT type
+     * \tparam KeyT             <b>[inferred]</b> Key type
+     * \tparam OffsetIteratorT  <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
      */
-    template <typename KeyT>
+    template <
+        typename            KeyT,
+        typename            OffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortKeys(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
-        KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
-        int                 num_items,                              ///< [in] Number of items to sort
+        const KeyT          *d_keys_in,                             ///< [in] %Device-accessible pointer to the input data of key data to sort
+        KeyT                *d_keys_out,                            ///< [out] %Device-accessible pointer to the sorted output sequence of key data
+        int                 num_items,                              ///< [in] The total number of items to sort (across all segments)
+        int                 num_segments,                           ///< [in] The number of segments that comprise the sorting data
+        OffsetIteratorT     d_begin_offsets,                        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        OffsetIteratorT     d_end_offsets,                          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -521,12 +563,15 @@ struct DeviceRadixSort
         DoubleBuffer<KeyT>      d_keys(const_cast<KeyT*>(d_keys_in), d_keys_out);
         DoubleBuffer<NullType>  d_values;
 
-        return DispatchRadixSort<false, KeyT, NullType, OffsetT>::Dispatch(
+        return DispatchSegmentedRadixSort<false, KeyT, NullType, OffsetIteratorT, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_keys,
             d_values,
             num_items,
+            num_segments,
+            d_begin_offsets,
+            d_end_offsets,
             begin_bit,
             end_bit,
             false,
@@ -536,7 +581,7 @@ struct DeviceRadixSort
 
 
     /**
-     * \brief Sorts keys into ascending order. (~<em>N </em>auxiliary storage required).
+     * \brief Sorts segments of keys into ascending order. (~<em>N </em>auxiliary storage required).
      *
      * \par
      * - The sorting operation is given a pair of key buffers managed by a
@@ -547,27 +592,26 @@ struct DeviceRadixSort
      *   within the DoubleBuffer wrapper to reference which of the two buffers
      *   now contains the sorted output sequence (a function of the number of key bits
      *   specified and the targeted device architecture).
+     * - When input a contiguous sequence of segments, a single sequence
+     *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
+     *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
+     *   the latter is specified as <tt>segment_offsets+1</tt>).
      * - An optional bit subrange <tt>[begin_bit, end_bit)</tt> of differentiating key bits can be specified.  This can reduce overall sorting overhead and yield a corresponding performance improvement.
      * - \devicestorageP
      * - \devicestorage
      *
-     * \par Performance
-     * The following charts illustrate saturated sorting performance across different
-     * CUDA architectures for uniform-random \p uint32 and \p uint64 keys, respectively.
-     *
-     * \image html lsb_radix_sort_int32_keys.png
-     * \image html lsb_radix_sort_int64_keys.png
-     *
      * \par Snippet
-     * The code snippet below illustrates the sorting of a device vector of \p int keys.
+     * The code snippet below illustrates the batched sorting of three segments (with one zero-length segment) of \p int keys.
      * \par
      * \code
-     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_radix_sort.cuh>
+     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_segmentd_radix_sort.cuh>
      *
      * // Declare, allocate, and initialize device-accessible pointers for sorting data
      * int  num_items;          // e.g., 7
+     * int  num_segments;       // e.g., 3
+     * int  *d_offsets;         // e.g., [0, 3, 3, 7]
      * int  *d_key_buf;         // e.g., [8, 6, 7, 5, 3, 0, 9]
-     * int  *d_key_alt_buf;     // e.g., [        ...        ]
+     * int  *d_key_alt_buf;     // e.g., [-, -, -, -, -, -, -]
      * ...
      *
      * // Create a DoubleBuffer to wrap the pair of device pointers
@@ -576,27 +620,35 @@ struct DeviceRadixSort
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_keys, num_items);
+     * cub::DeviceSegmentedRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_keys,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run sorting operation
-     * cub::DeviceRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_keys, num_items);
+     * cub::DeviceSegmentedRadixSort::SortKeys(d_temp_storage, temp_storage_bytes, d_keys,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
-     * // d_keys.Current()      <-- [0, 3, 5, 6, 7, 8, 9]
+     * // d_keys.Current()      <-- [6, 7, 8, 0, 3, 5, 9]
      *
      * \endcode
      *
-     * \tparam KeyT      <b>[inferred]</b> KeyT type
+     * \tparam KeyT             <b>[inferred]</b> Key type
+     * \tparam OffsetIteratorT  <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
      */
-    template <typename KeyT>
+    template <
+        typename            KeyT,
+        typename            OffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortKeys(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         DoubleBuffer<KeyT>  &d_keys,                                ///< [in,out] Reference to the double-buffer of keys whose "current" device-accessible buffer contains the unsorted input keys and, upon return, is updated to point to the sorted output keys
-        int                 num_items,                              ///< [in] Number of items to sort
+        int                 num_items,                              ///< [in] The total number of items to sort (across all segments)
+        int                 num_segments,                           ///< [in] The number of segments that comprise the sorting data
+        OffsetIteratorT     d_begin_offsets,                        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        OffsetIteratorT     d_end_offsets,                          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -608,12 +660,15 @@ struct DeviceRadixSort
         // Null value type
         DoubleBuffer<NullType> d_values;
 
-        return DispatchRadixSort<false, KeyT, NullType, OffsetT>::Dispatch(
+        return DispatchSegmentedRadixSort<false, KeyT, NullType, OffsetIteratorT, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_keys,
             d_values,
             num_items,
+            num_segments,
+            d_begin_offsets,
+            d_end_offsets,
             begin_bit,
             end_bit,
             true,
@@ -622,27 +677,30 @@ struct DeviceRadixSort
     }
 
     /**
-     * \brief Sorts keys into descending order. (~<em>2N</em> auxiliary storage required).
+     * \brief Sorts segments of keys into descending order. (~<em>2N</em> auxiliary storage required).
      *
      * \par
      * - The contents of the input data are not altered by the sorting operation
+     * - When input a contiguous sequence of segments, a single sequence
+     *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
+     *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
+     *   the latter is specified as <tt>segment_offsets+1</tt>).
      * - An optional bit subrange <tt>[begin_bit, end_bit)</tt> of differentiating key bits can be specified.  This can reduce overall sorting overhead and yield a corresponding performance improvement.
      * - \devicestorageNP  For sorting using only <em>O</em>(<tt>P</tt>) temporary storage, see the sorting interface using DoubleBuffer wrappers below.
      * - \devicestorage
      *
-     * \par Performance
-     * Performance is similar to DeviceRadixSort::SortKeys.
-     *
      * \par Snippet
-     * The code snippet below illustrates the sorting of a device vector of \p int keys.
+     * The code snippet below illustrates the batched sorting of three segments (with one zero-length segment) of \p int keys.
      * \par
      * \code
-     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_radix_sort.cuh>
+     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_segmentd_radix_sort.cuh>
      *
      * // Declare, allocate, and initialize device-accessible pointers for sorting data
      * int  num_items;          // e.g., 7
+     * int  num_segments;       // e.g., 3
+     * int  *d_offsets;         // e.g., [0, 3, 3, 7]
      * int  *d_keys_in;         // e.g., [8, 6, 7, 5, 3, 0, 9]
-     * int  *d_keys_out;        // e.g., [        ...        ]
+     * int  *d_keys_out;        // e.g., [-, -, -, -, -, -, -]
      * ...
      *
      * // Create a DoubleBuffer to wrap the pair of device pointers
@@ -651,28 +709,36 @@ struct DeviceRadixSort
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceRadixSort::SortKeysDescending(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out, num_items);
+     * cub::DeviceSegmentedRadixSort::SortKeysDescending(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run sorting operation
-     * cub::DeviceRadixSort::SortKeysDescending(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out, num_items);
+     * cub::DeviceSegmentedRadixSort::SortKeysDescending(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
-     * // d_keys_out            <-- [9, 8, 7, 6, 5, 3, 0]s
+     * // d_keys_out            <-- [8, 7, 6, 9, 5, 3, 0]
      *
      * \endcode
      *
-     * \tparam KeyT      <b>[inferred]</b> KeyT type
+     * \tparam KeyT             <b>[inferred]</b> Key type
+     * \tparam OffsetIteratorT  <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
      */
-    template <typename KeyT>
+    template <
+        typename            KeyT,
+        typename            OffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortKeysDescending(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
-        const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
-        KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
-        int                 num_items,                              ///< [in] Number of items to sort
+        const KeyT          *d_keys_in,                             ///< [in] %Device-accessible pointer to the input data of key data to sort
+        KeyT                *d_keys_out,                            ///< [out] %Device-accessible pointer to the sorted output sequence of key data
+        int                 num_items,                              ///< [in] The total number of items to sort (across all segments)
+        int                 num_segments,                           ///< [in] The number of segments that comprise the sorting data
+        OffsetIteratorT     d_begin_offsets,                        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        OffsetIteratorT     d_end_offsets,                          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -684,12 +750,15 @@ struct DeviceRadixSort
         DoubleBuffer<KeyT>      d_keys(const_cast<KeyT*>(d_keys_in), d_keys_out);
         DoubleBuffer<NullType>  d_values;
 
-        return DispatchRadixSort<true, KeyT, NullType, OffsetT>::Dispatch(
+        return DispatchSegmentedRadixSort<true, KeyT, NullType, OffsetIteratorT, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_keys,
             d_values,
             num_items,
+            num_segments,
+            d_begin_offsets,
+            d_end_offsets,
             begin_bit,
             end_bit,
             false,
@@ -699,7 +768,7 @@ struct DeviceRadixSort
 
 
     /**
-     * \brief Sorts keys into descending order. (~<em>N </em>auxiliary storage required).
+     * \brief Sorts segments of keys into descending order. (~<em>N </em>auxiliary storage required).
      *
      * \par
      * - The sorting operation is given a pair of key buffers managed by a
@@ -710,23 +779,26 @@ struct DeviceRadixSort
      *   within the DoubleBuffer wrapper to reference which of the two buffers
      *   now contains the sorted output sequence (a function of the number of key bits
      *   specified and the targeted device architecture).
+     * - When input a contiguous sequence of segments, a single sequence
+     *   \p segment_offsets (of length <tt>num_segments+1</tt>) can be aliased
+     *   for both the \p d_begin_offsets and \p d_end_offsets parameters (where
+     *   the latter is specified as <tt>segment_offsets+1</tt>).
      * - An optional bit subrange <tt>[begin_bit, end_bit)</tt> of differentiating key bits can be specified.  This can reduce overall sorting overhead and yield a corresponding performance improvement.
      * - \devicestorageP
      * - \devicestorage
      *
-     * \par Performance
-     * Performance is similar to DeviceRadixSort::SortKeys.
-     *
      * \par Snippet
-     * The code snippet below illustrates the sorting of a device vector of \p int keys.
+     * The code snippet below illustrates the batched sorting of three segments (with one zero-length segment) of \p int keys.
      * \par
      * \code
-     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_radix_sort.cuh>
+     * #include <cub/cub.cuh>   // or equivalently <cub/device/device_segmentd_radix_sort.cuh>
      *
      * // Declare, allocate, and initialize device-accessible pointers for sorting data
      * int  num_items;          // e.g., 7
+     * int  num_segments;       // e.g., 3
+     * int  *d_offsets;         // e.g., [0, 3, 3, 7]
      * int  *d_key_buf;         // e.g., [8, 6, 7, 5, 3, 0, 9]
-     * int  *d_key_alt_buf;     // e.g., [        ...        ]
+     * int  *d_key_alt_buf;     // e.g., [-, -, -, -, -, -, -]
      * ...
      *
      * // Create a DoubleBuffer to wrap the pair of device pointers
@@ -735,27 +807,35 @@ struct DeviceRadixSort
      * // Determine temporary device storage requirements
      * void     *d_temp_storage = NULL;
      * size_t   temp_storage_bytes = 0;
-     * cub::DeviceRadixSort::SortKeysDescending(d_temp_storage, temp_storage_bytes, d_keys, num_items);
+     * cub::DeviceSegmentedRadixSort::SortKeysDescending(d_temp_storage, temp_storage_bytes, d_keys,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
      * // Allocate temporary storage
      * cudaMalloc(&d_temp_storage, temp_storage_bytes);
      *
      * // Run sorting operation
-     * cub::DeviceRadixSort::SortKeysDescending(d_temp_storage, temp_storage_bytes, d_keys, num_items);
+     * cub::DeviceSegmentedRadixSort::SortKeysDescending(d_temp_storage, temp_storage_bytes, d_keys,
+     *     num_items, num_segments, d_offsets, d_offsets + 1);
      *
-     * // d_keys.Current()      <-- [9, 8, 7, 6, 5, 3, 0]
+     * // d_keys.Current()      <-- [8, 7, 6, 9, 5, 3, 0]
      *
      * \endcode
      *
-     * \tparam KeyT      <b>[inferred]</b> KeyT type
+     * \tparam KeyT             <b>[inferred]</b> Key type
+     * \tparam OffsetIteratorT  <b>[inferred]</b> Random-access input iterator type for reading segment offsets \iterator
      */
-    template <typename KeyT>
+    template <
+        typename            KeyT,
+        typename            OffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortKeysDescending(
         void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         DoubleBuffer<KeyT>  &d_keys,                                ///< [in,out] Reference to the double-buffer of keys whose "current" device-accessible buffer contains the unsorted input keys and, upon return, is updated to point to the sorted output keys
-        int                 num_items,                              ///< [in] Number of items to sort
+        int                 num_items,                              ///< [in] The total number of items to sort (across all segments)
+        int                 num_segments,                           ///< [in] The number of segments that comprise the sorting data
+        OffsetIteratorT     d_begin_offsets,                        ///< [in] Pointer to the sequence of beginning offsets of length \p num_segments, such that <tt>d_begin_offsets[i]</tt> is the first element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>
+        OffsetIteratorT     d_end_offsets,                          ///< [in] Pointer to the sequence of ending offsets of length \p num_segments, such that <tt>d_end_offsets[i]-1</tt> is the last element of the <em>i</em><sup>th</sup> data segment in <tt>d_keys_*</tt> and <tt>d_values_*</tt>.  If <tt>d_end_offsets[i]-1</tt> <= <tt>d_begin_offsets[i]</tt>, the <em>i</em><sup>th</sup> is considered empty.
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
@@ -767,12 +847,15 @@ struct DeviceRadixSort
         // Null value type
         DoubleBuffer<NullType> d_values;
 
-        return DispatchRadixSort<true, KeyT, NullType, OffsetT>::Dispatch(
+        return DispatchSegmentedRadixSort<true, KeyT, NullType, OffsetIteratorT, OffsetT>::Dispatch(
             d_temp_storage,
             temp_storage_bytes,
             d_keys,
             d_values,
             num_items,
+            num_segments,
+            d_begin_offsets,
+            d_end_offsets,
             begin_bit,
             end_bit,
             true,
@@ -785,10 +868,6 @@ struct DeviceRadixSort
 
 
 };
-
-/**
- * \example example_device_radix_sort.cu
- */
 
 }               // CUB namespace
 CUB_NS_POSTFIX  // Optional outer namespace(s)
