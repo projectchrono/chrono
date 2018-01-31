@@ -74,8 +74,9 @@ __device__ size_t figureOutTouchedSDs(const dim3&);
 *
 */
 template <
-    unsigned short int CUB_THREADS,           //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of warp size (32) and less than or equal to min(256, blockDim.x)
-    unsigned short int AMOUNT_SHMEM_KB        //!< The amount of shared mem to be used (in KB). Asking for lots of shared memory will make the occupancy go down
+    int CUB_THREADS,           //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of warp size (32) and less than or equal to min(256, blockDim.x)
+    int AMOUNT_SHMEM_KB,       //!< The amount of shared mem to be used (in KB). Asking for lots of shared memory will make the occupancy go down
+    int boo
 >
 __global__ void primingOperationsRectangularBox(
     float* pRawDataArray,                     //!< Pointer to array containing data related to the spheres in the box
@@ -85,9 +86,9 @@ __global__ void primingOperationsRectangularBox(
 )
 {
     /// Set aside shared memory
-    const unsigned int sphere_in_SD_events_UPPERBOUND = ((AMOUNT_SHMEM_KB * 1024) / (2 * sizeof(unsigned int)));
+    const int sphere_in_SD_events_UPPERBOUND = ((AMOUNT_SHMEM_KB * 1024) / (2 * sizeof(int)));
     __shared__ unsigned int shMem_UINT[2 * sphere_in_SD_events_UPPERBOUND];
-    const unsigned short strideCUB = sphere_in_SD_events_UPPERBOUND / CUB_THREADS; // this is how many elements of data in ShMem are going to be assigned per lane when doing CUB block collective operations
+    const int strideCUB = sphere_in_SD_events_UPPERBOUND / CUB_THREADS; // this is how many elements of data in ShMem are going to be assigned per lane when doing CUB block collective operations
 
     // Figure out the memory bounds...
     unsigned int* const touchedSDs = shMem_UINT;
@@ -113,7 +114,7 @@ __global__ void primingOperationsRectangularBox(
         // Allocate shared memory for BlockLoad
         __shared__ typename Block_Load::TempStorage temp_storage;
         // Load a segment of consecutive items that are blocked across threads
-        BlockLoad(temp_storage).Load(pRawDataArray + 3 * mySphereID, sphereXYZ);
+        Block_Load(temp_storage).Load(pRawDataArray + 3 * mySphereID, sphereXYZ);
 
         // Find out which SDs are touched by this sphere
         // NOTE: A sphere might also touch the "catchAll_SD"
@@ -137,9 +138,11 @@ __global__ void primingOperationsRectangularBox(
 
     // Start with a clean slate of data in shared memory. Note that dummyUINT cannot be larger than 16, which explains the way "seedData" was set up.
     // The value 16 is tied to the fact that each sphere can touch at the most 8 SDs
-    typedef cub::BlockStore<unsigned int, CUB_THREADS, 2*strideCUB, cub::BLOCK_STORE_WARP_TRANSPOSE> BlockStore; // is BLOCK_STORE_WARP_TRANSPOSE what i want?
-    __shared__ typename BlockStore::TempStorage temp_storageOP;
-    BlockStore(temp_storageOP).Store(shMem_UINT, seedData);
+    //typedef cub::BlockStore<unsigned int, CUB_THREADS, 2*strideCUB, cub::BLOCK_STORE_WARP_TRANSPOSE> Block_Store; // is BLOCK_STORE_WARP_TRANSPOSE what i want?
+    typedef cub::BlockStore<unsigned int, CUB_THREADS, boo, cub::BLOCK_STORE_WARP_TRANSPOSE> Block_Store; // is BLOCK_STORE_WARP_TRANSPOSE what i want?
+    __shared__ typename Block_Store::TempStorage temp_storageOP;
+    Block_Store(temp_storageOP).Store(shMem_UINT, seedData);
+
 
     // Get the actual work done
     unsigned int dummyUINT;
@@ -160,9 +163,15 @@ __global__ void primingOperationsRectangularBox(
     // The key: the domain touched by this Sphere
     // The value: the sphere ID
     dummyUINT = strideCUB * threadIdx.x;
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, strideCUB, unsigned int> BlockRadixSort;
-    __shared__ typename BlockRadixSort::TempStorage temp_storage_sort;
-    BlockRadixSort(temp_storage_sort).Sort(touchedSDs + dummyUINT, sphereID + dummyUINT);
+//    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, boo, unsigned int> BlockRadixSortOP;
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, boo, unsigned int> BlockRadixSortOP;
+    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
+    unsigned int thread_keys[boo];
+    unsigned int thread_values[boo];
+    unsigned int* thisIsJUNK;
+    int [6];
+    BlockRadixSortOP(temp_storage_sort).Sort((unsigned int[boo]) thisIsJUNK, thread_values);
+    //BlockRadixSortOP(temp_storage_sort).Sort(touchedSDs + dummyUINT, sphereID + dummyUINT);
 
     // Figure out what each thread needs to check in terms of Heaviside-step in the array of SDs 
     // touched; the CUB_THREADS is promoted to unsigned int here
@@ -211,7 +220,7 @@ __global__ void primingOperationsRectangularBox(
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     dim3 grid3D_dims(256, 256, 256);
-    primingOperationsRectangularBox<256, 32> <<<grid3D_dims, 128 >>>(p_device_GRN_xyz_DE, p_device_SD_countsOfSheresTouching, p_device_spheres_in_SD_composite, nSpheres());
+    primingOperationsRectangularBox<256, 32, 16> <<<grid3D_dims, 128 >>>(p_device_GRN_xyz_DE, p_device_SD_countsOfSheresTouching, p_device_spheres_in_SD_composite, nSpheres());
 
     return;
 }
