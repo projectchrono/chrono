@@ -11,10 +11,13 @@ chrono::ChGRN_DE_Container::~ChGRN_DE_Container() {
         delete[] pGRN_xyzDOT_DE;
 
     // Clean up, the device side
-    if (p_device_GRN_xyz_DE != nullptr)
-        cudaFree(pGRN_xyz_DE);
-    if (p_device_GRN_xyzDOT_DE != nullptr)
-        cudaFree(pGRN_xyzDOT_DE);
+    if (p_d_CM_X != nullptr) cudaFree(p_d_CM_X);
+    if (p_d_CM_Y != nullptr) cudaFree(p_d_CM_Y);
+    if (p_d_CM_Z != nullptr) cudaFree(p_d_CM_Z);
+
+    if (p_d_CM_XDOT != nullptr) cudaFree(p_d_CM_XDOT);
+    if (p_d_CM_YDOT != nullptr) cudaFree(p_d_CM_YDOT);
+    if (p_d_CM_ZDOT != nullptr) cudaFree(p_d_CM_ZDOT);
 }
 
 
@@ -23,6 +26,8 @@ chrono::ChGRN_DE_Container::~ChGRN_DE_Container() {
 */
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
 
-    gpuErrchk( cudaMalloc((void**)& p_device_GRN_xyz_DE, 3*nDEs * sizeof(float)) );
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_X, nDEs * sizeof(float)));
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_Y, nDEs * sizeof(float)));
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_Z, nDEs * sizeof(float)));
 
 }

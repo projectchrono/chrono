@@ -45,8 +45,8 @@ struct float3 {
 
 std::vector<float3> generate_balls(float xdim, float ydim, float zdim) {
     // Create the falling balls
-    float ball_epsilon = .005;  // Margine between balls to ensure no overlap / DEM-splosion
-    float ball_radius = 1;
+    float ball_epsilon = .005f;  // Margine between balls to ensure no overlap / DEM-splosion
+    float ball_radius = 1.;
     // Add epsilon
     utils::HCPSampler<float> sampler((2 + ball_epsilon) * ball_radius);
 
@@ -72,15 +72,15 @@ int main(int argc, char* argv[]) {
     auto ball_list = generate_balls(20.f, 20.f, 30.f);
     size_t num_balls = ball_list.size();
     std::cout << num_balls << " balls added!" << std::endl;
-    double time_step = 1e-5;
-    double time_end = 6.;
+    float time_step = 0.00001f;
+    double time_end = 6.f;
     std::string output_prefix = "settling_MONODISP_SPHERES_SMC";
 
     // Material properties
     float Y = 2e5f;
     float wallY = 1e7f;
 
-    ChGRN_DE_MONODISP_SPH_IN_BOX_NOFRIC_SMC experiment(1.f, 80000);
+    ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC experiment(1.f, 80000);
     experiment.setBOXdims(20.f, 20.f, 30.f);
     experiment.YoungModulus_SPH2SPH(200000.f);
     experiment.YoungModulus_SPH2WALL(10000000.f);

@@ -34,14 +34,20 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     float* pGRN_xyz_DE;
     float* pGRN_xyzDOT_DE;
 
-    float* p_device_GRN_xyz_DE;
-    float* p_device_GRN_xyzDOT_DE;
+    /// Device pointers
+    float* p_d_CM_X;
+    float* p_d_CM_Y;
+    float* p_d_CM_Z;
+    float* p_d_CM_XDOT;
+    float* p_d_CM_YDOT;
+    float* p_d_CM_ZDOT;
 
     GRN_TIME_STEPPING time_stepping;
 
   public:
     ChGRN_DE_Container()
-        : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), pGRN_xyz_DE(nullptr), pGRN_xyzDOT_DE(nullptr), p_device_GRN_xyz_DE(nullptr), p_device_GRN_xyzDOT_DE(nullptr) {}
+        : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), pGRN_xyz_DE(nullptr), pGRN_xyzDOT_DE(nullptr), 
+        p_d_CM_X(nullptr), p_d_CM_Y(nullptr), p_d_CM_Z(nullptr), p_d_CM_XDOT(nullptr), p_d_CM_YDOT(nullptr), p_d_CM_ZDOT(nullptr) {}
 
     ~ChGRN_DE_Container();
 
