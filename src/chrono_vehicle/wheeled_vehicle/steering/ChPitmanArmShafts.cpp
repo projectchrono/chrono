@@ -368,7 +368,7 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
     if (m_rigid)
         constraint_violations.push_back(m_rigid_connection->GetConstraintViolation());
 
-    arm_angular_vel = m_arm->GetWvel_par();
+    arm_angular_vel = m_arm->GetWvel_loc();
 
     auto coords = m_revolute->GetLinkRelativeCoords();
 }
