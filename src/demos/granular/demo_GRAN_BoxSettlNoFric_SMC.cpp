@@ -43,10 +43,9 @@ struct float3 {
     float x, y, z;
 };
 
-std::vector<float3> generate_balls(float xdim, float ydim, float zdim) {
+std::vector<float3> generate_balls(float xdim, float ydim, float zdim, float ball_radius) {
     // Create the falling balls
     float ball_epsilon = .005f;  // Margine between balls to ensure no overlap / DEM-splosion
-    float ball_radius = 1.;
     // Add epsilon
     utils::HCPSampler<float> sampler((2 + ball_epsilon) * ball_radius);
 
@@ -69,7 +68,7 @@ std::vector<float3> generate_balls(float xdim, float ydim, float zdim) {
 // There is no friction.
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    auto ball_list = generate_balls(20.f, 20.f, 30.f);
+    auto ball_list = generate_balls(20.f, 20.f, 30.f, 1.f);
     size_t num_balls = ball_list.size();
     std::cout << num_balls << " balls added!" << std::endl;
     float time_step = 0.00001f;
