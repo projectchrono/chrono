@@ -29,7 +29,7 @@ extern __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectang
 
 
 
-__device__ unsigned int figureOutTouchedSD(int tripID);
+__device__ unsigned int figureOutTouchedSD(int tripID) { return BLAH_BLAH_I; }
 
 /**
 * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time stepping.
