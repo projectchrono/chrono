@@ -574,6 +574,18 @@ void ChCommDistributed::Exchange() {
                 MPI_Recv(recv_take_up, num_recv_take_up, MPI_UNSIGNED, my_rank + 1, 6, my_sys->world,
                          &recv_status_take_up);
             }
+
+			// Make sure all non-blocking communications are done.
+			if (my_rank != num_ranks - 1) {
+				MPI_Wait(&rq_exchange_up, MPI_STATUS_IGNORE);
+				MPI_Wait(&rq_update_up, MPI_STATUS_IGNORE);
+				MPI_Wait(&rq_take_up, MPI_STATUS_IGNORE);
+			}
+			if (my_rank != 0) {
+				MPI_Wait(&rq_exchange_down, MPI_STATUS_IGNORE);
+				MPI_Wait(&rq_update_down, MPI_STATUS_IGNORE);
+				MPI_Wait(&rq_take_down, MPI_STATUS_IGNORE);
+			}
         }  // End of send/recv section
 
 // TODO could do in parallel if counting the spaces in the buffers in the first pass
@@ -649,6 +661,13 @@ void ChCommDistributed::Exchange() {
         ProcessShapes(num_recv_shapes_down, recv_shapes_down);
     if (my_rank != num_ranks - 1)
         ProcessShapes(num_recv_shapes_up, recv_shapes_up);
+
+	if (my_rank != num_ranks - 1) {
+		MPI_Wait(&rq_shapes_up, MPI_STATUS_IGNORE);
+	}
+	if (my_rank != 0) {
+		MPI_Wait(&rq_shapes_down, MPI_STATUS_IGNORE);
+	}
 
     // Free all dynamic memory used for recving
     delete[] recv_exchange_down;

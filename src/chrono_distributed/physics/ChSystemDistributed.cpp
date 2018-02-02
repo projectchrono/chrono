@@ -432,7 +432,7 @@ int ChSystemDistributed::CollectCosimForces(CosimForce* forces) {
             // Get force on body at index local
             int contact_index = data_manager->host_data.ct_body_map[local];
             real3 f = data_manager->host_data.ct_body_force[contact_index];
-            CosimForce cf = {.gid = i, .owner_rank = my_rank, .force = {f[0], f[1], f[2]}};
+            CosimForce cf = {i, my_rank, {f[0], f[1], f[2]}};
             send.push_back(std::move(cf));
         }
     }
