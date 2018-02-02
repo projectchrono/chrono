@@ -45,11 +45,11 @@ set(CH_GRANULAR_C_FLAGS "")
 # ------------------------------------------------------------------------------
 
 # ----- CUDA support -----
-
-find_package(CUDA)
+find_package(CUDA QUIET REQUIRED)
 
 cmake_dependent_option(USE_GRANULAR_CUDA "Enable CUDA support in Chrono::Granular" ON "CUDA_FOUND" OFF)
 
+message( "Dan Flags are " ${CUDA_NVCC_FLAGS})
 
 IF(USE_GRANULAR_CUDA)
   SET(CUDA_SEPARABLE_COMPILATION ON)
@@ -68,9 +68,12 @@ message ( ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VER
     SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
   ENDIF()
 
-  INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
-  SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
-  LIST(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=compute_60 -code=sm_60)
+  message( "Dan 2 Flags are " ${CUDA_NVCC_FLAGS})
+  #INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
+  #SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
+  #LIST(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
+  message( "Dan 3 Flags are " ${CUDA_NVCC_FLAGS})
 
   SET(CHRONO_GRANULAR_USE_CUDA "#define CHRONO_GRANULAR_USE_CUDA")
 ELSE()

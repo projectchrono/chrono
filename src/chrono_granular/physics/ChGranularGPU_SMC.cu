@@ -96,7 +96,7 @@ __global__ void primingOperationsRectangularBox(
     mySphereID[0] = threadIdx.x + blockIdx.x * blockIdx.y * blockIdx.z * blockDim.x;  // We work with a 1D block structure and a 3D grid structure   
     touchedSD[0] = NULL_GRANULAR_ID; // Important to seed the touchedSD w/ a "no-SD" value
     offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID; // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
-    
+
     unsigned int dummyUINT01 = mySphereID[0];
     if (mySphereID[0] < nSpheres) {
         // Coalesced mem access
@@ -139,7 +139,7 @@ __global__ void primingOperationsRectangularBox(
                     dummyUINT01++;
                 } while (threadIdx.x + dummyUINT01 < CUB_THREADS && !(head_flags[threadIdx.x + dummyUINT01]));
                 // Overwrite touchedSD[0], it ended its purpose upon call to atomicAdd
-                touchedSD[0] = atomicAdd(SD_countsOfSheresTouching+touchedSD[0], dummyUINT01);
+                touchedSD[0] = atomicAdd(SD_countsOfSheresTouching + touchedSD[0], dummyUINT01);
                 // touchedSD[0] now gives offset in the composite array
 
                 // Next, overwrite mySphereID, this was needed only to make CUB happy; it contains now the length of the streak for this SD
@@ -160,8 +160,11 @@ __global__ void primingOperationsRectangularBox(
 
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
+    #define CUDA_THREADS 128
+    setup_simulation();
+    /// Figure our the number of blocks that need to be launched to cover the box
     dim3 grid3D_dims(256, 256, 256);
-    primingOperationsRectangularBox<128> << <grid3D_dims, 128 >> > (p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_countsOfSheresTouching, p_device_spheres_in_SD_composite, nSpheres());
+    primingOperationsRectangularBox<CUDA_THREADS> << <grid3D_dims, CUDA_THREADS >> > (p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
 
     return;
 }

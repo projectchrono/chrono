@@ -68,7 +68,7 @@ std::vector<float3> generate_balls(float xdim, float ydim, float zdim, float bal
 // There is no friction.
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    auto ball_list = generate_balls(20.f, 20.f, 30.f, 1.f);
+    auto ball_list = generate_balls(40.f, 40.f, 60.f, 1.f);
     size_t num_balls = ball_list.size();
     std::cout << num_balls << " balls added!" << std::endl;
     float time_step = 0.00001f;
@@ -79,10 +79,10 @@ int main(int argc, char* argv[]) {
     float Y = 2e5f;
     float wallY = 1e7f;
 
-    ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC experiment(1.f, 80000);
-    experiment.setBOXdims(20.f, 20.f, 30.f);
-    experiment.YoungModulus_SPH2SPH(200000.f);
-    experiment.YoungModulus_SPH2WALL(10000000.f);
-    experiment.settle(10.f);
+    ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC settlingExperiment(1.f, 80000);
+    settlingExperiment.setBOXdims(20.f, 20.f, 30.f);
+    settlingExperiment.YoungModulus_SPH2SPH(200000.f);
+    settlingExperiment.YoungModulus_SPH2WALL(10000000.f);
+    settlingExperiment.settle(10.f);
     return 0;
 }
