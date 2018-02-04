@@ -81,8 +81,8 @@ bool ChCollisionModelDistributed::AddBox(double hx,
 bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos = ChVector<>()) {
     ChVector<double> body_pos(this->GetBody()->GetPos());
 
-    ChVector<double> max = body_pos + pos + ChVector<double>(radius, radius, radius);
-    ChVector<double> min = body_pos + pos - ChVector<double>(radius, radius, radius);
+    ChVector<double> max = pos + ChVector<double>(radius, radius, radius);
+    ChVector<double> min = pos - ChVector<double>(radius, radius, radius);
 
     // If this is the first shape being added to the model,
     // set the first reference points

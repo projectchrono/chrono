@@ -70,7 +70,7 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
 
     // Shape
     MPI_Datatype type_shape[3] = {MPI_UNSIGNED, MPI_INT, MPI_DOUBLE};
-    int blocklen_shape[3] = {1, 1, 12};
+    int blocklen_shape[3] = {1, 1, 13};
     MPI_Aint disp_shape[3];
     disp_shape[0] = offsetof(Shape, gid);
     disp_shape[1] = offsetof(Shape, type);
@@ -852,10 +852,10 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
         shape.A[1] = data_manager->shape_data.ObA_rigid[shape_index].y;
         shape.A[2] = data_manager->shape_data.ObA_rigid[shape_index].z;
 
-        shape.R[0] = data_manager->shape_data.ObR_rigid[shape_index].x;  // TODO the order of array is wxyz
-        shape.R[1] = data_manager->shape_data.ObR_rigid[shape_index].y;
-        shape.R[2] = data_manager->shape_data.ObR_rigid[shape_index].z;
-        shape.R[3] = data_manager->shape_data.ObR_rigid[shape_index].w;
+        shape.R[0] = data_manager->shape_data.ObR_rigid[shape_index].w;
+        shape.R[1] = data_manager->shape_data.ObR_rigid[shape_index].x;
+        shape.R[2] = data_manager->shape_data.ObR_rigid[shape_index].y;
+        shape.R[3] = data_manager->shape_data.ObR_rigid[shape_index].z;
 
         /*(buf + i)->fam = data_manager->shape_data.fam_rigid[shape_index];*/
 

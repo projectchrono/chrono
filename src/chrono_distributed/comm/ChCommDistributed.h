@@ -58,7 +58,7 @@ typedef struct Shape {
     uint gid;
     int type;
     double A[3];  // A
-    double R[3];
+    double R[4];
     double data[6];  // B C and shape-specific data
     /*short2 fam;*/
 } Shape;
