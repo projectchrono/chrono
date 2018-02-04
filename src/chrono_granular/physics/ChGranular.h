@@ -45,8 +45,16 @@ namespace chrono {
         unsigned int* p_device_SD_NumOf_DEs_Touching;  //!< Entry "i" says how many spheres touch SD i
         unsigned int* p_device_DEs_in_SD_composite;    //!< Array containing the IDs of the spheres stored in the SDs associated with the box
 
+        unsigned int nSDs;
+
 
         GRN_TIME_STEPPING time_stepping;
+
+        /// Partition the big domain (BD) and sets the number of SDs that BD is split in. 
+        /// This is protected since the user has very little insights in how to split the BD.
+        /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
+        virtual void partition_BD() = 0;
+        virtual void adimensionlize() = 0;
 
     public:
         ChGRN_DE_Container()
@@ -66,6 +74,8 @@ namespace chrono {
         inline size_t elementCount() const { return nDEs; }
         inline float* pXYZsphereLocation() const { return p_h_xyz_DE; }
         inline float* pXYZsphereVelocity() const { return p_h_xyzDOT_DE; }
+
+        inline unsigned int get_SD_count() const { return nSDs; }
     };
 
     /**
@@ -75,19 +85,27 @@ namespace chrono {
     protected:
         //!< Reference Frame of the box
         float sphere_radius;
-        //!< XYZ location of the center of the box
-        //!< Euler params for orientation of the box
+
+        float sphere_density;
+
         float modulusYoung_SPH2SPH;
         float modulusYoung_SPH2WALL;
 
-        float box_L; //!< length of box, defined independently of any reference frame
-        float box_W; //!< width of box, defined independently of any reference frame
-        float box_H; //!< height of box, defined independently of any reference frame
+        float box_L; //!< length of box; will define the local X axis located at the CM of the box (left to right)
+        float box_D; //!< depth of box; will define the local Y axis located at the CM of the box (into screen)
+        float box_H; //!< height of box; will define the local Z axis located at the CM of the box (pointing up)
 
-        unsigned int PRECISION_FACTOR_SPACE;  //!< Everthing is measured as multiples of
-                                              //!< sphere_radius/PRECISION_FACTOR_SPACE. Ex.: the radius of the sphere is
-                                              //!< 1000 units
-        unsigned int PRECISION_FACTOR_TIME;   //!< Any time quanity is measured as a multiple of
+        double SPACE_UNIT;  //!< Everthing is measured as a multiple of SPACE_UNIT
+        double TIME_UNIT;   //!< Any time quanity is measured as a positive multiple of TIME_UNIT
+        double MASS_UNIT;   //!< Any mass is a positive multiple of this MASS_UNIT
+
+        unsigned int SD_L_AD;  //!< The AD-ed value of an SD in the L direction
+        unsigned int SD_D_AD;  //!< The AD-ed value of an SD in the D direction
+        unsigned int SD_H_AD;  //!< The AD-ed value of an SD in the H direction
+
+        void partition_BD();
+        void adimensionlize();
+
 
     public:
         ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH, unsigned int countSPHs) : ChGRN_DE_Container() {
@@ -99,9 +117,10 @@ namespace chrono {
 
         virtual void settle(float t_end) = 0;
         virtual void setup_simulation() = 0;
-        void setBOXdims(float L_DIM, float W_DIM, float H_DIM) { box_L = L_DIM; box_W = W_DIM; box_H = H_DIM; }
+        void setBOXdims(float L_DIM, float D_DIM, float H_DIM) { box_L = L_DIM; box_D = D_DIM; box_H = H_DIM; }
         inline void YoungModulus_SPH2SPH(float someValue) { modulusYoung_SPH2SPH = someValue; }
         inline void YoungModulus_SPH2WALL(float someValue) { modulusYoung_SPH2WALL = someValue; }
+        inline void setDensity(float someValue) { sphere_density = someValue; }
 
         inline size_t  nSpheres() { return nDEs; }
     };
@@ -112,6 +131,7 @@ namespace chrono {
      */
     class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MONODISP_SPH_IN_BOX_SMC {
     protected:
+
     public:
         ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH, unsigned int countSPHs): ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, countSPHs) {
             setup_simulation();
