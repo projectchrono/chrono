@@ -104,7 +104,8 @@ __device__ void figureOutTouchedSD(uint3 spherePos, unsigned int* SDs) {
         }
         // Valid will be 0 or 1 at this point, 0 => SD in SDs[i] isn't touched and the value is invalid
         // SDs[i] *= valid; // invalid is 0
-        SDs[i] = valid ? SDs[i] : -1000;  // invalid is -1000, this was Dan's suggestion even though SDs is a uint
+        SDs[i] =
+            valid ? SDs[i] : NULL_GRANULAR_ID;  // invalid is -1000, this was Dan's suggestion even though SDs is a uint
     }
 
     // This is how nasty this code would be if I didn't do the bit shifty stuff and the for loops above
