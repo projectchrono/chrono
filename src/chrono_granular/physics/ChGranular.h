@@ -35,12 +35,12 @@ namespace chrono {
         float* p_h_xyzDOT_DE;
 
         /// Device pointers
-        float* p_d_CM_X;
-        float* p_d_CM_Y;
-        float* p_d_CM_Z;
-        float* p_d_CM_XDOT;
-        float* p_d_CM_YDOT;
-        float* p_d_CM_ZDOT;
+        unsigned int* p_d_CM_X;
+        unsigned int* p_d_CM_Y;
+        unsigned int* p_d_CM_Z;
+        unsigned int* p_d_CM_XDOT;
+        unsigned int* p_d_CM_YDOT;
+        unsigned int* p_d_CM_ZDOT;
 
         unsigned int* p_device_SD_NumOf_DEs_Touching;  //!< Entry "i" says how many spheres touch SD i
         unsigned int* p_device_DEs_in_SD_composite;    //!< Array containing the IDs of the spheres stored in the SDs associated with the box
@@ -82,22 +82,22 @@ namespace chrono {
      * ChGRN_DE_MONODISP_SPH_IN_BOX: Mono-disperse setup, one radius for all spheres
      */
     class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Container {
-    protected:
-        //!< Reference Frame of the box
-        float sphere_radius;
-
-        float sphere_density;
+    protected:        
+        float sphere_radius;    /// User defined radius of the sphere 
+        float sphere_density;   /// User defined density of the sphere
 
         float modulusYoung_SPH2SPH;
         float modulusYoung_SPH2WALL;
 
-        float box_L; //!< length of box; will define the local X axis located at the CM of the box (left to right)
-        float box_D; //!< depth of box; will define the local Y axis located at the CM of the box (into screen)
-        float box_H; //!< height of box; will define the local Z axis located at the CM of the box (pointing up)
+        float box_L; //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
+        float box_D; //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
+        float box_H; //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
 
         double SPACE_UNIT;  //!< Everthing is measured as a multiple of SPACE_UNIT
         double TIME_UNIT;   //!< Any time quanity is measured as a positive multiple of TIME_UNIT
-        double MASS_UNIT;   //!< Any mass is a positive multiple of this MASS_UNIT
+        double MASS_UNIT;   //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is equal the the mass of a sphere
+
+        unsigned int monoDisperseSphRadius_AD; //!< The AD-ed value of the sphere radius
 
         unsigned int SD_L_AD;  //!< The AD-ed value of an SD in the L direction
         unsigned int SD_D_AD;  //!< The AD-ed value of an SD in the D direction

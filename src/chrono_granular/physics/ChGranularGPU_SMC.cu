@@ -20,17 +20,20 @@
 #include "assert.h"
 
 #define BLAH_BLAH_I 0
-#define NULL_GRANULAR_ID UINT_MAX - 1
-#define RADIUS 10
+#define NULL_GRANULAR_ID UINT_MAX
 
-extern __constant__ float3
-    xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
-extern __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the rectangular box
-                                           //!< in the Global Reference Frame
-extern __constant__ dim3
-    SD_dims;  //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
-extern __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in
-//!< multples of SD, in the X, Y, and Z directions, respectively
+extern __constant__ float3 xyzOriginBox;       //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
+extern __constant__ float4 eulerParamBox;      //!< Set of four floats that provide the orientation of the rectangular box
+                                               //!< in the Global Reference Frame
+extern __constant__ dim3 SD_dims;              //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
+extern __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in multples of SD, in the X, Y, and Z directions, respectively
+
+extern __constant__ unsigned int d_monoDisperseSphRadius_AD;
+
+extern __constant__ unsigned int d_SD_Ldim_AD;    //!< Ad-ed L-dimension of the SD box
+extern __constant__ unsigned int d_SD_Ddim_AD;    //!< Ad-ed D-dimension of the SD box
+extern __constant__ unsigned int d_SD_Hdim_AD;    //!< Ad-ed H-dimension of the SD box
+
 
 /// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
 /// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
@@ -39,27 +42,23 @@ extern __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectang
 /// subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts these
 /// indices to indices into the global SD list via the (currently local) conv[3] data structure
 /// Should be mostly bug-free, especially away from boundaries
-__device__ void figureOutTouchedSD(uint3 spherePos, unsigned int* SDs) {
+__device__ void figureOutTouchedSD(unsigned int sphCenter_X, unsigned int sphCenter_Y, unsigned int sphCenter_Z, unsigned int* SDs) {
     // The following variables are pulled in to make the code more legible, although we can move them out of the kernel
     // when we finalize the code and want to speed it up num subdomains, pull from RectangularBox_dims
     const unsigned int NX = RectangularBox_dims.x, NY = RectangularBox_dims.y, NZ = RectangularBox_dims.z;
-    // subdomain dims, pull from SD_dims
-    const unsigned int wx = SD_dims.x, wy = SD_dims.y, wz = SD_dims.z;  // subdomain dims, pull from SD_dims
-    // sphere radius, make the code legible
-    const unsigned int r = RADIUS;
 
     // Indices for bottom-left corner (x,y,z)
     unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
-    n[0] = (spherePos.x - r) / wx;  // nx = (x - r) / wx
-    n[1] = (spherePos.y - r) / wy;  // Same for y and z
-    n[2] = (spherePos.z - r) / wz;  // Same for y and z
+    n[0] = (sphCenter_X - d_monoDisperseSphRadius_AD) / d_SD_Ldim_AD;  // nx = (xCenter - radius) / wx . NOTE: This is integer arithmetic!
+    n[1] = (sphCenter_Y - d_monoDisperseSphRadius_AD) / d_SD_Ddim_AD;  // Same for D and H
+    n[2] = (sphCenter_Z - d_monoDisperseSphRadius_AD) / d_SD_Hdim_AD;  // Same for D and H
     // Find distance from next box in relevant dir to center, we may be straddling the two
     int d[3];                              // Store penetrations
-    d[0] = (n[0] + 1) * wx - spherePos.x;  // dx = (nx + 1)* wx - x
-    d[1] = (n[1] + 1) * wy - spherePos.y;
-    d[2] = (n[2] + 1) * wz - spherePos.z;
+    d[0] = (n[0] + 1) * d_SD_Ldim_AD - sphCenter_X;  // dx = (nx + 1)* wx - x
+    d[1] = (n[1] + 1) * d_SD_Ddim_AD - sphCenter_Y;
+    d[2] = (n[2] + 1) * d_SD_Hdim_AD - sphCenter_Z;
 
     // Store list of conversions from nx, ny, nz to global subdomain IDs
     // GID = nx * NY * NZ + ny * NZ + nz
@@ -80,9 +79,9 @@ __device__ void figureOutTouchedSD(uint3 spherePos, unsigned int* SDs) {
     // Whether or not the domain has exclusive control
     unsigned int both[3];
     // If the absolute distance is less than r, both SDs along axis touch it
-    both[0] = abs(d[0]) < r;
-    both[1] = abs(d[1]) < r;
-    both[2] = abs(d[2]) < r;
+    both[0] = abs(d[0]) < d_monoDisperseSphRadius_AD;
+    both[1] = abs(d[1]) < d_monoDisperseSphRadius_AD;
+    both[2] = abs(d[2]) < d_monoDisperseSphRadius_AD;
 
     // Calculate global indices from locals
     // For each index in SDs
@@ -104,8 +103,7 @@ __device__ void figureOutTouchedSD(uint3 spherePos, unsigned int* SDs) {
         }
         // Valid will be 0 or 1 at this point, 0 => SD in SDs[i] isn't touched and the value is invalid
         // SDs[i] *= valid; // invalid is 0
-        SDs[i] =
-            valid ? SDs[i] : NULL_GRANULAR_ID;  // invalid is -1000, this was Dan's suggestion even though SDs is a uint
+        SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);  // 
     }
 
     // This is how nasty this code would be if I didn't do the bit shifty stuff and the for loops above
@@ -161,17 +159,17 @@ template <int CUB_THREADS  //!< Number of CUB threads engaged in block-collectiv
                            //!< of warp size (32) and less than or equal to min(256, blockDim.x)
           >
 __global__ void primingOperationsRectangularBox(
-    float* pRawDataX,                         //!< Pointer to array containing data related to the spheres in the box
-    float* pRawDataY,                         //!< Pointer to array containing data related to the spheres in the box
-    float* pRawDataZ,                         //!< Pointer to array containing data related to the spheres in the box
+    unsigned int* pRawDataX,                         //!< Pointer to array containing data related to the spheres in the box
+    unsigned int* pRawDataY,                         //!< Pointer to array containing data related to the spheres in the box
+    unsigned int* pRawDataZ,                         //!< Pointer to array containing data related to the spheres in the box
     unsigned int* SD_countsOfSheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
     unsigned int* spheres_in_SD_composite,    //!< Big array that works in conjunction with SD_countsOfSheresTouching.
                                               //!< "spheres_in_SD_composite" says which SD contains what spheres
     size_t nSpheres                           //!< Number of spheres in the box
 ) {
-    float xSphCenter;
-    float ySphCenter;
-    float zSphCenter;
+    unsigned int xSphCenter;
+    unsigned int ySphCenter;
+    unsigned int zSphCenter;
 
     /// Set aside shared memory
     __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS];
@@ -191,16 +189,15 @@ __global__ void primingOperationsRectangularBox(
     unsigned int dummyUINT01 = mySphereID[0];
     if (mySphereID[0] < nSpheres) {
         // Coalesced mem access
-        xSphCenter = pRawDataX[3 * dummyUINT01];
-        ySphCenter = pRawDataY[3 * dummyUINT01];
-        zSphCenter = pRawDataZ[3 * dummyUINT01];
+        xSphCenter = pRawDataX[dummyUINT01];
+        ySphCenter = pRawDataY[dummyUINT01];
+        zSphCenter = pRawDataZ[dummyUINT01];
     }
     // I moved this function up since we do all at once
     unsigned int SDsTouched[8];
-    if (mySphereID[0] < nSpheres) {
-        uint3 posINT = {1, 1, 1};  // Garbage data to show Dan how to call this kernel
-        figureOutTouchedSD(posINT, SDsTouched);
-    }
+    if (mySphereID[0] < nSpheres)         
+        figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
+    
     // Each sphere can at most touch 8 SDs; we'll need to take 8 trips then.
     for (int i = 0; i < 8; i++) {
         // Is there any SD touched at this level? Use a CUB reduce operation to find out

@@ -68,11 +68,18 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     dummy = (unsigned int)(box_H / SPACE_UNIT);
     SD_H_AD = (dummy + kFac - 1) / kFac;
 
+    cudaMemcpyToSymbol("d_SD_Ldim_AD", &SD_L_AD, sizeof(d_SD_Ldim_AD)); //!< Ad-ed L-dimension of the SD box; make available as a const value onto the GPU
+    cudaMemcpyToSymbol("d_SD_Ddim_AD", &SD_D_AD, sizeof(d_SD_Ddim_AD)); //!< Ad-ed D-dimension of the SD box; make available as a const value onto the GPU
+    cudaMemcpyToSymbol("d_SD_Hdim_AD", &SD_H_AD, sizeof(d_SD_Hdim_AD)); //!< Ad-ed H-dimension of the SD box; make available as a const value onto the GPU
 }
 
 void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::adimensionlize() {
     SPACE_UNIT = sphere_radius / (1 << SPHERE_LENGTH_UNIT_FACTOR);
-    MASS_UNIT = (4. / 3. * M_PI * sphere_radius*sphere_radius*sphere_radius*sphere_density) / (1 << SPHERE_MASS_UNIT_FACTOR);
+    monoDisperseSphRadius_AD = 1 << SPHERE_LENGTH_UNIT_FACTOR;
+    cudaMemcpyToSymbol("d_monoDisperseSphRadius_AD", &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD));
+
+    MASS_UNIT = (4. / 3. * M_PI * sphere_radius*sphere_radius*sphere_radius*sphere_density);
+
     TIME_UNIT = 1. / (1 << SPHERE_TIME_UNIT_FACTOR) * sqrt((4. / 3. * M_PI * sphere_radius*sphere_radius*sphere_radius*sphere_density) / (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL));
 }
 
@@ -81,9 +88,9 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::adimensionlize() {
 */
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
 
-    gpuErrchk(cudaMalloc((void**)& p_d_CM_X, nDEs * sizeof(float)));
-    gpuErrchk(cudaMalloc((void**)& p_d_CM_Y, nDEs * sizeof(float)));
-    gpuErrchk(cudaMalloc((void**)& p_d_CM_Z, nDEs * sizeof(float)));
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_X, nDEs * sizeof(unsigned int)));
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_Y, nDEs * sizeof(unsigned int)));
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_Z, nDEs * sizeof(unsigned int)));
 
     
     gpuErrchk(cudaMalloc((void**)& p_device_SD_NumOf_DEs_Touching, nDEs * sizeof(unsigned int)));
