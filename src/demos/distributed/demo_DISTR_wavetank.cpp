@@ -199,7 +199,7 @@ inline std::shared_ptr<ChBody> CreateBall(const ChVector<>& pos,
 
 size_t AddFallingBalls(ChSystemDistributed* sys, double h_x, double h_y, double gran_height) {
     ChVector<double> box_center(0, 0, lowest_layer + gran_height / 2);
-    ChVector<double> half_dims(h_x, h_y, gran_height / 2.0001);
+    ChVector<double> half_dims(h_x - spacing / 2.0, h_y - spacing / 2.0, gran_height / 2.0001);
 
     utils::GridSampler<> sampler(spacing);
     // utils::HCPSampler<> sampler(gran_radius * 2.0);

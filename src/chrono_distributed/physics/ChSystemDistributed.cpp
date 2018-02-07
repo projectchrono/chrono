@@ -200,6 +200,9 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
 
         newbody->GetCollisionModel()->GetAABB(body_min, body_max);
 
+        body_min += newbody->GetPos();
+        body_max += newbody->GetPos();
+
         // If the part of the body lies in this sub-domain, add it
         if ((body_min.x() <= subhi.x() && sublo.x() <= body_max.x()) &&
             (body_min.y() <= subhi.y() && sublo.y() <= body_max.y()) &&
