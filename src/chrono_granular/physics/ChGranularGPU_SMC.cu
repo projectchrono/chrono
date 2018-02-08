@@ -54,7 +54,7 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
     // }
     // The following variables are pulled in to make the code more legible, although we can move them out of the
     // kernel when we finalize the code and want to speed it up num subdomains, pull from RectangularBox_dims
-    const unsigned int NX = RectangularBox_dims.x, NY = RectangularBox_dims.y, NZ = RectangularBox_dims.z;
+    const unsigned int NY = RectangularBox_dims.y, NZ = RectangularBox_dims.z;
 
     // Indices for bottom-left corner (x,y,z)
     unsigned int n[3];
@@ -71,33 +71,70 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
     d[2] = (n[2] + 1) * d_SD_Hdim_AD - sphCenter_Z;
 
     // Store list of conversions from nx, ny, nz to global subdomain IDs
-    // GID = nx * NY * NZ + ny * NZ + nz
-    // TODO this could be global
-    unsigned int conv[3] = {(NY * NZ), NZ, 1};
 
     // Calculate whether higher or lower domain owns
-    unsigned int own[3];
+    // unsigned int own[3];
     // Minimize warp divergence by doing preemptive calculations
     // Use ternaries to provide symmetric code execution, if slightly divergent
-    // TODO these used to be ternaries but conditionals return 1 or 0 anyways
-    // TODO this is either sneaky or sloppy or clever, depending on how you like conditionals
-    own[0] = d[0] < 0;
-    own[1] = d[1] < 0;
-    own[2] = d[2] < 0;
-    // off[i] == 0 => lower subdomain holds center of sphere
+    // NOTE these got inlined
+    // // NOTE these used to be ternaries but conditionals return 1 or 0 anyways
+    // // TODO this is either sneaky or sloppy or clever, depending on how you like conditionals
+    // own[0] = d[0] < 0;
+    // own[1] = d[1] < 0;
+    // own[2] = d[2] < 0;
+    // // off[i] == 0 => lower subdomain holds center of sphere
+    //
+    // // Whether or not the domain has exclusive control
+    // unsigned int both[3];
+    // // If the absolute distance is less than r, both SDs along axis touch it
+    // both[0] = abs(d[0]) < d_monoDisperseSphRadius_AD;
+    // both[1] = abs(d[1]) < d_monoDisperseSphRadius_AD;
+    // both[2] = abs(d[2]) < d_monoDisperseSphRadius_AD;
 
-    // Whether or not the domain has exclusive control
-    unsigned int both[3];
-    // If the absolute distance is less than r, both SDs along axis touch it
-    both[0] = abs(d[0]) < d_monoDisperseSphRadius_AD;
-    both[1] = abs(d[1]) < d_monoDisperseSphRadius_AD;
-    both[2] = abs(d[2]) < d_monoDisperseSphRadius_AD;
+    // unsigned int SDs1[8];
 
     // Calculate global indices from locals
+    // ones bit is x, twos bit is y, threes bit is z
+    // do some cute bit shifting and snag bit at correct place
     // For each index in SDs
     for (int i = 0; i < 8; i++) {
         SDs[i] = 0;                // Init to 0
-        unsigned int valid = 0x1;  // Assume value is true
+        unsigned int valid = 0x1;  // Assume this SD is touched at start
+
+        // s adds an offset to directional index for SDs
+        // High/low in x-dir
+        // unsigned int s = i & 0x1; // Inlined now
+        // Scale to global index and add to total
+        SDs[i] += (n[0] + (i & 0x1)) * NY * NZ;
+        // s == own[e] evals true if the current SD is owner
+        // If both touch it or we own it, the result is valid
+        valid &= (abs(d[0]) < d_monoDisperseSphRadius_AD) | ((i & 0x1) == (d[0] < 0));
+
+        // High/low in y-dir
+        // s = i & 0x2; // Inlined now
+        // Scale to global index and add to total
+        SDs[i] += (n[1] + (i & 0x2)) * NZ;
+        // If both touch it or we own it, the result is valid
+        valid &= (abs(d[1]) < d_monoDisperseSphRadius_AD) | ((i & 0x2) == (d[1] < 0));
+
+        // High/low in z-dir
+        // s = i & 0x4; // Inlined now
+        // Scale to global index and add to total
+        SDs[i] += (n[2] + (i & 0x4));
+        // If both touch it or we own it, the result is valid
+        valid &= (abs(d[2]) < d_monoDisperseSphRadius_AD) | ((i & 0x4) == (d[2] < 0));
+
+        // This ternary is hopefully better than a conditional
+        // If valid is false, then the SD is actually NULL_GRANULAR_ID
+        SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);
+
+        // Loop version -- keep around for now
+        /*
+        valid = 0x1;
+        SDs1[i] = 0;
+        // Store list of conversions from nx, ny, nz to global subdomain IDs
+        // GID = nx * NY * NZ + ny * NZ + nz
+        unsigned int conv[3] = {(NY * NZ), NZ, 1};
         for (int e = 0; e < 3; e++) {
             // ones bit is x, twos bit is y, threes bit is z
             // do some cute bit shifting
@@ -105,18 +142,23 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
             unsigned int s = i & (1 << e);
             // s adds an offset to directional index for SDs
             // Increment by global id contrib
-            SDs[i] += (n[e] + s) * conv[e];
-            if (n[e] != 0) {
-            }
+            SDs1[i] += (n[e] + s) * conv[e];
             // s == own[e] SDsurns true if the current SD is owner
             valid &= both[e] | (s == own[e]);  // If both touch it or we own it, the result is valid
         }
         // Valid will be 0 or 1 at this point, 0 => SD in SDs[i] isn't touched and the value is invalid
         // SDs[i] *= valid; // invalid is 0
-        SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);  //
+        SDs1[i] = (valid ? SDs1[i] : NULL_GRANULAR_ID);
+        // Just to reallly check they're the same
+        if (SDs1[i] != NULL_GRANULAR_ID) {
+            printf("ERROR!!!! %u %u\n", SDs[i], SDs1[i]);
+        } else if (SDs[i] != NULL_GRANULAR_ID) {
+            printf("alright %u %u\n", SDs[i], SDs1[i]);
+        }
+        */
     }
 
-    // This is how nasty this code would be if I didn't do the bit shifty stuff and the for loops above
+    // This is how nasty this code would be if the outer loop were entirely unrolled/inlined
     // ret[0] = (n[0] + off[0]) * conv[0] + (n[1] + off[1]) * conv[1] + (n[2] + (1 - off[2])) * conv[2];
     // ret[1] = (n[0] + off[0]) * conv[0] + (n[1] + (1 - off[1])) * conv[1] + (n[2] + off[2]) * conv[2];
     // ret[2] = (n[0] + off[0]) * conv[0] + (n[1] + off[1]) * conv[1] + (n[2] + (1 - off[2])) * conv[2];
