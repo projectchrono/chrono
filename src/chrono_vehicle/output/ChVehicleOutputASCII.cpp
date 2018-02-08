@@ -153,5 +153,14 @@ void ChVehicleOutputASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChL
     }
 }
 
+void ChVehicleOutputASCII::WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
+    for (auto load : loads) {
+        m_stream << "    body-body load: " << load->GetIdentifier() << " \"" << load->GetNameString() << "\" ";
+        m_stream << load->GetForce() << " " << load->GetTorque() << " ";
+        m_stream << std::endl;
+        //// TODO
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

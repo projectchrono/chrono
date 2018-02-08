@@ -84,7 +84,7 @@ M113_TrackAssemblyBandBushing::M113_TrackAssemblyBandBushing(VehicleSide side) :
     m_suspensions[4] = std::make_shared<M113_Suspension>(suspName + "4", side, 0, true);
 
     for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(std::make_shared<M113_TrackShoeBandBushing>());
+        m_shoes.push_back(std::make_shared<M113_TrackShoeBandBushing>(shoeName + std::to_string(it)));
     }
 }
 

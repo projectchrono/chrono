@@ -239,6 +239,9 @@ void test_1() {
       public:
         MyLoadCustom(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoadCustom(mloadable){};
 
+        /// "Virtual" copy constructor (covariant return type).
+        virtual MyLoadCustom* Clone() const override { return new MyLoadCustom(*this); }
+
         // Compute Q=Q(x,v)
         // This is the function that you have to implement. It should return the generalized Q load
         // (i.e.the force in generalized lagrangian coordinates).
@@ -313,6 +316,9 @@ void test_1() {
     class MyLoadCustomMultiple : public ChLoadCustomMultiple {
       public:
         MyLoadCustomMultiple(std::vector<std::shared_ptr<ChLoadable>>& mloadables) : ChLoadCustomMultiple(mloadables){};
+
+        /// "Virtual" copy constructor (covariant return type).
+        virtual MyLoadCustomMultiple* Clone() const override { return new MyLoadCustomMultiple(*this); }
 
         // Compute Q=Q(x,v)
         // This is the function that you have to implement. It should return the generalized Q load

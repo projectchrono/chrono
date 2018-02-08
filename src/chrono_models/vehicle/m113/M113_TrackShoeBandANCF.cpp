@@ -67,25 +67,11 @@ const std::string M113_TrackShoeBandANCF::m_meshFile = "M113/TrackShoeBandANCF.o
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeBandANCF::M113_TrackShoeBandANCF() : ChTrackShoeBandANCF("M113_TrackShoe") {
+M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name) : ChTrackShoeBandANCF(name) {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
     SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
-
-    double E_rubber = 0.01e9;
-    double nu_rubber = 0.3;
-    double G_rubber = 0.5 * E_rubber / (1 + 0.49);
-    SetRubberLayerMaterial(1100, ChVector<>(E_rubber), ChVector<>(nu_rubber), ChVector<>(G_rubber));
-
-    double E_steel = 210e9;
-    double nu_steel = 0.3;
-    double G_steel = 0.5 * E_steel / (1 + 0.3);
-    SetSteelLayerMaterial(7900, ChVector<>(E_steel), ChVector<>(nu_steel), ChVector<>(G_steel));
-
-    SetLayerFiberAngles(0 * CH_C_DEG_TO_RAD, 0 * CH_C_DEG_TO_RAD, 0 * CH_C_DEG_TO_RAD);
-
-    SetElementStructuralDamping(0.05);
 }
 
 // -----------------------------------------------------------------------------

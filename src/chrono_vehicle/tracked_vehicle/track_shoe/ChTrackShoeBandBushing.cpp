@@ -24,7 +24,6 @@
 #include "chrono/physics/ChGlobal.h"
 
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChLoadsBody.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
@@ -181,13 +180,9 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
-    ChSystem* system = m_shoe->GetSystem();
-    ChVector<> loc;
-    ChQuaternion<> rot;
-
     // Bushings are inherited from ChLoad, so they require a 'load container'
-    auto my_loadcontainer = std::make_shared<ChLoadContainer>();
-    system->Add(my_loadcontainer);
+    auto loadcontainer = std::make_shared<ChLoadContainer>();
+    m_shoe->GetSystem()->Add(loadcontainer);
 
     // Stiffness and Damping matrix values
     ChMatrixNM<double, 6, 6> K_matrix;
@@ -207,50 +202,62 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next) {
     R_matrix(4, 4) = m_Drot_dof;
     R_matrix(5, 5) = m_Drot_other;
 
+    int index = 0;
+
     // Connect tread body to the first web segment.
-    loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
-    rot = m_shoe->GetRot();
-    auto my_loadbushingg0 = std::make_shared<ChLoadBodyBodyBushingGeneric>(
-        m_shoe,               // body A
-        m_web_segments[0],    // body B
-        ChFrame<>(loc, rot),  // initial frame of bushing in abs space
-        K_matrix,             // the 6x6 (translation+rotation) K matrix in local frame
-        R_matrix              // the 6x6 (translation+rotation) R matrix in local frame
-    );
-    my_loadbushingg0->SetApplicationFrameA(ChFrame<>(ChVector<>(GetToothBaseLength() / 2, 0, 0)));
-    my_loadbushingg0->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
-    my_loadcontainer->Add(my_loadbushingg0);
+    {
+        ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
+        ChQuaternion<>& rot = m_shoe->GetRot();
+        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+            m_shoe,               // body A
+            m_web_segments[0],    // body B
+            ChFrame<>(loc, rot),  // initial frame of bushing in abs space
+            K_matrix,             // the 6x6 (translation+rotation) K matrix in local frame
+            R_matrix              // the 6x6 (translation+rotation) R matrix in local frame
+        );
+        loadbushing->SetNameString(m_name + "_bushing_" + std::to_string(index++));
+        loadbushing->SetApplicationFrameA(ChFrame<>(ChVector<>(GetToothBaseLength() / 2, 0, 0)));
+        loadbushing->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
+        loadcontainer->Add(loadbushing);
+        m_web_bushings.push_back(loadbushing);
+    }
 
     // Connect the web segments to each other.
     for (size_t is = 0; is < GetNumWebSegments() - 1; is++) {
-        loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
-        rot = m_web_segments[is]->GetRot();
-        auto my_loadbushingg = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+        ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
+        ChQuaternion<>& rot = m_web_segments[is]->GetRot();
+        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
             m_web_segments[is],      // body A
             m_web_segments[is + 1],  // body B
             ChFrame<>(loc, rot),     // initial frame of bushing in abs space
             K_matrix,                // the 6x6 (translation+rotation) K matrix in local frame
             R_matrix                 // the 6x6 (translation+rotation) R matrix in local frame
         );
-        my_loadbushingg->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
-        my_loadbushingg->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
-        my_loadcontainer->Add(my_loadbushingg);
+        loadbushing->SetNameString(m_name + "_bushing_" + std::to_string(index++));
+        loadbushing->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
+        loadbushing->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
+        loadcontainer->Add(loadbushing);
+        m_web_bushings.push_back(loadbushing);
     }
 
-    // Connect the last web segment to the tread body from the next track shoe.
-    int is = GetNumWebSegments() - 1;
-    loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
-    rot = m_web_segments[is]->GetRot();
-    auto my_loadbushingg1 = std::make_shared<ChLoadBodyBodyBushingGeneric>(
-        m_web_segments[is],   // body A
-        next->GetShoeBody(),  // body B
-        ChFrame<>(loc, rot),  // initial frame of bushing in abs space
-        K_matrix,             // the 6x6 (translation+rotation) K matrix in local frame
-        R_matrix              // the 6x6 (translation+rotation) R matrix in local frame
-    );
-    my_loadbushingg1->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
-    my_loadbushingg1->SetApplicationFrameB(ChFrame<>(ChVector<>(-GetToothBaseLength() / 2, 0, 0)));
-    my_loadcontainer->Add(my_loadbushingg1);
+    {
+        // Connect the last web segment to the tread body from the next track shoe.
+        int is = GetNumWebSegments() - 1;
+        ChVector<> loc = m_web_segments[is]->TransformPointLocalToParent(ChVector<>(m_seg_length / 2, 0, 0));
+        ChQuaternion<>& rot = m_web_segments[is]->GetRot();
+        auto loadbushing = std::make_shared<ChLoadBodyBodyBushingGeneric>(
+            m_web_segments[is],   // body A
+            next->GetShoeBody(),  // body B
+            ChFrame<>(loc, rot),  // initial frame of bushing in abs space
+            K_matrix,             // the 6x6 (translation+rotation) K matrix in local frame
+            R_matrix              // the 6x6 (translation+rotation) R matrix in local frame
+        );
+        loadbushing->SetNameString(m_name + "_bushing_" + std::to_string(index++));
+        loadbushing->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
+        loadbushing->SetApplicationFrameB(ChFrame<>(ChVector<>(-GetToothBaseLength() / 2, 0, 0)));
+        loadcontainer->Add(loadbushing);
+        m_web_bushings.push_back(loadbushing);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -263,8 +270,7 @@ void ChTrackShoeBandBushing::ExportComponentList(rapidjson::Document& jsonDocume
     bodies.insert(bodies.end(), m_web_segments.begin(), m_web_segments.end());
     ChPart::ExportBodyList(jsonDocument, bodies);
 
-    //// TODO
-    //// Export bushings
+    ChPart::ExportBodyLoadList(jsonDocument, m_web_bushings);
 }
 
 void ChTrackShoeBandBushing::Output(ChVehicleOutput& database) const {
@@ -276,8 +282,7 @@ void ChTrackShoeBandBushing::Output(ChVehicleOutput& database) const {
     bodies.insert(bodies.end(), m_web_segments.begin(), m_web_segments.end());
     database.WriteBodies(bodies);
 
-    //// TODO
-    //// Output bushings
+    database.WriteBodyLoads(m_web_bushings);
 }
 
 }  // end namespace vehicle

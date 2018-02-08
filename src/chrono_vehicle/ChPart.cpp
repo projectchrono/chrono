@@ -243,5 +243,23 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
     jsonDocument.AddMember("rotational spring-dampers", jsonArray, allocator);
 }
 
+void ChPart::ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLoadBodyBody>> loads) {
+    rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
+
+    rapidjson::Value jsonArray(rapidjson::kArrayType);
+    for (auto load : loads) {
+        rapidjson::Value obj(rapidjson::kObjectType);
+        obj.SetObject();
+        obj.AddMember("name", rapidjson::StringRef(load->GetName()), allocator);
+        obj.AddMember("id", load->GetIdentifier(), allocator);
+        obj.AddMember("body1 name", rapidjson::StringRef(load->GetBodyA()->GetName()), allocator);
+        obj.AddMember("body2 name", rapidjson::StringRef(load->GetBodyB()->GetName()), allocator);
+        obj.AddMember("body1 id", load->GetBodyA()->GetIdentifier(), allocator);
+        obj.AddMember("body2 id", load->GetBodyB()->GetIdentifier(), allocator);
+        jsonArray.PushBack(obj, allocator);
+    }
+    jsonDocument.AddMember("body-body loads", jsonArray, allocator);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

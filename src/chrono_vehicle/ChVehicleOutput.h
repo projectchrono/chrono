@@ -32,6 +32,7 @@
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChLinkSpringCB.h"
 #include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLoadsBody.h"
 
 namespace chrono {
 namespace vehicle {
@@ -63,7 +64,7 @@ class CH_VEHICLE_API ChVehicleOutput {
     virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) = 0;
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) = 0;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) = 0;
-
+    virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) = 0;
 };
 
 /// @} vehicle

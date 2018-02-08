@@ -340,6 +340,26 @@ double HMMWV::GetTotalMass() const {
     return m_vehicle->GetVehicleMass() + 4 * m_tire_mass;
 }
 
+// =============================================================================
+
+HMMWV_Vehicle* HMMWV_Full::CreateVehicle() {
+    if (m_system) {
+        return new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_steeringType, m_rigidColumn,
+                                     m_chassisCollisionType);
+    }
+
+    return new HMMWV_VehicleFull(m_fixed, m_driveType, m_steeringType, m_rigidColumn, m_contactMethod,
+                                 m_chassisCollisionType);
+}
+
+HMMWV_Vehicle* HMMWV_Reduced::CreateVehicle() {
+    if (m_system) {
+        return new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_chassisCollisionType);
+    }
+
+    return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
+}
+
 }  // end namespace hmmwv
 }  // end namespace vehicle
 }  // end namespace chrono

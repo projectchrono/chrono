@@ -201,8 +201,10 @@ set(ChronoEngine_physics_SOURCES
     physics/ChMaterialSurfaceNSC.cpp
     physics/ChContinuumMaterial.cpp
     physics/ChLoadContainer.cpp
+    physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
-    )
+    physics/ChLoadBodyMesh.cpp
+   )
 
 set(ChronoEngine_physics_HEADERS
     physics/ChBodyFrame.h
@@ -931,6 +933,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChParserOpenSim.cpp
     utils/ChParserAdams.cpp
     utils/ChAdamsTokenizer.yy.cpp
+    utils/ChConvexHull.cpp
 )
 
 set(ChronoEngine_utils_HEADERS
@@ -945,6 +948,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChFilters.h
     utils/ChCompositeInertia.h
     utils/ChParserOpenSim.h
+    utils/ChConvexHull.h
 )
 
 source_group(utils FILES

@@ -48,6 +48,7 @@ class CH_VEHICLE_API ChVehicleOutputASCII : public ChVehicleOutput {
     virtual void WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) override;
     virtual void WriteLinSprings(const std::vector<std::shared_ptr<ChLinkSpringCB>>& springs) override;
     virtual void WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) override;
+    virtual void WriteBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
 
     std::ofstream m_stream;
 };

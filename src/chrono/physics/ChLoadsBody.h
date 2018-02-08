@@ -56,6 +56,9 @@ class ChApi ChLoadBodyForce : public ChLoadCustom {
                     bool local_point = true        ///< application point is in body local coords
     );
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyForce* Clone() const override { return new ChLoadBodyForce(*this); }
+
     /// Set the constant force vector.
     /// It can be expressed in absolute coordinates or body local coordinates.
     /// This value is optionally modulated by a function of time.
@@ -108,6 +111,9 @@ class ChApi ChLoadBodyTorque : public ChLoadCustom {
                      const ChVector<>& torque,      ///< torque to apply
                      bool local_torque              ///< torque is in body local coords
     );
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyTorque* Clone() const override { return new ChLoadBodyTorque(*this); }
 
     /// Set the constant torque vector.
     /// This value is optionally modulated by a function of time.
@@ -216,6 +222,9 @@ class ChApi ChLoadBodyBodyTorque : public ChLoadBodyBody {
                          bool local_torque               ///< torque is in bodyB local coords
     );
 
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyBodyTorque* Clone() const override { return new ChLoadBodyBodyTorque(*this); }
+
     /// Set modulation function.
     /// This is a function of time which (optionally) modulates the specified applied torque.
     /// By default the modulation is a constant function, always returning a value of 1.
@@ -254,6 +263,9 @@ class ChApi ChLoadBodyBodyBushingSpherical : public ChLoadBodyBody {
         const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
         const ChVector<>& mdamping         ///< damping, along x y z axes of the abs_application
     );
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyBodyBushingSpherical* Clone() const override { return new ChLoadBodyBodyBushingSpherical(*this); }
 
     /// Set stiffness, along the x y z axes of loc_application_B, es [N/m]
     void SetStiffness(const ChVector<> mstiffness) { stiffness = mstiffness; }
@@ -372,6 +384,9 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
         const ChMatrix<>& mstiffness,      ///< stiffness as a 6x6 matrix, local in the abs_application frame
         const ChMatrix<>& mdamping         ///< damping as a 6x6 matrix, local in the abs_application frame
     );
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLoadBodyBodyBushingGeneric* Clone() const override { return new ChLoadBodyBodyBushingGeneric(*this); }
 
     /// Set a generic 6x6 stiffness matrix, expressed in local
     /// coordinate system of loc_application_B.

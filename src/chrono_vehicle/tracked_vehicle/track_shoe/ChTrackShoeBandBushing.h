@@ -21,6 +21,7 @@
 #define CH_TRACK_SHOE_BAND_BUSHING_H
 
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
+#include "chrono/physics/ChLoadsBody.h"
 
 namespace chrono {
 namespace vehicle {
@@ -100,10 +101,11 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::vector<std::shared_ptr<ChBody>> m_web_segments;  ///< handles to track shoe's web segment bodies
-    double m_seg_length;                                  ///< length of a web segment
-    double m_seg_mass;                                    ///< mass of a web segment
-    ChVector<> m_seg_inertia;                             ///< moments of inertia of a web segment
+    std::vector<std::shared_ptr<ChBody>> m_web_segments;          ///< handles to web segment bodies
+    std::vector<std::shared_ptr<ChLoadBodyBody>> m_web_bushings;  ///< handles to bushings
+    double m_seg_length;                                          ///< length of a web segment
+    double m_seg_mass;                                            ///< mass of a web segment
+    ChVector<> m_seg_inertia;                                     ///< moments of inertia of a web segment
 
     double m_Klin;
     double m_Krot_dof;

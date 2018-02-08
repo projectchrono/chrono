@@ -41,19 +41,22 @@ namespace hmmwv {
 /// @{
 
 /// HMMWV vehicle system using full double wishbone suspension (control arms modeled using rigid bodies)
+/// and Pitman arm steering mechanism.
 class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
   public:
-    HMMWV_VehicleFull(const bool fixed = false,
-                      DrivelineType drive_type = DrivelineType::AWD,
-                      SteeringType steering_type = SteeringType::PITMAN_ARM,
-                      ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
-                      ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+    HMMWV_VehicleFull(const bool fixed,
+                      DrivelineType drive_type,
+                      SteeringType steering_type,
+                      bool rigid_steering_column,
+                      ChMaterialSurface::ContactMethod contact_method,
+                      ChassisCollisionType chassis_collision_type);
 
     HMMWV_VehicleFull(ChSystem* system,
-                      const bool fixed = false,
-                      DrivelineType drive_type = DrivelineType::AWD,
-                      SteeringType steering_type = SteeringType::PITMAN_ARM,
-                      ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                      const bool fixed,
+                      DrivelineType drive_type,
+                      SteeringType steering_type,
+                      bool rigid_steering_column,
+                      ChassisCollisionType chassis_collision_type);
 
     ~HMMWV_VehicleFull();
 
@@ -72,7 +75,7 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, SteeringType steering_type, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed, SteeringType steering_type, bool rigid_steering_column, ChassisCollisionType chassis_collision_type);
 };
 
 /// @} vehicle_models_hmmwv

@@ -47,51 +47,26 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name, ElementType element_type)
-    : ChTrackShoeBand(name),
-      m_element_type(element_type),
-      m_rubber_rho(1100),
-      m_rubber_E(1e7),
-      m_rubber_nu(0.49),
-      m_rubber_G(0.5 * 1e7 / (1 + 0.49)),
-      m_steel_rho(7900),
-      m_steel_E(210e9),
-      m_steel_nu(0.3),
-      m_steel_G(0.5 * 210e9 / (1 + 0.3)),
-      m_angle_1(0),
-      m_angle_2(0),
-      m_angle_3(0),
-      m_alpha(0.05) {}
+    : ChTrackShoeBand(name), m_element_type(element_type) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::SetRubberLayerMaterial(double rho,
-                                                 const ChVector<>& E,
-                                                 const ChVector<>& nu,
-                                                 const ChVector<>& G) {
-    m_rubber_rho = rho;
-    m_rubber_E = E;
-    m_rubber_nu = nu;
-    m_rubber_G = G;
+void ChTrackShoeBandANCF::SetWebMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    m_web_mesh = mesh;
 }
 
-void ChTrackShoeBandANCF::SetSteelLayerMaterial(double rho,
-                                                const ChVector<>& E,
-                                                const ChVector<>& nu,
-                                                const ChVector<>& G) {
-    m_steel_rho = rho;
-    m_steel_E = E;
-    m_steel_nu = nu;
-    m_steel_G = G;
-}
-
-void ChTrackShoeBandANCF::SetElementStructuralDamping(double alpha) {
-    m_alpha = alpha;
-}
-
-void ChTrackShoeBandANCF::SetLayerFiberAngles(double angle_1, double angle_2, double angle_3) {
+void ChTrackShoeBandANCF::SetWebMeshProperties(std::shared_ptr<fea::ChMaterialShellANCF> rubber_mat,
+                                               std::shared_ptr<fea::ChMaterialShellANCF> steel_mat,
+                                               double angle_1,
+                                               double angle_2,
+                                               double angle_3,
+                                               double alpha) {
+    m_rubber_mat = rubber_mat;
+    m_steel_mat = steel_mat;
     m_angle_1 = angle_1;
     m_angle_2 = angle_2;
     m_angle_3 = angle_3;
+    m_alpha = alpha;
 }
 
 // -----------------------------------------------------------------------------
@@ -118,10 +93,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     int num_elements_length = GetNumElementsLength();
     int num_elements_width = GetNumElementsWidth();
-
-    // Create material for the layers (isotropic materials)
-    auto rubber_mat = std::make_shared<fea::ChMaterialShellANCF>(m_rubber_rho, m_rubber_E, m_rubber_nu, m_rubber_G);
-    auto steel_mat = std::make_shared<fea::ChMaterialShellANCF>(m_steel_rho, m_steel_E, m_steel_nu, m_steel_G);
 
     switch (m_element_type) {
         case ElementType::ANCF_4: {
@@ -170,9 +141,9 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     element->SetDimensions(dx, dy);
 
                     // Add a single layers with a fiber angle of 0 degrees.
-                    element->AddLayer(dz_rubber, m_angle_1, rubber_mat);
-                    element->AddLayer(dz_steel, m_angle_2, steel_mat);
-                    element->AddLayer(dz_rubber, m_angle_3, rubber_mat);
+                    element->AddLayer(dz_rubber, m_angle_1, m_rubber_mat);
+                    element->AddLayer(dz_steel, m_angle_2, m_steel_mat);
+                    element->AddLayer(dz_rubber, m_angle_3, m_rubber_mat);
 
                     // Set other element properties
                     element->SetAlphaDamp(m_alpha);
@@ -257,9 +228,9 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     element->SetDimensions(2 * dx, 2 * dy);
 
                     // Add a single layers with a fiber angle of 0 degrees.
-                    element->AddLayer(dz_rubber, m_angle_1, rubber_mat);
-                    element->AddLayer(dz_steel, m_angle_2, steel_mat);
-                    element->AddLayer(dz_rubber, m_angle_3, rubber_mat);
+                    element->AddLayer(dz_rubber, m_angle_1, m_rubber_mat);
+                    element->AddLayer(dz_steel, m_angle_2, m_steel_mat);
+                    element->AddLayer(dz_rubber, m_angle_3, m_rubber_mat);
 
                     // Set other element properties
                     element->SetAlphaDamp(m_alpha);
