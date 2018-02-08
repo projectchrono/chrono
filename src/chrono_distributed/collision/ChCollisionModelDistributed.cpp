@@ -24,6 +24,14 @@ ChCollisionModelDistributed::ChCollisionModelDistributed() {
 
 ChCollisionModelDistributed::~ChCollisionModelDistributed() {}
 
+int ChCollisionModelDistributed::ClearModel() {
+    ChCollisionModelParallel::ClearModel();
+    aabb_valid = false;
+    shape_aabb_max.clear();
+    shape_aabb_min.clear();
+    return 1;
+}
+
 bool ChCollisionModelDistributed::AddBox(double hx,
                                          double hy,
                                          double hz,
@@ -90,14 +98,14 @@ bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos
         aabb_min.Set(min);
         aabb_max.Set(max);
         aabb_valid = true;
-    }
-
-    for (int i = 0; i < 3; i++) {
-        if (min[i] < aabb_min[i]) {
-            aabb_min[i] = min[i];
-        }
-        if (max[i] > aabb_max[i]) {
-            aabb_max[i] = max[i];
+    } else {
+        for (int i = 0; i < 3; i++) {
+            if (min[i] < aabb_min[i]) {
+                aabb_min[i] = min[i];
+            }
+            if (max[i] > aabb_max[i]) {
+                aabb_max[i] = max[i];
+            }
         }
     }
 

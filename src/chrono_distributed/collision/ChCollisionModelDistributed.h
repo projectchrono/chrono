@@ -29,6 +29,9 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     ChCollisionModelDistributed();
     virtual ~ChCollisionModelDistributed();
 
+    /// Delete all inserted geometry.
+    virtual int ClearModel() override;
+
     /// Adds a box collision shape to the model and calculates the model's new AABB
     virtual bool AddBox(double hx, double hy, double hz, const ChVector<>& pos, const ChMatrix33<>& rot) override;
 
