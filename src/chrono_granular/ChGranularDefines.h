@@ -20,9 +20,5 @@
 #define SPHERE_LENGTH_UNIT_FACTOR 12      /// 2^LENGTH_UNIT_FACTOR is used in the process of AD-ing the length for monodisperse spheres
 #define SPHERE_TIME_UNIT_FACTOR    4      /// 2^SPHERE_TIME_UNIT_FACTOR is used in the process of AD-ing the time for monodisperse spheres
 
-__constant__ unsigned int d_monoDisperseSphRadius_AD; //!< Ad-ed dimension of the spere radius
 
-__constant__ unsigned int d_SD_Ldim_AD;    //!< Ad-ed L-dimension of the SD box
-__constant__ unsigned int d_SD_Ddim_AD;    //!< Ad-ed D-dimension of the SD box
-__constant__ unsigned int d_SD_Hdim_AD;    //!< Ad-ed H-dimension of the SD box
 

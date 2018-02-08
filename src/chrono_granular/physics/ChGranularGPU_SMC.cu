@@ -32,11 +32,11 @@ extern __constant__ dim3
 extern __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in
                                                //!< multples of SD, in the X, Y, and Z directions, respectively
 
-// extern __constant__ unsigned int d_monoDisperseSphRadius_AD; // Pulled from the header
-// Pulled from header
-// extern __constant__ unsigned int d_SD_Ldim_AD;  //!< Ad-ed L-dimension of the SD box
-// extern __constant__ unsigned int d_SD_Ddim_AD;  //!< Ad-ed D-dimension of the SD box
-// extern __constant__ unsigned int d_SD_Hdim_AD;  //!< Ad-ed H-dimension of the SD box
+extern __constant__ unsigned int d_monoDisperseSphRadius_AD; // Pulled from the header
+
+extern __constant__ unsigned int d_SD_Ldim_AD;  //!< Ad-ed L-dimension of the SD box
+extern __constant__ unsigned int d_SD_Ddim_AD;  //!< Ad-ed D-dimension of the SD box
+extern __constant__ unsigned int d_SD_Hdim_AD;  //!< Ad-ed H-dimension of the SD box
 
 /// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
 /// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
@@ -54,8 +54,8 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
     // }
     // The following variables are pulled in to make the code more legible, although we can move them out of the
     // kernel when we finalize the code and want to speed it up num subdomains, pull from RectangularBox_dims
-    const unsigned int NY = RectangularBox_dims.y, NZ = RectangularBox_dims.z;
-
+    //const unsigned int NY = RectangularBox_dims.y, NZ = RectangularBox_dims.z;
+    const unsigned int NY = 4, NZ = 0;
     // Indices for bottom-left corner (x,y,z)
     unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
@@ -67,7 +67,7 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
     // Find distance from next box in relevant dir to center, we may be straddling the two
     int d[3];                                        // Store penetrations
     d[0] = (n[0] + 1) * d_SD_Ldim_AD - sphCenter_X;  // dx = (nx + 1)* wx - x
-    d[1] = (n[1] + 1) * d_SD_Ddim_AD - sphCenter_Y;
+    d[1] = (n[1] + 1) * d_SD_Ddim_AD - sphCenter_Y; 
     d[2] = (n[2] + 1) * d_SD_Hdim_AD - sphCenter_Z;
 
     // Store list of conversions from nx, ny, nz to global subdomain IDs

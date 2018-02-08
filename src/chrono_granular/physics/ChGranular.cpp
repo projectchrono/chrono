@@ -17,6 +17,7 @@
 #include <cmath>
 #include "ChGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
+#include "chrono_granular/physics/ChGranularDefines.cuh"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
 
