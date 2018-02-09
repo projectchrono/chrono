@@ -317,7 +317,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     // Note that pixels in a BMP start at top-left corner.
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
-    std::cout << "Load vertices..." << std::endl;
+    GetLog() << "Load vertices...\n";
     unsigned int iv = 0;
     for (int iy = nv_y - 1; iy >= 0; --iy) {
         double y = 0.5 * sizeY - iy * dy;
@@ -345,7 +345,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     // Specify triangular faces (two at a time).
     // Specify the face vertices counter-clockwise.
     // Set the normal indices same as the vertex indices.
-    std::cout << "Load faces..." << std::endl;
+    GetLog() << "Load faces...\n";
     unsigned int it = 0;
     for (int iy = nv_y - 2; iy >= 0; --iy) {
         for (int ix = 0; ix < nv_x - 1; ++ix) {
