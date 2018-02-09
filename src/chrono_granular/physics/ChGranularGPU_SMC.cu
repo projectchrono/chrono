@@ -28,8 +28,6 @@ extern "C" __constant__ float3
     xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
 extern "C" __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the rectangular box
                                            //!< in the Global Reference Frame
-extern "C" __constant__ dim3
-    SD_dims;  //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
 extern "C" __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in
                                                //!< multples of SD, in the X, Y, and Z directions, respectively
 
@@ -38,6 +36,10 @@ __constant__ unsigned int d_monoDisperseSphRadius_AD; // Pulled from the header
 __constant__ unsigned int d_SD_Ldim_AD;  //!< Ad-ed L-dimension of the SD box
 __constant__ unsigned int d_SD_Ddim_AD;  //!< Ad-ed D-dimension of the SD box
 __constant__ unsigned int d_SD_Hdim_AD;  //!< Ad-ed H-dimension of the SD box
+
+__constant__ unsigned int d_box_L_AD;  //!< Ad-ed L-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_D_AD;  //!< Ad-ed D-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_H_AD;  //!< Ad-ed H-dimension of the BD box in multiples of subdomains
 
 /// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
 /// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
@@ -55,8 +57,7 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
     // }
     // The following variables are pulled in to make the code more legible, although we can move them out of the
     // kernel when we finalize the code and want to speed it up num subdomains, pull from RectangularBox_dims
-    //const unsigned int NY = RectangularBox_dims.y, NZ = RectangularBox_dims.z;
-    const unsigned int NY = 4, NZ = 0;
+    //const unsigned int d_box_D_AD = RectangularBox_dims.y, d_box_H_AD = RectangularBox_dims.z;
     // Indices for bottom-left corner (x,y,z)
     unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
@@ -106,7 +107,7 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
         // High/low in x-dir
         // unsigned int s = i & 0x1; // Inlined now
         // Scale to global index and add to total
-        SDs[i] += (n[0] + (i & 0x1)) * NY * NZ;
+        SDs[i] += (n[0] + (i & 0x1)) * d_box_D_AD * d_box_H_AD;
         // s == own[e] evals true if the current SD is owner
         // If both touch it or we own it, the result is valid
         valid &= (abs(d[0]) < d_monoDisperseSphRadius_AD) | ((i & 0x1) == (d[0] < 0));
@@ -114,7 +115,7 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
         // High/low in y-dir
         // s = i & 0x2; // Inlined now
         // Scale to global index and add to total
-        SDs[i] += (n[1] + (i & 0x2)) * NZ;
+        SDs[i] += (n[1] + (i & 0x2)) * d_box_H_AD;
         // If both touch it or we own it, the result is valid
         valid &= (abs(d[1]) < d_monoDisperseSphRadius_AD) | ((i & 0x2) == (d[1] < 0));
 
@@ -134,8 +135,8 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
         valid = 0x1;
         SDs1[i] = 0;
         // Store list of conversions from nx, ny, nz to global subdomain IDs
-        // GID = nx * NY * NZ + ny * NZ + nz
-        unsigned int conv[3] = {(NY * NZ), NZ, 1};
+        // GID = nx * d_box_D_AD * d_box_H_AD + ny * d_box_H_AD + nz
+        unsigned int conv[3] = {(d_box_D_AD * d_box_H_AD), d_box_H_AD, 1};
         for (int e = 0; e < 3; e++) {
             // ones bit is x, twos bit is y, threes bit is z
             // do some cute bit shifting

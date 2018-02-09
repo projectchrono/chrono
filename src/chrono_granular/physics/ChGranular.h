@@ -103,6 +103,10 @@ namespace chrono {
         unsigned int SD_D_AD;  //!< The AD-ed value of an SD in the D direction
         unsigned int SD_H_AD;  //!< The AD-ed value of an SD in the H direction
 
+        unsigned int box_L_AD; //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
+        unsigned int box_D_AD; //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
+        unsigned int box_H_AD; //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
+
         void partition_BD();
         void adimensionlize();
 

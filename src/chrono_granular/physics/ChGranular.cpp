@@ -89,6 +89,10 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::adimensionlize() {
 */
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
 
+    partition_BD();
+
+    adimensionlize();
+
     gpuErrchk(cudaMalloc((void**)& p_d_CM_X, nDEs * sizeof(unsigned int)));
     gpuErrchk(cudaMalloc((void**)& p_d_CM_Y, nDEs * sizeof(unsigned int)));
     gpuErrchk(cudaMalloc((void**)& p_d_CM_Z, nDEs * sizeof(unsigned int)));
