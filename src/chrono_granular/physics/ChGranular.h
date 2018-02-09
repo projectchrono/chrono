@@ -124,6 +124,7 @@ namespace chrono {
         void setBOXdims(float L_DIM, float D_DIM, float H_DIM) { box_L = L_DIM; box_D = D_DIM; box_H = H_DIM; }
         inline void YoungModulus_SPH2SPH(float someValue) { modulusYoung_SPH2SPH = someValue; }
         inline void YoungModulus_SPH2WALL(float someValue) { modulusYoung_SPH2WALL = someValue; }
+        inline void set_sph_density(float someValue) { sphere_density = someValue; }
         inline void setDensity(float someValue) { sphere_density = someValue; }
 
         inline size_t  nSpheres() { return nDEs; }
@@ -137,9 +138,7 @@ namespace chrono {
     protected:
 
     public:
-        ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH, unsigned int countSPHs): ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, countSPHs) {
-            setup_simulation();
-        }
+        ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH, unsigned int countSPHs): ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, countSPHs) {}
 
         ~ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC() {}
 

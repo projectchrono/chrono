@@ -209,9 +209,7 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
  *
  *
  */
-template <int CUB_THREADS  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple
-                           //!< of warp size (32) and less than or equal to min(256, blockDim.x)
-          >
+template <int CUB_THREADS >  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
 __global__ void primingOperationsRectangularBox(
     unsigned int* pRawDataX,                  //!< Pointer to array containing data related to the spheres in the box
     unsigned int* pRawDataY,                  //!< Pointer to array containing data related to the spheres in the box

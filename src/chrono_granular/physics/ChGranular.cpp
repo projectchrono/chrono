@@ -49,29 +49,36 @@ chrono::ChGRN_DE_Container::~ChGRN_DE_Container() {
 */
 void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     // I want to have in an SD about MAX_COUNT_OF_DEs_PER_SD spheres
-    double temp = 1./(sqrt(2)*sphere_radius)*(pow((box_L*box_D*box_H) / (2 * MAX_COUNT_OF_DEs_PER_SD), 1./3.));
-    unsigned int kFac = (unsigned int) temp;
+    double temp = 1. / (sqrt(2)*sphere_radius)*(pow((box_L*box_D*box_H) / (2 * MAX_COUNT_OF_DEs_PER_SD), 1. / 3.));
+    unsigned int kFac = (unsigned int)temp;
     // work with an even kFac to hit the CM of the box.
     if (kFac & 1) kFac++;
 
     // When doing AABB operations, we'll work with adimensionlized length units
     unsigned int dummy;
 
-    // Compute the length, in AD-units, of the SD in the L direction
+    // Compute the length, in AD-units, of the SD in the L direction; 
+    // Note: for now, there will be kFac SDs in the L direction
     dummy = (unsigned int)(box_L / SPACE_UNIT);
-    SD_L_AD = (dummy + kFac - 1) / kFac;           
+    SD_L_AD = (dummy + kFac - 1) / kFac;
 
     // Compute the length, in AD-units, of the SD in the D direction
+    // Note: for now, there will be kFac SDs in the D direction
     dummy = (unsigned int)(box_D / SPACE_UNIT);
     SD_D_AD = (dummy + kFac - 1) / kFac;
 
     // Compute the length, in AD-units, of the SD in the H direction
+    // Note: for now, there will be kFac SDs in the H direction
     dummy = (unsigned int)(box_H / SPACE_UNIT);
     SD_H_AD = (dummy + kFac - 1) / kFac;
 
     cudaMemcpyToSymbol("d_SD_Ldim_AD", &SD_L_AD, sizeof(d_SD_Ldim_AD)); //!< Ad-ed L-dimension of the SD box; make available as a const value onto the GPU
     cudaMemcpyToSymbol("d_SD_Ddim_AD", &SD_D_AD, sizeof(d_SD_Ddim_AD)); //!< Ad-ed D-dimension of the SD box; make available as a const value onto the GPU
     cudaMemcpyToSymbol("d_SD_Hdim_AD", &SD_H_AD, sizeof(d_SD_Hdim_AD)); //!< Ad-ed H-dimension of the SD box; make available as a const value onto the GPU
+
+    // Total number of SDs...
+    nSDs = kFac*kFac*kFac;
+
 }
 
 void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::adimensionlize() {
@@ -89,15 +96,15 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::adimensionlize() {
 */
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
 
-    partition_BD();
-
     adimensionlize();
+
+    partition_BD();
 
     gpuErrchk(cudaMalloc((void**)& p_d_CM_X, nDEs * sizeof(unsigned int)));
     gpuErrchk(cudaMalloc((void**)& p_d_CM_Y, nDEs * sizeof(unsigned int)));
     gpuErrchk(cudaMalloc((void**)& p_d_CM_Z, nDEs * sizeof(unsigned int)));
 
-    
+
     gpuErrchk(cudaMalloc((void**)& p_device_SD_NumOf_DEs_Touching, nDEs * sizeof(unsigned int)));
 
     gpuErrchk(cudaMalloc((void**)& p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
