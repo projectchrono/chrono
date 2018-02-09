@@ -19,24 +19,25 @@
 #include "../ChGranularDefines.h"
 #include "../chrono_granular/physics/ChGranular.h"
 #include "assert.h"
+//#include "chrono_granular/physics/ChGranularDefines.cuh"
 
 #define BLAH_BLAH_I 0
 #define NULL_GRANULAR_ID UINT_MAX
 
-extern __constant__ float3
+extern "C" __constant__ float3
     xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
-extern __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the rectangular box
+extern "C" __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the rectangular box
                                            //!< in the Global Reference Frame
-extern __constant__ dim3
+extern "C" __constant__ dim3
     SD_dims;  //!< Set of three ints that provide the dimension (in multiple of Sphere radia) of a SD
-extern __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in
+extern "C" __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in
                                                //!< multples of SD, in the X, Y, and Z directions, respectively
 
-extern __constant__ unsigned int d_monoDisperseSphRadius_AD; // Pulled from the header
+__constant__ unsigned int d_monoDisperseSphRadius_AD; // Pulled from the header
 
-extern __constant__ unsigned int d_SD_Ldim_AD;  //!< Ad-ed L-dimension of the SD box
-extern __constant__ unsigned int d_SD_Ddim_AD;  //!< Ad-ed D-dimension of the SD box
-extern __constant__ unsigned int d_SD_Hdim_AD;  //!< Ad-ed H-dimension of the SD box
+__constant__ unsigned int d_SD_Ldim_AD;  //!< Ad-ed L-dimension of the SD box
+__constant__ unsigned int d_SD_Ddim_AD;  //!< Ad-ed D-dimension of the SD box
+__constant__ unsigned int d_SD_Hdim_AD;  //!< Ad-ed H-dimension of the SD box
 
 /// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
 /// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
