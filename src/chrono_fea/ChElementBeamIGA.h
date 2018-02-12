@@ -50,6 +50,9 @@ class  ChElementBeamIGA :   public ChElementBeam,
     std::vector< double > Jacobian_s;
     std::vector< double > Jacobian_b;
 
+	std::vector< ChVector<> > strain_e_0;
+	std::vector< ChVector<> > strain_k_0;
+
     std::shared_ptr<ChBeamSectionAdvanced> section;
 
   public:
@@ -216,6 +219,8 @@ class  ChElementBeamIGA :   public ChElementBeam,
         // Gauss points for "b" bend components:
 
         this->Jacobian_b.resize(int_order_b);
+		this->strain_e_0.resize(int_order_b);
+		this->strain_k_0.resize(int_order_b);
 
         for (int ig = 0; ig < int_order_b; ++ig) {
 
@@ -246,6 +251,64 @@ class  ChElementBeamIGA :   public ChElementBeam,
             this->Jacobian_b[ig] = dr0.Length(); // J = |dr0/du|
 
             //this->length += w*this->Jacobian_b[ig];
+
+			// From now on, compute initial strains as in ComputeInternalForces 
+
+			// Jacobian Jsu = ds/du
+			double Jsu = this->Jacobian_b[ig];
+			// Jacobian Jue = du/deta
+			double Jue = c1;
+
+			ChState      state_x(this->LoadableGet_ndof_x(), nullptr);
+			ChStateDelta state_w(this->LoadableGet_ndof_w(), nullptr);
+			this->LoadableGetStateBlock_x(0, state_x);
+			this->LoadableGetStateBlock_w(0, state_w);
+
+			// interpolate rotation of section at given u, to compute R.
+			// Note: this is approximate.
+			// A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
+			ChQuaternion<> q_delta;
+			ChVector<> da = VNULL;
+			ChVector<> delta_rot_dir;
+			double delta_rot_angle;
+			for (int i = 0; i< nodes.size(); ++i) {
+				ChQuaternion<> q_i = state_x.ClipQuaternion(i * 7 + 3, 0);
+				q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
+				q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
+				da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
+			}
+			ChQuaternion<> qda; qda.Q_from_Rotv(da);
+			ChQuaternion<> qR = nodes[0]->coord.rot * qda;
+
+			// compute the 3x3 rotation matrix R equivalent to quaternion above
+			ChMatrix33<> R(qR);
+
+			// compute abs. spline gradient r'  = dr/ds
+			ChVector<> dr;
+			for (int i = 0; i< nodes.size(); ++i) {
+				ChVector<> r_i = state_x.ClipVector(i * 7, 0);
+				dr += r_i * N(1, i);  // dr/du = N_i'*r_i
+			}
+			// (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
+			dr *= 1.0 / Jsu;
+
+			// compute abs spline rotation gradient q' = dq/ds 
+			// But.. easier to compute local gradient of spin vector a' = da/ds
+			da = VNULL;
+			for (int i = 0; i< nodes.size(); ++i) {
+				ChQuaternion<> q_i = state_x.ClipQuaternion(i * 7 + 3, 0);
+				q_delta = qR.GetConjugate() * q_i;
+				q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
+				da += delta_rot_dir * delta_rot_angle * N(1, i);  // da/du = N_i'*a_i
+			}
+			// (note a= da/ds = da/du du/ds = da/du * 1/Jsu   where Jsu computed in SetupInitial)
+			da *= 1.0 / Jsu;
+
+			// compute local epsilon strain:  strain_e= R^t * r' - {1, 0, 0}
+			this->strain_e_0[ig] = R.MatrT_x_Vect(dr) - VECT_X;
+
+			// compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
+			this->strain_k_0[ig] = da;
         }
 
         this->mass = this->length * this->section->density;
@@ -494,13 +557,13 @@ class  ChElementBeamIGA :   public ChElementBeam,
             dadt *=  1.0/Jsu;
 
             // compute local epsilon strain:  strain_e= R^t * r' - {1, 0, 0}
-            ChVector<> strain_e = R.MatrT_x_Vect(dr) - VECT_X;
+			ChVector<> strain_e = R.MatrT_x_Vect(dr) - VECT_X   - this->strain_e_0[ig];
 
             // compute local time rate of strain:  strain_e_dt = R^t * dr'/dt
             ChVector<> strain_e_dt = R.MatrT_x_Vect(drdt);
 
             // compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
-            ChVector<> strain_k = da;
+            ChVector<> strain_k = da - this->strain_k_0[ig];
 
             // compute local time rate of curvature strain:
             ChVector<> strain_k_dt = R.MatrT_x_Vect(dadt);
@@ -555,18 +618,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
             //GetLog() << "                    stress_n= " << stress_n << "\n";
         } 
 
-        
-        //***KASSEM** se vuoi fare del test/debug, è comodo aggiungere dei GetLog() per stampare su schermo dei dati che vuoi controllare, es: 
-        /*
-        GetLog() << "\nInternal forces, F and M for each node: \n";
-        for (int i = 0; i < nodes.size(); i++) {
-            GetLog() << "\n  at node " << i << " is: ";
-            for (int c = 0; c < 6; c++) {
-                GetLog() << Fi(i*6 + c) << "  ";
-            }
-        }
-        GetLog() << "\n";
-        */
     }
 
     //
