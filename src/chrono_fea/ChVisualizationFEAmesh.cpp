@@ -349,9 +349,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 if (auto mybeameuler = std::dynamic_pointer_cast<ChElementBeamEuler>(this->FEMmesh->GetElement(iel))) {
                     if (mybeameuler->GetSection()->IsCircular())
                         m_circular = true;
-                } else if (auto mybeamancf =
-                               std::dynamic_pointer_cast<ChElementCableANCF>(this->FEMmesh->GetElement(iel))) {
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementCableANCF>(this->FEMmesh->GetElement(iel))) {
                     if (mybeamancf->GetSection()->IsCircular())
+                        m_circular = true;
+                } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(this->FEMmesh->GetElement(iel))) {
+                    if (mybeamiga->GetSection()->IsCircular())
                         m_circular = true;
                 }
                 if (m_circular) {
