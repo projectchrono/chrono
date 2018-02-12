@@ -132,17 +132,29 @@ int main(int argc, char* argv[]) {
     // ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
     //
 
-    /*    
-    std::vector< ChVector<> > my_points = { {0,0,0}, {0,0.1,0}, {0,0.2,0}, {0,0.3,0.1} };
+	/*
+	ChBuilderBeamIGA builderR;
+
+    std::vector< ChVector<> > my_points = { {0,0,0.2}, {0,0,0.3}, { 0,-0.01,0.4 } , {0,-0.04,0.5}, {0,-0.1,0.6} };
     
     geometry::ChLineBspline my_spline(  3,          // order (3 = cubic, etc)
                                         my_points); // control points, will become the IGA nodes
 
-    builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
+    builderR.BuildBeam(      my_mesh,            // the mesh to put the elements in
                             msection,           // section of the beam
                             my_spline,          // Bspline to match (also order will be matched)
-                            VECT_Z);            // suggested Y direction of section
-    */
+                            VECT_Y);            // suggested Y direction of section
+    
+	builderR.GetLastBeamNodes().front()->SetFixed(true);
+
+	auto mbodywing = std::make_shared<ChBodyEasyBox>(0.01,0.2,0.05,2000);
+	mbodywing->SetCoord(builderR.GetLastBeamNodes().back()->GetCoord());
+	my_system.Add(mbodywing);
+
+	auto myjoint = std::make_shared<ChLinkMateFix>();
+	myjoint->Initialize(builderR.GetLastBeamNodes().back(), mbodywing);
+	my_system.Add(myjoint);
+	*/
 
     //
     // Final touches..
