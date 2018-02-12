@@ -28,6 +28,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -101,12 +103,14 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactFrictionCoefficient(0.9f);
-    terrain.SetContactRestitutionCoefficient(0.01f);
-    terrain.SetContactMaterialProperties(2e7f, 0.3f);
-    terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+                                  ChVector<>(terrainLength, terrainWidth, 10));
+    patch->SetContactFrictionCoefficient(0.9f);
+    patch->SetContactRestitutionCoefficient(0.01f);
+    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV Demo");
@@ -133,17 +137,26 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     if (povray_output) {
-        // Create output directories (if not already present)
-        if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return 1;
-        }
         if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
     }
+
+    // Set up vehicle output
+    my_hmmwv.GetVehicle().SetChassisOutput(true);
+    my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
+    my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
+    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
+    // Generate JSON information with available output channels
+    my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ---------------
     // Simulation loop

@@ -19,11 +19,9 @@
 
 #include <vector>
 
-#include "chrono/core/ChQuadrature.h"
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
-#include "chrono_fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {

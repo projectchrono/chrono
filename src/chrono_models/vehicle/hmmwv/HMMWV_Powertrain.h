@@ -34,7 +34,7 @@ namespace hmmwv {
 /// Shafts-based powertrain model for the HMMWV vehicle.
 class CH_MODELS_API HMMWV_Powertrain : public ChShaftsPowertrain {
   public:
-    HMMWV_Powertrain();
+    HMMWV_Powertrain(const std::string& name);
 
     ~HMMWV_Powertrain() {}
 

@@ -47,13 +47,16 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
     virtual double GetNormalStiffness() const override { return m_normalStiffness; }
     virtual double GetNormalDamping() const override { return m_normalDamping; }
 
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
+
     virtual void SetLugreParams() override {}
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_radius;
     int m_numDiscs;
@@ -61,6 +64,9 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
 
     double m_normalStiffness;
     double m_normalDamping;
+
+    double m_mass;
+    ChVector<> m_inertia;
 
     bool m_has_mesh;
     std::string m_meshName;

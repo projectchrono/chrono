@@ -39,6 +39,9 @@ class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
 
     virtual ~ChDoubleRoadWheel() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "DoubleRoadWheel"; }
+
     /// Return the type of track shoe consistent with this road wheel.
     virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
 

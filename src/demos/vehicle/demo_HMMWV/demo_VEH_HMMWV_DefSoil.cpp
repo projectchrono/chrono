@@ -274,12 +274,14 @@ int main(int argc, char* argv[]) {
 
         case RIGID_SOIL: {
             RigidTerrain* terrainR = new RigidTerrain(system);
-            terrainR->SetContactFrictionCoefficient(0.9f);
-            terrainR->SetContactRestitutionCoefficient(0.01f);
-            terrainR->SetContactMaterialProperties(2e7f, 0.3f);
-            terrainR->SetColor(ChColor(0.8f, 0.8f, 0.5f));
-            terrainR->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-            terrainR->Initialize(terrainHeight, terrainLength, terrainWidth);
+            auto patch = terrainR->AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+                                            ChVector<>(terrainLength, terrainWidth, 10));
+            patch->SetContactFrictionCoefficient(0.9f);
+            patch->SetContactRestitutionCoefficient(0.01f);
+            patch->SetContactMaterialProperties(2e7f, 0.3f);
+            patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+            terrainR->Initialize();
 
             terrain = terrainR;
 
@@ -319,6 +321,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    std::cout << "Total vehicle mass: " << my_hmmwv.GetTotalMass() << std::endl;
+
     // Solver settings.
     ////system->SetSolverType(ChSolver::Type::MINRES);
     system->SetMaxItersSolverSpeed(50);
@@ -340,19 +344,19 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         double time = system->GetChTime();
 
+        ////auto frc = static_cast<ChRigidTire*>(my_hmmwv.GetTire(0))->ReportTireForce(terrain);
+        ////std::cout << frc.force.x() << " " << frc.force.y() << " " << frc.force.z() << std::endl;
+
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
+        app.EndScene();
 
-            if (img_output && step_number >= 0) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                app.WriteImageToFile(filename);
-            }
-
+        if (img_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
+            app.WriteImageToFile(filename);
             render_frame++;
         }
 

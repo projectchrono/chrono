@@ -201,6 +201,9 @@ set(ChronoEngine_physics_SOURCES
     physics/ChMaterialSurfaceNSC.cpp
     physics/ChContinuumMaterial.cpp
     physics/ChLoadContainer.cpp
+    physics/ChLoad.cpp
+    physics/ChLoadsBody.cpp
+    physics/ChLoadBodyMesh.cpp
     )
 
 set(ChronoEngine_physics_HEADERS
@@ -284,9 +287,9 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsGearbox.h
     physics/ChShaftsGearboxAngled.h
     physics/ChShaftsMotor.h
-	physics/ChShaftsMotorAngle.h
-	physics/ChShaftsMotorSpeed.h
-	physics/ChShaftsMotorTorque.h
+    physics/ChShaftsMotorAngle.h
+    physics/ChShaftsMotorSpeed.h
+    physics/ChShaftsMotorTorque.h
     physics/ChShaftsPlanetary.h
     physics/ChShaftsTorqueBase.h
     physics/ChShaftsTorque.h
@@ -337,8 +340,8 @@ set(ChronoEngine_geometry_SOURCES
     geometry/ChLineSegment.cpp
     geometry/ChLinePath.cpp
     geometry/ChLineBezier.cpp
-	geometry/ChLineNurbs.cpp
-	geometry/ChLineBspline.cpp
+    geometry/ChLineNurbs.cpp
+....geometry/ChLineBspline.cpp
     geometry/ChLineCam.cpp
     geometry/ChLinePoly.cpp
     geometry/ChTriangle.cpp
@@ -367,8 +370,8 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChLineSegment.h
     geometry/ChLinePath.h
     geometry/ChLineBezier.h
-	geometry/ChLineNurbs.h
-	geometry/ChLineBspline.h
+    geometry/ChLineNurbs.h
+    geometry/ChLineBspline.h
     geometry/ChTriangle.h
     geometry/ChTriangleMesh.h
     geometry/ChTriangleMeshSoup.h
@@ -376,11 +379,11 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChRoundedBox.h
     geometry/ChRoundedCylinder.h
     geometry/ChRoundedCone.h
-	geometry/ChSurface.h
-	geometry/ChSurfaceNurbs.h
-	geometry/ChVolume.h
-	geometry/ChBasisToolsBspline.h
-	geometry/ChBasisToolsNurbs.h
+    geometry/ChSurface.h
+    geometry/ChSurfaceNurbs.h
+    geometry/ChVolume.h
+    geometry/ChBasisToolsBspline.h
+    geometry/ChBasisToolsNurbs.h
     )
 
 source_group(geometry FILES
@@ -930,6 +933,9 @@ set(ChronoEngine_utils_SOURCES
     utils/ChFilters.cpp
     utils/ChCompositeInertia.cpp
     utils/ChParserOpenSim.cpp
+    utils/ChParserAdams.cpp
+    utils/ChAdamsTokenizer.yy.cpp
+    utils/ChConvexHull.cpp
     )
 
 set(ChronoEngine_utils_HEADERS
@@ -944,6 +950,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChFilters.h
     utils/ChCompositeInertia.h
     utils/ChParserOpenSim.h
+    utils/ChConvexHull.h
 )
 
 source_group(utils FILES
@@ -1014,6 +1021,10 @@ set_target_properties(ChronoEngine PROPERTIES
 
 if(XCODE_VERSION)
     set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})
+endif()
+
+if(MSVC AND MSVC_VERSION EQUAL 1900)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /bigobj")
 endif()
 
 # Install the main ChronoEngine library

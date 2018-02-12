@@ -20,6 +20,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -51,15 +52,13 @@ RigidTire::RigidTire(const rapidjson::Document& d) : ChRigidTire(""), m_has_mesh
 }
 
 void RigidTire::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     m_radius = d["Radius"].GetDouble();
     m_width = d["Width"].GetDouble();
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = LoadVectorJSON(d["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

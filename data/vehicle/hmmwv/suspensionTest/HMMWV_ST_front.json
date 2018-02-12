@@ -1,7 +1,7 @@
 {
   "Name":     "HMMWV Front Suspension Test",
-  "Type":     "SuspensionTest",
-  "Template": "SuspensionTest",
+  "Type":     "Vehicle",
+  "Template": "SuspensionTestRig",
 
   "Suspension":
   {

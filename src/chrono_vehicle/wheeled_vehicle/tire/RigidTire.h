@@ -41,15 +41,19 @@ class CH_VEHICLE_API RigidTire : public ChRigidTire {
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_radius;
     double m_width;
+    double m_mass;
+    ChVector<> m_inertia;
 
     bool m_has_mesh;
     std::string m_meshName;

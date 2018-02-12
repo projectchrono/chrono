@@ -26,6 +26,8 @@
 #ifndef CH_PITMANARM_H
 #define CH_PITMANARM_H
 
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 
@@ -46,6 +48,9 @@ namespace vehicle {
 class CH_VEHICLE_API ChPitmanArm : public ChSteering {
   public:
     virtual ~ChPitmanArm() {}
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "PitmanArm"; }
 
     /// Initialize this steering subsystem.
     /// The steering subsystem is initialized by attaching it to the specified
@@ -147,11 +152,15 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
 
     std::shared_ptr<ChBody> m_arm;  ///< handle to the Pitman arm body
 
-    std::shared_ptr<ChLinkEngine> m_revolute;           ///< handle to the chassis-arm revolute joint
-    std::shared_ptr<ChLinkRevoluteSpherical> m_revsph;  ///< handle to the revolute-spherical joint (idler arm)
-    std::shared_ptr<ChLinkUniversal> m_universal;       ///< handle to the arm-link universal joint
+    std::shared_ptr<ChLinkMotorRotationAngle> m_revolute;  ///< handle to the chassis-arm revolute joint
+    std::shared_ptr<ChLinkRevoluteSpherical> m_revsph;     ///< handle to the revolute-spherical joint (idler arm)
+    std::shared_ptr<ChLinkUniversal> m_universal;          ///< handle to the arm-link universal joint
 
   private:
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     // Flag indicating that the inertia matrices for the upright and control arms
     // are provided in vehicle-aligned centroidal frames
     bool m_vehicle_frame_inertia;

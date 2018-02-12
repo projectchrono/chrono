@@ -94,10 +94,10 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis).
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                    const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                    ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
-                    );
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
+    );
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the axle. This function provides the interface
@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Remove visualization assets for the sprocket subsystem.
-    virtual void RemoveVisualizationAssets() override final;
+    virtual void RemoveVisualizationAssets() override;
 
     /// Log current constraint violations.
     void LogConstraintViolations();
@@ -141,12 +141,19 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) = 0;
 
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_gear;                   ///< handle to the sprocket gear body
     std::shared_ptr<ChShaft> m_axle;                  ///< handle to gear shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
 
     ChSystem::CustomCollisionCallback* m_callback;  ///< custom collision functor object
+
+    friend class ChTrackAssembly;
 };
 
 /// Vector of handles to sprocket subsystems.

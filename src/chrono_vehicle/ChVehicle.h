@@ -22,8 +22,11 @@
 #ifndef CH_VEHICLE_H
 #define CH_VEHICLE_H
 
+#include <numeric>
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleOutput.h"
 #include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
@@ -45,6 +48,9 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Set the name identifier for this vehicle.
     void SetName(const std::string& name) { m_name = name; }
+
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const = 0;
 
     /// Get a pointer to the Chrono ChSystem.
     ChSystem* GetSystem() { return m_system; }
@@ -108,6 +114,13 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the global location of the driver.
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
+    /// Enable output for this vehicle system.
+    void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of ooutput DB
+                   const std::string& out_dir,   ///< [in] output directory name
+                   const std::string& out_name,  ///< [in] rootname of output file
+                   double output_step            ///< [in] interval between output times
+    );
+
     /// Initialize this vehicle at the specified global location and orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
                             double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
@@ -125,6 +138,9 @@ class CH_VEHICLE_API ChVehicle {
     /// as set by the particular derived vehicle class.
     virtual void SetChassisVehicleCollide(bool state) {}
 
+    /// Enable/disable output from the chassis subsystem.
+    void SetChassisOutput(bool state);
+
     /// Advance the state of this vehicle by the specified time step.
     virtual void Advance(double step);
 
@@ -136,6 +152,17 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() = 0;
+
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const = 0;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const = 0;
+
+    /// Output data for all modeling components in the vehicle system.
+    virtual void Output(int frame, ChVehicleOutput& database) const = 0;
 
   protected:
     /// Construct a vehicle system with an underlying ChSystem.
@@ -149,9 +176,23 @@ class CH_VEHICLE_API ChVehicle {
               ChSystem* system          ///< [in] containing mechanical system
               );
 
+    /// Utility function for testing if any subsystem in a list generates output.
+    template <typename T>
+    static bool AnyOutput(const std::vector<std::shared_ptr<T>>& list) {
+        bool val = std::accumulate(list.begin(), list.end(), false,
+            [](bool a, std::shared_ptr<T> b) {return a || b->OutputEnabled(); });
+        return val;
+    }
+
     std::string m_name;  ///< vehicle name
     ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_ownsSystem;   ///< true if system created at construction
+
+    bool m_output;                 ///< generate ouput for this vehicle system
+    ChVehicleOutput* m_output_db;  ///< vehicle output database
+    double m_output_step;          ///< output time step
+    double m_next_output_time;     ///< time for next output
+    int m_output_frame;            ///< current output frame
 
     std::shared_ptr<ChChassis> m_chassis;  ///< handle to the chassis subsystem
 

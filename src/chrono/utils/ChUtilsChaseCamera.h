@@ -38,7 +38,7 @@ namespace utils {
 
 class ChApi ChChaseCamera {
   public:
-    enum State { Chase, Follow, Track, Inside };
+    enum State { Chase, Follow, Track, Inside, Free };
 
     ChChaseCamera(std::shared_ptr<ChBody> chassis);
     ~ChChaseCamera() {}
@@ -52,9 +52,11 @@ class ChApi ChChaseCamera {
 
     void Zoom(int val);
     void Turn(int val);
+    void Raise(int val);
     void SetState(State s);
 
     void SetCameraPos(const ChVector<>& pos);
+    void SetCameraAngle(double angle);
 
     State GetState() const { return m_state; }
     const std::string& GetStateName() const { return m_stateNames[m_state]; }
@@ -83,13 +85,15 @@ class ChApi ChChaseCamera {
     ChVector<> m_loc;
     ChVector<> m_lastLoc;
 
+    double m_locZ;
+
     double m_horizGain;
     double m_vertGain;
     double m_minMult;
     double m_maxMult;
 
     static const double m_maxTrackDist2;
-    static const std::string m_stateNames[4];
+    static const std::string m_stateNames[5];
 };
 
 }  // end namespace utils

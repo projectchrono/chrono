@@ -18,6 +18,7 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -26,22 +27,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion, respectively,
-// from the specified JSON array.
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-static ChQuaternion<> loadQuaternion(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 4);
-    return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // Constructors for ANCFTire
@@ -116,9 +101,9 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
             m_materials[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
-            ChVector<> E = loadVector(d["Materials"][i]["E"]);
-            ChVector<> nu = loadVector(d["Materials"][i]["nu"]);
-            ChVector<> G = loadVector(d["Materials"][i]["G"]);
+            ChVector<> E = LoadVectorJSON(d["Materials"][i]["E"]);
+            ChVector<> nu = LoadVectorJSON(d["Materials"][i]["nu"]);
+            ChVector<> G = LoadVectorJSON(d["Materials"][i]["G"]);
             m_materials[i] = std::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
         }
     }

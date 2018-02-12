@@ -30,7 +30,7 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_Wheel::m_mass = 45.4;
+const double HMMWV_Wheel::m_mass = 18.8;
 const ChVector<> HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
 
 const double HMMWV_Wheel::m_radius = 0.268;

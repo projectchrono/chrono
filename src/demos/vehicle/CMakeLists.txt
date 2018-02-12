@@ -25,8 +25,12 @@ ADD_SUBDIRECTORY(demo_DeformableSoilAndTire)
 ADD_SUBDIRECTORY(demo_GranularTerrain)
 
 ADD_SUBDIRECTORY(demo_M113)
+ADD_SUBDIRECTORY(demo_M113_Band)
 ADD_SUBDIRECTORY(demo_M113_Parallel)
 ADD_SUBDIRECTORY(demo_TrackedJSON)
 ADD_SUBDIRECTORY(demo_TrackTestRig)
+ADD_SUBDIRECTORY(demo_TrackTestRig_Band)
 
 ADD_SUBDIRECTORY(demo_Paths)
+ADD_SUBDIRECTORY(demo_RigidTerrain)
+ADD_SUBDIRECTORY(demo_CRGTerrain)

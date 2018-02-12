@@ -154,5 +154,34 @@ void ChRackPinion::LogConstraintViolations() {
     }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRackPinion::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_prismatic);
+    joints.push_back(m_actuator);
+    ChPart::ExportJointList(jsonDocument, joints);
+}
+
+void ChRackPinion::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_link);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_prismatic);
+    joints.push_back(m_actuator);
+    database.WriteJoints(joints);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

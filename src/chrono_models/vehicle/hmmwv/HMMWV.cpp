@@ -40,10 +40,10 @@ HMMWV::HMMWV()
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_pacejkaParamFile(""),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
-      m_initOmega({0, 0, 0, 0}) {}
+      m_initOmega({0, 0, 0, 0}),
+      m_apply_drag(false) {}
 
 HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
@@ -57,7 +57,6 @@ HMMWV::HMMWV(ChSystem* system)
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_pacejkaParamFile(""),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
@@ -96,17 +95,17 @@ void HMMWV::Initialize() {
     // Create and initialize the powertrain system
     switch (m_powertrainType) {
         case PowertrainModelType::SHAFTS: {
-            HMMWV_Powertrain* ptrain = new HMMWV_Powertrain;
+            HMMWV_Powertrain* ptrain = new HMMWV_Powertrain("Powertrain");
             m_powertrain = ptrain;
             break;
         }
         case PowertrainModelType::SIMPLE_MAP: {
-            HMMWV_SimpleMapPowertrain* ptrain = new HMMWV_SimpleMapPowertrain;
+            HMMWV_SimpleMapPowertrain* ptrain = new HMMWV_SimpleMapPowertrain("Powertrain");
             m_powertrain = ptrain;
             break;
         }
         case PowertrainModelType::SIMPLE: {
-            HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain;
+            HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain("Powertrain");
             m_powertrain = ptrain;
             break;
         }
@@ -218,15 +217,10 @@ void HMMWV::Initialize() {
             break;
         }
         case TireModelType::PACEJKA: {
-            if (m_pacejkaParamFile.empty())
-                throw ChException("Pacejka parameter file not specified.");
-
-            std::string param_file = vehicle::GetDataFile(m_pacejkaParamFile);
-
-            ChPacejkaTire* tire_FL = new ChPacejkaTire("FL", param_file);
-            ChPacejkaTire* tire_FR = new ChPacejkaTire("FR", param_file);
-            ChPacejkaTire* tire_RL = new ChPacejkaTire("RL", param_file);
-            ChPacejkaTire* tire_RR = new ChPacejkaTire("RR", param_file);
+            ChPacejkaTire* tire_FL = new HMMWV_Pac02Tire("FL");
+            ChPacejkaTire* tire_FR = new HMMWV_Pac02Tire("FR");
+            ChPacejkaTire* tire_RL = new HMMWV_Pac02Tire("RL");
+            ChPacejkaTire* tire_RR = new HMMWV_Pac02Tire("RR");
 
             tire_FL->SetDrivenWheel(false);
             tire_FR->SetDrivenWheel(false);
@@ -284,6 +278,8 @@ void HMMWV::Initialize() {
     m_tires[1]->Initialize(m_vehicle->GetWheelBody(FRONT_RIGHT), RIGHT);
     m_tires[2]->Initialize(m_vehicle->GetWheelBody(REAR_LEFT), LEFT);
     m_tires[3]->Initialize(m_vehicle->GetWheelBody(REAR_RIGHT), RIGHT);
+
+    m_tire_mass = m_tires[0]->ReportMass();
 }
 
 // -----------------------------------------------------------------------------
@@ -300,7 +296,7 @@ void HMMWV::Synchronize(double time,
                         double braking_input,
                         double throttle_input,
                         const ChTerrain& terrain) {
-    TireForces tire_forces(4);
+    TerrainForces tire_forces(4);
     WheelState wheel_states[4];
 
     tire_forces[0] = m_tires[0]->GetTireForce();
@@ -337,6 +333,31 @@ void HMMWV::Advance(double step) {
     m_powertrain->Advance(step);
 
     m_vehicle->Advance(step);
+}
+
+// -----------------------------------------------------------------------------
+double HMMWV::GetTotalMass() const {
+    return m_vehicle->GetVehicleMass() + 4 * m_tire_mass;
+}
+
+// =============================================================================
+
+HMMWV_Vehicle* HMMWV_Full::CreateVehicle() {
+    if (m_system) {
+        return new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_steeringType, m_rigidColumn,
+                                     m_chassisCollisionType);
+    }
+
+    return new HMMWV_VehicleFull(m_fixed, m_driveType, m_steeringType, m_rigidColumn, m_contactMethod,
+                                 m_chassisCollisionType);
+}
+
+HMMWV_Vehicle* HMMWV_Reduced::CreateVehicle() {
+    if (m_system) {
+        return new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_chassisCollisionType);
+    }
+
+    return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
 }
 
 }  // end namespace hmmwv

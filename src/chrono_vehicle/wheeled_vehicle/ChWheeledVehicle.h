@@ -58,6 +58,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Destructor.
     virtual ~ChWheeledVehicle() {}
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "WheeledVehicle"; }
+
     /// Get the specified suspension subsystem.
     std::shared_ptr<ChSuspension> GetSuspension(int id) const { return m_suspensions[id]; }
 
@@ -74,7 +77,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     std::shared_ptr<ChDriveline> GetDriveline() const { return m_driveline; }
 
     /// Get the vehicle total mass.
-    /// This includes the mass of the chassis and all vehicle subsystems.
+    /// This includes the mass of the chassis and all vehicle subsystems, but not the mass of tires.
     virtual double GetVehicleMass() const override;
 
     /// Get the current global vehicle COM location.
@@ -138,6 +141,18 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// This only controls collisions between the chassis and the tire systems.
     virtual void SetChassisVehicleCollide(bool state) override;
 
+    /// Enable/disable output from the suspension subsystems.
+    void SetSuspensionOutput(int id, bool state);
+
+    /// Enable/disable output from the steering subsystems.
+    void SetSteeringOutput(int id, bool state);
+
+    /// Enable/disable output from the anti-roll bar subsystems.
+    void SetAntirollbarOutput(int id, bool state);
+
+    /// Enable/disable output from the driveline subsystem.
+    void SetDrivelineOutput(bool state);
+
     /// Initialize this vehicle at the specified global location and orientation.
     /// This base class implementation only initializes the chassis subsystem.
     /// Derived classes must extend this function to initialize all other wheeled
@@ -151,15 +166,26 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
     /// from the powertrain, and tire forces (expressed in the global reference
     /// frame).
-    virtual void Synchronize(double time,                   ///< [in] current time
-                             double steering,               ///< [in] current steering input [-1,+1]
-                             double braking,                ///< [in] current braking input [0,1]
-                             double powertrain_torque,      ///< [in] input torque from powertrain
-                             const TireForces& tire_forces  ///< [in] vector of tire force structures
-                             );
+    virtual void Synchronize(double time,                      ///< [in] current time
+                             double steering,                  ///< [in] current steering input [-1,+1]
+                             double braking,                   ///< [in] current braking input [0,1]
+                             double powertrain_torque,         ///< [in] input torque from powertrain
+                             const TerrainForces& tire_forces  ///< [in] vector of tire force structures
+    );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
+
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const override;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const override;
+
+    /// Output data for all modeling components in the vehicle system.
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
 
   protected:
     ChSuspensionList m_suspensions;            ///< list of handles to suspension subsystems

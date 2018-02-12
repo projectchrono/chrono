@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -24,16 +25,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -58,16 +49,12 @@ AntirollBarRSD::AntirollBarRSD(const rapidjson::Document& d) : ChAntirollBarRSD(
 }
 
 void AntirollBarRSD::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read arm data
     m_arm_mass = d["Arm"]["Mass"].GetDouble();
-    m_arm_inertia = loadVector(d["Arm"]["Inertia"]);
+    m_arm_inertia = LoadVectorJSON(d["Arm"]["Inertia"]);
     m_arm_length = d["Arm"]["Length"].GetDouble();
     m_arm_width = d["Arm"]["Width"].GetDouble();
     m_arm_radius = d["Arm"]["Radius"].GetDouble();

@@ -20,6 +20,7 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/SprocketDoublePin.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -27,16 +28,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -61,17 +52,13 @@ SprocketDoublePin::SprocketDoublePin(const rapidjson::Document& d) : ChSprocketD
 }
 
 void SprocketDoublePin::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read inertia properties
     m_num_teeth = d["Number Teeth"].GetInt();
     m_gear_mass = d["Gear Mass"].GetDouble();
-    m_gear_inertia = loadVector(d["Gear Inertia"]);
+    m_gear_inertia = LoadVectorJSON(d["Gear Inertia"]);
     m_axle_inertia = d["Axle Inertia"].GetDouble();
     m_separation = d["Gear Separation"].GetDouble();
 

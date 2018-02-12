@@ -48,8 +48,12 @@
 
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 using namespace rapidjson;
 
@@ -83,22 +87,6 @@ const ChCoordsys<> ChSuspensionTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0),
 
 ChSuspensionTestRigChassis::ChSuspensionTestRigChassis() : ChRigidChassis("Ground") {
     m_inertia = ChMatrix33<>(m_inertiaXX);
-}
-
-// -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion, respectively,
-// from the specified JSON array.
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-static ChQuaternion<> loadQuaternion(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 4);
-    return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
 }
 
 // -----------------------------------------------------------------------------
@@ -298,7 +286,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     std::string file_name = d["Axles"][axle_index]["Suspension Input File"].GetString();
     LoadSuspension(vehicle::GetDataFile(file_name));
-    m_suspLoc = loadVector(d["Axles"][axle_index]["Suspension Location"]);
+    m_suspLoc = LoadVectorJSON(d["Axles"][axle_index]["Suspension Location"]);
 
     int steering_index = -1;
     if (d["Axles"][axle_index].HasMember("Steering Index")) {
@@ -314,15 +302,15 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     if (steering_index >= 0) {
         std::string file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
         LoadSteering(vehicle::GetDataFile(file_name));
-        m_steeringLoc = loadVector(d["Steering Subsystems"][steering_index]["Location"]);
-        m_steeringRot = loadQuaternion(d["Steering Subsystems"][steering_index]["Orientation"]);
+        m_steeringLoc = LoadVectorJSON(d["Steering Subsystems"][steering_index]["Location"]);
+        m_steeringRot = LoadQuaternionJSON(d["Steering Subsystems"][steering_index]["Orientation"]);
     }
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Axles"][axle_index].HasMember("Antirollbar Input File")) {
         std::string file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
         LoadAntirollbar(vehicle::GetDataFile(file_name));
-        m_antirollbarLoc = loadVector(d["Axles"][axle_index]["Antirollbar Location"]);
+        m_antirollbarLoc = LoadVectorJSON(d["Axles"][axle_index]["Antirollbar Location"]);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
@@ -357,7 +345,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     std::string file_name = d["Suspension"]["Input File"].GetString();
     LoadSuspension(vehicle::GetDataFile(file_name));
-    m_suspLoc = loadVector(d["Suspension"]["Location"]);
+    m_suspLoc = LoadVectorJSON(d["Suspension"]["Location"]);
 
     file_name = d["Suspension"]["Left Wheel Input File"].GetString();
     LoadWheel(vehicle::GetDataFile(file_name), LEFT);
@@ -372,15 +360,15 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     if (d.HasMember("Steering")) {
         std::string file_name = d["Steering"]["Input File"].GetString();
         LoadSteering(vehicle::GetDataFile(file_name));
-        m_steeringLoc = loadVector(d["Steering"]["Location"]);
-        m_steeringRot = loadQuaternion(d["Steering"]["Orientation"]);
+        m_steeringLoc = LoadVectorJSON(d["Steering"]["Location"]);
+        m_steeringRot = LoadQuaternionJSON(d["Steering"]["Orientation"]);
     }
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Suspension"].HasMember("Antirollbar Input File")) {
         std::string file_name = d["Suspension"]["Antirollbar Input File"].GetString();
         LoadAntirollbar(vehicle::GetDataFile(file_name));
-        m_antirollbarLoc = loadVector(d["Suspension"]["Antirollbar Location"]);
+        m_antirollbarLoc = LoadVectorJSON(d["Suspension"]["Antirollbar Location"]);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
@@ -629,6 +617,61 @@ void ChSuspensionTestRig::LogConstraintViolations() {
     }
 
     GetLog().SetNumFormat("%g");
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+std::string ChSuspensionTestRig::ExportComponentList() const {
+    rapidjson::Document jsonDocument;
+    jsonDocument.SetObject();
+
+    std::string template_name = GetTemplateName();
+    jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
+    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
+                           jsonDocument.GetAllocator());
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_chassis->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("chassis", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_suspension->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("suspension", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    if (HasSteering()) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_steering->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("steering", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    if (HasAntirollbar()) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_antirollbar->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("anti-roll bar", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    rapidjson::StringBuffer jsonBuffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonWriter(jsonBuffer);
+    jsonDocument.Accept(jsonWriter);
+
+    return jsonBuffer.GetString();
+}
+
+void ChSuspensionTestRig::ExportComponentList(const std::string& filename) const {
+    std::ofstream of(filename);
+    of << ExportComponentList();
+}
+
+void ChSuspensionTestRig::Output(int frame, ChVehicleOutput& database) const {
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------

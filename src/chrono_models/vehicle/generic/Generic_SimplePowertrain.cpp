@@ -35,7 +35,7 @@ const double Generic_SimplePowertrain::m_rev_gear_ratio = -0.3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Generic_SimplePowertrain::Generic_SimplePowertrain() : ChSimplePowertrain() {}
+Generic_SimplePowertrain::Generic_SimplePowertrain(const std::string& name) : ChSimplePowertrain(name) {}
 
 }  // end namespace generic
 }  // end namespace vehicle

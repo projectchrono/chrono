@@ -35,7 +35,7 @@ const double M113_SimplePowertrain::m_rev_gear_ratio = -0.3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_SimplePowertrain::M113_SimplePowertrain() : ChSimplePowertrain() {}
+M113_SimplePowertrain::M113_SimplePowertrain(const std::string& name) : ChSimplePowertrain(name) {}
 
 }  // end namespace m113
 }  // end namespace vehicle

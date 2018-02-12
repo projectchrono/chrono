@@ -57,7 +57,7 @@ void ChChassis::Initialize(ChSystem* system,
                            int collision_family) {
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetIdentifier(0);
-    m_body->SetNameString(m_name + "_body");
+    m_body->SetNameString(m_name + " body");
     m_body->SetMass(GetMass());
     m_body->SetFrame_COG_to_REF(ChFrame<>(GetLocalPosCOM(), ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertia(GetInertia());
@@ -67,6 +67,29 @@ void ChChassis::Initialize(ChSystem* system,
     m_body->SetPos_dt(chassisFwdVel * chassisPos.TransformDirectionLocalToParent(ChVector<>(1, 0, 0)));
 
     system->Add(m_body);
+
+    // Add pre-defined markers (driver position and COM) on the chassis body.
+    AddMarker("driver position", GetLocalDriverCoordsys());
+    AddMarker("COM", ChCoordsys<>(GetLocalPosCOM()));
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChChassis::AddMarker(const std::string& name, const ChCoordsys<>& pos) {
+    // Do nothing if the chassis is not yet initialized
+    if (!m_body)
+        return;
+
+    // Note: marker local positions are assumed to be relative to the centroidal frame
+    //       of the associated body.
+    auto pos_com = m_body->GetFrame_REF_to_COG().GetCoord().TransformLocalToParent(pos);
+
+    // Create the marker, attach it to the chassis body, add it to the list
+    auto marker = std::make_shared<ChMarker>();
+    marker->SetNameString(m_name + " " + name);
+    marker->Impose_Rel_Coord(pos_com);
+    m_body->AddMarker(marker);
+    m_markers.push_back(marker);
 }
 
 // -----------------------------------------------------------------------------

@@ -35,7 +35,7 @@ const double HMMWV_SimplePowertrain::m_rev_gear_ratio = -0.3;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_SimplePowertrain::HMMWV_SimplePowertrain() : ChSimplePowertrain() {}
+HMMWV_SimplePowertrain::HMMWV_SimplePowertrain(const std::string& name) : ChSimplePowertrain(name) {}
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

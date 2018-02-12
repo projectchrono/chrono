@@ -42,6 +42,9 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     virtual ~ChLugreTire() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "LugreTire"; }
+
     /// Initialize this tire system and enable visualization of the discs.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
                             VehicleSide side                ///< left/right vehicle side
@@ -62,7 +65,10 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TireForce GetTireForce(bool cosim = false) const override { return m_tireForce; }
+    virtual TerrainForce GetTireForce() const override { return m_tireForce; }
+
+    /// Report the tire force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireForce; }
 
     /// Update the state of this tire system at the current time.
     /// The tire system is provided the current state of its associated wheel.
@@ -121,7 +127,7 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     double m_stepsize;
 
-    TireForce m_tireForce;
+    TerrainForce m_tireForce;
     std::vector<DiscContactData> m_data;
     std::vector<DiscState> m_state;
 

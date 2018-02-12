@@ -39,6 +39,9 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
 
     virtual ~ChRigidChassis() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "RigidChassis"; }
+
     /// Specifies whether or not collision shapes were defined.
     bool HasCollision() const { return m_has_collision; }
 
@@ -96,6 +99,10 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
         double m_radius;
         double m_length;
     };
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 
     bool m_has_collision;
     std::vector<BoxShape> m_coll_boxes;

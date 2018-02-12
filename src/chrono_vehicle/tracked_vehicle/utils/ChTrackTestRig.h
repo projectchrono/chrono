@@ -58,6 +58,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Destructor
     ~ChTrackTestRig() {}
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "TrackTestRig"; }
+
     /// Set the actuator function
     void SetActuator_func(const std::shared_ptr<ChFunction>& func) { m_actuator = func; }
 
@@ -103,16 +106,27 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Update the state at the current time.
     /// steering between -1 and +1, and no force need be applied if using external actuation
-    void Synchronize(double time,                        ///< [in] current time
-                     double disp,                        ///< [in] post displacement
-                     double throttle,                    ///< [in] throttle input
-                     const TrackShoeForces& shoe_forces  ///< [in] vector of track shoe forces
-                     );
+    void Synchronize(double time,                      ///< [in] current time
+                     double disp,                      ///< [in] post displacement
+                     double throttle,                  ///< [in] throttle input
+                     const TerrainForces& shoe_forces  ///< [in] vector of track shoe forces
+    );
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const override;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const override;
+
   private:
+    /// Output data for all modeling components in the vehicle system.
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
+
     static void AddVisualize_post(std::shared_ptr<ChBody> post_body,
                                   std::shared_ptr<ChBody> chassis_body,
                                   double length,

@@ -71,6 +71,9 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     ~ChPacejkaTire();
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "PacejkaTire"; }
+
     /// Specify whether or not the associated wheel is driven.
     /// By default, the wheel is assumed not driven.
     void SetDrivenWheel(bool val) { m_driven = val; }
@@ -92,14 +95,21 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Get visualization tire width.
     virtual double GetVisualizationWidth() const { return 0.25; }
 
-    /// return the reactions for the combined slip EQs, in global coords
-    virtual TireForce GetTireForce(bool cosim = false) const override;
+    /// Get the tire force and moment.
+    /// This represents the output from this tire system that is passed to the
+    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// to the appropriate suspension subsystem which applies it as an external
+    /// force one the wheel body.
+    virtual TerrainForce GetTireForce() const override;
+
+    /// Report the tire force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
     ///  Return the reactions for the pure slip EQs, in local or global coords
-    TireForce GetTireForce_pureSlip(const bool local = true) const;
+    TerrainForce GetTireForce_pureSlip(const bool local = true) const;
 
     /// Return the reactions for the combined slip EQs, in local or global coords
-    TireForce GetTireForce_combinedSlip(const bool local = true) const;
+    TerrainForce GetTireForce_combinedSlip(const bool local = true) const;
 
     /// Update the state of this tire system at the current time.
     /// Set the PacTire spindle state data from the global wheel body state.
@@ -186,6 +196,8 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     double GetStepsize() const { return m_step_size; }
 
   private:
+    virtual void Create(const rapidjson::Document& d) override {}
+
     // where to find the input parameter file
     const std::string& getPacTireParamFile() const { return m_paramFile; }
 
@@ -370,11 +382,11 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     int m_num_Advance_calls;
     double m_sum_Advance_time;
 
-    TireForce m_FM_pure;      // output tire forces, based on pure slip
-    TireForce m_FM_combined;  // output tire forces, based on combined slip
+    TerrainForce m_FM_pure;      // output tire forces, based on pure slip
+    TerrainForce m_FM_combined;  // output tire forces, based on combined slip
     // previous steps calculated reaction
-    TireForce m_FM_pure_last;
-    TireForce m_FM_combined_last;
+    TerrainForce m_FM_pure_last;
+    TerrainForce m_FM_combined_last;
 
     // TODO: could calculate these using sigma_kappa_adams and sigma_alpha_adams, in getRelaxationLengths()
     // HARDCODED IN Initialize() for now

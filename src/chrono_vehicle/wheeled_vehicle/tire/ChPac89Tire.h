@@ -42,6 +42,9 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
 
     virtual ~ChPac89Tire() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "Pac89Tire"; }
+
     /// Initialize this tire system.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
                             VehicleSide side                ///< [in] left/right vehicle side
@@ -61,7 +64,10 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TireForce GetTireForce(bool cosim = false) const override { return m_tireforce; }
+    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
+    /// Report the tire force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
     /// Update the state of this tire system at the current time.
     /// The tire system is provided the current state of its associated wheel.
@@ -102,6 +108,9 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
 
     /// Get the camber angle used in Pac89 (expressed in degrees).
 	double GetGamma() { return m_gamma; }
+	
+	/// Get the tire deflection
+	virtual double GetDeflection() const override { return m_data.depth; }
 	
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
@@ -201,7 +210,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     ContactData m_data;
     TireStates m_states;
 
-    TireForce m_tireforce;
+    TerrainForce m_tireforce;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
     std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset

@@ -47,9 +47,12 @@ class ChVehicle;
 class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
   public:
     /// Construct a shafts-based powertrain model.
-    ChShaftsPowertrain(const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
+    ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
 
     virtual ~ChShaftsPowertrain() {}
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "ShaftsPowertrain"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_crankshaft->GetPos_dt(); }

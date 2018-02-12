@@ -102,8 +102,8 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
-    // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Generic_Vehicle vehicle(false, SuspensionType::DOUBLE_WISHBONE);
+    // and visualization mode for the various vehicle components.
+    Generic_Vehicle vehicle(false, SuspensionType::MACPHERSON_STRUT);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -112,15 +112,17 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem());
-    terrain.SetContactFrictionCoefficient(0.9f);
-    terrain.SetContactRestitutionCoefficient(0.01f);
-    terrain.SetContactMaterialProperties(2e7f, 0.3f);
-    terrain.SetColor(ChColor(0.5f, 0.8f, 0.5f));
-    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+                                  ChVector<>(terrainLength, terrainWidth, 10));
+    patch->SetContactFrictionCoefficient(0.9f);
+    patch->SetContactRestitutionCoefficient(0.01f);
+    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
+    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    terrain.Initialize();
 
     // Create and initialize the powertrain system
-    Generic_SimplePowertrain powertrain;
+    Generic_SimplePowertrain powertrain("powertrain");
 
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
@@ -202,7 +204,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    TireForces tire_forces(4);
+    TerrainForces tire_forces(4);
     WheelState wheel_states[4];
     double driveshaft_speed;
     double powertrain_torque;

@@ -45,6 +45,9 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     virtual ~ChRigidTire();
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "RigidTire"; }
+
     /// Set Wavefront OBJ file for contact mesh.
     void SetMeshFilename(const std::string& mesh_file,   ///< [in] name of Wavefront file
                          double sweep_sphere_radius = 0  ///< [in] radius of sweeping sphere
@@ -57,14 +60,16 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     virtual double GetWidth() const = 0;
 
     /// Get the tire force and moment.
-    /// A ChRigidTire always returns zero forces and moments if the tire is
-    /// simulated together with the associated vehicle (the tire forces are
-    /// automatically applied to the associated wheel through Chrono's frictional
-    /// contact system). If the tire is co-simulated, the tire force and moments
-    /// encapsulate the tire-terrain forces (i.e. the resultant of all contact
-    /// forces acting on the tire); in this case, the force and moment are expressed
+    /// A ChRigidTire always returns zero force and moment since tire
+    /// forces are automatically applied to the associated wheel through Chrono's
+    /// frictional contact system.
+    virtual TerrainForce GetTireForce() const override;
+
+    /// Report the tire force and moment.
+    /// This generalized force encapsulates the tire-terrain forces (i.e. the resultant
+    /// of all contact forces acting on the tire). The force and moment are expressed
     /// in global frame, as applied to the center of the associated wheel.
-    virtual TireForce GetTireForce(bool cosim = false) const override;
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
 
     /// Initialize this tire system.
     /// This function creates the tire contact shape and attaches it to the

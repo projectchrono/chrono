@@ -36,8 +36,12 @@
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
+
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 using namespace rapidjson;
 
@@ -85,21 +89,7 @@ void ChTrackTestRigChassis::AddVisualizationAssets(VisualizationType vis) {
 }
 
 // -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion, respectively,
-// from the specified JSON array.
 // -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-static ChQuaternion<> loadQuaternion(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 4);
-    return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
-}
-
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
                                const ChVector<>& location,
                                ChMaterialSurface::ContactMethod contact_method)
@@ -231,7 +221,7 @@ double ChTrackTestRig::GetActuatorMarkerDist() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackTestRig::Synchronize(double time, double disp, double throttle, const TrackShoeForces& shoe_forces) {
+void ChTrackTestRig::Synchronize(double time, double disp, double throttle, const TerrainForces& shoe_forces) {
     // Apply the displacements to the left/right post actuators
     if (auto func = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact->Get_dist_funct()))
         func->Set_yconst(disp);
@@ -280,6 +270,42 @@ void ChTrackTestRig::LogConstraintViolations() {
     //// TODO
 
     GetLog().SetNumFormat("%g");
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+std::string ChTrackTestRig::ExportComponentList() const {
+    rapidjson::Document jsonDocument;
+    jsonDocument.SetObject();
+
+    std::string template_name = GetTemplateName();
+    jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
+    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
+                           jsonDocument.GetAllocator());
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_chassis->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("chassis", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    //// TODO
+
+    rapidjson::StringBuffer jsonBuffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonWriter(jsonBuffer);
+    jsonDocument.Accept(jsonWriter);
+
+    return jsonBuffer.GetString();
+}
+
+void ChTrackTestRig::ExportComponentList(const std::string& filename) const {
+    std::ofstream of(filename);
+    of << ExportComponentList();
+}
+
+void ChTrackTestRig::Output(int frame, ChVehicleOutput& database) const {
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------

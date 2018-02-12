@@ -53,40 +53,39 @@ const ChVector<> M113_TrackAssemblyDoublePin::m_susp_locs_R[5] = {
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
 M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side) : ChTrackAssemblyDoublePin("", side) {
-    m_suspensions.resize(5);
-    m_suspensions[0] = std::make_shared<M113_Suspension>(side, true);
-    m_suspensions[1] = std::make_shared<M113_Suspension>(side, true);
-    m_suspensions[2] = std::make_shared<M113_Suspension>(side, false);
-    m_suspensions[3] = std::make_shared<M113_Suspension>(side, false);
-    m_suspensions[4] = std::make_shared<M113_Suspension>(side, true);
-
+    size_t num_shoes;
+    std::string suspName("M113_Suspension");
+    std::string shoeName("M113_TrackShoe");
     switch (side) {
         case LEFT:
             SetName("M113_TrackAssemblyLeft");
             m_idler = std::make_shared<M113_IdlerLeft>();
-            m_brake = std::make_shared<M113_BrakeSimple>();
+            m_brake = std::make_shared<M113_BrakeSimple>("M113_BrakeLeft");
+            m_sprocket = std::make_shared<M113_SprocketDoublePinLeft>();
+            num_shoes = 63;
+            suspName += "Left_";
+            shoeName += "Left_";
             break;
         case RIGHT:
             SetName("M113_TrackAssemblyRight");
             m_idler = std::make_shared<M113_IdlerRight>();
-            m_brake = std::make_shared<M113_BrakeSimple>();
-            break;
-    }
-
-    size_t num_shoes;
-    switch (side) {
-        case LEFT:
-            m_sprocket = std::make_shared<M113_SprocketDoublePinLeft>();
-            num_shoes = 63;
-            break;
-        case RIGHT:
+            m_brake = std::make_shared<M113_BrakeSimple>("M113_BrakeRight");
             m_sprocket = std::make_shared<M113_SprocketDoublePinRight>();
             num_shoes = 64;
+            suspName += "Right_";
+            shoeName += "Right_";
             break;
     }
 
+    m_suspensions.resize(5);
+    m_suspensions[0] = std::make_shared<M113_Suspension>(suspName + "0", side, 0, true);
+    m_suspensions[1] = std::make_shared<M113_Suspension>(suspName + "1", side, 1, true);
+    m_suspensions[2] = std::make_shared<M113_Suspension>(suspName + "2", side, 2, false);
+    m_suspensions[3] = std::make_shared<M113_Suspension>(suspName + "3", side, 3, false);
+    m_suspensions[4] = std::make_shared<M113_Suspension>(suspName + "4", side, 4, true);
+
     for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(std::make_shared<M113_TrackShoeDoublePin>());
+        m_shoes.push_back(std::make_shared<M113_TrackShoeDoublePin>(shoeName + std::to_string(it)));
     }
 }
 

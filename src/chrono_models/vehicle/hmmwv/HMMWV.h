@@ -35,6 +35,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 
 #ifdef CHRONO_FEA
@@ -74,7 +75,6 @@ class CH_MODELS_API HMMWV {
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
-    void SetPacejkaParamfile(const std::string& filename) { m_pacejkaParamFile = filename; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
@@ -82,6 +82,7 @@ class CH_MODELS_API HMMWV {
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
     ChPowertrain& GetPowertrain() const { return *m_powertrain; }
     ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
+    double GetTotalMass() const;
 
     void Initialize();
 
@@ -117,7 +118,6 @@ class CH_MODELS_API HMMWV {
     TireModelType m_tireType;
 
     double m_tire_step_size;
-    std::string m_pacejkaParamFile;
 
     ChCoordsys<> m_initPos;
     double m_initFwdVel;
@@ -132,39 +132,46 @@ class CH_MODELS_API HMMWV {
     HMMWV_Vehicle* m_vehicle;
     ChPowertrain* m_powertrain;
     std::array<ChTire*, 4> m_tires;
+
+    double m_tire_mass;
 };
 
 /// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using full
 /// double wishbone suspensions (i.e., suspensions that include rigid bodies for the upper
-/// and lower control arms).
+/// and lower control arms) and a Pitman arm steering mechanism.
 class CH_MODELS_API HMMWV_Full : public HMMWV {
   public:
-    HMMWV_Full() {}
-    HMMWV_Full(ChSystem* system) : HMMWV(system) {}
+    HMMWV_Full() : m_steeringType(SteeringType::PITMAN_ARM), m_rigidColumn(false) {}
+    HMMWV_Full(ChSystem* system) : HMMWV(system), m_steeringType(SteeringType::PITMAN_ARM), m_rigidColumn(false) {}
+
+    /// Set the type of steering mechanism (PITMAN_ARM or PITMAN_ARM_SHAFTS.
+    /// Default: PITMAN_ARM
+    void SetSteeringType(SteeringType val) { m_steeringType = val; }
+
+    /// Force a rigid steering column (PITMAN_ARM_SHAFTS only).
+    /// Default: false (compliant column).
+    void SetRigidSteeringColumn(bool val) { m_rigidColumn = val; }
 
     void LogHardpointLocations() { ((HMMWV_VehicleFull*)m_vehicle)->LogHardpointLocations(); }
     void DebugLog(int what) { ((HMMWV_VehicleFull*)m_vehicle)->DebugLog(what); }
 
   private:
-    virtual HMMWV_Vehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_chassisCollisionType)
-                        : new HMMWV_VehicleFull(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
-    }
+    virtual HMMWV_Vehicle* CreateVehicle() override;
+
+    SteeringType m_steeringType;  ///< type of steering mechanism
+    bool m_rigidColumn;           ///< only used with PITMAN_ARM_SHAFT
 };
 
 /// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using reduced
 /// double wishbone suspensions (i.e., suspensions that replace the upper and lower control
-/// arms with distance constraints).
+/// arms with distance constraints) and a rack-pinion steering mechanism.
 class CH_MODELS_API HMMWV_Reduced : public HMMWV {
   public:
     HMMWV_Reduced() {}
     HMMWV_Reduced(ChSystem* system) : HMMWV(system) {}
 
   private:
-    virtual HMMWV_Vehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_chassisCollisionType)
-                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
-    }
+    virtual HMMWV_Vehicle* CreateVehicle() override;
 };
 
 /// @} vehicle_models_hmmwv

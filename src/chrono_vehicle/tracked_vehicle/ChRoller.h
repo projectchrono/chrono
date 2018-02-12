@@ -79,8 +79,14 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     void LogConstraintViolations();
 
   protected:
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_wheel;                 ///< handle to the roller body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to roller revolute joint
+
+    friend class ChTrackAssembly;
 };
 
 /// Vector of handles to roller subsystems.

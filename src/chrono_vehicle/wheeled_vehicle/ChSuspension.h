@@ -92,10 +92,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// The given tire force and moment is applied to the specified (left or
     /// right) spindle body. This function provides the interface to the tire
     /// system (intermediated by the vehicle system).
-    void Synchronize(
-        VehicleSide side,            ///< indicates the spindle body (left or right) where the forces should be applied
-        const TireForce& tire_force  ///< generalized tire forces
-        );
+    void Synchronize(VehicleSide side,               ///< side (left or right) on which forces should be applied
+                     const TerrainForce& tire_force  ///< generalized tire forces
+    );
 
     /// Apply the provided motor torque.
     /// The given torque is applied to the specified (left or right) axle. This

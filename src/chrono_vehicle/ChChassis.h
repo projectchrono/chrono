@@ -124,6 +124,14 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Return true if the chassis body is fixed to ground.
     bool IsFixed() const { return m_body->GetBodyFixed(); }
 
+    /// Add a marker on the chassis body at the specified position (relative to the chassis reference frame).
+    /// If called before initialization, this function has no effect.
+    void AddMarker(const std::string& name,  ///< [in] marker name
+                   const ChCoordsys<>& pos   ///< [in] marker position relative to chassis reference frame
+                   );
+
+    const std::vector<std::shared_ptr<ChMarker>>& GetMarkers() const { return m_markers; }
+
     /// Set parameters and enable aerodynamic drag force calculation.
     /// By default, aerodynamic drag force calculation is disabled.
     void SetAerodynamicDrag(double Cd,          ///< [in] drag coefficient
@@ -137,8 +145,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual void Synchronize(double time);
 
   protected:
-    std::shared_ptr<ChBodyAuxRef> m_body;  ///< handle to the chassis body
-    bool m_fixed;                          ///< is the chassis body fixed to ground?
+    std::shared_ptr<ChBodyAuxRef> m_body;              ///< handle to the chassis body
+    std::vector<std::shared_ptr<ChMarker>> m_markers;  ///< list of user-defined markers
+    bool m_fixed;                                      ///< is the chassis body fixed to ground?
 
     bool m_apply_drag;     ///< enable aerodynamic drag force?
     double m_Cd;           ///< drag coefficient

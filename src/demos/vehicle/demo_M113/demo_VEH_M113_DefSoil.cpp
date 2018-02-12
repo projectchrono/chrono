@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     ////AddMovingObstacles(vehicle.GetSystem());
 
     // Create the powertrain system
-    M113_SimplePowertrain powertrain;
+    M113_SimplePowertrain powertrain("Powertrain");
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the vehicle Irrlicht application
@@ -224,8 +224,8 @@ int main(int argc, char* argv[]) {
     // Inter-module communication data
     BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
     BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TrackShoeForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TrackShoeForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
+    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
+    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -234,19 +234,19 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
+    // Execution time
+    double total_timing = 0;
+
     while (app.GetDevice()->run()) {
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
 
-            if (img_output && step_number > 0) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                app.WriteImageToFile(filename);
-            }
-
+        if (img_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
+            app.WriteImageToFile(filename);
             render_frame++;
         }
 
@@ -277,6 +277,11 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        // Execution time 
+        double step_timing = vehicle.GetSystem()->GetTimerStep();
+        total_timing += step_timing;
+        ////std::cout << step_number << " " << step_timing << " " << total_timing << std::endl;
     }
 
     vehicle.WriteContacts("M113_contacts.out");
