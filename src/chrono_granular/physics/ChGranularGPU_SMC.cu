@@ -231,12 +231,12 @@ __global__ void primingOperationsRectangularBox(
     unsigned int mySphereID[1];
     bool head_flags[1];
 
-    // Initiatlizations
-    mySphereID[0] = threadIdx.x + blockIdx.x * blockIdx.y * blockIdx.z *
-                                      blockDim.x;  // We work with a 1D block structure and a 3D grid structure
-    touchedSD[0] = NULL_GRANULAR_ID;               // Important to seed the touchedSD w/ a "no-SD" value
-    offsetInComposite_SphInSD_Array[threadIdx.x] =
-        NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
+
+    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 3D grid structure
+    mySphereID[0] = threadIdx.x + (blockIdx.x + gridDim.x * blockIdx.y + gridDim.x * gridDim.y * blockIdx.z) * blockDim.x; 
+                                        
+    touchedSD[0] = NULL_GRANULAR_ID;                                  // Important to seed the touchedSD w/ a "no-SD" value
+    offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
 
     unsigned int dummyUINT01 = mySphereID[0];
     if (mySphereID[0] < nSpheres) {
