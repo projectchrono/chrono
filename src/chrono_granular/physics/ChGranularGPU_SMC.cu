@@ -24,12 +24,12 @@
 #define BLAH_BLAH_I 0
 #define NULL_GRANULAR_ID UINT_MAX
 
-extern "C" __constant__ float3
-    xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
-extern "C" __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the rectangular box
-                                           //!< in the Global Reference Frame
-extern "C" __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in
-                                               //!< multples of SD, in the X, Y, and Z directions, respectively
+//extern "C" __constant__ float3
+//    xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
+//extern "C" __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the rectangular box
+//                                           //!< in the Global Reference Frame
+//extern "C" __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in
+//                                               //!< multples of SD, in the X, Y, and Z directions, respectively
 
 __constant__ unsigned int d_monoDisperseSphRadius_AD; // Pulled from the header
 
@@ -48,9 +48,9 @@ __constant__ unsigned int d_box_H_AD;  //!< Ad-ed H-dimension of the BD box in m
 /// subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts these
 /// indices to indices into the global SD list via the (currently local) conv[3] data structure
 /// Should be mostly bug-free, especially away from boundaries
-__device__ void figureOutTouchedSD(unsigned int sphCenter_X,
-                                   unsigned int sphCenter_Y,
-                                   unsigned int sphCenter_Z,
+__device__ void figureOutTouchedSD(int sphCenter_X,
+                                   int sphCenter_Y,
+                                   int sphCenter_Z,
                                    unsigned int* SDs) {
     // if (threadIdx.x == 1) {
     //     printf("kernel touched!\n");
@@ -211,17 +211,17 @@ __device__ void figureOutTouchedSD(unsigned int sphCenter_X,
  */
 template <int CUB_THREADS >  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
 __global__ void primingOperationsRectangularBox(
-    unsigned int* pRawDataX,                  //!< Pointer to array containing data related to the spheres in the box
-    unsigned int* pRawDataY,                  //!< Pointer to array containing data related to the spheres in the box
-    unsigned int* pRawDataZ,                  //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataY,                           //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataZ,                           //!< Pointer to array containing data related to the spheres in the box
     unsigned int* SD_countsOfSheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
     unsigned int* spheres_in_SD_composite,    //!< Big array that works in conjunction with SD_countsOfSheresTouching.
                                               //!< "spheres_in_SD_composite" says which SD contains what spheres
     size_t nSpheres                           //!< Number of spheres in the box
 ) {
-    unsigned int xSphCenter;
-    unsigned int ySphCenter;
-    unsigned int zSphCenter;
+    int xSphCenter;
+    int ySphCenter;
+    int zSphCenter;
 
     /// Set aside shared memory
     __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS];
@@ -252,7 +252,9 @@ __global__ void primingOperationsRectangularBox(
 
     // Each sphere can at most touch 8 SDs; we'll need to take 8 trips then.
     for (int i = 0; i < 8; i++) {
-        // Is there any SD touched at this level? Use a CUB reduce operation to find out
+        touchedSD[0] = SDsTouched[i];
+
+        // Amongst all threads, is there any SD touched at this level? Use a CUB reduce operation to find out
         typedef cub::BlockReduce<unsigned int, CUB_THREADS> BlockReduce;
         __shared__ typename BlockReduce::TempStorage temp_storage;
         dummyUINT01 = BlockReduce(temp_storage).Reduce(touchedSD[0], cub::Min());
@@ -280,7 +282,7 @@ __global__ void primingOperationsRectangularBox(
                 dummyUINT01 = 0;
                 do {
                     dummyUINT01++;
-                } while (threadIdx.x + dummyUINT01 < CUB_THREADS && !(head_flags[threadIdx.x + dummyUINT01]));
+                } while (threadIdx.x + dummyUINT01 < CUB_THREADS && !(shMem_head_flags[threadIdx.x + dummyUINT01]));
                 // Overwrite touchedSD[0], it ended its purpose upon call to atomicAdd
                 touchedSD[0] = atomicAdd(SD_countsOfSheresTouching + touchedSD[0], dummyUINT01);
                 // touchedSD[0] now gives offset in the composite array
@@ -302,6 +304,10 @@ __global__ void primingOperationsRectangularBox(
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
 #define CUDA_THREADS 128
+    // Come up with the unit of time
+
+    TIME_UNIT = 1. / (1 << SPHERE_TIME_UNIT_FACTOR) * sqrt((4. / 3. * M_PI * sphere_radius*sphere_radius*sphere_radius*sphere_density) / (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL));
+    
     setup_simulation();
     /// Figure our the number of blocks that need to be launched to cover the box
     dim3 grid3D_dims(256, 256, 256);

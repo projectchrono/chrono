@@ -13,20 +13,15 @@
 // =============================================================================
 
 #include <cuda_runtime.h>
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include "ChGranular.h"
+#include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularDefines.cuh"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
 
+
 chrono::ChGRN_DE_Container::~ChGRN_DE_Container() {
-    // Clean up, the host side
-    if (p_h_xyz_DE != nullptr)
-        delete[] p_h_xyz_DE;
-    if (p_h_xyzDOT_DE != nullptr)
-        delete[] p_h_xyzDOT_DE;
 
     // Clean up, the device side
     if (p_d_CM_X != nullptr) cudaFree(p_d_CM_X);
@@ -49,8 +44,8 @@ chrono::ChGRN_DE_Container::~ChGRN_DE_Container() {
 */
 void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     // I want to have in an SD about MAX_COUNT_OF_DEs_PER_SD spheres
-    double temp = 1. / (sqrt(2)*sphere_radius)*(pow((box_L*box_D*box_H) / (2 * MAX_COUNT_OF_DEs_PER_SD), 1. / 3.));
-    unsigned int kFac = (unsigned int)temp;
+    double temp = (pow((box_L*box_D*box_H) / (2 * MAX_COUNT_OF_DEs_PER_SD), 1. / 3.)) / (sqrt(2)*sphere_radius);
+    unsigned int kFac = (unsigned int)(std::ceil(temp));
     // work with an even kFac to hit the CM of the box.
     if (kFac & 1) kFac++;
 
@@ -81,32 +76,59 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
 
 }
 
-void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::adimensionlize() {
-    SPACE_UNIT = sphere_radius / (1 << SPHERE_LENGTH_UNIT_FACTOR);
-    monoDisperseSphRadius_AD = 1 << SPHERE_LENGTH_UNIT_FACTOR;
-    cudaMemcpyToSymbol("d_monoDisperseSphRadius_AD", &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD));
-
-    MASS_UNIT = (4. / 3. * M_PI * sphere_radius*sphere_radius*sphere_radius*sphere_density);
-
-    TIME_UNIT = 1. / (1 << SPHERE_TIME_UNIT_FACTOR) * sqrt((4. / 3. * M_PI * sphere_radius*sphere_radius*sphere_radius*sphere_density) / (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL));
-}
-
 /** This method sets up the data structures used to perform a simulation.
 *
 */
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
 
-    adimensionlize();
-
     partition_BD();
 
-    gpuErrchk(cudaMalloc((void**)& p_d_CM_X, nDEs * sizeof(unsigned int)));
-    gpuErrchk(cudaMalloc((void**)& p_d_CM_Y, nDEs * sizeof(unsigned int)));
-    gpuErrchk(cudaMalloc((void**)& p_d_CM_Z, nDEs * sizeof(unsigned int)));
-
+    // set aside device memory to store the position of the CM of the spheres
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_X, nDEs * sizeof(int)));
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_Y, nDEs * sizeof(int)));
+    gpuErrchk(cudaMalloc((void**)& p_d_CM_Z, nDEs * sizeof(int)));
 
     gpuErrchk(cudaMalloc((void**)& p_device_SD_NumOf_DEs_Touching, nDEs * sizeof(unsigned int)));
 
     gpuErrchk(cudaMalloc((void**)& p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
+    cudaMemcpyToSymbol("d_monoDisperseSphRadius_AD", &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD));
+
+    gpuErrchk(cudaMemcpy(p_d_CM_X, h_X_DE.data(), nDEs, cudaMemcpyHostToDevice));
+    gpuErrchk(cudaMemcpy(p_d_CM_Y, h_Y_DE.data(), nDEs, cudaMemcpyHostToDevice));
+    gpuErrchk(cudaMemcpy(p_d_CM_Z, h_Z_DE.data(), nDEs, cudaMemcpyHostToDevice));
+
+}
+
+
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs()
+{
+
+    // Create the falling balls
+    float ball_epsilon = monoDisperseSphRadius_AD/200.f;  // Margin between balls to ensure no overlap / DEM-splosion
+
+    chrono::utils::HCPSampler<float> sampler(2* monoDisperseSphRadius_AD + ball_epsilon); // Add epsilon
+
+    // We need to pass in half-length box here
+    ChVector<float> boxCenter(0, 0, 0);
+    ChVector<float> hdims{ box_L_AD / 2.f, box_D_AD / 2.f, box_H_AD / 2.f };
+    std::vector<ChVector<float>> points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
+
+    nDEs = points.size();
+    std::cout << nDEs << " balls added!" << std::endl;
+
+
+    h_X_DE.resize(nDEs);
+    h_Y_DE.resize(nDEs);
+    h_Z_DE.resize(nDEs);
+    for (int i = 0; i < nDEs; i++) {
+        auto vec = points.at(i);
+        h_X_DE.at(i) = (int) vec.x();
+        h_Y_DE.at(i) = (int) vec.y();
+        h_Z_DE.at(i) = (int) vec.z();
+    }
+
+    h_XDOT_DE.resize(nDEs);
+    h_YDOT_DE.resize(nDEs);
+    h_ZDOT_DE.resize(nDEs);
 }
