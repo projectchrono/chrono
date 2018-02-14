@@ -102,9 +102,9 @@ namespace chrono {
         unsigned int SD_D_AD;  //!< The AD-ed value of an SD in the D direction
         unsigned int SD_H_AD;  //!< The AD-ed value of an SD in the H direction
 
-        unsigned int box_L_AD; //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
-        unsigned int box_D_AD; //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
-        unsigned int box_H_AD; //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
+        unsigned int nSDs_L_AD; //!< Number of SDs along the L dimension of the box
+        unsigned int nSDs_D_AD; //!< Number of SDs along the D dimension of the box
+        unsigned int nSDs_H_AD; //!< Number of SDs along the H dimension of the box
 
         void partition_BD();
 
@@ -124,11 +124,7 @@ namespace chrono {
 
         virtual void settle(float t_end) = 0;
         virtual void setup_simulation() = 0;
-        void setBOXdims(float L_DIM, float D_DIM, float H_DIM) { 
-            box_L = L_DIM; box_L_AD = box_L / SPACE_UNIT;
-            box_D = D_DIM; box_D_AD = box_D / SPACE_UNIT;
-            box_H = H_DIM; box_H_AD = box_H / SPACE_UNIT;
-        }
+        void setBOXdims(float L_DIM, float D_DIM, float H_DIM) { box_L = L_DIM; box_D = D_DIM; box_H = H_DIM;}
         inline void YoungModulus_SPH2SPH(float someValue) { modulusYoung_SPH2SPH = someValue; }
         inline void YoungModulus_SPH2WALL(float someValue) { modulusYoung_SPH2WALL = someValue; }
 

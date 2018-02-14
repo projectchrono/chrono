@@ -232,8 +232,8 @@ __global__ void primingOperationsRectangularBox(
     bool head_flags[1];
 
 
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 3D grid structure
-    mySphereID[0] = threadIdx.x + (blockIdx.x + gridDim.x * blockIdx.y + gridDim.x * gridDim.y * blockIdx.z) * blockDim.x; 
+    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
+    mySphereID[0] = threadIdx.x + blockIdx.x * blockDim.x; 
                                         
     touchedSD[0] = NULL_GRANULAR_ID;                                  // Important to seed the touchedSD w/ a "no-SD" value
     offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
@@ -310,9 +310,8 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     
     setup_simulation();
     /// Figure our the number of blocks that need to be launched to cover the box
-    dim3 grid3D_dims(256, 256, 256);
-    primingOperationsRectangularBox<CUDA_THREADS><<<grid3D_dims, CUDA_THREADS>>>(
-        p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
+    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+    primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
 
     return;
 }
