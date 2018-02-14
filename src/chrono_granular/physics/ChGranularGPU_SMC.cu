@@ -227,6 +227,15 @@ __global__ void primingOperationsRectangularBox(
     __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS];
     __shared__ bool shMem_head_flags[CUB_THREADS];
 
+    typedef cub::BlockReduce<unsigned int, CUB_THREADS> BlockReduce;
+    __shared__ typename BlockReduce::TempStorage temp_storage_reduce;
+
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 1, unsigned int> BlockRadixSortOP;
+    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
+
+    typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
+    __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
+
     unsigned int touchedSD[1];
     unsigned int mySphereID[1];
     bool head_flags[1];
@@ -255,20 +264,14 @@ __global__ void primingOperationsRectangularBox(
         touchedSD[0] = SDsTouched[i];
 
         // Amongst all threads, is there any SD touched at this level? Use a CUB reduce operation to find out
-        typedef cub::BlockReduce<unsigned int, CUB_THREADS> BlockReduce;
-        __shared__ typename BlockReduce::TempStorage temp_storage;
-        dummyUINT01 = BlockReduce(temp_storage).Reduce(touchedSD[0], cub::Min());
+        dummyUINT01 = BlockReduce(temp_storage_reduce).Reduce(touchedSD[0], cub::Min());
 
         if (dummyUINT01 != NULL_GRANULAR_ID) {
             // Note that there is no thread divergence in this "if" since all threads see the same value (returned by
             // CUB) Processing sphere-in-SD events at level "i". Do a key-value sort to group together the like-SDs
-            typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 1, unsigned int> BlockRadixSortOP;
-            __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
             BlockRadixSortOP(temp_storage_sort).Sort(touchedSD, mySphereID);
 
             // Figure our where each SD starts and ends in the sequence of SDs
-            typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
-            __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
             Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, touchedSD, cub::Inequality());
 
             // Place data in shared memory since it needs to be accessed by other threads

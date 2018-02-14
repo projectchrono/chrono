@@ -63,9 +63,9 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
 
     nSDs = nSDs_L_AD * nSDs_D_AD * nSDs_H_AD;
 
-    cudaMemcpyToSymbol("d_SD_Ldim_AD", &SD_L_AD, sizeof(d_SD_Ldim_AD)); //!< Ad-ed L-dimension of the SD box; make available as a const value onto the GPU
-    cudaMemcpyToSymbol("d_SD_Ddim_AD", &SD_D_AD, sizeof(d_SD_Ddim_AD)); //!< Ad-ed D-dimension of the SD box; make available as a const value onto the GPU
-    cudaMemcpyToSymbol("d_SD_Hdim_AD", &SD_H_AD, sizeof(d_SD_Hdim_AD)); //!< Ad-ed H-dimension of the SD box; make available as a const value onto the GPU
+    gpuErrchk(cudaMemcpyToSymbol("d_SD_Ldim_AD", &SD_L_AD, sizeof(d_SD_Ldim_AD))); //!< Ad-ed L-dimension of the SD box; make available as a const value onto the GPU
+    gpuErrchk(cudaMemcpyToSymbol("d_SD_Ddim_AD", &SD_D_AD, sizeof(d_SD_Ddim_AD))); //!< Ad-ed D-dimension of the SD box; make available as a const value onto the GPU
+    gpuErrchk(cudaMemcpyToSymbol("d_SD_Hdim_AD", &SD_H_AD, sizeof(d_SD_Hdim_AD))); //!< Ad-ed H-dimension of the SD box; make available as a const value onto the GPU
 
 }
 
