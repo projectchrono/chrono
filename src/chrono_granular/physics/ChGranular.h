@@ -34,7 +34,7 @@ namespace chrono {
 
     class CH_GRANULAR_API ChGRN_DE_Container {
     protected:
-        size_t nDEs;  ///< Number of discrete elements
+        unsigned int nDEs;  ///< Number of discrete elements
         std::vector<int> h_X_DE;
         std::vector<int> h_Y_DE;
         std::vector<int> h_Z_DE;
@@ -62,6 +62,7 @@ namespace chrono {
         /// This is protected since the user has very little insights in how to split the BD.
         /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
         virtual void partition_BD() = 0;
+        virtual void copyCONSTdata_to_device() = 0;
 
     public:
         ChGRN_DE_Container()
@@ -70,7 +71,7 @@ namespace chrono {
 
         ~ChGRN_DE_Container();
 
-        inline size_t elementCount() const { return nDEs; }
+        inline unsigned int elementCount() const { return nDEs; }
 
         inline unsigned int get_SD_count() const { return nSDs; }
 
@@ -137,6 +138,7 @@ namespace chrono {
      */
     class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MONODISP_SPH_IN_BOX_SMC {
     protected:
+        virtual void copyCONSTdata_to_device();
 
     public:
         ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH, float density): ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, density) {}
@@ -145,6 +147,8 @@ namespace chrono {
 
         virtual void setup_simulation(); //!< set up data structures and carry out pre-processing tasks
         virtual void settle(float t_end);
+
+
 
         virtual void generate_DEs();
     };

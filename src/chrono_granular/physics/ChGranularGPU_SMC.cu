@@ -18,7 +18,7 @@
 #include "../../chrono_thirdparty/cub/cub.cuh"
 #include "../ChGranularDefines.h"
 #include "../chrono_granular/physics/ChGranular.h"
-#include "assert.h"
+#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 //#include "chrono_granular/physics/ChGranularDefines.cuh"
 
 #define BLAH_BLAH_I 0
@@ -217,7 +217,7 @@ __global__ void primingOperationsRectangularBox(
     unsigned int* SD_countsOfSheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
     unsigned int* spheres_in_SD_composite,    //!< Big array that works in conjunction with SD_countsOfSheresTouching.
                                               //!< "spheres_in_SD_composite" says which SD contains what spheres
-    size_t nSpheres                           //!< Number of spheres in the box
+    unsigned int nSpheres                     //!< Number of spheres in the box
 ) {
     int xSphCenter;
     int ySphCenter;
@@ -305,16 +305,27 @@ __global__ void primingOperationsRectangularBox(
     }      // End of the eight trips
 }
 
+
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
+
+    gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_AD, &SD_L_AD, sizeof(d_SD_Ldim_AD))); //!< Ad-ed L-dimension of the SD box; make available as a const value onto the GPU
+    gpuErrchk(cudaMemcpyToSymbol(d_SD_Ddim_AD, &SD_D_AD, sizeof(d_SD_Ddim_AD))); //!< Ad-ed D-dimension of the SD box; make available as a const value onto the GPU
+    gpuErrchk(cudaMemcpyToSymbol(d_SD_Hdim_AD, &SD_H_AD, sizeof(d_SD_Hdim_AD))); //!< Ad-ed H-dimension of the SD box; make available as a const value onto the GPU
+    gpuErrchk(cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
+
+}
+
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
 #define CUDA_THREADS 128
     // Come up with the unit of time
 
     TIME_UNIT = 1. / (1 << SPHERE_TIME_UNIT_FACTOR) * sqrt((4. / 3. * M_PI * sphere_radius*sphere_radius*sphere_radius*sphere_density) / (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL));
-    
+
     setup_simulation();
     /// Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
-    primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
+    primingOperationsRectangularBox<CUDA_THREADS> << <nBlocks, CUDA_THREADS >> >(p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
 
     return;
 }
+
