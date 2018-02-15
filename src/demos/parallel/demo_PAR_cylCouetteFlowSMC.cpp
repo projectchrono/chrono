@@ -25,6 +25,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <vector>
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -55,6 +56,9 @@ int render_frame = 1;
 int fric_steps = 10;
 std::string output_prefix = "couette";
 std::string output_suffix;
+std::string CP_outfile, CP_infile;
+bool CP_out = false;
+bool CP_in = false;
 
 // Tilt angle (about global Y axis) of the container.
 bool makeLid = true;
@@ -109,7 +113,9 @@ enum {
     OPT_TIMESTEP,
     OPT_TIMEEND,
     OPT_DENSITY,
-    OPT_HEIGHT
+    OPT_HEIGHT,
+    OPT_CP_OUT,
+    OPT_CP_IN
 };
 
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
@@ -121,8 +127,8 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_THREADS, "-n", SO_REQ_SEP},
                                     {OPT_TIMESTEP, "-t", SO_REQ_SEP},
                                     {OPT_TIMEEND, "-e", SO_REQ_SEP},
-                                    {OPT_R1, "--radius1", SO_REQ_CMB},
-                                    {OPT_R2, "--radius2", SO_REQ_CMB},
+                                    {OPT_R1, "--radius1", SO_REQ_SEP},
+                                    {OPT_R2, "--radius2", SO_REQ_SEP},
                                     {OPT_ROTSPEED, "-w", SO_REQ_SEP},
                                     {OPT_F_BALL, "--fball", SO_REQ_SEP},
                                     {OPT_F_WALL, "--fwall", SO_REQ_SEP},
@@ -133,6 +139,8 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_PREFIX, "--prefix", SO_REQ_SEP},
                                     {OPT_DENSITY, "--density", SO_REQ_SEP},
                                     {OPT_HEIGHT, "--height", SO_REQ_SEP},
+                                    {OPT_CP_OUT, "--checkpoint-out", SO_REQ_SEP},
+                                    {OPT_CP_IN, "--checkpoint-in", SO_REQ_SEP},
                                     {OPT_HELP, "-?", SO_NONE},
                                     {OPT_HELP, "-h", SO_NONE},
                                     {OPT_HELP, "--help", SO_NONE},
@@ -153,8 +161,10 @@ void showUsage() {
     std::cout << "--suffix=<output_suffix>" << std::endl;
     std::cout << "--density=<density>" << std::endl;
     std::cout << "--height=<height>" << std::endl;
-    std::cout << "--falling-lid\t Enable falling lid" << std::endl;
-    std::cout << "--write-output\t Enable CSV output" << std::endl;
+    std::cout << "--falling-lid   \t Enable falling lid" << std::endl;
+    std::cout << "--write-output  \t Enable CSV output" << std::endl;
+    std::cout << "--checkpoint-out=<out_file>\t Export positions to this file at end of run" << std::endl;
+    std::cout << "--checkpoint-in=<in_file>\t Load this file as starting positions" << std::endl;
     std::cout << "-h / --help / -? \t Show this help." << std::endl;
 }
 
@@ -265,6 +275,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
     ground->SetBodyFixed(true);
     ground->SetCollide(false);
     ground->SetPos({0, 0, 0});
+    ground->SetIdentifier(-200);
 
     // Create the containing bin (4 x 4 x 1)
     std::shared_ptr<ChBody> cylinder1(sys->NewBody());
@@ -275,6 +286,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
     cylinder1->SetCollide(true);
     cylinder1->SetName("cyl1");
     cylinder1->SetBodyFixed(false);
+    cylinder1->SetIdentifier(-201);
 
     cylinder1->GetCollisionModel()->ClearModel();
     utils::AddCylinderGeometry(cylinder1.get(), r1, 2 * hh, ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI / 2), true);
@@ -291,8 +303,11 @@ void AddContainer(ChSystemParallelSMC* sys) {
     motor->Initialize(cylinder1, ground, cylinder1->GetCoord());
     motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
     motor->SetName("cylspin");
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(motor->Get_spe_funct()))
-        mfun->Set_yconst(0);
+    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(motor->Get_spe_funct())) {
+        mfun->Set_yconst(rotspeed);
+    } else {
+        std::cerr << "ERROR: motor setup failed!" << std::endl;
+    }
 
     sys->AddLink(motor);
 
@@ -300,6 +315,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
         auto lid = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurface::SMC);
         lid->SetMaterialSurface(mat);
         lid->SetMass(lidMass);
+        lid->SetIdentifier(-202);
 
         // Set lid too high
         lid->SetPos({0, 0, 2.2 * hh + 2 * ball_radius});
@@ -321,7 +337,7 @@ void AddContainer(ChSystemParallelSMC* sys) {
         sys->AddLink(lidJoint);
     }
 
-    auto outercyl = CreateCylindricalContainerFromBoxes(sys, -201, mat, ChVector<>(r2, r2, 2 * hh), 2 * ball_radius,
+    auto outercyl = CreateCylindricalContainerFromBoxes(sys, -204, mat, ChVector<>(r2, r2, 2 * hh), 2 * ball_radius,
                                                         100, ChVector<>(0, 0, -hh), ChQuaternion<>(1, 0, 0, 0), true,
                                                         true, false, true, true);
     outercyl->SetMass(wallMass);
@@ -387,6 +403,63 @@ void WriteCSV(const std::string& filename, ChSystemParallelSMC& sys) {
     file << outstream.str();
     file.close();
 }
+// Light version to only pull positions and orientations
+void checkpointToFile(const std::string& filename, ChSystemParallelSMC& sys) {
+    utils::CSV_writer csv(" ");
+    for (std::shared_ptr<ChBody> body : *sys.Get_bodylist()) {
+        csv << body->GetPos() << body->GetRot() << body->GetIdentifier();
+        csv << std::endl;
+    }
+    csv.write_to_file(filename);
+}
+
+// Light version to just load the necessaries
+void loadFromFile(const std::string& filename, ChSystemParallelSMC& sys) {
+    std::ifstream ifile(filename.c_str());
+    std::string line;
+
+    ChVector<> inertia = (2.0 / 5.0) * ballMass * ball_radius * ball_radius * ChVector<>(1, 1, 1);
+    // Common material
+    auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
+    while (std::getline(ifile, line)) {
+        std::istringstream iss1(line);
+
+        int ballId;
+        ChVector<> bpos;
+        ChQuaternion<> brot;
+
+        // Dump line into data
+        iss1 >> bpos.x() >> bpos.y() >> bpos.z() >> brot.e0() >> brot.e1() >> brot.e2() >> brot.e3();
+        iss1 >> ballId;
+        if (ballId < 0) {
+            continue;
+        }
+
+        ballMat->SetYoungModulus(Y);
+        ballMat->SetFriction(muBall);
+        ballMat->SetRestitution(cr);
+        ballMat->SetAdhesion(adh);  // Magnitude of the adhesion in Constant adhesion model
+
+        std::shared_ptr<ChBody> ball(sys.NewBody());
+        ball->SetMaterialSurface(ballMat);
+
+        ball->SetIdentifier(ballId);
+        ball->SetMass(ballMass);
+        ball->SetInertiaXX(inertia);
+        ball->SetPos(bpos);
+        ball->SetRot(brot);
+        // Start bodies at rest
+        ball->SetPos_dt(ChVector<>(0, 0, 0));
+        ball->SetBodyFixed(false);
+        ball->SetCollide(true);
+        sys.AddBody(ball);
+
+        ball->GetCollisionModel()->ClearModel();
+        utils::AddSphereGeometry(ball.get(), ball_radius);
+        // ball->GetCollisionModel()->SetFamily(4);
+        ball->GetCollisionModel()->BuildModel();
+    }
+}
 
 // -----------------------------------------------------------------------------
 // Create the system, specify simulation parameters, and run simulation loop.
@@ -429,6 +502,12 @@ int main(int argc, char* argv[]) {
     // Set gravitational acceleration
     double gravity = 9.81;
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
+    int factor = 1;
+    // Bin approximately by # balls
+    int binsX = (int)std::ceil(4 * r2 / ball_radius) / factor;
+    int binsY = (int)std::ceil(4 * r2 / ball_radius) / factor;
+    int binsZ = (int)std::ceil(hh / ball_radius) / factor;
+    std::cout << "Broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << std::endl;
 
     // Set solver parameters
     uint max_iteration = 100;
@@ -448,7 +527,11 @@ int main(int argc, char* argv[]) {
     // Create the fixed and moving bodies
     // ----------------------------------
     AddContainer(&msystem);
-    AddFallingBalls(&msystem);
+    if (CP_in) {
+        loadFromFile(CP_infile, msystem);
+    } else {
+        AddFallingBalls(&msystem);
+    }
     std::cout << "balls added!" << std::endl;
     std::cout << msystem.Get_bodylist()->size() << " bodies!" << std::endl;
     std::cout << "lid Mass is " << lidMass << ", wall mass is " << wallMass << ", ball mass is " << ballMass
@@ -483,14 +566,6 @@ int main(int argc, char* argv[]) {
             // This stops when the lid slows down too much
             if ((init_steps != -1) && (msystem.SearchBody("lid")->GetPos_dtdt().z() > .1) || i == init_steps) {
                 init_steps = -1;
-                if (auto spinlink = std::dynamic_pointer_cast<ChLinkEngine>(msystem.SearchLink("cylspin"))) {
-                    std::cout << "link found" << std::endl;
-
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(spinlink->Get_spe_funct())) {
-                        std::cout << "speed set" << std::endl;
-                        mfun->Set_yconst(rotspeed);
-                    }
-                }
                 if (makeLid) {
                     std::cout << "lid accel is " << msystem.SearchBody("lid")->GetPos_dtdt().z() << std::endl;
                     std::cout << "lid speed is " << msystem.SearchBody("lid")->GetPos_dt().z() << std::endl;
@@ -540,6 +615,7 @@ int main(int argc, char* argv[]) {
             std::cout << "gravity frozen at step " << i << std::endl;
         }
         msystem.DoStepDynamics(time_step);
+        // std::cout << "Step " << i << std::endl;
 
         if (i % render_steps == 0) {
             std::cout << "frame " << frames_rendered++ << std::endl;
@@ -554,6 +630,9 @@ int main(int argc, char* argv[]) {
 
     timer.stop();
     std::cout << "simulation time [s]: " << timer.GetTimeSeconds() << std::endl;
+    if (CP_out) {
+        checkpointToFile(CP_outfile, msystem);
+    }
     return 0;
 }
 
@@ -629,6 +708,14 @@ bool GetProblemSpecs(int argc, char** argv) {
                 break;
             case OPT_SUFFIX:
                 output_suffix = args.OptionArg();
+                break;
+            case OPT_CP_IN:
+                CP_in = true;
+                CP_infile = args.OptionArg();
+                break;
+            case OPT_CP_OUT:
+                CP_out = true;
+                CP_outfile = args.OptionArg();
                 break;
         }
     }
