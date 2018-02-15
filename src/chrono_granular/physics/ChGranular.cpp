@@ -62,7 +62,8 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     gpuErrchk(cudaMalloc((void**)&p_d_CM_X, nDEs * sizeof(int)));
     gpuErrchk(cudaMalloc((void**)&p_d_CM_Y, nDEs * sizeof(int)));
     gpuErrchk(cudaMalloc((void**)&p_d_CM_Z, nDEs * sizeof(int)));
-
+    // TODO this seems to be allocating too much device memory, since we index into it with an SD index
+    // Shouldn't it be nSDs * sizeof(unsigned int)
     gpuErrchk(cudaMalloc((void**)&p_device_SD_NumOf_DEs_Touching, nDEs * sizeof(unsigned int)));
 
     gpuErrchk(cudaMalloc((void**)&p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
@@ -79,8 +80,10 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
 
     // We need to pass in half-length box here
     ChVector<float> boxCenter(0, 0, 0);
-    ChVector<float> hdims{float(box_L / (2. * SPACE_UNIT)), float(box_D / (2. * SPACE_UNIT)),
-                          float(box_H / (2. * SPACE_UNIT))};
+    // We need to subtract off a sphere radius to ensure we don't get put at the edge
+    ChVector<float> hdims{float(box_L / (2. * SPACE_UNIT) - monoDisperseSphRadius_AD),
+                          float(box_D / (2. * SPACE_UNIT) - monoDisperseSphRadius_AD),
+                          float(box_H / (2. * SPACE_UNIT) - monoDisperseSphRadius_AD)};
     std::vector<ChVector<float>> points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
 
     nDEs = (unsigned int)points.size();
