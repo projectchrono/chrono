@@ -7,8 +7,8 @@
   "Shoe Height": 0.06,
 
   "Tread": {
-    "Mass": 18.02,
-    "Inertia": [ 0.22, 0.04, 0.25 ],
+    "Mass": 1.8,
+    "Inertia": [ 0.015, 0.001, 0.016 ],
     "Length": 0.075296,
     "Thickness": 0.016328,
     "Tooth Tip Length": 0.013104,
@@ -20,8 +20,8 @@
 
   "Web": {
     "Number Segments": 1,
-    "Mass": 2.0,
-    "Inertia": [ 0.01, 0.01, 0.01 ],
+    "Mass": 0.33,
+    "Inertia": [ 0.003, 0.001, 0.003 ],
     "Length": 0.03484,
     "Thickness": 0.019552
   },
