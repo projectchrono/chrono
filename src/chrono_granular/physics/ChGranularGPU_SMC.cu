@@ -52,48 +52,28 @@ __constant__ unsigned int d_box_H_AD;  //!< Ad-ed H-dimension of the BD box in m
 /// indices to indices into the global SD list via the (currently local) conv[3] data structure
 /// Should be mostly bug-free, especially away from boundaries
 __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, unsigned int* SDs) {
-    // if (threadIdx.x == 1) {
-    //     printf("kernel touched!\n");
-    // }
-    // The following variables are pulled in to make the code more legible, although we can move them out of the
-    // kernel when we finalize the code and want to speed it up num subdomains, pull from RectangularBox_dims
-    // const unsigned int d_box_D_AD = RectangularBox_dims.y, d_box_H_AD = RectangularBox_dims.z;
-    // Indices for bottom-left corner (x,y,z)
+    // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
+    // We need to offset so that the bottom-left corner is at the origin
+    int sphCenter_X_modified = (d_box_L_AD * d_SD_Ldim_AD) / 2 + sphCenter_X;
+    int sphCenter_Y_modified = (d_box_D_AD * d_SD_Ddim_AD) / 2 + sphCenter_Y;
+    int sphCenter_Z_modified = (d_box_H_AD * d_SD_Hdim_AD) / 2 + sphCenter_Z;
     unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
     // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
-    n[0] = (sphCenter_X - d_monoDisperseSphRadius_AD) / d_SD_Ldim_AD;  // nx = (xCenter - radius) / wx .
-    n[1] = (sphCenter_Y - d_monoDisperseSphRadius_AD) / d_SD_Ddim_AD;  // Same for D and H
-    n[2] = (sphCenter_Z - d_monoDisperseSphRadius_AD) / d_SD_Hdim_AD;  // Same for D and H
+    // nx = (xCenter - radius) / wx .
+    // TODO this makes a false assumption about the origin
+    n[0] = (sphCenter_X_modified - d_monoDisperseSphRadius_AD) / d_SD_Ldim_AD;
+    // Same for D and H
+    n[1] = (sphCenter_Y_modified - d_monoDisperseSphRadius_AD) / d_SD_Ddim_AD;
+    n[2] = (sphCenter_Z_modified - d_monoDisperseSphRadius_AD) / d_SD_Hdim_AD;
     // Find distance from next box in relevant dir to center, we may be straddling the two
-    int d[3];                                        // Store penetrations
-    d[0] = (n[0] + 1) * d_SD_Ldim_AD - sphCenter_X;  // dx = (nx + 1)* wx - x
-    d[1] = (n[1] + 1) * d_SD_Ddim_AD - sphCenter_Y;
-    d[2] = (n[2] + 1) * d_SD_Hdim_AD - sphCenter_Z;
+    int d[3];                                                 // Store penetrations
+    d[0] = (n[0] + 1) * d_SD_Ldim_AD - sphCenter_X_modified;  // dx = (nx + 1)* wx - x
+    d[1] = (n[1] + 1) * d_SD_Ddim_AD - sphCenter_Y_modified;
+    d[2] = (n[2] + 1) * d_SD_Hdim_AD - sphCenter_Z_modified;
 
     // Store list of conversions from nx, ny, nz to global subdomain IDs
-
-    // Calculate whether higher or lower domain owns
-    // unsigned int own[3];
-    // Minimize warp divergence by doing preemptive calculations
-    // Use ternaries to provide symmetric code execution, if slightly divergent
-    // NOTE these got inlined
-    // // NOTE these used to be ternaries but conditionals return 1 or 0 anyways
-    // // TODO this is either sneaky or sloppy or clever, depending on how you like conditionals
-    // own[0] = d[0] < 0;
-    // own[1] = d[1] < 0;
-    // own[2] = d[2] < 0;
-    // // off[i] == 0 => lower subdomain holds center of sphere
-    //
-    // // Whether or not the domain has exclusive control
-    // unsigned int both[3];
-    // // If the absolute distance is less than r, both SDs along axis touch it
-    // both[0] = abs(d[0]) < d_monoDisperseSphRadius_AD;
-    // both[1] = abs(d[1]) < d_monoDisperseSphRadius_AD;
-    // both[2] = abs(d[2]) < d_monoDisperseSphRadius_AD;
-
-    // unsigned int SDs1[8];
 
     // Calculate global indices from locals
     // ones bit is x, twos bit is y, threes bit is z
@@ -110,65 +90,44 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
         SDs[i] += (n[0] + (i & 0x1)) * d_box_D_AD * d_box_H_AD;
         // s == own[e] evals true if the current SD is owner
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[0]) < d_monoDisperseSphRadius_AD) | ((i & 0x1) == (d[0] < 0));
+        valid &= (abs(d[0]) < d_monoDisperseSphRadius_AD) || ((i & 0x1) == (d[0] < 0));
 
         // High/low in y-dir
         // s = i & 0x2; // Inlined now
         // Scale to global index and add to total
-        SDs[i] += (n[1] + (i & 0x2)) * d_box_H_AD;
+        SDs[i] += (n[1] + ((i >> 1) & 0x1)) * d_box_H_AD;
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[1]) < d_monoDisperseSphRadius_AD) | ((i & 0x2) == (d[1] < 0));
+        valid &= (abs(d[1]) < d_monoDisperseSphRadius_AD) || (((i >> 1) & 0x1) == (d[1] < 0));
 
         // High/low in z-dir
         // s = i & 0x4; // Inlined now
         // Scale to global index and add to total
-        SDs[i] += (n[2] + (i & 0x4));
+        SDs[i] += (n[2] + ((i >> 2) & 0x1));
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[2]) < d_monoDisperseSphRadius_AD) | ((i & 0x4) == (d[2] < 0));
+        valid &= (abs(d[2]) < d_monoDisperseSphRadius_AD) || (((i >> 2) & 0x1) == (d[2] < 0));
 
         // This ternary is hopefully better than a conditional
         // If valid is false, then the SD is actually NULL_GRANULAR_ID
         SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);
-
-        // Loop version -- keep around for now
-        /*
-        valid = 0x1;
-        SDs1[i] = 0;
-        // Store list of conversions from nx, ny, nz to global subdomain IDs
-        // GID = nx * d_box_D_AD * d_box_H_AD + ny * d_box_H_AD + nz
-        unsigned int conv[3] = {(d_box_D_AD * d_box_H_AD), d_box_H_AD, 1};
-        for (int e = 0; e < 3; e++) {
-            // ones bit is x, twos bit is y, threes bit is z
-            // do some cute bit shifting
-            // Snag bit at correct place
-            unsigned int s = i & (1 << e);
-            // s adds an offset to directional index for SDs
-            // Increment by global id contrib
-            SDs1[i] += (n[e] + s) * conv[e];
-            // s == own[e] SDsurns true if the current SD is owner
-            valid &= both[e] | (s == own[e]);  // If both touch it or we own it, the result is valid
-        }
-        // Valid will be 0 or 1 at this point, 0 => SD in SDs[i] isn't touched and the value is invalid
-        // SDs[i] *= valid; // invalid is 0
-        SDs1[i] = (valid ? SDs1[i] : NULL_GRANULAR_ID);
-        // Just to reallly check they're the same
-        if (SDs1[i] != NULL_GRANULAR_ID) {
-            printf("ERROR!!!! %u %u\n", SDs[i], SDs1[i]);
-        } else if (SDs[i] != NULL_GRANULAR_ID) {
-            printf("alright %u %u\n", SDs[i], SDs1[i]);
-        }
-        */
+        // This code should be silent, hopefully
+        // check if in bounds, only for debugging
+        // if (valid) {
+        //     if (n[0] + (i & 0x1) >= d_box_L_AD) {
+        //         printf("overflowing xdim %d, %d, %d, %d, %d, d is %d %d %d\n", sphCenter_X, sphCenter_X_modified,
+        //                n[0] + (i & 0x1), d_box_L_AD, d_SD_Ldim_AD, d[0], d[1], d[2]);
+        //     } else if (n[1] + ((i >> 1) & 0x1) >= d_box_D_AD) {
+        //         printf("overflowing ydim %d, %d, %d, %d, %d, d is %d %d %d\n", sphCenter_Y, sphCenter_Y_modified,
+        //                n[1] + ((i >> 1) & 0x1), d_box_D_AD, d_SD_Ddim_AD, d[0], d[1], d[2]);
+        //     } else if (n[2] + ((i >> 2) & 0x1) >= d_box_H_AD) {
+        //         printf("overflowing zdim %d, %d, %d, %d, %d, d is %d %d %d\n", sphCenter_Z, sphCenter_Z_modified,
+        //                n[2] + ((i >> 2) & 0x1), d_box_H_AD, d_SD_Hdim_AD, d[0], d[1], d[2]);
+        //     }
+        //     if (SDs[i] >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
+        //         printf("still overflowing box somehow: i is %x, SD is %d, n is %d %d %d, d is %d %d %d\n", i, SDs[i],
+        //                n[0] + (i & 0x1), n[1] + ((i >> 2) & 0x1), n[2] + ((i >> 2) & 0x1), d[0], d[1], d[2]);
+        //     }
+        // }
     }
-
-    // This is how nasty this code would be if the outer loop were entirely unrolled/inlined
-    // ret[0] = (n[0] + off[0]) * conv[0] + (n[1] + off[1]) * conv[1] + (n[2] + (1 - off[2])) * conv[2];
-    // ret[1] = (n[0] + off[0]) * conv[0] + (n[1] + (1 - off[1])) * conv[1] + (n[2] + off[2]) * conv[2];
-    // ret[2] = (n[0] + off[0]) * conv[0] + (n[1] + off[1]) * conv[1] + (n[2] + (1 - off[2])) * conv[2];
-    // ret[3] = (n[0] + off[0]) * conv[0] + (n[1] + (1 - off[1])) * conv[1] + (n[2] + (1 - off[2])) * conv[2];
-    // ret[4] = (n[0] + (1 - off[0])) * conv[0] + (n[1] + off[1]) * conv[1] + (n[2] + (1 - off[2])) * conv[2];
-    // ret[5] = (n[0] + (1 - off[0])) * conv[0] + (n[1] + (1 - off[1])) * conv[1] + (n[2] + off[2]) * conv[2];
-    // ret[6] = (n[0] + (1 - off[0])) * conv[0] + (n[1] + off[1]) * conv[1] + (n[2] + (1 - off[2])) * conv[2];
-    // ret[7] = (n[0] + (1 - off[0])) * conv[0] + (n[1] + (1 - off[1])) * conv[1] + (n[2] + (1 - off[2])) * conv[2];
 }
 /**
  * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time
@@ -256,6 +215,7 @@ primingOperationsRectangularBox(
         ySphCenter = pRawDataY[dummyUINT01];
         zSphCenter = pRawDataZ[dummyUINT01];
     }
+    // TODO this sphere check needs to catch more, I think
     // I moved this function up since we do all at once
     unsigned int SDsTouched[8];
     if (mySphereID[0] < nSpheres)
@@ -263,6 +223,7 @@ primingOperationsRectangularBox(
 
     // Each sphere can at most touch 8 SDs; we'll need to take 8 trips then.
     for (int i = 0; i < 8; i++) {
+        // TODO we need to catch NULL_GRANULAR_ID somewhere around here
         touchedSD[0] = SDsTouched[i];
 
         // Amongst all threads, is there any SD touched at this level? Use a CUB reduce operation to find out
@@ -288,6 +249,13 @@ primingOperationsRectangularBox(
                 do {
                     dummyUINT01++;
                 } while (threadIdx.x + dummyUINT01 < CUB_THREADS && !(shMem_head_flags[threadIdx.x + dummyUINT01]));
+
+                // if (touchedSD[0] >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
+                //     printf("invalid SD index %u on thread %u\n", mySphereID[0], touchedSD[0]);
+                // }
+                // TODO this line causes an error later -- I think we're trashing our device heap
+                // We need to check for NULL_GRANULAR_ID
+
                 // Overwrite touchedSD[0], it ended its purpose upon call to atomicAdd
                 touchedSD[0] = atomicAdd(SD_countsOfSheresTouching + touchedSD[0], dummyUINT01);
                 // touchedSD[0] now gives offset in the composite array
