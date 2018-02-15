@@ -24,14 +24,17 @@
 #define BLAH_BLAH_I 0
 #define NULL_GRANULAR_ID UINT_MAX
 
-//extern "C" __constant__ float3
-//    xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference Frame
-//extern "C" __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the rectangular box
+// extern "C" __constant__ float3
+//    xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference
+//    Frame
+// extern "C" __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the
+// rectangular box
 //                                           //!< in the Global Reference Frame
-//extern "C" __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed in
+// extern "C" __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed
+// in
 //                                               //!< multples of SD, in the X, Y, and Z directions, respectively
 
-__constant__ unsigned int d_monoDisperseSphRadius_AD; // Pulled from the header
+__constant__ unsigned int d_monoDisperseSphRadius_AD;  // Pulled from the header
 
 __constant__ unsigned int d_SD_Ldim_AD;  //!< Ad-ed L-dimension of the SD box
 __constant__ unsigned int d_SD_Ddim_AD;  //!< Ad-ed D-dimension of the SD box
@@ -48,16 +51,13 @@ __constant__ unsigned int d_box_H_AD;  //!< Ad-ed H-dimension of the BD box in m
 /// subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts these
 /// indices to indices into the global SD list via the (currently local) conv[3] data structure
 /// Should be mostly bug-free, especially away from boundaries
-__device__ void figureOutTouchedSD(int sphCenter_X,
-                                   int sphCenter_Y,
-                                   int sphCenter_Z,
-                                   unsigned int* SDs) {
+__device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, unsigned int* SDs) {
     // if (threadIdx.x == 1) {
     //     printf("kernel touched!\n");
     // }
     // The following variables are pulled in to make the code more legible, although we can move them out of the
     // kernel when we finalize the code and want to speed it up num subdomains, pull from RectangularBox_dims
-    //const unsigned int d_box_D_AD = RectangularBox_dims.y, d_box_H_AD = RectangularBox_dims.z;
+    // const unsigned int d_box_D_AD = RectangularBox_dims.y, d_box_H_AD = RectangularBox_dims.z;
     // Indices for bottom-left corner (x,y,z)
     unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
@@ -69,7 +69,7 @@ __device__ void figureOutTouchedSD(int sphCenter_X,
     // Find distance from next box in relevant dir to center, we may be straddling the two
     int d[3];                                        // Store penetrations
     d[0] = (n[0] + 1) * d_SD_Ldim_AD - sphCenter_X;  // dx = (nx + 1)* wx - x
-    d[1] = (n[1] + 1) * d_SD_Ddim_AD - sphCenter_Y; 
+    d[1] = (n[1] + 1) * d_SD_Ddim_AD - sphCenter_Y;
     d[2] = (n[2] + 1) * d_SD_Hdim_AD - sphCenter_Z;
 
     // Store list of conversions from nx, ny, nz to global subdomain IDs
@@ -209,8 +209,10 @@ __device__ void figureOutTouchedSD(int sphCenter_X,
  *
  *
  */
-template <int CUB_THREADS >  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
-__global__ void primingOperationsRectangularBox(
+template <
+    int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
+__global__ void
+primingOperationsRectangularBox(
     int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
     int* pRawDataY,                           //!< Pointer to array containing data related to the spheres in the box
     int* pRawDataZ,                           //!< Pointer to array containing data related to the spheres in the box
@@ -240,12 +242,12 @@ __global__ void primingOperationsRectangularBox(
     unsigned int mySphereID[1];
     bool head_flags[1];
 
-
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    mySphereID[0] = threadIdx.x + blockIdx.x * blockDim.x; 
-                                        
-    touchedSD[0] = NULL_GRANULAR_ID;                                  // Important to seed the touchedSD w/ a "no-SD" value
-    offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
+    mySphereID[0] = threadIdx.x + blockIdx.x * blockDim.x;
+
+    touchedSD[0] = NULL_GRANULAR_ID;  // Important to seed the touchedSD w/ a "no-SD" value
+    offsetInComposite_SphInSD_Array[threadIdx.x] =
+        NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
 
     unsigned int dummyUINT01 = mySphereID[0];
     if (mySphereID[0] < nSpheres) {
@@ -305,27 +307,33 @@ __global__ void primingOperationsRectangularBox(
     }      // End of the eight trips
 }
 
-
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
+    // Copy adimensional size of SDs to device
+    gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_AD, &SD_L_AD, sizeof(d_SD_Ldim_AD)));
+    gpuErrchk(cudaMemcpyToSymbol(d_SD_Ddim_AD, &SD_D_AD, sizeof(d_SD_Ddim_AD)));
+    gpuErrchk(cudaMemcpyToSymbol(d_SD_Hdim_AD, &SD_H_AD, sizeof(d_SD_Hdim_AD)));
+    // Copy global BD size in multiples of SDs to device
+    gpuErrchk(cudaMemcpyToSymbol(d_box_L_AD, &nSDs_L_AD, sizeof(d_box_L_AD)));
+    gpuErrchk(cudaMemcpyToSymbol(d_box_D_AD, &nSDs_D_AD, sizeof(d_box_D_AD)));
+    gpuErrchk(cudaMemcpyToSymbol(d_box_H_AD, &nSDs_H_AD, sizeof(d_box_H_AD)));
 
-    gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_AD, &SD_L_AD, sizeof(d_SD_Ldim_AD))); //!< Ad-ed L-dimension of the SD box; make available as a const value onto the GPU
-    gpuErrchk(cudaMemcpyToSymbol(d_SD_Ddim_AD, &SD_D_AD, sizeof(d_SD_Ddim_AD))); //!< Ad-ed D-dimension of the SD box; make available as a const value onto the GPU
-    gpuErrchk(cudaMemcpyToSymbol(d_SD_Hdim_AD, &SD_H_AD, sizeof(d_SD_Hdim_AD))); //!< Ad-ed H-dimension of the SD box; make available as a const value onto the GPU
-    gpuErrchk(cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
-
+    gpuErrchk(
+        cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
 }
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
 #define CUDA_THREADS 128
     // Come up with the unit of time
 
-    TIME_UNIT = 1. / (1 << SPHERE_TIME_UNIT_FACTOR) * sqrt((4. / 3. * M_PI * sphere_radius*sphere_radius*sphere_radius*sphere_density) / (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL));
-
+    TIME_UNIT = 1. / (1 << SPHERE_TIME_UNIT_FACTOR) *
+                sqrt((4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density) /
+                     (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL));
     setup_simulation();
+    copyCONSTdata_to_device();
     /// Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
-    primingOperationsRectangularBox<CUDA_THREADS> << <nBlocks, CUDA_THREADS >> >(p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
+    primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+        p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
 
     return;
 }
-
