@@ -1,5 +1,7 @@
 #=============================================================================
-# CMake configuration file for the M113 with continuous band track demos.
+# CMake configuration file for the VEHICLE demo - example programs for using
+# a tracked vehicle model with continuous-band track, specified entirely
+# through JSON specification files.
 # These example programs requires Irrlicht run-time visualization and the
 # FEA and MKL Chrono modules.
 #=============================================================================
@@ -12,8 +14,7 @@ endif()
 # List all demo programs
 
 set(DEMOS
-    demo_VEH_M113_Band
-#    demo_VEH_M113_Band_DefSoil
+    demo_VEH_TrackedJSON_Band
 )
 
 #--------------------------------------------------------------
@@ -46,5 +47,5 @@ foreach(DEMO ${DEMOS})
                           LINK_FLAGS "${LINKER_FLAGS}")
     target_link_libraries(${DEMO} ${LIBRARIES})
     install(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
-    
+
 endforeach()

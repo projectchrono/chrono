@@ -9,26 +9,30 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Radu Serban
 // =============================================================================
 //
-// Demonstration program for M113 vehicle with continuous band tracks.
+// Main driver function for a tracked vehicle with continuous-band track,
+// specified through JSON files.
+//
+// The vehicle reference frame has Z up, X towards the front of the vehicle, and
+// Y pointing to the left.
 //
 // =============================================================================
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
-
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
-#include "chrono_models/vehicle/m113/M113_Vehicle.h"
-
 #include "chrono_mkl/ChSolverMKL.h"
+
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/powertrain/SimplePowertrain.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
 #define USE_IRRLICHT
 //#undef USE_IRRLICHT
+
 #ifdef USE_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
@@ -36,27 +40,35 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace chrono::vehicle::m113;
 
 using std::cout;
 using std::endl;
 
 // =============================================================================
-// USER SETTINGS
-// =============================================================================
+
+// JSON file for vehicle model
+std::string vehicle_file("M113/vehicle/M113_Vehicle_BandBushing.json");
+////std::string vehicle_file("M113/vehicle/M113_Vehicle_BandANCF.json");
+
+// JSON file for powertrain
+std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
+
+// JSON files for terrain (rigid plane)
+std::string rigidterrain_file("terrain/RigidPlane.json");
+
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.1);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
 
+// Point on chassis tracked by the camera (Irrlicht only)
+ChVector<> trackPoint(0.0, 0.0, 0.0);
+
 // Rigid terrain dimensions
 double terrainHeight = 0;
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
-
-// Simulation length
-double t_end = 1.0;
 
 // Simulation step size
 double step_size = 5e-5;
@@ -64,18 +76,14 @@ double step_size = 5e-5;
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 0.0);
+// Simulation length (Povray only)
+double t_end = 1.0;
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "M113_BAND";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string img_dir = out_dir + "/IMG";
-
-// Output
-bool povray_output = false;
 bool img_output = false;
 bool dbg_output = false;
+const std::string out_dir = GetChronoOutputPath() + "M113_BAND_JSON";
+const std::string img_dir = out_dir + "/IMG";
 
 // =============================================================================
 
@@ -92,49 +100,20 @@ class MyDriver {
 
 // =============================================================================
 
-// Forward declarations
-void AddFixedObstacles(ChSystem* system);
-
-// =============================================================================
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // --------------------------
-    // Construct the M113 vehicle
+    // Create the various modules
     // --------------------------
 
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, ChMaterialSurface::SMC, chassis_collision_type);
+    // Create the vehicle system
+    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
 
-    // ------------------------------
-    // Solver and integrator settings
-    // ------------------------------
-
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-    mkl_solver->SetSparsityPatternLock(true);
-    vehicle.GetSystem()->SetSolver(mkl_solver);
-
-    vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
-    integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
-    integrator->SetAbsTolerances(1e-2, 1e2);
-    integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-    integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(false);
-    integrator->SetScaling(true);
-    integrator->SetVerbose(false);
-
-    // Disable gravity in this simulation
-    ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-
-    // Control steering type (enable crossdrive capability)
+    // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
-    // ------------------------------------------------
-    // Initialize the vehicle at the specified position
-    // ------------------------------------------------
-
+    // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
@@ -145,59 +124,20 @@ int main(int argc, char* argv[]) {
     vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
-    // --------------------------------------------------
-    // Control internal collisions and contact monitoring
-    // --------------------------------------------------
-
-    // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
-
-    // Disable contact for all tracked vehicle parts
-    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
-
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
     ////vehicle.SetChassisCollide(false);
 
     // Disable only contact between chassis and track shoes (if chassis collision was defined)
     ////vehicle.SetChassisVehicleCollide(false);
 
-    // Monitor internal contacts for the chassis, left sprocket, left idler, and first shoe on the left track.
-    ////vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
-    ////                        TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
-
     // Monitor only contacts involving the chassis.
     vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
-    // Collect contact information.
-    // If enabled, number of contacts and local contact point locations are collected for all
-    // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
-    ////vehicle.SetContactCollection(true);
+    // Create the ground
+    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
-    // ------------------
-    // Create the terrain
-    // ------------------
-
-    RigidTerrain terrain(vehicle.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                  ChVector<>(terrainLength, terrainWidth, 10));
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
-    patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
-    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-    terrain.Initialize();
-
-    // -------------------
-    // Add fixed obstacles
-    // -------------------
-
-    AddFixedObstacles(vehicle.GetSystem());
-
-    // ----------------------------
-    // Create the powertrain system
-    // ----------------------------
-
-    M113_SimplePowertrain powertrain("powertrain");
+    // Create and initialize the powertrain system
+    SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
 #ifdef USE_IRRLICHT
@@ -205,7 +145,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"JSON Band-Tracked Vehicle Demo");
     app.SetSkyBox();
     irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -247,14 +187,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    if (povray_output) {
-        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << pov_dir << std::endl;
-            return 1;
-        }
-        terrain.ExportMeshPovray(out_dir);
-    }
-
     if (img_output) {
         if (ChFileutils::MakeDirectory(img_dir.c_str()) < 0) {
             std::cout << "Error creating directory " << img_dir << std::endl;
@@ -263,12 +195,30 @@ int main(int argc, char* argv[]) {
     }
 
     // Set up vehicle output
-    vehicle.SetChassisOutput(true);
-    vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    ////vehicle.SetChassisOutput(true);
+    ////vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    ////vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(out_dir + "/component_list.json");
+
+    // ------------------------------
+    // Solver and integrator settings
+    // ------------------------------
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    mkl_solver->SetSparsityPatternLock(true);
+    vehicle.GetSystem()->SetSolver(mkl_solver);
+
+    vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
+    integrator->SetAlpha(-0.2);
+    integrator->SetMaxiters(50);
+    integrator->SetAbsTolerances(1e-2, 1e2);
+    integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+    integrator->SetStepControl(false);
+    integrator->SetModifiedNewton(false);
+    integrator->SetScaling(true);
+    integrator->SetVerbose(false);
 
     // ---------------
     // Simulation loop
@@ -339,23 +289,14 @@ int main(int argc, char* argv[]) {
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         app.EndScene();
-#endif
-        if (step_number % render_steps == 0) {
-            if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(vehicle.GetSystem(), filename);
-            }
 
-#ifdef USE_IRRLICHT
-            if (img_output && step_number > 200) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-                app.WriteImageToFile(filename);
-            }
-#endif
+        if (img_output && step_number > 200 && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
+            app.WriteImageToFile(filename);
             render_frame++;
         }
+#endif
 
         // Collect data from modules
         double throttle_input = driver.GetThrottle();
@@ -412,58 +353,4 @@ int main(int argc, char* argv[]) {
     vehicle.WriteContacts("M113_contacts.out");
 
     return 0;
-}
-
-// =============================================================================
-void AddFixedObstacles(ChSystem* system) {
-    double radius = 2.2;
-    double length = 6;
-
-    float friction_coefficient = 0.9f;
-    float restitution_coefficient = 0.01f;
-    float young_modulus = 2e7f;
-    float poisson_ratio = 0.3f;
-
-    auto obstacle = std::shared_ptr<ChBody>(system->NewBody());
-    obstacle->SetPos(ChVector<>(10, 0, -1.8));
-    obstacle->SetBodyFixed(true);
-    obstacle->SetCollide(true);
-
-    // Visualization
-    auto shape = std::make_shared<ChCylinderShape>();
-    shape->GetCylinderGeometry().p1 = ChVector<>(0, -length * 0.5, 0);
-    shape->GetCylinderGeometry().p2 = ChVector<>(0, length * 0.5, 0);
-    shape->GetCylinderGeometry().rad = radius;
-    obstacle->AddAsset(shape);
-
-    auto color = std::make_shared<ChColorAsset>();
-    color->SetColor(ChColor(1, 1, 1));
-    obstacle->AddAsset(color);
-
-#ifdef USE_IRRLICHT
-    auto texture = std::make_shared<ChTexture>();
-    texture->SetTextureFilename(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-    texture->SetTextureScale(10, 10);
-    obstacle->AddAsset(texture);
-#endif
-
-    // Contact
-    obstacle->GetCollisionModel()->ClearModel();
-    obstacle->GetCollisionModel()->AddCylinder(radius, radius, length * 0.5);
-    obstacle->GetCollisionModel()->BuildModel();
-
-    switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
-            break;
-        case ChMaterialSurface::SMC:
-            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
-            break;
-    }
-
-    system->AddBody(obstacle);
 }
