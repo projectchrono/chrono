@@ -584,6 +584,8 @@ set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/SprocketSinglePin.cpp
     tracked_vehicle/sprocket/SprocketDoublePin.h
     tracked_vehicle/sprocket/SprocketDoublePin.cpp
+    tracked_vehicle/sprocket/SprocketBand.h
+    tracked_vehicle/sprocket/SprocketBand.cpp
 )
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
@@ -614,11 +616,16 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/TrackShoeDoublePin.h
     tracked_vehicle/track_shoe/TrackShoeDoublePin.cpp
+    tracked_vehicle/track_shoe/TrackShoeBandBushing.h
+    tracked_vehicle/track_shoe/TrackShoeBandBushing.cpp
 )
 if(ENABLE_MODULE_FEA)
     set(CV_TV_FEATRACKSHOE_FILES
         tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h
         tracked_vehicle/track_shoe/ChTrackShoeBandANCF.cpp
+
+        tracked_vehicle/track_shoe/TrackShoeBandANCF.h
+        tracked_vehicle/track_shoe/TrackShoeBandANCF.cpp
     )
 else()
     set(CV_TV_FEATRACKSHOE_FILES "")
@@ -639,11 +646,16 @@ set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.cpp
+    tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h
+    tracked_vehicle/track_assembly/TrackAssemblyBandBushing.cpp
 )
 if(ENABLE_MODULE_FEA)
     set(CV_TV_FEATRACKASSEMBLY_FILES
         tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h
         tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.cpp
+
+        tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h
+        tracked_vehicle/track_assembly/TrackAssemblyBandANCF.cpp
     )
 else()
     set(CV_TV_FEATRACKASSEMBLY_FILES "")

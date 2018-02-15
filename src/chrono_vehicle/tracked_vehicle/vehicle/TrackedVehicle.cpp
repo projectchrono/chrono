@@ -18,19 +18,25 @@
 
 #include <cstdio>
 
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChTexture.h"
+#include "chrono/ChConfig.h"
+
 #include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/physics/ChGlobal.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/RigidChassis.h"
-#include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
+#include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
+#ifdef CHRONO_FEA
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
+#endif
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -102,6 +108,15 @@ void TrackedVehicle::LoadTrackAssembly(const std::string& filename, VehicleSide 
         m_tracks[side] = std::make_shared<TrackAssemblySinglePin>(d);
     } else if (subtype.compare("TrackAssemblyDoublePin") == 0) {
         m_tracks[side] = std::make_shared<TrackAssemblyDoublePin>(d);
+    } else if (subtype.compare("TrackAssemblyBandBushing") == 0) {
+        m_tracks[side] = std::make_shared<TrackAssemblyBandBushing>(d);
+    } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
+#ifdef CHRONO_FEA
+        m_tracks[side] = std::make_shared<TrackAssemblyBandANCF>(d);
+#else
+        std::cout << "ERROR: Attempting to load an ANCF-based continuous-band track, but FEA support is disabled."
+                  << std::endl;
+#endif
     }
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag
