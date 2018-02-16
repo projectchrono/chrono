@@ -60,8 +60,14 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChVector<int>>& getIndicesUV() { return m_face_uv_indices; }
     std::vector<ChVector<int>>& getIndicesColors() { return m_face_col_indices; }
 
-    // Load a triangle mesh saved as a Wavefront .obj file
+    /// Load a triangle mesh saved as a Wavefront .obj file
     void LoadWavefrontMesh(std::string filename, bool load_normals = true, bool load_uv = false);
+
+    /// Write the specified meshes in a Wavefront .obj file
+    static void WriteWavefront(const std::string& filename, std::vector<ChTriangleMeshConnected>& meshes);
+
+    /// Utility function for merging multiple meshes.
+    static ChTriangleMeshConnected Merge(std::vector<ChTriangleMeshConnected>& meshes);
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates.
     /// This is disconnected - no vertex sharing is used even if it could be..

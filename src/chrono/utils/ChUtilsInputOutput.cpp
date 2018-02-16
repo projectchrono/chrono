@@ -511,7 +511,7 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
 // include file.
 // -----------------------------------------------------------------------------
-void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
+void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,
