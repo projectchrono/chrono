@@ -135,6 +135,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         bool visualization = true        ///< [in] enable/disable construction of visualization assets
     );
 
+    /// Add a terrain patch represented by a height-field map.
+    /// The height map is specified through a BMP gray-scale image.
     std::shared_ptr<Patch> AddPatch(
         const ChCoordsys<>& position,       ///< [in] patch location and orientation
         const std::string& heightmap_file,  ///< [in] filename for the height map (BMP)

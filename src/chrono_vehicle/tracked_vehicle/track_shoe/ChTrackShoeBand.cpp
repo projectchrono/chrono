@@ -23,6 +23,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChGlobal.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
@@ -222,6 +223,25 @@ void ChTrackShoeBand::AddShoeVisualization() {
 }
 
 // -----------------------------------------------------------------------------
+// Utilties for writing/exporting the tooth visualization mesh
+// -----------------------------------------------------------------------------
+void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
+    auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
+    auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
+    std::vector<geometry::ChTriangleMeshConnected> meshes = { mesh_shape1->GetMesh(), mesh_shape2->GetMesh() };
+    std::string filename = out_dir + "/" + GetTreadVisualizationMeshName() + ".obj";
+    geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+}
+
+void ChTrackShoeBand::ExportTreadVisualizationMeshPovray(const std::string& out_dir) {
+    auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
+    auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
+    std::vector<geometry::ChTriangleMeshConnected> meshes = { mesh_shape1->GetMesh(), mesh_shape2->GetMesh() };
+    auto trimesh = geometry::ChTriangleMeshConnected::Merge(meshes);
+    utils::WriteMeshPovray(trimesh, GetTreadVisualizationMeshName(), out_dir, ChColor(1, 1, 1));
+}
+
+// -----------------------------------------------------------------------------
 // Utilities for creating tooth visualization mesh
 // -----------------------------------------------------------------------------
 size_t ChTrackShoeBand::ProfilePoints(std::vector<ChVector2<>>& points, std::vector<ChVector2<>>& normals) {
@@ -343,7 +363,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
 
     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
-
+    trimesh_shape->SetName(GetTreadVisualizationMeshName());
     return trimesh_shape;
 }
 

@@ -91,6 +91,9 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     /// Return the thickness of the tread below the web area (tread pad for ground contact)
     virtual double GetTreadThickness() const override { return m_tread_thickness; }
 
+    /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
+    virtual const std::string& GetTreadVisualizationMeshName() const override { return m_tread_meshName; }
+
     /// Add visualization assets for the idler subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -120,9 +123,10 @@ class CH_VEHICLE_API TrackShoeBandBushing : public ChTrackShoeBandBushing {
     ChVector<> m_guide_box_dims;
     double m_guide_box_offset_x;
 
-    bool m_has_mesh;
-    std::string m_meshName;
-    std::string m_meshFile;
+    bool m_has_mesh;               // OBJ file provided
+    std::string m_meshName;        // name for tread visualization mesh read from OBJ file
+    std::string m_meshFile;        // name of OBJ file with tread visualization mesh
+    std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
 };
 
 /// @} vehicle_tracked_shoe

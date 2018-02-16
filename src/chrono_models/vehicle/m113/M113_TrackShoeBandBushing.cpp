@@ -62,6 +62,7 @@ const double M113_TrackShoeBandBushing::m_guide_box_offset_x = 0;
 
 const std::string M113_TrackShoeBandBushing::m_meshName = "TrackShoeBandBushing_POV_geom";
 const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/TrackShoeBandBushing.obj";
+const std::string M113_TrackShoeBandBushing::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

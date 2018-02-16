@@ -21,6 +21,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
@@ -269,6 +270,11 @@ int main(int argc, char* argv[]) {
 
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(out_dir + "/component_list.json");
+
+    // Export visualization mesh for shoe tread body
+    auto shoe0 = std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0));
+    shoe0->WriteTreadVisualizationMesh(out_dir);
+    shoe0->ExportTreadVisualizationMeshPovray(out_dir);
 
     // ---------------
     // Simulation loop

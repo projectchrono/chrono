@@ -62,6 +62,12 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
+    /// Write the procedurally-generated tread body visualization mesh to a Wavefront OBJ file.
+    void WriteTreadVisualizationMesh(const std::string& out_dir);
+
+    /// Export the procedurally-generated tread body visualization mesh as a macro in a PovRay include file.
+    void ExportTreadVisualizationMeshPovray(const std::string& out_dir);
+
   protected:
     /// Return the mass of the tread body.
     virtual double GetTreadMass() const = 0;
@@ -109,12 +115,16 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     /// Return the thickness of the tread below the web area (tread pad for ground contact)
     virtual double GetTreadThickness() const = 0;
 
+    /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
+    virtual const std::string& GetTreadVisualizationMeshName() const = 0;
+
     /// Add contact geometry for the tread body.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
     void AddShoeContact();
 
     /// Add visualization of the tread body, based on primitives corresponding to the contact shapes.
+    /// Note that the "primitive" shape for the tread body is a procedurally-generated mesh.
     void AddShoeVisualization();
 
     /// Get index-specific color (for visualization)

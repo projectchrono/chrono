@@ -128,6 +128,9 @@ void TrackShoeBandBushing::Create(const rapidjson::Document& d) {
         m_meshName = d["Visualization"]["Mesh Name"].GetString();
         m_has_mesh = true;
     }
+
+    // Set name for procedurally-generated tread visualization mesh.
+    m_tread_meshName = GetName();
 }
 
 // -----------------------------------------------------------------------------
