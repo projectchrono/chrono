@@ -190,7 +190,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
     auto box_pin = std::make_shared<ChBoxShape>();
     box_pin->GetBoxGeometry().Size = g_hdims;
-    box_pin->GetBoxGeometry().Pos = g_loc;
+    box_pin->Pos = g_loc;
     m_shoe->AddAsset(box_pin);
 
     // Main box
@@ -198,7 +198,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> b_loc(0, 0, 0);
     auto box_main = std::make_shared<ChBoxShape>();
     box_main->GetBoxGeometry().Size = b_hdims;
-    box_main->GetBoxGeometry().Pos = b_loc;
+    box_main->Pos = b_loc;
     m_shoe->AddAsset(box_main);
 
     // Tread box
@@ -206,7 +206,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
     auto box_tread = std::make_shared<ChBoxShape>();
     box_tread->GetBoxGeometry().Size = t_hdims;
-    box_tread->GetBoxGeometry().Pos = t_loc;
+    box_tread->Pos = t_loc;
     m_shoe->AddAsset(box_tread);
 
     // Connection to first web segment

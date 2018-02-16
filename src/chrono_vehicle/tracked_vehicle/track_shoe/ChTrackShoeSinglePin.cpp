@@ -133,12 +133,12 @@ void ChTrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
     // Render boxes between pins
     auto box_L = std::make_shared<ChBoxShape>();
     box_L->GetBoxGeometry().SetLengths(ChVector<>(pitch - 1.5 * cyl_radius, 0.95 * (p0y - p1y), pad_box_dims.z() / 3));
-    box_L->GetBoxGeometry().Pos = ChVector<>(0, +0.95 * (p0y + p1y) / 2, 0);
+    box_L->Pos = ChVector<>(0, +0.95 * (p0y + p1y) / 2, 0);
     m_shoe->AddAsset(box_L);
 
     auto box_R = std::make_shared<ChBoxShape>();
     box_R->GetBoxGeometry().SetLengths(ChVector<>(pitch - 1.5 * cyl_radius, 0.95 * (p0y - p1y), pad_box_dims.z() / 3));
-    box_R->GetBoxGeometry().Pos = ChVector<>(0, -0.95 * (p0y + p1y) / 2, 0);
+    box_R->Pos = ChVector<>(0, -0.95 * (p0y + p1y) / 2, 0);
     m_shoe->AddAsset(box_R);
 
     // Render the contact cylinders (for contact with sprocket)
@@ -169,13 +169,13 @@ void ChTrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
     // Render the pad contact box
     auto box_shoe = std::make_shared<ChBoxShape>();
     box_shoe->GetBoxGeometry().SetLengths(pad_box_dims);
-    box_shoe->GetBoxGeometry().Pos = GetPadBoxLocation();
+    box_shoe->Pos = GetPadBoxLocation();
     m_shoe->AddAsset(box_shoe);
 
     // Render the guiding pin contact box
     auto box_pin = std::make_shared<ChBoxShape>();
     box_pin->GetBoxGeometry().SetLengths(guide_box_dims);
-    box_pin->GetBoxGeometry().Pos = GetGuideBoxLocation();
+    box_pin->Pos = GetGuideBoxLocation();
     m_shoe->AddAsset(box_pin);
 
     // Assign color (based on track shoe index)

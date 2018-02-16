@@ -153,8 +153,8 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
 
     auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
-    box->GetBoxGeometry().Pos = m_pT;
-    box->GetBoxGeometry().Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
+    box->Pos = m_pT;
+    box->Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
     m_carrier->AddAsset(box);
 
     auto col = std::make_shared<ChColorAsset>();
