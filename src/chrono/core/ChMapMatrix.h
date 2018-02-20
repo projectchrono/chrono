@@ -54,6 +54,9 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     /// Get the element at the specified location.
     virtual double GetElement(int row, int col) const override;
 
+    /// Get number of nonzeros.
+    virtual int GetNNZ() const override;
+
     /// Return the row index array in the CSR representation of this matrix.
     virtual int* GetCS_LeadingIndexArray() const override;
 
@@ -68,6 +71,9 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
 
     /// Convert to CSR arrays.
 	void ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a) const;
+
+    /// Convert to COO arrays.
+    void ConvertToCOO(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a, bool one_indexed) const;
 
     /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
     /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.

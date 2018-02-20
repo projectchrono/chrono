@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dario Mangoni, Radu Serban
+// Authors: Dario Mangoni
 // =============================================================================
 
 #include "chrono/core/ChCSMatrix.h"
@@ -61,8 +61,8 @@ void PrintMatrixCS(const ChCSMatrix& mat) {
 }
 
 // true if error
-template<typename mat1_t, typename mat2_t >
-bool CompareMatrix(const mat1_t& mat1, const mat2_t& mat2)
+template<typename mat_t>
+bool CompareMatrix(const ChCSMatrix& mat1, const mat_t& mat2)
 {
 	bool error_caught = false;
 	for (int i = 0; i < mat1.GetNumRows(); i++)
@@ -77,6 +77,7 @@ bool CompareMatrix(const mat1_t& mat1, const mat2_t& mat2)
 
 	return error_caught;
 }
+
 
 // true if error
 bool CompareMatrix(const ChCSMatrix& mat1, const ChCSMatrix& mat2, bool tolerate_uncompressed) {
@@ -249,15 +250,127 @@ bool test_sparsity_lock()
 	return false;
 }
 
+bool test_MatrMultriply(bool transposeA)
+{
+    ChMatrixDynamic<double> matB(3, 2), mat_outR(3, 2), mat_outC(3, 2);
+    matB.SetElement(0, 0, 7.1);
+    matB.SetElement(1, 0, 3.7);
+    matB.SetElement(2, 0, 9.4);
+    matB.SetElement(0, 1, 6.2);
+    matB.SetElement(1, 1, 5.2);
+    matB.SetElement(2, 1, 7.1);
+
+    ChCSMatrix matA_rm(3, 3, true);
+    ChCSMatrix matA_cm(3, 3, false);
+
+
+    matA_rm.SetElement(0, 0, 3.1);
+    matA_rm.SetElement(0, 1, 2.4);
+    matA_rm.SetElement(1, 1, 9.2);
+    matA_rm.SetElement(2, 2, 5.6);
+
+    matA_cm = matA_rm;
+
+    if (CompareMatrix(matA_cm, matA_rm))
+        return true;
+
+    matA_rm.MatrMultiply(matB, mat_outR, transposeA); PrintMatrix(mat_outR);
+    matA_cm.MatrMultiply(matB, mat_outC, transposeA); PrintMatrix(mat_outC);
+
+    return !mat_outR.Equals(mat_outC);
+}
+
+bool test_MatrMultriplyClipped()
+{
+    ChMatrixDynamic<double> matB(6, 8), mat_out1(8,6), mat_out2(8,6), mat_out3(8,6);
+    ChCSMatrix matA_cm(6, 4);
+    ChCSMatrix matA_cmT(4, 6);
+
+    matA_cm.SetElement(0, 0, 1.7);
+    matA_cm.SetElement(0, 1, 1.3);
+    matA_cm.SetElement(0, 3, 0.6);
+
+    matA_cm.SetElement(1, 0, 0.7);
+    matA_cm.SetElement(1, 1, 0.8);
+    matA_cm.SetElement(1, 2, 0.1);
+
+    matA_cm.SetElement(2, 2, 2.4);
+
+    matA_cm.SetElement(3, 2, 5.1);
+    matA_cm.SetElement(4, 2, 8.2);
+    matA_cm.SetElement(5, 2, 4.4);
+
+    // 
+    matA_cmT.SetElement(0, 0, 1.7);
+    matA_cmT.SetElement(1, 0, 1.3);
+    matA_cmT.SetElement(3, 0, 0.6);
+
+    matA_cmT.SetElement(0, 1, 0.7);
+    matA_cmT.SetElement(1, 1, 0.8);
+    matA_cmT.SetElement(2, 1, 0.1);
+
+    matA_cmT.SetElement(2, 2, 2.4);
+
+    matA_cmT.SetElement(2, 3, 5.1);
+    matA_cmT.SetElement(2, 4, 8.2);
+    matA_cmT.SetElement(2, 5, 4.4);
+
+    //
+    matB.SetElement(2, 0, 1.7);
+    matB.SetElement(3, 0, 1.3);
+    matB.SetElement(5, 0, 0.6);
+       
+    matB.SetElement(2, 1, 0.7);
+    matB.SetElement(3, 1, 0.8);
+    matB.SetElement(4, 1, 0.1);
+       
+    matB.SetElement(4, 2, 2.4);
+       
+    matB.SetElement(4, 3, 5.1);
+    matB.SetElement(4, 4, 8.2);
+    matB.SetElement(4, 5, 4.4);
+
+    //
+
+    std::cout << "matA_cm" << std::endl;
+    PrintMatrix(matA_cm);
+    std::cout << "matA_cmT" << std::endl;
+    PrintMatrix(matA_cmT);
+    std::cout << "matB" << std::endl;
+    PrintMatrix(matB);
+
+
+    matA_cm.MatrMultiplyClipped(matB, mat_out1, 1, 3, 1, 2, 3, 1, false, 1, 3, 1);
+    std::cout << "mat_out1" << std::endl;
+    PrintMatrix(mat_out1);
+
+    matA_cm.MatrMultiplyClipped(matB, mat_out2, 1, 3, 1, 2, 3, 1, true, 1, 3, 1);
+    std::cout << "mat_out2" << std::endl;
+    PrintMatrix(mat_out2);
+
+    matA_cmT.MatrMultiplyClipped(matB, mat_out3, 1, 3, 1, 2, 3, 1, false, 1, 3, 1);
+    std::cout << "mat_out3" << std::endl;
+    PrintMatrix(mat_out3);
+
+
+    return !mat_out2.Equals(mat_out3);
+
+}
+
+
+
 
 
 int main() {
 
-	bool test_sparsity_lock_errors = test_sparsity_lock();
-	bool test_Compress_errors = test_Compress();
-	bool testColumnMajor_errors = testColumnMajor();
-
-    bool general_error = test_sparsity_lock_errors || test_Compress_errors || testColumnMajor_errors;
+	auto test_sparsity_lock_errors = test_sparsity_lock();
+	auto test_Compress_errors = test_Compress();
+	auto testColumnMajor_errors = testColumnMajor();
+	auto test_MatrMultriply_errors = test_MatrMultriply(false);
+	auto test_MatrTMultriply_errors = test_MatrMultriply(true);
+	auto test_MatrMultriplyClipped_errors = test_MatrMultriplyClipped();
+    
+    auto general_error = test_sparsity_lock_errors || test_Compress_errors || testColumnMajor_errors || test_MatrMultriply_errors || test_MatrTMultriply_errors || test_MatrMultriplyClipped_errors;
 
     std::cout << (general_error ? "error on CSR matrix" : "test passed" )<< std::endl;
 
