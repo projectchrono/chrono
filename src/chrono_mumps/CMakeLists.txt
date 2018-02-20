@@ -39,8 +39,8 @@ find_package(MUMPS REQUIRED)
 
 ################# BLAS library ##########################
 #BLAS configuration
-SET(BLA_VENDOR "Intel10_64lp" CACHE STRING "BLAS library vendor")
-SET_PROPERTY(CACHE BLA_VENDOR PROPERTY STRINGS  All Goto OpenBLAS ATLAS PhiPACK CXML DXML SunPerf SCSL SGIMATH IBMESSL
+SET(BLAS_VENDOR "Intel10_64lp" CACHE STRING "BLAS library vendor")
+SET_PROPERTY(CACHE BLAS_VENDOR PROPERTY STRINGS  All Goto OpenBLAS ATLAS PhiPACK CXML DXML SunPerf SCSL SGIMATH IBMESSL
 												Intel10_32 #(intel mkl v10 32 bit)
 												Intel10_64lp #(intel mkl v10 64 bit lp thread model  lp64 model)
 												Intel10_64lp_seq #(intel mkl v10 64 bit sequential code  lp64 model)
@@ -89,7 +89,7 @@ else()
 endif()
 
 
-string(FIND BLA_VENDOR "Intel" USING_INTEL)
+string(FIND BLAS_VENDOR "Intel" USING_INTEL)
 IF (USING_INTEL) # for Block Low-Rank usage
 	ADD_DEFINITIONS("-DBLR_MT")
 ENDIF (USING_INTEL)
@@ -142,17 +142,14 @@ SET(ChronoEngine_MUMPS_HEADERS
   ChApiMumps.h
   ChSolverMumps.h
   ChMumpsEngine.h
-  ChCOOMatrix.h
 )
 
 SET(ChronoEngine_MUMPS_SOURCES
   ChSolverMumps.cpp
   ChMumpsEngine.cpp
-  ChCOOMatrix.cpp
 )
 
-SOURCE_GROUP("Headers" FILES ${ChronoEngine_MUMPS_HEADERS})
-SOURCE_GROUP("Sources" FILES ${ChronoEngine_MUMPS_SOURCES})
+SOURCE_GROUP("" FILES ${ChronoEngine_MUMPS_HEADERS} ${ChronoEngine_MUMPS_SOURCES})
 
 
 # ------------------------------------------------------------------------------

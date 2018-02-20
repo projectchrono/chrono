@@ -480,7 +480,7 @@ class ChMatrix {
     /// Increments this matrix by \p val, as [this]+=val
     void MatrInc(Real val) {
         for (int nel = 0; nel < rows * columns; ++nel)
-            ElementN(nel) *= val;
+            ElementN(nel) += val;
     }
 
     /// Decrements this matrix with another matrix A, as: [this]-=[A]

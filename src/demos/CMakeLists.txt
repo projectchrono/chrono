@@ -71,9 +71,13 @@ if(ENABLE_MODULE_MKL)
 endif()
 
 if(ENABLE_MODULE_MUMPS)
-	add_subdirectory(mumps)
+  option(BUILD_DEMOS_MUMPS "Build demo programs for MUMPS module" TRUE)
+  mark_as_advanced(FORCE BUILD_DEMOS_MUMPS)
+  if(BUILD_DEMOS_MUMPS)
+    add_subdirectory(mumps)
+  endif()
 endif()
-	
+
 #if(ENABLE_MODULE_MPI)
 #	add_subdirectory(mpi)
 #endif()
