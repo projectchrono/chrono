@@ -53,8 +53,8 @@ chrono::ChGRN_DE_Container::~ChGRN_DE_Container() {
 }
 
 /** This method sets up the data structures used to perform a simulation.
- *
- */
+*
+*/
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     partition_BD();
 
@@ -62,11 +62,15 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     gpuErrchk(cudaMalloc((void**)&p_d_CM_X, nDEs * sizeof(int)));
     gpuErrchk(cudaMalloc((void**)&p_d_CM_Y, nDEs * sizeof(int)));
     gpuErrchk(cudaMalloc((void**)&p_d_CM_Z, nDEs * sizeof(int)));
-    // TODO this seems to be allocating too much device memory, since we index into it with an SD index
-    // Shouldn't it be nSDs * sizeof(unsigned int)
-    gpuErrchk(cudaMalloc((void**)&p_device_SD_NumOf_DEs_Touching, nDEs * sizeof(unsigned int)));
+
+    // allocate and seed some values in two device arrays
+    gpuErrchk(cudaMalloc((void**)&p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
 
     gpuErrchk(cudaMalloc((void**)&p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, 0, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int))); // FUOT: is 0 the right value to set entries in this array to?
+
+
     gpuErrchk(cudaMemcpy(p_d_CM_X, h_X_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
     gpuErrchk(cudaMemcpy(p_d_CM_Y, h_Y_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
     gpuErrchk(cudaMemcpy(p_d_CM_Z, h_Z_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
