@@ -38,7 +38,7 @@ class ChApi ChRoundedBoxShape : public ChVisualization {
     //
 
     ChRoundedBoxShape() {}
-    ChRoundedBoxShape(geometry::ChRoundedBox& mcap) : groundedbox(mcap) {}
+    ChRoundedBoxShape(const geometry::ChRoundedBox& mcap) : groundedbox(mcap) {}
 
     virtual ~ChRoundedBoxShape() {}
 

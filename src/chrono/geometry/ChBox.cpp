@@ -26,7 +26,7 @@ CH_FACTORY_REGISTER(ChBox)
 ChBox::ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths)
     : Pos(mpos), Rot(mrot), Size(0.5 * mlengths) {}
 
-ChBox::ChBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3) {
+ChBox::ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3) {
     ChVector<> D1 = Vsub(mC1, mC0);
     ChVector<> D2 = Vsub(mC2, mC0);
     ChVector<> D3 = Vsub(mC3, mC0);

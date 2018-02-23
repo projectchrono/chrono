@@ -34,7 +34,7 @@ class ChApi ChBox : public ChVolume {
   public:
     ChBox() : Pos(VNULL), Size(VNULL), Rot(1) {}
     ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths);
-    ChBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3);
+    ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
     ChBox(const ChBox& source);
 
     /// "Virtual" copy constructor (covariant return type).

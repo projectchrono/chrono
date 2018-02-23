@@ -47,7 +47,7 @@ class ChApi ChSurfaceShape : public ChVisualization {
         resolution_V = 5;
     }
 
-    ChSurfaceShape(std::shared_ptr<geometry::ChSurface>& msurf) : gsurface(msurf), wireframe(false) {}
+    ChSurfaceShape(std::shared_ptr<geometry::ChSurface> msurf) : gsurface(msurf), wireframe(false) {}
 
     virtual ~ChSurfaceShape() {}
 
@@ -62,7 +62,7 @@ class ChApi ChSurfaceShape : public ChVisualization {
     void SetSurfaceGeometry(std::shared_ptr<geometry::ChSurface> ms) { gsurface = ms; }
         
         /// Tell if showing only UV isolines
-    bool IsWireframe() { return wireframe; }
+    bool IsWireframe() const { return wireframe; }
         /// Set if using only isolines;
     void SetWireframe(bool mw) { wireframe = mw; }
 

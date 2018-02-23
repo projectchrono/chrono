@@ -34,9 +34,9 @@ class ChApi ChRoundedBox : public ChVolume {
 
   public:
     ChRoundedBox() : Pos(VNULL), Size(VNULL), Rot(1), radsphere(0) {}
-    ChRoundedBox(ChVector<>& mpos, ChMatrix33<>& mrot, ChVector<>& mlengths, double mradsphere)
+    ChRoundedBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths, double mradsphere)
         : Pos(mpos), Size(0.5 * mlengths), Rot(mrot), radsphere(mradsphere) {}
-    ChRoundedBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3);
+    ChRoundedBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3);
     ChRoundedBox(const ChRoundedBox& source);
     ~ChRoundedBox() {}
 

@@ -30,7 +30,7 @@ class ChApi ChEllipsoid : public ChGeometry {
 
   public:
     ChEllipsoid() : center(VNULL), rad(0) {}
-    ChEllipsoid(ChVector<>& mc, ChVector<> mrad) : center(mc), rad(mrad) {}
+    ChEllipsoid(const ChVector<>& mc, const ChVector<>& mrad) : center(mc), rad(mrad) {}
     ChEllipsoid(const ChEllipsoid& source);
     ~ChEllipsoid() {}
 

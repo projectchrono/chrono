@@ -30,7 +30,7 @@ class ChApi ChSphere : public ChGeometry {
 
   public:
     ChSphere() : center(VNULL), rad(0) {}
-    ChSphere(ChVector<>& mc, double mrad) : center(mc), rad(mrad) {}
+    ChSphere(const ChVector<>& mc, double mrad) : center(mc), rad(mrad) {}
     ChSphere(const ChSphere& source);
     ~ChSphere() {}
 
