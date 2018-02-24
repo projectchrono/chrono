@@ -28,8 +28,8 @@ namespace chrono {
 /// for example chrono::ChLinkMotorRotationAngle 
 
 class ChApi ChLinkMotorRotation : public ChLinkMotor {
-
-    /// type of guide constraint, exept the rotation constraint 
+  public:
+    /// type of guide constraints, except the rotation constraints
     enum class SpindleConstraint {
           FREE,
           REVOLUTE,
