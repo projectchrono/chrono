@@ -179,9 +179,8 @@ int main(int argc, char* argv[]) {
 
         application.DrawAll();
 
-        ChSystemNSC::IteratorOtherPhysicsItems myiter = mphysicalSystem.IterBeginOtherPhysicsItems();
-        while (myiter != mphysicalSystem.IterEndOtherPhysicsItems()) {
-            if (ChMatterSPH* myfluid = dynamic_cast<ChMatterSPH*>((*myiter).get())) {
+        for (auto ph : mphysicalSystem.Get_otherphysicslist()) {
+            if (ChMatterSPH* myfluid = dynamic_cast<ChMatterSPH*>(ph.get())) {
                 for (unsigned int ip = 0; ip < myfluid->GetNnodes(); ip++) {
                     auto mnode = std::dynamic_pointer_cast<ChNodeSPH>(myfluid->GetNode(ip));
 
@@ -226,7 +225,6 @@ int main(int argc, char* argv[]) {
                     // mnode->GetPos()+(mnode->UserForce * 0.1), video::SColor(100,0,0,0),false);
                 }
             }
-            ++myiter;
         }
 
         application.DoStep();

@@ -117,13 +117,10 @@ int main(int argc, char* argv[]) {
         // names that you see in the CAD interface, for example suppose you know that
         // a ChBodyAuxRef has the name "escape_wheel^escapement-1":
         std::shared_ptr<ChBodyAuxRef> mbody;
-        ChSystem::IteratorBodies myiterp = my_system.IterBeginBodies();
-        while (myiterp != my_system.IterEndBodies()) {
-            GetLog() << (*myiterp)->GetNameString().c_str() << "\n";
-            if ((*myiterp)->GetNameString() == "escape_wheel^escapement-1") 
-                mbody = std::dynamic_pointer_cast<ChBodyAuxRef>(*myiterp);
-
-            ++myiterp;
+        for (auto body : my_system.Get_bodylist()) {
+            GetLog() << body->GetNameString().c_str() << "\n";
+            if (body->GetNameString() == "escape_wheel^escapement-1")
+                mbody = std::dynamic_pointer_cast<ChBodyAuxRef>(body);
         }
 
         if (!mbody) 

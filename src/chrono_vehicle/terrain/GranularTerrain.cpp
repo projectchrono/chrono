@@ -159,17 +159,16 @@ class BoundaryContact : public ChSystem::CustomCollisionCallback {
 
 void BoundaryContact::OnCustomCollision(ChSystem* system) {
     auto bodylist = system->Get_bodylist();
-    for (size_t i = 0; i < bodylist->size(); ++i) {
-        auto body = (*bodylist)[i].get();
+    for (auto body : bodylist) {
         auto center = body->GetPos();
         if (body->GetIdentifier() > m_terrain->m_start_id) {
-            CheckBottom(body, center);
-            CheckLeft(body, center);
-            CheckRight(body, center);
-            CheckFront(body, center);
-            CheckRear(body, center);
+            CheckBottom(body.get(), center);
+            CheckLeft(body.get(), center);
+            CheckRight(body.get(), center);
+            CheckFront(body.get(), center);
+            CheckRear(body.get(), center);
             if (m_terrain->m_rough_surface)
-                CheckFixedSpheres(body, center);
+                CheckFixedSpheres(body.get(), center);
         }
     }
 }
@@ -475,8 +474,7 @@ void GranularTerrain::Synchronize(double time) {
 
     // Count particles that must be relocated.
     unsigned int num_moved_particles = 0;
-    auto bodylist = m_ground->GetSystem()->Get_bodylist();
-    for (auto body : *bodylist) {
+    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             num_moved_particles++;
         }
@@ -496,7 +494,7 @@ void GranularTerrain::Synchronize(double time) {
 
     // Relocate particles at their new locations.
     size_t ip = 0;
-    for (auto body : *bodylist) {
+    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             body->SetPos(new_points[ip++]);
             body->SetPos_dt(m_init_part_vel);
@@ -516,9 +514,8 @@ void GranularTerrain::Synchronize(double time) {
 }
 
 double GranularTerrain::GetHeight(double x, double y) const {
-    auto bodylist = m_ground->GetSystem()->Get_bodylist();
     double highest = m_bottom;
-    for (auto body : *bodylist) {
+    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().z() > highest)
             highest = body->GetPos().z();
     }

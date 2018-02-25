@@ -60,12 +60,9 @@ class IteratorAllPhysics {
     ~IteratorAllPhysics() {}
 
     void RewindToBegin() {
-        list_bodies = msystem->Get_bodylist();
-        node_body = list_bodies->begin();
-        list_links = msystem->Get_linklist();
-        node_link = list_links->begin();
-        list_otherphysics = msystem->Get_otherphysicslist();
-        node_otherphysics = list_otherphysics->begin();
+        node_body = msystem->Get_bodylist().begin();
+        node_link = msystem->Get_linklist().begin();
+        node_otherphysics = msystem->Get_otherphysicslist().begin();
         stage = 0;
         mptr = std::shared_ptr<ChPhysicsItem>();
         this->operator++();  // initialize with 1st available item
@@ -98,7 +95,7 @@ class IteratorAllPhysics {
         switch (stage) {
             case 1: {
                 node_body++;  // try next body
-                if (node_body != list_bodies->end()) {
+                if (node_body != msystem->Get_bodylist().end()) {
                     mptr = (*node_body);
                     return (*this);
                 }
@@ -106,7 +103,7 @@ class IteratorAllPhysics {
             }
             case 2: {
                 node_link++;  // try next link
-                if (node_link != list_links->end()) {
+                if (node_link != msystem->Get_linklist().end()) {
                     mptr = (*node_link);
                     return (*this);
                 }
@@ -114,7 +111,7 @@ class IteratorAllPhysics {
             }
             case 3: {
                 node_otherphysics++;  // try next otherphysics
-                if (node_otherphysics != list_otherphysics->end()) {
+                if (node_otherphysics != msystem->Get_otherphysicslist().end()) {
                     mptr = (*node_otherphysics);
                     return (*this);
                 }
@@ -128,7 +125,7 @@ class IteratorAllPhysics {
             switch (stage) {
                 case 0: {
                     stage = 1;
-                    if (node_body != list_bodies->end()) {
+                    if (node_body != msystem->Get_bodylist().end()) {
                         mptr = (*node_body);
                         return (*this);
                     }
@@ -136,7 +133,7 @@ class IteratorAllPhysics {
                 }
                 case 1: {
                     stage = 2;
-                    if (node_link != list_links->end()) {
+                    if (node_link != msystem->Get_linklist().end()) {
                         mptr = (*node_link);
                         return (*this);
                     }
@@ -144,7 +141,7 @@ class IteratorAllPhysics {
                 }
                 case 2: {
                     stage = 3;
-                    if (node_otherphysics != list_otherphysics->end()) {
+                    if (node_otherphysics != msystem->Get_otherphysicslist().end()) {
                         mptr = (*node_otherphysics);
                         return (*this);
                     }
@@ -170,12 +167,9 @@ class IteratorAllPhysics {
     std::shared_ptr<ChPhysicsItem> operator*() { return (mptr); }
 
   private:
-    std::vector<std::shared_ptr<ChBody> >::iterator node_body;
-    std::vector<std::shared_ptr<ChBody> >* list_bodies;
-    std::vector<std::shared_ptr<ChLink> >::iterator node_link;
-    std::vector<std::shared_ptr<ChLink> >* list_links;
-    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator node_otherphysics;
-    std::vector<std::shared_ptr<ChPhysicsItem> >* list_otherphysics;
+    std::vector<std::shared_ptr<ChBody> >::const_iterator node_body;
+    std::vector<std::shared_ptr<ChLink> >::const_iterator node_link;
+    std::vector<std::shared_ptr<ChPhysicsItem> >::const_iterator node_otherphysics;
     std::shared_ptr<ChPhysicsItem> mptr;
     int stage;
     ChSystem* msystem;

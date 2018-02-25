@@ -172,9 +172,9 @@ class ChApi ChAssembly : public ChPhysicsItem {
         bool HasItem();
 
       private:
-        std::vector<std::shared_ptr<ChBody>>::iterator node_body;
-        std::vector<std::shared_ptr<ChLink>>::iterator node_link;
-        std::vector<std::shared_ptr<ChPhysicsItem>>::iterator node_otherphysics;
+        std::vector<std::shared_ptr<ChBody>>::const_iterator node_body;
+        std::vector<std::shared_ptr<ChLink>>::const_iterator node_link;
+        std::vector<std::shared_ptr<ChPhysicsItem>>::const_iterator node_otherphysics;
         int stage;
         std::shared_ptr<ChPhysicsItem> mptr;
         ChAssembly* msystem;
@@ -184,70 +184,61 @@ class ChApi ChAssembly : public ChPhysicsItem {
     IteratorPhysicsItems IterBeginPhysicsItems();
     IteratorPhysicsItems IterEndPhysicsItems();
 
-    /// Gets the list of children bodies -low level function-.
-    /// NOTE! use this list only to enumerate etc., but NOT to
-    /// remove or add items (use the appropriate Remove.. and Add..
-    /// functions instead!)
-    std::vector<std::shared_ptr<ChBody>>* Get_bodylist() { return &bodylist; }
-    /// Gets the list of children links -low level function-.
-    /// NOTE! use this list only to enumerate etc., but NOT to
-    /// remove or add items (use the appropriate Remove.. and Add..
-    /// functions instead!)
-    std::vector<std::shared_ptr<ChLink>>* Get_linklist() { return &linklist; }
-    /// Gets the list of children physics items that are not in the body or link lists.
-    /// NOTE! use this list only to enumerate etc., but NOT to
-    /// remove or add items (use the appropriate Remove.. and Add..
-    /// functions instead!)
-    std::vector<std::shared_ptr<ChPhysicsItem>>* Get_otherphysicslist() { return &otherphysicslist; }
+    /// Get the list of bodies.
+    const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return bodylist; }
+    /// Get the list of links.
+    const std::vector<std::shared_ptr<ChLink>>& Get_linklist() const { return linklist; }
+    /// Get the list of physics items that are not in the body or link lists.
+    const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_otherphysicslist() const { return otherphysicslist; }
 
-    /// Searches a body from its ChObject name
+    /// Search a body by its name.
     std::shared_ptr<ChBody> SearchBody(const char* m_name);
-    /// Searches a link from its ChObject name
+    /// Search a link by its name.
     std::shared_ptr<ChLink> SearchLink(const char* m_name);
-    /// Searches from other ChPhysics items (not bodies or links) from name
+    /// Search from other ChPhysics items (not bodies or links) by name.
     std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* m_name);
-    /// Searches whatever item (body, link or other ChPhysics items)
+    /// Search an item (body, link or other ChPhysics items) by name.
     std::shared_ptr<ChPhysicsItem> Search(const char* m_name);
 
-    /// Searches a marker from its ChObject name
+    /// Search a marker by its name.
     std::shared_ptr<ChMarker> SearchMarker(const char* m_name);
-    /// Searches a marker from its unique ID
+    /// Search a marker by its unique ID.
     std::shared_ptr<ChMarker> SearchMarker(int markID);
 
     //
     // STATISTICS
     //
 
-    /// Gets the number of active bodies (so, excluding those that are sleeping or are fixed to ground)
+    /// Get the number of active bodies (so, excluding those that are sleeping or are fixed to ground).
     int GetNbodies() const { return nbodies; }
-    /// Gets the number of bodies that are in sleeping mode (excluding fixed bodies).
+    /// Get the number of bodies that are in sleeping mode (excluding fixed bodies).
     int GetNbodiesSleeping() const { return nbodies_sleep; }
-    /// Gets the number of bodies that are fixed to ground.
+    /// Get the number of bodies that are fixed to ground.
     int GetNbodiesFixed() const { return nbodies_fixed; }
-    /// Gets the total number of bodies added to the system, including the grounded and sleeping bodies.
+    /// Get the total number of bodies added to the system, including the grounded and sleeping bodies.
     int GetNbodiesTotal() const { return nbodies + nbodies_fixed + nbodies_sleep; }
 
-    /// Gets the number of links .
+    /// Get the number of links.
     int GetNlinks() const { return nlinks; }
-    /// Gets the number of other physics items (not ChLinks or ChBodies).
+    /// Get the number of other physics items (not ChLinks or ChBodies).
     int GetNphysicsItems() const { return nphysicsitems; }
-    /// Gets the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions)
+    /// Get the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
     int GetNcoords() const { return ncoords; }
-    /// Gets the number of degrees of freedom of the system.
+    /// Get the number of degrees of freedom of the system.
     int GetNdof() const { return ndof; }
-    /// Gets the number of scalar constraints added to the system, including constraints on quaternion norms
+    /// Get the number of scalar constraints added to the system, including constraints on quaternion norms.
     int GetNdoc() const { return ndoc; }
-    /// Gets the number of system variables (coordinates plus the constraint multipliers, in case of quaternions)
+    /// Get the number of system variables (coordinates plus the constraint multipliers, in case of quaternions).
     int GetNsysvars() const { return nsysvars; }
-    /// Gets the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
+    /// Get the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
     int GetNcoords_w() const { return ncoords_w; }
-    /// Gets the number of scalar constraints added to the system
+    /// Get the number of scalar constraints added to the system.
     int GetNdoc_w() const { return ndoc_w; }
-    /// Gets the number of scalar constraints added to the system (only bilaterals)
+    /// Get the number of scalar constraints added to the system (only bilaterals).
     int GetNdoc_w_C() const { return ndoc_w_C; }
-    /// Gets the number of scalar constraints added to the system (only unilaterals)
+    /// Get the number of scalar constraints added to the system (only unilaterals).
     int GetNdoc_w_D() const { return ndoc_w_D; }
-    /// Gets the number of system variables (coordinates plus the constraint multipliers)
+    /// Get the number of system variables (coordinates plus the constraint multipliers).
     int GetNsysvars_w() const { return nsysvars_w; }
 
     //

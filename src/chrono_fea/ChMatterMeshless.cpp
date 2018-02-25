@@ -317,12 +317,9 @@ void ChMatterMeshless::IntLoadResidual_F(
     // in the system,
 
     std::shared_ptr<ChProximityContainerMeshless> edges;
-    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics =
-        GetSystem()->Get_otherphysicslist()->begin();
-    while (iterotherphysics != GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics)))
+    for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
+        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(otherphysics))
             break;
-        iterotherphysics++;
     }
     assert(edges);  // If using a ChMatterMeshless, you must add also a ChProximityContainerMeshless.
 
@@ -478,12 +475,9 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
     // in the system,
 
     std::shared_ptr<ChProximityContainerMeshless> edges;
-    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics =
-        GetSystem()->Get_otherphysicslist()->begin();
-    while (iterotherphysics != GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics)))
+    for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
+        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(otherphysics))
             break;
-        iterotherphysics++;
     }
     assert(edges);  // If using a ChMatterMeshless, you must add also a ChProximityContainerMeshless.
 

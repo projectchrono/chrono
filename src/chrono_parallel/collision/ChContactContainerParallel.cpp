@@ -116,7 +116,7 @@ void ChContactContainerParallel::ReportAllContacts(ReportContactCallback* callba
 
     // Grab the list of bodies.
     // NOTE: we assume that bodies were added in the order of their IDs!
-    auto bodylist = *GetSystem()->Get_bodylist();
+    auto bodylist = GetSystem()->Get_bodylist();
 
     // No reaction forces or torques reported!
     ChVector<> zero(0, 0, 0);

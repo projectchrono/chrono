@@ -296,7 +296,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelNSC& mphysicalSystem,
     utils::AddSphereGeometry(body.get(), sphereRad);
     body->GetCollisionModel()->BuildModel();
 
-    int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
+    int numRigidObjects = mphysicalSystem.Get_bodylist().size();
     mphysicalSystem.AddBody(body);
 }
 
@@ -454,7 +454,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Add sph data to the physics system
-    cout << " -- System size : " << mphysicalSystem.Get_bodylist()->size() << endl;
+    cout << " -- System size : " << mphysicalSystem.Get_bodylist().size() << endl;
     double mTime = 0;
 // ************************** System Initialize **************************************
 #ifdef CHRONO_FSI_USE_DOUBLE
