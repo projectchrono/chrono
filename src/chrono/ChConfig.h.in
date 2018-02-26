@@ -43,6 +43,9 @@
 // If module MKL was enabled, define CHRONO_MKL
 @CHRONO_MKL@
 
+// If module MUMPS was enabled, define CHRONO_MUMPS
+@CHRONO_MUMPS@
+
 // If module OPENGL was enabled, define CHRONO_OPENGL
 @CHRONO_OPENGL@
 

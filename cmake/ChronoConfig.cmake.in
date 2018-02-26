@@ -88,6 +88,7 @@ set(Chrono_HAS_fea @ENABLE_MODULE_FEA@)
 set(Chrono_HAS_irrlicht @ENABLE_MODULE_IRRLICHT@)
 set(Chrono_HAS_matlab @ENABLE_MODULE_MATLAB@)
 set(Chrono_HAS_mkl @ENABLE_MODULE_MKL@)
+set(Chrono_HAS_mumps @ENABLE_MODULE_MUMPS@)
 set(Chrono_HAS_parallel @ENABLE_MODULE_PARALLEL@)
 set(Chrono_HAS_opengl @ENABLE_MODULE_OPENGL@)
 set(Chrono_HAS_postprocess @ENABLE_MODULE_POSTPROCESS@)
@@ -200,6 +201,15 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_mkl")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mkl.dll")
 
+    elseif(${COMPONENT_UPPER} MATCHES "MUMPS")
+
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_MUMPS_INCLUDES@")
+      list(APPEND CHRONO_LINKER_FLAGS "@CH_MUMPS_LINK_FLAGS@")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
+      list(APPEND CHRONO_LIBRARIES "@MUMPS_LIBRARY@")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
+      list(APPEND CHRONO_DLLS "@MUMPS_SHARED_LIBRARIES@")
+
     elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
 
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
@@ -211,9 +221,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_cascade")
       list(APPEND CHRONO_LIBRARIES "@CH_CASCADE_LIBS@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
-	  
-	  elseif(${COMPONENT_UPPER} MATCHES "COSIMULATION")
-	
+
+    elseif(${COMPONENT_UPPER} MATCHES "COSIMULATION")
+
       list(APPEND CHRONO_LIBRARIES "@CH_SOCKET_LIB@")
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_cosimulation")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cosimulation.dll")
@@ -355,8 +365,8 @@ function(add_DLL_copy_command DLL_LIST)
     endforeach()
 
     message("Attention: the COPY_DLLS routine will first look for Chrono libraries under the /bin and /lib64 subfolders of @CH_BINARY_DIR@")
-	message("           If not found, it will look under /bin/Release and /lib64/Release subfolder, so copying the Release version of Chrono.")
-	message("           Check the few lines above to make sure which dlls are copied!")
-	message("           In both cases please mind that you SHOULD NOT mix libraries and/or executables compiled with different build configurations (e.g. Release and Debug)!")
+    message("           If not found, it will look under /bin/Release and /lib64/Release subfolder, so copying the Release version of Chrono.")
+    message("           Check the few lines above to make sure which dlls are copied!")
+    message("           In both cases please mind that you SHOULD NOT mix libraries and/or executables compiled with different build configurations (e.g. Release and Debug)!")
 
 endfunction()

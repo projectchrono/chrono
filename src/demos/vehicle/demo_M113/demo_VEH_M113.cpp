@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
+    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
     M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::NSC, chassis_collision_type);
 
     // ------------------------------

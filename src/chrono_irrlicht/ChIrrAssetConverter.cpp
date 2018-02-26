@@ -431,25 +431,21 @@ void ChIrrAssetConverter::BindAllContentsOfAssembly(ChAssembly* massy, std::unor
         return;
     }
 
-    auto myiter = massy->IterBeginBodies();
-    while (myiter != massy->IterEndBodies()) {
-        Bind(*myiter);
-        ++myiter;
+    for (auto body : massy->Get_bodylist()) {
+        Bind(body);
     }
-    ChSystem::IteratorOtherPhysicsItems myiterB = massy->IterBeginOtherPhysicsItems();
-    while (myiterB != massy->IterEndOtherPhysicsItems()) {
-        Bind(*myiterB);
+
+    for (auto ph : massy->Get_otherphysicslist()) {
+        Bind(ph);
 
         // If the assembly holds another assemblies, also bind their contents.
-        if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(*myiterB)) {
+        if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
             BindAllContentsOfAssembly(myassy.get(), mtrace);
         }
-        ++myiterB;
     }
-    ChSystem::IteratorLinks myiterC = massy->IterBeginLinks();
-    while (myiterC != massy->IterEndLinks()) {
-        Bind(*myiterC);
-        ++myiterC;
+
+    for (auto link : massy->Get_linklist()) {
+        Bind(link);
     }
 }
 
@@ -459,25 +455,21 @@ void ChIrrAssetConverter::UpdateAllContentsOfAssembly(ChAssembly* massy, std::un
         return;
     }
 
-    auto myiter = massy->IterBeginBodies();
-    while (myiter != massy->IterEndBodies()) {
-        Update(*myiter);
-        ++myiter;
+    for (auto body : massy->Get_bodylist()) {
+        Update(body);
     }
-    ChSystem::IteratorOtherPhysicsItems myiterB = massy->IterBeginOtherPhysicsItems();
-    while (myiterB != massy->IterEndOtherPhysicsItems()) {
-        Update(*myiterB);
+
+    for (auto ph : massy->Get_otherphysicslist()) {
+        Update(ph);
 
         // If the assembly holds another assemblies, also update their contents.
-        if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(*myiterB)) {
+        if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
             UpdateAllContentsOfAssembly(myassy.get(), mtrace);
         }
-        ++myiterB;
     }
-    ChSystem::IteratorLinks myiterC = massy->IterBeginLinks();
-    while (myiterC != massy->IterEndLinks()) {
-        Update(*myiterC);
-        ++myiterC;
+
+    for (auto link : massy->Get_linklist()) {
+        Update(link);
     }
 }
 

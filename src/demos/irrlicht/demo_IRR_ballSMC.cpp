@@ -80,6 +80,9 @@ int main(int argc, char* argv[]) {
 
     msystem.Set_G_acc(ChVector<>(0, gravity, 0));
 
+    // Change the default collision effective radius of curvature 
+    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+
     // Create the Irrlicht visualization
     ChIrrApp application(&msystem, L"SMC demo", core::dimension2d<u32>(800, 600), false, true);
 

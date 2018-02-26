@@ -50,6 +50,7 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLink.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -380,6 +381,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChBodyAuxRef)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChIndexedParticles)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChParticlesClones)
+
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLink)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMarkers)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMasked)
@@ -412,6 +414,38 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
+
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMarkers)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMasked)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLock)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockLock)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockRevolute)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockSpherical)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockCylindrical)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockPrismatic)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockPointPlane)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockPointLine)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockOldham)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockFree)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockAlign)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockParallel)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockPerpend)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkEngine)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMate)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateGeneric)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMatePlane)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateCoaxial)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateSpherical)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateXdistance)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateParallel)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateOrthogonal)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMateFix)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkGear)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkDistance)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkLinActuator)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkPulley)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkScrew)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkSpring)
 
 %DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Const)
 %DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_ConstAcc)

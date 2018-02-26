@@ -182,11 +182,9 @@ int main(int argc, char* argv[]) {
         my_system.ShowHierarchy(GetLog());
 
         GetLog() << "Now use an interator to scan through already-added constraints:\n\n";
-        ChSystemNSC::IteratorLinks myiter = my_system.IterBeginLinks();
-        while (myiter != my_system.IterEndLinks()) {
-            GetLog() << "   Link class: " << typeid((*myiter)).name()
-                     << "  , leaves n.DOFs: " << (*myiter)->GetLeftDOF() << "\n";
-            ++myiter;
+        for (auto link : my_system.Get_linklist()) {
+            GetLog() << "   Link class: " << typeid(link).name()
+                     << "  , leaves n.DOFs: " << link->GetLeftDOF() << "\n";
         }
 
         // OK! NOW GET READY FOR THE DYNAMICAL SIMULATION!

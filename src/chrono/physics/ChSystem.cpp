@@ -37,151 +37,6 @@ using namespace chrono::collision;
 namespace chrono {
 
 // -----------------------------------------------------------------------------
-
-// Class for iterating through all items of ChPhysicalItem that exist in
-// a ChSystem.
-// It will iterate through:
-// - all ChBody          objects
-// - all ChLink          objects
-// - all ChPhysicalItems objects that were added, that were not ChBody or ChLink
-// - the ChContactContainer object that manages all the contacts.
-// Note that this iterator suffers a small overhead if compared to the use of
-// three iterator cycles in succession (one over ChBody list, one over ChLink list, etc.)
-// but it makes the code much more readable. Use it as follows:
-//    IteratorAllPhysics my_iter(this);
-//    while(my_iter.HasItem())
-//    {
-//        my_iter->....
-//        ++my_iter;
-//    }
-class IteratorAllPhysics {
-  public:
-    IteratorAllPhysics(ChSystem* msys) : msystem(msys) { RewindToBegin(); }
-    ~IteratorAllPhysics() {}
-
-    void RewindToBegin() {
-        list_bodies = msystem->Get_bodylist();
-        node_body = list_bodies->begin();
-        list_links = msystem->Get_linklist();
-        node_link = list_links->begin();
-        list_otherphysics = msystem->Get_otherphysicslist();
-        node_otherphysics = list_otherphysics->begin();
-        stage = 0;
-        mptr = std::shared_ptr<ChPhysicsItem>();
-        this->operator++();  // initialize with 1st available item
-    }
-
-    bool ReachedEnd() {
-        if (stage == 9999)
-            return true;
-        return false;
-    }
-    bool HasItem() {
-        if (mptr)
-            return true;
-        return false;
-    }
-
-    IteratorAllPhysics& operator=(const IteratorAllPhysics& other) {
-        msystem = other.msystem;
-        //...***TO DO***
-        return (*this);
-    }
-
-    bool operator==(const IteratorAllPhysics& other) {
-        return (msystem == other.msystem);  //...***TO COMPLETE***
-    }
-
-    bool operator!=(const IteratorAllPhysics& other) { return !(msystem == other.msystem); }
-
-    IteratorAllPhysics& operator++() {
-        switch (stage) {
-            case 1: {
-                node_body++;  // try next body
-                if (node_body != list_bodies->end()) {
-                    mptr = (*node_body);
-                    return (*this);
-                }
-                break;
-            }
-            case 2: {
-                node_link++;  // try next link
-                if (node_link != list_links->end()) {
-                    mptr = (*node_link);
-                    return (*this);
-                }
-                break;
-            }
-            case 3: {
-                node_otherphysics++;  // try next otherphysics
-                if (node_otherphysics != list_otherphysics->end()) {
-                    mptr = (*node_otherphysics);
-                    return (*this);
-                }
-                break;
-            }
-            default:
-                break;
-        }
-        // Something went wrong, some list was at the end, so jump to beginning of next list
-        do {
-            switch (stage) {
-                case 0: {
-                    stage = 1;
-                    if (node_body != list_bodies->end()) {
-                        mptr = (*node_body);
-                        return (*this);
-                    }
-                    break;
-                }
-                case 1: {
-                    stage = 2;
-                    if (node_link != list_links->end()) {
-                        mptr = (*node_link);
-                        return (*this);
-                    }
-                    break;
-                }
-                case 2: {
-                    stage = 3;
-                    if (node_otherphysics != list_otherphysics->end()) {
-                        mptr = (*node_otherphysics);
-                        return (*this);
-                    }
-                    break;
-                }
-                case 3: {
-                    stage = 4;
-                    mptr = msystem->GetContactContainer();
-                    return (*this);
-                }
-                case 4: {
-                    stage = 9999;
-                    mptr = std::shared_ptr<ChPhysicsItem>();
-                    return (*this);
-                }
-            }  // end cases
-        } while (true);
-
-        return (*this);
-    }
-
-    std::shared_ptr<ChPhysicsItem> operator->() { return (mptr); }
-    std::shared_ptr<ChPhysicsItem> operator*() { return (mptr); }
-
-  private:
-    std::vector<std::shared_ptr<ChBody> >::iterator node_body;
-    std::vector<std::shared_ptr<ChBody> >* list_bodies;
-    std::vector<std::shared_ptr<ChLink> >::iterator node_link;
-    std::vector<std::shared_ptr<ChLink> >* list_links;
-    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator node_otherphysics;
-    std::vector<std::shared_ptr<ChPhysicsItem> >* list_otherphysics;
-    std::shared_ptr<ChPhysicsItem> mptr;
-    int stage;
-    ChSystem* msystem;
-};
-
-// -----------------------------------------------------------------------------
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
 
@@ -644,14 +499,15 @@ bool ChSystem::ManageSleepingBodies() {
         // Callback, used to report contact points already added to the container.
         // If returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector<>& pA,             ///< get contact pA
-            const ChVector<>& pB,             ///< get contact pB
-            const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
-            const double& distance,           ///< get contact distance
-            const ChVector<>& react_forces,   ///< get react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed).
-            ChContactable* contactobjA,  ///< get model A (note: some containers may not support it and could be zero!)
-            ChContactable* contactobjB   ///< get model B (note: some containers may not support it and could be zero!)
+            const ChVector<>& pA,             // get contact pA
+            const ChVector<>& pB,             // get contact pB
+            const ChMatrix33<>& plane_coord,  // get contact plane coordsystem (A column 'X' is contact normal)
+            const double& distance,           // get contact distance
+            const double& eff_radius,         // effective radius of curvature at contact
+            const ChVector<>& react_forces,   // get react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector<>& react_torques,  // get react.torques, if rolling friction (if already computed).
+            ChContactable* contactobjA,  // get model A (note: some containers may not support it and could be zero!)
+            ChContactable* contactobjB   // get model B (note: some containers may not support it and could be zero!)
             ) override {
             if (!(contactobjA && contactobjB))
                 return true;

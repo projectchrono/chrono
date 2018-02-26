@@ -41,8 +41,6 @@ my_shbodyB.AddMarker(my_shmarker)
 my_system.Add(my_shbodyA)
 my_system.Add(my_shbodyB)
 
-
-
 # Define surface material(s)
 my_shmaterial = chrono.ChMaterialSurfaceNSC()
 my_shmaterial.SetFriction(0.3)
@@ -84,23 +82,16 @@ while (my_system.GetChTime() < 1.2) :
     my_system.GetContactContainer().ReportAllContacts(my_rep)
 
 
-# Iterate over added bodies - how to use iterators
-print ('This is the list of bodies in the system:')
-iterbodies = my_system.IterBeginBodies()
-while (iterbodies !=  my_system.IterEndBodies()):
-    print ('  body pos=', iterbodies.Ref().GetPos() )
-    iterbodies = iterbodies.Next()
-
-# Easier (but a bit slower) iteration in the style of Python:
-print ('This is the list of bodies in the system:')
-for abody in chrono.IterBodies(my_system):
+# Iterate over added bodies (Python style)
+print ('Positions of all bodies in the system:')
+for abody in my_system.Get_bodylist():
     print ('  body pos=', abody.GetPos() )
 
-# Also iterate on links, Python style:
-for alink in chrono.IterLinks(my_system):
-    print ('  link: ', alink )
-
-
+# Iterate over list of links (Python style)
+print ('List of links in the system:')
+print ('TODO:  Check why this triggers error!!!')
+#for alink in my_system.Get_linklist():
+#    print ('  link: ', alink)
 
 # Move a body, using a ChFrame
 my_displacement = chrono.ChFrameMovingD(chrono.ChVectorD(5,1,0));
@@ -125,10 +116,4 @@ myasset = chrono.ChObjShapeFile()
 myasset.SetFilename("shapes/test.obj")
 body_1.GetAssets().push_back(myasset)
 
-
-
-
-
-
-
-
+print ('Done...')

@@ -30,7 +30,7 @@ ChMapMatrix::ChMapMatrix(const ChMatrix<>& mat) {
         for (int ic = 0; ic < m_num_cols; ic++) {
             double val = mat.GetElement(ir, ic);
             if (val != 0) {
-                SetElement(ir, ic, val);
+                ChMapMatrix::SetElement(ir, ic, val);
             }
         }
     }
@@ -94,6 +94,17 @@ double ChMapMatrix::GetElement(int row, int col) const {
     return my_elem->second;
 }
 
+    int ChMapMatrix::GetNNZ() const
+    {
+        int m_nnz_temp = 0;
+        for (auto row_sel = 0; row_sel<m_num_rows; ++row_sel)
+        {
+            m_nnz_temp += m_rows[row_sel].m_nnz;
+        }
+
+         return const_cast<ChMapMatrix*>(this)->m_nnz = m_nnz_temp;
+    }
+
 void ChMapMatrix::ConvertToDense(ChMatrixDynamic<double>& mat) {
     mat.Reset(m_num_rows, m_num_cols);
     for (int ir = 0; ir < m_num_rows; ir++) {
@@ -136,8 +147,38 @@ void ChMapMatrix::ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::
     m_CSR_current = true;
 }
 
-int* ChMapMatrix::GetCS_LeadingIndexArray() const
-{
+    void ChMapMatrix::ConvertToCOO(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a, bool one_indexed) const
+    {
+        GetNNZ();
+
+        ia.resize(m_nnz);
+        ja.resize(m_nnz);
+        a.resize(m_nnz);
+
+        const_cast<ChMapMatrix*>(this)->m_nnz = m_nnz;
+
+        std::vector<int>::iterator row_it = ia.begin();
+        auto col_it = ja.begin();
+        auto val_it = a.begin();
+
+        int one_indexing_switcher = one_indexed ? 1 : 0;
+
+        for(auto row_sel = 0; row_sel<m_num_rows; ++row_sel)
+        {
+            for(auto col_src_it = m_rows.at(row_sel).m_data.begin(); col_src_it!= m_rows.at(row_sel).m_data.end(); ++col_src_it)
+            {
+                *row_it = row_sel + one_indexing_switcher;
+                *col_it = col_src_it->first + one_indexing_switcher;
+                *val_it = col_src_it->second;
+
+                ++row_it;
+                ++col_it;
+                ++val_it;
+            }
+        }
+    }
+
+int* ChMapMatrix::GetCS_LeadingIndexArray() const{
     if (!m_CSR_current)
         ConvertToCSR(m_ia, m_ja, m_a);
     return m_ia.data();

@@ -58,10 +58,14 @@ void ChIrrApp::AddShadow(std::shared_ptr<ChPhysicsItem> mitem) {
 }
 
 void ChIrrApp::AddShadowAll() {
-    ChSystem::IteratorPhysicsItems miter = this->GetSystem()->IterBeginPhysicsItems();
-    while (miter.HasItem()) {
-        AddShadow(*miter);
-        ++miter;
+    for (auto body : GetSystem()->Get_bodylist()) {
+        AddShadow(body);
+    }
+    for (auto link : GetSystem()->Get_linklist()) {
+        AddShadow(link);
+    }
+    for (auto ph : GetSystem()->Get_otherphysicslist()) {
+        AddShadow(ph);
     }
 }
 

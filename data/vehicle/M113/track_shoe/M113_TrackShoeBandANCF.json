@@ -1,0 +1,57 @@
+{
+  "Name": "M113 BandANCF TrackShoe Left",
+  "Type": "TrackShoe",
+  "Template": "TrackShoeBandANCF",
+
+  "Belt Width": 0.3175,
+  "Shoe Height": 0.06,
+
+  "Tread": {
+    "Mass": 1.8,
+    "Inertia": [ 0.015, 0.001, 0.016 ],
+    "Length": 0.075296,
+    "Thickness": 0.016328,
+    "Tooth Tip Length": 0.013104,
+    "Tooth Base Length": 0.055016,
+    "Tooth Width": 0.0508,
+    "Tooth Height": 0.04004,
+    "Tooth Arc Radius": 0.05616
+  },
+
+  "Web": {
+    "Number Elements Length": 3,
+    "Number Elements Width": 4,
+    "Mass": 2.0,
+    "Inertia": [ 0.01, 0.01, 0.01 ],
+    "Length": 0.03484,
+    "Thickness": 0.019552,
+    "Steel Layer Thickness": 0.00127
+  },
+
+  "Guide Pin": {
+    "Dimensions": [ 0.0529, 0.0114, 0.075 ],
+    "Offset": 0
+  },
+
+  "Contact Material": {
+    "Coefficient of Friction": 0.8,
+    "Coefficient of Restitution": 0.1,
+
+    "Properties": {
+      "Young Modulus": 1e7,
+      "Poisson Ratio": 0.3
+    },
+
+    "Coefficients": {
+      "Normal Stiffness": 2e5,
+      "Normal Damping": 40.0,
+      "Tangential Stiffness": 2e5,
+      "Tangential Damping": 20.0
+    }
+  },
+
+  "Visualization": {
+    "Mesh Filename": "M113/TrackShoeBandANCF.obj",
+    "Mesh Name": "TrackShoeBandANCF_POV_geom"
+  }
+}

@@ -369,9 +369,8 @@ void _ReportAllContacts(std::list<Tcont*>& contactlist, ChContactContainer::Repo
     while (itercontact != contactlist.end()) {
         bool proceed = mcallback->OnReportContact(
             (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
-            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(),
-            VNULL,  // no react torques
-            (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetEffectiveCurvatureRadius(),
+            (*itercontact)->GetContactForce(), VNULL, (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
         if (!proceed)
             break;
         ++itercontact;
@@ -384,8 +383,9 @@ void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChContactContaine
     while (itercontact != contactlist.end()) {
         bool proceed = mcallback->OnReportContact(
             (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
-            (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(), (*itercontact)->GetContactTorque(),
-            (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
+            (*itercontact)->GetContactDistance(), (*itercontact)->GetEffectiveCurvatureRadius(),
+            (*itercontact)->GetContactForce(), (*itercontact)->GetContactTorque(), (*itercontact)->GetObjA(),
+            (*itercontact)->GetObjB());
         if (!proceed)
             break;
         ++itercontact;

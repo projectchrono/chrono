@@ -110,7 +110,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                                  this->objA->GetContactPointSpeed(this->p1),  // velocity of contact point on objA
                                  this->objB->GetContactPointSpeed(this->p2),  // velocity of contact point on objB
                                  mat                                          // composite material for contact pair
-                                 );
+        );
 
         // Set up and compute Jacobian matrices.
         if (static_cast<ChSystemSMC*>(this->container->GetSystem())->GetStiffContact()) {
@@ -126,7 +126,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         const ChVector<>& vel1,            ///< velocity of contact point on objA (expressed in global frame)
         const ChVector<>& vel2,            ///< velocity of contact point on objB (expressed in global frame)
         const ChMaterialCompositeSMC& mat  ///< composite material for contact pair
-        ) {
+    ) {
         // Set contact force to zero if no penetration.
         if (delta <= 0) {
             return ChVector<>(0, 0, 0);
@@ -148,12 +148,8 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         double relvel_t_mag = relvel_t.Length();
 
         // Calculate effective mass
-        double m_eff = this->objA->GetContactableMass() * this->objB->GetContactableMass() /
-                       (this->objA->GetContactableMass() + this->objB->GetContactableMass());
-
-        // Calculate effective contact radius
-        //// TODO:  how can I get this with current collision system!?!?!?
-        double R_eff = 1;
+        double eff_mass = this->objA->GetContactableMass() * this->objB->GetContactableMass() /
+                          (this->objA->GetContactableMass() + this->objB->GetContactableMass());
 
         // Calculate stiffness and viscous damping coefficients.
         // All models use the following formulas for normal and tangential forces:
@@ -167,41 +163,41 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         switch (contact_model) {
             case ChSystemSMC::Hooke:
                 if (use_mat_props) {
-                    double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
+                    double tmp_k = (16.0 / 15) * std::sqrt(this->eff_radius) * mat.E_eff;
                     double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
                     double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
                     loge = (mat.cr_eff > 1 - CH_MICROTOL) ? std::log(1 - CH_MICROTOL) : loge;
                     double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
-                    kn = tmp_k * std::pow(m_eff * v2 / tmp_k, 1.0 / 5);
+                    kn = tmp_k * std::pow(eff_mass * v2 / tmp_k, 1.0 / 5);
                     kt = kn;
-                    gn = std::sqrt(4 * m_eff * kn / tmp_g);
+                    gn = std::sqrt(4 * eff_mass * kn / tmp_g);
                     gt = gn;
                 } else {
                     kn = mat.kn;
                     kt = mat.kt;
-                    gn = m_eff * mat.gn;
-                    gt = m_eff * mat.gt;
+                    gn = eff_mass * mat.gn;
+                    gt = eff_mass * mat.gt;
                 }
 
                 break;
 
             case ChSystemSMC::Hertz:
                 if (use_mat_props) {
-                    double sqrt_Rd = std::sqrt(R_eff * delta);
+                    double sqrt_Rd = std::sqrt(this->eff_radius * delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;
                     kt = St;
-                    gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * m_eff);
-                    gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * m_eff);
+                    gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
+                    gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * eff_mass);
                 } else {
-                    double tmp = R_eff * std::sqrt(delta);
+                    double tmp = this->eff_radius * std::sqrt(delta);
                     kn = tmp * mat.kn;
                     kt = tmp * mat.kt;
-                    gn = tmp * m_eff * mat.gn;
-                    gt = tmp * m_eff * mat.gt;
+                    gn = tmp * eff_mass * mat.gn;
+                    gt = tmp * eff_mass * mat.gt;
                 }
 
                 break;
@@ -214,7 +210,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                     double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;
-                    gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * m_eff);
+                    gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
                 } else {
                     double tmp = std::sqrt(delta);
                     kn = tmp * mat.kn;
@@ -234,7 +230,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                             forceN -= mat.adhesion_eff;
                             break;
                         case ChSystemSMC::DMT:
-                            forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
+                            forceN -= mat.adhesionMultDMT_eff * sqrt(this->eff_radius);
                             break;
                     }
                     ChVector<> force = forceN * normal_dir;
@@ -276,7 +272,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                 forceN -= mat.adhesion_eff;
                 break;
             case ChSystemSMC::DMT:
-                forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
+                forceN -= mat.adhesionMultDMT_eff * sqrt(this->eff_radius);
                 break;
         }
 

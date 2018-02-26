@@ -103,6 +103,7 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
                                  const ChVector<>& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
+                                 const double& eff_radius,
                                  const ChVector<>& react_forces,
                                  const ChVector<>& react_torques,
                                  ChContactable* modA,
@@ -278,14 +279,14 @@ int main(int argc, char* argv[]) {
     auto sys = rig->GetSystem();
     int nmeshes = 0;
     std::vector<size_t> nassets;
-    for (auto item : *sys->Get_otherphysicslist()) {
+    for (auto item : sys->Get_otherphysicslist()) {
         if (std::dynamic_pointer_cast<fea::ChMesh>(item)) {
             nassets.push_back(item->GetAssets().size());
             nmeshes++;
         }
     }
-    std::cout << "Number of bodies:        " << sys->Get_bodylist()->size() << std::endl;
-    std::cout << "Number of physics items: " << sys->Get_otherphysicslist()->size() << std::endl;
+    std::cout << "Number of bodies:        " << sys->Get_bodylist().size() << std::endl;
+    std::cout << "Number of physics items: " << sys->Get_otherphysicslist().size() << std::endl;
     std::cout << "Number of FEA meshes:    " << nmeshes << std::endl;
     std::cout << "Number of assets/mesh:   ";
     for (auto i : nassets)

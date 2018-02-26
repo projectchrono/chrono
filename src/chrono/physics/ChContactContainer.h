@@ -102,6 +102,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
             const ChVector<>& pB,             ///< contact pB
             const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           ///< contact distance
+            const double& eff_radius,         ///< effective radius of curvature at contact
             const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
             const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)

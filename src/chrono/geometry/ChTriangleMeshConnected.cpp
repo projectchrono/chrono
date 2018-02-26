@@ -41,6 +41,8 @@
 #include <cstdio>
 #include <map>
 #include <unordered_map>
+#include <fstream>
+#include <algorithm>
 
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -1028,6 +1030,110 @@ bool WavefrontObj::saveObj(const char *fname,int vcount,const float *vertices,in
 }
 
 */
+
+// Write the specified meshes in a Wavefront .obj file
+void ChTriangleMeshConnected::WriteWavefront(const std::string& filename, std::vector<ChTriangleMeshConnected>& meshes) {
+    std::ofstream mf(filename);
+
+    //// TODO: include normal information if available
+
+/*
+    // Create a separate object for each mesh
+    int i = 0;
+    for (auto& m : meshes) {
+        mf << "o mesh_" << std::to_string(i++) << std::endl;
+
+        for (auto& v : m.getCoordsVertices()) {
+            mf << "v " << v.x() << " " << v.y() << " " << v.z() << std::endl;
+        }
+
+        for (auto& f : m.getIndicesVertexes()) {
+            mf << "f " << f.x() << " " << f.y() << " " << f.z() << std::endl;
+        }
+    }
+*/
+
+    // Create a single object mesh
+    std::vector<int> v_offsets;
+    int v_off = 1;
+    for (auto& m : meshes) {
+        for (auto& v : m.getCoordsVertices()) {
+            mf << "v " << v.x() << " " << v.y() << " " << v.z() << std::endl;
+        }
+        v_offsets.push_back(v_off);
+        v_off += static_cast<int>(m.getCoordsVertices().size());
+    }
+
+    for (size_t i = 0; i < meshes.size(); i++) {
+        v_off = v_offsets[i];
+        for (auto& f : meshes[i].getIndicesVertexes()) {
+            mf << "f " << f.x() + v_off << " " << f.y() + v_off << " " << f.z() + v_off << std::endl;
+        }
+    }
+
+    mf.close();
+}
+
+/// Utility function for merging multiple meshes.
+ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMeshConnected>& meshes) {
+    ChTriangleMeshConnected trimesh;
+    auto& vertices = trimesh.getCoordsVertices();
+    auto& normals = trimesh.getCoordsNormals();
+    auto& uvs = trimesh.getCoordsUV();
+    auto& colors = trimesh.getCoordsColors();
+    auto& idx_vertices = trimesh.getIndicesVertexes();
+    auto& idx_normals = trimesh.getIndicesNormals();
+    auto& idx_uvs = trimesh.getIndicesUV();
+    auto& idx_colors = trimesh.getIndicesColors();
+
+    int v_off = 0;
+    int n_off = 0;
+    int uv_off = 0;
+    int c_off = 0;
+    for (auto& m : meshes) {
+        {
+            vertices.insert(vertices.end(), m.getCoordsVertices().begin(), m.getCoordsVertices().end());
+            std::vector<ChVector<int>> tmp;
+            tmp.reserve(m.getIndicesVertexes().size());
+            std::transform(m.getIndicesVertexes().begin(), m.getIndicesVertexes().end(), std::back_inserter(tmp),
+                           [&v_off](ChVector<int>& a) { return a + v_off; });
+            idx_vertices.insert(idx_vertices.end(), tmp.begin(), tmp.end());
+            v_off += static_cast<int>(m.getCoordsVertices().size());
+        }
+
+        {
+            normals.insert(normals.end(), m.getCoordsNormals().begin(), m.getCoordsNormals().end());
+            std::vector<ChVector<int>> tmp;
+            tmp.reserve(m.getIndicesNormals().size());
+            std::transform(m.getIndicesNormals().begin(), m.getIndicesNormals().end(), std::back_inserter(tmp),
+                           [&n_off](ChVector<int>& a) { return a + n_off; });
+            idx_normals.insert(idx_normals.end(), tmp.begin(), tmp.end());
+            n_off += static_cast<int>(m.getCoordsNormals().size());
+        }
+
+        {
+            uvs.insert(uvs.end(), m.getCoordsUV().begin(), m.getCoordsUV().end());
+            std::vector<ChVector<int>> tmp;
+            tmp.reserve(m.getIndicesUV().size());
+            std::transform(m.getIndicesUV().begin(), m.getIndicesUV().end(), std::back_inserter(tmp),
+                           [&uv_off](ChVector<int>& a) { return a + uv_off; });
+            idx_uvs.insert(idx_uvs.end(), tmp.begin(), tmp.end());
+            uv_off += static_cast<int>(m.getCoordsUV().size());
+        }
+
+        {
+            colors.insert(colors.end(), m.getCoordsColors().begin(), m.getCoordsColors().end());
+            std::vector<ChVector<int>> tmp;
+            tmp.reserve(m.getIndicesColors().size());
+            std::transform(m.getIndicesColors().begin(), m.getIndicesColors().end(), std::back_inserter(tmp),
+                           [&c_off](ChVector<int>& a) { return a + c_off; });
+            idx_colors.insert(idx_colors.end(), tmp.begin(), tmp.end());
+            c_off += static_cast<int>(m.getCoordsColors().size());
+        }
+    }
+
+    return trimesh;
+}
 
 void ChTriangleMeshConnected::Transform(const ChVector<> displ, const ChMatrix33<> rotscale) {
     for (int i = 0; i < m_vertices.size(); ++i) {

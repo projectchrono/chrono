@@ -45,7 +45,8 @@ class ChContactTuple {
 
     ChMatrix33<> contact_plane;  ///< the plane of contact (X is normal direction)
 
-    double norm_dist;  ///< penetration distance (negative if going inside) after refining
+    double norm_dist;   ///< penetration distance (negative if going inside) after refining
+    double eff_radius;  ///< effective radius of curvature at contact
 
   public:
     //
@@ -89,6 +90,7 @@ class ChContactTuple {
         this->p2 = cinfo.vpB;
         this->normal = cinfo.vN;
         this->norm_dist = cinfo.distance;
+        this->eff_radius = cinfo.eff_radius;
 
         // Contact plane
         ChVector<> Vx, Vy, Vz;
@@ -130,6 +132,9 @@ class ChContactTuple {
 
     /// Get the contact distance
     double GetContactDistance() const { return norm_dist; }
+
+    /// Get the effective radius of curvature.
+    double GetEffectiveCurvatureRadius() const { return eff_radius; }
 
     /// Get the contact force, if computed, in contact coordinate system
     virtual ChVector<> GetContactForce() const { return ChVector<>(0); }

@@ -9,7 +9,7 @@ if(NOT ENABLE_MODULE_IRRLICHT OR NOT ENABLE_MODULE_FEA OR NOT ENABLE_MODULE_MKL)
 endif()
 
 #--------------------------------------------------------------
-# List all model files for this demo
+# List all demo programs
 
 set(DEMOS
     demo_VEH_M113_Band

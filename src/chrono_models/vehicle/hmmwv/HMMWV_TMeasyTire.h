@@ -14,6 +14,7 @@
 //
 // HMMWV TMeasy tire subsystem
 //
+// Updated: 2018-02-24
 // =============================================================================
 
 #ifndef HMMWV_TMEASY_TIRE_H
@@ -29,10 +30,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
-/// @addtogroup vehicle_models_wvp
+/// @addtogroup vehicle_models_hmmwv
 /// @{
 
-/// TMeasy tire model for the WVP vehicle.
+/// TMeasy tire model for the HMMWV.
 class CH_MODELS_API HMMWV_TMeasyTire : public ChTMeasyTire {
   public:
     HMMWV_TMeasyTire(const std::string& name);

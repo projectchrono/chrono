@@ -208,9 +208,8 @@ void ChOpenGLViewer::Render() {
             model_cylinder.clear();
             model_obj.clear();
             line_path_data.clear();
-            for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-                auto abody = physics_system->Get_bodylist()->at(i);
-                DrawObject(abody);
+            for (auto body : physics_system->Get_bodylist()) {
+                DrawObject(body);
             }
             if (model_box.size() > 0) {
                 box.Update(model_box);
@@ -241,10 +240,10 @@ void ChOpenGLViewer::Render() {
             }
 
         } else {
-            cloud_data.resize(physics_system->Get_bodylist()->size());
+            cloud_data.resize(physics_system->Get_bodylist().size());
 #pragma omp parallel for
-            for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-                auto abody = physics_system->Get_bodylist()->at(i);
+            for (int i = 0; i < physics_system->Get_bodylist().size(); i++) {
+                auto abody = physics_system->Get_bodylist().at(i);
                 ChVector<> pos = abody->GetPos();
                 cloud_data[i] = glm::vec3(pos.x(), pos.y(), pos.z());
             }

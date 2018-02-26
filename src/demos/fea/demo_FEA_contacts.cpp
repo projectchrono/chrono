@@ -64,6 +64,9 @@ int main(int argc, char* argv[]) {
     // CREATE THE PHYSICAL SYSTEM
     //
 
+    // Set default effective radius of curvature for all SCM contacts.
+    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+
     // collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemSMC
     collision::ChCollisionModel::SetDefaultSuggestedMargin(
         0.006);  // max inside penetration - if not enough stiffness in material: troubles

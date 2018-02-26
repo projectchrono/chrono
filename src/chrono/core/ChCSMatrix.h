@@ -21,8 +21,11 @@
 
 #include "chrono/core/ChAlignedAllocator.h"
 #include "chrono/core/ChSparseMatrix.h"
+#include <functional>
 
 namespace chrono {
+	/// @addtogroup chrono
+/// @{		
 
 /** \class ChSparsityPatternLearner
 \brief A dummy matrix that acquires the sparsity pattern.
@@ -112,7 +115,7 @@ class ChApi ChSparsityPatternLearner : public ChSparseMatrix {
 
 class ChApi ChCSMatrix : public ChSparseMatrix {
   private:
-    const bool row_major_format =
+    bool row_major_format =
         true;  ///< if \c true the arrays are stored according to CSR format, otherwise in CSC format
     const static int array_alignment = 64;  ///< alignment of arrays [byte]
     bool isCompressed = false;  ///< if \c true the arrays are compressed, so there is no not-initialized element
@@ -148,6 +151,7 @@ class ChApi ChCSMatrix : public ChSparseMatrix {
     /// It checks if the dimensions are consistent, but no smart choice are made here.
     void reset_arrays(int lead_dim, int trail_dim, int nonzeros);
 
+    ChCSMatrix& apply_operator(const ChCSMatrix& mat_source, std::function<void(double&, const double&)> f);
     /// (internal) Insert a non existing element in the position \a trai_i, given the row(CSR) or column(CSC) \a
     /// lead_sel
     void insert(int& trail_i, const int& lead_sel);
@@ -265,8 +269,83 @@ class ChApi ChCSMatrix : public ChSparseMatrix {
     void ImportFromDatFile(std::string filepath = "", bool row_major_format_on = true);
     /// Export data to separated file (a.dat, ia.dat, ja.dat) with the given precision \a precision.
     void ExportToDatFile(std::string filepath = "", int precision = 6) const;
+    // Math operations
+
+    /// Copy operator: make a copy of \p mat_source
+    ChCSMatrix& operator=(const ChCSMatrix& mat_source);
+
+    /// Add \p mat_source to \a this, as [this]+=[mat_source]
+    ChCSMatrix& operator+=(const ChCSMatrix& mat_source);
+
+    /// Subtract \p mat_source to \a this, as [this]-=[mat_source]
+    ChCSMatrix& operator-=(const ChCSMatrix& mat_source);
+
+    /// Multiply \a this for \p coeff, as [this]*=coeff;
+    ChCSMatrix& operator*=(const double coeff);
+
+    /// Check if \a this is equal to \p mat_source componentwise.
+    /// It allows non compressed matrices.
+    bool operator==(const ChCSMatrix& mat_source) const;
+
+    /// Multiply \a this (or \a this transposed, if \p transposeA is \c true) to \p matB and put the result in \p
+    /// mat_out
+    void MatrMultiply(const ChMatrix<double>& matB, ChMatrix<double>& mat_out, bool transposeA = false) const;
+
+    /// Multiply part of \a this (or part of \a this transposed, if \p transposeA is \c true) to \p matB and put the
+    /// result in \p mat_out. \param start_row_this first row of \a this that has to be taken into account for the
+    /// multiplication \param transposeA multiply for \a this transposed instead of \a this
+    void MatrMultiplyClipped(const ChMatrix<double>& matB,
+                             ChMatrix<double>& mat_out,
+                             int start_row_this,
+                             int end_row_this,
+                             int start_col_this,
+                             int end_col_this,
+                             int start_row_matB,
+                             int start_row_mat_out,
+                             bool transposeA = false,
+                             int start_col_matB = 0,
+                             int end_col_matB = 0,
+                             int start_col_mat_out = 0) const;
+
+    /// Apply the given function \p func to any existent and initialized element in the matrix.
+    /// To the function \p func will be passed the pointer to the existing element.
+    void ForEachExistentValue(std::function<void(double*)> func)
+    {
+        ForEachExistentValueInRange(func, 0, GetNumRows() - 1, 0, GetNumColumns() - 1);
+    }
+
+    /// Apply the given function \p func to any existent and initialized element in the matrix in the range [\p start_row, \p end_row] and [\p start_col, \p end_col].
+    /// To the function \p func will be passed the pointer to the existing element.
+    void ForEachExistentValueInRange(std::function<void(double*)> func,
+                                     int start_row,
+                                     int end_row,
+                                     int start_col,
+                                     int end_col);
+
+
+    /// Apply the given function \p func to any existent and initialized element in the matrix in the range [\p start_row, \p end_row] and [\p start_col, \p end_col].
+    /// To the function \p func will be passed by value the triplet: row index, column index, value.
+    /// The most useful way to call this function is with \code func = std::bind(foo(), other_arguments, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3); \endcode
+    /// where, in particular, \a foo() can even be a class method and \a other_arguments can also be \a this
+    void ForEachExistentValueInRange(std::function<void(int, int, double)> func,
+                                     int start_row,
+                                     int end_row,
+                                     int start_col,
+                                     int end_col) const;
+
+    /// Apply the given function \p func to any existent and initialized element in the matrix that meets the \p requirement.
+    /// To the function \p requirement will be passed by value the triplet: row index, column index, value;
+    /// only if the returned boolean is true, then the function \p func will be called as well, with the same arguments.
+    /// The most useful way to call this function is with \code func = std::bind(foo(), other_arguments, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3); \endcode
+    /// where, in particular, \a foo() can even be a class method and \a other_arguments can also be \a this
+    void ForEachExistentValueThatMeetsRequirement(std::function<void(int, int, double)> func,
+                                                  std::function<bool(int, int, double)> requirement) const;
+
+
+
 };
 
+	/// @} chrono
 };  // end namespace chrono
 
 #endif

@@ -771,14 +771,11 @@ class MyEventReceiver : public IEventReceiver {
     }
 
     void drawSprings() {
-        auto iterlink = mapp->GetSystem()->Get_linklist()->begin();
         // .. draw the spring constraints as simplified spring helix
-        iterlink = mapp->GetSystem()->Get_linklist()->begin();
-        while (iterlink != mapp->GetSystem()->Get_linklist()->end()) {
-            if (ChLinkSpring* mylinkspri = dynamic_cast<ChLinkSpring*>((*iterlink).get()))
-                ChIrrTools::drawSpring(mapp->GetVideoDriver(), 0.05, mylinkspri->GetEndPoint1Abs(),
-                                       mylinkspri->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
-            iterlink++;
+        for (auto link : mapp->GetSystem()->Get_linklist()) {
+            if (auto linkspring = std::dynamic_pointer_cast<ChLinkSpring>(link))
+                ChIrrTools::drawSpring(mapp->GetVideoDriver(), 0.05, linkspring->GetEndPoint1Abs(),
+                                       linkspring->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
         }
     }
 

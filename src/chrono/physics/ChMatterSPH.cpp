@@ -373,12 +373,9 @@ void ChMatterSPH::IntLoadResidual_F(
     // in the system,
 
     std::shared_ptr<ChProximityContainerSPH> edges;
-    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics =
-        GetSystem()->Get_otherphysicslist()->begin();
-    while (iterotherphysics != GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(*iterotherphysics)))
+    for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
+        if (edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(otherphysics))
             break;
-        iterotherphysics++;
     }
     assert(edges);  // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
     if (!edges)
@@ -487,12 +484,9 @@ void ChMatterSPH::VariablesFbLoadForces(double factor) {
     // in the system,
 
     std::shared_ptr<ChProximityContainerSPH> edges;
-    std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics =
-        GetSystem()->Get_otherphysicslist()->begin();
-    while (iterotherphysics != GetSystem()->Get_otherphysicslist()->end()) {
-        if ((edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(*iterotherphysics)))
+    for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
+        if (edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(otherphysics))
             break;
-        iterotherphysics++;
     }
     assert(edges);  // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
     if (!edges)

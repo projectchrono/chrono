@@ -195,11 +195,11 @@ void SetupSystem(ChSystemParallelNSC* msystem) {
 }
 // Sync the positions and velocities of the rigid bodies
 void Sync(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
-    for (int i = 0; i < msystem_A->Get_bodylist()->size(); i++) {
-        ChVector<> pos = msystem_B->Get_bodylist()->at(i)->GetPos();
-        ChVector<> pos_dt = msystem_B->Get_bodylist()->at(i)->GetPos_dt();
-        msystem_A->Get_bodylist()->at(i)->SetPos(pos);
-        msystem_A->Get_bodylist()->at(i)->SetPos_dt(pos_dt);
+    for (int i = 0; i < msystem_A->Get_bodylist().size(); i++) {
+        ChVector<> pos = msystem_B->Get_bodylist().at(i)->GetPos();
+        ChVector<> pos_dt = msystem_B->Get_bodylist().at(i)->GetPos_dt();
+        msystem_A->Get_bodylist().at(i)->SetPos(pos);
+        msystem_A->Get_bodylist().at(i)->SetPos_dt(pos_dt);
     }
 }
 bool CompareContacts(ChSystemParallel* msystem) {

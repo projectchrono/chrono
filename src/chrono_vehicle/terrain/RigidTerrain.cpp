@@ -220,7 +220,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     if (visualization) {
         auto box = std::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(size);
-        box->GetBoxGeometry().Pos = VNULL;
+        box->Pos = VNULL;
         patch->m_body->AddAsset(box);
     }
 

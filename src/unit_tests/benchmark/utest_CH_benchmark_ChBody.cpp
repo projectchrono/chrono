@@ -20,13 +20,13 @@ using namespace std;
 
 #define TIME(X, Y)                                \
     timer.start();                                \
-    for (int i = 0; i < body_list->size(); i++) { \
+    for (auto body : body_list) {                 \
         X;                                        \
     }                                             \
     timer.stop();                                 \
     cout << Y << timer() << endl;
 
-#define TIMEBODY(X, Y) TIME(body_list->at(i)->X, Y)
+#define TIMEBODY(X, Y) TIME(body->X, Y)
 
 int main() {
     ChTimer<double> timer, full;
@@ -41,7 +41,7 @@ int main() {
         dynamics_system.AddBody(body);
     }
 
-    std::vector<std::shared_ptr<ChBody> >* body_list = dynamics_system.Get_bodylist();
+    auto& body_list = dynamics_system.Get_bodylist();
 
     full.start();
 
@@ -62,17 +62,17 @@ int main() {
     full.stop();
     cout << "Total: " << full() << endl;
     timer.start();
-    for (int i = 0; i < body_list->size(); i++) {
-        body_list->at(i)->UpdateTime(current_time);
-        body_list->at(i)->UpdateForces(current_time);
-        body_list->at(i)->UpdateMarkers(current_time);
-        body_list->at(i)->ClampSpeed();
-        body_list->at(i)->ComputeGyro();
-        body_list->at(i)->VariablesFbReset();
-        body_list->at(i)->VariablesFbLoadForces(time_step);
-        body_list->at(i)->VariablesQbLoadSpeed();
-        body_list->at(i)->VariablesQbIncrementPosition(time_step);
-        body_list->at(i)->VariablesQbSetSpeed(time_step);
+    for (auto body : body_list) {
+        body->UpdateTime(current_time);
+        body->UpdateForces(current_time);
+        body->UpdateMarkers(current_time);
+        body->ClampSpeed();
+        body->ComputeGyro();
+        body->VariablesFbReset();
+        body->VariablesFbLoadForces(time_step);
+        body->VariablesQbLoadSpeed();
+        body->VariablesQbIncrementPosition(time_step);
+        body->VariablesQbSetSpeed(time_step);
     }
     timer.stop();
     cout << "SIngle Loop " << timer() << endl;
