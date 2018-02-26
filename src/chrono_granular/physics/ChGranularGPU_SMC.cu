@@ -21,8 +21,7 @@
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 //#include "chrono_granular/physics/ChGranularDefines.cuh"
 
-#define BLAH_BLAH_I 0
-#define NULL_GRANULAR_ID UINT_MAX
+#define NULL_GRANULAR_ID UINT_MAX-1
 
 // extern "C" __constant__ float3
 //    xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference
@@ -51,7 +50,7 @@ __constant__ unsigned int d_box_H_AD;  //!< Ad-ed H-dimension of the BD box in m
 /// subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts these
 /// indices to indices into the global SD list via the (currently local) conv[3] data structure
 /// Should be mostly bug-free, especially away from boundaries
-__device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, unsigned int* SDs) {
+__device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, unsigned int SDs[8]) {
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
     // We need to offset so that the bottom-left corner is at the origin
     int sphCenter_X_modified = (d_box_L_AD * d_SD_Ldim_AD) / 2 + sphCenter_X;
@@ -205,18 +204,23 @@ primingOperationsRectangularBox(
     mySphereID[0] = threadIdx.x + blockIdx.x * blockDim.x;
 
     touchedSD[0] = NULL_GRANULAR_ID;  // Important to seed the touchedSD w/ a "no-SD" value
-    offsetInComposite_SphInSD_Array[threadIdx.x] =
-        NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
+    offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
 
     unsigned int SDsTouched[8];
-    unsigned int dummyUINT01 = mySphereID[0];
+    unsigned int dummyUINT01;
     if (mySphereID[0] < nSpheres) {
+        dummyUINT01 = mySphereID[0];
         // Coalesced mem access
         xSphCenter = pRawDataX[dummyUINT01];
         ySphCenter = pRawDataY[dummyUINT01];
         zSphCenter = pRawDataZ[dummyUINT01];
 
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
+    }
+    else {
+        // this thread doesn't have a corresponding ball; 
+        for (dummyUINT01 = 0; dummyUINT01 < 8; dummyUINT01++)
+            SDsTouched[dummyUINT01] = NULL_GRANULAR_ID;
     }
 //    // TODO this sphere check needs to catch more, I think
 //    // I moved this function up since we do all at once
