@@ -497,6 +497,8 @@ void ChExtruderBeamIGA::Update() {
 
     if (d1 >= 0) {
 
+		//GetLog() << "Makenode........ \n";
+
         double d0 = d1 - this->h;
         ChCoordsys<> C0;
         C0.rot = outlet.rot;
@@ -510,7 +512,7 @@ void ChExtruderBeamIGA::Update() {
         node0->SetX0(ChFrame<>(C0_ref));
         mesh->AddNode(node0);
         beam_nodes.push_back(node0);
-GetLog()<< "Create node n."<< beam_nodes.size() << " at x=" << node0->GetPos().x() << " x0=" << node0->GetX0().GetPos().x() <<  "\n";
+
         beam_knots.push_back(beam_knots.back() - 1.0);
 
         actuator->Initialize(node0, ground, false, ChFrame<>(C0), ChFrame<>(C0));
@@ -518,34 +520,75 @@ GetLog()<< "Create node n."<< beam_nodes.size() << " at x=" << node0->GetPos().x
         actuator->SetMotionOffset(actuator->GetMotionOffset() - this->h);
 
         int p = this->beam_order;
+
+		// Can create the element when at least p+1 controlpoints:
+
         if (this->beam_nodes.size() > p) {
+
+			std::vector<double> beam_knots_multiplends = this->beam_knots;
+			for (int i = 0; i < p; ++i)
+				beam_knots_multiplends[beam_knots_multiplends.size() - i - 1] = beam_knots_multiplends[beam_knots_multiplends.size() - p - 1];
+
             std::vector<double > my_el_knots;
 		    for (int i_el_knot = 0; i_el_knot < p + p + 1 + 1; ++i_el_knot) 
 		    {
-			    my_el_knots.push_back(beam_knots[ beam_knots.size() - (p + p + 1 + 1) + i_el_knot ]);
+			    my_el_knots.push_back(beam_knots_multiplends[beam_knots_multiplends.size() - 1 - i_el_knot ]);
 		    }
-            //for (int i = 1; i<p+1; ++i) {
-            //   my_el_knots[my_el_knots.size()-i-1] = my_el_knots.back(); //***TEST*** just for one element, force multiple end
-            //}
+            
 		    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> my_el_nodes;
 		    for (int i_el_node = 0; i_el_node < p + 1; ++i_el_node)
 		    {
-			    my_el_nodes.push_back(this->beam_nodes[beam_nodes.size() - (p + 1) + i_el_node]);
-                if (beam_elems.size()==0) {
-                    ChVector<> rect_pos = beam_nodes.back()->GetPos() +  outlet.TransformDirectionLocalToParent( VECT_X*h*(p-i_el_node) );
-                    my_el_nodes.back()->SetPos(rect_pos);
-                }
+			    my_el_nodes.push_back(this->beam_nodes[beam_nodes.size() - 1 - i_el_node]);
 		    }
-            std::reverse(my_el_knots.begin(),my_el_knots.end()); 
-            std::reverse(my_el_nodes.begin(),my_el_nodes.end()); 
-            //***TEST***
+
+			// first element created only after p+1 nodes added: so put nodes in proper 
+			// position otherwise they shake if they felt somewhere while unconnected
+			if (beam_elems.size() == 0)
+			{
+				//GetLog() << "Adjust row \n";
+				for (int i_el_node = 0; i_el_node < p + 1; ++i_el_node)
+				{
+					ChVector<> rect_pos = beam_nodes.back()->GetPos() + outlet.TransformDirectionLocalToParent(VECT_X*h*i_el_node);
+					my_el_nodes[i_el_node]->SetPos(rect_pos);
+				}
+				// (fix singularity for single first cable?) to improve
+				//for (int i=p-1; i >=0; --i)
+				//	my_el_knots[i] = my_el_knots[p] -1;
+				//for (int i = my_el_knots.size() - p; i < my_el_knots.size(); ++i)
+				//	my_el_knots[i] = my_el_knots[i-1] +i;
+			}
+
+             // debug info
+			/*
             GetLog() << "KNOTS: "; 
             for (auto& i : my_el_knots)
-                GetLog() << " " << i; 
+                GetLog() << "   " << i; 
             GetLog() << "\nCTRLP: "; 
             for (auto& i : my_el_nodes)
-                GetLog() << "  " << i->GetPos().x() << "," << i->GetPos().z(); 
+                GetLog() << "   " << i->GetPos().x(); 
             GetLog() << "\n"; 
+			*/
+
+			// Adjust knots sequence for elements close to the one that we'll create
+			for (int i_el = 0; i_el < p+1; ++i_el) {
+				if (i_el < this->beam_elems.size() ) {
+					std::vector<double > my_el_knots_pre;
+					for (int i_el_knot = 0; i_el_knot < p + p + 1 + 1; ++i_el_knot)
+					{
+						my_el_knots_pre.push_back(beam_knots_multiplends[beam_knots_multiplends.size() - 1 - 1 - i_el - i_el_knot]);
+					}
+					/*
+					GetLog() << "pre KNOTS at previous " << i_el << ":\n";
+					for (auto& i : my_el_knots_pre)
+						GetLog() << " " << i;
+					GetLog() << "\n";
+					*/
+					for (int i = 0; i < p + p + 1 + 1; ++i) {
+						this->beam_elems[this->beam_elems.size()-1 - i_el]->GetKnotSequence()(i) = my_el_knots_pre[i];
+					}
+					this->beam_elems[this->beam_elems.size()-1 - i_el]->SetupInitial(mysystem);
+				}
+			}
 
 		    auto element = std::make_shared<ChElementBeamIGA>();
 		    element->SetNodesGenericOrder(my_el_nodes, my_el_knots, p);
@@ -555,6 +598,7 @@ GetLog()<< "Create node n."<< beam_nodes.size() << " at x=" << node0->GetPos().x
             beam_elems.push_back(element);
 
             element->SetupInitial(mysystem);
+
             // add collision model to node
             if (this->contactcloud) {
               contactcloud->AddNode(node0,this->contact_radius);
