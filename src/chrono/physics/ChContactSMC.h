@@ -163,7 +163,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         switch (contact_model) {
             case ChSystemSMC::Hooke:
                 if (use_mat_props) {
-                    double tmp_k = (16.0 / 15) * std::sqrt(eff_radius) * mat.E_eff;
+                    double tmp_k = (16.0 / 15) * std::sqrt(this->eff_radius) * mat.E_eff;
                     double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
                     double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
                     loge = (mat.cr_eff > 1 - CH_MICROTOL) ? std::log(1 - CH_MICROTOL) : loge;
@@ -183,7 +183,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
             case ChSystemSMC::Hertz:
                 if (use_mat_props) {
-                    double sqrt_Rd = std::sqrt(eff_radius * delta);
+                    double sqrt_Rd = std::sqrt(this->eff_radius * delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
@@ -193,7 +193,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
                     gt = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(St * eff_mass);
                 } else {
-                    double tmp = eff_radius * std::sqrt(delta);
+                    double tmp = this->eff_radius * std::sqrt(delta);
                     kn = tmp * mat.kn;
                     kt = tmp * mat.kt;
                     gn = tmp * eff_mass * mat.gn;
@@ -230,7 +230,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                             forceN -= mat.adhesion_eff;
                             break;
                         case ChSystemSMC::DMT:
-                            forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
+                            forceN -= mat.adhesionMultDMT_eff * sqrt(this->eff_radius);
                             break;
                     }
                     ChVector<> force = forceN * normal_dir;
@@ -272,7 +272,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                 forceN -= mat.adhesion_eff;
                 break;
             case ChSystemSMC::DMT:
-                forceN -= mat.adhesionMultDMT_eff * sqrt(eff_radius);
+                forceN -= mat.adhesionMultDMT_eff * sqrt(this->eff_radius);
                 break;
         }
 
