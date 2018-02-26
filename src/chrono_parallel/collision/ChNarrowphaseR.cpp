@@ -25,6 +25,17 @@
 namespace chrono {
 namespace collision {
 
+// Fictitious radius of curvature for collision with a corner or an edge.
+static real edge_radius = 0.1;
+
+void SetDefaultEdgeRadius(real radius) {
+    edge_radius = radius;
+}
+
+real GetDefaultEdgeRadius() {
+    return edge_radius;
+}
+
 // This is the main worker function for narrow phase check of the collision
 // between two candidate shapes.  Each candidate pair of shapes can result in
 // 0, 1, or more contacts.  For each actual contact, we calculate various

@@ -16,6 +16,7 @@
 #include <climits>
 
 #include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCCollisionInfo.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCollision.h"
@@ -203,6 +204,8 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
     ConvexShape shapeA;
     ConvexShape shapeB;
 
+    double default_eff_radius = ChCollisionInfo::GetDefaultEffectiveCurvatureRadius();
+
 #pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
@@ -211,7 +214,7 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
 
         if (MPRCollision(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
                          contactDepth[icoll])) {
-            effective_radius[icoll] = edge_radius;
+            effective_radius[icoll] = default_eff_radius;
             // The number of contacts reported by MPR is always 1.
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
         }
@@ -253,6 +256,8 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
     ConvexShape shapeA;
     ConvexShape shapeB;
 
+    double default_eff_radius = ChCollisionInfo::GetDefaultEffectiveCurvatureRadius();
+
 #pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
@@ -266,7 +271,7 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
         } else if (MPRCollision(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
                                 contactDepth[icoll])) {
-            effective_radius[icoll] = edge_radius;
+            effective_radius[icoll] = default_eff_radius;
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
         }
         // delete shapeA;

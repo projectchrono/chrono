@@ -227,6 +227,7 @@ void BoundaryContact::CheckFixedSphere(ChBody* body, const ChVector<>& center, c
     contact.vpA = s_center + contact.vN * m_radius;
     contact.vpB = center - contact.vN * m_radius;
     contact.distance = dist - 2 * m_radius;
+    contact.eff_radius = m_radius / 2;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -245,6 +246,7 @@ void BoundaryContact::CheckBottom(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(center.x(), center.y(), m_terrain->m_bottom);
     contact.vpB = ChVector<>(center.x(), center.y(), center.z() - m_radius);
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -264,6 +266,7 @@ void BoundaryContact::CheckLeft(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(center.x(), m_terrain->m_left, center.z());
     contact.vpB = ChVector<>(center.x(), center.y() + m_radius, center.z());
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -283,6 +286,7 @@ void BoundaryContact::CheckRight(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(center.x(), m_terrain->m_right, center.z());
     contact.vpB = ChVector<>(center.x(), center.y() - m_radius, center.z());
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -302,6 +306,7 @@ void BoundaryContact::CheckFront(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(m_terrain->m_front, center.y(), center.z());
     contact.vpB = ChVector<>(center.x() + m_radius, center.y(), center.z());
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -321,6 +326,7 @@ void BoundaryContact::CheckRear(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(m_terrain->m_rear, center.y(), center.z());
     contact.vpB = ChVector<>(center.x() - m_radius, center.y(), center.z());
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }

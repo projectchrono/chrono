@@ -120,9 +120,13 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
     data_manager->host_data.cpta_rigid_rigid.clear();
     data_manager->host_data.cptb_rigid_rigid.clear();
     data_manager->host_data.dpth_rigid_rigid.clear();
+    data_manager->host_data.erad_rigid_rigid.clear();
     data_manager->host_data.bids_rigid_rigid.clear();
     data_manager->num_rigid_contacts = 0;
     // mcontactcontainer->BeginAddContact();
+
+    // NOTE: Bullet does not provide information on radius of curvature at a contact point.
+    // As such, for all Bullet-identified contacts, the default value will be used (SMC only). 
     ChCollisionInfo icontact;
 
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
@@ -184,9 +188,6 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
                     if (this->narrow_callback)
                         this->narrow_callback->OnNarrowphase(icontact);
 
-                    // Add to contact container
-                    // mcontactcontainer->AddContact(icontact);
-
                     data_manager->host_data.norm_rigid_rigid.push_back(
                         real3(icontact.vN.x(), icontact.vN.y(), icontact.vN.z()));
                     data_manager->host_data.cpta_rigid_rigid.push_back(
@@ -194,6 +195,7 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
                     data_manager->host_data.cptb_rigid_rigid.push_back(
                         real3(icontact.vpB.x(), icontact.vpB.y(), icontact.vpB.z()));
                     data_manager->host_data.dpth_rigid_rigid.push_back(icontact.distance);
+                    data_manager->host_data.erad_rigid_rigid.push_back(icontact.eff_radius);
                     data_manager->host_data.bids_rigid_rigid.push_back(
                         I2(obA->getCompanionId(), obB->getCompanionId()));
                     data_manager->num_rigid_contacts++;

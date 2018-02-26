@@ -175,6 +175,7 @@ void ChSystemParallelNSC::AssembleSystem() {
         icontact.vpB =
             ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
         icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
+        icontact.eff_radius = data_manager->host_data.erad_rigid_rigid[i];
         contact_container->AddContact(icontact);
     }
     contact_container->EndAddContact();

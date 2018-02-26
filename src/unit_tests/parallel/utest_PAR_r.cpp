@@ -249,6 +249,9 @@ void test_sphere_sphere(bool sep) {
 void test_box_sphere(bool sep) {
     cout << "box_sphere" << endl;
 
+    // Fictitious radius of curvature for corners and edges
+    real edge_radius = GetDefaultEdgeRadius();
+
     // Box position and orientation fixed for all tests.
     // Rotated by 45 degrees around Z axis and shifted by sqrt(2) in X direction.
     real3 b_hdims(1.0, 2.0, 3.0);
@@ -550,6 +553,9 @@ void test_capsule_sphere() {
 void test_cylinder_sphere() {
     cout << "cylinder_sphere" << endl;
 
+    // Fictitious radius of curvature for corners and edges
+    real edge_radius = GetDefaultEdgeRadius();
+
     // Cylinder position and orientation fixed for all tests.
     // Aligned with X axis and shifted by its half-length in the X direction.
     real c_rad = 2.0;
@@ -807,6 +813,9 @@ void test_roundedcyl_sphere() {
 // =============================================================================
 
 int main() {
+
+    ////collision::SetDefaultEdgeRadius(0.2);
+
     // Utility functions
     test_snap_to_box();
     test_snap_to_cylinder();

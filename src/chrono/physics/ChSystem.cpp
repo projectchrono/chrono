@@ -499,14 +499,15 @@ bool ChSystem::ManageSleepingBodies() {
         // Callback, used to report contact points already added to the container.
         // If returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector<>& pA,             ///< get contact pA
-            const ChVector<>& pB,             ///< get contact pB
-            const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
-            const double& distance,           ///< get contact distance
-            const ChVector<>& react_forces,   ///< get react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed).
-            ChContactable* contactobjA,  ///< get model A (note: some containers may not support it and could be zero!)
-            ChContactable* contactobjB   ///< get model B (note: some containers may not support it and could be zero!)
+            const ChVector<>& pA,             // get contact pA
+            const ChVector<>& pB,             // get contact pB
+            const ChMatrix33<>& plane_coord,  // get contact plane coordsystem (A column 'X' is contact normal)
+            const double& distance,           // get contact distance
+            const double& eff_radius,         // effective radius of curvature at contact
+            const ChVector<>& react_forces,   // get react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector<>& react_torques,  // get react.torques, if rolling friction (if already computed).
+            ChContactable* contactobjA,  // get model A (note: some containers may not support it and could be zero!)
+            ChContactable* contactobjB   // get model B (note: some containers may not support it and could be zero!)
             ) override {
             if (!(contactobjA && contactobjB))
                 return true;

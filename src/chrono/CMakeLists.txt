@@ -457,6 +457,7 @@ source_group(assets FILES
 # Collision group
 
 set(ChronoEngine_collision_SOURCES
+    collision/ChCCollisionInfo.cpp
     collision/ChCCollisionModel.cpp
     collision/ChCModelBullet.cpp
     collision/ChCCollisionSystemBullet.cpp
