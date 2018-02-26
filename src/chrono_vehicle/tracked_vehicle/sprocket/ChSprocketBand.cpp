@@ -547,6 +547,7 @@ void SprocketBandContactCB::CheckTreadArcSprocketArc(std::shared_ptr<ChBody> tre
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_tooth);
     contact.distance = collision_distance;
+    ////contact.eff_radius = sprocket_arc_radius;  //// TODO: take into account tooth_arc_radius?
 
     m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -585,6 +586,7 @@ void SprocketBandContactCB::CheckSegmentCircle(std::shared_ptr<ChBody> BeltSegme
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_segement);
     contact.distance = dist - cr;
+    ////contact.eff_radius = cr;
 
     m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact);
 }

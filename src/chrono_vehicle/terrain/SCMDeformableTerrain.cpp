@@ -390,7 +390,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     // Note that pixels in a BMP start at top-left corner.
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
-    std::cout << "Load vertices..." << std::endl;
+    GetLog() << "Load vertices...\n";
     unsigned int iv = 0;
     for (int iy = nv_y - 1; iy >= 0; --iy) {
         double y = 0.5 * sizeY - iy * dy;
@@ -418,7 +418,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     // Specify triangular faces (two at a time).
     // Specify the face vertices counter-clockwise.
     // Set the normal indices same as the vertex indices.
-    std::cout << "Load faces..." << std::endl;
+    GetLog() << "Load faces...\n";
     unsigned int it = 0;
     for (int iy = nv_y - 2; iy >= 0; --iy) {
         for (int ix = 0; ix < nv_x - 1; ++ix) {
@@ -657,12 +657,16 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     // Calculate area and perimeter of each patch.
     // Calculate approximation to Beker term Kc/b.
-    //// TODO: can we do this while we assign patches?
     for (auto& p : patches) {
+        if (Bekker_Kc == 0) {
+            p.Kc_b = 0;
+            continue;
+        }
+
         utils::ChConvexHull2D ch(p.points);
         p.area = ch.GetArea();
         p.perimeter = ch.GetPerimeter();
-        if (p.points.size() == 1) {
+        if (p.area == 0) {
             p.Kc_b = 0;
         } else {
             double b = 2 * p.area / p.perimeter;

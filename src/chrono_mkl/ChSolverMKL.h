@@ -122,6 +122,10 @@ class ChSolverMKL : public ChSolver {
     double GetTimeSetup_Assembly() const { return m_timer_setup_assembly(); }
     /// Get cumulative time for Pardiso calls in Setup phase.
     double GetTimeSetup_SolverCall() const { return m_timer_setup_solvercall(); }
+    /// Return the number of calls to the solver's Setup function.
+    int GetNumSetupCalls() const { return m_setup_call; }
+    /// Return the number of calls to the solver's Setup function.
+    int GetNumSolveCalls() const { return m_solve_call; }
 
     /// Indicate whether or not the #Solve() phase requires an up-to-date problem matrix.
     /// As typical of direct solvers, the Pardiso solver only requires the matrix for its #Setup() phase.

@@ -23,6 +23,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChGlobal.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
@@ -189,7 +190,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> g_loc(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + g_hdims.z());
     auto box_pin = std::make_shared<ChBoxShape>();
     box_pin->GetBoxGeometry().Size = g_hdims;
-    box_pin->GetBoxGeometry().Pos = g_loc;
+    box_pin->Pos = g_loc;
     m_shoe->AddAsset(box_pin);
 
     // Main box
@@ -197,7 +198,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> b_loc(0, 0, 0);
     auto box_main = std::make_shared<ChBoxShape>();
     box_main->GetBoxGeometry().Size = b_hdims;
-    box_main->GetBoxGeometry().Pos = b_loc;
+    box_main->Pos = b_loc;
     m_shoe->AddAsset(box_main);
 
     // Tread box
@@ -205,7 +206,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
     ChVector<> t_loc(0, 0, (-GetWebThickness() - GetTreadThickness()) / 2);
     auto box_tread = std::make_shared<ChBoxShape>();
     box_tread->GetBoxGeometry().Size = t_hdims;
-    box_tread->GetBoxGeometry().Pos = t_loc;
+    box_tread->Pos = t_loc;
     m_shoe->AddAsset(box_tread);
 
     // Connection to first web segment
@@ -219,6 +220,25 @@ void ChTrackShoeBand::AddShoeVisualization() {
     // Create tooth meshes
     m_shoe->AddAsset(ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2));
     m_shoe->AddAsset(ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2));
+}
+
+// -----------------------------------------------------------------------------
+// Utilties for writing/exporting the tooth visualization mesh
+// -----------------------------------------------------------------------------
+void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
+    auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
+    auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
+    std::vector<geometry::ChTriangleMeshConnected> meshes = { mesh_shape1->GetMesh(), mesh_shape2->GetMesh() };
+    std::string filename = out_dir + "/" + GetTreadVisualizationMeshName() + ".obj";
+    geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
+}
+
+void ChTrackShoeBand::ExportTreadVisualizationMeshPovray(const std::string& out_dir) {
+    auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
+    auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
+    std::vector<geometry::ChTriangleMeshConnected> meshes = { mesh_shape1->GetMesh(), mesh_shape2->GetMesh() };
+    auto trimesh = geometry::ChTriangleMeshConnected::Merge(meshes);
+    utils::WriteMeshPovray(trimesh, GetTreadVisualizationMeshName(), out_dir, ChColor(1, 1, 1));
 }
 
 // -----------------------------------------------------------------------------
@@ -343,7 +363,7 @@ std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
 
     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
-
+    trimesh_shape->SetName(GetTreadVisualizationMeshName());
     return trimesh_shape;
 }
 

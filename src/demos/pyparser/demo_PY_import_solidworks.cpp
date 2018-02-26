@@ -81,10 +81,14 @@ int main(int argc, char* argv[]) {
     GetLog() << "SYSTEM ITEMS: \n";
     mphysicalSystem.ShowHierarchy(GetLog());
 
-    ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
-    while (myiter.HasItem()) {
-        GetLog() << "item:" << typeid(*myiter).name() << "\n";
-        ++myiter;
+    for (auto body : mphysicalSystem.Get_bodylist()) {
+        GetLog() << "item:" << typeid(body).name() << "\n";
+    }
+    for (auto link : mphysicalSystem.Get_linklist()) {
+        GetLog() << "item:" << typeid(link).name() << "\n";
+    }
+    for (auto ph : mphysicalSystem.Get_otherphysicslist()) {
+        GetLog() << "item:" << typeid(ph).name() << "\n";
     }
 
     // Fetch some bodies, given their names,

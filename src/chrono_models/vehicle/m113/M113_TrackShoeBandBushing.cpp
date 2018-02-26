@@ -34,10 +34,11 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 
 //// TODO: check these values
-const double M113_TrackShoeBandBushing::m_tread_mass = 18.02;
-const double M113_TrackShoeBandBushing::m_web_mass = 2.0;
-const ChVector<> M113_TrackShoeBandBushing::m_tread_inertias(0.22, 0.04, 0.25);
-const ChVector<> M113_TrackShoeBandBushing::m_web_inertias(0.01, 0.01, 0.01);
+//// Web Iyy is larger for better numerical scaling.  Actual value is closer to 4e-5 kg*m^2
+const double M113_TrackShoeBandBushing::m_tread_mass = 1.8;
+const double M113_TrackShoeBandBushing::m_web_mass = 0.33;
+const ChVector<> M113_TrackShoeBandBushing::m_tread_inertias(0.015, 0.001, 0.016);
+const ChVector<> M113_TrackShoeBandBushing::m_web_inertias(0.003, 0.001, 0.003);
 
 const double M113_TrackShoeBandBushing::m_shoe_height = 0.06;
 
@@ -61,6 +62,7 @@ const double M113_TrackShoeBandBushing::m_guide_box_offset_x = 0;
 
 const std::string M113_TrackShoeBandBushing::m_meshName = "TrackShoeBandBushing_POV_geom";
 const std::string M113_TrackShoeBandBushing::m_meshFile = "M113/TrackShoeBandBushing.obj";
+const std::string M113_TrackShoeBandBushing::m_tread_meshName = "M113_Tread";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -44,6 +44,9 @@ class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
 
     ~Generic_SimpleMapPowertrain() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "Generic_SimpleMapPowertrain"; }
+
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motorSpeed; }
 

@@ -98,13 +98,13 @@ class ChApiMkl ChMklEngine {
     // Auxiliary functions
 
     /// Set the value of the specified entry in the Pardiso parameter list.
-    void SetIparmValue(int parm_num, int value) { m_iparm[parm_num] = value; }
+    void SetIparmValue(int parm_num, MKL_INT value) { m_iparm[parm_num] = value; }
 
     /// Return the current value of the specified Pardiso parameter.
-    int GetIparmValue(int parm_num) const { return m_iparm[parm_num]; }
+    MKL_INT GetIparmValue(int parm_num) const { return m_iparm[parm_num]; }
 
     /// Get the Pardiso parameter list.
-    int* GetIparmAddress() { return m_iparm; }
+    MKL_INT* GetIparmAddress() { return m_iparm; }
 
     /// Print the current values of the Pardiso solver parameters.
     void PrintPardisoParameters() const;

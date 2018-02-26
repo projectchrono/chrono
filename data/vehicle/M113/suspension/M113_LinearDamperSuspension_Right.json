@@ -6,10 +6,10 @@
   "Suspension Arm":
   {
       "Mass":                       75.26,
-      "COM":                        [0.144, -0.12, 0.067],
+      "COM":                        [0.144, 0.12, 0.067],
       "Inertia":                    [0.37, 0.77, 0.77],
-      "Location Chassis":           [0.288, -0.12, 0.134],
-      "Location Wheel":             [0, -0.12, 0],
+      "Location Chassis":           [0.288, 0.12, 0.134],
+      "Location Wheel":             [0, 0.12, 0],
       "Radius":                     0.03
   },
 
@@ -22,8 +22,8 @@
 
   "Damper":
   {
-      "Location Chassis":           [-0.3, -0.12, 0.3],
-      "Location Arm":               [0.184, -0.12, -0.106],
+      "Location Chassis":           [-0.3, 0.12, 0.3],
+      "Location Arm":               [0.184, 0.12, -0.106],
       "Damping Coefficient":        1e2
   },
 

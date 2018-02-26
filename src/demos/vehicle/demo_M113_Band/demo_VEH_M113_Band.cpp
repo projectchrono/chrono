@@ -21,6 +21,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
@@ -79,11 +80,6 @@ bool dbg_output = false;
 
 // =============================================================================
 
-// Simple powertrain model
-std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
-
-// =============================================================================
-
 // Dummy driver class (always returns 1 for throttle, 0 for all other inputs)
 class MyDriver {
   public:
@@ -91,7 +87,6 @@ class MyDriver {
     double GetThrottle() const { return 1; }
     double GetSteering() const { return 0; }
     double GetBraking() const { return 0; }
-    double GetDisplacement() const { return 0; }
     void Synchronize(double time) {}
     void Advance(double step) {}
 };
@@ -193,9 +188,9 @@ int main(int argc, char* argv[]) {
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize();
 
-    // --------------------------------
-    // Add fixed and/or falling objects
-    // --------------------------------
+    // -------------------
+    // Add fixed obstacles
+    // -------------------
 
     AddFixedObstacles(vehicle.GetSystem());
 
@@ -275,6 +270,11 @@ int main(int argc, char* argv[]) {
 
     // Generate JSON information with available output channels
     vehicle.ExportComponentList(out_dir + "/component_list.json");
+
+    // Export visualization mesh for shoe tread body
+    auto shoe0 = std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0));
+    shoe0->WriteTreadVisualizationMesh(out_dir);
+    shoe0->ExportTreadVisualizationMeshPovray(out_dir);
 
     // ---------------
     // Simulation loop
@@ -363,7 +363,7 @@ int main(int argc, char* argv[]) {
             render_frame++;
         }
 
-        // Collect output data from modules
+        // Collect data from modules
         double throttle_input = driver.GetThrottle();
         double steering_input = driver.GetSteering();
         double braking_input = driver.GetBraking();
@@ -372,7 +372,7 @@ int main(int argc, char* argv[]) {
         vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
-        // Update modules (process inputs from other modules)
+        // Update modules (process data from other modules)
         double time = vehicle.GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);

@@ -96,38 +96,26 @@ void ChPovRay::Remove(std::shared_ptr<ChPhysicsItem> mitem) {
 }
 
 void ChPovRay::AddAll() {
-    ChSystem::IteratorBodies myiter = mSystem->IterBeginBodies();
-    while (myiter != mSystem->IterEndBodies()) {
-        this->Add((*myiter));
-        ++myiter;
+    for (auto body : mSystem->Get_bodylist()) {
+        Add(body);
     }
-    ChSystem::IteratorOtherPhysicsItems myiterp = mSystem->IterBeginOtherPhysicsItems();
-    while (myiterp != mSystem->IterEndOtherPhysicsItems()) {
-        this->Add((*myiterp));
-        ++myiterp;
+    for (auto ph : mSystem->Get_otherphysicslist()) {
+        Add(ph);
     }
-    ChSystem::IteratorLinks myiterl = mSystem->IterBeginLinks();
-    while (myiterl != mSystem->IterEndLinks()) {
-        this->Add((*myiterl));
-        ++myiterl;
+    for (auto link : mSystem->Get_linklist()) {
+        Add(link);
     }
 }
 
 void ChPovRay::RemoveAll() {
-    ChSystem::IteratorBodies myiter = mSystem->IterBeginBodies();
-    while (myiter != mSystem->IterEndBodies()) {
-        this->Remove((*myiter));
-        ++myiter;
+    for (auto body : mSystem->Get_bodylist()) {
+        Remove(body);
     }
-    ChSystem::IteratorOtherPhysicsItems myiterp = mSystem->IterBeginOtherPhysicsItems();
-    while (myiterp != mSystem->IterEndOtherPhysicsItems()) {
-        this->Remove((*myiterp));
-        ++myiterp;
+    for (auto ph : mSystem->Get_otherphysicslist()) {
+        Remove(ph);
     }
-    ChSystem::IteratorLinks myiterl = mSystem->IterBeginLinks();
-    while (myiterl != mSystem->IterEndLinks()) {
-        this->Remove((*myiterl));
-        ++myiterl;
+    for (auto link : mSystem->Get_linklist()) {
+        Remove(link);
     }
 }
 
@@ -161,23 +149,17 @@ void ChPovRay::SetupLists() {
     }
 
     // scan all items in ChSystem to see which were marked by a ChPovAsset asset
-    ChSystem::IteratorBodies myiter = mSystem->IterBeginBodies();
-    while (myiter != mSystem->IterEndBodies()) {
-        if (this->IsAdded(*myiter))
-            this->mdata.push_back(*myiter);
-        ++myiter;
+    for (auto body : mSystem->Get_bodylist()) {
+        if (IsAdded(body))
+            mdata.push_back(body);
     }
-    ChSystem::IteratorOtherPhysicsItems myiterp = mSystem->IterBeginOtherPhysicsItems();
-    while (myiterp != mSystem->IterEndOtherPhysicsItems()) {
-        if (this->IsAdded(*myiterp))
-            this->mdata.push_back(*myiterp);
-        ++myiterp;
+    for (auto ph : mSystem->Get_otherphysicslist()) {
+        if (IsAdded(ph))
+            mdata.push_back(ph);
     }
-    ChSystem::IteratorLinks myiterl = mSystem->IterBeginLinks();
-    while (myiterl != mSystem->IterEndLinks()) {
-        if (this->IsAdded(*myiterl))
-            this->mdata.push_back(*myiterl);
-        ++myiterl;
+    for (auto link : mSystem->Get_linklist()) {
+        if (IsAdded(link))
+            mdata.push_back(link);
     }
 }
 
@@ -938,6 +920,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                       const ChVector<>& pB,             // contact pB
                       const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
                       const double& distance,           // contact distance
+                      const double& eff_radius,         // effective radius of curvature at contact
                       const ChVector<>& react_forces,   // react.forces (in coordsystem 'plane_coord')
                       const ChVector<>& react_torques,  // react.torques (if rolling friction)
                       ChContactable* contactobjA,       // model A (note: could be nullptr)

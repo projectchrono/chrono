@@ -208,6 +208,7 @@ void SprocketSinglePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);
     contact.distance = m_R_diff - dist;
+    ////contact.eff_radius = m_shoe_R;  //// TODO: take into account m_gear_R?
 
     m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact);
 }

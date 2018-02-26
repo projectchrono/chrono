@@ -159,17 +159,16 @@ class BoundaryContact : public ChSystem::CustomCollisionCallback {
 
 void BoundaryContact::OnCustomCollision(ChSystem* system) {
     auto bodylist = system->Get_bodylist();
-    for (size_t i = 0; i < bodylist->size(); ++i) {
-        auto body = (*bodylist)[i].get();
+    for (auto body : bodylist) {
         auto center = body->GetPos();
         if (body->GetIdentifier() > m_terrain->m_start_id) {
-            CheckBottom(body, center);
-            CheckLeft(body, center);
-            CheckRight(body, center);
-            CheckFront(body, center);
-            CheckRear(body, center);
+            CheckBottom(body.get(), center);
+            CheckLeft(body.get(), center);
+            CheckRight(body.get(), center);
+            CheckFront(body.get(), center);
+            CheckRear(body.get(), center);
             if (m_terrain->m_rough_surface)
-                CheckFixedSpheres(body, center);
+                CheckFixedSpheres(body.get(), center);
         }
     }
 }
@@ -228,6 +227,7 @@ void BoundaryContact::CheckFixedSphere(ChBody* body, const ChVector<>& center, c
     contact.vpA = s_center + contact.vN * m_radius;
     contact.vpB = center - contact.vN * m_radius;
     contact.distance = dist - 2 * m_radius;
+    contact.eff_radius = m_radius / 2;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -246,6 +246,7 @@ void BoundaryContact::CheckBottom(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(center.x(), center.y(), m_terrain->m_bottom);
     contact.vpB = ChVector<>(center.x(), center.y(), center.z() - m_radius);
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -265,6 +266,7 @@ void BoundaryContact::CheckLeft(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(center.x(), m_terrain->m_left, center.z());
     contact.vpB = ChVector<>(center.x(), center.y() + m_radius, center.z());
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -284,6 +286,7 @@ void BoundaryContact::CheckRight(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(center.x(), m_terrain->m_right, center.z());
     contact.vpB = ChVector<>(center.x(), center.y() - m_radius, center.z());
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -303,6 +306,7 @@ void BoundaryContact::CheckFront(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(m_terrain->m_front, center.y(), center.z());
     contact.vpB = ChVector<>(center.x() + m_radius, center.y(), center.z());
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -322,6 +326,7 @@ void BoundaryContact::CheckRear(ChBody* body, const ChVector<>& center) {
     contact.vpA = ChVector<>(m_terrain->m_rear, center.y(), center.z());
     contact.vpB = ChVector<>(center.x() - m_radius, center.y(), center.z());
     contact.distance = dist - m_radius;
+    contact.eff_radius = m_radius;
 
     body->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -475,8 +480,7 @@ void GranularTerrain::Synchronize(double time) {
 
     // Count particles that must be relocated.
     unsigned int num_moved_particles = 0;
-    auto bodylist = m_ground->GetSystem()->Get_bodylist();
-    for (auto body : *bodylist) {
+    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             num_moved_particles++;
         }
@@ -496,7 +500,7 @@ void GranularTerrain::Synchronize(double time) {
 
     // Relocate particles at their new locations.
     size_t ip = 0;
-    for (auto body : *bodylist) {
+    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             body->SetPos(new_points[ip++]);
             body->SetPos_dt(m_init_part_vel);
@@ -516,9 +520,8 @@ void GranularTerrain::Synchronize(double time) {
 }
 
 double GranularTerrain::GetHeight(double x, double y) const {
-    auto bodylist = m_ground->GetSystem()->Get_bodylist();
     double highest = m_bottom;
-    for (auto body : *bodylist) {
+    for (auto body : m_ground->GetSystem()->Get_bodylist()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().z() > highest)
             highest = body->GetPos().z();
     }

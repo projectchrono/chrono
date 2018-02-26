@@ -171,7 +171,22 @@ int main(int argc, char* argv[]) {
     extruder->SetContact( mysurfmaterial,  // the NSC material for contact surfaces
                           1.15*wire_diameter*0.5  // the radius of the collision spheres at the nodes, (enlarge 15%)
                           );
-                          
+/*
+    auto extruder2 = std::make_shared<ChExtruderBeamIGA>(
+            &my_system,                 // the physical system 
+            my_mesh,                    // the mesh where to add the beams
+            msection,                   // section for created beam
+            0.020,                        // beam element length (size of discretization: the smaller, the more precise)
+            ChCoordsys<>(ChVector<>(0,0,0.1)), // outlet coordinate system (x axis is the extrusion dir)
+            0.04,                        // the extrusion speed
+            3                            // the order of beams
+            );
+
+    // Enable collision for extruded beam
+    extruder2->SetContact( mysurfmaterial,  // the NSC material for contact surfaces
+                          1.15*wire_diameter*0.5  // the radius of the collision spheres at the nodes, (enlarge 15%)
+                          );
+*/                         
     //
     // Add some other beams 
     //
@@ -309,6 +324,7 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         extruder->Update();    //***REMEMBER*** to do this to update the extrusion
+        //extruder2->Update();    //***REMEMBER*** to do this to update the extrusion
 
         application.EndScene();
     }

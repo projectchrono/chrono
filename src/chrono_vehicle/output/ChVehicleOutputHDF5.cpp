@@ -305,7 +305,7 @@ ChVehicleOutputHDF5::~ChVehicleOutputHDF5() {
     delete m_linspring_type;
     delete m_rotspring_type;
 
-    std::cout << "OK.  Closing output HDF5 file." << std::endl;
+    GetLog() << "Closing output HDF5 file.\n";
 }
 
 // -----------------------------------------------------------------------------

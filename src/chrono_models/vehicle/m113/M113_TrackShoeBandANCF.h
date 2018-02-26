@@ -106,6 +106,9 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
     /// Return the thickness of the tread below the web area (tread pad for ground contact)
     virtual double GetTreadThickness() const override { return m_tread_thickness; }
 
+    /// Specify the name assigned to the procedurally-generated tread body visualization mesh.
+    virtual const std::string& GetTreadVisualizationMeshName() const override { return m_tread_meshName; }
+
   private:
     static const double m_tread_mass;
     static const ChVector<> m_tread_inertias;
@@ -132,8 +135,9 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
     static const ChVector<> m_guide_box_dims;
     static const double m_guide_box_offset_x;
 
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
+    static const std::string m_meshName;        // name for tread visualization mesh read from OBJ file
+    static const std::string m_meshFile;        // name of OBJ file with tread visualization mesh
+    static const std::string m_tread_meshName;  // name for procedurally-generated tread visualization mesh
 };
 
 /// @} vehicle_models_m113

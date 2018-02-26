@@ -9,18 +9,18 @@
 #define ChApi  
 
 
-// HACK to deal with SWIG changing references to pointers
-%extend chrono::ChQuaternion<double> {
-	double e0() {return self->e0();}
-	double e1() {return self->e1();}
-	double e2() {return self->e2();}
-	double e3() {return self->e3();}
-};
-
-%ignore chrono::ChQuaternion<double>::e0();
-%ignore chrono::ChQuaternion<double>::e1();
-%ignore chrono::ChQuaternion<double>::e2();
-%ignore chrono::ChQuaternion<double>::e3();
+// Hack to avoid problems with .e0() .e1() .e2() .e3 that work with references. 
+// This is not straightforward in SWIG. So access them as .e0 .e1 .e2 .e3 attributes 
+// using the following workaround (NOTE! must happen before calling %include)
+%include <attribute.i>
+%attributeref(chrono::ChQuaternion<double>, double, e0);
+%attributeref(chrono::ChQuaternion<double>, double, e1);
+%attributeref(chrono::ChQuaternion<double>, double, e2);
+%attributeref(chrono::ChQuaternion<double>, double, e3);
+%attributeref(chrono::ChQuaternion<float>, float, e0);
+%attributeref(chrono::ChQuaternion<float>, float, e1);
+%attributeref(chrono::ChQuaternion<float>, float, e2);
+%attributeref(chrono::ChQuaternion<float>, float, e3);
 
 
 /* Parse the header file to generate wrappers */

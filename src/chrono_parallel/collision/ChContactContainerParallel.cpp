@@ -95,6 +95,7 @@ void ChContactContainerParallel::AddContact(const collision::ChCollisionInfo& mc
         data_manager->host_data.cpta_rigid_rigid.push_back(real3(mcontact.vpA.x(), mcontact.vpA.y(), mcontact.vpA.z()));
         data_manager->host_data.cptb_rigid_rigid.push_back(real3(mcontact.vpB.x(), mcontact.vpB.y(), mcontact.vpB.z()));
         data_manager->host_data.dpth_rigid_rigid.push_back(mcontact.distance);
+        data_manager->host_data.erad_rigid_rigid.push_back(mcontact.eff_radius);
         data_manager->host_data.bids_rigid_rigid.push_back(
             vec2(((ChBody*)(mcontact.modelA->GetPhysicsItem()))->GetId(),
                  ((ChBody*)(mcontact.modelB->GetPhysicsItem()))->GetId()));
@@ -112,11 +113,12 @@ void ChContactContainerParallel::ReportAllContacts(ReportContactCallback* callba
     auto& ptB = data_manager->host_data.cptb_rigid_rigid;
     auto& nrm = data_manager->host_data.norm_rigid_rigid;
     auto& depth = data_manager->host_data.dpth_rigid_rigid;
+    auto& erad = data_manager->host_data.erad_rigid_rigid;
     auto& bids = data_manager->host_data.bids_rigid_rigid;
 
     // Grab the list of bodies.
     // NOTE: we assume that bodies were added in the order of their IDs!
-    auto bodylist = *GetSystem()->Get_bodylist();
+    auto bodylist = GetSystem()->Get_bodylist();
 
     // No reaction forces or torques reported!
     ChVector<> zero(0, 0, 0);
@@ -131,8 +133,9 @@ void ChContactContainerParallel::ReportAllContacts(ReportContactCallback* callba
         contact_plane.Set_A_axis(plane_x, plane_y, plane_z);
 
         // Invoke callback function
-        bool proceed = callback->OnReportContact(ToChVector(ptA[i]), ToChVector(ptB[i]), contact_plane, depth[i], zero,
-                                                 zero, bodylist[bids[i].x].get(), bodylist[bids[i].y].get());
+        bool proceed =
+            callback->OnReportContact(ToChVector(ptA[i]), ToChVector(ptB[i]), contact_plane, depth[i], erad[i], zero,
+                                      zero, bodylist[bids[i].x].get(), bodylist[bids[i].y].get());
         if (!proceed)
             break;
     }

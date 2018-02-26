@@ -260,14 +260,14 @@ int main(int argc, char* argv[]) {
     belement1->GetStateBlock(displ);
     GetLog() << displ;
     for (double eta = -1; eta <= 1; eta += 0.4) {
-        belement1->EvaluateSectionForceTorque(eta, displ, F, M);
+        belement1->EvaluateSectionForceTorque(eta, F, M);
         GetLog() << "  b1_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
                  << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
     }
     GetLog() << "\n";
     belement2->GetStateBlock(displ);
     for (double eta = -1; eta <= 1; eta += 0.4) {
-        belement2->EvaluateSectionForceTorque(eta, displ, F, M);
+        belement2->EvaluateSectionForceTorque(eta, F, M);
         GetLog() << "  b2_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
                  << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
     }

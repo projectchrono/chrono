@@ -1270,6 +1270,8 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
     // This should remove all old contacts (or at least rewind the index)
     mcontactcontainer->BeginAddContact();
 
+    // NOTE: Bullet does not provide information on radius of curvature at a contact point.
+    // As such, for all Bullet-identified contacts, the default value will be used (SMC only). 
     ChCollisionInfo icontact;
 
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();

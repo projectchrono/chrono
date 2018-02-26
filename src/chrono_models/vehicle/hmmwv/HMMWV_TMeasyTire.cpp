@@ -46,8 +46,9 @@ HMMWV_TMeasyTire::HMMWV_TMeasyTire(const std::string& name) : ChTMeasyTire(name)
 // -----------------------------------------------------------------------------
 void HMMWV_TMeasyTire::SetTMeasyParams() {
     // Tire Size = 37 x 12.5 x 16.5 Load Range D
-    // weight per tire aprox. 10000 N -> LI = 108
-
+    // Tire Load 3850 lbs at 50 psi (Goodyear Military Tire Brochure 6th Edition)
+    
+    const double lbs2N = 4.4482216153;
     unsigned int li = 108;  // guessed from load spec. of the vehicle
     const double in2m = 0.0254;
     double h = (37.0 - 16.5) * in2m / 2.0;
@@ -55,10 +56,12 @@ void HMMWV_TMeasyTire::SetTMeasyParams() {
     double r = h / w;
     double rimdia = 16.5 * in2m;
 
-    GuessTruck80Par(li,     // load index
-                    w,      // tire width
-                    r,      // aspect ratio
-                    rimdia  // rim diameter
+    double load = 3850.0 * lbs2N;
+    
+    GuessTruck80Par(load,   // tire load [N]
+                    w,      // tire width [m]
+                    r,      // aspect ratio []
+                    rimdia  // rim diameter [m]
     );
 }
 

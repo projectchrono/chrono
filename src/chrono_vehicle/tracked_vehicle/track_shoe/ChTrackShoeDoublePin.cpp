@@ -220,13 +220,13 @@ void ChTrackShoeDoublePin::AddShoeVisualization() {
     // Render the pad contact box
     auto box_shoe = std::make_shared<ChBoxShape>();
     box_shoe->GetBoxGeometry().SetLengths(pad_box_dims);
-    box_shoe->GetBoxGeometry().Pos = GetPadBoxLocation();
+    box_shoe->Pos = GetPadBoxLocation();
     m_shoe->AddAsset(box_shoe);
 
     // Render the guiding pin contact box
     auto box_pin = std::make_shared<ChBoxShape>();
     box_pin->GetBoxGeometry().SetLengths(guide_box_dims);
-    box_pin->GetBoxGeometry().Pos = GetGuideBoxLocation();
+    box_pin->Pos = GetGuideBoxLocation();
     m_shoe->AddAsset(box_pin);
 
     auto col = std::make_shared<ChColorAsset>();
@@ -258,7 +258,7 @@ void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> con
 
     auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
-    box->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
+    box->Pos = ChVector<>(0, 0, 0);
     connector->AddAsset(box);
 
     auto col = std::make_shared<ChColorAsset>();

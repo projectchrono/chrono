@@ -30,7 +30,7 @@ ChLineNurbs::ChLineNurbs(int morder,                ///< order p: 1= linear, 2=q
                 ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform. 
                 ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1. 
                 ) {
-    this->SetupData(1, mpoints, mknots, weights);
+    this->SetupData(morder, mpoints, mknots, weights);
 }
 
 ChLineNurbs::ChLineNurbs(const ChLineNurbs& source) : ChLine(source) {

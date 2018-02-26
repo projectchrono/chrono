@@ -41,6 +41,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
                                  const ChVector<>& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
+                                 const double& eff_radius,
                                  const ChVector<>& cforce,
                                  const ChVector<>& ctorque,
                                  ChContactable* modA,
@@ -51,20 +52,22 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
         // Check if contact involves box1
         if (modA == m_box1.get()) {
             printf("  contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f\n", frc.x(), frc.y(), frc.z());
+            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
         } else if (modB == m_box1.get()) {
             printf("  contact on Box 1 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f\n", frc.x(), frc.y(), frc.z());
+            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
         }
 
         // Check if contact involves box2
         if (modA == m_box2.get()) {
             printf("  contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pA.x(), pA.y(), pA.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f\n", frc.x(), frc.y(), frc.z());
+            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
         } else if (modB == m_box2.get()) {
             printf("  contact on Box 2 at pos: %7.3f  %7.3f  %7.3f", pB.x(), pB.y(), pB.z());
-            printf("  frc: %7.3f  %7.3f  %7.3f\n", frc.x(), frc.y(), frc.z());
+            printf("  frc: %7.3f  %7.3f  %7.3f", frc.x(), frc.y(), frc.z());
         }
+
+        printf("  penetration: %8.4f   eff. radius: %7.3f\n", distance, eff_radius);
 
         return true;
     }
@@ -109,6 +112,9 @@ int main(int argc, char* argv[]) {
     system.SetMaxItersSolverSpeed(100);
     system.SetTol(0);
     system.SetTolForce(0);
+
+    // Change default collision effective raiuds of curvature
+    ////collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // ----------
     // Add bodies

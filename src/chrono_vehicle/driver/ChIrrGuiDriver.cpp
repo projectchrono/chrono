@@ -58,34 +58,33 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleIrrApp& app)
     /// Activates joysticks, if available
     app.GetDevice()->activateJoysticks(joystickInfo);
     if (joystickInfo.size() > 0) {
-        std::cout << "Joystick support is enabled and " << joystickInfo.size() << " joystick(s) are present."
-                  << std::endl;
+        GetLog() << "Joystick support is enabled and " << joystickInfo.size() << " joystick(s) are present.\n";
         m_mode = JOYSTICK;
         for (u32 joystick = 0; joystick < joystickInfo.size(); ++joystick) {
-            std::cout << "Joystick " << joystick << ":" << std::endl;
-            std::cout << "\tName: '" << joystickInfo[joystick].Name.c_str() << "'" << std::endl;
-            std::cout << "\tAxes: " << joystickInfo[joystick].Axes << std::endl;
-            std::cout << "\tButtons: " << joystickInfo[joystick].Buttons << std::endl;
+            GetLog() << "Joystick " << joystick << ":\n";
+            GetLog() << "\tName: '" << joystickInfo[joystick].Name.c_str() << "'\n";
+            GetLog() << "\tAxes: " << joystickInfo[joystick].Axes << "\n";
+            GetLog() << "\tButtons: " << joystickInfo[joystick].Buttons << "\n";
 
-            std::cout << "\tHat is: ";
+            GetLog() << "\tHat is: ";
 
             switch (joystickInfo[joystick].PovHat) {
                 case SJoystickInfo::POV_HAT_PRESENT:
-                    std::cout << "present" << std::endl;
+                    GetLog() << "present\n";
                     break;
 
                 case SJoystickInfo::POV_HAT_ABSENT:
-                    std::cout << "absent" << std::endl;
+                    GetLog() << "absent\n";
                     break;
 
                 case SJoystickInfo::POV_HAT_UNKNOWN:
                 default:
-                    std::cout << "unknown" << std::endl;
+                    GetLog() << "unknown\n";
                     break;
             }
         }
     } else {
-        std::cout << "Joystick support is not enabled." << std::endl;
+        GetLog() << "Joystick support is not enabled.\n";
     }
 }
 
