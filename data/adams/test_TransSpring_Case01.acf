@@ -1,8 +1,0 @@
-test_TransSpring_Case01.adm
-test_TransSpring_Case01_ADAMS
-output/noseparator
-integrator/gstiff, &
-	error = 1.0e-4, hmax=1e-5
-simulate/transient, &
-	end=5.0, dtout=1.0E-002
-stop
