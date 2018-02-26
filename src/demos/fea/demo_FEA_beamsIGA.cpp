@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     // Example B: Automatic creation of the nodes and knots 
     // using the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements: 
     //
-    
+ /*   
     ChBuilderBeamIGA builder;
     builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
                             msection,           // section of the beam
@@ -126,13 +126,13 @@ int main(int argc, char* argv[]) {
     builder.GetLastBeamNodes().front()->SetFixed(true);
     builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-2,0));
     //builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(0,0, 1.2));
-
+*/
     //
     // Example C: Automatic creation of the nodes and knots using the 
     // ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
     //
 
-	/*
+	
 	ChBuilderBeamIGA builderR;
 
     std::vector< ChVector<> > my_points = { {0,0,0.2}, {0,0,0.3}, { 0,-0.01,0.4 } , {0,-0.04,0.5}, {0,-0.1,0.6} };
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 	auto myjoint = std::make_shared<ChLinkMateFix>();
 	myjoint->Initialize(builderR.GetLastBeamNodes().back(), mbodywing);
 	my_system.Add(myjoint);
-	*/
+	
 
     //
     // Final touches..
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     //****TEST**** do a linear static analysis:
 
     application.GetSystem()->DoStaticLinear();
-
+/*
     GetLog() << "\n\n\ TEST LINEAR STATIC: \n  tip displacement y = " 
              << builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y()
              << "\n"
@@ -251,12 +251,12 @@ int main(int argc, char* argv[]) {
 
     ChStreamOutAsciiFile my_file("output.txt");
     my_file << builder.GetLastBeamNodes().back()->GetPos().x() << "  " << builder.GetLastBeamNodes().back()->GetPos().y() << "\n";
-
+*/
     GetLog() << "Press SPACE bar to start/stop dynamic simulation \n\n";
     GetLog() << "Press F10 for nonlinear static solution \n\n";
     GetLog() << "Press F11 for linear static solution \n\n";
 
-    application.SetPaused(true);
+    //application.SetPaused(true);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
