@@ -35,7 +35,8 @@ namespace fea {
 /// Note: each IGA element represents one "knot span" of the spline!
 
 class  ChElementBeamIGA :   public ChElementBeam,
-                            public ChLoadableU
+                            public ChLoadableU,
+							public ChLoadableUVW
 {
   protected:
 
@@ -259,11 +260,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
 			// Jacobian Jue = du/deta
 			double Jue = c1;
 
-			ChState      state_x(this->LoadableGet_ndof_x(), nullptr);
-			ChStateDelta state_w(this->LoadableGet_ndof_w(), nullptr);
-			this->LoadableGetStateBlock_x(0, state_x);
-			this->LoadableGetStateBlock_w(0, state_w);
-
 			// interpolate rotation of section at given u, to compute R.
 			// Note: this is approximate.
 			// A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
@@ -272,13 +268,13 @@ class  ChElementBeamIGA :   public ChElementBeam,
 			ChVector<> delta_rot_dir;
 			double delta_rot_angle;
 			for (int i = 0; i< nodes.size(); ++i) {
-				ChQuaternion<> q_i = state_x.ClipQuaternion(i * 7 + 3, 0);
-				q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
+				ChQuaternion<> q_i = nodes[i]->GetX0ref().GetRot(); // state_x.ClipQuaternion(i * 7 + 3, 0);
+				q_delta = nodes[0]->GetX0ref().GetRot().GetConjugate() * q_i;
 				q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
 				da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
 			}
 			ChQuaternion<> qda; qda.Q_from_Rotv(da);
-			ChQuaternion<> qR = nodes[0]->coord.rot * qda;
+			ChQuaternion<> qR = nodes[0]->GetX0ref().GetRot() * qda;
 
 			// compute the 3x3 rotation matrix R equivalent to quaternion above
 			ChMatrix33<> R(qR);
@@ -286,7 +282,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 			// compute abs. spline gradient r'  = dr/ds
 			ChVector<> dr;
 			for (int i = 0; i< nodes.size(); ++i) {
-				ChVector<> r_i = state_x.ClipVector(i * 7, 0);
+				ChVector<> r_i = nodes[i]->GetX0().GetPos();
 				dr += r_i * N(1, i);  // dr/du = N_i'*r_i
 			}
 			// (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
@@ -296,7 +292,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 			// But.. easier to compute local gradient of spin vector a' = da/ds
 			da = VNULL;
 			for (int i = 0; i< nodes.size(); ++i) {
-				ChQuaternion<> q_i = state_x.ClipQuaternion(i * 7 + 3, 0);
+				ChQuaternion<> q_i = nodes[i]->GetX0ref().GetRot();
 				q_delta = qR.GetConjugate() * q_i;
 				q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
 				da += delta_rot_dir * delta_rot_angle * N(1, i);  // da/du = N_i'*a_i
@@ -310,8 +306,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 			// compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
 			this->strain_k_0[ig] = da;
         }
-
-        this->mass = this->length * this->section->density;
+        this->mass = this->length * this->section->Area * this->section->density;
     }
 
 
@@ -812,9 +807,25 @@ class  ChElementBeamIGA :   public ChElementBeam,
         }
     }
 
+	/// Evaluate N'*F , where N is some type of shape function
+	/// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
+	/// F is a load, N'*F is the resulting generalized load
+	/// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+	virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
+		const double V,              ///< parametric coordinate in volume
+		const double W,              ///< parametric coordinate in volume
+		ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+		double& detJ,                ///< Return det[J] here
+		const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
+		ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+		ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+	) override {
+		this->ComputeNF(U, Qi, detJ, F, state_x, state_w);
+		detJ /= 4.0;  // because volume
+	}
 
-
-
+	/// This is needed so that it can be accessed by ChLoaderVolumeGravity
+	virtual double GetDensity() override { return this->section->Area * this->section->density; }
 };
 
 /// @} fea_elements
