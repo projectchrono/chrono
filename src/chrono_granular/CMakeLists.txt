@@ -69,7 +69,7 @@ message ( ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VER
     SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
   ENDIF()
 
-  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50)
+  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_35,code=sm_35)
   message( "Dan 2 Flags are " ${CUDA_NVCC_FLAGS})
   #INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
   #SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
