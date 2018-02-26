@@ -63,18 +63,19 @@ namespace chrono {
         /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
         virtual void partition_BD() = 0;
         virtual void copyCONSTdata_to_device() = 0;
+        virtual void setup_simulation() = 0;
+        virtual void cleanup_simulation() = 0;
 
     public:
         ChGRN_DE_Container()
             : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0),
-            p_d_CM_X(nullptr), p_d_CM_Y(nullptr), p_d_CM_Z(nullptr), p_d_CM_XDOT(nullptr), p_d_CM_YDOT(nullptr), p_d_CM_ZDOT(nullptr) {}
+            p_d_CM_X(nullptr), p_d_CM_Y(nullptr), p_d_CM_Z(nullptr), p_d_CM_XDOT(nullptr), p_d_CM_YDOT(nullptr), p_d_CM_ZDOT(nullptr),
+            p_device_SD_NumOf_DEs_Touching(nullptr), p_device_DEs_in_SD_composite(nullptr){}
 
-        ~ChGRN_DE_Container();
+        ~ChGRN_DE_Container() {}
 
         inline unsigned int elementCount() const { return nDEs; }
-
         inline unsigned int get_SD_count() const { return nSDs; }
-
         virtual void generate_DEs() = 0;
     };
 
@@ -124,7 +125,6 @@ namespace chrono {
         ~ChGRN_DE_MONODISP_SPH_IN_BOX_SMC() {}
 
         virtual void settle(float t_end) = 0;
-        virtual void setup_simulation() = 0;
         void setBOXdims(float L_DIM, float D_DIM, float H_DIM) { box_L = L_DIM; box_D = D_DIM; box_H = H_DIM;}
         inline void YoungModulus_SPH2SPH(float someValue) { modulusYoung_SPH2SPH = someValue; }
         inline void YoungModulus_SPH2WALL(float someValue) { modulusYoung_SPH2WALL = someValue; }
@@ -140,6 +140,8 @@ namespace chrono {
     protected:
         virtual void copyCONSTdata_to_device();
 
+        virtual void cleanup_simulation();
+
     public:
         ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH, float density): ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, density) {}
 
@@ -147,10 +149,8 @@ namespace chrono {
 
         virtual void setup_simulation(); //!< set up data structures and carry out pre-processing tasks
         virtual void settle(float t_end);
-
-
-
         virtual void generate_DEs();
+
     };
 
 }  // namespace chrono

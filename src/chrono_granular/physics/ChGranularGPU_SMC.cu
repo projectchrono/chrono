@@ -57,7 +57,7 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
     int sphCenter_X_modified = (d_box_L_AD * d_SD_Ldim_AD) / 2 + sphCenter_X;
     int sphCenter_Y_modified = (d_box_D_AD * d_SD_Ddim_AD) / 2 + sphCenter_Y;
     int sphCenter_Z_modified = (d_box_H_AD * d_SD_Hdim_AD) / 2 + sphCenter_Z;
-    unsigned int n[3];
+    int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
     // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
@@ -208,71 +208,73 @@ primingOperationsRectangularBox(
     offsetInComposite_SphInSD_Array[threadIdx.x] =
         NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
 
+    unsigned int SDsTouched[8];
     unsigned int dummyUINT01 = mySphereID[0];
     if (mySphereID[0] < nSpheres) {
         // Coalesced mem access
         xSphCenter = pRawDataX[dummyUINT01];
         ySphCenter = pRawDataY[dummyUINT01];
         zSphCenter = pRawDataZ[dummyUINT01];
-    }
-    // TODO this sphere check needs to catch more, I think
-    // I moved this function up since we do all at once
-    unsigned int SDsTouched[8];
-    if (mySphereID[0] < nSpheres)
+
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
-
-    // Each sphere can at most touch 8 SDs; we'll need to take 8 trips then.
-    for (int i = 0; i < 8; i++) {
-        // TODO we need to catch NULL_GRANULAR_ID somewhere around here
-        touchedSD[0] = SDsTouched[i];
-
-        // Amongst all threads, is there any SD touched at this level? Use a CUB reduce operation to find out
-        dummyUINT01 = BlockReduce(temp_storage_reduce).Reduce(touchedSD[0], cub::Min());
-
-        if (dummyUINT01 != NULL_GRANULAR_ID) {
-            // Note that there is no thread divergence in this "if" since all threads see the same value (returned by
-            // CUB) Processing sphere-in-SD events at level "i". Do a key-value sort to group together the like-SDs
-            BlockRadixSortOP(temp_storage_sort).Sort(touchedSD, mySphereID);
-
-            // Figure our where each SD starts and ends in the sequence of SDs
-            Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, touchedSD, cub::Inequality());
-
-            // Place data in shared memory since it needs to be accessed by other threads
-            shMem_head_flags[threadIdx.x] = head_flags[0];
-            __syncthreads();
-
-            // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS sphres. There will
-            // be some thread divergence here.
-            if (head_flags[0]) {
-                // This is the beginning of a sequence with a new ID
-                dummyUINT01 = 0;
-                do {
-                    dummyUINT01++;
-                } while (threadIdx.x + dummyUINT01 < CUB_THREADS && !(shMem_head_flags[threadIdx.x + dummyUINT01]));
-
-                // if (touchedSD[0] >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
-                //     printf("invalid SD index %u on thread %u\n", mySphereID[0], touchedSD[0]);
-                // }
-                // TODO this line causes an error later -- I think we're trashing our device heap
-                // We need to check for NULL_GRANULAR_ID
-
-                // Overwrite touchedSD[0], it ended its purpose upon call to atomicAdd
-                touchedSD[0] = atomicAdd(SD_countsOfSheresTouching + touchedSD[0], dummyUINT01);
-                // touchedSD[0] now gives offset in the composite array
-
-                // Next, overwrite mySphereID, this was needed only to make CUB happy; it contains now the length of the
-                // streak for this SD
-                mySphereID[0] = dummyUINT01;
-                for (dummyUINT01 = 0; dummyUINT01 < mySphereID[0]; dummyUINT01++)
-                    offsetInComposite_SphInSD_Array[threadIdx.x + dummyUINT01] = touchedSD[0]++;
-            }
-
-            __syncthreads();
-            spheres_in_SD_composite[threadIdx.x] = offsetInComposite_SphInSD_Array[threadIdx.x];
-            // At the beginning of a new trip, for a new "i", start anew
-            offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;
-        }  // End of scenarios when this "i" trip had work to do
-    }      // End of the eight trips
+    }
+//    // TODO this sphere check needs to catch more, I think
+//    // I moved this function up since we do all at once
+//    unsigned int SDsTouched[8];
+//    if (mySphereID[0] < nSpheres)   
+//
+//    // Each sphere can at most touch 8 SDs; we'll need to take 8 trips then.
+//    for (int i = 0; i < 8; i++) {
+//        // TODO we need to catch NULL_GRANULAR_ID somewhere around here
+//        touchedSD[0] = SDsTouched[i];
+//
+//        // Amongst all threads, is there any SD touched at this level? Use a CUB reduce operation to find out
+//        dummyUINT01 = BlockReduce(temp_storage_reduce).Reduce(touchedSD[0], cub::Min());
+//
+//        if (dummyUINT01 != NULL_GRANULAR_ID) {
+//            // Note that there is no thread divergence in this "if" since all threads see the same value (returned by
+//            // CUB) Processing sphere-in-SD events at level "i". Do a key-value sort to group together the like-SDs
+//            BlockRadixSortOP(temp_storage_sort).Sort(touchedSD, mySphereID);
+//
+//            // Figure our where each SD starts and ends in the sequence of SDs
+//            Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, touchedSD, cub::Inequality());
+//
+//            // Place data in shared memory since it needs to be accessed by other threads
+//            shMem_head_flags[threadIdx.x] = head_flags[0];
+//            __syncthreads();
+//
+//            // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS sphres. There will
+//            // be some thread divergence here.
+//            if (head_flags[0]) {
+//                // This is the beginning of a sequence with a new ID
+//                dummyUINT01 = 0;
+//                do {
+//                    dummyUINT01++;
+//                } while (threadIdx.x + dummyUINT01 < CUB_THREADS && !(shMem_head_flags[threadIdx.x + dummyUINT01]));
+//
+//                // if (touchedSD[0] >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
+//                //     printf("invalid SD index %u on thread %u\n", mySphereID[0], touchedSD[0]);
+//                // }
+//                // TODO this line causes an error later -- I think we're trashing our device heap
+//                // We need to check for NULL_GRANULAR_ID
+//
+//                // Overwrite touchedSD[0], it ended its purpose upon call to atomicAdd
+//                touchedSD[0] = atomicAdd(SD_countsOfSheresTouching + touchedSD[0], dummyUINT01);
+//                // touchedSD[0] now gives offset in the composite array
+//
+//                // Next, overwrite mySphereID, this was needed only to make CUB happy; it contains now the length of the
+//                // streak for this SD
+//                mySphereID[0] = dummyUINT01;
+//                for (dummyUINT01 = 0; dummyUINT01 < mySphereID[0]; dummyUINT01++)
+//                    offsetInComposite_SphInSD_Array[threadIdx.x + dummyUINT01] = touchedSD[0]++;
+//            }
+//
+//            __syncthreads();
+//            spheres_in_SD_composite[threadIdx.x] = offsetInComposite_SphInSD_Array[threadIdx.x];
+//            // At the beginning of a new trip, for a new "i", start anew
+//            offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;
+//        }  // End of scenarios when this "i" trip had work to do
+//    }      // End of the eight trips
 }
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
@@ -303,5 +305,6 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
 
+    cleanup_simulation();
     return;
 }

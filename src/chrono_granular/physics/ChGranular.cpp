@@ -22,7 +22,7 @@
 template <int>
 __global__ void primingOperationsRectangularBox(int*, int*, int*, unsigned int*, unsigned int*, unsigned int);
 
-chrono::ChGRN_DE_Container::~ChGRN_DE_Container() {
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation() {
     // Handle position level information
     if (p_d_CM_X != nullptr) {
         gpuErrchk(cudaFree(p_d_CM_X));
@@ -49,6 +49,16 @@ chrono::ChGRN_DE_Container::~ChGRN_DE_Container() {
     if (p_d_CM_ZDOT != nullptr) {
         gpuErrchk(cudaFree(p_d_CM_ZDOT));
         p_d_CM_ZDOT = nullptr;
+    }
+
+    // Handle other memory allocated 
+    if (p_device_SD_NumOf_DEs_Touching != nullptr) {
+        gpuErrchk(cudaFree(p_device_SD_NumOf_DEs_Touching));
+        p_device_SD_NumOf_DEs_Touching = nullptr;
+    }
+    if (p_device_DEs_in_SD_composite != nullptr) {
+        gpuErrchk(cudaFree(p_device_DEs_in_SD_composite));
+        p_device_DEs_in_SD_composite = nullptr;
     }
 }
 
