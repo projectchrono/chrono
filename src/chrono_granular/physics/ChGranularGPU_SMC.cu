@@ -61,7 +61,6 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
     // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
     // nx = (xCenter - radius) / wx .
-    // TODO this makes a false assumption about the origin
     n[0] = (sphCenter_X_modified - d_monoDisperseSphRadius_AD) / d_SD_Ldim_AD;
     // Same for D and H
     n[1] = (sphCenter_Y_modified - d_monoDisperseSphRadius_AD) / d_SD_Ddim_AD;
@@ -187,8 +186,8 @@ primingOperationsRectangularBox(
     __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
     __shared__ bool shMem_head_flags[CUB_THREADS * 8];
 
-    typedef cub::BlockReduce<unsigned int, CUB_THREADS> BlockReduce;
-    __shared__ typename BlockReduce::TempStorage temp_storage_reduce;
+    // typedef cub::BlockReduce<unsigned int, CUB_THREADS> BlockReduce;
+    // __shared__ typename BlockReduce::TempStorage temp_storage_reduce;
 
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
@@ -255,16 +254,13 @@ primingOperationsRectangularBox(
                 // Go until we run out of threads on the warp or until we find a new head
             } while (idInShared + winningStreak < 8 * CUB_THREADS && !(shMem_head_flags[idInShared + winningStreak]));
 
-            if (touchedSD >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
-                printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            }
-            // TODO this line causes an error later -- I think we're trashing our device heap
-            // We need to check for NULL_GRANULAR_ID
+            // if (touchedSD >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
+            //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
+            // }
 
             // Store start of new entries, we could reuse a variable to save a register
             unsigned int tmp = atomicAdd(SD_countsOfSheresTouching + touchedSD, winningStreak);
-            // printf("tmp is %u is is %u, streak is %u\n", tmp, i, winningStreak);
-            // touchedSD[0] now gives offset in the composite array
+            // tmp now gives offset in the composite array
 
             // This should be storing
             for (dummyUINT01 = 0; dummyUINT01 < winningStreak; dummyUINT01++)
@@ -290,7 +286,8 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
     gpuErrchk(cudaMemcpyToSymbol(d_box_D_AD, &nSDs_D_AD, sizeof(d_box_D_AD)));
     gpuErrchk(cudaMemcpyToSymbol(d_box_H_AD, &nSDs_H_AD, sizeof(d_box_H_AD)));
 
-    gpuErrchk(cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
+    gpuErrchk(
+        cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
 }
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
