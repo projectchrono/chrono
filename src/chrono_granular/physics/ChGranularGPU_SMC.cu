@@ -255,31 +255,31 @@ template <
     sphIDs[0] = winningStreak;
 
     winningStreak = shMem_head_flags[dummyUINT01 + 1];
-    shMem_head_flags[dummyUINT01 + 1] = sphIDs[1];
+    shMem_head_flags[dummyUINT01] = sphIDs[1];
     sphIDs[1] = winningStreak;
 
     winningStreak = shMem_head_flags[dummyUINT01 + 2];
-    shMem_head_flags[dummyUINT01 + 2] = sphIDs[2];
+    shMem_head_flags[dummyUINT01] = sphIDs[2];
     sphIDs[2] = winningStreak;
 
     winningStreak = shMem_head_flags[dummyUINT01 + 3];
-    shMem_head_flags[dummyUINT01 + 3] = sphIDs[3];
+    shMem_head_flags[dummyUINT01] = sphIDs[3];
     sphIDs[3] = winningStreak;
 
     winningStreak = shMem_head_flags[dummyUINT01 + 4];
-    shMem_head_flags[dummyUINT01 + 4] = sphIDs[4];
+    shMem_head_flags[dummyUINT01] = sphIDs[4];
     sphIDs[4] = winningStreak;
 
     winningStreak = shMem_head_flags[dummyUINT01 + 5];
-    shMem_head_flags[dummyUINT01 + 5] = sphIDs[5];
+    shMem_head_flags[dummyUINT01] = sphIDs[5];
     sphIDs[5] = winningStreak;
 
     winningStreak = shMem_head_flags[dummyUINT01 + 6];
-    shMem_head_flags[dummyUINT01 + 6] = sphIDs[6];
+    shMem_head_flags[dummyUINT01] = sphIDs[6];
     sphIDs[6] = winningStreak;
 
     winningStreak = shMem_head_flags[dummyUINT01 + 7];
-    shMem_head_flags[dummyUINT01 + 7] = sphIDs[7];
+    shMem_head_flags[dummyUINT01] = sphIDs[7];
     sphIDs[7] = winningStreak;
 
     __syncthreads();
