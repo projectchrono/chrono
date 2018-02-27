@@ -21,7 +21,7 @@
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 //#include "chrono_granular/physics/ChGranularDefines.cuh"
 
-#define NULL_GRANULAR_ID UINT_MAX-1
+#define NULL_GRANULAR_ID UINT_MAX - 1
 
 // extern "C" __constant__ float3
 //    xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference
@@ -184,32 +184,33 @@ primingOperationsRectangularBox(
     int zSphCenter;
 
     /// Set aside shared memory
-    __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS];
-    __shared__ bool shMem_head_flags[CUB_THREADS];
+    __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
+    __shared__ bool shMem_head_flags[CUB_THREADS * 8];
 
     typedef cub::BlockReduce<unsigned int, CUB_THREADS> BlockReduce;
     __shared__ typename BlockReduce::TempStorage temp_storage_reduce;
 
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 1, unsigned int> BlockRadixSortOP;
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
 
     typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
     __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
 
-    unsigned int touchedSD[1];
-    unsigned int mySphereID[1];
-    bool head_flags[1];
+    bool head_flags[8];
 
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    mySphereID[0] = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int sphIDs[8] = {mySphereID, mySphereID, mySphereID, mySphereID,
+                              mySphereID, mySphereID, mySphereID, mySphereID};
+    // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
+    offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;
 
-    touchedSD[0] = NULL_GRANULAR_ID;  // Important to seed the touchedSD w/ a "no-SD" value
-    offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;  // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
-
-    unsigned int SDsTouched[8];
     unsigned int dummyUINT01;
-    if (mySphereID[0] < nSpheres) {
-        dummyUINT01 = mySphereID[0];
+    // This uses a lot of registers but is needed
+    unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
+                                  NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
+    if (mySphereID < nSpheres) {
+        dummyUINT01 = mySphereID;
         // Coalesced mem access
         xSphCenter = pRawDataX[dummyUINT01];
         ySphCenter = pRawDataY[dummyUINT01];
@@ -217,71 +218,69 @@ primingOperationsRectangularBox(
 
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
     }
-    else {
-        // this thread doesn't have a corresponding ball; 
-        for (dummyUINT01 = 0; dummyUINT01 < 8; dummyUINT01++)
-            SDsTouched[dummyUINT01] = NULL_GRANULAR_ID;
+    __syncthreads();
+    // This doesn't need to run
+    // dummyUINT01 = BlockReduce(temp_storage_reduce).Reduce(SDsTouched, cub::Min());
+    // // This will only fail if all ranks are not contacting any SD => really bad
+    // if (dummyUINT01 == NULL_GRANULAR_ID) {
+    //     // BIG BIG ERROR!
+    // }
+    // Sort by the ID of the SD touched
+    BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, sphIDs);
+    __syncthreads();
+    // Do a winningStreak search on whole block, might not have high utilization here
+    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
+    __syncthreads();
+    // Write back to shared memory
+    for (int i = 0; i < 8; i++) {
+        shMem_head_flags[8 * threadIdx.x + i] = head_flags[i];
     }
-//    // TODO this sphere check needs to catch more, I think
-//    // I moved this function up since we do all at once
-//    unsigned int SDsTouched[8];
-//    if (mySphereID[0] < nSpheres)   
-//
-//    // Each sphere can at most touch 8 SDs; we'll need to take 8 trips then.
-//    for (int i = 0; i < 8; i++) {
-//        // TODO we need to catch NULL_GRANULAR_ID somewhere around here
-//        touchedSD[0] = SDsTouched[i];
-//
-//        // Amongst all threads, is there any SD touched at this level? Use a CUB reduce operation to find out
-//        dummyUINT01 = BlockReduce(temp_storage_reduce).Reduce(touchedSD[0], cub::Min());
-//
-//        if (dummyUINT01 != NULL_GRANULAR_ID) {
-//            // Note that there is no thread divergence in this "if" since all threads see the same value (returned by
-//            // CUB) Processing sphere-in-SD events at level "i". Do a key-value sort to group together the like-SDs
-//            BlockRadixSortOP(temp_storage_sort).Sort(touchedSD, mySphereID);
-//
-//            // Figure our where each SD starts and ends in the sequence of SDs
-//            Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, touchedSD, cub::Inequality());
-//
-//            // Place data in shared memory since it needs to be accessed by other threads
-//            shMem_head_flags[threadIdx.x] = head_flags[0];
-//            __syncthreads();
-//
-//            // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS sphres. There will
-//            // be some thread divergence here.
-//            if (head_flags[0]) {
-//                // This is the beginning of a sequence with a new ID
-//                dummyUINT01 = 0;
-//                do {
-//                    dummyUINT01++;
-//                } while (threadIdx.x + dummyUINT01 < CUB_THREADS && !(shMem_head_flags[threadIdx.x + dummyUINT01]));
-//
-//                // if (touchedSD[0] >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
-//                //     printf("invalid SD index %u on thread %u\n", mySphereID[0], touchedSD[0]);
-//                // }
-//                // TODO this line causes an error later -- I think we're trashing our device heap
-//                // We need to check for NULL_GRANULAR_ID
-//
-//                // Overwrite touchedSD[0], it ended its purpose upon call to atomicAdd
-//                touchedSD[0] = atomicAdd(SD_countsOfSheresTouching + touchedSD[0], dummyUINT01);
-//                // touchedSD[0] now gives offset in the composite array
-//
-//                // Next, overwrite mySphereID, this was needed only to make CUB happy; it contains now the length of the
-//                // streak for this SD
-//                mySphereID[0] = dummyUINT01;
-//                for (dummyUINT01 = 0; dummyUINT01 < mySphereID[0]; dummyUINT01++)
-//                    offsetInComposite_SphInSD_Array[threadIdx.x + dummyUINT01] = touchedSD[0]++;
-//            }
-//
-//            __syncthreads();
-//            spheres_in_SD_composite[threadIdx.x] = offsetInComposite_SphInSD_Array[threadIdx.x];
-//            // At the beginning of a new trip, for a new "i", start anew
-//            offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;
-//        }  // End of scenarios when this "i" trip had work to do
-//    }      // End of the eight trips
+    __syncthreads();
+    // Could probably be merged with another variable to save a register
+    unsigned int winningStreak = 0;
+
+    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS sphres. There
+    // will be some thread divergence here.
+    // Loop through each potential SD, after sorting, and see if it is the start of a head
+    for (int i = 0; i < 8; i++) {
+        // SD currently touched, could easily be inlined
+        unsigned int touchedSD = SDsTouched[i];
+        if (head_flags[i] && touchedSD != NULL_GRANULAR_ID) {
+            // current index into shared datastructures of length 8*CUB_THREADS, could easily be inlined
+            unsigned int idInShared = 8 * threadIdx.x + i;
+            winningStreak = 0;
+            // This is the beginning of a sequence with a new ID
+            do {
+                winningStreak++;
+                // Go until we run out of threads on the warp or until we find a new head
+            } while (idInShared + winningStreak < 8 * CUB_THREADS && !(shMem_head_flags[idInShared + winningStreak]));
+
+            if (touchedSD >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
+                printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
+            }
+            // TODO this line causes an error later -- I think we're trashing our device heap
+            // We need to check for NULL_GRANULAR_ID
+
+            // Store start of new entries, we could reuse a variable to save a register
+            unsigned int tmp = atomicAdd(SD_countsOfSheresTouching + touchedSD, winningStreak);
+            // printf("tmp is %u is is %u, streak is %u\n", tmp, i, winningStreak);
+            // touchedSD[0] now gives offset in the composite array
+
+            // This should be storing
+            for (dummyUINT01 = 0; dummyUINT01 < winningStreak; dummyUINT01++)
+                offsetInComposite_SphInSD_Array[threadIdx.x + dummyUINT01] = tmp++;
+        }
+        // These lines might be better off outside the for loop somehow?
+        __syncthreads();
+        // This line doesn't make sense to me, shouldn't it be SphereIDs? -- Conlain
+        spheres_in_SD_composite[threadIdx.x] = offsetInComposite_SphInSD_Array[threadIdx.x];
+        // Start with no DEs in SD for next loop
+        offsetInComposite_SphInSD_Array[threadIdx.x] = 0;
+    }
+    __syncthreads();
 }
 
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
+__host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
     // Copy adimensional size of SDs to device
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_AD, &SD_L_AD, sizeof(d_SD_Ldim_AD)));
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ddim_AD, &SD_D_AD, sizeof(d_SD_Ddim_AD)));
@@ -294,7 +293,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
     gpuErrchk(cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
 }
 
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
+__host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
 #define CUDA_THREADS 128
     // Come up with the unit of time
 
@@ -305,10 +304,19 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     copyCONSTdata_to_device();
     /// Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
-    primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>
-        (p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaDeviceSynchronize());
+    primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+        p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
+    cudaDeviceSynchronize();
+    unsigned int* sdvals = new unsigned int[nSDs];
+    cudaMemcpy(sdvals, p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    uint max_count = 0;
+    for (uint i = 0; i < nSDs; i++) {
+        // printf("count is %u for SD sd %u \n", sdvals[i], i);
+        if (sdvals[i] > max_count)
+            max_count = sdvals[i];
+    }
+    printf("max DEs per SD is %u\n", max_count);
+    delete sdvals;
 
     cleanup_simulation();
     return;
