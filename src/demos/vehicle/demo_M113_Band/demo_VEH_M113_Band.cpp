@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -26,14 +27,18 @@
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
-
-#define USE_IRRLICHT
-//#undef USE_IRRLICHT
-#ifdef USE_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
 #endif
+
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChSolverMKL.h"
+#endif
+
+#define USE_IRRLICHT
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -52,7 +57,6 @@ ChVector<> initLoc(0, 0, 1.1);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Rigid terrain dimensions
-double terrainHeight = 0;
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
 
@@ -60,23 +64,29 @@ double terrainWidth = 100.0;   // size in Y direction
 double t_end = 1.0;
 
 // Simulation step size
-double step_size = 5e-5;
+double step_size = 1e-4;
+
+// Linear solver
+enum SolverType { MUMPS, MKL };
+SolverType solver_type = MUMPS;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
-
-// Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 0.0);
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "M113_BAND";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
 
+// Verbose level
+bool verbose_solver = false;
+bool verbose_integrator = true;
+
 // Output
+bool output = true;
+bool dbg_output = false;
 bool povray_output = false;
 bool img_output = false;
-bool dbg_output = false;
 
 // =============================================================================
 
@@ -107,13 +117,41 @@ int main(int argc, char* argv[]) {
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
     M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, ChMaterialSurface::SMC, chassis_collision_type);
 
+    // Disable gravity in this simulation
+    ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+
+    // Control steering type (enable crossdrive capability)
+    ////vehicle.GetDriveline()->SetGyrationMode(true);
+
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
 
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-    mkl_solver->SetSparsityPatternLock(true);
-    vehicle.GetSystem()->SetSolver(mkl_solver);
+#ifndef CHRONO_MKL
+    if (solver_type == MKL)
+        solver_type = MUMPS;
+#endif
+#ifndef CHRONO_MUMPS
+    if (solver_type == MUMPS)
+        solver_type = MKL;
+#endif
+
+    switch (solver_type) {
+        case MUMPS: {
+            auto mumps_solver = std::make_shared<ChSolverMumps>();
+            mumps_solver->SetSparsityPatternLock(true);
+            mumps_solver->SetVerbose(verbose_solver);
+            vehicle.GetSystem()->SetSolver(mumps_solver);
+            break;
+        }
+        case MKL: {
+            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+            mkl_solver->SetSparsityPatternLock(true);
+            mkl_solver->SetVerbose(verbose_solver);
+            vehicle.GetSystem()->SetSolver(mkl_solver);
+            break;
+        }
+    }
 
     vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
@@ -122,15 +160,9 @@ int main(int argc, char* argv[]) {
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetMode(ChTimestepperHHT::ACCELERATION);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(false);
+    integrator->SetModifiedNewton(true);
     integrator->SetScaling(true);
-    integrator->SetVerbose(false);
-
-    // Disable gravity in this simulation
-    ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-
-    // Control steering type (enable crossdrive capability)
-    ////vehicle.GetDriveline()->SetGyrationMode(true);
+    integrator->SetVerbose(verbose_integrator);
 
     // ------------------------------------------------
     // Initialize the vehicle at the specified position
@@ -179,7 +211,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT),
                                   ChVector<>(terrainLength, terrainWidth, 10));
     patch->SetContactFrictionCoefficient(0.9f);
     patch->SetContactRestitutionCoefficient(0.01f);
@@ -206,11 +238,11 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
+    ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Band-track Vehicle Demo");
     app.SetSkyBox();
     irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+    app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
     ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
@@ -263,13 +295,17 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    utils::CSV_writer csv("\t");
+    csv.stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.stream().precision(6);
+
     // Set up vehicle output
-    vehicle.SetChassisOutput(true);
-    vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    ////vehicle.SetChassisOutput(true);
+    ////vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "vehicle_output", 0.1);
 
     // Generate JSON information with available output channels
-    vehicle.ExportComponentList(out_dir + "/component_list.json");
+    ////vehicle.ExportComponentList(out_dir + "/component_list.json");
 
     // Export visualization mesh for shoe tread body
     auto shoe0 = std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0));
@@ -303,11 +339,17 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (step_number < sim_steps) {
-        // Debugging output
+        const ChVector<>& c_pos = vehicle.GetVehiclePos();
+
+        // File output
+        if (output) {
+            csv << vehicle.GetSystem()->GetChTime() << c_pos.x() << c_pos.y() << c_pos.z() << endl;
+        }
+
+        // Debugging (console) output
         if (dbg_output) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
             const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = vehicle.GetVehiclePos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
@@ -346,6 +388,7 @@ int main(int argc, char* argv[]) {
         app.DrawAll();
         app.EndScene();
 #endif
+
         if (step_number % render_steps == 0) {
             if (povray_output) {
                 char filename[100];
@@ -409,13 +452,13 @@ int main(int argc, char* argv[]) {
         std::cout << "   Step Time: " << step_timing;
         std::cout << "   Total Time: " << total_timing;
         std::cout << std::endl;
-
-        // if (time > 1.0) {
-        //    break;
-        //}
     }
 
-    vehicle.WriteContacts("M113_contacts.out");
+    if (output) {
+        csv.write_to_file(out_dir + "/chassis_position.txt");
+    }
+
+    vehicle.WriteContacts(out_dir + "/contacts.txt");
 
     return 0;
 }
