@@ -55,9 +55,9 @@ int main(int argc, char* argv[]) {
     // - Use MESH visualization and no collision for the Rajagopal model.
     // - use PRIMITIVES for models without visualization mesh data.
     ChParserOpenSim parser;
-    parser.SetVisualizationType(ChParserOpenSim::VisType::PRIMITIVES);
+    parser.SetVisualizationType(ChParserOpenSim::VisType::MESH);
     parser.SetVerbose(true);
-    parser.EnableCollision(true);
+    // parser.EnableCollision(true);
     ////parser.ActivateActuators(true);
     parser.Parse(my_system, filename);
 
