@@ -291,8 +291,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
     gpuErrchk(cudaMemcpyToSymbol(d_box_D_AD, &nSDs_D_AD, sizeof(d_box_D_AD)));
     gpuErrchk(cudaMemcpyToSymbol(d_box_H_AD, &nSDs_H_AD, sizeof(d_box_H_AD)));
 
-    gpuErrchk(
-        cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
+    gpuErrchk(cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
 }
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
