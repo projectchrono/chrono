@@ -419,6 +419,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/LugreTire.cpp
     wheeled_vehicle/tire/FialaTire.h
     wheeled_vehicle/tire/FialaTire.cpp
+    wheeled_vehicle/tire/TMeasyTire.h
+    wheeled_vehicle/tire/TMeasyTire.cpp
 )
 if(ENABLE_MODULE_FEA)
     set(CV_WV_FEATIRE_FILES
