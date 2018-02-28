@@ -174,8 +174,6 @@ primingOperationsRectangularBox(
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int sphIDs[8] = {mySphereID, mySphereID, mySphereID, mySphereID,
                               mySphereID, mySphereID, mySphereID, mySphereID};
-    // Reflecting that a sphere might belong to an SD in a certain trip "i", see "for" loop
-    offsetInComposite_SphInSD_Array[threadIdx.x] = NULL_GRANULAR_ID;
 
     unsigned int dummyUINT01;
     // This uses a lot of registers but is needed
@@ -210,7 +208,7 @@ primingOperationsRectangularBox(
     // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
     // No shmem bank coflicts here, good access...
     for (unsigned int i = 0; i < 8; i++) {
-        shMem_head_flags[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
+        offsetInComposite_SphInSD_Array[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
     }
 
     __syncthreads();
