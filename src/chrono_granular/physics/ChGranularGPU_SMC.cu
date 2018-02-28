@@ -9,29 +9,16 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut
+// Authors: Dan Negrut, Conlain Kelly
 // =============================================================================
 
 #include <cuda.h>
-#include <climits>
 #include <cstdio>
 #include "../../chrono_thirdparty/cub/cub.cuh"
+#include "chrono_granular/physics/ChGranularDefines.cuh"
 #include "../ChGranularDefines.h"
 #include "../chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
-//#include "chrono_granular/physics/ChGranularDefines.cuh"
-
-#define NULL_GRANULAR_ID UINT_MAX - 1
-
-// extern "C" __constant__ float3
-//    xyzOriginBox;  //!< Set of three floats that give the location of the rectangular box in the Global Reference
-//    Frame
-// extern "C" __constant__ float4 eulerParamBox;  //!< Set of four floats that provide the orientation of the
-// rectangular box
-//                                           //!< in the Global Reference Frame
-// extern "C" __constant__ dim3 RectangularBox_dims;  //!< The dimension of the rectangular box. The 3D box is expressed
-// in
-//                                               //!< multples of SD, in the X, Y, and Z directions, respectively
 
 __constant__ unsigned int d_monoDisperseSphRadius_AD;  // Pulled from the header
 
@@ -133,24 +120,18 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
  *
  * Template arguments:
  *   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
- *   - AMOUNT_SHMEM_KB: amount of shared memory in KB to be set aside; perhaps we should pass this as a kernel call
- * argument
- *
  *
  * Assumptions:
- *   - Granular material is made up of spheres.
- *   - For now, all spheres are of constant radius. The radius of the sphere is 1.f
+ *   - Granular material is made up of monodisperse spheres.
  *   - The function below assumes the spheres are in a box
- *   - The box has dimensions L x W x H.
+ *   - The box has dimensions L x D x H.
  *   - The reference frame associated with the box:
  *       - The x-axis is along the length L of the box
- *       - The y-axis is along the width W of the box
+ *       - The y-axis is along the width D of the box
  *       - The z-axis is along the height H of the box
- *   - A sphere cannot touch more than eight SDs; this is reflected in the array "seedData" having size 16.
- *   - The total number of SDs touched by the sphres worked upon in this CUDA block is less than USHRT_MAX. This is
- *       reasonable given that we are not going to have more than 1024 spheres worked upon in a CUDA block
+ *   - A sphere cannot touch more than eight SDs
  *
- * Basic idea: use domain decomposition on the rectangular box and have one subdomain be processed by one block.
+ * Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each sphere touches.
  * The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
  * at the center of the box. The orientation of the box is defined relative to a world inertial reference frame.
  *
@@ -161,13 +142,10 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
  *
  * Notes:
  *   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
- * box. Usually, there is no sphere in this SD
- *
- *
+ * box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
  *
  */
-template <
-    int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
+template <unsigned int CUB_THREADS>            //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
 __global__ void
 primingOperationsRectangularBox(
     int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
@@ -186,16 +164,11 @@ primingOperationsRectangularBox(
     __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
     __shared__ bool shMem_head_flags[CUB_THREADS * 8];
 
-    // typedef cub::BlockReduce<unsigned int, CUB_THREADS> BlockReduce;
-    // __shared__ typename BlockReduce::TempStorage temp_storage_reduce;
-
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
 
     typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
     __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
-
-    bool head_flags[8];
 
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
@@ -219,16 +192,13 @@ primingOperationsRectangularBox(
     }
 
     __syncthreads();
-    // This doesn't need to run
-    // dummyUINT01 = BlockReduce(temp_storage_reduce).Reduce(SDsTouched, cub::Min());
-    // // This will only fail if all ranks are not contacting any SD => really bad
-    // if (dummyUINT01 == NULL_GRANULAR_ID) {
-    //     // BIG BIG ERROR!
-    // }
+
     // Sort by the ID of the SD touched
     BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, sphIDs);
     __syncthreads();
+
     // Do a winningStreak search on whole block, might not have high utilization here
+    bool head_flags[8];
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
     __syncthreads();
 
@@ -285,6 +255,114 @@ primingOperationsRectangularBox(
     }
 }
 
+__device__ unsigned int dryRunContactCount(unsigned indx, int* sph_X, int* sph_Y, int* sph_Z)
+{
+    // This function call returns the number of contacts
+    return NULL_GRANULAR_ID;
+}
+
+/**
+* This kernel call figures out forces on a sphere and carries out numerical integration to get the velocities of a sphere.
+*
+* Template arguments:
+*   - MAX_NSPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block collectives.
+*                          NOTE: It is assumed that MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
+*
+* Assumptions:
+*   - Granular material is made up of monodisperse spheres.
+*   - The function below assumes the spheres are in a box
+*   - The box has dimensions L x D x H.
+*   - The reference frame associated with the box:
+*       - The x-axis is along the length L of the box
+*       - The y-axis is along the width D of the box
+*       - The z-axis is along the height H of the box
+*   - A sphere cannot touch more than eight SDs
+*
+* Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each sphere touches.
+* The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
+* at the center of the box. The orientation of the box is defined relative to a world inertial reference frame.
+*
+* Nomenclature:
+*   - SD: subdomain.
+*   - NULL_GRANULAR_ID: the equivalent of a non-sphere SD ID, or a non-sphere ID
+*
+* Notes:
+*   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
+* box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
+*
+*/
+template <unsigned int MAX_NSPHERES_PER_SD>            //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
+__global__ void
+updateVelocities(
+    int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataY,                           //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataZ,                           //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataX_DOT,                       //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataY_DOT,                       //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataZ_DOT,                       //!< Pointer to array containing data related to the spheres in the box
+    unsigned int* SD_countsOfSheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
+    unsigned int* spheres_in_SD_composite     //!< Big array that works in conjunction with SD_countsOfSheresTouching.
+)                                              //!< "spheres_in_SD_composite" says which SD contains what spheres
+{
+    __shared__ int sph_X[MAX_NSPHERES_PER_SD];
+    __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
+    __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
+
+    __shared__ int sph_X_DOT[MAX_NSPHERES_PER_SD];
+    __shared__ int sph_Y_DOT[MAX_NSPHERES_PER_SD];
+    __shared__ int sph_Z_DOT[MAX_NSPHERES_PER_SD];
+
+    __shared__ unsigned char ID_frstDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
+    __shared__ unsigned char ID_scndDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
+    __shared__ unsigned int numberOfContactEvents;
+
+    unsigned int mySphere[1];
+
+    typedef cub::BlockRadixSort<unsigned int, MAX_NSPHERES_PER_SD, 1> BlockRadixSortOP;
+    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
+
+    unsigned int spheresTouchingThisSD = SD_countsOfSheresTouching[blockIdx.x];
+    unsigned int dummyUINT01 = blockIdx.x * MAX_NSPHERES_PER_SD;
+    mySphere[0] = spheres_in_SD_composite[dummyUINT01 + threadIdx.x];
+
+    // In an attempt to improve likelihood of coalesced mem accesses, do a sort
+    BlockRadixSort(temp_storage_sort).Sort(mySphere);
+
+    // Bring in data from global into sh mem
+    if (threadIdx.x < spheresTouchingThisSD) {
+        sph_X[threadIdx.x] = pRawDataX[mySphere[0]];
+        sph_Y[threadIdx.x] = pRawDataY[mySphere[0]];
+        sph_Z[threadIdx.x] = pRawDataZ[mySphere[0]];
+
+        sph_X_DOT[threadIdx.x] = pRawDataX_DOT[mySphere[0]];
+        sph_Y_DOT[threadIdx.x] = pRawDataY_DOT[mySphere[0]];
+        sph_Z_DOT[threadIdx.x] = pRawDataZ_DOT[mySphere[0]];
+    }
+    else {
+        sph_X[threadIdx.x] = ILL_GRANULAR_VAL;
+        sph_Y[threadIdx.x] = ILL_GRANULAR_VAL;
+        sph_Z[threadIdx.x] = ILL_GRANULAR_VAL;
+
+        sph_X_DOT[threadIdx.x] = ILL_GRANULAR_VAL;
+        sph_Y_DOT[threadIdx.x] = ILL_GRANULAR_VAL;
+        sph_Z_DOT[threadIdx.x] = ILL_GRANULAR_VAL;
+    }
+    __syncthreads();
+
+    // Dry run first, to figure out offsets into shmem
+    unsigned int myCollisionCount = dryRunContactCount(threadIdx.x, sph_X, sph_Y, sph_Z);
+    unsigned int offset = myCollisionCount;
+    unsigned int block_aggregate = 0;
+    typedef cub::BlockScan<unsigned int, MAX_NSPHERES_PER_SD> BlockScan;
+    __shared__ typename BlockScan::TempStorage temp_storage_scan;
+    BlockScan(temp_storage_scan).ExclusiveSum(offset, offset, block_aggregate);
+}
+
+
+
+
+
+
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
     // Copy adimensional size of SDs to device
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_AD, &SD_L_AD, sizeof(d_SD_Ldim_AD)));
@@ -299,14 +377,20 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
 }
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
-#define CUDA_THREADS 128
-    // Come up with the unit of time
 
+    // Come up with the unit of time
     TIME_UNIT = 1. / (1 << SPHERE_TIME_UNIT_FACTOR) *
                 sqrt((4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density) /
                      (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL));
+
+    // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
     copyCONSTdata_to_device();
+
+    // Seed arrays that are populated by the kernel call
+    gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, 0, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int))); // FUOT: is 0 the right value to set entries in this array to?
+
     /// Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
@@ -321,8 +405,11 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
             max_count = sdvals[i];
     }
     printf("max DEs per SD is %u\n", max_count);
-    delete sdvals;
+    delete[] sdvals;
 
     cleanup_simulation();
     return;
 }
+
+
+

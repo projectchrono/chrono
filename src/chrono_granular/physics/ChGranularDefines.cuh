@@ -1,9 +1,17 @@
-extern "C" __constant__ unsigned int d_monoDisperseSphRadius_AD; // Pulled from the header
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2018 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Dan Negrut
+// =============================================================================
 
-extern "C" __constant__ unsigned int d_SD_Ldim_AD;  //!< Ad-ed L-dimension of the SD box
-extern "C" __constant__ unsigned int d_SD_Ddim_AD;  //!< Ad-ed D-dimension of the SD box
-extern "C" __constant__ unsigned int d_SD_Hdim_AD;  //!< Ad-ed H-dimension of the SD box
-
-extern "C" __constant__ unsigned int d_box_L_AD;  //!< Ad-ed L-dimension of the BD box in multiples of subdomains
-extern "C" __constant__ unsigned int d_box_D_AD;  //!< Ad-ed D-dimension of the BD box in multiples of subdomains
-extern "C" __constant__ unsigned int d_box_H_AD;  //!< Ad-ed H-dimension of the BD box in multiples of subdomains
+#pragma once
+///< Number of parallel threads used in a CUDA block
+#define CUDA_THREADS 128
