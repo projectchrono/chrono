@@ -252,7 +252,7 @@ primingOperationsRectangularBox(
         // SD currently touched, could easily be inlined
         unsigned int touchedSD = SDsTouched[i];
         if (touchedSD != NULL_GRANULAR_ID && head_flags[i] ) {
-            // current index into shared datastructures of length 8*CUB_THREADS, could easily be inlined
+            // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
             unsigned int idInShared = 8 * threadIdx.x + i;
             unsigned int winningStreak = 0;
             // This is the beginning of a sequence of SDs with a new ID
@@ -265,19 +265,24 @@ primingOperationsRectangularBox(
             //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
             // }
 
-            // Store start of new entries, we could reuse a variable to save a register
-            unsigned int tmp = atomicAdd(SD_countsOfSheresTouching + touchedSD, winningStreak);
-            // tmp now gives offset in the composite array
+            // Store start of new entries
+            unsigned int offset = atomicAdd(SD_countsOfSheresTouching + touchedSD, winningStreak);
+            // offset now gives offset in the composite array; i.e., spheres_in_SD_composite
 
-            // This should be storing
+            // Produce the offsets for this streak of spheres with identical SD ids
             for (dummyUINT01 = 0; dummyUINT01 < winningStreak; dummyUINT01++)
-                offsetInComposite_SphInSD_Array[idInShared + dummyUINT01] = tmp++;
+                offsetInComposite_SphInSD_Array[idInShared + dummyUINT01] = offset++;
         }
     }
-    // These lines might be better off outside the for loop somehow?
-    __syncthreads();
-    // Write out the data now
-    spheres_in_SD_composite[threadIdx.x] = offsetInComposite_SphInSD_Array[threadIdx.x];
+
+    __syncthreads(); // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
+
+    // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
+    for (unsigned int i = 0; i < 8; i++) {
+        unsigned int offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
+        if (offset != NULL_GRANULAR_ID)
+            spheres_in_SD_composite[offset] = sphIDs[i];
+    }
 }
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
