@@ -217,6 +217,7 @@ primingOperationsRectangularBox(
 
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
     }
+
     __syncthreads();
     // This doesn't need to run
     // dummyUINT01 = BlockReduce(temp_storage_reduce).Reduce(SDsTouched, cub::Min());
@@ -230,25 +231,31 @@ primingOperationsRectangularBox(
     // Do a winningStreak search on whole block, might not have high utilization here
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
     __syncthreads();
-    // Write back to shared memory
-    for (int i = 0; i < 8; i++) {
+
+    // Write back to shared memory; eight-way bank conflicts here - to revisit later
+    for (unsigned int i = 0; i < 8; i++) {
         shMem_head_flags[8 * threadIdx.x + i] = head_flags[i];
     }
-    __syncthreads();
-    // Could probably be merged with another variable to save a register
-    unsigned int winningStreak = 0;
 
-    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS sphres. There
+    // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
+    // No shmem bank coflicts here, good access...
+    for (unsigned int i = 0; i < 8; i++) {
+        shMem_head_flags[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
+    }
+
+    __syncthreads();
+
+    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS spheres. There
     // will be some thread divergence here.
     // Loop through each potential SD, after sorting, and see if it is the start of a head
-    for (int i = 0; i < 8; i++) {
+    for (unsigned int i = 0; i < 8; i++) {
         // SD currently touched, could easily be inlined
         unsigned int touchedSD = SDsTouched[i];
-        if (head_flags[i] && touchedSD != NULL_GRANULAR_ID) {
+        if (touchedSD != NULL_GRANULAR_ID && head_flags[i] ) {
             // current index into shared datastructures of length 8*CUB_THREADS, could easily be inlined
             unsigned int idInShared = 8 * threadIdx.x + i;
-            winningStreak = 0;
-            // This is the beginning of a sequence with a new ID
+            unsigned int winningStreak = 0;
+            // This is the beginning of a sequence of SDs with a new ID
             do {
                 winningStreak++;
                 // Go until we run out of threads on the warp or until we find a new head
@@ -264,16 +271,13 @@ primingOperationsRectangularBox(
 
             // This should be storing
             for (dummyUINT01 = 0; dummyUINT01 < winningStreak; dummyUINT01++)
-                offsetInComposite_SphInSD_Array[threadIdx.x + dummyUINT01] = tmp++;
+                offsetInComposite_SphInSD_Array[idInShared + dummyUINT01] = tmp++;
         }
-        // These lines might be better off outside the for loop somehow?
-        __syncthreads();
-        // This line doesn't make sense to me, shouldn't it be SphereIDs? -- Conlain
-        spheres_in_SD_composite[threadIdx.x] = offsetInComposite_SphInSD_Array[threadIdx.x];
-        // Start with no DEs in SD for next loop
-        offsetInComposite_SphInSD_Array[threadIdx.x] = 0;
     }
+    // These lines might be better off outside the for loop somehow?
     __syncthreads();
+    // Write out the data now
+    spheres_in_SD_composite[threadIdx.x] = offsetInComposite_SphInSD_Array[threadIdx.x];
 }
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
@@ -286,8 +290,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
     gpuErrchk(cudaMemcpyToSymbol(d_box_D_AD, &nSDs_D_AD, sizeof(d_box_D_AD)));
     gpuErrchk(cudaMemcpyToSymbol(d_box_H_AD, &nSDs_H_AD, sizeof(d_box_H_AD)));
 
-    gpuErrchk(
-        cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
+    gpuErrchk(cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
 }
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
@@ -306,8 +309,8 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     cudaDeviceSynchronize();
     unsigned int* sdvals = new unsigned int[nSDs];
     cudaMemcpy(sdvals, p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    uint max_count = 0;
-    for (uint i = 0; i < nSDs; i++) {
+    unsigned int max_count = 0;
+    for (unsigned int i = 0; i < nSDs; i++) {
         // printf("count is %u for SD sd %u \n", sdvals[i], i);
         if (sdvals[i] > max_count)
             max_count = sdvals[i];
