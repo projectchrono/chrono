@@ -25,7 +25,7 @@
 /// The H-size of an SD should contain, on average, about these many spheres
 #define AVERAGE_SPHERES_PER_SD_H_DIR 4.5
 /// Anticipated max number of DEs in an SD; used for setting aside memory ahead of time
-#define MAX_COUNT_OF_DEs_PER_SD 64
+#define MAX_COUNT_OF_DEs_PER_SD 250
 /// 2^LENGTH_UNIT_FACTOR is used in the process of AD-ing the length for monodisperse spheres
 #define SPHERE_LENGTH_UNIT_FACTOR 12
 /// 2^SPHERE_TIME_UNIT_FACTOR is used in the process of AD-ing the time for monodisperse spheres

@@ -231,12 +231,15 @@ primingOperationsRectangularBox(
 
             // if (touchedSD >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
             //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            // }
+            // } 
 
             // Store start of new entries
             unsigned int offset = atomicAdd(SD_countsOfSheresTouching + touchedSD, winningStreak);
-            // offset now gives offset in the composite array; i.e., spheres_in_SD_composite
-
+            
+            // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
+            // Get the absolute offset
+            offset += touchedSD*MAX_COUNT_OF_DEs_PER_SD;
+            
             // Produce the offsets for this streak of spheres with identical SD ids
             for (dummyUINT01 = 0; dummyUINT01 < winningStreak; dummyUINT01++)
                 offsetInComposite_SphInSD_Array[idInShared + dummyUINT01] = offset++;
@@ -253,41 +256,93 @@ primingOperationsRectangularBox(
     }
 }
 
-__device__ unsigned int dryRunContactCount(unsigned indx, int* sph_X, int* sph_Y, int* sph_Z)
+template<unsigned int MAX_NSPHERES_PER_SD> __device__ unsigned int dryRunContactCount
+(unsigned thrdIndex, const int sph_X[MAX_NSPHERES_PER_SD], const int sph_Y[MAX_NSPHERES_PER_SD], const int sph_Z[MAX_NSPHERES_PER_SD])
 {
     // This function call returns the number of contacts
     return NULL_GRANULAR_ID;
 }
 
+template<unsigned int MAX_NSPHERES_PER_SD> __device__ void populateContactEventInformation_dataStructures(
+    unsigned thrdIndex,
+    const int sph_X[MAX_NSPHERES_PER_SD],
+    const int sph_Y[MAX_NSPHERES_PER_SD],
+    const int sph_Z[MAX_NSPHERES_PER_SD],
+    unsigned int thisThrdOffset,
+    unsigned int thisThrdCollisionCount,
+    unsigned char IDfrstDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE],
+    unsigned char IDscndDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE])
+{
+    ;
+}
+
+
 /**
-* This kernel call figures out forces on a sphere and carries out numerical integration to get the velocities of a sphere.
-*
-* Template arguments:
-*   - MAX_NSPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block collectives.
-*                          NOTE: It is assumed that MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
-*
-* Assumptions:
-*   - Granular material is made up of monodisperse spheres.
-*   - The function below assumes the spheres are in a box
-*   - The box has dimensions L x D x H.
-*   - The reference frame associated with the box:
-*       - The x-axis is along the length L of the box
-*       - The y-axis is along the width D of the box
-*       - The z-axis is along the height H of the box
-*   - A sphere cannot touch more than eight SDs
-*
-* Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each sphere touches.
-* The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
-* at the center of the box. The orientation of the box is defined relative to a world inertial reference frame.
-*
-* Nomenclature:
-*   - SD: subdomain.
-*   - NULL_GRANULAR_ID: the equivalent of a non-sphere SD ID, or a non-sphere ID
-*
-* Notes:
-*   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
-* box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
-*
+This device function computes the forces induces by the walls on the box on a sphere
+Input:
+  - sphXpos: X location, measured in the box reference system, of the sphere
+  - sphYpos: Y location, measured in the box reference system, of the sphere
+  - sphZpos: Z location, measured in the box reference system, of the sphere
+
+Output:
+  - Xforce: the X component of the force, as represented in the box reference system
+  - Yforce: the Y component of the force, as represented in the box reference system
+  - Zforce: the Z component of the force, as represented in the box reference system
+*/
+template<unsigned int MAX_NSPHERES_PER_SD> __device__ void boxWallsInducedForce(int sphXpos, int sphYpos, int sphZpos, int& Xforce, int& Yforce, int& Zforce)
+{
+    Xforce = ILL_GRANULAR_VAL;
+    Yforce = ILL_GRANULAR_VAL;
+    Zforce = ILL_GRANULAR_VAL;
+}
+
+/**
+This device function figures out how many contact events the thread "thrdIndx" needs to take care of. 
+Input:
+    - thrdIndx: the thread for which we identify the work order
+    - blockLvlCollisionEventsCount: the total number of contact events the entire block needs to deal with    
+Output:
+    - myColsnCount: the number of contact events that thread thrdIndx will have to deal with
+    - my_offset: offset in the collision data structure where this thread starts
+*/
+template<unsigned int MAX_NSPHERES_PER_SD> __device__ void figureOutWorkOrder(
+    unsigned int thrdIndx, 
+    unsigned int blockLvlCollisionEventsCount, 
+    unsigned int& myColsnCount, 
+    unsigned int& my_offset)
+{
+    myColsnCount = NULL_GRANULAR_ID;
+    my_offset = NULL_GRANULAR_ID;
+}
+
+/**
+This kernel call figures out forces on a sphere and carries out numerical integration to get the velocities of a sphere.
+
+Template arguments:
+  - MAX_NSPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block collectives.
+                         NOTE: It is assumed that MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
+
+Assumptions:
+  - Granular material is made up of monodisperse spheres.
+  - The function below assumes the spheres are in a box
+  - The box has dimensions L x D x H.
+  - The reference frame associated with the box:
+      - The x-axis is along the length L of the box
+      - The y-axis is along the width D of the box
+      - The z-axis is along the height H of the box
+  - A sphere cannot touch more than eight SDs
+
+Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each sphere touches.
+The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
+at the center of the box. The orientation of the box is defined relative to a world inertial reference frame.
+
+Nomenclature:
+  - SD: subdomain.
+  - NULL_GRANULAR_ID: the equivalent of a non-sphere SD ID, or a non-sphere ID
+
+Notes:
+  - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
+box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
 */
 template <unsigned int MAX_NSPHERES_PER_SD>            //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
 __global__ void
@@ -295,9 +350,9 @@ updateVelocities(
     int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
     int* pRawDataY,                           //!< Pointer to array containing data related to the spheres in the box
     int* pRawDataZ,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataX_DOT,                       //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataY_DOT,                       //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataZ_DOT,                       //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataX_DOT_DELTA,                       //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataY_DOT_DELTA,                       //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataZ_DOT_DELTA,                       //!< Pointer to array containing data related to the spheres in the box
     unsigned int* SD_countsOfSheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
     unsigned int* spheres_in_SD_composite     //!< Big array that works in conjunction with SD_countsOfSheresTouching.
 )                                              //!< "spheres_in_SD_composite" says which SD contains what spheres
@@ -306,13 +361,12 @@ updateVelocities(
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
 
-    __shared__ int sph_X_DOT[MAX_NSPHERES_PER_SD];
-    __shared__ int sph_Y_DOT[MAX_NSPHERES_PER_SD];
-    __shared__ int sph_Z_DOT[MAX_NSPHERES_PER_SD];
+    __shared__ int sph_Xforce[MAX_NSPHERES_PER_SD];
+    __shared__ int sph_Yforce[MAX_NSPHERES_PER_SD];
+    __shared__ int sph_Zforce[MAX_NSPHERES_PER_SD];
 
     __shared__ unsigned char ID_frstDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
     __shared__ unsigned char ID_scndDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
-    __shared__ unsigned int numberOfContactEvents;
 
     unsigned int mySphere[1];
 
@@ -323,37 +377,47 @@ updateVelocities(
     unsigned int dummyUINT01 = blockIdx.x * MAX_NSPHERES_PER_SD;
     mySphere[0] = spheres_in_SD_composite[dummyUINT01 + threadIdx.x];
 
-    // In an attempt to improve likelihood of coalesced mem accesses, do a sort
+    // In an attempt to improve likelihood of coalesced mem accesses, do a sort. This will change mySphere.
     BlockRadixSort(temp_storage_sort).Sort(mySphere);
 
-    // Bring in data from global into sh mem
+    // Bring in data from global into sh mem; compute force impressed by walls on this sphere
     if (threadIdx.x < spheresTouchingThisSD) {
         sph_X[threadIdx.x] = pRawDataX[mySphere[0]];
         sph_Y[threadIdx.x] = pRawDataY[mySphere[0]];
         sph_Z[threadIdx.x] = pRawDataZ[mySphere[0]];
-
-        sph_X_DOT[threadIdx.x] = pRawDataX_DOT[mySphere[0]];
-        sph_Y_DOT[threadIdx.x] = pRawDataY_DOT[mySphere[0]];
-        sph_Z_DOT[threadIdx.x] = pRawDataZ_DOT[mySphere[0]];
+        boxWallsInducedForce<MAX_NSPHERES_PER_SD>(sph_X[threadIdx.x], sph_Y[threadIdx.x], sph_Z[threadIdx.x], sph_Xforce[threadIdx.x], sph_Yforce[threadIdx.x], sph_Zforce[threadIdx.x]);
     }
     else {
         sph_X[threadIdx.x] = ILL_GRANULAR_VAL;
         sph_Y[threadIdx.x] = ILL_GRANULAR_VAL;
         sph_Z[threadIdx.x] = ILL_GRANULAR_VAL;
 
-        sph_X_DOT[threadIdx.x] = ILL_GRANULAR_VAL;
-        sph_Y_DOT[threadIdx.x] = ILL_GRANULAR_VAL;
-        sph_Z_DOT[threadIdx.x] = ILL_GRANULAR_VAL;
+        sph_Xforce[threadIdx.x] = ILL_GRANULAR_VAL;
+        sph_Yforce[threadIdx.x] = ILL_GRANULAR_VAL;
+        sph_Zforce[threadIdx.x] = ILL_GRANULAR_VAL;
     }
+
     __syncthreads();
 
-    // Dry run first, to figure out offsets into shmem
-    unsigned int myCollisionCount = dryRunContactCount(threadIdx.x, sph_X, sph_Y, sph_Z);
-    unsigned int offset = myCollisionCount;
-    unsigned int block_aggregate = 0;
+    // Figure out sphere-to-sphere forces
+    // Dry run first, in order to figure out offsets into shmem
+    unsigned int myCollisionCount = dryRunContactCount<MAX_NSPHERES_PER_SD>(threadIdx.x, sph_X, sph_Y, sph_Z);
+    unsigned int myOffset = myCollisionCount;
+    unsigned int blockLevelCollisionEventsCount = 0;
     typedef cub::BlockScan<unsigned int, MAX_NSPHERES_PER_SD> BlockScan;
     __shared__ typename BlockScan::TempStorage temp_storage_scan;
-    BlockScan(temp_storage_scan).ExclusiveSum(offset, offset, block_aggregate);
+    BlockScan(temp_storage_scan).ExclusiveSum(myOffset, myOffset, blockLevelCollisionEventsCount);
+
+    // Populate the data structures with contact event information; i.e., the first and second spheres of 
+    // each contact event
+    populateContactEventInformation_dataStructures<MAX_NSPHERES_PER_SD>
+        (threadIdx.x, sph_X, sph_Y, sph_Z, myOffset, myCollisionCount, ID_frstDE_inCntctEvent, ID_scndDE_inCntctEvent);
+
+    // Figure out which contact events this thread needs to deal with. This will change two variables: offset, 
+    // and myCollisionCount
+    figureOutWorkOrder<MAX_NSPHERES_PER_SD>(threadIdx.x, blockLevelCollisionEventsCount, myCollisionCount, myOffset);
+
+    // Go ahead and do 
 }
 
 
