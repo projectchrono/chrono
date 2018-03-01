@@ -161,8 +161,8 @@ primingOperationsRectangularBox(
     int zSphCenter;
 
     /// Set aside shared memory
-    __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
-    __shared__ bool shMem_head_flags[CUB_THREADS * 8];
+    volatile __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
+    volatile __shared__ bool shMem_head_flags[CUB_THREADS * 8];
 
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
@@ -316,6 +316,24 @@ template<unsigned int MAX_NSPHERES_PER_SD> __device__ void figureOutWorkOrder(
 }
 
 /**
+This device function computes the normal force between two spheres that are in contact.
+Input:
+- delX: the difference in the x direction between the the two spheres; i.e., x_A - x_B
+- delY: the difference in the y direction between the the two spheres; i.e., y_A - y_B
+- delZ: the difference in the z direction between the the two spheres; i.e., z_A - z_B
+Output:
+- sphA_Xforce: the force that sphere A "feels" in the x direction
+- sphA_Yforce: the force that sphere A "feels" in the y direction
+- sphA_Zforce: the force that sphere A "feels" in the z direction
+*/
+__device__ void computeNormalForce(const int& delX, const int& delY, const int& delZ, int& sphA_Xforce, int& sphA_Yforce, int& sphA_Zforce)
+{
+    sphA_Xforce = ILL_GRANULAR_VAL;
+    sphA_Yforce = ILL_GRANULAR_VAL;
+    sphA_Zforce = ILL_GRANULAR_VAL;
+}
+
+/**
 This kernel call figures out forces on a sphere and carries out numerical integration to get the velocities of a sphere.
 
 Template arguments:
@@ -347,33 +365,34 @@ box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR
 template <unsigned int MAX_NSPHERES_PER_SD>            //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
 __global__ void
 updateVelocities(
+    int timeStep,                             //!< The numerical integration time step
     int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
     int* pRawDataY,                           //!< Pointer to array containing data related to the spheres in the box
     int* pRawDataZ,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataX_DOT_DELTA,                       //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataY_DOT_DELTA,                       //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataZ_DOT_DELTA,                       //!< Pointer to array containing data related to the spheres in the box
-    unsigned int* SD_countsOfSheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
+    int* pRawDataX_DOT,                       //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataY_DOT,                       //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataZ_DOT,                       //!< Pointer to array containing data related to the spheres in the box
+    unsigned int* SD_countsOfSpheresTouching, //!< The array that for each SD indicates how many spheres touch this SD
     unsigned int* spheres_in_SD_composite     //!< Big array that works in conjunction with SD_countsOfSheresTouching.
-)                                              //!< "spheres_in_SD_composite" says which SD contains what spheres
+)                                             //!< "spheres_in_SD_composite" says which SD contains what spheres
 {
     __shared__ int sph_X[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
 
-    __shared__ int sph_Xforce[MAX_NSPHERES_PER_SD];
-    __shared__ int sph_Yforce[MAX_NSPHERES_PER_SD];
-    __shared__ int sph_Zforce[MAX_NSPHERES_PER_SD];
+    volatile __shared__ int sph_Xforce[MAX_NSPHERES_PER_SD];
+    volatile __shared__ int sph_Yforce[MAX_NSPHERES_PER_SD];
+    volatile __shared__ int sph_Zforce[MAX_NSPHERES_PER_SD];
 
-    __shared__ unsigned char ID_frstDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
-    __shared__ unsigned char ID_scndDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
+    volatile __shared__ unsigned char ID_frstDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
+    volatile __shared__ unsigned char ID_scndDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
 
     unsigned int mySphere[1];
 
     typedef cub::BlockRadixSort<unsigned int, MAX_NSPHERES_PER_SD, 1> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
 
-    unsigned int spheresTouchingThisSD = SD_countsOfSheresTouching[blockIdx.x];
+    unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[blockIdx.x];
     unsigned int dummyUINT01 = blockIdx.x * MAX_NSPHERES_PER_SD;
     mySphere[0] = spheres_in_SD_composite[dummyUINT01 + threadIdx.x];
 
@@ -418,6 +437,37 @@ updateVelocities(
     figureOutWorkOrder<MAX_NSPHERES_PER_SD>(threadIdx.x, blockLevelCollisionEventsCount, myCollisionCount, myOffset);
 
     // Go ahead and do 
+    for (unsigned int cntctEvent = myOffset; cntctEvent < myOffset + myCollisionCount; cntctEvent++) {
+        unsigned int shMem_offset_sph_A = ID_frstDE_inCntctEvent[cntctEvent];
+        unsigned int shMem_offset_sph_B = ID_scndDE_inCntctEvent[cntctEvent];
+        int del_X = sph_X[shMem_offset_sph_A] - sph_X[shMem_offset_sph_B];
+        int del_Y = sph_Y[shMem_offset_sph_A] - sph_Y[shMem_offset_sph_B];
+        int del_Z = sph_Z[shMem_offset_sph_A] - sph_Z[shMem_offset_sph_B];
+
+        // Here we would have several ways of computing the force. For now, assume a Hookean model; i.e., the simplest possible.
+        int sph_A_Xforce;
+        int sph_A_Yforce;
+        int sph_A_Zforce;
+        computeNormalForce(del_X, del_Y, del_Z, sph_A_Xforce, sph_A_Yforce, sph_A_Zforce);
+
+        // update values in shmem for sphere A. This atomicAdd might be expensive...
+        atomicAdd(sph_Xforce + shMem_offset_sph_A, sph_A_Xforce);
+        atomicAdd(sph_Yforce + shMem_offset_sph_A, sph_A_Yforce);
+        atomicAdd(sph_Zforce + shMem_offset_sph_A, sph_A_Zforce);
+
+        // update values in shmem for sphere B. This atomicAdd might be expensive...
+        atomicAdd(sph_Xforce + shMem_offset_sph_B, -sph_A_Xforce);
+        atomicAdd(sph_Yforce + shMem_offset_sph_B, -sph_A_Yforce);
+        atomicAdd(sph_Zforce + shMem_offset_sph_B, -sph_A_Zforce);
+    }
+     
+    __syncthreads();
+
+    // Ready to do numerical integration. The assumption is that the mass is 1.0. 
+    // For now, do Explicit Euler. We should be able to do Chung here for improved dissipation. Or even Implicit Euler.
+    atomicAdd(pRawDataX_DOT + mySphere[0], timeStep*sph_Xforce[threadIdx.x]);
+    atomicAdd(pRawDataY_DOT + mySphere[0], timeStep*sph_Yforce[threadIdx.x]);
+    atomicAdd(pRawDataZ_DOT + mySphere[0], timeStep*sph_Zforce[threadIdx.x]);
 }
 
 
