@@ -117,8 +117,11 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     h_ZDOT_DE.resize(nDEs);
 }
 
-/** The purpose of this method is to figure out how big a SD is, and how many SDs are going to be necessary
+/** 
+The purpose of this method is to figure out how big a SD is, and how many SDs are going to be necessary
 in order to cover the entire BD.
+BD: Bid domain.
+SD: Sub-domain.
 */
 void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     double tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_L_DIR;
@@ -149,4 +152,19 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     nSDs_H_AD = howMany;
 
     nSDs = nSDs_L_AD * nSDs_D_AD * nSDs_H_AD;
+}
+
+/** 
+The purpose of this method is to compute the adimensionalized values of gravitational acceleration
+components.
+The assumption is that the TIME, LENGTH and MASS units have been set at this point.
+*/
+void chrono::ChGRN_DE_Container::set_gravitational_acceleration_AD() {
+
+    double convFactor = SPACE_UNIT / (TIME_UNIT*TIME_UNIT);
+    convFactor = 1. / convFactor;
+
+    X_gravAcc_AD = X_accGrav*convFactor;
+    Y_gravAcc_AD = Y_accGrav*convFactor;
+    Z_gravAcc_AD = Z_accGrav*convFactor;
 }

@@ -613,6 +613,9 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
                 sqrt((4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density) /
                      (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL));
 
+    // Once TIME_UNIT is available, set up the AD-ed components of the gravitational acceleration
+    set_gravitational_acceleration_AD();
+
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
     copyCONSTdata_to_device();

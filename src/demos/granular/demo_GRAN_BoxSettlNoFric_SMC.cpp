@@ -51,7 +51,10 @@ enum {
     OPT_DENSITY,
     OPT_BOX_L,
     OPT_BOX_D,
-    OPT_BOX_H
+    OPT_BOX_H,
+    OPT_GRAV_ACC,
+    OPT_STIFFNESS_S2S,
+    OPT_STIFFNESS_S2W
 };
 
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
@@ -59,16 +62,19 @@ enum {
 // - the option as it should appear on the command line
 // - type of the option
 // The last entry must be SO_END_OF_OPTIONS
-CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
-                                    {OPT_TIMEEND, "-e", SO_REQ_SEP},
-                                    {OPT_DENSITY, "--density", SO_REQ_SEP},
-                                    {OPT_BOX_L, "--boxlength", SO_REQ_SEP},
-                                    {OPT_BOX_D, "--boxdepth", SO_REQ_SEP},
-                                    {OPT_BOX_H, "--boxheight", SO_REQ_SEP},
-                                    {OPT_HELP, "-?", SO_NONE},
-                                    {OPT_HELP, "-h", SO_NONE},
-                                    {OPT_HELP, "--help", SO_NONE},
-                                    SO_END_OF_OPTIONS};
+CSimpleOptA::SOption g_options[] = { {OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
+                                    { OPT_TIMEEND, "-e", SO_REQ_SEP},
+                                    { OPT_DENSITY, "--density", SO_REQ_SEP},
+                                    { OPT_BOX_L, "--boxlength", SO_REQ_SEP},
+                                    { OPT_BOX_D, "--boxdepth", SO_REQ_SEP},
+                                    { OPT_BOX_H, "--boxheight", SO_REQ_SEP},
+                                    { OPT_GRAV_ACC, "--gravacc", SO_REQ_SEP },
+                                    { OPT_STIFFNESS_S2S, "--normStiffS2S", SO_REQ_SEP },
+                                    { OPT_STIFFNESS_S2W, "--normStiffS2W", SO_REQ_SEP },
+                                    { OPT_HELP, "-?", SO_NONE},
+                                    { OPT_HELP, "-h", SO_NONE},
+                                    { OPT_HELP, "--help", SO_NONE},
+                                    SO_END_OF_OPTIONS };
 
 
 // -----------------------------------------------------------------------------
@@ -82,6 +88,9 @@ void showUsage() {
     std::cout << "--boxlength=<box_length>" << std::endl;
     std::cout << "--boxdepth=<box_depth>" << std::endl;
     std::cout << "--boxheight=<box_height>" << std::endl;
+    std::cout << "--gravacc=<accValue>" << std::endl;
+    std::cout << "--normStiffS2S=<stiffValuesS2S>" << std::endl;
+    std::cout << "--normStiffS2W=<stiffValuesS2W>" << std::endl;
     std::cout << "-h / --help / -? \t Show this help." << std::endl;
 }
 
@@ -89,7 +98,16 @@ void showUsage() {
 // -----------------------------------------------------------------------------
 // Set up the problem parameters using command line input
 // -----------------------------------------------------------------------------
-bool GetProblemSpecs(int argc, char** argv, float& ball_radius, float& ballDensity, float& box_L, float& box_D, float& box_H, float& time_end) {
+bool GetProblemSpecs(int argc, char** argv, 
+    float& ball_radius, 
+    float& ballDensity, 
+    float& box_L, 
+    float& box_D, 
+    float& box_H, 
+    float& gravAcc,
+    float& normalStiffS2S,
+    float& normalStiffS2W,
+    float& time_end) {
     // Create the option parser and pass it the program arguments and the array of valid options.
     CSimpleOptA args(argc, argv, g_options);
 
@@ -122,6 +140,15 @@ bool GetProblemSpecs(int argc, char** argv, float& ball_radius, float& ballDensi
         case OPT_BOX_H:
             box_H = std::stof(args.OptionArg());
             break;
+        case OPT_GRAV_ACC:
+            gravAcc = std::stof(args.OptionArg());
+            break;
+        case OPT_STIFFNESS_S2S:
+            normalStiffS2S = std::stof(args.OptionArg());
+            break;
+        case OPT_STIFFNESS_S2W:
+            normalStiffS2W = std::stof(args.OptionArg());
+            break;
         case OPT_TIMEEND:
             time_end = std::stof(args.OptionArg());
             break;
@@ -132,15 +159,18 @@ bool GetProblemSpecs(int argc, char** argv, float& ball_radius, float& ballDensi
 }
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
-// There is no friction.
+// There is no friction. The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-#define BOX_L_cm 320.f
-#define BOX_D_cm 320.f
-#define BOX_H_cm 480.f
+#define BOX_L_cm 32.f
+#define BOX_D_cm 32.f
+#define BOX_H_cm 48.f
 #define RADIUS 1.f
-#define SPH_DENSITY 2.f
+#define SPH_DENSITY 1.5f
 #define TIME_END 10.f
+#define GRAV_ACCELERATION 980.f
+#define NORMAL_STIFFNESS_S2S 1e9f 
+#define NORMAL_STIFFNESS_S2W 1e9f 
 
     std::string output_prefix = "settling_MONODISP_SPHERES_SMC";
 
@@ -151,17 +181,21 @@ int main(int argc, char* argv[]) {
     float boxD = BOX_D_cm;
     float boxH = BOX_H_cm;
     float timeEnd = TIME_END;
+    float grav_acceleration = GRAV_ACCELERATION;
+    float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
+    float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
 
     // Some of the defalut values might be overwritten by user via command line
-    if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd) == false)
+    if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration, normStiffness_S2S, normStiffness_S2W) == false)
         return 1;
 
     // Setup simulation
     ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC settlingExperiment(ballRadius, ballDensity);
     settlingExperiment.setBOXdims(boxL, boxD, boxH);
+    settlingExperiment.YoungModulus_SPH2SPH(normStiffness_S2S);    
+    settlingExperiment.YoungModulus_SPH2WALL(normStiffness_S2W); 
+    settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
     settlingExperiment.generate_DEs();
-    settlingExperiment.YoungModulus_SPH2SPH(200000.f);    // material properties
-    settlingExperiment.YoungModulus_SPH2WALL(10000000.f); // material properties
 
     // Run settline experiments
     settlingExperiment.settle(timeEnd);

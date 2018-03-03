@@ -34,7 +34,13 @@ namespace chrono {
 
     class CH_GRANULAR_API ChGRN_DE_Container {
     protected:
+        double SPACE_UNIT;  //!< Everthing is measured as a multiple of SPACE_UNIT
+        double TIME_UNIT;   //!< Any time quanity is measured as a positive multiple of TIME_UNIT
+        double MASS_UNIT;   //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is equal the the mass of a sphere
+
         unsigned int nDEs;  ///< Number of discrete elements
+        unsigned int nSDs;  ///< Number of subdomains that the BD is split in
+
         std::vector<int> h_X_DE;
         std::vector<int> h_Y_DE;
         std::vector<int> h_Z_DE;
@@ -50,16 +56,23 @@ namespace chrono {
         int* p_d_CM_YDOT;
         int* p_d_CM_ZDOT;
 
+        float X_accGrav; //!< X component of the gravitational acceleration
+        float Y_accGrav; //!< Y component of the gravitational acceleration
+        float Z_accGrav; //!< Z component of the gravitational acceleration
+
+        double X_gravAcc_AD; //!< AD-ed value of the gravitational acceleration in the X direction
+        double Y_gravAcc_AD; //!< AD-ed value of the gravitational acceleration in the Y direction
+        double Z_gravAcc_AD; //!< AD-ed value of the gravitational acceleration in the Z direction
+
         unsigned int* p_device_SD_NumOf_DEs_Touching;  //!< Entry "i" says how many spheres touch SD i
         unsigned int* p_device_DEs_in_SD_composite;    //!< Array containing the IDs of the spheres stored in the SDs associated with the box
 
-        unsigned int nSDs;
 
+        GRN_TIME_STEPPING time_stepping; //!< Indicates what type of time stepping the simulation employs.
 
-        GRN_TIME_STEPPING time_stepping;
+        void set_gravitational_acceleration_AD();
 
         /// Partition the big domain (BD) and sets the number of SDs that BD is split in. 
-        /// This is protected since the user has very little insights in how to split the BD.
         /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
         virtual void partition_BD() = 0;
         virtual void copyCONSTdata_to_device() = 0;
@@ -76,6 +89,8 @@ namespace chrono {
 
         inline unsigned int elementCount() const { return nDEs; }
         inline unsigned int get_SD_count() const { return nSDs; }
+        void set_gravitational_acceleration(float xVal, float yVal, float zVal) { X_accGrav = xVal; Y_accGrav = yVal; Z_accGrav = zVal; }
+
         virtual void generate_DEs() = 0;
     };
 
@@ -94,10 +109,6 @@ namespace chrono {
         float box_D; //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
         float box_H; //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
 
-        double SPACE_UNIT;  //!< Everthing is measured as a multiple of SPACE_UNIT
-        double TIME_UNIT;   //!< Any time quanity is measured as a positive multiple of TIME_UNIT
-        double MASS_UNIT;   //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is equal the the mass of a sphere
-
         unsigned int monoDisperseSphRadius_AD; //!< The AD-ed value of the sphere radius
 
         unsigned int SD_L_AD;  //!< The AD-ed value of an SD in the L direction
@@ -109,7 +120,6 @@ namespace chrono {
         unsigned int nSDs_H_AD; //!< Number of SDs along the H dimension of the box
 
         void partition_BD();
-
 
     public:
         ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH, float density) : ChGRN_DE_Container() {
