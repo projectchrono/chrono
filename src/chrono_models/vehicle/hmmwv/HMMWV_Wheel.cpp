@@ -59,6 +59,7 @@ void HMMWV_Wheel::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(GetMeshName());
+        m_trimesh_shape->SetStatic(true);
         m_spindle->AddAsset(m_trimesh_shape);
     } else {
         ChWheel::AddVisualizationAssets(vis);
