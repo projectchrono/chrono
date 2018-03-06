@@ -14,10 +14,11 @@
 
 #include <cuda.h>
 #include <cstdio>
+#include <fstream>
 #include "../../chrono_thirdparty/cub/cub.cuh"
-#include "chrono_granular/physics/ChGranularDefines.cuh"
 #include "../ChGranularDefines.h"
 #include "../chrono_granular/physics/ChGranular.h"
+#include "chrono_granular/physics/ChGranularDefines.cuh"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
 __constant__ unsigned int d_monoDisperseSphRadius_AD;  // Pulled from the header
@@ -145,16 +146,18 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
  * box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
  *
  */
-template <unsigned int CUB_THREADS>            //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
+template <
+    unsigned int
+        CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
 __global__ void
 primingOperationsRectangularBox(
-    int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataY,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataZ,                           //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataX,                            //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataY,                            //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataZ,                            //!< Pointer to array containing data related to the spheres in the box
     unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
-    unsigned int* spheres_in_SD_composite,    //!< Big array that works in conjunction with SD_countsOfSpheresTouching.
-                                              //!< "spheres_in_SD_composite" says which SD contains what spheres
-    unsigned int nSpheres                     //!< Number of spheres in the box
+    unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction with SD_countsOfSpheresTouching.
+                                               //!< "spheres_in_SD_composite" says which SD contains what spheres
+    unsigned int nSpheres                      //!< Number of spheres in the box
 ) {
     int xSphCenter;
     int ySphCenter;
@@ -217,7 +220,7 @@ primingOperationsRectangularBox(
     for (unsigned int i = 0; i < 8; i++) {
         // SD currently touched, could easily be inlined
         unsigned int touchedSD = SDsTouched[i];
-        if (touchedSD != NULL_GRANULAR_ID && head_flags[i] ) {
+        if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
             // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
             unsigned int idInShared = 8 * threadIdx.x + i;
             unsigned int winningStreak = 0;
@@ -229,22 +232,22 @@ primingOperationsRectangularBox(
 
             // if (touchedSD >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
             //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            // } 
+            // }
 
             // Store start of new entries
             unsigned int offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
-            
+
             // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
             // Get the absolute offset
-            offset += touchedSD*MAX_COUNT_OF_DEs_PER_SD;
-            
+            offset += touchedSD * MAX_COUNT_OF_DEs_PER_SD;
+
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int i = 0; i < winningStreak; i++)
                 offsetInComposite_SphInSD_Array[idInShared + i] = offset++;
         }
     }
 
-    __syncthreads(); // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
+    __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
@@ -253,27 +256,48 @@ primingOperationsRectangularBox(
             spheres_in_SD_composite[offset] = sphIDs[i];
     }
 }
-
-template<unsigned int MAX_NSPHERES_PER_SD> __device__ unsigned int dryRunContactCount
-(unsigned thrdIndex, const int sph_X[MAX_NSPHERES_PER_SD], const int sph_Y[MAX_NSPHERES_PER_SD], const int sph_Z[MAX_NSPHERES_PER_SD])
-{
+/// Count the number of contacts for each body
+/// TODO this does more work than strictly necessary, but is much cleaner
+/// we could probably get a 2x speedup on this function call by some cute mapping
+template <unsigned int MAX_NSPHERES_PER_SD>
+__device__ unsigned int dryRunContactCount(unsigned tIdx,
+                                           const int sph_X[MAX_NSPHERES_PER_SD],
+                                           const int sph_Y[MAX_NSPHERES_PER_SD],
+                                           const int sph_Z[MAX_NSPHERES_PER_SD]) {
+    unsigned int ncontacts = 0;  // We return this value
     // This function call returns the number of contacts
-    return NULL_GRANULAR_ID;
+    unsigned int sphere1 = tIdx;
+    for (unsigned int sphere2 = 0; sphere2 < MAX_NSPHERES_PER_SD; sphere2++) {
+        // Check both sphere for legal values
+        // If either sphere is invalid or the sphere to check has lower index, skip this check
+        // Store boolean as uint because why not
+        unsigned int invalid =
+            (sph_X[sphere1] == ILL_GRANULAR_VAL) || (sph_X[sphere2] == ILL_GRANULAR_VAL) || (sphere1 > sphere2);
+        unsigned int dx = (sph_X[sphere1] - sph_X[sphere2]);
+        unsigned int dy = (sph_Y[sphere1] - sph_Y[sphere2]);
+        unsigned int dz = (sph_Z[sphere1] - sph_Z[sphere2]);
+        unsigned int d2 = dx * dx + dy * dy + dz * dz;
+        // True if bodies are in contact, true->1 in c++
+        unsigned int contact = (d2 < d_monoDisperseSphRadius_AD * d_monoDisperseSphRadius_AD);
+        // This should be probably in shared memory, of size CUB_THREADS
+        ncontacts += contact && !invalid;
+    }
+
+    return ncontacts;
 }
 
-template<unsigned int MAX_NSPHERES_PER_SD> __device__ void populateContactEventInformation_dataStructures(
+template <unsigned int MAX_NSPHERES_PER_SD>
+__device__ void populateContactEventInformation_dataStructures(
     unsigned thrdIndex,
     const int sph_X[MAX_NSPHERES_PER_SD],
     const int sph_Y[MAX_NSPHERES_PER_SD],
     const int sph_Z[MAX_NSPHERES_PER_SD],
     unsigned int thisThrdOffset,
     unsigned int thisThrdCollisionCount,
-    volatile unsigned char IDfrstDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE],
-    volatile unsigned char IDscndDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE])
-{
+    volatile unsigned char IDfrstDE_inCntctEvent[MAX_NSPHERES_PER_SD * AVERAGE_COUNT_CONTACTS_PER_DE],
+    volatile unsigned char IDscndDE_inCntctEvent[MAX_NSPHERES_PER_SD * AVERAGE_COUNT_CONTACTS_PER_DE]) {
     ;
 }
-
 
 /**
 This device function computes the forces induces by the walls on the box on a sphere
@@ -287,28 +311,32 @@ Output:
   - Yforce: the Y component of the force, as represented in the box reference system
   - Zforce: the Z component of the force, as represented in the box reference system
 */
-template<unsigned int MAX_NSPHERES_PER_SD> __device__ void boxWallsInducedForce(int sphXpos, int sphYpos, int sphZpos, volatile int& Xforce, volatile int& Yforce, volatile int& Zforce)
-{
+template <unsigned int MAX_NSPHERES_PER_SD>
+__device__ void boxWallsInducedForce(int sphXpos,
+                                     int sphYpos,
+                                     int sphZpos,
+                                     volatile int& Xforce,
+                                     volatile int& Yforce,
+                                     volatile int& Zforce) {
     Xforce = ILL_GRANULAR_VAL;
     Yforce = ILL_GRANULAR_VAL;
     Zforce = ILL_GRANULAR_VAL;
 }
 
 /**
-This device function figures out how many contact events the thread "thrdIndx" needs to take care of. 
+This device function figures out how many contact events the thread "thrdIndx" needs to take care of.
 Input:
     - thrdIndx: the thread for which we identify the work order
-    - blockLvlCollisionEventsCount: the total number of contact events the entire block needs to deal with    
+    - blockLvlCollisionEventsCount: the total number of contact events the entire block needs to deal with
 Output:
     - myColsnCount: the number of contact events that thread thrdIndx will have to deal with
     - my_offset: offset in the collision data structure where this thread starts
 */
-template<unsigned int MAX_NSPHERES_PER_SD> __device__ void figureOutWorkOrder(
-    unsigned int thrdIndx, 
-    unsigned int blockLvlCollisionEventsCount, 
-    unsigned int& myColsnCount, 
-    unsigned int& my_offset)
-{
+template <unsigned int MAX_NSPHERES_PER_SD>
+__device__ void figureOutWorkOrder(unsigned int thrdIndx,
+                                   unsigned int blockLvlCollisionEventsCount,
+                                   unsigned int& myColsnCount,
+                                   unsigned int& my_offset) {
     myColsnCount = NULL_GRANULAR_ID;
     my_offset = NULL_GRANULAR_ID;
 }
@@ -324,8 +352,12 @@ Output:
 - sphA_Yforce: the force that sphere A "feels" in the y direction
 - sphA_Zforce: the force that sphere A "feels" in the z direction
 */
-__device__ void computeNormalForce(const int& delX, const int& delY, const int& delZ, int& sphA_Xforce, int& sphA_Yforce, int& sphA_Zforce)
-{
+__device__ void computeNormalForce(const int& delX,
+                                   const int& delY,
+                                   const int& delZ,
+                                   int& sphA_Xforce,
+                                   int& sphA_Yforce,
+                                   int& sphA_Zforce) {
     sphA_Xforce = ILL_GRANULAR_VAL;
     sphA_Yforce = ILL_GRANULAR_VAL;
     sphA_Zforce = ILL_GRANULAR_VAL;
@@ -336,7 +368,8 @@ This kernel call figures out forces on a sphere and carries out numerical integr
 
 Template arguments:
   - MAX_NSPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block collectives.
-                         NOTE: It is assumed that MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
+                         NOTE: It is assumed that MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to
+store IDs)
 
 Assumptions:
   - Granular material is made up of monodisperse spheres.
@@ -360,19 +393,28 @@ Notes:
   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
 box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
 */
-template <unsigned int MAX_NSPHERES_PER_SD>            //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
-__global__ void
-updateVelocities(
-    unsigned int timeStep,                    //!< The numerical integration time step
-    int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataY,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataZ,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataX_DOT,                       //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataY_DOT,                       //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataZ_DOT,                       //!< Pointer to array containing data related to the spheres in the box
-    unsigned int* SD_countsOfSpheresTouching, //!< The array that for each SD indicates how many spheres touch this SD
-    unsigned int* spheres_in_SD_composite     //!< Big array that works in conjunction with SD_countsOfSpheresTouching.
-)                                             //!< "spheres_in_SD_composite" says which SD contains what spheres
+template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
+                                             //!< Should be a multiple of 32
+__global__ void updateVelocities(unsigned int timeStep,  //!< The numerical integration time step
+                                 int* pRawDataX,         //!< Pointer to array containing data related to the
+                                                         //!< spheres in the box
+                                 int* pRawDataY,         //!< Pointer to array containing data related to the
+                                                         //!< spheres in the box
+                                 int* pRawDataZ,         //!< Pointer to array containing data related to the
+                                                         //!< spheres in the box
+                                 int* pRawDataX_DOT,     //!< Pointer to array containing data related to
+                                                         //!< the spheres in the box
+                                 int* pRawDataY_DOT,     //!< Pointer to array containing data related to
+                                                         //!< the spheres in the box
+                                 int* pRawDataZ_DOT,     //!< Pointer to array containing data related to
+                                                         //!< the spheres in the box
+                                 unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
+                                                                            //!< SD indicates how many
+                                                                            //!< spheres touch this SD
+                                 unsigned int* spheres_in_SD_composite      //!< Big array that works in
+                                                                            //!< conjunction with
+                                                                            //!< SD_countsOfSpheresTouching.
+                                 )  //!< "spheres_in_SD_composite" says which SD contains what spheres
 {
     __shared__ int sph_X[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
@@ -382,8 +424,8 @@ updateVelocities(
     volatile __shared__ int sph_Yforce[MAX_NSPHERES_PER_SD];
     volatile __shared__ int sph_Zforce[MAX_NSPHERES_PER_SD];
 
-    volatile __shared__ unsigned char ID_frstDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
-    volatile __shared__ unsigned char ID_scndDE_inCntctEvent[MAX_NSPHERES_PER_SD*AVERAGE_COUNT_CONTACTS_PER_DE];
+    volatile __shared__ unsigned char ID_frstDE_inCntctEvent[MAX_NSPHERES_PER_SD * AVERAGE_COUNT_CONTACTS_PER_DE];
+    volatile __shared__ unsigned char ID_scndDE_inCntctEvent[MAX_NSPHERES_PER_SD * AVERAGE_COUNT_CONTACTS_PER_DE];
 
     unsigned int mySphere[1];
 
@@ -402,9 +444,10 @@ updateVelocities(
         sph_X[threadIdx.x] = pRawDataX[mySphere[0]];
         sph_Y[threadIdx.x] = pRawDataY[mySphere[0]];
         sph_Z[threadIdx.x] = pRawDataZ[mySphere[0]];
-        boxWallsInducedForce<MAX_NSPHERES_PER_SD>(sph_X[threadIdx.x], sph_Y[threadIdx.x], sph_Z[threadIdx.x], sph_Xforce[threadIdx.x], sph_Yforce[threadIdx.x], sph_Zforce[threadIdx.x]);
-    }
-    else {
+        boxWallsInducedForce<MAX_NSPHERES_PER_SD>(sph_X[threadIdx.x], sph_Y[threadIdx.x], sph_Z[threadIdx.x],
+                                                  sph_Xforce[threadIdx.x], sph_Yforce[threadIdx.x],
+                                                  sph_Zforce[threadIdx.x]);
+    } else {
         sph_X[threadIdx.x] = ILL_GRANULAR_VAL;
         sph_Y[threadIdx.x] = ILL_GRANULAR_VAL;
         sph_Z[threadIdx.x] = ILL_GRANULAR_VAL;
@@ -425,16 +468,16 @@ updateVelocities(
     __shared__ typename BlockScan::TempStorage temp_storage_scan;
     BlockScan(temp_storage_scan).ExclusiveSum(myOffset, myOffset, blockLevelCollisionEventsCount);
 
-    // Populate the data structures with contact event information; i.e., the first and second spheres of 
+    // Populate the data structures with contact event information; i.e., the first and second spheres of
     // each contact event
-    populateContactEventInformation_dataStructures<MAX_NSPHERES_PER_SD>
-        (threadIdx.x, sph_X, sph_Y, sph_Z, myOffset, myCollisionCount, ID_frstDE_inCntctEvent, ID_scndDE_inCntctEvent);
+    populateContactEventInformation_dataStructures<MAX_NSPHERES_PER_SD>(
+        threadIdx.x, sph_X, sph_Y, sph_Z, myOffset, myCollisionCount, ID_frstDE_inCntctEvent, ID_scndDE_inCntctEvent);
 
-    // Figure out which contact events this thread needs to deal with. This will change two variables: offset, 
+    // Figure out which contact events this thread needs to deal with. This will change two variables: offset,
     // and myCollisionCount
     figureOutWorkOrder<MAX_NSPHERES_PER_SD>(threadIdx.x, blockLevelCollisionEventsCount, myCollisionCount, myOffset);
 
-    // Go ahead and do 
+    // Go ahead and do
     for (unsigned int cntctEvent = myOffset; cntctEvent < myOffset + myCollisionCount; cntctEvent++) {
         unsigned int shMem_offset_sph_A = ID_frstDE_inCntctEvent[cntctEvent];
         unsigned int shMem_offset_sph_B = ID_scndDE_inCntctEvent[cntctEvent];
@@ -442,7 +485,8 @@ updateVelocities(
         int del_Y = sph_Y[shMem_offset_sph_A] - sph_Y[shMem_offset_sph_B];
         int del_Z = sph_Z[shMem_offset_sph_A] - sph_Z[shMem_offset_sph_B];
 
-        // Here we would have several ways of computing the force. For now, assume a Hookean model; i.e., the simplest possible.
+        // Here we would have several ways of computing the force. For now, assume a Hookean model; i.e., the simplest
+        // possible.
         int sph_A_Xforce;
         int sph_A_Yforce;
         int sph_A_Zforce;
@@ -458,34 +502,35 @@ updateVelocities(
         atomicAdd((int*)sph_Yforce + shMem_offset_sph_B, -sph_A_Yforce);
         atomicAdd((int*)sph_Zforce + shMem_offset_sph_B, -sph_A_Zforce);
     }
-     
+
     __syncthreads();
 
-    // Ready to do numerical integration. The assumption is that the mass is 1.0. 
+    // Ready to do numerical integration. The assumption is that the mass is 1.0.
     // For now, do Explicit Euler. We should be able to do Chung here for improved dissipation. Or even Implicit Euler.
-    atomicAdd(pRawDataX_DOT + mySphere[0], timeStep*sph_Xforce[threadIdx.x]);
-    atomicAdd(pRawDataY_DOT + mySphere[0], timeStep*sph_Yforce[threadIdx.x]);
-    atomicAdd(pRawDataZ_DOT + mySphere[0], timeStep*sph_Zforce[threadIdx.x]);
+    atomicAdd(pRawDataX_DOT + mySphere[0], timeStep * sph_Xforce[threadIdx.x]);
+    atomicAdd(pRawDataY_DOT + mySphere[0], timeStep * sph_Yforce[threadIdx.x]);
+    atomicAdd(pRawDataZ_DOT + mySphere[0], timeStep * sph_Zforce[threadIdx.x]);
 }
 
-
-
-template <unsigned int THRDS_PER_BLOCK>            //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
+template <
+    unsigned int
+        THRDS_PER_BLOCK>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of
+                          //!< 32
 __global__ void
 updatePositions(
-    unsigned int timeStep,                    //!< The numerical integration time step
-    int* pRawDataX,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataY,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataZ,                           //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataX_DOT,                       //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataY_DOT,                       //!< Pointer to array containing data related to the spheres in the box
-    int* pRawDataZ_DOT,                       //!< Pointer to array containing data related to the spheres in the box
-    unsigned int* SD_countsOfSpheresTouching, //!< The array that for each SD indicates how many spheres touch this SD
-    unsigned int* spheres_in_SD_composite,    //!< Big array that works in conjunction with SD_countsOfSpheresTouching.
-                                              //!< "spheres_in_SD_composite" says which SD contains what spheres
-    unsigned int nSpheres
-    )                                             
-{
+    unsigned int timeStep,                     //!< The numerical integration time step
+    int* pRawDataX,                            //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataY,                            //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataZ,                            //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataX_DOT,                        //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataY_DOT,                        //!< Pointer to array containing data related to the spheres in the box
+    int* pRawDataZ_DOT,                        //!< Pointer to array containing data related to the spheres in the box
+    unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
+    unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction with
+                                               //!< SD_countsOfSpheresTouching.
+                                               //!< "spheres_in_SD_composite" says which SD
+                                               //!< contains what spheres
+    unsigned int nSpheres) {
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
@@ -502,23 +547,23 @@ updatePositions(
 
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int sphIDs[8] = { mySphereID, mySphereID, mySphereID, mySphereID,
-        mySphereID, mySphereID, mySphereID, mySphereID };
+    unsigned int sphIDs[8] = {mySphereID, mySphereID, mySphereID, mySphereID,
+                              mySphereID, mySphereID, mySphereID, mySphereID};
 
     // This uses a lot of registers but is needed
-    unsigned int SDsTouched[8] = { NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
-        NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID };
+    unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
+                                  NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     if (mySphereID < nSpheres) {
         // Perform numerical integration. For now, use Explicit Euler. Hitting cache, also coalesced.
-        xSphCenter = timeStep*pRawDataX_DOT[mySphereID];
+        xSphCenter = timeStep * pRawDataX_DOT[mySphereID];
         xSphCenter += pRawDataX[mySphereID];
         pRawDataX[mySphereID] = xSphCenter;
 
-        ySphCenter = timeStep*pRawDataY_DOT[mySphereID];
+        ySphCenter = timeStep * pRawDataY_DOT[mySphereID];
         ySphCenter += pRawDataY[mySphereID];
         pRawDataY[mySphereID] = ySphCenter;
 
-        zSphCenter = timeStep*pRawDataZ_DOT[mySphereID];
+        zSphCenter = timeStep * pRawDataZ_DOT[mySphereID];
         zSphCenter += pRawDataZ[mySphereID];
         pRawDataZ[mySphereID] = zSphCenter;
 
@@ -563,18 +608,19 @@ updatePositions(
             do {
                 winningStreak++;
                 // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < 8 * THRDS_PER_BLOCK && !(shMem_head_flags[idInShared + winningStreak]));
+            } while (idInShared + winningStreak < 8 * THRDS_PER_BLOCK &&
+                     !(shMem_head_flags[idInShared + winningStreak]));
 
             // if (touchedSD >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
             //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            // } 
+            // }
 
             // Store start of new entries
             unsigned int offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
-                                            
+
             // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
             // Get the absolute offset
-            offset += touchedSD*MAX_COUNT_OF_DEs_PER_SD;
+            offset += touchedSD * MAX_COUNT_OF_DEs_PER_SD;
 
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int i = 0; i < winningStreak; i++)
@@ -582,16 +628,15 @@ updatePositions(
         }
     }
 
-    __syncthreads(); // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
+    __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-                     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
+    // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
         unsigned int offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID)
             spheres_in_SD_composite[offset] = sphIDs[i];
     }
 }
-
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
     // Copy adimensional size of SDs to device
@@ -603,11 +648,46 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
     gpuErrchk(cudaMemcpyToSymbol(d_box_D_AD, &nSDs_D_AD, sizeof(d_box_D_AD)));
     gpuErrchk(cudaMemcpyToSymbol(d_box_H_AD, &nSDs_H_AD, sizeof(d_box_H_AD)));
 
-    gpuErrchk(cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
+    gpuErrchk(
+        cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
+}
+
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
+    unsigned int* sdvals = new unsigned int[nSDs];
+    unsigned int* sdSpheres = new unsigned int[MAX_COUNT_OF_DEs_PER_SD * nSDs];
+    unsigned int* deCounts = new unsigned int[nDEs];
+    cudaMemcpy(sdvals, p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(sdSpheres, p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int),
+               cudaMemcpyDeviceToHost);
+
+    unsigned int max_count = 0;
+    unsigned int sum = 0;
+    for (unsigned int i = 0; i < nSDs; i++) {
+        // printf("count is %u for SD sd %u \n", sdvals[i], i);
+        sum += sdvals[i];
+        if (sdvals[i] > max_count)
+            max_count = sdvals[i];
+    }
+    printf("max DEs per SD is %u\n", max_count);
+    printf("total sd/de overlaps is %u\n", sum);
+    printf("theoretical total is %u\n", MAX_COUNT_OF_DEs_PER_SD * nSDs);
+    // Copy over occurences in SDs
+    for (unsigned int i = 0; i < MAX_COUNT_OF_DEs_PER_SD * nSDs; i++) {
+        // printf("de id is %u, i is %u\n", sdSpheres[i], i);
+        deCounts[sdSpheres[i]]++;
+    }
+
+    std::ofstream ptFile{"output.csv"};
+    ptFile << "x,y,z,nTouched" << std::endl;
+    for (int n = 0; n < nDEs; n++) {
+        ptFile << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << deCounts[n] << std::endl;
+    }
+    delete[] sdvals;
+    delete[] sdSpheres;
+    delete[] deCounts;
 }
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
-
     // Come up with the unit of time
     TIME_UNIT = 1. / (1 << SPHERE_TIME_UNIT_FACTOR) *
                 sqrt((4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density) /
@@ -622,26 +702,29 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
 
     // Seed arrays that are populated by the kernel call
     gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, 0, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int))); // FUOT: is 0 the right value to set entries in this array to?
+    gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, 0,
+                         MAX_COUNT_OF_DEs_PER_SD * nSDs *
+                             sizeof(unsigned int)));  // FUOT: is 0 the right value to set entries in this array to?
 
     /// Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
-
-    // Settling simulation loop. 
+    printf("checking counts\n");
+    checkSDCounts();
+    printf("counts checked\n");
+    // Settling simulation loop.
     unsigned int fakeTimeStep = 5;
     for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += fakeTimeStep) {
-        updateVelocities<MAX_COUNT_OF_DEs_PER_SD> << <nSDs, MAX_COUNT_OF_DEs_PER_SD >> >
-            (fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
+        updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+            fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
+            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
 
-        updatePositions<CUDA_THREADS> << <nBlocks, CUDA_THREADS >> >
-            (fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
+        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+            fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
+            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
     }
 
     cleanup_simulation();
     return;
 }
-
-
-
