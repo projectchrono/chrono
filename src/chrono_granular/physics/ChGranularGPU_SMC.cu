@@ -272,14 +272,14 @@ __device__ unsigned int dryRunContactCount(unsigned tIdx,
         // If either sphere is invalid or the sphere to check has lower index, skip this check
         // Store boolean as uint because why not
         unsigned int invalid =
-            (sph_X[sphere1] == ILL_GRANULAR_VAL) || (sph_X[sphere2] == ILL_GRANULAR_VAL) || (sphere1 > sphere2);
+            (sph_X[sphere1] == ILL_GRANULAR_VAL) || (sph_X[sphere2] == ILL_GRANULAR_VAL) || (sphere1 >= sphere2);
         unsigned int dx = (sph_X[sphere1] - sph_X[sphere2]);
         unsigned int dy = (sph_Y[sphere1] - sph_Y[sphere2]);
         unsigned int dz = (sph_Z[sphere1] - sph_Z[sphere2]);
         unsigned int d2 = dx * dx + dy * dy + dz * dz;
         // True if bodies are in contact, true->1 in c++
         unsigned int contact = (d2 < d_monoDisperseSphRadius_AD * d_monoDisperseSphRadius_AD);
-        // This should be probably in shared memory, of size CUB_THREADS
+        // Store so we can return it later
         ncontacts += contact && !invalid;
     }
 
@@ -288,7 +288,7 @@ __device__ unsigned int dryRunContactCount(unsigned tIdx,
 
 template <unsigned int MAX_NSPHERES_PER_SD>
 __device__ void populateContactEventInformation_dataStructures(
-    unsigned thrdIndex,
+    unsigned tIdx,
     const int sph_X[MAX_NSPHERES_PER_SD],
     const int sph_Y[MAX_NSPHERES_PER_SD],
     const int sph_Z[MAX_NSPHERES_PER_SD],
@@ -296,7 +296,34 @@ __device__ void populateContactEventInformation_dataStructures(
     unsigned int thisThrdCollisionCount,
     volatile unsigned char IDfrstDE_inCntctEvent[MAX_NSPHERES_PER_SD * AVERAGE_COUNT_CONTACTS_PER_DE],
     volatile unsigned char IDscndDE_inCntctEvent[MAX_NSPHERES_PER_SD * AVERAGE_COUNT_CONTACTS_PER_DE]) {
-    ;
+    unsigned int count = 0;  // use this as index into shared memory
+    // This function call returns the number of contacts
+    unsigned int sphere1 = tIdx;
+    // this code shouldn't diverge too much, at worst it will run the 'else' of the if case MAX_NSPHERES_PER_SD time
+    for (unsigned int sphere2 = 0; sphere2 < MAX_NSPHERES_PER_SD; sphere2++) {
+        // Check both sphere for legal values
+        // If either sphere is invalid or the sphere to check has lower index, skip this check
+        // Store boolean as uint because it sneaks past conditional checks that way
+        unsigned int invalid =
+            (sph_X[sphere1] == ILL_GRANULAR_VAL) || (sph_X[sphere2] == ILL_GRANULAR_VAL) || (sphere1 >= sphere2);
+        unsigned int dx = (sph_X[sphere1] - sph_X[sphere2]);
+        unsigned int dy = (sph_Y[sphere1] - sph_Y[sphere2]);
+        unsigned int dz = (sph_Z[sphere1] - sph_Z[sphere2]);
+        unsigned int d2 = dx * dx + dy * dy + dz * dz;
+        // True if bodies are in contact, true->1 in c++
+        unsigned int contact = (d2 < d_monoDisperseSphRadius_AD * d_monoDisperseSphRadius_AD);
+        // This is warp divergence but it shouldn't be the _worst_
+        if (contact && !invalid) {
+            // Write back to shared memory
+            IDfrstDE_inCntctEvent[tIdx + count] = sphere1;
+            IDscndDE_inCntctEvent[tIdx + count] = sphere2;
+            // Increment counter
+            count++;
+            if (count > thisThrdCollisionCount) {
+                printf("BIG BIG ERROR! too many collisions detected!\n");
+            }
+        }
+    }
 }
 
 /**
@@ -333,12 +360,25 @@ Output:
     - my_offset: offset in the collision data structure where this thread starts
 */
 template <unsigned int MAX_NSPHERES_PER_SD>
-__device__ void figureOutWorkOrder(unsigned int thrdIndx,
+__device__ void figureOutWorkOrder(unsigned int tIdx,
                                    unsigned int blockLvlCollisionEventsCount,
-                                   unsigned int& myColsnCount,
-                                   unsigned int& my_offset) {
-    myColsnCount = NULL_GRANULAR_ID;
-    my_offset = NULL_GRANULAR_ID;
+                                   unsigned int* myColsnCount,
+                                   unsigned int* my_offset) {
+    const unsigned int num_threads = blockDim.x;  // Get this info
+    // We want to calculate the number of collisions per thread, but not undershoot
+    unsigned int collisions_per_thread = (blockLvlCollisionEventsCount + num_threads - 1) / num_threads;
+    // the number of extra collisions we picked up
+    unsigned int rem = num_threads * collisions_per_thread - blockLvlCollisionEventsCount;
+    // Offset into total collisions, this should be the same for everyone
+    *my_offset = tIdx * collisions_per_thread;
+    // Last rem threads should do less work
+    // Should be little warp divergence since we're only doing one check and this is a tiny function anyways
+    if (tIdx >= num_threads - rem) {
+        // Don't do the extra work on the last thread
+        collisions_per_thread -= 1;
+    }
+    // Store this thread's work to do
+    *myColsnCount = collisions_per_thread;
 }
 
 /**
@@ -413,7 +453,7 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
                                                                             //!< spheres touch this SD
                                  unsigned int* spheres_in_SD_composite      //!< Big array that works in
                                                                             //!< conjunction with
-                                                                            //!< SD_countsOfSpheresTouching.
+                                 //!< SD_countsOfSpheresTouching.
                                  )  //!< "spheres_in_SD_composite" says which SD contains what spheres
 {
     __shared__ int sph_X[MAX_NSPHERES_PER_SD];
@@ -468,14 +508,18 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
     __shared__ typename BlockScan::TempStorage temp_storage_scan;
     BlockScan(temp_storage_scan).ExclusiveSum(myOffset, myOffset, blockLevelCollisionEventsCount);
 
+    __syncthreads();  // Conlain added this -- do we need to force synchronization here?
+
     // Populate the data structures with contact event information; i.e., the first and second spheres of
     // each contact event
     populateContactEventInformation_dataStructures<MAX_NSPHERES_PER_SD>(
         threadIdx.x, sph_X, sph_Y, sph_Z, myOffset, myCollisionCount, ID_frstDE_inCntctEvent, ID_scndDE_inCntctEvent);
 
+    __syncthreads();  // We just wrote to shared memory
+
     // Figure out which contact events this thread needs to deal with. This will change two variables: offset,
     // and myCollisionCount
-    figureOutWorkOrder<MAX_NSPHERES_PER_SD>(threadIdx.x, blockLevelCollisionEventsCount, myCollisionCount, myOffset);
+    figureOutWorkOrder<MAX_NSPHERES_PER_SD>(threadIdx.x, blockLevelCollisionEventsCount, &myCollisionCount, &myOffset);
 
     // Go ahead and do
     for (unsigned int cntctEvent = myOffset; cntctEvent < myOffset + myCollisionCount; cntctEvent++) {
@@ -507,6 +551,7 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
 
     // Ready to do numerical integration. The assumption is that the mass is 1.0.
     // For now, do Explicit Euler. We should be able to do Chung here for improved dissipation. Or even Implicit Euler.
+    /// NOTE from Conlain -- this line crashes. The atomicadd is trying to write to 0x00000000 somehow
     atomicAdd(pRawDataX_DOT + mySphere[0], timeStep * sph_Xforce[threadIdx.x]);
     atomicAdd(pRawDataY_DOT + mySphere[0], timeStep * sph_Yforce[threadIdx.x]);
     atomicAdd(pRawDataZ_DOT + mySphere[0], timeStep * sph_Zforce[threadIdx.x]);
@@ -554,6 +599,7 @@ updatePositions(
     unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
                                   NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     if (mySphereID < nSpheres) {
+        /// NOTE from conlain -- something crashes here too. Invalid read
         // Perform numerical integration. For now, use Explicit Euler. Hitting cache, also coalesced.
         xSphCenter = timeStep * pRawDataX_DOT[mySphereID];
         xSphCenter += pRawDataX[mySphereID];
@@ -652,6 +698,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
         cudaMemcpyToSymbol(d_monoDisperseSphRadius_AD, &monoDisperseSphRadius_AD, sizeof(d_monoDisperseSphRadius_AD)));
 }
 
+// Check number of spheres in each SD and dump relevant info to file
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
     unsigned int* sdvals = new unsigned int[nSDs];
     unsigned int* sdSpheres = new unsigned int[MAX_COUNT_OF_DEs_PER_SD * nSDs];
@@ -679,7 +726,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
 
     std::ofstream ptFile{"output.csv"};
     ptFile << "x,y,z,nTouched" << std::endl;
-    for (int n = 0; n < nDEs; n++) {
+    for (unsigned int n = 0; n < nDEs; n++) {
         ptFile << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << deCounts[n] << std::endl;
     }
     delete[] sdvals;

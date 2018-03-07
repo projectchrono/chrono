@@ -51,7 +51,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation() {
         p_d_CM_ZDOT = nullptr;
     }
 
-    // Handle other memory allocated 
+    // Handle other memory allocated
     if (p_device_SD_NumOf_DEs_Touching != nullptr) {
         gpuErrchk(cudaFree(p_device_SD_NumOf_DEs_Touching));
         p_device_SD_NumOf_DEs_Touching = nullptr;
@@ -63,8 +63,8 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation() {
 }
 
 /** This method sets up the data structures used to perform a simulation.
-*
-*/
+ *
+ */
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     partition_BD();
 
@@ -73,15 +73,26 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     gpuErrchk(cudaMalloc(&p_d_CM_Y, nDEs * sizeof(int)));
     gpuErrchk(cudaMalloc(&p_d_CM_Z, nDEs * sizeof(int)));
 
+    // Set aside memory for velocity information
+    gpuErrchk(cudaMalloc(&p_d_CM_XDOT, nDEs * sizeof(int)));
+    gpuErrchk(cudaMalloc(&p_d_CM_YDOT, nDEs * sizeof(int)));
+    gpuErrchk(cudaMalloc(&p_d_CM_ZDOT, nDEs * sizeof(int)));
+
     // allocate mem for array saying for each SD how many spheres touch it
     gpuErrchk(cudaMalloc(&p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int)));
 
     // allocate mem for array that for each SD has the list of all spheres touching it; big array
     gpuErrchk(cudaMalloc(&p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
+    // Copy over initial position information
     gpuErrchk(cudaMemcpy(p_d_CM_X, h_X_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
     gpuErrchk(cudaMemcpy(p_d_CM_Y, h_Y_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
     gpuErrchk(cudaMemcpy(p_d_CM_Z, h_Z_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
+
+    // Set initial velocities to zero
+    gpuErrchk(cudaMemset(p_d_CM_XDOT, 0, nDEs * sizeof(int)));
+    gpuErrchk(cudaMemset(p_d_CM_YDOT, 0, nDEs * sizeof(int)));
+    gpuErrchk(cudaMemset(p_d_CM_ZDOT, 0, nDEs * sizeof(int)));
 }
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
@@ -117,7 +128,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     h_ZDOT_DE.resize(nDEs);
 }
 
-/** 
+/**
 The purpose of this method is to figure out how big a SD is, and how many SDs are going to be necessary
 in order to cover the entire BD.
 BD: Bid domain.
@@ -154,17 +165,16 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     nSDs = nSDs_L_AD * nSDs_D_AD * nSDs_H_AD;
 }
 
-/** 
+/**
 The purpose of this method is to compute the adimensionalized values of gravitational acceleration
 components.
 The assumption is that the TIME, LENGTH and MASS units have been set at this point.
 */
 void chrono::ChGRN_DE_Container::set_gravitational_acceleration_AD() {
-
-    double convFactor = SPACE_UNIT / (TIME_UNIT*TIME_UNIT);
+    double convFactor = SPACE_UNIT / (TIME_UNIT * TIME_UNIT);
     convFactor = 1. / convFactor;
 
-    X_gravAcc_AD = X_accGrav*convFactor;
-    Y_gravAcc_AD = Y_accGrav*convFactor;
-    Z_gravAcc_AD = Z_accGrav*convFactor;
+    X_gravAcc_AD = X_accGrav * convFactor;
+    Y_gravAcc_AD = Y_accGrav * convFactor;
+    Z_gravAcc_AD = Z_accGrav * convFactor;
 }
