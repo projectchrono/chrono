@@ -59,8 +59,6 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
     d[1] = (n[1] + 1) * d_SD_Ddim_AD - sphCenter_Y_modified;
     d[2] = (n[2] + 1) * d_SD_Hdim_AD - sphCenter_Z_modified;
 
-    // Store list of conversions from nx, ny, nz to global subdomain IDs
-
     // Calculate global indices from locals
     // ones bit is x, twos bit is y, threes bit is z
     // do some cute bit shifting and snag bit at correct place
@@ -95,24 +93,6 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
         // This ternary is hopefully better than a conditional
         // If valid is false, then the SD is actually NULL_GRANULAR_ID
         SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);
-        // This code should be silent, hopefully
-        // check if in bounds, only for debugging
-        // if (valid) {
-        //     if (n[0] + (i & 0x1) >= d_box_L_AD) {
-        //         printf("overflowing xdim %d, %d, %d, %d, %d, d is %d %d %d\n", sphCenter_X, sphCenter_X_modified,
-        //                n[0] + (i & 0x1), d_box_L_AD, d_SD_Ldim_AD, d[0], d[1], d[2]);
-        //     } else if (n[1] + ((i >> 1) & 0x1) >= d_box_D_AD) {
-        //         printf("overflowing ydim %d, %d, %d, %d, %d, d is %d %d %d\n", sphCenter_Y, sphCenter_Y_modified,
-        //                n[1] + ((i >> 1) & 0x1), d_box_D_AD, d_SD_Ddim_AD, d[0], d[1], d[2]);
-        //     } else if (n[2] + ((i >> 2) & 0x1) >= d_box_H_AD) {
-        //         printf("overflowing zdim %d, %d, %d, %d, %d, d is %d %d %d\n", sphCenter_Z, sphCenter_Z_modified,
-        //                n[2] + ((i >> 2) & 0x1), d_box_H_AD, d_SD_Hdim_AD, d[0], d[1], d[2]);
-        //     }
-        //     if (SDs[i] >= d_box_L_AD * d_box_D_AD * d_box_H_AD) {
-        //         printf("still overflowing box somehow: i is %x, SD is %d, n is %d %d %d, d is %d %d %d\n", i, SDs[i],
-        //                n[0] + (i & 0x1), n[1] + ((i >> 2) & 0x1), n[2] + ((i >> 2) & 0x1), d[0], d[1], d[2]);
-        //     }
-        // }
     }
 }
 /**
@@ -258,7 +238,7 @@ primingOperationsRectangularBox(
 }
 /// Count the number of contacts for each body
 /// TODO this does more work than strictly necessary, but is much cleaner
-/// we could probably get a 2x speedup on this function call by some cute mapping
+/// we could probably get up 2x speedup on this function call by some cute mapping, but that would require a global map
 template <unsigned int MAX_NSPHERES_PER_SD>
 __device__ unsigned int dryRunContactCount(unsigned tIdx,
                                            const int sph_X[MAX_NSPHERES_PER_SD],
@@ -286,6 +266,7 @@ __device__ unsigned int dryRunContactCount(unsigned tIdx,
     return ncontacts;
 }
 
+// Do the same work as dryrun, but load the sphere IDs this time
 template <unsigned int MAX_NSPHERES_PER_SD>
 __device__ void populateContactEventInformation_dataStructures(
     unsigned tIdx,
@@ -353,7 +334,7 @@ __device__ void boxWallsInducedForce(int sphXpos,
 /**
 This device function figures out how many contact events the thread "thrdIndx" needs to take care of.
 Input:
-    - thrdIndx: the thread for which we identify the work order
+    - tIdx: the thread for which we identify the work order
     - blockLvlCollisionEventsCount: the total number of contact events the entire block needs to deal with
 Output:
     - myColsnCount: the number of contact events that thread thrdIndx will have to deal with
@@ -374,7 +355,7 @@ __device__ void figureOutWorkOrder(unsigned int tIdx,
     // Last rem threads should do less work
     // Should be little warp divergence since we're only doing one check and this is a tiny function anyways
     if (tIdx >= num_threads - rem) {
-        // Don't do the extra work on the last thread
+        // Don't do the extra work on this thread
         collisions_per_thread -= 1;
     }
     // Store this thread's work to do
@@ -548,10 +529,9 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
     }
 
     __syncthreads();
-
+    // NOTE from Conlain -- Explicit Euler is the worst, I vote Chung
     // Ready to do numerical integration. The assumption is that the mass is 1.0.
     // For now, do Explicit Euler. We should be able to do Chung here for improved dissipation. Or even Implicit Euler.
-    /// NOTE from Conlain -- this line crashes. The atomicadd is trying to write to 0x00000000 somehow
     atomicAdd(pRawDataX_DOT + mySphere[0], timeStep * sph_Xforce[threadIdx.x]);
     atomicAdd(pRawDataY_DOT + mySphere[0], timeStep * sph_Yforce[threadIdx.x]);
     atomicAdd(pRawDataZ_DOT + mySphere[0], timeStep * sph_Zforce[threadIdx.x]);
@@ -579,7 +559,7 @@ updatePositions(
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
-
+    // NOTE from Conlain -- somebody in this kernel is trashing heap memory and breaking things
     /// Set aside shared memory
     volatile __shared__ unsigned int offsetInComposite_SphInSD_Array[THRDS_PER_BLOCK * 8];
     volatile __shared__ bool shMem_head_flags[THRDS_PER_BLOCK * 8];
@@ -599,7 +579,6 @@ updatePositions(
     unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
                                   NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     if (mySphereID < nSpheres) {
-        /// NOTE from conlain -- something crashes here too. Invalid read
         // Perform numerical integration. For now, use Explicit Euler. Hitting cache, also coalesced.
         xSphCenter = timeStep * pRawDataX_DOT[mySphereID];
         xSphCenter += pRawDataX[mySphereID];
@@ -757,9 +736,9 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
-    printf("checking counts\n");
-    checkSDCounts();
-    printf("counts checked\n");
+    // printf("checking counts\n");
+    // checkSDCounts();
+    // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int fakeTimeStep = 5;
     for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += fakeTimeStep) {
