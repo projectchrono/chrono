@@ -54,8 +54,8 @@ bool useMesh = false;
 double target_speed = 12;
 
 // Simulation step size
-double step_size = 1e-3;
-double tire_step_size = step_size;
+double step_size = 3e-3;
+double tire_step_size = 1e-3;
 
 // Output frame images
 bool output_images = false;
@@ -80,6 +80,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
+    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -187,13 +188,11 @@ int main(int argc, char* argv[]) {
         // Render scene and output images
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        app.EndScene();
 
         if (output_images && sim_frame % render_steps == 0) {
             char filename[200];
             sprintf(filename, "%s/image_%05d.bmp", out_dir.c_str(), render_frame++);
             app.WriteImageToFile(filename);
-
             render_frame++;
         }
 
@@ -212,6 +211,8 @@ int main(int argc, char* argv[]) {
 
         // Increment simulation frame number
         sim_frame++;
+
+        app.EndScene();
     }
 
     return 0;

@@ -85,8 +85,8 @@ double terrainWidth = 300.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step size
-double step_size = 1e-3;
-double tire_step_size = step_size;
+double step_size = 2e-3;
+double tire_step_size = 1e-3;
 
 // Simulation end time
 double t_end = 100;
@@ -203,6 +203,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetSteeringType(steering_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
+    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
@@ -375,12 +376,11 @@ int main(int argc, char* argv[]) {
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
-        // Render scene and output POV-Ray data
-        if (sim_frame % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
 
+        // Output POV-Ray data
+        if (sim_frame % render_steps == 0) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
@@ -424,6 +424,8 @@ int main(int argc, char* argv[]) {
 
         // Increment simulation frame number
         sim_frame++;
+
+        app.EndScene();
     }
 
     if (state_output)

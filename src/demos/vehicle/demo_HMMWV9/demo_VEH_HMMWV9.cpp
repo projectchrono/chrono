@@ -94,6 +94,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
+    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -101,8 +102,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
     my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
-
-    my_hmmwv.GetVehicle().SetStepsize(step_size);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());

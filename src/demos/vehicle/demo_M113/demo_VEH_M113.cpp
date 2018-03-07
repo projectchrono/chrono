@@ -340,7 +340,6 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        app.EndScene();
 
         if (step_number % render_steps == 0) {
             if (povray_output) {
@@ -387,6 +386,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
     vehicle.WriteContacts("M113_contacts.out");

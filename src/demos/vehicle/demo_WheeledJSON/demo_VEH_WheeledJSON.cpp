@@ -104,13 +104,10 @@ double terrainLength = 300.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 2e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
-
-// Time interval between two output frames
-double output_step_size = 1.0 / 1;  // once a second
 
 // Point on chassis tracked by the camera (Irrlicht only)
 ChVector<> trackPoint(0.0, 0.0, 1.75);
@@ -135,6 +132,7 @@ int main(int argc, char* argv[]) {
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetFixed(true);
+    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -244,12 +242,6 @@ int main(int argc, char* argv[]) {
     double steering_input;
     double braking_input;
 
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
-    // Number of simulation steps between two output frames
-    int output_steps = (int)std::ceil(output_step_size / step_size);
-
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
     double time = 0;
@@ -259,24 +251,20 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
-        // Render scene
-        if (step_number % render_steps == 0) {
-            // Update the position of the shadow mapping so that it follows the car
-            ////if (do_shadows) {
-            ////  ChVector<> lightaim = vehicle.GetChassisPos();
-            ////  ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
-            ////  irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
-            ////  irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
-            ////  application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
-            ////  application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
-            ////  mlight->setPosition(mlightpos);
-            ////}
+        // Update the position of the shadow mapping so that it follows the car
+        ////if (do_shadows) {
+        ////  ChVector<> lightaim = vehicle.GetChassisPos();
+        ////  ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
+        ////  irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
+        ////  irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
+        ////  application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
+        ////  application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
+        ////  mlight->setPosition(mlightpos);
+        ////}
 
-            // Draw all scene elements
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
-        }
+        // Render scene
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
 
         // Collect output data from modules (for inter-module communication)
         throttle_input = driver.GetThrottle();
@@ -311,12 +299,16 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
 #else
 
-    int render_frame = 0;
+    // Number of simulation steps between two 3D view render frames
+    int render_steps = (int)std::ceil(render_step_size / step_size);
 
+    int render_frame = 0;
     char filename[100];
 
     while (time < tend) {
