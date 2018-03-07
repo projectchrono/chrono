@@ -100,14 +100,8 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
-    /// Set the value of the integration step size for the underlying dynamics.
-    void SetStepsize(double val) { m_stepsize = val; }
-
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
-
-    /// Get the current value of the integration step size.
-    double GetStepsize() const { return m_stepsize; }
 
     /// Get the width of the tire.
     double GetWidth() const { return m_width; }
@@ -316,8 +310,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     double RampSignum(double inval);
 
   private:
-    double m_stepsize;
-
     void UpdateVerticalStiffness();
 
     std::vector<double> m_tire_test_defl;  // set, when test data are used for vertical

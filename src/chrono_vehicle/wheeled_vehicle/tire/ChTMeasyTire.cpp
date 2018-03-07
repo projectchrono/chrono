@@ -45,7 +45,6 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
       m_vnum(0.01),
       m_gamma(0),
       m_gamma_limit(5),
-      m_stepsize(1e-6),
       m_begin_start_transition(0.5),
       m_end_start_transition(1.0) {
     m_tireforce.force = ChVector<>(0, 0, 0);
@@ -355,35 +354,43 @@ void ChTMeasyTire::Advance(double step) {
         // Self Alignment Torque
         Ms = -plen * levN * m_states.Fy_dyn;
         Mz = Ms + m_states.Mb_dyn;
-        // Ensure we integrate exactly to 'step'
-        double h = step;
-        switch (m_integration_method) {
-            case 1:
-                // explicit Euler, may be instable
-                // 1. oder tire dynamics
-                m_states.xe = m_states.xe + h * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
-                                                (vtxs * m_TMeasyCoeff.dx + fos);
-                m_states.ye = m_states.ye + h * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
-                                                (vtys * m_TMeasyCoeff.dy + fos);
-                // 0. order tire dynamics
-                m_states.Mb_dyn = m_states.Mb_dyn + h * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
-                break;
-            case 2:
-                // semi-implicit Euler, absolutely stable
-                // 1. oder tire dynamics
-                double dFx = -vtxs * m_TMeasyCoeff.cx / (vtxs * m_TMeasyCoeff.dx + fos);
-                m_states.xe = m_states.xe + h / (1.0 - h * dFx) *
-                                                (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
-                                                (vtxs * m_TMeasyCoeff.dx + fos);
-                double dFy = -vtys * m_TMeasyCoeff.cy / (vtys * m_TMeasyCoeff.dy + fos);
-                m_states.ye = m_states.ye + h / (1.0 - h * dFy) *
-                                                (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
-                                                (vtys * m_TMeasyCoeff.dy + fos);
-                // 0. order tire dynamics
-                double dMb = -m_states.vta / relax;
-                m_states.Mb_dyn =
-                    m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
-                break;
+
+        // Take as many integration steps as needed to reach the value 'step'
+        double t = 0;
+        while (t < step) {
+            // Ensure we integrate exactly to 'step'
+            double h = std::min<>(m_stepsize, step - t);
+            switch (m_integration_method) {
+                case 1: {
+                    // explicit Euler, may be unstable
+                    // 1. oder tire dynamics
+                    m_states.xe = m_states.xe + h * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
+                                                    (vtxs * m_TMeasyCoeff.dx + fos);
+                    m_states.ye = m_states.ye + h * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
+                                                    (vtys * m_TMeasyCoeff.dy + fos);
+                    // 0. order tire dynamics
+                    m_states.Mb_dyn = m_states.Mb_dyn + h * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
+                    break;
+                }
+                case 2: {
+                    // semi-implicit Euler, absolutely stable
+                    // 1. oder tire dynamics
+                    double dFx = -vtxs * m_TMeasyCoeff.cx / (vtxs * m_TMeasyCoeff.dx + fos);
+                    m_states.xe = m_states.xe + h / (1.0 - h * dFx) *
+                                                    (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
+                                                    (vtxs * m_TMeasyCoeff.dx + fos);
+                    double dFy = -vtys * m_TMeasyCoeff.cy / (vtys * m_TMeasyCoeff.dy + fos);
+                    m_states.ye = m_states.ye + h / (1.0 - h * dFy) *
+                                                    (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
+                                                    (vtys * m_TMeasyCoeff.dy + fos);
+                    // 0. order tire dynamics
+                    double dMb = -m_states.vta / relax;
+                    m_states.Mb_dyn =
+                        m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
+                    break;
+                }
+            }
+            t += h;
         }
 
         m_states.Fx_dyn = m_TMeasyCoeff.dx * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
