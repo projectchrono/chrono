@@ -319,16 +319,21 @@ Output:
   - Yforce: the Y component of the force, as represented in the box reference system
   - Zforce: the Z component of the force, as represented in the box reference system
 */
-template <unsigned int MAX_NSPHERES_PER_SD>
 __device__ void boxWallsInducedForce(int sphXpos,
                                      int sphYpos,
                                      int sphZpos,
-                                     volatile int& Xforce,
-                                     volatile int& Yforce,
-                                     volatile int& Zforce) {
-    Xforce = ILL_GRANULAR_VAL;
-    Yforce = ILL_GRANULAR_VAL;
-    Zforce = ILL_GRANULAR_VAL;
+                                     float& Xforce,
+                                     float& Yforce,
+                                     float& Zforce) {
+    Xforce = 0.f;
+    Yforce = 0.f;
+    Zforce = 0.f;
+}
+
+__device__ void addGravForce(int sphXpos, int sphYpos, int sphZpos, float& Xforce, float& Yforce, float& Zforce) {
+    Xforce = 0.f;
+    Yforce = 0.f;
+    Zforce = 0.f;
 }
 
 /**
@@ -441,100 +446,89 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
 
-    volatile __shared__ int sph_Xforce[MAX_NSPHERES_PER_SD];
-    volatile __shared__ int sph_Yforce[MAX_NSPHERES_PER_SD];
-    volatile __shared__ int sph_Zforce[MAX_NSPHERES_PER_SD];
-
-    volatile __shared__ unsigned char ID_frstDE_inCntctEvent[MAX_NSPHERES_PER_SD * AVERAGE_COUNT_CONTACTS_PER_DE];
-    volatile __shared__ unsigned char ID_scndDE_inCntctEvent[MAX_NSPHERES_PER_SD * AVERAGE_COUNT_CONTACTS_PER_DE];
-
-    unsigned int mySphere[1];
-
-    typedef cub::BlockRadixSort<unsigned int, MAX_NSPHERES_PER_SD, 1> BlockRadixSortOP;
-    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
+    volatile __shared__ float sph_Xforce[MAX_NSPHERES_PER_SD];
+    volatile __shared__ float sph_Yforce[MAX_NSPHERES_PER_SD];
+    volatile __shared__ float sph_Zforce[MAX_NSPHERES_PER_SD];
 
     unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[blockIdx.x];
-    unsigned int dummyUINT01 = blockIdx.x * MAX_NSPHERES_PER_SD;
-    mySphere[0] = spheres_in_SD_composite[dummyUINT01 + threadIdx.x];
+    unsigned mySphereID;
 
-    // In an attempt to improve likelihood of coalesced mem accesses, do a sort. This will change mySphere.
-    BlockRadixSortOP(temp_storage_sort).Sort(mySphere);
-
-    // Bring in data from global into sh mem; compute force impressed by walls on this sphere
+    // Bring in data from global into shmem. Only a subset of threads get to do this.
     if (threadIdx.x < spheresTouchingThisSD) {
-        sph_X[threadIdx.x] = pRawDataX[mySphere[0]];
-        sph_Y[threadIdx.x] = pRawDataY[mySphere[0]];
-        sph_Z[threadIdx.x] = pRawDataZ[mySphere[0]];
-        boxWallsInducedForce<MAX_NSPHERES_PER_SD>(sph_X[threadIdx.x], sph_Y[threadIdx.x], sph_Z[threadIdx.x],
-                                                  sph_Xforce[threadIdx.x], sph_Yforce[threadIdx.x],
-                                                  sph_Zforce[threadIdx.x]);
-    } else {
-        sph_X[threadIdx.x] = ILL_GRANULAR_VAL;
-        sph_Y[threadIdx.x] = ILL_GRANULAR_VAL;
-        sph_Z[threadIdx.x] = ILL_GRANULAR_VAL;
+        mySphereID = spheres_in_SD_composite[blockIdx.x * MAX_NSPHERES_PER_SD + threadIdx.x];
+        sph_X[threadIdx.x] = pRawDataX[mySphereID];
+        sph_Y[threadIdx.x] = pRawDataY[mySphereID];
+        sph_Z[threadIdx.x] = pRawDataZ[mySphereID];
+    }
 
-        sph_Xforce[threadIdx.x] = 0;
-        sph_Yforce[threadIdx.x] = 0;
-        sph_Zforce[threadIdx.x] = 0;
+    __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
+
+    unsigned int nTripsPerThread = ((spheresTouchingThisSD - 1) * spheresTouchingThisSD) / 2;
+    nTripsPerThread = (nTripsPerThread + blockDim.x - 1) / blockDim.x;
+
+    // This thread will go at most through nTripsPerThread checks of possible contact events. Here's the loop for this.
+    unsigned int bodyA = 0;
+    unsigned int bodyB = threadIdx.x + 1;
+    const int edge = spheresTouchingThisSD - 1;
+
+    for (int i = 0; i < nTripsPerThread; i++) {
+        int reminder = bodyB - edge;
+        while (reminder > 0 && bodyA < edge) {
+            bodyA++;
+            bodyB += (bodyA - edge);
+            reminder = bodyB - edge;
+        }
+        if (bodyA < spheresTouchingThisSD && bodyB < spheresTouchingThisSD) {
+            // Do the useful work here. For now, this is fake
+            int bA_X = sph_X[bodyA];
+            int bA_Y = sph_Y[bodyA];
+            int bA_Z = sph_Z[bodyA];
+
+            int bB_X = sph_X[bodyB];
+            int bB_Y = sph_Y[bodyB];
+            int bB_Z = sph_Z[bodyB];
+
+            // Fake news here; this should compute the actual normal forces based on bodyA and bodyB positions
+            float bodyA_XF = 2.f * (bA_X - bB_X) * (bA_X - bB_X);
+            float bodyA_YF = 3.f * (bA_Y - bB_Y) * (bA_Y - bB_Y);
+            float bodyA_ZF = 4.f * (bA_Z - bB_Z) * (bA_Z - bB_Z);
+
+            atomicAdd((float*)sph_Xforce + bodyA, bodyA_XF);
+            atomicAdd((float*)sph_Yforce + bodyA, bodyA_YF);
+            atomicAdd((float*)sph_Zforce + bodyA, bodyA_ZF);
+
+            // Update values in shmem for sphere B. This atomicAdd might be expensive...
+            atomicAdd((float*)sph_Xforce + bodyB, -bodyA_XF);
+            atomicAdd((float*)sph_Yforce + bodyB, -bodyA_YF);
+            atomicAdd((float*)sph_Zforce + bodyB, -bodyA_ZF);
+        }
+        // Move on, in search of this thread's next pair of bodies to be checked for potential contact
+        bodyB += blockDim.x;
     }
 
     __syncthreads();
 
-    // Figure out sphere-to-sphere forces
-    // Dry run first, in order to figure out offsets into shmem
-    unsigned int myCollisionCount = dryRunContactCount<MAX_NSPHERES_PER_SD>(threadIdx.x, sph_X, sph_Y, sph_Z);
-    unsigned int myOffset = myCollisionCount;
-    unsigned int blockLevelCollisionEventsCount = 0;
-    typedef cub::BlockScan<unsigned int, MAX_NSPHERES_PER_SD> BlockScan;
-    __shared__ typename BlockScan::TempStorage temp_storage_scan;
-    BlockScan(temp_storage_scan).ExclusiveSum(myOffset, myOffset, blockLevelCollisionEventsCount);
-
-    __syncthreads();  // Conlain added this -- do we need to force synchronization here?
-
-    // Populate the data structures with contact event information; i.e., the first and second spheres of
-    // each contact event
-    populateContactEventInformation_dataStructures<MAX_NSPHERES_PER_SD>(
-        threadIdx.x, sph_X, sph_Y, sph_Z, myOffset, myCollisionCount, ID_frstDE_inCntctEvent, ID_scndDE_inCntctEvent);
-
-    __syncthreads();  // We just wrote to shared memory
-
-    // Figure out which contact events this thread needs to deal with. This will change two variables: offset,
-    // and myCollisionCount
-    figureOutWorkOrder<MAX_NSPHERES_PER_SD>(threadIdx.x, blockLevelCollisionEventsCount, &myCollisionCount, &myOffset);
-
-    // Go ahead and do
-    for (unsigned int cntctEvent = myOffset; cntctEvent < myOffset + myCollisionCount; cntctEvent++) {
-        unsigned int shMem_offset_sph_A = ID_frstDE_inCntctEvent[cntctEvent];
-        unsigned int shMem_offset_sph_B = ID_scndDE_inCntctEvent[cntctEvent];
-        int del_X = sph_X[shMem_offset_sph_A] - sph_X[shMem_offset_sph_B];
-        int del_Y = sph_Y[shMem_offset_sph_A] - sph_Y[shMem_offset_sph_B];
-        int del_Z = sph_Z[shMem_offset_sph_A] - sph_Z[shMem_offset_sph_B];
-
-        // Here we would have several ways of computing the force. For now, assume a Hookean model; i.e., the simplest
-        // possible.
-        int sph_A_Xforce;
-        int sph_A_Yforce;
-        int sph_A_Zforce;
-        computeNormalForce(del_X, del_Y, del_Z, sph_A_Xforce, sph_A_Yforce, sph_A_Zforce);
-
-        // Update values in shmem for sphere A. This atomicAdd might be expensive...
-        atomicAdd((int*)sph_Xforce + shMem_offset_sph_A, sph_A_Xforce);
-        atomicAdd((int*)sph_Yforce + shMem_offset_sph_A, sph_A_Yforce);
-        atomicAdd((int*)sph_Zforce + shMem_offset_sph_A, sph_A_Zforce);
-
-        // Update values in shmem for sphere B. This atomicAdd might be expensive...
-        atomicAdd((int*)sph_Xforce + shMem_offset_sph_B, -sph_A_Xforce);
-        atomicAdd((int*)sph_Yforce + shMem_offset_sph_B, -sph_A_Yforce);
-        atomicAdd((int*)sph_Zforce + shMem_offset_sph_B, -sph_A_Zforce);
-    }
-
-    __syncthreads();
     // NOTE from Conlain -- Explicit Euler is the worst, I vote Chung
     // Ready to do numerical integration. The assumption is that the mass is 1.0.
     // For now, do Explicit Euler. We should be able to do Chung here for improved dissipation. Or even Implicit Euler.
-    atomicAdd(pRawDataX_DOT + mySphere[0], timeStep * sph_Xforce[threadIdx.x]);
-    atomicAdd(pRawDataY_DOT + mySphere[0], timeStep * sph_Yforce[threadIdx.x]);
-    atomicAdd(pRawDataZ_DOT + mySphere[0], timeStep * sph_Zforce[threadIdx.x]);
+    if (threadIdx.x < spheresTouchingThisSD) {
+        float mySph_XF, mySph_YF, mySph_ZF;
+        int mySph_X_pos = sph_X[threadIdx.x];
+        int mySph_Y_pos = sph_Y[threadIdx.x];
+        int mySph_Z_pos = sph_Z[threadIdx.x];
+        // Compute the force that this sphere feels from the wall. Make sure that the sphere belongs to *this* SD,
+        // otherwise we'll end up with double counting this wall force.
+        boxWallsInducedForce(mySph_X_pos, mySph_Y_pos, mySph_Z_pos, mySph_XF, mySph_YF, mySph_ZF);
+
+        // If the sphere belongs to this SD, add up the gravitational force component. Make sure that the sphere belongs
+        // to *this* SD, otherwise we'll end up with double counting this force. This is the reason the position of the
+        // sphere gets passed to this device function.
+        addGravForce(mySph_X_pos, mySph_Y_pos, mySph_Z_pos, mySph_XF, mySph_YF, mySph_ZF);
+
+        atomicAdd(pRawDataX_DOT + mySphereID, timeStep * sph_Xforce[threadIdx.x]);
+        atomicAdd(pRawDataY_DOT + mySphereID, timeStep * sph_Yforce[threadIdx.x]);
+        atomicAdd(pRawDataZ_DOT + mySphereID, timeStep * sph_Zforce[threadIdx.x]);
+    }
 }
 
 template <
