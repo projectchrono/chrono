@@ -516,9 +516,9 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
         bodyA_ZF += 4.f;
 
         // We still need to write back atomically to global memory
-        atomicAdd(pRawDataX_DOT + mySphereID, timeStep * bodyA_XF);
-        atomicAdd(pRawDataY_DOT + mySphereID, timeStep * bodyA_YF);
-        atomicAdd(pRawDataZ_DOT + mySphereID, timeStep * bodyA_ZF);
+        atomicAdd(pRawDataX_DOT + mySphereID, timeStep * (int)bodyA_XF);
+        atomicAdd(pRawDataY_DOT + mySphereID, timeStep * (int)bodyA_YF);
+        atomicAdd(pRawDataZ_DOT + mySphereID, timeStep * (int)bodyA_ZF);
     }
 }
 
