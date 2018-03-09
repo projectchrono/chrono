@@ -463,22 +463,30 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
 
     __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
 
-    unsigned int nTripsPerThread = ((spheresTouchingThisSD - 1) * spheresTouchingThisSD) / 2;
-    nTripsPerThread = (nTripsPerThread + blockDim.x - 1) / blockDim.x;
+    // Assumes each thread is a body, not the greatest assumption but we can fix that later
+    // Note that if we have more threads than bodies, some effort gets wasted. With our current parameters (3/8/18) we
+    // have at most 113 DEs per SD. If we have more bodies than threads, we might want to increase the number of threads
+    // or decrease the number of DEs per SD
+    unsigned int bodyA = threadIdx.x;
 
-    // This thread will go at most through nTripsPerThread checks of possible contact events. Here's the loop for this.
-    unsigned int bodyA = 0;
-    unsigned int bodyB = threadIdx.x + 1;
-    const int edge = spheresTouchingThisSD - 1;
+    // Each body looks at each other body and computes the force that the other body exerts on it
+    for (unsigned int bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
+        // If each body is sane and they aren't the same body, check if they collide
+        if (bodyA < spheresTouchingThisSD && bodyB < spheresTouchingThisSD && bodyA != bodyB) {
+            // Compute whether bodies are colliding, we will need to check this later but right now I just want to
+            // do the correct amount of work
+            int dx = (sph_X[bodyA] - sph_X[bodyB]);
+            int dy = (sph_Y[bodyA] - sph_Y[bodyB]);
+            int dz = (sph_Z[bodyA] - sph_Z[bodyB]);
+            unsigned int d2 = dx * dx + dy * dy + dz * dz;
 
-    for (int i = 0; i < nTripsPerThread; i++) {
-        int reminder = bodyB - edge;
-        while (reminder > 0 && bodyA < edge) {
-            bodyA++;
-            bodyB += (bodyA - edge);
-            reminder = bodyB - edge;
-        }
-        if (bodyA < spheresTouchingThisSD && bodyB < spheresTouchingThisSD) {
+            // Compute contact overlap, if this is negative then we have contact
+            // I called it deltasquared but it also has a sign attached (contact/no contact)
+            int deltasquared = d2 - d_monoDisperseSphRadius_AD * d_monoDisperseSphRadius_AD;
+            // if (deltasquared < 0);
+
+            // In case of collision, compute the force updates *ON BODY A*
+            // Each thread corresponds to a body, and each body only looks at forces on itself
             // Do the useful work here. For now, this is fake
             int bA_X = sph_X[bodyA];
             int bA_Y = sph_Y[bodyA];
@@ -492,21 +500,14 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
             float bodyA_XF = 2.f * (bA_X - bB_X) * (bA_X - bB_X);
             float bodyA_YF = 3.f * (bA_Y - bB_Y) * (bA_Y - bB_Y);
             float bodyA_ZF = 4.f * (bA_Z - bB_Z) * (bA_Z - bB_Z);
-
-            atomicAdd((float*)sph_Xforce + bodyA, bodyA_XF);
-            atomicAdd((float*)sph_Yforce + bodyA, bodyA_YF);
-            atomicAdd((float*)sph_Zforce + bodyA, bodyA_ZF);
-
-            // Update values in shmem for sphere B. This atomicAdd might be expensive...
-            atomicAdd((float*)sph_Xforce + bodyB, -bodyA_XF);
-            atomicAdd((float*)sph_Yforce + bodyB, -bodyA_YF);
-            atomicAdd((float*)sph_Zforce + bodyB, -bodyA_ZF);
+            sph_Xforce[bodyA] += bodyA_XF;
+            sph_Yforce[bodyA] += bodyA_YF;
+            sph_Zforce[bodyA] += bodyA_ZF;
         }
         // Move on, in search of this thread's next pair of bodies to be checked for potential contact
-        bodyB += blockDim.x;
     }
 
-    __syncthreads();
+    __syncthreads();  // We need to make sure everyone is done with shared memory
 
     // NOTE from Conlain -- Explicit Euler is the worst, I vote Chung
     // Ready to do numerical integration. The assumption is that the mass is 1.0.
@@ -525,6 +526,7 @@ __global__ void updateVelocities(unsigned int timeStep,  //!< The numerical inte
         // sphere gets passed to this device function.
         addGravForce(mySph_X_pos, mySph_Y_pos, mySph_Z_pos, mySph_XF, mySph_YF, mySph_ZF);
 
+        // We still need to write back atomically to global memory
         atomicAdd(pRawDataX_DOT + mySphereID, timeStep * sph_Xforce[threadIdx.x]);
         atomicAdd(pRawDataY_DOT + mySphereID, timeStep * sph_Yforce[threadIdx.x]);
         atomicAdd(pRawDataZ_DOT + mySphereID, timeStep * sph_Zforce[threadIdx.x]);
@@ -697,11 +699,11 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
         deCounts[sdSpheres[i]]++;
     }
 
-    std::ofstream ptFile{"output.csv"};
-    ptFile << "x,y,z,nTouched" << std::endl;
-    for (unsigned int n = 0; n < nDEs; n++) {
-        ptFile << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << deCounts[n] << std::endl;
-    }
+    //    std::ofstream ptFile{"output.csv"};
+    //    ptFile << "x,y,z,nTouched" << std::endl;
+    //    for (unsigned int n = 0; n < nDEs; n++) {
+    //        ptFile << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << deCounts[n] << std::endl;
+    //    }
     delete[] sdvals;
     delete[] sdSpheres;
     delete[] deCounts;
@@ -731,19 +733,19 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
     // printf("checking counts\n");
-    // checkSDCounts();
+    checkSDCounts();
     // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int fakeTimeStep = 5;
-    for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += fakeTimeStep) {
-        updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
-            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
+    //    for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += fakeTimeStep) {
+    updateVelocities<MAX_COUNT_OF_DEs_PER_SD>
+        <<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT,
+                                            p_d_CM_XDOT, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
 
-        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-            fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
-            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
-    }
+    //        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+    //            fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
+    //            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
+    //    }
 
     cleanup_simulation();
     return;
