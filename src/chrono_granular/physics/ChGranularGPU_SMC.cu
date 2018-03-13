@@ -494,7 +494,7 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
 
         /**
         Compute now the forces on bodyA; i.e, what bodyA feels (if bodyA is in contact w/ anybody in this SD).
-        
+        
         \f[ \mbox{penetration} = \left[\left(\frac{x_A}{2R} -
         \frac{x_B}{2R}\right)^2 + \left(\frac{y_A}{2R} - \frac{y_B}{2R}\right)^2 + \left(\frac{z_A}{2R} -
         \frac{z_B}{2R}\right)^2\right] \f]
@@ -713,10 +713,12 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
 }
 
 // Check number of spheres in each SD and dump relevant info to file
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofile) {
     unsigned int* sdvals = new unsigned int[nSDs];
     unsigned int* sdSpheres = new unsigned int[MAX_COUNT_OF_DEs_PER_SD * nSDs];
     unsigned int* deCounts = new unsigned int[nDEs];
+    cudaMemcpy(sdvals, p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
     cudaMemcpy(sdSpheres, p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int),
                cudaMemcpyDeviceToHost);
 
@@ -728,6 +730,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
         if (sdvals[i] > max_count)
             max_count = sdvals[i];
     }
+
     printf("max DEs per SD is %u\n", max_count);
     printf("total sd/de overlaps is %u\n", sum);
     printf("theoretical total is %u\n", MAX_COUNT_OF_DEs_PER_SD * nSDs);
@@ -736,12 +739,13 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
         // printf("de id is %u, i is %u\n", sdSpheres[i], i);
         deCounts[sdSpheres[i]]++;
     }
+    printf("count is %u for sphere 0 \n", deCounts[0]);
 
-    //    std::ofstream ptFile{"output.csv"};
-    //    ptFile << "x,y,z,nTouched" << std::endl;
-    //    for (unsigned int n = 0; n < nDEs; n++) {
-    //        ptFile << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << deCounts[n] << std::endl;
-    //    }
+    std::ofstream ptFile{ofile};
+    ptFile << "x,y,z,nTouched" << std::endl;
+    for (unsigned int n = 0; n < nDEs; n++) {
+        ptFile << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << deCounts[n] << std::endl;
+    }
     delete[] sdvals;
     delete[] sdSpheres;
     delete[] deCounts;
@@ -749,8 +753,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     switch_to_SimUnits();
-    generate_DEs(); 
-    
+    generate_DEs();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
@@ -767,20 +770,20 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
     // printf("checking counts\n");
-    checkSDCounts();
+    checkSDCounts("output.csv");
     // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int stepSize_SU = 8;
-    for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += stepSize_SU) {
-        updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
-            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
-        gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
+    // for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += stepSize_SU) {
+    updateVelocities<MAX_COUNT_OF_DEs_PER_SD>
+        <<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT,
+                                            p_d_CM_XDOT, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
+    gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
 
-        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
-            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
-    }
+    updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT,
+                                                             p_d_CM_XDOT, p_d_CM_XDOT, p_device_SD_NumOf_DEs_Touching,
+                                                             p_device_DEs_in_SD_composite, nSpheres());
+    // }
 
     cleanup_simulation();
     return;

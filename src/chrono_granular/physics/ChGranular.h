@@ -14,6 +14,7 @@
 #pragma once
 
 #include <cstddef>
+#include <string>
 #include <vector>
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -35,9 +36,9 @@ enum GRN_TIME_STEPPING { AUTO, USER_SET };
 class CH_GRANULAR_API ChGRN_DE_Container {
   protected:
     double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
-    double TIME_UNIT;   //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
-    double MASS_UNIT;   //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
-                        //!< equal the the mass of a sphere
+    double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
+    double MASS_UNIT;    //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
+                         //!< equal the the mass of a sphere
 
     unsigned int nDEs;  ///< Number of discrete elements
     unsigned int nSDs;  ///< Number of subdomains that the BD is split in
@@ -61,9 +62,12 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     float Y_accGrav;  //!< Y component of the gravitational acceleration
     float Z_accGrav;  //!< Z component of the gravitational acceleration
 
-    float gravAcc_X_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_X/g)\f$, where g is the gravitational acceleration
-    float gravAcc_Y_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
-    float gravAcc_Z_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
+    float
+        gravAcc_X_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_X/g)\f$, where g is the gravitational acceleration
+    float
+        gravAcc_Y_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
+    float
+        gravAcc_Z_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
 
     unsigned int* p_device_SD_NumOf_DEs_Touching;  //!< Entry "i" says how many spheres touch SD i
     unsigned int* p_device_DEs_in_SD_composite;    //!< Array containing the IDs of the spheres stored in the SDs
@@ -78,7 +82,6 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
     virtual void switch_to_SimUnits() = 0;
-
 
   public:
     ChGRN_DE_Container()
@@ -126,8 +129,8 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
     unsigned int psi_h_Factor;
     unsigned int psi_L_Factor;
 
-    unsigned int monoDisperseSphRadius_SU; //!< Size of the sphere radius, in Simulation Units
-    double reciprocal_sphDiam_SU;  //!< The inverse of the sphere diameter, in Simulation Units
+    unsigned int monoDisperseSphRadius_SU;  //!< Size of the sphere radius, in Simulation Units
+    double reciprocal_sphDiam_SU;           //!< The inverse of the sphere diameter, in Simulation Units
 
     unsigned int SD_L_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
     unsigned int SD_D_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
@@ -148,7 +151,7 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
 
         psi_T_Factor = PSI_T;
         psi_h_Factor = PSI_h;
-        psi_L_Factor = PSI_L; 
+        psi_L_Factor = PSI_L;
     }
 
     ~ChGRN_DE_MONODISP_SPH_IN_BOX_SMC() {}
@@ -184,7 +187,7 @@ class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MON
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void settle(float t_end);
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts();
+    void checkSDCounts(std::string);
     virtual void generate_DEs();
 };
 
