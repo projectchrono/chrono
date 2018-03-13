@@ -34,8 +34,8 @@ enum GRN_TIME_STEPPING { AUTO, USER_SET };
 
 class CH_GRANULAR_API ChGRN_DE_Container {
   protected:
-    double SPACE_UNIT;  //!< Everthing is measured as a multiple of SPACE_UNIT
-    double TIME_UNIT;   //!< Any time quanity is measured as a positive multiple of TIME_UNIT
+    double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
+    double TIME_UNIT;   //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
     double MASS_UNIT;   //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
                         //!< equal the the mass of a sphere
 
@@ -61,9 +61,9 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     float Y_accGrav;  //!< Y component of the gravitational acceleration
     float Z_accGrav;  //!< Z component of the gravitational acceleration
 
-    double X_gravAcc_AD;  //!< AD-ed value of the gravitational acceleration in the X direction
-    double Y_gravAcc_AD;  //!< AD-ed value of the gravitational acceleration in the Y direction
-    double Z_gravAcc_AD;  //!< AD-ed value of the gravitational acceleration in the Z direction
+    float gravAcc_X_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_X/g)\f$, where g is the gravitational acceleration
+    float gravAcc_Y_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
+    float gravAcc_Z_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
 
     unsigned int* p_device_SD_NumOf_DEs_Touching;  //!< Entry "i" says how many spheres touch SD i
     unsigned int* p_device_DEs_in_SD_composite;    //!< Array containing the IDs of the spheres stored in the SDs
@@ -71,14 +71,14 @@ class CH_GRANULAR_API ChGRN_DE_Container {
 
     GRN_TIME_STEPPING time_stepping;  //!< Indicates what type of time stepping the simulation employs.
 
-    void set_gravitational_acceleration_AD();
-
     /// Partition the big domain (BD) and sets the number of SDs that BD is split in.
     /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
     virtual void partition_BD() = 0;
     virtual void copyCONSTdata_to_device() = 0;
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
+    virtual void switch_to_SimUnits() = 0;
+
 
   public:
     ChGRN_DE_Container()
@@ -114,34 +114,41 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
     float sphere_radius;   /// User defined radius of the sphere
     float sphere_density;  /// User defined density of the sphere
 
-    float modulusYoung_SPH2SPH;
-    float modulusYoung_SPH2WALL;
+    double modulusYoung_SPH2SPH;
+    double modulusYoung_SPH2WALL;
+    double K_stiffness;
 
     float box_L;  //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
     float box_D;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
     float box_H;  //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
 
-    unsigned int monoDisperseSphRadius_AD;  //!< The AD-ed value of the sphere radius
+    unsigned int psi_T_Factor;
+    unsigned int psi_h_Factor;
+    unsigned int psi_L_Factor;
 
-    unsigned int SD_L_AD;  //!< The AD-ed value of an SD in the L direction
-    unsigned int SD_D_AD;  //!< The AD-ed value of an SD in the D direction
-    unsigned int SD_H_AD;  //!< The AD-ed value of an SD in the H direction
+    unsigned int monoDisperseSphRadius_SU; //!< Size of the sphere radius, in Simulation Units
+    double reciprocal_sphDiam_SU;  //!< The inverse of the sphere diameter, in Simulation Units
 
-    unsigned int nSDs_L_AD;  //!< Number of SDs along the L dimension of the box
-    unsigned int nSDs_D_AD;  //!< Number of SDs along the D dimension of the box
-    unsigned int nSDs_H_AD;  //!< Number of SDs along the H dimension of the box
+    unsigned int SD_L_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
+    unsigned int SD_D_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
+    unsigned int SD_H_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
+
+    unsigned int nSDs_L_SU;  //!< Number of SDs along the L dimension of the box
+    unsigned int nSDs_D_SU;  //!< Number of SDs along the D dimension of the box
+    unsigned int nSDs_H_SU;  //!< Number of SDs along the H dimension of the box
 
     void partition_BD();
+
+    void switch_to_SimUnits();
 
   public:
     ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH, float density) : ChGRN_DE_Container() {
         sphere_radius = radiusSPH;
         sphere_density = density;
 
-        SPACE_UNIT = sphere_radius / (1 << SPHERE_LENGTH_UNIT_FACTOR);
-        monoDisperseSphRadius_AD = 1 << SPHERE_LENGTH_UNIT_FACTOR;
-
-        MASS_UNIT = (4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density);
+        psi_T_Factor = PSI_T;
+        psi_h_Factor = PSI_h;
+        psi_L_Factor = PSI_L; 
     }
 
     ~ChGRN_DE_MONODISP_SPH_IN_BOX_SMC() {}
@@ -152,8 +159,8 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
         box_D = D_DIM;
         box_H = H_DIM;
     }
-    inline void YoungModulus_SPH2SPH(float someValue) { modulusYoung_SPH2SPH = someValue; }
-    inline void YoungModulus_SPH2WALL(float someValue) { modulusYoung_SPH2WALL = someValue; }
+    inline void YoungModulus_SPH2SPH(double someValue) { modulusYoung_SPH2SPH = someValue; }
+    inline void YoungModulus_SPH2WALL(double someValue) { modulusYoung_SPH2WALL = someValue; }
 
     inline size_t nSpheres() { return nDEs; }
 };

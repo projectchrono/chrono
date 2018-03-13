@@ -26,13 +26,15 @@
 #define AVERAGE_SPHERES_PER_SD_H_DIR 3.5
 /// Anticipated max number of DEs in an SD; used for setting aside memory ahead of time
 #define MAX_COUNT_OF_DEs_PER_SD 250
-/// 2^LENGTH_UNIT_FACTOR is used in the process of AD-ing the length for monodisperse spheres
-#define SPHERE_LENGTH_UNIT_FACTOR 12
-/// 2^SPHERE_TIME_UNIT_FACTOR is used in the process of AD-ing the time for monodisperse spheres
-#define SPHERE_TIME_UNIT_FACTOR 4
 /// Value that indicates non-valid ID. The assumption is that an ID is always a positive integer
 #define NULL_GRANULAR_ID UINT_MAX - 1
 /// Value that indicates a non-valid (ILLegal) physical attribute for integer attributes
 #define ILL_GRANULAR_VAL INT_MAX - 1
 /// The number of average contacts per DE. High values are safe but might also translate into wasted memory
 #define AVERAGE_COUNT_CONTACTS_PER_DE 8
+/// Value that controls the length unit. It is this many simulation length units that a sphere deforms under its own weight.
+#define PSI_L 16
+/// Value that controls the time unit. It is this many simulation time units that it will take to clear a deformation of a sphere
+#define PSI_h 4
+/// Value that controls the time unit. It is like a safety factor.
+#define PSI_T 4

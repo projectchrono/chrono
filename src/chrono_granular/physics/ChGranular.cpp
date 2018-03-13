@@ -12,9 +12,9 @@
 // Authors: Dan Negrut
 // =============================================================================
 
+#include "ChGranular.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "ChGranular.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
@@ -97,16 +97,16 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     // Create the falling balls
-    float ball_epsilon = monoDisperseSphRadius_AD / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
+    float ball_epsilon = monoDisperseSphRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
 
-    chrono::utils::HCPSampler<float> sampler(2 * monoDisperseSphRadius_AD + ball_epsilon);  // Add epsilon
+    chrono::utils::HCPSampler<float> sampler(2 * monoDisperseSphRadius_SU + ball_epsilon);  // Add epsilon
 
     // We need to pass in half-length box here
     ChVector<float> boxCenter(0, 0, 0);
     // We need to subtract off a sphere radius to ensure we don't get put at the edge
-    ChVector<float> hdims{float(box_L / (2. * SPACE_UNIT) - monoDisperseSphRadius_AD),
-                          float(box_D / (2. * SPACE_UNIT) - monoDisperseSphRadius_AD),
-                          float(box_H / (2. * SPACE_UNIT) - monoDisperseSphRadius_AD)};
+    ChVector<float> hdims{float(box_L / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU),
+                          float(box_D / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU),
+                          float(box_H / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU)};
     std::vector<ChVector<float>> points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
 
     nDEs = (unsigned int)points.size();
@@ -129,7 +129,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
 }
 
 /**
-The purpose of this method is to figure out how big a SD is, and how many SDs are going to be necessary
+This method figures out how big a SD is, and how many SDs are going to be necessary
 in order to cover the entire BD.
 BD: Bid domain.
 SD: Sub-domain.
@@ -141,8 +141,8 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     if (howMany & 1)
         howMany++;
     tempDIM = box_L / howMany;
-    SD_L_AD = (unsigned int)std::ceil(tempDIM / SPACE_UNIT);
-    nSDs_L_AD = howMany;
+    SD_L_SU = (unsigned int)std::ceil(tempDIM / LENGTH_UNIT);
+    nSDs_L_SU = howMany;
 
     tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_D_DIR;
     howMany = (unsigned int)(std::ceil(box_D / tempDIM));
@@ -150,8 +150,8 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     if (howMany & 1)
         howMany++;
     tempDIM = box_D / howMany;
-    SD_D_AD = (unsigned int)std::ceil(tempDIM / SPACE_UNIT);
-    nSDs_D_AD = howMany;
+    SD_D_SU = (unsigned int)std::ceil(tempDIM / LENGTH_UNIT);
+    nSDs_D_SU = howMany;
 
     tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_H_DIR;
     howMany = (unsigned int)(std::ceil(box_H / tempDIM));
@@ -159,22 +159,30 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     if (howMany & 1)
         howMany++;
     tempDIM = box_H / howMany;
-    SD_H_AD = (unsigned int)std::ceil(tempDIM / SPACE_UNIT);
-    nSDs_H_AD = howMany;
+    SD_H_SU = (unsigned int)std::ceil(tempDIM / LENGTH_UNIT);
+    nSDs_H_SU = howMany;
 
-    nSDs = nSDs_L_AD * nSDs_D_AD * nSDs_H_AD;
+    nSDs = nSDs_L_SU * nSDs_D_SU * nSDs_H_SU;
 }
 
 /**
-The purpose of this method is to compute the adimensionalized values of gravitational acceleration
-components.
-The assumption is that the TIME, LENGTH and MASS units have been set at this point.
+This method define the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
+of various physical quantities set by the user.
 */
-void chrono::ChGRN_DE_Container::set_gravitational_acceleration_AD() {
-    double convFactor = SPACE_UNIT / (TIME_UNIT * TIME_UNIT);
-    convFactor = 1. / convFactor;
+void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::switch_to_SimUnits() {
+    double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
+    MASS_UNIT = massSphere;
+    K_stiffness = (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL);
+    TIME_UNIT = sqrt(massSphere / (PSI_h*K_stiffness)) / PSI_T;
+    
+    double magGravAcc = sqrt(X_accGrav*X_accGrav + Y_accGrav*Y_accGrav + Z_accGrav*Z_accGrav);
+    LENGTH_UNIT = massSphere * magGravAcc / (PSI_L * K_stiffness);
 
-    X_gravAcc_AD = X_accGrav * convFactor;
-    Y_gravAcc_AD = Y_accGrav * convFactor;
-    Z_gravAcc_AD = Z_accGrav * convFactor;
+    monoDisperseSphRadius_SU = sphere_radius / LENGTH_UNIT;
+    reciprocal_sphDiam_SU = 1. / (2. * monoDisperseSphRadius_SU);
+
+    float scalingFactor = ((float)PSI_L) / (PSI_T*PSI_T*PSI_h);
+    gravAcc_X_factor_SU = scalingFactor * X_accGrav / magGravAcc;
+    gravAcc_Y_factor_SU = scalingFactor * Y_accGrav / magGravAcc;
+    gravAcc_Z_factor_SU = scalingFactor * Z_accGrav / magGravAcc;
 }
