@@ -195,7 +195,6 @@ int main(int argc, char* argv[]) {
     settlingExperiment.YoungModulus_SPH2SPH(normStiffness_S2S);    
     settlingExperiment.YoungModulus_SPH2WALL(normStiffness_S2W); 
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
-    settlingExperiment.generate_DEs();
 
     // Run settline experiments
     settlingExperiment.settle(timeEnd);

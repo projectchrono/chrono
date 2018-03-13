@@ -23,15 +23,15 @@
 
 __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
 
-__constant__ unsigned int d_SD_Ldim_SU;  //!< Ad-ed L-dimension of the SD box
-__constant__ unsigned int d_SD_Ddim_SU;  //!< Ad-ed D-dimension of the SD box
-__constant__ unsigned int d_SD_Hdim_SU;  //!< Ad-ed H-dimension of the SD box
-__constant__ unsigned int psi_T_dFactor; //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_h_dFactor; //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_L_dFactor; //!< factor used in establishing the software-time-unit
-__constant__ unsigned int d_box_L_SU;  //!< Ad-ed L-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_D_SU;  //!< Ad-ed D-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_H_SU;  //!< Ad-ed H-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_SD_Ldim_SU;    //!< Ad-ed L-dimension of the SD box
+__constant__ unsigned int d_SD_Ddim_SU;    //!< Ad-ed D-dimension of the SD box
+__constant__ unsigned int d_SD_Hdim_SU;    //!< Ad-ed H-dimension of the SD box
+__constant__ unsigned int psi_T_dFactor;   //!< factor used in establishing the software-time-unit
+__constant__ unsigned int psi_h_dFactor;   //!< factor used in establishing the software-time-unit
+__constant__ unsigned int psi_L_dFactor;   //!< factor used in establishing the software-time-unit
+__constant__ unsigned int d_box_L_SU;      //!< Ad-ed L-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_D_SU;      //!< Ad-ed D-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_H_SU;      //!< Ad-ed H-dimension of the BD box in multiples of subdomains
 __constant__ float gravAcc_X_d_factor_SU;  //!< Device counterpart of the constant gravAcc_X_factor_SU
 __constant__ float gravAcc_Y_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Y_factor_SU
 __constant__ float gravAcc_Z_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Z_factor_SU
@@ -415,26 +415,25 @@ box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR
 */
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
-__global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that controls actual step size. 
-                                 int* pRawDataX,         //!< Pointer to array containing data related to the
-                                                         //!< spheres in the box
-                                 int* pRawDataY,         //!< Pointer to array containing data related to the
-                                                         //!< spheres in the box
-                                 int* pRawDataZ,         //!< Pointer to array containing data related to the
-                                                         //!< spheres in the box
-                                 int* pRawDataX_DOT,     //!< Pointer to array containing data related to
-                                                         //!< the spheres in the box
-                                 int* pRawDataY_DOT,     //!< Pointer to array containing data related to
-                                                         //!< the spheres in the box
-                                 int* pRawDataZ_DOT,     //!< Pointer to array containing data related to
-                                                         //!< the spheres in the box
+__global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that controls actual step size.
+                                 int* pRawDataX,            //!< Pointer to array containing data related to the
+                                                            //!< spheres in the box
+                                 int* pRawDataY,            //!< Pointer to array containing data related to the
+                                                            //!< spheres in the box
+                                 int* pRawDataZ,            //!< Pointer to array containing data related to the
+                                                            //!< spheres in the box
+                                 int* pRawDataX_DOT,        //!< Pointer to array containing data related to
+                                                            //!< the spheres in the box
+                                 int* pRawDataY_DOT,        //!< Pointer to array containing data related to
+                                                            //!< the spheres in the box
+                                 int* pRawDataZ_DOT,        //!< Pointer to array containing data related to
+                                                            //!< the spheres in the box
                                  unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
                                                                             //!< SD indicates how many
                                                                             //!< spheres touch this SD
-                                 unsigned int* spheres_in_SD_composite  //!< Big array that works in conjunction
-                                                                        //!< with SD_countsOfSpheresTouching.
-                                 )  
-{
+                                 unsigned int* spheres_in_SD_composite      //!< Big array that works in conjunction
+                                                                            //!< with SD_countsOfSpheresTouching.
+) {
     __shared__ int sph_X[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
@@ -488,14 +487,14 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
 
             // We have a collision here...
             if (penetrationProxy < 1) {
-                bodyB_list[threadIdx.x*12+nCollisions] = bodyB;
+                bodyB_list[threadIdx.x * 12 + nCollisions] = bodyB;
                 nCollisions++;
             }
         }
 
         /**
-        Compute now the forces on bodyA; i.e, what bodyA feels (if bodyA is in contact w/ anybody in this SD).  
-        
+        Compute now the forces on bodyA; i.e, what bodyA feels (if bodyA is in contact w/ anybody in this SD).
+        
         \f[ \mbox{penetration} = \left[\left(\frac{x_A}{2R} -
         \frac{x_B}{2R}\right)^2 + \left(\frac{y_A}{2R} - \frac{y_B}{2R}\right)^2 + \left(\frac{z_A}{2R} -
         \frac{z_B}{2R}\right)^2\right] \f]
@@ -514,9 +513,9 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
         float bodyA_X_velCorr = 0.f;
         float bodyA_Y_velCorr = 0.f;
         float bodyA_Z_velCorr = 0.f;
-        float scalingFactor = alpha_h_bar / (psi_T_dFactor*psi_T_dFactor*psi_h_dFactor);
+        float scalingFactor = alpha_h_bar / (psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
 
-        for(unsigned int bodyB=0; bodyB<nCollisions; bodyB++){
+        for (unsigned int bodyB = 0; bodyB < nCollisions; bodyB++) {
             // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA intrinsic:
             // __device__ ​ float rnormf ( int  dim, const float* a)
             // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
@@ -549,9 +548,9 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
         // force.
         if (true) {
             // CONLAIN: can you help with this test? We add the effect of gravity more times than we need here
-            bodyA_X_velCorr += alpha_h_bar*gravAcc_X_d_factor_SU;
-            bodyA_Y_velCorr += alpha_h_bar*gravAcc_Y_d_factor_SU;
-            bodyA_Z_velCorr += alpha_h_bar*gravAcc_Z_d_factor_SU;
+            bodyA_X_velCorr += alpha_h_bar * gravAcc_X_d_factor_SU;
+            bodyA_Y_velCorr += alpha_h_bar * gravAcc_Y_d_factor_SU;
+            bodyA_Z_velCorr += alpha_h_bar * gravAcc_Z_d_factor_SU;
         }
 
         // We still need to write back atomically to global memory
@@ -564,18 +563,18 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
 template <unsigned int THRDS_PER_BLOCK>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                          //!< Should be a multiple of 32
 __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical integration time step
-                                int* pRawDataX,         //!< Pointer to array containing data related to the
-                                                        //!< spheres in the box
-                                int* pRawDataY,         //!< Pointer to array containing data related to the
-                                                        //!< spheres in the box
-                                int* pRawDataZ,         //!< Pointer to array containing data related to the
-                                                        //!< spheres in the box
-                                int* pRawDataX_DOT,     //!< Pointer to array containing data related to
-                                                        //!< the spheres in the box
-                                int* pRawDataY_DOT,     //!< Pointer to array containing data related to
-                                                        //!< the spheres in the box
-                                int* pRawDataZ_DOT,     //!< Pointer to array containing data related to
-                                                        //!< the spheres in the box
+                                int* pRawDataX,            //!< Pointer to array containing data related to the
+                                                           //!< spheres in the box
+                                int* pRawDataY,            //!< Pointer to array containing data related to the
+                                                           //!< spheres in the box
+                                int* pRawDataZ,            //!< Pointer to array containing data related to the
+                                                           //!< spheres in the box
+                                int* pRawDataX_DOT,        //!< Pointer to array containing data related to
+                                                           //!< the spheres in the box
+                                int* pRawDataY_DOT,        //!< Pointer to array containing data related to
+                                                           //!< the spheres in the box
+                                int* pRawDataZ_DOT,        //!< Pointer to array containing data related to
+                                                           //!< the spheres in the box
                                 unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
                                                                            //!< SD indicates how many
                                                                            //!< spheres touch this SD
@@ -749,8 +748,9 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts() {
 }
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
-
     switch_to_SimUnits();
+    generate_DEs(); 
+    
 
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
@@ -771,15 +771,16 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int stepSize_SU = 8;
-    //    for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += fakeTimeStep) {
-    updateVelocities<MAX_COUNT_OF_DEs_PER_SD>
-        <<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT,
-                                            p_d_CM_XDOT, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
+    for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += stepSize_SU) {
+        updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
+            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
+        gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
 
-    //        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-    //            fakeTimeStep, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
-    //            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
-    //    }
+        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
+            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
+    }
 
     cleanup_simulation();
     return;
