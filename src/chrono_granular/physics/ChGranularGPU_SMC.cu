@@ -757,10 +757,12 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     copyCONSTdata_to_device();
 
     // Seed arrays that are populated by the kernel call
+    const unsigned char allBitsOne = -1;  // all bits of this variable are 1.
+    // Set all the offsets to zero
     gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, 0,
-                         MAX_COUNT_OF_DEs_PER_SD * nSDs *
-                             sizeof(unsigned int)));  // FUOT: is 0 the right value to set entries in this array to?
+    // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
+    gpuErrchk(
+        cudaMemset(p_device_DEs_in_SD_composite, allBitsOne, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
     /// Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
@@ -776,6 +778,8 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
         gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
+        gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, allBitsOne,
+                             MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,

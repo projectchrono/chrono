@@ -27,9 +27,9 @@
 /// Anticipated max number of DEs in an SD; used for setting aside memory ahead of time
 #define MAX_COUNT_OF_DEs_PER_SD 250
 /// Value that indicates non-valid ID. The assumption is that an ID is always a positive integer
-#define NULL_GRANULAR_ID UINT_MAX - 1
+#define NULL_GRANULAR_ID UINT_MAX
 /// Value that indicates a non-valid (ILLegal) physical attribute for integer attributes
-#define ILL_GRANULAR_VAL INT_MAX - 1
+#define ILL_GRANULAR_VAL INT_MAX
 /// The number of average contacts per DE. High values are safe but might also translate into wasted memory
 #define AVERAGE_COUNT_CONTACTS_PER_DE 8
 /// Value that controls the length unit. It is this many simulation length units that a sphere deforms under its own weight.
