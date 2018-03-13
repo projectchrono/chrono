@@ -20,23 +20,29 @@
 //
 // =============================================================================
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
+
+#include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-#define USE_IRRLICHT
-//#undef USE_IRRLICHT
-
-#ifdef USE_IRRLICHT
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
 #endif
+
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChSolverMKL.h"
+#endif
+
+#define USE_IRRLICHT
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -45,7 +51,8 @@ using std::cout;
 using std::endl;
 
 // =============================================================================
-
+// USER SETTINGS
+// =============================================================================
 // JSON file for vehicle model
 std::string vehicle_file("M113/vehicle/M113_Vehicle_BandBushing.json");
 ////std::string vehicle_file("M113/vehicle/M113_Vehicle_BandANCF.json");
@@ -53,37 +60,42 @@ std::string vehicle_file("M113/vehicle/M113_Vehicle_BandBushing.json");
 // JSON file for powertrain
 std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
 
-// JSON files for terrain (rigid plane)
-std::string rigidterrain_file("terrain/RigidPlane.json");
-
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.1);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
 
-// Point on chassis tracked by the camera (Irrlicht only)
-ChVector<> trackPoint(0.0, 0.0, 0.0);
+// JSON files for terrain (rigid plane)
+std::string rigidterrain_file("terrain/RigidPlane.json");
 
-// Rigid terrain dimensions
-double terrainHeight = 0;
-double terrainLength = 100.0;  // size in X direction
-double terrainWidth = 100.0;   // size in Y direction
+// Simulation length
+double t_end = 1.0;
 
 // Simulation step size
-double step_size = 5e-5;
+double step_size = 1e-4;
+
+// Linear solver
+enum SolverType { MUMPS, MKL };
+SolverType solver_type = MUMPS;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
 
-// Simulation length (Povray only)
-double t_end = 1.0;
-
 // Output directories
-bool img_output = false;
-bool dbg_output = false;
 const std::string out_dir = GetChronoOutputPath() + "M113_BAND_JSON";
+const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
+
+// Verbose level
+bool verbose_solver = false;
+bool verbose_integrator = false;
+
+// Output
+bool output = true;
+bool dbg_output = false;
+bool povray_output = false;
+bool img_output = false;
 
 // =============================================================================
 
@@ -103,17 +115,23 @@ class MyDriver {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // --------------------------
-    // Create the various modules
-    // --------------------------
+    // -----------------------------
+    // Construct the Tracked vehicle
+    // -----------------------------
 
     // Create the vehicle system
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
 
+    // Disable gravity in this simulation
+    ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
-    // Initialize the vehicle at the specified position.
+    // ------------------------------------------------
+    // Initialize the vehicle at the specified position
+    // ------------------------------------------------
+
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
@@ -124,19 +142,44 @@ int main(int argc, char* argv[]) {
     vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
+    // --------------------------------------------------
+    // Control internal collisions and contact monitoring
+    // --------------------------------------------------
+
+    // Enable contact on all tracked vehicle parts, except the left sprocket
+    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+
+    // Disable contact for all tracked vehicle parts
+    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
     ////vehicle.SetChassisCollide(false);
 
     // Disable only contact between chassis and track shoes (if chassis collision was defined)
     ////vehicle.SetChassisVehicleCollide(false);
 
+    // Monitor internal contacts for the chassis, left sprocket, left idler, and first shoe on the left track.
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
+    ////                        TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
+
     // Monitor only contacts involving the chassis.
     vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
-    // Create the ground
+    // Collect contact information.
+    // If enabled, number of contacts and local contact point locations are collected for all
+    // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
+    ////vehicle.SetContactCollection(true);
+
+    // ------------------
+    // Create the terrain
+    // ------------------
+
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
-    // Create and initialize the powertrain system
+    // ----------------------------
+    // Create the powertrain system
+    // ----------------------------
+
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
@@ -149,7 +192,7 @@ int main(int argc, char* argv[]) {
     app.SetSkyBox();
     irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+    app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
     ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
@@ -183,31 +226,77 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
+        cout << "Error creating directory " << out_dir << endl;
         return 1;
+    }
+
+    if (povray_output) {
+        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+            cout << "Error creating directory " << pov_dir << endl;
+            return 1;
+        }
+        terrain.ExportMeshPovray(out_dir);
     }
 
     if (img_output) {
         if (ChFileutils::MakeDirectory(img_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << img_dir << std::endl;
+            cout << "Error creating directory " << img_dir << endl;
             return 1;
         }
     }
 
+    //Setup chassis position output with column headers
+    utils::CSV_writer csv("\t");
+    csv.stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.stream().precision(6);
+    csv << "Time (s)" << "Chassis X Pos (m)" << "Chassis Y Pos (m)" << "Chassis Z Pos (m)" << endl;
+
     // Set up vehicle output
     ////vehicle.SetChassisOutput(true);
     ////vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    ////vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
-    vehicle.ExportComponentList(out_dir + "/component_list.json");
+    ////vehicle.ExportComponentList(out_dir + "/component_list.json");
+
+    // Export visualization mesh for shoe tread body
+    auto shoe0 = std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0));
+    shoe0->WriteTreadVisualizationMesh(out_dir);
+    shoe0->ExportTreadVisualizationMeshPovray(out_dir);
 
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
-    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-    mkl_solver->SetSparsityPatternLock(true);
-    vehicle.GetSystem()->SetSolver(mkl_solver);
+
+#ifndef CHRONO_MKL
+    if (solver_type == MKL)
+        solver_type = MUMPS;
+#endif
+#ifndef CHRONO_MUMPS
+    if (solver_type == MUMPS)
+        solver_type = MKL;
+#endif
+
+    switch (solver_type) {
+#ifdef CHRONO_MUMPS
+        case MUMPS: {
+            auto mumps_solver = std::make_shared<ChSolverMumps>();
+            mumps_solver->SetSparsityPatternLock(true);
+            mumps_solver->SetVerbose(verbose_solver);
+            vehicle.GetSystem()->SetSolver(mumps_solver);
+            break;
+        }
+#endif
+#ifdef CHRONO_MKL
+        case MKL: {
+            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+            mkl_solver->SetSparsityPatternLock(true);
+            mkl_solver->SetVerbose(verbose_solver);
+            vehicle.GetSystem()->SetSolver(mkl_solver);
+            break;
+        }
+#endif
+    }
 
     vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
@@ -216,9 +305,9 @@ int main(int argc, char* argv[]) {
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetMode(ChTimestepperHHT::ACCELERATION);
     integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(false);
+    integrator->SetModifiedNewton(true);
     integrator->SetScaling(true);
-    integrator->SetVerbose(false);
+    integrator->SetVerbose(verbose_integrator);
 
     // ---------------
     // Simulation loop
@@ -247,6 +336,13 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (step_number < sim_steps) {
+        const ChVector<>& c_pos = vehicle.GetVehiclePos();
+
+        // File output
+        if (output) {
+            csv << vehicle.GetSystem()->GetChTime() << c_pos.x() << c_pos.y() << c_pos.z() << endl;
+        }
+
         // Debugging output
         if (dbg_output) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
@@ -288,15 +384,24 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        app.EndScene();
+#endif
 
-        if (img_output && step_number > 200 && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-            app.WriteImageToFile(filename);
+        if (step_number % render_steps == 0) {
+            if (povray_output) {
+                char filename[100];
+                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+                utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+            }
+
+#ifdef USE_IRRLICHT
+            if (img_output && step_number > 200) {
+                char filename[100];
+                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
+                app.WriteImageToFile(filename);
+            }
+#endif
             render_frame++;
         }
-#endif
 
         // Collect data from modules
         double throttle_input = driver.GetThrottle();
@@ -329,7 +434,7 @@ int main(int argc, char* argv[]) {
 
         // Report if the chassis experienced a collision
         if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
-            std::cout << time << "  chassis contact" << std::endl;
+            cout << time << "  chassis contact" << endl;
         }
 
         // Increment frame number
@@ -338,19 +443,23 @@ int main(int argc, char* argv[]) {
         double step_timing = vehicle.GetSystem()->GetTimerStep();
         total_timing += step_timing;
 
-        std::cout << "Step: " << step_number;
-        std::cout << "   Time: " << time;
-        std::cout << "   Number of Iterations: " << integrator->GetNumIterations();
-        std::cout << "   Step Time: " << step_timing;
-        std::cout << "   Total Time: " << total_timing;
-        std::cout << std::endl;
+        cout << "Step: " << step_number;
+        cout << "   Time: " << time;
+        cout << "   Number of Iterations: " << integrator->GetNumIterations();
+        cout << "   Step Time: " << step_timing;
+        cout << "   Total Time: " << total_timing;
+        cout << endl;
 
-        // if (time > 1.0) {
-        //    break;
-        //}
+#ifdef USE_IRRLICHT
+        app.EndScene();
+#endif
     }
 
-    vehicle.WriteContacts("M113_contacts.out");
+    if (output) {
+        csv.write_to_file(out_dir + "/chassis_position.txt");
+    }
+
+    vehicle.WriteContacts(out_dir + "/contacts.txt");
 
     return 0;
 }

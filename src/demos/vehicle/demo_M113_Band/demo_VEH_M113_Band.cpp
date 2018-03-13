@@ -80,7 +80,7 @@ const std::string img_dir = out_dir + "/IMG";
 
 // Verbose level
 bool verbose_solver = false;
-bool verbose_integrator = true;
+bool verbose_integrator = false;
 
 // Output
 bool output = true;
@@ -122,47 +122,6 @@ int main(int argc, char* argv[]) {
 
     // Control steering type (enable crossdrive capability)
     ////vehicle.GetDriveline()->SetGyrationMode(true);
-
-    // ------------------------------
-    // Solver and integrator settings
-    // ------------------------------
-
-#ifndef CHRONO_MKL
-    if (solver_type == MKL)
-        solver_type = MUMPS;
-#endif
-#ifndef CHRONO_MUMPS
-    if (solver_type == MUMPS)
-        solver_type = MKL;
-#endif
-
-    switch (solver_type) {
-        case MUMPS: {
-            auto mumps_solver = std::make_shared<ChSolverMumps>();
-            mumps_solver->SetSparsityPatternLock(true);
-            mumps_solver->SetVerbose(verbose_solver);
-            vehicle.GetSystem()->SetSolver(mumps_solver);
-            break;
-        }
-        case MKL: {
-            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
-            mkl_solver->SetSparsityPatternLock(true);
-            mkl_solver->SetVerbose(verbose_solver);
-            vehicle.GetSystem()->SetSolver(mkl_solver);
-            break;
-        }
-    }
-
-    vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
-    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
-    integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
-    integrator->SetAbsTolerances(1e-2, 1e2);
-    integrator->SetMode(ChTimestepperHHT::ACCELERATION);
-    integrator->SetStepControl(false);
-    integrator->SetModifiedNewton(true);
-    integrator->SetScaling(true);
-    integrator->SetVerbose(verbose_integrator);
 
     // ------------------------------------------------
     // Initialize the vehicle at the specified position
@@ -276,13 +235,13 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
+        cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     if (povray_output) {
         if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << pov_dir << std::endl;
+            cout << "Error creating directory " << pov_dir << endl;
             return 1;
         }
         terrain.ExportMeshPovray(out_dir);
@@ -290,14 +249,16 @@ int main(int argc, char* argv[]) {
 
     if (img_output) {
         if (ChFileutils::MakeDirectory(img_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << img_dir << std::endl;
+            cout << "Error creating directory " << img_dir << endl;
             return 1;
         }
     }
 
+    //Setup chassis position output with column headers
     utils::CSV_writer csv("\t");
     csv.stream().setf(std::ios::scientific | std::ios::showpos);
     csv.stream().precision(6);
+    csv << "Time (s)" << "Chassis X Pos (m)" << "Chassis Y Pos (m)" << "Chassis Z Pos (m)" << endl;
 
     // Set up vehicle output
     ////vehicle.SetChassisOutput(true);
@@ -311,6 +272,51 @@ int main(int argc, char* argv[]) {
     auto shoe0 = std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0));
     shoe0->WriteTreadVisualizationMesh(out_dir);
     shoe0->ExportTreadVisualizationMeshPovray(out_dir);
+
+    // ------------------------------
+    // Solver and integrator settings
+    // ------------------------------
+
+#ifndef CHRONO_MKL
+    if (solver_type == MKL)
+        solver_type = MUMPS;
+#endif
+#ifndef CHRONO_MUMPS
+    if (solver_type == MUMPS)
+        solver_type = MKL;
+#endif
+
+    switch (solver_type) {
+#ifdef CHRONO_MUMPS
+        case MUMPS: {
+            auto mumps_solver = std::make_shared<ChSolverMumps>();
+            mumps_solver->SetSparsityPatternLock(true);
+            mumps_solver->SetVerbose(verbose_solver);
+            vehicle.GetSystem()->SetSolver(mumps_solver);
+            break;
+        }
+#endif
+#ifdef CHRONO_MKL
+        case MKL: {
+            auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+            mkl_solver->SetSparsityPatternLock(true);
+            mkl_solver->SetVerbose(verbose_solver);
+            vehicle.GetSystem()->SetSolver(mkl_solver);
+            break;
+        }
+#endif
+    }
+
+    vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
+    integrator->SetAlpha(-0.2);
+    integrator->SetMaxiters(50);
+    integrator->SetAbsTolerances(1e-2, 1e2);
+    integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+    integrator->SetStepControl(false);
+    integrator->SetModifiedNewton(true);
+    integrator->SetScaling(true);
+    integrator->SetVerbose(verbose_integrator);
 
     // ---------------
     // Simulation loop
@@ -386,7 +392,6 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        app.EndScene();
 #endif
 
         if (step_number % render_steps == 0) {
@@ -437,7 +442,7 @@ int main(int argc, char* argv[]) {
 
         // Report if the chassis experienced a collision
         if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
-            std::cout << time << "  chassis contact" << std::endl;
+            cout << time << "  chassis contact" << endl;
         }
 
         // Increment frame number
@@ -446,12 +451,16 @@ int main(int argc, char* argv[]) {
         double step_timing = vehicle.GetSystem()->GetTimerStep();
         total_timing += step_timing;
 
-        std::cout << "Step: " << step_number;
-        std::cout << "   Time: " << time;
-        std::cout << "   Number of Iterations: " << integrator->GetNumIterations();
-        std::cout << "   Step Time: " << step_timing;
-        std::cout << "   Total Time: " << total_timing;
-        std::cout << std::endl;
+        cout << "Step: " << step_number;
+        cout << "   Time: " << time;
+        cout << "   Number of Iterations: " << integrator->GetNumIterations();
+        cout << "   Step Time: " << step_timing;
+        cout << "   Total Time: " << total_timing;
+        cout << endl;
+
+#ifdef USE_IRRLICHT
+        app.EndScene();
+#endif
     }
 
     if (output) {
