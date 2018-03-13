@@ -797,8 +797,8 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int stepSize_SU = 8;
-
-    for (unsigned int crntTime = 0; crntTime < tEnd; crntTime += stepSize_SU) {
+    unsigned int tEnd_SU = tEnd / TIME_UNIT;
+    for (unsigned int crntTime_SU = 0; crntTime_SU < tEnd; crntTime_SU += stepSize_SU) {
         updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
