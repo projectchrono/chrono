@@ -389,30 +389,21 @@ This kernel call figures out forces on a sphere and carries out numerical integr
 
 Template arguments:
   - MAX_NSPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block collectives.
-                         NOTE: It is assumed that MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to
-store IDs)
 
 Assumptions:
-  - Granular material is made up of monodisperse spheres.
-  - The function below assumes the spheres are in a box
-  - The box has dimensions L x D x H.
-  - The reference frame associated with the box:
+    - A sphere cannot touch more than 12 other spheres (this is a proved results, of 1953).
+    - A "char" is stored on 8 bits and as such an unsigned char can hold positive numbers up to and including 255
+    - MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
+    - Granular material is made up of monodisperse spheres.
+    - The function below assumes the spheres are in a box
+    - The box has dimensions L x D x H.
+    - The reference frame associated with the box:
       - The x-axis is along the length L of the box
       - The y-axis is along the width D of the box
       - The z-axis is along the height H of the box
-  - A sphere cannot touch more than eight SDs
 
-Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each sphere touches.
-The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
-at the center of the box. The orientation of the box is defined relative to a world inertial reference frame.
-
-Nomenclature:
-  - SD: subdomain.
-  - NULL_GRANULAR_ID: the equivalent of a non-sphere SD ID, or a non-sphere ID
-
-Notes:
-  - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
-box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
+NOTE:
+  - Upon calling it with more than 256 threads, this kernel is going to make illegal memory accesses
 */
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
@@ -438,7 +429,7 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
     __shared__ int sph_X[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
-    __shared__ char bodyB_list[12 * MAX_NSPHERES_PER_SD];  // NOTE: max number of spheres that can kiss a sphere is 12.
+    __shared__ unsigned char bodyB_list[12 * MAX_NSPHERES_PER_SD];  // NOTE: max number of spheres that can kiss a sphere is 12.
 
     unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[blockIdx.x];
     unsigned mySphereID;
@@ -472,7 +463,7 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
 
         double penetrationProxy;
         unsigned int nCollisions = 0;
-        for (unsigned int bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
+        for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
             // Don't check for collision with self
             if (bodyA == bodyB)
                 continue;
@@ -496,28 +487,7 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
         /**
         Compute now the forces on bodyA; i.e, what bodyA feels (if bodyA is in contact w/ anybody in this SD).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        \f[ \mbox{penetration} = \left[\left(\frac{x_A}{2R} -
+        \f[ \mbox{penetrationProxy} = \left[\left(\frac{x_A}{2R} -
         \frac{x_B}{2R}\right)^2 + \left(\frac{y_A}{2R} - \frac{y_B}{2R}\right)^2 + \left(\frac{z_A}{2R} -
         \frac{z_B}{2R}\right)^2\right] \f]
 
@@ -537,7 +507,9 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
         float bodyA_Z_velCorr = 0.f;
         float scalingFactor = alpha_h_bar / (psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
 
-        for (unsigned int bodyB = 0; bodyB < nCollisions; bodyB++) {
+        for (unsigned int i = 0; i < nCollisions; i++) {
+            unsigned char bodyB = bodyB_list[threadIdx.x * 12 + i]; // Converts unsigned char to unsigned int.
+
             // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA intrinsic:
             // __device__ ​ float rnormf ( int  dim, const float* a)
             // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
@@ -797,7 +769,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     /// Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-        p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
+        p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
     cudaDeviceSynchronize();
 
     // printf("checking counts\n");
@@ -806,11 +778,11 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     // Settling simulation loop.
     unsigned int stepSize_SU = 8;
     unsigned int tEnd_SU = std::ceil(tEnd / TIME_UNIT);
-    for (unsigned int crntTime_SU = 0; crntTime_SU < tEnd; crntTime_SU += stepSize_SU) {
+    for (unsigned int crntTime_SU = 0; crntTime_SU < tEnd_SU; crntTime_SU += stepSize_SU) {
         updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
-        cudaDeviceSynchronize();
+        gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
         gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, allBitsOne,
                              MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
@@ -818,8 +790,9 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
 
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
-            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nSpheres());
-        cudaDeviceSynchronize();
+            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
+        gpuErrchk(cudaPeekAtLastError()); 
+        gpuErrchk(cudaDeviceSynchronize());
     }
 
     cleanup_simulation();
