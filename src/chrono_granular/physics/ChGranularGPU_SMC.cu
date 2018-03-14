@@ -606,12 +606,14 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         zSphCenter = alpha_h_bar * pRawDataZ_DOT[mySphereID];
 
         xSphCenter += pRawDataX[mySphereID];
-        ySphCenter += pRawDataY[mySphereID];
-        zSphCenter += pRawDataZ[mySphereID];
-
         pRawDataX[mySphereID] = xSphCenter;
+
+        ySphCenter += pRawDataY[mySphereID];
         pRawDataY[mySphereID] = ySphCenter;
+
+        zSphCenter += pRawDataZ[mySphereID];
         pRawDataZ[mySphereID] = zSphCenter;
+
 
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
     }
