@@ -18,33 +18,36 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChShaftsGearbox.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
-#include "chrono/physics/ChShaftsBody.h"
 
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
-#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
-#include "chrono_parallel/solver/ChSolverParallel.h"
+#include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
+#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/math/matrix.h"  // for quaternion, real4
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/solver/ChSolverParallel.h"
+#include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
 
 #if defined(CHRONO_FEA)
-#include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChNodeFEAxyz.h"
 #endif
 
 #include <numeric>
 
-using namespace chrono;
 using namespace chrono::collision;
+
 #ifdef LOGGINGENABLED
 INITIALIZE_EASYLOGGINGPP
 #endif
+
+namespace chrono {
+
 ChSystemParallel::ChSystemParallel() : ChSystem() {
     data_manager = new ChParallelDataManager();
 
@@ -797,3 +800,5 @@ settings_container* ChSystemParallel::GetSettings() {
 void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy) {
     data_manager->composition_strategy = std::move(strategy);
 }
+
+}  // end namespace chrono
