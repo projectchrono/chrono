@@ -15,6 +15,7 @@
 #include <cuda.h>
 #include <cstdio>
 #include <fstream>
+#include <cassert>
 #include "../../chrono_thirdparty/cub/cub.cuh"
 #include "../ChGranularDefines.h"
 #include "../chrono_granular/physics/ChGranular.h"
@@ -759,9 +760,10 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
     for (unsigned int i = 0; i < MAX_COUNT_OF_DEs_PER_SD * nSDs; i++) {
         // printf("de id is %d, i is %u\n", sdSpheres[i], i);
         // Check if invalid sphere
-        if (-1 == (signed int)sdSpheres[i]) {
+        if ( sdSpheres[i]==NULL_GRANULAR_ID) {
             // printf("invalid sphere in sd");
         } else {
+            assert(sdSpheres[i] < nDEs);
             deCounts[sdSpheres[i]]++;
         }
     }
@@ -803,7 +805,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int stepSize_SU = 8;
-    unsigned int tEnd_SU = tEnd / TIME_UNIT;
+    unsigned int tEnd_SU = std::ceil(tEnd / TIME_UNIT);
     for (unsigned int crntTime_SU = 0; crntTime_SU < tEnd; crntTime_SU += stepSize_SU) {
         updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
