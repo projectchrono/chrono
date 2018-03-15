@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2018 projectchrono.org
@@ -13,9 +13,9 @@
 // =============================================================================
 
 #include <cuda.h>
+#include <cassert>
 #include <cstdio>
 #include <fstream>
-#include <cassert>
 #include "../../chrono_thirdparty/cub/cub.cuh"
 #include "../ChGranularDefines.h"
 #include "../chrono_granular/physics/ChGranular.h"
@@ -23,6 +23,10 @@
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
 __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
+
+#define MAX_X_POS (d_SD_Ldim_SU * d_box_L_SU)
+#define MAX_Y_POS (d_SD_Ddim_SU * d_box_D_SU)
+#define MAX_Z_POS (d_SD_Hdim_SU * d_box_H_SU)
 
 __constant__ unsigned int d_SD_Ldim_SU;    //!< Ad-ed L-dimension of the SD box
 __constant__ unsigned int d_SD_Ddim_SU;    //!< Ad-ed D-dimension of the SD box
@@ -47,10 +51,10 @@ __constant__ float gravAcc_Z_d_factor_SU;  //!< Device counterpart of the consta
 __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, unsigned int SDs[8]) {
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
     // We need to offset so that the bottom-left corner is at the origin
-    int sphCenter_X_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphCenter_X;
-    int sphCenter_Y_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphCenter_Y;
-    int sphCenter_Z_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphCenter_Z;
-    int n[3];
+    signed int sphCenter_X_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphCenter_X;
+    signed int sphCenter_Y_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphCenter_Y;
+    signed int sphCenter_Z_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphCenter_Z;
+    unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
     // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
@@ -59,6 +63,43 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
     // Same for D and H
     n[1] = (sphCenter_Y_modified - d_monoDisperseSphRadius_SU) / d_SD_Ddim_SU;
     n[2] = (sphCenter_Z_modified - d_monoDisperseSphRadius_SU) / d_SD_Hdim_SU;
+    // This is kind of gross and hacky, if we're at the bottom boundary, the bottom SD is 0
+    // If we're at the top boundary, the top SD is the max
+    if (sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
+        n[0] = 0;
+    } else if (sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS) {
+        n[0] = d_box_L_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+    }
+    if (sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
+        n[1] = 0;
+    } else if (sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS) {
+        n[1] = d_box_D_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+    }
+    if (sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
+        n[2] = 0;
+    } else if (sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS) {
+        n[2] = d_box_H_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+    }
+    // n[0] += (sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) -
+    //         (sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS);
+    // n[1] += (sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) -
+    //         (sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS);
+    // n[2] += (sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) -
+    //         (sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS);
+    // This conditional says if we're at the boundary
+    unsigned int boundary = sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
+                            sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS ||
+                            sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
+                            sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS ||
+                            sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
+                            sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS;
+    if (n[0] >= d_box_L_SU) {
+        // printf("%d, %d\n", sphCenter_X_modified - d_monoDisperseSphRadius_SU,
+        //        sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0);
+        printf("x is too large, boundary is %u, n is %u, nmax is %u, pos is %d, mod is %d, max is %d, dim is %d\n",
+               boundary, n[0], d_box_L_SU, sphCenter_X, sphCenter_X_modified, d_SD_Ldim_SU * d_box_L_SU, d_SD_Ldim_SU,
+               d_monoDisperseSphRadius_SU);
+    }
     // Find distance from next box in relevant dir to center, we may be straddling the two
     int d[3];                                                 // Store penetrations
     d[0] = (n[0] + 1) * d_SD_Ldim_SU - sphCenter_X_modified;  // dx = (nx + 1)* wx - x
@@ -96,8 +137,14 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
         // If both touch it or we own it, the result is valid
         valid &= (abs(d[2]) < d_monoDisperseSphRadius_SU) || (((i >> 2) & 0x1) == (d[2] < 0));
 
+        // This is nasty but it checks if we're actually touching a bounary, in which case
+
         // This ternary is hopefully better than a conditional
         // If valid is false, then the SD is actually NULL_GRANULAR_ID
+        if (valid && SDs[i] >= d_box_D_SU * d_box_L_SU * d_box_H_SU) {
+            printf("UH OH!, sd overrun %u, boundary is %u on thread %u, block %u, n is %u, %u, %u\n", SDs[i], boundary,
+                   threadIdx.x, blockIdx.x, n[0], n[1], n[2]);
+        }
         SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);
     }
 }
@@ -429,7 +476,8 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
     __shared__ int sph_X[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
-    __shared__ unsigned char bodyB_list[12 * MAX_NSPHERES_PER_SD];  // NOTE: max number of spheres that can kiss a sphere is 12.
+    __shared__ unsigned char
+        bodyB_list[12 * MAX_NSPHERES_PER_SD];  // NOTE: max number of spheres that can kiss a sphere is 12.
 
     unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[blockIdx.x];
     unsigned mySphereID;
@@ -508,11 +556,12 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
         float scalingFactor = alpha_h_bar / (psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
 
         for (unsigned int i = 0; i < nCollisions; i++) {
-            unsigned char bodyB = bodyB_list[threadIdx.x * 12 + i]; // Converts unsigned char to unsigned int.
+            unsigned char bodyB = bodyB_list[threadIdx.x * 12 + i];  // Converts unsigned char to unsigned int.
 
             // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA intrinsic:
             // __device__ ​ float rnormf ( int  dim, const float* a)
             // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
+            // printf("loop happening!\n");
             X_dir_contactForce = X_dummyVal - sph_X[bodyB] * invSphDiameter;
             Y_dir_contactForce = Y_dummyVal - sph_Y[bodyB] * invSphDiameter;
             Z_dir_contactForce = Z_dummyVal - sph_Z[bodyB] * invSphDiameter;
@@ -605,6 +654,10 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         ySphCenter = alpha_h_bar * pRawDataY_DOT[mySphereID];
         zSphCenter = alpha_h_bar * pRawDataZ_DOT[mySphereID];
 
+        // if (xSphCenter >= (signed int)d_SD_Ldim_SU * d_box_L_SU) {
+        //     printf("x way too big is %d, vel is %d, h is %d\n", xSphCenter, pRawDataX_DOT[mySphereID], alpha_h_bar);
+        // }
+
         xSphCenter += pRawDataX[mySphereID];
         pRawDataX[mySphereID] = xSphCenter;
 
@@ -613,7 +666,6 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
 
         zSphCenter += pRawDataZ[mySphereID];
         pRawDataZ[mySphereID] = zSphCenter;
-
 
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
     }
@@ -670,6 +722,13 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
             // Get the absolute offset
             offset += touchedSD * MAX_COUNT_OF_DEs_PER_SD;
 
+            // if (offset != NULL_GRANULAR_ID &&
+            //     offset >= d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD) {
+            //     printf("overrun calculated on sd %u, streak is %u on thread %u block %u, offset is %u, sphere is
+            //     %u\n",
+            //            touchedSD, winningStreak, threadIdx.x, blockIdx.x, offset, sphIDs[i]);
+            //     // printf("%u SDs calculated\n", d_box_D_SU * d_box_L_SU * d_box_H_SU);
+            // }
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int i = 0; i < winningStreak; i++)
                 offsetInComposite_SphInSD_Array[idInShared + i] = offset++;
@@ -679,10 +738,17 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
+    // what is happening is anything real?
     for (unsigned int i = 0; i < 8; i++) {
         unsigned int offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
-        if (offset != NULL_GRANULAR_ID)
-            spheres_in_SD_composite[offset] = sphIDs[i];
+        if (offset != NULL_GRANULAR_ID) {
+            if (offset >= d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD) {
+                printf("overrun on thread %u block %u, offset is %u, sphere is %u\n", threadIdx.x, blockIdx.x, offset,
+                       sphIDs[i]);
+            } else {
+                spheres_in_SD_composite[offset] = sphIDs[i];
+            }
+        }
     }
 }
 
@@ -708,8 +774,16 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
         cudaMemcpyToSymbol(d_monoDisperseSphRadius_SU, &monoDisperseSphRadius_SU, sizeof(d_monoDisperseSphRadius_SU)));
 }
 
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost() {
+    // Copy back positions
+    gpuErrchk(cudaMemcpy(h_X_DE.data(), p_d_CM_X, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(h_Y_DE.data(), p_d_CM_Y, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(h_Z_DE.data(), p_d_CM_Z, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+}
+
 // Check number of spheres in each SD and dump relevant info to file
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofile) {
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofile, bool write_out = false) {
+    copyDataBackToHost();
     unsigned int* sdvals = new unsigned int[nSDs];
     unsigned int* sdSpheres = new unsigned int[MAX_COUNT_OF_DEs_PER_SD * nSDs];
     unsigned int* deCounts = new unsigned int[nDEs];
@@ -717,6 +791,9 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
 
     cudaMemcpy(sdSpheres, p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int),
                cudaMemcpyDeviceToHost);
+    for (unsigned int i = 0; i < nDEs; i++) {
+        deCounts[i] = 0;
+    }
 
     unsigned int max_count = 0;
     unsigned int sum = 0;
@@ -726,7 +803,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
         if (sdvals[i] > max_count)
             max_count = sdvals[i];
     }
-
+    printf("radius is %u\n", monoDisperseSphRadius_SU);
     printf("max DEs per SD is %u\n", max_count);
     printf("total sd/de overlaps is %u\n", sum);
     printf("theoretical total is %u\n", MAX_COUNT_OF_DEs_PER_SD * nSDs);
@@ -734,22 +811,28 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
     for (unsigned int i = 0; i < MAX_COUNT_OF_DEs_PER_SD * nSDs; i++) {
         // printf("de id is %d, i is %u\n", sdSpheres[i], i);
         // Check if invalid sphere
-        if ( sdSpheres[i]==NULL_GRANULAR_ID) {
+        if (sdSpheres[i] == NULL_GRANULAR_ID) {
             // printf("invalid sphere in sd");
         } else {
             assert(sdSpheres[i] < nDEs);
             deCounts[sdSpheres[i]]++;
         }
     }
+    if (write_out) {
+        writeFile(ofile, deCounts);
+    }
+    delete[] sdvals;
+    delete[] sdSpheres;
+    delete[] deCounts;
+}
 
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, unsigned int* deCounts) {
+    copyDataBackToHost();
     std::ofstream ptFile{ofile};
     ptFile << "x,y,z,nTouched" << std::endl;
     for (unsigned int n = 0; n < nDEs; n++) {
         ptFile << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << deCounts[n] << std::endl;
     }
-    delete[] sdvals;
-    delete[] sdSpheres;
-    delete[] deCounts;
 }
 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
@@ -770,31 +853,46 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
 
     /// Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+    printf("doing priming!\n");
+
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
-    cudaDeviceSynchronize();
+    gpuErrchk(cudaDeviceSynchronize());
 
     // printf("checking counts\n");
-    checkSDCounts("output.csv");
+    checkSDCounts("step1.csv", true);
     // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int stepSize_SU = 8;
     unsigned int tEnd_SU = std::ceil(tEnd / TIME_UNIT);
-    for (unsigned int crntTime_SU = 0; crntTime_SU < tEnd_SU; crntTime_SU += stepSize_SU) {
+    unsigned int currstep = 0;
+    printf("going until %u at timestep %u\n", tEnd_SU, stepSize_SU);
+    // Go to 100 timesteps so we can get a quick run at this point
+    for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * 100; crntTime_SU += stepSize_SU) {
+        printf("currstep is %u\n", ++currstep);
+        printf("doing velocities!\n");
         updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
+        // checkSDCounts("step2.csv", true);
+
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
         gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, allBitsOne,
                              MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
-        cudaDeviceSynchronize();
+        gpuErrchk(cudaDeviceSynchronize());
+        printf("doing positions!\n");
 
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
-        gpuErrchk(cudaPeekAtLastError()); 
+
+        gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+        char filename[100];
+        sprintf(filename, "results/step%04d.csv", currstep);
+        checkSDCounts(std::string(filename), true);
+        // writeFile(filename);
     }
 
     cleanup_simulation();

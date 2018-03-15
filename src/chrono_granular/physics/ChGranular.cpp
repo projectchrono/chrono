@@ -12,9 +12,9 @@
 // Authors: Dan Negrut
 // =============================================================================
 
-#include "ChGranular.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include "ChGranular.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
@@ -163,6 +163,7 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     nSDs_H_SU = howMany;
 
     nSDs = nSDs_L_SU * nSDs_D_SU * nSDs_H_SU;
+    printf("%u Sds as %u, %u, %u\n", nSDs, nSDs_L_SU, nSDs_D_SU, nSDs_H_SU);
 }
 
 /**
@@ -173,16 +174,17 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     MASS_UNIT = massSphere;
     K_stiffness = (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL);
-    TIME_UNIT = sqrt(massSphere / (PSI_h*K_stiffness)) / PSI_T;
-    
-    double magGravAcc = sqrt(X_accGrav*X_accGrav + Y_accGrav*Y_accGrav + Z_accGrav*Z_accGrav);
+    TIME_UNIT = sqrt(massSphere / (PSI_h * K_stiffness)) / PSI_T;
+
+    double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
     LENGTH_UNIT = massSphere * magGravAcc / (PSI_L * K_stiffness);
 
     monoDisperseSphRadius_SU = sphere_radius / LENGTH_UNIT;
     reciprocal_sphDiam_SU = 1. / (2. * monoDisperseSphRadius_SU);
 
-    float scalingFactor = ((float)PSI_L) / (PSI_T*PSI_T*PSI_h);
+    float scalingFactor = ((float)PSI_L) / (PSI_T * PSI_T * PSI_h);
     gravAcc_X_factor_SU = scalingFactor * X_accGrav / magGravAcc;
     gravAcc_Y_factor_SU = scalingFactor * Y_accGrav / magGravAcc;
     gravAcc_Z_factor_SU = scalingFactor * Z_accGrav / magGravAcc;
+    printf("gravity is %f, %f, %f\n", gravAcc_X_factor_SU, gravAcc_Y_factor_SU, gravAcc_Z_factor_SU);
 }
