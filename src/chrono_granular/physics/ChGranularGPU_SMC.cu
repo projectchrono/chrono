@@ -24,9 +24,9 @@
 
 __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
 
-#define MAX_X_POS (d_SD_Ldim_SU * d_box_L_SU)
-#define MAX_Y_POS (d_SD_Ddim_SU * d_box_D_SU)
-#define MAX_Z_POS (d_SD_Hdim_SU * d_box_H_SU)
+#define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
+#define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
+#define MAX_Z_POS_UNSIGNED (d_SD_Hdim_SU * d_box_H_SU)
 
 __constant__ unsigned int d_SD_Ldim_SU;    //!< Ad-ed L-dimension of the SD box
 __constant__ unsigned int d_SD_Ddim_SU;    //!< Ad-ed D-dimension of the SD box
@@ -40,6 +40,21 @@ __constant__ unsigned int d_box_H_SU;      //!< Ad-ed H-dimension of the BD box 
 __constant__ float gravAcc_X_d_factor_SU;  //!< Device counterpart of the constant gravAcc_X_factor_SU
 __constant__ float gravAcc_Y_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Y_factor_SU
 __constant__ float gravAcc_Z_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Z_factor_SU
+
+// Decide which SD owns this DE.
+// Returns the id of the SD that holds the center of the sphere
+__device__ unsigned int figureOutOwnerSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z) {
+    signed int sphCenter_X_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphCenter_X;
+    signed int sphCenter_Y_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphCenter_Y;
+    signed int sphCenter_Z_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphCenter_Z;
+    unsigned int n[3];
+    // Get the SD of the sphere's center in the xdir
+    n[0] = (sphCenter_X_modified) / d_SD_Ldim_SU;
+    // Same for D and H
+    n[1] = (sphCenter_Y_modified) / d_SD_Ddim_SU;
+    n[2] = (sphCenter_Z_modified) / d_SD_Hdim_SU;
+    return n[0] * d_box_D_SU * d_box_H_SU + n[1] * d_box_H_SU + n[2];
+}
 
 /// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
 /// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
@@ -67,17 +82,17 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
     // If we're at the top boundary, the top SD is the max
     if (sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
         n[0] = 0;
-    } else if (sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS) {
+    } else if (sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS_UNSIGNED) {
         n[0] = d_box_L_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     if (sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
         n[1] = 0;
-    } else if (sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS) {
+    } else if (sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS_UNSIGNED) {
         n[1] = d_box_D_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     if (sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
         n[2] = 0;
-    } else if (sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS) {
+    } else if (sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS_UNSIGNED) {
         n[2] = d_box_H_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     // n[0] += (sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) -
@@ -88,11 +103,11 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
     //         (sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS);
     // This conditional says if we're at the boundary
     unsigned int boundary = sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-                            sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS ||
+                            sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS_UNSIGNED ||
                             sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-                            sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS ||
+                            sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS_UNSIGNED ||
                             sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-                            sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS;
+                            sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS_UNSIGNED;
     if (n[0] >= d_box_L_SU) {
         // printf("%d, %d\n", sphCenter_X_modified - d_monoDisperseSphRadius_SU,
         //        sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0);
@@ -373,9 +388,71 @@ Output:
   - Zforce: the Z component of the force, as represented in the box reference system
 */
 __device__ void boxWallsEffects(int sphXpos, int sphYpos, int sphZpos, float& Xforce, float& Yforce, float& Zforce) {
-    Xforce = 0.f;
-    Yforce = 0.f;
-    Zforce = 0.f;
+    signed int sphXpos_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphXpos;
+    signed int sphYpos_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphYpos;
+    signed int sphZpos_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphZpos;
+    // unsigned int boundary = sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
+    //                         sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS_UNSIGNED ||
+    //                         sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
+    //                         sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS_UNSIGNED ||
+    //                         sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
+    //                         sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS_UNSIGNED;
+
+    signed int pen;
+    int touchingWall;
+    // 1/1000th of the spheres radius in penetration should be equal to
+    float wallRestorativeForce = 100.0f / d_monoDisperseSphRadius_SU;
+
+    float xcomp = 0;
+    float ycomp = 0;
+    float zcomp = 0;
+
+    // Do x direction
+    // penetration of sphere into relevant wall
+    pen = sphXpos_modified - (signed int)d_monoDisperseSphRadius_SU;
+    // true if sphere touching wall
+    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    // create a force to counter the
+    xcomp += -1 * touchingWall * wallRestorativeForce * pen;
+
+    pen = MAX_Y_POS_UNSIGNED - (sphXpos_modified + (signed int)d_monoDisperseSphRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    // in this case, pen is negative and we want a positive restorative force
+    xcomp += -1 * touchingWall * wallRestorativeForce * pen;
+
+    // penetration of sphere into relevant wall
+    pen = sphYpos_modified - (signed int)d_monoDisperseSphRadius_SU;
+    // true if sphere touching wall
+    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    // create a force to counter the
+    ycomp += -1 * touchingWall * wallRestorativeForce * pen;
+
+    pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)d_monoDisperseSphRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    // in this case, pen is negative and we want a positive restorative force
+    ycomp += -1 * touchingWall * wallRestorativeForce * pen;
+
+    // penetration of sphere into relevant wall
+    pen = sphZpos_modified - (signed int)d_monoDisperseSphRadius_SU;
+    // true if sphere touching wall
+    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    // create a force to counter the
+    zcomp += -1 * touchingWall * wallRestorativeForce * pen;
+    if (touchingWall != 0) {
+        // printf("pen is %d, update is %f, touching is %d, res is %f\n", pen, zcomp, touchingWall,
+        // wallRestorativeForce);
+    }
+    pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)d_monoDisperseSphRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    // in this case, pen is negative and we want a positive restorative force
+    zcomp += -1 * touchingWall * wallRestorativeForce * pen;
+    if (touchingWall != 0) {
+        // printf("pen is %d, update is %f, touching is %d, res is %f\n", pen, zcomp, touchingWall,
+        // wallRestorativeForce);
+    }
+    Xforce += xcomp;
+    Yforce += ycomp;
+    Zforce += zcomp;
 }
 
 /**
@@ -478,13 +555,13 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
     __shared__ unsigned char
         bodyB_list[12 * MAX_NSPHERES_PER_SD];  // NOTE: max number of spheres that can kiss a sphere is 12.
-
-    unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[blockIdx.x];
+    unsigned int thisSD = blockIdx.x;
+    unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
     unsigned mySphereID;
 
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     if (threadIdx.x < spheresTouchingThisSD) {
-        mySphereID = spheres_in_SD_composite[blockIdx.x * MAX_NSPHERES_PER_SD + threadIdx.x];
+        mySphereID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + threadIdx.x];
         sph_X[threadIdx.x] = pRawDataX[mySphereID];
         sph_Y[threadIdx.x] = pRawDataY[mySphereID];
         sph_Z[threadIdx.x] = pRawDataZ[mySphereID];
@@ -497,9 +574,9 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
     // have at most 113 DEs per SD. If we have more bodies than threads, we might want to increase the number of threads
     // or decrease the number of DEs per SD
     unsigned int bodyA = threadIdx.x;
-    double X_dir_contactForce;
-    double Y_dir_contactForce;
-    double Z_dir_contactForce;
+    double X_dir_contactForce = 0;
+    double Y_dir_contactForce = 0;
+    double Z_dir_contactForce = 0;
 
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
@@ -527,6 +604,14 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
 
             // We have a collision here...
             if (penetrationProxy < 1) {
+                unsigned int theirSphID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
+                // printf(
+                // "collision body A %u, body B %u, proxy %f, xd %f, yd %f, zd %f, x1 %d, x2 %d, y1 %d, y2 %d, "
+                // "z1 %d, z2 %d diam %f!\n",
+                // mySphereID, theirSphID, penetrationProxy, X_dir_contactForce, Y_dir_contactForce,
+                // Z_dir_contactForce, sph_X[bodyA], sph_X[bodyB], sph_Y[bodyA], sph_Y[bodyB], sph_Z[bodyA],
+                // sph_Z[bodyB], 2. * d_monoDisperseSphRadius_SU);
+
                 bodyB_list[threadIdx.x * 12 + nCollisions] = bodyB;
                 nCollisions++;
             }
@@ -550,6 +635,7 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
         \end{bmatrix}
         \f]
         */
+
         float bodyA_X_velCorr = 0.f;
         float bodyA_Y_velCorr = 0.f;
         float bodyA_Z_velCorr = 0.f;
@@ -561,7 +647,6 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
             // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA intrinsic:
             // __device__ ​ float rnormf ( int  dim, const float* a)
             // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
-            // printf("loop happening!\n");
             X_dir_contactForce = X_dummyVal - sph_X[bodyB] * invSphDiameter;
             Y_dir_contactForce = Y_dummyVal - sph_Y[bodyB] * invSphDiameter;
             Z_dir_contactForce = Z_dummyVal - sph_Z[bodyB] * invSphDiameter;
@@ -583,24 +668,36 @@ __global__ void updateVelocities(unsigned int alpha_h_bar,  //!< Value that cont
             bodyA_Z_velCorr += scalingFactor * Z_dir_contactForce;
         }
 
+        // DEBUG ONLY
+        bodyA_X_velCorr = 0;
+        bodyA_Y_velCorr = 0;
+        bodyA_Z_velCorr = 0;
         // Perhaps this sphere is hitting the wall[s]
         boxWallsEffects(sph_X[bodyA], sph_Y[bodyA], sph_Z[bodyA], bodyA_X_velCorr, bodyA_Y_velCorr, bodyA_Z_velCorr);
-
         // If the sphere belongs to this SD, add up the gravitational force component.
-        // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting this
-        // force.
-        if (true) {
+        // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
+        // this force.
+
+        unsigned int ownerSD = figureOutOwnerSD(sph_X[bodyA], sph_Y[bodyA], sph_Z[bodyA]);
+        // printf("body is %u, current SD is %u, owner is %u\n", bodyA, thisSD, ownerSD);
+        if (thisSD == ownerSD) {
             // CONLAIN: can you help with this test? We add the effect of gravity more times than we need here
             bodyA_X_velCorr += alpha_h_bar * gravAcc_X_d_factor_SU;
             bodyA_Y_velCorr += alpha_h_bar * gravAcc_Y_d_factor_SU;
             bodyA_Z_velCorr += alpha_h_bar * gravAcc_Z_d_factor_SU;
         }
+        // printf("factor is %f, update is %f\n", gravAcc_Z_d_factor_SU, alpha_h_bar * gravAcc_Z_d_factor_SU);
+        // if (bodyA_Z_velCorr != 0) {
+        //     printf("body %u has zcomp %d, update would be %f\n", mySphereID, pRawDataZ_DOT[mySphereID],
+        //            bodyA_Z_velCorr);
+        // }
 
         // We still need to write back atomically to global memory
         atomicAdd(pRawDataX_DOT + mySphereID, (int)bodyA_X_velCorr);
         atomicAdd(pRawDataY_DOT + mySphereID, (int)bodyA_Y_velCorr);
         atomicAdd(pRawDataZ_DOT + mySphereID, (int)bodyA_Z_velCorr);
     }
+    __syncthreads();
 }
 
 template <unsigned int THRDS_PER_BLOCK>  //!< Number of CUB threads engaged in block-collective CUB operations.
@@ -653,6 +750,10 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         xSphCenter = alpha_h_bar * pRawDataX_DOT[mySphereID];
         ySphCenter = alpha_h_bar * pRawDataY_DOT[mySphereID];
         zSphCenter = alpha_h_bar * pRawDataZ_DOT[mySphereID];
+        if (xSphCenter != 0) {
+            printf("nonzero velocity update in xdir for spher %u, vel %d, update %d\n", mySphereID,
+                   pRawDataX_DOT[mySphereID], xSphCenter);
+        }
 
         // if (xSphCenter >= (signed int)d_SD_Ldim_SU * d_box_L_SU) {
         //     printf("x way too big is %d, vel is %d, h is %d\n", xSphCenter, pRawDataX_DOT[mySphereID], alpha_h_bar);
@@ -782,15 +883,17 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost() {
 }
 
 // Check number of spheres in each SD and dump relevant info to file
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofile, bool write_out = false) {
+void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofile,
+                                                                 bool write_out = false,
+                                                                 bool verbose = false) {
     copyDataBackToHost();
     unsigned int* sdvals = new unsigned int[nSDs];
     unsigned int* sdSpheres = new unsigned int[MAX_COUNT_OF_DEs_PER_SD * nSDs];
     unsigned int* deCounts = new unsigned int[nDEs];
-    cudaMemcpy(sdvals, p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    gpuErrchk(cudaMemcpy(sdvals, p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToHost));
 
-    cudaMemcpy(sdSpheres, p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int),
-               cudaMemcpyDeviceToHost);
+    gpuErrchk(cudaMemcpy(sdSpheres, p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int),
+                         cudaMemcpyDeviceToHost));
     for (unsigned int i = 0; i < nDEs; i++) {
         deCounts[i] = 0;
     }
@@ -803,10 +906,11 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
         if (sdvals[i] > max_count)
             max_count = sdvals[i];
     }
-    printf("radius is %u\n", monoDisperseSphRadius_SU);
-    printf("max DEs per SD is %u\n", max_count);
-    printf("total sd/de overlaps is %u\n", sum);
-    printf("theoretical total is %u\n", MAX_COUNT_OF_DEs_PER_SD * nSDs);
+    if (verbose) {
+        printf("max DEs per SD is %u\n", max_count);
+        printf("total sd/de overlaps is %u\n", sum);
+        printf("theoretical total is %u\n", MAX_COUNT_OF_DEs_PER_SD * nSDs);
+    }
     // Copy over occurences in SDs
     for (unsigned int i = 0; i < MAX_COUNT_OF_DEs_PER_SD * nSDs; i++) {
         // printf("de id is %d, i is %u\n", sdSpheres[i], i);
@@ -838,10 +942,12 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, 
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     switch_to_SimUnits();
     generate_DEs();
+    printf("radius is %u\n", monoDisperseSphRadius_SU);
 
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
     copyCONSTdata_to_device();
+    gpuErrchk(cudaDeviceSynchronize());
 
     // Seed arrays that are populated by the kernel call
     const unsigned char allBitsOne = (unsigned char)-1;  // all bits of this variable are 1.
@@ -868,11 +974,10 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     unsigned int currstep = 0;
     printf("going until %u at timestep %u\n", tEnd_SU, stepSize_SU);
     // Go to 100 timesteps so we can get a quick run at this point
-    for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * 100; crntTime_SU += stepSize_SU) {
+    for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * 2000; crntTime_SU += stepSize_SU) {
         printf("currstep is %u\n", ++currstep);
-        printf("doing velocities!\n");
         updateVelocities<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
+            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_YDOT, p_d_CM_ZDOT,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite);
         // checkSDCounts("step2.csv", true);
 
@@ -881,10 +986,9 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
         gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, allBitsOne,
                              MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
         gpuErrchk(cudaDeviceSynchronize());
-        printf("doing positions!\n");
 
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_XDOT, p_d_CM_XDOT,
+            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_YDOT, p_d_CM_ZDOT,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
 
         gpuErrchk(cudaPeekAtLastError());
@@ -894,6 +998,9 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
         checkSDCounts(std::string(filename), true);
         // writeFile(filename);
     }
+    printf("radius is %u\n", monoDisperseSphRadius_SU);
+    // Don't write but print verbosely
+    checkSDCounts("", false, false);
 
     cleanup_simulation();
     return;
