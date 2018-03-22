@@ -98,8 +98,9 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     // Create the falling balls
     float ball_epsilon = monoDisperseSphRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
+    printf("eps is %f, rad is %5f\n", ball_epsilon, monoDisperseSphRadius_SU * 1.0f);
 
-    chrono::utils::HCPSampler<float> sampler(2 * monoDisperseSphRadius_SU + ball_epsilon);  // Add epsilon
+    chrono::utils::HCPSampler<float> sampler(2.1 * monoDisperseSphRadius_SU);  // Add epsilon
 
     // We need to pass in half-length box here
     ChVector<float> boxCenter(0, 0, 0);
@@ -118,10 +119,37 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     // Copy from array of structs to 3 arrays
     for (unsigned int i = 0; i < nDEs; i++) {
         auto vec = points.at(i);
-        h_X_DE.at(i) = (int)vec.x();
-        h_Y_DE.at(i) = (int)vec.y();
-        h_Z_DE.at(i) = (int)vec.z();
+        h_X_DE.at(i) = (int)(vec.x());
+        h_Y_DE.at(i) = (int)(vec.y());
+        h_Z_DE.at(i) = (int)(vec.z());
+        // printf("int is %d, float is %f\n", h_X_DE.at(i), vec.x());
     }
+    // for (int i = 0; i < nDEs; i++) {
+    //     for (int j = 0; j < nDEs; j++) {
+    //         if (i == j) {
+    //             continue;
+    //         }
+    //         float r2 = monoDisperseSphRadius_SU * monoDisperseSphRadius_SU;
+    //         float dXf = points.at(i).x() - points.at(j).x();
+    //         float dYf = points.at(i).y() - points.at(j).y();
+    //         float dZf = points.at(i).z() - points.at(j).z();
+    //         float d2f = dXf * dXf + dYf * dYf + dZf * dZf;
+    //
+    //         float dXu = h_X_DE.at(i) - h_X_DE.at(j);
+    //         float dYu = h_Y_DE.at(i) - h_Y_DE.at(j);
+    //         float dZu = h_Z_DE.at(i) - h_Z_DE.at(j);
+    //         float d2u = dXu * dXu + dYu * dYu + dZu * dZu;
+    //
+    //         float diff = dXf - dXu;
+    //         if (fabs(diff) > 0) {
+    //             printf("i is %u, j is %u, float dist is %f, %f, %f, int dist is %f, %f, %f, diff is %f\n", i, j, dXf,
+    //                    dYf, dZf, dXu, dYu, dZu, d2f - d2u);
+    //             // printf("host collision between a %u and b %u, float pen is %f, int pen is %f\n", i, j, d2f - (4 *
+    //             // r2),
+    //             //        d2u - (4 * r2));
+    //         }
+    //     }
+    // }
 
     h_XDOT_DE.resize(nDEs);
     h_YDOT_DE.resize(nDEs);

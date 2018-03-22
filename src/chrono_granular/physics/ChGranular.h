@@ -43,12 +43,12 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     unsigned int nDEs;  ///< Number of discrete elements
     unsigned int nSDs;  ///< Number of subdomains that the BD is split in
 
-    std::vector<int> h_X_DE;
-    std::vector<int> h_Y_DE;
-    std::vector<int> h_Z_DE;
-    std::vector<int> h_XDOT_DE;
-    std::vector<int> h_YDOT_DE;
-    std::vector<int> h_ZDOT_DE;
+    std::vector<signed int> h_X_DE;
+    std::vector<signed int> h_Y_DE;
+    std::vector<signed int> h_Z_DE;
+    std::vector<signed int> h_XDOT_DE;
+    std::vector<signed int> h_YDOT_DE;
+    std::vector<signed int> h_ZDOT_DE;
 
     /// Device pointers
     int* p_d_CM_X;
