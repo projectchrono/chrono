@@ -215,4 +215,5 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::switch_to_SimUnits() {
     gravAcc_Y_factor_SU = scalingFactor * Y_accGrav / magGravAcc;
     gravAcc_Z_factor_SU = scalingFactor * Z_accGrav / magGravAcc;
     printf("gravity is %f, %f, %f\n", gravAcc_X_factor_SU, gravAcc_Y_factor_SU, gravAcc_Z_factor_SU);
+    printf("mass is %f\n", MASS_UNIT);
 }

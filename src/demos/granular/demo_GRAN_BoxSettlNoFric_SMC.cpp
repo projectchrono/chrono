@@ -164,11 +164,11 @@ int main(int argc, char* argv[]) {
 #define BOX_D_cm 40.f
 #define BOX_H_cm 12.f
 #define RADIUS 1.f
-#define SPH_DENSITY 1.5f
-#define TIME_END 10.f
+#define SPH_DENSITY 1.50f
+#define TIME_END 10.0f
 #define GRAV_ACCELERATION 980.f
-#define NORMAL_STIFFNESS_S2S 1e9f
-#define NORMAL_STIFFNESS_S2W 1e9f
+#define NORMAL_STIFFNESS_S2S 1e7f
+#define NORMAL_STIFFNESS_S2W 1e7f
 
     std::string output_prefix = "settling_MONODISP_SPHERES_SMC";
 
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
     float boxL = BOX_L_cm;
     float boxD = BOX_D_cm;
     float boxH = BOX_H_cm;
-    float timeEnd = 8 * 20;
+    float timeEnd = TIME_END;
     float grav_acceleration = GRAV_ACCELERATION;
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;

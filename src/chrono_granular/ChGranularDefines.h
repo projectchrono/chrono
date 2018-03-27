@@ -32,9 +32,11 @@
 #define ILL_GRANULAR_VAL INT_MAX
 /// The number of average contacts per DE. High values are safe but might also translate into wasted memory
 #define AVERAGE_COUNT_CONTACTS_PER_DE 8
-/// Value that controls the length unit. It is this many simulation length units that a sphere deforms under its own weight.
+/// Value that controls the length unit. It is this many simulation length units that a sphere deforms under its own
+/// weight.
 #define PSI_L 16
-/// Value that controls the time unit. It is this many simulation time units that it will take to clear a deformation of a sphere
+/// Value that controls the time unit. It is this many simulation time units that it will take to clear a deformation of
+/// a sphere
 #define PSI_h 4
 /// Value that controls the time unit. It is like a safety factor.
 #define PSI_T 4
