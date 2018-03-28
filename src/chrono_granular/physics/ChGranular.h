@@ -187,7 +187,7 @@ class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MON
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void settle(float t_end);
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts(std::string, bool, bool);
+    void checkSDCounts(std::string, bool, bool, bool);
     void writeFile(std::string, unsigned int*);
     void copyDataBackToHost();
     virtual void generate_DEs();
