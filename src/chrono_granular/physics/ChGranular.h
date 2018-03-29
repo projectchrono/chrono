@@ -20,6 +20,7 @@
 #include <math.h>
 #include "../ChApiGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
+#include "cudalloc.hpp"
 
 /**
  * Discrete Elment info
@@ -43,12 +44,14 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     unsigned int nDEs;  ///< Number of discrete elements
     unsigned int nSDs;  ///< Number of subdomains that the BD is split in
 
-    std::vector<signed int> h_X_DE;
-    std::vector<signed int> h_Y_DE;
-    std::vector<signed int> h_Z_DE;
-    std::vector<signed int> h_XDOT_DE;
-    std::vector<signed int> h_YDOT_DE;
-    std::vector<signed int> h_ZDOT_DE;
+    // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
+    // Makes somewhat faster memcpys
+    std::vector<signed int, cudallocator<signed int>> h_X_DE;
+    std::vector<signed int, cudallocator<signed int>> h_Y_DE;
+    std::vector<signed int, cudallocator<signed int>> h_Z_DE;
+    std::vector<signed int, cudallocator<signed int>> h_XDOT_DE;
+    std::vector<signed int, cudallocator<signed int>> h_YDOT_DE;
+    std::vector<signed int, cudallocator<signed int>> h_ZDOT_DE;
 
     /// Device pointers
     int* p_d_CM_X;
@@ -187,7 +190,7 @@ class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MON
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void settle(float t_end);
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts(std::string, bool, bool, bool);
+    void checkSDCounts(std::string, bool, bool);
     void writeFile(std::string, unsigned int*);
     void copyDataBackToHost();
     virtual void generate_DEs();
