@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
 
-    // Some of the defalut values might be overwritten by user via command line
+    // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
                         normStiffness_S2S, normStiffness_S2W) == false)
         return 1;

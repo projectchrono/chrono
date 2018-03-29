@@ -339,18 +339,15 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
                                 double& Y_Vel_corr,       //!< Velocity correction in Xdir
                                 double& Z_Vel_corr        //!< Velocity correction in Xdir
 ) {
+    // Shift frame so that origin is at lower left corner
     signed int sphXpos_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphXpos;
     signed int sphYpos_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphYpos;
     signed int sphZpos_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphZpos;
-    // unsigned int boundary = sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-    //                         sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS_UNSIGNED ||
-    //                         sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-    //                         sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS_UNSIGNED ||
-    //                         sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-    //                         sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS_UNSIGNED;
 
-    signed int pen;
-    int touchingWall;
+    // penetration into wall
+    signed int pen = 0;
+    // Are we touching wall?
+    int touchingWall = 0;
     // Compute spring factor in force
     float scalingFactor = (1.0f * alpha_h_bar) / (psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
     // This gamma_n is fake, needs to be given by user
@@ -569,6 +566,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
             double deltaY = (sph_Y[bodyA] - sph_Y[bodyB]) * invSphDiameter;
             double deltaZ = (sph_Z[bodyA] - sph_Z[bodyB]) * invSphDiameter;
 
+            // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
             double deltaX_dot = sph_X_DOT[bodyA] - sph_X_DOT[bodyB];
             double deltaY_dot = sph_Y_DOT[bodyA] - sph_Y_DOT[bodyB];
             double deltaZ_dot = sph_Z_DOT[bodyA] - sph_Z_DOT[bodyB];
@@ -595,8 +593,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
                 // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
 
                 // Compute penetration term, this becomes the delta as we want it
-                penetration = sqrt(penetration);
-                penetration = 1 / penetration;
+                // Makes more sense to find rsqrt, the compiler is doing this anyways
+                penetration = rsqrt(penetration);
                 penetration -= 1.;
 
                 // Compute nondim force term
@@ -687,7 +685,6 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
-    // NOTE from Conlain -- somebody in this kernel is trashing heap memory and breaking things
     /// Set aside shared memory
     volatile __shared__ unsigned int offsetInComposite_SphInSD_Array[THRDS_PER_BLOCK * 8];
     volatile __shared__ bool shMem_head_flags[THRDS_PER_BLOCK * 8];
@@ -711,15 +708,6 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         xSphCenter = alpha_h_bar * pRawDataX_DOT[mySphereID];
         ySphCenter = alpha_h_bar * pRawDataY_DOT[mySphereID];
         zSphCenter = alpha_h_bar * pRawDataZ_DOT[mySphereID];
-        // if (xSphCenter != 0) {
-        //     printf("nonzero velocity update in xdir for spher %u, vel %d, update %d\n", mySphereID,
-        //            pRawDataX_DOT[mySphereID], xSphCenter);
-        // }
-
-        // if (xSphCenter >= (signed int)d_SD_Ldim_SU * d_box_L_SU) {
-        //     printf("x way too big is %d, vel is %d, h is %d\n", xSphCenter, pRawDataX_DOT[mySphereID],
-        //     alpha_h_bar);
-        // }
 
         xSphCenter += pRawDataX[mySphereID];
         pRawDataX[mySphereID] = xSphCenter;
@@ -860,8 +848,8 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
     // # times each DE appears in some SD
     unsigned int* deCounts = new unsigned int[nDEs];
 
+    // Copy back broadphase-related data
     gpuErrchk(cudaMemcpy(sdvals, p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-
     gpuErrchk(cudaMemcpy(sdSpheres, p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int),
                          cudaMemcpyDeviceToHost));
 
@@ -878,6 +866,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
         if (sdvals[i] > max_count)
             max_count = sdvals[i];
     }
+    // safety checks, if these fail we were probably about to crash
     assert(sum < MAX_COUNT_OF_DEs_PER_SD * nSDs);
     assert(max_count < MAX_COUNT_OF_DEs_PER_SD);
     if (verbose) {
@@ -907,6 +896,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, unsigned int* deCounts) {
     copyDataBackToHost();
     std::ofstream ptFile{ofile};
+    // Dump to a stream, write to file only at end
     std::ostringstream outstrstream;
     outstrstream << "x,y,z,vx,vy,vz,absv,nTouched" << std::endl;
     for (unsigned int n = 0; n < nDEs; n++) {
@@ -917,6 +907,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, 
                      << h_YDOT_DE.at(n) << "," << h_ZDOT_DE.at(n) << "," << velVec.Length() << "," << deCounts[n]
                      << std::endl;
     }
+    // TODO an asynch file write could be nice, this is a major bottleneck
     ptFile << outstrstream.str();
 }
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
@@ -955,45 +946,35 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     // Which frame am I rendering?
     unsigned int currframe = 1;
     printf("going until %u at timestep %u\n", tEnd_SU, stepSize_SU);
-    unsigned int nsteps = 50;
-    nsteps = (1.0 * tEnd_SU) / stepSize_SU;
-    // need to store velocity updates, this should go as a class member variable
-    int* p_d_CM_XDOT_update;
-    int* p_d_CM_YDOT_update;
-    int* p_d_CM_ZDOT_update;
+    unsigned int nsteps = (1.0 * tEnd_SU) / stepSize_SU;
+    // uncomment the line below to restrict the runtime for debugging purposes
+    // nsteps = 50;
 
-    // Set aside memory for velocity update information
-    gpuErrchk(cudaMalloc(&p_d_CM_XDOT_update, nDEs * sizeof(int)));
-    gpuErrchk(cudaMalloc(&p_d_CM_YDOT_update, nDEs * sizeof(int)));
-    gpuErrchk(cudaMalloc(&p_d_CM_ZDOT_update, nDEs * sizeof(int)));
-
-    // Set initial velocity updates to zero
-    gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0, nDEs * sizeof(int)));
-    gpuErrchk(cudaMemset(p_d_CM_YDOT_update, 0, nDEs * sizeof(int)));
-    gpuErrchk(cudaMemset(p_d_CM_ZDOT_update, 0, nDEs * sizeof(int)));
-
-    // Go to 100 timesteps so we can get a quick run at this point
+    // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
         printf("currstep is %u\n", ++currstep);
 
-        // reset forces to zero
+        // reset forces to zero, note that vel update ~ force for forward euler
         gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0, nDEs * sizeof(int)));
         gpuErrchk(cudaMemset(p_d_CM_YDOT_update, 0, nDEs * sizeof(int)));
         gpuErrchk(cudaMemset(p_d_CM_ZDOT_update, 0, nDEs * sizeof(int)));
 
+        // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
         computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT_update, p_d_CM_YDOT_update, p_d_CM_ZDOT_update,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, p_d_CM_XDOT, p_d_CM_YDOT, p_d_CM_ZDOT);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+
+        // Apply the updates we just made
         applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT_update, p_d_CM_YDOT_update, p_d_CM_ZDOT_update,
             p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, p_d_CM_XDOT, p_d_CM_YDOT, p_d_CM_ZDOT);
-        // checkSDCounts("step2.csv", true);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
+        // Reset broadphase information
         gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
         gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, allBitsOne,
                              MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
@@ -1004,12 +985,12 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+        // we don't want to render at every timestep, the file write is painful
         if (currstep % 10 == 0) {
             char filename[100];
             sprintf(filename, "results/step%06d.csv", currframe++);
             checkSDCounts(std::string(filename), true, false);
         }
-        // writeFile(filename);
     }
     printf("radius is %u\n", monoDisperseSphRadius_SU);
     // Don't write but print verbosely

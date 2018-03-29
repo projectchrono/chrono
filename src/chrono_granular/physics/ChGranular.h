@@ -60,6 +60,9 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     int* p_d_CM_XDOT;
     int* p_d_CM_YDOT;
     int* p_d_CM_ZDOT;
+    int* p_d_CM_XDOT_update;
+    int* p_d_CM_YDOT_update;
+    int* p_d_CM_ZDOT_update;
 
     float X_accGrav;  //!< X component of the gravitational acceleration
     float Y_accGrav;  //!< Y component of the gravitational acceleration

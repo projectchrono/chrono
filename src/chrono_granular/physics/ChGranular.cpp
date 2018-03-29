@@ -78,6 +78,11 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     gpuErrchk(cudaMalloc(&p_d_CM_YDOT, nDEs * sizeof(int)));
     gpuErrchk(cudaMalloc(&p_d_CM_ZDOT, nDEs * sizeof(int)));
 
+    // Set aside memory for velocity update information
+    gpuErrchk(cudaMalloc(&p_d_CM_XDOT_update, nDEs * sizeof(int)));
+    gpuErrchk(cudaMalloc(&p_d_CM_YDOT_update, nDEs * sizeof(int)));
+    gpuErrchk(cudaMalloc(&p_d_CM_ZDOT_update, nDEs * sizeof(int)));
+
     // allocate mem for array saying for each SD how many spheres touch it
     gpuErrchk(cudaMalloc(&p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int)));
 
@@ -93,6 +98,11 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     gpuErrchk(cudaMemset(p_d_CM_XDOT, 0, nDEs * sizeof(int)));
     gpuErrchk(cudaMemset(p_d_CM_YDOT, 0, nDEs * sizeof(int)));
     gpuErrchk(cudaMemset(p_d_CM_ZDOT, 0, nDEs * sizeof(int)));
+
+    // Set initial velocity updates to zero
+    gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0, nDEs * sizeof(int)));
+    gpuErrchk(cudaMemset(p_d_CM_YDOT_update, 0, nDEs * sizeof(int)));
+    gpuErrchk(cudaMemset(p_d_CM_ZDOT_update, 0, nDEs * sizeof(int)));
 }
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
