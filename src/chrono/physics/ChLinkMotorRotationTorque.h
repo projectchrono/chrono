@@ -15,31 +15,20 @@
 #ifndef CHLINKMOTORROTATIONTORQUE_H
 #define CHLINKMOTORROTATIONTORQUE_H
 
-
 #include "chrono/physics/ChLinkMotorRotation.h"
-#include "chrono/motion_functions/ChFunction.h"
-
 
 namespace chrono {
 
-/// A motor that applies a torque between
-/// two frames on two bodies.
-/// Differently from the ChLinkMotorRotationAngle and
-/// ChLinkMotorRotationSpeed, this does not enforce precise
-/// motion via constraint. 
+/// A motor that applies a torque between two frames on two bodies.
+/// Differently from the ChLinkMotorRotationAngle and ChLinkMotorRotationSpeed,
+/// this does not enforce precise motion via constraint.
 /// Example of application:
-/// - mimic a PID controlled system with 
-///   some feedback (that is up to you too implement)
+/// - mimic a PID controlled system with some feedback (user-defined)
 /// - force that is updated by a cosimulation
-/// - force from a man-in-the-loop setpoint
-/// Use SetTorqueFunction() to change to other torque function (by
-/// default is no torque), possibly introduce some custom ChFunction
-/// of yours that is updated at each time step.
+/// - force from a human-in-the-loop setpoint
+/// Use SetTorqueFunction() to change to other torque function (default zero torque).
 
 class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {
-
-    std::shared_ptr<ChFunction> f_torque;
-
   public:
     ChLinkMotorRotationTorque();
     ChLinkMotorRotationTorque(const ChLinkMotorRotationTorque& other);
@@ -48,18 +37,15 @@ class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMotorRotationTorque* Clone() const override { return new ChLinkMotorRotationTorque(*this); }
 
-
-    /// Sets the torque function T(t). In [Nm]. It is a function of time. 
-    void SetTorqueFunction(const std::shared_ptr<ChFunction> mf) {f_torque = mf;}
+    /// Set the torque function of time T(t).
+    void SetTorqueFunction(const std::shared_ptr<ChFunction> function) { SetMotorFunction(function); }
 
     /// Gets the torque function F(t).
-    std::shared_ptr<ChFunction> GetTorqueFunction() {return f_torque;}
-    
+    std::shared_ptr<ChFunction> GetTorqueFunction() const { return GetMotorFunction(); }
 
-    /// Get the current actuator reaction torque [Nm]
-    virtual double GetMotorTorque() const { return this->f_torque->Get_y(this->GetChTime());}
+    /// Get the current actuator reaction torque.
+    virtual double GetMotorTorque() const { return m_func->Get_y(GetChTime()); }
 
-    
     void Update(double mytime, bool update_assets) override;
 
     //
@@ -72,19 +58,14 @@ class ChApi ChLinkMotorRotationTorque : public ChLinkMotorRotation {
     //
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
-
 };
 
-CH_CLASS_VERSION(ChLinkMotorRotationTorque,0)
-
-
-
+CH_CLASS_VERSION(ChLinkMotorRotationTorque, 0)
 
 }  // end namespace chrono
 

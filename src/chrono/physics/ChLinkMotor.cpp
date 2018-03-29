@@ -16,10 +16,21 @@
 
 namespace chrono {
 
-// -----------------------------------------------------------------------------
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChLinkMotor)  NO! ABSTRACT!
+// CH_FACTORY_REGISTER(ChLinkMotor)  NO! ABSTRACT!
+
+ChLinkMotor::ChLinkMotor() {}
+
+ChLinkMotor::ChLinkMotor(const ChLinkMotor& other) : ChLinkMateGeneric(other) {
+    m_func = other.m_func;
+}
+
+ChLinkMotor::~ChLinkMotor() {}
+
+void ChLinkMotor::Update(double mytime, bool update_assets) {
+    ChLinkMateGeneric::Update(mytime, update_assets);
+    m_func->Update(mytime);
+}
 
 void ChLinkMotor::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -29,9 +40,9 @@ void ChLinkMotor::ArchiveOUT(ChArchiveOut& marchive) {
     ChLinkMateGeneric::ArchiveOUT(marchive);
 
     // serialize all member data:
+    marchive << CHNVP(m_func);
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChLinkMotor::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChLinkMotor>();
@@ -40,9 +51,7 @@ void ChLinkMotor::ArchiveIN(ChArchiveIn& marchive) {
     ChLinkMateGeneric::ArchiveIN(marchive);
 
     // deserialize all member data:
+    marchive >> CHNVP(m_func);
 }
-
-
-
 
 }  // end namespace chrono
