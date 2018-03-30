@@ -37,8 +37,8 @@
 #include "chrono_models/vehicle/generic/Generic_RigidTire.h"
 #include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
 
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_irrVehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_irrVehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "subsystems/TT_Tractor.h"
 #include "subsystems/TT_Trailer.h"

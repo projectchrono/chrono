@@ -51,9 +51,10 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+
+#include "chrono_irrVehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
+#include "chrono_irrVehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

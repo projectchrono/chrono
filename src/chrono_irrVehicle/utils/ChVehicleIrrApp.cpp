@@ -22,7 +22,7 @@
 
 #include <algorithm>
 
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_irrVehicle/utils/ChVehicleIrrApp.h"
 
 #include "chrono_vehicle/powertrain/ChShaftsPowertrain.h"
 

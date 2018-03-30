@@ -20,7 +20,8 @@
 #ifndef CH_WHEELED_VEHICLE_IRRAPP_H
 #define CH_WHEELED_VEHICLE_IRRAPP_H
 
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_irrVehicle/utils/ChVehicleIrrApp.h"
+
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 namespace chrono {
@@ -30,7 +31,7 @@ namespace vehicle {
 /// @{
 
 /// Customized Chrono Irrlicht application for wheeled vehicle visualization.
-class CH_VEHICLE_API ChWheeledVehicleIrrApp : public ChVehicleIrrApp {
+class CH_IRRVEHICLE_API ChWheeledVehicleIrrApp : public ChVehicleIrrApp {
   public:
     /// Construct a wheeled vehicle Irrlicht application.
     ChWheeledVehicleIrrApp(

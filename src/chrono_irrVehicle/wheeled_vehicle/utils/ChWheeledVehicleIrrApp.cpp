@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_irrVehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline4WD.h"

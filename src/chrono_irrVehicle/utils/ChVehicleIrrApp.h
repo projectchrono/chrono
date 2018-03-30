@@ -25,12 +25,12 @@
 
 #include <string>
 
+#include "chrono_irrVehicle/ChApiIrrVehicle.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsChaseCamera.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
-
-#include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/ChVehicle.h"
 
@@ -53,7 +53,7 @@ class ChCameraEventReceiver;  ///< custom event receiver for chase-cam control
 ///   - rendering of the entire Irrlicht scene
 ///   - implements a custom chase-camera (which can be controlled with keyboard)
 ///   - optional rendering of links, springs, stats, etc.
-class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
+class CH_IRRVEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
   public:
     /// Construct a vehicle Irrlicht application.
     ChVehicleIrrApp(

@@ -27,11 +27,11 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChDriver.h"
+#include "chrono_irrVehicle/ChApiIrrVehicle.h"
+#include "chrono_irrVehicle/utils/ChVehicleIrrApp.h"
 
+#include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
 namespace chrono {
 namespace vehicle {
@@ -47,7 +47,7 @@ namespace vehicle {
 /// the default no-op Advance() virtual method.
 ///
 /// @sa ChDataDriver
-class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver {
+class CH_IRRVEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver {
   public:
     /// Functioning modes for a ChIrrGuiDriver
     enum InputMode {

@@ -24,8 +24,8 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_irrVehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_irrVehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
 #include "chrono_models/vehicle/generic/Generic_RigidTire.h"

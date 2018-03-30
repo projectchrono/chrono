@@ -19,9 +19,9 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_irrVehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
+#include "chrono_irrVehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 ////#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"

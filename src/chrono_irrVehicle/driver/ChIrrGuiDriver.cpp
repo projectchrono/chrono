@@ -28,7 +28,7 @@
 #include <sstream>
 #include <climits>
 
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_irrVehicle/driver/ChIrrGuiDriver.h"
 
 using namespace irr;
 
