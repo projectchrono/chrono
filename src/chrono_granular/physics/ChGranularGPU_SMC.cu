@@ -48,9 +48,10 @@ __constant__ float gravAcc_Y_d_factor_SU;  //!< Device counterpart of the consta
 __constant__ float gravAcc_Z_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Z_factor_SU
 __constant__ double d_DE_Mass;
 
-// Decide which SD owns this DE.
-// Returns the id of the SD that holds the center of the sphere
+// Decide which SD owns this point in space
+// Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
 __device__ unsigned int figureOutOwnerSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z) {
+    // Note that this offset allows us to have moving walls and the like very easily
     signed int sphCenter_X_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphCenter_X;
     signed int sphCenter_Y_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphCenter_Y;
     signed int sphCenter_Z_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphCenter_Z;
@@ -335,9 +336,9 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
                                 const int sphXvel,        //!< Global X velocity of DE
                                 const int sphYvel,        //!< Global Y velocity of DE
                                 const int sphZvel,        //!< Global Z velocity of DE
-                                double& X_Vel_corr,       //!< Velocity correction in Xdir
-                                double& Y_Vel_corr,       //!< Velocity correction in Xdir
-                                double& Z_Vel_corr        //!< Velocity correction in Xdir
+                                float& X_Vel_corr,        //!< Velocity correction in Xdir
+                                float& Y_Vel_corr,        //!< Velocity correction in Xdir
+                                float& Z_Vel_corr         //!< Velocity correction in Xdir
 ) {
     // Shift frame so that origin is at lower left corner
     signed int sphXpos_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphXpos;
@@ -499,20 +500,20 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
                                        int* pRawDataX_DOT,
                                        int* pRawDataY_DOT,
                                        int* pRawDataZ_DOT) {
-    // Cache positions and velocities in shared memory
+    // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
     __shared__ int sph_X[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
     __shared__ int sph_X_DOT[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Y_DOT[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z_DOT[MAX_NSPHERES_PER_SD];
-    // unsigned char bodyB_list[12 * MAX_NSPHERES_PER_SD];  // NOTE: max number of spheres that can kiss a sphere
-    // is 12.
+
     unsigned int thisSD = blockIdx.x;
     unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
     unsigned mySphereID;
 
     // Bring in data from global into shmem. Only a subset of threads get to do this.
+    // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (threadIdx.x < spheresTouchingThisSD) {
         mySphereID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + threadIdx.x];
         sph_X[threadIdx.x] = pRawDataX[mySphereID];
@@ -529,13 +530,15 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
     // Note that if we have more threads than bodies, some effort gets wasted.
     unsigned int bodyA = threadIdx.x;
 
-    // The update we make to the velocities
-    double bodyA_X_velCorr = 0.f;
-    double bodyA_Y_velCorr = 0.f;
-    double bodyA_Z_velCorr = 0.f;
+    // The update we make to the velocities, it's ok for this to be a float since it should be pretty small anyways,
+    // gets truncated to int very soon
+    float bodyA_X_velCorr = 0.f;
+    float bodyA_Y_velCorr = 0.f;
+    float bodyA_Z_velCorr = 0.f;
 
     // k * delta_t
-    double scalingFactor = (1.0 * alpha_h_bar) / (1.0 * psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
+    // This is ok as a float as well since it is a reasonable number by design
+    float scalingFactor = (1.0 * alpha_h_bar) / (1.0 * psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
 
     // If we overran, we have a major issue, time to crash before we make illegal memory accesses
     if (spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
@@ -578,14 +581,18 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
             // Here we need to check if the contact point is in this SD.
 
             // Take spatial average of positions to get position of contact point
-            double contactX = (1.0 * (sph_X[bodyB] + sph_X[bodyA])) / 2.0;
-            double contactY = (1.0 * (sph_Y[bodyB] + sph_Y[bodyA])) / 2.0;
-            double contactZ = (1.0 * (sph_Z[bodyB] + sph_Z[bodyA])) / 2.0;
+            // NOTE that we *do* want integer division since the SD-checking code uses ints anyways. Computing this as
+            // an int is *much* faster than float, much less double, on Conlain's machine
+            int contactX = ((sph_X[bodyB] + sph_X[bodyA])) / 2;
+            int contactY = ((sph_Y[bodyB] + sph_Y[bodyA])) / 2;
+            int contactZ = ((sph_Z[bodyB] + sph_Z[bodyA])) / 2;
 
             unsigned int contactSD = figureOutOwnerSD(contactX, contactY, contactZ);
+
             // We need to make sure we don't count a collision twice -- if a contact pair is in multiple SDs, count it
             // only in the one that holds the contact point
             // We have a collision here...
+            // TODO this code is the painfully slow part
             if (penetration < 1 && contactSD == thisSD) {
                 // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA
                 // intrinsic:
@@ -936,7 +943,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
     gpuErrchk(cudaDeviceSynchronize());
     // Check in first timestep
-    checkSDCounts("step000000.csv", true);
+    checkSDCounts("results/step000000.csv", true, false);
     // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int stepSize_SU = 5;
