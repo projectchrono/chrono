@@ -46,12 +46,18 @@ class CH_GRANULAR_API ChGRN_DE_Container {
 
     // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
     // Makes somewhat faster memcpys
+    /// Store x positions and velocities, copied back occasionally
     std::vector<signed int, cudallocator<signed int>> h_X_DE;
     std::vector<signed int, cudallocator<signed int>> h_Y_DE;
     std::vector<signed int, cudallocator<signed int>> h_Z_DE;
     std::vector<signed int, cudallocator<signed int>> h_XDOT_DE;
     std::vector<signed int, cudallocator<signed int>> h_YDOT_DE;
     std::vector<signed int, cudallocator<signed int>> h_ZDOT_DE;
+
+    /// The position of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
+    int BD_frame_X;
+    int BD_frame_Y;
+    int BD_frame_Z;
 
     /// Device pointers
     int* p_d_CM_X;
@@ -85,6 +91,7 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
     virtual void partition_BD() = 0;
     virtual void copyCONSTdata_to_device() = 0;
+    virtual void copyBD_Frame_to_device() = 0;
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
     virtual void switch_to_SimUnits() = 0;
@@ -181,6 +188,7 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
 class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MONODISP_SPH_IN_BOX_SMC {
   protected:
     virtual void copyCONSTdata_to_device();
+    virtual void copyBD_Frame_to_device();
 
     virtual void cleanup_simulation();
 

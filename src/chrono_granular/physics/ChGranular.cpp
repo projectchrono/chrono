@@ -117,7 +117,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     // We need to subtract off a sphere radius to ensure we don't get put at the edge
     ChVector<float> hdims{float(box_L / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU),
                           float(box_D / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU),
-                          float(box_H / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU)};
+                          float(box_H / (4. * LENGTH_UNIT) - monoDisperseSphRadius_SU)};
     std::vector<ChVector<float>> points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
 
     nDEs = (unsigned int)points.size();
@@ -202,6 +202,12 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
 
     nSDs = nSDs_L_SU * nSDs_D_SU * nSDs_H_SU;
     printf("%u Sds as %u, %u, %u\n", nSDs, nSDs_L_SU, nSDs_D_SU, nSDs_H_SU);
+
+    // Place BD frame at bottom-left corner, one half-length in each direction
+    // Can change later if desired
+    BD_frame_X = -.5 * (nSDs_L_SU * SD_L_SU);
+    BD_frame_Y = -.5 * (nSDs_D_SU * SD_D_SU);
+    BD_frame_Z = -.5 * (nSDs_H_SU * SD_H_SU);
 }
 
 /**

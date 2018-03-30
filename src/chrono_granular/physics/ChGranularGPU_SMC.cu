@@ -46,15 +46,21 @@ __constant__ unsigned int d_box_H_SU;      //!< Ad-ed H-dimension of the BD box 
 __constant__ float gravAcc_X_d_factor_SU;  //!< Device counterpart of the constant gravAcc_X_factor_SU
 __constant__ float gravAcc_Y_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Y_factor_SU
 __constant__ float gravAcc_Z_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Z_factor_SU
+
+__constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
+__constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
+__constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
+
 __constant__ double d_DE_Mass;
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
 __device__ unsigned int figureOutOwnerSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z) {
     // Note that this offset allows us to have moving walls and the like very easily
-    signed int sphCenter_X_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphCenter_X;
-    signed int sphCenter_Y_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphCenter_Y;
-    signed int sphCenter_Z_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphCenter_Z;
+    // printf("corner is %d, calc is %d\n", -d_BD_frame_X, (d_box_L_SU * d_SD_Ldim_SU) / 2);
+    int sphCenter_X_modified = -d_BD_frame_X + sphCenter_X;
+    int sphCenter_Y_modified = -d_BD_frame_Y + sphCenter_Y;
+    int sphCenter_Z_modified = -d_BD_frame_Z + sphCenter_Z;
     unsigned int n[3];
     // Get the SD of the sphere's center in the xdir
     n[0] = (sphCenter_X_modified) / d_SD_Ldim_SU;
@@ -74,9 +80,9 @@ __device__ unsigned int figureOutOwnerSD(int sphCenter_X, int sphCenter_Y, int s
 __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, unsigned int SDs[8]) {
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
     // We need to offset so that the bottom-left corner is at the origin
-    signed int sphCenter_X_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphCenter_X;
-    signed int sphCenter_Y_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphCenter_Y;
-    signed int sphCenter_Z_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphCenter_Z;
+    int sphCenter_X_modified = -d_BD_frame_X + sphCenter_X;
+    int sphCenter_Y_modified = -d_BD_frame_Y + sphCenter_Y;
+    int sphCenter_Z_modified = -d_BD_frame_Z + sphCenter_Z;
     unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
@@ -341,9 +347,9 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
                                 float& Z_Vel_corr         //!< Velocity correction in Xdir
 ) {
     // Shift frame so that origin is at lower left corner
-    signed int sphXpos_modified = (d_box_L_SU * d_SD_Ldim_SU) / 2 + sphXpos;
-    signed int sphYpos_modified = (d_box_D_SU * d_SD_Ddim_SU) / 2 + sphYpos;
-    signed int sphZpos_modified = (d_box_H_SU * d_SD_Hdim_SU) / 2 + sphZpos;
+    int sphXpos_modified = -d_BD_frame_X + sphXpos;
+    int sphYpos_modified = -d_BD_frame_Y + sphYpos;
+    int sphZpos_modified = -d_BD_frame_Z + sphZpos;
 
     // penetration into wall
     signed int pen = 0;
@@ -809,7 +815,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         }
     }
 }
-
+/// Copy most constant data to device, this should run at start
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_SU, &SD_L_SU, sizeof(d_SD_Ldim_SU)));
@@ -833,6 +839,15 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
     gpuErrchk(cudaMemcpyToSymbol(d_DE_Mass, &MASS_UNIT, sizeof(MASS_UNIT)));
 }
 
+/// Similar to the copyCONSTdata_to_device, but saves us a big copy
+/// This can run at every timestep to allow a moving BD
+__host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyBD_Frame_to_device() {
+    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X, &BD_frame_X, sizeof(BD_frame_X)));
+    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y, &BD_frame_Y, sizeof(BD_frame_Y)));
+    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z, &BD_frame_Z, sizeof(BD_frame_Z)));
+}
+
+/// Copy positions and velocities back to host
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost() {
     // Copy back positions
     gpuErrchk(cudaMemcpy(h_X_DE.data(), p_d_CM_X, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
@@ -901,7 +916,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
 }
 
 void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, unsigned int* deCounts) {
-    copyDataBackToHost();
+    // copyDataBackToHost(); // unnecessary if called by checkSDCounts()
     std::ofstream ptFile{ofile};
     // Dump to a stream, write to file only at end
     std::ostringstream outstrstream;
@@ -917,6 +932,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, 
     // TODO an asynch file write could be nice, this is a major bottleneck
     ptFile << outstrstream.str();
 }
+
 __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     switch_to_SimUnits();
     generate_DEs();
@@ -925,6 +941,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
     copyCONSTdata_to_device();
+    copyBD_Frame_to_device();
     gpuErrchk(cudaDeviceSynchronize());
 
     // Seed arrays that are populated by the kernel call
@@ -956,9 +973,23 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     unsigned int nsteps = (1.0 * tEnd_SU) / stepSize_SU;
     // uncomment the line below to restrict the runtime for debugging purposes
     // nsteps = 50;
+    // Make the BD move a little in the x dir
+    bool waveTank = fals;
+    int BD_frame_X_initial = BD_frame_X;
+    int BD_frame_Y_initial = BD_frame_Y;
+    int BD_frame_Z_initial = BD_frame_Z;
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
+        float timef = (1.f * crntTime_SU * TIME_UNIT);
+        if (waveTank && timef > 1) {
+            // Get time in seconds
+            // printf("time is %f\n", timef);
+            float freq = 2 * CH_C_PI;
+            // Oscillate around starting pos, one cycle per second
+            BD_frame_X = BD_frame_X_initial * (1 + .5 * std::sin(timef * freq));
+            copyBD_Frame_to_device();
+        }
         printf("currstep is %u\n", ++currstep);
 
         // reset forces to zero, note that vel update ~ force for forward euler

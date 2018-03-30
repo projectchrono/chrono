@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
 #define BOX_H_cm 12.f
 #define RADIUS 1.f
 #define SPH_DENSITY 1.50f
-#define TIME_END 1.0f
+#define TIME_END 4.0f
 #define GRAV_ACCELERATION 980.f
 #define NORMAL_STIFFNESS_S2S 1e7f
 #define NORMAL_STIFFNESS_S2W 1e7f
