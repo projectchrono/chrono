@@ -40,8 +40,8 @@
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
 // ...include additional headers
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_irrVehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_irrVehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 // ...and specify whether the demo should actually use Irrlicht
 #define USE_IRRLICHT

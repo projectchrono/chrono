@@ -22,8 +22,8 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
+#include "chrono_irrVehicle/ChApiIrrVehicle.h"
+#include "chrono_irrVehicle/driver/ChIrrGuiDriver.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,7 +33,7 @@ namespace vehicle {
 
 /// Irrlicht-based GUI driver for the a track test rig.
 /// This class extends the ChIrrGuiDriver for a vehicle with controls for the shaker posts.
-class CH_VEHICLE_API ChIrrGuiDriverTTR : public ChIrrGuiDriver {
+class CH_IRRVEHICLE_API ChIrrGuiDriverTTR : public ChIrrGuiDriver {
   public:
     ChIrrGuiDriverTTR(ChVehicleIrrApp& app,            ///< handle to the vehicle Irrlicht application
                       double displacement_limit = 0.1  ///< limits for post displacement

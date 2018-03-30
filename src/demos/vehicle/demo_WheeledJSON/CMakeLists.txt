@@ -30,6 +30,7 @@ SET(LIBRARIES
 IF(ENABLE_MODULE_IRRLICHT)
   SET(LIBRARIES_IRR
       ChronoEngine_irrlicht
+      ChronoEngine_irrVehicle
       ${CH_IRRLICHTLIB})
 ELSE()
   SET(LIBRARIES_IRR "")

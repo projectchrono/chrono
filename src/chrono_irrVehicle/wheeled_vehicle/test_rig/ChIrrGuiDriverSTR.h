@@ -26,8 +26,9 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_irrVehicle/ChApiIrrVehicle.h"
+#include "chrono_irrVehicle/utils/ChVehicleIrrApp.h"
+
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
 namespace chrono {
@@ -40,7 +41,7 @@ namespace vehicle {
 /// the functionality required by its base ChDriverSTR class using keyboard inputs.
 /// As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 /// and update the current driver inputs.
-class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventReceiver {
+class CH_IRRVEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventReceiver {
   public:
     ChIrrGuiDriverSTR(ChVehicleIrrApp& app  ///< handle to the vehicle Irrlicht application
                       );

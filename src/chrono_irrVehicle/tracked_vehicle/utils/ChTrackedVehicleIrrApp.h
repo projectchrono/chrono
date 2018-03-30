@@ -20,7 +20,8 @@
 #ifndef CH_TRACKED_VEHICLE_IRRAPP_H
 #define CH_TRACKED_VEHICLE_IRRAPP_H
 
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_irrVehicle/ChApiIrrVehicle.h"
+#include "chrono_irrVehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 namespace chrono {
@@ -30,7 +31,7 @@ namespace vehicle {
 /// @{
 
 /// Customized Chrono Irrlicht application for tracked vehicle visualization.
-class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
+class CH_IRRVEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
   public:
     /// Construct a tracked vehicle Irrlicht application.
     ChTrackedVehicleIrrApp(

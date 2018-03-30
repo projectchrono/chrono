@@ -332,6 +332,7 @@ add_subdirectory(chrono_parallel)
 add_subdirectory(chrono_opengl)
 #add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
+add_subdirectory(chrono_irrVehicle)
 add_subdirectory(chrono_fsi)
 
 # Add directories for model libraries
@@ -439,6 +440,12 @@ if(ENABLE_MODULE_VEHICLE)
   set(CHRONO_VEHICLE "#define CHRONO_VEHICLE")
 else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
+endif()
+
+if(ENABLE_MODULE_IRRVEHICLE)
+  set(CHRONO_IRRVEHICLE "#define CHRONO_IRRVEHICLE")
+else()
+  set(CHRONO_IRRVEHICLE "#undef CHRONO_IRRVEHICLE")
 endif()
 
 if(ENABLE_MODULE_FSI)

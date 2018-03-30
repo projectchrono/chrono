@@ -19,7 +19,7 @@
 
 #include "chrono/core/ChMathematics.h"
 
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#include "chrono_irrVehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/ChSimpleTrackDriveline.h"
 
 using namespace irr;

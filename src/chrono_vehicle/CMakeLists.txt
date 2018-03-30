@@ -9,25 +9,16 @@ option(ENABLE_MODULE_VEHICLE "Enable the Chrono Vehicle module" OFF)
 # Return now if this module is not enabled
 if(NOT ENABLE_MODULE_VEHICLE)
    mark_as_advanced(ENABLE_OPENCRG)
-   mark_as_advanced(FORCE ENABLE_IRRKLANG)
-   mark_as_advanced(FORCE CH_IRRKLANG_SDKDIR)
-   mark_as_advanced(FORCE CH_IRRKLANGLIB)
    return()
 endif()
 
 message(STATUS "==== Chrono Vehicle module ====")
 
 mark_as_advanced(CLEAR ENABLE_OPENCRG)
-mark_as_advanced(CLEAR ENABLE_IRRKLANG)
-mark_as_advanced(CLEAR CH_IRRKLANG_SDKDIR)
-mark_as_advanced(CLEAR CH_IRRKLANGLIB)
 
 # Provide option to add OpenCRG support.
 option(ENABLE_OPENCRG "Enable OpenCRG terrain library support" OFF)
 
-# If Irrlicht support was enabled, provide option to add Irrklang support.
-cmake_dependent_option(ENABLE_IRRKLANG "Enable Irrklang library for sound" OFF
-                       "ENABLE_MODULE_IRRLICHT" OFF)
 
 # ----------------------------------------------------------------------------
 # Find the OpenCRG library
@@ -72,42 +63,6 @@ endif()
 
 SET(HAVE_OPENCRG "${HAVE_OPENCRG}" PARENT_SCOPE)
 
-# ----------------------------------------------------------------------------
-# Find IrrKlang library
-# ----------------------------------------------------------------------------
-if(ENABLE_IRRKLANG)
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-      set(CH_IRRKLANG_SDKDIR ""  CACHE PATH   "Where is your IrrKlang SDK installed?")
-      set(CH_IRRKLANGLIB   "" CACHE FILEPATH "Where is your Irrklang library?")
-  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-      FIND_PATH(CH_IRRKLANG_SDKDIR NAMES irrlicht.h PATHS "/usr/include/irrklang" "/usr/local/include/irrklang")
-      FIND_LIBRARY(CH_IRRKLANGLIB NAMES Irrklang PATHS "/usr/local/lib" ${CH_IRRKLANG_SDKDIR}/lib/Linux)
-  endif()
-
-  if(EXISTS "${CH_IRRKLANG_SDKDIR}/include")
-      set(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}/include")
-  else()
-      set(CH_IRRKLANGINC "${CH_IRRKLANG_SDKDIR}")
-  endif()
-
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    if("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
-        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Win32-VisualStudio/irrKlang.dll")
-    elseif("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
-        set(CH_IRRKLANG_DLL "${CH_IRRKLANG_SDKDIR}/bin/Winx64-VisualStudio/irrKlang.dll")
-    endif()
-  endif()
-
-  mark_as_advanced(CLEAR CH_IRRKLANG_SDKDIR)
-  mark_as_advanced(CLEAR CH_IRRKLANGLIB)
-
-else()
-
-  mark_as_advanced(FORCE CH_IRRKLANG_SDKDIR)
-  mark_as_advanced(FORCE CH_IRRKLANGLIB)
-
-endif()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -118,12 +73,6 @@ if(HAVE_OPENCRG)
   set(CHRONO_OPENCRG "#define CHRONO_OPENCRG")
 else()
   set(CHRONO_OPENCRG "#undef CHRONO_OPENCRG")
-endif()
-
-if(ENABLE_IRRKLANG)
-  set(CHRONO_IRRKLANG "#define CHRONO_IRRKLANG")
-else()
-  set(CHRONO_IRRKLANG "#undef CHRONO_IRRKLANG")
 endif()
 
 # Generate the configuration header file using substitution variables.
@@ -178,15 +127,8 @@ set(CV_DRIVER_FILES
     driver/ChPathFollowerACCDriver.h
     driver/ChPathFollowerACCDriver.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_DRIVER_FILES
-        driver/ChIrrGuiDriver.h
-        driver/ChIrrGuiDriver.cpp
-    )
-else()
-    set(CVIRR_DRIVER_FILES "")
-endif()
-source_group("driver" FILES ${CV_DRIVER_FILES} ${CVIRR_DRIVER_FILES})
+
+source_group("driver" FILES ${CV_DRIVER_FILES})
 
 set(CV_POVERTRAIN_FILES
     powertrain/ChSimplePowertrain.h
@@ -243,15 +185,8 @@ set(CV_UTILS_FILES
     utils/ChUtilsJSON.h
     utils/ChUtilsJSON.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_UTILS_FILES
-        utils/ChVehicleIrrApp.h
-        utils/ChVehicleIrrApp.cpp
-    )
-else()
-    set(CVIRR_UTILS_FILES "")
-endif()
-source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
+
+source_group("utils" FILES ${CV_UTILS_FILES})
 
 
 set(CV_OUTPUT_FILES
@@ -389,15 +324,8 @@ set(CV_WV_TEST_RIG_FILES
     wheeled_vehicle/test_rig/ChDataDriverSTR.h
     wheeled_vehicle/test_rig/ChDataDriverSTR.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_WV_TEST_RIG_FILES
-        wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h
-        wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.cpp    
-    )
-else()
-    set(CVIRR_WV_TEST_RIG_FILES "")
-endif()
-source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES} ${CVIRR_WV_TEST_RIG_FILES})
+
+source_group("wheeled_vehicle\\test_rig" FILES ${CV_WV_TEST_RIG_FILES})
 
 set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChRigidTire.h
@@ -452,15 +380,8 @@ set(CV_WV_UTILS_FILES
     wheeled_vehicle/utils/ChWheeledVehicleAssembly.h
     wheeled_vehicle/utils/ChWheeledVehicleAssembly.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_WV_UTILS_FILES
-        wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h
-        wheeled_vehicle/utils/ChWheeledVehicleIrrApp.cpp
-    )
-else()
-    set(CVIRR_WV_UTILS_FILES "")
-endif()
-source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVIRR_WV_UTILS_FILES})
+
+source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES})
 
 set(CV_WV_VEHICLE_FILES
     wheeled_vehicle/vehicle/WheeledVehicle.h
@@ -668,17 +589,8 @@ set(CV_TV_UTILS_FILES
     tracked_vehicle/utils/ChTrackTestRig.h
     tracked_vehicle/utils/ChTrackTestRig.cpp
 )
-if(ENABLE_MODULE_IRRLICHT)
-    set(CVIRR_TV_UTILS_FILES
-        tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
-        tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
-        tracked_vehicle/utils/ChIrrGuiDriverTTR.h
-        tracked_vehicle/utils/ChIrrGuiDriverTTR.cpp
-    )
-else()
-    set(CVIRR_TV_UTILS_FILES "")
-endif()
-source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVIRR_TV_UTILS_FILES})
+
+source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES})
 
 set(CV_TV_VEHICLE_FILES
     tracked_vehicle/vehicle/TrackedVehicle.h
@@ -706,12 +618,6 @@ set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
 set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
 set(LIBRARIES "ChronoEngine")
 
-if(ENABLE_MODULE_IRRLICHT)
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_irrlicht) 
-    include_directories(${CH_IRRLICHTINC})
-endif()
-
 if(ENABLE_MODULE_FEA)
     list(APPEND LIBRARIES ChronoEngine_fea)
 endif()
@@ -734,23 +640,16 @@ if(HAVE_OPENCRG)
     list(APPEND LIBRARIES ${OPENCRG_LIBRARY})
 endif()
 
-if(ENABLE_IRRKLANG)
-    include_directories(${CH_IRRKLANGINC})
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-endif()
-
 add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_BASE_FILES}
     ${CV_CHASSIS_FILES}
     ${CV_DRIVER_FILES}
-    ${CVIRR_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
     ${CV_TERRAIN_FILES}
     ${CV_FEATERRAIN_FILES}
     ${CV_OPENCRG_FILES}
     ${CV_UTILS_FILES}
-    ${CVIRR_UTILS_FILES}
     ${CV_OUTPUT_FILES}
     ${CVHDF5_OUTPUT_FILES}
 #
@@ -761,11 +660,9 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_STEERING_FILES}
     ${CV_WV_SUSPENSION_FILES}
     ${CV_WV_TEST_RIG_FILES}
-    ${CVIRR_WV_TEST_RIG_FILES}
     ${CV_WV_TIRE_FILES}
     ${CV_WV_FEATIRE_FILES}
     ${CV_WV_UTILS_FILES}
-    ${CVIRR_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
     ${CV_WV_WHEEL_FILES}
     ${CV_WV_COSIM_FILES}
@@ -783,7 +680,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_TRACKASSEMBLY_FILES}
     ${CV_TV_FEATRACKASSEMBLY_FILES}
     ${CV_TV_UTILS_FILES}
-    ${CVIRR_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}
 #
     ${CV_EASYBMP_FILES}
@@ -810,13 +706,6 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 #-------------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-    if(EXISTS ${CH_IRRKLANG_DLL})
-        add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CH_IRRKLANG_DLL}"
-            "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
-    endif()
 
     if(EXISTS ${OPENCRG_DLL})
         add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
