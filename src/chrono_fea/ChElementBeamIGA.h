@@ -54,7 +54,16 @@ class  ChElementBeamIGA :   public ChElementBeam,
 	std::vector< ChVector<> > strain_e_0;
 	std::vector< ChVector<> > strain_k_0;
 
-    std::shared_ptr<ChBeamSectionAdvanced> section;
+	std::vector< ChVector<> > stress_n;
+	std::vector< ChVector<> > stress_m;
+	std::vector< ChVector<> > strain_e;
+	std::vector< ChVector<> > strain_k;
+
+	std::vector< std::unique_ptr<ChBeamMaterialInternalData> > plastic_data_old;
+	std::vector< std::unique_ptr<ChBeamMaterialInternalData> > plastic_data;
+
+    std::shared_ptr<ChBeamSectionAdvanced> section_old;
+	std::shared_ptr<ChBeamSectionTimoshenko> section;
 
   public:
     ChElementBeamIGA() {
@@ -150,9 +159,15 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section = my_material; }
+    void SetSection_old(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section_old = my_material; }
     /// Get the section & material of the element
-    std::shared_ptr<ChBeamSectionAdvanced> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionAdvanced> GetSection_old() { return section_old; }
+
+	/// Set the section & material of beam element .
+	/// It is a shared property, so it can be shared between other beams.
+	void SetSection(std::shared_ptr<ChBeamSectionTimoshenko> my_material) { section = my_material; }
+	/// Get the section & material of the element
+	std::shared_ptr<ChBeamSectionTimoshenko> GetSection() { return section; }
 
     /// Access the local knot sequence of this element (ex.for diagnostics)
     ChVectorDynamic<>& GetKnotSequence() {return this->knots;}
@@ -164,6 +179,20 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
     };
 
+	/// Get the plastic data, in a vector with as many elements as Gauss points.
+	std::vector< std::unique_ptr<ChBeamMaterialInternalData> >& GetPlasticData() { return plastic_data;}
+
+	/// Get the stress, as cut-force [N], in a vector with as many elements as Gauss points.
+	std::vector< ChVector<>>& GetStressN() { return this->stress_n; }
+
+	/// Get the stress, as cut-torque [Nm], in a vector with as many elements as Gauss points.
+	std::vector< ChVector<>>& GetStressM() { return this->stress_m; }
+	
+	/// Get the strain (total=elastic+plastic), as deformation (x is axial strain), in a vector with as many elements as Gauss points.
+	std::vector< ChVector<>>& GetStrainE() { return this->strain_e; }
+	
+	/// Get the strain (total=elastic+plastic), as curvature (x is torsion), in a vector with as many elements as Gauss points.
+	std::vector< ChVector<>>& GetStrainK() { return this->strain_k; }
 
 
     /// Setup. Precompute mass and matrices that do not change during the
@@ -172,6 +201,11 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
     virtual void SetupInitial(ChSystem* system) override {
         assert(section);
+
+		if (this->section->GetPlasticity()) {
+			this->section->GetPlasticity()->CreatePlasticityData(int_order_b, this->plastic_data_old);
+			this->section->GetPlasticity()->CreatePlasticityData(int_order_b, this->plastic_data);
+		}
 
         this->length=0;
 
@@ -222,6 +256,10 @@ class  ChElementBeamIGA :   public ChElementBeam,
         this->Jacobian_b.resize(int_order_b);
 		this->strain_e_0.resize(int_order_b);
 		this->strain_k_0.resize(int_order_b);
+		this->stress_m.resize(int_order_b);
+		this->stress_n.resize(int_order_b);
+		this->strain_e.resize(int_order_b);
+		this->strain_k.resize(int_order_b);
 
         for (int ig = 0; ig < int_order_b; ++ig) {
 
@@ -306,7 +344,8 @@ class  ChElementBeamIGA :   public ChElementBeam,
 			// compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
 			this->strain_k_0[ig] = da;
         }
-        this->mass = this->length * this->section->Area * this->section->density;
+        //this->mass = this->length * this->section->Area * this->section->density;
+		this->mass = this->length * this->section->GetArea() * this->section->GetDensity();
     }
 
 
@@ -341,7 +380,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         this->LoadableGetStateBlock_x(0,state_x);
         this->LoadableGetStateBlock_w(0,state_w);
 
-        double Delta = 1e-8;//1e-8
+        double Delta = 1e-8;
         
         int mrows_w = this->LoadableGet_ndof_w();
         int mrows_x = this->LoadableGet_ndof_x();
@@ -350,7 +389,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
         // compute Q at current speed & position, x_0, v_0
         ChMatrixDynamic<> Q0(mrows_w,1);
-        this->ComputeInternalForces_impl(Q0, state_x, state_w);     // Q0 = Q(x, v)
+        this->ComputeInternalForces_impl(Q0, state_x, state_w, true);     // Q0 = Q(x, v)
 
         ChMatrixDynamic<> Q1(mrows_w,1);
         ChVectorDynamic<> Jcolumn(mrows_w);
@@ -363,7 +402,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
             this->LoadableStateIncrement(0, state_x_inc, state_x, 0, state_delta);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
    //GetLog() << " col." << i << " state_x_inc = " << state_x_inc << "\n";
             Q1.Reset(mrows_w,1);
-            this->ComputeInternalForces_impl(Q1, state_x_inc, state_w);   // Q1 = Q(x+Dx, v)
+            this->ComputeInternalForces_impl(Q1, state_x_inc, state_w, true);   // Q1 = Q(x+Dx, v)
             state_delta(i)-= Delta;
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because K=-dQ/dx
@@ -431,19 +470,11 @@ class  ChElementBeamIGA :   public ChElementBeam,
         ComputeInternalForces_impl(Fi, mstate_x, mstate_w);
     }
 
-    virtual void ComputeInternalForces_impl( ChMatrixDynamic<>& Fi, 
-                                             ChState&      state_x, ///< state position to evaluate Fi
-                                             ChStateDelta& state_w) ///< state speed to evaluate Fi
+	virtual void ComputeInternalForces_impl(ChMatrixDynamic<>& Fi,
+									ChState&      state_x, ///< state position to evaluate Fi
+									ChStateDelta& state_w, ///< state speed to evaluate Fi
+									bool used_for_differentiation = false)
                                  {
-        // shortcuts:
-        double Area = section->Area;
-        double E = section->E;
-        double Izz = section->Izz;
-        double Iyy = section->Iyy;
-        double G = section->G;
-        double Jpolar = section->J;
-        double Ky = section->Ks_y;
-        double Kz = section->Ks_z;
 
         // get two values of absyssa at extreme of span
         double u1 = knots(order); 
@@ -466,127 +497,148 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
         // Do quadrature over the "b" bend Gauss points
 
-        for (int ig = 0; ig < int_order_b; ++ig) {
+		for (int ig = 0; ig < int_order_b; ++ig) {
 
-            // absyssa in typical -1,+1 range:
-            double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b-1][ig];
-            // absyssa in span range:
-            double u = (c1 * eta + c2);
-            // scaling = gauss weight
-            double w = ChQuadrature::GetStaticTables()->Weight[int_order_b-1][ig];
+			// absyssa in typical -1,+1 range:
+			double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b - 1][ig];
+			// absyssa in span range:
+			double u = (c1 * eta + c2);
+			// scaling = gauss weight
+			double w = ChQuadrature::GetStaticTables()->Weight[int_order_b - 1][ig];
 
-            // Jacobian Jsu = ds/du
-            double Jsu = this->Jacobian_b[ig];
-            // Jacobian Jue = du/deta
-            double Jue = c1;
+			// Jacobian Jsu = ds/du
+			double Jsu = this->Jacobian_b[ig];
+			// Jacobian Jue = du/deta
+			double Jue = c1;
 
-            // compute the basis functions N(u) at given u:
-            int nspan = order;
+			// compute the basis functions N(u) at given u:
+			int nspan = order;
 
-            ChMatrixDynamic<> N(2,(int)nodes.size()); // row n.0 contains N, row n.1 contains dN/du
+			ChMatrixDynamic<> N(2, (int)nodes.size()); // row n.0 contains N, row n.1 contains dN/du
 
-            geometry::ChBasisToolsBspline::BasisEvaluateDeriv(
-                   this->order,  
-                   nspan,
-                   u,  
-                   knots, 
-                   N);           ///< here return N and dN/du 
-            
-            // interpolate rotation of section at given u, to compute R.
-            // Note: this is approximate.
-            // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
-            ChQuaternion<> q_delta;
-            ChVector<> da = VNULL; 
-            ChVector<> delta_rot_dir;
-            double delta_rot_angle;
-            for (int i = 0 ; i< nodes.size(); ++i) {
-                ChQuaternion<> q_i = state_x.ClipQuaternion(i*7+3, 0);
-                q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
-                q_delta.Q_to_AngAxis (delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
-                da += delta_rot_dir * delta_rot_angle * N(0,i);  // a = N_i*a_i
-            }
-            ChQuaternion<> qda; qda.Q_from_Rotv(da);
-            ChQuaternion<> qR = nodes[0]->coord.rot * qda;
+			geometry::ChBasisToolsBspline::BasisEvaluateDeriv(
+				this->order,
+				nspan,
+				u,
+				knots,
+				N);           ///< here return N and dN/du 
 
-            
-            // compute the 3x3 rotation matrix R equivalent to quaternion above
-            ChMatrix33<> R(qR);
+		 // interpolate rotation of section at given u, to compute R.
+		 // Note: this is approximate.
+		 // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
+			ChQuaternion<> q_delta;
+			ChVector<> da = VNULL;
+			ChVector<> delta_rot_dir;
+			double delta_rot_angle;
+			for (int i = 0; i < nodes.size(); ++i) {
+				ChQuaternion<> q_i = state_x.ClipQuaternion(i * 7 + 3, 0);
+				q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
+				q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
+				da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
+			}
+			ChQuaternion<> qda; qda.Q_from_Rotv(da);
+			ChQuaternion<> qR = nodes[0]->coord.rot * qda;
 
-            // compute abs. spline gradient r'  = dr/ds
-            ChVector<> dr; 
-            for (int i = 0 ; i< nodes.size(); ++i) {
-                ChVector<> r_i = state_x.ClipVector(i*7, 0);
-                dr += r_i * N(1,i);  // dr/du = N_i'*r_i
-            }
-            // (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
-            dr *=  1.0/Jsu;
 
-            // compute abs. time rate of spline gradient  dr'/dt
-            ChVector<> drdt; 
-            for (int i = 0 ; i< nodes.size(); ++i) {
-                ChVector<> drdt_i = state_w.ClipVector(i*6, 0);
-                drdt += drdt_i * N(1,i); 
-            }
-            drdt *=  1.0/Jsu;
+			// compute the 3x3 rotation matrix R equivalent to quaternion above
+			ChMatrix33<> R(qR);
 
-            // compute abs spline rotation gradient q' = dq/ds 
-            // But.. easier to compute local gradient of spin vector a' = da/ds
-            da = VNULL;
-            for (int i = 0 ; i< nodes.size(); ++i) {
-                ChQuaternion<> q_i = state_x.ClipQuaternion(i*7+3, 0);
-                q_delta = qR.GetConjugate() * q_i;
-                q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
-                da += delta_rot_dir * delta_rot_angle * N(1,i);  // da/du = N_i'*a_i
-            }
-            // (note a= da/ds = da/du du/ds = da/du * 1/Jsu   where Jsu computed in SetupInitial)
-            da *=  1.0/Jsu;
+			// compute abs. spline gradient r'  = dr/ds
+			ChVector<> dr;
+			for (int i = 0; i < nodes.size(); ++i) {
+				ChVector<> r_i = state_x.ClipVector(i * 7, 0);
+				dr += r_i * N(1, i);  // dr/du = N_i'*r_i
+			}
+			// (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
+			dr *= 1.0 / Jsu;
 
-            // compute abs rate of spline rotation gradient da'/dt
-            ChVector<> dadt;
-            for (int i = 0 ; i< nodes.size(); ++i) {
-                ChQuaternion<> q_i = state_x.ClipQuaternion(i*7+3, 0);
-                ChVector<> wl_i  = state_w.ClipVector(i*6+3, 0); //  w in node csys
-                ChVector<> w_i = q_i.Rotate(wl_i); // w in absolute csys
-                dadt += w_i * N(1,i);  
-            }
-            dadt *=  1.0/Jsu;
+			// compute abs. time rate of spline gradient  dr'/dt
+			ChVector<> drdt;
+			for (int i = 0; i < nodes.size(); ++i) {
+				ChVector<> drdt_i = state_w.ClipVector(i * 6, 0);
+				drdt += drdt_i * N(1, i);
+			}
+			drdt *= 1.0 / Jsu;
 
-            // compute local epsilon strain:  strain_e= R^t * r' - {1, 0, 0}
-			ChVector<> strain_e = R.MatrT_x_Vect(dr) - VECT_X   - this->strain_e_0[ig];
+			// compute abs spline rotation gradient q' = dq/ds 
+			// But.. easier to compute local gradient of spin vector a' = da/ds
+			da = VNULL;
+			for (int i = 0; i < nodes.size(); ++i) {
+				ChQuaternion<> q_i = state_x.ClipQuaternion(i * 7 + 3, 0);
+				q_delta = qR.GetConjugate() * q_i;
+				q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
+				da += delta_rot_dir * delta_rot_angle * N(1, i);  // da/du = N_i'*a_i
+			}
+			// (note a= da/ds = da/du du/ds = da/du * 1/Jsu   where Jsu computed in SetupInitial)
+			da *= 1.0 / Jsu;
 
-            // compute local time rate of strain:  strain_e_dt = R^t * dr'/dt
-            ChVector<> strain_e_dt = R.MatrT_x_Vect(drdt);
+			// compute abs rate of spline rotation gradient da'/dt
+			ChVector<> dadt;
+			for (int i = 0; i < nodes.size(); ++i) {
+				ChQuaternion<> q_i = state_x.ClipQuaternion(i * 7 + 3, 0);
+				ChVector<> wl_i = state_w.ClipVector(i * 6 + 3, 0); //  w in node csys
+				ChVector<> w_i = q_i.Rotate(wl_i); // w in absolute csys
+				dadt += w_i * N(1, i);
+			}
+			dadt *= 1.0 / Jsu;
 
-            // compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
-            ChVector<> strain_k = da - this->strain_k_0[ig];
+			// compute local epsilon strain:  strain_e= R^t * r' - {1, 0, 0}
+			ChVector<> astrain_e = R.MatrT_x_Vect(dr) - VECT_X - this->strain_e_0[ig];
 
-            // compute local time rate of curvature strain:
-            ChVector<> strain_k_dt = R.MatrT_x_Vect(dadt);
+			// compute local time rate of strain:  strain_e_dt = R^t * dr'/dt
+			ChVector<> astrain_e_dt = R.MatrT_x_Vect(drdt);
 
-            // compute stress n  (local cut forces) = C * (strain_e - strain_e0)
-            ChVector<> stress_n;
-            stress_n.x() = strain_e.x() * E * Area;
-            stress_n.y() = strain_e.y() * Ky * G * Area;
-            stress_n.z() = strain_e.z() * Kz * G * Area;
+			// compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
+			ChVector<> astrain_k = da - this->strain_k_0[ig];
 
-            // compute stress_m  (local cut torque) = D * (strain_k - strain_k0)
-            ChVector<> stress_m;
-            stress_m.x() = strain_k.x() * G * Jpolar;
-            stress_m.y() = strain_k.y() * E * Iyy;
-            stress_m.z() = strain_k.z() * E * Izz;
+			// compute local time rate of curvature strain:
+			ChVector<> astrain_k_dt = R.MatrT_x_Vect(dadt);
+
+
+			// compute stress n  (local cut forces) 
+			// compute stress_m  (local cut torque) 
+			ChVector<> astress_n;
+			ChVector<> astress_m;
+			ChBeamMaterialInternalData* aplastic_data_old = nullptr;
+			ChBeamMaterialInternalData* aplastic_data = nullptr;
+			std::vector< std::unique_ptr<ChBeamMaterialInternalData> > foo_plastic_data;
+			if (this->section->GetPlasticity()) {
+				aplastic_data_old = this->plastic_data_old[ig].get();
+				aplastic_data = this->plastic_data[ig].get();
+				if (used_for_differentiation) {
+					// Avoid updating plastic_data_new if ComputeInternalForces_impl() called for computing 
+					// stiffness matrix by backward differentiation. Otherwise pollutes the plastic_data integration.
+					this->section->GetPlasticity()->CreatePlasticityData(1, foo_plastic_data);
+					aplastic_data = foo_plastic_data[0].get();
+				}
+			}
+			this->section->ComputeStress(
+				astress_n,
+				astress_m,
+				astrain_e,
+				astrain_k,
+				aplastic_data,
+				aplastic_data_old);
+
+			if (!used_for_differentiation) {
+				this->stress_n[ig] = astress_n;
+				this->stress_m[ig] = astress_m;
+				this->strain_e[ig] = astrain_e;
+				this->strain_k[ig] = astrain_k;
+			}
 /*
             // add viscous damping, Rayleigh type
-            stress_n.x() += strain_e_dt.x() * E * Area      * section->rdamping;
-            stress_n.y() += strain_e_dt.y() * Ky * G * Area * section->rdamping;
-            stress_n.z() += strain_e_dt.z() * Ky * G * Area * section->rdamping;
-            stress_m.x() += strain_k_dt.x() * G * Jpolar    * section->rdamping;
-            stress_m.y() += strain_k_dt.y() * E * Iyy       * section->rdamping;
-            stress_m.z() += strain_k_dt.z() * E * Izz       * section->rdamping;
+            astress_n.x() += astrain_e_dt.x() * E * Area      * section->rdamping;
+            astress_n.y() += astrain_e_dt.y() * Ky * G * Area * section->rdamping;
+            astress_n.z() += astrain_e_dt.z() * Ky * G * Area * section->rdamping;
+            astress_m.x() += astrain_k_dt.x() * G * Jpolar    * section->rdamping;
+            astress_m.y() += astrain_k_dt.y() * E * Iyy       * section->rdamping;
+            astress_m.z() += astrain_k_dt.z() * E * Izz       * section->rdamping;
 */
             // compute internal force, in generalized coordinates:
 
-            ChVector<> stress_n_abs = R * stress_n;
-            ChVector<> stress_m_abs = R * stress_m;
+            ChVector<> stress_n_abs = R * astress_n;
+            ChVector<> stress_m_abs = R * astress_m;
 
             for (int i = 0; i< nodes.size(); ++i) {
                 
@@ -703,6 +755,12 @@ class  ChElementBeamIGA :   public ChElementBeam,
     //
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
+
+	virtual void EleDoIntegration() {
+		for (size_t i = 0; i < this->plastic_data.size(); ++i) {
+			this->plastic_data_old[i]->Copy(*this->plastic_data[i]);
+		}
+	};
 
     //
     // Functions for ChLoadable interface
@@ -825,7 +883,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 	}
 
 	/// This is needed so that it can be accessed by ChLoaderVolumeGravity
-	virtual double GetDensity() override { return this->section->Area * this->section->density; }
+	virtual double GetDensity() override { return this->section->GetArea() * this->section->GetDensity(); }
 };
 
 /// @} fea_elements
