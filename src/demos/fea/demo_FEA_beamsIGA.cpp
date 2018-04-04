@@ -19,6 +19,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -44,149 +45,467 @@ using namespace chrono::irrlicht;
 
 using namespace irr;
 
+int ID_current_example = 1;
+
+
+
+//
+// Example A: Low  level approach, creating single elements and nodes:
+//
+
+void MakeAndRunDemo0(ChIrrApp& myapp) {
+
+	// Clear previous demo, if any:
+	myapp.GetSystem()->Clear();
+	myapp.GetSystem()->SetChTime(0);
+
+	// Create a mesh, that is a container for groups
+	// of elements and their referenced nodes.
+	// Remember to add it to the system.
+	auto my_mesh = std::make_shared<ChMesh>();
+	my_mesh->SetAutomaticGravity(false);
+	myapp.GetSystem()->Add(my_mesh);
+
+	// Create a section, i.e. thickness and material properties
+	// for beams. This will be shared among some beams.
+
+	double beam_wy = 0.012;
+	double beam_wz = 0.025;
+
+	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	melasticity->SetYoungModulus(0.02e10);
+	melasticity->SetGshearModulus(0.02e10 * 0.3);
+	melasticity->SetBeamRaleyghDamping(0.0000);
+	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	msection->SetDensity(1000);
+	msection->SetAsRectangularSection(beam_wy, beam_wz);
+
+	// Example A.  
+	// Create an IGA beam using a low-level approach, i.e.
+	// creating all elements and nodes one after the other:
+
+	double beam_L = 0.1;
+
+	auto hnode1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 0, 0, 0)));
+	auto hnode2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*0.5, 0.00, 0)));
+	auto hnode3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.0, 0.00, 0)));
+	auto hnode4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.5, 0.00, 0)));
+	auto hnode5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*2.0, 0.00, 0)));
+	
+	my_mesh->AddNode(hnode1);
+	my_mesh->AddNode(hnode2);
+	my_mesh->AddNode(hnode3);
+	my_mesh->AddNode(hnode4);
+	my_mesh->AddNode(hnode5);
+
+	// cubic spline with 2 spans, 5 control points and 9 knots= {0 0 0 0 1/2 1 1 1 1}
+
+	auto belement1 = std::make_shared<ChElementBeamIGA>();
+
+	belement1->SetNodesCubic(hnode1, hnode2, hnode3, hnode4, 0, 0, 0, 0, 1./2., 1, 1, 1);
+	belement1->SetSection(msection);
+
+	my_mesh->AddElement(belement1);
+
+	auto belement2 = std::make_shared<ChElementBeamIGA>();
+
+	belement2->SetNodesCubic(hnode2, hnode3, hnode4, hnode5, 0, 0, 0, 1./2., 1, 1, 1, 1);
+	belement2->SetSection(msection);
+
+	my_mesh->AddElement(belement2);
+
+
+	// Attach a visualization of the FEM mesh.
+
+	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+	mvisualizebeamA->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizebeamA);
+
+	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizebeamC->SetSymbolsThickness(0.006);
+	mvisualizebeamC->SetSymbolsScale(0.01);
+	mvisualizebeamC->SetZbufferHide(false);
+	my_mesh->AddAsset(mvisualizebeamC);
+
+	// This is needed if you want to see things in Irrlicht 3D view.
+	myapp.AssetBindAll();
+	myapp.AssetUpdateAll();
+
+	// Mark completion of system construction
+	myapp.GetSystem()->SetupInitial();
+
+	while (ID_current_example == 1 && myapp.GetDevice()->run()) {
+		myapp.BeginScene();
+		myapp.DrawAll();
+		myapp.DoStep();
+		myapp.EndScene();
+	}
+
+}
+
+
+//
+// Example B: Automatic creation of the nodes and knots
+// using the ChBuilderBeamIGA tool for creating a straight 
+// rod automatically divided in Nel elements:
+//
+
+void MakeAndRunDemo1(ChIrrApp& myapp) {
+
+	// Clear previous demo, if any:
+	myapp.GetSystem()->Clear();
+	myapp.GetSystem()->SetChTime(0);
+
+	// Create a mesh, that is a container for groups
+	// of elements and their referenced nodes.
+	// Remember to add it to the system.
+	auto my_mesh = std::make_shared<ChMesh>();
+	my_mesh->SetAutomaticGravity(false);
+	myapp.GetSystem()->Add(my_mesh);
+
+
+	// Create a section, i.e. thickness and material properties
+	// for beams. This will be shared among some beams.
+
+	double beam_wy = 0.012;
+	double beam_wz = 0.025;
+
+	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	melasticity->SetYoungModulus(0.02e10);
+	melasticity->SetGshearModulus(0.02e10 * 0.3);
+	melasticity->SetBeamRaleyghDamping(0.0000);
+	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	msection->SetDensity(1000);
+	msection->SetAsRectangularSection(beam_wy, beam_wz);
+
+	// Example B.  
+	// Use the ChBuilderBeamIGA tool for creating a straight rod 
+	// divided in Nel elements:
+
+	ChBuilderBeamIGA builder;
+	builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
+	msection,           // section of the beam
+	15,                 // number of sections (spans)
+	ChVector<>(0,  0,0),// start point
+	ChVector<>(0.4,0,0),// end point
+	VECT_Y,             // suggested Y direction of section
+	3);                 // order (3 = cubic, etc)
+	builder.GetLastBeamNodes().front()->SetFixed(true);
+	builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-2,0));
+	//builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(0,0, 1.2));
+
+	
+	// Attach a visualization of the FEM mesh.
+
+	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+	mvisualizebeamA->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizebeamA);
+
+	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizebeamC->SetSymbolsThickness(0.006);
+	mvisualizebeamC->SetSymbolsScale(0.01);
+	mvisualizebeamC->SetZbufferHide(false);
+	my_mesh->AddAsset(mvisualizebeamC);
+	
+	// This is needed if you want to see things in Irrlicht 3D view.
+	myapp.AssetBindAll();
+	myapp.AssetUpdateAll();
+
+	// Mark completion of system construction
+	myapp.GetSystem()->SetupInitial();
+
+	// Do a linear static analysis.
+	myapp.GetSystem()->DoStaticLinear();
+
+	GetLog() << "\n\n TEST LINEAR STATIC: \n  for straght bar, tip displacement y = "
+		<< builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y()
+		<< "\n"
+		<< "  exact should be: y = " <<
+		(4 * -2 * pow(0.4, 3) / (melasticity->GetYoungModulus()*beam_wz*pow(beam_wy, 3)))
+		+ (-2 * 0.4) / ((5. / 6.)*melasticity->GetGshearModulus()*beam_wz*beam_wy)
+		<< "\n";
+
+	while (ID_current_example == 1 && myapp.GetDevice()->run()) {
+		myapp.BeginScene();
+		myapp.DrawAll();
+		myapp.DoStep();
+		myapp.EndScene();
+	}
+
+}
+
+
+//
+// Example C: Automatic creation of the nodes and knots using the 
+// ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline.
+//
+
+void MakeAndRunDemo2(ChIrrApp& myapp) {
+
+	// Clear previous demo, if any:
+	myapp.GetSystem()->Clear();
+	myapp.GetSystem()->SetChTime(0);
+
+	// Create a mesh, that is a container for groups
+	// of elements and their referenced nodes.
+	// Remember to add it to the system.
+	auto my_mesh = std::make_shared<ChMesh>();
+	my_mesh->SetAutomaticGravity(false);
+	myapp.GetSystem()->Add(my_mesh);
+
+
+	// Create a section, i.e. thickness and material properties
+	// for beams. This will be shared among some beams.
+
+	double beam_wy = 0.012;
+	double beam_wz = 0.025;
+
+	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	melasticity->SetYoungModulus(0.02e10);
+	melasticity->SetGshearModulus(0.02e10 * 0.3);
+	melasticity->SetBeamRaleyghDamping(0.0000);
+	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	msection->SetDensity(1000);
+	msection->SetAsRectangularSection(beam_wy, beam_wz);
+
+	// Example C. 
+	// Automatic creation of the nodes and knots using the 
+	// ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
+	
+	ChBuilderBeamIGA builderR;
+
+	std::vector< ChVector<> > my_points = { {0,0,0.2}, {0,0,0.3}, { 0,-0.01,0.4 } , {0,-0.04,0.5}, {0,-0.1,0.6} };
+
+	geometry::ChLineBspline my_spline(  3,          // order (3 = cubic, etc)
+	my_points); // control points, will become the IGA nodes
+
+	builderR.BuildBeam(      my_mesh,            // the mesh to put the elements in
+	msection,           // section of the beam
+	my_spline,          // Bspline to match (also order will be matched)
+	VECT_Y);            // suggested Y direction of section
+
+	builderR.GetLastBeamNodes().front()->SetFixed(true);
+
+	auto mbodywing = std::make_shared<ChBodyEasyBox>(0.01,0.2,0.05,2000);
+	mbodywing->SetCoord(builderR.GetLastBeamNodes().back()->GetCoord());
+	myapp.GetSystem()->Add(mbodywing);
+
+	auto myjoint = std::make_shared<ChLinkMateFix>();
+	myjoint->Initialize(builderR.GetLastBeamNodes().back(), mbodywing);
+	myapp.GetSystem()->Add(myjoint);
+
+
+	// Attach a visualization of the FEM mesh.
+
+	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+	mvisualizebeamA->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizebeamA);
+
+	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizebeamC->SetSymbolsThickness(0.006);
+	mvisualizebeamC->SetSymbolsScale(0.01);
+	mvisualizebeamC->SetZbufferHide(false);
+	my_mesh->AddAsset(mvisualizebeamC);
+
+	// This is needed if you want to see things in Irrlicht 3D view.
+	myapp.AssetBindAll();
+	myapp.AssetUpdateAll();
+
+	// Mark completion of system construction
+	myapp.GetSystem()->SetupInitial();
+
+	while (ID_current_example == 2 && myapp.GetDevice()->run()) {
+		myapp.BeginScene();
+		myapp.DrawAll();
+		myapp.DoStep();
+		myapp.EndScene();
+	}
+}
+
+
+//
+// Example D: 
+// Plasticity in IGA beams.
+//
+
+void MakeAndRunDemo3(ChIrrApp& myapp) {
+
+	// Clear previous demo, if any:
+	myapp.GetSystem()->Clear();
+	myapp.GetSystem()->SetChTime(0);
+
+	// Create a mesh, that is a container for groups
+	// of elements and their referenced nodes.
+	// Remember to add it to the system.
+	auto my_mesh = std::make_shared<ChMesh>();
+	my_mesh->SetAutomaticGravity(false);
+	myapp.GetSystem()->Add(my_mesh);
+
+
+	// Create a section, i.e. thickness and material properties
+	// for beams. This will be shared among some beams.
+	// Note that we will define some basic plasticity. One can 
+	// set hardening curves, both isotropic hardening and/or kinematic hardening.
+
+	double beam_wy = 0.012;
+	double beam_wz = 0.025;
+
+	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	melasticity->SetYoungModulus(0.02e10);
+	melasticity->SetGshearModulus(0.02e10 * 0.3);
+	melasticity->SetBeamRaleyghDamping(0.0000);
+
+	auto mplasticity = std::make_shared<ChPlasticityTimoshenkoLumped>();
+	// The isotropic hardening curve. The value at zero absyssa is the initial yeld.
+	//mplasticity->n_yeld_x = std::make_shared<ChFunction_Const>(3000);
+	mplasticity->n_yeld_x = std::make_shared<ChFunction_Ramp>(3000, 1e3);
+	// The optional kinematic hardening curve:
+	//mplasticity->n_beta_x = std::make_shared<ChFunction_Ramp>(0, 1e3);
+
+	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity, mplasticity);
+	msection->SetDensity(1000);
+	msection->SetAsRectangularSection(beam_wy, beam_wz);
+
+
+	// Example D. 
+	// Plasticity. 
+
+	ChBuilderBeamIGA builder;
+	builder.BuildBeam(my_mesh,            // the mesh to put the elements in
+		msection,           // section of the beam
+		5,                  // number of sections (spans)
+		ChVector<>(0, 0, 0),// start point 
+		ChVector<>(0.4, 0.0, 0),// end point 
+		VECT_Y,             // suggested Y direction of section
+		2);                 // order (3 = cubic, etc)
+	builder.GetLastBeamNodes().front()->SetFixed(true);
+
+	// Now create a linear motor that push-pulls the end of the beam
+	// up to repeated plasticization.
+	auto truss = std::make_shared<ChBody>();
+	myapp.GetSystem()->Add(truss);
+	truss->SetBodyFixed(true);
+
+	auto motor = std::make_shared<ChLinkMotorLinearPosition>();
+	myapp.GetSystem()->Add(motor);
+	motor->Initialize(builder.GetLastBeamNodes().back(), truss, ChFrame<>(builder.GetLastBeamNodes().back()->GetCoord()));
+	//motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::PRISMATIC);
+	auto rampup = std::make_shared<ChFunction_Ramp>(0, 0.1);
+	auto rampdo = std::make_shared<ChFunction_Ramp>(0, -0.1);
+	auto motfun = std::make_shared<ChFunction_Sequence>();
+	motfun->InsertFunct(rampdo, 1, 0, true);
+	motfun->InsertFunct(rampup, 1, 0, true);
+	auto motrepeat = std::make_shared<ChFunction_Repeat>();
+	motrepeat->Set_fa(motfun);
+	motrepeat->Set_window_length(2);
+	auto motfuntot = std::make_shared<ChFunction_Sequence>();
+	motfuntot->InsertFunct(rampup, 0.5, 0, true);
+	motfuntot->InsertFunct(motrepeat, 10, 0, true);
+	motor->SetMotionFunction(motfuntot);
+
+
+	// Attach a visualization of the FEM mesh.
+
+	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+	mvisualizebeamA->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizebeamA);
+
+	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizebeamC->SetSymbolsThickness(0.006);
+	mvisualizebeamC->SetSymbolsScale(0.01);
+	mvisualizebeamC->SetZbufferHide(false);
+	my_mesh->AddAsset(mvisualizebeamC);
+
+	// This is needed if you want to see things in Irrlicht 3D view.
+	myapp.AssetBindAll();
+	myapp.AssetUpdateAll();
+
+	// Mark completion of system construction
+	myapp.GetSystem()->SetupInitial();
+
+	ChStreamOutAsciiFile my_plasticfile("plasticity.txt");
+
+	while (ID_current_example == 3 && myapp.GetDevice()->run()) {
+		myapp.BeginScene();
+		myapp.DrawAll();
+		myapp.DoStep();
+
+		// Save to file: plastic flow of the 1st element, and other data
+		ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNdofs(), builder.GetLastBeamElements()[0]->GetNdofs());
+		builder.GetLastBeamElements()[0]->ComputeKRMmatricesGlobal(mK, 1, 0, 0);
+		auto plasticdat = builder.GetLastBeamElements()[0]->GetPlasticData()[0].get();
+		auto plasticdata = dynamic_cast<ChInternalDataLumpedTimoshenko*>(plasticdat);
+		my_plasticfile << myapp.GetSystem()->GetChTime() << " "
+			<< builder.GetLastBeamElements()[0]->GetStrainE()[0].x() << " "
+			<< builder.GetLastBeamElements()[0]->GetStressN()[0].x() << " "
+			<< plasticdata->p_strain_acc << " "
+			<< plasticdata->p_strain_e.x() << " "
+			<< mK(0, 0) << " "
+			<< motor->GetMotorForce() << " "
+			<< motor->GetMotorPos() << "\n";
+
+		myapp.EndScene();
+	}
+}
+
+
+
+
+/// Following class will be used to manage events from the user interface
+
+class MyEventReceiver : public IEventReceiver {
+public:
+	MyEventReceiver(ChIrrApp* myapp) {
+		// store pointer to physical system & other stuff so we can tweak them by user keyboard
+		app = myapp;
+	}
+
+	bool OnEvent(const SEvent& event) {
+		// check if user presses keys
+		if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
+			switch (event.KeyInput.Key) {
+			case irr::KEY_KEY_1:
+				ID_current_example = 1;
+				return true;
+			case irr::KEY_KEY_2:
+				ID_current_example = 2;
+				return true;
+			case irr::KEY_KEY_3:
+				ID_current_example = 3;
+				return true;
+			default:
+				break;
+			}
+		}
+
+		return false;
+	}
+
+private:
+	ChIrrApp* app;
+};
+
+
+
+
+
 int main(int argc, char* argv[]) {
 	GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
 	// Create a Chrono::Engine physical system
 	ChSystemNSC my_system;
-
-
-	// Create a mesh, that is a container for groups
-	// of elements and their referenced nodes.
-	auto my_mesh = std::make_shared<ChMesh>();
-
-	// Create a section, i.e. thickness and material properties
-	// for beams. This will be shared among some beams.
-
-	auto msection = std::make_shared<ChBeamSectionAdvanced>();
-
-	double beam_wy = 0.012;
-	double beam_wz = 0.025;
-	msection->SetAsRectangularSection(beam_wy, beam_wz);
-	msection->SetYoungModulus(0.02e10);
-	msection->SetGshearModulus(0.02e10 * 0.3);
-	msection->SetBeamRaleyghDamping(0.0000);
-    msection->SetDensity(1000);
-	// msection->SetCentroid(0,0.02);
-	// msection->SetShearCenter(0,0.1);
-	// msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
-
-	//
-	// Add some IGA BEAMS:
-	//
-
-    //
-    // Example A: create nodes and elements (low level approach):
-    //
-
-	double beam_L = 0.1;
-
-	auto hnode1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*0,           0, 0)));
-    auto hnode2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*0.5,	  0.00,	0)));
-    auto hnode3 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.0,      0.00,	0)));
-	auto hnode4 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*1.5,      0.00, 0)));
-	auto hnode5 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L*2.0,      0.00, 0)));
-/*	
-    my_mesh->AddNode(hnode1);
-    my_mesh->AddNode(hnode2);
-    my_mesh->AddNode(hnode3);
-	my_mesh->AddNode(hnode4);
-	my_mesh->AddNode(hnode5);
-	
-    // spline cubica con 2 span, 5 points e 9 knots= {0 0 0 0 1/2 1 1 1 1}
-
-    auto belement1 = std::make_shared<ChElementBeamIGA>();
-	
-	belement1->SetNodesCubic(hnode1, hnode2, hnode3, hnode4, 0, 0, 0, 0, 1./2., 1, 1, 1);
-	belement1->SetSection(msection);
-
-	my_mesh->AddElement(belement1);
-	
-    auto belement2 = std::make_shared<ChElementBeamIGA>();
-
-	belement2->SetNodesCubic(hnode2, hnode3, hnode4, hnode5, 0, 0, 0, 1./2., 1, 1, 1, 1);
-    belement2->SetSection(msection);
-
-    my_mesh->AddElement(belement2);
-*/	
-
-    //
-    // Example B: Automatic creation of the nodes and knots 
-    // using the ChBuilderBeamIGA tool for creating a straight rod divided in Nel elements: 
-    //
- /*   
-    ChBuilderBeamIGA builder;
-    builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
-                            msection,           // section of the beam
-                            15,                 // number of sections (spans)
-                            ChVector<>(0,  0,0),// start point 
-                            ChVector<>(0.4,0,0),// end point 
-                            VECT_Y,             // suggested Y direction of section
-                            3);                 // order (3 = cubic, etc)
-    builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-2,0));
-    //builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(0,0, 1.2));
-*/
-    //
-    // Example C: Automatic creation of the nodes and knots using the 
-    // ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
-    //
-
-	
-	ChBuilderBeamIGA builderR;
-
-    std::vector< ChVector<> > my_points = { {0,0,0.2}, {0,0,0.3}, { 0,-0.01,0.4 } , {0,-0.04,0.5}, {0,-0.1,0.6} };
-    
-    geometry::ChLineBspline my_spline(  3,          // order (3 = cubic, etc)
-                                        my_points); // control points, will become the IGA nodes
-
-    builderR.BuildBeam(      my_mesh,            // the mesh to put the elements in
-                            msection,           // section of the beam
-                            my_spline,          // Bspline to match (also order will be matched)
-                            VECT_Y);            // suggested Y direction of section
-    
-	builderR.GetLastBeamNodes().front()->SetFixed(true);
-
-	auto mbodywing = std::make_shared<ChBodyEasyBox>(0.01,0.2,0.05,2000);
-	mbodywing->SetCoord(builderR.GetLastBeamNodes().back()->GetCoord());
-	my_system.Add(mbodywing);
-
-	auto myjoint = std::make_shared<ChLinkMateFix>();
-	myjoint->Initialize(builderR.GetLastBeamNodes().back(), mbodywing);
-	my_system.Add(myjoint);
-	
-
-    //
-    // Final touches..
-    //
-
-    // We do not want gravity effect on FEA elements in this demo
-    my_mesh->SetAutomaticGravity(false);
-
-    // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
-
-    // ==Asset== attach a visualization of the FEM mesh.
-    // This will automatically update a triangle mesh (a ChTriangleMeshShape
-    // asset that is internally managed) by setting  proper
-    // coordinates and vertex colors as in the FEM elements.
-    // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a colored ChTriangleMeshShape).
-    // Do not forget AddAsset() at the end!
-
-    
-    auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizebeamA->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizebeamA);
-
-    auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
-    mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizebeamC->SetSymbolsThickness(0.006);
-    mvisualizebeamC->SetSymbolsScale(0.01);
-    mvisualizebeamC->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizebeamC);
 
 
 
@@ -201,24 +520,16 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(-0.1f, 0.2f, -0.2f));
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
-    // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.
-    // If you need a finer control on which item really needs a visualization proxy in
-    // Irrlicht, just use application.AssetBind(myitem); on a per-item basis.
+	// This is for GUI tweaking of system parameters..
+	MyEventReceiver receiver(&application);
+	// note how to add a custom event receiver to the default interface:
+	application.SetUserEventReceiver(&receiver);
 
-    application.AssetBindAll();
+	// Some help on the screen
+	auto gad_textFPS = application.GetIGUIEnvironment()->addStaticText(L" Press 1: static analysis \n Press 2: curved beam connected to body \n Press 3: plasticity", irr::core::rect<irr::s32>(10, 60, 250, 110), false, true, 0);
+	
 
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
-    // that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
-
-    application.AssetUpdateAll();
-
-    // Mark completion of system construction
-    my_system.SetupInitial();
-
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
+	// Solver default settings for all the sub demos:
     my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(500);
@@ -236,37 +547,25 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.01);
 
-    //****TEST**** do a linear static analysis:
+	// Run the sub-demos:
 
-    application.GetSystem()->DoStaticLinear();
-/*
-    GetLog() << "\n\n\ TEST LINEAR STATIC: \n  tip displacement y = " 
-             << builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y()
-             << "\n"
-             << "  exact should be: y = " << 
-             (4*-2*pow(0.4,3)/(msection->GetYoungModulus()*beam_wz*pow(beam_wy,3)))
-             +(-2*0.4)/((5./6.)*msection->GetGshearModulus()*beam_wz*beam_wy)
-             << "\n";
-
-
-    ChStreamOutAsciiFile my_file("output.txt");
-    my_file << builder.GetLastBeamNodes().back()->GetPos().x() << "  " << builder.GetLastBeamNodes().back()->GetPos().y() << "\n";
-*/
-    GetLog() << "Press SPACE bar to start/stop dynamic simulation \n\n";
-    GetLog() << "Press F10 for nonlinear static solution \n\n";
-    GetLog() << "Press F11 for linear static solution \n\n";
-
-    //application.SetPaused(true);
-
-    while (application.GetDevice()->run()) {
-        application.BeginScene();
-
-        application.DrawAll();
-
-        application.DoStep();
-
-        application.EndScene();
-    }
+	while (true) {
+		switch (ID_current_example) {
+		case 1:
+			MakeAndRunDemo1(application);
+			break;
+		case 2:
+			MakeAndRunDemo2(application);
+			break;
+		case 3:
+			MakeAndRunDemo3(application);
+			break;
+		default:
+			break;
+		}
+		if (!application.GetDevice()->run())
+			break;
+	}
 
     return 0;
 }
