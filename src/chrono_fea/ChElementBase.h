@@ -95,6 +95,10 @@ class ChApiFea ChElementBase {
     // Functions for interfacing to the state bookkeeping
     //
 
+	/// This is optionally implemented if there is some internal state
+	/// that requires integration.
+	virtual void EleDoIntegration() {};
+
     /// Adds the internal forces (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
     ///   R += forces * c
