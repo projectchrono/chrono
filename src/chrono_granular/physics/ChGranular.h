@@ -47,17 +47,22 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
     // Makes somewhat faster memcpys
     /// Store x positions and velocities, copied back occasionally
-    std::vector<signed int, cudallocator<signed int>> h_X_DE;
-    std::vector<signed int, cudallocator<signed int>> h_Y_DE;
-    std::vector<signed int, cudallocator<signed int>> h_Z_DE;
-    std::vector<signed int, cudallocator<signed int>> h_XDOT_DE;
-    std::vector<signed int, cudallocator<signed int>> h_YDOT_DE;
-    std::vector<signed int, cudallocator<signed int>> h_ZDOT_DE;
+    std::vector<int, cudallocator<int>> h_X_DE;
+    std::vector<int, cudallocator<int>> h_Y_DE;
+    std::vector<int, cudallocator<int>> h_Z_DE;
+    std::vector<int, cudallocator<int>> h_XDOT_DE;
+    std::vector<int, cudallocator<int>> h_YDOT_DE;
+    std::vector<int, cudallocator<int>> h_ZDOT_DE;
 
     /// The position of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
     int BD_frame_X;
     int BD_frame_Y;
     int BD_frame_Z;
+
+    /// The velocity of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
+    int BD_frame_X_dot;
+    int BD_frame_Y_dot;
+    int BD_frame_Z_dot;
 
     /// Device pointers
     int* p_d_CM_X;

@@ -28,6 +28,7 @@
 
 __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
 
+// These are the max X, Y, Z dimensions in the BD frame
 #define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
 #define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
 #define MAX_Z_POS_UNSIGNED (d_SD_Hdim_SU * d_box_H_SU)
@@ -50,6 +51,10 @@ __constant__ float gravAcc_Z_d_factor_SU;  //!< Device counterpart of the consta
 __constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
+
+__constant__ int d_BD_frame_X_dot;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
+__constant__ int d_BD_frame_Y_dot;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
+__constant__ int d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
 __constant__ double d_DE_Mass;
 
@@ -356,10 +361,11 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
     // Are we touching wall?
     int touchingWall = 0;
     // Compute spring factor in force
-    float scalingFactor = (1.0f * alpha_h_bar) / (psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
+    float scalingFactor = (1.0f * alpha_h_bar) / (psi_T_dFactor * psi_T_dFactor * psi_h_dFactor * d_DE_Mass);
     // This gamma_n is fake, needs to be given by user
-    float dampingCoeff = -GAMMA_N * alpha_h_bar;
-
+    // Ignore damping at walls for now, something is wrong
+    float dampingCoeff = 0;  //.0001 * alpha_h_bar;
+    // dampingCoeff = 0;
     // tmp vars to save writes, probably not necessary
     float xcomp = 0;
     float ycomp = 0;
@@ -371,39 +377,46 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
     // true if sphere touching wall
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
-    xcomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * sphXvel);
+    // Need to get relative velocity
+    xcomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_X_dot - sphXvel));
+
+    // // This is for debug, soemthing is wrong with the wall-force velocity dependent term
+    // if (d_BD_frame_X_dot != 0) {
+    //     printf("wall corr is %f,  vel corr is %f, spring corr is %f\n", -dampingCoeff * d_BD_frame_X_dot,
+    //            -dampingCoeff * sphXvel, scalingFactor * abs(pen));
+    // }
 
     // Do top X wall
-    pen = MAX_Y_POS_UNSIGNED - (sphXpos_modified + (signed int)d_monoDisperseSphRadius_SU);
+    pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)d_monoDisperseSphRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    xcomp += -1 * touchingWall * (scalingFactor * abs(pen) - dampingCoeff * sphXvel);
+    xcomp += touchingWall * (-1 * scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_X_dot - sphXvel));
 
     // penetration of sphere into relevant wall
     pen = sphYpos_modified - (signed int)d_monoDisperseSphRadius_SU;
     // true if sphere touching wall
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
-    ycomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * sphYvel);
+    ycomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_Y_dot - sphYvel));
 
     // Do top y wall
     pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)d_monoDisperseSphRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    ycomp += -1 * touchingWall * (scalingFactor * abs(pen) - dampingCoeff * sphYvel);
+    ycomp += touchingWall * (-1 * scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_Y_dot - sphYvel));
 
     // penetration of sphere into relevant wall
     pen = sphZpos_modified - (signed int)d_monoDisperseSphRadius_SU;
     // true if sphere touching wall
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
-    zcomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * sphZvel);
+    zcomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_Z_dot - sphZvel));
 
     // Do top z wall
     pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)d_monoDisperseSphRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    zcomp += -1 * touchingWall * (scalingFactor * abs(pen) - dampingCoeff * sphZvel);
+    zcomp += touchingWall * (-1 * scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_Z_dot - sphZvel));
 
     // write back to "return" values
     X_Vel_corr += xcomp;
@@ -547,10 +560,10 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
     float scalingFactor = (1.0 * alpha_h_bar) / (1.0 * psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
 
     // If we overran, we have a major issue, time to crash before we make illegal memory accesses
-    if (spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
-        printf("TOO MANY SPHERES! %u\n", spheresTouchingThisSD);
+    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
+        printf("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
         // Crash now
-        assert(spheresTouchingThisSD < MAX_NSPHERES_PER_SD);
+        asm("trap;");
     }
 
     // NOTE that below here I used double precision because I didn't know how much precision I needed. Reducing the
@@ -775,9 +788,9 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
             } while (idInShared + winningStreak < 8 * THRDS_PER_BLOCK &&
                      !(shMem_head_flags[idInShared + winningStreak]));
 
-            // if (touchedSD >= d_box_L_SU * d_box_D_SU * d_box_H_SU) {
-            //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            // }
+            if (touchedSD >= d_box_L_SU * d_box_D_SU * d_box_H_SU) {
+                printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
+            }
 
             // Store start of new entries
             unsigned int offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
@@ -845,6 +858,10 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyBD_Frame_to_devi
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X, &BD_frame_X, sizeof(BD_frame_X)));
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y, &BD_frame_Y, sizeof(BD_frame_Y)));
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z, &BD_frame_Z, sizeof(BD_frame_Z)));
+
+    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X_dot, &BD_frame_X_dot, sizeof(BD_frame_X_dot)));
+    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y_dot, &BD_frame_Y_dot, sizeof(BD_frame_Y_dot)));
+    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z_dot, &BD_frame_Z_dot, sizeof(BD_frame_Z_dot)));
 }
 
 /// Copy positions and velocities back to host
@@ -960,7 +977,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
     gpuErrchk(cudaDeviceSynchronize());
     // Check in first timestep
-    checkSDCounts("results/step000000.csv", true, false);
+    checkSDCounts("../results/step000000.csv", true, false);
     // printf("counts checked\n");
     // Settling simulation loop.
     unsigned int stepSize_SU = 5;
@@ -969,28 +986,35 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     unsigned int currstep = 0;
     // Which frame am I rendering?
     unsigned int currframe = 1;
-    printf("going until %u at timestep %u\n", tEnd_SU, stepSize_SU);
+    printf("going until %u at timestep %u, %u timesteps\n", tEnd_SU, stepSize_SU, tEnd_SU / stepSize_SU);
     unsigned int nsteps = (1.0 * tEnd_SU) / stepSize_SU;
     // uncomment the line below to restrict the runtime for debugging purposes
     // nsteps = 50;
     // Make the BD move a little in the x dir
-    bool waveTank = fals;
-    int BD_frame_X_initial = BD_frame_X;
-    int BD_frame_Y_initial = BD_frame_Y;
-    int BD_frame_Z_initial = BD_frame_Z;
+    bool waveTank = true;
+    int BD_frame_X_initial = BD_frame_X;  // Initialized in partitionBD
+    // printf("init is %d\n", BD_frame_X_initial);
+    // int BD_frame_Y_initial = BD_frame_Y;
+    // int BD_frame_Z_initial = BD_frame_Z;
+    float tWave = .5;  // # seconds after which the tank starts oscillating
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
-        float timef = (1.f * crntTime_SU * TIME_UNIT);
-        if (waveTank && timef > 1) {
-            // Get time in seconds
-            // printf("time is %f\n", timef);
+        // Get time in seconds, offset so that motion is continuous at start
+        float timef = (1.f * crntTime_SU * TIME_UNIT) - tWave;
+        if (waveTank && timef > 0) {
+            // Frequency of oscillation
             float freq = 2 * CH_C_PI;
+            // float frame_x_old = BD_frame_X;
             // Oscillate around starting pos, one cycle per second
-            BD_frame_X = BD_frame_X_initial * (1 + .5 * std::sin(timef * freq));
+            BD_frame_X = BD_frame_X_initial * .5 * (1 + std::cos(timef * freq));
+            // velocity is time derivative of position
+            // BD_frame_X_dot = (BD_frame_X - frame_x_old) / (stepSize_SU);
+            BD_frame_X_dot = -BD_frame_X_initial * freq * .5 * std::sin(timef * freq);
+            // printf("pos is %d, vel is %d, step is %f, \n", BD_frame_X, BD_frame_X_dot, (float)stepSize_SU *
+            // TIME_UNIT); BD_frame_X_dot = 0;  //-BD_frame_X_initial * freq * std::sin(timef * freq);
             copyBD_Frame_to_device();
         }
-        printf("currstep is %u\n", ++currstep);
 
         // reset forces to zero, note that vel update ~ force for forward euler
         gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0, nDEs * sizeof(int)));
@@ -1024,9 +1048,12 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
         // we don't want to render at every timestep, the file write is painful
+        currstep++;
         if (currstep % 10 == 0) {
+            printf("currstep is %u, rendering frame %u\n", currstep, currframe);
+
             char filename[100];
-            sprintf(filename, "results/step%06d.csv", currframe++);
+            sprintf(filename, "../results/step%06d.csv", currframe++);
             checkSDCounts(std::string(filename), true, false);
         }
     }

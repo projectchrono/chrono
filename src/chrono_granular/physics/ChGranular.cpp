@@ -110,14 +110,17 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     float ball_epsilon = monoDisperseSphRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
     printf("eps is %f, rad is %5f\n", ball_epsilon, monoDisperseSphRadius_SU * 1.0f);
 
-    chrono::utils::HCPSampler<float> sampler(2.1 * monoDisperseSphRadius_SU);  // Add epsilon
+    chrono::utils::HCPSampler<float> sampler(2.4 * monoDisperseSphRadius_SU);  // Add epsilon
 
     // We need to pass in half-length box here
-    ChVector<float> boxCenter(0, 0, 0);
+    float generateHalfDepth = box_H / (3. * LENGTH_UNIT);
+    // generate from bottom to twice the generateDepth
+    float generateZ = -box_H / (2. * LENGTH_UNIT) + generateHalfDepth;
+    ChVector<float> boxCenter(0, 0, generateZ);
     // We need to subtract off a sphere radius to ensure we don't get put at the edge
     ChVector<float> hdims{float(box_L / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU),
                           float(box_D / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU),
-                          float(box_H / (4. * LENGTH_UNIT) - monoDisperseSphRadius_SU)};
+                          float(generateHalfDepth - monoDisperseSphRadius_SU)};
     std::vector<ChVector<float>> points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
 
     nDEs = (unsigned int)points.size();
@@ -134,6 +137,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
         h_Z_DE.at(i) = (int)(vec.z());
         // printf("int is %d, float is %f\n", h_X_DE.at(i), vec.x());
     }
+    // Demonstrates issue with half-integer rounding causing specious collisions
     // for (int i = 0; i < nDEs; i++) {
     //     for (int j = 0; j < nDEs; j++) {
     //         if (i == j) {
@@ -208,6 +212,10 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     BD_frame_X = -.5 * (nSDs_L_SU * SD_L_SU);
     BD_frame_Y = -.5 * (nSDs_D_SU * SD_D_SU);
     BD_frame_Z = -.5 * (nSDs_H_SU * SD_H_SU);
+    // BD starts at rest
+    BD_frame_X_dot = 0;
+    BD_frame_Y_dot = 0;
+    BD_frame_Z_dot = 0;
 }
 
 /**
