@@ -57,7 +57,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   public:
     ChSystemParallel();
     ChSystemParallel(const ChSystemParallel& other);
-    ~ChSystemParallel();
+    virtual ~ChSystemParallel();
 
     virtual bool Integrate_Y() override;
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;

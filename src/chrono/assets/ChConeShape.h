@@ -34,8 +34,8 @@ class ChApi ChConeShape : public ChVisualization {
     // CONSTRUCTORS
     //
 
-    ChConeShape(){};
-    ChConeShape(geometry::ChCone& mcone) : gcone(mcone){};
+    ChConeShape(){}
+    ChConeShape(const geometry::ChCone& mcone) : gcone(mcone){}
 
     virtual ~ChConeShape(){};
 

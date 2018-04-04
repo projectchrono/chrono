@@ -32,7 +32,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-3) {
+ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name) {
     m_tireForce.force = ChVector<>(0, 0, 0);
     m_tireForce.point = ChVector<>(0, 0, 0);
     m_tireForce.moment = ChVector<>(0, 0, 0);

@@ -51,7 +51,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE;
 
-// Type of tire model (RIGID, PACEJKA, LUGRE, or FIALA)
+// Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, PAC89, FIALA)
 TireModelType tire_model = TireModelType::RIGID;
 
 // Rigid terrain dimensions
@@ -63,8 +63,9 @@ double terrainWidth = 100.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, .75);
 
 // Simulation step sizes
-double step_size = 0.001;
-double tire_step_size = step_size;
+double step_size = 0.005;
+double tire_step_size = 0.001;
+bool enforce_soft_real_time = true;
 
 // Time interval between two render frames
 int FPS = 50;
@@ -93,6 +94,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
+    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -113,7 +115,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
-    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV Demo");
+    ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV-9 Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
@@ -174,18 +176,14 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
 
-        // Render scene and output POV-Ray data
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
 
-            if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
-            }
-
+        // Output POV-Ray data
+        if (povray_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+            utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
             render_frame++;
         }
 
@@ -201,7 +199,7 @@ int main(int argc, char* argv[]) {
         app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
+        double step = enforce_soft_real_time ? realtime_timer.SuggestSimulationStep(step_size) : step_size;
         driver.Advance(step);
         terrain.Advance(step);
         my_hmmwv.Advance(step);
@@ -209,6 +207,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
     return 0;

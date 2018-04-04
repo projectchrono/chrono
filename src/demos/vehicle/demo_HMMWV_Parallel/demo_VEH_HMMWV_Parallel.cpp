@@ -558,6 +558,7 @@ HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     hmmwv->SetPowertrainType(PowertrainModelType::SIMPLE_MAP);
     hmmwv->SetDriveType(DrivelineType::AWD);
     hmmwv->SetTireType(TireModelType::RIGID);
+    hmmwv->SetVehicleStepSize(time_step);
 
     hmmwv->Initialize();
 
@@ -566,8 +567,6 @@ HMMWV_Full* CreateVehicle(ChSystem* system, double vertical_offset) {
     hmmwv->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     hmmwv->SetWheelVisualizationType(VisualizationType::MESH);
     hmmwv->SetTireVisualizationType(VisualizationType::NONE);
-
-    hmmwv->GetVehicle().SetStepsize(time_step);
 
     return hmmwv;
 }

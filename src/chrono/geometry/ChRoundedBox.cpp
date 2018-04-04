@@ -29,7 +29,7 @@ ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     Rot.CopyFromMatrix(source.Rot);
 }
 
-ChRoundedBox::ChRoundedBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3) {
+ChRoundedBox::ChRoundedBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3) {
     ChVector<> D1 = Vsub(mC1, mC0);
     ChVector<> D2 = Vsub(mC2, mC0);
     ChVector<> D3 = Vsub(mC3, mC0);

@@ -25,6 +25,7 @@ CH_FACTORY_REGISTER(ChRoundedCone)
 ChRoundedCone::ChRoundedCone(const ChRoundedCone& source) {
     center = source.center;
     rad = source.rad;
+    radsphere = source.radsphere;
 }
 
 }  // end namespace geometry

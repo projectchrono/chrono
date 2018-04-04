@@ -23,7 +23,7 @@ This can be used to define the collision shapes.
 
 - For simple ready-to-use bodies that already contain 
   collision shapes, use  ChBodyEasySphere, ChBodyEasyBox, etc. 
-  (see [body manual pages](@ref manual_otherbodies)
+  (see [body manual pages](@ref manual_otherbodies))
 
 - Collision shapes and visualization assets do not need to match; 
   e. g. one may have a detailed visualization shape for rendering purposes, 
@@ -52,39 +52,70 @@ collide with any objects of family=4:
 
 ~~~{.cpp}
 // default collision family is 0. Change it:
-body_b->GetCollisionModel()->SetFamily(2); 
-body_b->SetFamilyMaskNoCollisionWithFamily(4);
+body_b->GetCollisionModel()->SetFamily(2);
+body_b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(4);
 ~~~
 
 Currently, Chrono allows up to 15 different collision families that can be involved in a simulation.
 
 
-# Collision materials   {#collision_materials}
+# Collision surface materials   {#collision_materials}
 
-Adding collision shapes to a body typically requires the user to define the friction coefficient of the surface. This observation also holds for other collision-specific properties such as rolling friction, coefficient of restitution, etc. This can be done in two ways.
+Adding collision shapes to a body typically requires the user to define some _properties_ of the colliding surface, e.g. friction, rolling friction, restitution coefficient, etc. This can be set by means of either the chrono::ChMaterialSurfaceNSC or the chrono::ChMaterialSurfaceSMC class.
 
-**Easy** (Memory consuming):
+In fact, Chrono can handle two different contact formulations - Non Smooth Contacts (NSC) and SMooth Contacts (SMC) - each of which requires different _surface material_ types, depending on the chrono::ChSystem in use (see [ChSystem manual](@ref manual_ChSystem)).
+
+Once the choice has been made, the user can set the surface material properties in these two ways:
+
+**Built-in material** (Memory consuming)
+
+Each body comes with its own ChMaterialSurface built-in instance, that is automatically created with the body itself and is of type chrono::ChMaterialSurfaceNSC.
+
+The user can access this built-in surface material like this (and similarly for the SMC version):
 
 ~~~{.cpp}
-body_b->SetFriction(0.4f);
-body_b->SetRollingFriction(0.001f);
+body_b->GetMaterialSurfaceNSC()->SetFriction(0.1);
+body_c->GetMaterialSurfaceNSC()->SetFriction(0.2);
+body_d->GetMaterialSurfaceNSC()->SetFriction(0.3);
 ~~~
 
-**Advanced** (Shared material). 
-A ChSharedMaterial is created and subsequently used for one or more bodies:
+Please mind that, for this case, each body has _its own_ surface material. This results, for the example above, in three different surface material instances. In case of a large number of bodies this can lead to memory issues. We will see in the next section how to avoid this.
+
+In order to create a ChBody that handles SMooth Contacts (SMC), the corresponding option has to be set during the ChBody construction. For example:
 
 ~~~{.cpp}
-// Create a surface material and change properties:
-ChSharedPtr<ChMaterialSurface> mat(new ChMaterialSurface);
-mat->SetFriction(0.4f);
-mat->SetRollingFriction(0.001f);
-
-// Assign surface material to body/bodies:
-body_b->SetSurfaceMaterial(mat); 
-body_c->SetSurfaceMaterial(mat);
-body_d->SetSurfaceMaterial(mat);
+auto body_a = std::make_shared<ChBodyAuxRef>(ChMaterialSurface::SMC);
 ~~~
 
+See the chrono::ChBody reference for further details. 
+
+
+**Shared material**
+
+In some circumstances, different bodies may share the _same_ surface material properties. In this (very common) case, the user can create just _one_ instance of ChMaterialSurfaceNSC (or ChMaterialSurfaceSMC) and _share_ it between different bodies. These bodies will then drop their built-in ChMaterialSurfaceXXX instances.
+
+~~~{.cpp}
+// Create a surface material and set its properties
+auto material = std::make_shared<ChMaterialSurfaceSMC>();
+material->SetRestitution(0.1f);
+material->SetFriction(0.4f);
+material->SetAdhesion(0.0f);
+
+// Assign surface material to one or more bodies:
+body_b->SetMaterialSurface(material);
+body_c->SetMaterialSurface(material);
+body_d->SetMaterialSurface(material);
+~~~
+
+As we can see, there are a couple of desirable effects:
+- only _one_ instance of ChMaterialSurfaceXXX is created in memory, thus limiting the memory footprint;
+- the user can set the surface material type ([NSC|SMC]) _after_ calling the body constructor.
+
+However, the user should consider that the properties are _actually_ shared, thus `body_d->GetMaterialSurfaceNSC()->SetFriction(0.3);` will affect also `body_b` and `body_c`.
+
+<div class="ce-warning"> 
+When a body is copied (copy-constructed) or Cloned, the ChMaterialSurface instance is _shared_ by default and _not_ copied.
+</div> 
 
 # Collision tolerances     {#collision_tolerances}
 
@@ -131,8 +162,8 @@ Drawbacks to poor envelope and/or margin choices:
 Setting the value of the envelope/margin:
 
 ~~~{.cpp}
-ChCollisionModel::SetDefaultSuggestedEnvelope(0.001); 
-ChCollisionModel::SetDefaultSuggestedMargin  (0.0005); 
+collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.001);
+collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0005);
 ~~~
 
 <div class="ce-info">
@@ -148,7 +179,7 @@ the envelopes and margins cannot be changed.
 Finally, there is also a **contact breaking threshold**, which is a global tolerance for all models. It can be set as in this example:
 
 ~~~{.cpp}
-ChCollisionSystemBullet::SetContactBreakingThreshold(0.001);
+collision::ChCollisionSystemBullet::SetContactBreakingThreshold(0.001);
 ~~~
 
 The contact breaking threshold represents the maximum distance between two collision shapes where were in contact before the contact is considered as non-existent. This is due to the fact that Chrono relies in many instances on the Bullet collision algorithms and Bullet keeps 

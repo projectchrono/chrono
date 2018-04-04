@@ -252,6 +252,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
+        trimesh_shape->SetStatic(true);
         patch->m_body->AddAsset(trimesh_shape);
     }
 

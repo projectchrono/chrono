@@ -27,7 +27,8 @@
 namespace chrono {
 namespace vehicle {
 
-ChTire::ChTire(const std::string& name) : ChPart(name), m_slip_angle(0), m_longitudinal_slip(0), m_camber_angle(0) {}
+ChTire::ChTire(const std::string& name)
+    : ChPart(name), m_stepsize(1e-3), m_slip_angle(0), m_longitudinal_slip(0), m_camber_angle(0) {}
 
 // -----------------------------------------------------------------------------
 // Base class implementation of the initialization function.

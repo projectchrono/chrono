@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Simulation step sizes
-    double step_size = 0.001;
-    double tire_step_size = step_size;
+    double step_size = 3e-3;
+    double tire_step_size = 1e-3;
 
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Reduced my_hmmwv;
@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(TireModelType::RIGID);
     my_hmmwv.SetTireStepSize(tire_step_size);
+    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -144,26 +145,16 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     // Initialize simulation frame counter and simulation time
     ChRealtimeStepTimer realtime_timer;
-    int step_number = 0;
-    int render_frame = 0;
     double time = 0;
 
     while (app.GetDevice()->run()) {
         time = my_hmmwv.GetSystem()->GetChTime();
 
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
-
-            render_frame++;
-        }
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
 
         // Collect output data from modules (for inter-module communication)
         double throttle_input = driver.GetThrottle();
@@ -183,8 +174,7 @@ int main(int argc, char* argv[]) {
         my_hmmwv.Advance(step);
         app.Advance(step);
 
-        // Increment frame number
-        step_number++;
+        app.EndScene();
     }
 
     return 0;

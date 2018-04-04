@@ -15,32 +15,20 @@
 #ifndef CHLINKMOTORLINEARFORCE_H
 #define CHLINKMOTORLINEARFORCE_H
 
-
 #include "chrono/physics/ChLinkMotorLinear.h"
-#include "chrono/motion_functions/ChFunction.h"
-
 
 namespace chrono {
 
-
-/// A linear motor that applies a force between
-/// two frames on two bodies.
-/// Differently from the ChLinkMotorLinearPosition and
-/// ChLinkMotorLinearSpeed, this does not enforce precise
-/// motion via constraint. 
+/// A linear motor that applies a force between two frames on two bodies.
+/// Differently from the ChLinkMotorLinearPosition and ChLinkMotorLinearSpeed,
+/// this does not enforce precise motion via constraint.
 /// Example of application:
-/// - mimic a PID controlled system with 
-///   some feedback (that is up to you too implement)
+/// - mimic a PID controlled system with some feedback (user-defined)
 /// - force that is updated by a cosimulation
-/// - force from a man-in-the-loop setpoint
-/// Use SetForceFunction() to change to other force function (by
-/// default is no force), possibly introduce some custom ChFunction
-/// of yours that is updated at each time step.
+/// - force from a human-in-the-loop setpoint
+/// Use SetForceFunction() to change to other force function (default zero force).
 
 class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
-
-    std::shared_ptr<ChFunction> f_force;
-
   public:
     ChLinkMotorLinearForce();
     ChLinkMotorLinearForce(const ChLinkMotorLinearForce& other);
@@ -49,18 +37,15 @@ class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMotorLinearForce* Clone() const override { return new ChLinkMotorLinearForce(*this); }
 
+    /// Set the force function of time F(t).
+    void SetForceFunction(const std::shared_ptr<ChFunction> function) { SetMotorFunction(function); }
 
-    /// Sets the force function F(t). It is a function of time. 
-    void SetForceFunction(const std::shared_ptr<ChFunction> mf) {f_force = mf;}
+    /// Get the force function F(t).
+    std::shared_ptr<ChFunction> GetForceFunction() const { return GetMotorFunction(); }
 
-    /// Gets the force function F(t).
-    std::shared_ptr<ChFunction> GetForceFunction() {return f_force;}
-    
+    /// Get the current actuator reaction force.
+    virtual double GetMotorForce() const { return m_func->Get_y(GetChTime()); }
 
-    /// Get the current actuator reaction force [N]
-    virtual double GetMotorForce() const { return this->f_force->Get_y(this->GetChTime());}
-
-    
     void Update(double mytime, bool update_assets) override;
 
     //
@@ -73,19 +58,14 @@ class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
     //
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
-
 };
 
-CH_CLASS_VERSION(ChLinkMotorLinearForce,0)
-
-
-
+CH_CLASS_VERSION(ChLinkMotorLinearForce, 0)
 
 }  // end namespace chrono
 

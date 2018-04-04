@@ -8,8 +8,8 @@
       "Radius":                     0.305,
       "Width":                      0.181,
       "Gap":                        0.051,
-      "Mass":                       561.1,
-      "Inertia":                    [19.82, 26.06, 19.82]
+      "Mass":                       35.56,
+      "Inertia":                    [1.14, 2.16, 1.14]
   },
 
   "Contact Material":

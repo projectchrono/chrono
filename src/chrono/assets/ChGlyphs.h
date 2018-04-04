@@ -74,7 +74,7 @@ class ChApi ChGlyphs : public ChVisualization {
     //
 
     /// Get the way that glyphs must be rendered
-    eCh_GlyphType GetDrawMode() { return draw_mode; }
+    eCh_GlyphType GetDrawMode() const { return draw_mode; }
 
     /// Set the way that glyphs must be rendered
     void SetDrawMode(eCh_GlyphType mmode) { draw_mode = mmode; }
@@ -85,11 +85,11 @@ class ChApi ChGlyphs : public ChVisualization {
     void Reserve(unsigned int n_glyphs);
 
     /// Get the number of glyphs
-    size_t GetNumberOfGlyphs() { return points.size(); }
+    size_t GetNumberOfGlyphs() const { return points.size(); }
 
     /// Get the 'size' (thickness of symbol, depending on the rendering
     /// system) of the glyph symbols
-    double GetGlyphsSize() { return size; }
+    double GetGlyphsSize() const { return size; }
 
     /// Set the 'size' (thickness of symbol, depending on the rendering
     /// system) of the glyph symbols
@@ -98,7 +98,7 @@ class ChApi ChGlyphs : public ChVisualization {
     // Set the Z buffer enable/disable (for those rendering systems that can do this)
     // If hide= false, symbols will appear even if hidden by other geometries. Default true.
     void SetZbufferHide(bool mhide) { this->zbuffer_hide = mhide; }
-    bool GetZbufferHide() { return this->zbuffer_hide; }
+    bool GetZbufferHide() const { return this->zbuffer_hide; }
 
     /// Fast method to set a glyph for GLYPH_POINT draw mode.
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the vectors are inflated.

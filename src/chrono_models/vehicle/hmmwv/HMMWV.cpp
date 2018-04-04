@@ -39,6 +39,7 @@ HMMWV::HMMWV()
       m_driveType(DrivelineType::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_vehicle_step_size(-1),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
@@ -56,6 +57,7 @@ HMMWV::HMMWV(ChSystem* system)
       m_driveType(DrivelineType::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_vehicle_step_size(-1),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
@@ -86,6 +88,10 @@ void HMMWV::Initialize() {
     m_vehicle = CreateVehicle();
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
+
+    if (m_vehicle_step_size > 0) {
+        m_vehicle->SetStepsize(m_vehicle_step_size);
+    }
 
     // If specified, enable aerodynamic drag
     if (m_apply_drag) {
@@ -142,13 +148,6 @@ void HMMWV::Initialize() {
             HMMWV_LugreTire* tire_RL = new HMMWV_LugreTire("RL");
             HMMWV_LugreTire* tire_RR = new HMMWV_LugreTire("RR");
 
-            if (m_tire_step_size > 0) {
-                tire_FL->SetStepsize(m_tire_step_size);
-                tire_FR->SetStepsize(m_tire_step_size);
-                tire_RL->SetStepsize(m_tire_step_size);
-                tire_RR->SetStepsize(m_tire_step_size);
-            }
-
             m_tires[0] = tire_FL;
             m_tires[1] = tire_FR;
             m_tires[2] = tire_RL;
@@ -161,13 +160,6 @@ void HMMWV::Initialize() {
             HMMWV_FialaTire* tire_FR = new HMMWV_FialaTire("FR");
             HMMWV_FialaTire* tire_RL = new HMMWV_FialaTire("RL");
             HMMWV_FialaTire* tire_RR = new HMMWV_FialaTire("RR");
-
-            if (m_tire_step_size > 0) {
-                tire_FL->SetStepsize(m_tire_step_size);
-                tire_FR->SetStepsize(m_tire_step_size);
-                tire_RL->SetStepsize(m_tire_step_size);
-                tire_RR->SetStepsize(m_tire_step_size);
-            }
 
             m_tires[0] = tire_FL;
             m_tires[1] = tire_FR;
@@ -182,13 +174,6 @@ void HMMWV::Initialize() {
             HMMWV_TMeasyTire* tire_RL = new HMMWV_TMeasyTire("RL");
             HMMWV_TMeasyTire* tire_RR = new HMMWV_TMeasyTire("RR");
 
-            if (m_tire_step_size > 0) {
-                tire_FL->SetStepsize(m_tire_step_size);
-                tire_FR->SetStepsize(m_tire_step_size);
-                tire_RL->SetStepsize(m_tire_step_size);
-                tire_RR->SetStepsize(m_tire_step_size);
-            }
-
             m_tires[0] = tire_FL;
             m_tires[1] = tire_FR;
             m_tires[2] = tire_RL;
@@ -201,13 +186,6 @@ void HMMWV::Initialize() {
             HMMWV_Pac89Tire* tire_FR = new HMMWV_Pac89Tire("FR");
             HMMWV_Pac89Tire* tire_RL = new HMMWV_Pac89Tire("RL");
             HMMWV_Pac89Tire* tire_RR = new HMMWV_Pac89Tire("RR");
-
-            if (m_tire_step_size > 0) {
-                tire_FL->SetStepsize(m_tire_step_size);
-                tire_FR->SetStepsize(m_tire_step_size);
-                tire_RL->SetStepsize(m_tire_step_size);
-                tire_RR->SetStepsize(m_tire_step_size);
-            }
 
             m_tires[0] = tire_FL;
             m_tires[1] = tire_FR;
@@ -226,13 +204,6 @@ void HMMWV::Initialize() {
             tire_FR->SetDrivenWheel(false);
             tire_RL->SetDrivenWheel(true);
             tire_RR->SetDrivenWheel(true);
-
-            if (m_tire_step_size > 0) {
-                tire_FL->SetStepsize(m_tire_step_size);
-                tire_FR->SetStepsize(m_tire_step_size);
-                tire_RL->SetStepsize(m_tire_step_size);
-                tire_RR->SetStepsize(m_tire_step_size);
-            }
 
             m_tires[0] = tire_FL;
             m_tires[1] = tire_FR;
@@ -278,6 +249,13 @@ void HMMWV::Initialize() {
     m_tires[1]->Initialize(m_vehicle->GetWheelBody(FRONT_RIGHT), RIGHT);
     m_tires[2]->Initialize(m_vehicle->GetWheelBody(REAR_LEFT), LEFT);
     m_tires[3]->Initialize(m_vehicle->GetWheelBody(REAR_RIGHT), RIGHT);
+
+    if (m_tire_step_size > 0) {
+        m_tires[0]->SetStepsize(m_tire_step_size);
+        m_tires[1]->SetStepsize(m_tire_step_size);
+        m_tires[2]->SetStepsize(m_tire_step_size);
+        m_tires[3]->SetStepsize(m_tire_step_size);
+    }
 
     m_tire_mass = m_tires[0]->ReportMass();
 }

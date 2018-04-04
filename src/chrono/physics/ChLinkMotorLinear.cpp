@@ -16,13 +16,10 @@
 
 namespace chrono {
 
-
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChLinkMotorLinear)  NO! ABSTRACT!
+// CH_FACTORY_REGISTER(ChLinkMotorLinear)  NO! ABSTRACT!
 
-ChLinkMotorLinear::ChLinkMotorLinear()  {
-
+ChLinkMotorLinear::ChLinkMotorLinear() {
     this->SetGuideConstraint(GuideConstraint::PRISMATIC);
 
     mpos = 0;
@@ -31,46 +28,42 @@ ChLinkMotorLinear::ChLinkMotorLinear()  {
 }
 
 ChLinkMotorLinear::ChLinkMotorLinear(const ChLinkMotorLinear& other) : ChLinkMotor(other) {
-   
     mpos = other.mpos;
     mpos_dt = other.mpos_dt;
     mpos_dtdt = other.mpos_dtdt;
 }
 
-ChLinkMotorLinear::~ChLinkMotorLinear() {
-    
+ChLinkMotorLinear::~ChLinkMotorLinear() {}
+
+void ChLinkMotorLinear::SetGuideConstraint(bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
+    this->c_y = mc_y;
+    this->c_z = mc_z;
+    this->c_rx = mc_rx;
+    this->c_ry = mc_ry;
+    this->c_rz = mc_rz;
+    SetupLinkMask();
 }
 
-void ChLinkMotorLinear::SetGuideConstraint(bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz)  {
-    
-        this->c_y =  mc_y;
-        this->c_z =  mc_z;
-        this->c_rx = mc_rx;
-        this->c_ry = mc_ry;
-        this->c_rz = mc_rz;
-        SetupLinkMask();
-}
-
-void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint)  {
+void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
     if (mconstraint == GuideConstraint::FREE) {
-        this->c_y =  false;
-        this->c_z =  false;
+        this->c_y = false;
+        this->c_z = false;
         this->c_rx = false;
         this->c_ry = false;
         this->c_rz = false;
         SetupLinkMask();
     }
     if (mconstraint == GuideConstraint::PRISMATIC) {
-        this->c_y =  true;
-        this->c_z =  true;
+        this->c_y = true;
+        this->c_z = true;
         this->c_rx = true;
         this->c_ry = true;
         this->c_rz = true;
         SetupLinkMask();
     }
     if (mconstraint == GuideConstraint::SPHERICAL) {
-        this->c_y =  true;
-        this->c_z =  true;
+        this->c_y = true;
+        this->c_z = true;
         this->c_rx = false;
         this->c_ry = false;
         this->c_rz = false;
@@ -78,9 +71,7 @@ void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint)  {
     }
 }
 
-
 void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
-    
     // Inherit parent class:
     ChLinkMotor::Update(mytime, update_assets);
 
@@ -93,7 +84,6 @@ void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
     this->mpos_dt = aframe12.GetPos_dt().x();
     this->mpos_dtdt = aframe12.GetPos_dtdt().x();
 }
-
 
 void ChLinkMotorLinear::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -115,9 +105,5 @@ void ChLinkMotorLinear::ArchiveIN(ChArchiveIn& marchive) {
 
     // deserialize all member data:
 }
-
-
-
-
 
 }  // end namespace chrono

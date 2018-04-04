@@ -31,7 +31,7 @@ class ChApi ChCapsule : public ChGeometry {
 
   public:
     ChCapsule() : center(VNULL), rad(0), hlen(0) {}
-    ChCapsule(ChVector<>& mcenter, double mrad, double mhlen) : center(mcenter), rad(mrad), hlen(mhlen) {}
+    ChCapsule(const ChVector<>& mcenter, double mrad, double mhlen) : center(mcenter), rad(mrad), hlen(mhlen) {}
     ChCapsule(const ChCapsule& source);
     ~ChCapsule() {}
 

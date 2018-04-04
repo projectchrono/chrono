@@ -74,6 +74,7 @@ class CH_MODELS_API HMMWV {
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
+    void SetVehicleStepSize(double step_size) { m_vehicle_step_size = step_size; }
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
@@ -117,6 +118,7 @@ class CH_MODELS_API HMMWV {
     PowertrainModelType m_powertrainType;
     TireModelType m_tireType;
 
+    double m_vehicle_step_size;
     double m_tire_step_size;
 
     ChCoordsys<> m_initPos;

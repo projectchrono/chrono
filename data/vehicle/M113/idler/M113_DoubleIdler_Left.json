@@ -8,16 +8,16 @@
       "Radius":                     0.255,
       "Width":                      0.181,
       "Gap":                        0.051,
-      "Mass":                       429.5,
+      "Mass":                       25.76,
       "COM":                        [0, 0, 0],
-      "Inertia":                    [12.55, 14.70, 12.55]
+      "Inertia":                    [0.618, 1.12, 0.618]
   },
 
   "Carrier":
   {
-      "Mass":                       50.0,
+      "Mass":                       10.0,
       "COM":                        [0, -0.1, 0],
-      "Inertia":                    [2, 2, 2],
+      "Inertia":                    [0.04, 0.04, 0.04],
       "Location Chassis":           [0, -0.2, 0],
       "Visualization Radius":       0.02,
       "Pitch Angle":                0

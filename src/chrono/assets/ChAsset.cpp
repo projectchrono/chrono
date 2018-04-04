@@ -21,4 +21,14 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChAsset)
 
+void ChAsset::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChAsset>();
+}
+
+void ChAsset::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChAsset>();
+}
+
 }  // end namespace chrono
