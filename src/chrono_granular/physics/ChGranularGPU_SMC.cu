@@ -32,8 +32,10 @@ __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere
 #define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
 #define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
 #define MAX_Z_POS_UNSIGNED (d_SD_Hdim_SU * d_box_H_SU)
-
-#define GAMMA_N .004
+// Use user-defined quantities for coefficients
+#define K_N (1.f / (1.f * psi_T_dFactor * psi_T_dFactor * psi_h_dFactor))
+// TODO we need to get the damping coefficient from user
+#define GAMMA_N .01
 
 __constant__ unsigned int d_SD_Ldim_SU;    //!< Ad-ed L-dimension of the SD box
 __constant__ unsigned int d_SD_Ddim_SU;    //!< Ad-ed D-dimension of the SD box
@@ -361,7 +363,7 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
     // Are we touching wall?
     int touchingWall = 0;
     // Compute spring factor in force
-    float scalingFactor = (1.0f * alpha_h_bar) / (psi_T_dFactor * psi_T_dFactor * psi_h_dFactor * d_DE_Mass);
+    float scalingFactor = (1.0f * alpha_h_bar) * K_N;
     // This gamma_n is fake, needs to be given by user
     // Ignore damping at walls for now, something is wrong
     float dampingCoeff = 0;  //.0001 * alpha_h_bar;
@@ -530,6 +532,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
     unsigned int thisSD = blockIdx.x;
     unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
     unsigned mySphereID;
+    unsigned char bodyB_list[12];
+    unsigned int ncontacts = 0;
 
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
@@ -549,15 +553,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
     // Note that if we have more threads than bodies, some effort gets wasted.
     unsigned int bodyA = threadIdx.x;
 
-    // The update we make to the velocities, it's ok for this to be a float since it should be pretty small anyways,
-    // gets truncated to int very soon
-    float bodyA_X_velCorr = 0.f;
-    float bodyA_Y_velCorr = 0.f;
-    float bodyA_Z_velCorr = 0.f;
-
     // k * delta_t
     // This is ok as a float as well since it is a reasonable number by design
-    float scalingFactor = (1.0 * alpha_h_bar) / (1.0 * psi_T_dFactor * psi_T_dFactor * psi_h_dFactor);
 
     // If we overran, we have a major issue, time to crash before we make illegal memory accesses
     if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
@@ -566,20 +563,66 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
         asm("trap;");
     }
 
-    // NOTE that below here I used double precision because I didn't know how much precision I needed. Reducing the
-    // amount of doubles will certainly speed this up
-
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
+        // The update we make to the velocities, it's ok for this to be a float since it should be pretty small anyways,
+        // gets truncated to int very soon
+        float bodyA_X_velCorr = 0.f;
+        float bodyA_Y_velCorr = 0.f;
+        float bodyA_Z_velCorr = 0.f;
+
+        float scalingFactor = alpha_h_bar * K_N;
         double sphdiameter = 2. * d_monoDisperseSphRadius_SU;
         double invSphDiameter = 1. / sphdiameter;
         unsigned int ownerSD = figureOutOwnerSD(sph_X[bodyA], sph_Y[bodyA], sph_Z[bodyA]);
-        double penetration = 0;
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
             // unsigned int theirSphID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
             // Don't check for collision with self
             if (bodyA == bodyB)
                 continue;
+
+            // Compute penetration to check for collision, we can use ints provided the diameter is small enough
+            long int penetration_int = 0;
+
+            // This avoids computing a square to figure our if collision or not
+            long int deltaX = (sph_X[bodyA] - sph_X[bodyB]);
+            long int deltaY = (sph_Y[bodyA] - sph_Y[bodyB]);
+            long int deltaZ = (sph_Z[bodyA] - sph_Z[bodyB]);
+
+            penetration_int = deltaX * deltaX;
+            penetration_int += deltaY * deltaY;
+            penetration_int += deltaZ * deltaZ;
+
+            // Here we need to check if the contact point is in this SD.
+
+            // Take spatial average of positions to get position of contact point
+            // NOTE that we *do* want integer division since the SD-checking code uses ints anyways. Computing this as
+            // an int is *much* faster than float, much less double, on Conlain's machine
+            int contactX = (sph_X[bodyB] + sph_X[bodyA]) / 2;
+            int contactY = (sph_Y[bodyB] + sph_Y[bodyA]) / 2;
+            int contactZ = (sph_Z[bodyB] + sph_Z[bodyA]) / 2;
+
+            // We need to make sure we don't count a collision twice -- if a contact pair is in multiple SDs, count it
+            // only in the one that holds the contact point
+            unsigned int contactSD = figureOutOwnerSD(contactX, contactY, contactZ);
+
+            // We have a collision here, log it for later
+            // not very divergent, super quick
+            if (contactSD == thisSD && penetration_int < 4 * d_monoDisperseSphRadius_SU * d_monoDisperseSphRadius_SU) {
+                bodyB_list[ncontacts] = bodyB;  // Save the collision pair
+                ncontacts++;                    // Increment the contact counter
+            }
+        }
+
+        // NOTE that below here I used double precision because I didn't know how much precision I needed. Reducing the
+        // amount of doubles will certainly speed this up
+        // Run through and do actual force computations, for these we know each one is a legit collision
+        for (unsigned int idx = 0; idx < ncontacts; idx++) {
+            double penetration = 0;
+
+            // unsigned int theirSphID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
+            // Don't check for collision with self
+            unsigned char bodyB = bodyB_list[idx];
 
             // NOTE below here, it seems faster to do coalesced shared mem accesses than caching sph_X[bodyA] and the
             // like in a register
@@ -589,59 +632,43 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
             double deltaZ = (sph_Z[bodyA] - sph_Z[bodyB]) * invSphDiameter;
 
             // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
-            double deltaX_dot = sph_X_DOT[bodyA] - sph_X_DOT[bodyB];
-            double deltaY_dot = sph_Y_DOT[bodyA] - sph_Y_DOT[bodyB];
-            double deltaZ_dot = sph_Z_DOT[bodyA] - sph_Z_DOT[bodyB];
+            float deltaX_dot = sph_X_DOT[bodyA] - sph_X_DOT[bodyB];
+            float deltaY_dot = sph_Y_DOT[bodyA] - sph_Y_DOT[bodyB];
+            float deltaZ_dot = sph_Z_DOT[bodyA] - sph_Z_DOT[bodyB];
 
             penetration = deltaX * deltaX;
             penetration += deltaY * deltaY;
             penetration += deltaZ * deltaZ;
+            // We now have
 
-            // Here we need to check if the contact point is in this SD.
+            // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA
+            // intrinsic:
+            // __device__ ​ float rnormf ( int  dim, const float* a)
+            // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
 
-            // Take spatial average of positions to get position of contact point
-            // NOTE that we *do* want integer division since the SD-checking code uses ints anyways. Computing this as
-            // an int is *much* faster than float, much less double, on Conlain's machine
-            int contactX = ((sph_X[bodyB] + sph_X[bodyA])) / 2;
-            int contactY = ((sph_Y[bodyB] + sph_Y[bodyA])) / 2;
-            int contactZ = ((sph_Z[bodyB] + sph_Z[bodyA])) / 2;
+            // Compute penetration term, this becomes the delta as we want it
+            // Makes more sense to find rsqrt, the compiler is doing this anyways
+            penetration = rsqrt(penetration);
+            penetration -= 1.;
 
-            unsigned int contactSD = figureOutOwnerSD(contactX, contactY, contactZ);
+            // Compute nondim force term
 
-            // We need to make sure we don't count a collision twice -- if a contact pair is in multiple SDs, count it
-            // only in the one that holds the contact point
-            // We have a collision here...
-            // TODO this code is the painfully slow part
-            if (penetration < 1 && contactSD == thisSD) {
-                // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA
-                // intrinsic:
-                // __device__ ​ float rnormf ( int  dim, const float* a)
-                // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
+            // These lines use forward euler right now. Each has an alpha_h_bar term but we can use a different
+            // method simply by changing the following computations
+            // Compute force updates
+            float springTermX = scalingFactor * deltaX * sphdiameter * penetration / d_DE_Mass;
+            float springTermY = scalingFactor * deltaY * sphdiameter * penetration / d_DE_Mass;
+            float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration / d_DE_Mass;
+            // Not sure what gamma_n is supposed to be, but this seems reasonable numerically
+            // float gamma_n = GAMMA_N;
+            float dampingTermX = -GAMMA_N * alpha_h_bar * deltaX_dot;
+            float dampingTermY = -GAMMA_N * alpha_h_bar * deltaY_dot;
+            float dampingTermZ = -GAMMA_N * alpha_h_bar * deltaZ_dot;
 
-                // Compute penetration term, this becomes the delta as we want it
-                // Makes more sense to find rsqrt, the compiler is doing this anyways
-                penetration = rsqrt(penetration);
-                penetration -= 1.;
-
-                // Compute nondim force term
-
-                // These lines use forward euler right now. Each has an alpha_h_bar term but we can use a different
-                // method simply by changing the following computations
-                // Compute force updates
-                double springTermX = scalingFactor * deltaX * sphdiameter * penetration / d_DE_Mass;
-                double springTermY = scalingFactor * deltaY * sphdiameter * penetration / d_DE_Mass;
-                double springTermZ = scalingFactor * deltaZ * sphdiameter * penetration / d_DE_Mass;
-                // Not sure what gamma_n is supposed to be, but this seems reasonable numerically
-                double gamma_n = GAMMA_N;
-                double dampingTermX = -gamma_n * alpha_h_bar * deltaX_dot;
-                double dampingTermY = -gamma_n * alpha_h_bar * deltaY_dot;
-                double dampingTermZ = -gamma_n * alpha_h_bar * deltaZ_dot;
-
-                // Add damping term to spring term, write back to counter
-                bodyA_X_velCorr += springTermX + dampingTermX;
-                bodyA_Y_velCorr += springTermY + dampingTermY;
-                bodyA_Z_velCorr += springTermZ + dampingTermZ;
-            }
+            // Add damping term to spring term, write back to counter
+            bodyA_X_velCorr += springTermX + dampingTermX;
+            bodyA_Y_velCorr += springTermY + dampingTermY;
+            bodyA_Z_velCorr += springTermZ + dampingTermZ;
         }
         // NOTE from Conlain -- this latex is broken, I think
         /**
@@ -986,8 +1013,9 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     unsigned int currstep = 0;
     // Which frame am I rendering?
     unsigned int currframe = 1;
-    printf("going until %u at timestep %u, %u timesteps\n", tEnd_SU, stepSize_SU, tEnd_SU / stepSize_SU);
     unsigned int nsteps = (1.0 * tEnd_SU) / stepSize_SU;
+    printf("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
+           tEnd / nsteps);
     // uncomment the line below to restrict the runtime for debugging purposes
     // nsteps = 50;
     // Make the BD move a little in the x dir
@@ -996,7 +1024,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     // printf("init is %d\n", BD_frame_X_initial);
     // int BD_frame_Y_initial = BD_frame_Y;
     // int BD_frame_Z_initial = BD_frame_Z;
-    float tWave = .5;  // # seconds after which the tank starts oscillating
+    float tWave = 1;  // # seconds after which the tank starts oscillating
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
@@ -1004,13 +1032,13 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
         float timef = (1.f * crntTime_SU * TIME_UNIT) - tWave;
         if (waveTank && timef > 0) {
             // Frequency of oscillation
-            float freq = 2 * CH_C_PI;
+            float freq = 1 * CH_C_PI;
             // float frame_x_old = BD_frame_X;
             // Oscillate around starting pos, one cycle per second
-            BD_frame_X = BD_frame_X_initial * .5 * (1 + std::cos(timef * freq));
+            BD_frame_X = BD_frame_X_initial * (1 + .5 * std::sin(timef * freq));
             // velocity is time derivative of position
             // BD_frame_X_dot = (BD_frame_X - frame_x_old) / (stepSize_SU);
-            BD_frame_X_dot = -BD_frame_X_initial * freq * .5 * std::sin(timef * freq);
+            // BD_frame_X_dot = -BD_frame_X_initial * freq * .5 * std::sin(timef * freq);
             // printf("pos is %d, vel is %d, step is %f, \n", BD_frame_X, BD_frame_X_dot, (float)stepSize_SU *
             // TIME_UNIT); BD_frame_X_dot = 0;  //-BD_frame_X_initial * freq * std::sin(timef * freq);
             copyBD_Frame_to_device();
