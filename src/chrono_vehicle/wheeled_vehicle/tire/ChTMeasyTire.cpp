@@ -240,7 +240,9 @@ void ChTMeasyTire::Advance(double step) {
     // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.
     double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 
-    double Fz = m_data.normal_force;
+    // Limit the effect of Fz on handling forces and torques to avoid nonsensical extrapolation of the curve coefficients
+    // m_data.normal_force is nevertheless still taken as the applied vertical tire force
+    double Fz = std::min(m_data.normal_force,m_TMeasyCoeff.pn_max);
     double Mx = 0;
     double My = 0;
     double Mz = 0;

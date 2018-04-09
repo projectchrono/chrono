@@ -272,7 +272,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
         double mu_0;  ///< Local friction coefficient of the road for given parameters
         double cx;    ///< Linear stiffness x [N/m]
-        double cy;    ///< Linear stiffness y [n/m]
+        double cy;    ///< Linear stiffness y [N/m]
         double cz;    ///< Stiffness, may vary with the vertical force [N/m]
         double dx;    ///< Linear damping coefficient x [Ns/m]
         double dy;    ///< Linear damping coefficient y [Ns/m]
@@ -284,7 +284,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         double sxm_pn, sxm_p2n;    ///< Slip sx at maximum longitudinal load Fx
         double sxs_pn, sxs_p2n;    ///< Slip sx where sliding begins
 
-        double dfy0_pn, dfy0_p2n;  ///< Initial lateral slopes dFx/dsx [kN]
+        double dfy0_pn, dfy0_p2n;  ///< Initial lateral slopes dFy/dsy [kN]
         double fym_pn, fym_p2n;    ///< Maximum lateral force [kN]
         double fys_pn, fys_p2n;    ///< Lateral load at sliding [kN]
         double sym_pn, sym_p2n;    ///< Slip sy at maximum lateral load Fy
