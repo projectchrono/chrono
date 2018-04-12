@@ -14,6 +14,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <vector>
 #define _USE_MATH_DEFINES
@@ -26,16 +27,58 @@
  * Discrete Elment info
  *
  * Observations:
- *   - The units are not specified; they are user units. Additionally, internally, Chrono::Grnular adimensiolizes
+ *   - The units are not specified; they are user units. Additionally, internally, Chrono::Granular adimensiolizes
  * evertyhing using element characteristic size, etc.
  *
  */
 namespace chrono {
+namespace granular {
 
+// How are we writing?
+enum GRN_OUTPUT_MODE { CSV, BINARY, NONE };
+// How are we stepping through time?
 enum GRN_TIME_STEPPING { AUTO, USER_SET };
 
 class CH_GRANULAR_API ChGRN_DE_Container {
+  public:
+    ChGRN_DE_Container()
+        : time_stepping(GRN_TIME_STEPPING::AUTO),
+          nDEs(0),
+          p_d_CM_X(nullptr),
+          p_d_CM_Y(nullptr),
+          p_d_CM_Z(nullptr),
+          p_d_CM_XDOT(nullptr),
+          p_d_CM_YDOT(nullptr),
+          p_d_CM_ZDOT(nullptr),
+          p_device_SD_NumOf_DEs_Touching(nullptr),
+          p_device_DEs_in_SD_composite(nullptr) {}
+
+    ~ChGRN_DE_Container() {}
+
+    inline unsigned int elementCount() const { return nDEs; }
+    inline unsigned int get_SD_count() const { return nSDs; }
+    void set_gravitational_acceleration(float xVal, float yVal, float zVal) {
+        X_accGrav = xVal;
+        Y_accGrav = yVal;
+        Z_accGrav = zVal;
+    }
+
+    virtual void generate_DEs() = 0;
+    virtual void setBDPositionFunction(std::function<double(double)> fx,
+                                       std::function<double(double)> fy,
+                                       std::function<double(double)> fz) {
+        BDPositionFunctionX = fx;
+        BDPositionFunctionY = fy;
+        BDPositionFunctionZ = fz;
+    }
+
+    virtual void setOutputMode(GRN_OUTPUT_MODE mode) { file_write_mode = mode; }
+
   protected:
+    // Default is CSV
+    /// How to write the output files?
+    GRN_OUTPUT_MODE file_write_mode = CSV;
+
     double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
     double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
     double MASS_UNIT;    //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
@@ -53,6 +96,12 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     std::vector<int, cudallocator<int>> h_XDOT_DE;
     std::vector<int, cudallocator<int>> h_YDOT_DE;
     std::vector<int, cudallocator<int>> h_ZDOT_DE;
+
+    /// Store the prescribed position function for the BD, used for wavetank-y stuff
+    // Default is at rest
+    std::function<double(double)> BDPositionFunctionX = [](double a) { return 0; };
+    std::function<double(double)> BDPositionFunctionY = [](double a) { return 0; };
+    std::function<double(double)> BDPositionFunctionZ = [](double a) { return 0; };
 
     /// The position of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
     int BD_frame_X;
@@ -100,37 +149,38 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
     virtual void switch_to_SimUnits() = 0;
-
-  public:
-    ChGRN_DE_Container()
-        : time_stepping(GRN_TIME_STEPPING::AUTO),
-          nDEs(0),
-          p_d_CM_X(nullptr),
-          p_d_CM_Y(nullptr),
-          p_d_CM_Z(nullptr),
-          p_d_CM_XDOT(nullptr),
-          p_d_CM_YDOT(nullptr),
-          p_d_CM_ZDOT(nullptr),
-          p_device_SD_NumOf_DEs_Touching(nullptr),
-          p_device_DEs_in_SD_composite(nullptr) {}
-
-    ~ChGRN_DE_Container() {}
-
-    inline unsigned int elementCount() const { return nDEs; }
-    inline unsigned int get_SD_count() const { return nSDs; }
-    void set_gravitational_acceleration(float xVal, float yVal, float zVal) {
-        X_accGrav = xVal;
-        Y_accGrav = yVal;
-        Z_accGrav = zVal;
-    }
-
-    virtual void generate_DEs() = 0;
 };
 
 /**
  * ChGRN_DE_MONODISP_SPH_IN_BOX: Mono-disperse setup, one radius for all spheres
  */
 class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Container {
+  public:
+    ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH, float density) : ChGRN_DE_Container() {
+        sphere_radius = radiusSPH;
+        sphere_density = density;
+
+        psi_T_Factor = PSI_T;
+        psi_h_Factor = PSI_h;
+        psi_L_Factor = PSI_L;
+    }
+
+    ~ChGRN_DE_MONODISP_SPH_IN_BOX_SMC() {}
+
+    virtual void settle(float t_end) = 0;
+
+    virtual void setFillBounds(float, float, float, float, float, float) = 0;
+
+    void setBOXdims(float L_DIM, float D_DIM, float H_DIM) {
+        box_L = L_DIM;
+        box_D = D_DIM;
+        box_H = H_DIM;
+    }
+    inline void YoungModulus_SPH2SPH(double someValue) { modulusYoung_SPH2SPH = someValue; }
+    inline void YoungModulus_SPH2WALL(double someValue) { modulusYoung_SPH2WALL = someValue; }
+
+    inline size_t nSpheres() { return nDEs; }
+
   protected:
     float sphere_radius;   /// User defined radius of the sphere
     float sphere_density;  /// User defined density of the sphere
@@ -161,29 +211,6 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
     void partition_BD();
 
     void switch_to_SimUnits();
-
-  public:
-    ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH, float density) : ChGRN_DE_Container() {
-        sphere_radius = radiusSPH;
-        sphere_density = density;
-
-        psi_T_Factor = PSI_T;
-        psi_h_Factor = PSI_h;
-        psi_L_Factor = PSI_L;
-    }
-
-    ~ChGRN_DE_MONODISP_SPH_IN_BOX_SMC() {}
-
-    virtual void settle(float t_end) = 0;
-    void setBOXdims(float L_DIM, float D_DIM, float H_DIM) {
-        box_L = L_DIM;
-        box_D = D_DIM;
-        box_H = H_DIM;
-    }
-    inline void YoungModulus_SPH2SPH(double someValue) { modulusYoung_SPH2SPH = someValue; }
-    inline void YoungModulus_SPH2WALL(double someValue) { modulusYoung_SPH2WALL = someValue; }
-
-    inline size_t nSpheres() { return nDEs; }
 };
 
 /**
@@ -191,12 +218,6 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
  * which means that there is no need to keep data that stores history for contacts
  */
 class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MONODISP_SPH_IN_BOX_SMC {
-  protected:
-    virtual void copyCONSTdata_to_device();
-    virtual void copyBD_Frame_to_device();
-
-    virtual void cleanup_simulation();
-
   public:
     ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH, float density)
         : ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, density) {}
@@ -205,11 +226,31 @@ class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MON
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void settle(float t_end);
+    /// Set bounds to fill on the big box, goes xyz min, xyz max as floats from -1 to 1
+    /// Passing xmin = -1, xmax = 1 means fill the box in xdir
+    // TODO comment this more
+    virtual void setFillBounds(float, float, float, float, float, float);
+
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string, bool, bool);
     void writeFile(std::string, unsigned int*);
     void copyDataBackToHost();
     virtual void generate_DEs();
-};
 
+  protected:
+    virtual void copyCONSTdata_to_device();
+    virtual void copyBD_Frame_to_device();
+
+    virtual void cleanup_simulation();
+
+    /// amount to fill box, as proportions of half-length
+    /// Default is full box
+    float boxFillXmin = -1;
+    float boxFillYmin = -1;
+    float boxFillZmin = -1;
+    float boxFillXmax = 1;
+    float boxFillYmax = 1;
+    float boxFillZmax = 1;
+};
+}  // namespace granular
 }  // namespace chrono

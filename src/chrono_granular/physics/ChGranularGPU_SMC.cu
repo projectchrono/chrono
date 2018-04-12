@@ -16,6 +16,7 @@
 #include <cassert>
 #include <cstdio>
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -26,8 +27,6 @@
 #include "chrono_granular/physics/ChGranularDefines.cuh"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
-__constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
-
 // These are the max X, Y, Z dimensions in the BD frame
 #define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
 #define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
@@ -37,18 +36,19 @@ __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere
 // TODO we need to get the damping coefficient from user
 #define GAMMA_N .01
 
-__constant__ unsigned int d_SD_Ldim_SU;    //!< Ad-ed L-dimension of the SD box
-__constant__ unsigned int d_SD_Ddim_SU;    //!< Ad-ed D-dimension of the SD box
-__constant__ unsigned int d_SD_Hdim_SU;    //!< Ad-ed H-dimension of the SD box
-__constant__ unsigned int psi_T_dFactor;   //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_h_dFactor;   //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_L_dFactor;   //!< factor used in establishing the software-time-unit
-__constant__ unsigned int d_box_L_SU;      //!< Ad-ed L-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_D_SU;      //!< Ad-ed D-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_H_SU;      //!< Ad-ed H-dimension of the BD box in multiples of subdomains
-__constant__ float gravAcc_X_d_factor_SU;  //!< Device counterpart of the constant gravAcc_X_factor_SU
-__constant__ float gravAcc_Y_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Y_factor_SU
-__constant__ float gravAcc_Z_d_factor_SU;  //!< Device counterpart of the constant gravAcc_Z_factor_SU
+__constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
+__constant__ unsigned int d_SD_Ldim_SU;                //!< Ad-ed L-dimension of the SD box
+__constant__ unsigned int d_SD_Ddim_SU;                //!< Ad-ed D-dimension of the SD box
+__constant__ unsigned int d_SD_Hdim_SU;                //!< Ad-ed H-dimension of the SD box
+__constant__ unsigned int psi_T_dFactor;               //!< factor used in establishing the software-time-unit
+__constant__ unsigned int psi_h_dFactor;               //!< factor used in establishing the software-time-unit
+__constant__ unsigned int psi_L_dFactor;               //!< factor used in establishing the software-time-unit
+__constant__ unsigned int d_box_L_SU;                  //!< Ad-ed L-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_D_SU;                  //!< Ad-ed D-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_H_SU;                  //!< Ad-ed H-dimension of the BD box in multiples of subdomains
+__constant__ float gravAcc_X_d_factor_SU;              //!< Device counterpart of the constant gravAcc_X_factor_SU
+__constant__ float gravAcc_Y_d_factor_SU;              //!< Device counterpart of the constant gravAcc_Y_factor_SU
+__constant__ float gravAcc_Z_d_factor_SU;              //!< Device counterpart of the constant gravAcc_Z_factor_SU
 
 __constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
@@ -856,7 +856,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     }
 }
 /// Copy most constant data to device, this should run at start
-__host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
+__host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_SU, &SD_L_SU, sizeof(d_SD_Ldim_SU)));
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ddim_SU, &SD_D_SU, sizeof(d_SD_Ddim_SU)));
@@ -881,7 +881,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyCONSTdata_to_dev
 
 /// Similar to the copyCONSTdata_to_device, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
-__host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyBD_Frame_to_device() {
+__host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyBD_Frame_to_device() {
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X, &BD_frame_X, sizeof(BD_frame_X)));
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y, &BD_frame_Y, sizeof(BD_frame_Y)));
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z, &BD_frame_Z, sizeof(BD_frame_Z)));
@@ -892,7 +892,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyBD_Frame_to_devi
 }
 
 /// Copy positions and velocities back to host
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost() {
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost() {
     // Copy back positions
     gpuErrchk(cudaMemcpy(h_X_DE.data(), p_d_CM_X, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
     gpuErrchk(cudaMemcpy(h_Y_DE.data(), p_d_CM_Y, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
@@ -903,9 +903,9 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost() {
 }
 
 // Check number of spheres in each SD and dump relevant info to file
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofile,
-                                                                 bool write_out = false,
-                                                                 bool verbose = false) {
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofile,
+                                                                           bool write_out = false,
+                                                                           bool verbose = false) {
     copyDataBackToHost();
     // Count of DEs in each SD
     unsigned int* sdvals = new unsigned int[nSDs];
@@ -959,25 +959,52 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofi
     delete[] deCounts;
 }
 
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, unsigned int* deCounts) {
-    // copyDataBackToHost(); // unnecessary if called by checkSDCounts()
-    std::ofstream ptFile{ofile};
-    // Dump to a stream, write to file only at end
-    std::ostringstream outstrstream;
-    outstrstream << "x,y,z,vx,vy,vz,absv,nTouched" << std::endl;
-    for (unsigned int n = 0; n < nDEs; n++) {
-        // Easy cheat -- make a vector and then get the length. Probably super slow
-        // Actually not that slow
-        ChVector<float> velVec(h_XDOT_DE.at(n), h_YDOT_DE.at(n), h_ZDOT_DE.at(n));
-        outstrstream << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << h_XDOT_DE.at(n) << ","
-                     << h_YDOT_DE.at(n) << "," << h_ZDOT_DE.at(n) << "," << velVec.Length() << "," << deCounts[n]
-                     << std::endl;
-    }
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, unsigned int* deCounts) {
+    // copyDataBackToHost();
+    // unnecessary if called by checkSDCounts()
     // TODO an asynch file write could be nice, this is a major bottleneck
-    ptFile << outstrstream.str();
+    if (file_write_mode == GRN_OUTPUT_MODE::BINARY) {
+        std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
+
+        // Dump to a stream, write to file only at end
+        for (unsigned int n = 0; n < nDEs; n++) {
+            unsigned int absv =
+                (unsigned int)sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
+                                   h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
+            // outstrstream << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << h_XDOT_DE.at(n) <<
+            // ","
+            //              << h_YDOT_DE.at(n) << "," << h_ZDOT_DE.at(n) << "," << absv << "," << deCounts[n] << "\n";
+
+            ptFile.write((const char*)&h_X_DE.at(n), sizeof(int));
+            ptFile.write((const char*)&h_Y_DE.at(n), sizeof(int));
+            ptFile.write((const char*)&h_Z_DE.at(n), sizeof(int));
+            ptFile.write((const char*)&h_XDOT_DE.at(n), sizeof(int));
+            ptFile.write((const char*)&h_YDOT_DE.at(n), sizeof(int));
+            ptFile.write((const char*)&h_ZDOT_DE.at(n), sizeof(int));
+            ptFile.write((const char*)&absv, sizeof(int));
+            ptFile.write((const char*)&deCounts[n], sizeof(int));
+        }
+        // ptFile << outstrstream.str();
+    } else if (file_write_mode == GRN_OUTPUT_MODE::CSV) {
+        std::ofstream ptFile(ofile + ".csv", std::ios::out);
+
+        std::ostringstream outstrstream;
+
+        outstrstream << "x,y,z,vx,vy,vz,absv,nTouched\n";
+
+        for (unsigned int n = 0; n < nDEs; n++) {
+            unsigned int absv =
+                (unsigned int)sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
+                                   h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
+            outstrstream << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << h_XDOT_DE.at(n) << ","
+                         << h_YDOT_DE.at(n) << "," << h_ZDOT_DE.at(n) << "," << absv << "," << deCounts[n] << "\n";
+        }
+
+        ptFile << outstrstream.str();
+    }
 }
 
-__host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
+__host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     switch_to_SimUnits();
     generate_DEs();
     printf("radius is %u\n", monoDisperseSphRadius_SU);
@@ -1004,8 +1031,8 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
     gpuErrchk(cudaDeviceSynchronize());
     // Check in first timestep
-    checkSDCounts("../results/step000000.csv", true, false);
-    // printf("counts checked\n");
+    checkSDCounts("../results/step000000", true, false);
+
     // Settling simulation loop.
     unsigned int stepSize_SU = 5;
     unsigned int tEnd_SU = std::ceil(tEnd / TIME_UNIT);
@@ -1013,13 +1040,15 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     unsigned int currstep = 0;
     // Which frame am I rendering?
     unsigned int currframe = 1;
+
     unsigned int nsteps = (1.0 * tEnd_SU) / stepSize_SU;
+
     printf("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
            tEnd / nsteps);
     // uncomment the line below to restrict the runtime for debugging purposes
-    // nsteps = 50;
+    nsteps = 4000;
     // Make the BD move a little in the x dir
-    bool waveTank = true;
+    bool waveTank = false;
     int BD_frame_X_initial = BD_frame_X;  // Initialized in partitionBD
     // printf("init is %d\n", BD_frame_X_initial);
     // int BD_frame_Y_initial = BD_frame_Y;
@@ -1081,7 +1110,7 @@ __host__ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
             printf("currstep is %u, rendering frame %u\n", currstep, currframe);
 
             char filename[100];
-            sprintf(filename, "../results/step%06d.csv", currframe++);
+            sprintf(filename, "../results/step%06d", currframe++);
             checkSDCounts(std::string(filename), true, false);
         }
     }

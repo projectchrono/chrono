@@ -2,6 +2,7 @@
 import os
 from os import walk
 import sys
+from glob import glob
 
 fps = 60  # TODO
 width = 1024  # TODO
@@ -20,9 +21,12 @@ file_names = []
 # CSV fields (and header)
 fieldstring = 'x,y,z,vx,vy,vz,absv,nTouched\n'
 
-for (dirpath, dirnames, filenames) in walk(dirname):
-    file_names.extend(filenames)
-    break
+os.chdir(dirname)
+
+for filename in glob("*.csv"):
+    if filename[-4:] == ".csv":
+        file_names.append(filename)
+
 
 for i in range(len(file_names) - 1, 0, -1):
     if file_names[i][0] == '.':
@@ -39,6 +43,7 @@ for i in range(len(file_names)):
 
     # xml outfile
     xmlfilename = str(file_names[i])[:len(file_names[i]) - 4] + '.xml'
+    print "Writing to", xmlfilename
     outfile = open(xmlfilename, 'w')
 
     outfile.write('<?xml version=\"1.0\" encoding=\"utf-8\"?>\n')
@@ -48,7 +53,7 @@ for i in range(len(file_names)):
     outfile.write('\t<sensor type=\"perspective\">\n')
     outfile.write('\t\t<string name=\"fovAxis\" value=\"smaller\"/>\n')
     outfile.write('\t\t<transform name=\"toWorld\">\n')
-    outfile.write('\t\t\t<lookAt origin=\"3, 0, 0\" target=\"0, 0, 0\" up=\"0, 0, 1\"/>\n')
+    outfile.write('\t\t\t<lookAt origin=\"-12708787, -12708787, 5338924\" target=\"0, 0, 0\" up=\"0, 0, 1\"/>\n')
     outfile.write('\t\t</transform>\n')
     outfile.write('\t\t<float name=\"fov\" value=\"39\"/>\n')
     outfile.write('\t\t<sampler type=\"ldsampler\">\n')
@@ -62,10 +67,12 @@ for i in range(len(file_names)):
     outfile.write('\t</sensor>\n')
 
     # Add light source
-    outfile.write('\t<emitter type=\"point\">\n')
-    outfile.write('\t\t<spectrum name=\"intensity\" value=\"10\"/>\n')
-    outfile.write('\t\t<point name=\"position\" x=\"0\" y=\"0\" z=\"1\"/>\n')
-    outfile.write('\t</emitter>\n')
+    # outfile.write('\t<shape type=\"sphere\">\n')
+    # outfile.write('\t\t<emitter type=\"area\">\n')
+    # outfile.write('\t\t\t<spectrum name=\"radiance\" value=\"20\"/>\n')
+    # # outfile.write('\t\t<point name=\"position\" x=\"-12708787\" y=\"-12708787\" z=\"5338924\"/>\n')
+    # outfile.write('\t\t</emitter>\n')
+    # outfile.write('\t</sphere>\n')
 
     # # Add scene box
     # outfile.write('\t<shape type=\"obj\">\n')
@@ -73,21 +80,28 @@ for i in range(len(file_names)):
     # outfile.write('\t</shape>\n')
 
     # Create a sphere entry for each body
-    print file_names[i]
+    print "Reading from", file_names[i]
     lines = infile.readlines()
     for j in range(1, len(lines), 1):
         line = lines[j]
-        print line
+        # print line
         tokens = line.split(',')
-        outfile.write('\t<shape type=\"sphere\">\n')
-        outfile.write('\t\t<float name=\"radius\" value=\"' + str(rad) + '\"/>\n')
-        outfile.write('\t\t<transform name=\"toWorld\" >\n')
-        outfile.write('\t\t\t<translate x=\"' + tokens[0] + '\" y=\"' + tokens[1] + '\" z=\"' + tokens[2] + '\"/>\n')
-        outfile.write('\t\t</transform>\n')
-        outfile.write('\t\t<bsdf type=\"plastic\">')
-        outfile.write('\t\t\t<srgb name=\"diffuseReflectance\" value=\"#7A5230\"/>\n')
-        outfile.write('\t\t</bsdf>\n')
-        outfile.write('\t</shape>\n')
+        try:
+            if (len(tokens) > 3):
+                # printw
+                outfile.write('\t<shape type=\"sphere\">\n')
+                outfile.write('\t\t<float name=\"radius\" value=\"' + '1' + '\"/>\n')
+                outfile.write('\t\t<transform name=\"toWorld\" >\n')
+                outfile.write('\t\t\t<translate x=\"' + str(float(tokens[0]) / rad) +
+                              '\" y=\"' + str(float(tokens[1]) / rad) + '\" z=\"' + str(float(tokens[2]) / rad) + '\"/>\n')
+                outfile.write('\t\t</transform>\n')
+                outfile.write('\t\t<bsdf type=\"plastic\">')
+                outfile.write('\t\t\t<srgb name=\"diffuseReflectance\" value=\"#7A5230\"/>\n')
+                outfile.write('\t\t</bsdf>\n')
+                outfile.write('\t</shape>\n')
+        except IndexError:
+            print "Index error, line is ", line
+            print "Tokens is ", tokens
 
     outfile.write('</scene>\n')
     outfile.close()

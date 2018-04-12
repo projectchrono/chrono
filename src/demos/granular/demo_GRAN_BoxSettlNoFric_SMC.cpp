@@ -38,6 +38,7 @@
 // #define VISUALIZE 1
 
 using namespace chrono;
+using namespace chrono::granular;
 
 // -----------------------------------------------------------------------------
 // ID values to identify command line arguments
@@ -53,7 +54,8 @@ enum {
     OPT_BOX_H,
     OPT_GRAV_ACC,
     OPT_STIFFNESS_S2S,
-    OPT_STIFFNESS_S2W
+    OPT_STIFFNESS_S2W,
+    OPT_WRITE_MODE
 };
 
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
@@ -64,6 +66,7 @@ enum {
 CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_TIMEEND, "-e", SO_REQ_SEP},
                                     {OPT_DENSITY, "--density", SO_REQ_SEP},
+                                    {OPT_WRITE_MODE, "--write_mode", SO_REQ_SEP},
                                     {OPT_BOX_L, "--boxlength", SO_REQ_SEP},
                                     {OPT_BOX_D, "--boxdepth", SO_REQ_SEP},
                                     {OPT_BOX_H, "--boxheight", SO_REQ_SEP},
@@ -82,6 +85,7 @@ void showUsage() {
     std::cout << "Options:" << std::endl;
     std::cout << "-br <ball_radius>" << std::endl;
     std::cout << "--density=<density>" << std::endl;
+    std::cout << "--write_mode=<write_mode>" << std::endl;
     std::cout << "-e=<time_end>" << std::endl;
     std::cout << "--boxlength=<box_length>" << std::endl;
     std::cout << "--boxdepth=<box_depth>" << std::endl;
@@ -105,7 +109,8 @@ bool GetProblemSpecs(int argc,
                      float& gravAcc,
                      float& normalStiffS2S,
                      float& normalStiffS2W,
-                     float& time_end) {
+                     float& time_end,
+                     GRN_OUTPUT_MODE& write_mode) {
     // Create the option parser and pass it the program arguments and the array of valid options.
     CSimpleOptA args(argc, argv, g_options);
 
@@ -125,6 +130,15 @@ bool GetProblemSpecs(int argc,
                 return false;
             case OPT_DENSITY:
                 ballDensity = std::stof(args.OptionArg());
+                break;
+            case OPT_WRITE_MODE:
+                if (args.OptionArg() == std::string("binary")) {
+                    write_mode = GRN_OUTPUT_MODE::BINARY;
+                } else if (args.OptionArg() == std::string("csv")) {
+                    write_mode = GRN_OUTPUT_MODE::CSV;
+                } else if (args.OptionArg() == std::string("none")) {
+                    write_mode = GRN_OUTPUT_MODE::NONE;
+                }
                 break;
             case OPT_BALL_RADIUS:
                 ball_radius = std::stof(args.OptionArg());
@@ -165,7 +179,7 @@ int main(int argc, char* argv[]) {
 #define BOX_H_cm 12.f
 #define RADIUS 1.f
 #define SPH_DENSITY 1.50f
-#define TIME_END 2.f
+#define TIME_END 4.f
 #define GRAV_ACCELERATION 980.f
 #define NORMAL_STIFFNESS_S2S 1e7f
 #define NORMAL_STIFFNESS_S2W 1e7f
@@ -182,10 +196,11 @@ int main(int argc, char* argv[]) {
     float grav_acceleration = GRAV_ACCELERATION;
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
+    GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W) == false)
+                        normStiffness_S2S, normStiffness_S2W, write_mode) == false)
         return 1;
 
     // Setup simulation
@@ -194,7 +209,9 @@ int main(int argc, char* argv[]) {
     settlingExperiment.YoungModulus_SPH2SPH(normStiffness_S2S);
     settlingExperiment.YoungModulus_SPH2WALL(normStiffness_S2W);
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
-
+    settlingExperiment.setOutputMode(write_mode);
+    // Make a dam break style sim
+    // settlingExperiment.setFillBounds(-1.f, -.5f, -1.f, 1.f, -1.f, 0.f);
     // Run settline experiments
     settlingExperiment.settle(timeEnd);
     return 0;

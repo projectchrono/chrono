@@ -22,7 +22,7 @@
 template <int>
 __global__ void primingOperationsRectangularBox(int*, int*, int*, unsigned int*, unsigned int*, unsigned int);
 
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation() {
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation() {
     // Handle position level information
     if (p_d_CM_X != nullptr) {
         gpuErrchk(cudaFree(p_d_CM_X));
@@ -65,7 +65,7 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation() {
 /** This method sets up the data structures used to perform a simulation.
  *
  */
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     partition_BD();
 
     // set aside device memory to store the position of the CM of the spheres
@@ -105,7 +105,22 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     gpuErrchk(cudaMemset(p_d_CM_ZDOT_update, 0, nDEs * sizeof(int)));
 }
 
-void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
+// Set the bounds to fill in our box
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setFillBounds(float xmin,
+                                                                           float ymin,
+                                                                           float zmin,
+                                                                           float xmax,
+                                                                           float ymax,
+                                                                           float zmax) {
+    boxFillXmin = xmin;
+    boxFillYmin = ymin;
+    boxFillZmin = zmin;
+    boxFillXmax = xmax;
+    boxFillYmax = ymax;
+    boxFillZmax = zmax;
+}
+
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     // Create the falling balls
     float ball_epsilon = monoDisperseSphRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
     printf("eps is %f, rad is %5f\n", ball_epsilon, monoDisperseSphRadius_SU * 1.0f);
@@ -113,14 +128,25 @@ void chrono::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     chrono::utils::HCPSampler<float> sampler(2.4 * monoDisperseSphRadius_SU);  // Add epsilon
 
     // We need to pass in half-length box here
-    float generateHalfDepth = box_H / (3. * LENGTH_UNIT);
+
     // generate from bottom to twice the generateDepth
-    float generateZ = -box_H / (2. * LENGTH_UNIT) + generateHalfDepth;
-    ChVector<float> boxCenter(0, 0, generateZ);
+    // average high and low to get midpoint of generation
+    float xmid = box_L * (boxFillXmax + boxFillXmin) / (4. * LENGTH_UNIT);
+    float ymid = box_D * (boxFillYmax + boxFillYmin) / (4. * LENGTH_UNIT);
+    float zmid = box_H * (boxFillZmax + boxFillZmin) / (4. * LENGTH_UNIT);
+    // half-spans in each dimension, the difference
+    float xlen = abs(box_L * (boxFillXmax - boxFillXmin) / (4. * LENGTH_UNIT));
+    float ylen = abs(box_D * (boxFillYmax - boxFillYmin) / (4. * LENGTH_UNIT));
+    float zlen = abs(box_H * (boxFillZmax - boxFillZmin) / (4. * LENGTH_UNIT));
+    float generateHalfDepth = box_H / (3. * LENGTH_UNIT);
+
+    // float generateX = -box_D / (2. * LENGTH_UNIT) + generateHalfDepth;
+    // float generateY = -box_D / (2. * LENGTH_UNIT) + generateHalfDepth;
+    // float generateZ = -box_H / (2. * LENGTH_UNIT) + generateHalfHeight;
+    ChVector<float> boxCenter(xmid, ymid, zmid);
     // We need to subtract off a sphere radius to ensure we don't get put at the edge
-    ChVector<float> hdims{float(box_L / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU),
-                          float(box_D / (2. * LENGTH_UNIT) - monoDisperseSphRadius_SU),
-                          float(generateHalfDepth - monoDisperseSphRadius_SU)};
+    ChVector<float> hdims{xlen - monoDisperseSphRadius_SU, ylen - monoDisperseSphRadius_SU,
+                          zlen - monoDisperseSphRadius_SU};
     std::vector<ChVector<float>> points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
 
     nDEs = (unsigned int)points.size();
@@ -176,7 +202,7 @@ in order to cover the entire BD.
 BD: Bid domain.
 SD: Sub-domain.
 */
-void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
+void chrono::granular::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
     double tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_L_DIR;
     unsigned int howMany = (unsigned int)(std::ceil(box_L / tempDIM));
     // work with an even kFac to hit the CM of the box.
@@ -222,7 +248,7 @@ void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
 This method define the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
 of various physical quantities set by the user.
 */
-void chrono::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::switch_to_SimUnits() {
+void chrono::granular::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     MASS_UNIT = massSphere;
     K_stiffness = (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL);
