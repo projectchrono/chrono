@@ -51,7 +51,11 @@ class CH_GRANULAR_API ChGRN_DE_Container {
           p_d_CM_YDOT(nullptr),
           p_d_CM_ZDOT(nullptr),
           p_device_SD_NumOf_DEs_Touching(nullptr),
-          p_device_DEs_in_SD_composite(nullptr) {}
+          p_device_DEs_in_SD_composite(nullptr) {
+        // Allow us to use the fancy cudalloc mapped memory
+        cudaSetDeviceFlags(cudaDeviceMapHost);
+        // gpuErrchk(cudaDeviceReset());
+    }
 
     ~ChGRN_DE_Container() {}
 
@@ -64,20 +68,19 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     }
 
     virtual void generate_DEs() = 0;
-    virtual void setBDPositionFunction(std::function<double(double)> fx,
-                                       std::function<double(double)> fy,
-                                       std::function<double(double)> fz) {
-        BDPositionFunctionX = fx;
-        BDPositionFunctionY = fy;
-        BDPositionFunctionZ = fz;
-    }
 
+    /// Set the output mode of the simulation
     virtual void setOutputMode(GRN_OUTPUT_MODE mode) { file_write_mode = mode; }
+    /// Set the simulation's output directory, files are output as step%06d, where the number is replaced by the current
+    /// render frame. This directory is assumed to be created by the user, either manually or in the driver file.
+    virtual void setOutputDirectory(std::string dir) { output_directory = dir; }
 
   protected:
     // Default is CSV
     /// How to write the output files?
     GRN_OUTPUT_MODE file_write_mode = CSV;
+    /// Directory to write to, this code assumes it already exists
+    std::string output_directory;
 
     double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
     double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
@@ -96,22 +99,6 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     std::vector<int, cudallocator<int>> h_XDOT_DE;
     std::vector<int, cudallocator<int>> h_YDOT_DE;
     std::vector<int, cudallocator<int>> h_ZDOT_DE;
-
-    /// Store the prescribed position function for the BD, used for wavetank-y stuff
-    // Default is at rest
-    std::function<double(double)> BDPositionFunctionX = [](double a) { return 0; };
-    std::function<double(double)> BDPositionFunctionY = [](double a) { return 0; };
-    std::function<double(double)> BDPositionFunctionZ = [](double a) { return 0; };
-
-    /// The position of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
-    int BD_frame_X;
-    int BD_frame_Y;
-    int BD_frame_Z;
-
-    /// The velocity of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
-    int BD_frame_X_dot;
-    int BD_frame_Y_dot;
-    int BD_frame_Z_dot;
 
     /// Device pointers
     int* p_d_CM_X;
@@ -145,7 +132,6 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
     virtual void partition_BD() = 0;
     virtual void copyCONSTdata_to_device() = 0;
-    virtual void copyBD_Frame_to_device() = 0;
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
     virtual void switch_to_SimUnits() = 0;
@@ -169,7 +155,20 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
 
     virtual void settle(float t_end) = 0;
 
+    /// Set the BD to be fixed or not, if fixed it will ignore any given position functions
+    virtual void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
+
     virtual void setFillBounds(float, float, float, float, float, float) = 0;
+
+    /// Prescribe the motion of the BD, allows wavetank-style simulations
+    /// NOTE that this is the center of the container
+    virtual void setBDPositionFunction(std::function<double(double)> fx,
+                                       std::function<double(double)> fy,
+                                       std::function<double(double)> fz) {
+        BDPositionFunctionX = fx;
+        BDPositionFunctionY = fy;
+        BDPositionFunctionZ = fz;
+    }
 
     void setBOXdims(float L_DIM, float D_DIM, float H_DIM) {
         box_L = L_DIM;
@@ -208,6 +207,29 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
     unsigned int nSDs_D_SU;  //!< Number of SDs along the D dimension of the box
     unsigned int nSDs_H_SU;  //!< Number of SDs along the H dimension of the box
 
+    /// Store the prescribed position function for the BD, used for wavetank-y stuff
+    // Default is at rest
+    std::function<double(double)> BDPositionFunctionX = [](double a) { return 0; };
+    std::function<double(double)> BDPositionFunctionY = [](double a) { return 0; };
+    std::function<double(double)> BDPositionFunctionZ = [](double a) { return 0; };
+
+    /// The position of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
+    int BD_frame_X;
+    int BD_frame_Y;
+    int BD_frame_Z;
+
+    /// The velocity of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
+    int BD_frame_X_dot;
+    int BD_frame_Y_dot;
+    int BD_frame_Z_dot;
+
+    /// Allow the user to set the BD to be fixed, ignoring any given position functions
+    bool BD_is_fixed = true;
+    virtual void copyBD_Frame_to_device() = 0;
+
+    // Force an update of the BD position and velocity
+    virtual void updateBDPosition(double, double) = 0;
+
     void partition_BD();
 
     void switch_to_SimUnits();
@@ -236,6 +258,7 @@ class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MON
     void writeFile(std::string, unsigned int*);
     void copyDataBackToHost();
     virtual void generate_DEs();
+    virtual void updateBDPosition(double, double);
 
   protected:
     virtual void copyCONSTdata_to_device();

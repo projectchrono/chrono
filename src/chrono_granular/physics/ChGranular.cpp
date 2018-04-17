@@ -68,6 +68,9 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation(
 void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     partition_BD();
 
+    // unsigned int cumemflags = 0;
+    // gpuErrchk(cudaHostGetFlags(&cumemflags, h_X_DE.data()));
+
     // set aside device memory to store the position of the CM of the spheres
     gpuErrchk(cudaMalloc(&p_d_CM_X, nDEs * sizeof(int)));
     gpuErrchk(cudaMalloc(&p_d_CM_Y, nDEs * sizeof(int)));
@@ -264,6 +267,8 @@ void chrono::granular::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::switch_to_SimUnits() {
     gravAcc_X_factor_SU = scalingFactor * X_accGrav / magGravAcc;
     gravAcc_Y_factor_SU = scalingFactor * Y_accGrav / magGravAcc;
     gravAcc_Z_factor_SU = scalingFactor * Z_accGrav / magGravAcc;
-    printf("gravity is %f, %f, %f\n", gravAcc_X_factor_SU, gravAcc_Y_factor_SU, gravAcc_Z_factor_SU);
-    printf("mass is %f\n", MASS_UNIT);
+    // Handy debug output
+    printf("SU gravity is %f, %f, %f\n", gravAcc_X_factor_SU, gravAcc_Y_factor_SU, gravAcc_Z_factor_SU);
+    printf("SU mass is %f\n", MASS_UNIT);
+    printf("SU radius is %u\n", monoDisperseSphRadius_SU);
 }

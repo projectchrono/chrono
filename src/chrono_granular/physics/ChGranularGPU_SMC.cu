@@ -34,7 +34,7 @@
 // Use user-defined quantities for coefficients
 #define K_N (1.f / (1.f * psi_T_dFactor * psi_T_dFactor * psi_h_dFactor))
 // TODO we need to get the damping coefficient from user
-#define GAMMA_N .01
+#define GAMMA_N .05
 
 __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
 __constant__ unsigned int d_SD_Ldim_SU;                //!< Ad-ed L-dimension of the SD box
@@ -962,18 +962,16 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::
 void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::string ofile, unsigned int* deCounts) {
     // copyDataBackToHost();
     // unnecessary if called by checkSDCounts()
-    // TODO an asynch file write could be nice, this is a major bottleneck
+    // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRN_OUTPUT_MODE::BINARY) {
+        // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
+        // much faster write due to no formatting
         std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
 
-        // Dump to a stream, write to file only at end
         for (unsigned int n = 0; n < nDEs; n++) {
             unsigned int absv =
                 (unsigned int)sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
                                    h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
-            // outstrstream << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << h_XDOT_DE.at(n) <<
-            // ","
-            //              << h_YDOT_DE.at(n) << "," << h_ZDOT_DE.at(n) << "," << absv << "," << deCounts[n] << "\n";
 
             ptFile.write((const char*)&h_X_DE.at(n), sizeof(int));
             ptFile.write((const char*)&h_Y_DE.at(n), sizeof(int));
@@ -984,12 +982,12 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::stri
             ptFile.write((const char*)&absv, sizeof(int));
             ptFile.write((const char*)&deCounts[n], sizeof(int));
         }
-        // ptFile << outstrstream.str();
     } else if (file_write_mode == GRN_OUTPUT_MODE::CSV) {
+        // CSV is much slower but requires less postprocessing
         std::ofstream ptFile(ofile + ".csv", std::ios::out);
 
+        // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
-
         outstrstream << "x,y,z,vx,vy,vz,absv,nTouched\n";
 
         for (unsigned int n = 0; n < nDEs; n++) {
@@ -1001,13 +999,36 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::stri
         }
 
         ptFile << outstrstream.str();
+    } else if (file_write_mode == GRN_OUTPUT_MODE::NONE) {
+        // Do nothing, only here for symmetry
+    }
+}
+
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::updateBDPosition(const double currTime_SU,
+                                                                              const double stepSize_SU) {
+    float timef = (1.f * currTime_SU * TIME_UNIT);
+    if (!BD_is_fixed) {
+        // Frequency of oscillation
+        float frame_X_old = BD_frame_X;
+        float frame_Y_old = BD_frame_Y;
+        float frame_Z_old = BD_frame_Z;
+        // Put the bottom-left corner of box wherever the user told us to
+        BD_frame_X = (box_L * (BDPositionFunctionX(timef))) / LENGTH_UNIT;
+        BD_frame_Y = (box_D * (BDPositionFunctionY(timef))) / LENGTH_UNIT;
+        BD_frame_Z = (box_H * (BDPositionFunctionZ(timef))) / LENGTH_UNIT;
+        // velocity is time derivative of position, use a first-order approximation to avoid continuity issues
+        // NOTE that as of 4/16/2018, the wall damping term is disabled due to some instability
+        BD_frame_X_dot = (BD_frame_X - frame_X_old) / (stepSize_SU);
+        BD_frame_Y_dot = (BD_frame_Y - frame_Y_old) / (stepSize_SU);
+        BD_frame_Z_dot = (BD_frame_Z - frame_Z_old) / (stepSize_SU);
+
+        copyBD_Frame_to_device();
     }
 }
 
 __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
     switch_to_SimUnits();
     generate_DEs();
-    printf("radius is %u\n", monoDisperseSphRadius_SU);
 
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
@@ -1016,14 +1037,14 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
     gpuErrchk(cudaDeviceSynchronize());
 
     // Seed arrays that are populated by the kernel call
-    const unsigned char allBitsOne = (unsigned char)-1;  // all bits of this variable are 1.
+    // const unsigned char allBitsOne = (unsigned char)-1;  // all bits of this variable are 1.
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(
-        cudaMemset(p_device_DEs_in_SD_composite, allBitsOne, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, NULL_GRANULAR_ID,
+                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
-    /// Figure our the number of blocks that need to be launched to cover the box
+    // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     printf("doing priming!\n");
 
@@ -1031,10 +1052,10 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
         p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
     gpuErrchk(cudaDeviceSynchronize());
     // Check in first timestep
-    checkSDCounts("../results/step000000", true, false);
+    checkSDCounts(output_directory + "/step000000", true, false);
 
     // Settling simulation loop.
-    unsigned int stepSize_SU = 5;
+    unsigned int stepSize_SU = 4;
     unsigned int tEnd_SU = std::ceil(tEnd / TIME_UNIT);
     // Which timestep is it?
     unsigned int currstep = 0;
@@ -1045,33 +1066,12 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
 
     printf("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
            tEnd / nsteps);
-    // uncomment the line below to restrict the runtime for debugging purposes
-    nsteps = 4000;
-    // Make the BD move a little in the x dir
-    bool waveTank = false;
-    int BD_frame_X_initial = BD_frame_X;  // Initialized in partitionBD
-    // printf("init is %d\n", BD_frame_X_initial);
-    // int BD_frame_Y_initial = BD_frame_Y;
-    // int BD_frame_Z_initial = BD_frame_Z;
-    float tWave = 1;  // # seconds after which the tank starts oscillating
+    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * gravAcc_Z_factor_SU);
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
-        // Get time in seconds, offset so that motion is continuous at start
-        float timef = (1.f * crntTime_SU * TIME_UNIT) - tWave;
-        if (waveTank && timef > 0) {
-            // Frequency of oscillation
-            float freq = 1 * CH_C_PI;
-            // float frame_x_old = BD_frame_X;
-            // Oscillate around starting pos, one cycle per second
-            BD_frame_X = BD_frame_X_initial * (1 + .5 * std::sin(timef * freq));
-            // velocity is time derivative of position
-            // BD_frame_X_dot = (BD_frame_X - frame_x_old) / (stepSize_SU);
-            // BD_frame_X_dot = -BD_frame_X_initial * freq * .5 * std::sin(timef * freq);
-            // printf("pos is %d, vel is %d, step is %f, \n", BD_frame_X, BD_frame_X_dot, (float)stepSize_SU *
-            // TIME_UNIT); BD_frame_X_dot = 0;  //-BD_frame_X_initial * freq * std::sin(timef * freq);
-            copyBD_Frame_to_device();
-        }
+        // Update the position and velocity of the BD, if relevant
+        updateBDPosition(crntTime_SU, stepSize_SU);
 
         // reset forces to zero, note that vel update ~ force for forward euler
         gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0, nDEs * sizeof(int)));
@@ -1095,7 +1095,7 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
 
         // Reset broadphase information
         gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
-        gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, allBitsOne,
+        gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, NULL_GRANULAR_ID,
                              MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
@@ -1110,7 +1110,7 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
             printf("currstep is %u, rendering frame %u\n", currstep, currframe);
 
             char filename[100];
-            sprintf(filename, "../results/step%06d", currframe++);
+            sprintf(filename, "%s/step%06d", output_directory.c_str(), currframe++);
             checkSDCounts(std::string(filename), true, false);
         }
     }

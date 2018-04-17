@@ -55,7 +55,8 @@ enum {
     OPT_GRAV_ACC,
     OPT_STIFFNESS_S2S,
     OPT_STIFFNESS_S2W,
-    OPT_WRITE_MODE
+    OPT_WRITE_MODE,
+    OPT_OUTPUT_DIR
 };
 
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
@@ -67,6 +68,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_TIMEEND, "-e", SO_REQ_SEP},
                                     {OPT_DENSITY, "--density", SO_REQ_SEP},
                                     {OPT_WRITE_MODE, "--write_mode", SO_REQ_SEP},
+                                    {OPT_OUTPUT_DIR, "--output_dir", SO_REQ_SEP},
                                     {OPT_BOX_L, "--boxlength", SO_REQ_SEP},
                                     {OPT_BOX_D, "--boxdepth", SO_REQ_SEP},
                                     {OPT_BOX_H, "--boxheight", SO_REQ_SEP},
@@ -85,7 +87,8 @@ void showUsage() {
     std::cout << "Options:" << std::endl;
     std::cout << "-br <ball_radius>" << std::endl;
     std::cout << "--density=<density>" << std::endl;
-    std::cout << "--write_mode=<write_mode>" << std::endl;
+    std::cout << "--write_mode=<write_mode> (csv, binary, or none)" << std::endl;
+    std::cout << "--output_dir=<output_dir>" << std::endl;
     std::cout << "-e=<time_end>" << std::endl;
     std::cout << "--boxlength=<box_length>" << std::endl;
     std::cout << "--boxdepth=<box_depth>" << std::endl;
@@ -106,10 +109,11 @@ bool GetProblemSpecs(int argc,
                      float& box_L,
                      float& box_D,
                      float& box_H,
+                     float& time_end,
                      float& gravAcc,
                      float& normalStiffS2S,
                      float& normalStiffS2W,
-                     float& time_end,
+                     std::string& output_dir,
                      GRN_OUTPUT_MODE& write_mode) {
     // Create the option parser and pass it the program arguments and the array of valid options.
     CSimpleOptA args(argc, argv, g_options);
@@ -138,7 +142,12 @@ bool GetProblemSpecs(int argc,
                     write_mode = GRN_OUTPUT_MODE::CSV;
                 } else if (args.OptionArg() == std::string("none")) {
                     write_mode = GRN_OUTPUT_MODE::NONE;
+                } else {
+                    std::cout << "Unknown file write mode! Options are 'csv', 'binary', or 'none'\n";
                 }
+                break;
+            case OPT_OUTPUT_DIR:
+                output_dir = args.OptionArg();
                 break;
             case OPT_BALL_RADIUS:
                 ball_radius = std::stof(args.OptionArg());
@@ -200,7 +209,7 @@ int main(int argc, char* argv[]) {
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W, write_mode) == false)
+                        normStiffness_S2S, normStiffness_S2W, output_prefix, write_mode) == false)
         return 1;
 
     // Setup simulation
@@ -209,9 +218,45 @@ int main(int argc, char* argv[]) {
     settlingExperiment.YoungModulus_SPH2SPH(normStiffness_S2S);
     settlingExperiment.YoungModulus_SPH2WALL(normStiffness_S2W);
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
+    settlingExperiment.setOutputDirectory(output_prefix);
     settlingExperiment.setOutputMode(write_mode);
     // Make a dam break style sim
-    // settlingExperiment.setFillBounds(-1.f, -.5f, -1.f, 1.f, -1.f, 0.f);
+    settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
+
+    // TODO clean up this API
+    // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
+    // will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means
+    // that the box will be centered at x = boxL
+    std::function<double(double)> posFunX = [](double t) {
+        // Start oscillating at t = .5s
+        double t0 = .5;
+        double freq = 1 * M_PI;
+
+        if (t < t0) {
+            return -.5;
+        } else {
+            return (-.5 + .5 * std::sin((t - t0) * freq));
+        }
+    };
+    // Stay centered at origin
+    std::function<double(double)> posFunStill = [](double t) { return -.5; };
+
+    std::function<double(double)> posFunZBouncing = [](double t) {
+        // Start oscillating at t = .5s
+        double t0 = .5;
+        double freq = 20 * M_PI;
+
+        if (t < t0) {
+            return -.5;
+        } else {
+            return (-.5 + .01 * std::sin((t - t0) * freq));
+        }
+    };
+    // Set the position of the BD
+    settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunZBouncing);
+    // Tell the sim to unlock the bd so it can follow that position function
+    settlingExperiment.set_BD_Fixed(false);
+
     // Run settline experiments
     settlingExperiment.settle(timeEnd);
     return 0;
