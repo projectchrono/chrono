@@ -232,6 +232,58 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif()
 
 #-----------------------------------------------------------------------------
+# HDF5 support (optional)
+#-----------------------------------------------------------------------------
+
+option(ENABLE_HDF5 "Enable HDF5 support" OFF)
+
+if(ENABLE_HDF5)
+
+    message(STATUS "Searching for HDF5...")
+    
+    # First look for a FindHDF5.cmake module
+    # If found, this will define the following relevant variables:
+    #    HDF5_INCLUDE_DIRS
+    #    HDF5_C_LIBRARIES
+    #    HDF5_CXX_LIBRARIES
+    find_package(HDF5 COMPONENTS CXX)
+    
+    if(NOT HDF5_FOUND) 
+        # Look for a package configuration file
+        # LIB_TYPE can be one of STATIC or SHARED.
+        set(LIB_TYPE SHARED) # STATIC or SHARED
+        string(TOLOWER ${LIB_TYPE} SEARCH_TYPE)
+        find_package(HDF5 NAMES hdf5 COMPONENTS CXX ${SEARCH_TYPE})
+    
+        if (HDF5_FOUND)
+            set(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
+            set(HDF5_C_LIBRARIES ${HDF5_C_${LIB_TYPE{_LIBRARY})
+            set(HDF5_CXX_LIBRARIES ${HDF5_CXX_${LIB_TYPE}_LIBRARY)
+        endif()
+    endif()
+    
+    if (HDF5_FOUND)
+        message(STATUS "  HDF5 found         (HDF5_FOUND)         ${HDF5_FOUND}")
+        message(STATUS "  HDF5 include dirs  (HDF5_INCLUDE_DIR)   ${HDF5_INCLUDE_DIRS}")
+        message(STATUS "  HDF5 C libraries   (HDF5_C_LIBRARIES)   ${HDF5_C_LIBRARIES}")
+        message(STATUS "  HDF5 C++ libraries (HDF5_CXX_LIBRARIES) ${HDF5_CXX_LIBRARIES}")
+    
+        # If using shared libraries on Windows, MUST define H5_BUILT_AS_DYNAMIC_LIB to have
+        # the symbols imported from the DLL.  Note also that the path to the HDF5 DLLs must
+        # be in the search path (or else copied in the working directory).
+        if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+            set(HDF5_COMPILE_DEFS "H5_BUILT_AS_DYNAMIC_LIB")
+            message(STATUS "  HDF5 compile defs  (HDF5_COMPILE_DEFS)  ${HDF5_COMPILE_DEFS}")
+        endif()
+    
+        set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
+    else()
+        message(STATUS "  Could not find HDF5")
+    endif()
+
+endif()
+
+#-----------------------------------------------------------------------------
 # Set the base compilation flags
 #-----------------------------------------------------------------------------
 
@@ -268,6 +320,7 @@ include_directories(${CH_INCLUDES})
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
 add_subdirectory(chrono_mkl)
+add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_irrlicht)
@@ -344,6 +397,12 @@ if(ENABLE_MODULE_MKL)
   set(CHRONO_MKL "#define CHRONO_MKL")
 else()
   set(CHRONO_MKL "#undef CHRONO_MKL")
+endif()
+
+if(ENABLE_MODULE_MUMPS)
+  set(CHRONO_MUMPS "#define CHRONO_MUMPS")
+else()
+  set(CHRONO_MUMPS "#undef CHRONO_MUMPS")
 endif()
 
 if(ENABLE_MODULE_PARALLEL)

@@ -22,6 +22,8 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
@@ -97,8 +99,9 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::NSC, chassis_collision_type);
+    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+    TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
+    M113_Vehicle vehicle(false, shoe_type, ChMaterialSurface::NSC, chassis_collision_type);
 
     // ------------------------------
     // Solver and integrator settings
@@ -155,12 +158,14 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
+    VisualizationType track_vis =
+        (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSprocketVisualizationType(track_vis);
+    vehicle.SetIdlerVisualizationType(track_vis);
+    vehicle.SetRoadWheelAssemblyVisualizationType(track_vis);
+    vehicle.SetRoadWheelVisualizationType(track_vis);
+    vehicle.SetTrackShoeVisualizationType(track_vis);
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring
@@ -215,7 +220,7 @@ int main(int argc, char* argv[]) {
     // Create the powertrain system
     // ----------------------------
 
-    M113_SimplePowertrain powertrain;
+    M113_SimplePowertrain powertrain("Powertrain");
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // ---------------------------------------
@@ -272,6 +277,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Set up vehicle output
+    vehicle.SetChassisOutput(true);
+    vehicle.SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    vehicle.SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
+    // Generate JSON information with available output channels
+    vehicle.ExportComponentList(out_dir + "/component_list.json");
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -327,7 +340,6 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        app.EndScene();
 
         if (step_number % render_steps == 0) {
             if (povray_output) {
@@ -374,6 +386,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
     vehicle.WriteContacts("M113_contacts.out");

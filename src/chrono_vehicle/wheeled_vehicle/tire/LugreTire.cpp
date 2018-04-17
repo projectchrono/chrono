@@ -56,12 +56,8 @@ LugreTire::~LugreTire() {
 }
 
 void LugreTire::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read tire radius, mass, and inertia
     m_radius = d["Radius"].GetDouble();
@@ -116,6 +112,7 @@ void LugreTire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
     }
     else {

@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.005);
 
     while (application.GetDevice()->run()) {
-        // for (auto body : *my_system.Get_bodylist()) {
+        // for (auto body : my_system.Get_bodylist()) {
         //     std::cout << "Body " << body->GetNameString() << " mass: " << body->GetMass() << std::endl;
         //     std::cout << "Pos: " << body->GetPos().x() << "," << body->GetPos().y() << "," << body->GetPos().z() <<
         //     ","

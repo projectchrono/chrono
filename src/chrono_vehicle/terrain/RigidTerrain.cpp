@@ -220,7 +220,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     if (visualization) {
         auto box = std::make_shared<ChBoxShape>();
         box->GetBoxGeometry().SetLengths(size);
-        box->GetBoxGeometry().Pos = VNULL;
+        box->Pos = VNULL;
         patch->m_body->AddAsset(box);
     }
 
@@ -252,6 +252,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
+        trimesh_shape->SetStatic(true);
         patch->m_body->AddAsset(trimesh_shape);
     }
 
@@ -317,7 +318,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     // Note that pixels in a BMP start at top-left corner.
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
-    std::cout << "Load vertices..." << std::endl;
+    GetLog() << "Load vertices...\n";
     unsigned int iv = 0;
     for (int iy = nv_y - 1; iy >= 0; --iy) {
         double y = 0.5 * sizeY - iy * dy;
@@ -345,7 +346,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     // Specify triangular faces (two at a time).
     // Specify the face vertices counter-clockwise.
     // Set the normal indices same as the vertex indices.
-    std::cout << "Load faces..." << std::endl;
+    GetLog() << "Load faces...\n";
     unsigned int it = 0;
     for (int iy = nv_y - 2; iy >= 0; --iy) {
         for (int ix = 0; ix < nv_x - 1; ++ix) {

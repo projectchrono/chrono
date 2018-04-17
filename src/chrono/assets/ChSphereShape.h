@@ -37,10 +37,10 @@ class ChApi ChSphereShape : public ChVisualization {
     // CONSTRUCTORS
     //
 
-    ChSphereShape(){};
-    ChSphereShape(geometry::ChSphere& msphere) : gsphere(msphere){};
+    ChSphereShape(){}
+    ChSphereShape(const geometry::ChSphere& msphere) : gsphere(msphere){}
 
-    virtual ~ChSphereShape(){};
+    virtual ~ChSphereShape(){}
 
     //
     // FUNCTIONS

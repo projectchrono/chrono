@@ -34,8 +34,7 @@ void WriteBodies(ChSystem* system,
                  const std::string& delim) {
     CSV_writer csv(delim);
 
-    for (int i = 0; i < system->Get_bodylist()->size(); i++) {
-        std::shared_ptr<ChBody> body = system->Get_bodylist()->at(i);
+    for (auto body : system->Get_bodylist()) {
         if (active_only && !body->IsActive())
             continue;
         csv << body->GetPos() << body->GetRot();
@@ -57,10 +56,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     // Create the CSV stream.
     CSV_writer csv(" ");
 
-    std::vector<std::shared_ptr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
-    for (; ibody != system->Get_bodylist()->end(); ++ibody) {
-        std::shared_ptr<ChBody> body = *ibody;
-
+    for (auto body : system->Get_bodylist()) {
         // Infer body type (0: NSC, 1:SMC)
         int btype = (body->GetContactMethod() == ChMaterialSurface::NSC) ? 0 : 1;
 
@@ -99,18 +95,16 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Count and write all visual assets.
         int num_visual_assets = 0;
-        std::vector<std::shared_ptr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
-        for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
-            if (std::dynamic_pointer_cast<ChVisualization>(*iasset))
+        for (auto asset : body->GetAssets()) {
+            if (std::dynamic_pointer_cast<ChVisualization>(asset))
                 num_visual_assets++;
         }
         csv << num_visual_assets << std::endl;
 
         // Loop over each asset and, for selected visual assets only, write its data
         // on a separate line. If we encounter an unsupported type, return false.
-        iasset = (*ibody)->GetAssets().begin();
-        for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(*iasset);
+        for (auto asset : body->GetAssets()) {
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
             if (!visual_asset)
                 continue;
 
@@ -345,12 +339,11 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
     int b_count = 0;
 
     if (body_info) {
-        std::vector<std::shared_ptr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
-        for (; ibody != system->Get_bodylist()->end(); ++ibody) {
-            const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
-            const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
+        for (auto body : system->Get_bodylist()) {
+            const ChVector<>& body_pos = body->GetFrame_REF_to_abs().GetPos();
+            const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
 
-            csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << body_pos << body_rot << std::endl;
+            csv << body->GetIdentifier() << body->IsActive() << body_pos << body_rot << std::endl;
 
             b_count++;
         }
@@ -358,24 +351,21 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
 
     // Loop over all bodies and over all their assets.
     int a_count = 0;
-    std::vector<std::shared_ptr<ChBody> >::iterator ibody = system->Get_bodylist()->begin();
-    for (; ibody != system->Get_bodylist()->end(); ++ibody) {
-        const ChVector<>& body_pos = (*ibody)->GetFrame_REF_to_abs().GetPos();
-        const ChQuaternion<>& body_rot = (*ibody)->GetFrame_REF_to_abs().GetRot();
+    for (auto body : system->Get_bodylist()) {
+        const ChVector<>& body_pos = body->GetFrame_REF_to_abs().GetPos();
+        const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
 
         ChColor color(0.8f, 0.8f, 0.8f);
 
         // First loop over assets -- search for a color asset
-        std::vector<std::shared_ptr<ChAsset> >::iterator iasset = (*ibody)->GetAssets().begin();
-        for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
-            if (auto color_asset = std::dynamic_pointer_cast<ChColorAsset>(*iasset))
+        for (auto asset : body->GetAssets()) {
+            if (auto color_asset = std::dynamic_pointer_cast<ChColorAsset>(asset))
                 color = color_asset->GetColor();
         }
 
         // Loop over assets once again -- write information for supported types.
-        iasset = (*ibody)->GetAssets().begin();
-        for (; iasset != (*ibody)->GetAssets().end(); ++iasset) {
-            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(*iasset);
+        for (auto asset : body->GetAssets()) {
+            auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
             if (!visual_asset)
                 continue;
 
@@ -437,58 +427,56 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
             }
 
             if (supported) {
-                csv << (*ibody)->GetIdentifier() << (*ibody)->IsActive() << pos << rot << color << gss.str()
-                    << std::endl;
+                csv << body->GetIdentifier() << body->IsActive() << pos << rot << color << gss.str() << std::endl;
             }
         }
     }
 
     // Loop over all links.  Write information on selected types of links.
     int l_count = 0;
-    std::vector<std::shared_ptr<ChLink> >::iterator ilink = system->Get_linklist()->begin();
-    for (; ilink != system->Get_linklist()->end(); ++ilink) {
-        if (ChLinkLockRevolute* link = dynamic_cast<ChLinkLockRevolute*>((*ilink).get())) {
+    for (auto ilink : system->Get_linklist()) {
+        if (auto link = std::dynamic_pointer_cast<ChLinkLockRevolute>(ilink)) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << REVOLUTE << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
             l_count++;
-        } else if (ChLinkLockSpherical* link = dynamic_cast<ChLinkLockSpherical*>((*ilink).get())) {
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkLockSpherical>(ilink)) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << SPHERICAL << frA_abs.GetPos() << std::endl;
             l_count++;
         }
-        if (ChLinkLockPrismatic* link = dynamic_cast<ChLinkLockPrismatic*>((*ilink).get())) {
+        if (auto link = std::dynamic_pointer_cast<ChLinkLockPrismatic>(ilink)) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << PRISMATIC << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
             l_count++;
-        } else if (ChLinkUniversal* link = dynamic_cast<ChLinkUniversal*>((*ilink).get())) {
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkUniversal>(ilink)) {
             chrono::ChFrame<> frA_abs = link->GetFrame1Abs();
             chrono::ChFrame<> frB_abs = link->GetFrame2Abs();
 
             csv << UNIVERSAL << frA_abs.GetPos() << frA_abs.GetA().Get_A_Xaxis() << frB_abs.GetA().Get_A_Yaxis()
                 << std::endl;
             l_count++;
-        } else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get())) {
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkSpring>(ilink)) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << SPRING << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
             l_count++;
-        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get())) {
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkSpringCB>(ilink)) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
             csv << SPRING_CB << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
             l_count++;
-        } else if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get())) {
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
             csv << DISTANCE << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
             l_count++;
-        } else if (ChLinkEngine* link = dynamic_cast<ChLinkEngine*>((*ilink).get())) {
+        } else if (auto link = std::dynamic_pointer_cast<ChLinkEngine>(ilink)) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
@@ -511,7 +499,7 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
 // Write the triangular mesh from the specified OBJ file as a macro in a PovRay
 // include file.
 // -----------------------------------------------------------------------------
-void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
+void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& col,

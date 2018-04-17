@@ -51,6 +51,9 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
 
     virtual ~ChRackPinion() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "RackPinion"; }
+
     /// Initialize the steering subsystem.
     /// This attached the steering mechanism to the specified chassis body at the
     /// given offset and orientation, relative to the frame of the chassis.
@@ -104,6 +107,10 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
 
     /// Return the maximum rotation angle of the pinion (in either direction).
     virtual double GetMaxAngle() const = 0;
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 
     std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
     std::shared_ptr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link

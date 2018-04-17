@@ -19,6 +19,7 @@
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChElementCableANCF.h"
 #include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementBeamIGA.h"
 #include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChElementHexa_20.h"
@@ -348,9 +349,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 if (auto mybeameuler = std::dynamic_pointer_cast<ChElementBeamEuler>(this->FEMmesh->GetElement(iel))) {
                     if (mybeameuler->GetSection()->IsCircular())
                         m_circular = true;
-                } else if (auto mybeamancf =
-                               std::dynamic_pointer_cast<ChElementCableANCF>(this->FEMmesh->GetElement(iel))) {
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementCableANCF>(this->FEMmesh->GetElement(iel))) {
                     if (mybeamancf->GetSection()->IsCircular())
+                        m_circular = true;
+                } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(this->FEMmesh->GetElement(iel))) {
+                    if (mybeamiga->GetSection()->IsCircular())
                         m_circular = true;
                 }
                 if (m_circular) {
@@ -622,21 +625,24 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     z_thick = 0.5 * mybeamancf->GetSection()->GetDrawThicknessZ();
                     m_circular = mybeamancf->GetSection()->IsCircular();
                     m_rad = mybeamancf->GetSection()->GetDrawCircularRadius();
+                } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(mybeam)) {
+                    // if the beam has a section info, use section specific thickness for drawing
+                    y_thick = 0.5 * mybeamiga->GetSection()->GetDrawThicknessY();
+                    z_thick = 0.5 * mybeamiga->GetSection()->GetDrawThicknessZ();
+                    m_circular = mybeamiga->GetSection()->IsCircular();
+                    m_rad = mybeamiga->GetSection()->GetDrawCircularRadius();
                 }
 
                 unsigned int ivert_el = i_verts;
                 unsigned int inorm_el = i_vnorms;
 
-                // displacements & rotations state of the nodes:
-                ChMatrixDynamic<> displ(mybeam->GetNdofs(), 1);
-                mybeam->GetStateBlock(displ);  // for field of corotated element, u_displ will be always 0 at ends
 
                 for (int in = 0; in < beam_resolution; ++in) {
                     double eta = -1.0 + (2.0 * in / (beam_resolution - 1));
 
                     ChVector<> P;
                     ChQuaternion<> msectionrot;
-                    mybeam->EvaluateSectionFrame(eta, displ, P,
+                    mybeam->EvaluateSectionFrame(eta, P,
                                                  msectionrot);  // compute abs. pos and rot of section plane
 
                     ChVector<> vresult;
@@ -644,35 +650,35 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     double sresult = 0;
                     switch (this->fem_data_type) {
                         case E_PLOT_ELEM_BEAM_MX:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresultB.x();
                             break;
                         case E_PLOT_ELEM_BEAM_MY:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresultB.y();
                             break;
                         case E_PLOT_ELEM_BEAM_MZ:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresultB.z();
                             break;
                         case E_PLOT_ELEM_BEAM_TX:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresult.x();
                             break;
                         case E_PLOT_ELEM_BEAM_TY:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresult.y();
                             break;
                         case E_PLOT_ELEM_BEAM_TZ:
-                            mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                            mybeam->EvaluateSectionForceTorque(eta, vresult, vresultB);
                             sresult = vresult.z();
                             break;
                         case E_PLOT_ANCF_BEAM_AX:
-                            mybeam->EvaluateSectionStrain(eta, displ, vresult);
+                            mybeam->EvaluateSectionStrain(eta, vresult);
                             sresult = vresult.x();
                             break;
                         case E_PLOT_ANCF_BEAM_BD:
-                            mybeam->EvaluateSectionStrain(eta, displ, vresult);
+                            mybeam->EvaluateSectionStrain(eta, vresult);
                             sresult = vresult.y();
                             break;
                         default:
@@ -809,17 +815,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 unsigned int ivert_el = i_verts;
                 unsigned int inorm_el = i_vnorms;
 
-                // displacements & rotations state of the nodes:
-                ChMatrixDynamic<> displ(myshell->GetNdofs(), 1);
-                myshell->GetStateBlock(displ);
-
                 for (int iu = 0; iu < shell_resolution; ++iu)
                     for (int iv = 0; iv < shell_resolution; ++iv) {
                         double u = -1.0 + (2.0 * iu / (shell_resolution - 1));
                         double v = -1.0 + (2.0 * iv / (shell_resolution - 1));
 
                         ChVector<> P;
-                        myshell->EvaluateSectionPoint(u, v, displ, P);  // compute abs. pos and rot of section plane
+                        myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
                         ChVector<float> mcol(1, 1, 1);
                         /*
@@ -829,7 +831,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         switch(this->fem_data_type)
                         {
                             case E_PLOT_ELEM_SHELL_blabla:
-                                myshell->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
+                                myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
                                 sresult = vresultB.x();
                                 break;
 

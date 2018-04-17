@@ -19,13 +19,14 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunction_Repeat)
 
-ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1) {
+ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1), window_phase(0) {
     fa = std::make_shared<ChFunction_Const>();  // default
 }
 
 ChFunction_Repeat::ChFunction_Repeat(const ChFunction_Repeat& other) {
     window_start = other.window_start;
     window_length = other.window_length;
+	window_phase = other.window_phase;
     fa = std::shared_ptr<ChFunction>(other.fa->Clone());
 }
 

@@ -22,6 +22,10 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
+
 namespace chrono {
 namespace vehicle {
 
@@ -120,6 +124,13 @@ void ChTrackedVehicle::SetRollerVisualizationType(VisualizationType vis) {
 void ChTrackedVehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
     m_tracks[0]->SetTrackShoeVisualizationType(vis);
     m_tracks[1]->SetTrackShoeVisualizationType(vis);
+}
+
+// -----------------------------------------------------------------------------
+// Enable/disable output for the various subsystems
+// -----------------------------------------------------------------------------
+void ChTrackedVehicle::SetTrackAssemblyOutput(VehicleSide side, bool state) {
+    m_tracks[side]->SetOutput(state);
 }
 
 // -----------------------------------------------------------------------------
@@ -226,6 +237,66 @@ void ChTrackedVehicle::LogConstraintViolations() {
     m_tracks[1]->LogConstraintViolations();
 
     GetLog().SetNumFormat("%g");
+}
+
+std::string ChTrackedVehicle::ExportComponentList() const {
+    rapidjson::Document jsonDocument;
+    jsonDocument.SetObject();
+
+    std::string template_name = GetTemplateName();
+    jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
+    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
+                           jsonDocument.GetAllocator());
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_chassis->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("chassis", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_tracks[0]->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("left track", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_tracks[1]->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("right track", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    rapidjson::StringBuffer jsonBuffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonWriter(jsonBuffer);
+    jsonDocument.Accept(jsonWriter);
+
+    return jsonBuffer.GetString();
+}
+
+void ChTrackedVehicle::ExportComponentList(const std::string& filename) const {
+    std::ofstream of(filename);
+    of << ExportComponentList();
+    of.close();
+}
+
+void ChTrackedVehicle::Output(int frame, ChVehicleOutput& database) const {
+    database.WriteTime(frame, m_system->GetChTime());
+
+    if (m_chassis->OutputEnabled()) {
+        database.WriteSection(m_chassis->GetName());
+        m_chassis->Output(database);
+    }
+    
+    if (m_tracks[LEFT]->OutputEnabled()) {
+        m_tracks[LEFT]->Output(database);
+    }
+
+    if (m_tracks[RIGHT]->OutputEnabled()) {
+        m_tracks[RIGHT]->Output(database);
+    }
 }
 
 }  // end namespace vehicle

@@ -43,7 +43,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackAssemblyDoublePin::LoadSprocket(const std::string& filename) {
+void TrackAssemblyDoublePin::LoadSprocket(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -67,12 +67,17 @@ void TrackAssemblyDoublePin::LoadSprocket(const std::string& filename) {
     // Create the sprocket using the appropriate template.
     m_sprocket = std::make_shared<SprocketDoublePin>(d);
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_sprocket->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackAssemblyDoublePin::LoadBrake(const std::string& filename) {
+void TrackAssemblyDoublePin::LoadBrake(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -97,12 +102,17 @@ void TrackAssemblyDoublePin::LoadBrake(const std::string& filename) {
         m_brake = std::make_shared<TrackBrakeSimple>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_brake->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackAssemblyDoublePin::LoadIdler(const std::string& filename) {
+void TrackAssemblyDoublePin::LoadIdler(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -129,12 +139,17 @@ void TrackAssemblyDoublePin::LoadIdler(const std::string& filename) {
         m_idler = std::make_shared<DoubleIdler>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_idler->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackAssemblyDoublePin::LoadSuspension(const std::string& filename, int which, bool has_shock) {
+void TrackAssemblyDoublePin::LoadSuspension(const std::string& filename, int which, bool has_shock, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -159,12 +174,17 @@ void TrackAssemblyDoublePin::LoadSuspension(const std::string& filename, int whi
         m_suspensions[which] = std::make_shared<LinearDamperRWAssembly>(d, has_shock);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_suspensions[which]->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackAssemblyDoublePin::LoadRoller(const std::string& filename, int which) {
+void TrackAssemblyDoublePin::LoadRoller(const std::string& filename, int which, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -189,12 +209,17 @@ void TrackAssemblyDoublePin::LoadRoller(const std::string& filename, int which) 
         m_rollers[which] = std::make_shared<DoubleRoller>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_rollers[which]->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackAssemblyDoublePin::LoadTrackShoes(const std::string& filename, int num_shoes) {
+void TrackAssemblyDoublePin::LoadTrackShoes(const std::string& filename, int num_shoes, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -218,6 +243,11 @@ void TrackAssemblyDoublePin::LoadTrackShoes(const std::string& filename, int num
     // Create the track shoes using the appropriate template.
     for (size_t it = 0; it < num_shoes; it++) {
         m_shoes.push_back(std::make_shared<TrackShoeDoublePin>(d));
+    }
+
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_shoes[0]->SetOutput(output == +1);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -246,34 +276,42 @@ TrackAssemblyDoublePin::TrackAssemblyDoublePin(const rapidjson::Document& d) : C
 }
 
 void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Create the sprocket
     {
         assert(d.HasMember("Sprocket"));
         std::string file_name = d["Sprocket"]["Input File"].GetString();
+        int output = 0;
+        if (d["Sprocket"].HasMember("Output")) {
+            output = d["Sprocket"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadSprocket(vehicle::GetDataFile(file_name), output);
         m_sprocket_loc = LoadVectorJSON(d["Sprocket"]["Location"]);
-        LoadSprocket(vehicle::GetDataFile(file_name));
     }
 
     // Create the brake
     {
         assert(d.HasMember("Brake"));
         std::string file_name = d["Brake"]["Input File"].GetString();
-        LoadBrake(vehicle::GetDataFile(file_name));
+        int output = 0;
+        if (d["Brake"].HasMember("Output")) {
+            output = d["Brake"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadBrake(vehicle::GetDataFile(file_name), output);
     }
 
     // Create the idler
     {
         assert(d.HasMember("Idler"));
         std::string file_name = d["Idler"]["Input File"].GetString();
+        int output = 0;
+        if (d["Idler"].HasMember("Output")) {
+            output = d["Idler"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadIdler(vehicle::GetDataFile(file_name), output);
         m_idler_loc = LoadVectorJSON(d["Idler"]["Location"]);
-        LoadIdler(vehicle::GetDataFile(file_name));
     }
 
     // Create the suspensions
@@ -285,8 +323,12 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
     for (int i = 0; i < m_num_susp; i++) {
         std::string file_name = d["Suspension Subsystems"][i]["Input File"].GetString();
         bool has_shock = d["Suspension Subsystems"][i]["Has Shock"].GetBool();
+        int output = 0;
+        if (d["Suspension Subsystems"][i].HasMember("Output")) {
+            output = d["Suspension Subsystems"][i]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadSuspension(vehicle::GetDataFile(file_name), i, has_shock, output);
         m_susp_locs[i] = LoadVectorJSON(d["Suspension Subsystems"][i]["Location"]);
-        LoadSuspension(vehicle::GetDataFile(file_name), i, has_shock);
     }
 
     // Create the rollers
@@ -298,8 +340,12 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
         m_roller_locs.resize(m_num_rollers);
         for (int i = 0; i < m_num_rollers; i++) {
             std::string file_name = d["Rollers"][i]["Input File"].GetString();
-            m_susp_locs[i] = LoadVectorJSON(d["Rollers"][i]["Location"]);
-            LoadRoller(vehicle::GetDataFile(file_name), i);
+            int output = 0;
+            if (d["Rollers"][i].HasMember("Output")) {
+                output = d["Rollers"][i]["Output"].GetBool() ? +1 : -1;
+            }
+            LoadRoller(vehicle::GetDataFile(file_name), i, output);
+            m_roller_locs[i] = LoadVectorJSON(d["Rollers"][i]["Location"]);
         }
     }
 
@@ -307,8 +353,12 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
     {
         assert(d.HasMember("Track Shoes"));
         std::string file_name = d["Track Shoes"]["Input File"].GetString();
+        int output = 0;
+        if (d["Track Shoes"].HasMember("Output")) {
+            output = d["Track Shoes"]["Output"].GetBool() ? +1 : -1;
+        }
         m_num_track_shoes = d["Track Shoes"]["Number Shoes"].GetInt();
-        LoadTrackShoes(vehicle::GetDataFile(file_name), m_num_track_shoes);
+        LoadTrackShoes(vehicle::GetDataFile(file_name), m_num_track_shoes, output);
     }
 }
 

@@ -55,7 +55,7 @@ const std::string M113_TrackShoeDoublePin::m_meshFile = "M113/TrackShoeDoublePin
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeDoublePin::M113_TrackShoeDoublePin() : ChTrackShoeDoublePin("M113_TrackShoe") {
+M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name) : ChTrackShoeDoublePin(name) {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);

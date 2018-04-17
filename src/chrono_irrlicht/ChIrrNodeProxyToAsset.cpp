@@ -10,12 +10,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChAsset.h"
-#include "chrono/assets/ChGlyphs.h"
-#include "chrono/assets/ChLineShape.h"
-#include "chrono/assets/ChPathShape.h"
-#include "chrono/assets/ChSurfaceShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/core/ChVector.h"
 
 #include "chrono_irrlicht/ChIrrNodeProxyToAsset.h"
@@ -25,15 +19,8 @@ namespace irrlicht {
 
 using namespace irr;
 
-ChIrrNodeProxyToAsset::ChIrrNodeProxyToAsset(std::shared_ptr<ChAsset> myvisualization, ISceneNode* parent)
-    : ISceneNode(parent, parent->getSceneManager(), 0), do_update(true) {
-#ifdef _DEBUG
-    setDebugName("ChIrrNodeProxyToAsset");
-#endif
-
-    // Set the shared pointer to the asset
-    visualization_asset = myvisualization;
-}
+ChIrrNodeProxyToAsset::ChIrrNodeProxyToAsset(std::shared_ptr<ChAsset> asset, ISceneNode* parent)
+    : ISceneNode(parent, parent->getSceneManager(), 0), visualization_asset(asset), initial_update(true) {}
 
 scene::ISceneNode* ChIrrNodeProxyToAsset::clone(ISceneNode* newParent, scene::ISceneManager* newManager) {
     if (!newParent)
@@ -52,365 +39,367 @@ scene::ISceneNode* ChIrrNodeProxyToAsset::clone(ISceneNode* newParent, scene::IS
     return nb;
 }
 
-// Updates the child mesh to reflect the ChAsset
 void ChIrrNodeProxyToAsset::Update() {
-    if (!do_update)
-        return;
-
     if (!visualization_asset)
         return;
 
+    if (initial_update) {
+        initial_update = false;
+    } else if (auto asset = std::dynamic_pointer_cast<ChVisualization>(visualization_asset)) {
+        if (asset->IsStatic())
+            return;
+    }
+
     if (auto trianglemesh = std::dynamic_pointer_cast<ChTriangleMeshShape>(visualization_asset)) {
-        // Fetch the 1st child, i.e. the mesh
-        ISceneNode* mchildnode = *(getChildren().begin());
-        if (!mchildnode)
-            return;
-
-        if (!(mchildnode->getType() == scene::ESNT_MESH))
-            return;
-        scene::IMeshSceneNode* meshnode =
-            (scene::IMeshSceneNode*)mchildnode;  // dynamic_cast not enabled in Irrlicht dll
-
-        scene::IMesh* amesh = meshnode->getMesh();
-        if (amesh->getMeshBufferCount() == 0)
-            return;
-
-        geometry::ChTriangleMeshConnected* mmesh = &trianglemesh->GetMesh();
-        unsigned int ntriangles = (unsigned int)mmesh->getIndicesVertexes().size();
-        unsigned int nvertexes =
-            ntriangles * 3;  // this is suboptimal because some vertexes might be shared, but easier now..
-
-        // SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
-        scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
-
-        // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
-        if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
-            irrmesh->getIndexBuffer().reallocate(0);  // clear();
-        if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
-            irrmesh->getVertexBuffer().reallocate(0);
-
-        irrmesh->getIndexBuffer().set_used(ntriangles * 3);
-        irrmesh->getVertexBuffer().set_used(nvertexes);
-
-        // set buffers
-        for (unsigned int itri = 0; itri < ntriangles; itri++) {
-            ChVector<> t1 = mmesh->getCoordsVertices()[mmesh->getIndicesVertexes()[itri].x()];
-            ChVector<> t2 = mmesh->getCoordsVertices()[mmesh->getIndicesVertexes()[itri].y()];
-            ChVector<> t3 = mmesh->getCoordsVertices()[mmesh->getIndicesVertexes()[itri].z()];
-            ChVector<> n1, n2, n3;
-            if (mmesh->getIndicesNormals().size() == mmesh->getIndicesVertexes().size()) {
-                n1 = mmesh->getCoordsNormals()[mmesh->getIndicesNormals()[itri].x()];
-                n2 = mmesh->getCoordsNormals()[mmesh->getIndicesNormals()[itri].y()];
-                n3 = mmesh->getCoordsNormals()[mmesh->getIndicesNormals()[itri].z()];
-            } else {
-                n1 = Vcross(t2 - t1, t3 - t1).GetNormalized();
-                n2 = n1;
-                n3 = n1;
-            }
-
-            ChVector<> uv1, uv2, uv3;
-            if (mmesh->getIndicesUV().size() == mmesh->getIndicesVertexes().size()) {
-                uv1 = mmesh->getCoordsUV()[mmesh->getIndicesUV()[itri].x()];
-                uv2 = mmesh->getCoordsUV()[mmesh->getIndicesUV()[itri].y()];
-                uv3 = mmesh->getCoordsUV()[mmesh->getIndicesUV()[itri].z()];
-            } else if (mmesh->getIndicesUV().size() == 0 &&
-                       mmesh->getCoordsUV().size() == mmesh->getCoordsVertices().size()) {
-                uv1 = mmesh->getCoordsUV()[mmesh->getIndicesVertexes()[itri].x()];
-                uv2 = mmesh->getCoordsUV()[mmesh->getIndicesVertexes()[itri].y()];
-                uv3 = mmesh->getCoordsUV()[mmesh->getIndicesVertexes()[itri].z()];
-            } else {
-                uv1 = uv2 = uv3 = VNULL;
-            }
-
-            ChVector<float> col1, col2, col3;
-            if (mmesh->getIndicesColors().size() == mmesh->getIndicesVertexes().size()) {
-                col1 = mmesh->getCoordsColors()[mmesh->getIndicesColors()[itri].x()];
-                col2 = mmesh->getCoordsColors()[mmesh->getIndicesColors()[itri].y()];
-                col3 = mmesh->getCoordsColors()[mmesh->getIndicesColors()[itri].z()];
-            } else if (mmesh->getIndicesColors().size() == 0 &&
-                       mmesh->getCoordsColors().size() == mmesh->getCoordsVertices().size()) {
-                col1 = mmesh->getCoordsColors()[mmesh->getIndicesVertexes()[itri].x()];
-                col2 = mmesh->getCoordsColors()[mmesh->getIndicesVertexes()[itri].y()];
-                col3 = mmesh->getCoordsColors()[mmesh->getIndicesVertexes()[itri].z()];
-            } else {
-                col1 = col2 = col3 =
-                    ChVector<float>(trianglemesh->GetColor().R, trianglemesh->GetColor().G, trianglemesh->GetColor().B);
-            }
-
-            irrmesh->getVertexBuffer()[0 + itri * 3] = irr::video::S3DVertex(
-                (f32)t1.x(), (f32)t1.y(), (f32)t1.z(), (f32)n1.x(), (f32)n1.y(), (f32)n1.z(),
-                irr::video::SColor(255, (u32)(col1.x() * 255), (u32)(col1.y() * 255), (u32)(col1.z() * 255)), (f32)uv1.x(),
-                (f32)uv1.y());
-
-            irrmesh->getVertexBuffer()[1 + itri * 3] = irr::video::S3DVertex(
-                (f32)t2.x(), (f32)t2.y(), (f32)t2.z(), (f32)n2.x(), (f32)n2.y(), (f32)n2.z(),
-                irr::video::SColor(255, (u32)(col2.x() * 255), (u32)(col2.y() * 255), (u32)(col2.z() * 255)), (f32)uv2.x(),
-                (f32)uv2.y());
-
-            irrmesh->getVertexBuffer()[2 + itri * 3] = irr::video::S3DVertex(
-                (f32)t3.x(), (f32)t3.y(), (f32)t3.z(), (f32)n3.x(), (f32)n3.y(), (f32)n3.z(),
-                irr::video::SColor(255, (u32)(col3.x() * 255), (u32)(col3.y() * 255), (u32)(col3.z() * 255)), (f32)uv3.x(),
-                (f32)uv3.y());
-
-            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + itri * 3);
-            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + itri * 3);
-            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 2 + itri * 3);
-        }
-
-        irrmesh->setDirty();                                  // to force update of hardware buffers
-        irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
-        irrmesh->recalculateBoundingBox();
-
-        meshnode->setAutomaticCulling(scene::EAC_OFF);
-
-        meshnode->setMaterialFlag(irr::video::EMF_WIREFRAME, trianglemesh->IsWireframe());
-        meshnode->setMaterialFlag(irr::video::EMF_LIGHTING,
-                                  !trianglemesh->IsWireframe());  // avoid shading for wireframes
-        meshnode->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
-
-        meshnode->setMaterialFlag(irr::video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+        UpdateTriangleMesh(trianglemesh);
+    } else if (auto glyphs = std::dynamic_pointer_cast<ChGlyphs>(visualization_asset)) {
+        UpdateGlyphs(glyphs);
+    } else if (auto surface = std::dynamic_pointer_cast<ChSurfaceShape>(visualization_asset)) {
+        UpdateSurface(surface);
+    } else if (auto path_shape = std::dynamic_pointer_cast<ChPathShape>(visualization_asset)) {
+        UpdateLine(path_shape->GetPathGeometry(), path_shape->GetNumRenderPoints());
+    } else if (auto line_shape = std::dynamic_pointer_cast<ChLineShape>(visualization_asset)) {
+        UpdateLine(line_shape->GetLineGeometry(), line_shape->GetNumRenderPoints());
     }
+}
 
-    if (auto mglyphs = std::dynamic_pointer_cast<ChGlyphs>(visualization_asset)) {
-        // Fetch the 1st child, i.e. the mesh
-        ISceneNode* mchildnode = *(getChildren().begin());
-        if (!mchildnode || mchildnode->getType() != scene::ESNT_MESH)
-            return;
+void ChIrrNodeProxyToAsset::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh) {
+    // Fetch the 1st child, i.e. the mesh
+    ISceneNode* mchildnode = *(getChildren().begin());
+    if (!mchildnode)
+        return;
 
-        scene::IMeshSceneNode* meshnode =
-            (scene::IMeshSceneNode*)mchildnode;  // dynamic_cast not enabled in Irrlicht dll
-        scene::IMesh* amesh = meshnode->getMesh();
-        if (amesh->getMeshBufferCount() == 0)
-            return;
+    if (!(mchildnode->getType() == scene::ESNT_MESH))
+        return;
+    scene::IMeshSceneNode* meshnode = (scene::IMeshSceneNode*)mchildnode;
 
-        // SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
-        scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
+    scene::IMesh* amesh = meshnode->getMesh();
+    if (amesh->getMeshBufferCount() == 0)
+        return;
 
-        size_t ntriangles = 0;
-        size_t nvertexes = 0;
+    geometry::ChTriangleMeshConnected* mmesh = &trianglemesh->GetMesh();
+    unsigned int ntriangles = (unsigned int)mmesh->getIndicesVertexes().size();
+    unsigned int nvertexes = ntriangles * 3;  // suboptimal, because some vertexes might be shared
 
-        switch (mglyphs->GetDrawMode()) {
-            case ChGlyphs::GLYPH_POINT:
-                ntriangles = 12 * mglyphs->GetNumberOfGlyphs();
-                nvertexes = 24 * mglyphs->GetNumberOfGlyphs();
-                break;
-            case ChGlyphs::GLYPH_VECTOR:
-                ntriangles = 1 * mglyphs->GetNumberOfGlyphs();
-                nvertexes = 3 * mglyphs->GetNumberOfGlyphs();
-                break;
-            case ChGlyphs::GLYPH_COORDSYS:
-                ntriangles = 3 * mglyphs->GetNumberOfGlyphs();
-                nvertexes = 9 * mglyphs->GetNumberOfGlyphs();
-                break;
-        }
+    scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
-        // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
-        if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
-            irrmesh->getIndexBuffer().reallocate(0);  // clear();
-        if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
-            irrmesh->getVertexBuffer().reallocate(0);
+    // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
+    if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
+        irrmesh->getIndexBuffer().reallocate(0);  // clear();
+    if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
+        irrmesh->getVertexBuffer().reallocate(0);
 
-        irrmesh->getIndexBuffer().set_used((u32)ntriangles * 3);
-        irrmesh->getVertexBuffer().set_used((u32)nvertexes);
+    irrmesh->getIndexBuffer().set_used(ntriangles * 3);
+    irrmesh->getVertexBuffer().set_used(nvertexes);
 
-        // set buffers
-
-        if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT) {
-            const u32 u[36] = {0,  1,  2,  0,  2,  3,  4,  6,  5,  4,  7,  6,  8,  9,  10, 8,  10, 11,
-                               12, 14, 13, 12, 15, 14, 16, 18, 17, 16, 19, 18, 20, 21, 22, 20, 22, 23};
-
-            int itri = 0;
-
-            for (unsigned int ig = 0; ig < mglyphs->points.size(); ++ig) {
-                ChVector<> t1 = mglyphs->points[ig];
-                ChColor mcol = mglyphs->colors[ig];
-                irr::video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
-
-                // create a small cube per each vertex
-                unsigned int voffs = ig * 24;
-                f32 s = (f32)(mglyphs->GetGlyphsSize() * 0.5);
-
-                irrmesh->getVertexBuffer()[0 + voffs] = irr::video::S3DVertex(-s, -s, -s, 0, 0, -1, clr, 0, 0);
-                irrmesh->getVertexBuffer()[1 + voffs] = irr::video::S3DVertex(-s, s, -s, 0, 0, -1, clr, 0, 1);
-                irrmesh->getVertexBuffer()[2 + voffs] = irr::video::S3DVertex(s, s, -s, 0, 0, -1, clr, 1, 1);
-                irrmesh->getVertexBuffer()[3 + voffs] = irr::video::S3DVertex(s, -s, -s, 0, 0, -1, clr, 1, 0);
-
-                irrmesh->getVertexBuffer()[4 + voffs] = irr::video::S3DVertex(-s, -s, s, 0, 0, 1, clr, 0, 0);
-                irrmesh->getVertexBuffer()[5 + voffs] = irr::video::S3DVertex(-s, s, s, 0, 0, 1, clr, 0, 1);
-                irrmesh->getVertexBuffer()[6 + voffs] = irr::video::S3DVertex(s, s, s, 0, 0, 1, clr, 1, 1);
-                irrmesh->getVertexBuffer()[7 + voffs] = irr::video::S3DVertex(s, -s, s, 0, 0, 1, clr, 1, 0);
-
-                irrmesh->getVertexBuffer()[8 + voffs] = irr::video::S3DVertex(-s, -s, -s, -1, 0, 0, clr, 0, 0);
-                irrmesh->getVertexBuffer()[9 + voffs] = irr::video::S3DVertex(-s, -s, s, -1, 0, 0, clr, 0, 1);
-                irrmesh->getVertexBuffer()[10 + voffs] = irr::video::S3DVertex(-s, s, s, -1, 0, 0, clr, 1, 1);
-                irrmesh->getVertexBuffer()[11 + voffs] = irr::video::S3DVertex(-s, s, -s, -1, 0, 0, clr, 1, 0);
-
-                irrmesh->getVertexBuffer()[12 + voffs] = irr::video::S3DVertex(s, -s, -s, 1, 0, 0, clr, 0, 0);
-                irrmesh->getVertexBuffer()[13 + voffs] = irr::video::S3DVertex(s, -s, s, 1, 0, 0, clr, 0, 1);
-                irrmesh->getVertexBuffer()[14 + voffs] = irr::video::S3DVertex(s, s, s, 1, 0, 0, clr, 1, 1);
-                irrmesh->getVertexBuffer()[15 + voffs] = irr::video::S3DVertex(s, s, -s, 1, 0, 0, clr, 1, 0);
-
-                irrmesh->getVertexBuffer()[16 + voffs] = irr::video::S3DVertex(-s, -s, -s, 0, -1, 0, clr, 0, 0);
-                irrmesh->getVertexBuffer()[17 + voffs] = irr::video::S3DVertex(-s, -s, s, 0, -1, 0, clr, 0, 1);
-                irrmesh->getVertexBuffer()[18 + voffs] = irr::video::S3DVertex(s, -s, s, 0, -1, 0, clr, 1, 1);
-                irrmesh->getVertexBuffer()[19 + voffs] = irr::video::S3DVertex(s, -s, -s, 0, -1, 0, clr, 1, 0);
-
-                irrmesh->getVertexBuffer()[20 + voffs] = irr::video::S3DVertex(-s, s, -s, 0, 1, 0, clr, 0, 0);
-                irrmesh->getVertexBuffer()[21 + voffs] = irr::video::S3DVertex(-s, s, s, 0, 1, 0, clr, 0, 1);
-                irrmesh->getVertexBuffer()[22 + voffs] = irr::video::S3DVertex(s, s, s, 0, 1, 0, clr, 1, 1);
-                irrmesh->getVertexBuffer()[23 + voffs] = irr::video::S3DVertex(s, s, -s, 0, 1, 0, clr, 1, 0);
-
-                for (u32 i = 0; i < 24; ++i) {
-                    irrmesh->getVertexBuffer()[i + voffs].Pos += irr::core::vector3df((f32)t1.x(), (f32)t1.y(), (f32)t1.z());
-                    // buffer->BoundingBox.addInternalPoint(buffer->Vertices[i].Pos);
-                }
-
-                for (u32 i = 0; i < 36; ++i)
-                    irrmesh->getIndexBuffer().setValue(i + itri, u[i] + voffs);
-
-                itri += 36;
-            }
-        }
-
-        if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR) {
-            int itri = 0;
-            for (unsigned int ig = 0; ig < mglyphs->points.size(); ++ig) {
-                ChVector<> t1 = mglyphs->points[ig];
-                ChVector<> t2 = mglyphs->vectors[ig] + t1;
-                ChColor mcol = mglyphs->colors[ig];
-                irr::video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
-
-                // create a  small line (a degenerate triangle) per each vector
-                irrmesh->getVertexBuffer()[0 + ig * 3] =
-                    irr::video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
-
-                irrmesh->getVertexBuffer()[1 + ig * 3] =
-                    irr::video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, clr, 0, 0);
-
-                irrmesh->getVertexBuffer()[2 + ig * 3] =
-                    irr::video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, clr, 0, 0);
-
-                irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + ig * 3);
-                irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + ig * 3);
-                irrmesh->getIndexBuffer().setValue(2 + itri * 3, 2 + ig * 3);
-
-                ++itri;
-            }
-        }
-
-        if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS) {
-            int itri = 0;
-
-            for (unsigned int ig = 0; ig < mglyphs->points.size(); ++ig) {
-                ChVector<> t1 = mglyphs->points[ig];
-                ChVector<> t2;
-
-                // X axis - create a  small line (a degenerate triangle) per each vector
-                t2 = mglyphs->rotations[ig].Rotate(ChVector<>(1, 0, 0) * mglyphs->GetGlyphsSize()) + t1;
-
-                irrmesh->getVertexBuffer()[0 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, irr::video::SColor(255, 255, 0, 0), 0, 0);
-                irrmesh->getVertexBuffer()[1 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, irr::video::SColor(255, 255, 0, 0), 0, 0);
-                irrmesh->getVertexBuffer()[2 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, irr::video::SColor(255, 255, 0, 0), 0, 0);
-
-                irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + ig * 9);
-                irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + ig * 9);
-                irrmesh->getIndexBuffer().setValue(2 + itri * 3, 2 + ig * 9);
-
-                ++itri;
-
-                // Y axis
-                t2 = mglyphs->rotations[ig].Rotate(ChVector<>(0, 1, 0) * mglyphs->GetGlyphsSize()) + t1;
-
-                irrmesh->getVertexBuffer()[3 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, irr::video::SColor(255, 0, 255, 0), 0, 0);
-                irrmesh->getVertexBuffer()[4 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, irr::video::SColor(255, 0, 255, 0), 0, 0);
-                irrmesh->getVertexBuffer()[5 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, irr::video::SColor(255, 0, 255, 0), 0, 0);
-
-                irrmesh->getIndexBuffer().setValue(0 + itri * 3, 3 + ig * 9);
-                irrmesh->getIndexBuffer().setValue(1 + itri * 3, 4 + ig * 9);
-                irrmesh->getIndexBuffer().setValue(2 + itri * 3, 5 + ig * 9);
-
-                ++itri;
-
-                // Z axis
-                t2 = mglyphs->rotations[ig].Rotate(ChVector<>(0, 0, 1) * mglyphs->GetGlyphsSize()) + t1;
-
-                irrmesh->getVertexBuffer()[6 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, irr::video::SColor(255, 0, 0, 255), 0, 0);
-                irrmesh->getVertexBuffer()[7 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, irr::video::SColor(255, 0, 0, 255), 0, 0);
-                irrmesh->getVertexBuffer()[8 + ig * 9] = irr::video::S3DVertex(
-                    (f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, irr::video::SColor(255, 0, 0, 255), 0, 0);
-
-                irrmesh->getIndexBuffer().setValue(0 + itri * 3, 6 + ig * 9);
-                irrmesh->getIndexBuffer().setValue(1 + itri * 3, 7 + ig * 9);
-                irrmesh->getIndexBuffer().setValue(2 + itri * 3, 8 + ig * 9);
-
-                ++itri;
-            }
-        }
-
-        irrmesh->setDirty();                                  // to force update of hardware buffers
-        irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
-        irrmesh->recalculateBoundingBox();
-
-        if (mglyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR || mglyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS) {
-            meshnode->setMaterialFlag(irr::video::EMF_WIREFRAME, true);
-            meshnode->setMaterialFlag(irr::video::EMF_LIGHTING, false);  // avoid shading for wireframe
-            meshnode->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, false);
+    // set buffers
+    for (unsigned int itri = 0; itri < ntriangles; itri++) {
+        ChVector<> t1 = mmesh->getCoordsVertices()[mmesh->getIndicesVertexes()[itri].x()];
+        ChVector<> t2 = mmesh->getCoordsVertices()[mmesh->getIndicesVertexes()[itri].y()];
+        ChVector<> t3 = mmesh->getCoordsVertices()[mmesh->getIndicesVertexes()[itri].z()];
+        ChVector<> n1, n2, n3;
+        if (mmesh->getIndicesNormals().size() == mmesh->getIndicesVertexes().size()) {
+            n1 = mmesh->getCoordsNormals()[mmesh->getIndicesNormals()[itri].x()];
+            n2 = mmesh->getCoordsNormals()[mmesh->getIndicesNormals()[itri].y()];
+            n3 = mmesh->getCoordsNormals()[mmesh->getIndicesNormals()[itri].z()];
         } else {
-            meshnode->setMaterialFlag(irr::video::EMF_WIREFRAME, false);
-            meshnode->setMaterialFlag(irr::video::EMF_LIGHTING, true);
-            meshnode->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, true);
+            n1 = Vcross(t2 - t1, t3 - t1).GetNormalized();
+            n2 = n1;
+            n3 = n1;
         }
 
-        if (mglyphs->GetZbufferHide() == true)
-            meshnode->setMaterialFlag(irr::video::EMF_ZBUFFER, true);
-        else
-            meshnode->setMaterialFlag(irr::video::EMF_ZBUFFER, false);
+        ChVector<> uv1, uv2, uv3;
+        if (mmesh->getIndicesUV().size() == mmesh->getIndicesVertexes().size()) {
+            uv1 = mmesh->getCoordsUV()[mmesh->getIndicesUV()[itri].x()];
+            uv2 = mmesh->getCoordsUV()[mmesh->getIndicesUV()[itri].y()];
+            uv3 = mmesh->getCoordsUV()[mmesh->getIndicesUV()[itri].z()];
+        } else if (mmesh->getIndicesUV().size() == 0 &&
+                   mmesh->getCoordsUV().size() == mmesh->getCoordsVertices().size()) {
+            uv1 = mmesh->getCoordsUV()[mmesh->getIndicesVertexes()[itri].x()];
+            uv2 = mmesh->getCoordsUV()[mmesh->getIndicesVertexes()[itri].y()];
+            uv3 = mmesh->getCoordsUV()[mmesh->getIndicesVertexes()[itri].z()];
+        } else {
+            uv1 = uv2 = uv3 = VNULL;
+        }
 
-        meshnode->setMaterialFlag(irr::video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+        ChVector<float> col1, col2, col3;
+        if (mmesh->getIndicesColors().size() == mmesh->getIndicesVertexes().size()) {
+            col1 = mmesh->getCoordsColors()[mmesh->getIndicesColors()[itri].x()];
+            col2 = mmesh->getCoordsColors()[mmesh->getIndicesColors()[itri].y()];
+            col3 = mmesh->getCoordsColors()[mmesh->getIndicesColors()[itri].z()];
+        } else if (mmesh->getIndicesColors().size() == 0 &&
+                   mmesh->getCoordsColors().size() == mmesh->getCoordsVertices().size()) {
+            col1 = mmesh->getCoordsColors()[mmesh->getIndicesVertexes()[itri].x()];
+            col2 = mmesh->getCoordsColors()[mmesh->getIndicesVertexes()[itri].y()];
+            col3 = mmesh->getCoordsColors()[mmesh->getIndicesVertexes()[itri].z()];
+        } else {
+            col1 = col2 = col3 =
+                ChVector<float>(trianglemesh->GetColor().R, trianglemesh->GetColor().G, trianglemesh->GetColor().B);
+        }
+
+        irrmesh->getVertexBuffer()[0 + itri * 3] =
+            video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), (f32)n1.x(), (f32)n1.y(), (f32)n1.z(),
+                             video::SColor(255, (u32)(col1.x() * 255), (u32)(col1.y() * 255), (u32)(col1.z() * 255)),
+                             (f32)uv1.x(), (f32)uv1.y());
+
+        irrmesh->getVertexBuffer()[1 + itri * 3] =
+            video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), (f32)n2.x(), (f32)n2.y(), (f32)n2.z(),
+                             video::SColor(255, (u32)(col2.x() * 255), (u32)(col2.y() * 255), (u32)(col2.z() * 255)),
+                             (f32)uv2.x(), (f32)uv2.y());
+
+        irrmesh->getVertexBuffer()[2 + itri * 3] =
+            video::S3DVertex((f32)t3.x(), (f32)t3.y(), (f32)t3.z(), (f32)n3.x(), (f32)n3.y(), (f32)n3.z(),
+                             video::SColor(255, (u32)(col3.x() * 255), (u32)(col3.y() * 255), (u32)(col3.z() * 255)),
+                             (f32)uv3.x(), (f32)uv3.y());
+
+        irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + itri * 3);
+        irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + itri * 3);
+        irrmesh->getIndexBuffer().setValue(2 + itri * 3, 2 + itri * 3);
     }
 
-    auto path_shape = std::dynamic_pointer_cast<ChPathShape>(visualization_asset);
-    auto line_shape = std::dynamic_pointer_cast<ChLineShape>(visualization_asset);
-    if (path_shape || line_shape) {
-        std::shared_ptr<geometry::ChLine> mline;
-        unsigned int nvertexes;
-        if (path_shape) {
-            mline = path_shape->GetPathGeometry();
-            nvertexes = path_shape->GetNumRenderPoints();
+    irrmesh->setDirty();                                  // to force update of hardware buffers
+    irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
+    irrmesh->recalculateBoundingBox();
+
+    meshnode->setAutomaticCulling(scene::EAC_OFF);
+
+    meshnode->setMaterialFlag(video::EMF_WIREFRAME, trianglemesh->IsWireframe());
+    meshnode->setMaterialFlag(video::EMF_LIGHTING,
+                              !trianglemesh->IsWireframe());  // avoid shading for wireframes
+    meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, trianglemesh->IsBackfaceCull());
+
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+}
+
+void ChIrrNodeProxyToAsset::UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs) {
+    // Fetch the 1st child, i.e. the mesh
+    ISceneNode* mchildnode = *(getChildren().begin());
+    if (!mchildnode || mchildnode->getType() != scene::ESNT_MESH)
+        return;
+
+    scene::IMeshSceneNode* meshnode = (scene::IMeshSceneNode*)mchildnode;
+    scene::IMesh* amesh = meshnode->getMesh();
+    if (amesh->getMeshBufferCount() == 0)
+        return;
+
+    scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
+
+    size_t ntriangles = 0;
+    size_t nvertexes = 0;
+
+    switch (glyphs->GetDrawMode()) {
+        case ChGlyphs::GLYPH_POINT:
+            ntriangles = 12 * glyphs->GetNumberOfGlyphs();
+            nvertexes = 24 * glyphs->GetNumberOfGlyphs();
+            break;
+        case ChGlyphs::GLYPH_VECTOR:
+            ntriangles = 1 * glyphs->GetNumberOfGlyphs();
+            nvertexes = 3 * glyphs->GetNumberOfGlyphs();
+            break;
+        case ChGlyphs::GLYPH_COORDSYS:
+            ntriangles = 3 * glyphs->GetNumberOfGlyphs();
+            nvertexes = 9 * glyphs->GetNumberOfGlyphs();
+            break;
+    }
+
+    // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
+    if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
+        irrmesh->getIndexBuffer().reallocate(0);  // clear();
+    if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
+        irrmesh->getVertexBuffer().reallocate(0);
+
+    irrmesh->getIndexBuffer().set_used((u32)ntriangles * 3);
+    irrmesh->getVertexBuffer().set_used((u32)nvertexes);
+
+    // set buffers
+
+    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_POINT) {
+        const u32 u[36] = {0,  1,  2,  0,  2,  3,  4,  6,  5,  4,  7,  6,  8,  9,  10, 8,  10, 11,
+                           12, 14, 13, 12, 15, 14, 16, 18, 17, 16, 19, 18, 20, 21, 22, 20, 22, 23};
+
+        int itri = 0;
+
+        for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
+            ChVector<> t1 = glyphs->points[ig];
+            ChColor mcol = glyphs->colors[ig];
+            video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
+
+            // create a small cube per each vertex
+            unsigned int voffs = ig * 24;
+            f32 s = (f32)(glyphs->GetGlyphsSize() * 0.5);
+
+            irrmesh->getVertexBuffer()[0 + voffs] = video::S3DVertex(-s, -s, -s, 0, 0, -1, clr, 0, 0);
+            irrmesh->getVertexBuffer()[1 + voffs] = video::S3DVertex(-s, s, -s, 0, 0, -1, clr, 0, 1);
+            irrmesh->getVertexBuffer()[2 + voffs] = video::S3DVertex(s, s, -s, 0, 0, -1, clr, 1, 1);
+            irrmesh->getVertexBuffer()[3 + voffs] = video::S3DVertex(s, -s, -s, 0, 0, -1, clr, 1, 0);
+
+            irrmesh->getVertexBuffer()[4 + voffs] = video::S3DVertex(-s, -s, s, 0, 0, 1, clr, 0, 0);
+            irrmesh->getVertexBuffer()[5 + voffs] = video::S3DVertex(-s, s, s, 0, 0, 1, clr, 0, 1);
+            irrmesh->getVertexBuffer()[6 + voffs] = video::S3DVertex(s, s, s, 0, 0, 1, clr, 1, 1);
+            irrmesh->getVertexBuffer()[7 + voffs] = video::S3DVertex(s, -s, s, 0, 0, 1, clr, 1, 0);
+
+            irrmesh->getVertexBuffer()[8 + voffs] = video::S3DVertex(-s, -s, -s, -1, 0, 0, clr, 0, 0);
+            irrmesh->getVertexBuffer()[9 + voffs] = video::S3DVertex(-s, -s, s, -1, 0, 0, clr, 0, 1);
+            irrmesh->getVertexBuffer()[10 + voffs] = video::S3DVertex(-s, s, s, -1, 0, 0, clr, 1, 1);
+            irrmesh->getVertexBuffer()[11 + voffs] = video::S3DVertex(-s, s, -s, -1, 0, 0, clr, 1, 0);
+
+            irrmesh->getVertexBuffer()[12 + voffs] = video::S3DVertex(s, -s, -s, 1, 0, 0, clr, 0, 0);
+            irrmesh->getVertexBuffer()[13 + voffs] = video::S3DVertex(s, -s, s, 1, 0, 0, clr, 0, 1);
+            irrmesh->getVertexBuffer()[14 + voffs] = video::S3DVertex(s, s, s, 1, 0, 0, clr, 1, 1);
+            irrmesh->getVertexBuffer()[15 + voffs] = video::S3DVertex(s, s, -s, 1, 0, 0, clr, 1, 0);
+
+            irrmesh->getVertexBuffer()[16 + voffs] = video::S3DVertex(-s, -s, -s, 0, -1, 0, clr, 0, 0);
+            irrmesh->getVertexBuffer()[17 + voffs] = video::S3DVertex(-s, -s, s, 0, -1, 0, clr, 0, 1);
+            irrmesh->getVertexBuffer()[18 + voffs] = video::S3DVertex(s, -s, s, 0, -1, 0, clr, 1, 1);
+            irrmesh->getVertexBuffer()[19 + voffs] = video::S3DVertex(s, -s, -s, 0, -1, 0, clr, 1, 0);
+
+            irrmesh->getVertexBuffer()[20 + voffs] = video::S3DVertex(-s, s, -s, 0, 1, 0, clr, 0, 0);
+            irrmesh->getVertexBuffer()[21 + voffs] = video::S3DVertex(-s, s, s, 0, 1, 0, clr, 0, 1);
+            irrmesh->getVertexBuffer()[22 + voffs] = video::S3DVertex(s, s, s, 0, 1, 0, clr, 1, 1);
+            irrmesh->getVertexBuffer()[23 + voffs] = video::S3DVertex(s, s, -s, 0, 1, 0, clr, 1, 0);
+
+            for (u32 i = 0; i < 24; ++i) {
+                irrmesh->getVertexBuffer()[i + voffs].Pos += core::vector3df((f32)t1.x(), (f32)t1.y(), (f32)t1.z());
+                // buffer->BoundingBox.addInternalPoint(buffer->Vertices[i].Pos);
+            }
+
+            for (u32 i = 0; i < 36; ++i)
+                irrmesh->getIndexBuffer().setValue(i + itri, u[i] + voffs);
+
+            itri += 36;
         }
-        if (line_shape) {
-            mline = line_shape->GetLineGeometry();
-            nvertexes = line_shape->GetNumRenderPoints();
+    }
+
+    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR) {
+        int itri = 0;
+        for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
+            ChVector<> t1 = glyphs->points[ig];
+            ChVector<> t2 = glyphs->vectors[ig] + t1;
+            ChColor mcol = glyphs->colors[ig];
+            video::SColor clr(255, (u32)(mcol.R * 255), (u32)(mcol.G * 255), (u32)(mcol.B * 255));
+
+            // create a  small line (a degenerate triangle) per each vector
+            irrmesh->getVertexBuffer()[0 + ig * 3] =
+                video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
+
+            irrmesh->getVertexBuffer()[1 + ig * 3] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, clr, 0, 0);
+
+            irrmesh->getVertexBuffer()[2 + ig * 3] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, clr, 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + ig * 3);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + ig * 3);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 2 + ig * 3);
+
+            ++itri;
         }
+    }
 
-        unsigned int ntriangles = nvertexes - 1;
+    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS) {
+        int itri = 0;
 
-        // Set color.
-        auto vis = std::static_pointer_cast<ChVisualization>(visualization_asset);
-        ChColor col = vis->GetColor();
-        irr::video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+        for (unsigned int ig = 0; ig < glyphs->points.size(); ++ig) {
+            ChVector<> t1 = glyphs->points[ig];
+            ChVector<> t2;
 
-        // Fetch the 1st child, i.e. the mesh
-        ISceneNode* mchildnode = *(getChildren().begin());
-        if (!mchildnode || mchildnode->getType() != scene::ESNT_MESH)
-            return;
+            // X axis - create a  small line (a degenerate triangle) per each vector
+            t2 = glyphs->rotations[ig].Rotate(ChVector<>(1, 0, 0) * glyphs->GetGlyphsSize()) + t1;
 
-        scene::IMeshSceneNode* meshnode =
-            (scene::IMeshSceneNode*)mchildnode;  // dynamic_cast not enabled in Irrlicht dll
-        scene::IMesh* amesh = meshnode->getMesh();
-        if (amesh->getMeshBufferCount() == 0)
-            return;
+            irrmesh->getVertexBuffer()[0 + ig * 9] =
+                video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
+            irrmesh->getVertexBuffer()[1 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
+            irrmesh->getVertexBuffer()[2 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 255, 0, 0), 0, 0);
 
-        // SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
-        scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 2 + ig * 9);
+
+            ++itri;
+
+            // Y axis
+            t2 = glyphs->rotations[ig].Rotate(ChVector<>(0, 1, 0) * glyphs->GetGlyphsSize()) + t1;
+
+            irrmesh->getVertexBuffer()[3 + ig * 9] =
+                video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+            irrmesh->getVertexBuffer()[4 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+            irrmesh->getVertexBuffer()[5 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 255, 0), 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 3 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 4 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 5 + ig * 9);
+
+            ++itri;
+
+            // Z axis
+            t2 = glyphs->rotations[ig].Rotate(ChVector<>(0, 0, 1) * glyphs->GetGlyphsSize()) + t1;
+
+            irrmesh->getVertexBuffer()[6 + ig * 9] =
+                video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+            irrmesh->getVertexBuffer()[7 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+            irrmesh->getVertexBuffer()[8 + ig * 9] =
+                video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, video::SColor(255, 0, 0, 255), 0, 0);
+
+            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 6 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 7 + ig * 9);
+            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 8 + ig * 9);
+
+            ++itri;
+        }
+    }
+
+    irrmesh->setDirty();                                  // to force update of hardware buffers
+    irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
+    irrmesh->recalculateBoundingBox();
+
+    if (glyphs->GetDrawMode() == ChGlyphs::GLYPH_VECTOR || glyphs->GetDrawMode() == ChGlyphs::GLYPH_COORDSYS) {
+        meshnode->setMaterialFlag(video::EMF_WIREFRAME, true);
+        meshnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
+        meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
+    } else {
+        meshnode->setMaterialFlag(video::EMF_WIREFRAME, false);
+        meshnode->setMaterialFlag(video::EMF_LIGHTING, true);
+        meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, true);
+    }
+
+    if (glyphs->GetZbufferHide() == true)
+        meshnode->setMaterialFlag(video::EMF_ZBUFFER, true);
+    else
+        meshnode->setMaterialFlag(video::EMF_ZBUFFER, false);
+
+    meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);  // so color shading = vertexes  color
+}
+
+void ChIrrNodeProxyToAsset::UpdateSurface(std::shared_ptr<ChSurfaceShape> surface) {
+    std::shared_ptr<geometry::ChSurface> msurface = surface->GetSurfaceGeometry();
+
+    // Set color.
+    auto vis = std::static_pointer_cast<ChVisualization>(visualization_asset);
+    ChColor col = vis->GetColor();
+    video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+
+    // Fetch the 1st child, i.e. the mesh
+    ISceneNode* mchildnode = *(getChildren().begin());
+    if (!mchildnode || mchildnode->getType() != scene::ESNT_MESH)
+        return;
+
+    scene::IMeshSceneNode* meshnode = (scene::IMeshSceneNode*)mchildnode;
+    scene::IMesh* amesh = meshnode->getMesh();
+    if (amesh->getMeshBufferCount() == 0)
+        return;
+
+    scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
+
+    if (!surface->IsWireframe()) {
+        size_t sections_u = surface->GetResolutionU() * 4;  //***TEST***
+        size_t sections_v = surface->GetResolutionV() * 4;  //***TEST***
+        size_t nvertexes = (sections_u + 1) * (sections_v + 1);
+        size_t ntriangles = (sections_u) * (sections_v)*2;
 
         // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
         if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
@@ -423,215 +412,197 @@ void ChIrrNodeProxyToAsset::Update() {
 
         int itri = 0;
 
-        ChVector<> t1;
-        mline->Evaluate(t1, 0);
-        t1 = vis->Pos + vis->Rot * t1;
+        for (unsigned int iv = 0; iv <= sections_v; ++iv) {
+            double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
-        irrmesh->getVertexBuffer()[0] = irr::video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
+            for (unsigned int iu = 0; iu <= sections_u; ++iu) {
+                double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-        double maxU = 1;
-        if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
-            maxU = mline_path->GetPathDuration();
+                ChVector<> P;
+                msurface->Evaluate(P, mU, mV);
+                P = vis->Pos + vis->Rot * P;
 
-        for (unsigned int ig = 0; ig < ntriangles; ++ig) {
-            double mU = maxU * ((double)ig / (double)(ntriangles - 1));  // abscissa
+                ChVector<> N;
+                msurface->Normal(N, mU, mV);
+                N = vis->Rot * N;
 
-            ChVector<> t2;
-            mline->Evaluate(t2, mU);
-            t2 = vis->Pos + vis->Rot * t2;
+                // create two triangles per uv increment
 
-            // create a  small line (a degenerate triangle) per each vector
+                irrmesh->getVertexBuffer()[iu + iv * (sections_u + 1)] =
+                    video::S3DVertex((f32)P.x(), (f32)P.y(), (f32)P.z(), (f32)N.x(), (f32)N.y(), (f32)N.z(), clr, 0, 0);
 
-            irrmesh->getVertexBuffer()[1 + ig] =
-                irr::video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, clr, 0, 0);
-
-            irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + ig);
-            irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + ig);
-            irrmesh->getIndexBuffer().setValue(2 + itri * 3, 1 + ig);
-
-            ++itri;
-
-            t1 = t2;
+                if (iu > 0 && iv > 0) {
+                    irrmesh->getIndexBuffer().setValue(0 + itri * 3, iu - 1 + iv * (sections_u + 1));
+                    irrmesh->getIndexBuffer().setValue(1 + itri * 3, iu - 1 + (iv - 1) * (sections_u + 1));
+                    irrmesh->getIndexBuffer().setValue(2 + itri * 3, iu + iv * (sections_u + 1));
+                    ++itri;
+                    irrmesh->getIndexBuffer().setValue(0 + itri * 3, iu - 1 + (iv - 1) * (sections_u + 1));
+                    irrmesh->getIndexBuffer().setValue(1 + itri * 3, iu + (iv - 1) * (sections_u + 1));
+                    irrmesh->getIndexBuffer().setValue(2 + itri * 3, iu + iv * (sections_u + 1));
+                    ++itri;
+                }
+            }
         }
+
         irrmesh->setDirty();                                  // to force update of hardware buffers
         irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
         irrmesh->recalculateBoundingBox();
 
         meshnode->setAutomaticCulling(scene::EAC_OFF);
 
-        meshnode->setMaterialFlag(irr::video::EMF_WIREFRAME, true);
-        meshnode->setMaterialFlag(irr::video::EMF_LIGHTING, false);  // avoid shading for wireframe
-        meshnode->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, false);
+        meshnode->setMaterialFlag(video::EMF_WIREFRAME, false);
+        meshnode->setMaterialFlag(video::EMF_LIGHTING, true);  // avoid shading for wireframe
+        meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
+        meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);
+    } else {                    // if wirewrame u v isolines
+        size_t isolines_u = 4;  //***TEST***
+        size_t isolines_v = 3;  //***TEST***
+        size_t sections_u = surface->GetResolutionU() * isolines_u;
+        size_t sections_v = surface->GetResolutionV() * isolines_v;
 
-        // meshnode->setMaterialFlag(irr::video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
-    }
+        size_t nvertexes = (sections_u + 1) * (isolines_v) + (sections_v + 1) * (isolines_u);
+        size_t ntriangles = (sections_u) * (isolines_v) + (sections_v) * (isolines_u);
 
+        // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
+        if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
+            irrmesh->getIndexBuffer().reallocate(0);  // clear();
+        if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
+            irrmesh->getVertexBuffer().reallocate(0);
 
-    auto surface_shape = std::dynamic_pointer_cast<ChSurfaceShape>(visualization_asset);
-    if (surface_shape) {
-        std::shared_ptr<geometry::ChSurface> msurface = surface_shape->GetSurfaceGeometry();
+        irrmesh->getIndexBuffer().set_used((u32)ntriangles * 3);
+        irrmesh->getVertexBuffer().set_used((u32)nvertexes);
 
-        // Set color.
-        auto vis = std::static_pointer_cast<ChVisualization>(visualization_asset);
-        ChColor col = vis->GetColor();
-        irr::video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+        int itri = 0;
 
-        // Fetch the 1st child, i.e. the mesh
-        ISceneNode* mchildnode = *(getChildren().begin());
-        if (!mchildnode || mchildnode->getType() != scene::ESNT_MESH)
-            return;
+        for (unsigned int iv = 0; iv < isolines_v; ++iv) {
+            double mV = 1.0 * ((double)iv / (double)(isolines_v - 1));  // v abscissa
 
-        scene::IMeshSceneNode* meshnode =
-            (scene::IMeshSceneNode*)mchildnode;  // dynamic_cast not enabled in Irrlicht dll
-        scene::IMesh* amesh = meshnode->getMesh();
-        if (amesh->getMeshBufferCount() == 0)
-            return;
+            for (unsigned int iu = 0; iu <= sections_u; ++iu) {
+                double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
 
-        scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
+                ChVector<> P;
+                msurface->Evaluate(P, mU, mV);
+                P = vis->Pos + vis->Rot * P;
 
-        if (!surface_shape->IsWireframe()) {
+                irrmesh->getVertexBuffer()[iu + iv * (sections_u + 1)] =
+                    video::S3DVertex((f32)P.x(), (f32)P.y(), (f32)P.z(), 1, 0, 0, clr, 0, 0);
 
-            size_t sections_u = surface_shape->GetResolutionU()*4; //***TEST***
-            size_t sections_v = surface_shape->GetResolutionV()*4; //***TEST***
-            size_t nvertexes = (sections_u+1)*(sections_v+1);
-            size_t ntriangles = (sections_u)*(sections_v)*2;
-
-            // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
-            if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
-                irrmesh->getIndexBuffer().reallocate(0);  // clear();
-            if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
-                irrmesh->getVertexBuffer().reallocate(0);
-
-            irrmesh->getIndexBuffer().set_used((u32)ntriangles * 3);
-            irrmesh->getVertexBuffer().set_used((u32)nvertexes);
-
-            int itri = 0;
+                if (iu > 0) {
+                    irrmesh->getIndexBuffer().setValue(0 + itri * 3, iu - 1 + iv * (sections_u + 1));
+                    irrmesh->getIndexBuffer().setValue(1 + itri * 3, iu - 1 + iv * (sections_u + 1));
+                    irrmesh->getIndexBuffer().setValue(2 + itri * 3, iu + iv * (sections_u + 1));
+                    ++itri;
+                }
+            }
+        }
+        size_t stride = (sections_u + 1) * isolines_v;
+        for (unsigned int iu = 0; iu < isolines_u; ++iu) {
+            double mU = 1.0 * ((double)iu / (double)(isolines_u - 1));  // u abscissa
 
             for (unsigned int iv = 0; iv <= sections_v; ++iv) {
                 double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
 
-                for (unsigned int iu = 0; iu <= sections_u; ++iu) {
-                    double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
+                ChVector<> P;
+                msurface->Evaluate(P, mU, mV);
+                P = vis->Pos + vis->Rot * P;
 
-                    ChVector<> P;
-                    msurface->Evaluate(P, mU, mV);
-                    P = vis->Pos + vis->Rot * P;
+                irrmesh->getVertexBuffer()[iv + iu * (sections_v + 1) + stride] =
+                    video::S3DVertex((f32)P.x(), (f32)P.y(), (f32)P.z(), 1, 0, 0, clr, 0, 0);
 
-                    ChVector<> N;
-                    msurface->Normal(N, mU, mV);
-                    N = vis->Rot * N;
-
-                    // create two triangles per uv increment
-
-                    irrmesh->getVertexBuffer()[iu + iv*(sections_u+1)] =
-                        irr::video::S3DVertex((f32)P.x(), (f32)P.y(), (f32)P.z(), 
-                                              (f32)N.x(), (f32)N.y(), (f32)N.z(), 
-                                               clr, 0, 0);
-
-                    if (iu >0 && iv >0) {
-                        irrmesh->getIndexBuffer().setValue(0 + itri * 3, iu-1 + iv    *(sections_u+1) );
-                        irrmesh->getIndexBuffer().setValue(1 + itri * 3, iu-1 + (iv-1)*(sections_u+1) );
-                        irrmesh->getIndexBuffer().setValue(2 + itri * 3, iu   + iv    *(sections_u+1) );
-                        ++itri;
-                        irrmesh->getIndexBuffer().setValue(0 + itri * 3, iu-1 + (iv-1)*(sections_u+1) );
-                        irrmesh->getIndexBuffer().setValue(1 + itri * 3, iu   + (iv-1)*(sections_u+1) );
-                        irrmesh->getIndexBuffer().setValue(2 + itri * 3, iu   + iv    *(sections_u+1) );
-                        ++itri;
-                    }
-                
+                if (iv > 0) {
+                    irrmesh->getIndexBuffer().setValue(0 + itri * 3, iv - 1 + iu * (sections_v + 1) + stride);
+                    irrmesh->getIndexBuffer().setValue(1 + itri * 3, iv - 1 + iu * (sections_v + 1) + stride);
+                    irrmesh->getIndexBuffer().setValue(2 + itri * 3, iv + iu * (sections_v + 1) + stride);
+                    ++itri;
                 }
             }
-
-            irrmesh->setDirty();                                  // to force update of hardware buffers
-            irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
-            irrmesh->recalculateBoundingBox();
-
-            meshnode->setAutomaticCulling(scene::EAC_OFF);
-
-            meshnode->setMaterialFlag(irr::video::EMF_WIREFRAME, false);
-            meshnode->setMaterialFlag(irr::video::EMF_LIGHTING, true);  // avoid shading for wireframe
-            meshnode->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, false);
-            meshnode->setMaterialFlag(irr::video::EMF_COLOR_MATERIAL, true);
-        } 
-        else { // if wirewrame u v isolines
-            size_t isolines_u = 4; //***TEST***
-            size_t isolines_v = 3; //***TEST***
-            size_t sections_u = surface_shape->GetResolutionU()*isolines_u; 
-            size_t sections_v = surface_shape->GetResolutionV()*isolines_v; 
-            
-            size_t nvertexes = (sections_u+1)*(isolines_v) + (sections_v+1)*(isolines_u);
-            size_t ntriangles = (sections_u)*(isolines_v)  + (sections_v)*(isolines_u);
-
-            // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
-            if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
-                irrmesh->getIndexBuffer().reallocate(0);  // clear();
-            if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
-                irrmesh->getVertexBuffer().reallocate(0);
-
-            irrmesh->getIndexBuffer().set_used((u32)ntriangles * 3);
-            irrmesh->getVertexBuffer().set_used((u32)nvertexes);
-
-            int itri = 0;
-
-            for (unsigned int iv = 0; iv < isolines_v; ++iv) {
-                double mV = 1.0 * ((double)iv / (double)(isolines_v-1));  // v abscissa
-
-                for (unsigned int iu = 0; iu <= sections_u; ++iu) {
-                    double mU = 1.0 * ((double)iu / (double)(sections_u));  // u abscissa
-
-                    ChVector<> P;
-                    msurface->Evaluate(P, mU, mV);
-                    P = vis->Pos + vis->Rot * P;
-
-                    irrmesh->getVertexBuffer()[iu + iv*(sections_u+1)] =
-                        irr::video::S3DVertex((f32)P.x(), (f32)P.y(), (f32)P.z(), 1,0,0, clr, 0, 0);
-
-                    if (iu >0) {
-                        irrmesh->getIndexBuffer().setValue(0 + itri * 3, iu-1 + iv    *(sections_u+1) );
-                        irrmesh->getIndexBuffer().setValue(1 + itri * 3, iu-1 + iv    *(sections_u+1) );
-                        irrmesh->getIndexBuffer().setValue(2 + itri * 3, iu   + iv    *(sections_u+1) );
-                        ++itri;
-                    }
-                
-                }
-            }
-            size_t stride = (sections_u+1)*isolines_v;
-            for (unsigned int iu = 0; iu < isolines_u; ++iu) {
-                double mU = 1.0 * ((double)iu / (double)(isolines_u-1));  // u abscissa
-
-                for (unsigned int iv = 0; iv <= sections_v; ++iv) {
-                    double mV = 1.0 * ((double)iv / (double)(sections_v));  // v abscissa
-
-                    ChVector<> P;
-                    msurface->Evaluate(P, mU, mV);
-                    P = vis->Pos + vis->Rot * P;
-
-                    irrmesh->getVertexBuffer()[iv + iu*(sections_v+1) + stride] =
-                        irr::video::S3DVertex((f32)P.x(), (f32)P.y(), (f32)P.z(), 1,0,0, clr, 0, 0);
-
-                    if (iv >0) {
-                        irrmesh->getIndexBuffer().setValue(0 + itri * 3, iv-1 + iu    *(sections_v+1) + stride);
-                        irrmesh->getIndexBuffer().setValue(1 + itri * 3, iv-1 + iu    *(sections_v+1) + stride);
-                        irrmesh->getIndexBuffer().setValue(2 + itri * 3, iv   + iu    *(sections_v+1) + stride);
-                        ++itri;
-                    }
-                
-                }
-            }
-
-
-            irrmesh->setDirty();                                  // to force update of hardware buffers
-            irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
-            irrmesh->recalculateBoundingBox();
-
-            meshnode->setAutomaticCulling(scene::EAC_OFF);
-
-            meshnode->setMaterialFlag(irr::video::EMF_WIREFRAME, true);
-            meshnode->setMaterialFlag(irr::video::EMF_LIGHTING, false);  // avoid shading for wireframe
-            meshnode->setMaterialFlag(irr::video::EMF_BACK_FACE_CULLING, false);
         }
 
+        irrmesh->setDirty();                                  // to force update of hardware buffers
+        irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
+        irrmesh->recalculateBoundingBox();
+
+        meshnode->setAutomaticCulling(scene::EAC_OFF);
+
+        meshnode->setMaterialFlag(video::EMF_WIREFRAME, true);
+        meshnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
+        meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
     }
+}
+
+void ChIrrNodeProxyToAsset::UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes) {
+    unsigned int ntriangles = nvertexes - 1;
+
+    // Set color.
+    auto vis = std::static_pointer_cast<ChVisualization>(visualization_asset);
+    ChColor col = vis->GetColor();
+    video::SColor clr((u32)(col.A * 255), (u32)(col.R * 255), (u32)(col.G * 255), (u32)(col.B * 255));
+
+    // Fetch the 1st child, i.e. the mesh
+    ISceneNode* mchildnode = *(getChildren().begin());
+    if (!mchildnode || mchildnode->getType() != scene::ESNT_MESH)
+        return;
+
+    scene::IMeshSceneNode* meshnode = (scene::IMeshSceneNode*)mchildnode;
+    scene::IMesh* amesh = meshnode->getMesh();
+    if (amesh->getMeshBufferCount() == 0)
+        return;
+
+    // SMeshBuffer* irrmesh = (SMeshBuffer*)amesh->getMeshBuffer(0);
+    scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
+
+    // smart inflating of allocated buffers, only if necessary, and once in a while shrinking
+    if (irrmesh->getIndexBuffer().allocated_size() > (ntriangles * 3) * 1.5)
+        irrmesh->getIndexBuffer().reallocate(0);  // clear();
+    if (irrmesh->getVertexBuffer().allocated_size() > nvertexes * 1.5)
+        irrmesh->getVertexBuffer().reallocate(0);
+
+    irrmesh->getIndexBuffer().set_used((u32)ntriangles * 3);
+    irrmesh->getVertexBuffer().set_used((u32)nvertexes);
+
+    int itri = 0;
+
+    ChVector<> t1;
+    line->Evaluate(t1, 0);
+    t1 = vis->Pos + vis->Rot * t1;
+
+    irrmesh->getVertexBuffer()[0] = video::S3DVertex((f32)t1.x(), (f32)t1.y(), (f32)t1.z(), 1, 0, 0, clr, 0, 0);
+
+    double maxU = 1;
+    if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(line))
+        maxU = mline_path->GetPathDuration();
+
+    for (unsigned int ig = 0; ig < ntriangles; ++ig) {
+        double mU = maxU * ((double)ig / (double)(ntriangles - 1));  // abscissa
+
+        ChVector<> t2;
+        line->Evaluate(t2, mU);
+        t2 = vis->Pos + vis->Rot * t2;
+
+        // create a  small line (a degenerate triangle) per each vector
+
+        irrmesh->getVertexBuffer()[1 + ig] =
+            video::S3DVertex((f32)t2.x(), (f32)t2.y(), (f32)t2.z(), 1, 0, 0, clr, 0, 0);
+
+        irrmesh->getIndexBuffer().setValue(0 + itri * 3, 0 + ig);
+        irrmesh->getIndexBuffer().setValue(1 + itri * 3, 1 + ig);
+        irrmesh->getIndexBuffer().setValue(2 + itri * 3, 1 + ig);
+
+        ++itri;
+
+        t1 = t2;
+    }
+    irrmesh->setDirty();                                  // to force update of hardware buffers
+    irrmesh->setHardwareMappingHint(scene::EHM_DYNAMIC);  // EHM_NEVER); //EHM_DYNAMIC for faster hw mapping
+    irrmesh->recalculateBoundingBox();
+
+    meshnode->setAutomaticCulling(scene::EAC_OFF);
+
+    meshnode->setMaterialFlag(video::EMF_WIREFRAME, true);
+    meshnode->setMaterialFlag(video::EMF_LIGHTING, false);  // avoid shading for wireframe
+    meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
+
+    // meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true); // so color shading = vertexes  color
 }
 
 }  // end namespace irrlicht

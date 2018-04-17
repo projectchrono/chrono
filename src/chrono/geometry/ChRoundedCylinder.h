@@ -32,7 +32,7 @@ class ChApi ChRoundedCylinder : public ChGeometry {
 
   public:
     ChRoundedCylinder() : center(VNULL), rad(0), hlen(0), radsphere(0) {}
-    ChRoundedCylinder(ChVector<>& mcenter, double mrad, double mhlen, double mradsphere)
+    ChRoundedCylinder(const ChVector<>& mcenter, double mrad, double mhlen, double mradsphere)
         : center(mcenter), rad(mrad), hlen(mhlen), radsphere(mradsphere) {}
     ChRoundedCylinder(const ChRoundedCylinder& source);
     ~ChRoundedCylinder() {}

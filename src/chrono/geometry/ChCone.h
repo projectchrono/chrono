@@ -30,7 +30,7 @@ class ChApi ChCone : public ChGeometry {
 
   public:
     ChCone() : center(VNULL), rad(0) {}
-    ChCone(ChVector<>& mc, ChVector<> mrad) : center(mc), rad(mrad) {}
+    ChCone(const ChVector<>& mc, const ChVector<>& mrad) : center(mc), rad(mrad) {}
     ChCone(const ChCone& source);
     ~ChCone() {}
 

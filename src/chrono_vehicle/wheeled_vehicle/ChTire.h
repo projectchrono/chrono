@@ -64,6 +64,13 @@ class CH_VEHICLE_API ChTire : public ChPart {
         CalculateKinematics(time, wheel_state, terrain);
     }
 
+    /// Set the value of the integration step size for the underlying dynamics (if applicable).
+    /// Default value: 1ms.
+    void SetStepsize(double val) { m_stepsize = val; }
+
+    /// Get the current value of the integration step size.
+    double GetStepsize() const { return m_stepsize; }
+
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) {}
 
@@ -127,6 +134,9 @@ class CH_VEHICLE_API ChTire : public ChPart {
                                       double t_factor = 2   ///< tread to sidewall thickness factor
     );
 
+	/// Report the tire deflection 
+	virtual double GetDeflection() const { return 0; }
+	
   protected:
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified
@@ -148,6 +158,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     VehicleSide m_side;               ///< tire mounted on left/right side
     std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
+    double m_stepsize;                ///< tire integration step size (if applicable)
 
   private:
     /// Calculate kinematics quantities based on the current state of the associated

@@ -37,7 +37,7 @@ namespace hmmwv {
 /// Simple HMMWV powertrain subsystem (based on engine speed-torque maps).
 class CH_MODELS_API HMMWV_SimpleMapPowertrain : public ChSimpleMapPowertrain {
   public:
-    HMMWV_SimpleMapPowertrain();
+    HMMWV_SimpleMapPowertrain(const std::string& name);
 
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() override;

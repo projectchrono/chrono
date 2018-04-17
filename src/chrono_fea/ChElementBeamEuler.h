@@ -843,34 +843,17 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double eta,
-                                             const ChMatrix<>& displ,
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) override {
+        ChMatrixDynamic<> displ(this->GetNdofs(), 1);
+        this->GetStateBlock(displ);
+
         ChMatrixNM<double, 1, 12> N;
 
         this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
-        /*
-        u_displ.x() = N(0) * displ(0) + N(6) * displ(6);      // x_a   x_b
-        u_displ.y() = N(1) * displ(1) + N(7) * displ(7)       // y_a   y_b
-                    + N(5) * displ(5) + N(11) * displ(11);  // Rz_a  Rz_b
-        u_displ.z() = N(2) * displ(2) + N(8) * displ(8)       // z_a   z_b
-                    + N(4) * displ(4) + N(10) * displ(10);  // Ry_a  Ry_b
-
-        u_rotaz.x() = N(3) * displ(3) + N(9) * displ(9);  // Rx_a  Rx_b
-
-        double dN_ua = (1. / (2. * this->GetRestLength())) *
-                       (-3. + 3 * eta * eta);  // slope shape functions are computed here on-the-fly
-        double dN_ub = (1. / (2. * this->GetRestLength())) * (3. - 3 * eta * eta);
-        double dN_ra = (1. / 4.) * (-1. - 2 * eta + 3 * eta * eta);
-        double dN_rb = -(1. / 4.) * (1. - 2 * eta - 3 * eta * eta);
-        u_rotaz.y() = -dN_ua * displ(2) - dN_ub * displ(8) +  // z_a   z_b   note - sign
-                    dN_ra * displ(4) + dN_rb * displ(10);   // Ry_a  Ry_b
-        u_rotaz.z() = dN_ua * displ(1) + dN_ub * displ(7) +   // y_a   y_b
-                    dN_ra * displ(5) + dN_rb * displ(11);   // Rz_a  Rz_b
-        */
+        
         u_displ.x() = N(0) * displ(0) + N(3) * displ(6);     // x_a   x_b
         u_displ.y() = N(1) * displ(1) + N(4) * displ(7)      // y_a   y_b
                     + N(2) * displ(5) + N(5) * displ(11);  // Rz_a  Rz_b
@@ -887,10 +870,8 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
     virtual void EvaluateSectionFrame(const double eta,
-                                      const ChMatrix<>& displ,
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) override {
         ChVector<> u_displ;
@@ -898,7 +879,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
         double Nx1 = (1. / 2.) * (1 - eta);
         double Nx2 = (1. / 2.) * (1 + eta);
 
-        this->EvaluateSectionDisplacement(eta, displ, u_displ, u_rotaz);
+        this->EvaluateSectionDisplacement(eta, u_displ, u_rotaz);
 
         // Since   d = [Atw]' Xt - [A0w]'X0   , so we have
         //        Xt = [Atw] (d +  [A0w]'X0)
@@ -917,13 +898,14 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.
     virtual void EvaluateSectionForceTorque(const double eta,
-                                            const ChMatrix<>& displ,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) override {
         assert(section);
+
+        ChMatrixDynamic<> displ(this->GetNdofs(), 1);
+        this->GetStateBlock(displ);
 
         double Jpolar = section->J;
 
@@ -1028,7 +1010,6 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     }
     virtual void EvaluateSectionStrain(
         const double eta,
-        const ChMatrix<>& displ,
         ChVector<>& StrainV) override { /* To be completed: Created to be consistent with base class implementation*/
     }
     //

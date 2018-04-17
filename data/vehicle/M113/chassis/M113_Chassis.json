@@ -10,8 +10,8 @@
                               "Location":    [-2.006, 0, 0.406], 
                               "Orientation": [1, 0, 0, 0]
                             },
-     "Mass":                5489.24,
-     "Moments of Inertia":  [1786.92, 10449.67, 10721.22],
+     "Mass":                7819.24,
+     "Moments of Inertia":  [13983.08, 27287.61, 28805.57],
      "Products of Inertia": [0, 0, 0],
      "Void":                false
    }

@@ -42,6 +42,9 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
 
     virtual ~ChShaftsDriveline4WD() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "ShaftsDriveline4WD"; }
+
     /// Set the direction of the motor block.
     /// This direction is a unit vector, relative to the chassis frame (for the
     /// ISO coordinate system, this is [1, 0, 0] for a longitudinal engine and

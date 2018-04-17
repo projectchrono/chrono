@@ -14,4 +14,34 @@
 
 #include "chrono/assets/ChVisualization.h"
 
-namespace chrono {} 
+namespace chrono {
+
+ChVisualization::ChVisualization() : Pos(0), Rot(1), visible(true), is_static(false), fading(0) {}
+
+void ChVisualization::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChVisualization>();
+    // serialize parent class
+    ChAsset::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(Pos);
+    marchive << CHNVP(Rot);
+    marchive << CHNVP(visible);
+    marchive << CHNVP(color);
+    marchive << CHNVP(fading);
+}
+
+void ChVisualization::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChVisualization>();
+    // deserialize parent class
+    ChAsset::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(Pos);
+    marchive >> CHNVP(Rot);
+    marchive >> CHNVP(visible);
+    marchive >> CHNVP(color);
+    marchive >> CHNVP(fading);
+}
+
+}  // namespace chrono

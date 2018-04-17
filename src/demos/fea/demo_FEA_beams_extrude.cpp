@@ -123,36 +123,46 @@ int main(int argc, char* argv[]) {
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
 
-    auto msection = std::make_shared<ChBeamSectionAdvanced>();
+    auto msection_OLD = std::make_shared<ChBeamSectionAdvanced>();
 
     double wire_diameter = 0.012;
-    msection->SetAsCircularSection(wire_diameter); 
-    msection->SetYoungModulus(0.01e9);  // not exactly a steel wire...
-    msection->SetGshearModulus(0.01e9 * 0.3);
-    msection->SetBeamRaleyghDamping(0.1);
+    msection_OLD->SetAsCircularSection(wire_diameter); 
+	msection_OLD->SetYoungModulus(0.01e9);  // not exactly a steel wire...
+	msection_OLD->SetGshearModulus(0.01e9 * 0.7);
+	msection_OLD->SetBeamRaleyghDamping(0.1);
+
+	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	melasticity->SetYoungModulus(0.01e9);
+	melasticity->SetGshearModulus(0.01e9 * 0.7);
+	melasticity->SetBeamRaleyghDamping(0.1);
+	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	msection->SetDensity(1000);
+	msection->SetAsCircularSection(wire_diameter);
 
     // Create the surface material for the contacts; this contains information about friction etc.
     // It is a SMC (penalty) material: interpenetration might happen for low Young stiffness,
     // but unstable simulation might happen for high stiffness, requiring smaller timesteps.
     
-    
+    /*
     // option A: Hertz contact force model
     my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(12e3);  // to adjust heuristically..
     mysurfmaterial->SetRestitution(0.1f);
     mysurfmaterial->SetFriction(0.2f);
-    /*
+	*/
+
+    
     // Option B: Hooke force model 
     my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
-    //my_system.UseMaterialProperties(false);
+    my_system.UseMaterialProperties(false);
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
-    mysurfmaterial->SetKn(100); // contact normal stiffness
-    mysurfmaterial->SetKt(100); // contact tangential stiffness
-    mysurfmaterial->SetGn(100);   // contact normal damping
-    mysurfmaterial->SetGt(100);   // contact tangential damping
+    mysurfmaterial->SetKn(350); // contact normal stiffness
+    mysurfmaterial->SetKt(350); // contact tangential stiffness
+    mysurfmaterial->SetGn(20);   // contact normal damping
+    mysurfmaterial->SetGt(20);   // contact tangential damping
     mysurfmaterial->SetFriction(0.2f);
-    */
+    
 
     //
     // Add the EXTRUDER
@@ -161,7 +171,7 @@ int main(int argc, char* argv[]) {
     auto extruder = std::make_shared<ChExtruderBeamEuler>(
             &my_system,                 // the physical system 
             my_mesh,                    // the mesh where to add the beams
-            msection,                   // section for created beam
+            msection_OLD,                   // section for created beam
             0.020,                        // beam element length (size of discretization: the smaller, the more precise)
             ChCoordsys<>(ChVector<>(0,0,0)), // outlet coordinate system (x axis is the extrusion dir)
             0.04                         // the extrusion speed
@@ -171,7 +181,22 @@ int main(int argc, char* argv[]) {
     extruder->SetContact( mysurfmaterial,  // the NSC material for contact surfaces
                           1.15*wire_diameter*0.5  // the radius of the collision spheres at the nodes, (enlarge 15%)
                           );
-                          
+/*
+    auto extruder = std::make_shared<ChExtruderBeamIGA>(
+            &my_system,                 // the physical system 
+            my_mesh,                    // the mesh where to add the beams
+            msection,                   // section for created beam
+            0.020,                        // beam element length (size of discretization: the smaller, the more precise)
+            ChCoordsys<>(ChVector<>(0,0,0)), // outlet coordinate system (x axis is the extrusion dir)
+            0.04,                        // the extrusion speed
+            2                            // the order of beams
+            );
+*/
+    // Enable collision for extruded beam
+    extruder->SetContact( mysurfmaterial,  // the NSC material for contact surfaces
+                          1.15*wire_diameter*0.5  // the radius of the collision spheres at the nodes, (enlarge 15%)
+                          );
+
     //
     // Add some other beams 
     //
@@ -187,12 +212,14 @@ int main(int argc, char* argv[]) {
 
     auto belement1 = std::make_shared<ChElementBeamEuler>();
     belement1->SetNodes(hnode1, hnode2);
-    belement1->SetSection(msection);
+    belement1->SetSection(msection_OLD);
 
     my_mesh->AddElement(belement1);
     // Fix a node to ground - the easy way, without constraints
     hnode1->SetFixed(true);
     
+	// We do not want gravity effect on FEA elements in this demo
+	my_mesh->SetAutomaticGravity(true);
 
     //
     // Attach a visualization of the FEM mesh.

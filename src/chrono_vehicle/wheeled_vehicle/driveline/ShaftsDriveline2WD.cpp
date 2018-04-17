@@ -50,12 +50,8 @@ ShaftsDriveline2WD::ShaftsDriveline2WD(const rapidjson::Document& d) : ChShaftsD
 }
 
 void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
-    // Read top-level data.
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Get shaft directions.
     assert(d.HasMember("Shaft Direction"));

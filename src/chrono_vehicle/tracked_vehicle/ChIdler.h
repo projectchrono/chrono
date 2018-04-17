@@ -132,6 +132,10 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const = 0;
 
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     std::shared_ptr<ChBody> m_wheel;                   ///< handle to the idler wheel body
     std::shared_ptr<ChBody> m_carrier;                 ///< handle to the carrier body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;    ///< handle to wheel-carrier revolute joint
@@ -143,6 +147,8 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     ChVector<> m_pW;
     ChVector<> m_pC;
     ChVector<> m_pT;
+
+    friend class ChTrackAssembly;
 };
 
 /// @} vehicle_tracked_idler

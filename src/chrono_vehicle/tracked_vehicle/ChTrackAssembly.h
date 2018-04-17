@@ -169,6 +169,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
                      const TerrainForces& shoe_forces  ///< [in] vector of tire force structures
     );
 
+    /// Enable/disable output for this subsystem.
+    /// This function overrides the output setting for all components of this track assembly.
+    virtual void SetOutput(bool state) override;
+
     /// Log current constraint violations.
     void LogConstraintViolations();
 
@@ -183,11 +187,17 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) = 0;
 
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     VehicleSide m_side;                     ///< assembly on left/right vehicle side
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
     ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
     ChRollerList m_rollers;                 ///< roller subsystems
+
+    friend class ChTrackedVehicle;
 };
 
 /// @} vehicle_tracked

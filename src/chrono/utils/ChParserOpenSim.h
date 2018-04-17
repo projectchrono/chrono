@@ -201,14 +201,15 @@ class ChApi ChParserOpenSim {
     int m_family_2;             ///< second collision family
     bool m_activate_actuators;  ///< are actuators activated at construction?
 
-    float m_friction;       ///< contact coefficient of friction
-    float m_restitution;    ///< contact coefficient of restitution
-    float m_young_modulus;  ///< contact material Young modulus
-    float m_poisson_ratio;  ///< contact material Poisson ratio
-    float m_kn;             ///< normal contact stiffness
-    float m_gn;             ///< normal contact damping
-    float m_kt;             ///< tangential contact stiffness
-    float m_gt;             ///< tangential contact damping
+    float m_friction;        ///< contact coefficient of friction
+    float m_restitution;     ///< contact coefficient of restitution
+    float m_young_modulus;   ///< contact material Young modulus
+    float m_poisson_ratio;   ///< contact material Poisson ratio
+    float m_kn;              ///< normal contact stiffness
+    float m_gn;              ///< normal contact damping
+    float m_kt;              ///< tangential contact stiffness
+    float m_gt;              ///< tangential contact damping
+    std::string m_datapath;  ///< path to find visualization meshes, default is "opensim"
 
     // List of joints in model (loaded in order of outward, base-to-tip, traversal)
     std::vector<std::shared_ptr<ChLink>> m_jointList;

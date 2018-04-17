@@ -32,7 +32,7 @@ namespace m113 {
 
 class CH_MODELS_API M113a_Suspension : public ChLinearDamperRWAssembly {
   public:
-    M113a_Suspension(VehicleSide side, bool has_shock);
+    M113a_Suspension(const std::string& name, VehicleSide side, int index, bool has_shock);
     ~M113a_Suspension();
 
     /// Return the location of the specified hardpoint.

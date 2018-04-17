@@ -70,8 +70,8 @@ class ChMatrix {
     // DATA
     //
 
-    int rows;
-    int columns;
+    int rows = 1;
+    int columns = 1;
     Real* address;
 
   public:
@@ -150,7 +150,7 @@ class ChMatrix {
     bool operator!=(const ChMatrix<Real>& other) { return !Equals(other); }
 
     /// Assignment operator
-    ChMatrix<Real>& operator=(const ChMatrix<Real>& matbis) {
+    virtual ChMatrix<Real>& operator=(const ChMatrix<Real>& matbis) {
         if (&matbis != this)
             CopyFromMatrix(matbis);
         return *this;
@@ -278,7 +278,7 @@ class ChMatrix {
     }
 
     /// Resets the matrix to zero  (warning: simply sets memory to 0 bytes!)
-    void Reset() {
+    virtual void Reset() {
         // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
         for (int i = 0; i < rows * columns; ++i)
             this->address[i] = 0;
@@ -477,6 +477,12 @@ class ChMatrix {
             ElementN(nel) += (Real)matra.ElementN(nel);
     }
 
+    /// Increments this matrix by \p val, as [this]+=val
+    void MatrInc(Real val) {
+        for (int nel = 0; nel < rows * columns; ++nel)
+            ElementN(nel) += val;
+    }
+
     /// Decrements this matrix with another matrix A, as: [this]-=[A]
     template <class RealB>
     void MatrDec(const ChMatrix<RealB>& matra) {
@@ -490,7 +496,8 @@ class ChMatrix {
         for (int nel = 0; nel < rows * columns; ++nel)
             ElementN(nel) *= factor;
     }
-    /// Scales a matrix, multiplying all element by all oter elements of
+
+    /// Scales a matrix, multiplying all element by all other elements of
     /// matra (it is not the classical matrix multiplication!)
     template <class RealB>
     void MatrScale(const ChMatrix<RealB>& matra) {
@@ -505,7 +512,7 @@ class ChMatrix {
             ElementN(nel) /= factor;
     }
 
-    /// Scales a matrix, dividing all element by all oter elements of
+    /// Scales a matrix, dividing all element by all other elements of
     /// matra (it is not the classical matrix multiplication!)
     template <class RealB>
     void MatrDivScale(const ChMatrix<RealB>& matra) {
@@ -864,10 +871,10 @@ class ChMatrix {
     }
 
     /// Returns true if vector is identical to other matrix
-    bool Equals(const ChMatrix<Real>& other) { return Equals(other, 0.0); }
+    bool Equals(const ChMatrix<Real>& other) const { return Equals(other, 0.0); }
 
     /// Returns true if vector equals another vector, within a tolerance 'tol'
-    bool Equals(const ChMatrix<Real>& other, Real tol) {
+    bool Equals(const ChMatrix<Real>& other, Real tol) const {
         if ((other.GetColumns() != this->columns) || (other.GetRows() != this->rows))
             return false;
         for (int nel = 0; nel < rows * columns; ++nel)
@@ -945,7 +952,7 @@ class ChMatrix {
 
     /// Gets the norm infinite of the matrix, i.e. the max.
     /// of its elements in absolute value.
-    Real NormInf() {
+    Real NormInf() const {
         Real norm = 0;
         for (int nel = 0; nel < rows * columns; ++nel)
             if ((fabs(ElementN(nel))) > norm)
@@ -955,7 +962,7 @@ class ChMatrix {
 
     /// Gets the norm two of the matrix, i.e. the square root
     /// of the sum of the elements squared.
-    Real NormTwo() {
+    Real NormTwo() const {
         Real norm = 0;
         for (int nel = 0; nel < rows * columns; ++nel)
             norm += ElementN(nel) * ElementN(nel);
@@ -963,7 +970,7 @@ class ChMatrix {
     }
 
     /// Finds max value among the values of the matrix
-    Real Max() {
+    Real Max() const {
         Real mmax = GetElement(0, 0);
         for (int nel = 0; nel < rows * columns; ++nel)
             if (ElementN(nel) > mmax)
@@ -972,7 +979,7 @@ class ChMatrix {
     }
 
     /// Finds min value among the values of the matrix
-    Real Min() {
+    Real Min() const {
         Real mmin = GetElement(0, 0);
         for (int nel = 0; nel < rows * columns; ++nel)
             if (ElementN(nel) < mmin)

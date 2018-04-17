@@ -40,9 +40,12 @@ namespace generic {
 /// from ChPowertrain.
 class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
   public:
-    Generic_SimpleMapPowertrain();
+    Generic_SimpleMapPowertrain(const std::string& name);
 
     ~Generic_SimpleMapPowertrain() {}
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "Generic_SimpleMapPowertrain"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motorSpeed; }

@@ -157,6 +157,7 @@ set(CV_BASE_FILES
     ChVehicle.cpp
     ChVehicleModelData.h
     ChVehicleModelData.cpp
+    ChVehicleOutput.h
 )
 source_group("base" FILES ${CV_BASE_FILES})
 
@@ -252,6 +253,21 @@ else()
 endif()
 source_group("utils" FILES ${CV_UTILS_FILES} ${CVIRR_UTILS_FILES})
 
+
+set(CV_OUTPUT_FILES
+    output/ChVehicleOutputASCII.h
+    output/ChVehicleOutputASCII.cpp
+)
+if (HDF5_FOUND)
+    set(CVHDF5_OUTPUT_FILES
+        output/ChVehicleOutputHDF5.h
+        output/ChVehicleOutputHDF5.cpp
+    )
+else()
+    set(CVHDF5_OUTPUT_FILES "")
+endif()
+source_group("output" FILES ${CV_OUTPUT_FILES} ${CVHDF5_OUTPUT_FILES})
+
 # --------------- WHEELED VEHICLE FILES
 
 set(CV_WV_BASE_FILES
@@ -312,6 +328,8 @@ source_group("wheeled_vehicle\\driveline" FILES ${CV_WV_DRIVELINE_FILES})
 set(CV_WV_STEERING_FILES
     wheeled_vehicle/steering/ChPitmanArm.h
     wheeled_vehicle/steering/ChPitmanArm.cpp
+    wheeled_vehicle/steering/ChPitmanArmShafts.h
+    wheeled_vehicle/steering/ChPitmanArmShafts.cpp
     wheeled_vehicle/steering/ChRackPinion.h
     wheeled_vehicle/steering/ChRackPinion.cpp
 
@@ -401,6 +419,8 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/LugreTire.cpp
     wheeled_vehicle/tire/FialaTire.h
     wheeled_vehicle/tire/FialaTire.cpp
+    wheeled_vehicle/tire/TMeasyTire.h
+    wheeled_vehicle/tire/TMeasyTire.cpp
 )
 if(ENABLE_MODULE_FEA)
     set(CV_WV_FEATIRE_FILES
@@ -559,11 +579,15 @@ set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/ChSprocketSinglePin.cpp
     tracked_vehicle/sprocket/ChSprocketDoublePin.h
     tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
+    tracked_vehicle/sprocket/ChSprocketBand.h
+    tracked_vehicle/sprocket/ChSprocketBand.cpp
 
     tracked_vehicle/sprocket/SprocketSinglePin.h
     tracked_vehicle/sprocket/SprocketSinglePin.cpp
     tracked_vehicle/sprocket/SprocketDoublePin.h
     tracked_vehicle/sprocket/SprocketDoublePin.cpp
+    tracked_vehicle/sprocket/SprocketBand.h
+    tracked_vehicle/sprocket/SprocketBand.cpp
 )
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
@@ -585,26 +609,60 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeBand.h
+    tracked_vehicle/track_shoe/ChTrackShoeBand.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h
+    tracked_vehicle/track_shoe/ChTrackShoeBandBushing.cpp
 
     tracked_vehicle/track_shoe/TrackShoeSinglePin.h
     tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/TrackShoeDoublePin.h
     tracked_vehicle/track_shoe/TrackShoeDoublePin.cpp
+    tracked_vehicle/track_shoe/TrackShoeBandBushing.h
+    tracked_vehicle/track_shoe/TrackShoeBandBushing.cpp
 )
-source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
+if(ENABLE_MODULE_FEA)
+    set(CV_TV_FEATRACKSHOE_FILES
+        tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h
+        tracked_vehicle/track_shoe/ChTrackShoeBandANCF.cpp
+
+        tracked_vehicle/track_shoe/TrackShoeBandANCF.h
+        tracked_vehicle/track_shoe/TrackShoeBandANCF.cpp
+    )
+else()
+    set(CV_TV_FEATRACKSHOE_FILES "")
+endif()
+source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES} ${CV_TV_FEATRACKSHOE_FILES})
 
 set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.cpp
+    tracked_vehicle/track_assembly/ChTrackAssemblyBand.h
+    tracked_vehicle/track_assembly/ChTrackAssemblyBand.cpp
+    tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h
+    tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.cpp
 
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.cpp
+    tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h
+    tracked_vehicle/track_assembly/TrackAssemblyBandBushing.cpp
 )
-source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
+if(ENABLE_MODULE_FEA)
+    set(CV_TV_FEATRACKASSEMBLY_FILES
+        tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h
+        tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.cpp
+
+        tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h
+        tracked_vehicle/track_assembly/TrackAssemblyBandANCF.cpp
+    )
+else()
+    set(CV_TV_FEATRACKASSEMBLY_FILES "")
+endif()
+source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES} ${CV_TV_FEATRACKASSEMBLY_FILES})
 
 set(CV_TV_UTILS_FILES
     tracked_vehicle/utils/ChTrackTestRig.h
@@ -644,6 +702,7 @@ source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
 # ----------------------------------------------------------------------------
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
+set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
 set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
 set(LIBRARIES "ChronoEngine")
 
@@ -662,6 +721,12 @@ if(MPI_CXX_FOUND)
     set(LINK_FLAGS "${LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
     include_directories(${MPI_CXX_INCLUDE_PATH})
     list(APPEND LIBRARIES ${MPI_CXX_LIBRARIES})
+endif()
+
+if(HDF5_FOUND)
+    set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+    include_directories(${HDF5_INCLUDE_DIRS})
+    list(APPEND LIBRARIES ${HDF5_CXX_LIBRARIES})
 endif()
 
 if(HAVE_OPENCRG)
@@ -686,6 +751,8 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_OPENCRG_FILES}
     ${CV_UTILS_FILES}
     ${CVIRR_UTILS_FILES}
+    ${CV_OUTPUT_FILES}
+    ${CVHDF5_OUTPUT_FILES}
 #
     ${CV_WV_BASE_FILES}
     ${CV_WV_ANTIROLL_FILES}
@@ -712,7 +779,9 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_SPROCKET_FILES}
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
+    ${CV_TV_FEATRACKSHOE_FILES}
     ${CV_TV_TRACKASSEMBLY_FILES}
+    ${CV_TV_FEATRACKASSEMBLY_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}

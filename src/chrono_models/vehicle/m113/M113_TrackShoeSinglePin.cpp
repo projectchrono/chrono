@@ -49,7 +49,7 @@ const std::string M113_TrackShoeSinglePin::m_meshFile = "M113/TrackShoe.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeSinglePin::M113_TrackShoeSinglePin() : ChTrackShoeSinglePin("M113_TrackShoe") {
+M113_TrackShoeSinglePin::M113_TrackShoeSinglePin(const std::string& name) : ChTrackShoeSinglePin(name) {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
@@ -65,6 +65,7 @@ void M113_TrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetStatic(true);
         m_shoe->AddAsset(trimesh_shape);
     } else {
         ChTrackShoeSinglePin::AddVisualizationAssets(vis);

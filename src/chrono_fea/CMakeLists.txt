@@ -18,6 +18,7 @@ MESSAGE(STATUS "==== Chrono FEA module ====")
 
 SET(ChronoEngine_FEA_SOURCES
     ChBuilderBeam.cpp
+    ChBeamSection.cpp
     ChElementBeamANCF.cpp
     ChElementGeneric.cpp
     ChElementSpring.cpp  
@@ -80,6 +81,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementBeam.h
     ChElementBeamANCF.h
     ChElementBeamEuler.h
+	ChElementBeamIGA.h
     ChElementCableANCF.h
     ChElementBrick.h 
     ChElementBrick_9.h

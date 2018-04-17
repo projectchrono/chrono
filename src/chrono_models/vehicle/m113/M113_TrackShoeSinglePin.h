@@ -36,7 +36,7 @@ namespace m113 {
 /// Single-pin track shoe subsystem for the M113 vehicle.
 class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
   public:
-    M113_TrackShoeSinglePin();
+    M113_TrackShoeSinglePin(const std::string& name);
     ~M113_TrackShoeSinglePin() {}
 
     /// Return the type of track shoe (guiding pin).

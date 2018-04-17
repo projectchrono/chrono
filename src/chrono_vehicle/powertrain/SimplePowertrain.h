@@ -39,7 +39,7 @@ class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain {
     virtual double GetMaxSpeed() const override { return m_max_speed; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
     double m_rev_gear_ratio;  // reverse gear ratio

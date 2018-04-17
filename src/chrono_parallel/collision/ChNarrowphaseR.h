@@ -41,8 +41,6 @@ namespace collision {
 /// @addtogroup parallel_collision
 /// @{
 
-static const real edge_radius = 0.1;
-
 /// Analytical sphere vs. sphere collision function.
 bool sphere_sphere(const real3& pos1,
                    const real& radius1,
@@ -194,6 +192,14 @@ bool RCollision(const ConvexBase* shapeA,  ///< first candidate shape
                 real* ct_eff_rad,          ///< [output] effective contact radius (per contact pair)
                 int& nC                    ///< [output] number of contacts found
                 );
+
+/// Set the fictitious radius of curvature used for collision with a corner or an edge.
+CH_PARALLEL_API
+void SetDefaultEdgeRadius(real radius);
+
+/// Return the fictitious radius of curvature used for collisions with a corner or an edge.
+CH_PARALLEL_API
+real GetDefaultEdgeRadius();
 
 /// @} parallel_colision
 

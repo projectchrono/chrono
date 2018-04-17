@@ -48,12 +48,8 @@ TrackBrakeSimple::TrackBrakeSimple(const rapidjson::Document& d) : ChTrackBrakeS
 }
 
 void TrackBrakeSimple::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method
+    ChPart::Create(d);
 
     // Read maximum braking torque
     m_maxtorque = d["Maximum Torque"].GetDouble();

@@ -52,7 +52,7 @@ class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD {
     virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     // Shaft inertias.
     double m_central_differentialbox_inertia;

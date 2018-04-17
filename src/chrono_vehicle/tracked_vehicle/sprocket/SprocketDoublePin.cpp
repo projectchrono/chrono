@@ -52,12 +52,8 @@ SprocketDoublePin::SprocketDoublePin(const rapidjson::Document& d) : ChSprocketD
 }
 
 void SprocketDoublePin::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read inertia properties
     m_num_teeth = d["Number Teeth"].GetInt();
@@ -115,6 +111,7 @@ void SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetStatic(true);
         m_gear->AddAsset(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);

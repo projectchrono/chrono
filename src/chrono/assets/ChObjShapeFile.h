@@ -37,9 +37,9 @@ class ChApi ChObjShapeFile : public ChVisualization {
     // CONSTRUCTORS
     //
 
-    ChObjShapeFile() : filename(""){};
+    ChObjShapeFile() : filename(""){}
 
-    virtual ~ChObjShapeFile(){};
+    virtual ~ChObjShapeFile(){}
 
     //
     // FUNCTIONS

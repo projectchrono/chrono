@@ -213,18 +213,17 @@ int main(int argc, char* argv[]) {
 
         // Apply custom forcefield (brute force approach..)
         // A) reset 'user forces accumulators':
-        for (unsigned int i = 0; i < mphysicalSystem.Get_bodylist()->size(); i++) {
-            auto abody = (*mphysicalSystem.Get_bodylist())[i];
-            abody->Empty_forces_accumulators();
+        for (auto body : mphysicalSystem.Get_bodylist()) {
+            body->Empty_forces_accumulators();
         }
 
         // B) store user computed force:
         // double G_constant = 6.674e-11; // gravitational constant
         double G_constant = 6.674e-3;  // gravitational constant - HACK to speed up simulation
-        for (unsigned int i = 0; i < mphysicalSystem.Get_bodylist()->size(); i++) {
-            auto abodyA = (*mphysicalSystem.Get_bodylist())[i];
-            for (unsigned int j = i + 1; j < mphysicalSystem.Get_bodylist()->size(); j++) {
-                auto abodyB = (*mphysicalSystem.Get_bodylist())[j];
+        for (unsigned int i = 0; i < mphysicalSystem.Get_bodylist().size(); i++) {
+            auto abodyA = mphysicalSystem.Get_bodylist()[i];
+            for (unsigned int j = i + 1; j < mphysicalSystem.Get_bodylist().size(); j++) {
+                auto abodyB = mphysicalSystem.Get_bodylist()[j];
                 ChVector<> D_attract = abodyB->GetPos() - abodyA->GetPos();
                 double r_attract = D_attract.Length();
                 double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (pow(r_attract, 2));

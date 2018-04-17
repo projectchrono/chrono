@@ -49,12 +49,8 @@ RackPinion::RackPinion(const rapidjson::Document& d) : ChRackPinion("") {
 }
 
 void RackPinion::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read steering link data
     m_steeringLinkMass = d["Steering Link"]["Mass"].GetDouble();

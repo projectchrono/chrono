@@ -46,7 +46,7 @@ class CH_VEHICLE_API SingleRoadWheel : public ChSingleRoadWheel {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_wheel_radius;
     double m_wheel_width;

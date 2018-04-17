@@ -71,7 +71,7 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleRoadWheel {
 /// Road-wheel model for the M113 vehicle (left side).
 class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
   public:
-    M113_RoadWheelLeft() : M113_RoadWheel("M113_RoadWheelLeft") {}
+    M113_RoadWheelLeft(int index) : M113_RoadWheel("M113_RoadWheelLeft_" + std::to_string(index)) {}
     ~M113_RoadWheelLeft() {}
 
     virtual VehicleSide GetVehicleSide() const override { return LEFT; }
@@ -87,7 +87,7 @@ class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {
 /// Road-wheel model for the M113 vehicle (right side).
 class CH_MODELS_API M113_RoadWheelRight : public M113_RoadWheel {
   public:
-    M113_RoadWheelRight() : M113_RoadWheel("M113_RoadWheelRight") {}
+    M113_RoadWheelRight(int index) : M113_RoadWheel("M113_RoadWheelRight_" + std::to_string(index)) {}
     ~M113_RoadWheelRight() {}
 
     virtual VehicleSide GetVehicleSide() const override { return RIGHT; }

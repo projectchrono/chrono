@@ -42,6 +42,9 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
 
     virtual ~ChPac89Tire() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "Pac89Tire"; }
+
     /// Initialize this tire system.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
                             VehicleSide side                ///< [in] left/right vehicle side
@@ -76,14 +79,8 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
-    /// Set the value of the integration step size for the underlying dynamics.
-    void SetStepsize(double val) { m_stepsize = val; }
-
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
-
-    /// Get the current value of the integration step size.
-    double GetStepsize() const { return m_stepsize; }
 
     /// Get the width of the tire.
     double GetWidth() const { return m_width; }
@@ -105,6 +102,9 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
 
     /// Get the camber angle used in Pac89 (expressed in degrees).
 	double GetGamma() { return m_gamma; }
+	
+	/// Get the tire deflection
+	virtual double GetDeflection() const override { return m_data.depth; }
 	
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
@@ -180,8 +180,6 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     PacCoeff m_PacCoeff;
 
   private:
-    double m_stepsize;
-
     struct ContactData {
         bool in_contact;      // true if disc in contact with terrain
         ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)

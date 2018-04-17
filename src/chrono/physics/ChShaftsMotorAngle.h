@@ -40,13 +40,12 @@ namespace chrono {
 /// SetAngleFunction() to change to other motion functions.
 
 class ChApi ChShaftsMotorAngle : public ChShaftsMotorBase {
-
   private:
-
     std::shared_ptr<ChFunction> f_rot;
     double rot_offset;
 
-    double motor_torque;
+    double violation;                   ///< constraint violation
+    double motor_torque;                ///< motor torque
     ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
 
   public:
@@ -86,12 +85,14 @@ class ChApi ChShaftsMotorAngle : public ChShaftsMotorBase {
 
 
 
-    /// Get the currnet motor torque between shaft2 and shaft1, expressed as applied to shaft1
+    /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1
     virtual double GetMotorTorque() const override { return motor_torque; }
+
+    /// Return current constraint violation
+    double GetConstraintViolation() const { return violation; }
 
     /// Update all auxiliary data
     virtual void Update(double mytime, bool update_assets = true) override;
-
 
     //
     // STATE FUNCTIONS

@@ -42,6 +42,9 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     virtual ~ChLugreTire() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "LugreTire"; }
+
     /// Initialize this tire system and enable visualization of the discs.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
                             VehicleSide side                ///< left/right vehicle side
@@ -76,12 +79,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
-
-    /// Set the value of the integration step size for the underlying dynamics.
-    void SetStepsize(double val) { m_stepsize = val; }
-
-    /// Get the current value of the integration step size.
-    double GetStepsize() const { return m_stepsize; }
 
   protected:
     /// Return the number of discs used to model this tire.
@@ -121,8 +118,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
         double z0;  // longitudinal direction
         double z1;  // lateral direction
     };
-
-    double m_stepsize;
 
     TerrainForce m_tireForce;
     std::vector<DiscContactData> m_data;

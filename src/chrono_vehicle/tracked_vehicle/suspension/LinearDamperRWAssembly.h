@@ -55,7 +55,7 @@ class CH_VEHICLE_API LinearDamperRWAssembly : public ChLinearDamperRWAssembly {
   private:
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
 
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     void LoadRoadWheel(const std::string& filename);
 

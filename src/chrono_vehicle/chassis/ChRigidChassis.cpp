@@ -106,6 +106,7 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_vis_mesh_name);
+        trimesh_shape->SetStatic(true);
         m_body->AddAsset(trimesh_shape);
         return;
     }
@@ -147,6 +148,27 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
 
 void ChRigidChassis::RemoveVisualizationAssets() {
     m_body->GetAssets().clear();
+}
+
+void ChRigidChassis::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_body);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    ChPart::ExportMarkerList(jsonDocument, m_markers);
+}
+
+void ChRigidChassis::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBodyAuxRef>> bodies;
+    bodies.push_back(m_body);
+    database.WriteAuxRefBodies(bodies);
+
+    database.WriteMarkers(m_markers);
 }
 
 }  // end namespace vehicle

@@ -24,74 +24,55 @@ namespace chrono {
 /// It contains basic information about position, color, and visibility.
 
 class ChApi ChVisualization : public ChAsset {
-
   public:
     virtual ~ChVisualization() {}
 
-    /// Get/Set visible status flag.
-    bool IsVisible() const { return visible; }
+    /// Set this visualization asset as visible.
     void SetVisible(bool mv) { visible = mv; }
 
-    /// Get/Set the color of the surface. This information could be used by
-    /// visualization postprocessing.
-    const ChColor& GetColor() const { return color; }
+    /// Return true if the asset is set as visible.
+    bool IsVisible() const { return visible; }
+
+    /// Set the color of the surface (default: white).
+    /// This information can optionally be used by a visualization system.
     void SetColor(const ChColor& mc) { color = mc; }
 
-    /// Get/Set the fading amount, 0 <= fading <= 1.
-    /// If fading = 0, no transparency of surface,
-    /// If fading = 1, surface is completely transparent.
-    float GetFading() const { return fading; }
+    /// Return the color assigned to this asset.
+    const ChColor& GetColor() const { return color; }
+
+    /// Set the fading level, a value in [0,1] (default: 0).
+    /// If fading = 0, the surface is completely opaque.
+    /// If fading = 1, the surface is completely transparent.
     void SetFading(const float mc) { fading = mc; }
 
-    // DATA
-    ChVector<> Pos;    /// Position of Asset
-    ChMatrix33<> Rot;  /// Rotation of Asset
+    /// Get the fading level.
+    float GetFading() const { return fading; }
+
+    /// Set this visualization asset as static (default: false).
+    /// Set to true to indicate that the asset never changes and therefore does not require updates
+    /// (e.g. for a non-deformable triangular mesh).
+    /// A particular visualization system may take advantage of this setting to accelerate rendering.
+    void SetStatic(bool val) { is_static = val; }
+
+    /// Return true if the visualization asset is marked as static.
+    bool IsStatic() const { return is_static; }
+
+    ChVector<> Pos;    ///< Position of Asset
+    ChMatrix33<> Rot;  ///< Rotation of Asset
 
   protected:
-    /// Constructor.
-    /// Protected because ChVisualization should not be constructed directly.
-    ChVisualization() : Pos(0), Rot(1), visible(true), fading(0) {}
+    ChVisualization();
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     bool visible;
+    bool is_static;
     ChColor color;
     float fading;
-
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChVisualization>();
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(Pos);
-        marchive << CHNVP(Rot);
-        marchive << CHNVP(visible);
-        marchive << CHNVP(color);
-        marchive << CHNVP(fading);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChVisualization>();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(Pos);
-        marchive >> CHNVP(Rot);
-        marchive >> CHNVP(visible);
-        marchive >> CHNVP(color);
-        marchive >> CHNVP(fading);
-    }
 };
 
-CH_CLASS_VERSION(ChVisualization,0)
+CH_CLASS_VERSION(ChVisualization, 0)
 
 }  // end namespace chrono
 

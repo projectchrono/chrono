@@ -27,7 +27,7 @@ namespace m113 {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113a_SimplePowertrain::M113a_SimplePowertrain() : ChPowertrain(), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {
+M113a_SimplePowertrain::M113a_SimplePowertrain(const std::string& name) : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {
 }
 
 // -----------------------------------------------------------------------------

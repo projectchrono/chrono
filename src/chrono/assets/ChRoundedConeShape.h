@@ -38,7 +38,7 @@ class ChApi ChRoundedConeShape : public ChVisualization {
     //
 
     ChRoundedConeShape() {}
-    ChRoundedConeShape(geometry::ChRoundedCone& mcap) : groundedcone(mcap) {}
+    ChRoundedConeShape(const geometry::ChRoundedCone& mcap) : groundedcone(mcap) {}
 
     virtual ~ChRoundedConeShape() {}
 

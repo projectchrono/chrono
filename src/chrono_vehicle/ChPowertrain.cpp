@@ -21,8 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChPowertrain::ChPowertrain() : m_drive_mode(FORWARD) {
-}
+ChPowertrain::ChPowertrain(const std::string& name) : ChPart(name), m_drive_mode(FORWARD) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

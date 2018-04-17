@@ -22,7 +22,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChParticlesClones.h"
 #include "chrono/physics/ChBodyEasy.h"
-
+#include "chrono/geometry/ChLineNurbs.h"
+#include "chrono/geometry/ChSurfaceNurbs.h"
+#include "chrono/assets/ChSurfaceShape.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include <irrlicht.h>
@@ -102,6 +104,39 @@ int main(int argc, char* argv[]) {
     ChLineArc marc1(ChCoordsys<>(ChVector<>(2, 3.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2);
     mpathfloor->GetPathGeometry()->AddSubLine(marc1);
     mfloor->AddAsset(mpathfloor);
+
+	// ==Asset== attach a 'nurbs line' shape:
+	// (first you create the ChLineNurbs geometry, 
+	// then you put it inside a ChLineShape asset)
+	auto mnurbs = std::make_shared<ChLineNurbs>();
+	std::vector<ChVector<>> controlpoints = { ChVector<>(1,2,-1), ChVector<>(1,3,-1), ChVector<>(1,3,-2), ChVector<>(1,4,-2) };
+	mnurbs->SetupData(3, controlpoints);
+
+	auto mnurbsasset = std::make_shared<ChLineShape>();
+	mnurbsasset->SetLineGeometry(mnurbs);
+	mfloor->AddAsset(mnurbsasset);
+
+
+	// ==Asset== attach a 'nurbs surface' shape:
+	// (first you create the ChSurfaceNurbs geometry, 
+	// then you put it inside a ChSurfaceShape asset)
+	auto msurf = std::make_shared<ChSurfaceNurbs>();
+	ChMatrixDynamic<ChVector<>> surfpoints(4, 2); // u points, v points
+	surfpoints(0, 0) = ChVector<>(1, 2, 3);
+	surfpoints(1, 0) = ChVector<>(1, 3, 3);
+	surfpoints(2, 0) = ChVector<>(2, 3, 3);
+	surfpoints(3, 0) = ChVector<>(2, 4, 3);
+	surfpoints(0, 1) = ChVector<>(1, 2, 1);
+	surfpoints(1, 1) = ChVector<>(1, 3, 1);
+	surfpoints(2, 1) = ChVector<>(3, 3, 1);
+	surfpoints(3, 1) = ChVector<>(2, 4, 1);
+	msurf->SetupData(3, 1, surfpoints);
+
+	auto msurfasset = std::make_shared<ChSurfaceShape>();
+	msurfasset->Pos = ChVector<>(3, -1, 3);
+	msurfasset->SetSurfaceGeometry(msurf);
+	msurfasset->SetWireframe(true);
+	mfloor->AddAsset(msurfasset);
 
     //
     // EXAMPLE 2:

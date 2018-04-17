@@ -49,7 +49,7 @@ class CH_VEHICLE_API AntirollBarRSD : public ChAntirollBarRSD {
     virtual double getDampingCoefficient() const override { return m_damping_coef; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_arm_mass;
     ChVector<> m_arm_inertia;

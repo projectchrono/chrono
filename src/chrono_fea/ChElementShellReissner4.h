@@ -410,19 +410,16 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
 
     virtual void EvaluateSectionDisplacement(const double u,
                                              const double v,
-                                             const ChMatrix<>& displ,
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) override;
 
     virtual void EvaluateSectionFrame(const double u,
                                       const double v,
-                                      const ChMatrix<>& displ,
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) override;
 
     virtual void EvaluateSectionPoint(const double u,
                                       const double v,
-                                      const ChMatrix<>& displ,
                                       ChVector<>& point) override;
 
     // Internal computations

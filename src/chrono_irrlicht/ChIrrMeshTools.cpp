@@ -329,10 +329,23 @@ IMesh* createCubeMesh(const irr::core::vector3df& size) {
 }
 
 // -----------------------------------------------------------------------------
-// Same as CGeomentryCreator::createCylinderMesh(), but with no shared
-// normals between caps and hull
+// Create cone
+// -----------------------------------------------------------------------------
+IMesh* createConeMesh(f32 radius, f32 length, u32 tesselation) {
+    return createTruncatedConeMesh(0, radius, length, tesselation);
+}
+
+// -----------------------------------------------------------------------------
+// No shared normals between caps and hull
 // -----------------------------------------------------------------------------
 IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
+    return createTruncatedConeMesh(radius, radius, length, tesselation);
+}
+
+// -----------------------------------------------------------------------------
+// No shared normals between caps and hull
+// -----------------------------------------------------------------------------
+IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tesselation) {
     f32 oblique = 0;
     irr::video::SColor color(255, 255, 255, 255);
 
@@ -349,19 +362,23 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
     irr::video::S3DVertex v;
     v.Color = color;
     f32 tcx = 0.f;
+    
+    double beta = atan2f(radius_low-radius_top, length*2);
 
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;
-        v.Pos.X = radius * cosf(angle);
+        v.Pos.X = radius_low * cosf(angle);
         v.Pos.Y = -length;
-        v.Pos.Z = radius * sinf(angle);
-        v.Normal = irr::core::vector3df(cosf(angle), 0, sinf(angle));
+        v.Pos.Z = radius_low * sinf(angle);
+        v.Normal = irr::core::vector3df(cosf(angle)*cosf(beta),  sinf(beta), sinf(angle)*cosf(beta));
         v.TCoords.X = tcx;
         v.TCoords.Y = 0.f;
         buffer->Vertices.push_back(v);
 
+        v.Pos.X = radius_top * cosf(angle);
         v.Pos.Y = length;
-        v.Normal = irr::core::vector3df(cosf(angle), 0, sinf(angle));
+        v.Pos.Z = radius_top * sinf(angle);
+       // v.Normal = irr::core::vector3df(cosf(angle), sinf(beta), sinf(angle));
         v.TCoords.Y = 1.f;
         buffer->Vertices.push_back(v);
 
@@ -385,9 +402,9 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
 
     for (i = 0; i <= tesselation; ++i) {
         const f32 angle = angleStep * i;
-        v.Pos.X = radius * cosf(angle);
+        v.Pos.X = radius_low * cosf(angle);
         v.Pos.Y = -length;
-        v.Pos.Z = radius * sinf(angle);
+        v.Pos.Z = radius_low * sinf(angle);
         v.Normal = irr::core::vector3df(0, -1, 0);
         v.TCoords.X = 0.5f + 0.5f * cosf(angle);
         v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
@@ -413,36 +430,38 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
     }
 
     // TOP
+    if (radius_top) {
 
-    u32 index_top = buffer->Vertices.size();
+        u32 index_top = buffer->Vertices.size();
 
-    for (i = 0; i <= tesselation; ++i) {
-        const f32 angle = angleStep * i;
-        v.Pos.X = radius * cosf(angle);
+        for (i = 0; i <= tesselation; ++i) {
+            const f32 angle = angleStep * i;
+            v.Pos.X = radius_top * cosf(angle);
+            v.Pos.Y = length;
+            v.Pos.Z = radius_top * sinf(angle);
+            v.Normal = irr::core::vector3df(0, 1, 0);
+            v.TCoords.X = 0.5f + 0.5f * cosf(angle);
+            v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
+            buffer->Vertices.push_back(v);
+        }
+
+        v.Pos.X = 0.f;
         v.Pos.Y = length;
-        v.Pos.Z = radius * sinf(angle);
-        v.Normal = irr::core::vector3df(0, 1, 0);
-        v.TCoords.X = 0.5f + 0.5f * cosf(angle);
-        v.TCoords.Y = 0.5f + 0.5f * sinf(angle);
+        v.Pos.Z = 0.f;
+        v.Normal.X = 0.f;
+        v.Normal.Y = 1.f;
+        v.Normal.Z = 0.f;
+        v.TCoords.X = 0.5;
+        v.TCoords.Y = 0.5;
         buffer->Vertices.push_back(v);
-    }
 
-    v.Pos.X = 0.f;
-    v.Pos.Y = length;
-    v.Pos.Z = 0.f;
-    v.Normal.X = 0.f;
-    v.Normal.Y = 1.f;
-    v.Normal.Z = 0.f;
-    v.TCoords.X = 0.5;
-    v.TCoords.Y = 0.5;
-    buffer->Vertices.push_back(v);
+        index_center = buffer->Vertices.size() - 1;
 
-    index_center = buffer->Vertices.size() - 1;
-
-    for (i = 0; i < tesselation; ++i) {
-        buffer->Indices.push_back(index_center);
-        buffer->Indices.push_back(index_top + i + 1);
-        buffer->Indices.push_back(index_top + i + 0);
+        for (i = 0; i < tesselation; ++i) {
+            buffer->Indices.push_back(index_center);
+            buffer->Indices.push_back(index_top + i + 1);
+            buffer->Indices.push_back(index_top + i + 0);
+        }
     }
 
     buffer->recalculateBoundingBox();

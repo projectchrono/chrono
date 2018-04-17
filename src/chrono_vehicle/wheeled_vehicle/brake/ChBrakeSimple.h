@@ -44,6 +44,9 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
 
     virtual ~ChBrakeSimple() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "BrakeSimple"; }
+
     /// Initialize the brake by providing the wheel's revolute link.
     virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) override;
 

@@ -51,12 +51,8 @@ SingleRoadWheel::SingleRoadWheel(const rapidjson::Document& d) : ChSingleRoadWhe
 }
 
 void SingleRoadWheel::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read wheel geometry and mass properties
     assert(d.HasMember("Wheel"));
@@ -106,6 +102,7 @@ void SingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(trimesh_shape);
     } else {
         ChSingleRoadWheel::AddVisualizationAssets(vis);

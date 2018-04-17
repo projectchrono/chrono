@@ -290,209 +290,6 @@ std::shared_ptr<ChMarker> ChAssembly::SearchMarker(int markID) {
 
 // -----------------------------------------------------------------------------
 
-ChAssembly::IteratorBodies& ChAssembly::IteratorBodies::operator=(const IteratorBodies& other) {
-    node_ = other.node_;
-    return (*this);
-}
-bool ChAssembly::IteratorBodies::operator==(const IteratorBodies& other) {
-    return (node_ == other.node_);
-}
-bool ChAssembly::IteratorBodies::operator!=(const IteratorBodies& other) {
-    return (node_ != other.node_);
-}
-ChAssembly::IteratorBodies& ChAssembly::IteratorBodies::operator++() {
-    node_++;
-    return (*this);
-}
-std::shared_ptr<ChBody> ChAssembly::IteratorBodies::operator*() {
-    return (*node_);  // .. here I am not getting a new() data, but a reference to something created elsewhere
-}
-ChAssembly::IteratorBodies ChAssembly::IterBeginBodies() {
-    return (IteratorBodies(this->bodylist.begin()));
-}
-ChAssembly::IteratorBodies ChAssembly::IterEndBodies() {
-    return (IteratorBodies(this->bodylist.end()));
-}
-
-// -----------------------------------------------------------------------------
-
-ChAssembly::IteratorLinks& ChAssembly::IteratorLinks::operator=(const IteratorLinks& other) {
-    node_ = other.node_;
-    return (*this);
-}
-bool ChAssembly::IteratorLinks::operator==(const IteratorLinks& other) {
-    return (node_ == other.node_);
-}
-bool ChAssembly::IteratorLinks::operator!=(const IteratorLinks& other) {
-    return (node_ != other.node_);
-}
-ChAssembly::IteratorLinks& ChAssembly::IteratorLinks::operator++() {
-    node_++;
-    return (*this);
-}
-std::shared_ptr<ChLink> ChAssembly::IteratorLinks::operator*() {
-    return (*node_);
-}
-ChAssembly::IteratorLinks ChAssembly::IterBeginLinks() {
-    return (IteratorLinks(this->linklist.begin()));
-}
-ChAssembly::IteratorLinks ChAssembly::IterEndLinks() {
-    return (IteratorLinks(this->linklist.end()));
-}
-
-// -----------------------------------------------------------------------------
-
-ChAssembly::IteratorOtherPhysicsItems& ChAssembly::IteratorOtherPhysicsItems::operator=(
-    const IteratorOtherPhysicsItems& other) {
-    node_ = other.node_;
-    return (*this);
-}
-bool ChAssembly::IteratorOtherPhysicsItems::operator==(const IteratorOtherPhysicsItems& other) {
-    return (node_ == other.node_);
-}
-bool ChAssembly::IteratorOtherPhysicsItems::operator!=(const IteratorOtherPhysicsItems& other) {
-    return (node_ != other.node_);
-}
-ChAssembly::IteratorOtherPhysicsItems& ChAssembly::IteratorOtherPhysicsItems::operator++() {
-    node_++;
-    return (*this);
-}
-std::shared_ptr<ChPhysicsItem> ChAssembly::IteratorOtherPhysicsItems::operator*() {
-    return (*node_);  // .. here I am not getting a new() data, but a reference to something created elsewhere
-}
-ChAssembly::IteratorOtherPhysicsItems ChAssembly::IterBeginOtherPhysicsItems() {
-    return (IteratorOtherPhysicsItems(this->otherphysicslist.begin()));
-}
-ChAssembly::IteratorOtherPhysicsItems ChAssembly::IterEndOtherPhysicsItems() {
-    return (IteratorOtherPhysicsItems(this->otherphysicslist.end()));
-}
-
-// -----------------------------------------------------------------------------
-
-ChAssembly::IteratorPhysicsItems::IteratorPhysicsItems(ChAssembly* msys) {
-    this->msystem = msys;
-    // RewindToBegin();
-    node_body = msystem->Get_bodylist()->begin();
-    node_link = msystem->Get_linklist()->begin();
-    node_otherphysics = msystem->Get_otherphysicslist()->begin();
-    stage = 0;
-    mptr = std::shared_ptr<ChPhysicsItem>();
-    this->operator++();  // initialize with 1st available item
-}
-
-ChAssembly::IteratorPhysicsItems::IteratorPhysicsItems() {
-    this->msystem = 0;
-    this->mptr = std::shared_ptr<ChPhysicsItem>(0);
-    this->stage = 9999;
-}
-
-ChAssembly::IteratorPhysicsItems::~IteratorPhysicsItems() {}
-
-bool ChAssembly::IteratorPhysicsItems::HasItem() {
-    if (mptr)
-        return true;
-    return false;
-}
-
-ChAssembly::IteratorPhysicsItems& ChAssembly::IteratorPhysicsItems::operator=(
-    const ChSystem::IteratorPhysicsItems& other) {
-    msystem = other.msystem;
-    node_body = other.node_body;
-    node_link = other.node_link;
-    node_otherphysics = other.node_otherphysics;
-    stage = other.stage;
-    mptr = other.mptr;
-    return (*this);
-}
-
-bool ChAssembly::IteratorPhysicsItems::operator==(const ChAssembly::IteratorPhysicsItems& other) {
-    return ((mptr.get() == other.mptr.get()) && (stage == other.stage) &&
-            (msystem == other.msystem));  //...***TO CHECK***
-}
-
-bool ChAssembly::IteratorPhysicsItems::operator!=(const ChAssembly::IteratorPhysicsItems& other) {
-    return !(this->operator==(other));  //...***TO CHECK***
-}
-
-ChAssembly::IteratorPhysicsItems& ChAssembly::IteratorPhysicsItems::operator++() {
-    switch (stage) {
-        case 1: {
-            node_body++;  // try next body
-            if (node_body != msystem->Get_bodylist()->end()) {
-                mptr = (*node_body);
-                return (*this);
-            }
-            break;
-        }
-        case 2: {
-            node_link++;  // try next link
-            if (node_link != msystem->Get_linklist()->end()) {
-                mptr = (*node_link);
-                return (*this);
-            }
-            break;
-        }
-        case 3: {
-            node_otherphysics++;  // try next otherphysics
-            if (node_otherphysics != msystem->Get_otherphysicslist()->end()) {
-                mptr = (*node_otherphysics);
-                return (*this);
-            }
-            break;
-        }
-        default:
-            break;
-    }
-    // Something went wrong, some list was at the end, so jump to beginning of next list
-    do {
-        switch (stage) {
-            case 0: {
-                stage = 1;
-                if (node_body != msystem->Get_bodylist()->end()) {
-                    mptr = (*node_body);
-                    return (*this);
-                }
-                break;
-            }
-            case 1: {
-                stage = 2;
-                if (node_link != msystem->Get_linklist()->end()) {
-                    mptr = (*node_link);
-                    return (*this);
-                }
-                break;
-            }
-            case 2: {
-                stage = 3;
-                if (node_otherphysics != msystem->Get_otherphysicslist()->end()) {
-                    mptr = (*node_otherphysics);
-                    return (*this);
-                }
-                break;
-            }
-            case 3: {
-                stage = 9999;
-                mptr = std::shared_ptr<ChPhysicsItem>();
-                return (*this);
-            }
-        }  // end cases
-    } while (true);
-
-    return (*this);
-}
-
-std::shared_ptr<ChPhysicsItem> ChAssembly::IteratorPhysicsItems::operator*() {
-    return mptr;
-}
-
-ChAssembly::IteratorPhysicsItems ChAssembly::IterBeginPhysicsItems() {
-    return (IteratorPhysicsItems(this));
-}
-
-ChAssembly::IteratorPhysicsItems ChAssembly::IterEndPhysicsItems() {
-    return (IteratorPhysicsItems());
-}
-
 void ChAssembly::SetSystem(ChSystem* m_system) {
     system = m_system;
 
@@ -1196,35 +993,23 @@ void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) {
     for (int i = 0; i < level; ++i)
         mtabs += "  ";
 
-    m_file << "\n" << mtabs << "List of the " << (int)Get_bodylist()->size() << " added rigid bodies: \n";
+    m_file << "\n" << mtabs << "List of the " << (int)bodylist.size() << " added rigid bodies: \n";
+    for (auto body : bodylist) {
+        m_file << mtabs << "  BODY:       " << body->GetName() << "\n";
 
-    std::vector<std::shared_ptr<ChBody>>::iterator ibody = Get_bodylist()->begin();
-    while (ibody != Get_bodylist()->end()) {
-        m_file << mtabs << "  BODY:       " << (*ibody)->GetName() << "\n";
-
-        std::vector<std::shared_ptr<ChMarker>>::const_iterator imarker = (*ibody)->GetMarkerList().begin();
-        while (imarker != (*ibody)->GetMarkerList().end()) {
-            m_file << mtabs << "    MARKER:  " << (*imarker)->GetName() << "\n";
-            imarker++;
+        for (auto marker : body->GetMarkerList()) {
+            m_file << mtabs << "    MARKER:  " << marker->GetName() << "\n";
         }
 
-        std::vector<std::shared_ptr<ChForce>>::const_iterator iforce = (*ibody)->GetForceList().begin();
-        while (iforce != (*ibody)->GetForceList().end()) {
-            m_file << mtabs << "    FORCE:  " << (*iforce)->GetName() << "\n";
-            iforce++;
+        for (auto force : body->GetForceList()) {
+            m_file << mtabs << "    FORCE:  " << force->GetName() << "\n";
         }
-
-        ibody++;
     }
 
-    m_file << "\n" << mtabs << "List of the " << (int)Get_linklist()->size() << " added links: \n";
-
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        std::shared_ptr<ChLink> Lpointer = linklist[ip];
-
-        m_file << mtabs << "  LINK:  " << Lpointer->GetName() << " [" << typeid(Lpointer.get()).name() << "]\n";
-        if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(Lpointer)) {
+    m_file << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links: \n";
+    for (auto link : linklist) {
+        m_file << mtabs << "  LINK:  " << link->GetName() << " [" << typeid(link.get()).name() << "]\n";
+        if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
             if (malink->GetMarker1())
                 m_file << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << "\n";
             if (malink->GetMarker2())
@@ -1233,28 +1018,14 @@ void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) {
     }
 
     m_file << "\n" << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items: \n";
-
-    for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
-    {
-        std::shared_ptr<ChPhysicsItem> PHpointer = otherphysicslist[ip];
-
-        m_file << mtabs << "  PHYSIC ITEM :   " << PHpointer->GetName() << " [" << typeid(PHpointer.get()).name()
-               << "]\n";
+    for (auto ph : otherphysicslist) {
+        m_file << mtabs << "  PHYSIC ITEM :   " << ph->GetName() << " [" << typeid(ph.get()).name() << "]\n";
 
         // recursion:
-        if (auto assem = std::dynamic_pointer_cast<ChAssembly>(PHpointer))
+        if (auto assem = std::dynamic_pointer_cast<ChAssembly>(ph))
             assem->ShowHierarchy(m_file, level + 1);
     }
 
-    /*
-    m_file << "\n\nFlat ChPhysicalItem list (class name - object name):----- \n\n";
-
-    IteratorAllPhysics mphiter(this);
-    while (mphiter.HasItem()) {
-        m_file << "  " << mphiter->GetRTTI()->GetName() << "  -  " << mphiter->GetName() << "\n";
-        ++mphiter;
-    }
-    */
     m_file << "\n\n";
 }
 

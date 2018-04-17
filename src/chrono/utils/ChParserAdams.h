@@ -69,7 +69,6 @@ class ChApi ChParserAdams {
     ChParserAdams() : m_visType(VisType::LOADED), m_verbose(false) {}
     ~ChParserAdams() {}
 
-    // Same as OpenSim, but no Forces
     /// Report containing information about objects parsed from file
     class ChApi Report {
       public:
@@ -77,19 +76,10 @@ class ChApi ChParserAdams {
         struct JointInfo {
             std::string type;               ///< joint type as shown in adm file
             std::shared_ptr<ChLink> joint;  ///< Chrono link (joint)
-            // All ADAMS joints should be representable in Chrono, unlike OpenSim
-            // bool standin;                   ///< true if OpenSim joint replaced with spherical
         };
-
-        // /// Information about a custom load created from ADAMS.
-        // struct ForceInfo {
-        //     std::string type;                  ///< load type as shown in adm file
-        //     std::shared_ptr<ChLoadBase> load;  ///< Chrono load object
-        // };
 
         std::unordered_map<std::string, std::shared_ptr<ChBodyAuxRef>> bodies;  ///< list of body information
         std::unordered_map<std::string, JointInfo> joints;                      ///< list of joint information
-        // std::unordered_map<std::string, ForceInfo> forces;                      ///< list of force information
 
         /// Print information on all modeling elements parsed from adm file.
         void Print() const;
@@ -104,12 +94,6 @@ class ChApi ChParserAdams {
         /// If none exists, an empty shared pointer is returned.
         /// The caller may need to downcast to the appropriate type.
         std::shared_ptr<ChLink> GetJoint(const std::string& name) const;
-
-        // Not needed for ADAMS
-        // /// Get a handle to the force element with specified name.
-        // /// If none exists, an empty shared pointer is returned.
-        // /// The caller may need to downcast to the appropriate type.
-        // std::shared_ptr<ChLoadBase> GetForce(const std::string& name) const;
     };
 
     /// Set body visualization type (default: NONE).

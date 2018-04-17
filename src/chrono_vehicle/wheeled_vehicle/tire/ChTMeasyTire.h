@@ -18,8 +18,10 @@
 //          @2012 CRC Press, ISBN 978-1-4398-3898-3
 //      Georg Rill, "An Engineer's Guess On Tyre Model Parameter Made Possible With TMeasy",
 //          https://hps.hs-regensburg.de/rig39165/Rill_Tyre_Coll_2015.pdf
+//      Georg Rill, "Simulation von Kraftfahrzeugen",
+//          @1994 Vieweg-Verlag, ISBN: 978-3-52808-931-3
+//          https://hps.hs-regensburg.de/rig39165/Simulation_von_Kraftfahrzeugen.pdf
 //
-// This implementation does not include transient slip state modifications.
 // No parking slip calculations.
 //
 // Changes:
@@ -28,6 +30,11 @@
 //			  - The parameter estimation routines have changed, know you have the
 //				option to use either the load index or the load force as input.
 //
+// 2018-02-22 - Tire Relaxation is considered now. No user input is needed.
+//              The tire step_size should be the same as for the MBS.
+//
+// 2018-02-24 - Calculation of tire rolling radius with user parameters
+//            - Export of tire parameters into a parameter file now possible
 // =============================================================================
 
 #ifndef CH_TMEASYTIRE
@@ -55,6 +62,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     );
 
     virtual ~ChTMeasyTire() {}
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "TMeasy"; }
 
     /// Initialize this tire system.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
@@ -90,14 +100,8 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
-    /// Set the value of the integration step size for the underlying dynamics.
-    void SetStepsize(double val) { m_stepsize = val; }
-
     /// Set the limit for camber angle (in degrees).  Default: 3 degrees.
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
-
-    /// Get the current value of the integration step size.
-    double GetStepsize() const { return m_stepsize; }
 
     /// Get the width of the tire.
     double GetWidth() const { return m_width; }
@@ -106,18 +110,12 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     virtual double GetVisualizationWidth() const { return m_width; }
 
     /// Get the tire slip angle.
-    virtual double GetSlipAngle() const override { return m_states.cp_side_slip; }
+    virtual double GetSlipAngle() const override { return atan(m_states.sy); }
 
     /// Get the tire longitudinal slip.
-    virtual double GetLongitudinalSlip() const override { return m_states.cp_long_slip; }
+    virtual double GetLongitudinalSlip() const override { return m_states.sx; }
 
-    /// Get the longitudinal slip used in the TMeasy model (expressed as a percentage).
-    double GetKappa() const { return m_kappa; }
-
-    /// Get the slip angle used in Pac89 (expressed in degrees).
-    double GetAlpha() const { return m_alpha; }
-
-    /// Get the camber angle used in the TMeasy model (expressed in degrees).
+    /// Get the camber angle used in the TMeasy model (expressed in radian).
     double GetGamma() { return m_gamma; }
 
     /// Get Max. Tire Load from Load Index (LI) in N [0:279]
@@ -156,11 +154,43 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                            double pinfl_use = 1.0  ///< inflation pressure in this configuration
     );
 
-    void VerticalStiffnessByTable(std::vector<double>& defl, std::vector<double>& frc);
+    /// Set vertical tire stiffness as linear function by coefficient [N/m].
+    void SetVerticalStiffness(double Cz) { SetVerticalStiffness(Cz, Cz); }
+
+    /// Set vertical tire stiffness as nonlinear function by coefficients at nominal load 1 [N/m]
+    /// and nominal load 2 [N/m].
+    void SetVerticalStiffness(double Cz1, double Cz2);
+
+    /// Set vertical tire stiffness as nonlinear function by calculation from tire test data (least squares).
+    void SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc);
+
+    /// Set the tire reference coefficient of friction.
+    void SetFrictionCoefficient(double coeff);
+
+    /// Set rolling resistance coefficients.
+    void SetRollingResistanceCoefficients(double rr_coeff_1, double rr_coeff_2);
+
+    /// Set dynamic radius coefficients.
+    void SetDynamicRadiusCoefficients(double rdyn_coeff_1, double rdyn_coeff_2);
 
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
+
+    /// Get the tire deflection
+    virtual double GetDeflection() const override { return m_data.depth; }
+
+    /// Using tire relaxation, we have three tire deflections
+    ChVector<> GetDeflection() { return ChVector<>(m_states.xe, m_states.ye, m_data.depth); }
+
+    /// Export a TMeasy Tire Parameter File
+    void ExportParameterFile(std::string fileName);
+
+    /// Export a TMeasy Tire Parameter File in JSON format
+    void ExportJSONFile(std::string jsonFileName);
+
+    /// Simple parameter consistency test
+    bool CheckParameters();
 
   protected:
     /// Perform disc-terrain collision detection considering the curvature of the road
@@ -184,6 +214,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         double& depth                   ///< [out] penetration depth (positive if contact occurred)
     );
 
+    /// Sine Step Function
+    double SinStep(double x, double x1, double h1, double x2, double h2);
+
     /// Return the vertical tire stiffness contribution to the normal force.
     double GetNormalStiffnessForce(double depth);
 
@@ -193,42 +226,77 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Set the parameters in the TMeasy model.
     virtual void SetTMeasyParams() = 0;
 
-    double m_kappa;  ///< longitudinal slip (percentage)
-    double m_alpha;  ///< slip angle (degrees)
-    double m_gamma;  ///< camber angle (degrees)
+    bool m_consider_relaxation;
 
-    double m_gamma_limit;  ///< limit camber angle (degrees)
+    bool m_use_Reff_fallback_calculation;
 
-    /// TMeasy tire model parameters
-    double m_unloaded_radius;
-    double m_width;
-    double m_rolling_resistance;  // double m_lateral_stiffness (actually unused)
-    double m_mu;                  // local friction coefficient of the road
+    unsigned int m_integration_method;
+
+    double m_time;
+    double m_begin_start_transition;
+    double m_end_start_transition;
+
+    double m_vnum;
+
+    double m_gamma;  ///< actual camber angle
+
+    double m_gamma_limit;  ///< limit camber angle (degrees!)
+
+    // TMeasy tire model parameters
+    double m_unloaded_radius;     ///< reference tire radius
+    double m_width;               ///< tire width
+    double m_rim_radius;          ///< tire rim radius
+    double m_roundness;           ///< roundness factor for cross-section profile
+    double m_rolling_resistance;  ///< actual rolling friction coeff
+    double m_mu;                  ///< local friction coefficient of the road
+
+    double m_a1;  ///< polynomial coefficient a1 in cz = a1 + 2.0*a2 * deflection
+    double m_a2;  ///< polynomial coefficient a2 in cz = a1 + 2.0*a2 * deflection
+
+    double m_tau_x;  ///< Longitudinal relaxation delay time
+    double m_tau_y;  ///< Lateral relaxation delay time
+
+    double m_relaxation_lenght_x;    ///< Longitudinal relaxation length
+    double m_relaxation_lenght_y;    ///< Lateral relaxation length
+    double m_relaxation_lenght_phi;  ///< Relaxation length for bore movement
+
+    double m_rdynco;          ///< actual value of dynamic rolling radius weighting coefficient
+    double m_rdynco_crit;     ///< max. considered value of m_rdynco (local minimum of dynamic rolling radius)
+    double m_fz_rdynco_crit;  ///< Fz value r_dyn = r_dyn(m_fz_rdynco,m_rdynco_crit)
 
     VehicleSide m_measured_side;
 
     typedef struct {
-        double pn;
+        double pn;      ///< Nominal vertical force [N]
+        double pn_max;  ///< Maximum vertical force [N] (currently not used)
 
-        double mu_0;     // local friction coefficient of the road for given parameters
-        double cz, czq;  // linear / quadratic coefficients of stiffness
-        double dz;       // linear damping coefficient
+        double mu_0;  ///< Local friction coefficient of the road for given parameters
+        double cx;    ///< Linear stiffness x [N/m]
+        double cy;    ///< Linear stiffness y [N/m]
+        double cz;    ///< Stiffness, may vary with the vertical force [N/m]
+        double dx;    ///< Linear damping coefficient x [Ns/m]
+        double dy;    ///< Linear damping coefficient y [Ns/m]
+        double dz;    ///< Linear damping coefficient z [Ns/m]
 
-        double dfx0_pn, dfx0_p2n;
-        double fxm_pn, fxm_p2n;
-        double sxm_pn, sxm_p2n;
-        double fxs_pn, fxs_p2n;
-        double sxs_pn, sxs_p2n;
+        double dfx0_pn, dfx0_p2n;  ///< Initial longitudinal slopes dFx/dsx [kN]
+        double fxm_pn, fxm_p2n;    ///< Maximum longitudinal force [kN]
+        double fxs_pn, fxs_p2n;    ///< Longitudinal load at sliding [kN]
+        double sxm_pn, sxm_p2n;    ///< Slip sx at maximum longitudinal load Fx
+        double sxs_pn, sxs_p2n;    ///< Slip sx where sliding begins
 
-        double dfy0_pn, dfy0_p2n;
-        double fym_pn, fym_p2n;
-        double sym_pn, sym_p2n;
-        double fys_pn, fys_p2n;
-        double sys_pn, sys_p2n;
+        double dfy0_pn, dfy0_p2n;  ///< Initial lateral slopes dFy/dsy [kN]
+        double fym_pn, fym_p2n;    ///< Maximum lateral force [kN]
+        double fys_pn, fys_p2n;    ///< Lateral load at sliding [kN]
+        double sym_pn, sym_p2n;    ///< Slip sy at maximum lateral load Fy
+        double sys_pn, sys_p2n;    ///< Slip sy where sliding begins
 
-        double nto0_pn, nto0_p2n;
-        double synto0_pn, synto0_p2n;
-        double syntoE_pn, syntoE_p2n;
+        double nto0_pn, nto0_p2n;      ///< Normalized pneumatic trail at sy=0
+        double synto0_pn, synto0_p2n;  ///< Slip sy where trail changes sign
+        double syntoE_pn, syntoE_p2n;  ///< Slip sy where trail tends to zero
+
+        double rrcoeff_pn, rrcoeff_p2n;  ///< Rolling resistance coefficients
+        double rdynco_pn, rdynco_p2n;    ///< Dynamic radius weighting coefficients
+
     } TMeasyCoeff;
 
     TMeasyCoeff m_TMeasyCoeff;
@@ -242,7 +310,10 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     double RampSignum(double inval);
 
   private:
-    double m_stepsize;
+    void UpdateVerticalStiffness();
+
+    std::vector<double> m_tire_test_defl;  // set, when test data are used for vertical
+    std::vector<double> m_tire_test_frc;   // stiffness calculation
 
     void tmxy_combined(double& f, double& fos, double s, double df0, double sm, double fm, double ss, double fs);
     double tmy_tireoff(double sy, double nto0, double synto0, double syntoE);
@@ -256,14 +327,22 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     };
 
     struct TireStates {
-        double cp_long_slip;     // Contact Path - Longitudinal Slip State (Kappa)
-        double cp_side_slip;     // Contact Path - Side Slip State (Alpha)
-        double vx;               // Longitudinal speed
+        double sx;               // Contact Path - Longitudinal Slip State (Kappa)
+        double sy;               // Contact Path - Side Slip State (Alpha)
+        double vta;              // absolut transport velocity
         double vsx;              // Longitudinal slip velocity
         double vsy;              // Lateral slip velocity = Lateral velocity
         double omega;            // Wheel angular velocity about its spin axis
-        double R_eff;            // Effective Radius
-        ChVector<> disc_normal;  //(temporary for debug)
+        double R_eff;            // Effective Rolling Radius
+        double Fx_dyn;           // Dynamic longitudinal fire force
+        double Fy_dyn;           // Dynamic lateral tire force
+        double Mb_dyn;           // Dynamic bore torque
+        double xe;               // Longitudinal tire deflection
+        double ye;               // Lateral tire deflection
+        double Fx;               // Steady state longitudinal tire force
+        double Fy;               // Steady state lateral tire force
+        double Mb;               // Steady state bore torque
+        ChVector<> disc_normal;  // (temporary for debug)
     };
 
     ContactData m_data;

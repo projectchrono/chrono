@@ -40,17 +40,18 @@ namespace hmmwv {
 /// @{
 
 /// HMMWV vehicle system using reduced double wishbone suspension (control arms modeled using distance constraints)
+/// and rack-pinion steering mechanism.
 class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
   public:
-    HMMWV_VehicleReduced(const bool fixed = false,
-                         DrivelineType drive_type = DrivelineType::AWD,
-                         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
-                         ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+    HMMWV_VehicleReduced(const bool fixed,
+                         DrivelineType drive_type,
+                         ChMaterialSurface::ContactMethod contact_method,
+                         ChassisCollisionType chassis_collision_type);
 
     HMMWV_VehicleReduced(ChSystem* system,
-                         const bool fixed = false,
-                         DrivelineType drive_type = DrivelineType::AWD,
-                         ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                         const bool fixed,
+                         DrivelineType drive_type,
+                         ChassisCollisionType chassis_collision_type);
 
     ~HMMWV_VehicleReduced();
 

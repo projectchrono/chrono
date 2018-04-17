@@ -498,7 +498,18 @@ ChVector<> Generator::calcMinSeparation(const ChVector<>& sep) {
 
 // Create objects at the specified locations using the current mixture settings.
 void Generator::createObjects(const PointVector& points, const ChVector<>& vel) {
+    bool check = false;
+    std::vector<bool> flags;
+    if (m_callback) {
+        flags.resize(points.size(), true);
+        m_callback->OnCreateObjects(points, flags);
+        check = true;
+    }
+
     for (int i = 0; i < points.size(); i++) {
+        if (check && !flags[i])
+            continue;
+
         // Select the type of object to be created.
         int index = selectIngredient();
 

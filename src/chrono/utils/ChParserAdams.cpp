@@ -50,13 +50,8 @@ void ChParserAdams::Report::Print() const {
 
     std::cout << "Parsed " << joints.size() << " joints:\n";
     for (auto const& joint : joints) {
-        std::cout << "   name: \"" << joint.first << "\", type: \"" << joint.second.type << std::endl;
+        std::cout << "   name: \"" << joint.first << "\", type: \"" << joint.second.type << "\"" << std::endl;
     }
-
-    // std::cout << "Parsed " << forces.size() << " forces:\n";
-    // for (auto const& force : forces) {
-    //     std::cout << "   name: \"" << force.first << "\", type: \"" << force.second.type << "\"" << std::endl;
-    // }
 }
 
 std::shared_ptr<ChBodyAuxRef> ChParserAdams::Report::GetBody(const std::string& name) const {
@@ -76,15 +71,6 @@ std::shared_ptr<ChLink> ChParserAdams::Report::GetJoint(const std::string& name)
     }
     return joint;
 }
-// Not needed for ADAMS
-// std::shared_ptr<ChLoadBase> ChParserAdams::Report::GetForce(const std::string& name) const {
-//     std::shared_ptr<ChLoadBase> force;
-//     auto force_info = forces.find(name);
-//     if (force_info != forces.end()) {
-//         force = force_info->second.load;
-//     }
-//     return force;
-// }
 
 struct adams_part_struct {
     bool fixed;                // Fixed to ground
@@ -230,7 +216,7 @@ ChQuaternion<> Q_from_313_angles(double q1, double q2, double q3) {
 }
 
 // -----------------------------------------------------------------------------
-// Parse an OpenSim file into an existing system.
+// Parse an ADM file into an existing system.
 // -----------------------------------------------------------------------------
 
 void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {

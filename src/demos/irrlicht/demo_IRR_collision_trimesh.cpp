@@ -89,20 +89,49 @@ int main(int argc, char* argv[]) {
 
     // - Create a falling item with triangle mesh shape
 
+	// Note: one can create easily a colliding shape using the following 
+	// piece of code:
+	//
+	// auto mfalling = std::make_shared<ChBodyEasyMesh>(
+	//	  GetChronoDataFile("shoe_view.obj"),   ///< .OBJ mesh defined respect REF c.sys of body (initially REF=0,0,0 pos.)
+	//	  1000,              ///< density of the body
+	//	  true,			   ///< automatic evaluation of mass, COG position, inertia tensor
+	//	  true,			   ///< enable the collision detection
+	//	  0.005,			   ///< radius of 'inflating' of mesh, the larger the more robust collision detection
+	//	  true 			  ///< attach a visualization asset to the body
+	//	  );
+	// mfalling->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom() * 1.4)));
+	// mphysicalSystem.Add(mfalling);
+	//
+	// but here we want to show a more low-level control of this process, for 
+	// various reasons, for example: we want to share a single ChTriangleMeshConnected 
+	// between 15 falling shapes; also we want to call RepairDuplicateVertexes() on the
+	// imported mesh; also we want to scale the imported mesh using Transform().
+
     ChTriangleMeshConnected mmesh;
     mmesh.LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"),false,true);
-    mmesh.Transform(ChVector<>(-0.15,0,0), ChMatrix33<>(1.2)); // scale to a smaller cube
+    mmesh.Transform(ChVector<>(0,0,0), ChMatrix33<>(1.2)); // scale to a different size 
     mmesh.RepairDuplicateVertexes(1e-9); // if meshes are not watertight
     // compute mass inertia from mesh
     double mmass;
     ChVector<>mcog;
     ChMatrix33<> minertia;
+    double mdensity = 1000;
     mmesh.ComputeMassProperties(true,mmass,mcog,minertia); 
+    ChMatrix33<> principal_inertia_csys;
+    double principal_I[3];
+    minertia.FastEigen(principal_inertia_csys, principal_I);       
 
-    for (int j= 0; j<10;++j) {
-        auto mfalling = std::make_shared<ChBody>();
-        //  mfalling->SetPos(ChVector<>(0.1, 0.24, 0));
-        mfalling->SetPos(ChVector<>(ChRandom() * 0.4, 0.2 + j * 0.12, ChRandom() * 0.4));
+    for (int j= 0; j<15;++j) {
+		
+        auto mfalling = std::make_shared<ChBodyAuxRef>();
+        mfalling->SetMass(mmass * mdensity);
+        mfalling->SetInertiaXX(ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
+        // Set the COG coordinates to barycenter, without displacing the REF reference
+        mfalling->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_csys));
+
+		// Set the absolute position of the body:
+        mfalling->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-0.9+ChRandom() * 1.4, 0.4 + j * 0.12, -0.9+ChRandom() * 1.4)));
         mphysicalSystem.Add(mfalling);
         mfalling->SetMass(mmass*1000);
         mfalling->SetInertia(minertia*1000);
@@ -116,12 +145,8 @@ int main(int argc, char* argv[]) {
         masset_mesh->SetMesh(mmesh);
         masset_mesh->SetBackfaceCull(true);
         mfalling->AddAsset(masset_mesh);
-
-        auto masset_texturew = std::make_shared<ChTexture>();
-        masset_texturew->SetTextureFilename(GetChronoDataFile("cubetexture_wood.png"));
-        mfalling->AddAsset(masset_texturew);
     }
-
+	
     for (int bi = 0; bi < 20; bi++) {
         // Create a bunch of ChronoENGINE rigid bodies (spheres and
         // boxes etc.) which will fall..
@@ -139,7 +164,7 @@ int main(int argc, char* argv[]) {
 
         mphysicalSystem.Add(msphereBody);
     }
-
+	
     //-----------
 
     // Use this function for adding a ChIrrNodeAsset to all items

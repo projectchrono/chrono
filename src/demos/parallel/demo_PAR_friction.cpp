@@ -191,7 +191,7 @@ int main(int argc, char** argv) {
 #endif
         if (!output && system.GetChTime() >= time_out) {
             for (int i = 1; i <= 10; i++) {
-                auto pos = system.Get_bodylist()->at(i)->GetPos();
+                auto pos = system.Get_bodylist().at(i)->GetPos();
                 std::cout << pos.x() << std::endl;
             }
             output = true;

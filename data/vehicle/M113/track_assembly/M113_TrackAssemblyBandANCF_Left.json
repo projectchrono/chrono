@@ -1,0 +1,91 @@
+{
+  "Name": "M113 BandANCF TrackAssembly Left",
+  "Type": "TrackAssembly",
+  "Template": "TrackAssemblyBandANCF",
+
+  "Sprocket": {
+    "Input File": "M113/sprocket/M113_SprocketBand_Left.json",
+    "Location": [ 0, 0, 0 ]
+  },
+
+  "Brake": {
+    "Input File": "M113/brake/M113_TrackBrakeSimple.json"
+  },
+
+  "Idler": {
+    "Input File": "M113/idler/M113_DoubleIdler_Left.json",
+    "Location": [ -3.83, 0, -0.12 ]
+  },
+
+  "Suspension Subsystems": [
+    {
+      "Input File": "M113/suspension/M113_LinearDamperSuspension_Left.json",
+      "Has Shock": true,
+      "Location": [ -0.655, 0, -0.215 ]
+    },
+
+    {
+      "Input File": "M113/suspension/M113_LinearDamperSuspension_Left.json",
+      "Has Shock": true,
+      "Location": [ -1.322, 0, -0.215 ]
+    },
+
+    {
+      "Input File": "M113/suspension/M113_LinearDamperSuspension_Left.json",
+      "Has Shock": false,
+      "Location": [ -1.989, 0, -0.215 ]
+    },
+
+    {
+      "Input File": "M113/suspension/M113_LinearDamperSuspension_Left.json",
+      "Has Shock": false,
+      "Location": [ -2.656, 0, -0.215 ]
+    },
+
+    {
+      "Input File": "M113/suspension/M113_LinearDamperSuspension_Left.json",
+      "Has Shock": true,
+      "Location": [ -3.322, 0, -0.215 ]
+    }
+  ],
+
+  "Track Shoes": {
+    "Input File": "M113/track_shoe/M113_TrackShoeBandANCF.json",
+    "Number Shoes": 105
+  },
+
+  "Layer Materials": {
+    "Steel": {
+      "Density": 7900.0,
+      "E": [ 210.0e9, 210.0e9, 210.0e9 ],
+      "nu": [ 0.3, 0.3, 0.3 ],
+      "G": [ 80.769e9, 80.769e9, 80.769e9 ]
+    },
+    "Rubber": {
+      "Density": 1100.0,
+      "E": [ 1e7, 1e7, 1e7 ],
+      "nu": [ 0.3, 0.3, 0.3 ],
+      "G": [ 3.3557e6, 3.3557e6, 3.3557e6 ]
+    },
+    "Ply Angles": [ 0, 0, 0 ],
+    "Structural Damping Coefficient": 0.05
+  },
+
+  "Mesh Contact Material": {
+    "Coefficient of Friction": 0.8,
+    "Coefficient of Restitution": 0.1,
+
+    "Properties": {
+      "Young Modulus": 1e7,
+      "Poisson Ratio": 0.3
+    },
+
+    "Coefficients": {
+      "Normal Stiffness": 2e5,
+      "Normal Damping": 40.0,
+      "Tangential Stiffness": 2e5,
+      "Tangential Damping": 20.0
+    }
+  }
+
+}

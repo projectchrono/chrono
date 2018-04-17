@@ -51,12 +51,8 @@ TrackShoeDoublePin::TrackShoeDoublePin(const rapidjson::Document& d) : ChTrackSh
 }
 
 void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read shoe body geometry and mass properties
     assert(d.HasMember("Shoe"));
@@ -126,6 +122,7 @@ void TrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetStatic(true);
         m_shoe->AddAsset(trimesh_shape);
     } else {
         ChTrackShoeDoublePin::AddVisualizationAssets(vis);

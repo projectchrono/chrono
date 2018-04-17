@@ -2,6 +2,8 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/geometry/ChGeometry.h"
+#include "chrono/geometry/ChVolume.h"
+#include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChSphere.h"
 #include "chrono/geometry/ChCylinder.h"
@@ -17,6 +19,8 @@ using namespace geometry;
  
 /* Parse the header file(s) to generate wrappers */
 %include "../chrono/geometry/ChGeometry.h"
+%include "../chrono/geometry/ChVolume.h"
+%include "../chrono/geometry/ChSurface.h"
 %include "../chrono/geometry/ChBox.h"
 %include "../chrono/geometry/ChSphere.h"
 %include "../chrono/geometry/ChCylinder.h"

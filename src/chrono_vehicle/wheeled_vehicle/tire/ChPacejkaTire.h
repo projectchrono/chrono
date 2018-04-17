@@ -71,6 +71,9 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     ~ChPacejkaTire();
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "PacejkaTire"; }
+
     /// Specify whether or not the associated wheel is driven.
     /// By default, the wheel is assumed not driven.
     void SetDrivenWheel(bool val) { m_driven = val; }
@@ -186,13 +189,9 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Get the tire rolling radius, ideally updated each step.
     double get_tire_rolling_rad() const { return m_R_eff; }
 
-    /// Set the value of the integration step size.
-    void SetStepsize(double val) { m_step_size = val; }
-
-    /// Get the current value of the integration step size.
-    double GetStepsize() const { return m_step_size; }
-
   private:
+    virtual void Create(const rapidjson::Document& d) override {}
+
     // where to find the input parameter file
     const std::string& getPacTireParamFile() const { return m_paramFile; }
 
@@ -369,7 +368,6 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     bool m_use_Fz_override;  // calculate Fz using collision, or user input
     double m_Fz_override;    // if manually inputting the vertical wheel load
 
-    double m_step_size;             // integration step size
     double m_time_since_last_step;  // init. to -1 in Initialize()
     bool m_initial_step;            // so Advance() gets called at time = 0
     int m_num_ODE_calls;
