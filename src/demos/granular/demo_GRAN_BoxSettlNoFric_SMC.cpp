@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
 #define NORMAL_STIFFNESS_S2S 1e7f
 #define NORMAL_STIFFNESS_S2W 1e7f
 
-    std::string output_prefix = "settling_MONODISP_SPHERES_SMC";
+    std::string output_prefix = "../results";
 
     // Default values
     float ballRadius = RADIUS;
@@ -253,9 +253,9 @@ int main(int argc, char* argv[]) {
         }
     };
     // Set the position of the BD
-    settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunZBouncing);
+    settlingExperiment.setBDPositionFunction(posFunX, posFunStill, posFunStill);
     // Tell the sim to unlock the bd so it can follow that position function
-    settlingExperiment.set_BD_Fixed(false);
+    settlingExperiment.set_BD_Fixed(true);
 
     // Run settline experiments
     settlingExperiment.settle(timeEnd);

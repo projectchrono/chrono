@@ -27,12 +27,13 @@
 
 #include <cuda_runtime_api.h>
 #include <climits>
+#include <iostream>
 #include <memory>
 #include <new>
 #include <utility>
 
 template <class T>
-class cudallocator : public std::allocator<T> {
+class cudallocator {
   public:
     typedef T value_type;
     typedef T* pointer;
@@ -43,7 +44,7 @@ class cudallocator : public std::allocator<T> {
     typedef std::ptrdiff_t difference_type;
     template <class U>
     struct rebind {
-        typedef typename std::allocator<U> other;
+        typedef typename ::cudallocator<U> other;
     };
     bool propagate_on_container_move_assignment = true;
 

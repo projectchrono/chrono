@@ -68,9 +68,6 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation(
 void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
     partition_BD();
 
-    // unsigned int cumemflags = 0;
-    // gpuErrchk(cudaHostGetFlags(&cumemflags, h_X_DE.data()));
-
     // set aside device memory to store the position of the CM of the spheres
     gpuErrchk(cudaMalloc(&p_d_CM_X, nDEs * sizeof(int)));
     gpuErrchk(cudaMalloc(&p_d_CM_Y, nDEs * sizeof(int)));

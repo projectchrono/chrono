@@ -34,7 +34,7 @@
 // Use user-defined quantities for coefficients
 #define K_N (1.f / (1.f * psi_T_dFactor * psi_T_dFactor * psi_h_dFactor))
 // TODO we need to get the damping coefficient from user
-#define GAMMA_N .05
+#define GAMMA_N .005
 
 __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
 __constant__ unsigned int d_SD_Ldim_SU;                //!< Ad-ed L-dimension of the SD box
@@ -54,9 +54,9 @@ __constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allo
 __constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
-__constant__ int d_BD_frame_X_dot;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-__constant__ int d_BD_frame_Y_dot;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-__constant__ int d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
+__constant__ float d_BD_frame_X_dot;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
+__constant__ float d_BD_frame_Y_dot;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
+__constant__ float d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
 __constant__ double d_DE_Mass;
 
@@ -346,9 +346,9 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
                                 const int sphXpos,        //!< Global X position of DE
                                 const int sphYpos,        //!< Global Y position of DE
                                 const int sphZpos,        //!< Global Z position of DE
-                                const int sphXvel,        //!< Global X velocity of DE
-                                const int sphYvel,        //!< Global Y velocity of DE
-                                const int sphZvel,        //!< Global Z velocity of DE
+                                const float sphXvel,      //!< Global X velocity of DE
+                                const float sphYvel,      //!< Global Y velocity of DE
+                                const float sphZvel,      //!< Global Z velocity of DE
                                 float& X_Vel_corr,        //!< Velocity correction in Xdir
                                 float& Y_Vel_corr,        //!< Velocity correction in Xdir
                                 float& Z_Vel_corr         //!< Velocity correction in Xdir
@@ -433,28 +433,28 @@ NOTE That this function uses the already-integrated forces, so for forward euler
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
 __global__ void applyVelocityUpdates(
-    unsigned int alpha_h_bar,   //!< Value that controls actual step size, not actually needed for this kernel
-    int* pRawDataX,             //!< Pointer to array containing data related to the
-                                //!< spheres in the box
-    int* pRawDataY,             //!< Pointer to array containing data related to the
-                                //!< spheres in the box
-    int* pRawDataZ,             //!< Pointer to array containing data related to the
-                                //!< spheres in the box
-    int* pRawDataX_DOT_update,  //!< Pointer to array containing data related to
-                                //!< the spheres in the box
-    int* pRawDataY_DOT_update,  //!< Pointer to array containing data related to
-                                //!< the spheres in the box
-    int* pRawDataZ_DOT_update,  //!< Pointer to array containing data related to
-                                //!< the spheres in the box
+    unsigned int alpha_h_bar,     //!< Value that controls actual step size, not actually needed for this kernel
+    int* pRawDataX,               //!< Pointer to array containing data related to the
+                                  //!< spheres in the box
+    int* pRawDataY,               //!< Pointer to array containing data related to the
+                                  //!< spheres in the box
+    int* pRawDataZ,               //!< Pointer to array containing data related to the
+                                  //!< spheres in the box
+    float* pRawDataX_DOT_update,  //!< Pointer to array containing data related to
+                                  //!< the spheres in the box
+    float* pRawDataY_DOT_update,  //!< Pointer to array containing data related to
+                                  //!< the spheres in the box
+    float* pRawDataZ_DOT_update,  //!< Pointer to array containing data related to
+                                  //!< the spheres in the box
     unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
                                                //!< SD indicates how many
                                                //!< spheres touch this SD
     unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction
                                                //!< with SD_countsOfSpheresTouching.
 
-    int* pRawDataX_DOT,
-    int* pRawDataY_DOT,
-    int* pRawDataZ_DOT) {
+    float* pRawDataX_DOT,
+    float* pRawDataY_DOT,
+    float* pRawDataZ_DOT) {
     unsigned int thisSD = blockIdx.x;
     unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
     unsigned mySphereID;  // Bring in data from global into shmem. Only a subset of threads get to do this.
@@ -498,19 +498,19 @@ NOTE:
 */
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
-__global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value that controls actual step size.
-                                       int* pRawDataX,             //!< Pointer to array containing data related to the
-                                                                   //!< spheres in the box
-                                       int* pRawDataY,             //!< Pointer to array containing data related to the
-                                                                   //!< spheres in the box
-                                       int* pRawDataZ,             //!< Pointer to array containing data related to the
-                                                                   //!< spheres in the box
-                                       int* pRawDataX_DOT_update,  //!< Pointer to array containing data related to
-                                                                   //!< the spheres in the box
-                                       int* pRawDataY_DOT_update,  //!< Pointer to array containing data related to
-                                                                   //!< the spheres in the box
-                                       int* pRawDataZ_DOT_update,  //!< Pointer to array containing data related to
-                                                                   //!< the spheres in the box
+__global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value that controls actual step size.
+                                       int* pRawDataX,            //!< Pointer to array containing data related to the
+                                                                  //!< spheres in the box
+                                       int* pRawDataY,            //!< Pointer to array containing data related to the
+                                                                  //!< spheres in the box
+                                       int* pRawDataZ,            //!< Pointer to array containing data related to the
+                                                                  //!< spheres in the box
+                                       float* pRawDataX_DOT_update,  //!< Pointer to array containing data related to
+                                                                     //!< the spheres in the box
+                                       float* pRawDataY_DOT_update,  //!< Pointer to array containing data related to
+                                                                     //!< the spheres in the box
+                                       float* pRawDataZ_DOT_update,  //!< Pointer to array containing data related to
+                                                                     //!< the spheres in the box
                                        unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
                                                                                   //!< SD indicates how many
                                                                                   //!< spheres touch this SD
@@ -518,16 +518,16 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
                                                                               //!< with SD_countsOfSpheresTouching.
                                                                               //
                                        ,
-                                       int* pRawDataX_DOT,
-                                       int* pRawDataY_DOT,
-                                       int* pRawDataZ_DOT) {
+                                       float* pRawDataX_DOT,
+                                       float* pRawDataY_DOT,
+                                       float* pRawDataZ_DOT) {
     // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
     __shared__ int sph_X[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sph_Z[MAX_NSPHERES_PER_SD];
-    __shared__ int sph_X_DOT[MAX_NSPHERES_PER_SD];
-    __shared__ int sph_Y_DOT[MAX_NSPHERES_PER_SD];
-    __shared__ int sph_Z_DOT[MAX_NSPHERES_PER_SD];
+    __shared__ float sph_X_DOT[MAX_NSPHERES_PER_SD];
+    __shared__ float sph_Y_DOT[MAX_NSPHERES_PER_SD];
+    __shared__ float sph_Z_DOT[MAX_NSPHERES_PER_SD];
 
     unsigned int thisSD = blockIdx.x;
     unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
@@ -705,9 +705,9 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,   //!< Value th
         }
 
         // Write the velocity updates back to global memory so that we can apply them AFTER this kernel finishes
-        atomicAdd(pRawDataX_DOT_update + mySphereID, (int)bodyA_X_velCorr);
-        atomicAdd(pRawDataY_DOT_update + mySphereID, (int)bodyA_Y_velCorr);
-        atomicAdd(pRawDataZ_DOT_update + mySphereID, (int)bodyA_Z_velCorr);
+        atomicAdd(pRawDataX_DOT_update + mySphereID, bodyA_X_velCorr);
+        atomicAdd(pRawDataY_DOT_update + mySphereID, bodyA_Y_velCorr);
+        atomicAdd(pRawDataZ_DOT_update + mySphereID, bodyA_Z_velCorr);
     }
     __syncthreads();
 }
@@ -721,11 +721,11 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
                                                            //!< spheres in the box
                                 int* pRawDataZ,            //!< Pointer to array containing data related to the
                                                            //!< spheres in the box
-                                int* pRawDataX_DOT,        //!< Pointer to array containing data related to
+                                float* pRawDataX_DOT,      //!< Pointer to array containing data related to
                                                            //!< the spheres in the box
-                                int* pRawDataY_DOT,        //!< Pointer to array containing data related to
+                                float* pRawDataY_DOT,      //!< Pointer to array containing data related to
                                                            //!< the spheres in the box
-                                int* pRawDataZ_DOT,        //!< Pointer to array containing data related to
+                                float* pRawDataZ_DOT,      //!< Pointer to array containing data related to
                                                            //!< the spheres in the box
                                 unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
                                                                            //!< SD indicates how many
@@ -969,17 +969,16 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::stri
         std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
 
         for (unsigned int n = 0; n < nDEs; n++) {
-            unsigned int absv =
-                (unsigned int)sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
-                                   h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
+            float absv = sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
+                              h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
 
             ptFile.write((const char*)&h_X_DE.at(n), sizeof(int));
             ptFile.write((const char*)&h_Y_DE.at(n), sizeof(int));
             ptFile.write((const char*)&h_Z_DE.at(n), sizeof(int));
-            ptFile.write((const char*)&h_XDOT_DE.at(n), sizeof(int));
-            ptFile.write((const char*)&h_YDOT_DE.at(n), sizeof(int));
-            ptFile.write((const char*)&h_ZDOT_DE.at(n), sizeof(int));
-            ptFile.write((const char*)&absv, sizeof(int));
+            ptFile.write((const char*)&h_XDOT_DE.at(n), sizeof(float));
+            ptFile.write((const char*)&h_YDOT_DE.at(n), sizeof(float));
+            ptFile.write((const char*)&h_ZDOT_DE.at(n), sizeof(float));
+            ptFile.write((const char*)&absv, sizeof(float));
             ptFile.write((const char*)&deCounts[n], sizeof(int));
         }
     } else if (file_write_mode == GRN_OUTPUT_MODE::CSV) {
@@ -991,9 +990,8 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::stri
         outstrstream << "x,y,z,vx,vy,vz,absv,nTouched\n";
 
         for (unsigned int n = 0; n < nDEs; n++) {
-            unsigned int absv =
-                (unsigned int)sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
-                                   h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
+            float absv = sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
+                              h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
             outstrstream << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << h_XDOT_DE.at(n) << ","
                          << h_YDOT_DE.at(n) << "," << h_ZDOT_DE.at(n) << "," << absv << "," << deCounts[n] << "\n";
         }
@@ -1055,8 +1053,8 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
     checkSDCounts(output_directory + "/step000000", true, false);
 
     // Settling simulation loop.
-    unsigned int stepSize_SU = 4;
-    unsigned int tEnd_SU = std::ceil(tEnd / TIME_UNIT);
+    unsigned int stepSize_SU = 5;
+    unsigned int tEnd_SU = std::ceil(tEnd / (TIME_UNIT * PSI_h));
     // Which timestep is it?
     unsigned int currstep = 0;
     // Which frame am I rendering?
@@ -1066,7 +1064,13 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
 
     printf("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
            tEnd / nsteps);
-    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * gravAcc_Z_factor_SU);
+    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravAcc_Z_factor_SU);
+
+    float fps = 50;
+    // Number of frames to render
+    int nFrames = fps * tEnd;
+    // number of steps to go before rendering a frame
+    int rendersteps = nsteps / nFrames;
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
@@ -1074,9 +1078,9 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
         updateBDPosition(crntTime_SU, stepSize_SU);
 
         // reset forces to zero, note that vel update ~ force for forward euler
-        gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0, nDEs * sizeof(int)));
-        gpuErrchk(cudaMemset(p_d_CM_YDOT_update, 0, nDEs * sizeof(int)));
-        gpuErrchk(cudaMemset(p_d_CM_ZDOT_update, 0, nDEs * sizeof(int)));
+        gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0.f, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(p_d_CM_YDOT_update, 0.f, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(p_d_CM_ZDOT_update, 0.f, nDEs * sizeof(float)));
 
         // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
         computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
@@ -1106,7 +1110,7 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
         gpuErrchk(cudaDeviceSynchronize());
         // we don't want to render at every timestep, the file write is painful
         currstep++;
-        if (currstep % 10 == 0) {
+        if (currstep % rendersteps == 0) {
             printf("currstep is %u, rendering frame %u\n", currstep, currframe);
 
             char filename[100];

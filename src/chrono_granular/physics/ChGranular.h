@@ -96,20 +96,20 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     std::vector<int, cudallocator<int>> h_X_DE;
     std::vector<int, cudallocator<int>> h_Y_DE;
     std::vector<int, cudallocator<int>> h_Z_DE;
-    std::vector<int, cudallocator<int>> h_XDOT_DE;
-    std::vector<int, cudallocator<int>> h_YDOT_DE;
-    std::vector<int, cudallocator<int>> h_ZDOT_DE;
+    std::vector<float, cudallocator<float>> h_XDOT_DE;
+    std::vector<float, cudallocator<float>> h_YDOT_DE;
+    std::vector<float, cudallocator<float>> h_ZDOT_DE;
 
     /// Device pointers
     int* p_d_CM_X;
     int* p_d_CM_Y;
     int* p_d_CM_Z;
-    int* p_d_CM_XDOT;
-    int* p_d_CM_YDOT;
-    int* p_d_CM_ZDOT;
-    int* p_d_CM_XDOT_update;
-    int* p_d_CM_YDOT_update;
-    int* p_d_CM_ZDOT_update;
+    float* p_d_CM_XDOT;
+    float* p_d_CM_YDOT;
+    float* p_d_CM_ZDOT;
+    float* p_d_CM_XDOT_update;
+    float* p_d_CM_YDOT_update;
+    float* p_d_CM_ZDOT_update;
 
     float X_accGrav;  //!< X component of the gravitational acceleration
     float Y_accGrav;  //!< Y component of the gravitational acceleration
