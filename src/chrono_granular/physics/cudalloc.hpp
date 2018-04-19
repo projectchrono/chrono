@@ -52,14 +52,14 @@ class cudallocator {
 
     pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {
         T* ptr;
-        cudaError_t err = cudaMallocHost(&ptr, n * sizeof(T), cudaHostAllocDefault);
-        if (err == cudaErrorMemoryAllocation) {
+        cudaError_t err = cudaMallocManaged(&ptr, n * sizeof(T), cudaMemAttachGlobal);
+        if (err == cudaErrorMemoryAllocation || err == cudaErrorNotSupported) {
             throw std::bad_alloc();
         }
         return ptr;
     }
 
-    void deallocate(pointer p, size_type n) { cudaFreeHost(p); }
+    void deallocate(pointer p, size_type n) { cudaFree(p); }
 
     size_type max_size() const noexcept { return ULLONG_MAX / sizeof(T); }
 
