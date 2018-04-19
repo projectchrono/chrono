@@ -41,17 +41,7 @@ enum GRN_TIME_STEPPING { AUTO, USER_SET };
 
 class CH_GRANULAR_API ChGRN_DE_Container {
   public:
-    ChGRN_DE_Container()
-        : time_stepping(GRN_TIME_STEPPING::AUTO),
-          nDEs(0),
-          p_d_CM_X(nullptr),
-          p_d_CM_Y(nullptr),
-          p_d_CM_Z(nullptr),
-          p_d_CM_XDOT(nullptr),
-          p_d_CM_YDOT(nullptr),
-          p_d_CM_ZDOT(nullptr),
-          p_device_SD_NumOf_DEs_Touching(nullptr),
-          p_device_DEs_in_SD_composite(nullptr) {
+    ChGRN_DE_Container() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0) {
         // Allow us to use the fancy cudalloc mapped memory
         cudaSetDeviceFlags(cudaDeviceMapHost);
         // gpuErrchk(cudaDeviceReset());
@@ -93,23 +83,16 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
     // Makes somewhat faster memcpys
     /// Store x positions and velocities, copied back occasionally
-    std::vector<int, cudallocator<int>> h_X_DE;
-    std::vector<int, cudallocator<int>> h_Y_DE;
-    std::vector<int, cudallocator<int>> h_Z_DE;
-    std::vector<float, cudallocator<float>> h_XDOT_DE;
-    std::vector<float, cudallocator<float>> h_YDOT_DE;
-    std::vector<float, cudallocator<float>> h_ZDOT_DE;
+    std::vector<int, cudallocator<int>> pos_X;
+    std::vector<int, cudallocator<int>> pos_Y;
+    std::vector<int, cudallocator<int>> pos_Z;
+    std::vector<float, cudallocator<float>> pos_X_dt;
+    std::vector<float, cudallocator<float>> pos_Y_dt;
+    std::vector<float, cudallocator<float>> pos_Z_dt;
 
-    /// Device pointers
-    int* p_d_CM_X;
-    int* p_d_CM_Y;
-    int* p_d_CM_Z;
-    float* p_d_CM_XDOT;
-    float* p_d_CM_YDOT;
-    float* p_d_CM_ZDOT;
-    float* p_d_CM_XDOT_update;
-    float* p_d_CM_YDOT_update;
-    float* p_d_CM_ZDOT_update;
+    std::vector<float, cudallocator<float>> pos_X_dt_update;
+    std::vector<float, cudallocator<float>> pos_Y_dt_update;
+    std::vector<float, cudallocator<float>> pos_Z_dt_update;
 
     float X_accGrav;  //!< X component of the gravitational acceleration
     float Y_accGrav;  //!< Y component of the gravitational acceleration
@@ -122,9 +105,11 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     float
         gravAcc_Z_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
 
-    unsigned int* p_device_SD_NumOf_DEs_Touching;  //!< Entry "i" says how many spheres touch SD i
-    unsigned int* p_device_DEs_in_SD_composite;    //!< Array containing the IDs of the spheres stored in the SDs
-                                                   //!< associated with the box
+    /// Entry "i" says how many spheres touch SD i
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_NumOf_DEs_Touching;
+
+    /// Array containing the IDs of the spheres stored in the SDs associated with the box
+    std::vector<unsigned int, cudallocator<unsigned int>> DEs_in_SD_composite;
 
     GRN_TIME_STEPPING time_stepping;  //!< Indicates what type of time stepping the simulation employs.
 
@@ -217,7 +202,7 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
     int BD_frame_X;
     int BD_frame_Y;
     int BD_frame_Z;
-
+    //
     /// The velocity of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
     int BD_frame_X_dot;
     int BD_frame_Y_dot;

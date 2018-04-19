@@ -28,14 +28,14 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation(
     // Handle velocity level information
 
     // Handle other memory allocated
-    if (p_device_SD_NumOf_DEs_Touching != nullptr) {
-        gpuErrchk(cudaFree(p_device_SD_NumOf_DEs_Touching));
-        p_device_SD_NumOf_DEs_Touching = nullptr;
-    }
-    if (p_device_DEs_in_SD_composite != nullptr) {
-        gpuErrchk(cudaFree(p_device_DEs_in_SD_composite));
-        p_device_DEs_in_SD_composite = nullptr;
-    }
+    // if (SD_NumOf_DEs_Touching != nullptr) {
+    //     gpuErrchk(cudaFree(SD_NumOf_DEs_Touching));
+    //     SD_NumOf_DEs_Touching = nullptr;
+    // }
+    // if (DEs_in_SD_composite != nullptr) {
+    //     gpuErrchk(cudaFree(DEs_in_SD_composite));
+    //     DEs_in_SD_composite = nullptr;
+    // }
 }
 
 /** This method sets up the data structures used to perform a simulation.
@@ -55,30 +55,30 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() 
     // gpuErrchk(cudaMalloc(&p_d_CM_ZDOT, nDEs * sizeof(int)));
 
     // Set aside memory for velocity update information
-    gpuErrchk(cudaMalloc(&p_d_CM_XDOT_update, nDEs * sizeof(int)));
-    gpuErrchk(cudaMalloc(&p_d_CM_YDOT_update, nDEs * sizeof(int)));
-    gpuErrchk(cudaMalloc(&p_d_CM_ZDOT_update, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMalloc(&pos_X_dt_update, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMalloc(&pos_Y_dt_update, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMalloc(&pos_Z_dt_update, nDEs * sizeof(int)));
 
     // allocate mem for array saying for each SD how many spheres touch it
-    gpuErrchk(cudaMalloc(&p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int)));
-
+    // gpuErrchk(cudaMalloc(&SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int)));
+    SD_NumOf_DEs_Touching.resize(nSDs * sizeof(unsigned int));
     // allocate mem for array that for each SD has the list of all spheres touching it; big array
-    gpuErrchk(cudaMalloc(&p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
-
+    // gpuErrchk(cudaMalloc(&DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+    DEs_in_SD_composite.resize(MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int));
     // Copy over initial position information
-    // gpuErrchk(cudaMemcpy(p_d_CM_X, h_X_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
-    // gpuErrchk(cudaMemcpy(p_d_CM_Y, h_Y_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
-    // gpuErrchk(cudaMemcpy(p_d_CM_Z, h_Z_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
+    // gpuErrchk(cudaMemcpy(p_d_CM_X, pos_X.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
+    // gpuErrchk(cudaMemcpy(p_d_CM_Y, pos_Y.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
+    // gpuErrchk(cudaMemcpy(p_d_CM_Z, pos_Z.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
     //
     // // Set initial velocities to zero
-    // gpuErrchk(cudaMemset(h_XDOT_DE.data(), 0, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMemset(h_YDOT_DE.data(), 0, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMemset(h_ZDOT_DE.data(), 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemset(pos_X_dt.data(), 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemset(pos_Y_dt.data(), 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemset(pos_Z_dt.data(), 0, nDEs * sizeof(int)));
 
     // Set initial velocity updates to zero
-    gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0, nDEs * sizeof(int)));
-    gpuErrchk(cudaMemset(p_d_CM_YDOT_update, 0, nDEs * sizeof(int)));
-    gpuErrchk(cudaMemset(p_d_CM_ZDOT_update, 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemset(pos_X_dt_update, 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemset(pos_Y_dt_update, 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemset(pos_Z_dt_update, 0, nDEs * sizeof(int)));
 }
 
 // Set the bounds to fill in our box
@@ -128,47 +128,23 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     nDEs = (unsigned int)points.size();
     std::cout << nDEs << " balls added!" << std::endl;
     // Allocate space for new bodies
-    h_X_DE.resize(nDEs);
-    h_Y_DE.resize(nDEs);
-    h_Z_DE.resize(nDEs);
-    h_XDOT_DE.resize(nDEs, 0);
-    h_YDOT_DE.resize(nDEs, 0);
-    h_ZDOT_DE.resize(nDEs, 0);
+    pos_X.resize(nDEs);
+    pos_Y.resize(nDEs);
+    pos_Z.resize(nDEs);
+    pos_X_dt.resize(nDEs, 0);
+    pos_Y_dt.resize(nDEs, 0);
+    pos_Z_dt.resize(nDEs, 0);
+    pos_X_dt_update.resize(nDEs, 0);
+    pos_Y_dt_update.resize(nDEs, 0);
+    pos_Z_dt_update.resize(nDEs, 0);
     // Copy from array of structs to 3 arrays
     for (unsigned int i = 0; i < nDEs; i++) {
         auto vec = points.at(i);
-        h_X_DE.at(i) = (int)(vec.x());
-        h_Y_DE.at(i) = (int)(vec.y());
-        h_Z_DE.at(i) = (int)(vec.z());
-        // printf("int is %d, float is %f\n", h_X_DE.at(i), vec.x());
+        pos_X.at(i) = (int)(vec.x());
+        pos_Y.at(i) = (int)(vec.y());
+        pos_Z.at(i) = (int)(vec.z());
+        // printf("int is %d, float is %f\n", pos_X.at(i), vec.x());
     }
-    // Demonstrates issue with half-integer rounding causing specious collisions
-    // for (int i = 0; i < nDEs; i++) {
-    //     for (int j = 0; j < nDEs; j++) {
-    //         if (i == j) {
-    //             continue;
-    //         }
-    //         float r2 = monoDisperseSphRadius_SU * monoDisperseSphRadius_SU;
-    //         float dXf = points.at(i).x() - points.at(j).x();
-    //         float dYf = points.at(i).y() - points.at(j).y();
-    //         float dZf = points.at(i).z() - points.at(j).z();
-    //         float d2f = dXf * dXf + dYf * dYf + dZf * dZf;
-    //
-    //         float dXu = h_X_DE.at(i) - h_X_DE.at(j);
-    //         float dYu = h_Y_DE.at(i) - h_Y_DE.at(j);
-    //         float dZu = h_Z_DE.at(i) - h_Z_DE.at(j);
-    //         float d2u = dXu * dXu + dYu * dYu + dZu * dZu;
-    //
-    //         float diff = dXf - dXu;
-    //         if (fabs(diff) > 0) {
-    //             printf("i is %u, j is %u, float dist is %f, %f, %f, int dist is %f, %f, %f, diff is %f\n", i, j, dXf,
-    //                    dYf, dZf, dXu, dYu, dZu, d2f - d2u);
-    //             // printf("host collision between a %u and b %u, float pen is %f, int pen is %f\n", i, j, d2f - (4 *
-    //             // r2),
-    //             //        d2u - (4 * r2));
-    //         }
-    //     }
-    // }
 }
 
 /**

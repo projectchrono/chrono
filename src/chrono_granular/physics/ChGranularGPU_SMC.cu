@@ -50,10 +50,11 @@ __constant__ float gravAcc_X_d_factor_SU;              //!< Device counterpart o
 __constant__ float gravAcc_Y_d_factor_SU;              //!< Device counterpart of the constant gravAcc_Y_factor_SU
 __constant__ float gravAcc_Z_d_factor_SU;              //!< Device counterpart of the constant gravAcc_Z_factor_SU
 
+// Changed by updateBDPosition() at every timestep
 __constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
-
+// Disable because stability
 // __constant__ float d_BD_frame_X_dot;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
 // __constant__ float d_BD_frame_Y_dot;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
 // __constant__ float d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
@@ -366,7 +367,7 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
     float scalingFactor = (1.0f * alpha_h_bar) * K_N;
     // This gamma_n is fake, needs to be given by user
     // Ignore damping at walls for now, something is wrong
-    float dampingCoeff = 0;  //.0001 * alpha_h_bar;
+    // float dampingCoeff = 0;  //.0001 * alpha_h_bar;
     // dampingCoeff = 0;
     // tmp vars to save writes, probably not necessary
     float xcomp = 0;
@@ -895,12 +896,12 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyBD_Fra
 /// Copy positions and velocities back to host
 void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost() {
     // Copy back positions
-    gpuErrchk(cudaMemcpy(h_X_DE.data(), p_d_CM_X, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(h_Y_DE.data(), p_d_CM_Y, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(h_Z_DE.data(), p_d_CM_Z, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(h_XDOT_DE.data(), h_XDOT_DE.data(), nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(h_YDOT_DE.data(), p_d_CM_YDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(h_ZDOT_DE.data(), p_d_CM_ZDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    // gpuErrchk(cudaMemcpy(pos_X.data(), p_d_CM_X, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    // gpuErrchk(cudaMemcpy(pos_Y.data(), p_d_CM_Y, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    // gpuErrchk(cudaMemcpy(pos_Z.data(), p_d_CM_Z, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    // gpuErrchk(cudaMemcpy(pos_X_dt.data(), pos_X_dt.data(), nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    // gpuErrchk(cudaMemcpy(pos_Y_dt.data(), p_d_CM_YDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    // gpuErrchk(cudaMemcpy(pos_Z_dt.data(), p_d_CM_ZDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
 }
 
 // Check number of spheres in each SD and dump relevant info to file
@@ -909,16 +910,17 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::
                                                                            bool verbose = false) {
     // copyDataBackToHost();
     // Count of DEs in each SD
-    unsigned int* sdvals = new unsigned int[nSDs];
+    unsigned int* sdvals = SD_NumOf_DEs_Touching.data();
     // DEs that are in each SD
-    unsigned int* sdSpheres = new unsigned int[MAX_COUNT_OF_DEs_PER_SD * nSDs];
+    unsigned int* sdSpheres = DEs_in_SD_composite.data();
     // # times each DE appears in some SD
     unsigned int* deCounts = new unsigned int[nDEs];
 
     // Copy back broadphase-related data
-    gpuErrchk(cudaMemcpy(sdvals, p_device_SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(sdSpheres, p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int),
-                         cudaMemcpyDeviceToHost));
+    // gpuErrchk(cudaMemcpy(sdvals, SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int),
+    // cudaMemcpyDeviceToHost)); gpuErrchk(cudaMemcpy(sdSpheres, DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD *
+    // nSDs * sizeof(unsigned int),
+    //                      cudaMemcpyDeviceToHost));
 
     // could use memset instead, just need to zero these out
     for (unsigned int i = 0; i < nDEs; i++) {
@@ -955,8 +957,8 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::
     if (write_out) {
         writeFile(ofile, deCounts);
     }
-    delete[] sdvals;
-    delete[] sdSpheres;
+    // delete[] sdvals;
+    // delete[] sdSpheres;
     delete[] deCounts;
 }
 
@@ -970,15 +972,15 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::stri
         std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
 
         for (unsigned int n = 0; n < nDEs; n++) {
-            float absv = sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
-                              h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
+            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                              pos_Z_dt.at(n) * pos_Z_dt.at(n));
 
-            ptFile.write((const char*)&h_X_DE.at(n), sizeof(int));
-            ptFile.write((const char*)&h_Y_DE.at(n), sizeof(int));
-            ptFile.write((const char*)&h_Z_DE.at(n), sizeof(int));
-            ptFile.write((const char*)&h_XDOT_DE.at(n), sizeof(float));
-            ptFile.write((const char*)&h_YDOT_DE.at(n), sizeof(float));
-            ptFile.write((const char*)&h_ZDOT_DE.at(n), sizeof(float));
+            ptFile.write((const char*)&pos_X.at(n), sizeof(int));
+            ptFile.write((const char*)&pos_Y.at(n), sizeof(int));
+            ptFile.write((const char*)&pos_Z.at(n), sizeof(int));
+            ptFile.write((const char*)&pos_X_dt.at(n), sizeof(float));
+            ptFile.write((const char*)&pos_Y_dt.at(n), sizeof(float));
+            ptFile.write((const char*)&pos_Z_dt.at(n), sizeof(float));
             ptFile.write((const char*)&absv, sizeof(float));
             ptFile.write((const char*)&deCounts[n], sizeof(int));
         }
@@ -991,10 +993,10 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::stri
         outstrstream << "x,y,z,vx,vy,vz,absv,nTouched\n";
 
         for (unsigned int n = 0; n < nDEs; n++) {
-            float absv = sqrt(h_XDOT_DE.at(n) * h_XDOT_DE.at(n) + h_YDOT_DE.at(n) * h_YDOT_DE.at(n) +
-                              h_ZDOT_DE.at(n) * h_ZDOT_DE.at(n));
-            outstrstream << h_X_DE.at(n) << "," << h_Y_DE.at(n) << "," << h_Z_DE.at(n) << "," << h_XDOT_DE.at(n) << ","
-                         << h_YDOT_DE.at(n) << "," << h_ZDOT_DE.at(n) << "," << absv << "," << deCounts[n] << "\n";
+            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                              pos_Z_dt.at(n) * pos_Z_dt.at(n));
+            outstrstream << pos_X.at(n) << "," << pos_Y.at(n) << "," << pos_Z.at(n) << "," << pos_X_dt.at(n) << ","
+                         << pos_Y_dt.at(n) << "," << pos_Z_dt.at(n) << "," << absv << "," << deCounts[n] << "\n";
         }
 
         ptFile << outstrstream.str();
@@ -1007,9 +1009,9 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::updateBDPosition(co
                                                                               const int stepSize_SU) {
     float timef = (1.f * currTime_SU * TIME_UNIT);
     // Frequency of oscillation
-    float frame_X_old = BD_frame_X;
-    float frame_Y_old = BD_frame_Y;
-    float frame_Z_old = BD_frame_Z;
+    // float frame_X_old = BD_frame_X;
+    // float frame_Y_old = BD_frame_Y;
+    // float frame_Z_old = BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
     BD_frame_X = (box_L * (BDPositionFunctionX(timef))) / LENGTH_UNIT;
     BD_frame_Y = (box_D * (BDPositionFunctionY(timef))) / LENGTH_UNIT;
@@ -1037,18 +1039,17 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
     // Seed arrays that are populated by the kernel call
     // const unsigned char allBitsOne = (unsigned char)-1;  // all bits of this variable are 1.
     // Set all the offsets to zero
-    gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, NULL_GRANULAR_ID,
+    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
                          MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     printf("doing priming!\n");
 
-    primingOperationsRectangularBox<CUDA_THREADS>
-        <<<nBlocks, CUDA_THREADS>>>(h_X_DE.data(), h_Y_DE.data(), h_Z_DE.data(), p_device_SD_NumOf_DEs_Touching,
-                                    p_device_DEs_in_SD_composite, nDEs);
+    primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+        pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
     gpuErrchk(cudaDeviceSynchronize());
     // Check in first timestep
     checkSDCounts(output_directory + "/step000000", true, false);
@@ -1080,35 +1081,37 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
             updateBDPosition(crntTime_SU, stepSize_SU);
         }
         // reset forces to zero, note that vel update ~ force for forward euler
-        gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0.f, nDEs * sizeof(float)));
-        gpuErrchk(cudaMemset(p_d_CM_YDOT_update, 0.f, nDEs * sizeof(float)));
-        gpuErrchk(cudaMemset(p_d_CM_ZDOT_update, 0.f, nDEs * sizeof(float)));
+        pos_X_dt_update.assign(pos_X_dt_update.size(), 0);
+        pos_Y_dt_update.assign(pos_Y_dt_update.size(), 0);
+        pos_Z_dt_update.assign(pos_Z_dt_update.size(), 0);
+
+        // gpuErrchk(cudaDeviceSynchronize());
 
         // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
         computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, h_X_DE.data(), h_Y_DE.data(), h_Z_DE.data(), p_d_CM_XDOT_update, p_d_CM_YDOT_update,
-            p_d_CM_ZDOT_update, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, h_XDOT_DE.data(),
-            h_YDOT_DE.data(), h_ZDOT_DE.data());
+            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+            pos_Y_dt.data(), pos_Z_dt.data());
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
         // Apply the updates we just made
         applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, h_X_DE.data(), h_Y_DE.data(), h_Z_DE.data(), p_d_CM_XDOT_update, p_d_CM_YDOT_update,
-            p_d_CM_ZDOT_update, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, h_XDOT_DE.data(),
-            h_YDOT_DE.data(), h_ZDOT_DE.data());
+            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+            pos_Y_dt.data(), pos_Z_dt.data());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
         // Reset broadphase information
-        gpuErrchk(cudaMemset(p_device_SD_NumOf_DEs_Touching, 0, nSDs * sizeof(unsigned int)));
-        gpuErrchk(cudaMemset(p_device_DEs_in_SD_composite, NULL_GRANULAR_ID,
+        gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
+        gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
                              MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-            stepSize_SU, h_X_DE.data(), h_Y_DE.data(), h_Z_DE.data(), h_XDOT_DE.data(), h_YDOT_DE.data(),
-            h_ZDOT_DE.data(), p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
+            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
+            SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
