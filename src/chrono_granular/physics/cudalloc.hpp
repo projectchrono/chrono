@@ -27,6 +27,7 @@
 
 #include <cuda_runtime_api.h>
 #include <climits>
+#include <iostream>
 #include <memory>
 #include <new>
 #include <utility>

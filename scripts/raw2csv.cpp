@@ -13,7 +13,8 @@ int main(int argc, char** argv) {
     while (raw_data_file.good()) {
         int vals[8];
         raw_data_file.read((char*)vals, 8 * sizeof(int));
-        csv_data_file << vals[0] << "," << vals[1] << "," << vals[2] << "," << vals[3] << "," << vals[4] << ","
-                      << vals[5] << "," << (unsigned int)vals[6] << "," << (unsigned int)vals[7] << "\n";
+        csv_data_file << vals[0] << "," << vals[1] << "," << vals[2] << "," << *((float*)&vals[3]) << ","
+                      << *((float*)&vals[4]) << "," << *((float*)&vals[5]) << "," << *((float*)&vals[6]) << ","
+                      << (unsigned int)vals[7] << "\n";
     }
 }
