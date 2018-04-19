@@ -32,7 +32,7 @@
 #include <utility>
 
 template <class T>
-class cudallocator : public std::allocator<T> {
+class cudallocator {
   public:
     typedef T value_type;
     typedef T* pointer;
@@ -43,7 +43,7 @@ class cudallocator : public std::allocator<T> {
     typedef std::ptrdiff_t difference_type;
     template <class U>
     struct rebind {
-        typedef typename std::allocator<U> other;
+        typedef typename ::cudallocator<U> other;
     };
     bool propagate_on_container_move_assignment = true;
 
@@ -51,14 +51,14 @@ class cudallocator : public std::allocator<T> {
 
     pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {
         T* ptr;
-        cudaError_t err = cudaMallocHost(&ptr, n * sizeof(T), cudaHostAllocDefault);
-        if (err == cudaErrorMemoryAllocation) {
+        cudaError_t err = cudaMallocManaged(&ptr, n * sizeof(T), cudaMemAttachGlobal);
+        if (err == cudaErrorMemoryAllocation || err == cudaErrorNotSupported) {
             throw std::bad_alloc();
         }
         return ptr;
     }
 
-    void deallocate(pointer p, size_type n) { cudaFreeHost(p); }
+    void deallocate(pointer p, size_type n) { cudaFree(p); }
 
     size_type max_size() const noexcept { return ULLONG_MAX / sizeof(T); }
 

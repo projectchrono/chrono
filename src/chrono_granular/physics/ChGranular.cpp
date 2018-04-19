@@ -24,32 +24,8 @@ __global__ void primingOperationsRectangularBox(int*, int*, int*, unsigned int*,
 
 void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation() {
     // Handle position level information
-    if (p_d_CM_X != nullptr) {
-        gpuErrchk(cudaFree(p_d_CM_X));
-        p_d_CM_X = nullptr;
-    }
-    if (p_d_CM_Y != nullptr) {
-        gpuErrchk(cudaFree(p_d_CM_Y));
-        p_d_CM_Y = nullptr;
-    }
-    if (p_d_CM_Z != nullptr) {
-        gpuErrchk(cudaFree(p_d_CM_Z));
-        p_d_CM_Z = nullptr;
-    }
 
     // Handle velocity level information
-    if (p_d_CM_XDOT != nullptr) {
-        gpuErrchk(cudaFree(p_d_CM_XDOT));
-        p_d_CM_XDOT = nullptr;
-    }
-    if (p_d_CM_YDOT != nullptr) {
-        gpuErrchk(cudaFree(p_d_CM_YDOT));
-        p_d_CM_YDOT = nullptr;
-    }
-    if (p_d_CM_ZDOT != nullptr) {
-        gpuErrchk(cudaFree(p_d_CM_ZDOT));
-        p_d_CM_ZDOT = nullptr;
-    }
 
     // Handle other memory allocated
     if (p_device_SD_NumOf_DEs_Touching != nullptr) {
@@ -72,14 +48,14 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() 
     // gpuErrchk(cudaHostGetFlags(&cumemflags, h_X_DE.data()));
 
     // set aside device memory to store the position of the CM of the spheres
-    gpuErrchk(cudaMalloc(&p_d_CM_X, nDEs * sizeof(int)));
-    gpuErrchk(cudaMalloc(&p_d_CM_Y, nDEs * sizeof(int)));
-    gpuErrchk(cudaMalloc(&p_d_CM_Z, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMalloc(&p_d_CM_X, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMalloc(&p_d_CM_Y, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMalloc(&p_d_CM_Z, nDEs * sizeof(int)));
 
-    // Set aside memory for velocity information
-    gpuErrchk(cudaMalloc(&p_d_CM_XDOT, nDEs * sizeof(int)));
-    gpuErrchk(cudaMalloc(&p_d_CM_YDOT, nDEs * sizeof(int)));
-    gpuErrchk(cudaMalloc(&p_d_CM_ZDOT, nDEs * sizeof(int)));
+    // // Set aside memory for velocity information
+    // gpuErrchk(cudaMalloc(&p_d_CM_XDOT, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMalloc(&p_d_CM_YDOT, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMalloc(&p_d_CM_ZDOT, nDEs * sizeof(int)));
 
     // Set aside memory for velocity update information
     gpuErrchk(cudaMalloc(&p_d_CM_XDOT_update, nDEs * sizeof(int)));
@@ -93,14 +69,14 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() 
     gpuErrchk(cudaMalloc(&p_device_DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
     // Copy over initial position information
-    gpuErrchk(cudaMemcpy(p_d_CM_X, h_X_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
-    gpuErrchk(cudaMemcpy(p_d_CM_Y, h_Y_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
-    gpuErrchk(cudaMemcpy(p_d_CM_Z, h_Z_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
-
-    // Set initial velocities to zero
-    gpuErrchk(cudaMemset(p_d_CM_XDOT, 0, nDEs * sizeof(int)));
-    gpuErrchk(cudaMemset(p_d_CM_YDOT, 0, nDEs * sizeof(int)));
-    gpuErrchk(cudaMemset(p_d_CM_ZDOT, 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemcpy(p_d_CM_X, h_X_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
+    // gpuErrchk(cudaMemcpy(p_d_CM_Y, h_Y_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
+    // gpuErrchk(cudaMemcpy(p_d_CM_Z, h_Z_DE.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
+    //
+    // // Set initial velocities to zero
+    // gpuErrchk(cudaMemset(h_XDOT_DE.data(), 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemset(h_YDOT_DE.data(), 0, nDEs * sizeof(int)));
+    // gpuErrchk(cudaMemset(h_ZDOT_DE.data(), 0, nDEs * sizeof(int)));
 
     // Set initial velocity updates to zero
     gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0, nDEs * sizeof(int)));
@@ -158,6 +134,9 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     h_X_DE.resize(nDEs);
     h_Y_DE.resize(nDEs);
     h_Z_DE.resize(nDEs);
+    h_XDOT_DE.resize(nDEs, 0);
+    h_YDOT_DE.resize(nDEs, 0);
+    h_ZDOT_DE.resize(nDEs, 0);
     // Copy from array of structs to 3 arrays
     for (unsigned int i = 0; i < nDEs; i++) {
         auto vec = points.at(i);
@@ -193,10 +172,6 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
     //         }
     //     }
     // }
-
-    h_XDOT_DE.resize(nDEs);
-    h_YDOT_DE.resize(nDEs);
-    h_ZDOT_DE.resize(nDEs);
 }
 
 /**

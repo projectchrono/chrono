@@ -897,7 +897,7 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost(
     gpuErrchk(cudaMemcpy(h_X_DE.data(), p_d_CM_X, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
     gpuErrchk(cudaMemcpy(h_Y_DE.data(), p_d_CM_Y, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
     gpuErrchk(cudaMemcpy(h_Z_DE.data(), p_d_CM_Z, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    gpuErrchk(cudaMemcpy(h_XDOT_DE.data(), p_d_CM_XDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(h_XDOT_DE.data(), h_XDOT_DE.data(), nDEs * sizeof(int), cudaMemcpyDeviceToHost));
     gpuErrchk(cudaMemcpy(h_YDOT_DE.data(), p_d_CM_YDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
     gpuErrchk(cudaMemcpy(h_ZDOT_DE.data(), p_d_CM_ZDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
 }
@@ -906,7 +906,7 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyDataBackToHost(
 void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::checkSDCounts(std::string ofile,
                                                                            bool write_out = false,
                                                                            bool verbose = false) {
-    copyDataBackToHost();
+    // copyDataBackToHost();
     // Count of DEs in each SD
     unsigned int* sdvals = new unsigned int[nSDs];
     // DEs that are in each SD
@@ -1048,8 +1048,9 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     printf("doing priming!\n");
 
-    primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-        p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
+    primingOperationsRectangularBox<CUDA_THREADS>
+        <<<nBlocks, CUDA_THREADS>>>(h_X_DE.data(), h_Y_DE.data(), h_Z_DE.data(), p_device_SD_NumOf_DEs_Touching,
+                                    p_device_DEs_in_SD_composite, nDEs);
     gpuErrchk(cudaDeviceSynchronize());
     // Check in first timestep
     checkSDCounts(output_directory + "/step000000", true, false);
@@ -1080,15 +1081,17 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
 
         // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
         computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT_update, p_d_CM_YDOT_update, p_d_CM_ZDOT_update,
-            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, p_d_CM_XDOT, p_d_CM_YDOT, p_d_CM_ZDOT);
+            stepSize_SU, h_X_DE.data(), h_Y_DE.data(), h_Z_DE.data(), p_d_CM_XDOT_update, p_d_CM_YDOT_update,
+            p_d_CM_ZDOT_update, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, h_XDOT_DE.data(),
+            h_YDOT_DE.data(), h_ZDOT_DE.data());
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
         // Apply the updates we just made
         applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT_update, p_d_CM_YDOT_update, p_d_CM_ZDOT_update,
-            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, p_d_CM_XDOT, p_d_CM_YDOT, p_d_CM_ZDOT);
+            stepSize_SU, h_X_DE.data(), h_Y_DE.data(), h_Z_DE.data(), p_d_CM_XDOT_update, p_d_CM_YDOT_update,
+            p_d_CM_ZDOT_update, p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, h_XDOT_DE.data(),
+            h_YDOT_DE.data(), h_ZDOT_DE.data());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -1099,8 +1102,8 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
                              MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-            stepSize_SU, p_d_CM_X, p_d_CM_Y, p_d_CM_Z, p_d_CM_XDOT, p_d_CM_YDOT, p_d_CM_ZDOT,
-            p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
+            stepSize_SU, h_X_DE.data(), h_Y_DE.data(), h_Z_DE.data(), h_XDOT_DE.data(), h_YDOT_DE.data(),
+            h_ZDOT_DE.data(), p_device_SD_NumOf_DEs_Touching, p_device_DEs_in_SD_composite, nDEs);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
