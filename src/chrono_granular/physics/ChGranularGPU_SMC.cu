@@ -54,9 +54,9 @@ __constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allo
 __constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
-__constant__ float d_BD_frame_X_dot;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-__constant__ float d_BD_frame_Y_dot;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-__constant__ float d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
+// __constant__ float d_BD_frame_X_dot;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
+// __constant__ float d_BD_frame_Y_dot;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
+// __constant__ float d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
 __constant__ double d_DE_Mass;
 
@@ -380,45 +380,39 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
     // Need to get relative velocity
-    xcomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_X_dot - sphXvel));
-
-    // // This is for debug, soemthing is wrong with the wall-force velocity dependent term
-    // if (d_BD_frame_X_dot != 0) {
-    //     printf("wall corr is %f,  vel corr is %f, spring corr is %f\n", -dampingCoeff * d_BD_frame_X_dot,
-    //            -dampingCoeff * sphXvel, scalingFactor * abs(pen));
-    // }
+    xcomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top X wall
     pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)d_monoDisperseSphRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    xcomp += touchingWall * (-1 * scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_X_dot - sphXvel));
+    xcomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
     // penetration of sphere into relevant wall
     pen = sphYpos_modified - (signed int)d_monoDisperseSphRadius_SU;
     // true if sphere touching wall
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
-    ycomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_Y_dot - sphYvel));
+    ycomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top y wall
     pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)d_monoDisperseSphRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    ycomp += touchingWall * (-1 * scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_Y_dot - sphYvel));
+    ycomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
     // penetration of sphere into relevant wall
     pen = sphZpos_modified - (signed int)d_monoDisperseSphRadius_SU;
     // true if sphere touching wall
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
-    zcomp += touchingWall * (scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_Z_dot - sphZvel));
+    zcomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top z wall
     pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)d_monoDisperseSphRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    zcomp += touchingWall * (-1 * scalingFactor * abs(pen) - dampingCoeff * (d_BD_frame_Z_dot - sphZvel));
+    zcomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
     // write back to "return" values
     X_Vel_corr += xcomp;
@@ -464,6 +458,12 @@ __global__ void applyVelocityUpdates(
         unsigned int ownerSD = figureOutOwnerSD(pRawDataX[mySphereID], pRawDataY[mySphereID], pRawDataZ[mySphereID]);
         // Each SD applies force updates to the bodies it *owns*, this should happen once for each body
         if (thisSD == ownerSD) {
+            if (pRawDataX_DOT_update[mySphereID] == NAN || pRawDataY_DOT_update[mySphereID] == NAN ||
+                pRawDataZ_DOT_update[mySphereID] == NAN) {
+                printf("NAN velocity update computed -- sd is %u, sphere is %u, velXcorr is %f\n", thisSD, mySphereID,
+                       pRawDataX_DOT_update[mySphereID]);
+                asm("trap;");
+            }
             // Probably does not need to be atomic, but no conflicts means it won't be too slow anyways
             atomicAdd(pRawDataX_DOT + mySphereID, pRawDataX_DOT_update[mySphereID]);
             atomicAdd(pRawDataY_DOT + mySphereID, pRawDataY_DOT_update[mySphereID]);
@@ -699,6 +699,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
             boxWallsEffects(alpha_h_bar, sph_X[bodyA], sph_Y[bodyA], sph_Z[bodyA], sph_X_DOT[bodyA], sph_Y_DOT[bodyA],
                             sph_Z_DOT[bodyA], bodyA_X_velCorr, bodyA_Y_velCorr, bodyA_Z_velCorr);
             // If the sphere belongs to this SD, add up the gravitational force component.
+
             bodyA_X_velCorr += alpha_h_bar * gravAcc_X_d_factor_SU;
             bodyA_Y_velCorr += alpha_h_bar * gravAcc_Y_d_factor_SU;
             bodyA_Z_velCorr += alpha_h_bar * gravAcc_Z_d_factor_SU;
@@ -886,9 +887,9 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::copyBD_Fra
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y, &BD_frame_Y, sizeof(BD_frame_Y)));
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z, &BD_frame_Z, sizeof(BD_frame_Z)));
 
-    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X_dot, &BD_frame_X_dot, sizeof(BD_frame_X_dot)));
-    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y_dot, &BD_frame_Y_dot, sizeof(BD_frame_Y_dot)));
-    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z_dot, &BD_frame_Z_dot, sizeof(BD_frame_Z_dot)));
+    // gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X_dot, &BD_frame_X_dot, sizeof(BD_frame_X_dot)));
+    // gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y_dot, &BD_frame_Y_dot, sizeof(BD_frame_Y_dot)));
+    // gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z_dot, &BD_frame_Z_dot, sizeof(BD_frame_Z_dot)));
 }
 
 /// Copy positions and velocities back to host
@@ -1002,26 +1003,25 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::writeFile(std::stri
     }
 }
 
-void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::updateBDPosition(const double currTime_SU,
-                                                                              const double stepSize_SU) {
+void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::updateBDPosition(const int currTime_SU,
+                                                                              const int stepSize_SU) {
     float timef = (1.f * currTime_SU * TIME_UNIT);
-    if (!BD_is_fixed) {
-        // Frequency of oscillation
-        float frame_X_old = BD_frame_X;
-        float frame_Y_old = BD_frame_Y;
-        float frame_Z_old = BD_frame_Z;
-        // Put the bottom-left corner of box wherever the user told us to
-        BD_frame_X = (box_L * (BDPositionFunctionX(timef))) / LENGTH_UNIT;
-        BD_frame_Y = (box_D * (BDPositionFunctionY(timef))) / LENGTH_UNIT;
-        BD_frame_Z = (box_H * (BDPositionFunctionZ(timef))) / LENGTH_UNIT;
-        // velocity is time derivative of position, use a first-order approximation to avoid continuity issues
-        // NOTE that as of 4/16/2018, the wall damping term is disabled due to some instability
-        BD_frame_X_dot = (BD_frame_X - frame_X_old) / (stepSize_SU);
-        BD_frame_Y_dot = (BD_frame_Y - frame_Y_old) / (stepSize_SU);
-        BD_frame_Z_dot = (BD_frame_Z - frame_Z_old) / (stepSize_SU);
+    // Frequency of oscillation
+    float frame_X_old = BD_frame_X;
+    float frame_Y_old = BD_frame_Y;
+    float frame_Z_old = BD_frame_Z;
+    // Put the bottom-left corner of box wherever the user told us to
+    BD_frame_X = (box_L * (BDPositionFunctionX(timef))) / LENGTH_UNIT;
+    BD_frame_Y = (box_D * (BDPositionFunctionY(timef))) / LENGTH_UNIT;
+    BD_frame_Z = (box_H * (BDPositionFunctionZ(timef))) / LENGTH_UNIT;
+    // printf("old X is %f, new is %d \n", frame_X_old, BD_frame_X);
+    // velocity is time derivative of position, use a first-order approximation to avoid continuity issues
+    // NOTE that as of 4/16/2018, the wall damping term is disabled due to some instability
+    // BD_frame_X_dot = (BD_frame_X - frame_X_old) / (1.f * stepSize_SU);
+    // BD_frame_Y_dot = (BD_frame_Y - frame_Y_old) / (1.f * stepSize_SU);
+    // BD_frame_Z_dot = (BD_frame_Z - frame_Z_old) / (1.f * stepSize_SU);
 
-        copyBD_Frame_to_device();
-    }
+    copyBD_Frame_to_device();
 }
 
 __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(float tEnd) {
@@ -1075,8 +1075,9 @@ __host__ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::settle(flo
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
         // Update the position and velocity of the BD, if relevant
-        updateBDPosition(crntTime_SU, stepSize_SU);
-
+        if (!BD_is_fixed) {
+            updateBDPosition(crntTime_SU, stepSize_SU);
+        }
         // reset forces to zero, note that vel update ~ force for forward euler
         gpuErrchk(cudaMemset(p_d_CM_XDOT_update, 0.f, nDEs * sizeof(float)));
         gpuErrchk(cudaMemset(p_d_CM_YDOT_update, 0.f, nDEs * sizeof(float)));

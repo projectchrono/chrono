@@ -27,7 +27,7 @@
  * Discrete Elment info
  *
  * Observations:
- *   - The units are not specified; they are user units. Additionally, internally, Chrono::Granular adimensiolizes
+ *   - The units are not specified; they are user units. Additionally, internally, Chrono::Granular redimensiolizes
  * evertyhing using element characteristic size, etc.
  *
  */
@@ -228,7 +228,7 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
     virtual void copyBD_Frame_to_device() = 0;
 
     // Force an update of the BD position and velocity
-    virtual void updateBDPosition(double, double) = 0;
+    virtual void updateBDPosition(int, int) = 0;
 
     void partition_BD();
 
@@ -258,7 +258,7 @@ class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MON
     void writeFile(std::string, unsigned int*);
     void copyDataBackToHost();
     virtual void generate_DEs();
-    virtual void updateBDPosition(double, double);
+    virtual void updateBDPosition(int, int);
 
   protected:
     virtual void copyCONSTdata_to_device();
