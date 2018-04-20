@@ -22,42 +22,15 @@
 template <int>
 __global__ void primingOperationsRectangularBox(int*, int*, int*, unsigned int*, unsigned int*, unsigned int);
 
-void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::cleanup_simulation() {
-    // Handle position level information
-
-    // Handle velocity level information
-
-    // Handle other memory allocated
-    // if (SD_NumOf_DEs_Touching != nullptr) {
-    //     gpuErrchk(cudaFree(SD_NumOf_DEs_Touching));
-    //     SD_NumOf_DEs_Touching = nullptr;
-    // }
-    // if (DEs_in_SD_composite != nullptr) {
-    //     gpuErrchk(cudaFree(DEs_in_SD_composite));
-    //     DEs_in_SD_composite = nullptr;
-    // }
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_simulation() {
+    // Vectors get deallocated automatically
 }
 
 /** This method sets up the data structures used to perform a simulation.
  *
  */
-void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() {
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::setup_simulation() {
     partition_BD();
-
-    // set aside device memory to store the position of the CM of the spheres
-    // gpuErrchk(cudaMalloc(&p_d_CM_X, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMalloc(&p_d_CM_Y, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMalloc(&p_d_CM_Z, nDEs * sizeof(int)));
-
-    // // Set aside memory for velocity information
-    // gpuErrchk(cudaMalloc(&p_d_CM_XDOT, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMalloc(&p_d_CM_YDOT, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMalloc(&p_d_CM_ZDOT, nDEs * sizeof(int)));
-
-    // Set aside memory for velocity update information
-    // gpuErrchk(cudaMalloc(&pos_X_dt_update, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMalloc(&pos_Y_dt_update, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMalloc(&pos_Z_dt_update, nDEs * sizeof(int)));
 
     // allocate mem for array saying for each SD how many spheres touch it
     // gpuErrchk(cudaMalloc(&SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int)));
@@ -65,29 +38,15 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setup_simulation() 
     // allocate mem for array that for each SD has the list of all spheres touching it; big array
     // gpuErrchk(cudaMalloc(&DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
     DEs_in_SD_composite.resize(MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int));
-    // Copy over initial position information
-    // gpuErrchk(cudaMemcpy(p_d_CM_X, pos_X.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
-    // gpuErrchk(cudaMemcpy(p_d_CM_Y, pos_Y.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
-    // gpuErrchk(cudaMemcpy(p_d_CM_Z, pos_Z.data(), nDEs * sizeof(int), cudaMemcpyHostToDevice));
-    //
-    // // Set initial velocities to zero
-    // gpuErrchk(cudaMemset(pos_X_dt.data(), 0, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMemset(pos_Y_dt.data(), 0, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMemset(pos_Z_dt.data(), 0, nDEs * sizeof(int)));
-
-    // Set initial velocity updates to zero
-    // gpuErrchk(cudaMemset(pos_X_dt_update, 0, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMemset(pos_Y_dt_update, 0, nDEs * sizeof(int)));
-    // gpuErrchk(cudaMemset(pos_Z_dt_update, 0, nDEs * sizeof(int)));
 }
 
 // Set the bounds to fill in our box
-void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setFillBounds(float xmin,
-                                                                           float ymin,
-                                                                           float zmin,
-                                                                           float xmax,
-                                                                           float ymax,
-                                                                           float zmax) {
+void chrono::granular::ChSystemGranularMonodisperse::setFillBounds(float xmin,
+                                                                   float ymin,
+                                                                   float zmin,
+                                                                   float xmax,
+                                                                   float ymax,
+                                                                   float zmax) {
     boxFillXmin = xmin;
     boxFillYmin = ymin;
     boxFillZmin = zmin;
@@ -96,7 +55,7 @@ void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::setFillBounds(float
     boxFillZmax = zmax;
 }
 
-void chrono::granular::ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC::generate_DEs() {
+void chrono::granular::ChSystemGranularMonodisperse::generate_DEs() {
     // Create the falling balls
     float ball_epsilon = monoDisperseSphRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
     printf("eps is %f, rad is %5f\n", ball_epsilon, monoDisperseSphRadius_SU * 1.0f);
@@ -153,7 +112,7 @@ in order to cover the entire BD.
 BD: Bid domain.
 SD: Sub-domain.
 */
-void chrono::granular::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
+void chrono::granular::ChSystemGranularMonodisperse::partition_BD() {
     double tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_L_DIR;
     unsigned int howMany = (unsigned int)(std::ceil(box_L / tempDIM));
     // work with an even kFac to hit the CM of the box.
@@ -199,7 +158,7 @@ void chrono::granular::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::partition_BD() {
 This method define the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
 of various physical quantities set by the user.
 */
-void chrono::granular::ChGRN_DE_MONODISP_SPH_IN_BOX_SMC::switch_to_SimUnits() {
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     MASS_UNIT = massSphere;
     K_stiffness = (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL);

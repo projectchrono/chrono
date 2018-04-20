@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
         return 1;
 
     // Setup simulation
-    ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC settlingExperiment(ballRadius, ballDensity);
+    ChSystemGranularMonodisperse_SMC_Frictionless settlingExperiment(ballRadius, ballDensity);
     settlingExperiment.setBOXdims(boxL, boxD, boxH);
     settlingExperiment.YoungModulus_SPH2SPH(normStiffness_S2S);
     settlingExperiment.YoungModulus_SPH2WALL(normStiffness_S2W);

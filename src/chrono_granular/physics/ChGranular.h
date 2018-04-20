@@ -39,15 +39,15 @@ enum GRN_OUTPUT_MODE { CSV, BINARY, NONE };
 // How are we stepping through time?
 enum GRN_TIME_STEPPING { AUTO, USER_SET };
 
-class CH_GRANULAR_API ChGRN_DE_Container {
+class CH_GRANULAR_API ChSystemGranular {
   public:
-    ChGRN_DE_Container() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0) {
+    ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0) {
         // Allow us to use the fancy cudalloc mapped memory
         cudaSetDeviceFlags(cudaDeviceMapHost);
         // gpuErrchk(cudaDeviceReset());
     }
 
-    ~ChGRN_DE_Container() {}
+    ~ChSystemGranular() {}
 
     inline unsigned int elementCount() const { return nDEs; }
     inline unsigned int get_SD_count() const { return nSDs; }
@@ -56,8 +56,6 @@ class CH_GRANULAR_API ChGRN_DE_Container {
         Y_accGrav = yVal;
         Z_accGrav = zVal;
     }
-
-    virtual void generate_DEs() = 0;
 
     /// Set the output mode of the simulation
     virtual void setOutputMode(GRN_OUTPUT_MODE mode) { file_write_mode = mode; }
@@ -119,15 +117,14 @@ class CH_GRANULAR_API ChGRN_DE_Container {
     virtual void copyCONSTdata_to_device() = 0;
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
-    virtual void switch_to_SimUnits() = 0;
 };
 
 /**
- * ChGRN_DE_MONODISP_SPH_IN_BOX: Mono-disperse setup, one radius for all spheres
+ * ChGRN_DE_MONODISP_SPHERE_IN_BOX: Mono-disperse setup, one radius for all spheres
  */
-class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Container {
+class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
   public:
-    ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(float radiusSPH, float density) : ChGRN_DE_Container() {
+    ChSystemGranularMonodisperse(float radiusSPH, float density) : ChSystemGranular() {
         sphere_radius = radiusSPH;
         sphere_density = density;
 
@@ -136,14 +133,19 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
         psi_L_Factor = PSI_L;
     }
 
-    ~ChGRN_DE_MONODISP_SPH_IN_BOX_SMC() {}
+    ~ChSystemGranularMonodisperse() {}
 
     virtual void settle(float t_end) = 0;
+
+    virtual void generate_DEs();
 
     /// Set the BD to be fixed or not, if fixed it will ignore any given position functions
     virtual void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
 
-    virtual void setFillBounds(float, float, float, float, float, float) = 0;
+    /// Set bounds to fill on the big box, goes xyz min, xyz max as floats from -1 to 1
+    /// Passing xmin = -1, xmax = 1 means fill the box in xdir
+    // TODO comment this more
+    virtual void setFillBounds(float, float, float, float, float, float);
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
@@ -160,18 +162,21 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
         box_D = D_DIM;
         box_H = H_DIM;
     }
-    inline void YoungModulus_SPH2SPH(double someValue) { modulusYoung_SPH2SPH = someValue; }
-    inline void YoungModulus_SPH2WALL(double someValue) { modulusYoung_SPH2WALL = someValue; }
 
     inline size_t nSpheres() { return nDEs; }
 
   protected:
+    /// amount to fill box, as proportions of half-length
+    /// Default is full box
+    float boxFillXmin = -1;
+    float boxFillYmin = -1;
+    float boxFillZmin = -1;
+    float boxFillXmax = 1;
+    float boxFillYmax = 1;
+    float boxFillZmax = 1;
+
     float sphere_radius;   /// User defined radius of the sphere
     float sphere_density;  /// User defined density of the sphere
-
-    double modulusYoung_SPH2SPH;
-    double modulusYoung_SPH2WALL;
-    double K_stiffness;
 
     float box_L;  //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
     float box_D;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
@@ -210,55 +215,44 @@ class CH_GRANULAR_API ChGRN_DE_MONODISP_SPH_IN_BOX_SMC : public ChGRN_DE_Contain
 
     /// Allow the user to set the BD to be fixed, ignoring any given position functions
     bool BD_is_fixed = true;
-    virtual void copyBD_Frame_to_device() = 0;
-
-    // Force an update of the BD position and velocity
-    virtual void updateBDPosition(int, int) = 0;
 
     void partition_BD();
-
-    void switch_to_SimUnits();
 };
 
 /**
- * ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC: Mono-disperse setup, one radius for all spheres. There is no friction,
+ * ChSystemGranularMonodisperse_SMC_Frictionless: Mono-disperse setup, one radius for all spheres. There is no friction,
  * which means that there is no need to keep data that stores history for contacts
  */
-class CH_GRANULAR_API ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC : public ChGRN_DE_MONODISP_SPH_IN_BOX_SMC {
+class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChSystemGranularMonodisperse {
   public:
-    ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC(float radiusSPH, float density)
-        : ChGRN_DE_MONODISP_SPH_IN_BOX_SMC(radiusSPH, density) {}
+    ChSystemGranularMonodisperse_SMC_Frictionless(float radiusSPH, float density)
+        : ChSystemGranularMonodisperse(radiusSPH, density) {}
 
-    ~ChGRN_MONODISP_SPH_IN_BOX_NOFRIC_SMC() {}
+    ~ChSystemGranularMonodisperse_SMC_Frictionless() {}
+
+    inline void YoungModulus_SPH2SPH(double someValue) { modulusYoung_SPH2SPH = someValue; }
+    inline void YoungModulus_SPH2WALL(double someValue) { modulusYoung_SPH2WALL = someValue; }
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void settle(float t_end);
-    /// Set bounds to fill on the big box, goes xyz min, xyz max as floats from -1 to 1
-    /// Passing xmin = -1, xmax = 1 means fill the box in xdir
-    // TODO comment this more
-    virtual void setFillBounds(float, float, float, float, float, float);
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string, bool, bool);
     void writeFile(std::string, unsigned int*);
     void copyDataBackToHost();
-    virtual void generate_DEs();
     virtual void updateBDPosition(int, int);
 
   protected:
     virtual void copyCONSTdata_to_device();
     virtual void copyBD_Frame_to_device();
 
+    virtual void switch_to_SimUnits();
+
     virtual void cleanup_simulation();
 
-    /// amount to fill box, as proportions of half-length
-    /// Default is full box
-    float boxFillXmin = -1;
-    float boxFillYmin = -1;
-    float boxFillZmin = -1;
-    float boxFillXmax = 1;
-    float boxFillYmax = 1;
-    float boxFillZmax = 1;
+    double modulusYoung_SPH2SPH;
+    double modulusYoung_SPH2WALL;
+    double K_stiffness;
 };
 }  // namespace granular
 }  // namespace chrono

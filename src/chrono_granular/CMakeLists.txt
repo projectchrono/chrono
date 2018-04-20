@@ -180,7 +180,6 @@ SOURCE_GROUP("" FILES ${ChronoEngine_Granular_BASE})
 SET(ChronoEngine_Granular_PHYSICS
     physics/ChGranular.h
     physics/ChGranular.cpp
-    physics/ChGranularDefines.cuh
     physics/ChSettingsGranularSMC.h
     )
 
