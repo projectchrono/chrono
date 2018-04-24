@@ -246,7 +246,7 @@ primingOperationsRectangularBox(
     int zSphCenter;
 
     /// Set aside shared memory
-    volatile __shared__ unsigned int offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
+    volatile __shared__ size_t offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * 8];
 
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
@@ -317,7 +317,7 @@ primingOperationsRectangularBox(
             // }
 
             // Store start of new entries
-            unsigned int offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
+            size_t offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
 
             // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
             // Get the absolute offset
@@ -333,7 +333,7 @@ primingOperationsRectangularBox(
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
-        unsigned int offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
+        size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID)
             spheres_in_SD_composite[offset] = sphIDs[i];
     }
@@ -831,8 +831,8 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
                 printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
             }
 
-            // Store start of new entries
-            unsigned int offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
+            // Store start of new entries, this can be a very large number
+            size_t offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
 
             // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
             // Get the absolute offset
@@ -853,14 +853,16 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
+    const size_t max_composite_index = d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
+
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     // what is happening is anything real?
     for (unsigned int i = 0; i < 8; i++) {
         unsigned int offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID) {
-            if (offset >= d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD) {
-                printf("overrun on thread %u block %u, offset is %u, sphere is %u\n", threadIdx.x, blockIdx.x, offset,
-                       sphIDs[i]);
+            if (offset >= max_composite_index) {
+                printf("overrun on thread %u block %u, offset is %u, max is %u,  sphere is %u\n", threadIdx.x,
+                       blockIdx.x, offset, sphIDs[i]);
             } else {
                 spheres_in_SD_composite[offset] = sphIDs[i];
             }
