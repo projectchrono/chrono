@@ -74,9 +74,9 @@ __constant__ double d_DE_Mass;
 __device__ unsigned int figureOutOwnerSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z) {
     // Note that this offset allows us to have moving walls and the like very easily
     // printf("corner is %d, calc is %d\n", -d_BD_frame_X, (d_box_L_SU * d_SD_Ldim_SU) / 2);
-    int sphCenter_X_modified = -d_BD_frame_X + sphCenter_X;
-    int sphCenter_Y_modified = -d_BD_frame_Y + sphCenter_Y;
-    int sphCenter_Z_modified = -d_BD_frame_Z + sphCenter_Z;
+    long int sphCenter_X_modified = -d_BD_frame_X + sphCenter_X;
+    long int sphCenter_Y_modified = -d_BD_frame_Y + sphCenter_Y;
+    long int sphCenter_Z_modified = -d_BD_frame_Z + sphCenter_Z;
     unsigned int n[3];
     // Get the SD of the sphere's center in the xdir
     n[0] = (sphCenter_X_modified) / d_SD_Ldim_SU;
@@ -96,9 +96,9 @@ __device__ unsigned int figureOutOwnerSD(int sphCenter_X, int sphCenter_Y, int s
 __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, unsigned int SDs[8]) {
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
     // We need to offset so that the bottom-left corner is at the origin
-    int sphCenter_X_modified = -d_BD_frame_X + sphCenter_X;
-    int sphCenter_Y_modified = -d_BD_frame_Y + sphCenter_Y;
-    int sphCenter_Z_modified = -d_BD_frame_Z + sphCenter_Z;
+    long int sphCenter_X_modified = -d_BD_frame_X + sphCenter_X;
+    long int sphCenter_Y_modified = -d_BD_frame_Y + sphCenter_Y;
+    long int sphCenter_Z_modified = -d_BD_frame_Z + sphCenter_Z;
     unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
@@ -188,8 +188,11 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
         // This ternary is hopefully better than a conditional
         // If valid is false, then the SD is actually NULL_GRANULAR_ID
         if (valid && SDs[i] >= d_box_D_SU * d_box_L_SU * d_box_H_SU) {
-            ABORTABORTABORT("UH OH!, sd overrun %u, boundary is %u on thread %u, block %u, n is %u, %u, %u\n", SDs[i],
-                            boundary, threadIdx.x, blockIdx.x, n[0], n[1], n[2]);
+            ABORTABORTABORT(
+                "UH OH!, sd overrun %u, boundary is %u, position is %d, %d, %d on thread %u, block %u, n is %u, %u, "
+                "%u\n",
+                SDs[i], boundary, sphCenter_X_modified, sphCenter_Y_modified, sphCenter_Z_modified, threadIdx.x,
+                blockIdx.x, n[0], n[1], n[2]);
         }
         SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);
     }
@@ -913,8 +916,8 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copyDataBa
 
 // Check number of spheres in each SD and dump relevant info to file
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCounts(std::string ofile,
-                                                                              bool write_out = false,
-                                                                              bool verbose = false) {
+                                                                                    bool write_out = false,
+                                                                                    bool verbose = false) {
     // copyDataBackToHost();
     // Count of DEs in each SD
     unsigned int* sdvals = SD_NumOf_DEs_Touching.data();
@@ -969,7 +972,8 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCou
     delete[] deCounts;
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile, unsigned int* deCounts) {
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile,
+                                                                                unsigned int* deCounts) {
     // copyDataBackToHost();
     // unnecessary if called by checkSDCounts()
     // The file writes are a pretty big slowdown in CSV mode
@@ -1013,7 +1017,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(
 }
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int currTime_SU,
-                                                                                 const int stepSize_SU) {
+                                                                                       const int stepSize_SU) {
     float timef = (1.f * currTime_SU * TIME_UNIT);
     // Frequency of oscillation
     // float frame_X_old = BD_frame_X;
@@ -1070,6 +1074,11 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
     unsigned int currframe = 1;
 
     unsigned int nsteps = (1.0 * tEnd_SU) / stepSize_SU;
+    // If we are just doing priming, stop now
+    if (nsteps == 0) {
+        cleanup_simulation();
+        return;
+    }
 
     printf("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
            tEnd / nsteps);
@@ -1077,7 +1086,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
 
     float fps = 50;
     // Number of frames to render
-    int nFrames = fps * tEnd;
+    int nFrames = fps * tEnd + 1;
     // number of steps to go before rendering a frame
     int rendersteps = nsteps / nFrames;
 
