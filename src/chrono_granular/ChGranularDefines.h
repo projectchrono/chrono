@@ -28,6 +28,8 @@
 #define MAX_COUNT_OF_DEs_PER_SD 256
 /// Value that indicates non-valid ID. The assumption is that an ID is always a positive integer
 #define NULL_GRANULAR_ID UINT_MAX
+/// Value that indicates non-valid ID in long size_t form. This allows > 4 billion entries into an array
+#define NULL_GRANULAR_ID_LONG SIZE_MAX
 /// Value that indicates a non-valid (ILLegal) physical attribute for integer attributes
 #define ILL_GRANULAR_VAL INT_MAX
 /// The number of average contacts per DE. High values are safe but might also translate into wasted memory

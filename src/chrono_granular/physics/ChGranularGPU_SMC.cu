@@ -291,7 +291,7 @@ primingOperationsRectangularBox(
     // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
     // No shmem bank coflicts here, good access...
     for (unsigned int i = 0; i < 8; i++) {
-        offsetInComposite_SphInSD_Array[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
+        offsetInComposite_SphInSD_Array[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID_LONG;
     }
 
     __syncthreads();
@@ -321,7 +321,7 @@ primingOperationsRectangularBox(
 
             // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
             // Get the absolute offset
-            offset += touchedSD * MAX_COUNT_OF_DEs_PER_SD;
+            offset += ((size_t)touchedSD) * MAX_COUNT_OF_DEs_PER_SD;
 
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int i = 0; i < winningStreak; i++)
@@ -334,7 +334,7 @@ primingOperationsRectangularBox(
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
         size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
-        if (offset != NULL_GRANULAR_ID)
+        if (offset != NULL_GRANULAR_ID_LONG)
             spheres_in_SD_composite[offset] = sphIDs[i];
     }
 }
@@ -751,7 +751,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     int ySphCenter;
     int zSphCenter;
     /// Set aside shared memory
-    volatile __shared__ unsigned int offsetInComposite_SphInSD_Array[THRDS_PER_BLOCK * 8];
+    volatile __shared__ size_t offsetInComposite_SphInSD_Array[THRDS_PER_BLOCK * 8];
     volatile __shared__ bool shMem_head_flags[THRDS_PER_BLOCK * 8];
 
     typedef cub::BlockRadixSort<unsigned int, THRDS_PER_BLOCK, 8, unsigned int> BlockRadixSortOP;
@@ -805,7 +805,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
     // No shmem bank coflicts here, good access...
     for (unsigned int i = 0; i < 8; i++) {
-        offsetInComposite_SphInSD_Array[i * THRDS_PER_BLOCK + threadIdx.x] = NULL_GRANULAR_ID;
+        offsetInComposite_SphInSD_Array[i * THRDS_PER_BLOCK + threadIdx.x] = NULL_GRANULAR_ID_LONG;
     }
 
     __syncthreads();
@@ -836,7 +836,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
 
             // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
             // Get the absolute offset
-            offset += touchedSD * MAX_COUNT_OF_DEs_PER_SD;
+            offset += ((size_t)touchedSD) * MAX_COUNT_OF_DEs_PER_SD;
 
             // if (offset != NULL_GRANULAR_ID &&
             //     offset >= d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD) {
@@ -858,8 +858,8 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     // what is happening is anything real?
     for (unsigned int i = 0; i < 8; i++) {
-        unsigned int offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
-        if (offset != NULL_GRANULAR_ID) {
+        size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
+        if (offset != NULL_GRANULAR_ID_LONG) {
             if (offset >= max_composite_index) {
                 printf("overrun on thread %u block %u, offset is %u, max is %u,  sphere is %u\n", threadIdx.x,
                        blockIdx.x, offset, sphIDs[i]);
@@ -1020,15 +1020,16 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int currTime_SU,
                                                                                        const int stepSize_SU) {
-    float timef = (1.f * currTime_SU * TIME_UNIT);
+    float timeUU = (1.f * currTime_SU * TIME_UNIT * PSI_h);
     // Frequency of oscillation
     // float frame_X_old = BD_frame_X;
     // float frame_Y_old = BD_frame_Y;
     // float frame_Z_old = BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
-    BD_frame_X = (box_L * (BDPositionFunctionX(timef))) / LENGTH_UNIT;
-    BD_frame_Y = (box_D * (BDPositionFunctionY(timef))) / LENGTH_UNIT;
-    BD_frame_Z = (box_H * (BDPositionFunctionZ(timef))) / LENGTH_UNIT;
+    // std::cout << "Time is " << timeUU << std::endl;
+    BD_frame_X = (box_L * (BDPositionFunctionX(timeUU))) / LENGTH_UNIT;
+    BD_frame_Y = (box_D * (BDPositionFunctionY(timeUU))) / LENGTH_UNIT;
+    BD_frame_Z = (box_H * (BDPositionFunctionZ(timeUU))) / LENGTH_UNIT;
     // printf("old X is %f, new is %d \n", frame_X_old, BD_frame_X);
     // velocity is time derivative of position, use a first-order approximation to avoid continuity issues
     // NOTE that as of 4/16/2018, the wall damping term is disabled due to some instability
@@ -1052,10 +1053,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
     // Seed arrays that are populated by the kernel call
     // const unsigned char allBitsOne = (unsigned char)-1;  // all bits of this variable are 1.
     // Set all the offsets to zero
-    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
-    // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+    SD_NumOf_DEs_Touching.assign(SD_NumOf_DEs_Touching.size(), 0);
+    DEs_in_SD_composite.assign(DEs_in_SD_composite.size(), NULL_GRANULAR_ID);
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
@@ -1088,9 +1087,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
 
     float fps = 50;
     // Number of frames to render
-    int nFrames = fps * tEnd + 1;
+    int nFrames = fps * tEnd;
     // number of steps to go before rendering a frame
-    int rendersteps = nsteps / nFrames;
+    int rendersteps = nsteps > 0 ? nsteps / nFrames : 0;
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
@@ -1123,9 +1122,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
         gpuErrchk(cudaDeviceSynchronize());
 
         // Reset broadphase information
-        gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
-        gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-                             MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+        SD_NumOf_DEs_Touching.assign(SD_NumOf_DEs_Touching.size(), 0);
+        DEs_in_SD_composite.assign(DEs_in_SD_composite.size(), NULL_GRANULAR_ID);
 
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
