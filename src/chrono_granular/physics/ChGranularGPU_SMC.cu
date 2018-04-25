@@ -37,6 +37,12 @@
 
 #define CUDA_THREADS 128
 
+// Add verbose checks easily
+#define VERBOSE_PRINTF(...)  \
+    if (verbose_runtime) {   \
+        printf(__VA_ARGS__); \
+    }
+
 // Print a user-given error message and crash
 #define ABORTABORTABORT(...) \
     {                        \
@@ -1040,7 +1046,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPo
     copyBD_Frame_to_device();
 }
 
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::settle(float tEnd) {
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::run(float tEnd) {
     switch_to_SimUnits();
     generate_DEs();
 
@@ -1058,13 +1064,13 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
-    printf("doing priming!\n");
-    printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
+    VERBOSE_PRINTF("doing priming!\n");
+    VERBOSE_PRINTF("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
     gpuErrchk(cudaDeviceSynchronize());
-    printf("priming finished!\n");
+    VERBOSE_PRINTF("priming finished!\n");
     // Check in first timestep
     checkSDCounts(output_directory + "/step000000", true, false);
 
@@ -1083,9 +1089,10 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
         return;
     }
 
-    printf("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
-           tEnd / nsteps);
-    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravAcc_Z_factor_SU);
+    VERBOSE_PRINTF("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
+                   tEnd / nsteps);
+    VERBOSE_PRINTF("z grav term with timestep %u is %f\n", stepSize_SU,
+                   stepSize_SU * stepSize_SU * gravAcc_Z_factor_SU);
 
     float fps = 50;
     // Number of frames to render
@@ -1095,6 +1102,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
+        VERBOSE_PRINTF("Starting loop!\n");
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
             updateBDPosition(crntTime_SU, stepSize_SU);
@@ -1104,7 +1112,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
         pos_Y_dt_update.assign(pos_Y_dt_update.size(), 0);
         pos_Z_dt_update.assign(pos_Z_dt_update.size(), 0);
 
-        // gpuErrchk(cudaDeviceSynchronize());
+        VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
 
         // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
         computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
@@ -1114,6 +1122,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
+        VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
         // Apply the updates we just made
         applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
@@ -1122,11 +1131,13 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+        VERBOSE_PRINTF("Resetting broadphase info!\n");
 
         // Reset broadphase information
         SD_NumOf_DEs_Touching.assign(SD_NumOf_DEs_Touching.size(), 0);
         DEs_in_SD_composite.assign(DEs_in_SD_composite.size(), NULL_GRANULAR_ID);
 
+        VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
             SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
@@ -1143,7 +1154,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
             checkSDCounts(std::string(filename), true, false);
         }
     }
-    printf("radius is %u\n", monoDisperseSphRadius_SU);
+    VERBOSE_PRINTF("radius is %u\n", monoDisperseSphRadius_SU);
     // Don't write but print verbosely
     checkSDCounts("", false, true);
 

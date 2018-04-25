@@ -56,7 +56,8 @@ enum {
     OPT_STIFFNESS_S2S,
     OPT_STIFFNESS_S2W,
     OPT_WRITE_MODE,
-    OPT_OUTPUT_DIR
+    OPT_OUTPUT_DIR,
+    OPT_VERBOSE
 };
 
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
@@ -75,6 +76,8 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_GRAV_ACC, "--gravacc", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2S, "--normStiffS2S", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2W, "--normStiffS2W", SO_REQ_SEP},
+                                    {OPT_VERBOSE, "--verbose", SO_NONE},
+                                    {OPT_VERBOSE, "-v", SO_NONE},
                                     {OPT_HELP, "-?", SO_NONE},
                                     {OPT_HELP, "-h", SO_NONE},
                                     {OPT_HELP, "--help", SO_NONE},
@@ -86,6 +89,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
 void showUsage() {
     std::cout << "Options:" << std::endl;
     std::cout << "-br <ball_radius>" << std::endl;
+    std::cout << "-v or --verbose" << std::endl;
     std::cout << "--density=<density>" << std::endl;
     std::cout << "--write_mode=<write_mode> (csv, binary, or none)" << std::endl;
     std::cout << "--output_dir=<output_dir>" << std::endl;
@@ -113,6 +117,7 @@ bool GetProblemSpecs(int argc,
                      float& gravAcc,
                      float& normalStiffS2S,
                      float& normalStiffS2W,
+                     bool& verbose,
                      std::string& output_dir,
                      GRN_OUTPUT_MODE& write_mode) {
     // Create the option parser and pass it the program arguments and the array of valid options.
@@ -173,6 +178,9 @@ bool GetProblemSpecs(int argc,
             case OPT_TIMEEND:
                 time_end = std::stof(args.OptionArg());
                 break;
+            case OPT_VERBOSE:
+                verbose = true;
+                break;
         }
     }
 
@@ -206,10 +214,11 @@ int main(int argc, char* argv[]) {
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
     GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
+    bool verbose = false;
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W, output_prefix, write_mode) == false)
+                        normStiffness_S2S, normStiffness_S2W, verbose, output_prefix, write_mode) == false)
         return 1;
 
     // Setup simulation
@@ -256,8 +265,9 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setBDPositionFunction(posFunX, posFunStill, posFunStill);
     // Tell the sim to unlock the bd so it can follow that position function
     settlingExperiment.set_BD_Fixed(true);
+    settlingExperiment.setVerbose(verbose);
 
     // Run settline experiments
-    settlingExperiment.settle(timeEnd);
+    settlingExperiment.run(timeEnd);
     return 0;
 }

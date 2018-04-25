@@ -63,9 +63,12 @@ class CH_GRANULAR_API ChSystemGranular {
     /// render frame. This directory is assumed to be created by the user, either manually or in the driver file.
     virtual void setOutputDirectory(std::string dir) { output_directory = dir; }
 
+    virtual void setVerbose(bool is_verbose) { verbose_runtime = is_verbose; }
+
   protected:
-    // Default is CSV
-    /// How to write the output files?
+    /// Allows the code to be very verbose for debug
+    bool verbose_runtime = false;
+    /// How to write the output files? Default is CSV
     GRN_OUTPUT_MODE file_write_mode = CSV;
     /// Directory to write to, this code assumes it already exists
     std::string output_directory;
@@ -135,7 +138,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 
     ~ChSystemGranularMonodisperse() {}
 
-    virtual void settle(float t_end) = 0;
+    virtual void run(float t_end) = 0;
 
     virtual void generate_DEs();
 
@@ -234,7 +237,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     inline void YoungModulus_SPH2WALL(double someValue) { modulusYoung_SPH2WALL = someValue; }
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
-    virtual void settle(float t_end);
+    virtual void run(float t_end);
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string, bool, bool);
