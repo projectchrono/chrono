@@ -331,13 +331,16 @@ primingOperationsRectangularBox(
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
+    const size_t max_composite_index = d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
+
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
         size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID_LONG) {
             if (offset >= max_composite_index) {
-                ABORTABORTABORT("overrun on thread %u block %u, offset is %u, max is %u,  sphere is %u\n", threadIdx.x,
-                                blockIdx.x, offset, max_composite_index, sphIDs[i]);
+                ABORTABORTABORT(
+                    "overrun during priming on thread %u block %u, offset is %u, max is %lu,  sphere is %u\n",
+                    threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
             } else {
                 spheres_in_SD_composite[offset] = sphIDs[i];
             }
@@ -844,13 +847,6 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
             // Get the absolute offset
             offset += ((size_t)touchedSD) * MAX_COUNT_OF_DEs_PER_SD;
 
-            // if (offset != NULL_GRANULAR_ID &&
-            //     offset >= d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD) {
-            //     printf("overrun calculated on sd %u, streak is %u on thread %u block %u, offset is %u, sphere is
-            //     %u\n",
-            //            touchedSD, winningStreak, threadIdx.x, blockIdx.x, offset, sphIDs[i]);
-            //     // printf("%u SDs calculated\n", d_box_D_SU * d_box_L_SU * d_box_H_SU);
-            // }
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int i = 0; i < winningStreak; i++)
                 offsetInComposite_SphInSD_Array[idInShared + i] = offset++;
@@ -867,8 +863,9 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID_LONG) {
             if (offset >= max_composite_index) {
-                ABORTABORTABORT("overrun on thread %u block %u, offset is %u, max is %u,  sphere is %u\n", threadIdx.x,
-                                blockIdx.x, offset, max_composite_index, sphIDs[i]);
+                ABORTABORTABORT(
+                    "overrun during updatePositions on thread %u block %u, offset is %u, max is %lu,  sphere is %u\n",
+                    threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
             } else {
                 spheres_in_SD_composite[offset] = sphIDs[i];
             }
