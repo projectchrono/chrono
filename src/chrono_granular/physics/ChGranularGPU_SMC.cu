@@ -37,11 +37,12 @@
 
 #define CUDA_THREADS 128
 
+// Print a user-given error message and crash
 #define ABORTABORTABORT(...) \
     {                        \
         printf(__VA_ARGS__); \
         __threadfence();     \
-        asm("trap;");        \
+        cub::ThreadTrap();   \
     }
 
 __constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
@@ -1062,12 +1063,12 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     printf("doing priming!\n");
-    printf("max possible composite offset is %zu\n",
-           (size_t)d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD);
+    printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
     gpuErrchk(cudaDeviceSynchronize());
+    printf("priming finished!\n");
     // Check in first timestep
     checkSDCounts(output_directory + "/step000000", true, false);
 
@@ -1092,9 +1093,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
 
     float fps = 50;
     // Number of frames to render
-    int nFrames = fps * tEnd;
+    int nFrames = (int)fps * tEnd;
     // number of steps to go before rendering a frame
-    int rendersteps = nsteps > 0 ? nsteps / nFrames : 0;
+    int rendersteps = nFrames > 0 ? nsteps / nFrames : nsteps;
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
