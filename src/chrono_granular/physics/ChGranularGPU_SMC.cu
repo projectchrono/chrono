@@ -331,7 +331,7 @@ primingOperationsRectangularBox(
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-    const size_t max_composite_index = d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
+    const size_t max_composite_index = (size_t)d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
@@ -339,7 +339,7 @@ primingOperationsRectangularBox(
         if (offset != NULL_GRANULAR_ID_LONG) {
             if (offset >= max_composite_index) {
                 ABORTABORTABORT(
-                    "overrun during priming on thread %u block %u, offset is %u, max is %lu,  sphere is %u\n",
+                    "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
                     threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
             } else {
                 spheres_in_SD_composite[offset] = sphIDs[i];
@@ -855,7 +855,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-    const size_t max_composite_index = d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
+    const size_t max_composite_index = (size_t)d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     // what is happening is anything real?
@@ -864,7 +864,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         if (offset != NULL_GRANULAR_ID_LONG) {
             if (offset >= max_composite_index) {
                 ABORTABORTABORT(
-                    "overrun during updatePositions on thread %u block %u, offset is %u, max is %lu,  sphere is %u\n",
+                    "overrun during updatePositions on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
                     threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
             } else {
                 spheres_in_SD_composite[offset] = sphIDs[i];
@@ -1062,6 +1062,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::s
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     printf("doing priming!\n");
+    printf("max possible composite offset is %zu\n",
+           (size_t)d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD);
 
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
