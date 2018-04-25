@@ -476,12 +476,15 @@ __global__ void applyVelocityUpdates(
     unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
     unsigned mySphereID;  // Bring in data from global into shmem. Only a subset of threads get to do this.
     if (threadIdx.x < spheresTouchingThisSD) {
-        mySphereID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + threadIdx.x];
-
+        // We need long ints to index into composite array
+        size_t offset_in_composite_Array = ((size_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
+        mySphereID = spheres_in_SD_composite[offset_in_composite_Array];
         unsigned int ownerSD =
             figureOutOwnerSD(d_sphere_pos_X[mySphereID], d_sphere_pos_Y[mySphereID], d_sphere_pos_Z[mySphereID]);
+
         // Each SD applies force updates to the bodies it *owns*, this should happen once for each body
         if (thisSD == ownerSD) {
+            // Check to see if we messed up badly somewhere
             if (d_sphere_pos_X_update[mySphereID] == NAN || d_sphere_pos_Y_update[mySphereID] == NAN ||
                 d_sphere_pos_Z_update[mySphereID] == NAN) {
                 ABORTABORTABORT("NAN velocity update computed -- sd is %u, sphere is %u, velXcorr is %f\n", thisSD,
@@ -559,7 +562,9 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (threadIdx.x < spheresTouchingThisSD) {
-        mySphereID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + threadIdx.x];
+        // We need long ints to index into composite array
+        size_t offset_in_composite_Array = ((size_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
+        mySphereID = spheres_in_SD_composite[offset_in_composite_Array];
         sphere_X[threadIdx.x] = d_sphere_pos_X[mySphereID];
         sphere_Y[threadIdx.x] = d_sphere_pos_Y[mySphereID];
         sphere_Z[threadIdx.x] = d_sphere_pos_Z[mySphereID];
@@ -573,9 +578,6 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
     // Assumes each thread is a body, not the greatest assumption but we can fix that later
     // Note that if we have more threads than bodies, some effort gets wasted.
     unsigned int bodyA = threadIdx.x;
-
-    // k * delta_t
-    // This is ok as a float as well since it is a reasonable number by design
 
     // If we overran, we have a major issue, time to crash before we make illegal memory accesses
     if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
@@ -931,12 +933,6 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCou
     unsigned int* sdSpheres = DEs_in_SD_composite.data();
     // # times each DE appears in some SD
     unsigned int* deCounts = new unsigned int[nDEs];
-
-    // Copy back broadphase-related data
-    // gpuErrchk(cudaMemcpy(sdvals, SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int),
-    // cudaMemcpyDeviceToHost)); gpuErrchk(cudaMemcpy(sdSpheres, DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD *
-    // nSDs * sizeof(unsigned int),
-    //                      cudaMemcpyDeviceToHost));
 
     // could use memset instead, just need to zero these out
     for (unsigned int i = 0; i < nDEs; i++) {
