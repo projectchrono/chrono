@@ -63,7 +63,7 @@ ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 
 // Simulation step sizes
 double step_size = 1e-3;
-double tire_step_size = step_size;
+double tire_step_size = 1e-3;
 
 // Simulation end time
 double t_end = 1000;
@@ -97,6 +97,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
+    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
     my_hmmwv.Initialize();   
 
@@ -204,18 +205,14 @@ int main(int argc, char* argv[]) {
         if (time >= t_end)
             break;
 
-        // Render scene and output POV-Ray data
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
 
-            if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
-            }
-
+        // Output POV-Ray data
+        if (povray_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+            utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
             render_frame++;
         }
 
@@ -243,6 +240,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
     return 0;

@@ -282,7 +282,11 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
 
 int ChSocket::getDebug() {
     int myOption;
+#ifdef TARGET_OS_MAC
+    socklen_t myOptionLen = sizeof(myOption);
+#else
     int myOptionLen = sizeof(myOption);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&myOption, &myOptionLen) == -1) {
@@ -310,7 +314,11 @@ int ChSocket::getDebug() {
 
 int ChSocket::getReuseAddr() {
     int myOption;
+#ifdef TARGET_OS_MAC
+    socklen_t myOptionLen = sizeof(myOption);
+#else
     int myOptionLen = sizeof(myOption);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&myOption, &myOptionLen) == -1) {
@@ -338,7 +346,11 @@ int ChSocket::getReuseAddr() {
 
 int ChSocket::getKeepAlive() {
     int myOption;
+#ifdef TARGET_OS_MAC
+    socklen_t myOptionLen = sizeof(myOption);
+#else
     int myOptionLen = sizeof(myOption);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&myOption, &myOptionLen) == -1) {
@@ -365,7 +377,11 @@ int ChSocket::getKeepAlive() {
 
 int ChSocket::getLingerSeconds() {
     struct linger lingerOption;
+#ifdef TARGET_OS_MAC
+    socklen_t myOptionLen = sizeof(struct linger);
+#else
     int myOptionLen = sizeof(struct linger);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
@@ -393,7 +409,11 @@ int ChSocket::getLingerSeconds() {
 
 bool ChSocket::getLingerOnOff() {
     struct linger lingerOption;
+#ifdef TARGET_OS_MAC
+    socklen_t myOptionLen = sizeof(struct linger);
+#else
     int myOptionLen = sizeof(struct linger);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
@@ -424,7 +444,11 @@ bool ChSocket::getLingerOnOff() {
 
 int ChSocket::getSendBufSize() {
     int sendBuf;
+#ifdef TARGET_OS_MAC
+    socklen_t myOptionLen = sizeof(sendBuf);
+#else
     int myOptionLen = sizeof(sendBuf);
+#endif
 
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &myOptionLen) == -1) {
@@ -451,8 +475,11 @@ int ChSocket::getSendBufSize() {
 
 int ChSocket::getReceiveBufSize() {
     int rcvBuf;
+#ifdef TARGET_OS_MAC
+    socklen_t myOptionLen = sizeof(rcvBuf);
+#else
     int myOptionLen = sizeof(rcvBuf);
-
+#endif
     try {
         if (getsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&rcvBuf, &myOptionLen) == -1) {
 #ifdef WINDOWS_XP
@@ -581,7 +608,7 @@ ostream& operator<<(ostream& io, ChSocket& s) {
 
 void ChSocketTCP::bindSocket() {
     try {
-        if (bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
+        if (::bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
 #ifdef WINDOWS_XP
             int errorCode = 0;
             string errorMsg = "error calling bind(): \n";
@@ -924,7 +951,11 @@ ChSocketTCP* ChSocketTCP::acceptClient(string& clientHost) {
     int newSocket;  // the new socket file descriptor returned by the accept systme call
 
     // the length of the client's address
+#ifdef TARGET_OS_MAC
+    socklen_t clientAddressLen = sizeof(struct sockaddr_in);
+#else
     int clientAddressLen = sizeof(struct sockaddr_in);
+#endif
     struct sockaddr_in clientAddress;  // Address of the client that sent data
 
     // Accepts a new client connection and stores its socket file descriptor

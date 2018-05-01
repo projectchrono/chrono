@@ -241,7 +241,6 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        app.EndScene();
 
         if (img_output && step_number % render_steps == 0) {
             char filename[100];
@@ -277,6 +276,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
 
         // Execution time 
         double step_timing = vehicle.GetSystem()->GetTimerStep();

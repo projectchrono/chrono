@@ -3,11 +3,17 @@
 # a tracked vehicle model with continuous-band track, specified entirely
 # through JSON specification files.
 # These example programs requires Irrlicht run-time visualization and the
-# FEA and MKL Chrono modules.
+# FEA and MKL or MUMPS Chrono modules.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_IRRLICHT OR NOT ENABLE_MODULE_FEA OR NOT ENABLE_MODULE_MKL)
-    RETURN()
+# Irrlicht and FEA required
+if(NOT ENABLE_MODULE_IRRLICHT OR NOT ENABLE_MODULE_FEA)
+    return()
+endif()
+
+# MUMPS or MKL required
+if (NOT ENABLE_MODULE_MKL AND NOT ENABLE_MODULE_MUMPS)
+    return()
 endif()
 
 #--------------------------------------------------------------
@@ -21,7 +27,6 @@ set(DEMOS
 # Compiler and linker flags
 
 include_directories(${CH_IRRLICHTINC})
-include_directories(${CH_MKL_INCLUDES})
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CH_MKL_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
@@ -31,7 +36,19 @@ set(LIBRARIES
     ChronoEngine_vehicle
     ChronoModels_vehicle
     ChronoEngine_fea
-    ChronoEngine_mkl)
+    )
+
+if (ENABLE_MODULE_MKL)
+    include_directories(${CH_MKL_INCLUDES})
+    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+    set(LIBRARIES ${LIBRARIES} ChronoEngine_mkl)
+endif()
+
+if (ENABLE_MODULE_MUMPS)
+    include_directories(${CH_MUMPS_INCLUDES})
+    set(LIBRARIES ${LIBRARIES} ChronoEngine_mumps)
+endif()
 
 #--------------------------------------------------------------
 # Add executables

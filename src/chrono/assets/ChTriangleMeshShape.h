@@ -59,10 +59,10 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     geometry::ChTriangleMeshConnected& GetMesh() { return trimesh; }
     void SetMesh(const geometry::ChTriangleMeshConnected& mesh) { trimesh = mesh; }
 
-    bool IsWireframe() { return wireframe; }
+    bool IsWireframe() const { return wireframe; }
     void SetWireframe(bool mw) { wireframe = mw; }
 
-    bool IsBackfaceCull() { return backface_cull; }
+    bool IsBackfaceCull() const { return backface_cull; }
     void SetBackfaceCull(bool mbc) { backface_cull = mbc; }
 
     const std::string& GetName() const { return name; }

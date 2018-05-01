@@ -19,58 +19,43 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkMotorRotationSpeed)
 
-
 ChLinkMotorRotationSpeed::ChLinkMotorRotationSpeed() {
+    variable.GetMass()(0, 0) = 1.0;
+    variable.GetInvMass()(0, 0) = 1.0;
 
-    this->variable.GetMass()(0,0) = 1.0;
-    this->variable.GetInvMass()(0,0) = 1.0;
+    m_func = std::make_shared<ChFunction_Const>(1.0);
 
-    this->f_speed = std::make_shared<ChFunction_Const>(1.0);
+    rot_offset = 0;
 
-    this->rot_offset = 0;
+    aux_dt = 0;  // used for integrating speed, = rot
+    aux_dtdt = 0;
 
-    this->aux_dt = 0; // used for integrating speed, = rot
-    this->aux_dtdt = 0;
-
-    this->avoid_angle_drift = true;
+    avoid_angle_drift = true;
 }
 
 ChLinkMotorRotationSpeed::ChLinkMotorRotationSpeed(const ChLinkMotorRotationSpeed& other) : ChLinkMotorRotation(other) {
-    
-    this->variable = other.variable;
-
-    this->f_speed = other.f_speed;
-
-    this->rot_offset =other.rot_offset;
-
-    this->aux_dt = other.aux_dt; 
-    this->aux_dtdt = other.aux_dtdt;
-    
-    this->avoid_angle_drift = other.avoid_angle_drift;
+    variable = other.variable;
+    rot_offset = other.rot_offset;
+    aux_dt = other.aux_dt;
+    aux_dtdt = other.aux_dtdt;
+    avoid_angle_drift = other.avoid_angle_drift;
 }
 
-ChLinkMotorRotationSpeed::~ChLinkMotorRotationSpeed() {
-    
-}
-
+ChLinkMotorRotationSpeed::~ChLinkMotorRotationSpeed() {}
 
 void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
-    
     // Inherit parent class:
     ChLinkMotorRotation::Update(mytime, update_assets);
 
-    this->f_speed->Update(mytime); // call callbacks if any
-
-    // Override the rotational jacobian [Cq] and the rotational residual C, 
+    // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame2:
 
     if (this->Body1 && this->Body2) {
-
         ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
         ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-        
+
         ChFrame<> aframe12;
-        aframe2.TransformParentToLocal(aframe1, aframe12); 
+        aframe2.TransformParentToLocal(aframe1, aframe12);
 
         ChFrame<> aframe2rotating;
 
@@ -78,16 +63,15 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
 
         if (this->avoid_angle_drift) {
             aux_rotation = this->aux_dt + this->rot_offset;
-        }
-        else {
+        } else {
             // to have it aligned to current rot, to allow C=0.
             aux_rotation = aframe12.GetRot().Q_to_Rotv().z();
         }
-        
-        aframe2rotating.SetRot( aframe2.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z) );
+
+        aframe2rotating.SetRot(aframe2.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z));
 
         ChFrame<> aframe12rotating;
-        aframe2rotating.TransformParentToLocal(aframe1, aframe12rotating); 
+        aframe2rotating.TransformParentToLocal(aframe1, aframe12rotating);
 
         ChMatrix33<> Jw1, Jw2;
         ChMatrix33<> mtempM, mtempQ;
@@ -108,7 +92,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
         Jw1 = mtempQ;
         mtempQ.MatrTMultiply(mtempM, Jw2);
         Jw2 = mtempQ;
-      
+
         int nc = 0;
 
         if (c_x) {
@@ -144,53 +128,49 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
             this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 2, 0, 1, 3, 0, 3);
             nc++;
         }
-
     }
-
 }
 
 void ChLinkMotorRotationSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
+    double mCt = -0.5 * m_func->Get_y(this->GetChTime());
 
-    double mCt = - 0.5 * this->f_speed->Get_y(this->GetChTime());
-    
     int ncrz = mask->nconstr - 1;
     if (mask->Constr_N(ncrz).IsActive()) {
         Qc(off_L + ncrz) += c * mCt;
     }
 }
 
-
 void ChLinkMotorRotationSpeed::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = - 0.5 * this->f_speed->Get_y(this->GetChTime());
+    double mCt = -0.5 * m_func->Get_y(this->GetChTime());
     int ncrz = mask->nconstr - 1;
     if (mask->Constr_N(ncrz).IsActive()) {
-            mask->Constr_N(ncrz).Set_b_i(mask->Constr_N(ncrz).Get_b_i() + factor * mCt);
+        mask->Constr_N(ncrz).Set_b_i(mask->Constr_N(ncrz).Get_b_i() + factor * mCt);
     }
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkMotorRotationSpeed::IntStateGather(const unsigned int off_x,  // offset in x state vector
-                             ChState& x,                // state vector, position part
-                             const unsigned int off_v,  // offset in v state vector
-                             ChStateDelta& v,           // state vector, speed part
-                             double& T                  // time
-                             ) {
-    x(off_x) = 0;//aux;
+                                              ChState& x,                // state vector, position part
+                                              const unsigned int off_v,  // offset in v state vector
+                                              ChStateDelta& v,           // state vector, speed part
+                                              double& T                  // time
+) {
+    x(off_x) = 0;  // aux;
     v(off_v) = aux_dt;
     T = GetChTime();
 }
 
 void ChLinkMotorRotationSpeed::IntStateScatter(const unsigned int off_x,  // offset in x state vector
-                              const ChState& x,          // state vector, position part
-                              const unsigned int off_v,  // offset in v state vector
-                              const ChStateDelta& v,     // state vector, speed part
-                              const double T             // time
-                              ) {
-    //aux = x(off_x);
+                                               const ChState& x,          // state vector, position part
+                                               const unsigned int off_v,  // offset in v state vector
+                                               const ChStateDelta& v,     // state vector, speed part
+                                               const double T             // time
+) {
+    // aux = x(off_x);
     aux_dt = v(off_v);
 }
 
@@ -203,39 +183,39 @@ void ChLinkMotorRotationSpeed::IntStateScatterAcceleration(const unsigned int of
 }
 
 void ChLinkMotorRotationSpeed::IntLoadResidual_F(const unsigned int off,  // offset in R residual
-                                ChVectorDynamic<>& R,    // result: the R residual, R += c*F
-                                const double c           // a scaling factor
-                                ) {
-    double imposed_speed = this->f_speed->Get_y(this->GetChTime());
-    R(off) +=  imposed_speed * c;
+                                                 ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                                 const double c           // a scaling factor
+) {
+    double imposed_speed = m_func->Get_y(this->GetChTime());
+    R(off) += imposed_speed * c;
 }
 
 void ChLinkMotorRotationSpeed::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
-                                 ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
-                                 const ChVectorDynamic<>& w,  // the w vector
-                                 const double c               // a scaling factor
-                                 ) {
+                                                  ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
+                                                  const ChVectorDynamic<>& w,  // the w vector
+                                                  const double c               // a scaling factor
+) {
     R(off) += c * 1.0 * w(off);
 }
 
 void ChLinkMotorRotationSpeed::IntToDescriptor(const unsigned int off_v,  // offset in v, R
-                              const ChStateDelta& v,
-                              const ChVectorDynamic<>& R,
-                              const unsigned int off_L,  // offset in L, Qc
-                              const ChVectorDynamic<>& L,
-                              const ChVectorDynamic<>& Qc) {
+                                               const ChStateDelta& v,
+                                               const ChVectorDynamic<>& R,
+                                               const unsigned int off_L,  // offset in L, Qc
+                                               const ChVectorDynamic<>& L,
+                                               const ChVectorDynamic<>& Qc) {
     // inherit parent
-    ChLinkMotorRotation::IntToDescriptor( off_v, v, R, off_L,  L, Qc);
+    ChLinkMotorRotation::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
     this->variable.Get_qb()(0, 0) = v(off_v);
     this->variable.Get_fb()(0, 0) = R(off_v);
 }
 
 void ChLinkMotorRotationSpeed::IntFromDescriptor(const unsigned int off_v,  // offset in v
-                                ChStateDelta& v,
-                                const unsigned int off_L,  // offset in L
-                                ChVectorDynamic<>& L) {
-    //inherit parent
+                                                 ChStateDelta& v,
+                                                 const unsigned int off_L,  // offset in L
+                                                 ChVectorDynamic<>& L) {
+    // inherit parent
     ChLinkMotorRotation::IntFromDescriptor(off_v, v, off_L, L);
 
     v(off_v) = this->variable.Get_qb()(0, 0);
@@ -253,8 +233,7 @@ void ChLinkMotorRotationSpeed::VariablesFbReset() {
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbLoadForces(double factor) {
-    
-    double imposed_speed = this->f_speed->Get_y(this->GetChTime());
+    double imposed_speed = m_func->Get_y(this->GetChTime());
     variable.Get_fb().ElementN(0) += imposed_speed * factor;
 }
 
@@ -276,8 +255,6 @@ void ChLinkMotorRotationSpeed::VariablesQbSetSpeed(double step) {
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
 
-
-
 void ChLinkMotorRotationSpeed::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChLinkMotorRotationSpeed>();
@@ -286,7 +263,6 @@ void ChLinkMotorRotationSpeed::ArchiveOUT(ChArchiveOut& marchive) {
     ChLinkMotorRotation::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(f_speed);
     marchive << CHNVP(rot_offset);
     marchive << CHNVP(avoid_angle_drift);
 }
@@ -300,11 +276,8 @@ void ChLinkMotorRotationSpeed::ArchiveIN(ChArchiveIn& marchive) {
     ChLinkMotorRotation::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(f_speed);
     marchive >> CHNVP(rot_offset);
     marchive >> CHNVP(avoid_angle_drift);
 }
-
-
 
 }  // end namespace chrono

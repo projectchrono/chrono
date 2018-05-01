@@ -23,59 +23,27 @@ namespace chrono {
 /// @addtogroup chrono_assets
 /// @{
 
-// Forward
 class ChPhysicsItem;
 
-
-/// Classes for adding user data (such as rendering
-/// shapes, reference to files) to ChPhysicsItem objects.
-/// User can inherit his classes for custom assets from
-/// this class.
+/// Classes for adding user data (such as rendering shapes, reference to files) to ChPhysicsItem objects.
 class ChApi ChAsset {
-
-  protected:
-    //
-    // DATA
-    //
-
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChAsset() {}
+    virtual ~ChAsset() {}
 
-    ChAsset(){};
-
-    virtual ~ChAsset(){};
-
-    //
-    // FUNCTIONS
-    //
-
-        /// This is called by the owner, i.e. a ChPhysicsItem. Note that 
-        /// the ChAssets can be shared between owners, so an asset might receive
-        /// different updates from different 'updater's each with different 'coords'.
+    /// This is called by the owner, i.e. a ChPhysicsItem. Note that
+    /// the ChAssets can be shared between owners, so an asset might receive
+    /// different updates from different 'updater's each with different 'coords'.
     virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords){};
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChAsset>();
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChAsset>();
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-CH_CLASS_VERSION(ChAsset,0)
-
+CH_CLASS_VERSION(ChAsset, 0)
 
 /// @} chrono_assets
 

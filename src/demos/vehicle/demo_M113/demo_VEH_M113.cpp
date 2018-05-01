@@ -100,7 +100,8 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::NSC, chassis_collision_type);
+    TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
+    M113_Vehicle vehicle(false, shoe_type, ChMaterialSurface::NSC, chassis_collision_type);
 
     // ------------------------------
     // Solver and integrator settings
@@ -157,12 +158,14 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
+    VisualizationType track_vis =
+        (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSprocketVisualizationType(track_vis);
+    vehicle.SetIdlerVisualizationType(track_vis);
+    vehicle.SetRoadWheelAssemblyVisualizationType(track_vis);
+    vehicle.SetRoadWheelVisualizationType(track_vis);
+    vehicle.SetTrackShoeVisualizationType(track_vis);
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring
@@ -337,7 +340,6 @@ int main(int argc, char* argv[]) {
         // Render scene
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-        app.EndScene();
 
         if (step_number % render_steps == 0) {
             if (povray_output) {
@@ -384,6 +386,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
     vehicle.WriteContacts("M113_contacts.out");

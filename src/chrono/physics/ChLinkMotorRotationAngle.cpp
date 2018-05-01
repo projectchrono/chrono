@@ -19,56 +19,43 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkMotorRotationAngle)
 
-
 ChLinkMotorRotationAngle::ChLinkMotorRotationAngle() {
-    
-    // default motion function : a ramp
-    this->f_rot = std::make_shared<ChFunction_Ramp>(
-        0.0,   // default y(0)
-        1.0    // default dy/dx , i.e.   1 [rad/s]
-        );
-    
+    // default motion function: ramp with initial value y(0) = 0 and slope dy/dt = 1
+    m_func = std::make_shared<ChFunction_Ramp>(0.0, 1.0);
+
     rot_offset = 0;
 }
 
 ChLinkMotorRotationAngle::ChLinkMotorRotationAngle(const ChLinkMotorRotationAngle& other) : ChLinkMotorRotation(other) {
-   this->f_rot = other.f_rot;
-   this->rot_offset = other.rot_offset;
+    rot_offset = other.rot_offset;
 }
 
-ChLinkMotorRotationAngle::~ChLinkMotorRotationAngle() {
-    
-}
-
+ChLinkMotorRotationAngle::~ChLinkMotorRotationAngle() {}
 
 void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
-    
     // Inherit parent class:
     ChLinkMotorRotation::Update(mytime, update_assets);
 
-    this->f_rot->Update(mytime); // call callbacks if any
-
-    // Override the rotational jacobian [Cq] and the rotational residual C, 
+    // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame2:
 
     if (this->Body1 && this->Body2) {
-
         ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
         ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-        
+
         ChFrame<> aframe12;
-        aframe2.TransformParentToLocal(aframe1, aframe12); 
+        aframe2.TransformParentToLocal(aframe1, aframe12);
 
         ChFrame<> aframe2rotating;
 
         double aux_rotation;
 
-        aux_rotation = this->f_rot->Get_y(mytime) + this->rot_offset;
-      
-        aframe2rotating.SetRot( aframe2.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z) );
+        aux_rotation = m_func->Get_y(mytime) + rot_offset;
+
+        aframe2rotating.SetRot(aframe2.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z));
 
         ChFrame<> aframe12rotating;
-        aframe2rotating.TransformParentToLocal(aframe1, aframe12rotating); 
+        aframe2rotating.TransformParentToLocal(aframe1, aframe12rotating);
 
         ChMatrix33<> Jw1, Jw2;
         ChMatrix33<> mtempM, mtempQ;
@@ -89,7 +76,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         Jw1 = mtempQ;
         mtempQ.MatrTMultiply(mtempM, Jw2);
         Jw2 = mtempQ;
-      
+
         int nc = 0;
 
         if (c_x) {
@@ -129,27 +116,23 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
 }
 
 void ChLinkMotorRotationAngle::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-
-    double mCt = - 0.5 * this->f_rot->Get_y_dx(this->GetChTime());
+    double mCt = -0.5 * m_func->Get_y_dx(this->GetChTime());
     int ncrz = mask->nconstr - 1;
     if (mask->Constr_N(ncrz).IsActive()) {
-        Qc(off_L + ncrz) += c * mCt; 
+        Qc(off_L + ncrz) += c * mCt;
     }
 }
-
 
 void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = - 0.5 * this->f_rot->Get_y_dx(this->GetChTime());
+    double mCt = -0.5 * m_func->Get_y_dx(this->GetChTime());
     int ncrz = mask->nconstr - 1;
     if (mask->Constr_N(ncrz).IsActive()) {
-            mask->Constr_N(ncrz).Set_b_i(mask->Constr_N(ncrz).Get_b_i() + factor * mCt); 
+        mask->Constr_N(ncrz).Set_b_i(mask->Constr_N(ncrz).Get_b_i() + factor * mCt);
     }
 }
-
-
 
 void ChLinkMotorRotationAngle::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -159,7 +142,6 @@ void ChLinkMotorRotationAngle::ArchiveOUT(ChArchiveOut& marchive) {
     ChLinkMotorRotation::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(f_rot);
     marchive << CHNVP(rot_offset);
 }
 
@@ -172,11 +154,7 @@ void ChLinkMotorRotationAngle::ArchiveIN(ChArchiveIn& marchive) {
     ChLinkMotorRotation::ArchiveIN(marchive);
 
     // deserialize all member data:
-    marchive >> CHNVP(f_rot);
     marchive >> CHNVP(rot_offset);
 }
-
-
-
 
 }  // end namespace chrono

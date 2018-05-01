@@ -80,12 +80,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
-    /// Set the value of the integration step size for the underlying dynamics.
-    void SetStepsize(double val) { m_stepsize = val; }
-
-    /// Get the current value of the integration step size.
-    double GetStepsize() const { return m_stepsize; }
-
   protected:
     /// Return the number of discs used to model this tire.
     virtual int GetNumDiscs() const = 0;
@@ -124,8 +118,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
         double z0;  // longitudinal direction
         double z1;  // lateral direction
     };
-
-    double m_stepsize;
 
     TerrainForce m_tireForce;
     std::vector<DiscContactData> m_data;

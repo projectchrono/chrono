@@ -38,7 +38,7 @@ class ChApi ChRoundedCylinderShape : public ChVisualization {
     //
 
     ChRoundedCylinderShape() {}
-    ChRoundedCylinderShape(geometry::ChRoundedCylinder& mcap) : groundedcyl(mcap) {}
+    ChRoundedCylinderShape(const geometry::ChRoundedCylinder& mcap) : groundedcyl(mcap) {}
 
     virtual ~ChRoundedCylinderShape() {}
 

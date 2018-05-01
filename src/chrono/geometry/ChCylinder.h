@@ -31,7 +31,7 @@ class ChApi ChCylinder : public ChGeometry {
 
   public:
     ChCylinder() : p1(VNULL), p2(ChVector<>(0, 1, 0)), rad(0.1) {}
-    ChCylinder(ChVector<>& mp1, ChVector<>& mp2, double mrad) : p1(mp1), p2(mp2), rad(mrad) {}
+    ChCylinder(const ChVector<>& mp1, const ChVector<>& mp2, double mrad) : p1(mp1), p2(mp2), rad(mrad) {}
     ChCylinder(const ChCylinder& source);
     ~ChCylinder() {}
 

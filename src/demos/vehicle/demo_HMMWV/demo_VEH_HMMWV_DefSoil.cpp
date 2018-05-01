@@ -101,7 +101,7 @@ float mu_t = 0.8f;
 // -----------------------------------------------------------------------------
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 3e-3;
 
 // Time interval between two render frames (1/FPS)
 double render_step_size = 1.0 / 100;
@@ -204,6 +204,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(TireModelType::RIGID);
+    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     VisualizationType wheel_vis = (wheel_type == CYLINDRICAL) ? VisualizationType::MESH : VisualizationType::NONE;
@@ -351,7 +352,6 @@ int main(int argc, char* argv[]) {
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
         ChIrrTools::drawColorbar(0, 0.1, "Sinkage", app.GetDevice(), 30);
-        app.EndScene();
 
         if (img_output && step_number % render_steps == 0) {
             char filename[100];
@@ -377,6 +377,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
     // Cleanup

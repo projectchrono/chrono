@@ -25,8 +25,8 @@ namespace geometry {
 class ChApi ChRoundedCone : public ChGeometry {
 
   public:
-    ChRoundedCone() : center(VNULL), rad(0) {}
-    ChRoundedCone(ChVector<>& mc, ChVector<> mrad) : center(mc), rad(mrad) {}
+    ChRoundedCone() : center(VNULL), rad(0), radsphere(0) {}
+    ChRoundedCone(const ChVector<>& mc, const ChVector<>& mrad, double mradsphere) : center(mc), rad(mrad), radsphere(mradsphere) {}
     ChRoundedCone(const ChRoundedCone& source);
     ~ChRoundedCone() {}
 

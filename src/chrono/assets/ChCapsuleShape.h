@@ -37,7 +37,7 @@ class ChApi ChCapsuleShape : public ChVisualization {
     //
 
     ChCapsuleShape() {}
-    ChCapsuleShape(geometry::ChCapsule& mcap) : gcapsule(mcap) {}
+    ChCapsuleShape(const geometry::ChCapsule& mcap) : gcapsule(mcap) {}
 
     virtual ~ChCapsuleShape() {}
 

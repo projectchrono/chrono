@@ -81,6 +81,7 @@ ChConvexHull2D::ChConvexHull2D(std::vector<ChVector2<>>& points, Method method) 
     switch (method) {
         case JARVIS:
             ComputeJarvis(points, n);
+            m_area *= 0.5;
             break;
         case GRAHAM:
             ////ComputeGraham(points, n);
@@ -91,6 +92,9 @@ ChConvexHull2D::ChConvexHull2D(std::vector<ChVector2<>>& points, Method method) 
 // -----------------------------------------------------------------------------
 
 void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2<>>& points, size_t n) {
+    // Keep track of points already added to the convex hull.
+    std::vector<bool> added(points.size(), false);
+
     // Find point with lowest x. Ties are broken for lowest y.
     size_t first = 0;
     for (size_t i = 1; i < points.size(); i++) {
@@ -101,13 +105,15 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2<>>& points, size_
             first = i;
     }
     m_hull.push_back(points[first]);
+    // Note: DO NOT mark 'first' as added (to allow closing the loop)
 
     size_t crt = first;
     do {
         // Initialize next candidate.
-        // Attention: important to consider all points, so must start at 0, but skip crt.
+        // Attention: important to consider all points, so must start at 0, 
+        //            but skip crt and any other point that was already added.
         size_t next = 0;
-        while (next == crt)
+        while (next == crt || added[next])
             next = (next + 1) % n;
 
         // Find the next point on convex hull.
@@ -117,12 +123,12 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2<>>& points, size_
             }
         }
 
-        // Before adding next to the convex hull, include any other points on the line from
-        // crt to next.
+        // Before adding next to the convex hull, include any other points on the line from crt to next.
         for (size_t i = 0; i < n; i++) {
-            if (i != crt && i != next && Orientation(points[crt], points[i], points[next]) == 0 &&
+            if (i != crt && i != next && !added[i] && Orientation(points[crt], points[i], points[next]) == 0 &&
                 InBetween(points[crt], points[i], points[next])) {
                 m_hull.push_back(points[i]);
+                added[i] = true;
             }
         }
 
@@ -130,11 +136,12 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2<>>& points, size_
         // Note that it is important to sum the signed area (we don't know where the origin falls).
         // Also, we must disregard any intermediate points on the last edge, else we double count.
         m_hull.push_back(points[next]);
+        added[next] = true;
         m_perimeter += (points[next] - points[crt]).Length();
         m_area += SignedArea(points[next], points[crt], ChVector2<>(0, 0));
 
         // Safety check to prevent inifinite loop.
-        //// TODO: still some corner cases that are not properly treated!
+        //// TODO: are there still some corner cases not properly treated?
         if (m_hull.size() > n + 1) {
             std::cout << "\n\nERROR in ChConvexHull2D::ComputeJarvis: infinite loop\n\n" << std::endl;
             return;

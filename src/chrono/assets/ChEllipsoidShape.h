@@ -34,8 +34,8 @@ class ChApi ChEllipsoidShape : public ChVisualization {
     // CONSTRUCTORS
     //
 
-    ChEllipsoidShape(){};
-    ChEllipsoidShape(geometry::ChEllipsoid& mellipsoid) : gellipsoid(mellipsoid){};
+    ChEllipsoidShape(){}
+    ChEllipsoidShape(const geometry::ChEllipsoid& mellipsoid) : gellipsoid(mellipsoid){}
 
     virtual ~ChEllipsoidShape(){};
 

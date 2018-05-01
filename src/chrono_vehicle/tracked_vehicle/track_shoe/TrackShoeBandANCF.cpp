@@ -133,6 +133,7 @@ void TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);
+        trimesh_shape->SetStatic(true);
         m_shoe->AddAsset(trimesh_shape);
     } else {
         ChTrackShoeBandANCF::AddVisualizationAssets(vis);

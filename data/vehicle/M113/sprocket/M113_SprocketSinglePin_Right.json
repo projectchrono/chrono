@@ -4,9 +4,9 @@
   "Template":                       "SprocketSinglePin",
 
   "Number Teeth":                   10,
-  "Gear Mass":                      436.7,
-  "Gear Inertia":                   [12.22, 13.87, 12.22],
-  "Axle Inertia":                   1.0,
+  "Gear Mass":                      27.68,
+  "Gear Inertia":                   [0.646, 0.883, 0.646],
+  "Axle Inertia":                   0.02,
   "Gear Separation":                0.225,
 
   "Profile": 

@@ -36,8 +36,8 @@ class ChApi ChCylinderShape : public ChVisualization {
     // CONSTRUCTORS
     //
 
-    ChCylinderShape(){};
-    ChCylinderShape(geometry::ChCylinder& mcyl) : gcylinder(mcyl){};
+    ChCylinderShape(){}
+    ChCylinderShape(const geometry::ChCylinder& mcyl) : gcylinder(mcyl){}
 
     virtual ~ChCylinderShape(){};
 

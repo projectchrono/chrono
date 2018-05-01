@@ -242,6 +242,9 @@ void ChMesh::IntStateIncrement(const unsigned int off_x,
             local_off_v += vnodes[j]->Get_ndof_w();
         }
     }
+	for (unsigned int ie = 0; ie < velements.size(); ie++) {
+		velements[ie]->EleDoIntegration();
+	}
 }
 
 void ChMesh::IntLoadResidual_F(const unsigned int off, 
