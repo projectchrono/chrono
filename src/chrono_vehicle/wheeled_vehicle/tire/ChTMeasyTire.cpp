@@ -882,6 +882,7 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,   // tire load force [N]
     double xi = 0.05;                  // damping ratio
 
     m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMeasyCoeff.pn_max = 3.5 * m_TMeasyCoeff.pn;
 
     double CZ = m_TMeasyCoeff.pn / defl_max;
     double DZ = xi * sqrt(CZ * GetMass());
@@ -962,6 +963,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,   // tire load force [N]
     double xi = 0.05;                  // damping ration
 
     m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMeasyCoeff.pn_max = 3.5 * m_TMeasyCoeff.pn;
 
     m_width = tireWidth;
     m_unloaded_radius = secth + rimDia / 2.0;
