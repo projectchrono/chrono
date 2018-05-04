@@ -224,8 +224,18 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChShaftsPlanetary)
 %shared_ptr(chrono::ChShaftsThermalEngine)
 %shared_ptr(chrono::ChShaftsTorqueBase)
-%shared_ptr(chrono::ChShaftsTorsionSpring)
-
+%shared_ptr(chrono::ChShaftsTorsionSpring) 
+%shared_ptr(chrono::ChLinkMotor)
+%shared_ptr(chrono::ChLinkMotorLinear)
+%shared_ptr(chrono::ChLinkMotorLinearDriveline)
+%shared_ptr(chrono::ChLinkMotorLinearForce)
+%shared_ptr(chrono::ChLinkMotorLinearPosition)
+%shared_ptr(chrono::ChLinkMotorLinearSpeed)
+%shared_ptr(chrono::ChLinkMotorRotation)
+%shared_ptr(chrono::ChLinkMotorRotationAngle)
+%shared_ptr(chrono::ChLinkMotorRotationDriveline)
+%shared_ptr(chrono::ChLinkMotorRotationSpeed)
+%shared_ptr(chrono::ChLinkMotorRotationTorque)
 
 
 //
@@ -338,6 +348,7 @@ using namespace chrono::geometry;
 %include "ChShaftsTorsionSpring.i"
 %include "ChShaftsPlanetary.i"
 %include "ChShaftsThermalEngine.i"
+%include "ChLinkMotor.i"
 
 
 // collision/   classes
@@ -414,6 +425,18 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotor)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinear)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearDriveline)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearForce)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearPosition)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearSpeed)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotation)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationAngle)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationDriveline)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationSpeed)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationTorque)
+
 
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkMarkers)
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkMasked)
