@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHBEAMSECTIONTIMOSHENKO_H
-#define CHBEAMSECTIONTIMOSHENKO_H
+#ifndef CHBEAMSECTIONCOSSERAT_H
+#define CHBEAMSECTIONCOSSERAT_H
 
 #include "chrono_fea/ChBeamSection.h"
 #include "chrono/motion_functions/ChFunction.h"
@@ -24,22 +24,25 @@ namespace fea {
 
 
 //  forward 
-class ChBeamSectionTimoshenko;
+class ChBeamSectionCosserat;
 
-/// Base class for elasticity of beam sections of Timoshenko type,
-/// where {F,M}=f({epsilon,kappa}) is a 6-dimensional function of
-/// epsilon traction/shear and curvatures kappa.
-/// This can be shared between multiple beams.
+/// Base interface for elasticity of beam sections of Cosserat type,
+/// where xyz force "n" and xyz torque "m" are a 6-dimensional function of
+/// generalized strains, "e" traction/shear and "k" curvatures, as:
+///   {n,m}=f({e,k}) 
+/// There are various children classes that implement this function in
+/// different ways. 
+/// Note that the Timoshenko beam theory can be a sub-case of this.
 
-class ChApiFea ChElasticityTimoshenko {
+class ChApiFea ChElasticityCosserat {
 public:
 	
 
-	ChElasticityTimoshenko() {
+	ChElasticityCosserat() {
 		section = nullptr;
 	}
 
-	virtual ~ChElasticityTimoshenko() {}
+	virtual ~ChElasticityCosserat() {}
 
 
 		/// Compute the generalized cut force and cut torque, 
@@ -97,15 +100,17 @@ public:
 	virtual void SetAsCircularSection(double diameter) = 0;
 
 
-	ChBeamSectionTimoshenko* section;
+	ChBeamSectionCosserat* section;
 };
 
 
-/// Simple linear elasticity model for a Timoshenko beam, using basic material
+/// Simple linear elasticity model for a Cosserat beam, using basic material
 /// properties (zz and yy moments of inertia, area, Young modulus, etc.)
+/// The classical Timoshenko beam theory is encompassed in this model, that
+/// can be interpreted as a 3D extension of the Timoshenko beam theory.
 /// This can be shared between multiple beams.
 
-class ChApiFea ChElasticityTimoshenkoSimple : public ChElasticityTimoshenko {
+class ChApiFea ChElasticityCosseratSimple : public ChElasticityCosserat {
 public:
 	double Iyy;
 	double Izz;
@@ -117,7 +122,7 @@ public:
 	double Ks_y;
 	double Ks_z;
 
-	ChElasticityTimoshenkoSimple() {
+	ChElasticityCosseratSimple() {
 		E = 0.01e9;                 // default E stiffness: (almost rubber)
 		SetGwithPoissonRatio(0.3);  // default G (low poisson ratio)
 
@@ -126,7 +131,7 @@ public:
 		rdamping = 0.01;  // default Rayleigh damping.
 	}
 
-	virtual ~ChElasticityTimoshenkoSimple() {}
+	virtual ~ChElasticityCosseratSimple() {}
 
 	/// Set the Iyy moment of inertia of the beam (for flexion about y axis)
 	/// Note: some textbook calls this Iyy as Iz
@@ -196,7 +201,7 @@ public:
 };
 
 
-/// Generic linear elasticity for a Timoshenko beam, using a 6x6 matrix [E]
+/// Generic linear elasticity for a Cosserat beam, using a 6x6 matrix [E]
 /// from user-input data. The [E] matrix can be computed from a preprocessing
 /// stage using a FEA analysis over a detailed 3D model of a chunk of beam,
 /// hence recovering the 6x6 matrix that connects yxz displacements "e" and 
@@ -204,16 +209,16 @@ public:
 /// {m,n}=[E]{e,k}.
 /// This can be shared between multiple beams.
 
-class ChApiFea ChElasticityTimoshenkoGeneric : public ChElasticityTimoshenko {
+class ChApiFea ChElasticityCosseratGeneric : public ChElasticityCosserat {
 public:
 
-	ChElasticityTimoshenkoGeneric() {
+	ChElasticityCosseratGeneric() {
 		mE.SetIdentity();            // default E stiffness: diagonal 1.
 
 		SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 	}
 
-	virtual ~ChElasticityTimoshenkoGeneric() {}
+	virtual ~ChElasticityCosseratGeneric() {}
 
 	/// Access the E matrix, for getting/setting its values.
 	/// This is the matrix that defines the linear elastic constitutive model
@@ -261,15 +266,15 @@ private:
 /// The linear elasticity is uncoupled between shear terms S and axial terms A
 /// as to have this stiffness matrix pattern:
 ///
-///  Fx   [A       A A ]   e_x
-///  Fy   [  S S S     ]   e_y
-///  Fz = [  S S S     ] * e_z
-///  Mx   [  S S S     ]   k_x
-///  My   [A       A A ]   k_y
-///  Mz   [A       A A ]   k_z
+///  n_x   [A       A A ]   e_x
+///  n_y   [  S S S     ]   e_y
+///  n_z = [  S S S     ] * e_z
+///  m_x   [  S S S     ]   k_x
+///  m_y   [A       A A ]   k_y
+///  m_z   [A       A A ]   k_z
 ///
 
-class ChApiFea ChElasticityTimoshenkoAdvanced : public ChElasticityTimoshenkoSimple {
+class ChApiFea ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 public:
 	double alpha;  // Rotation of Izz Iyy respect to reference section, centered on line x
 	double Cy;     // Centroid, respect to reference section (elastic center, tension center)
@@ -278,7 +283,7 @@ public:
 	double Sy;     // Shear center, respect to reference section
 	double Sz;
 
-	ChElasticityTimoshenkoAdvanced() {
+	ChElasticityCosseratAdvanced() {
 		alpha = 0;
 		Cy = 0;
 		Cz = 0;
@@ -287,7 +292,7 @@ public:
 		Sz = 0;
 	}
 
-	virtual ~ChElasticityTimoshenkoAdvanced() {}
+	virtual ~ChElasticityCosseratAdvanced() {}
 
 	/// "Elastic reference": set alpha, the rotation of the section for which the Iyy Izz are
 	/// defined, respect to the reference section coordinate system.
@@ -340,19 +345,19 @@ public:
 
 
 
-/// Base class for plasticity of beam sections of Timoshenko type.
+/// Base class for plasticity of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
 
-class ChApiFea ChPlasticityTimoshenko {
+class ChApiFea ChPlasticityCosserat {
 public:
 
-	ChPlasticityTimoshenko() {
+	ChPlasticityCosserat() {
 		section = nullptr;
 		nr_yeld_tolerance = 1e-7;
 		nr_yeld_maxiters = 5;
 	}
 
-	virtual ~ChPlasticityTimoshenko() {}
+	virtual ~ChPlasticityCosserat() {}
 
 	// Given a trial strain, it computes the effective stress and strain by 
 	// clamping against the yeld surface. An implicit return mapping integration
@@ -410,7 +415,7 @@ public:
 	/// with circular shape.
 	virtual void SetAsCircularSection(double diameter) = 0;
 
-	ChBeamSectionTimoshenko* section;
+	ChBeamSectionCosserat* section;
 	double nr_yeld_tolerance;
 	int nr_yeld_maxiters;
 };
@@ -418,18 +423,18 @@ public:
 
 
 
-/// Internal variables for basic lumped plasticity in Timoshenko beams
-class ChApiFea ChInternalDataLumpedTimoshenko : public ChBeamMaterialInternalData {
+/// Internal variables for basic lumped plasticity in Cosserat beams
+class ChApiFea ChInternalDataLumpedCosserat : public ChBeamMaterialInternalData {
 public:
-	ChInternalDataLumpedTimoshenko()
+	ChInternalDataLumpedCosserat()
 	{};
 
-	virtual ~ChInternalDataLumpedTimoshenko() {};
+	virtual ~ChInternalDataLumpedCosserat() {};
 
 	virtual void Copy(const ChBeamMaterialInternalData& other) override {
 		ChBeamMaterialInternalData::Copy(other);
 
-		if (auto mother = dynamic_cast<const ChInternalDataLumpedTimoshenko*>(&other)) {
+		if (auto mother = dynamic_cast<const ChInternalDataLumpedCosserat*>(&other)) {
 			p_strain_e = mother->p_strain_e;
 			p_strain_k = mother->p_strain_k;
 			p_strain_acc_e = mother->p_strain_acc_e;
@@ -444,7 +449,7 @@ public:
 };
 
 
-/// Lumped plasticity of Timoshenko-type beams.
+/// Lumped plasticity of Cosserat-type beams.
 /// This defines 6 independent yelds for the six generalized forces/moments in the
 /// beam. 
 /// Note that this is a rough approximation of plasticity in beams for at least two
@@ -455,10 +460,10 @@ public:
 /// or pure compression/extension, or pure torsion.
 /// This can be shared between multiple beams.
 
-class ChApiFea ChPlasticityTimoshenkoLumped : public ChPlasticityTimoshenko {
+class ChApiFea ChPlasticityCosseratLumped : public ChPlasticityCosserat {
 public:
 
-	ChPlasticityTimoshenkoLumped() {
+	ChPlasticityCosseratLumped() {
 		// Default: linear isotropic constant hardening
 		n_yeld_x = std::make_shared<ChFunction_Const>(1000);
 		n_beta_x = std::make_shared<ChFunction_Const>(0);
@@ -474,7 +479,7 @@ public:
 		n_beta_Mz = std::make_shared<ChFunction_Const>(0);
 	}
 
-	virtual ~ChPlasticityTimoshenkoLumped() {}
+	virtual ~ChPlasticityCosseratLumped() {}
 
 	// Given a trial strain, it computes the effective stress and strain by 
 	// clamping against the yeld surface. An implicit return mapping integration
@@ -514,7 +519,7 @@ public:
 	) {
 		plastic_data.resize(numpoints);
 		for (int i = 0; i < numpoints; ++i) {
-			plastic_data[i] = std::unique_ptr<ChBeamMaterialInternalData>(new ChInternalDataLumpedTimoshenko());
+			plastic_data[i] = std::unique_ptr<ChBeamMaterialInternalData>(new ChInternalDataLumpedCosserat());
 		}
 	};
 
@@ -539,16 +544,16 @@ public:
 };
 
 
-/// Base class for properties of beam sections of Timoshenko type (with shear too).
+/// Base class for properties of beam sections of Cosserat type (with shear too).
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
 
-class ChApiFea ChBeamSectionTimoshenko : public ChBeamSectionProperties {
+class ChApiFea ChBeamSectionCosserat : public ChBeamSectionProperties {
   public:
 
-	  ChBeamSectionTimoshenko(
-					std::shared_ptr<ChElasticityTimoshenko> melasticity,  /// the elasticity model for this section, ex.ChElasticityTimoshenkoSimple 
-					std::shared_ptr<ChPlasticityTimoshenko> mplasticity = nullptr /// the plasticity model for this section, if any
+	  ChBeamSectionCosserat(
+					std::shared_ptr<ChElasticityCosserat> melasticity,  /// the elasticity model for this section, ex.ChElasticityCosseratSimple 
+					std::shared_ptr<ChPlasticityCosserat> mplasticity = nullptr /// the plasticity model for this section, if any
 	  ) {
 		this->SetElasticity(melasticity);
 		
@@ -556,7 +561,7 @@ class ChApiFea ChBeamSectionTimoshenko : public ChBeamSectionProperties {
 			this->SetPlasticity(mplasticity);
     }
 
-    virtual ~ChBeamSectionTimoshenko() {}
+    virtual ~ChBeamSectionCosserat() {}
 
 
 	/// Compute the generalized cut force and cut torque, given the actual generalized section strain
@@ -602,7 +607,7 @@ class ChApiFea ChBeamSectionTimoshenko : public ChBeamSectionProperties {
 
 	/// Set the elasticity model for this section.
 	/// By default it uses a simple centered linear elastic model, but you can set more complex models.
-	void SetElasticity(std::shared_ptr<ChElasticityTimoshenko> melasticity) {
+	void SetElasticity(std::shared_ptr<ChElasticityCosserat> melasticity) {
 		elasticity = melasticity;
 		elasticity->section = this;
 	}
@@ -610,7 +615,7 @@ class ChApiFea ChBeamSectionTimoshenko : public ChBeamSectionProperties {
 	/// Get the elasticity model for this section. 
 	/// Use this function to access parameters such as stiffness, Young modulus, etc. 
 	/// By default it uses a simple centered linear elastic model.
-	std::shared_ptr<ChElasticityTimoshenko> GetElasticity() {
+	std::shared_ptr<ChElasticityCosserat> GetElasticity() {
 		return this->elasticity;
 	}
 
@@ -619,14 +624,14 @@ class ChApiFea ChBeamSectionTimoshenko : public ChBeamSectionProperties {
 	/// This is independent from the elasticity model.
 	/// Note that by default there is no plasticity model, 
 	/// so by default plasticity never happens.
-	void SetPlasticity(std::shared_ptr<ChPlasticityTimoshenko> mplasticity) {
+	void SetPlasticity(std::shared_ptr<ChPlasticityCosserat> mplasticity) {
 		plasticity = mplasticity;
 		mplasticity->section = this;
 	}
 
 	/// Get the elasticity model for this section, if any.
 	/// Use this function to access parameters such as yeld limit, etc.
-	std::shared_ptr<ChPlasticityTimoshenko> GetPlasticity() {
+	std::shared_ptr<ChPlasticityCosserat> GetPlasticity() {
 		return this->plasticity;
 	}
 
@@ -662,8 +667,8 @@ class ChApiFea ChBeamSectionTimoshenko : public ChBeamSectionProperties {
 
 
 private:
-	std::shared_ptr<ChElasticityTimoshenko> elasticity;
-	std::shared_ptr<ChPlasticityTimoshenko> plasticity;
+	std::shared_ptr<ChElasticityCosserat> elasticity;
+	std::shared_ptr<ChPlasticityCosserat> plasticity;
 };
 
 

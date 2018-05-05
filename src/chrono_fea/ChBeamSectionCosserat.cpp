@@ -13,7 +13,7 @@
 // =============================================================================
 
 
-#include "chrono_fea/ChBeamSectionTimoshenko.h"
+#include "chrono_fea/ChBeamSectionCosserat.h"
 
 
 namespace chrono {
@@ -23,7 +23,7 @@ namespace fea {
 /// Shortcut: set Area, Ixx, Iyy, Ksy, Ksz and J torsion constant
 /// at once, given the y and z widths of the beam assumed
 /// with rectangular shape.
-void ChElasticityTimoshenkoSimple::SetAsRectangularSection(double width_y, double width_z) {
+void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double width_z) {
 	
 	this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
 	this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
@@ -43,7 +43,7 @@ void ChElasticityTimoshenkoSimple::SetAsRectangularSection(double width_y, doubl
 /// Shortcut: set Area, Ixx, Iyy, Ksy, Ksz and J torsion constant
 /// at once, given the diameter of the beam assumed
 /// with circular shape.
-void ChElasticityTimoshenkoSimple::SetAsCircularSection(double diameter) {
+void ChElasticityCosseratSimple::SetAsCircularSection(double diameter) {
 	
 	this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
 	this->Iyy = Izz;
@@ -59,7 +59,7 @@ void ChElasticityTimoshenkoSimple::SetAsCircularSection(double diameter) {
 
 }
 
-void ChElasticityTimoshenkoSimple::ComputeStress(
+void ChElasticityCosseratSimple::ComputeStress(
 	ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
 	ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
 	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
@@ -74,7 +74,7 @@ void ChElasticityTimoshenkoSimple::ComputeStress(
 }
 
 /// Compute the 6x6 tangent material stiffness matrix [Km] =d\sigma/d\epsilon
-void ChElasticityTimoshenkoSimple::ComputeStiffnessMatrix(
+void ChElasticityCosseratSimple::ComputeStiffnessMatrix(
 	ChMatrixDynamic<>& K,       ///< return the 6x6 stiffness matrix
 	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
 	const ChVector<>& strain_m  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
@@ -93,7 +93,7 @@ void ChElasticityTimoshenkoSimple::ComputeStiffnessMatrix(
 
 
 
-void ChElasticityTimoshenkoGeneric::SetAsRectangularSection(double width_y, double width_z) {
+void ChElasticityCosseratGeneric::SetAsRectangularSection(double width_y, double width_z) {
 	double E = 1;
 	double G = 1;
 
@@ -119,7 +119,7 @@ void ChElasticityTimoshenkoGeneric::SetAsRectangularSection(double width_y, doub
 }
 
 
-void ChElasticityTimoshenkoGeneric::SetAsCircularSection(double diameter) {
+void ChElasticityCosseratGeneric::SetAsCircularSection(double diameter) {
 	double E = 1;
 	double G = 1;
 
@@ -143,7 +143,7 @@ void ChElasticityTimoshenkoGeneric::SetAsCircularSection(double diameter) {
 	mE(5, 5) = E * Izz;
 }
 
-void ChElasticityTimoshenkoGeneric::ComputeStress(
+void ChElasticityCosseratGeneric::ComputeStress(
 	ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
 	ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
 	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
@@ -159,7 +159,7 @@ void ChElasticityTimoshenkoGeneric::ComputeStress(
 }
 
 /// Compute the 6x6 tangent material stiffness matrix [Km] =d\sigma/d\epsilon
-void ChElasticityTimoshenkoGeneric::ComputeStiffnessMatrix(
+void ChElasticityCosseratGeneric::ComputeStiffnessMatrix(
 	ChMatrixDynamic<>& K,       ///< return the 6x6 stiffness matrix
 	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
 	const ChVector<>& strain_m  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
@@ -171,7 +171,7 @@ void ChElasticityTimoshenkoGeneric::ComputeStiffnessMatrix(
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-void ChElasticityTimoshenkoAdvanced::ComputeStress(
+void ChElasticityCosseratAdvanced::ComputeStress(
 	ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
 	ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
 	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
@@ -205,7 +205,7 @@ void ChElasticityTimoshenkoAdvanced::ComputeStress(
 }
 
 /// Compute the 6x6 tangent material stiffness matrix [Km] =d\sigma/d\epsilon
-void ChElasticityTimoshenkoAdvanced::ComputeStiffnessMatrix(
+void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(
 	ChMatrixDynamic<>& K,       ///< return the 6x6 stiffness matrix
 	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
 	const ChVector<>& strain_m  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
@@ -256,7 +256,7 @@ void ChElasticityTimoshenkoAdvanced::ComputeStiffnessMatrix(
 
 
 
-bool ChPlasticityTimoshenkoLumped::ComputeStressWithReturnMapping(
+bool ChPlasticityCosseratLumped::ComputeStressWithReturnMapping(
 	ChVector<>& stress_n,			 ///< return the local stress (generalized force), x component = traction along beam
 	ChVector<>& stress_m,			 ///< return the local stress (generalized torque), x component = torsion torque along beam
 	ChVector<>& e_strain_e_new,      ///< return updated elastic strain (deformation part)
@@ -266,12 +266,12 @@ bool ChPlasticityTimoshenkoLumped::ComputeStressWithReturnMapping(
 	const ChVector<>& tot_strain_k,  ///< trial tot strain (curvature part), x= torsion, y and z are line curvatures
 	const ChBeamMaterialInternalData& data ///< current material internal variables, at this point, including {p_strain_m, p_strain_n, p_strain_acc}
 ) {
-	auto mydata = dynamic_cast<const ChInternalDataLumpedTimoshenko*>(&data);
-	auto mydata_new = dynamic_cast<ChInternalDataLumpedTimoshenko*>(&data_new);
+	auto mydata = dynamic_cast<const ChInternalDataLumpedCosserat*>(&data);
+	auto mydata_new = dynamic_cast<ChInternalDataLumpedCosserat*>(&data_new);
 	
 
 	if (!mydata)
-		throw ChException("ComputeStressWithReturnMapping cannot cast data to ChInternalDataLumpedTimoshenko*.");
+		throw ChException("ComputeStressWithReturnMapping cannot cast data to ChInternalDataLumpedCosserat*.");
 
 	// Implement return mapping for a simple 1D plasticity model.
 
@@ -498,7 +498,7 @@ bool ChPlasticityTimoshenkoLumped::ComputeStressWithReturnMapping(
 
 
 
-void ChPlasticityTimoshenko::ComputeStiffnessMatrixElastoplastic(
+void ChPlasticityCosserat::ComputeStiffnessMatrixElastoplastic(
 	ChMatrixDynamic<>& K,       ///< return the 6x6 material stiffness matrix values here
 	const ChVector<>& strain_n, ///< tot strain (deformation part): x= elongation, y and z are shear
 	const ChVector<>& strain_m, ///< tot strain (curvature part), x= torsion, y and z are line curvatures

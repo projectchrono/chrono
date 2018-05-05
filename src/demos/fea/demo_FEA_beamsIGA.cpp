@@ -72,11 +72,11 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -173,15 +173,14 @@ void MakeAndRunDemo1(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
-	// Example B.  
 	// Use the ChBuilderBeamIGA tool for creating a straight rod 
 	// divided in Nel elements:
 
@@ -266,18 +265,15 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
-	// Example C. 
-	// Automatic creation of the nodes and knots using the 
-	// ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
-	
+
 	ChBuilderBeamIGA builderR;
 
 	std::vector< ChVector<> > my_points = { {0,0,0.2}, {0,0,0.3}, { 0,-0.01,0.4 } , {0,-0.04,0.5}, {0,-0.1,0.6} };
@@ -359,25 +355,29 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
 
-	auto mplasticity = std::make_shared<ChPlasticityTimoshenkoLumped>();
+	auto mplasticity = std::make_shared<ChPlasticityCosseratLumped>();
 	// The isotropic hardening curve. The value at zero absyssa is the initial yeld.
-	//mplasticity->n_yeld_x = std::make_shared<ChFunction_Const>(3000);
-	mplasticity->n_yeld_x = std::make_shared<ChFunction_Ramp>(3000, 1e3);
+	mplasticity->n_yeld_x = std::make_shared<ChFunction_Const>(3000);
+	//mplasticity->n_yeld_x = std::make_shared<ChFunction_Ramp>(3000, 1e3);
 	// The optional kinematic hardening curve:
-	//mplasticity->n_beta_x = std::make_shared<ChFunction_Ramp>(0, 1e3);
+	mplasticity->n_beta_x = std::make_shared<ChFunction_Ramp>(0, 1e3);
 
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity, mplasticity);
+	// for bending (on y and z): some kinematic hardening
+	mplasticity->n_yeld_My = std::make_shared<ChFunction_Const>(0.3);
+	mplasticity->n_beta_My = std::make_shared<ChFunction_Ramp>(0, 0.001e2);
+	mplasticity->n_yeld_Mz = std::make_shared<ChFunction_Const>(0.3);
+	mplasticity->n_beta_Mz = std::make_shared<ChFunction_Ramp>(0, 0.001e2);
+
+
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
-
-	// Example D. 
-	// Plasticity. 
 
 	ChBuilderBeamIGA builder;
 	builder.BuildBeam(my_mesh,            // the mesh to put the elements in
@@ -397,8 +397,8 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 
 	auto motor = std::make_shared<ChLinkMotorLinearPosition>();
 	myapp.GetSystem()->Add(motor);
-	motor->Initialize(builder.GetLastBeamNodes().back(), truss, ChFrame<>(builder.GetLastBeamNodes().back()->GetCoord()));
-	//motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::PRISMATIC);
+	motor->Initialize(builder.GetLastBeamNodes().back(), truss, ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::Q_from_AngAxis(0*CH_C_PI_2, VECT_Z)));
+	motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
 	auto rampup = std::make_shared<ChFunction_Ramp>(0, 0.1);
 	auto rampdo = std::make_shared<ChFunction_Ramp>(0, -0.1);
 	auto motfun = std::make_shared<ChFunction_Sequence>();
@@ -446,7 +446,8 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 		ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNdofs(), builder.GetLastBeamElements()[0]->GetNdofs());
 		builder.GetLastBeamElements()[0]->ComputeKRMmatricesGlobal(mK, 1, 0, 0);
 		auto plasticdat = builder.GetLastBeamElements()[0]->GetPlasticData()[0].get();
-		auto plasticdata = dynamic_cast<ChInternalDataLumpedTimoshenko*>(plasticdat);
+		auto plasticdata = dynamic_cast<ChInternalDataLumpedCosserat*>(plasticdat);
+		
 		my_plasticfile << myapp.GetSystem()->GetChTime() << " "
 			<< builder.GetLastBeamElements()[0]->GetStrainE()[0].x() << " "
 			<< builder.GetLastBeamElements()[0]->GetStressN()[0].x() << " "
@@ -455,7 +456,16 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 			<< mK(0, 0) << " "
 			<< motor->GetMotorForce() << " "
 			<< motor->GetMotorPos() << "\n";
-
+		/*
+		my_plasticfile << myapp.GetSystem()->GetChTime() << " "
+			<< builder.GetLastBeamElements()[0]->GetStrainK()[0].z() << " "
+			<< builder.GetLastBeamElements()[0]->GetStressM()[0].z() << " "
+			<< plasticdata->p_strain_acc << " "
+			<< plasticdata->p_strain_k.z() << " "
+			<< mK(5, 5) << " "
+			<< motor->GetMotorForce() << " "
+			<< motor->GetMotorPos() << "\n";
+			*/
 		myapp.EndScene();
 	}
 }
