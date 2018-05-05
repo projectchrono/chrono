@@ -240,7 +240,9 @@ void ChTMeasyTire::Advance(double step) {
     // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.
     double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 
-    double Fz = m_data.normal_force;
+    // Limit the effect of Fz on handling forces and torques to avoid nonsensical extrapolation of the curve coefficients
+    // m_data.normal_force is nevertheless still taken as the applied vertical tire force
+    double Fz = std::min(m_data.normal_force,m_TMeasyCoeff.pn_max);
     double Mx = 0;
     double My = 0;
     double Mz = 0;
@@ -880,6 +882,7 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,   // tire load force [N]
     double xi = 0.05;                  // damping ratio
 
     m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMeasyCoeff.pn_max = 3.5 * m_TMeasyCoeff.pn;
 
     double CZ = m_TMeasyCoeff.pn / defl_max;
     double DZ = xi * sqrt(CZ * GetMass());
@@ -960,6 +963,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,   // tire load force [N]
     double xi = 0.05;                  // damping ration
 
     m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMeasyCoeff.pn_max = 3.5 * m_TMeasyCoeff.pn;
 
     m_width = tireWidth;
     m_unloaded_radius = secth + rimDia / 2.0;
