@@ -91,6 +91,86 @@ void ChElasticityTimoshenkoSimple::ComputeStiffnessMatrix(
 
 ////////////////////////////////////////////////////////////////////////////////////
 
+
+
+void ChElasticityTimoshenkoGeneric::SetAsRectangularSection(double width_y, double width_z) {
+	double E = 1;
+	double G = 1;
+
+	double Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
+	double Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
+
+	// use Roark's formulas for torsion of rectangular sect:
+	double t = ChMin(width_y, width_z);
+	double b = ChMax(width_y, width_z);
+	double J = b * pow(t, 3) * ((1.0 / 3.0) - 0.210 * (t / b) * (1.0 - (1.0 / 12.0) * pow((t / b), 4)));
+
+	// set Ks using Timoshenko-Gere formula for solid rect.shapes
+	double poisson = E / (2.0 * G) - 1.0;
+	double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
+	double Ks_z = Ks_y;
+
+	mE(0, 0) = E * section->Area;
+	mE(1, 1) = Ks_y * G *  section->Area;
+	mE(2, 2) = Ks_z * G *  section->Area;
+	mE(3, 3) = G * J;
+	mE(4, 4) = E * Iyy;
+	mE(5, 5) = E * Izz;
+}
+
+
+void ChElasticityTimoshenkoGeneric::SetAsCircularSection(double diameter) {
+	double E = 1;
+	double G = 1;
+
+	double Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+	double Iyy = Izz;
+
+	// exact expression for circular beam J = Ixx ,
+	// where for polar theorem Ixx = Izz+Iyy
+	double J = Izz + Iyy;
+
+	// set Ks using Timoshenko-Gere formula for solid circular shape
+	double poisson = E / (2.0 * G) - 1.0;
+	double Ks_y = 6.0 * (1.0 + poisson) / (7.0 + 6.0 * poisson);
+	double Ks_z = Ks_y;
+
+	mE(0, 0) = E * section->Area;
+	mE(1, 1) = Ks_y * G *  section->Area;
+	mE(2, 2) = Ks_z * G *  section->Area;
+	mE(3, 3) = G * J;
+	mE(4, 4) = E * Iyy;
+	mE(5, 5) = E * Izz;
+}
+
+void ChElasticityTimoshenkoGeneric::ComputeStress(
+	ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
+	ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
+	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
+	const ChVector<>& strain_m  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
+)  {
+	ChMatrixNM<double, 6, 1> mstrain;
+	ChMatrixNM<double, 6, 1> mstress;
+	mstrain.PasteVector(strain_n, 0, 0);
+	mstrain.PasteVector(strain_m, 3, 0);
+	mstress.MatrMultiply(this->mE, mstrain);
+	stress_n = mstress.ClipVector(0, 0);
+	stress_m = mstress.ClipVector(3, 0);
+}
+
+/// Compute the 6x6 tangent material stiffness matrix [Km] =d\sigma/d\epsilon
+void ChElasticityTimoshenkoGeneric::ComputeStiffnessMatrix(
+	ChMatrixDynamic<>& K,       ///< return the 6x6 stiffness matrix
+	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
+	const ChVector<>& strain_m  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
+) {
+	K.CopyFromMatrix(this->mE);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////
+
 void ChElasticityTimoshenkoAdvanced::ComputeStress(
 	ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
 	ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam

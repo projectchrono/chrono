@@ -196,6 +196,62 @@ public:
 };
 
 
+/// Generic linear elasticity for a Timoshenko beam, using a 6x6 matrix [E]
+/// from user-input data. The [E] matrix can be computed from a preprocessing
+/// stage using a FEA analysis over a detailed 3D model of a chunk of beam,
+/// hence recovering the 6x6 matrix that connects yxz displacements "e" and 
+/// xyz rotations "k" to the xyz cut-force "n" and xyz cut-torque "m" as in
+/// {m,n}=[E]{e,k}.
+/// This can be shared between multiple beams.
+
+class ChApiFea ChElasticityTimoshenkoGeneric : public ChElasticityTimoshenko {
+public:
+
+	ChElasticityTimoshenkoGeneric() {
+		mE.SetIdentity();            // default E stiffness: diagonal 1.
+
+		SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
+	}
+
+	virtual ~ChElasticityTimoshenkoGeneric() {}
+
+	/// Access the E matrix, for getting/setting its values.
+	/// This is the matrix that defines the linear elastic constitutive model
+	/// as it maps  yxz displacements "e" and xyz rotations "k" 
+	/// to the xyz cut-force "n" and xyz cut-torque "m" as in
+	///   {m,n}=[E]{e,k}.
+	ChMatrixNM<double, 6, 6>&  Ematrix() { return this->mE; }
+
+	/// Shortcut: set E given the y and z widths of the beam assumed
+	/// with rectangular shape. Assumes stiffness parameters G=1 and E=1.
+	virtual void SetAsRectangularSection(double width_y, double width_z) override;
+
+	/// Shortcut: set E given the diameter of the beam assumed
+	/// with circular shape. Assumes stiffness parameters G=1 and E=1.
+	virtual void SetAsCircularSection(double diameter) override;
+
+	// Interface to base:
+
+	/// Compute the generalized cut force and cut torque. 
+	virtual void ComputeStress(
+		ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
+		ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
+		const ChVector<>& strain_e, ///< the local strain (deformation part): x= elongation, y and z are shear
+		const ChVector<>& strain_k  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
+	) override;
+
+	/// Compute the 6x6 tangent material stiffness matrix [Km] =d\sigma/d\epsilon
+	virtual void ComputeStiffnessMatrix(
+		ChMatrixDynamic<>& K,       ///< return the 6x6 stiffness matrix
+		const ChVector<>& strain_e, ///< the local strain (deformation part): x= elongation, y and z are shear
+		const ChVector<>& strain_k  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
+	) override;
+
+private:
+	ChMatrixNM<double, 6, 6> mE;
+};
+
+
 
 /// Elasticity for a beam section in 3D, along with basic material
 /// properties. It also supports the advanced case of
