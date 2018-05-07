@@ -252,6 +252,130 @@ void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////
+
+
+void ChElasticityCosseratMesh::SetAsRectangularSection(double width_y, double width_z) {
+
+	this->vertexes.clear();
+	this->vertexes.push_back(ChVector2<>( width_y*0.5,  width_z*0.5));
+	this->vertexes.push_back(ChVector2<>( width_y*0.5, -width_z*0.5));
+	this->vertexes.push_back(ChVector2<>(-width_y*0.5, -width_z*0.5));
+	this->vertexes.push_back(ChVector2<>(-width_y*0.5,  width_z*0.5));
+	
+	this->triangles.clear();
+	this->triangles.push_back(ChVector<int>(0, 1, 2));
+	this->triangles.push_back(ChVector<int>(0, 2, 3));
+
+	// set Ks using Timoshenko-Gere formula for solid rect.shapes
+	/*
+	double poisson = this->E / (2.0 * this->G) - 1.0;
+	this->Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
+	this->Ks_z = this->Ks_y;
+	*/
+}
+
+void ChElasticityCosseratMesh::SetAsCircularSection(double diameter) {
+
+	this->vertexes.clear();
+	this->triangles.clear();
+	
+	double rad = diameter * 0.5;
+	this->vertexes.push_back(ChVector2<>(0, 0));
+	this->vertexes.push_back(ChVector2<>(rad, 0));
+	int ntri = 12; 
+	for (int i = 0; i < ntri; ++i) {
+		double alpha = (i+1) * (CH_C_2PI / (double)ntri);
+		this->vertexes.push_back(ChVector2<>(rad*cos(alpha), rad*sin(alpha)));
+		this->triangles.push_back(ChVector<int>(0, i+1, i+2));
+	}
+
+	// set Ks using Timoshenko-Gere formula for solid circular shape
+	/*
+	double poisson = this->E / (2.0 * this->G) - 1.0;
+	this->Ks_y = 6.0 * (1.0 + poisson) / (7.0 + 6.0 * poisson);
+	this->Ks_z = this->Ks_y;
+	*/
+}
+
+
+void ChElasticityCosseratMesh::ComputeStress(
+	ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
+	ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
+	const ChVector<>& strain_n, ///< the local strain (deformation part): x= elongation, y and z are shear
+	const ChVector<>& strain_m  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
+) {
+	int nv = (int) this->vertexes.size();
+	int nt = (int) this->triangles.size();
+
+	// temp per-vertex data for point strains:
+	std::vector<double> epsilon_xx(nv);
+	std::vector<double> gamma_xy(nv);
+	std::vector<double> gamma_xz(nv);
+
+	// temp per-vertex data for point stresses:
+	std::vector<double> sigma_xx(nv);
+	std::vector<double> sigma_xy(nv);
+	std::vector<double> sigma_xz(nv);
+
+	double warp_dy = 0; // to do 
+	double warp_dz = 0; // to do 
+
+	for (int i = 0; i < nv; ++i) {
+		std::shared_ptr<ChSectionMaterial> mmat;
+		if (materials.size() == 1)
+			mmat = materials[0];
+		else
+			mmat = materials[i];
+
+		double vy = vertexes[i][0];
+		double vz = vertexes[i][1];
+		epsilon_xx[i]	= strain_n.x() + strain_m.y() * vz - strain_m.z() * vy;
+		gamma_xy[i]		= strain_n.y() + strain_m.x() * (warp_dy - vz);
+		gamma_xz[i]		= strain_n.z() + strain_m.x() * (warp_dz + vy);
+		// simple linear elastic model:
+		sigma_xx[i] = mmat->E * epsilon_xx[i];
+		sigma_xy[i] = mmat->G * gamma_xy[i];
+		sigma_xz[i] = mmat->G * gamma_xz[i];
+	}
+
+	// integrate on triangles, assuming linear interpolation of vertex values
+	stress_n = VNULL;
+	stress_m = VNULL;
+	for (int t = 0; t < nt; ++t) {
+		size_t iv1 = triangles[t].x();
+		size_t iv2 = triangles[t].y();
+		size_t iv3 = triangles[t].z();
+		double y1 = this->vertexes[iv1][0];
+		double z1 = this->vertexes[iv1][1];
+		double y2 = this->vertexes[iv2][0];
+		double z2 = this->vertexes[iv2][1];
+		double y3 = this->vertexes[iv3][0];
+		double z3 = this->vertexes[iv3][1];
+
+		double A = fabs(0.5* ((y1 * (z2 - z3) + y2 * (z3 - z1) + y3 * (z1 - z2))));
+
+		double s1 = sigma_xx[iv1];
+		double s2 = sigma_xx[iv2];
+		double s3 = sigma_xx[iv3];
+		double sxz1 = sigma_xz[iv1];
+		double sxz2 = sigma_xz[iv2];
+		double sxz3 = sigma_xz[iv3];
+		double sxy1 = sigma_xy[iv1];
+		double sxy2 = sigma_xy[iv2];
+		double sxy3 = sigma_xy[iv3];
+
+		stress_n.x() += (1./3.) * A * ( s1  + s2  + s3 );
+		stress_n.y() += (1./3.) * A * ( sxy1 + sxy2 + sxy3);
+		stress_n.z() += (1./3.) * A * ( sxz1 + sxz2 + sxz3);
+		
+		stress_m.x() += 2. * A*((sxz1*y1) / 12. + (sxz1*y2) / 24. + (sxz2*y1) / 24. + (sxz1*y3) / 24. + (sxz2*y2) / 12. + (sxz3*y1) / 24. + (sxz2*y3) / 24. + (sxz3*y2) / 24. + (sxz3*y3) / 12. - (sxy1*z1) / 12. - (sxy1*z2) / 24. - (sxy2*z1) / 24. - (sxy1*z3) / 24. - (sxy2*z2) / 12. - (sxy3*z1) / 24. - (sxy2*z3) / 24. - (sxy3*z2) / 24. - (sxy3*z3) / 12.);
+		stress_m.y() += 2. * A*((s1*z1) / 12. + (s1*z2) / 24. + (s2*z1) / 24. + (s1*z3) / 24. + (s2*z2) / 12. + (s3*z1) / 24. + (s2*z3) / 24. + (s3*z2) / 24. + (s3*z3) / 12.);
+		stress_m.z() -= 2. * A*((s1*y1) / 12. + (s1*y2) / 24. + (s2*y1) / 24. + (s1*y3) / 24. + (s2*y2) / 12. + (s3*y1) / 24. + (s2*y3) / 24. + (s3*y2) / 24. + (s3*y3) / 12.);
+	}
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////  
 
 

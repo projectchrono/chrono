@@ -344,6 +344,101 @@ public:
 };
 
 
+/// Elasticity for a beam section in 3D, where the section is 
+/// defined by a mesh of triangles. 
+/// This model saves you from the need of knowing I_z, I_y, A, etc.,
+/// because the generalized n and m are automatically computed by integrating stresses 
+/// on the triangulated section. Note that stresses are linearly interpolated 
+/// between the vertexes of the triangle sections.
+/// Triangles can share vertexes.
+/// Each vertex has its own material.
+/// Section is assumed always flat, even if the section mesh is not connected, ex.
+/// if one models a section like a "8" shape where the two "o" are not connected.
+/// Benefits:
+/// - no need to provide I_y, I_z, A, etc.
+/// - possibility of getting values of stresses in different points of the section
+/// - possibility of using some 1D plasticity to discover plasticizing zones in the section
+/// Limitations:
+/// - section torsional warping not included,
+/// - torsion stresses are correct only in tube-like shapes, or similar; other models such as
+///   ChElasticityCosseratAdvanced contain torsional effects via the macroscopic J constant; here there is 
+///   a torsion correction factor just for correcting the m_x result, but at this point, shear in material points would have less meaning.
+/// - shear stresses (ex. cantilever with transverse load) should be almost parabolic in the section in reality,
+///   here would be constant. Other models such as ChElasticityCosseratAdvanced correct this effect at the macroscopic level
+///   using the Timoshenko correction factors Ks_y and Ks_z, here they are used as well, but if so, shear in material points would have less meaning.
+/// This material can be shared between multiple beams.
+///
+
+class ChApiFea ChElasticityCosseratMesh : public ChElasticityCosserat {
+public:
+
+	class ChSectionMaterial {
+	public:
+		ChSectionMaterial(double mE=1.0 , double mG=1.0 ) : E(mE), G(mG) {}
+
+		double E;
+		double G;
+	};
+
+	ChElasticityCosseratMesh() {
+	}
+
+	virtual ~ChElasticityCosseratMesh() {}
+
+		/// Access the list of vertexes, to get/change/add mesh section vertexes. 
+	virtual std::vector<ChVector2<>>& Vertexes() {
+		return vertexes;
+	}
+
+		/// Access the list of material(s), to get/change/add mesh section materials. 
+		/// Each material correspond to an equivalent vertex.
+		/// If there is only one material, it will be used for all vertexes.
+	std::vector<std::shared_ptr<ChSectionMaterial>>& Materials() {
+		return materials;
+	}
+
+		/// Access the list of triangles, to get/change/add mesh section triangles. 
+		/// Each triangle has three integer indexes pointing to the three connected vertexes
+		/// in the Vertexes() array, where 0 is the 1st vertex etc.
+	std::vector<ChVector<int>>& Triangles() {
+		return triangles;
+	}
+
+
+	/// Set rectangular centered. No material defined.
+	virtual void SetAsRectangularSection(double width_y, double width_z) override;
+
+	/// Set circular centered. No material defined.
+	virtual void SetAsCircularSection(double diameter) override;
+
+
+	// Interface to base:
+
+	/// Compute the generalized cut force and cut torque. 
+	virtual void ComputeStress(
+		ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
+		ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
+		const ChVector<>& strain_e, ///< the local strain (deformation part): x= elongation, y and z are shear
+		const ChVector<>& strain_k  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
+	) override;
+
+	/// Compute the 6x6 tangent material stiffness matrix [Km] =d\sigma/d\epsilon
+	/// * for the moment defaults to numerical differentiation *
+	/*
+	virtual void ComputeStiffnessMatrix(
+		ChMatrixDynamic<>& K,       ///< return the 6x6 stiffness matrix
+		const ChVector<>& strain_e, ///< the local strain (deformation part): x= elongation, y and z are shear
+		const ChVector<>& strain_k  ///< the local strain (curvature part), x= torsion, y and z are line curvatures
+	) override;
+	*/
+protected:
+	std::vector<ChVector2<>> vertexes;
+	std::vector<std::shared_ptr<ChSectionMaterial>> materials;
+	std::vector<ChVector<int>> triangles;
+};
+
+
+
 
 /// Base class for plasticity of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
