@@ -74,14 +74,14 @@ public:
 		ChVector<> strain_e_inc = strain_e;
 		ChVector<> strain_k_inc = strain_k;
 		this->ComputeStress(astress_n, astress_m, strain_e, strain_k);
-		for (int i = 0;i < 2; ++i) {
+		for (int i = 0;i < 3; ++i) {
 			strain_e_inc[i] += epsi;
 			this->ComputeStress(bstress_n, bstress_m, strain_e_inc, strain_k_inc);
 			K.PasteVector((bstress_n - astress_n)*invepsi, 0, i);
 			K.PasteVector((bstress_m - astress_m)*invepsi, 3, i);
 			strain_e_inc[i] -= epsi;
 		}
-		for (int i = 0;i < 2; ++i) {
+		for (int i = 0;i < 3; ++i) {
 			strain_k_inc[i] += epsi;
 			this->ComputeStress(bstress_n, bstress_m, strain_e_inc, strain_k_inc);
 			K.PasteVector((bstress_n - astress_n)*invepsi, 0, i+3);

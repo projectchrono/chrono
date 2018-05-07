@@ -528,14 +528,14 @@ void ChPlasticityCosserat::ComputeStiffnessMatrixElastoplastic(
 		ChVector<> bstress_m;
 		ChVector<> strain_n_inc = strain_n;
 		ChVector<> strain_m_inc = strain_m;
-		for (int i = 0;i < 2; ++i) {
+		for (int i = 0;i < 3; ++i) {
 			strain_n_inc[i] += epsi;
 			this->ComputeStressWithReturnMapping(bstress_n, bstress_m, me_strain_n_new, me_strain_m_new, *b_plastic_data[0], strain_n_inc, strain_m_inc, data);
 			K.PasteVector((bstress_n - astress_n)*invepsi, 0, i);
 			K.PasteVector((bstress_m - astress_m)*invepsi, 3, i);
 			strain_n_inc[i] -= epsi;
 		}
-		for (int i = 0;i < 2; ++i) {
+		for (int i = 0;i < 3; ++i) {
 			strain_m_inc[i] += epsi;
 			this->ComputeStressWithReturnMapping(bstress_n, bstress_m, me_strain_n_new, me_strain_m_new, *b_plastic_data[0], strain_n_inc, strain_m_inc, data);
 			K.PasteVector((bstress_n - astress_n)*invepsi, 0, i + 3);
