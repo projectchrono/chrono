@@ -13,7 +13,7 @@
 #include "../ChTestConfig.h"
 #include "chrono/physics/ChGlobal.h"
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) && !defined(__GNUC__)
 #include <stdatomic.h>
 #endif
 #include <iostream>
@@ -25,7 +25,7 @@ static volatile int first = 100000;
 
 int main() {
     ChTimer<double> OSX, GNU, CHRONO;
-#if defined(__APPLE__)
+#if defined(__APPLE__) && !defined(__GNUC__)
     OSX.start();
     for (int j = 0; j < 100; j++) {
         for (int i = 0; i < 1000000; i++) {

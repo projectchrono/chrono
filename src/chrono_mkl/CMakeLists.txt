@@ -44,10 +44,12 @@ endif()
 # ------------------------------------------------------------------------------
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-	SET(CH_MKL_LINK_FLAGS	"-Wl,--as-needed")
+  if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	  set(CH_MKL_LINK_FLAGS	"-Wl,--as-needed")
+  endif()
 endif ()
 
-SET(CH_MKL_LINK_FLAGS "${CH_MKL_LINK_FLAGS}" PARENT_SCOPE)
+set(CH_MKL_LINK_FLAGS "${CH_MKL_LINK_FLAGS}" PARENT_SCOPE)
 	
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the MKL module
