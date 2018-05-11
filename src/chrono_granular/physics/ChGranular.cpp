@@ -57,10 +57,10 @@ void chrono::granular::ChSystemGranularMonodisperse::setFillBounds(float xmin,
 
 void chrono::granular::ChSystemGranularMonodisperse::generate_DEs() {
     // Create the falling balls
-    float ball_epsilon = monoDisperseSphRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
-    printf("eps is %f, rad is %5f\n", ball_epsilon, monoDisperseSphRadius_SU * 1.0f);
+    float ball_epsilon = sphereRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
+    printf("eps is %f, rad is %5f\n", ball_epsilon, sphereRadius_SU * 1.0f);
 
-    chrono::utils::HCPSampler<float> sampler(2.4 * monoDisperseSphRadius_SU);  // Add epsilon
+    chrono::utils::HCPSampler<float> sampler(2.4 * sphereRadius_SU);  // Add epsilon
 
     // We need to pass in half-length box here
 
@@ -80,8 +80,7 @@ void chrono::granular::ChSystemGranularMonodisperse::generate_DEs() {
     // float generateZ = -box_H / (2. * LENGTH_UNIT) + generateHalfHeight;
     ChVector<float> boxCenter(xmid, ymid, zmid);
     // We need to subtract off a sphere radius to ensure we don't get put at the edge
-    ChVector<float> hdims{xlen - monoDisperseSphRadius_SU, ylen - monoDisperseSphRadius_SU,
-                          zlen - monoDisperseSphRadius_SU};
+    ChVector<float> hdims{xlen - sphereRadius_SU, ylen - sphereRadius_SU, zlen - sphereRadius_SU};
     std::vector<ChVector<float>> points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
 
     nDEs = (unsigned int)points.size();
@@ -161,21 +160,25 @@ of various physical quantities set by the user.
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     MASS_UNIT = massSphere;
-    K_stiffness = (modulusYoung_SPH2SPH > modulusYoung_SPH2WALL ? modulusYoung_SPH2SPH : modulusYoung_SPH2WALL);
+    K_stiffness = (YoungModulus_SPH2SPH > YoungModulus_SPH2WALL ? YoungModulus_SPH2SPH : YoungModulus_SPH2WALL);
     TIME_UNIT = sqrt(massSphere / (PSI_h * K_stiffness)) / PSI_T;
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
     LENGTH_UNIT = massSphere * magGravAcc / (PSI_L * K_stiffness);
 
-    monoDisperseSphRadius_SU = sphere_radius / LENGTH_UNIT;
-    reciprocal_sphDiam_SU = 1. / (2. * monoDisperseSphRadius_SU);
+    sphereRadius_SU = sphere_radius / LENGTH_UNIT;
 
     float scalingFactor = ((float)PSI_L) / (PSI_T * PSI_T * PSI_h);
-    gravAcc_X_factor_SU = scalingFactor * X_accGrav / magGravAcc;
-    gravAcc_Y_factor_SU = scalingFactor * Y_accGrav / magGravAcc;
-    gravAcc_Z_factor_SU = scalingFactor * Z_accGrav / magGravAcc;
+    gravity_X_SU = scalingFactor * X_accGrav / magGravAcc;
+    gravity_Y_SU = scalingFactor * Y_accGrav / magGravAcc;
+    gravity_Z_SU = scalingFactor * Z_accGrav / magGravAcc;
+
+    // TODO check sphere vs wall young modulus
+    K_n_SU = (1.f / (1.f * PSI_T * PSI_T * PSI_h));
+    // TODO Make this legit, from user input
+    Gamma_n_SU = .005;
     // Handy debug output
-    printf("SU gravity is %f, %f, %f\n", gravAcc_X_factor_SU, gravAcc_Y_factor_SU, gravAcc_Z_factor_SU);
+    printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);
     printf("SU mass is %f\n", MASS_UNIT);
-    printf("SU radius is %u\n", monoDisperseSphRadius_SU);
+    printf("SU radius is %u\n", sphereRadius_SU);
 }

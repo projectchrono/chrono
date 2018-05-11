@@ -41,4 +41,4 @@
 /// a sphere
 #define PSI_h 4
 /// Value that controls the time unit. It is like a safety factor.
-#define PSI_T 4
+#define PSI_T 8

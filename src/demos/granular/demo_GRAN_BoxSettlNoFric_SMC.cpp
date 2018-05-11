@@ -224,8 +224,8 @@ int main(int argc, char* argv[]) {
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless settlingExperiment(ballRadius, ballDensity);
     settlingExperiment.setBOXdims(boxL, boxD, boxH);
-    settlingExperiment.YoungModulus_SPH2SPH(normStiffness_S2S);
-    settlingExperiment.YoungModulus_SPH2WALL(normStiffness_S2W);
+    settlingExperiment.set_YoungModulus_SPH2SPH(normStiffness_S2S);
+    settlingExperiment.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
     settlingExperiment.setOutputDirectory(output_prefix);
     settlingExperiment.setOutputMode(write_mode);
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     std::function<double(double)> posFunX = [](double t) {
         // Start oscillating at t = .5s
         double t0 = .5;
-        double freq = 1 * M_PI;
+        double freq = .5 * M_PI;
 
         if (t < t0) {
             return -.5;
@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
     // Set the position of the BD
     settlingExperiment.setBDPositionFunction(posFunX, posFunStill, posFunStill);
     // Tell the sim to unlock the bd so it can follow that position function
-    settlingExperiment.set_BD_Fixed(true);
+    settlingExperiment.set_BD_Fixed(false);
     settlingExperiment.setVerbose(verbose);
 
     // Run settline experiments
