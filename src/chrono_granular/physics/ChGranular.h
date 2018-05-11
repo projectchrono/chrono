@@ -99,12 +99,9 @@ class CH_GRANULAR_API ChSystemGranular {
     float Y_accGrav;  //!< Y component of the gravitational acceleration
     float Z_accGrav;  //!< Z component of the gravitational acceleration
 
-    float
-        gravAcc_X_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_X/g)\f$, where g is the gravitational acceleration
-    float
-        gravAcc_Y_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
-    float
-        gravAcc_Z_factor_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
+    float gravity_X_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_X/g)\f$, where g is the gravitational acceleration
+    float gravity_Y_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
+    float gravity_Z_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
 
     /// Entry "i" says how many spheres touch SD i
     std::vector<unsigned int, cudallocator<unsigned int>> SD_NumOf_DEs_Touching;
@@ -117,7 +114,7 @@ class CH_GRANULAR_API ChSystemGranular {
     /// Partition the big domain (BD) and sets the number of SDs that BD is split in.
     /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
     virtual void partition_BD() = 0;
-    virtual void copyCONSTdata_to_device() = 0;
+    virtual void copy_const_data_to_device() = 0;
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
 };
@@ -189,8 +186,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     unsigned int psi_h_Factor;
     unsigned int psi_L_Factor;
 
-    unsigned int monoDisperseSphRadius_SU;  //!< Size of the sphere radius, in Simulation Units
-    double reciprocal_sphDiam_SU;           //!< The inverse of the sphere diameter, in Simulation Units
+    unsigned int sphereRadius_SU;  //!< Size of the sphere radius, in Simulation Units
 
     unsigned int SD_L_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
     unsigned int SD_D_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
@@ -233,8 +229,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     ~ChSystemGranularMonodisperse_SMC_Frictionless() {}
 
-    inline void YoungModulus_SPH2SPH(double someValue) { modulusYoung_SPH2SPH = someValue; }
-    inline void YoungModulus_SPH2WALL(double someValue) { modulusYoung_SPH2WALL = someValue; }
+    inline void set_YoungModulus_SPH2SPH(double someValue) { YoungModulus_SPH2SPH = someValue; }
+    inline void set_YoungModulus_SPH2WALL(double someValue) { YoungModulus_SPH2WALL = someValue; }
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void run(float t_end);
@@ -242,20 +238,21 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string, bool, bool);
     void writeFile(std::string, unsigned int*);
-    void copyDataBackToHost();
     virtual void updateBDPosition(int, int);
 
   protected:
-    virtual void copyCONSTdata_to_device();
+    virtual void copy_const_data_to_device();
     virtual void copyBD_Frame_to_device();
 
     virtual void switch_to_SimUnits();
 
     virtual void cleanup_simulation();
 
-    double modulusYoung_SPH2SPH;
-    double modulusYoung_SPH2WALL;
+    double YoungModulus_SPH2SPH;
+    double YoungModulus_SPH2WALL;
     double K_stiffness;
+    float Gamma_n_SU;
+    float K_n_SU;
 };
 }  // namespace granular
 }  // namespace chrono

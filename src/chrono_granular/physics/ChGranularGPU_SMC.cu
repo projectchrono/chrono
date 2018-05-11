@@ -30,10 +30,6 @@
 #define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
 #define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
 #define MAX_Z_POS_UNSIGNED (d_SD_Hdim_SU * d_box_H_SU)
-// Use user-defined quantities for coefficients
-#define K_N (1.f / (1.f * psi_T_dFactor * psi_T_dFactor * psi_h_dFactor))
-// TODO we need to get the damping coefficient from user
-#define GAMMA_N .005
 
 #define CUDA_THREADS 128
 
@@ -51,19 +47,24 @@
         cub::ThreadTrap();   \
     }
 
-__constant__ unsigned int d_monoDisperseSphRadius_SU;  //!< Radius of the sphere, expressed in SU
-__constant__ unsigned int d_SD_Ldim_SU;                //!< Ad-ed L-dimension of the SD box
-__constant__ unsigned int d_SD_Ddim_SU;                //!< Ad-ed D-dimension of the SD box
-__constant__ unsigned int d_SD_Hdim_SU;                //!< Ad-ed H-dimension of the SD box
-__constant__ unsigned int psi_T_dFactor;               //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_h_dFactor;               //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_L_dFactor;               //!< factor used in establishing the software-time-unit
-__constant__ unsigned int d_box_L_SU;                  //!< Ad-ed L-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_D_SU;                  //!< Ad-ed D-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_H_SU;                  //!< Ad-ed H-dimension of the BD box in multiples of subdomains
-__constant__ float gravAcc_X_d_factor_SU;              //!< Device counterpart of the constant gravAcc_X_factor_SU
-__constant__ float gravAcc_Y_d_factor_SU;              //!< Device counterpart of the constant gravAcc_Y_factor_SU
-__constant__ float gravAcc_Z_d_factor_SU;              //!< Device counterpart of the constant gravAcc_Z_factor_SU
+// Use user-defined quantities for coefficients
+__constant__ float d_Gamma_n;  //!< Radius of the sphere, expressed in SU
+// TODO we need to get the damping coefficient from user
+__constant__ float d_K_n;  //!< Radius of the sphere, expressed in SU
+
+__constant__ unsigned int d_sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
+__constant__ unsigned int d_SD_Ldim_SU;       //!< Ad-ed L-dimension of the SD box
+__constant__ unsigned int d_SD_Ddim_SU;       //!< Ad-ed D-dimension of the SD box
+__constant__ unsigned int d_SD_Hdim_SU;       //!< Ad-ed H-dimension of the SD box
+__constant__ unsigned int psi_T_dFactor;      //!< factor used in establishing the software-time-unit
+__constant__ unsigned int psi_h_dFactor;      //!< factor used in establishing the software-time-unit
+__constant__ unsigned int psi_L_dFactor;      //!< factor used in establishing the software-time-unit
+__constant__ unsigned int d_box_L_SU;         //!< Ad-ed L-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_D_SU;         //!< Ad-ed D-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_H_SU;         //!< Ad-ed H-dimension of the BD box in multiples of subdomains
+__constant__ float gravAcc_X_d_factor_SU;     //!< Device counterpart of the constant gravity_X_SU
+__constant__ float gravAcc_Y_d_factor_SU;     //!< Device counterpart of the constant gravity_Y_SU
+__constant__ float gravAcc_Z_d_factor_SU;     //!< Device counterpart of the constant gravity_Z_SU
 
 // Changed by updateBDPosition() at every timestep
 __constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
@@ -111,47 +112,47 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
     // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
     // nx = (xCenter - radius) / wx .
-    n[0] = (sphCenter_X_modified - d_monoDisperseSphRadius_SU) / d_SD_Ldim_SU;
+    n[0] = (sphCenter_X_modified - d_sphereRadius_SU) / d_SD_Ldim_SU;
     // Same for D and H
-    n[1] = (sphCenter_Y_modified - d_monoDisperseSphRadius_SU) / d_SD_Ddim_SU;
-    n[2] = (sphCenter_Z_modified - d_monoDisperseSphRadius_SU) / d_SD_Hdim_SU;
+    n[1] = (sphCenter_Y_modified - d_sphereRadius_SU) / d_SD_Ddim_SU;
+    n[2] = (sphCenter_Z_modified - d_sphereRadius_SU) / d_SD_Hdim_SU;
     // This is kind of gross and hacky, if we're at the bottom boundary, the bottom SD is 0
     // If we're at the top boundary, the top SD is the max
-    if (sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
+    if (sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0) {
         n[0] = 0;
-    } else if (sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS_UNSIGNED) {
+    } else if (sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS_UNSIGNED) {
         n[0] = d_box_L_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    if (sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
+    if (sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0) {
         n[1] = 0;
-    } else if (sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS_UNSIGNED) {
+    } else if (sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_Y_POS_UNSIGNED) {
         n[1] = d_box_D_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    if (sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) {
+    if (sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0) {
         n[2] = 0;
-    } else if (sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS_UNSIGNED) {
+    } else if (sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_Z_POS_UNSIGNED) {
         n[2] = d_box_H_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    // n[0] += (sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) -
-    //         (sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS);
-    // n[1] += (sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) -
-    //         (sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS);
-    // n[2] += (sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0) -
-    //         (sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS);
+    // n[0] += (sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0) -
+    //         (sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
+    // n[1] += (sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0) -
+    //         (sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
+    // n[2] += (sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0) -
+    //         (sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
     // This conditional says if we're at the boundary
-    unsigned int boundary = sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-                            sphCenter_X_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_X_POS_UNSIGNED ||
-                            sphCenter_Y_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-                            sphCenter_Y_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Y_POS_UNSIGNED ||
-                            sphCenter_Z_modified - (signed int)d_monoDisperseSphRadius_SU <= 0 ||
-                            sphCenter_Z_modified + (signed int)d_monoDisperseSphRadius_SU >= MAX_Z_POS_UNSIGNED;
+    unsigned int boundary = sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0 ||
+                            sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS_UNSIGNED ||
+                            sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0 ||
+                            sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_Y_POS_UNSIGNED ||
+                            sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0 ||
+                            sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_Z_POS_UNSIGNED;
     if (n[0] >= d_box_L_SU) {
-        // printf("%d, %d\n", sphCenter_X_modified - d_monoDisperseSphRadius_SU,
-        //        sphCenter_X_modified - (signed int)d_monoDisperseSphRadius_SU <= 0);
+        // printf("%d, %d\n", sphCenter_X_modified - d_sphereRadius_SU,
+        //        sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0);
         ABORTABORTABORT(
             "x is too large, boundary is %u, n is %u, nmax is %u, pos is %d, mod is %d, max is %d, dim is %d\n",
             boundary, n[0], d_box_L_SU, sphCenter_X, sphCenter_X_modified, d_SD_Ldim_SU * d_box_L_SU, d_SD_Ldim_SU,
-            d_monoDisperseSphRadius_SU);
+            d_sphereRadius_SU);
     }
     // Find distance from next box in relevant dir to center, we may be straddling the two
     int d[3];                                                 // Store penetrations
@@ -174,21 +175,21 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
         SDs[i] += (n[0] + (i & 0x1)) * d_box_D_SU * d_box_H_SU;
         // s == own[e] evals true if the current SD is owner
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[0]) < d_monoDisperseSphRadius_SU) || ((i & 0x1) == (d[0] < 0));
+        valid &= (abs(d[0]) < d_sphereRadius_SU) || ((i & 0x1) == (d[0] < 0));
 
         // High/low in y-dir
         // s = i & 0x2; // Inlined now
         // Scale to global index and add to total
         SDs[i] += (n[1] + ((i >> 1) & 0x1)) * d_box_H_SU;
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[1]) < d_monoDisperseSphRadius_SU) || (((i >> 1) & 0x1) == (d[1] < 0));
+        valid &= (abs(d[1]) < d_sphereRadius_SU) || (((i >> 1) & 0x1) == (d[1] < 0));
 
         // High/low in z-dir
         // s = i & 0x4; // Inlined now
         // Scale to global index and add to total
         SDs[i] += (n[2] + ((i >> 2) & 0x1));
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[2]) < d_monoDisperseSphRadius_SU) || (((i >> 2) & 0x1) == (d[2] < 0));
+        valid &= (abs(d[2]) < d_sphereRadius_SU) || (((i >> 2) & 0x1) == (d[2] < 0));
 
         // This is nasty but it checks if we're actually touching a bounary, in which case
 
@@ -392,11 +393,8 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
     // Are we touching wall?
     int touchingWall = 0;
     // Compute spring factor in force
-    float scalingFactor = (1.0f * alpha_h_bar) * K_N;
-    // This gamma_n is fake, needs to be given by user
-    // Ignore damping at walls for now, something is wrong
-    // float dampingCoeff = 0;  //.0001 * alpha_h_bar;
-    // dampingCoeff = 0;
+    float scalingFactor = (1.0f * alpha_h_bar) * d_K_n;
+
     // tmp vars to save writes, probably not necessary
     float xcomp = 0;
     float ycomp = 0;
@@ -404,42 +402,42 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
 
     // Do x direction
     // penetration of sphere into bottom x wall
-    pen = sphXpos_modified - (signed int)d_monoDisperseSphRadius_SU;
+    pen = sphXpos_modified - (signed int)d_sphereRadius_SU;
     // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
     // Need to get relative velocity
     xcomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top X wall
-    pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)d_monoDisperseSphRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)d_sphereRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
     xcomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
     // penetration of sphere into relevant wall
-    pen = sphYpos_modified - (signed int)d_monoDisperseSphRadius_SU;
+    pen = sphYpos_modified - (signed int)d_sphereRadius_SU;
     // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
     ycomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top y wall
-    pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)d_monoDisperseSphRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)d_sphereRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
     ycomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
     // penetration of sphere into relevant wall
-    pen = sphZpos_modified - (signed int)d_monoDisperseSphRadius_SU;
+    pen = sphZpos_modified - (signed int)d_sphereRadius_SU;
     // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
     zcomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top z wall
-    pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)d_monoDisperseSphRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_monoDisperseSphRadius_SU;
+    pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)d_sphereRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
     zcomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
@@ -599,8 +597,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
         float bodyA_Y_velCorr = 0.f;
         float bodyA_Z_velCorr = 0.f;
 
-        float scalingFactor = alpha_h_bar * K_N;
-        double sphdiameter = 2. * d_monoDisperseSphRadius_SU;
+        float scalingFactor = alpha_h_bar * d_K_n;
+        double sphdiameter = 2. * d_sphereRadius_SU;
         double invSphDiameter = 1. / sphdiameter;
         unsigned int ownerSD = figureOutOwnerSD(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA]);
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
@@ -636,7 +634,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
 
             // We have a collision here, log it for later
             // not very divergent, super quick
-            if (contactSD == thisSD && penetration_int < 4 * d_monoDisperseSphRadius_SU * d_monoDisperseSphRadius_SU) {
+            if (contactSD == thisSD && penetration_int < 4 * d_sphereRadius_SU * d_sphereRadius_SU) {
                 bodyB_list[ncontacts] = bodyB;  // Save the collision pair
                 ncontacts++;                    // Increment the contact counter
             }
@@ -683,15 +681,14 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
 
             // These lines use forward euler right now. Each has an alpha_h_bar term but we can use a different
             // method simply by changing the following computations
-            // Compute force updates
+            // Compute force updates for spring term
             float springTermX = scalingFactor * deltaX * sphdiameter * penetration / d_DE_Mass;
             float springTermY = scalingFactor * deltaY * sphdiameter * penetration / d_DE_Mass;
             float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration / d_DE_Mass;
-            // Not sure what gamma_n is supposed to be, but this seems reasonable numerically
-            // float gamma_n = GAMMA_N;
-            float dampingTermX = -GAMMA_N * alpha_h_bar * deltaX_dot;
-            float dampingTermY = -GAMMA_N * alpha_h_bar * deltaY_dot;
-            float dampingTermZ = -GAMMA_N * alpha_h_bar * deltaZ_dot;
+            // Compute force updates for damping term
+            float dampingTermX = -d_Gamma_n * alpha_h_bar * deltaX_dot;
+            float dampingTermY = -d_Gamma_n * alpha_h_bar * deltaY_dot;
+            float dampingTermZ = -d_Gamma_n * alpha_h_bar * deltaZ_dot;
 
             // Add damping term to spring term, write back to counter
             bodyA_X_velCorr += springTermX + dampingTermX;
@@ -882,7 +879,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     }
 }
 /// Copy most constant data to device, this should run at start
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copyCONSTdata_to_device() {
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_SU, &SD_L_SU, sizeof(d_SD_Ldim_SU)));
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ddim_SU, &SD_D_SU, sizeof(d_SD_Ddim_SU)));
@@ -896,16 +893,17 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::c
     gpuErrchk(cudaMemcpyToSymbol(psi_h_dFactor, &psi_h_Factor, sizeof(psi_h_Factor)));
     gpuErrchk(cudaMemcpyToSymbol(psi_L_dFactor, &psi_L_Factor, sizeof(psi_L_Factor)));
 
-    gpuErrchk(cudaMemcpyToSymbol(gravAcc_X_d_factor_SU, &gravAcc_X_factor_SU, sizeof(gravAcc_X_factor_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(gravAcc_Y_d_factor_SU, &gravAcc_Y_factor_SU, sizeof(gravAcc_Y_factor_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(gravAcc_Z_d_factor_SU, &gravAcc_Z_factor_SU, sizeof(gravAcc_Z_factor_SU)));
+    gpuErrchk(cudaMemcpyToSymbol(gravAcc_X_d_factor_SU, &gravity_X_SU, sizeof(gravity_X_SU)));
+    gpuErrchk(cudaMemcpyToSymbol(gravAcc_Y_d_factor_SU, &gravity_Y_SU, sizeof(gravity_Y_SU)));
+    gpuErrchk(cudaMemcpyToSymbol(gravAcc_Z_d_factor_SU, &gravity_Z_SU, sizeof(gravity_Z_SU)));
 
-    gpuErrchk(
-        cudaMemcpyToSymbol(d_monoDisperseSphRadius_SU, &monoDisperseSphRadius_SU, sizeof(d_monoDisperseSphRadius_SU)));
+    gpuErrchk(cudaMemcpyToSymbol(d_sphereRadius_SU, &sphereRadius_SU, sizeof(d_sphereRadius_SU)));
+    gpuErrchk(cudaMemcpyToSymbol(d_Gamma_n, &Gamma_n_SU, sizeof(d_sphereRadius_SU)));
+    gpuErrchk(cudaMemcpyToSymbol(d_K_n, &K_n_SU, sizeof(d_sphereRadius_SU)));
     gpuErrchk(cudaMemcpyToSymbol(d_DE_Mass, &MASS_UNIT, sizeof(MASS_UNIT)));
 }
 
-/// Similar to the copyCONSTdata_to_device, but saves us a big copy
+/// Similar to the copy_const_data_to_device, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_device() {
     gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X, &BD_frame_X, sizeof(BD_frame_X)));
@@ -917,22 +915,10 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::c
     // gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z_dot, &BD_frame_Z_dot, sizeof(BD_frame_Z_dot)));
 }
 
-/// Copy positions and velocities back to host
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copyDataBackToHost() {
-    // Copy back positions
-    // gpuErrchk(cudaMemcpy(pos_X.data(), p_d_CM_X, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    // gpuErrchk(cudaMemcpy(pos_Y.data(), p_d_CM_Y, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    // gpuErrchk(cudaMemcpy(pos_Z.data(), p_d_CM_Z, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    // gpuErrchk(cudaMemcpy(pos_X_dt.data(), pos_X_dt.data(), nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    // gpuErrchk(cudaMemcpy(pos_Y_dt.data(), p_d_CM_YDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-    // gpuErrchk(cudaMemcpy(pos_Z_dt.data(), p_d_CM_ZDOT, nDEs * sizeof(int), cudaMemcpyDeviceToHost));
-}
-
 // Check number of spheres in each SD and dump relevant info to file
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCounts(std::string ofile,
                                                                                     bool write_out = false,
                                                                                     bool verbose = false) {
-    // copyDataBackToHost();
     // Count of DEs in each SD
     unsigned int* sdvals = SD_NumOf_DEs_Touching.data();
     // DEs that are in each SD
@@ -975,14 +961,11 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCou
     if (write_out) {
         writeFile(ofile, deCounts);
     }
-    // delete[] sdvals;
-    // delete[] sdSpheres;
     delete[] deCounts;
 }
-
+// This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile,
                                                                                 unsigned int* deCounts) {
-    // copyDataBackToHost();
     // unnecessary if called by checkSDCounts()
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRN_OUTPUT_MODE::BINARY) {
@@ -1052,7 +1035,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
 
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
-    copyCONSTdata_to_device();
+    copy_const_data_to_device();
     copyBD_Frame_to_device();
     gpuErrchk(cudaDeviceSynchronize());
 
@@ -1064,18 +1047,18 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
-    VERBOSE_PRINTF("doing priming!\n");
-    VERBOSE_PRINTF("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
+    printf("doing priming!\n");
+    printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 
     primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
         pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
     gpuErrchk(cudaDeviceSynchronize());
-    VERBOSE_PRINTF("priming finished!\n");
+    printf("priming finished!\n");
     // Check in first timestep
     checkSDCounts(output_directory + "/step000000", true, false);
 
     // Settling simulation loop.
-    unsigned int stepSize_SU = 5;
+    unsigned int stepSize_SU = 1;
     unsigned int tEnd_SU = std::ceil(tEnd / (TIME_UNIT * PSI_h));
     // Which timestep is it?
     unsigned int currstep = 0;
@@ -1089,10 +1072,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
         return;
     }
 
-    VERBOSE_PRINTF("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
-                   tEnd / nsteps);
-    VERBOSE_PRINTF("z grav term with timestep %u is %f\n", stepSize_SU,
-                   stepSize_SU * stepSize_SU * gravAcc_Z_factor_SU);
+    printf("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
+           tEnd / nsteps);
+    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 
     float fps = 50;
     // Number of frames to render
@@ -1100,9 +1082,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
     // number of steps to go before rendering a frame
     int rendersteps = nFrames > 0 ? nsteps / nFrames : nsteps;
 
+    VERBOSE_PRINTF("Starting Main Simulation loop!\n");
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
-        VERBOSE_PRINTF("Starting loop!\n");
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
             updateBDPosition(crntTime_SU, stepSize_SU);
@@ -1154,7 +1136,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
             checkSDCounts(std::string(filename), true, false);
         }
     }
-    VERBOSE_PRINTF("radius is %u\n", monoDisperseSphRadius_SU);
+    printf("SU radius is %u\n", sphereRadius_SU);
     // Don't write but print verbosely
     checkSDCounts("", false, true);
 
