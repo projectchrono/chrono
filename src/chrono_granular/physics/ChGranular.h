@@ -78,8 +78,8 @@ class CH_GRANULAR_API ChSystemGranular {
     double MASS_UNIT;    //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
                          //!< equal the the mass of a sphere
 
-    unsigned int nDEs;  ///< Number of discrete elements
-    unsigned int nSDs;  ///< Number of subdomains that the BD is split in
+    unsigned int nDEs;  //!< Number of discrete elements
+    unsigned int nSDs;  //!< Number of subdomains that the BD is split in
 
     // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
     // Makes somewhat faster memcpys
@@ -120,6 +120,7 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void copyCONSTdata_to_device() = 0;
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
+    virtual void determine_new_stepSize() = 0; //!< Implements a strategy for changing the integration time step.
 };
 
 /**
@@ -253,9 +254,41 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     virtual void cleanup_simulation();
 
+    virtual void determine_new_stepSize() { return; }
+
     double modulusYoung_SPH2SPH;
     double modulusYoung_SPH2WALL;
     double K_stiffness;
+};
+
+/**
+ * ChSystemGranularMonodisperse_NSC_Frictionless: DVI-based solution. Mono-disperse setup, one radius for all spheres.
+ * There is no friction.
+ */
+class CH_GRANULAR_API ChSystemGranularMonodisperse_NSC_Frictionless : public ChSystemGranularMonodisperse {
+  public:
+      ChSystemGranularMonodisperse_NSC_Frictionless(float radiusSPH, float density)
+        : ChSystemGranularMonodisperse(radiusSPH, density) {}
+
+    ~ChSystemGranularMonodisperse_NSC_Frictionless() {}
+
+    virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
+    virtual void run(float t_end);
+
+    /// Copy back the SD device data and save it to a file for error checking on the priming kernel
+    void checkSDCounts(std::string, bool, bool);
+    void writeFile(std::string, unsigned int*);
+    void copyDataBackToHost();
+    virtual void updateBDPosition(int, int);
+
+protected:
+    virtual void copyCONSTdata_to_device();
+    virtual void copyBD_Frame_to_device();
+
+    virtual void switch_to_SimUnits();
+
+    virtual void cleanup_simulation();
+    virtual void determine_new_stepSize() { return; }
 };
 }  // namespace granular
 }  // namespace chrono
