@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <string>
+#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
@@ -64,6 +65,8 @@ double run_test(float boxL, float boxD, float boxH) {
     settlingExperiment.setOutputMode(write_mode);
     // Make a dam break style sim
     settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
+
+    ChFileutils::MakeDirectory(output_prefix.c_str());
 
     // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
     // will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means

@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <string>
+#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
@@ -64,6 +65,8 @@ double run_test(float boxL, float boxD, float boxH) {
     settlingExperiment.setOutputMode(write_mode);
     // Make a dam break style sim
     settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
+
+    ChFileutils::MakeDirectory(output_prefix.c_str());
 
     // Stay centered at origin
     std::function<double(double)> posFunStill = [](double t) { return -.5; };
