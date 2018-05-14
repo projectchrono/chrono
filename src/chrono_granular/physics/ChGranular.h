@@ -246,6 +246,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
   protected:
     virtual void copy_const_data_to_device();
     virtual void copyBD_Frame_to_device();
+    virtual void resetBroadphaseInformation();
 
     virtual void switch_to_SimUnits();
 

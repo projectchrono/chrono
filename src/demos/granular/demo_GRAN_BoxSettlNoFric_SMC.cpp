@@ -248,13 +248,13 @@ int main(int argc, char* argv[]) {
     // that the box will be centered at x = boxL
     std::function<double(double)> posFunX = [](double t) {
         // Start oscillating at t = .5s
-        double t0 = 1;
+        double t0 = .5;
         double freq = .25 * M_PI;
 
         if (t < t0) {
             return -.5;
         } else {
-            return (-.5 + .5 * std::sin((t - t0) * freq));
+            return (-.5 + .25 * std::sin((t - t0) * freq));
         }
     };
     // Stay centered at origin

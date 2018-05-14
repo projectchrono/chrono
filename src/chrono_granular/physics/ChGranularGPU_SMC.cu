@@ -1017,6 +1017,13 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(
         // Do nothing, only here for symmetry
     }
 }
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation() {
+    // Set all the offsets to zero
+    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
+    // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
+    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
+                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+}
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int currTime_SU,
                                                                                        const int stepSize_SU) {
@@ -1052,9 +1059,12 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
 
     // Seed arrays that are populated by the kernel call
     // const unsigned char allBitsOne = (unsigned char)-1;  // all bits of this variable are 1.
+
     // Set all the offsets to zero
-    SD_NumOf_DEs_Touching.assign(SD_NumOf_DEs_Touching.size(), 0);
-    DEs_in_SD_composite.assign(DEs_in_SD_composite.size(), NULL_GRANULAR_ID);
+    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
+    // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
+    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
+                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
@@ -1101,9 +1111,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
             updateBDPosition(crntTime_SU, stepSize_SU);
         }
         // reset forces to zero, note that vel update ~ force for forward euler
-        pos_X_dt_update.assign(pos_X_dt_update.size(), 0);
-        pos_Y_dt_update.assign(pos_Y_dt_update.size(), 0);
-        pos_Z_dt_update.assign(pos_Z_dt_update.size(), 0);
+        gpuErrchk(cudaMemset(pos_X_dt_update.data(), 0, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(pos_Y_dt_update.data(), 0, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
 
         VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
 
@@ -1127,8 +1137,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
         VERBOSE_PRINTF("Resetting broadphase info!\n");
 
         // Reset broadphase information
-        SD_NumOf_DEs_Touching.assign(SD_NumOf_DEs_Touching.size(), 0);
-        DEs_in_SD_composite.assign(DEs_in_SD_composite.size(), NULL_GRANULAR_ID);
+        resetBroadphaseInformation();
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
