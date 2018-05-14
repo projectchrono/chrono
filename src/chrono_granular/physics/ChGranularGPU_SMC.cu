@@ -76,6 +76,7 @@ __constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allo
 // __constant__ float d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
 __constant__ double d_DE_Mass;
+__constant__ float d_cohesion_ratio;
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
@@ -674,8 +675,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
 
             // Compute penetration term, this becomes the delta as we want it
             // Makes more sense to find rsqrt, the compiler is doing this anyways
-            penetration = rsqrt(penetration);
-            penetration -= 1.;
+            float penetrationNorm = rsqrt(penetration);
+            penetration = penetrationNorm - 1.;
 
             // Compute nondim force term
 
@@ -690,10 +691,19 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
             float dampingTermY = -d_Gamma_n * alpha_h_bar * deltaY_dot;
             float dampingTermZ = -d_Gamma_n * alpha_h_bar * deltaZ_dot;
 
+            float cohesionConstant = gravAcc_Z_d_factor_SU * d_cohesion_ratio;
+
+            // Compute force updates for cohesion term, is opposite the spring term
+            float cohesionTermX = cohesionConstant * deltaX / penetrationNorm;
+            float cohesionTermY = cohesionConstant * deltaY / penetrationNorm;
+            float cohesionTermZ = cohesionConstant * deltaZ / penetrationNorm;
+
+            // printf("fuck %f, %f\n", cohesionTermZ, cohesionConstant);
+
             // Add damping term to spring term, write back to counter
-            bodyA_X_velCorr += springTermX + dampingTermX;
-            bodyA_Y_velCorr += springTermY + dampingTermY;
-            bodyA_Z_velCorr += springTermZ + dampingTermZ;
+            bodyA_X_velCorr += springTermX + dampingTermX + cohesionTermX;
+            bodyA_Y_velCorr += springTermY + dampingTermY + cohesionTermY;
+            bodyA_Z_velCorr += springTermZ + dampingTermZ + cohesionTermZ;
         }
         // NOTE from Conlain -- this latex is broken, I think
         /**
@@ -901,6 +911,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::c
     gpuErrchk(cudaMemcpyToSymbol(d_Gamma_n, &Gamma_n_SU, sizeof(d_sphereRadius_SU)));
     gpuErrchk(cudaMemcpyToSymbol(d_K_n, &K_n_SU, sizeof(d_sphereRadius_SU)));
     gpuErrchk(cudaMemcpyToSymbol(d_DE_Mass, &MASS_UNIT, sizeof(MASS_UNIT)));
+    gpuErrchk(cudaMemcpyToSymbol(d_cohesion_ratio, &cohesion_over_gravity, sizeof(cohesion_over_gravity)));
 }
 
 /// Similar to the copy_const_data_to_device, but saves us a big copy
@@ -1058,7 +1069,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
     checkSDCounts(output_directory + "/step000000", true, false);
 
     // Settling simulation loop.
-    unsigned int stepSize_SU = 1;
+    unsigned int stepSize_SU = 5;
     unsigned int tEnd_SU = std::ceil(tEnd / (TIME_UNIT * PSI_h));
     // Which timestep is it?
     unsigned int currstep = 0;

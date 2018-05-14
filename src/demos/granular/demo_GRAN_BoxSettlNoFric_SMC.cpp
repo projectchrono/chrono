@@ -53,6 +53,7 @@ enum {
     OPT_BOX_D,
     OPT_BOX_H,
     OPT_GRAV_ACC,
+    OPT_COHESION_RATIO,
     OPT_STIFFNESS_S2S,
     OPT_STIFFNESS_S2W,
     OPT_WRITE_MODE,
@@ -74,6 +75,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_BOX_D, "--boxdepth", SO_REQ_SEP},
                                     {OPT_BOX_H, "--boxheight", SO_REQ_SEP},
                                     {OPT_GRAV_ACC, "--gravacc", SO_REQ_SEP},
+                                    {OPT_COHESION_RATIO, "--cohes_ratio", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2S, "--normStiffS2S", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2W, "--normStiffS2W", SO_REQ_SEP},
                                     {OPT_VERBOSE, "--verbose", SO_NONE},
@@ -98,6 +100,7 @@ void showUsage() {
     std::cout << "--boxdepth=<box_depth>" << std::endl;
     std::cout << "--boxheight=<box_height>" << std::endl;
     std::cout << "--gravacc=<accValue>" << std::endl;
+    std::cout << "--cohes_ratio=<cohesValue>" << std::endl;
     std::cout << "--normStiffS2S=<stiffValuesS2S>" << std::endl;
     std::cout << "--normStiffS2W=<stiffValuesS2W>" << std::endl;
     std::cout << "-h / --help / -? \t Show this help." << std::endl;
@@ -117,6 +120,7 @@ bool GetProblemSpecs(int argc,
                      float& gravAcc,
                      float& normalStiffS2S,
                      float& normalStiffS2W,
+                     float& cohesion_ratio,
                      bool& verbose,
                      std::string& output_dir,
                      GRN_OUTPUT_MODE& write_mode) {
@@ -175,6 +179,9 @@ bool GetProblemSpecs(int argc,
             case OPT_STIFFNESS_S2W:
                 normalStiffS2W = std::stof(args.OptionArg());
                 break;
+            case OPT_COHESION_RATIO:
+                cohesion_ratio = std::stof(args.OptionArg());
+                break;
             case OPT_TIMEEND:
                 time_end = std::stof(args.OptionArg());
                 break;
@@ -215,10 +222,12 @@ int main(int argc, char* argv[]) {
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
     GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
     bool verbose = false;
+    float cohesion_ratio = 0;
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W, verbose, output_prefix, write_mode) == false)
+                        normStiffness_S2S, normStiffness_S2W, cohesion_ratio, verbose, output_prefix,
+                        write_mode) == false)
         return 1;
 
     // Setup simulation
@@ -226,6 +235,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setBOXdims(boxL, boxD, boxH);
     settlingExperiment.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     settlingExperiment.set_YoungModulus_SPH2WALL(normStiffness_S2W);
+    settlingExperiment.set_Cohesion_ratio(cohesion_ratio);
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
     settlingExperiment.setOutputDirectory(output_prefix);
     settlingExperiment.setOutputMode(write_mode);
@@ -238,8 +248,8 @@ int main(int argc, char* argv[]) {
     // that the box will be centered at x = boxL
     std::function<double(double)> posFunX = [](double t) {
         // Start oscillating at t = .5s
-        double t0 = .5;
-        double freq = .5 * M_PI;
+        double t0 = 1;
+        double freq = .25 * M_PI;
 
         if (t < t0) {
             return -.5;
