@@ -273,23 +273,23 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_NSC_Frictionless : public ChS
 
     ~ChSystemGranularMonodisperse_NSC_Frictionless() {}
 
-    virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
-    virtual void run(float t_end);
+    virtual void setup_simulation() { exit(1); return; } //!< set up data structures and carry out pre-processing tasks
+    virtual void run(float t_end) { exit(1); return; }
 
     /// Copy back the SD device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts(std::string, bool, bool);
-    void writeFile(std::string, unsigned int*);
-    void copyDataBackToHost();
-    virtual void updateBDPosition(int, int);
+    void checkSDCounts(std::string, bool, bool) { exit(1); return; }
+    void writeFile(std::string, unsigned int*) { exit(1); return; }
+    void copyDataBackToHost() { exit(1); return; }
+    virtual void updateBDPosition(int, int) { exit(1); return; }
 
   protected:
-    virtual void copyCONSTdata_to_device();
-    virtual void copyBD_Frame_to_device();
+    virtual void copyCONSTdata_to_device() { exit(1); return; }
+    virtual void copyBD_Frame_to_device() { exit(1); return; }
 
-    virtual void switch_to_SimUnits();
+    virtual void switch_to_SimUnits() { exit(1); return; }
 
-    virtual void cleanup_simulation();
-    virtual void determine_new_stepSize() { return; }
+    virtual void cleanup_simulation() { exit(1); return; }
+    virtual void determine_new_stepSize() { exit(1); return; }
 };
 }  // namespace granular
 }  // namespace chrono
