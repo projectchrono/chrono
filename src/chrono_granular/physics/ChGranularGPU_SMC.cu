@@ -1192,31 +1192,40 @@ __device__ void figureOutTouchedSD(uint3 nodeIDs, float3* nodeCoordXYZ, unsigned
 * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time
 * stepping.
 *
-* Template arguments:
-*   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
-*
-* Assumptions:
-*   - Granular material is made up of monodisperse spheres.
-*   - The function below assumes the spheres are in a box
-*   - The box has dimensions L x D x H.
-*   - The reference frame associated with the box:
-*       - The x-axis is along the length L of the box
-*       - The y-axis is along the width D of the box
-*       - The z-axis is along the height H of the box
-*   - A sphere cannot touch more than eight SDs
-*
-* Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each sphere touches.
-* The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
-* at the center of the box. The orientation of the box is defined relative to a world inertial reference frame.
-*
 * Nomenclature:
 *   - SD: subdomain.
 *   - BD: the big-domain, which is the union of all SDs
 *   - NULL_GRANULAR_ID: the equivalent of a non-sphere SD ID, or a non-sphere ID
+*   - CPB: contact patch box - an AABB that contains the elements of the mesh that come in contact with the terrain.
+*                              Note that one mesh can have several CPB in relation to the same chunk of terrain.
 *
-* Notes:
-*   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
-* box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
+* Template arguments:
+*   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
+*
+* Arguments:
+* nTriangles - the number of triangles in the mesh
+* node_coordXYZ - array containing XYZ coordinates of the nodes
+* meshConnectivity - array of size 3*nTriangles storing the nodes of each triangle
+* nCPBs - the number of patches in which the mesh can come in contact w/ the granular material
+* LDHdimContactPatches - array for which each entry contains the LDH size of a CPB
+* originCPBs - array for which each entry contains the point with resepect to which the CPB is defined
+* SD_countsOfTrianglesTouching - array that for each SD indicates how many triangles touch this SD
+* triangles_in_SD_composite - big array that works in conjunction with SD_countsOfTrianglesTouching.
+*
+* Assumptions:
+*   - The size of the SD for the granular material and for the mesh is the same. 
+*   - The SDs defining a CPB are a subset of the SDs spanning the terrain (granular material)
+*   - Each CPB has dimensions L x D x H.
+*   - The reference frame associated with the AABB that a CPB is:
+*       - The x-axis is along the length L of the box
+*       - The y-axis is along the width D of the box
+*       - The z-axis is along the height H of the box
+*       - The origin of the CPB is in a corner of the box
+*   - A mesh triangle cannot touch more than eight SDs
+*
+* Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each triangle touches.
+* The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
+* in the corner of the box. Each CPB is an AAB.
 *
 */
 template <
@@ -1226,7 +1235,10 @@ __global__ void
 primingOperationsMesh(
     unsigned int nTriangles,  //!< Number of triangles in the implement
     float3* node_coordXYZ,  //!< Pointer to array containing XYZ coordinates of the nodes
-    uint3* connectivity,                  //!< Array of size 3*nTriangles storing the nodes of each triangle
+    uint3* meshConnectivity,                  //!< Array of size 3*nTriangles storing the nodes of each triangle
+    unsigned char nPatches,
+    uint3* LDHdimContactPatches,
+    float3* envelopPrismOrigin,
     unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int* triangles_in_SD_composite  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
                                              //!< "triangles_in_SD_composite" says which SD contains what triangles.
@@ -1254,7 +1266,7 @@ primingOperationsMesh(
         NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID };
     if (myTriangleID < nTriangles) {
         // Coalesced mem access
-        node_IDs = connectivity[myTriangleID];
+        node_IDs = meshConnectivity[myTriangleID];
  
         figureOutTouchedSD(node_IDs, node_coordXYZ, SDsTouched);
     }
