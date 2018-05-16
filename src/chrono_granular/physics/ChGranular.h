@@ -251,7 +251,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     virtual void switch_to_SimUnits();
 
     virtual void cleanup_simulation();
-    virtual void determine_new_stepSize() { return; }
+    virtual void determine_new_stepSize() { exit(1); return; }
 
     double YoungModulus_SPH2SPH;
     double YoungModulus_SPH2WALL;
@@ -260,6 +260,40 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     float K_n_SU;
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
+};
+
+/**
+* ChSysGranMonod_SMC_Fricless_Implement: Mono-disperse setup, one radius for all spheres. There is no friction.
+* The granular material interacts through an implement that is defined via a triangular mesh.
+*/
+class CH_GRANULAR_API ChSysGranMonod_SMC_Fricless_Implement: public ChSystemGranularMonodisperse_SMC_Frictionless {
+protected:
+    virtual void copy_const_data_to_device();
+    virtual void resetBroadphaseInformation();
+
+    virtual void switch_to_SimUnits();
+
+    virtual void cleanup_simulation();
+    virtual void determine_new_stepSize() { return; }
+
+    double YoungModulus_SPH2MESH;
+    double K_stiffness;
+    float Gamma_n_SU;
+    float K_n_SU;
+    /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
+    float cohesion_over_gravity;
+
+public:
+    ChSysGranMonod_SMC_Fricless_Implement(float radiusSPH, float density)
+        : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density) {}
+
+    ~ChSysGranMonod_SMC_Fricless_Implement() {}
+
+    virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
+    virtual void run(float t_end);
+
+    inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
+
 };
 
 /**

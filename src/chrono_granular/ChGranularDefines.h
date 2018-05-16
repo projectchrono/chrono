@@ -26,6 +26,8 @@
 #define AVERAGE_SPHERES_PER_SD_H_DIR 3.5
 /// Anticipated max number of DEs in an SD; used for setting aside memory ahead of time
 #define MAX_COUNT_OF_DEs_PER_SD 256
+/// Anticipated max number of mesh triangles in an SD; used for setting aside memory ahead of time
+#define MAX_COUNT_OF_Triangles_PER_SD 64
 /// Value that indicates non-valid ID. The assumption is that an ID is always a positive integer
 #define NULL_GRANULAR_ID UINT_MAX
 /// Value that indicates non-valid ID in long size_t form. This allows > 4 billion entries into an array
