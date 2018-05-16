@@ -68,4 +68,6 @@ class cudallocator {
         ::new ((void*)p) T(std::forward<Args>(args)...);
     }
     void destroy(T* p) { p->~T(); }
+
+    bool operator==(const cudallocator& other) const { return true; }
 };
