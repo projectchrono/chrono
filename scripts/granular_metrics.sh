@@ -1,4 +1,6 @@
 #!/bin/bash
+# Pls don't recurse
+if [ -z ${NO_RECURSE+x} ]; then exit; fi
 # Get the directory of this script
 SCRIPTS_DIR=$(dirname "$0")
 # dump to this file
@@ -15,6 +17,7 @@ hook="$gitdir/hooks/post-commit"
 
 # disable post-commit hook temporarily
 [ -x $hook ] && chmod -x $hook
+export NO_RECURSE=1
 
 echo $BREAK_STRING >> $LOG_FILE
 echo "Current date is " $CURR_DATE >> $LOG_FILE
