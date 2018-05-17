@@ -1,0 +1,56 @@
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 May 2018 11:49:52 -0500
+commit d55a4ae81a2f248e11d5c36603e20ea12027b111 Author: Dan Negrut <negrut@wisc.edu> Date: Wed May 16 17:56:53 2018 -0500 work towards figuring out which triangle hits what SD
+Results:
+50 thousand bodies took 2.26872 seconds!
+500 thousand bodies took 15.1791 seconds!
+1 million bodies took 36.1175 seconds!
+50 thousand bodies took 2.13353 seconds!
+500 thousand bodies took 15.5776 seconds!
+1 million bodies took 35.2823 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 May 2018 11:55:04 -0500
+commit d55a4ae81a2f248e11d5c36603e20ea12027b111 Author: Dan Negrut <negrut@wisc.edu> Date: Wed May 16 17:56:53 2018 -0500 work towards figuring out which triangle hits what SD
+Results:
+50 thousand bodies took 1.97883 seconds!
+500 thousand bodies took 15.1702 seconds!
+1 million bodies took 35.1024 seconds!
+50 thousand bodies took 2.14708 seconds!
+500 thousand bodies took 15.3329 seconds!
+1 million bodies took 34.3341 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 May 2018 13:07:22 -0500
+commit 1614da631721586134cef10ec4fb234cf89630f8 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu May 17 13:07:22 2018 -0500 add metrics hook
+Results:
+Running wavetank test!
+50 thousand bodies took 2.24082 seconds!
+500 thousand bodies took 15.526 seconds!
+1 million bodies took 35.5723 seconds!
+Running settling test!
+50 thousand bodies took 2.21001 seconds!
+500 thousand bodies took 15.9662 seconds!
+1 million bodies took 35.6891 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 May 2018 13:09:09 -0500
+commit 93441869c3d11ac6f26183eedc84271a0abbf8b1 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu May 17 13:07:22 2018 -0500 add metrics hook
+Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 May 2018 13:12:43 -0500
+commit dc112d4e880e2d904ca14ee3c3355a91910a678b Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu May 17 13:07:22 2018 -0500 add metrics hook
+Results:
+Running wavetank test!
+50 thousand bodies took 2.22968 seconds!
+500 thousand bodies took 15.8572 seconds!
+1 million bodies took 35.5664 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 May 2018 13:15:47 -0500
+commit f041cde955c447ff7bbe3dc588f14d5b7e224303 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu May 17 13:07:22 2018 -0500 add metrics hook
+Results:
+Running wavetank test!
+50 thousand bodies took 2.23723 seconds!
+500 thousand bodies took 15.8692 seconds!
+1 million bodies took 38.4839 seconds!
+Running settling test!
+50 thousand bodies took 2.16373 seconds!
+500 thousand bodies took 15.9201 seconds!
+1 million bodies took 35.8559 seconds!
