@@ -29,3 +29,4 @@ git add $LOG_FILE
 git commit --amend --no-edit
 
 # Re-enable the hooks script now
+chmod +x $hook
