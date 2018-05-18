@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <string>
+#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
@@ -227,8 +228,9 @@ int main(int argc, char* argv[]) {
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
                         normStiffness_S2S, normStiffness_S2W, cohesion_ratio, verbose, output_prefix,
-                        write_mode) == false)
+                        write_mode) == false) {
         return 1;
+    }
 
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless settlingExperiment(ballRadius, ballDensity);
@@ -242,6 +244,8 @@ int main(int argc, char* argv[]) {
     // Make a dam break style sim
     settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
 
+    ChFileutils::MakeDirectory(output_prefix.c_str());
+
     // TODO clean up this API
     // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
     // will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means
@@ -249,12 +253,12 @@ int main(int argc, char* argv[]) {
     std::function<double(double)> posFunX = [](double t) {
         // Start oscillating at t = .5s
         double t0 = .5;
-        double freq = .25 * M_PI;
+        double freq = .1 * M_PI;
 
         if (t < t0) {
             return -.5;
         } else {
-            return (-.5 + .25 * std::sin((t - t0) * freq));
+            return (-.5 + .5 * std::sin((t - t0) * freq));
         }
     };
     // Stay centered at origin
