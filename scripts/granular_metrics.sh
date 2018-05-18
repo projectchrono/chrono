@@ -1,6 +1,6 @@
 #!/bin/bash
-# Pls don't recurse
-if [ -z ${NO_RECURSE+x} ]; then exit; fi
+# If NO_RECURSE is not defined, keep going
+if ! [ -z "${NO_RECURSE}" ]; then exit; fi
 # Get the directory of this script
 SCRIPTS_DIR=$(dirname "$0")
 # dump to this file
