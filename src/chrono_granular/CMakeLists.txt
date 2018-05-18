@@ -187,6 +187,7 @@ SOURCE_GROUP(physics FILES ${ChronoEngine_Granular_PHYSICS})
 
 SET(ChronoEngine_Granular_CUDA
     physics/ChGranularGPU_SMC.cu
+    physics/ChGranularGPU_SMC_trimesh.cu
     physics/ChGranularCollision.cuh
     physics/ChGranularCollision.cu
     physics/ChGranularBoxTriangle.cu

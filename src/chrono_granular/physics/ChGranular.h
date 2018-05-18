@@ -43,7 +43,7 @@ class CH_GRANULAR_API ChSystemGranular {
   public:
     ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0) {
         // Allow us to use the fancy cudalloc mapped memory
-        cudaSetDeviceFlags(cudaDeviceMapHost);
+        // cudaSetDeviceFlags(cudaDeviceMapHost);
         // gpuErrchk(cudaDeviceReset());
     }
 
@@ -136,7 +136,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 
     ~ChSystemGranularMonodisperse() {}
 
-    virtual void run(float t_end) = 0;
+    virtual void run_simulation(float t_end) = 0;
 
     virtual void generate_DEs();
 
@@ -236,7 +236,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     inline void set_Cohesion_ratio(double someValue) { cohesion_over_gravity = someValue; }
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
-    virtual void run(float t_end);
+    virtual void run_simulation(float t_end);
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string, bool, bool);
@@ -251,7 +251,11 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     virtual void switch_to_SimUnits();
 
     virtual void cleanup_simulation();
-    virtual void determine_new_stepSize() { exit(1); return; }
+    virtual void determine_new_stepSize() {
+        exit(1);
+        return;
+    }
+    virtual void defragment_data();
 
     double YoungModulus_SPH2SPH;
     double YoungModulus_SPH2WALL;
@@ -263,11 +267,12 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 };
 
 /**
-* ChSysGranMonod_SMC_Fricless_Implement: Mono-disperse setup, one radius for all spheres. There is no friction.
-* The granular material interacts through an implement that is defined via a triangular mesh.
-*/
-class CH_GRANULAR_API ChSysGranMonod_SMC_Fricless_Implement: public ChSystemGranularMonodisperse_SMC_Frictionless {
-protected:
+ * ChSystemGranularMonodisperse_SMC_Frictionless_trimesh: Mono-disperse setup, one radius for all spheres. There is no
+ * friction. The granular material interacts through an implement that is defined via a triangular mesh.
+ */
+class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
+    : public ChSystemGranularMonodisperse_SMC_Frictionless {
+  protected:
     virtual void copy_const_data_to_device();
     virtual void resetBroadphaseInformation();
 
@@ -283,17 +288,16 @@ protected:
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
 
-public:
-    ChSysGranMonod_SMC_Fricless_Implement(float radiusSPH, float density)
+  public:
+    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density)
         : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density) {}
 
-    ~ChSysGranMonod_SMC_Fricless_Implement() {}
+    ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {}
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
-    virtual void run(float t_end);
+    virtual void run_simulation(float t_end);
 
     inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
-
 };
 
 /**
@@ -307,23 +311,56 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_NSC_Frictionless : public ChS
 
     ~ChSystemGranularMonodisperse_NSC_Frictionless() {}
 
-    virtual void setup_simulation() { exit(1); return; } //!< set up data structures and carry out pre-processing tasks
-    virtual void run(float t_end) { exit(1); return; }
+    virtual void setup_simulation() {
+        exit(1);
+        return;
+    }  //!< set up data structures and carry out pre-processing tasks
+    virtual void run_simulation(float t_end) {
+        exit(1);
+        return;
+    }
 
     /// Copy back the SD device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts(std::string, bool, bool) { exit(1); return; }
-    void writeFile(std::string, unsigned int*) { exit(1); return; }
-    void copyDataBackToHost() { exit(1); return; }
-    virtual void updateBDPosition(int, int) { exit(1); return; }
+    void checkSDCounts(std::string, bool, bool) {
+        exit(1);
+        return;
+    }
+    void writeFile(std::string, unsigned int*) {
+        exit(1);
+        return;
+    }
+    void copyDataBackToHost() {
+        exit(1);
+        return;
+    }
+    virtual void updateBDPosition(int, int) {
+        exit(1);
+        return;
+    }
 
   protected:
-    virtual void copyCONSTdata_to_device() { exit(1); return; }
-    virtual void copyBD_Frame_to_device() { exit(1); return; }
+    virtual void copyCONSTdata_to_device() {
+        exit(1);
+        return;
+    }
+    virtual void copyBD_Frame_to_device() {
+        exit(1);
+        return;
+    }
 
-    virtual void switch_to_SimUnits() { exit(1); return; }
+    virtual void switch_to_SimUnits() {
+        exit(1);
+        return;
+    }
 
-    virtual void cleanup_simulation() { exit(1); return; }
-    virtual void determine_new_stepSize() { exit(1); return; }
+    virtual void cleanup_simulation() {
+        exit(1);
+        return;
+    }
+    virtual void determine_new_stepSize() {
+        exit(1);
+        return;
+    }
 };
 }  // namespace granular
 }  // namespace chrono

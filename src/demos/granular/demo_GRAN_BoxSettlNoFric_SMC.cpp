@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
     std::function<double(double)> posFunX = [](double t) {
         // Start oscillating at t = .5s
         double t0 = .5;
-        double freq = .1 * M_PI;
+        double freq = .2 * M_PI;
 
         if (t < t0) {
             return -.5;
@@ -282,6 +282,6 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setVerbose(verbose);
 
     // Run settline experiments
-    settlingExperiment.run(timeEnd);
+    settlingExperiment.run_simulation(timeEnd);
     return 0;
 }
