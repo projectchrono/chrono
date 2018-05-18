@@ -26,6 +26,7 @@
 // generated for post-processing with POV-Ray.
 // =============================================================================
 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include "chrono/core/ChFileutils.h"
@@ -87,15 +88,24 @@ double run_test(float boxL, float boxD, float boxH) {
 }
 
 int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cout << "USAGE: ./test_gran_milsettle <results_log_file>" << std::endl;
+    }
+
     // one million bodies
     double time50k = run_test(110, 100, 100);
     double time500k = run_test(222, 220, 220);
     double time1mil = run_test(300, 300, 250);
 
     std::cout << "Running settling test!" << std::endl;
-
     std::cout << "50 thousand bodies took " << time50k << " seconds!" << std::endl;
     std::cout << "500 thousand bodies took " << time500k << " seconds!" << std::endl;
     std::cout << "1 million bodies took " << time1mil << " seconds!" << std::endl;
+
+    std::ofstream ofile(argv[1], std::ofstream::app);
+    ofile << "Running settling test!" << std::endl;
+    ofile << "50 thousand bodies took " << time50k << " seconds!" << std::endl;
+    ofile << "500 thousand bodies took " << time500k << " seconds!" << std::endl;
+    ofile << "1 million bodies took " << time1mil << " seconds!" << std::endl;
     return 0;
 }
