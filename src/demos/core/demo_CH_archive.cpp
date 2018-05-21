@@ -693,6 +693,33 @@ int main(int argc, char* argv[]) {
         }
 
 
+		{
+			//
+			// Example: SERIALIZE TO/FROM XML
+			//
+			{
+				std::string xmlfile = out_dir + "/foo_archive.xml";
+				ChStreamOutAsciiFile mfileo(xmlfile.c_str());
+
+				// Use a XML archive object to serialize C++ objects into the file
+				ChArchiveOutXML marchiveout(mfileo);
+
+				my_serialization_example(marchiveout);
+			}
+
+			{
+				std::string xmlfile = out_dir + "/foo_archive.xml";
+				ChStreamInAsciiFile mfilei(xmlfile.c_str());
+
+				// Use a XML archive object to deserialize C++ objects from the file
+				ChArchiveInXML marchivein(mfilei);
+
+				my_deserialization_example(marchivein);
+			}
+
+		}
+
+
         GetLog() << "Serialization test ended with success.\n\n";
 
 
