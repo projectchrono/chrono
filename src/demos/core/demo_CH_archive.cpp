@@ -24,6 +24,7 @@
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
+#include "chrono/serialization/ChArchiveXML.h"
 #include "chrono/serialization/ChArchiveExplorer.h"
 
 #include "chrono/physics/ChGlobal.h"
@@ -405,7 +406,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         ChVector<>* a_vect;
         ChVector<>* a_null_ptr;
 
-        marchive >> CHNVP(m_double,"custom double");  // deserialize data n.1
+        marchive >> CHNVP(m_double,"custom_double");  // deserialize data n.1
         marchive >> CHNVP(m_int);     // deserialize data n.2
         marchive >> CHNVP(m_array);   // deserialize data n.3
         marchive >> CHNVP(m_text);    // deserialize data n....
@@ -622,6 +623,7 @@ int main(int argc, char* argv[]) {
     
     try {       
         
+		
         {
             //
             // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
@@ -630,7 +632,7 @@ int main(int argc, char* argv[]) {
             std::string asciifile = out_dir + "/foo_archive.txt";
             ChStreamOutAsciiFile mfileo(asciifile.c_str());
 
-            // Create a binary archive, that uses the binary file as storage.
+            // Create an ASCII archive object, for dumping C++ objects into a readable file
             ChArchiveAsciiDump marchiveout(mfileo);
         
             my_serialization_example(marchiveout);
@@ -646,7 +648,7 @@ int main(int argc, char* argv[]) {
                 std::string binfile = out_dir + "/foo_archive.dat";
                 ChStreamOutBinaryFile mfileo(binfile.c_str());
                 
-                // Create a binary archive, that uses the binary file as storage.
+				// Use a binary archive object to serialize C++ objects into the binary file
                 ChArchiveOutBinary marchiveout(mfileo);
 
                 my_serialization_example(marchiveout);
@@ -656,7 +658,7 @@ int main(int argc, char* argv[]) {
                 std::string binfile = out_dir + "/foo_archive.dat";
                 ChStreamInBinaryFile mfilei(binfile.c_str());
                 
-                // Create a binary archive, that uses the binary file as storage.
+				// Use a binary archive object to deserialize C++ objects from the binary file
                 ChArchiveInBinary marchivein(mfilei);
 
                 my_deserialization_example(marchivein);
@@ -673,7 +675,7 @@ int main(int argc, char* argv[]) {
                 std::string jsonfile = out_dir + "/foo_archive.json";
                 ChStreamOutAsciiFile mfileo(jsonfile.c_str());
 
-                // Create a binary archive, that uses the binary file as storage.
+                // Use a JSON archive object to serialize C++ objects into the file
                 ChArchiveOutJSON marchiveout(mfileo);
         
                 my_serialization_example(marchiveout);
@@ -684,7 +686,7 @@ int main(int argc, char* argv[]) {
                 std::string jsonfile = out_dir + "/foo_archive.json";
                 ChStreamInAsciiFile mfilei(jsonfile.c_str());
 
-                // Create a binary archive, that uses the binary file as storage.
+				// Use a JSON archive object to deserialize C++ objects from the file
                 ChArchiveInJSON marchivein(mfilei);
 
                 my_deserialization_example(marchivein);
@@ -727,6 +729,8 @@ int main(int argc, char* argv[]) {
 
         GetLog() << "Reflection test ended with success.\n";
 
+
+		
 
     } catch (ChException myex) {
         GetLog() << "ERROR: " << myex.what() << "\n\n";
