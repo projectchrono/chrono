@@ -178,10 +178,10 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             nitems.push(0);
             is_array.push(true);
       }
-      virtual void out_array_between (size_t msize) {
+      virtual void out_array_between (ChValue& bVal, size_t msize) {
 
       }
-      virtual void out_array_end (size_t msize) {
+      virtual void out_array_end (ChValue& bVal, size_t msize) {
             --tablevel;
             nitems.pop();
             is_array.pop();

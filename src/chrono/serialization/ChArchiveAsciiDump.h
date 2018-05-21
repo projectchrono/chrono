@@ -133,9 +133,9 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
             (*ostream) << "[ \n";
             ++tablevel;
       }
-      virtual void out_array_between (size_t msize) {
+      virtual void out_array_between (ChValue& bVal, size_t msize) {
       }
-      virtual void out_array_end (size_t msize) {
+      virtual void out_array_end (ChValue& bVal, size_t msize) {
             --tablevel;
             indent();
             (*ostream) << "] \n";

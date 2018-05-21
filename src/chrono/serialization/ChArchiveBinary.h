@@ -68,8 +68,8 @@ class  ChArchiveOutBinary : public ChArchiveOut {
       virtual void out_array_pre (ChValue& bVal, size_t msize) {
             (*ostream) << msize;
       }
-      virtual void out_array_between (size_t msize) {}
-      virtual void out_array_end (size_t msize) {}
+      virtual void out_array_between (ChValue& bVal, size_t msize) {}
+      virtual void out_array_end (ChValue& bVal, size_t msize) {}
 
 
         // for custom c++ objects:

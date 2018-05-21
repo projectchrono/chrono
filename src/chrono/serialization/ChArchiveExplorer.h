@@ -231,10 +231,10 @@ class  ChArchiveExplorer : public ChArchiveOut {
                 in_array.push_back(true);
             }  
       }
-      virtual void out_array_between (size_t msize) {
+      virtual void out_array_between (ChValue& bVal, size_t msize) {
 
       }
-      virtual void out_array_end (size_t msize) {
+      virtual void out_array_end (ChValue& bVal, size_t msize) {
             if (in_array[tablevel] == true) {
                 --tablevel; 
                 in_array.pop_back();
