@@ -1096,7 +1096,12 @@ class  ChArchiveOut : public ChArchive {
                   } catch(ChException mex) {   
                       class_name = mtype.name();
                   }
-              this->out(ChNameValue<int>(("_version_" + std::string(class_name)).c_str(), mver));
+				  std::string class_name_polished = class_name;
+				  // to avoid troubles in xml archives
+				  std::replace(class_name_polished.begin(), class_name_polished.end(), '<', '[');
+				  std::replace(class_name_polished.begin(), class_name_polished.end(), '>', ']');
+				  std::replace(class_name_polished.begin(), class_name_polished.end(), ' ', '_');
+              this->out(ChNameValue<int>(("_version_" + class_name_polished).c_str(), mver));
           }
       }
       
@@ -1380,7 +1385,12 @@ class  ChArchiveIn : public ChArchive {
             } catch(ChException mex) {   
                 class_name = mtype.name();
             }
-          this->in(ChNameValue<int>(("_version_" + std::string(class_name)).c_str(), mver));
+			std::string class_name_polished = class_name;
+			// to avoid troubles in xml archives
+			std::replace(class_name_polished.begin(), class_name_polished.end(), '<', '[');
+			std::replace(class_name_polished.begin(), class_name_polished.end(), '>', ']');
+			std::replace(class_name_polished.begin(), class_name_polished.end(), ' ', '_');
+          this->in(ChNameValue<int>(("_version_" + class_name_polished).c_str(), mver));
           return mver;
       }
 };
