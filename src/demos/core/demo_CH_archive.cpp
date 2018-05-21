@@ -299,7 +299,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         ChVector<> m_vect(0.5, 0.6, 0.7);
         ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
  
-        marchive << CHNVP(m_double,"custom double");  // store data n.1      
+        marchive << CHNVP(m_double,"custom_double");  // store data n.1      
         marchive << CHNVP(m_int);     // store data n.2 
         marchive << CHNVP(m_array);   // store data n.3
         marchive << CHNVP(m_text);    // store data n....
