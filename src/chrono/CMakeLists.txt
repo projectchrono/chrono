@@ -101,6 +101,7 @@ set(ChronoEngine_serialization_HEADERS
     serialization/ChArchiveBinary.h
     serialization/ChArchiveAsciiDump.h
     serialization/ChArchiveJSON.h
+	serialization/ChArchiveXML.h
 	serialization/ChArchiveExplorer.h
     )
 
