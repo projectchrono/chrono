@@ -379,11 +379,13 @@ class ChMatrix {
             int tot_elements = GetRows() * GetColumns();
             ChValueSpecific< Real* > specVal(this->address, "data", 0);
             marchive.out_array_pre(specVal, tot_elements);
+			char idname[20];
             for (int i = 0; i < tot_elements; i++) {
-                marchive << CHNVP(ElementN(i), "");
-                marchive.out_array_between(tot_elements);
+				sprintf(idname, "%lu", (unsigned long)i);
+                marchive << CHNVP(ElementN(i), idname);
+                marchive.out_array_between(specVal,tot_elements);
             }
-            marchive.out_array_end(tot_elements);
+            marchive.out_array_end(specVal,tot_elements);
         }
     }
 
@@ -402,8 +404,10 @@ class ChMatrix {
         // custom input of matrix data as array
         size_t tot_elements = GetRows() * GetColumns();
         marchive.in_array_pre("data", tot_elements);
+		char idname[20];
         for (int i = 0; i < tot_elements; i++) {
-            marchive >> CHNVP(ElementN(i));
+			sprintf(idname, "%lu", (unsigned long)i);
+            marchive >> CHNVP(ElementN(i), idname);
             marchive.in_array_between("data");
         }
         marchive.in_array_end("data");
