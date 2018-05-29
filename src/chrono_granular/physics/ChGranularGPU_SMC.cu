@@ -50,7 +50,7 @@
 // Use user-defined quantities for coefficients
 __constant__ float d_Gamma_n;  //!< contact damping coefficient, expressed in SU
 // TODO we need to get the damping coefficient from user
-__constant__ float d_K_n;  //!< Radius of the sphere, expressed in SU
+__constant__ float d_K_n;  //!< normal stiffness coefficient, expressed in SU
 
 __constant__ unsigned int d_sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
 __constant__ unsigned int d_SD_Ldim_SU;       //!< Ad-ed L-dimension of the SD box

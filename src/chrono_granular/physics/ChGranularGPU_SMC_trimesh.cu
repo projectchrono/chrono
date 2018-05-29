@@ -50,7 +50,7 @@
 // Use user-defined quantities for coefficients
 __constant__ float d_Gamma_n;  //!< contact damping coefficient, expressed in SU
 // TODO we need to get the damping coefficient from user
-__constant__ float d_K_n;  //!< Radius of the sphere, expressed in SU
+__constant__ float d_K_n;  //!< normal stiffness coefficient, expressed in SU
 
 __constant__ unsigned int d_sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
 __constant__ unsigned int d_SD_Ldim_SU;       //!< Ad-ed L-dimension of the SD box
@@ -260,3 +260,58 @@ primingOperationsMesh(
 }
 
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::run_simulation(float tEnd) {}
+
+/**
+This kernel call figures out forces on a sphere and carries out numerical integration to get the velocity updates of a
+sphere.
+MAX_NSPHERES_PER_SD - Max number of elements per SD. Shoudld be a power of two
+MAX_TRIANGLES_PER_SD - Max number of elements per SD. Shoudld be a power of two
+TRIANGLE_FAMILIES - The number of families that the triangles can belong to
+
+Overview of implementation: One warp of threads will work on 32 triangles at a time to figure out the force that
+they impress on a particular sphere. Note that each sphere enlists the services of one warp. If there are, say,
+73 triangles touching this SD, it will take three trips to figure out the total force that the triangles will
+impress upon the sphere that is active. If there are 256 threads in the block, then there will be 8 "active"
+spheres since there are 8 warps in the block. Each thread in the block has enough registers to accummulate the
+force felt by each "family", force that is the results between an interaction between a triangle and a sphere.
+Say if sphere 232 touches a triangle that belongs to family 2, then a set of 6 generalized forces is going to 
+be produced to account for the interaction between the said triangle and sphere 232.
+*/
+template <unsigned int MAX_NSPHERES_PER_SD, unsigned int MAX_TRIANGLES_PER_SD, unsigned int TRIANGLE_FAMILIES>
+__global__ void grainTriangleInteraction(
+    unsigned int nTriangles,                     //!< Number of triangles checked for collision with the terrain
+    unsigned int nGrElements,                    //!< Number of spheres  in the terrain
+    unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
+    unsigned int*
+        triangles_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
+                                    //!< "triangles_in_SD_composite" says which SD contains what triangles.
+    unsigned int*
+        SD_countsOfGrElemsTouching,        //!< Array that for each SD indicates how many grain elements touch this SD
+    unsigned int* grElems_in_SD_composite  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
+                                           //!< "grElems_in_SD_composite" says which SD contains what grElements.
+) {
+    __shared__ int sphX[MAX_NSPHERES_PER_SD]; //!< X coordinate of the spheres
+    __shared__ int sphY[MAX_NSPHERES_PER_SD]; //!< Y coordinate of the spheres
+    __shared__ int sphZ[MAX_NSPHERES_PER_SD]; //!< Z coordinate of the spheres
+
+    __shared__ int node1_X[MAX_TRIANGLES_PER_SD]; //!< X coordinate of the 1st node of the triangle
+    __shared__ int node1_Y[MAX_TRIANGLES_PER_SD]; //!< Y coordinate of the 1st node of the triangle
+    __shared__ int node1_Z[MAX_TRIANGLES_PER_SD]; //!< Z coordinate of the 1st node of the triangle
+
+    __shared__ int node2_X[MAX_TRIANGLES_PER_SD]; //!< X coordinate of the 2nd node of the triangle
+    __shared__ int node2_Y[MAX_TRIANGLES_PER_SD]; //!< Y coordinate of the 2nd node of the triangle
+    __shared__ int node2_Z[MAX_TRIANGLES_PER_SD]; //!< Z coordinate of the 2nd node of the triangle
+
+    __shared__ int node3_X[MAX_TRIANGLES_PER_SD]; //!< X coordinate of the 3rd node of the triangle
+    __shared__ int node3_Y[MAX_TRIANGLES_PER_SD]; //!< Y coordinate of the 3rd node of the triangle
+    __shared__ int node3_Z[MAX_TRIANGLES_PER_SD]; //!< Z coordinate of the 3rd node of the triangle
+
+    int forceActingOnSphere[3]; //!< 3 registers will hold the value of the force on the sphere
+    int genForceActingOnTriangles[TRIANGLE_FAMILIES][6]; //!< There are 6 components: 3 forces and 3 torques
+
+    unsigned int thisSD = blockIdx.x + gridDim.x * (blockIdx.y + gridDim.y * blockIdx.z);
+    unsigned int nSD_triangles = SD_countsOfTrianglesTouching[thisSD];
+    unsigned int nSD_spheres = SD_countsOfGrElemsTouching[thisSD];
+
+    if (nSD_triangles == 0 || nSD_spheres == 0) return;
+}
