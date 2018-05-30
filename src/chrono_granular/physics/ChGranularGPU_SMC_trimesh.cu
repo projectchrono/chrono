@@ -47,36 +47,6 @@
         cub::ThreadTrap();   \
     }
 
-// Use user-defined quantities for coefficients
-__constant__ float d_Gamma_n;  //!< contact damping coefficient, expressed in SU
-// TODO we need to get the damping coefficient from user
-__constant__ float d_K_n;  //!< normal stiffness coefficient, expressed in SU
-
-__constant__ unsigned int d_sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
-__constant__ unsigned int d_SD_Ldim_SU;       //!< Ad-ed L-dimension of the SD box
-__constant__ unsigned int d_SD_Ddim_SU;       //!< Ad-ed D-dimension of the SD box
-__constant__ unsigned int d_SD_Hdim_SU;       //!< Ad-ed H-dimension of the SD box
-__constant__ unsigned int psi_T_dFactor;      //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_h_dFactor;      //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_L_dFactor;      //!< factor used in establishing the software-time-unit
-__constant__ unsigned int d_box_L_SU;         //!< Ad-ed L-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_D_SU;         //!< Ad-ed D-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_H_SU;         //!< Ad-ed H-dimension of the BD box in multiples of subdomains
-__constant__ float gravAcc_X_d_factor_SU;     //!< Device counterpart of the constant gravity_X_SU
-__constant__ float gravAcc_Y_d_factor_SU;     //!< Device counterpart of the constant gravity_Y_SU
-__constant__ float gravAcc_Z_d_factor_SU;     //!< Device counterpart of the constant gravity_Z_SU
-
-// Changed by updateBDPosition() at every timestep
-__constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-__constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-__constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
-// Disable because stability
-// __constant__ float d_BD_frame_X_dot;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-// __constant__ float d_BD_frame_Y_dot;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-// __constant__ float d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
-
-__constant__ double d_DE_Mass;
-__constant__ float d_cohesion_ratio;
 
 /// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
 /// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
@@ -242,19 +212,11 @@ primingOperationsMesh(
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-    const size_t max_composite_index = (size_t)d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_Triangles_PER_SD;
-
     // Write out the data now; register with triangles_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
         size_t offset = offsetInComposite_TriangleInSD_Array[8 * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID_LONG) {
-            if (offset >= max_composite_index) {
-                ABORTABORTABORT(
-                    "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
-                    threadIdx.x, blockIdx.x, offset, max_composite_index, triangleIDs[i]);
-            } else {
-                triangles_in_SD_composite[offset] = triangleIDs[i];
-            }
+            triangles_in_SD_composite[offset] = triangleIDs[i];
         }
     }
 }
@@ -314,4 +276,6 @@ __global__ void grainTriangleInteraction(
     unsigned int nSD_spheres = SD_countsOfGrElemsTouching[thisSD];
 
     if (nSD_triangles == 0 || nSD_spheres == 0) return;
+
+    unsigned int tripsToCoverTriangles = (nSD_triangles + warpSize - 1) / warpSize;
 }
