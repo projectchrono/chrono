@@ -15,7 +15,7 @@
 // =============================================================================
 
 // test whether a box and a triangle are overlapping, used to check if a triangle is in an SD
-__device__ int triBoxOverlap(float boxcenter[3], float boxhalfsize[3], float triverts[3][3]);
+__device__ int triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], const float (&triverts)[3][3]);
 
 // test whether a triangle and a sphere are in contact and set the normal and penetration
 __device__ bool face_sphere(const float3& A1,

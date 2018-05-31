@@ -13,54 +13,49 @@
 // =============================================================================
 // Authors: Dan Negrut, Conlain Kelly
 // =============================================================================
+#include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularCollision.cuh"
-// Fictitious radius of curvature for collision with a corner or an edge.
-__constant__ float edge_radius = 0.1;
 
-__device__ float3 Cross(float3 v1, float3 v2) {
-    float3 dest;
-    dest.x = v1.y * v2.z - v1.z * v2.y;
-    dest.y = v1.z * v2.x - v1.x * v2.z;
-    dest.z = v1.x * v2.y - v1.y * v2.x;
-    return dest;
+inline __device__ float3 Cross(const float3& v1, const float3& v2) {
+    return make_float3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
 }
 
-__device__ float Dot(float3 v1, float3 v2) {
+inline __device__ float Dot(const float3& v1, const float3& v2) {
     return (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
 }
 
 // Get vector 2-norm
-__device__ float Length(float3 v) {
+inline __device__ float Length(const float3& v) {
     return (sqrt(Dot(v, v)));
 }
 
 // Multiply a * v
-__device__ float3 operator*(const float a, const float3 v) {
+inline __device__ float3 operator*(const float& a, const float3& v) {
     return make_float3(a * v.x, a * v.y, a * v.z);
 }
 
 // Multiply a * v
-__device__ float3 operator*(const float3 v, const float a) {
+inline __device__ float3 operator*(const float3& v, const float& a) {
     return make_float3(a * v.x, a * v.y, a * v.z);
 }
 
 // Divide v / a
-__device__ float3 operator/(const float3 v, const float a) {
+inline __device__ float3 operator/(const float3& v, const float& a) {
     return make_float3(v.x / a, v.y / a, v.z / a);
 }
 
 // v1 - v2
-__device__ float3 operator-(const float3 v1, const float3 v2) {
+inline __device__ float3 operator-(const float3& v1, const float3& v2) {
     return make_float3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 }
 
 // subtract a from each element
-__device__ float3 operator-(const float3 v1, const float a) {
+inline __device__ float3 operator-(const float3& v1, const float& a) {
     return make_float3(v1.x - a, v1.y - a, v1.z - a);
 }
 
 // v1 + v2
-__device__ float3 operator+(const float3 v1, const float3 v2) {
+inline __device__ float3 operator+(const float3& v1, const float3& v2) {
     return make_float3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 }
 
@@ -68,12 +63,8 @@ __device__ float3 operator+(const float3 v1, const float3 v2) {
 /// the vertices A, B, and C. The face is assumed to be non-degenerate.
 /// Note that order of vertices is important!
 __device__ float3 face_normal(const float3& A, const float3& B, const float3& C) {
-    float3 v1 = B - A;
-    float3 v2 = C - A;
-    float3 n = Cross(v1, v2);
-    float len = Length(n);
-
-    return n / len;
+    float3 n = Cross(B - A, C - A);
+    return n / Length(n);
 }
 
 /// This utility function takes the location 'P' and snaps it to the closest
@@ -82,7 +73,7 @@ __device__ float3 face_normal(const float3& A, const float3& B, const float3& C)
 /// the same frame as the face vertices. This function returns 'true' if the
 /// result is on an edge of this face and 'false' if the result is inside the
 /// triangle.
-/// Code from Ericson, "float-time collision detection", 2005, pp. 141
+/// Code from Ericson, "real-time collision detection", 2005, pp. 141
 __device__ bool snap_to_face(const float3& A, const float3& B, const float3& C, const float3& P, float3& res) {
     float3 AB = B - A;
     float3 AC = C - A;
@@ -176,7 +167,7 @@ __device__ bool face_sphere(const float3& A1,
     // or if the sphere center is below the plane, there is no contact.
     float h = Dot(pos2 - A1, nrm1);
 
-    if (h >= radius2_s || h <= 0)
+    if (h >= radius2_s || h <= 0.f)
         return false;
 
     // Find the closest point on the face to the sphere center and determine
@@ -198,7 +189,7 @@ __device__ bool face_sphere(const float3& A1,
         float dist = sqrt(dist2);
         norm = delta / dist;
         depth = dist - radius2;
-        eff_radius = radius2 * edge_radius / (radius2 + edge_radius);
+        eff_radius = radius2 * EDGE_RADIUS / (radius2 + EDGE_RADIUS);
     } else {
         // Closest point on face is inside the face.
         norm = nrm1;

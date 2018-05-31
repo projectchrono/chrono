@@ -44,3 +44,10 @@
 #define PSI_h 4
 /// Value that controls the time unit. It is like a safety factor.
 #define PSI_T 8
+
+//////////////////////////////////////////////////////////////////////////////
+/// COLLISION DETECTION RELATED QUANTITIES
+//////////////////////////////////////////////////////////////////////////////
+// Fictitious radius of curvature for collision with a corner or an edge.
+#define EDGE_RADIUS 0.1f
+

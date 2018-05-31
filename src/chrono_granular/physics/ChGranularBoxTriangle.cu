@@ -41,7 +41,7 @@
     if (x2 > max)                        \
         max = x2;
 
-int planeBoxOverlap(float normal[3], float vert[3], float maxbox[3])  // -NJMP-
+int planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const float (&maxbox)[3])  // -NJMP-
 {
     int q;
     float vmin[3], vmax[3], v;
@@ -151,7 +151,7 @@ int planeBoxOverlap(float normal[3], float vert[3], float maxbox[3])  // -NJMP-
     if (min > rad || max < -rad)                     \
         return 0;
 
-int triBoxOverlap(float boxcenter[3], float boxhalfsize[3], float triverts[3][3]) {
+int triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], float (&triverts)[3][3]) {
     /*    use separating axis theorem to test overlap between triangle and box */
     /*    need to test for overlap in these directions: */
     /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
@@ -160,7 +160,6 @@ int triBoxOverlap(float boxcenter[3], float boxhalfsize[3], float triverts[3][3]
     /*    3) crossproduct(edge from tri, {x,y,z}-directin) */
     /*       this gives 3x3=9 more tests */
     float v0[3], v1[3], v2[3];
-    //   float axis[3];
     float min, max, p0, p1, p2, rad, fex, fey, fez;  // -NJMP- "d" local variable removed
     float normal[3], e0[3], e1[3], e2[3];
 
@@ -223,7 +222,6 @@ int triBoxOverlap(float boxcenter[3], float boxhalfsize[3], float triverts[3][3]
     /*  test if the box intersects the plane of the triangle */
     /*  compute plane equation of triangle: normal*x+d=0 */
     CROSS(normal, e0, e1);
-    // -NJMP- (line removed here)
     if (!planeBoxOverlap(normal, v0, boxhalfsize))
         return 0;  // -NJMP-
 
