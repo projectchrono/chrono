@@ -192,6 +192,7 @@ SET(ChronoEngine_Granular_CUDA
     physics/ChGranularCollision.cu
     physics/ChGranularBoxTriangle.cu
 	utils/ChGranularUtilities_CUDA.cuh
+	utils/ChCudaMathUtils.cuh
     )
 
 SOURCE_GROUP(cuda FILES ${ChronoEngine_Granular_CUDA})
