@@ -21,10 +21,11 @@
 #include <sstream>
 #include <string>
 #include "../../chrono_thirdparty/cub/cub.cuh"
-#include "../ChGranularDefines.h"
-#include "../chrono_granular/physics/ChGranular.h"
+#include "chrono_granular/ChGranularDefines.h"
+#include "chrono_granular/physics/ChGranular.h"
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
+#include "chrono_granular/physics/ChGranularCollision.cuh"
 
 // These are the max X, Y, Z dimensions in the BD frame
 #define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
@@ -243,6 +244,7 @@ template <unsigned int MAX_NSPHERES_PER_SD, unsigned int MAX_TRIANGLES_PER_SD, u
 __global__ void grainTriangleInteraction(
     unsigned int nTriangles,                     //!< Number of triangles checked for collision with the terrain
     unsigned int nGrElements,                    //!< Number of spheres  in the terrain
+    float sphereRadius,                          //!< Radius of the sphere in the granular terrain (UserUnits)
     unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int*
         triangles_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
@@ -252,9 +254,12 @@ __global__ void grainTriangleInteraction(
     unsigned int* grElems_in_SD_composite  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
                                            //!< "grElems_in_SD_composite" says which SD contains what grElements.
 ) {
-    __shared__ int sphX[MAX_NSPHERES_PER_SD]; //!< X coordinate of the spheres
-    __shared__ int sphY[MAX_NSPHERES_PER_SD]; //!< Y coordinate of the spheres
-    __shared__ int sphZ[MAX_NSPHERES_PER_SD]; //!< Z coordinate of the spheres
+    __shared__ unsigned int grElemID[MAX_NSPHERES_PER_SD]; //!< global ID of the grElements touching this SD
+    __shared__ unsigned int triangID[MAX_NSPHERES_PER_SD]; //!< global ID of the triangles touching this SD
+
+    __shared__ int sphX[MAX_NSPHERES_PER_SD]; //!< X coordinate of the grElement
+    __shared__ int sphY[MAX_NSPHERES_PER_SD]; //!< Y coordinate of the grElement
+    __shared__ int sphZ[MAX_NSPHERES_PER_SD]; //!< Z coordinate of the grElement
 
     __shared__ int node1_X[MAX_TRIANGLES_PER_SD]; //!< X coordinate of the 1st node of the triangle
     __shared__ int node1_Y[MAX_TRIANGLES_PER_SD]; //!< Y coordinate of the 1st node of the triangle
@@ -268,8 +273,30 @@ __global__ void grainTriangleInteraction(
     __shared__ int node3_Y[MAX_TRIANGLES_PER_SD]; //!< Y coordinate of the 3rd node of the triangle
     __shared__ int node3_Z[MAX_TRIANGLES_PER_SD]; //!< Z coordinate of the 3rd node of the triangle
 
-    int forceActingOnSphere[3]; //!< 3 registers will hold the value of the force on the sphere
-    int genForceActingOnTriangles[TRIANGLE_FAMILIES][6]; //!< There are 6 components: 3 forces and 3 torques
+    float forceActingOnSphere[3]; //!< 3 registers will hold the value of the force on the sphere
+    float genForceActingOnTriangles[TRIANGLE_FAMILIES][6]; //!< There are 6 components: 3 forces and 3 torques
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    /// Fake stuff here, to get to compile
+    ///////////////////////////////////////////////////////////////////////////////////
+    int * d_grEleme_pos_X;
+    int * d_grEleme_pos_Y;
+    int * d_grEleme_pos_Z;
+
+    int * d_node1_X_pos_X;
+    int * d_node1_Y_pos_Y;
+    int * d_node1_Z_pos_Z;
+
+    int * d_node2_X_pos_X;
+    int * d_node2_Y_pos_Y;
+    int * d_node2_Z_pos_Z;
+
+    int * d_node3_X_pos_X;
+    int * d_node3_Y_pos_Y;
+    int * d_node3_Z_pos_Z;
+    ///////////////////////////////////////////////////////////////////////////////////
+    /// End fake stuff
+    ///////////////////////////////////////////////////////////////////////////////////
 
     unsigned int thisSD = blockIdx.x + gridDim.x * (blockIdx.y + gridDim.y * blockIdx.z);
     unsigned int nSD_triangles = SD_countsOfTrianglesTouching[thisSD];
@@ -277,5 +304,100 @@ __global__ void grainTriangleInteraction(
 
     if (nSD_triangles == 0 || nSD_spheres == 0) return;
 
-    unsigned int tripsToCoverTriangles = (nSD_triangles + warpSize - 1) / warpSize;
+    // Populate the shared memory with grElement data
+    unsigned int tripsToCoverSpheres = (nSD_spheres + blockDim.x - 1) / blockDim.x;
+    unsigned int local_ID = threadIdx.x;
+    for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
+        local_ID += sphereTrip * blockDim.x;
+        if (local_ID < nSD_spheres) {
+            unsigned int globalID = grElems_in_SD_composite[local_ID + thisSD * MAX_NSPHERES_PER_SD];
+            grElemID[local_ID] = globalID;
+            sphX[local_ID] = d_grEleme_pos_X[globalID];
+            sphY[local_ID] = d_grEleme_pos_Y[globalID];
+            sphZ[local_ID] = d_grEleme_pos_Z[globalID];
+        }
+    }
+    // Populate the shared memory with mesh triangle data
+    unsigned int tripsToCoverTriangles = (nSD_triangles + blockDim.x - 1) / blockDim.x;
+    local_ID = threadIdx.x;
+    for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
+        local_ID += triangTrip * blockDim.x;
+        if (local_ID < nSD_triangles) {
+            unsigned int globalID = triangles_in_SD_composite[local_ID + thisSD * MAX_TRIANGLES_PER_SD];
+            triangID[local_ID] = globalID;
+            node1_X[local_ID] = d_node1_X_pos_X[globalID];
+            node1_Y[local_ID] = d_node1_Y_pos_Y[globalID];
+            node1_Z[local_ID] = d_node1_Z_pos_Z[globalID];
+
+            node2_X[local_ID] = d_node2_X_pos_X[globalID];
+            node2_Y[local_ID] = d_node2_Y_pos_Y[globalID];
+            node2_Z[local_ID] = d_node2_Z_pos_Z[globalID];
+
+            node3_X[local_ID] = d_node3_X_pos_X[globalID];
+            node3_Y[local_ID] = d_node3_Y_pos_Y[globalID];
+            node3_Z[local_ID] = d_node3_Z_pos_Z[globalID];
+        }
+    }
+
+    __syncthreads(); // this call ensures data is in its place in shared memory
+
+    /// Zero out the force and torque at the onset of the computation
+    for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
+        /// forces
+        genForceActingOnTriangles[local_ID][0] = 0.f;
+        genForceActingOnTriangles[local_ID][1] = 0.f;
+        genForceActingOnTriangles[local_ID][2] = 0.f;
+        /// torques
+        genForceActingOnTriangles[local_ID][3] = 0.f;
+        genForceActingOnTriangles[local_ID][4] = 0.f;
+        genForceActingOnTriangles[local_ID][5] = 0.f;
+    }
+
+    // Each sphere has one warp of threads dedicated to identifying all triangles that this sphere
+    // touches. Upon a contact event, we'll compute the normal force on the sphere; and, the force and torque impressed
+    // upon the triangle
+
+    unsigned int nSpheresProcessedAtOneTime = blockDim.x / warpSize; /// One warp allocated to slave serving one sphere
+    tripsToCoverSpheres = (nSD_spheres + nSpheresProcessedAtOneTime - 1) / nSpheresProcessedAtOneTime;
+    tripsToCoverTriangles = (nSD_triangles + warpSize - 1) / warpSize; 
+
+    unsigned sphere_Local_ID = threadIdx.x / warpSize;
+    for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
+        sphere_Local_ID += sphereTrip * nSpheresProcessedAtOneTime;
+        if (sphere_Local_ID < nSD_spheres) {
+            /// We have a legit new sphere; zero out the forces acting on it
+            forceActingOnSphere[0] = forceActingOnSphere[1] = forceActingOnSphere[2] = 0.f;
+            /// Figure out which triangles this sphere collides with; each thread in a warp slaving for this sphere
+            /// looks at one triangle at a time. The collection of threads in the warp sweeps through all the triangles
+            /// that touch this SD. NOTE: to avoid double-counting, a sphere-triangle collision event is counted only if
+            /// the collision point is in this SD.
+            unsigned int targetTriangle =  (threadIdx.x & (warpSize - 1)); // computes modulo 32 of the thread index
+            for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
+                targetTriangle += triangTrip * warpSize;
+                if (targetTriangle < nSD_triangles) {
+                    /// we have a valid sphere and a valid triganle; check if in contact
+                    float3 norm;
+                    float depth;
+                    float3 pt1;
+                    float3 pt2;
+                    float eff_radius;
+                    face_sphere(make_float3(node1_X[targetTriangle], node1_Y[targetTriangle], node1_Z[targetTriangle]),
+                                make_float3(node2_X[targetTriangle], node2_Y[targetTriangle], node2_Z[targetTriangle]),
+                                make_float3(node3_X[targetTriangle], node3_Y[targetTriangle], node3_Z[targetTriangle]),
+                                make_float3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]),
+                                sphereRadius, 0.f, norm, depth, pt1, pt2, eff_radius);
+
+                    /// Use the CD information to compute the force on the grElement; and, the force and torque on the
+                    /// triangle
+
+                }
+            }
+            /// down to the point where we need to collect the forces from all the threads in the wrap; this is a warp
+            /// reduce operation
+
+            /// done with the computation of all the contacts that the triangles impress on this sphere. Update the
+            /// position of the sphere based on this force
+        }
+    }
+
 }
