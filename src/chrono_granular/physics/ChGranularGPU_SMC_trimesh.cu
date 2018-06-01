@@ -231,10 +231,13 @@ they impress on a particular sphere. Note that each sphere enlists the services 
 impress upon the sphere that is active. If there are 256 threads in the block, then there will be 8 "active"
 spheres since there are 8 warps in the block. Each thread in the block has enough registers to accummulate the
 force felt by each "family", force that is the results between an interaction between a triangle and a sphere.
-Say if sphere 232 touches a triangle that belongs to family 2, then a set of 6 generalized forces is going to 
+Say if sphere 232 touches a triangle that belongs to family 2, then a set of 6 generalized forces is going to
 be produced to account for the interaction between the said triangle and sphere 232.
 */
-template <unsigned int N_CUDATHREADS, unsigned int MAX_NSPHERES_PER_SD, unsigned int MAX_TRIANGLES_PER_SD, unsigned int TRIANGLE_FAMILIES>
+template <unsigned int N_CUDATHREADS,
+          unsigned int MAX_NSPHERES_PER_SD,
+          unsigned int MAX_TRIANGLES_PER_SD,
+          unsigned int TRIANGLE_FAMILIES>
 __global__ void grainTriangleInteraction(
     unsigned int nTriangles,                     //!< Number of triangles checked for collision with the terrain
     unsigned int nGrElements,                    //!< Number of spheres  in the terrain
@@ -244,9 +247,10 @@ __global__ void grainTriangleInteraction(
         triangles_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
                                     //!< "triangles_in_SD_composite" says which SD contains what triangles.
     unsigned int*
-        SD_countsOfGrElemsTouching,        //!< Array that for each SD indicates how many grain elements touch this SD
-    unsigned int* grElems_in_SD_composite  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
-                                           //!< "grElems_in_SD_composite" says which SD contains what grElements.
+        SD_countsOfGrElemsTouching,         //!< Array that for each SD indicates how many grain elements touch this SD
+    unsigned int* grElems_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
+                                            //!< "grElems_in_SD_composite" says which SD contains what grElements.
+    float forcesTroques_onMeshes[TRIANGLE_FAMILIES][6]
 ) {
     __shared__ unsigned int grElemID[MAX_NSPHERES_PER_SD]; //!< global ID of the grElements touching this SD
     __shared__ unsigned int triangID[MAX_NSPHERES_PER_SD]; //!< global ID of the triangles touching this SD
@@ -407,7 +411,7 @@ __global__ void grainTriangleInteraction(
         }
     }
     /// Done computing the forces acting on the triangles in this SD. A block reduce is carried out next. Start by doing
-    /// a reduce at the warp level
+    /// a reduce at the warp level. 
     for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
         /// forces acting on the triangle, in global reference frame
         for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
@@ -428,11 +432,13 @@ __global__ void grainTriangleInteraction(
         for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
             genForceActingOnTriangles[local_ID][5] += __shfl_down_sync(0xffffffff, genForceActingOnTriangles[local_ID][5], offset);
     }
+
     __syncthreads();
-    /// Lane zero in each warp has the result of a warp-level reduce operation. Sum up these "Lane zero" values in one final result
+
+    /// Lane zero in each warp holds the result of a warp-level reduce operation. Sum up these "Lane zero" values in one final result
     bool threadIsLaneZeroInWarp = (threadIdx.x & (warpSize - 1) == 0);
     for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
-        /// forces acting on the triangle, in global reference frame
+        /// Place in ShMem forces/torques (expressed in global reference frame) acting on this family of triangles
         if (threadIsLaneZeroInWarp) {
             unsigned int offset = threadIdx.x / warpSize;
             tempShMem[offset][0] = genForceActingOnTriangles[local_ID][0];
@@ -449,24 +455,68 @@ __global__ void grainTriangleInteraction(
         /// store the vaule of the triangle force and torque...
         if (threadIdx.x < warpSize) {
             /// only first thread in block participates in this reduce operation.
-            /// Note the implicit assumption made here: warpSize is larger than N_CUDATHREADS / warpSize. This is true
-            /// today as N_CUDATHREADS cannot be larger than 1024 and warpSize is 32
+            /// Note the implicit assumption made here: warpSize is larger than or equal to N_CUDATHREADS / warpSize.
+            /// This is true today as N_CUDATHREADS cannot be larger than 1024 and warpSize is 32.
+
+            /// Work on forces first. Place data from ShMem into registers associated w/ first warp
             if (threadIdx.x < (N_CUDATHREADS / warpSize)) {
                 forceActingOnSphere[0] = tempShMem[threadIdx.x][0];
                 forceActingOnSphere[1] = tempShMem[threadIdx.x][1];
                 forceActingOnSphere[2] = tempShMem[threadIdx.x][2];
             }
             else {
+                /// this is hit only by a subset of threads from first warp of the block
                 forceActingOnSphere[0] = 0.f;
                 forceActingOnSphere[1] = 0.f;
                 forceActingOnSphere[2] = 0.f;
             }
+
+            // X component of the force on mesh "local_ID"
             for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
+            genForceActingOnTriangles[local_ID][0] = forceActingOnSphere[0];
+
+            // Y component of the force on mesh "local_ID"
             for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
+            genForceActingOnTriangles[local_ID][1] = forceActingOnSphere[1];
+
+            // Z component of the force on mesh "local_ID"
             for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
-        }
+            genForceActingOnTriangles[local_ID][2] = forceActingOnSphere[2];
+
+            /// Finally, work on torques
+            if (threadIdx.x < (N_CUDATHREADS / warpSize)) {
+                forceActingOnSphere[0] = tempShMem[threadIdx.x][3];
+                forceActingOnSphere[1] = tempShMem[threadIdx.x][4];
+                forceActingOnSphere[2] = tempShMem[threadIdx.x][5];
+            }
+            else {
+                /// this is hit only by a subset of threads from first warp of the block
+                forceActingOnSphere[0] = 0.f;
+                forceActingOnSphere[1] = 0.f;
+                forceActingOnSphere[2] = 0.f;
+            }
+
+            // X component of the torque on mesh "local_ID"
+            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+                forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
+            genForceActingOnTriangles[local_ID][3] = forceActingOnSphere[0];
+
+            // Y component of the torque on mesh "local_ID"
+            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+                forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
+            genForceActingOnTriangles[local_ID][4] = forceActingOnSphere[1];
+
+            // Z component of the torque on mesh "local_ID"
+            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+                forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
+            genForceActingOnTriangles[local_ID][5] = forceActingOnSphere[2];
+        } /// this is the end of the "for each mesh" loop
+
+        /// At this point, the first thread of the block has in genForceActingOnTriangles[TRIANGLE_FAMILIES][6] the
+        /// forces and torques acting on each mesh family.
+        /// Do a reduction over the blocks to get the final value stored in "forcesTroques_onMeshes[TRIANGLE_FAMILIES][6]."
     }
 }
