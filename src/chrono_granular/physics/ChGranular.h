@@ -146,7 +146,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     /// Set bounds to fill on the big box, goes xyz min, xyz max as floats from -1 to 1
     /// Passing xmin = -1, xmax = 1 means fill the box in xdir
     // TODO comment this more
-    virtual void setFillBounds(float, float, float, float, float, float);
+    virtual void setFillBounds(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax);
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
@@ -190,8 +190,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     unsigned int sphereRadius_SU;  //!< Size of the sphere radius, in Simulation Units
 
     unsigned int SD_L_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
-    unsigned int SD_D_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
-    unsigned int SD_H_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
+    unsigned int SD_D_SU;  //!< Size of the SD in the D direction (expressed in Simulation Units)
+    unsigned int SD_H_SU;  //!< Size of the SD in the H direction (expressed in Simulation Units)
 
     unsigned int nSDs_L_SU;  //!< Number of SDs along the L dimension of the box
     unsigned int nSDs_D_SU;  //!< Number of SDs along the D dimension of the box
@@ -239,9 +239,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     virtual void run_simulation(float t_end);
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts(std::string, bool, bool);
-    void writeFile(std::string, unsigned int*);
-    virtual void updateBDPosition(int, int);
+    void checkSDCounts(std::string ofile, bool write_out, bool verbose);
+    void writeFile(std::string ofile, unsigned int* deCounts);
+    virtual void updateBDPosition(const int currTime_SU, const int stepSize_SU);
 
   protected:
     virtual void copy_const_data_to_device();
@@ -321,11 +321,11 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_NSC_Frictionless : public ChS
     }
 
     /// Copy back the SD device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts(std::string, bool, bool) {
+    void checkSDCounts(std::string ofile, bool write_out, bool verbose) {
         exit(1);
         return;
     }
-    void writeFile(std::string, unsigned int*) {
+    void writeFile(std::string ofile, unsigned int* deCounts) {
         exit(1);
         return;
     }
@@ -333,7 +333,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_NSC_Frictionless : public ChS
         exit(1);
         return;
     }
-    virtual void updateBDPosition(int, int) {
+    virtual void updateBDPosition(const int currTime_SU, const int stepSize_SU) {
         exit(1);
         return;
     }

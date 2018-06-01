@@ -154,7 +154,7 @@ void chrono::granular::ChSystemGranularMonodisperse::partition_BD() {
 }
 
 /**
-This method define the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
+This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
 of various physical quantities set by the user.
 */
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
