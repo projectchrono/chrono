@@ -12,8 +12,8 @@ option(ENABLE_MODULE_GRANULAR "Enable the Chrono Granular module" OFF)
 if(NOT ENABLE_MODULE_GRANULAR)
   mark_as_advanced(FORCE BLAZE_DIR)
   mark_as_advanced(FORCE USE_GRANULAR_SIMD)
-  
-  # GCC > 4.9 does not support CUDA (<= 8.0) by default. 
+
+  # GCC > 4.9 does not support CUDA (<= 8.0) by default.
   # Users may explicitly select CUDA support if they are sure that their compiler
   # does make use of any conflicting features, such as C++14.
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -187,7 +187,7 @@ SOURCE_GROUP(physics FILES ${ChronoEngine_Granular_PHYSICS})
 
 SET(ChronoEngine_Granular_CUDA
     physics/ChGranularGPU_SMC.cu
-    physics/ChGranularGPU_SMC_trimesh.cu
+    #physics/ChGranularGPU_SMC_trimesh.cu
     physics/ChGranularCollision.cuh
     physics/ChGranularCollision.cu
     physics/ChGranularBoxTriangle.cu
@@ -196,7 +196,7 @@ SET(ChronoEngine_Granular_CUDA
     )
 
 SOURCE_GROUP(cuda FILES ${ChronoEngine_Granular_CUDA})
-    
+
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_granular library
 # ------------------------------------------------------------------------------
@@ -236,7 +236,7 @@ mark_as_advanced(FORCE
     CUDA_SDK_ROOT_DIR
     CUDA_VERBOSE_BUILD
     CUDA_HOST_COMPILER)
-    
+
 message( "Flags are " ${CUDA_NVCC_FLAGS})
 
 

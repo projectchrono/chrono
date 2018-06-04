@@ -111,6 +111,7 @@ if(ENABLE_MODULE_GRANULAR)
 	mark_as_advanced(FORCE BUILD_DEMOS_GRANULAR)
 	if(BUILD_DEMOS_GRANULAR)
 		add_subdirectory(granular)
+        add_subdirectory(test_cosimulation_HMMWV)
 	endif()
 endif()
 
