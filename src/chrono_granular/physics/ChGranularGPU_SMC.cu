@@ -33,19 +33,6 @@
 
 #define CUDA_THREADS 128
 
-// Add verbose checks easily
-#define VERBOSE_PRINTF(...)  \
-    if (verbose_runtime) {   \
-        printf(__VA_ARGS__); \
-    }
-
-// Print a user-given error message and crash
-#define ABORTABORTABORT(...) \
-    {                        \
-        printf(__VA_ARGS__); \
-        __threadfence();     \
-        cub::ThreadTrap();   \
-    }
 
 // Use user-defined quantities for coefficients
 __constant__ float d_Gamma_n;  //!< contact damping coefficient, expressed in SU

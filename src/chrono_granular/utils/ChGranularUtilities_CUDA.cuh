@@ -19,3 +19,17 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
             exit(code);
     }
 }
+
+// Add verbose checks easily
+#define VERBOSE_PRINTF(...)  \
+    if (verbose_runtime) {   \
+        printf(__VA_ARGS__); \
+    }
+
+// Print a user-given error message and crash
+#define ABORTABORTABORT(...) \
+    {                        \
+        printf(__VA_ARGS__); \
+        __threadfence();     \
+        cub::ThreadTrap();   \
+    }
