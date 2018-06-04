@@ -111,6 +111,8 @@ class CH_GRANULAR_API ChSystemGranular {
 
     GRN_TIME_STEPPING time_stepping;  //!< Indicates what type of time stepping the simulation employs.
 
+    bool primed = false;  //!< Indicates that the priming step has occurred
+
     /// Partition the big domain (BD) and sets the number of SDs that BD is split in.
     /// This is pure virtual since each problem will have a specific way of splitting BD based on shape of BD and DEs
     virtual void partition_BD() = 0;
@@ -137,6 +139,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     ~ChSystemGranularMonodisperse() {}
 
     virtual void run_simulation(float t_end) = 0;
+    virtual void advance_simulation(float duration) = 0;
 
     virtual void generate_DEs();
 
@@ -237,6 +240,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void run_simulation(float t_end);
+    virtual void advance_simulation(float duration);
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string ofile, bool write_out, bool verbose);
@@ -296,6 +300,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void run_simulation(float t_end);
+    virtual void advance_simulation(float duration);
 
     inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
 };
@@ -316,6 +321,10 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_NSC_Frictionless : public ChS
         return;
     }  //!< set up data structures and carry out pre-processing tasks
     virtual void run_simulation(float t_end) {
+        exit(1);
+        return;
+    }
+    virtual void advance_simulation(float duration) {
         exit(1);
         return;
     }
