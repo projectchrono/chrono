@@ -8,7 +8,7 @@
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
-// Contains some collision helper functions for chrono_granular, lifted from ChNarrowphaseR
+// Contains collision helper functions for chrono_granular, lifted from ChNarrowphaseR
 //
 // =============================================================================
 // Authors: Dan Negrut, Conlain Kelly
@@ -16,7 +16,6 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularCollision.cuh"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
-
 
 /// This utility function takes the location 'P' and snaps it to the closest
 /// point on the triangular face with given vertices (A, B, and C). The result
@@ -85,29 +84,42 @@ __device__ bool snap_to_face(const float3& A, const float3& B, const float3& C, 
 
     // P inside face region. Return projection of P onto face
     // barycentric coordinates (u,v,w)
-    float denom = 1 / (va + vb + vc);
+    float denom = 1.f / (va + vb + vc);
     float v = vb * denom;
     float w = vc * denom;
     res = A + v * AB + w * AC;  // = u*A + v*B + w*C  where  (u = 1 - v - w)
     return false;
 }
 
-// =============================================================================
-//              FACE - SPHERE
-// Face-sphere narrow phase collision detection.
-// In: triangular face defined by points A1, B1, C1
-//     sphere sphere centered at pos2 and with radius2
-__device__ bool face_sphere(const float3& A1,
-                            const float3& B1,
-                            const float3& C1,
-                            const float3& pos2,
-                            const float& radius2,
-                            const float& separation,
-                            float3& norm,
-                            float& depth,
-                            float3& pt1,
-                            float3& pt2,
-                            float& eff_radius) {
+/**
+TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
+The triangular face is defined by points A1, B1, C1. The sequence is important as it defines the positive face via a
+right-hand rule.
+The sphere is centered at pos2 and has radius2.
+See NOTE below for the meaning of the input variable "separation."
+Output:
+  - pt1:      contact point on triangle (in global frame)
+  - pt2:      contact point on sphere (in global frame)
+  - depth:    penetration distance (a negative value means that overlap exists)
+  - norm:     contact normal, from pt2 to pt1 (in global frame)
+  - eff_rad:  effective contact radius
+A return value of "true" signals collision.
+NOTE: The face and sphere are reported as colliding when the distance between them is at most 'separation'. If
+separation is grater than zero, the bodies can still be flagged in contact despite the depth being positive. The
+"separation" variable comes into play for NSC. For SMC, "separation" is zero.
+*/
+
+__device__ bool face_sphere_cd(const float3& A1,
+                               const float3& B1,
+                               const float3& C1,
+                               const float3& pos2,
+                               const float& radius2,
+                               const float& separation,
+                               float3& norm,
+                               float& depth,
+                               float3& pt1,
+                               float3& pt2,
+                               float& eff_radius) {
     float radius2_s = radius2 + separation;
 
     // Calculate face normal.

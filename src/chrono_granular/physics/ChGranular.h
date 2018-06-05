@@ -271,6 +271,45 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 };
 
 /**
+ * ChTriangleSoup: helper structure that is used as a place holder for arrays associated with a mesh. No memory
+ * allocation of freeing done by objects of this class. All its members are public.
+ */
+template <unsigned int TRIANGLE_FAMILIES> class ChTriangleSoup {
+public:
+    unsigned int nTrianglesInSoup; /// total number of triangles in the soup
+
+    unsigned int* triangleFamily_ID;  /// each entry says what family that triagnle belongs to; size: nTrianglesInSoup
+
+    /// The order of the nodes in a triangle defines the positive face of the triangle; use right-hand rule
+    int* node1_X; /// X position in global reference frame of node 1
+    int* node1_Y; /// Y position in global reference frame of node 1
+    int* node1_Z; /// Z position in global reference frame of node 1
+
+    int* node2_X; /// X position in global reference frame of node 2
+    int* node2_Y; /// Y position in global reference frame of node 2
+    int* node2_Z; /// Z position in global reference frame of node 2
+
+    int* node3_X; /// X position in global reference frame of node 3
+    int* node3_Y; /// Y position in global reference frame of node 3
+    int* node3_Z; /// Z position in global reference frame of node 3
+
+    float* node1_XDOT; /// X velocity in global reference frame of node 1
+    float* node1_YDOT; /// Y velocity in global reference frame of node 1
+    float* node1_ZDOT; /// Z velocity in global reference frame of node 1
+
+    float* node2_XDOT; /// X velocity in global reference frame of node 2
+    float* node2_YDOT; /// Y velocity in global reference frame of node 2
+    float* node2_ZDOT; /// Z velocity in global reference frame of node 2
+
+    float* node3_XDOT; /// X velocity in global reference frame of node 3
+    float* node3_YDOT; /// Y velocity in global reference frame of node 3
+    float* node3_ZDOT; /// Z velocity in global reference frame of node 3
+
+    float generalizedForcesPerFamily[6 * TRIANGLE_FAMILIES];  //!< Generalized forces acting on each family. Expressed
+                                                              //!< in the global reference frame.
+};
+
+/**
  * ChSystemGranularMonodisperse_SMC_Frictionless_trimesh: Mono-disperse setup, one radius for all spheres. There is no
  * friction. The granular material interacts through an implement that is defined via a triangular mesh.
  */
@@ -286,13 +325,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     virtual void determine_new_stepSize() { return; }
 
     double YoungModulus_SPH2MESH;
-    double K_stiffness;
-    float Gamma_n_SU;
-    float K_n_SU;
-    /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
-    float cohesion_over_gravity;
 
-  public:
+public:
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density)
         : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density) {}
 

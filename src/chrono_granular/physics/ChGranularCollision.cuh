@@ -14,11 +14,12 @@
 // Authors: Dan Negrut, Conlain Kelly
 // =============================================================================
 
-// test whether a box and a triangle are overlapping, used to check if a triangle is in an SD
-__device__ int triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], const float (&triverts)[3][3]);
+/// test whether a box and a triangle are overlapping; used to check if a triangle touches an SD.
+/// NOTE: triverts stores first node of the triangle as the first row, second node as the second row, etc.
+__device__ bool triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], const float (&triverts)[3][3]);
 
-// test whether a triangle and a sphere are in contact and set the normal and penetration
-__device__ bool face_sphere(const float3& A1,
+/// test whether a triangle and a sphere are in contact and set the normal and penetration
+__device__ bool face_sphere_cd(const float3& A1,
                             const float3& B1,
                             const float3& C1,
                             const float3& pos2,

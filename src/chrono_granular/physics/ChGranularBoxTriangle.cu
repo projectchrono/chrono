@@ -41,26 +41,26 @@
     if (x2 > max)                        \
         max = x2;
 
-int planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const float (&maxbox)[3])  // -NJMP-
+__device__ bool planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const float (&maxbox)[3])  
 {
     int q;
     float vmin[3], vmax[3], v;
     for (q = X; q <= Z; q++) {
-        v = vert[q];  // -NJMP-
+        v = vert[q];  
         if (normal[q] > 0.0f) {
-            vmin[q] = -maxbox[q] - v;  // -NJMP-
-            vmax[q] = maxbox[q] - v;   // -NJMP-
+            vmin[q] = -maxbox[q] - v;  
+            vmax[q] = maxbox[q] - v;   
         } else {
-            vmin[q] = maxbox[q] - v;   // -NJMP-
-            vmax[q] = -maxbox[q] - v;  // -NJMP-
+            vmin[q] = maxbox[q] - v;   
+            vmax[q] = -maxbox[q] - v;  
         }
     }
     if (DOT(normal, vmin) > 0.0f)
-        return 0;  // -NJMP-
+        return false;  
     if (DOT(normal, vmax) >= 0.0f)
-        return 1;  // -NJMP-
+        return true;  
 
-    return 0;
+    return false;
 }
 
 /*======================== X-tests ========================*/
@@ -76,7 +76,7 @@ int planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const floa
     }                                                \
     rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z]; \
     if (min > rad || max < -rad)                     \
-        return 0;
+        return false;
 
 #define AXISTEST_X2(a, b, fa, fb)                    \
     p0 = a * v0[Y] - b * v0[Z];                      \
@@ -90,7 +90,7 @@ int planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const floa
     }                                                \
     rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z]; \
     if (min > rad || max < -rad)                     \
-        return 0;
+        return false;
 
 /*======================== Y-tests ========================*/
 #define AXISTEST_Y02(a, b, fa, fb)                   \
@@ -105,7 +105,7 @@ int planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const floa
     }                                                \
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z]; \
     if (min > rad || max < -rad)                     \
-        return 0;
+        return false;
 
 #define AXISTEST_Y1(a, b, fa, fb)                    \
     p0 = -a * v0[X] + b * v0[Z];                     \
@@ -119,7 +119,7 @@ int planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const floa
     }                                                \
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z]; \
     if (min > rad || max < -rad)                     \
-        return 0;
+        return false;
 
 /*======================== Z-tests ========================*/
 
@@ -135,7 +135,7 @@ int planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const floa
     }                                                \
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y]; \
     if (min > rad || max < -rad)                     \
-        return 0;
+        return false;
 
 #define AXISTEST_Z0(a, b, fa, fb)                    \
     p0 = a * v0[X] - b * v0[Y];                      \
@@ -149,9 +149,9 @@ int planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const floa
     }                                                \
     rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y]; \
     if (min > rad || max < -rad)                     \
-        return 0;
+        return false;
 
-int triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], float (&triverts)[3][3]) {
+__device__ bool triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], float (&triverts)[3][3]) {
     /*    use separating axis theorem to test overlap between triangle and box */
     /*    need to test for overlap in these directions: */
     /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
@@ -160,7 +160,7 @@ int triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], fl
     /*    3) crossproduct(edge from tri, {x,y,z}-directin) */
     /*       this gives 3x3=9 more tests */
     float v0[3], v1[3], v2[3];
-    float min, max, p0, p1, p2, rad, fex, fey, fez;  // -NJMP- "d" local variable removed
+    float min, max, p0, p1, p2, rad, fex, fey, fez;  
     float normal[3], e0[3], e1[3], e2[3];
 
     /* This is the fastest branch on Sun */
@@ -206,24 +206,24 @@ int triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], fl
     /* test in X-direction */
     FINDMINMAX(v0[X], v1[X], v2[X], min, max);
     if (min > boxhalfsize[X] || max < -boxhalfsize[X])
-        return 0;
+        return false;
 
     /* test in Y-direction */
     FINDMINMAX(v0[Y], v1[Y], v2[Y], min, max);
     if (min > boxhalfsize[Y] || max < -boxhalfsize[Y])
-        return 0;
+        return false;
 
     /* test in Z-direction */
     FINDMINMAX(v0[Z], v1[Z], v2[Z], min, max);
     if (min > boxhalfsize[Z] || max < -boxhalfsize[Z])
-        return 0;
+        return false;
 
     /* Bullet 2: */
     /*  test if the box intersects the plane of the triangle */
     /*  compute plane equation of triangle: normal*x+d=0 */
     CROSS(normal, e0, e1);
     if (!planeBoxOverlap(normal, v0, boxhalfsize))
-        return 0;  // -NJMP-
+        return false;  
 
-    return 1; /* box and triangle overlaps */
+    return true; /* box and triangle overlaps */
 }

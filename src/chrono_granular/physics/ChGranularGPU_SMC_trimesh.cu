@@ -16,7 +16,6 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/cub/cub.cuh"
-//#include "chrono/core/ChVector.h"
 #include "chrono_granular/physics/ChGranularCollision.cuh"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
@@ -216,12 +215,13 @@ force felt by each "family", force that is the results between an interaction be
 Say if sphere 232 touches a triangle that belongs to family 2, then a set of 6 generalized forces is going to
 be produced to account for the interaction between the said triangle and sphere 232.
 */
+#define Triangle_Soup chrono::granular::ChTriangleSoup<TRIANGLE_FAMILIES>
 template <unsigned int N_CUDATHREADS,
           unsigned int MAX_NSPHERES_PER_SD,
           unsigned int MAX_TRIANGLES_PER_SD,
           unsigned int TRIANGLE_FAMILIES>
-__global__ void grainTriangleInteraction(
-    unsigned int nTriangles,                     //!< Number of triangles checked for collision with the terrain
+__global__ void interactionTerrain_TriangleSoup(
+    Triangle_Soup& d_triangleSoup,               //!< Contains information pertaining to triangle soup (in device mem.)
     unsigned int nGrElements,                    //!< Number of spheres  in the terrain
     float sphereRadius,                          //!< Radius of the sphere in the granular terrain (UserUnits)
     unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
@@ -230,10 +230,8 @@ __global__ void grainTriangleInteraction(
                                     //!< "triangles_in_SD_composite" says which SD contains what triangles.
     unsigned int*
         SD_countsOfGrElemsTouching,         //!< Array that for each SD indicates how many grain elements touch this SD
-    unsigned int* grElems_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
+    unsigned int* grElems_in_SD_composite)  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
                                             //!< "grElems_in_SD_composite" says which SD contains what grElements.
-    float forcesTroques_onMeshes[6 * TRIANGLE_FAMILIES])  //!< Array contains the generalized forces acting on the
-                                                          //!< meshes that come in contact w/ the granular material
 {
     __shared__ unsigned int grElemID[MAX_NSPHERES_PER_SD];  //!< global ID of the grElements touching this SD
     __shared__ unsigned int triangID[MAX_NSPHERES_PER_SD];  //!< global ID of the triangles touching this SD
@@ -267,17 +265,6 @@ __global__ void grainTriangleInteraction(
     int* d_grEleme_pos_Y;
     int* d_grEleme_pos_Z;
 
-    int* d_node1_X_pos_X;
-    int* d_node1_Y_pos_Y;
-    int* d_node1_Z_pos_Z;
-
-    int* d_node2_X_pos_X;
-    int* d_node2_Y_pos_Y;
-    int* d_node2_Z_pos_Z;
-
-    int* d_node3_X_pos_X;
-    int* d_node3_Y_pos_Y;
-    int* d_node3_Z_pos_Z;
     ///////////////////////////////////////////////////////////////////////////////////
     /// End fake stuff
     ///////////////////////////////////////////////////////////////////////////////////
@@ -310,17 +297,17 @@ __global__ void grainTriangleInteraction(
         if (local_ID < nSD_triangles) {
             unsigned int globalID = triangles_in_SD_composite[local_ID + thisSD * MAX_TRIANGLES_PER_SD];
             triangID[local_ID] = globalID;
-            node1_X[local_ID] = d_node1_X_pos_X[globalID];
-            node1_Y[local_ID] = d_node1_Y_pos_Y[globalID];
-            node1_Z[local_ID] = d_node1_Z_pos_Z[globalID];
+            node1_X[local_ID] = d_triangleSoup.node1_X[globalID];
+            node1_Y[local_ID] = d_triangleSoup.node1_Y[globalID];
+            node1_Z[local_ID] = d_triangleSoup.node1_Z[globalID];
 
-            node2_X[local_ID] = d_node2_X_pos_X[globalID];
-            node2_Y[local_ID] = d_node2_Y_pos_Y[globalID];
-            node2_Z[local_ID] = d_node2_Z_pos_Z[globalID];
+            node2_X[local_ID] = d_triangleSoup.node2_X[globalID];
+            node2_Y[local_ID] = d_triangleSoup.node2_Y[globalID];
+            node2_Z[local_ID] = d_triangleSoup.node2_Z[globalID];
 
-            node3_X[local_ID] = d_node3_X_pos_X[globalID];
-            node3_Y[local_ID] = d_node3_Y_pos_Y[globalID];
-            node3_Z[local_ID] = d_node3_Z_pos_Z[globalID];
+            node3_X[local_ID] = d_triangleSoup.node3_X[globalID];
+            node3_Y[local_ID] = d_triangleSoup.node3_Y[globalID];
+            node3_Z[local_ID] = d_triangleSoup.node3_Z[globalID];
         }
     }
 
@@ -528,7 +515,7 @@ __global__ void grainTriangleInteraction(
         for (local_ID = 0; local_ID < nTrips + 1; local_ID++) {
             unsigned int offset = threadIdx.x + local_ID * (6 * TRIANGLE_FAMILIES);
             if (offset < 6 * TRIANGLE_FAMILIES)
-                atomicAdd(forcesTroques_onMeshes + offset, genForceActingOnMeshes[offset]);
+                atomicAdd(d_triangleSoup.generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
         }
     }
 }
