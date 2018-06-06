@@ -271,7 +271,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 };
 
 /**
- * ChTriangleSoup: helper structure that is used as a place holder for arrays associated with a mesh. No memory
+ * ChTriangleSoup: thin helper class used as a place holder for arrays associated with a mesh. No memory
  * allocation of freeing done by objects of this class. All its members are public.
  */
 template <unsigned int TRIANGLE_FAMILIES> class ChTriangleSoup {
@@ -309,6 +309,23 @@ public:
                                                               //!< in the global reference frame.
 };
 
+/**
+ * ChManyBodyStateWrapper: thin helper class used as a place holder for arrays associated with a large collection of
+ * elements. No memory allocation of freeing done by objects of this class. All its members are public.
+ */
+class ChManyBodyStateWrapper {
+public:
+    unsigned int nElements;
+    float sphereRadius;
+
+    int* grElem_X; /// X position in global reference frame of sphere center
+    int* grElem_Y; /// Y position in global reference frame of sphere center
+    int* grElem_Z; /// Z position in global reference frame of sphere center
+
+    float* grElem_XDOT; /// X velocity in global reference frame of sphere center
+    float* grElem_YDOT; /// Y velocity in global reference frame of sphere center
+    float* grElem_ZDOT; /// Z velocity in global reference frame of sphere center
+};
 /**
  * ChSystemGranularMonodisperse_SMC_Frictionless_trimesh: Mono-disperse setup, one radius for all spheres. There is no
  * friction. The granular material interacts through an implement that is defined via a triangular mesh.

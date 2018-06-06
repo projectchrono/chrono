@@ -44,6 +44,8 @@
 #define PSI_h 4
 /// Value that controls the time unit. It is like a safety factor.
 #define PSI_T 8
+/// Max number of SDs that a mesh triangle can touch
+#define MAX_SDs_TOUCHED_BY_TRIANGLE 8
 
 //////////////////////////////////////////////////////////////////////////////
 /// COLLISION DETECTION RELATED QUANTITIES
