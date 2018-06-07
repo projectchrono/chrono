@@ -16,6 +16,7 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularCollision.cuh"
+#include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 #include "chrono_thirdparty/cub/cub.cuh"
 
@@ -26,17 +27,11 @@
 
 #define Triangle_Soup chrono::granular::ChTriangleSoup<TRIANGLE_FAMILIES>
 
-/// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
-/// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
-/// A bit set to 0 means the lower index, whereas 1 means the higher index (lower + 1)
-/// The kernel computes global x, y, and z indices for the bottom-left subdomain and then uses those to figure out which
-/// subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts these
-/// indices to indices into the global SD list via the (currently local) conv[3] data structure
-/// Should be mostly bug-free, especially away from boundaries
+/// Takes in a triangle's position and finds out what SDs it touches
 template <unsigned int TRIANGLE_FAMILIES>
-__device__ void figureOutTriangleTouchedSDs(unsigned int triangleID,
-                                            const Triangle_Soup& triangleSoup,
-                                            unsigned int* touchedSDs) {
+__device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
+                                             const Triangle_Soup& triangleSoup,
+                                             unsigned int* touchedSDs) {
     // We should use CUDA's fast_math here, all w/ float precision...
 }
 
@@ -85,12 +80,14 @@ template <unsigned int TRIANGLE_FAMILIES,
 __global__ void
 triangleSoupBroadPhase(
     Triangle_Soup& d_triangleSoup,
-    unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
-    unsigned int* triangles_in_SD_composite  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
-                                             //!< "triangles_in_SD_composite" says which SD contains what triangles.
+    unsigned int*
+        BUCKET_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
+    unsigned int*
+        triangles_in_BUCKET_composite  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
+                                       //!< "triangles_in_SD_composite" says which SD contains what triangles.
 ) {
     /// Set aside shared memory
-    volatile __shared__ size_t offsetInComposite_TriangleInSD_Array[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
+    volatile __shared__ unsigned int offsetInComposite_TriangleInSD_Array[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
 
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_TRIANGLE, unsigned int> BlockRadixSortOP;
@@ -99,21 +96,30 @@ triangleSoupBroadPhase(
     typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
     __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
 
-    // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int triangleIDs[MAX_SDs_TOUCHED_BY_TRIANGLE];
     unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_TRIANGLE];
+
+    // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
+    unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
+        /// start with a clean slate
         triangleIDs[i] = myTriangleID;
         SDsTouched[i] = NULL_GRANULAR_ID;
     }
 
     if (myTriangleID < d_triangleSoup.nTrianglesInSoup)
-        figureOutTriangleTouchedSDs(myTriangleID, d_triangleSoup, SDsTouched);
+        triangle_figureOutTouchedSDs(myTriangleID, d_triangleSoup, SDsTouched);
 
     __syncthreads();
 
-    // Sort by the ID of the SD touched
+    // Truth be told, we are not interested in SDs touched, but rather buckets touched. This next step associates SDs
+    // with "buckets". To save memory, since most SDs have no triangles, we "randomly" associate sevearl SDs with a
+    // bucket. While the assignment of SDs to buckets is "random," the assignment scheme is deterministic: for
+    // instance, SD 239 would always go to bucket 71.
+    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++)
+        SDsTouched[i] = hashmapTagGenerator(SDsTouched[i]) % TRIANGLEBUCKET_COUNT;
+
+    // Sort by the ID of the bucket touched
     BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, triangleIDs);
     __syncthreads();
 
@@ -135,13 +141,13 @@ triangleSoupBroadPhase(
 
     __syncthreads();
 
-    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS spheres. There
+    // Count how many times a Bucket shows up in conjunction with the collection of CUB_THREADS spheres. There
     // will be some thread divergence here.
     // Loop through each potential SD, after sorting, and see if it is the start of a head
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         // SD currently touched, could easily be inlined
-        unsigned int touchedSD = SDsTouched[i];
-        if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
+        unsigned int touchedBucket = SDsTouched[i];
+        if (touchedBucket != NULL_GRANULAR_ID && head_flags[i]) {
             // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
             unsigned int idInShared = MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i;
             unsigned int winningStreak = 0;
@@ -157,11 +163,11 @@ triangleSoupBroadPhase(
             // }
 
             // Store start of new entries
-            size_t offset = atomicAdd(SD_countsOfTrianglesTouching + touchedSD, winningStreak);
+            unsigned int offset = atomicAdd(BUCKET_countsOfTrianglesTouching + touchedBucket, winningStreak);
 
             // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
             // Get the absolute offset
-            offset += ((size_t)touchedSD) * MAX_COUNT_OF_Triangles_PER_SD;
+            offset += touchedBucket * MAX_COUNT_OF_Triangles_PER_SD;
 
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int i = 0; i < winningStreak; i++)
@@ -173,9 +179,9 @@ triangleSoupBroadPhase(
 
     // Write out the data now; register with triangles_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
-        size_t offset = offsetInComposite_TriangleInSD_Array[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i];
+        unsigned int offset = offsetInComposite_TriangleInSD_Array[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID_LONG) {
-            triangles_in_SD_composite[offset] = triangleIDs[i];
+            triangles_in_BUCKET_composite[offset] = triangleIDs[i];
         }
     }
 }

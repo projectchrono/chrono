@@ -46,12 +46,20 @@
 #define PSI_T 8
 /// Max number of SDs that a mesh triangle can touch
 #define MAX_SDs_TOUCHED_BY_TRIANGLE 8
+/// The number of buckets used to host the triangles that touch a subset of SDs. If memory was not an issue, we'd
+/// have as many an buckets as SD and one bucket would handle one SD. Yet this would lead to a lot of wasted memory
+/// since most SDs have no triangles touching them. As such, the idea is to group a number of SDs associated with a
+/// bucket and have that bucket store all the triangles touching this subset of SDs. A prime number for the bucket count
+/// is good
+#define TRIANGLEBUCKET_COUNT 4111
+/// MAX_TRIANGLE_COUNT_PER_BUCKET indicates how much memory we set aside to store mesh triangles that belong to a
+/// bucket. This number is not the amount of memory, rather the max number of triangles we anticipate to see in a
+/// bucket. Note that if TRIANGLE_BUCKET_COUNT is small, a lot of SDs will send their triangles to the same bucket,
+/// which means that MAX_TRIANGLE_COUNT_PER_BUCKET should be cranked up.
+#define MAX_TRIANGLE_COUNT_PER_BUCKET 256
 
 //////////////////////////////////////////////////////////////////////////////
 /// COLLISION DETECTION RELATED QUANTITIES
 //////////////////////////////////////////////////////////////////////////////
 /// Fictitious radius of curvature for collision with a corner or an edge.
 #define EDGE_RADIUS 0.1f
-
-
-
