@@ -62,4 +62,4 @@
 /// COLLISION DETECTION RELATED QUANTITIES
 //////////////////////////////////////////////////////////////////////////////
 /// Fictitious radius of curvature for collision with a corner or an edge.
-#define EDGE_RADIUS 0.1f
+#define EDGE_RADIUS 0.1

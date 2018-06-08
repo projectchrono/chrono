@@ -14,58 +14,48 @@
 
 #pragma once
 
-inline __device__ __host__ float3 Cross(const float3& v1, const float3& v2) {
-    return make_float3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+inline __device__ double3 Cross(const double3& v1, const double3& v2) {
+    return make_double3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
 }
 
-inline __device__ __host__ float Dot(const float3& v1, const float3& v2) {
-    return (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
+inline __device__ double Dot(const double3& v1, const double3& v2) {
+    return __dadd_ru(__dadd_ru(__dmul_ru(v1.x, v2.x), __dmul_ru(v1.y, v2.y)) , __dmul_ru(v1.z, v2.z));
 }
 
 // Get vector 2-norm
-inline __device__ __host__ float Length(const float3& v) {
-    return sqrtf(Dot(v, v));
+inline __device__ double Length(const double3& v) {
+    return __dsqrt_ru(Dot(v, v));
 }
 
 // Multiply a * v
-inline __device__ __host__ float3 operator*(const float& a, const float3& v) {
-    return make_float3(a * v.x, a * v.y, a * v.z);
-}
-
-// Multiply a * v
-inline __device__ __host__ float3 operator*(const float3& v, const float& a) {
-    return make_float3(a * v.x, a * v.y, a * v.z);
+inline __device__ double3 operator*(const double& a, const double3& v) {
+    return make_double3(__dmul_ru(a, v.x), __dmul_ru(a, v.y), __dmul_ru(a, v.z));
 }
 
 // Divide v / a
-inline __device__ __host__ float3 operator/(const float3& v, const float& a) {
-    return make_float3(v.x / a, v.y / a, v.z / a);
+inline __device__ double3 operator/(const double3& v, const double& a) {
+    return make_double3(v.x / a, v.y / a, v.z / a);
 }
 
 // v1 - v2
-inline __device__ __host__ float3 operator-(const float3& v1, const float3& v2) {
-    return make_float3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
-}
-
-// subtract a scalar "a" from each element
-inline __device__ __host__ float3 operator-(const float3& v1, const float& a) {
-    return make_float3(v1.x - a, v1.y - a, v1.z - a);
+inline __device__ double3 operator-(const double3& v1, const double3& v2) {
+    return make_double3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 }
 
 // v1 + v2
-inline __device__ __host__ float3 operator+(const float3& v1, const float3& v2) {
-    return make_float3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+inline __device__ double3 operator+(const double3& v1, const double3& v2) {
+    return make_double3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 }
 
 /// This utility function returns the normal to the triangular face defined by
 /// the vertices A, B, and C. The face is assumed to be non-degenerate.
 /// Note that order of vertices is important!
-inline __device__ __host__ float3 face_normal(const float3& A, const float3& B, const float3& C) {
-    float3 nVec = Cross(B - A, C - A);
+inline __device__ double3 face_normal(const double3& A, const double3& B, const double3& C) {
+    double3 nVec = Cross(B - A, C - A);
     return nVec / Length(nVec);
 }
 
-inline __device__ __host__ unsigned int hashmapTagGenerator(unsigned int seed) {
+inline __device__ unsigned int hashmapTagGenerator(unsigned int seed) {
     /// Generates a "random" hashtag using a Park-Miller RNG using only 32-bit arithmetic. Care was taken here to avoid
     /// overflow. This is deterministic: the same seed will generate the same hashmap tag.
     /// Source: https://en.wikipedia.org/wiki/Lehmer_random_number_generator

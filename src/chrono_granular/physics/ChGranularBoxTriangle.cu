@@ -30,6 +30,11 @@
     dest[1] = v1[1] - v2[1]; \
     dest[2] = v1[2] - v2[2];
 
+#define SUBTRACT(dest, v1, v2)    \
+    dest[0] = v1.x - v2[0]; \
+    dest[1] = v1.y - v2[1]; \
+    dest[2] = v1.z - v2[2];
+
 #define FINDMINMAX(x0, x1, x2, min, max) \
     min = max = x0;                      \
     if (x1 < min)                        \
@@ -150,11 +155,12 @@ __device__ bool planeBoxOverlap(const float (&normal)[3], const float (&vert)[3]
     if (min > rad || max < -rad)                     \
         return false;
 
-__device__ bool check_TriangleBoxOverlap(const int (&boxcenter)[3], const int (&boxhalfsize)[3], const int (&triverts)[3][3]) {
+__device__ bool check_TriangleBoxOverlap(const float (&boxcenter)[3],
+                                         const float (&boxhalfsize)[3],
+                                         const float3& vA,
+                                         const float3& vB,
+                                         const float3& vC) {
     /**    Use the separating axis theorem to test overlap between triangle and box.
-    IMPORTANT: The inputs are integer arrays. After subtracting these integers, the results is converted to float and
-    the code proceeds to use these floats to establish overlap. The basic idea is that the integers might be very large,
-    however their difference is likely small and a conversion to float incurrs no (or smaller) error.       
     We test for overlap in these directions:
     1) the {x,y,z}-directions (actually, since we use the AABB of the triangle we do not even need to test these)
     2) normal of the triangle
@@ -165,9 +171,9 @@ __device__ bool check_TriangleBoxOverlap(const int (&boxcenter)[3], const int (&
 
     /* This is the fastest branch on Sun */
     /* move everything so that the boxcenter is in (0,0,0) */
-    SUB(v0, triverts[0], boxcenter);
-    SUB(v1, triverts[1], boxcenter);
-    SUB(v2, triverts[2], boxcenter);
+    SUBTRACT(v0, vA, boxcenter);
+    SUBTRACT(v1, vB, boxcenter);
+    SUBTRACT(v2, vC, boxcenter);
 
     /* compute triangle edges */
     SUB(e0, v1, v0); /* tri edge 0 */

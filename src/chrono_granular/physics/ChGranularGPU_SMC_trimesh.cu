@@ -329,16 +329,16 @@ __global__ void interactionTerrain_TriangleSoup(
                 targetTriangle += triangTrip * warpSize;
                 if (targetTriangle < nSD_triangles) {
                     /// we have a valid sphere and a valid triganle; check if in contact
-                    float3 norm;
-                    float depth;
-                    float3 pt1;
-                    float3 pt2;
-                    float eff_radius;
-                    face_sphere(make_float3(node1_X[targetTriangle], node1_Y[targetTriangle], node1_Z[targetTriangle]),
-                                make_float3(node2_X[targetTriangle], node2_Y[targetTriangle], node2_Z[targetTriangle]),
-                                make_float3(node3_X[targetTriangle], node3_Y[targetTriangle], node3_Z[targetTriangle]),
-                                make_float3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]),
-                                d_terrain.sphereRadius, 0.f, norm, depth, pt1, pt2, eff_radius);
+                    double3 norm;
+                    double depth;
+                    double3 pt1;
+                    double3 pt2;
+                    double eff_radius;
+                    double3 A = make_double3(node1_X[targetTriangle], node1_Y[targetTriangle], node1_Z[targetTriangle]);
+                    double3 B = make_double3(node2_X[targetTriangle], node2_Y[targetTriangle], node2_Z[targetTriangle]);
+                    double3 C = make_double3(node3_X[targetTriangle], node3_Y[targetTriangle], node3_Z[targetTriangle]);
+                    double3 sphCntr = make_double3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]);
+                    face_sphere_cd(A, B, C, sphCntr, d_terrain.sphereRadius, norm, depth, pt1, pt2, eff_radius);
 
                     /// Use the CD information to compute the force on the grElement
 
