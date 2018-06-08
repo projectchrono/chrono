@@ -32,7 +32,28 @@ template <unsigned int TRIANGLE_FAMILIES>
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                              const Triangle_Soup& triangleSoup,
                                              unsigned int* touchedSDs) {
-    // We should use CUDA's fast_math here, all w/ float precision...
+    float SDcenter[3];
+    float SDhalfSizes[3];
+    float3 vA, vB, vC;
+    // coalesced memory accesses; we have an int to float conversion here
+    vA.x = triangleSoup.node1_X[triangleID];
+    vA.y = triangleSoup.node1_Y[triangleID];
+    vA.z = triangleSoup.node1_Z[triangleID];
+
+    vB.x = triangleSoup.node2_X[triangleID];
+    vB.y = triangleSoup.node2_Y[triangleID];
+    vB.z = triangleSoup.node2_Z[triangleID];
+
+    vC.x = triangleSoup.node3_X[triangleID];
+    vC.y = triangleSoup.node3_Y[triangleID];
+    vC.z = triangleSoup.node3_Z[triangleID];
+
+    /// JUNK FROM HERE ON; CONLAIN, CAN YOU HELP?
+    /// HERE'S A QUESTION THAT I DON'T KNOW HOW TO ANSWER: THE CALL BELOW TELLS ME IF AN SD OVERLAPS THE TRIANGLE.
+    /// HOWEVER, HOW MANY SUCH TESTS SHOULD I DO? THE FEWER, THE BETTER. 
+    unsigned int crntSD;
+    if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC))
+        touchedSDs[0] = crntSD;
 }
 
 /**
@@ -43,19 +64,11 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
  *   - SD: subdomain.
  *   - BD: the big-domain, which is the union of all SDs
  *   - NULL_GRANULAR_ID: the equivalent of a non-sphere SD ID, or a non-sphere ID
- *   - CPB: contact patch box - an AABB that contains the elements of the mesh that come in contact with the terrain.
- *                              Note that one mesh can have several CPB in relation to the same chunk of terrain.
  *
  * Template arguments:
  *   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
  *
  * Arguments:
- * nTriangles - the number of triangles in the mesh
- * node_coordXYZ - array containing XYZ coordinates of the nodes
- * meshConnectivity - array of size 3*nTriangles storing the nodes of each triangle
- * nCPBs - the number of patches in which the mesh can come in contact w/ the granular material
- * LDHdimContactPatches - array for which each entry contains the LDH size of a CPB
- * originCPBs - array for which each entry contains the point with resepect to which the CPB is defined
  * SD_countsOfTrianglesTouching - array that for each SD indicates how many triangles touch this SD
  * triangles_in_SD_composite - big array that works in conjunction with SD_countsOfTrianglesTouching.
  *

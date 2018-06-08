@@ -8,8 +8,8 @@
 // in the LICENSE file at the top level of the distribution and at
 // http://projectchrono.org/license-chrono.txt.
 //
-// Contains collision helper functions for chrono_granular, lifted from ChNarrowphaseR
 //
+// Contains collision helper functions from ChNarrowphaseR
 // =============================================================================
 // Authors: Dan Negrut, Conlain Kelly
 // =============================================================================

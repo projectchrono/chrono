@@ -155,6 +155,16 @@ __device__ bool planeBoxOverlap(const float (&normal)[3], const float (&vert)[3]
     if (min > rad || max < -rad)                     \
         return false;
 
+/**
+* Figure out whether a triangle touches an SD. Function gets hit a lot, very desirable to be fast.
+Input:
+- boxcenter: defines center of the box
+- boxhalfsize: half the size of the box in an axis aligned context
+- vA, vB, vC: the three vertices of the triangle
+Output:
+- "true" if there is overlap; "false" otherwise
+NOTE: This function works with "float" - precision is not paramount.
+*/
 __device__ bool check_TriangleBoxOverlap(const float (&boxcenter)[3],
                                          const float (&boxhalfsize)[3],
                                          const float3& vA,
@@ -180,7 +190,7 @@ __device__ bool check_TriangleBoxOverlap(const float (&boxcenter)[3],
     SUB(e1, v2, v1); /* tri edge 1 */
     SUB(e2, v0, v2); /* tri edge 2 */
 
-    /* Bullet 3:  */
+    /* Case 3)  */
     /*  test the 9 tests first (this was faster) */
     fex = fabsf(e0[X]);
     fey = fabsf(e0[Y]);
@@ -203,7 +213,7 @@ __device__ bool check_TriangleBoxOverlap(const float (&boxcenter)[3],
     AXISTEST_Y1(e2[Z], e2[X], fez, fex);
     AXISTEST_Z12(e2[Y], e2[X], fey, fex);
 
-    /* Bullet 1: */
+    /* Case 1) */
     /*  first test overlap in the {x,y,z}-directions */
     /*  find min, max of the triangle each direction, and test for overlap in */
     /*  that direction -- this is equivalent to testing a minimal AABB around */
@@ -224,7 +234,7 @@ __device__ bool check_TriangleBoxOverlap(const float (&boxcenter)[3],
     if (min > boxhalfsize[Z] || max < -boxhalfsize[Z])
         return false;
 
-    /* Bullet 2: */
+    /* Case 2) */
     /*  test if the box intersects the plane of the triangle */
     /*  compute plane equation of triangle: normal*x+d=0 */
     CROSS(normal, e0, e1);
