@@ -41,24 +41,23 @@
     if (x2 > max)                        \
         max = x2;
 
-__device__ bool planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const float (&maxbox)[3])  
-{
+__device__ bool planeBoxOverlap(const float (&normal)[3], const float (&vert)[3], const float (&maxbox)[3]) {
     int q;
     float vmin[3], vmax[3], v;
     for (q = X; q <= Z; q++) {
-        v = vert[q];  
+        v = vert[q];
         if (normal[q] > 0.0f) {
-            vmin[q] = -maxbox[q] - v;  
-            vmax[q] = maxbox[q] - v;   
+            vmin[q] = -maxbox[q] - v;
+            vmax[q] = maxbox[q] - v;
         } else {
-            vmin[q] = maxbox[q] - v;   
-            vmax[q] = -maxbox[q] - v;  
+            vmin[q] = maxbox[q] - v;
+            vmax[q] = -maxbox[q] - v;
         }
     }
     if (DOT(normal, vmin) > 0.0f)
-        return false;  
+        return false;
     if (DOT(normal, vmax) >= 0.0f)
-        return true;  
+        return true;
 
     return false;
 }
@@ -151,16 +150,17 @@ __device__ bool planeBoxOverlap(const float (&normal)[3], const float (&vert)[3]
     if (min > rad || max < -rad)                     \
         return false;
 
-__device__ bool triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalfsize)[3], float (&triverts)[3][3]) {
-    /*    use separating axis theorem to test overlap between triangle and box */
-    /*    need to test for overlap in these directions: */
-    /*    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle */
-    /*       we do not even need to test these) */
-    /*    2) normal of the triangle */
-    /*    3) crossproduct(edge from tri, {x,y,z}-directin) */
-    /*       this gives 3x3=9 more tests */
+__device__ bool check_TriangleBoxOverlap(const int (&boxcenter)[3], const int (&boxhalfsize)[3], const int (&triverts)[3][3]) {
+    /**    Use the separating axis theorem to test overlap between triangle and box.
+    IMPORTANT: The inputs are integer arrays. After subtracting these integers, the results is converted to float and
+    the code proceeds to use these floats to establish overlap. The basic idea is that the integers might be very large,
+    however their difference is likely small and a conversion to float incurrs no (or smaller) error.       
+    We test for overlap in these directions:
+    1) the {x,y,z}-directions (actually, since we use the AABB of the triangle we do not even need to test these)
+    2) normal of the triangle
+    3) crossproduct(edge from tri, {x,y,z}-directin) this gives 3x3=9 more tests */
     float v0[3], v1[3], v2[3];
-    float min, max, p0, p1, p2, rad, fex, fey, fez;  
+    float min, max, p0, p1, p2, rad, fex, fey, fez;
     float normal[3], e0[3], e1[3], e2[3];
 
     /* This is the fastest branch on Sun */
@@ -223,7 +223,7 @@ __device__ bool triBoxOverlap(const float (&boxcenter)[3], const float (&boxhalf
     /*  compute plane equation of triangle: normal*x+d=0 */
     CROSS(normal, e0, e1);
     if (!planeBoxOverlap(normal, v0, boxhalfsize))
-        return false;  
+        return false;
 
     return true; /* box and triangle overlaps */
 }

@@ -68,6 +68,7 @@ inline __device__ __host__ float3 face_normal(const float3& A, const float3& B, 
 inline __device__ __host__ unsigned int hashmapTagGenerator(unsigned int seed) {
     /// Generates a "random" hashtag using a Park-Miller RNG using only 32-bit arithmetic. Care was taken here to avoid
     /// overflow. This is deterministic: the same seed will generate the same hashmap tag.
+    /// Source: https://en.wikipedia.org/wiki/Lehmer_random_number_generator
     const unsigned int N = 0x7fffffff;
     const unsigned int G = 48271u;
     unsigned int div = seed / (N / G);  /// max : 2,147,483,646 / 44,488 = 48,271
