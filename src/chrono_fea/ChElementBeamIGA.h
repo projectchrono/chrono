@@ -18,7 +18,7 @@
 //#define BEAM_VERBOSE
 
 #include "chrono_fea/ChElementBeam.h"
-#include "chrono_fea/ChBeamSection.h"
+#include "chrono_fea/ChBeamSectionCosserat.h"
 #include "chrono_fea/ChNodeFEAxyzrot.h"
 #include "chrono/geometry/ChBasisToolsBspline.h"
 #include "chrono/core/ChQuadrature.h"
@@ -63,7 +63,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 	std::vector< std::unique_ptr<ChBeamMaterialInternalData> > plastic_data;
 
     std::shared_ptr<ChBeamSectionAdvanced> section_old;
-	std::shared_ptr<ChBeamSectionTimoshenko> section;
+	std::shared_ptr<ChBeamSectionCosserat> section;
 
   public:
     ChElementBeamIGA() {
@@ -165,9 +165,9 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
 	/// Set the section & material of beam element .
 	/// It is a shared property, so it can be shared between other beams.
-	void SetSection(std::shared_ptr<ChBeamSectionTimoshenko> my_material) { section = my_material; }
+	void SetSection(std::shared_ptr<ChBeamSectionCosserat> my_material) { section = my_material; }
 	/// Get the section & material of the element
-	std::shared_ptr<ChBeamSectionTimoshenko> GetSection() { return section; }
+	std::shared_ptr<ChBeamSectionCosserat> GetSection() { return section; }
 
     /// Access the local knot sequence of this element (ex.for diagnostics)
     ChVectorDynamic<>& GetKnotSequence() {return this->knots;}

@@ -142,7 +142,7 @@ void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///<
 
 
 void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
-                              std::shared_ptr<ChBeamSectionTimoshenko> sect,///< section material for beam elements
+                              std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
                               const int N,                                  ///< number of elements in the segment
                               const ChVector<> A,                           ///< starting point
                               const ChVector<> B,                           ///< ending point
@@ -203,7 +203,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,              ///<
 
 
 void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,   ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionTimoshenko> sect,  ///< section material for beam elements
+                   std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
                    geometry::ChLineBspline& spline,              ///< the B-spline to be used as the centerline
                    const ChVector<> Ydir                         ///< the 'up' Y direction of the beam
                    ) {
@@ -426,7 +426,7 @@ void ChExtruderBeamEuler::Update() {
 ChExtruderBeamIGA::ChExtruderBeamIGA(
                     ChSystem* msystem,    ///< system to store the constraints
                     std::shared_ptr<ChMesh> mmesh,    ///< mesh to store the resulting elements
-                    std::shared_ptr<ChBeamSectionTimoshenko> sect,///< section material for beam elements
+                    std::shared_ptr<ChBeamSectionCosserat> sect,///< section material for beam elements
                     double mh,                                  ///< element length
                     const ChCoordsys<> moutlet,                 ///< outlet pos & orientation (x is extrusion direction)
                     double mspeed,

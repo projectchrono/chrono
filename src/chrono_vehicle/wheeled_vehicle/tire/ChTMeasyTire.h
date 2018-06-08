@@ -268,7 +268,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
     typedef struct {
         double pn;      ///< Nominal vertical force [N]
-        double pn_max;  ///< Maximum vertical force [N] (currently not used)
+        double pn_max;  ///< Maximum vertical force [N]
 
         double mu_0;  ///< Local friction coefficient of the road for given parameters
         double cx;    ///< Linear stiffness x [N/m]

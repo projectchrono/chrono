@@ -20,6 +20,7 @@
 #include <typeinfo>
 #include <unordered_set>
 #include <memory>
+#include <algorithm>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChStream.h"
@@ -892,8 +893,8 @@ class  ChArchiveOut : public ChArchive {
 
         // for wrapping arrays and lists
       virtual void out_array_pre (ChValue& bVal, size_t msize) = 0;
-      virtual void out_array_between (size_t msize) = 0;
-      virtual void out_array_end (size_t msize) = 0;
+      virtual void out_array_between (ChValue& bVal, size_t msize) = 0;
+      virtual void out_array_end (ChValue& bVal, size_t msize) = 0;
 
 
       //---------------------------------------------------
@@ -917,9 +918,9 @@ class  ChArchiveOut : public ChArchive {
               sprintf(buffer, "%lu", (unsigned long)i);
               ChNameValue< T > array_val(buffer, bVal.value()[i]);
               this->out (array_val);
-              this->out_array_between(arraysize);
+              this->out_array_between(specVal, arraysize);
           }
-          this->out_array_end(arraysize);
+          this->out_array_end(specVal, arraysize);
       }
 
         // trick to wrap std::vector container
@@ -933,9 +934,9 @@ class  ChArchiveOut : public ChArchive {
               sprintf(buffer, "%lu", (unsigned long)i);
               ChNameValue< T > array_val(buffer, bVal.value()[i]);
               this->out (array_val);
-              this->out_array_between(bVal.value().size());
+              this->out_array_between(specVal, bVal.value().size());
           }
-          this->out_array_end(bVal.value().size());
+          this->out_array_end(specVal, bVal.value().size());
       }
         // trick to wrap st::list container
       template<class T>
@@ -950,9 +951,9 @@ class  ChArchiveOut : public ChArchive {
               sprintf(buffer, "%lu", (unsigned long)i);
               ChNameValue< T > array_val(buffer, (*iter));
               this->out (array_val);
-              this->out_array_between(bVal.value().size());
+              this->out_array_between(specVal, bVal.value().size());
           }
-          this->out_array_end(bVal.value().size());
+          this->out_array_end(specVal, bVal.value().size());
       }
         // trick to wrap st::pair container
       template<class T, class Tv>
@@ -973,10 +974,10 @@ class  ChArchiveOut : public ChArchive {
               sprintf(buffer, "%lu", (unsigned long)i);
               ChNameValue< std::pair<T, Tv> > array_key(buffer, (*it));
               this->out (array_key);
-              this->out_array_between(bVal.value().size());
+              this->out_array_between(specVal, bVal.value().size());
               ++i;
           }
-          this->out_array_end(bVal.value().size());
+          this->out_array_end(specVal, bVal.value().size());
       }
      
         // trick to call out_ref on ChSharedPointer
@@ -1096,7 +1097,12 @@ class  ChArchiveOut : public ChArchive {
                   } catch(ChException mex) {   
                       class_name = mtype.name();
                   }
-              this->out(ChNameValue<int>(("_version_" + std::string(class_name)).c_str(), mver));
+				  std::string class_name_polished = class_name;
+				  // to avoid troubles in xml archives
+				  std::replace(class_name_polished.begin(), class_name_polished.end(), '<', '[');
+				  std::replace(class_name_polished.begin(), class_name_polished.end(), '>', ']');
+				  std::replace(class_name_polished.begin(), class_name_polished.end(), ' ', '_');
+              this->out(ChNameValue<int>(("_version_" + class_name_polished).c_str(), mver));
           }
       }
       
@@ -1380,7 +1386,12 @@ class  ChArchiveIn : public ChArchive {
             } catch(ChException mex) {   
                 class_name = mtype.name();
             }
-          this->in(ChNameValue<int>(("_version_" + std::string(class_name)).c_str(), mver));
+			std::string class_name_polished = class_name;
+			// to avoid troubles in xml archives
+			std::replace(class_name_polished.begin(), class_name_polished.end(), '<', '[');
+			std::replace(class_name_polished.begin(), class_name_polished.end(), '>', ']');
+			std::replace(class_name_polished.begin(), class_name_polished.end(), ' ', '_');
+          this->in(ChNameValue<int>(("_version_" + class_name_polished).c_str(), mver));
           return mver;
       }
 };

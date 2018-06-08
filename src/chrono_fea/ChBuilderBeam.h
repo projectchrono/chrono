@@ -136,7 +136,7 @@ class ChApiFea ChBuilderBeamIGA {
     /// from point A to point B, using ChElementBeamIGA type elements.
     /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionTimoshenko> sect, ///< section property for beam elements
+                   std::shared_ptr<ChBeamSectionCosserat> sect, ///< section property for beam elements
                    const int N,                               ///< number of elements in the segment
                    const ChVector<> A,                        ///< starting point
                    const ChVector<> B,                        ///< ending point
@@ -149,7 +149,7 @@ class ChApiFea ChBuilderBeamIGA {
     /// using ChElementBeamIGA type elements, given a B-spline line in 3D space.
     /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionTimoshenko> sect,///< section material for beam elements
+                   std::shared_ptr<ChBeamSectionCosserat> sect, ///< section material for beam elements
                    geometry::ChLineBspline& spline,             ///< the B-spline to be used as the centerline
                    const ChVector<> Ydirn                       ///< the 'up' Y direction of the beam
                    );
@@ -244,7 +244,7 @@ class ChApiFea ChExtruderBeamIGA {
     ChSystem* mysystem; 
     std::shared_ptr<ChMesh> mesh;
     
-    std::shared_ptr<ChBeamSectionTimoshenko> beam_section;
+    std::shared_ptr<ChBeamSectionCosserat> beam_section;
     double h;                                  
     ChCoordsys<> outlet;                                         
     double mytime;
@@ -260,7 +260,7 @@ class ChApiFea ChExtruderBeamIGA {
     ChExtruderBeamIGA(
                     ChSystem* msystem,         ///< system to store the constraints
                     std::shared_ptr<ChMesh> mmesh,             ///< mesh to store the resulting elements
-                   std::shared_ptr<ChBeamSectionTimoshenko> sect,///< section material for beam elements
+                   std::shared_ptr<ChBeamSectionCosserat> sect,///< section material for beam elements
                    double mh,                                  ///< element length
                    const ChCoordsys<> moutlet,                 ///< outlet pos & orientation (x is extrusion direction)
                    double mspeed,                              ///< speed 
