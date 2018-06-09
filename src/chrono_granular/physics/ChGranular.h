@@ -22,6 +22,7 @@
 #include "../ChApiGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "cudalloc.hpp"
+#include "chrono_granular/utils/ChGranularUtilities.h"
 
 /**
  * Discrete Elment info
@@ -333,25 +334,25 @@ public:
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     : public ChSystemGranularMonodisperse_SMC_Frictionless {
   protected:
-    virtual void copy_const_data_to_device();
-    virtual void resetBroadphaseInformation();
+    virtual void copy_const_data_to_device() { NOT_IMPLEMENTED_YET }
+    virtual void resetBroadphaseInformation() { NOT_IMPLEMENTED_YET }
 
-    virtual void switch_to_SimUnits();
+    virtual void switch_to_SimUnits() { NOT_IMPLEMENTED_YET }
 
-    virtual void cleanup_simulation();
+    virtual void cleanup_simulation() { NOT_IMPLEMENTED_YET }
     virtual void determine_new_stepSize() { return; }
 
     double YoungModulus_SPH2MESH;
 
-public:
+  public:
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density)
         : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density) {}
 
     ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {}
 
-    virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
+    virtual void setup_simulation() { NOT_IMPLEMENTED_YET }  //!< set up data structures and carry out pre-processing tasks
     virtual void run_simulation(float t_end);
-    virtual void advance_simulation(float duration);
+    virtual void advance_simulation(float duration) { NOT_IMPLEMENTED_YET }
 
     inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
 };
