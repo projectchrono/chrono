@@ -9,38 +9,28 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut
+// Authors: Nic Olsen
 // =============================================================================
 //
-// Chrono::Granular demo program using SMC method for frictional contact.
-//
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//  - there is no friction
+// Chrono::Granular demo using SMC method. A body who's geometry is described
+// by a trinagle mesh is dragged over granular terrain. No friction present.
 //
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
-//
-// If available, OpenGL is used for run-time rendering. Otherwise, the
-// simulation is carried out for a pre-defined duration and output files are
-// generated for post-processing with POV-Ray.
 // =============================================================================
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
-#ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
-#endif
-// #define VISUALIZE 1
-
 using namespace chrono;
 using namespace chrono::granular;
+using namespace std;
 
 double posFunCylX_UU(double t) {
     if (t < 1)
@@ -53,8 +43,8 @@ double posFunCylZ_UU(double t, double gran_height, double cyl_rad) {
     if (t < 1)
         return gran_height - cyl_rad / 3 + 1 - t;
     else
-        return gran_height - cyl_rad / 3
-};
+        return gran_height - cyl_rad / 3;
+}
 
 // -----------------------------------------------------------------------------
 // ID values to identify command line arguments
@@ -322,7 +312,7 @@ int main(int argc, char* argv[]) {
 
     size_t nTriangles = 0;
     for (auto shape : shapes) {
-        nTriangles += shape.mesh.indicies.size() / 3;
+        nTriangles += shape.mesh.indices.size() / 3;
     }
 
     AllocateSoup(original_soup, nTriangles);
@@ -331,7 +321,7 @@ int main(int argc, char* argv[]) {
 
     size_t tri_index = 0;
     for (auto shape : shapes) {
-        vector<float>& indices = shape.mesh.indices;
+        vector<unsigned int>& indices = shape.mesh.indices;
         vector<float>& positions = shape.mesh.positions;
         vector<float>& normals = shape.mesh.normals;
 
@@ -383,27 +373,28 @@ int main(int argc, char* argv[]) {
     // TODO: Is scaling the mesh needed?
 
     // Settle granular material
-    m_sys.advance_simulation(time_settling);
-
-    double gran_height = m_sys.getHighestZ();
+#define FAKE_VALUE 20
+    //m_sys.advance_simulation(time_settling);
+    m_sys.advance_simulation(FAKE_VALUE);
+    double gran_height = FAKE_VALUE; // m_sys.getHighestZ();
     ChTriangleSoup<1> tri_soup;
     AllocateSoup(tri_soup, nTriangles);
-    for (double t = 0; t < t_end; t += step) {
+    for (double t = 0; t < FAKE_VALUE; t += FAKE_VALUE) {
         double meshpos[3];
         meshpos[0] = posFunCylX_UU(t);
         meshpos[1] = 0;
-        meshpos[2] = posFunCylZ_UU(t, gran_height, cyl_rad);
+        meshpos[2] = posFunCylZ_UU(t, gran_height, FAKE_VALUE);
 
         // Generate mesh at the correct position
         LoadSoup(original_soup, tri_soup, nTriangles, meshpos[0], meshpos[1], meshpos[2]);
 
         // TODO: Add mesh to system. Units??
-        m_sys.add_triangle_soup(tri_soup);
+        //m_sys.add_triangle_soup(tri_soup);
 
-        m_sys.advance_simulation(step);
+        m_sys.advance_simulation(FAKE_VALUE);
 
         // TODO: Remove the meshes from the system. Could just happen at the end of advance_simulation?
-        m_sys.remove_meshes();
+        //m_sys.remove_meshes();
     }
 
     return 0;
@@ -412,7 +403,7 @@ int main(int argc, char* argv[]) {
 void AllocateSoup(ChTriangleSoup<1>& tri_soup, size_t nTriangles) {
     tri_soup.nTrianglesInSoup = nTriangles;
 
-    tri_soup.triangleFamily_ID = new uint[nTriangles]();
+    tri_soup.triangleFamily_ID = new unsigned int[nTriangles]();
 
     tri_soup.node1_X = new int[nTriangles];
     tri_soup.node1_Y = new int[nTriangles];
@@ -437,8 +428,6 @@ void AllocateSoup(ChTriangleSoup<1>& tri_soup, size_t nTriangles) {
     tri_soup.node3_XDOT = new float[nTriangles]();
     tri_soup.node3_YDOT = new float[nTriangles]();
     tri_soup.node3_ZDOT = new float[nTriangles]();
-
-    tri_soup.generalizedForcesPerFamily = new float[6 * 1]();
 }
 
 void LoadSoup(ChTriangleSoup<1>& original_soup,
