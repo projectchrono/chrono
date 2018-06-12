@@ -23,6 +23,8 @@
 
 #include <memory>
 
+#include "chrono/physics/ChContactContainer.h"
+
 // Chrono::Parallel headers
 #include "chrono_parallel/ChTimerParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
@@ -64,7 +66,6 @@ class ChMPMContainer;
 class ChFLIPContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
-class ChContactContainer::AddContactCallback;
 template <typename T>
 class ChMaterialCompositionStrategy;
 
