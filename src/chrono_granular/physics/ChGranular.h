@@ -237,7 +237,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     inline void set_YoungModulus_SPH2SPH(double someValue) { YoungModulus_SPH2SPH = someValue; }
     inline void set_YoungModulus_SPH2WALL(double someValue) { YoungModulus_SPH2WALL = someValue; }
     /// Set the ratio of cohesion to gravity for monodisperse spheres
-    inline void set_Cohesion_ratio(double someValue) { cohesion_over_gravity = someValue; }
+    inline void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
     virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
     virtual void run_simulation(float t_end);

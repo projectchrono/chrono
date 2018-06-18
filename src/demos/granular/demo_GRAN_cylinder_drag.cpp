@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Nic Olsen
+// Authors: Nic Olsen, Dan Negrut
 // =============================================================================
 //
 // Chrono::Granular demo using SMC method. A body who's geometry is described
@@ -52,7 +52,9 @@ double posFunCylZ_UU(double t, double gran_height, double cyl_rad) {
 // -----------------------------------------------------------------------------
 enum {
     OPT_HELP,
-    OPT_BALL_RADIUS,
+    OPT_CYL_RADIUS,
+    OPT_CYL_WIDTH,
+    OPT_SPH_RADIUS,
     OPT_TIMEEND,
     OPT_DENSITY,
     OPT_BOX_L,
@@ -62,6 +64,7 @@ enum {
     OPT_COHESION_RATIO,
     OPT_STIFFNESS_S2S,
     OPT_STIFFNESS_S2W,
+    OPT_STIFFNESS_MSH2S,
     OPT_WRITE_MODE,
     OPT_OUTPUT_DIR,
     OPT_VERBOSE
@@ -72,7 +75,9 @@ enum {
 // - the option as it should appear on the command line
 // - type of the option
 // The last entry must be SO_END_OF_OPTIONS
-CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
+CSimpleOptA::SOption g_options[] = {{OPT_CYL_RADIUS, "-cr", SO_REQ_SEP},
+                                    {OPT_CYL_WIDTH, "-cw", SO_REQ_SEP},
+                                    {OPT_SPH_RADIUS, "-sr", SO_REQ_SEP},
                                     {OPT_TIMEEND, "-e", SO_REQ_SEP},
                                     {OPT_DENSITY, "--density", SO_REQ_SEP},
                                     {OPT_WRITE_MODE, "--write_mode", SO_REQ_SEP},
@@ -84,6 +89,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_COHESION_RATIO, "--cohes_ratio", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2S, "--normStiffS2S", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2W, "--normStiffS2W", SO_REQ_SEP},
+                                    {OPT_STIFFNESS_MSH2S, "--normStiffMSH2S", SO_REQ_SEP},
                                     {OPT_VERBOSE, "--verbose", SO_NONE},
                                     {OPT_VERBOSE, "-v", SO_NONE},
                                     {OPT_HELP, "-?", SO_NONE},
@@ -96,7 +102,9 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
 // -----------------------------------------------------------------------------
 void showUsage() {
     std::cout << "Options:" << std::endl;
-    std::cout << "-br <ball_radius>" << std::endl;
+    std::cout << "-sr <sphere_radius>" << std::endl;
+    std::cout << "-cr <cylinder_radius>" << std::endl;
+    std::cout << "-cw <sphere_width>" << std::endl;
     std::cout << "-v or --verbose" << std::endl;
     std::cout << "--density=<density>" << std::endl;
     std::cout << "--write_mode=<write_mode> (csv, binary, or none)" << std::endl;
@@ -109,6 +117,7 @@ void showUsage() {
     std::cout << "--cohes_ratio=<cohesValue>" << std::endl;
     std::cout << "--normStiffS2S=<stiffValuesS2S>" << std::endl;
     std::cout << "--normStiffS2W=<stiffValuesS2W>" << std::endl;
+    std::cout << "--normStiffMSH2S=<stiffValuesMSH2S>" << std::endl;
     std::cout << "-h / --help / -? \t Show this help." << std::endl;
 }
 
@@ -119,6 +128,8 @@ bool GetProblemSpecs(int argc,
                      char** argv,
                      float& ball_radius,
                      float& ballDensity,
+                     float& cyl_radius,
+                     float& cyl_width,
                      float& box_L,
                      float& box_D,
                      float& box_H,
@@ -126,6 +137,7 @@ bool GetProblemSpecs(int argc,
                      float& gravAcc,
                      float& normalStiffS2S,
                      float& normalStiffS2W,
+                     float& normalStiffMesh2S,
                      float& cohesion_ratio,
                      bool& verbose,
                      std::string& output_dir,
@@ -164,7 +176,7 @@ bool GetProblemSpecs(int argc,
             case OPT_OUTPUT_DIR:
                 output_dir = args.OptionArg();
                 break;
-            case OPT_BALL_RADIUS:
+            case OPT_SPH_RADIUS:
                 ball_radius = std::stof(args.OptionArg());
                 break;
             case OPT_BOX_L:
@@ -203,14 +215,14 @@ bool GetProblemSpecs(int argc,
 // -----------------------------------------------------------------------------
 // Allocates the triangle soup
 // -----------------------------------------------------------------------------
-void AllocateSoup(ChTriangleSoup<1>& tri_soup, size_t nTriangles);
+void AllocateSoup(ChTriangleSoup<1>& tri_soup, unsigned int nTriangles);
 
 // -----------------------------------------------------------------------------
 // Loads the triangle soup offset by the given position
 // -----------------------------------------------------------------------------
 void LoadSoup(ChTriangleSoup<1>& original_soup,
               ChTriangleSoup<1>& tri_soup,
-              size_t nTriangles,
+              unsigned int nTriangles,
               double x,
               double y,
               double z);
@@ -229,12 +241,16 @@ int main(int argc, char* argv[]) {
 #define GRAV_ACCELERATION 980.f
 #define NORMAL_STIFFNESS_S2S 1e7f
 #define NORMAL_STIFFNESS_S2W 1e7f
+#define CYL_RADIUS 20.f
+#define CYL_WIDTH 20.f
 
     std::string output_prefix = "../results";
 
     // Default values
     float ballRadius = RADIUS;
     float ballDensity = SPH_DENSITY;
+    float cyl_R = CYL_RADIUS;
+    float cyl_W = CYL_WIDTH;
     float boxL = BOX_L_cm;
     float boxD = BOX_D_cm;
     float boxH = BOX_H_cm;
@@ -242,6 +258,8 @@ int main(int argc, char* argv[]) {
     float grav_acceleration = GRAV_ACCELERATION;
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
+    float normStiffnessMSH2S = NORMAL_STIFFNESS_S2W;
+
     GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
     bool verbose = false;
     float cohesion_ratio = 0;
@@ -252,9 +270,9 @@ int main(int argc, char* argv[]) {
     std::vector<tinyobj::shape_t> shapes;
 
     // Some of the default values might be overwritten by user via command line
-    if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W, cohesion_ratio, verbose, output_prefix,
-                        write_mode) == false) {
+    if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, cyl_R, cyl_W, boxL, boxD, boxH, timeEnd, grav_acceleration,
+                        normStiffness_S2S, normStiffness_S2W, normStiffnessMSH2S, cohesion_ratio, verbose,
+                        output_prefix, write_mode) == false) {
         return 1;
     }
 
@@ -310,7 +328,7 @@ int main(int argc, char* argv[]) {
 
     tinyobj::LoadObj(shapes, mesh_filename);
 
-    size_t nTriangles = 0;
+    unsigned int nTriangles = 0;
     for (auto shape : shapes) {
         nTriangles += shape.mesh.indices.size() / 3;
     }
@@ -374,9 +392,9 @@ int main(int argc, char* argv[]) {
 
     // Settle granular material
 #define FAKE_VALUE 20
-    //m_sys.advance_simulation(time_settling);
+    // m_sys.advance_simulation(time_settling);
     m_sys.advance_simulation(FAKE_VALUE);
-    double gran_height = FAKE_VALUE; // m_sys.getHighestZ();
+    double gran_height = FAKE_VALUE;  // m_sys.getHighestZ();
     ChTriangleSoup<1> tri_soup;
     AllocateSoup(tri_soup, nTriangles);
     for (double t = 0; t < FAKE_VALUE; t += FAKE_VALUE) {
@@ -389,18 +407,18 @@ int main(int argc, char* argv[]) {
         LoadSoup(original_soup, tri_soup, nTriangles, meshpos[0], meshpos[1], meshpos[2]);
 
         // TODO: Add mesh to system. Units??
-        //m_sys.add_triangle_soup(tri_soup);
+        // m_sys.add_triangle_soup(tri_soup);
 
         m_sys.advance_simulation(FAKE_VALUE);
 
         // TODO: Remove the meshes from the system. Could just happen at the end of advance_simulation?
-        //m_sys.remove_meshes();
+        // m_sys.remove_meshes();
     }
 
     return 0;
 }
 
-void AllocateSoup(ChTriangleSoup<1>& tri_soup, size_t nTriangles) {
+void AllocateSoup(ChTriangleSoup<1>& tri_soup, unsigned int nTriangles) {
     tri_soup.nTrianglesInSoup = nTriangles;
 
     tri_soup.triangleFamily_ID = new unsigned int[nTriangles]();
@@ -432,12 +450,12 @@ void AllocateSoup(ChTriangleSoup<1>& tri_soup, size_t nTriangles) {
 
 void LoadSoup(ChTriangleSoup<1>& original_soup,
               ChTriangleSoup<1>& tri_soup,
-              size_t nTriangles,
+              unsigned int nTriangles,
               double x,
               double y,
               double z) {
     // Offset mesh by the position
-    for (size_t i = 0; i < nTriangles; i++) {
+    for (unsigned int i = 0; i < nTriangles; i++) {
         tri_soup.node1_X[i] = original_soup.node1_X[i] + x;
         tri_soup.node2_X[i] = original_soup.node2_X[i] + x;
         tri_soup.node3_X[i] = original_soup.node3_X[i] + x;
