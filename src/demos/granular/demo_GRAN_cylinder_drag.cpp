@@ -279,53 +279,20 @@ int main(int argc, char* argv[]) {
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
+    m_sys.set_BD_Fixed(true);
+    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
     m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
+
+    /// output preferences
     m_sys.setOutputDirectory(output_prefix);
     m_sys.setOutputMode(write_mode);
-    // Make a dam break style sim
-    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
-
+    m_sys.setVerbose(verbose);
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
-    // TODO clean up this API
-    // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
-    // will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means
-    // that the box will be centered at x = boxL
-    std::function<double(double)> posFunX = [](double t) {
-        // Start oscillating at t = .5s
-        double t0 = .5;
-        double freq = .2 * M_PI;
-
-        if (t < t0) {
-            return -.5;
-        } else {
-            return (-.5 + .5 * std::sin((t - t0) * freq));
-        }
-    };
-    // Stay centered at origin
-    std::function<double(double)> posFunStill = [](double t) { return -.5; };
-
-    std::function<double(double)> posFunZBouncing = [](double t) {
-        // Start oscillating at t = .5s
-        double t0 = .5;
-        double freq = 20 * M_PI;
-
-        if (t < t0) {
-            return -.5;
-        } else {
-            return (-.5 + .01 * std::sin((t - t0) * freq));
-        }
-    };
-
-    // Set the position of the BD
-    m_sys.setBDPositionFunction(posFunX, posFunStill, posFunStill);
-    // Tell the sim to unlock the bd so it can follow that position function
-    m_sys.set_BD_Fixed(false);
-    m_sys.setVerbose(verbose);
-
+    /// deal with the mesh
     tinyobj::LoadObj(shapes, mesh_filename);
 
     unsigned int nTriangles = 0;

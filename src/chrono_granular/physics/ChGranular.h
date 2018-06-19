@@ -173,12 +173,12 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
   protected:
     /// amount to fill box, as proportions of half-length
     /// Default is full box
-    float boxFillXmin = -1;
-    float boxFillYmin = -1;
-    float boxFillZmin = -1;
-    float boxFillXmax = 1;
-    float boxFillYmax = 1;
-    float boxFillZmax = 1;
+    float boxFillXmin = -1.f;
+    float boxFillYmin = -1.f;
+    float boxFillZmin = -1.f;
+    float boxFillXmax = 1.f;
+    float boxFillYmax = 1.f;
+    float boxFillZmax = 1.f;
 
     float sphere_radius;   /// User defined radius of the sphere
     float sphere_density;  /// User defined density of the sphere
@@ -264,9 +264,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     double YoungModulus_SPH2SPH;
     double YoungModulus_SPH2WALL;
-    double K_stiffness;
     float Gamma_n_SU;
-    float K_n_SU;
+    float K_n_s2s_SU; /// size of the normal stiffness (SU) for sphere-to-sphere contact
+    float K_n_s2w_SU; /// size of the normal stiffness (SU) for sphere-to-wall contact
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
 };
@@ -334,15 +334,17 @@ public:
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     : public ChSystemGranularMonodisperse_SMC_Frictionless {
   protected:
-    virtual void copy_const_data_to_device() { NOT_IMPLEMENTED_YET }
+    virtual void copy_const_data_to_device();
     virtual void resetBroadphaseInformation() { NOT_IMPLEMENTED_YET }
 
-    virtual void switch_to_SimUnits() { NOT_IMPLEMENTED_YET }
+    virtual void switch_to_SimUnits();
 
     virtual void cleanup_simulation() { NOT_IMPLEMENTED_YET }
     virtual void determine_new_stepSize() { return; }
 
     double YoungModulus_SPH2MESH;
+    float K_n_s2m_SU; /// size of the normal stiffness (SU) for sphere-to-mesh contact
+
 
   public:
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density)

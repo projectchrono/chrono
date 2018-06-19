@@ -37,18 +37,20 @@
 // Use user-defined quantities for coefficients
 __constant__ float d_Gamma_n;  //!< contact damping coefficient, expressed in SU
 // TODO we need to get the damping coefficient from user
-__constant__ float d_K_n;  //!< normal stiffness coefficient, expressed in SU
+__constant__ float d_Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
+__constant__ float d_Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
+__constant__ float d_Kn_s2m_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
 
 __constant__ unsigned int d_sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
-__constant__ unsigned int d_SD_Ldim_SU;       //!< Ad-ed L-dimension of the SD box
-__constant__ unsigned int d_SD_Ddim_SU;       //!< Ad-ed D-dimension of the SD box
-__constant__ unsigned int d_SD_Hdim_SU;       //!< Ad-ed H-dimension of the SD box
+__constant__ unsigned int d_SD_Ldim_SU;       //!< L-dimension of the SD box, expressed in SU
+__constant__ unsigned int d_SD_Ddim_SU;       //!< D-dimension of the SD box, expressed in SU
+__constant__ unsigned int d_SD_Hdim_SU;       //!< H-dimension of the SD box, expressed in SU
 __constant__ unsigned int psi_T_dFactor;      //!< factor used in establishing the software-time-unit
 __constant__ unsigned int psi_h_dFactor;      //!< factor used in establishing the software-time-unit
 __constant__ unsigned int psi_L_dFactor;      //!< factor used in establishing the software-time-unit
-__constant__ unsigned int d_box_L_SU;         //!< Ad-ed L-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_D_SU;         //!< Ad-ed D-dimension of the BD box in multiples of subdomains
-__constant__ unsigned int d_box_H_SU;         //!< Ad-ed H-dimension of the BD box in multiples of subdomains
+__constant__ unsigned int d_box_L_SU;         //!< L-dimension of the BD box in multiples of subdomains, expressed in SU
+__constant__ unsigned int d_box_D_SU;         //!< D-dimension of the BD box in multiples of subdomains, expressed in SU
+__constant__ unsigned int d_box_H_SU;         //!< H-dimension of the BD box in multiples of subdomains, expressed in SU
 __constant__ float gravAcc_X_d_factor_SU;     //!< Device counterpart of the constant gravity_X_SU
 __constant__ float gravAcc_Y_d_factor_SU;     //!< Device counterpart of the constant gravity_Y_SU
 __constant__ float gravAcc_Z_d_factor_SU;     //!< Device counterpart of the constant gravity_Z_SU
@@ -57,10 +59,6 @@ __constant__ float gravAcc_Z_d_factor_SU;     //!< Device counterpart of the con
 __constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
 __constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
-// Disable because stability
-// __constant__ float d_BD_frame_X_dot;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-// __constant__ float d_BD_frame_Y_dot;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-// __constant__ float d_BD_frame_Z_dot;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
 __constant__ double d_DE_Mass;
 __constant__ float d_cohesion_ratio;
@@ -380,7 +378,7 @@ __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step 
     // Are we touching wall?
     int touchingWall = 0;
     // Compute spring factor in force
-    float scalingFactor = (1.0f * alpha_h_bar) * d_K_n;
+    float scalingFactor = (1.0f * alpha_h_bar) * d_Kn_s2w_SU;
 
     // tmp vars to save writes, probably not necessary
     float xcomp = 0;
@@ -584,7 +582,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
         float bodyA_Y_velCorr = 0.f;
         float bodyA_Z_velCorr = 0.f;
 
-        float scalingFactor = alpha_h_bar * d_K_n;
+        float scalingFactor = alpha_h_bar * d_Kn_s2s_SU;
         double sphdiameter = 2. * d_sphereRadius_SU;
         double invSphDiameter = 1. / sphdiameter;
         unsigned int ownerSD = figureOutOwnerSD(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA]);
@@ -894,10 +892,20 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::c
     gpuErrchk(cudaMemcpyToSymbol(gravAcc_Z_d_factor_SU, &gravity_Z_SU, sizeof(gravity_Z_SU)));
 
     gpuErrchk(cudaMemcpyToSymbol(d_sphereRadius_SU, &sphereRadius_SU, sizeof(d_sphereRadius_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_Gamma_n, &Gamma_n_SU, sizeof(d_sphereRadius_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_K_n, &K_n_SU, sizeof(d_sphereRadius_SU)));
+    gpuErrchk(cudaMemcpyToSymbol(d_Gamma_n, &Gamma_n_SU, sizeof(d_Gamma_n)));
+    gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2s_SU, &K_n_s2s_SU, sizeof(d_Kn_s2s_SU)));
+    gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2w_SU, &K_n_s2s_SU, sizeof(d_Kn_s2w_SU)));
     gpuErrchk(cudaMemcpyToSymbol(d_DE_Mass, &MASS_UNIT, sizeof(MASS_UNIT)));
     gpuErrchk(cudaMemcpyToSymbol(d_cohesion_ratio, &cohesion_over_gravity, sizeof(cohesion_over_gravity)));
+}
+
+/// Copy most constant data to device, this should run at start
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_const_data_to_device() {
+    // Call the copy associated w/ the parent class
+    chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device();
+
+    // Handle what's specific to the case when the mesh is present
+    gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2m_SU, &K_n_s2m_SU, sizeof(d_Kn_s2m_SU)));
 }
 
 /// Similar to the copy_const_data_to_device, but saves us a big copy

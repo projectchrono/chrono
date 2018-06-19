@@ -12,9 +12,9 @@
 // Authors: Dan Negrut
 // =============================================================================
 
+#include "ChGranular.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include "ChGranular.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
@@ -160,7 +160,7 @@ of various physical quantities set by the user.
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     MASS_UNIT = massSphere;
-    K_stiffness = (YoungModulus_SPH2SPH > YoungModulus_SPH2WALL ? YoungModulus_SPH2SPH : YoungModulus_SPH2WALL);
+    double K_stiffness = (YoungModulus_SPH2SPH > YoungModulus_SPH2WALL ? YoungModulus_SPH2SPH : YoungModulus_SPH2WALL);
     TIME_UNIT = sqrt(massSphere / (PSI_h * K_stiffness)) / PSI_T;
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
@@ -173,10 +173,52 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_
     gravity_Y_SU = scalingFactor * Y_accGrav / magGravAcc;
     gravity_Z_SU = scalingFactor * Z_accGrav / magGravAcc;
 
-    // TODO check sphere vs wall young modulus
-    K_n_SU = (1.f / (1.f * PSI_T * PSI_T * PSI_h));
+    /// SU values for normal stiffnesses for S2S and S2W
+    scalingFactor = (1.f / (1.f * PSI_T * PSI_T * PSI_h));
+    K_n_s2s_SU = scalingFactor * (YoungModulus_SPH2SPH / K_stiffness);
+    K_n_s2w_SU = scalingFactor * (YoungModulus_SPH2WALL / K_stiffness);
+
     // TODO Make this legit, from user input
     Gamma_n_SU = .005;
+    
+    // Handy debug output
+    printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);
+    printf("SU mass is %f\n", MASS_UNIT);
+    printf("SU radius is %u\n", sphereRadius_SU);
+}
+
+/**
+This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
+of various physical quantities set by the user.
+*/
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::switch_to_SimUnits() {
+    double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
+    MASS_UNIT = massSphere;
+    double K_stiffness = (YoungModulus_SPH2SPH > YoungModulus_SPH2WALL ? YoungModulus_SPH2SPH : YoungModulus_SPH2WALL);
+    if (K_stiffness < YoungModulus_SPH2MESH)
+        K_stiffness = YoungModulus_SPH2MESH; 
+
+    TIME_UNIT = sqrt(massSphere / (PSI_h * K_stiffness)) / PSI_T;
+
+    double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
+    LENGTH_UNIT = massSphere * magGravAcc / (PSI_L * K_stiffness);
+
+    sphereRadius_SU = sphere_radius / LENGTH_UNIT;
+
+    float scalingFactor = ((float)PSI_L) / (PSI_T * PSI_T * PSI_h);
+    gravity_X_SU = scalingFactor * X_accGrav / magGravAcc;
+    gravity_Y_SU = scalingFactor * Y_accGrav / magGravAcc;
+    gravity_Z_SU = scalingFactor * Z_accGrav / magGravAcc;
+
+    /// SU values for normal stiffnesses for s2s (sphere to sphere), s2w (sphere2wall), and s2m (sphere2mesh)
+    scalingFactor = (1.f / (1.f * PSI_T * PSI_T * PSI_h));
+    K_n_s2s_SU = scalingFactor * (YoungModulus_SPH2SPH / K_stiffness);
+    K_n_s2w_SU = scalingFactor * (YoungModulus_SPH2WALL / K_stiffness);
+    K_n_s2m_SU = scalingFactor * (YoungModulus_SPH2MESH / K_stiffness);
+
+    // TODO Make this legit, from user input
+    Gamma_n_SU = .005;
+
     // Handy debug output
     printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);
     printf("SU mass is %f\n", MASS_UNIT);
