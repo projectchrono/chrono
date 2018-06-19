@@ -387,6 +387,21 @@ int main(int argc, char* argv[]) {
 
      */
 
+
+	// Test coordinate system rotation axis cycle.
+	ChCoordsys<> csys;
+	csys = ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(0, 1, 0, 0));
+	GetLog() << "Cycle (1):\nBefore: " << csys;
+	GetLog() << "\nAfter: " << csys.Cycle(1);
+
+	csys = ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(0, 1, 0, 0));
+	GetLog() << "Cycle (2):\nBefore: " << csys;
+	GetLog() << "\nAfter: " << csys.Cycle(2);
+
+	csys = ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(0, 1, 0, 0));
+	GetLog() << "Cycle (-1):\nBefore: " << csys;
+	GetLog() << "\nAfter: " << csys.Cycle(-1);
+
     GetLog() << "\n  CHRONO execution terminated.";
 
     return 0;
