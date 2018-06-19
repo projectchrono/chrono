@@ -357,7 +357,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                         throw ChException("ERROR in in .inp file, in parsing IDs of tetrahedron: \n" + line + "\n");
             } else if (e_parse_section == E_PARSE_TETS_4) {
                 if (ntoken != 5)
-                    throw ChException("ERROR in .inp file, tetrahedrons require ID and 10 node IDs, see line:\n" + line +
+                    throw ChException("ERROR in .inp file, tetrahedrons require ID and 4 node IDs, see line:\n" + line +
                                       "\n");
                 idelem = (int)tokenvals[0];
                 if (idelem != added_elements)
