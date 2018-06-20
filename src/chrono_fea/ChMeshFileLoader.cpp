@@ -14,22 +14,22 @@
 // Utilities for loading meshes from file
 // =============================================================================
 
+#include <algorithm>
+#include <fstream>
+#include <functional>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 #include <string>
-#include <algorithm>
-#include <functional>
 
 #include "chrono/core/ChMath.h"
-#include "chrono/physics/ChObject.h"
-#include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChSystem.h"
 
+#include <array>
+#include <map>
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChMeshFileLoader.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChElementShellANCF.h"
 
 using namespace std;
 
@@ -200,13 +200,9 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                                       bool discard_unused_nodes) {
     node_sets.resize(0);
 
-    std::vector<std::shared_ptr<ChNodeFEAbase>> parsed_nodes;
-    std::vector<bool> parsed_nodes_used;
-
-    int totnodes = 0;
-    unsigned int nodes_offset = mesh->GetNnodes();
-    int added_nodes = 0;
-    int added_elements = 0;
+    std::vector<shared_ptr<ChNodeFEAbase>> parsed_nodes;
+    std::map<unsigned int, shared_ptr<ChNodeFEAbase>>
+        parsed_nodes_used;  // temporary storage, used only for the discard_unused_nodes==true case
 
     enum eChAbaqusParserSection {
         E_PARSE_UNKNOWN = 0,
@@ -217,21 +213,23 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
     } e_parse_section = E_PARSE_UNKNOWN;
 
     ifstream fin(filename);
-    if (!fin.good())
+    if (fin.good())
+        GetLog() << "Parsing Abaqus INP file: " << filename << "\n";
+    else
         throw ChException("ERROR opening Abaqus .inp file: " + std::string(filename) + "\n");
-
-    int nnodes = 0;
-    int ndims = 0;
-    int nattrs = 0;
 
     string line;
     while (getline(fin, line)) {
         // trims white space from the beginning of the string
         line.erase(line.begin(), find_if(line.begin(), line.end(), not1(ptr_fun<int, int>(isspace))));
+        // convert parsed line to uppercase (since string::find is case sensitive and Abaqus INP is not)
+        std::for_each(line.begin(), line.end(), [](char& c) { c = toupper(static_cast<unsigned char>(c)); });
 
+        // skip empty lines
         if (line[0] == 0)
-            continue;  // skip empty lines
+            continue;
 
+        // check if the current line opens a new section
         if (line[0] == '*') {
             e_parse_section = E_PARSE_UNKNOWN;
 
@@ -240,10 +238,11 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (nse > 0) {
                     string::size_type ncom = line.find(",", nse);
                     string s_node_set = line.substr(nse + 5, ncom - (nse + 5));
-                    GetLog() << "Parsing: nodes " << s_node_set << "\n";
+                    GetLog() << "Parsing nodes " << s_node_set << "\n";
                 }
                 e_parse_section = E_PARSE_NODES_XYZ;
             }
+
             if (line.find("*ELEMENT") == 0) {
                 string::size_type nty = line.find("TYPE=");
                 if (nty > 0) {
@@ -259,23 +258,25 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     }
                     if (e_parse_section == E_PARSE_UNKNOWN) {
                         throw ChException("ERROR in .inp file, TYPE=" + s_ele_type +
-                                          " (only C3D10 or DC3D10 or C3D4 tetrahedrons supported) see: \n" + line + "\n");
+                                          " (only C3D10 or DC3D10 or C3D4 tetrahedrons supported) see: \n" + line +
+                                          "\n");
                     }
                 }
                 string::size_type nse = line.find("ELSET=");
                 if (nse > 0) {
                     string::size_type ncom = line.find(",", nse);
                     string s_ele_set = line.substr(nse + 6, ncom - (nse + 6));
-                    GetLog() << "Parsing: element set: " << s_ele_set << "\n";
+                    GetLog() << "Parsing element set: " << s_ele_set << "\n";
                 }
             }
+
             if (line.find("*NSET") == 0) {
-                GetLog() << "Parsing: nodeset.. ";
+                GetLog() << "Parsing nodeset.. ";
                 string::size_type nse = line.find("NSET=", 5);
                 if (nse > 0) {
                     string::size_type ncom = line.find(",", nse);
                     string s_node_set = line.substr(nse + 5, ncom - (nse + 5));
-                    GetLog() << "Parsing: nodeset: " << s_node_set << "\n";
+                    GetLog() << "Parsing nodeset: " << s_node_set << "\n";
 
                     std::vector<std::shared_ptr<ChNodeFEAbase>> empty_set;
                     node_sets.push_back(empty_set);
@@ -283,9 +284,10 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 e_parse_section = E_PARSE_NODESET;
             }
 
-            continue;  // skip
+            continue;
         }
 
+        // node parsing
         if (e_parse_section == E_PARSE_NODES_XYZ) {
             int idnode = 0;
             double x = -10e30;
@@ -301,36 +303,41 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 stoken >> tokenvals[ntoken];
                 ++ntoken;
             }
-            ++added_nodes;
 
             if (ntoken != 4)
                 throw ChException("ERROR in .inp file, nodes require ID and three x y z coords, see line:\n" + line +
                                   "\n");
-            idnode = (int)tokenvals[0];
-            if (idnode != added_nodes)
-                throw ChException("ERROR in .inp file. Nodes IDs must be sequential (1 2 3 ..): \n" + line + "\n");
+
             x = tokenvals[1];
             y = tokenvals[2];
             z = tokenvals[3];
             if (x == -10e30 || y == -10e30 || z == -10e30)
-                throw ChException("ERROR in in .inp file, in parsing x,y,z coordinates of node: \n" + line + "\n");
+                throw ChException("ERROR in .inp file, in parsing x,y,z coordinates of node: \n" + line + "\n");
 
+            // TODO: is it worth to keep a so specific routine inside this function?
+            // especially considering that is affecting only some types of elements...
             ChVector<> node_position(x, y, z);
             node_position = rot_transform * node_position;  // rotate/scale, if needed
             node_position = pos_transform + node_position;  // move, if needed
 
+            idnode = static_cast<unsigned int>(tokenvals[0]);
             if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
                 auto mnode = std::make_shared<ChNodeFEAxyz>(node_position);
+                mnode->SetIndex(idnode);
                 parsed_nodes.push_back(mnode);
-                parsed_nodes_used.push_back(false);
+                if (!discard_unused_nodes)
+                    mesh->AddNode(mnode);
             } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
                 auto mnode = std::make_shared<ChNodeFEAxyzP>(ChVector<>(x, y, z));
+                mnode->SetIndex(idnode);
                 parsed_nodes.push_back(mnode);
-                parsed_nodes_used.push_back(false);
+                if (!discard_unused_nodes)
+                    mesh->AddNode(mnode);
             } else
                 throw ChException("ERROR in .inp generation. Material type not supported. \n");
         }
 
+        // element parsing
         if (e_parse_section == E_PARSE_TETS_10 || e_parse_section == E_PARSE_TETS_4) {
             int idelem = 0;
             unsigned int tokenvals[20];
@@ -343,15 +350,15 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 stoken >> tokenvals[ntoken];
                 ++ntoken;
             }
-            ++added_elements;
+
             if (e_parse_section == E_PARSE_TETS_10) {
                 if (ntoken != 11)
-                    throw ChException("ERROR in .inp file, tetrahedrons require ID and 10 node IDs, see line:\n" + line +
-                                      "\n");
+                    throw ChException("ERROR in .inp file, tetrahedrons require ID and 10 node IDs, see line:\n" +
+                                      line + "\n");
+                // TODO: 'idelem' might be stored in an index in ChElementBase in order to provide consistency with the
+                // INP file
                 idelem = (int)tokenvals[0];
-                if (idelem != added_elements)
-                    throw ChException("ERROR in .inp file. Element IDs must be sequential (1 2 3 ..): \n" + line +
-                                      "\n");
+
                 for (int in = 0; in < 10; ++in)
                     if (tokenvals[in + 1] == -10e30)
                         throw ChException("ERROR in in .inp file, in parsing IDs of tetrahedron: \n" + line + "\n");
@@ -359,71 +366,105 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (ntoken != 5)
                     throw ChException("ERROR in .inp file, tetrahedrons require ID and 4 node IDs, see line:\n" + line +
                                       "\n");
+
+                // TODO: 'idelem' might be stored in an index in ChElementBase in order to provide consistency with the
+                // INP file
                 idelem = (int)tokenvals[0];
-                if (idelem != added_elements)
-                    throw ChException("ERROR in .inp file. Element IDs must be sequential (1 2 3 ..): \n" + line +
-                                      "\n");
+
                 for (int in = 0; in < 4; ++in)
                     if (tokenvals[in + 1] == -10e30)
                         throw ChException("ERROR in in .inp file, in parsing IDs of tetrahedron: \n" + line + "\n");
             }
-            if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                auto mel = std::make_shared<ChElementTetra_4>();
-                mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyz>(parsed_nodes[tokenvals[4] - 1]),
-                              std::static_pointer_cast<ChNodeFEAxyz>(parsed_nodes[tokenvals[2] - 1]),
-                              std::static_pointer_cast<ChNodeFEAxyz>(parsed_nodes[tokenvals[3] - 1]),
-                              std::static_pointer_cast<ChNodeFEAxyz>(parsed_nodes[tokenvals[1] - 1]));
-                mel->SetMaterial(std::static_pointer_cast<ChContinuumElastic>(my_material));
-                mesh->AddElement(mel);
-                parsed_nodes_used[tokenvals[1] - 1] = true;
-                parsed_nodes_used[tokenvals[2] - 1] = true;
-                parsed_nodes_used[tokenvals[3] - 1] = true;
-                parsed_nodes_used[tokenvals[4] - 1] = true;
-            } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                auto mel = std::make_shared<ChElementTetra_4_P>();
-                mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzP>(parsed_nodes[tokenvals[1] - 1]),
-                              std::static_pointer_cast<ChNodeFEAxyzP>(parsed_nodes[tokenvals[2] - 1]),
-                              std::static_pointer_cast<ChNodeFEAxyzP>(parsed_nodes[tokenvals[3] - 1]),
-                              std::static_pointer_cast<ChNodeFEAxyzP>(parsed_nodes[tokenvals[4] - 1]));
-                mel->SetMaterial(std::static_pointer_cast<ChContinuumPoisson3D>(my_material));
-                mesh->AddElement(mel);
-                parsed_nodes_used[tokenvals[1] - 1] = true;
-                parsed_nodes_used[tokenvals[2] - 1] = true;
-                parsed_nodes_used[tokenvals[3] - 1] = true;
-                parsed_nodes_used[tokenvals[4] - 1] = true;
+
+            if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material) ||
+                std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
+                std::array<std::shared_ptr<ChNodeFEAbase>, 4> element_nodes;
+                for (auto node_sel = 0; node_sel < 4; ++node_sel) {
+                    // check if the nodes of the parsed element have been previously added
+                    auto node_found =
+                        std::find_if(parsed_nodes.begin(), parsed_nodes.end(), [tokenvals, node_sel](auto node) {
+                            return node->GetIndex() == static_cast<unsigned int>(tokenvals[node_sel + 1]);
+                        });
+
+                    if (node_found != parsed_nodes.end()) {
+                        element_nodes[node_sel] = *node_found;
+                        if (discard_unused_nodes)
+                            parsed_nodes_used.insert(std::pair<unsigned int, shared_ptr<ChNodeFEAbase>>(
+                                (*node_found)->GetIndex(), *node_found));
+                    } else
+                        throw ChException("ERROR in .inp file, cannot find node with ID: " + tokenvals[node_sel + 1]);
+                }
+
+                if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
+                    auto mel = std::make_shared<ChElementTetra_4>();
+                    mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[3]),
+                                  std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[1]),
+                                  std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[2]),
+                                  std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[0]));
+                    mel->SetMaterial(std::static_pointer_cast<ChContinuumElastic>(my_material));
+                    mesh->AddElement(mel);
+
+                } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
+                    auto mel = std::make_shared<ChElementTetra_4_P>();
+                    mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[0]),
+                                  std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[1]),
+                                  std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[2]),
+                                  std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[3]));
+                    mel->SetMaterial(std::static_pointer_cast<ChContinuumPoisson3D>(my_material));
+                    mesh->AddElement(mel);
+                }
+
             } else
-                throw ChException("ERROR in TetGen generation. Material type not supported. \n");
+                throw ChException("ERROR in .inp generation. Material type not supported.\n");
         }
 
+        // parsing nodesets
         if (e_parse_section == E_PARSE_NODESET) {
-            int idelem = 0;
-
-            unsigned int tokenvals[100];
+            unsigned int tokenvals[20]; // strictly speaking, the maximum is 16 nodes for each line
             int ntoken = 0;
 
             string token;
             std::istringstream ss(line);
-            while (std::getline(ss, token, ',') && ntoken < 100) {
+            while (std::getline(ss, token, ',') && ntoken < 20) {
                 std::istringstream stoken(token);
                 stoken >> tokenvals[ntoken];
                 ++ntoken;
             }
 
-            for (int nt = 0; nt < ntoken; ++nt) {
-                int idnode = (int)tokenvals[nt];
+            for (auto node_sel = 0; node_sel < ntoken; ++node_sel) {
+                auto idnode = static_cast<int>(tokenvals[node_sel]);
                 if (idnode > 0) {
-                    node_sets.back().push_back(std::dynamic_pointer_cast<ChNodeFEAbase>(parsed_nodes[idnode - 1]));
-                    parsed_nodes_used[idnode - 1] = true;
-                }
+                    auto node_found =
+                        std::find_if(parsed_nodes.begin(), parsed_nodes.end(), [tokenvals, node_sel](auto node) {
+                            return node->GetIndex() == static_cast<unsigned int>(tokenvals[node_sel]);
+                        });
+
+                    if (node_found != parsed_nodes.end()) {
+                        node_sets.back().push_back(*node_found);
+                        if (discard_unused_nodes)
+                            parsed_nodes_used.insert(std::pair<unsigned int, shared_ptr<ChNodeFEAbase>>(
+                                (*node_found)->GetIndex(), *node_found));
+                    } else
+                        throw ChException("ERROR in .inp file, cannot find node with ID: " + tokenvals[node_sel]);
+
+                    // add nodes to the node set
+                    node_sets.back().push_back(*node_found);
+
+                    if (discard_unused_nodes)
+                        parsed_nodes_used.insert(
+                            std::pair<unsigned int, shared_ptr<ChNodeFEAbase>>((*node_found)->GetIndex(), *node_found));
+                } else
+                    throw ChException("ERROR in .inp file, negative node ID: " + tokenvals[node_sel]);
             }
         }
 
     }  // end while
 
-    // Add nodes to the mesh (only those effectively used for elements or node sets)
-    for (unsigned int i = 0; i < parsed_nodes.size(); ++i) {
-        if (parsed_nodes_used[i] == true)
-            mesh->AddNode(parsed_nodes[i]);
+    // only used nodes have been saved in 'parsed_nodes_used' and are now inserted in the mesh node list
+    if (discard_unused_nodes) {
+        for (auto node_it = parsed_nodes_used.begin(); node_it != parsed_nodes_used.end(); ++node_it) {
+            mesh->AddNode(node_it->second);
+        }
     }
 }
 
