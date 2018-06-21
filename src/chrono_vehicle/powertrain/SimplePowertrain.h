@@ -27,6 +27,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_powertrain
+/// @{
+
 class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain {
   public:
     SimplePowertrain(const std::string& filename);
@@ -46,6 +49,8 @@ class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain {
     double m_max_torque;      // maximum motor torque
     double m_max_speed;       // maximum motor speed
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Rainer Gericke, Daniel Melanz, Radu Serban
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// Base class for a solid axle suspension modeled with bodies and constraints.
+// Base class for a steerable leaf-spring solid axle suspension.
 //
 // This class is meant for modelling a very simple steerable solid leafspring 
 // axle. The guiding function of leafspring is modelled by a ChLinkLockRevolutePrismatic
@@ -76,6 +76,8 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_location = location;
     m_steering_index = steering_index;
 
+    m_left_knuckle_steers = isLeftKnuckleActuated();
+    
     // Unit vectors for orientation matrices.
     ChVector<> u;
     ChVector<> v;
@@ -144,6 +146,71 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
   // Initialize left and right sides.
     InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
     InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
+    
+    if (m_left_knuckle_steers) {
+      // Create and initialize the draglink body (one side only).
+      // Determine the rotation matrix of the draglink based on the plane of the hard points
+      // (z-axis along the length of the draglink)
+      v = Vcross(m_pointsL[KNUCKLE_DRL], m_pointsL[DRAGLINK_C]);
+      v.Normalize();
+      w = m_pointsL[DRAGLINK_C] - m_pointsL[KNUCKLE_DRL];
+      w.Normalize();
+      u = Vcross(v, w);
+      rot.Set_A_axis(u, v, w);
+    
+      m_draglink = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+      m_draglink->SetNameString(m_name + "_draglink");
+      m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsL[KNUCKLE_DRL]) / 2);
+      m_draglink->SetRot(rot.Get_A_quaternion());
+      m_draglink->SetMass(getDraglinkMass());
+      m_draglink->SetInertiaXX(getDraglinkInertia());
+      chassis->GetSystem()->AddBody(m_draglink);
+      
+      // Create and initialize the spherical joint between steering mechanism and draglink.
+      m_sphericalDraglink = std::make_shared<ChLinkLockSpherical>();
+      m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + "_L");
+      m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
+      //m_sphericalDraglink->Initialize(m_draglink, chassis, ChCoordsys<>(points[DRAGLINK_C], QUNIT));
+      chassis->GetSystem()->AddLink(m_sphericalDraglink);
+    
+      // Create and initialize the universal joint between draglink and knuckle
+      m_universalDraglink = std::make_shared<ChLinkUniversal>();
+      m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_L");
+      m_universalDraglink->Initialize(m_draglink, m_knuckle[LEFT], ChFrame<>(m_pointsL[KNUCKLE_DRL], rot.Get_A_quaternion()));
+      chassis->GetSystem()->AddLink(m_universalDraglink);
+     } else {
+      // Create and initialize the draglink body (one side only).
+      // Determine the rotation matrix of the draglink based on the plane of the hard points
+      // (z-axis along the length of the draglink)
+      v = Vcross(m_pointsR[KNUCKLE_DRL], m_pointsL[DRAGLINK_C]);
+      v.Normalize();
+      w = m_pointsL[DRAGLINK_C] - m_pointsR[KNUCKLE_DRL];
+      w.Normalize();
+      u = Vcross(v, w);
+      rot.Set_A_axis(u, v, w);
+    
+      m_draglink = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+      m_draglink->SetNameString(m_name + "_draglink");
+      m_draglink->SetPos((m_pointsL[DRAGLINK_C] + m_pointsR[KNUCKLE_DRL]) / 2);
+      m_draglink->SetRot(rot.Get_A_quaternion());
+      m_draglink->SetMass(getDraglinkMass());
+      m_draglink->SetInertiaXX(getDraglinkInertia());
+      chassis->GetSystem()->AddBody(m_draglink);
+      
+      // Create and initialize the spherical joint between steering mechanism and draglink.
+      m_sphericalDraglink = std::make_shared<ChLinkLockSpherical>();
+      m_sphericalDraglink->SetNameString(m_name + "_sphericalDraglink" + "_L");
+      m_sphericalDraglink->Initialize(m_draglink, tierod_body, ChCoordsys<>(m_pointsL[DRAGLINK_C], QUNIT));
+      //m_sphericalDraglink->Initialize(m_draglink, chassis, ChCoordsys<>(points[DRAGLINK_C], QUNIT));
+      chassis->GetSystem()->AddLink(m_sphericalDraglink);
+    
+      // Create and initialize the universal joint between draglink and knuckle
+      m_universalDraglink = std::make_shared<ChLinkUniversal>();
+      m_universalDraglink->SetNameString(m_name + "_universalDraglink" + "_R");
+      m_universalDraglink->Initialize(m_draglink, m_knuckle[RIGHT], ChFrame<>(m_pointsR[KNUCKLE_DRL], rot.Get_A_quaternion()));
+      chassis->GetSystem()->AddLink(m_universalDraglink);         
+     }
+
 }
 
 void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
@@ -234,7 +301,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
-    // Create and initialize the tierod distance constraint between chassis and upright.
+    /* Create and initialize the tierod distance constraint between chassis and upright.
     if (side == LEFT) {
       // Create and initialize the draglink body (one side only).
       // Determine the rotation matrix of the draglink based on the plane of the hard points
@@ -268,7 +335,7 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
       chassis->GetSystem()->AddLink(m_universalDraglink);
        
      }
-
+*/
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
     m_axle[side] = std::make_shared<ChShaft>();
@@ -385,8 +452,13 @@ void ChToeBarLeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
 
     AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
-    AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[KNUCKLE_DRL], getDraglinkRadius(),
+    if(m_left_knuckle_steers) {
+        AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[KNUCKLE_DRL], getDraglinkRadius(),
                          ChColor(0.7f, 0.7f, 0.7f));
+    } else {
+        AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsR[KNUCKLE_DRL], getDraglinkRadius(),
+                         ChColor(0.7f, 0.7f, 0.7f));        
+    }
 
     AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K],
                             getKnuckleRadius());

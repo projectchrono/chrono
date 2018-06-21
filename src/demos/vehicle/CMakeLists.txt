@@ -20,7 +20,7 @@ ADD_SUBDIRECTORY(demo_ArticulatedVehicle)
 ADD_SUBDIRECTORY(demo_WheeledAssembly)
 ADD_SUBDIRECTORY(demo_SteeringController)
 
-ADD_SUBDIRECTORY(demo_UAZBUS)
+ADD_SUBDIRECTORY(demo_UAZ)
 
 ADD_SUBDIRECTORY(demo_DeformableSoil)
 ADD_SUBDIRECTORY(demo_DeformableSoilAndTire)

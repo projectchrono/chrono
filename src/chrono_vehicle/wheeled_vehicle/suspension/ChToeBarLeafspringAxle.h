@@ -9,17 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Daniel Melanz, Radu Serban
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// Base class for a solid axle suspension modeled with bodies and constraints.
+// Base class for a steerable leaf-spring solid axle suspension.
 // Derived from ChSuspension, but still an abstract base class.
 //
-// This class is meant for modelling a very simple steerable solid leafspring 
+// This class is meant for modelling a very simple steerable solid leafspring
 // axle. The guiding function of leafspring is modelled by a ChLinkLockRevolutePrismatic
 // joint, it allows vertical movement and tilting of the axle tube but no elasticity.
 // The spring function of the leafspring is modelled by a vertical spring element.
-// Tie up of the leafspring is not possible with this approach, as well as the 
+// Tie up of the leafspring is not possible with this approach, as well as the
 // characteristic kinematics along wheel travel. The roll center and roll stability
 // is met well, if spring track is defined correctly. The class has been designed
 // for maximum easyness and numerical efficiency.
@@ -47,14 +47,13 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
-
 namespace chrono {
 namespace vehicle {
 
 /// @addtogroup vehicle_wheeled_suspension
 /// @{
 
-/// Base class for a solid axle suspension modeled with bodies and constraints.
+/// Base class for a steerable leaf-spring solid axle suspension.
 /// Derived from ChSuspension, but still an abstract base class.
 ///
 /// The suspension subsystem is modeled with respect to a right-handed frame,
@@ -68,7 +67,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
   public:
     ChToeBarLeafspringAxle(const std::string& name  ///< [in] name of the subsystem
-                );
+    );
 
     virtual ~ChToeBarLeafspringAxle() {}
 
@@ -139,7 +138,7 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     /// Get the current turning angle of the kingpin joint
     double GetKingpinAngleLeft() { return m_revoluteKingpin[0]->GetRelAngle(); }
     double GetKingpinAngleRight() { return m_revoluteKingpin[1]->GetRelAngle(); }
-    
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
 
@@ -148,17 +147,17 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        SHOCK_A,            ///< shock, axle
-        SHOCK_C,            ///< shock, chassis
-        KNUCKLE_L,          ///< lower knuckle point
-        KNUCKLE_U,          ///< upper knuckle point
-        KNUCKLE_DRL,        ///< knuckle to draglink
-        SPRING_A,           ///< spring, axle
-        SPRING_C,           ///< spring, chassis
-        TIEROD_K,           ///< tierod, knuckle
-        SPINDLE,            ///< spindle location
-        KNUCKLE_CM,         ///< knuckle, center of mass
-        DRAGLINK_C,         ///< draglink, chassis
+        SHOCK_A,      ///< shock, axle
+        SHOCK_C,      ///< shock, chassis
+        KNUCKLE_L,    ///< lower knuckle point
+        KNUCKLE_U,    ///< upper knuckle point
+        KNUCKLE_DRL,  ///< knuckle to draglink
+        SPRING_A,     ///< spring, axle
+        SPRING_C,     ///< spring, chassis
+        TIEROD_K,     ///< tierod, knuckle
+        SPINDLE,      ///< spindle location
+        KNUCKLE_CM,   ///< knuckle, center of mass
+        DRAGLINK_C,   ///< draglink, chassis
         NUM_POINTS
     };
 
@@ -179,7 +178,7 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     virtual double getTierodMass() const = 0;
     /// Return the mass of the draglink body.
     virtual double getDraglinkMass() const = 0;
- 
+
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
     /// Return the radius of the knuckle body (visualization only).
@@ -209,13 +208,15 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
     virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
+    /// Returns toplology flag for knuckle/draglink connection
+    virtual bool isLeftKnuckleActuated() { return true; }
 
-    std::shared_ptr<ChBody> m_axleTube;      ///< handles to the axle tube body
-    std::shared_ptr<ChBody> m_tierod;        ///< handles to the tierod body
-    std::shared_ptr<ChBody> m_draglink;      ///< handles to the draglink body
-    std::shared_ptr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (L/R)
+    std::shared_ptr<ChBody> m_axleTube;    ///< handles to the axle tube body
+    std::shared_ptr<ChBody> m_tierod;      ///< handles to the tierod body
+    std::shared_ptr<ChBody> m_draglink;    ///< handles to the draglink body
+    std::shared_ptr<ChBody> m_knuckle[2];  ///< handles to the knuckle bodies (L/R)
 
-    std::shared_ptr<ChLinkLockRevolutePrismatic>  m_axleTubeGuide; ///< allows translation Z and rotation X
+    std::shared_ptr<ChLinkLockRevolutePrismatic> m_axleTubeGuide;  ///< allows translation Z and rotation X
     std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
     std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;      ///< draglink-chassis spherical joint (left)
     std::shared_ptr<ChLinkUniversal> m_universalDraglink;          ///< draglink-bellCrank universal joint (left)
@@ -237,7 +238,10 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;
     ChVector<> m_tierodOuterR;
-    
+
+    // Left or right knuckle is actuated by draglink?
+    bool m_left_knuckle_steers;
+
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> tierod_body,
@@ -249,7 +253,7 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
                                      const ChVector<> pt_2,
                                      double radius,
                                      const ChColor& color);
- 
+
     static void AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
                                         const ChVector<> pt_U,
                                         const ChVector<> pt_L,

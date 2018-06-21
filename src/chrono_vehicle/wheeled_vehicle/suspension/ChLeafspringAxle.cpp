@@ -9,16 +9,16 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Rainer Gericke, Daniel Melanz, Radu Serban
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// Base class for a solid axle suspension modeled with bodies and constraints.
+// Base class for a leaf-spring solid axle suspension.
 //
-// This class is meant for modelling a very simple nonsteerable solid leafspring 
+// This class is meant for modelling a very simple nonsteerable solid leafspring
 // axle. The guiding function of leafspring is modelled by a ChLinkLockRevolutePrismatic
 // joint, it allows vertical movement and tilting of the axle tube but no elasticity.
 // The spring function of the leafspring is modelled by a vertical spring element.
-// Tie up of the leafspring is not possible with this approach, as well as the 
+// Tie up of the leafspring is not possible with this approach, as well as the
 // characteristic kinematics along wheel travel. The roll center and roll stability
 // is met well, if spring track is defined correctly. The class has been designed
 // for maximum easyness and numerical efficiency.
@@ -34,9 +34,9 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChPointPointDrawing.h"
-#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChLeafspringAxle.h"
 
@@ -46,26 +46,21 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChLeafspringAxle::m_pointNames[] = {"SHOCK_A    ",
-                                                 "SHOCK_C    ",
-                                                 "SPRING_A   ",
-                                                 "SPRING_C   ",
-                                                 "SPINDLE    "
- };
+const std::string ChLeafspringAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C    ", "SPRING_A   ", "SPRING_C   ",
+                                                      "SPINDLE    "};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLeafspringAxle::ChLeafspringAxle(const std::string& name) : ChSuspension(name) {
-}
+ChLeafspringAxle::ChLeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                             const ChVector<>& location,
-                             std::shared_ptr<ChBody> tierod_body,
-                             int steering_index,
-                             double left_ang_vel,
-                             double right_ang_vel) {
+                                  const ChVector<>& location,
+                                  std::shared_ptr<ChBody> tierod_body,
+                                  int steering_index,
+                                  double left_ang_vel,
+                                  double right_ang_vel) {
     m_location = location;
     m_steering_index = steering_index;
 
@@ -86,7 +81,7 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
     ChVector<> midpoint_local = 0.0;
-    //ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
+    // ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
     ChVector<> outer_local(getLocation(SPINDLE));
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y() = -outer_local.y();
@@ -108,7 +103,7 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_axleTubeGuide->Initialize(chassis, m_axleTube, ChCoordsys<>(axleCOM, guideRot * Q_from_AngY(CH_C_PI_2)));
 
     chassis->GetSystem()->AddLink(m_axleTubeGuide);
-    
+
     // Transform all hardpoints to absolute frame.
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
@@ -119,16 +114,16 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
-  // Initialize left and right sides.
+    // Initialize left and right sides.
     InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
     InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
 }
 
 void ChLeafspringAxle::InitializeSide(VehicleSide side,
-                                 std::shared_ptr<ChBodyAuxRef> chassis,
-                                 std::shared_ptr<ChBody> tierod_body,
-                                 const std::vector<ChVector<> >& points,
-                                 double ang_vel) {
+                                      std::shared_ptr<ChBodyAuxRef> chassis,
+                                      std::shared_ptr<ChBody> tierod_body,
+                                      const std::vector<ChVector<>>& points,
+                                      double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
@@ -140,7 +135,7 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
-    
+
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
@@ -224,7 +219,7 @@ void ChLeafspringAxle::LogHardpointLocations(const ChVector<>& ref, bool inches)
 void ChLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     // TODO: Update this to reflect new suspension joints
     // Revolute joints
- 
+
     {
         ChMatrix<>* C = m_sphericalTierod->GetC();
         GetLog() << "Tierod spherical          ";
@@ -232,9 +227,6 @@ void ChLeafspringAxle::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C->GetElement(1, 0) << "  ";
         GetLog() << "  " << C->GetElement(2, 0) << "\n";
     }
-
-
-
 }
 
 // -----------------------------------------------------------------------------
@@ -246,7 +238,6 @@ void ChLeafspringAxle::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
-
 
     // Add visualization for the springs and shocks
     m_spring[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
@@ -271,10 +262,10 @@ void ChLeafspringAxle::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                       const ChVector<> pt_1,
-                                       const ChVector<> pt_2,
-                                       double radius,
-                                       const ChColor& color) {
+                                            const ChVector<> pt_1,
+                                            const ChVector<> pt_2,
+                                            double radius,
+                                            const ChColor& color) {
     // Express hardpoint locations in body frame.
     ChVector<> p_1 = body->TransformPointParentToLocal(pt_1);
     ChVector<> p_2 = body->TransformPointParentToLocal(pt_2);
@@ -289,7 +280,6 @@ void ChLeafspringAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
     col->SetColor(color);
     body->AddAsset(col);
 }
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

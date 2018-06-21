@@ -36,11 +36,14 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/LeafspringAxle.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
@@ -122,6 +125,8 @@ void WheeledVehicle::LoadSteering(const std::string& filename, int which, int ou
         m_steerings[which] = std::make_shared<PitmanArm>(d);
     } else if (subtype.compare("RackPinion") == 0) {
         m_steerings[which] = std::make_shared<RackPinion>(d);
+    } else if (subtype.compare("RotaryArm") == 0) {
+        m_steerings[which] = std::make_shared<RotaryArm>(d);
     }
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag
@@ -208,6 +213,10 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle, int o
         m_suspensions[axle] = std::make_shared<SemiTrailingArm>(d);
     } else if (subtype.compare("ThreeLinkIRS") == 0) {
         m_suspensions[axle] = std::make_shared<ThreeLinkIRS>(d);
+    } else if (subtype.compare("ToeBarLeafspringAxle") == 0) {
+        m_suspensions[axle] = std::make_shared<ToeBarLeafspringAxle>(d);
+    } else if (subtype.compare("LeafspringAxle") == 0) {
+        m_suspensions[axle] = std::make_shared<LeafspringAxle>(d);
     }
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag
