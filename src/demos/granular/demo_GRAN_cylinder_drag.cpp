@@ -25,6 +25,7 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/physics/ChGranular.h"
+#include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 #include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
@@ -266,7 +267,7 @@ int main(int argc, char* argv[]) {
 
     // Mesh values
     ChTriangleSoup<1> original_soup;  // Triangle soup as read in from the obj
-    const char* mesh_filename = "?.obj";
+    const char* mesh_filename = "basicWheelMesh.obj";
     std::vector<tinyobj::shape_t> shapes;
 
     // Some of the default values might be overwritten by user via command line
@@ -277,7 +278,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
+    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh<1> m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
     m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
