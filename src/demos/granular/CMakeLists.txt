@@ -26,7 +26,7 @@ ENDIF()
 SET(DEMOS
     demo_GRAN_BoxSettlNoFric_SMC
     demo_GRAN_PoiseuilleCylSMC
-    demo_GRAN_cylinder_drag
+    demo_GRAN_TriMeshNoFric_SMC
     test_gran_milwave
     test_gran_milsettle
 )
