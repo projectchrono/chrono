@@ -24,6 +24,10 @@
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED  // fixes warnings
 #endif
 
+// allows the use of GLM_GTX_rotate_vector and
+// GLM_GTX_transform experimental features:
+#define GLM_ENABLE_EXPERIMENTAL
+
 #define GLM_FORCE_RADIANS
 #define _CRT_SECURE_NO_WARNINGS
 
