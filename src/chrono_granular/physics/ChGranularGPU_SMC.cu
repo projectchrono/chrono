@@ -899,15 +899,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::c
     gpuErrchk(cudaMemcpyToSymbol(d_cohesion_ratio, &cohesion_over_gravity, sizeof(cohesion_over_gravity)));
 }
 
-/// Copy most constant data to device, this should run at start
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_const_data_to_device() {
-    // Call the copy associated w/ the parent class
-    chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device();
-
-    // Handle what's specific to the case when the mesh is present
-    gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2m_SU, &K_n_s2m_SU, sizeof(d_Kn_s2m_SU)));
-}
-
 /// Similar to the copy_const_data_to_device, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_device() {

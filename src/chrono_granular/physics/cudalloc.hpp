@@ -51,12 +51,12 @@ class cudallocator {
     pointer address(reference x) const noexcept { return &x; }
 
     pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {
-        T* ptr;
-        cudaError_t err = cudaMallocManaged(&ptr, n * sizeof(T), cudaMemAttachGlobal);
+        void* vptr;
+        cudaError_t err = cudaMallocManaged(&vptr, n * sizeof(T), cudaMemAttachGlobal);
         if (err == cudaErrorMemoryAllocation || err == cudaErrorNotSupported) {
             throw std::bad_alloc();
         }
-        return ptr;
+        return (T*) vptr;
     }
 
     void deallocate(pointer p, size_type n) { cudaFree(p); }

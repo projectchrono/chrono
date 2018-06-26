@@ -14,7 +14,7 @@
 
 #include <cuda.h>
 #include "chrono_granular/ChGranularDefines.h"
-#include "chrono_granular/physics/ChGranular.h"
+#include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_granular/physics/ChGranularCollision.cuh"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
@@ -25,10 +25,9 @@
 #define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
 #define MAX_Z_POS_UNSIGNED (d_SD_Hdim_SU * d_box_H_SU)
 
-#define Triangle_Soup chrono::granular::ChTriangleSoup<TRIANGLE_FAMILIES>
+#define Triangle_Soup chrono::granular::ChTriangleSoup
 
 /// Takes in a triangle's position and finds out what SDs it touches
-template <unsigned int TRIANGLE_FAMILIES>
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                              const Triangle_Soup& triangleSoup,
                                              unsigned int* touchedSDs) {
@@ -55,6 +54,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC))
         touchedSDs[0] = crntSD;
 }
+
 
 /**
  * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time
@@ -88,8 +88,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
  * in the corner of the box. Each CPB is an AAB.
  *
  */
-template <unsigned int TRIANGLE_FAMILIES,
-          unsigned int CUB_THREADS>  //!< Number of threads engaged in block-collective CUB operations (multiple of 32)
+template <unsigned int CUB_THREADS>  //!< Number of threads engaged in block-collective CUB operations (multiple of 32)
 __global__ void
 triangleSoupBroadPhase(
     Triangle_Soup& d_triangleSoup,
@@ -198,7 +197,6 @@ triangleSoupBroadPhase(
         }
     }
 }
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::run_simulation(float tEnd) {}
 
 /**
 This kernel call figures out forces on a sphere and carries out numerical integration to get the velocity updates of a
@@ -508,4 +506,72 @@ __global__ void interactionTerrain_TriangleSoup(
                 atomicAdd(d_triangleSoup.generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
         }
     }
+}
+
+/// Copy most constant data to device, this should run at start
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_const_data_to_device() {
+    // Call the copy associated w/ the parent class
+    //copy_const_data_to_device();
+
+    // Handle what's specific to the case when the mesh is present
+    //gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2m_SU, &K_n_s2m_SU, sizeof(d_Kn_s2m_SU)));
+}
+
+
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::run_simulation(float tEnd) 
+{
+    //switch (meshSoup.nFamiliesInSoup) {
+    //case 1: interactionTerrain_TriangleSoup<128,MAX_COUNT_OF_DEs_PER_SD, MAX_COUNT_OF_Triangles_PER_SD,1><<<1,1>>>(meshSoup)
+    //    break;
+    //}
+}
+
+
+//template <unsigned int N_CUDATHREADS,
+//    unsigned int MAX_NSPHERES_PER_SD,
+//    unsigned int MAX_TRIANGLES_PER_SD,
+//    unsigned int TRIANGLE_FAMILIES>
+//    __global__ void interactionTerrain_TriangleSoup(
+//        Triangle_Soup& d_triangleSoup,               //!< Contains information pertaining to triangle soup (in device mem.)
+//        Terrain& d_terrain,                          //!< Wrapper that stores terrain information available on the device
+//        unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
+//        unsigned int*
+//        triangles_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
+//                                    //!< "triangles_in_SD_composite" says which SD contains what triangles.
+//        unsigned int*
+//        SD_countsOfGrElemsTouching,         //!< Array that for each SD indicates how many grain elements touch this SD
+//        unsigned int* grElems_in_SD_composite)
+
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::CleanupSoup_DEVICE() {
+    cudaFree(meshSoup_DEVICE.triangleFamily_ID);
+
+    cudaFree(meshSoup_DEVICE.node1_X);
+    cudaFree(meshSoup_DEVICE.node1_Y);
+    cudaFree(meshSoup_DEVICE.node1_Z);
+
+    cudaFree(meshSoup_DEVICE.node2_X);
+    cudaFree(meshSoup_DEVICE.node2_Y);
+    cudaFree(meshSoup_DEVICE.node2_Z);
+
+    cudaFree(meshSoup_DEVICE.node3_X);
+    cudaFree(meshSoup_DEVICE.node3_Y);
+    cudaFree(meshSoup_DEVICE.node3_Z);
+
+    cudaFree(meshSoup_DEVICE.node1_XDOT);
+    cudaFree(meshSoup_DEVICE.node1_YDOT);
+    cudaFree(meshSoup_DEVICE.node1_ZDOT);
+
+    cudaFree(meshSoup_DEVICE.node2_XDOT);
+    cudaFree(meshSoup_DEVICE.node2_YDOT);
+    cudaFree(meshSoup_DEVICE.node2_ZDOT);
+
+    cudaFree(meshSoup_DEVICE.node3_XDOT);
+    cudaFree(meshSoup_DEVICE.node3_YDOT);
+    cudaFree(meshSoup_DEVICE.node3_ZDOT);
+
+    cudaFree(meshSoup_DEVICE.generalizedForcesPerFamily);
+}
+
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::SetupSoup_DEVICE(unsigned int nTriangles) {
+    NOT_IMPLEMENTED_YET
 }

@@ -9,3 +9,11 @@
     printf(": FUNCTION NOT IMPLEMENTED YET. EXITTING.\n");                     \
     exit(1);                                                                   \
   }
+
+#define GRANULAR_ERROR(msg)                     \
+    {                                           \
+        printf(msg);                            \
+        printf(__func__);                       \
+        printf("\n: EXITTING GRANULAR SIM.\n"); \
+        exit(1);                                \
+    }
