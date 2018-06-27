@@ -87,6 +87,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh {
     void CleanupSoup_HOST();
     void SetupSoup_DEVICE(unsigned int nTriangles);
     void CleanupSoup_DEVICE();
+    void update_DMeshSoup_Location();
 
   public:
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, const char* meshFileName);
@@ -100,7 +101,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh {
 
     inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
     inline ChSystemGranularMonodisperse_SMC_Frictionless& granMatBed() { return granMat; }
-    void updateMeshSoup_Location_GeneralizedForces(ChTriangleSoup& outsideSoup) { NOT_IMPLEMENTED_YET }
+    inline ChTriangleSoup& meshSoup() { return meshSoup_HOST; }
+    void collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup);
 };
 
 

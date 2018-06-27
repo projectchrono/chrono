@@ -575,3 +575,4 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::Cl
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::SetupSoup_DEVICE(unsigned int nTriangles) {
     NOT_IMPLEMENTED_YET
 }
+

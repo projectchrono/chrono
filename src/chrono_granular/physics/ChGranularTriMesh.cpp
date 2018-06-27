@@ -228,3 +228,29 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::Cl
 //        tri_soup.node3_Z[i] = original_soup.node3_Z[i] + z;
 //    }
 //}
+
+
+/** A new location of the triangles in the mesh soup is provided upon input. Upon output, a set of generalized forces
+* that the material impresses on each family of the mesh soup is computed.
+*/
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
+    cudaMemcpy(meshSoup_DEVICE.node1_X, meshSoup_HOST.node1_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node1_Y, meshSoup_HOST.node1_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node1_Z, meshSoup_HOST.node1_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+
+    cudaMemcpy(meshSoup_DEVICE.node2_X, meshSoup_HOST.node2_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node2_Y, meshSoup_HOST.node2_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node2_Z, meshSoup_HOST.node2_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+
+    cudaMemcpy(meshSoup_DEVICE.node3_X, meshSoup_HOST.node3_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node3_Y, meshSoup_HOST.node3_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node3_Z, meshSoup_HOST.node3_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+}
+
+/**
+The generalized forces felt by each family in the triangle soup are copied from the device into the host array that is provided to this function.
+Each generalized force acting on a family in the soup has six components: three forces & three torques.
+*/
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup) {
+    ;
+}

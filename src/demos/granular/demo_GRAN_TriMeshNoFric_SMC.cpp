@@ -31,19 +31,6 @@ using namespace chrono;
 using namespace chrono::granular;
 using namespace std;
 
-double posFunCylX_UU(double t) {
-    if (t < 1)
-        return 0;
-    else
-        return t - 1;
-}
-
-double posFunCylZ_UU(double t, double gran_height, double cyl_rad) {
-    if (t < 1)
-        return gran_height - cyl_rad / 3 + 1 - t;
-    else
-        return gran_height - cyl_rad / 3;
-}
 
 // -----------------------------------------------------------------------------
 // ID values to identify command line arguments
@@ -213,6 +200,11 @@ bool GetProblemSpecs(int argc,
     return true;
 }
 
+void updateMeshSoup_Location(float crntTime, ChTriangleSoup& soup) {
+    ;
+}
+
+
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
 // There is no friction. The units are always cm/s/g[L/T/M].
@@ -277,25 +269,19 @@ int main(int argc, char* argv[]) {
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
 
-    // Settle granular material
-    ChTriangleSoup outsideSoup;
+    const float fakeTimeStep = 0.0001f;
+    const float fakeTimeEnd = 10.f;
+    unsigned int nSoupFamilies = m_sys.meshSoup().nFamiliesInSoup;
+    float* genForcesOnMeshSoup = new float[nSoupFamilies];
 
-#define FAKE_VALUE 20
-
-    for (double t = 0; t < FAKE_VALUE; t += FAKE_VALUE) {
-        m_sys.updateMeshSoup_Location_GeneralizedForces(outsideSoup);
-        // Generate mesh at the correct position
-        //LoadSoup(original_soup, tri_soup, nTriangles, meshpos[0], meshpos[1], meshpos[2]);
-
-        // TODO: Add mesh to system. Units??
-        // m_sys.add_triangle_soup(tri_soup);
-
-        m_sys.advance_simulation(FAKE_VALUE);
-
-        // TODO: Remove the meshes from the system. Could just happen at the end of advance_simulation?
-        // m_sys.remove_meshes();
+    // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
+    // Conversely, the particles impress a force and torque upon the mesh soup
+    for (float t = 0; t < fakeTimeEnd; t += fakeTimeStep) {
+        updateMeshSoup_Location(t, m_sys.meshSoup());
+        m_sys.collectGeneralizedForcesOnMeshSoup(t,genForcesOnMeshSoup);
     }
 
+    delete[] genForcesOnMeshSoup;
     return 0;
 }
 
