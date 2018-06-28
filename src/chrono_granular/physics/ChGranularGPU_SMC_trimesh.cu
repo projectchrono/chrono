@@ -11,6 +11,7 @@
 // =============================================================================
 // Authors: Dan Negrut, Conlain Kelly
 // =============================================================================
+/*! \file */
 
 #include <cuda.h>
 #include "chrono_granular/ChGranularDefines.h"
@@ -29,7 +30,7 @@
 
 /// Takes in a triangle's position and finds out what SDs it touches
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
-                                             const Triangle_Soup& triangleSoup,
+                                             const Triangle_Soup<int>& triangleSoup,
                                              unsigned int* touchedSDs) {
     float SDcenter[3];
     float SDhalfSizes[3];
@@ -91,7 +92,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 template <unsigned int CUB_THREADS>  //!< Number of threads engaged in block-collective CUB operations (multiple of 32)
 __global__ void
 triangleSoupBroadPhase(
-    Triangle_Soup& d_triangleSoup,
+    Triangle_Soup<int>& d_triangleSoup,
     unsigned int*
         BUCKET_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int*
@@ -222,7 +223,7 @@ template <unsigned int N_CUDATHREADS,
           unsigned int MAX_TRIANGLES_PER_SD,
           unsigned int TRIANGLE_FAMILIES>
 __global__ void interactionTerrain_TriangleSoup(
-    Triangle_Soup& d_triangleSoup,               //!< Contains information pertaining to triangle soup (in device mem.)
+    Triangle_Soup<int>& d_triangleSoup,               //!< Contains information pertaining to triangle soup (in device mem.)
     Terrain& d_terrain,                          //!< Wrapper that stores terrain information available on the device
     unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int*
@@ -526,21 +527,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     //}
 }
 
-
-//template <unsigned int N_CUDATHREADS,
-//    unsigned int MAX_NSPHERES_PER_SD,
-//    unsigned int MAX_TRIANGLES_PER_SD,
-//    unsigned int TRIANGLE_FAMILIES>
-//    __global__ void interactionTerrain_TriangleSoup(
-//        Triangle_Soup& d_triangleSoup,               //!< Contains information pertaining to triangle soup (in device mem.)
-//        Terrain& d_terrain,                          //!< Wrapper that stores terrain information available on the device
-//        unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
-//        unsigned int*
-//        triangles_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
-//                                    //!< "triangles_in_SD_composite" says which SD contains what triangles.
-//        unsigned int*
-//        SD_countsOfGrElemsTouching,         //!< Array that for each SD indicates how many grain elements touch this SD
-//        unsigned int* grElems_in_SD_composite)
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::CleanupSoup_DEVICE() {
     cudaFree(meshSoup_DEVICE.triangleFamily_ID);

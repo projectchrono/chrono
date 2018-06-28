@@ -18,6 +18,7 @@
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
 // =============================================================================
+/*! \file */
 
 #include <iostream>
 #include <string>
@@ -200,7 +201,7 @@ bool GetProblemSpecs(int argc,
     return true;
 }
 
-void updateMeshSoup_Location(float crntTime, ChTriangleSoup& soup) {
+void updateMeshSoup_Location(float crntTime, ChTriangleSoup<float>& soup) {
     ;
 }
 

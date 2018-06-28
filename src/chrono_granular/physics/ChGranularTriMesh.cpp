@@ -11,6 +11,7 @@
 // =============================================================================
 // Authors: Dan Negrut
 // =============================================================================
+/*! \file */
 
 #include "ChGranularTriMesh.h"
 #include <vector>
@@ -67,22 +68,28 @@ chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::
 ;
 }
 
-/**
-Given a file name, this function reads in from that file a mesh soup. This mesh soup is used to allocate memory on the
-HOST and DEVICE. Finally, the HOST mesh soup is initialize with mesh soup that is read in.
-*/
+/** \brief Method reads in a mesh soup; indirectly allocates memory on HOST and DEVICE to store mesh soup.
+ *
+ * \param mesh_filename Contains the name of the file that stores the information about the mesh soup
+ * \return nothing
+ *
+ * Given a file name, this function reads in from that file a mesh soup. This mesh soup is used to allocate memory on
+ * the HOST and DEVICE. Finally, the HOST mesh soup is initialize with the mesh soup that is read in.
+ *
+ * NOTE: The mesh soup, provided in the input file, should be in obj format.
+ */
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST_DEVICE(
     const char* mesh_filename) {
     std::vector<tinyobj::shape_t> shapes;
 
-    /// read in the mesh soup; stored in an obj file
+    // The mesh soup stored in an obj file
     tinyobj::LoadObj(shapes, mesh_filename);
 
     unsigned int nTriangles = 0;
     for (auto shape : shapes)
         nTriangles += shape.mesh.indices.size() / 3;
 
-    /// Get the soup ready on the HOST side
+    // Allocate memory to store mesh soup; done both on the HOST and DEVICE sides
     SetupSoup_HOST(shapes, nTriangles);
     SetupSoup_DEVICE(nTriangles);
 }
@@ -153,17 +160,17 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::Se
 
         meshSoup_HOST.triangleFamily_ID = new unsigned int[nTriangles];
 
-        meshSoup_HOST.node1_X = new int[nTriangles];
-        meshSoup_HOST.node1_Y = new int[nTriangles];
-        meshSoup_HOST.node1_Z = new int[nTriangles];
+        meshSoup_HOST.node1_X = new float[nTriangles];
+        meshSoup_HOST.node1_Y = new float[nTriangles];
+        meshSoup_HOST.node1_Z = new float[nTriangles];
 
-        meshSoup_HOST.node2_X = new int[nTriangles];
-        meshSoup_HOST.node2_Y = new int[nTriangles];
-        meshSoup_HOST.node2_Z = new int[nTriangles];
+        meshSoup_HOST.node2_X = new float[nTriangles];
+        meshSoup_HOST.node2_Y = new float[nTriangles];
+        meshSoup_HOST.node2_Z = new float[nTriangles];
 
-        meshSoup_HOST.node3_X = new int[nTriangles];
-        meshSoup_HOST.node3_Y = new int[nTriangles];
-        meshSoup_HOST.node3_Z = new int[nTriangles];
+        meshSoup_HOST.node3_X = new float[nTriangles];
+        meshSoup_HOST.node3_Y = new float[nTriangles];
+        meshSoup_HOST.node3_Z = new float[nTriangles];
 
         meshSoup_HOST.node1_XDOT = new float[nTriangles];
         meshSoup_HOST.node1_YDOT = new float[nTriangles];
