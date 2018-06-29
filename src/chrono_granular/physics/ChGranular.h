@@ -241,7 +241,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     /// Set the ratio of cohesion to gravity for monodisperse spheres
     inline void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
-    virtual void setup_simulation();  //!< set up data structures and carry out pre-processing tasks
+    virtual void setup_simulation();  ///!< set up data structures and carry out pre-processing tasks
     virtual void run_simulation(float t_end);
     virtual void advance_simulation(float duration);
 
@@ -271,6 +271,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     float K_n_s2w_SU; /// size of the normal stiffness (SU) for sphere-to-wall contact
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
+
+    friend class ChSystemGranularMonodisperse_SMC_Frictionless_trimesh;
 };
 
 

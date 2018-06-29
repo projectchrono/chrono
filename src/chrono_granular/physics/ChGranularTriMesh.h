@@ -24,39 +24,43 @@ namespace chrono {
 namespace granular {
 
 /**
- * ChTriangleSoup: thin helper class used as a place holder for arrays associated with a mesh. No memory
+ *\brief Template class used as a place holder for arrays associated with a mesh. No memory
  * allocation of freeing done by objects of this class. All its members are public.
+ *
+ *\attention  The order of the nodes in a triangle defines the positive face of the triangle; right-hand rule used.
+ *\attention Some other agent needs to allocate/deallocate memory pointed to by variables in this class
+ *
  */
-template<class T> class ChTriangleSoup {
+template <class T>
+class ChTriangleSoup {
   public:
-    unsigned int nTrianglesInSoup;  /// total number of triangles in the soup
-    unsigned int nFamiliesInSoup;
-    unsigned int* triangleFamily_ID;  /// each entry says what family that triagnle belongs to; size: nTrianglesInSoup
+    unsigned int nTrianglesInSoup;    //!< total number of triangles in the soup
+    unsigned int nFamiliesInSoup;     //!< indicates how many meshes are squashed together in this soup
+    unsigned int* triangleFamily_ID;  //!< each entry says what family that triagnle belongs to; size: nTrianglesInSoup
 
-    /// The order of the nodes in a triangle defines the positive face of the triangle; use right-hand rule
-    T* node1_X;  /// X position in global reference frame of node 1
-    T* node1_Y;  /// Y position in global reference frame of node 1
-    T* node1_Z;  /// Z position in global reference frame of node 1
+    T* node1_X;  //!< X position in global reference frame of node 1
+    T* node1_Y;  //!< Y position in global reference frame of node 1
+    T* node1_Z;  //!< Z position in global reference frame of node 1
 
-    T* node2_X;  /// X position in global reference frame of node 2
-    T* node2_Y;  /// Y position in global reference frame of node 2
-    T* node2_Z;  /// Z position in global reference frame of node 2
+    T* node2_X;  //!< X position in global reference frame of node 2
+    T* node2_Y;  //!< Y position in global reference frame of node 2
+    T* node2_Z;  //!< Z position in global reference frame of node 2
 
-    T* node3_X;  /// X position in global reference frame of node 3
-    T* node3_Y;  /// Y position in global reference frame of node 3
-    T* node3_Z;  /// Z position in global reference frame of node 3
+    T* node3_X;  //!< X position in global reference frame of node 3
+    T* node3_Y;  //!< Y position in global reference frame of node 3
+    T* node3_Z;  //!< Z position in global reference frame of node 3
 
-    float* node1_XDOT;  /// X velocity in global reference frame of node 1
-    float* node1_YDOT;  /// Y velocity in global reference frame of node 1
-    float* node1_ZDOT;  /// Z velocity in global reference frame of node 1
+    float* node1_XDOT;  //!< X velocity in global reference frame of node 1
+    float* node1_YDOT;  //!< Y velocity in global reference frame of node 1
+    float* node1_ZDOT;  //!< Z velocity in global reference frame of node 1
 
-    float* node2_XDOT;  /// X velocity in global reference frame of node 2
-    float* node2_YDOT;  /// Y velocity in global reference frame of node 2
-    float* node2_ZDOT;  /// Z velocity in global reference frame of node 2
+    float* node2_XDOT;  //!< X velocity in global reference frame of node 2
+    float* node2_YDOT;  //!< Y velocity in global reference frame of node 2
+    float* node2_ZDOT;  //!< Z velocity in global reference frame of node 2
 
-    float* node3_XDOT;  /// X velocity in global reference frame of node 3
-    float* node3_YDOT;  /// Y velocity in global reference frame of node 3
-    float* node3_ZDOT;  /// Z velocity in global reference frame of node 3
+    float* node3_XDOT;  //!< X velocity in global reference frame of node 3
+    float* node3_YDOT;  //!< Y velocity in global reference frame of node 3
+    float* node3_ZDOT;  //!< Z velocity in global reference frame of node 3
 
     float* generalizedForcesPerFamily;  //!< Generalized forces acting on each family. Expressed
                                         //!< in the global reference frame. Size: 6 * TRIANGLE_FAMILIES.
@@ -73,26 +77,30 @@ template<class T> class ChTriangleSoup {
  */
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh {
   private:
-    ChSystemGranularMonodisperse_SMC_Frictionless granMat;  ///< granular material object the mesh soup interacts with
-    ChTriangleSoup<float> meshSoup_HOST;                           ///< mesh soup interacting with granular material; HOST-side
-    ChTriangleSoup<int> meshSoup_DEVICE;  ///< mesh soup interacting with granular material; DEVICE-side
-    double YoungModulus_SPH2MESH;    ///< the stiffness associated w/ contact between a mesh element and gran material
-    float K_n_s2m_SU;  ///< size of the normal stiffness (SU) for sphere-to-mesh contact; expressed in sim. units
+    ChSystemGranularMonodisperse_SMC_Frictionless granMat;  //!< granular material object the mesh soup interacts with
+    ChTriangleSoup<float> meshSoup_HOST;                    //!< mesh soup interacting with granular material; HOST-side
+    ChTriangleSoup<int> meshSoup_DEVICE;  //!< mesh soup interacting with granular material; DEVICE-side
+    double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
+    float K_n_s2m_SU;  //!< size of the normal stiffness (SU) for sphere-to-mesh contact; expressed in sim. units
+    bool problemSetupFinished;
+    float timeToWhichDEsHaveBeenPropagated;
 
-    /// Function members
+    // Function members
     void copy_const_data_to_device();
 
     void switch_to_SimUnits();
 
     void setupSoup_HOST_DEVICE(const char* meshFileName);
-    void SetupSoup_HOST(const std::vector<tinyobj::shape_t>& soup, unsigned int nTriangles);
-    void CleanupSoup_HOST();
-    void SetupSoup_DEVICE(unsigned int nTriangles);
-    void CleanupSoup_DEVICE();
+    void setupSoup_HOST(const std::vector<tinyobj::shape_t>& soup, unsigned int nTriangles);
+    void cleanupSoup_HOST();
+    void setupSoup_DEVICE(unsigned int nTriangles);
+    void cleanupSoup_DEVICE();
     void update_DMeshSoup_Location();
 
     void run_simulation(float t_end);
     void advance_simulation(float duration) { NOT_IMPLEMENTED_YET }
+
+    void setupSimulation();
 
   public:
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, const char* meshFileName);
@@ -100,8 +108,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh {
 
     inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
     inline ChSystemGranularMonodisperse_SMC_Frictionless& granMatBed() { return granMat; }
-    inline ChTriangleSoup<float>& meshSoup() { return meshSoup_HOST; }
+    inline unsigned int nMeshesInSoup() const { return meshSoup_HOST.nFamiliesInSoup; }
     void collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup);
+    void meshSoup_applyRigidBodyMotion(float crntTime, double* position_orientation_data);
 };
 
 }  // namespace granular

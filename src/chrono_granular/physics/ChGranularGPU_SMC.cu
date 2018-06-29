@@ -33,7 +33,6 @@
 
 #define CUDA_THREADS 128
 
-
 // Use user-defined quantities for coefficients
 __constant__ float d_Gamma_n;  //!< contact damping coefficient, expressed in SU
 // TODO we need to get the damping coefficient from user
@@ -224,8 +223,7 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
 template <
     unsigned int
         CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
-__global__ void
-primingOperationsRectangularBox(
+__global__ void primingOperationsRectangularBox(
     int* d_sphere_pos_X,                       //!< Pointer to array containing data related to the spheres in the box
     int* d_sphere_pos_Y,                       //!< Pointer to array containing data related to the spheres in the box
     int* d_sphere_pos_Z,                       //!< Pointer to array containing data related to the spheres in the box
@@ -1268,6 +1266,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
 }
 
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
+    // Figure our the number of blocks that need to be launched to cover the box
+    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
     if (!primed) {
         switch_to_SimUnits();
         generate_DEs();
@@ -1284,14 +1284,10 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
         // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
         gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
                              MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
-    }
 
-    // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
-    if (!primed) {
         printf("doing priming!\n");
         printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
-		
+
         printf("doing priming!\n");
         printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
         primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(

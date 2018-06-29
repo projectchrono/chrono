@@ -528,7 +528,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
 }
 
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::CleanupSoup_DEVICE() {
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupSoup_DEVICE() {
     cudaFree(meshSoup_DEVICE.triangleFamily_ID);
 
     cudaFree(meshSoup_DEVICE.node1_X);
@@ -558,7 +558,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::Cl
     cudaFree(meshSoup_DEVICE.generalizedForcesPerFamily);
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::SetupSoup_DEVICE(unsigned int nTriangles) {
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_DEVICE(unsigned int nTriangles) {
     NOT_IMPLEMENTED_YET
 }
 

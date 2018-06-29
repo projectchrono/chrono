@@ -32,7 +32,6 @@ using namespace chrono;
 using namespace chrono::granular;
 using namespace std;
 
-
 // -----------------------------------------------------------------------------
 // ID values to identify command line arguments
 // There is no friction.
@@ -201,10 +200,9 @@ bool GetProblemSpecs(int argc,
     return true;
 }
 
-void updateMeshSoup_Location(float crntTime, ChTriangleSoup<float>& soup) {
+void updateMeshSoup_Location(float crntTime, double* meshSoup_applyRigidBodyMotion) {
     ;
 }
-
 
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
@@ -247,9 +245,9 @@ int main(int argc, char* argv[]) {
     char* mesh_filename = "basicWheelMesh.obj";
 
     // Some of the default values might be overwritten by user via command line
-    if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W, normStiffnessMSH2S, cohesion_ratio, verbose,
-                        output_prefix, write_mode) == false) {
+    if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd,
+                        grav_acceleration, normStiffness_S2S, normStiffness_S2W, normStiffnessMSH2S, cohesion_ratio,
+                        verbose, output_prefix, write_mode) == false) {
         return 1;
     }
 
@@ -269,21 +267,22 @@ int main(int argc, char* argv[]) {
     m_sys.granMatBed().setVerbose(verbose);
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
-
     const float fakeTimeStep = 0.0001f;
     const float fakeTimeEnd = 10.f;
-    unsigned int nSoupFamilies = m_sys.meshSoup().nFamiliesInSoup;
-    float* genForcesOnMeshSoup = new float[nSoupFamilies];
+    unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
+    float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
+    double* meshSoupLocOri = new double[7 * nSoupFamilies];
 
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < fakeTimeEnd; t += fakeTimeStep) {
-        updateMeshSoup_Location(t, m_sys.meshSoup());
-        m_sys.collectGeneralizedForcesOnMeshSoup(t,genForcesOnMeshSoup);
+        updateMeshSoup_Location(t,meshSoupLocOri); // This is where the information would come from the vehicle 
+        m_sys.meshSoup_applyRigidBodyMotion(t,meshSoupLocOri);
+        m_sys.collectGeneralizedForcesOnMeshSoup(t, genForcesOnMeshSoup);
     }
 
     delete[] genForcesOnMeshSoup;
+    delete[] meshSoupLocOri;
+
     return 0;
 }
-
-

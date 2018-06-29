@@ -14,6 +14,7 @@
 /*! \file */
 
 #include "ChGranularTriMesh.h"
+#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 #include <vector>
 
 /**
@@ -56,16 +57,16 @@ of various physical quantities set by the user.
 
 chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, const char* meshFileName)
-    : granMat(radiusSPH, density) {
+    : granMat(radiusSPH, density), problemSetupFinished(false), timeToWhichDEsHaveBeenPropagated(0.f) {
     setupSoup_HOST_DEVICE(meshFileName);
 }
 
 chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::
     ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {
     // work to do here
-    CleanupSoup_DEVICE();
-    CleanupSoup_HOST();
-;
+    cleanupSoup_DEVICE();
+    cleanupSoup_HOST();
+    ;
 }
 
 /** \brief Method reads in a mesh soup; indirectly allocates memory on HOST and DEVICE to store mesh soup.
@@ -76,7 +77,7 @@ chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::
  * Given a file name, this function reads in from that file a mesh soup. This mesh soup is used to allocate memory on
  * the HOST and DEVICE. Finally, the HOST mesh soup is initialize with the mesh soup that is read in.
  *
- * NOTE: The mesh soup, provided in the input file, should be in obj format.
+ * \attention The mesh soup, provided in the input file, should be in obj format.
  */
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST_DEVICE(
     const char* mesh_filename) {
@@ -90,16 +91,15 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
         nTriangles += shape.mesh.indices.size() / 3;
 
     // Allocate memory to store mesh soup; done both on the HOST and DEVICE sides
-    SetupSoup_HOST(shapes, nTriangles);
-    SetupSoup_DEVICE(nTriangles);
+    setupSoup_HOST(shapes, nTriangles);
+    setupSoup_DEVICE(nTriangles);
 }
-
 
 /**
 On the HOST sice, allocate memory to hang on to the mesh soup. The HOST mesh soup is initialized with values provided in
 the input obj file.
 */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::SetupSoup_HOST(
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST(
     const std::vector<tinyobj::shape_t>& shapes,
     unsigned int nTriangles) {
     // Set up mesh from the input file
@@ -186,7 +186,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::Se
     }
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::CleanupSoup_HOST() {
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupSoup_HOST() {
     delete[] meshSoup_HOST.triangleFamily_ID;
 
     delete[] meshSoup_HOST.node1_X;
@@ -236,28 +236,113 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::Cl
 //    }
 //}
 
-
 /** A new location of the triangles in the mesh soup is provided upon input. Upon output, a set of generalized forces
-* that the material impresses on each family of the mesh soup is computed.
-*/
+ * that the material impresses on each family of the mesh soup is computed.
+ */
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
-    cudaMemcpy(meshSoup_DEVICE.node1_X, meshSoup_HOST.node1_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node1_Y, meshSoup_HOST.node1_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node1_Z, meshSoup_HOST.node1_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node1_X, meshSoup_HOST.node1_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node1_Y, meshSoup_HOST.node1_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node1_Z, meshSoup_HOST.node1_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
 
-    cudaMemcpy(meshSoup_DEVICE.node2_X, meshSoup_HOST.node2_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node2_Y, meshSoup_HOST.node2_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node2_Z, meshSoup_HOST.node2_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node2_X, meshSoup_HOST.node2_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node2_Y, meshSoup_HOST.node2_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node2_Z, meshSoup_HOST.node2_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
 
-    cudaMemcpy(meshSoup_DEVICE.node3_X, meshSoup_HOST.node3_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node3_Y, meshSoup_HOST.node3_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node3_Z, meshSoup_HOST.node3_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node3_X, meshSoup_HOST.node3_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node3_Y, meshSoup_HOST.node3_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node3_Z, meshSoup_HOST.node3_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
 }
 
 /**
-The generalized forces felt by each family in the triangle soup are copied from the device into the host array that is provided to this function.
-Each generalized force acting on a family in the soup has six components: three forces & three torques.
+* \brief Collects the forces that each mesh feels as a result of their interaction with the DEs.
+*
+* The generalized forces felt by each family in the triangle soup are copied from the device into the host array that is
+* provided to this function. Each generalized force acting on a family in the soup has six components: three forces &
+* three torques.
+*
+* The forces measured are based on the position of the DEs as they are at the beginning of this function call, before
+* the DEs are moved forward in time. In other words, the forces are associated with the configuration of the DE system
+* from time timeToWhichDEsHaveBeenPropagated upon entrying this function.
+* The logic is this: when the time integration is carried out, the forces are measured and saved in
+* meshSoup_DEVICE.nFamiliesInSoup. Then, the numerical integration takes places and the state of DEs is update along
+* with the value of timeToWhichDEsHaveBeenPropagated.
+*
+* \param [in] crntTime The time at which the force is computed
+* \param [out] genForcesOnSoup Array that stores the generalized forces on the meshes in the soup
+
+* \return nothing
+*
+* \attention The size of genForcesOnSoup should be 6 * nFamiliesInSoup
 */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup) {
-    ;
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(
+    float crntTime,
+    float* genForcesOnSoup) {
+    if (!problemSetupFinished) {
+        setupSimulation();
+        problemSetupFinished = true;
+    }
+
+    // update the time that the DE system has reached
+    timeToWhichDEsHaveBeenPropagated = crntTime;
+
+    // Values in meshSoup_DEVICE are legit and ready to be loaded in user provided array.
+    gpuErrchk(cudaMemcpy(genForcesOnSoup, meshSoup_DEVICE.generalizedForcesPerFamily,
+                         6 * meshSoup_DEVICE.nFamiliesInSoup * sizeof(float), cudaMemcpyDeviceToHost));
+}
+
+/**
+ * \brief Function sets up data structures, allocates space on the device, generates the spheres, etc.
+ *
+ */
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSimulation() {
+    granMat.switch_to_SimUnits();
+    granMat.generate_DEs();
+
+    // Set aside memory for holding data structures worked with. Get some initializations going
+    granMat.setup_simulation();
+    granMat.copy_const_data_to_device();
+    granMat.copyBD_Frame_to_device();
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // Seed arrays that are populated by the kernel call
+    // Set all the offsets to zero
+    gpuErrchk(cudaMemset(granMat.SD_NumOf_DEs_Touching.data(), 0, granMat.nSDs * sizeof(unsigned int)));
+    // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
+    gpuErrchk(cudaMemset(granMat.DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
+        MAX_COUNT_OF_DEs_PER_SD * granMat.nSDs * sizeof(unsigned int)));
+
+    // Figure our the number of blocks that need to be launched to cover the box
+    printf("doing priming!\n");
+    printf("max possible composite offset is %zu\n", (size_t)granMat.nSDs * MAX_COUNT_OF_DEs_PER_SD);
+}
+
+
+/** \brief Applies a translation and rotation to each point of each soup family. Works for rigid meshes only.
+ *
+ * The location of each vertex of each triangle is stored in double precision. This function does two things:
+ * - gets the location and the orientation of the each mesh's RF
+ * - figures out the location of each vertex of the mesh soup
+ *
+ * \param [in] position_orientation_data
+ * \return nothing
+ *
+ * This is the function that computes the location of each vertex in each mesh. To that end, it converts double
+ * precision data to int. The int values are stored in the meshSoup_DEVICE, which is an input for the GPU kernel.
+ *
+ * \attention The number of entries in the array is 7 * nFamiliesInSoup.
+ * \attention First three entries are the location of the mesh reference frame wrt global ref frame.
+ * \attention The next four entries provide the orientation of the mesh wrt global ref frame (Euler params).
+ */
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidBodyMotion(
+    float crntTime,
+    double* position_orientation_data) {
 }
