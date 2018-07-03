@@ -103,7 +103,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh {
     void setupSimulation();
 
   public:
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, const char* meshFileName);
+    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, std::string meshFileName);
     ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
 
     inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }

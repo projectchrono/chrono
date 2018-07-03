@@ -56,9 +56,9 @@ of various physical quantities set by the user.
 //}
 
 chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, const char* meshFileName)
+    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, std::string meshFileName)
     : granMat(radiusSPH, density), problemSetupFinished(false), timeToWhichDEsHaveBeenPropagated(0.f) {
-    setupSoup_HOST_DEVICE(meshFileName);
+    setupSoup_HOST_DEVICE(meshFileName.c_str());
 }
 
 chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::

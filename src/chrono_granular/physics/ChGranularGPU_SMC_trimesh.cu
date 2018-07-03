@@ -15,11 +15,15 @@
 
 #include <cuda.h>
 #include "chrono_granular/ChGranularDefines.h"
-#include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_granular/physics/ChGranularCollision.cuh"
+#include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 #include "chrono_thirdparty/cub/cub.cuh"
+
+// TODO should this go here?
+// NOTE warpSize is a cuda environment value, but it is cc-dependent
+#define warp_size 32
 
 // These are the max X, Y, Z dimensions in the BD frame
 #define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
@@ -50,12 +54,11 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
     /// JUNK FROM HERE ON; CONLAIN, CAN YOU HELP?
     /// HERE'S A QUESTION THAT I DON'T KNOW HOW TO ANSWER: THE CALL BELOW TELLS ME IF AN SD OVERLAPS THE TRIANGLE.
-    /// HOWEVER, HOW MANY SUCH TESTS SHOULD I DO? THE FEWER, THE BETTER. 
+    /// HOWEVER, HOW MANY SUCH TESTS SHOULD I DO? THE FEWER, THE BETTER.
     unsigned int crntSD;
     if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC))
         touchedSDs[0] = crntSD;
 }
-
 
 /**
  * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time
@@ -90,8 +93,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
  *
  */
 template <unsigned int CUB_THREADS>  //!< Number of threads engaged in block-collective CUB operations (multiple of 32)
-__global__ void
-triangleSoupBroadPhase(
+__global__ void triangleSoupBroadPhase(
     Triangle_Soup<int>& d_triangleSoup,
     unsigned int*
         BUCKET_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
@@ -223,7 +225,7 @@ template <unsigned int N_CUDATHREADS,
           unsigned int MAX_TRIANGLES_PER_SD,
           unsigned int TRIANGLE_FAMILIES>
 __global__ void interactionTerrain_TriangleSoup(
-    Triangle_Soup<int>& d_triangleSoup,               //!< Contains information pertaining to triangle soup (in device mem.)
+    Triangle_Soup<int>& d_triangleSoup,          //!< Contains information pertaining to triangle soup (in device mem.)
     Terrain& d_terrain,                          //!< Wrapper that stores terrain information available on the device
     unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int*
@@ -253,7 +255,7 @@ __global__ void interactionTerrain_TriangleSoup(
     __shared__ int node3_Y[MAX_TRIANGLES_PER_SD];  //!< Y coordinate of the 3rd node of the triangle
     __shared__ int node3_Z[MAX_TRIANGLES_PER_SD];  //!< Z coordinate of the 3rd node of the triangle
 
-    volatile __shared__ float tempShMem[6 * (N_CUDATHREADS / warpSize)];  // used to do a block-level reduce
+    volatile __shared__ float tempShMem[6 * (N_CUDATHREADS / warp_size)];  // used to do a block-level reduce
 
     float forceActingOnSphere[3];  //!< 3 registers will hold the value of the force on the sphere
     float genForceActingOnMeshes[TRIANGLE_FAMILIES * 6];  //!< 6 components per family: 3 forces and 3 torques
@@ -319,11 +321,12 @@ __global__ void interactionTerrain_TriangleSoup(
     // touches. Upon a contact event, we'll compute the normal force on the sphere; and, the force and torque impressed
     // upon the triangle
 
-    unsigned int nSpheresProcessedAtOneTime = blockDim.x / warpSize;  /// One warp allocated to slave serving one sphere
+    unsigned int nSpheresProcessedAtOneTime =
+        blockDim.x / warp_size;  /// One warp allocated to slave serving one sphere
     tripsToCoverSpheres = (nSD_spheres + nSpheresProcessedAtOneTime - 1) / nSpheresProcessedAtOneTime;
-    tripsToCoverTriangles = (nSD_triangles + warpSize - 1) / warpSize;
+    tripsToCoverTriangles = (nSD_triangles + warp_size - 1) / warp_size;
 
-    unsigned sphere_Local_ID = threadIdx.x / warpSize;
+    unsigned sphere_Local_ID = threadIdx.x / warp_size;
     for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
         /// before starting dealing with a sphere, zero out the forces acting on it; all threads in the block are doing
         /// this
@@ -336,9 +339,9 @@ __global__ void interactionTerrain_TriangleSoup(
             /// looks at one triangle at a time. The collection of threads in the warp sweeps through all the triangles
             /// that touch this SD. NOTE: to avoid double-counting, a sphere-triangle collision event is counted only if
             /// the collision point is in this SD.
-            unsigned int targetTriangle = (threadIdx.x & (warpSize - 1));  // computes modulo 32 of the thread index
+            unsigned int targetTriangle = (threadIdx.x & (warp_size - 1));  // computes modulo 32 of the thread index
             for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
-                targetTriangle += triangTrip * warpSize;
+                targetTriangle += triangTrip * warp_size;
                 if (targetTriangle < nSD_triangles) {
                     /// we have a valid sphere and a valid triganle; check if in contact
                     double3 norm;
@@ -361,11 +364,11 @@ __global__ void interactionTerrain_TriangleSoup(
             /// reduce operation. The resultant force acting on this grElement is stored in the first lane of the warp.
             /// NOTE: In this warp-level operations participate only the warps that are slaving for a sphere; i.e., some
             /// warps see no action
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
 
             /// done with the computation of all the contacts that the triangles impress on this sphere. Update the
@@ -377,32 +380,32 @@ __global__ void interactionTerrain_TriangleSoup(
     for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
         /// six generalized forces acting on the triangle, expressed in the global reference frame
         unsigned int dummyIndx = 6 * local_ID;
-        for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
             genForceActingOnMeshes[dummyIndx] +=
                 __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
         dummyIndx++;
 
-        for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
             genForceActingOnMeshes[dummyIndx] +=
                 __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
         dummyIndx++;
 
-        for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
             genForceActingOnMeshes[dummyIndx] +=
                 __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
         dummyIndx++;
 
-        for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
             genForceActingOnMeshes[dummyIndx] +=
                 __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
         dummyIndx++;
 
-        for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
             genForceActingOnMeshes[dummyIndx] +=
                 __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
         dummyIndx++;
 
-        for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
             genForceActingOnMeshes[dummyIndx] +=
                 __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
     }
@@ -411,12 +414,12 @@ __global__ void interactionTerrain_TriangleSoup(
 
     /// Lane zero in each warp holds the result of a warp-level reduce operation. Sum up these "Lane zero" values in the
     /// final result, which is block-level
-    bool threadIsLaneZeroInWarp = ((threadIdx.x & (warpSize - 1)) == 0);
+    bool threadIsLaneZeroInWarp = ((threadIdx.x & (warp_size - 1)) == 0);
     for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
         unsigned int offsetGenForceArray = 6 * local_ID;
         /// Place in ShMem forces/torques (expressed in global reference frame) acting on this family of triangles
         if (threadIsLaneZeroInWarp) {
-            unsigned int offsetShMem = 6 * (threadIdx.x / warpSize);
+            unsigned int offsetShMem = 6 * (threadIdx.x / warp_size);
             tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
             tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
             tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
@@ -429,14 +432,14 @@ __global__ void interactionTerrain_TriangleSoup(
 
         /// Going to trash the values in "forceActingOnSphere", not needed anymore. Reuse the registers, which will now
         /// store the vaule of the triangle force and torque...
-        if (threadIdx.x < warpSize) {
+        if (threadIdx.x < warp_size) {
             /// only first thread in block participates in this reduce operation.
-            /// NOTE: an implicit assumption is made here - warpSize is larger than or equal to N_CUDATHREADS /
-            /// warpSize. This is true today as N_CUDATHREADS cannot be larger than 1024 and warpSize is 32.
+            /// NOTE: an implicit assumption is made here - warp_size is larger than or equal to N_CUDATHREADS /
+            /// warp_size. This is true today as N_CUDATHREADS cannot be larger than 1024 and warp_size is 32.
 
             /// Work on forces first. Place data from ShMem into registers associated w/ first warp
             unsigned int offsetShMem = 6 * threadIdx.x;
-            if (threadIdx.x < (N_CUDATHREADS / warpSize)) {
+            if (threadIdx.x < (N_CUDATHREADS / warp_size)) {
                 forceActingOnSphere[0] = tempShMem[offsetShMem++];
                 forceActingOnSphere[1] = tempShMem[offsetShMem++];
                 forceActingOnSphere[2] = tempShMem[offsetShMem++];
@@ -449,22 +452,22 @@ __global__ void interactionTerrain_TriangleSoup(
 
             offsetGenForceArray = 6 * local_ID;
             // X component of the force on mesh "local_ID"
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
             genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[0];
 
             // Y component of the force on mesh "local_ID"
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
             genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[1];
 
             // Z component of the force on mesh "local_ID"
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
             genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[2];
 
             /// Finally, work on torques
-            if (threadIdx.x < (N_CUDATHREADS / warpSize)) {
+            if (threadIdx.x < (N_CUDATHREADS / warp_size)) {
                 forceActingOnSphere[0] = tempShMem[offsetShMem++];
                 forceActingOnSphere[1] = tempShMem[offsetShMem++];
                 forceActingOnSphere[2] = tempShMem[offsetShMem];
@@ -476,17 +479,17 @@ __global__ void interactionTerrain_TriangleSoup(
             }
 
             // X component of the torque on mesh "local_ID"
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
             genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[0];
 
             // Y component of the torque on mesh "local_ID"
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
             genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[1];
 
             // Z component of the torque on mesh "local_ID"
-            for (unsigned int offset = warpSize / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
             genForceActingOnMeshes[offsetGenForceArray] = forceActingOnSphere[2];
         }  /// this is the end of the "for each mesh" loop
@@ -500,7 +503,7 @@ __global__ void interactionTerrain_TriangleSoup(
         /// At this point, all threads in the first warp have the generalized forces acting on all meshes. Do an atomic
         /// add to compund the value of the generalized forces acting on the meshes that come in contact with the
         /// granular material.
-        unsigned int nTrips = (6 * TRIANGLE_FAMILIES) / warpSize;
+        unsigned int nTrips = (6 * TRIANGLE_FAMILIES) / warp_size;
         for (local_ID = 0; local_ID < nTrips + 1; local_ID++) {
             unsigned int offset = threadIdx.x + local_ID * (6 * TRIANGLE_FAMILIES);
             if (offset < 6 * TRIANGLE_FAMILIES)
@@ -512,21 +515,19 @@ __global__ void interactionTerrain_TriangleSoup(
 /// Copy most constant data to device, this should run at start
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_const_data_to_device() {
     // Call the copy associated w/ the parent class
-    //copy_const_data_to_device();
+    // copy_const_data_to_device();
 
     // Handle what's specific to the case when the mesh is present
-    //gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2m_SU, &K_n_s2m_SU, sizeof(d_Kn_s2m_SU)));
+    // gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2m_SU, &K_n_s2m_SU, sizeof(d_Kn_s2m_SU)));
 }
 
-
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::run_simulation(float tEnd) 
-{
-    //switch (meshSoup.nFamiliesInSoup) {
-    //case 1: interactionTerrain_TriangleSoup<128,MAX_COUNT_OF_DEs_PER_SD, MAX_COUNT_OF_Triangles_PER_SD,1><<<1,1>>>(meshSoup)
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::run_simulation(float tEnd) {
+    // switch (meshSoup.nFamiliesInSoup) {
+    // case 1: interactionTerrain_TriangleSoup<128,MAX_COUNT_OF_DEs_PER_SD,
+    // MAX_COUNT_OF_Triangles_PER_SD,1><<<1,1>>>(meshSoup)
     //    break;
     //}
 }
-
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupSoup_DEVICE() {
     cudaFree(meshSoup_DEVICE.triangleFamily_ID);
@@ -558,7 +559,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cl
     cudaFree(meshSoup_DEVICE.generalizedForcesPerFamily);
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_DEVICE(unsigned int nTriangles) {
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_DEVICE(
+    unsigned int nTriangles) {
     NOT_IMPLEMENTED_YET
 }
-

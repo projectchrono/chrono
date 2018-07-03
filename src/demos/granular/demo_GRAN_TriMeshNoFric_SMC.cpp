@@ -109,7 +109,7 @@ void showUsage() {
 // -----------------------------------------------------------------------------
 bool GetProblemSpecs(int argc,
                      char** argv,
-                     char* meshFileName,
+                     std::string& meshFileName,
                      float& ball_radius,
                      float& ballDensity,
                      float& box_L,
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     float cohesion_ratio = 0;
 
     // Mesh values
-    char* mesh_filename = "basicWheelMesh.obj";
+    std::string mesh_filename = std::string("basicWheelMesh.obj");
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd,
