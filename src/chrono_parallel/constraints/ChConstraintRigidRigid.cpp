@@ -34,20 +34,19 @@ ChConstraintRigidRigid::ChConstraintRigidRigid()
 
 void ChConstraintRigidRigid::func_Project_normal(int index, const vec2* ids, const real* cohesion, real* gamma) {
     real gamma_x = gamma[index * 1 + 0];
-    vec2 body_id = ids[index];
     real coh = cohesion[index];
 
-    gamma_x += coh;
-    gamma_x = gamma_x < 0 ? 0 : gamma_x - coh;
-    gamma[index * 1 + 0] = gamma_x;
-    if (data_manager->settings.solver.solver_mode == SolverMode::SLIDING) {
-        gamma[data_manager->num_rigid_contacts + index * 2 + 0] = 0;
-        gamma[data_manager->num_rigid_contacts + index * 2 + 1] = 0;
-    }
-    if (data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
-        gamma[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
-        gamma[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
-        gamma[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
+    gamma[index * 1 + 0] = (gamma_x < -coh) ? -coh : gamma_x;
+    switch (data_manager->settings.solver.solver_mode) {
+        case SolverMode::SLIDING:
+            gamma[data_manager->num_rigid_contacts + index * 2 + 0] = 0;
+            gamma[data_manager->num_rigid_contacts + index * 2 + 1] = 0;
+            break;
+        case SolverMode::SPINNING:
+            gamma[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
+            gamma[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
+            gamma[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
+            break;
     }
 }
 
@@ -61,33 +60,23 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
     gamma.y = gam[data_manager->num_rigid_contacts + index * 2 + 0];
     gamma.z = gam[data_manager->num_rigid_contacts + index * 2 + 1];
 
-    //  if (data_manager->settings.solver.solver_mode == SPINNING) {
-    //    gam[3 * data_manager->num_contacts + index * 3 + 0] = 0;
-    //    gam[3 * data_manager->num_contacts + index * 3 + 1] = 0;
-    //    gam[3 * data_manager->num_contacts + index * 3 + 2] = 0;
-    //  }
-
     real coh = cohesion[index];
-    gamma.x += coh;
-
     real mu = fric[index].x;
+
     if (mu == 0) {
-        gamma.x = gamma.x < 0 ? 0 : gamma.x - coh;
-        gamma.y = gamma.z = 0;
-
-        gam[index * 1 + 0] = gamma.x;
-        gam[data_manager->num_rigid_contacts + index * 2 + 0] = gamma.y;
-        gam[data_manager->num_rigid_contacts + index * 2 + 1] = gamma.z;
-
+        gam[index * 1 + 0] = (gamma.x < -coh) ? -coh : gamma.x;
+        gam[data_manager->num_rigid_contacts + index * 2 + 0] = 0;
+        gam[data_manager->num_rigid_contacts + index * 2 + 1] = 0;
         return;
     }
 
+    gamma.x += coh;
     Cone_generalized_rigid(gamma.x, gamma.y, gamma.z, mu);
-
     gam[index * 1 + 0] = gamma.x - coh;
     gam[data_manager->num_rigid_contacts + index * 2 + 0] = gamma.y;
     gam[data_manager->num_rigid_contacts + index * 2 + 1] = gamma.z;
 }
+
 void ChConstraintRigidRigid::func_Project_spinning(int index, const vec2* ids, const real3* fric, real* gam) {
     real rollingfriction = fric[index].y;
     real spinningfriction = fric[index].z;
