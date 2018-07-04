@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include "chrono_cosimulation/ChSocket.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
 
@@ -258,7 +260,7 @@ void ChSocket::setSocketBlocking(int blockingToggle) {
 
     try {
 #ifdef WINDOWS_XP
-        if (ioctlsocket(socketId, FIONBIO, (unsigned long*)blocking) == -1) {
+        if (ioctlsocket(socketId, FIONBIO, (unsigned long*)&blocking) == -1) {
             int errorCode;
             string errorMsg = "Blocking option: ";
             detectErrorSetSocketOption(&errorCode, errorMsg);
@@ -1065,7 +1067,7 @@ int ChSocketTCP::sendMessage(string& message) {
     */
 
     char msgLength[MSG_HEADER_LEN + 1];
-    sprintf(msgLength, "%6d", message.size());
+    sprintf(msgLength, "%6d", static_cast<int>(message.size()));
     string sendMsg = string(msgLength);
     sendMsg += message;
 
