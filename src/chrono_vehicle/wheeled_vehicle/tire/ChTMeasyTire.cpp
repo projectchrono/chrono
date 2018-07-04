@@ -362,6 +362,10 @@ void ChTMeasyTire::Advance(double step) {
         while (t < step) {
             // Ensure we integrate exactly to 'step'
             double h = std::min<>(m_stepsize, step - t);
+            // limit delay time of bore torque Mb to realistic values
+            double tau = ChClamp(relax / m_states.vta, 1.0e-4, 0.25);
+            double gain = 1.0/tau;
+            
             switch (m_integration_method) {
                 case 1: {
                     // explicit Euler, may be unstable
@@ -386,9 +390,9 @@ void ChTMeasyTire::Advance(double step) {
                                                     (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
                                                     (vtys * m_TMeasyCoeff.dy + fos);
                     // 0. order tire dynamics
-                    double dMb = -m_states.vta / relax;
+                    double dMb = -gain;
                     m_states.Mb_dyn =
-                        m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
+                        m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * gain;
                     break;
                 }
             }
