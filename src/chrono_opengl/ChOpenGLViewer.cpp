@@ -14,8 +14,6 @@
 // OpenGL viewer, this class draws the system to the screen and handles input
 // =============================================================================
 
-#include "chrono_opengl/ChOpenGLViewer.h"
-#include "chrono_opengl/ChOpenGLMaterials.h"
 #include "chrono/ChConfig.h"
 
 #ifdef CHRONO_PARALLEL
@@ -56,6 +54,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "chrono_opengl/ChOpenGLViewer.h"
+#include "chrono_opengl/ChOpenGLMaterials.h"
 
 namespace chrono {
 namespace opengl {
