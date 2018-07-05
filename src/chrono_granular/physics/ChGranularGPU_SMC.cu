@@ -1162,11 +1162,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
     gpuErrchk(cudaDeviceSynchronize());
 
     // Seed arrays that are populated by the kernel call
-    // Set all the offsets to zero
-    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
-    // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+    resetBroadphaseInformation();
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
