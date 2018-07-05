@@ -75,9 +75,9 @@ class ChTriangleSoup {
  * Assumptions: Mono-disperse setup, one radius for all spheres. There is no friction. There can be adehsion.
  * The granular material interacts through an implement that is defined via a triangular mesh.
  */
-class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh {
+class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
+    : public ChSystemGranularMonodisperse_SMC_Frictionless {
   private:
-    ChSystemGranularMonodisperse_SMC_Frictionless granMat;  //!< granular material object the mesh soup interacts with
     ChTriangleSoup<float> meshSoup_HOST;                    //!< mesh soup interacting with granular material; HOST-side
     ChTriangleSoup<int> meshSoup_DEVICE;  //!< mesh soup interacting with granular material; DEVICE-side
     double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
@@ -86,9 +86,10 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh {
     float timeToWhichDEsHaveBeenPropagated;
 
     // Function members
-    void copy_const_data_to_device();
+    void copy_triangle_data_to_device();
 
-    void switch_to_SimUnits();
+    // Mesh simulations should not have moving BD frames for now
+    virtual void copyBD_Frame_to_device() { NOT_IMPLEMENTED_YET; }
 
     void setupSoup_HOST_DEVICE(const char* meshFileName);
     void setupSoup_HOST(const std::vector<tinyobj::shape_t>& soup, unsigned int nTriangles);
@@ -104,10 +105,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh {
 
   public:
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, std::string meshFileName);
-    ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
+    virtual ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
 
     inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
-    inline ChSystemGranularMonodisperse_SMC_Frictionless& granMatBed() { return granMat; }
     inline unsigned int nMeshesInSoup() const { return meshSoup_HOST.nFamiliesInSoup; }
     void collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup);
     void meshSoup_applyRigidBodyMotion(float crntTime, double* position_orientation_data);

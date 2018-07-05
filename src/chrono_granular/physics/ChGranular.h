@@ -152,7 +152,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     /// Set bounds to fill on the big box, goes xyz min, xyz max as floats from -1 to 1
     /// Passing xmin = -1, xmax = 1 means fill the box in xdir
     // TODO comment this more
-    virtual void setFillBounds(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax);
+    void setFillBounds(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax);
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
@@ -234,7 +234,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     ChSystemGranularMonodisperse_SMC_Frictionless(float radiusSPH, float density)
         : ChSystemGranularMonodisperse(radiusSPH, density) {}
 
-    ~ChSystemGranularMonodisperse_SMC_Frictionless() {}
+    virtual ~ChSystemGranularMonodisperse_SMC_Frictionless() {}
 
     inline void set_YoungModulus_SPH2SPH(double someValue) { YoungModulus_SPH2SPH = someValue; }
     inline void set_YoungModulus_SPH2WALL(double someValue) { YoungModulus_SPH2WALL = someValue; }

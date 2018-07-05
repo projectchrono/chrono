@@ -870,7 +870,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         }
     }
 }
-/// Copy most constant data to device, this should run at start
+/// Copy constant sphere data to device, this should run at start
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
     gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_SU, &SD_L_SU, sizeof(d_SD_Ldim_SU)));

@@ -17,56 +17,23 @@
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 #include <vector>
 
-/**
-This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
-of various physical quantities set by the user.
-*/
-// void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::switch_to_SimUnits() {
-//    double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
-//    MASS_UNIT = massSphere;
-//    double K_stiffness = (YoungModulus_SPH2SPH > YoungModulus_SPH2WALL ? YoungModulus_SPH2SPH :
-//    YoungModulus_SPH2WALL); if (K_stiffness < YoungModulus_SPH2MESH)
-//        K_stiffness = YoungModulus_SPH2MESH;
-//
-//    TIME_UNIT = sqrt(massSphere / (PSI_h * K_stiffness)) / PSI_T;
-//
-//    double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
-//    LENGTH_UNIT = massSphere * magGravAcc / (PSI_L * K_stiffness);
-//
-//    sphereRadius_SU = sphere_radius / LENGTH_UNIT;
-//
-//    float scalingFactor = ((float)PSI_L) / (PSI_T * PSI_T * PSI_h);
-//    gravity_X_SU = scalingFactor * X_accGrav / magGravAcc;
-//    gravity_Y_SU = scalingFactor * Y_accGrav / magGravAcc;
-//    gravity_Z_SU = scalingFactor * Z_accGrav / magGravAcc;
-//
-//    /// SU values for normal stiffnesses for s2s (sphere to sphere), s2w (sphere2wall), and s2m (sphere2mesh)
-//    scalingFactor = (1.f / (1.f * PSI_T * PSI_T * PSI_h));
-//    K_n_s2s_SU = scalingFactor * (YoungModulus_SPH2SPH / K_stiffness);
-//    K_n_s2w_SU = scalingFactor * (YoungModulus_SPH2WALL / K_stiffness);
-//    K_n_s2m_SU = scalingFactor * (YoungModulus_SPH2MESH / K_stiffness);
-//
-//    // TODO Make this legit, from user input
-//    Gamma_n_SU = .005;
-//
-//    // Handy debug output
-//    printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);
-//    printf("SU mass is %f\n", MASS_UNIT);
-//    printf("SU radius is %u\n", sphereRadius_SU);
-//}
+namespace chrono {
+namespace granular {
 
-chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, std::string meshFileName)
-    : granMat(radiusSPH, density), problemSetupFinished(false), timeToWhichDEsHaveBeenPropagated(0.f) {
+ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(
+    float radiusSPH,
+    float density,
+    std::string meshFileName)
+    : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density),
+      problemSetupFinished(false),
+      timeToWhichDEsHaveBeenPropagated(0.f) {
     setupSoup_HOST_DEVICE(meshFileName.c_str());
 }
 
-chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::
-    ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {
+ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {
     // work to do here
     cleanupSoup_DEVICE();
     cleanupSoup_HOST();
-    ;
 }
 
 /** \brief Method reads in a mesh soup; indirectly allocates memory on HOST and DEVICE to store mesh soup.
@@ -79,8 +46,7 @@ chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::
  *
  * \attention The mesh soup, provided in the input file, should be in obj format.
  */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST_DEVICE(
-    const char* mesh_filename) {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST_DEVICE(const char* mesh_filename) {
     std::vector<tinyobj::shape_t> shapes;
 
     // The mesh soup stored in an obj file
@@ -99,9 +65,8 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
 On the HOST sice, allocate memory to hang on to the mesh soup. The HOST mesh soup is initialized with values provided in
 the input obj file.
 */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST(
-    const std::vector<tinyobj::shape_t>& shapes,
-    unsigned int nTriangles) {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST(const std::vector<tinyobj::shape_t>& shapes,
+                                                                           unsigned int nTriangles) {
     // Set up mesh from the input file
 
     size_t tri_index = 0;
@@ -186,7 +151,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
     }
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupSoup_HOST() {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupSoup_HOST() {
     delete[] meshSoup_HOST.triangleFamily_ID;
 
     delete[] meshSoup_HOST.node1_X;
@@ -239,7 +204,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cl
 /** A new location of the triangles in the mesh soup is provided upon input. Upon output, a set of generalized forces
  * that the material impresses on each family of the mesh soup is computed.
  */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
     cudaMemcpy(meshSoup_DEVICE.node1_X, meshSoup_HOST.node1_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
     cudaMemcpy(meshSoup_DEVICE.node1_Y, meshSoup_HOST.node1_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
@@ -283,9 +248,8 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::up
 *
 * \attention The size of genForcesOnSoup should be 6 * nFamiliesInSoup
 */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(
-    float crntTime,
-    float* genForcesOnSoup) {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(float crntTime,
+                                                                                               float* genForcesOnSoup) {
     if (!problemSetupFinished) {
         setupSimulation();
         problemSetupFinished = true;
@@ -303,28 +267,28 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::co
  * \brief Function sets up data structures, allocates space on the device, generates the spheres, etc.
  *
  */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSimulation() {
-    granMat.switch_to_SimUnits();
-    granMat.generate_DEs();
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSimulation() {
+    // TODO rewrite/refactor to consider mesh young modulus as max
+    switch_to_SimUnits();
+    generate_DEs();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
-    granMat.setup_simulation();
-    granMat.copy_const_data_to_device();
-    granMat.copyBD_Frame_to_device();
+    setup_simulation();
+    copy_const_data_to_device();
+    copy_triangle_data_to_device();
     gpuErrchk(cudaDeviceSynchronize());
 
     // Seed arrays that are populated by the kernel call
     // Set all the offsets to zero
-    gpuErrchk(cudaMemset(granMat.SD_NumOf_DEs_Touching.data(), 0, granMat.nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(cudaMemset(granMat.DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-        MAX_COUNT_OF_DEs_PER_SD * granMat.nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
+                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 
     // Figure our the number of blocks that need to be launched to cover the box
     printf("doing priming!\n");
-    printf("max possible composite offset is %zu\n", (size_t)granMat.nSDs * MAX_COUNT_OF_DEs_PER_SD);
+    printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 }
-
 
 /** \brief Applies a translation and rotation to each point of each soup family. Works for rigid meshes only.
  *
@@ -342,7 +306,8 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
  * \attention First three entries are the location of the mesh reference frame wrt global ref frame.
  * \attention The next four entries provide the orientation of the mesh wrt global ref frame (Euler params).
  */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidBodyMotion(
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidBodyMotion(
     float crntTime,
-    double* position_orientation_data) {
-}
+    double* position_orientation_data) {}
+}  // namespace granular
+}  // namespace chrono
