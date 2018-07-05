@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include "chrono_cosimulation/ChHostInfo.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
 

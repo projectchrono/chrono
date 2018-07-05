@@ -1274,7 +1274,7 @@ int ChSocketTCP::receiveMessage(string& message) {
 
 int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
     int nbytes = (int)source_buf.size();
-    char* data;
+    const char* data;
     if (nbytes)
         data = (char*)&(source_buf[0]);  // stl vectors are assured to be sequential
     else
