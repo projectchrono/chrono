@@ -526,19 +526,18 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
 
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(
     float duration) {
+    // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
 
     // Settling simulation loop.
     unsigned int stepSize_SU = 5;
     unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
+    unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
-    unsigned int nsteps = (1.0 * duration) / stepSize_SU;
-
-    printf("advancing %u at timestep %u, %u timesteps at approx timestep %f\n", duration_SU, stepSize_SU, nsteps,
-           duration / nsteps);
+    printf("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
+           nsteps, duration / nsteps);
     printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 
-    VERBOSE_PRINTF("Starting Main Simulation loop!\n");
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
         /// DO STEP LOOP HERE

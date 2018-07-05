@@ -143,7 +143,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 
     ~ChSystemGranularMonodisperse() {}
 
-    virtual void run_simulation(float t_end) = 0;
     virtual void advance_simulation(float duration) = 0;
 
     // Get the max Young Modulus
@@ -247,7 +246,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     inline void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
     virtual void setup_simulation();  ///!< set up data structures and carry out pre-processing tasks
-    virtual void run_simulation(float t_end);
+    /// advance simulation by duration seconds in user units
+    /// Requires initialize() to have been called
     virtual void advance_simulation(float duration);
     virtual double get_max_K();
     virtual void initialize();
@@ -315,10 +315,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_NSC_Frictionless : public ChS
         exit(1);
         return;
     }  //!< set up data structures and carry out pre-processing tasks
-    virtual void run_simulation(float t_end) {
-        exit(1);
-        return;
-    }
     virtual void advance_simulation(float duration) {
         exit(1);
         return;
