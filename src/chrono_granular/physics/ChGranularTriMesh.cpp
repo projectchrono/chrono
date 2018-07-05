@@ -13,9 +13,11 @@
 // =============================================================================
 /*! \file */
 
+#include <vector>
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
 #include "ChGranularTriMesh.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
-#include <vector>
 
 /**
 This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
@@ -155,7 +157,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
             }
         }
 
-        /// Set up the HOST mesh soup
+        /// Set up the clean HOST mesh soup
         meshSoup_HOST.nTrianglesInSoup = nTriangles;
 
         meshSoup_HOST.triangleFamily_ID = new unsigned int[nTriangles];
@@ -183,6 +185,35 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
         meshSoup_HOST.node3_XDOT = new float[nTriangles];
         meshSoup_HOST.node3_YDOT = new float[nTriangles];
         meshSoup_HOST.node3_ZDOT = new float[nTriangles];
+
+        /// Set up the working HOST mesh soup
+        meshSoupWorking_HOST.nTrianglesInSoup = nTriangles;
+
+        meshSoupWorking_HOST.triangleFamily_ID = new unsigned int[nTriangles];
+
+        meshSoupWorking_HOST.node1_X = new float[nTriangles];
+        meshSoupWorking_HOST.node1_Y = new float[nTriangles];
+        meshSoupWorking_HOST.node1_Z = new float[nTriangles];
+
+        meshSoupWorking_HOST.node2_X = new float[nTriangles];
+        meshSoupWorking_HOST.node2_Y = new float[nTriangles];
+        meshSoupWorking_HOST.node2_Z = new float[nTriangles];
+
+        meshSoupWorking_HOST.node3_X = new float[nTriangles];
+        meshSoupWorking_HOST.node3_Y = new float[nTriangles];
+        meshSoupWorking_HOST.node3_Z = new float[nTriangles];
+
+        meshSoupWorking_HOST.node1_XDOT = new float[nTriangles];
+        meshSoupWorking_HOST.node1_YDOT = new float[nTriangles];
+        meshSoupWorking_HOST.node1_ZDOT = new float[nTriangles];
+
+        meshSoupWorking_HOST.node2_XDOT = new float[nTriangles];
+        meshSoupWorking_HOST.node2_YDOT = new float[nTriangles];
+        meshSoupWorking_HOST.node2_ZDOT = new float[nTriangles];
+
+        meshSoupWorking_HOST.node3_XDOT = new float[nTriangles];
+        meshSoupWorking_HOST.node3_YDOT = new float[nTriangles];
+        meshSoupWorking_HOST.node3_ZDOT = new float[nTriangles];
     }
 }
 
@@ -212,6 +243,32 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cl
     delete[] meshSoup_HOST.node3_XDOT;
     delete[] meshSoup_HOST.node3_YDOT;
     delete[] meshSoup_HOST.node3_ZDOT;
+
+    delete[] meshSoupWorking_HOST.triangleFamily_ID;
+
+    delete[] meshSoupWorking_HOST.node1_X;
+    delete[] meshSoupWorking_HOST.node1_Y;
+    delete[] meshSoupWorking_HOST.node1_Z;
+
+    delete[] meshSoupWorking_HOST.node2_X;
+    delete[] meshSoupWorking_HOST.node2_Y;
+    delete[] meshSoupWorking_HOST.node2_Z;
+
+    delete[] meshSoupWorking_HOST.node3_X;
+    delete[] meshSoupWorking_HOST.node3_Y;
+    delete[] meshSoupWorking_HOST.node3_Z;
+
+    delete[] meshSoupWorking_HOST.node1_XDOT;
+    delete[] meshSoupWorking_HOST.node1_YDOT;
+    delete[] meshSoupWorking_HOST.node1_ZDOT;
+
+    delete[] meshSoupWorking_HOST.node2_XDOT;
+    delete[] meshSoupWorking_HOST.node2_YDOT;
+    delete[] meshSoupWorking_HOST.node2_ZDOT;
+
+    delete[] meshSoupWorking_HOST.node3_XDOT;
+    delete[] meshSoupWorking_HOST.node3_YDOT;
+    delete[] meshSoupWorking_HOST.node3_ZDOT;
 }
 
 // void LoadSoup(ChTriangleSoup& original_soup,
@@ -240,25 +297,25 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cl
  * that the material impresses on each family of the mesh soup is computed.
  */
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
-    cudaMemcpy(meshSoup_DEVICE.node1_X, meshSoup_HOST.node1_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE.node1_X, meshSoupWorking_HOST.node1_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node1_Y, meshSoup_HOST.node1_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE.node1_Y, meshSoupWorking_HOST.node1_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node1_Z, meshSoup_HOST.node1_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
-               cudaMemcpyHostToDevice);
-
-    cudaMemcpy(meshSoup_DEVICE.node2_X, meshSoup_HOST.node2_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
-               cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node2_Y, meshSoup_HOST.node2_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
-               cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node2_Z, meshSoup_HOST.node2_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE.node1_Z, meshSoupWorking_HOST.node1_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
 
-    cudaMemcpy(meshSoup_DEVICE.node3_X, meshSoup_HOST.node3_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE.node2_X, meshSoupWorking_HOST.node2_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node3_Y, meshSoup_HOST.node3_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE.node2_Y, meshSoupWorking_HOST.node2_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node3_Z, meshSoup_HOST.node3_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE.node2_Z, meshSoupWorking_HOST.node2_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+
+    cudaMemcpy(meshSoup_DEVICE.node3_X, meshSoupWorking_HOST.node3_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node3_Y, meshSoupWorking_HOST.node3_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE.node3_Z, meshSoupWorking_HOST.node3_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
 }
 
@@ -318,13 +375,12 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
     gpuErrchk(cudaMemset(granMat.SD_NumOf_DEs_Touching.data(), 0, granMat.nSDs * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
     gpuErrchk(cudaMemset(granMat.DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-        MAX_COUNT_OF_DEs_PER_SD * granMat.nSDs * sizeof(unsigned int)));
+                         MAX_COUNT_OF_DEs_PER_SD * granMat.nSDs * sizeof(unsigned int)));
 
     // Figure our the number of blocks that need to be launched to cover the box
     printf("doing priming!\n");
     printf("max possible composite offset is %zu\n", (size_t)granMat.nSDs * MAX_COUNT_OF_DEs_PER_SD);
 }
-
 
 /** \brief Applies a translation and rotation to each point of each soup family. Works for rigid meshes only.
  *
@@ -342,7 +398,51 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
  * \attention First three entries are the location of the mesh reference frame wrt global ref frame.
  * \attention The next four entries provide the orientation of the mesh wrt global ref frame (Euler params).
  */
+
+/**
+ * meshSoup_HOST holds a clean mesh soup in the global reference frame
+ * Outputs transformed mesh soup to meshSoupWorking_HOST
+ * The number of entries in the array is 7 * nFamiliesInSoup
+ * First three entries are the location of the mesh reference frame wrt global ref frame.
+ * The next four entries provide the orientation of the mesh wrt global ref frame (Euler params).
+ */
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidBodyMotion(
     float crntTime,
     double* position_orientation_data) {
+    // Assemble displacements and rotations for each family transform
+    std::vector<ChVector<>> pos;
+    std::vector<ChQuaternion<>> rot;
+    for (size_t fam = 0; fam < meshSoup_HOST.nFamiliesInSoup; fam++) {
+        size_t fam_i = 7 * fam;
+        pos.push_back(ChVector<>(position_orientation_data[fam_i], position_orientation_data[fam_i + 1],
+                                 position_orientation_data[fam_i + 2]));
+        rot.push_back(ChQuaternion<>(position_orientation_data[fam_i + 3], position_orientation_data[fam_i + 4],
+                                     position_orientation_data[fam_i + 5], position_orientation_data[fam_i + 6]));
+    }
+
+    for (size_t i = 0; i < meshSoup_HOST.nTrianglesInSoup; i++) {
+        // Assemble nodes in chrono structures
+        unsigned int fam = meshSoup_HOST.triangleFamily_ID[i];
+        ChVector<> node1(meshSoup_HOST.node1_X[i], meshSoup_HOST.node1_Y[i], meshSoup_HOST.node1_Z[i]);
+        ChVector<> node2(meshSoup_HOST.node2_X[i], meshSoup_HOST.node2_Y[i], meshSoup_HOST.node2_Z[i]);
+        ChVector<> node3(meshSoup_HOST.node3_X[i], meshSoup_HOST.node3_Y[i], meshSoup_HOST.node3_Z[i]);
+
+        // Apply the appropriate transform for this family
+        node1 = rot[fam].Rotate(node1) + pos[fam];  // TODO units for pos need to be in SU
+        node2 = rot[fam].Rotate(node2) + pos[fam];  // TODO units for pos need to be in SU
+        node3 = rot[fam].Rotate(node3) + pos[fam];  // TODO units for pos need to be in SU
+
+        // Store the transformed mesh in the working host copy
+        meshSoupWorking_HOST.node1_X[i] = node1.x();
+        meshSoupWorking_HOST.node1_Y[i] = node1.y();
+        meshSoupWorking_HOST.node1_Z[i] = node1.z();
+
+        meshSoupWorking_HOST.node2_X[i] = node2.x();
+        meshSoupWorking_HOST.node2_Y[i] = node2.y();
+        meshSoupWorking_HOST.node2_Z[i] = node2.z();
+
+        meshSoupWorking_HOST.node3_X[i] = node3.x();
+        meshSoupWorking_HOST.node3_Y[i] = node3.y();
+        meshSoupWorking_HOST.node3_Z[i] = node3.z();
+    }
 }
