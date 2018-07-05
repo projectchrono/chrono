@@ -46,3 +46,15 @@ Running settling test!
 50 thousand bodies took 2.16289 seconds!
 500 thousand bodies took 15.0861 seconds!
 1 million bodies took 32.1105 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 05 Jul 2018 16:34:59 -0500
+commit 73ed7843b72ec1c6b3a5f5b7cd76cd85a8ada6ec Merge: 5b9c2ce5c 99aa9be61 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Jul 5 16:34:55 2018 -0500 Merge branch 'sandbox/chrono_granular_mesh_hierarchy' into sandbox/chrono_granular
+Results:
+Running wavetank test!
+50 thousand bodies took 2.23262 seconds!
+500 thousand bodies took 15.4141 seconds!
+1 million bodies took 34.2009 seconds!
+Running settling test!
+50 thousand bodies took 2.11571 seconds!
+500 thousand bodies took 14.8395 seconds!
+1 million bodies took 33.8274 seconds!

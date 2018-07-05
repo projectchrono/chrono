@@ -253,18 +253,18 @@ int main(int argc, char* argv[]) {
 
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity, mesh_filename);
-    m_sys.granMatBed().setBOXdims(boxL, boxD, boxH);
-    m_sys.granMatBed().set_BD_Fixed(true);
-    m_sys.granMatBed().setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
-    m_sys.granMatBed().set_YoungModulus_SPH2SPH(normStiffness_S2S);
-    m_sys.granMatBed().set_YoungModulus_SPH2WALL(normStiffness_S2W);
-    m_sys.granMatBed().set_Cohesion_ratio(cohesion_ratio);
-    m_sys.granMatBed().set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
+    m_sys.setBOXdims(boxL, boxD, boxH);
+    m_sys.set_BD_Fixed(true);
+    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
+    m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
+    m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
+    m_sys.set_Cohesion_ratio(cohesion_ratio);
+    m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
 
     /// output preferences
-    m_sys.granMatBed().setOutputDirectory(output_prefix);
-    m_sys.granMatBed().setOutputMode(write_mode);
-    m_sys.granMatBed().setVerbose(verbose);
+    m_sys.setOutputDirectory(output_prefix);
+    m_sys.setOutputMode(write_mode);
+    m_sys.setVerbose(verbose);
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
     const float fakeTimeStep = 0.0001f;

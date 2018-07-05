@@ -512,11 +512,8 @@ __global__ void interactionTerrain_TriangleSoup(
     }
 }
 
-/// Copy most constant data to device, this should run at start
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_const_data_to_device() {
-    // Call the copy associated w/ the parent class
-    // copy_const_data_to_device();
-
+/// Copy const triangle data to device
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
     // Handle what's specific to the case when the mesh is present
     // gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2m_SU, &K_n_s2m_SU, sizeof(d_Kn_s2m_SU)));
 }
