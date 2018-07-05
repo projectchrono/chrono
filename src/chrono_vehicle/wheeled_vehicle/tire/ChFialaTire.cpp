@@ -201,14 +201,12 @@ void ChFialaTire::Advance(double step) {
         double My = 0;
         double Mz = 0;
 
-        FialaPatchForces(Fx,Fy,Mz,m_states.kappa,m_states.alpha,m_data.normal_force);
-        
-        
-       // Smooting factor dependend on m_state.abs_vx, allows soft switching of My 
-        double myStartUp = SinStep(m_states.abs_vx,vx_min,0.0,vx_max,1.0);
+        FialaPatchForces(Fx, Fy, Mz, m_states.kappa, m_states.alpha, m_data.normal_force);
+
+        // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
+        double myStartUp = ChSineStep(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
         // Rolling Resistance
         My = -myStartUp * m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);
-
 
         if(m_dynamic_mode && (m_relax_length_x > 0.0) && (m_relax_length_y > 0.0)) {
             // Integration of the ODEs
@@ -226,12 +224,12 @@ void ChFialaTire::Advance(double step) {
             m_states.Fx_l = Fx;
             m_states.Fy_l = Fy;
         }
-        
-        // smooth starting transients
-        double tr_fact = SinStep(m_time,0,0,m_time_trans,1.0);
+
+        // Smooth starting transients
+        double tr_fact = ChSineStep(m_time, 0, 0, m_time_trans, 1.0);
         m_states.Fx_l *= tr_fact;
         m_states.Fy_l *= tr_fact;
-        
+
         // compile the force and moment vectors so that they can be 
 		// transformed into the global coordinate system
         m_tireforce.force = ChVector<>(m_states.Fx_l, m_states.Fy_l, m_data.normal_force);
@@ -279,22 +277,6 @@ void ChFialaTire::FialaPatchForces(double &fx, double &fy, double &mz, double ka
             mz = 0;
         }
 
-}
-
-double ChFialaTire::SinStep(double x, double x1, double h1, double x2, double h2) {
-    // Smooth Step Function
-    double h;
-
-    if (x < x1) {
-        h = h1;
-    } else if (x > x2) {
-        h = h2;
-    } else {
-        double dh = h2 - h1;
-        double dx = x2 - x1;
-        h = h1 + dh / dx * (x - x1) - (dh / CH_C_2PI) * sin(CH_C_2PI / dx * (x - x1));
-    }
-    return h;
 }
 
 void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& plTireFormat) {

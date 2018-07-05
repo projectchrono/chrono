@@ -256,11 +256,11 @@ void ChPac89Tire::Advance(double step) {
     // Rolling Resistance
     {
         double Lrad = (m_unloaded_radius - m_data.depth);
-        // smoothing interval for My
+        // Smoothing interval for My
         const double vx_min = 0.125;
         const double vx_max = 0.5;
-       // Smooting factor dependend on m_state.abs_vx, allows soft switching of My 
-        double myStartUp = SinStep(std::abs(m_states.vx),vx_min,0.0,vx_max,1.0);
+        // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
+        double myStartUp = ChSineStep(std::abs(m_states.vx), vx_min, 0.0, vx_max, 1.0);
         My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 
@@ -290,23 +290,6 @@ void ChPac89Tire::Advance(double step) {
     // Move the tire forces from the contact patch to the wheel center
     m_tireforce.moment +=
         Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
-}
-
-double ChPac89Tire::SinStep(double x, double x1, double h1, double x2, double h2) {
-    // Smooth Step Function
-    double h;
-
-    if (x < x1) {
-        h = h1;
-    } else if (x > x2) {
-        h = h2;
-    } else {
-        double dh = h2 - h1;
-        double dx = x2 - x1;
-        h = h1 + dh / dx * (x - x1) - (dh / CH_C_2PI) * sin(CH_C_2PI / dx * (x - x1));
-    }
-    return h;
-
 }
 
 }  // end namespace vehicle

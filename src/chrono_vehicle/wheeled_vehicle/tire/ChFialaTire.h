@@ -91,9 +91,6 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
     /// Get the tire longitudinal slip.
     virtual double GetLongitudinalSlip() const override { return m_states.kappa; }
-
-    /// Sine Step Function
-    static double SinStep(double x, double x1, double h1, double x2, double h2);
     
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.

@@ -83,23 +83,6 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 }
 
 // -----------------------------------------------------------------------------
-double ChTMeasyTire::SinStep(double x, double x1, double h1, double x2, double h2) {
-    // Smooth Step Function
-    double h;
-
-    if (x < x1) {
-        h = h1;
-    } else if (x > x2) {
-        h = h2;
-    } else {
-        double dh = h2 - h1;
-        double dx = x2 - x1;
-        h = h1 + dh / dx * (x - x1) - (dh / CH_C_2PI) * sin(CH_C_2PI / dx * (x - x1));
-    }
-    return h;
-}
-
-// -----------------------------------------------------------------------------
 void ChTMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
@@ -345,7 +328,7 @@ void ChTMeasyTire::Advance(double step) {
 
     double Ms = 0.0;
 
-    double startup = SinStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+    double startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
 
     if (m_consider_relaxation) {
         double vtxs = m_states.vta * hsxn;

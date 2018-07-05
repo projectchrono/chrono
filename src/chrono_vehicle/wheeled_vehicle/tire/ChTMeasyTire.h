@@ -214,9 +214,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         double& depth                   ///< [out] penetration depth (positive if contact occurred)
     );
 
-    /// Sine Step Function
-    double SinStep(double x, double x1, double h1, double x2, double h2);
-
     /// Return the vertical tire stiffness contribution to the normal force.
     double GetNormalStiffnessForce(double depth);
 
