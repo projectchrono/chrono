@@ -101,7 +101,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void update_DMeshSoup_Location();
 
     void run_simulation(float t_end);
-    void advance_simulation(float duration) { NOT_IMPLEMENTED_YET }
+    void advance_simulation(float duration);
+    // void initialize();
+
     virtual double get_max_K();
 
     void setupSimulation();

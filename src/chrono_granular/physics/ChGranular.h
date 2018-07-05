@@ -67,6 +67,8 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void setOutputDirectory(std::string dir) { output_directory = dir; }
 
     virtual void setVerbose(bool is_verbose) { verbose_runtime = is_verbose; }
+    /// Initialize simulation so that it can be advanced
+    virtual void initialize() = 0;
 
   protected:
     /// Allows the code to be very verbose for debug
@@ -248,6 +250,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     virtual void run_simulation(float t_end);
     virtual void advance_simulation(float duration);
     virtual double get_max_K();
+    virtual void initialize();
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string ofile, bool write_out, bool verbose);

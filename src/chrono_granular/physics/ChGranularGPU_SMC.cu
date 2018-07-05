@@ -223,7 +223,8 @@ __device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCent
 template <
     unsigned int
         CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
-__global__ void primingOperationsRectangularBox(
+__global__ void
+primingOperationsRectangularBox(
     int* d_sphere_pos_X,                       //!< Pointer to array containing data related to the spheres in the box
     int* d_sphere_pos_Y,                       //!< Pointer to array containing data related to the spheres in the box
     int* d_sphere_pos_Z,                       //!< Pointer to array containing data related to the spheres in the box
@@ -1150,7 +1151,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::d
     VERBOSE_PRINTF("defrag finished!\n");
 }
 
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::run_simulation(float tEnd) {
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
     switch_to_SimUnits();
     generate_DEs();
 
@@ -1178,6 +1179,10 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::r
     printf("priming finished!\n");
     // Check in first timestep
     checkSDCounts(output_directory + "/step000000", true, false);
+}
+
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::run_simulation(float tEnd) {
+    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
 
     // Settling simulation loop.
     unsigned int stepSize_SU = 5;

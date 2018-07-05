@@ -276,8 +276,8 @@ int main(int argc, char* argv[]) {
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < fakeTimeEnd; t += fakeTimeStep) {
-        updateMeshSoup_Location(t,meshSoupLocOri); // This is where the information would come from the vehicle 
-        m_sys.meshSoup_applyRigidBodyMotion(t,meshSoupLocOri);
+        updateMeshSoup_Location(t, meshSoupLocOri);  // This is where the information would come from the vehicle
+        m_sys.meshSoup_applyRigidBodyMotion(t, meshSoupLocOri);
         m_sys.collectGeneralizedForcesOnMeshSoup(t, genForcesOnMeshSoup);
     }
 

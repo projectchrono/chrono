@@ -282,6 +282,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setVerbose(verbose);
 
     // Run settline experiments
+    settlingExperiment.initialize();
     settlingExperiment.run_simulation(timeEnd);
     return 0;
 }

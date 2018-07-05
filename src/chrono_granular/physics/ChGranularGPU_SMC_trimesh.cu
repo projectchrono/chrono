@@ -25,6 +25,8 @@
 // NOTE warpSize is a cuda environment value, but it is cc-dependent
 #define warp_size 32
 
+#define CUDA_THREADS 128
+
 // These are the max X, Y, Z dimensions in the BD frame
 #define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
 #define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
@@ -519,11 +521,69 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::co
 }
 
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::run_simulation(float tEnd) {
-    // switch (meshSoup.nFamiliesInSoup) {
-    // case 1: interactionTerrain_TriangleSoup<128,MAX_COUNT_OF_DEs_PER_SD,
-    // MAX_COUNT_OF_Triangles_PER_SD,1><<<1,1>>>(meshSoup)
-    //    break;
-    //}
+    NOT_IMPLEMENTED_YET;
+}
+
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(
+    float duration) {
+    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+
+    // Settling simulation loop.
+    unsigned int stepSize_SU = 5;
+    unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
+
+    unsigned int nsteps = (1.0 * duration) / stepSize_SU;
+
+    printf("advancing %u at timestep %u, %u timesteps at approx timestep %f\n", duration_SU, stepSize_SU, nsteps,
+           duration / nsteps);
+    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+
+    VERBOSE_PRINTF("Starting Main Simulation loop!\n");
+    // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
+    for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
+        /// DO STEP LOOP HERE
+
+        // // reset forces to zero, note that vel update ~ force for forward euler
+        // gpuErrchk(cudaMemset(pos_X_dt_update.data(), 0, nDEs * sizeof(float)));
+        // gpuErrchk(cudaMemset(pos_Y_dt_update.data(), 0, nDEs * sizeof(float)));
+        // gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
+        //
+        // VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
+        //
+        // // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
+        // computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+        //     stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+        //     pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+        //     pos_Y_dt.data(), pos_Z_dt.data());
+        // gpuErrchk(cudaPeekAtLastError());
+        // gpuErrchk(cudaDeviceSynchronize());
+        //
+        // VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
+        // // Apply the updates we just made
+        // applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+        //     stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+        //     pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+        //     pos_Y_dt.data(), pos_Z_dt.data());
+        //
+        // gpuErrchk(cudaPeekAtLastError());
+        // gpuErrchk(cudaDeviceSynchronize());
+        // VERBOSE_PRINTF("Resetting broadphase info!\n");
+        //
+        // // Reset broadphase information
+        // resetBroadphaseInformation();
+        //
+        // VERBOSE_PRINTF("Starting updatePositions!\n");
+        // updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+        //     stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
+        //     SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
+        //
+        // gpuErrchk(cudaPeekAtLastError());
+        // gpuErrchk(cudaDeviceSynchronize());
+    }
+    printf("SU radius is %u\n", sphereRadius_SU);
+    // Don't write but print verbosely
+
+    return;
 }
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupSoup_DEVICE() {

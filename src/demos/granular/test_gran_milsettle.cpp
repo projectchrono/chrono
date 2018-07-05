@@ -82,6 +82,7 @@ double run_test(float boxL, float boxD, float boxH) {
 
     // Run wavetank experiment and time it
     timer.start();
+    settlingExperiment.initialize();
     settlingExperiment.run_simulation(timeEnd);
     timer.stop();
     return timer.GetTimeSeconds();
