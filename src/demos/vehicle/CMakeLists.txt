@@ -19,6 +19,7 @@ ADD_SUBDIRECTORY(demo_TractorTrailer)
 ADD_SUBDIRECTORY(demo_ArticulatedVehicle)
 ADD_SUBDIRECTORY(demo_WheeledAssembly)
 ADD_SUBDIRECTORY(demo_SteeringController)
+ADD_SUBDIRECTORY(demo_TwoCars)
 
 ADD_SUBDIRECTORY(demo_UAZ)
 
