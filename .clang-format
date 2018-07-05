@@ -7,3 +7,5 @@ ColumnLimit: 120
 IndentWidth: 4
 TabWidth: 4
 AccessModifierOffset: -2
+SortUsingDeclarations: false
+SortIncludes: false
