@@ -22,9 +22,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "../ChApiGranular.h"
-#include "cudalloc.hpp"
-#include "chrono_granular/utils/ChGranularUtilities.h"
 #include "chrono_granular/ChGranularDefines.h"
+#include "chrono_granular/utils/ChGranularUtilities.h"
+#include "cudalloc.hpp"
 
 /**
  * Discrete Elment info
@@ -144,6 +144,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     virtual void run_simulation(float t_end) = 0;
     virtual void advance_simulation(float duration) = 0;
 
+    // Get the max Young Modulus
+    virtual double get_max_K() = 0;
+
     virtual void generate_DEs();
 
     /// Set the BD to be fixed or not, if fixed it will ignore any given position functions
@@ -244,6 +247,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     virtual void setup_simulation();  ///!< set up data structures and carry out pre-processing tasks
     virtual void run_simulation(float t_end);
     virtual void advance_simulation(float duration);
+    virtual double get_max_K();
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string ofile, bool write_out, bool verbose);
@@ -267,31 +271,30 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     double YoungModulus_SPH2SPH;
     double YoungModulus_SPH2WALL;
     float Gamma_n_SU;
-    float K_n_s2s_SU; /// size of the normal stiffness (SU) for sphere-to-sphere contact
-    float K_n_s2w_SU; /// size of the normal stiffness (SU) for sphere-to-wall contact
+    float K_n_s2s_SU;  /// size of the normal stiffness (SU) for sphere-to-sphere contact
+    float K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
 
     friend class ChSystemGranularMonodisperse_SMC_Frictionless_trimesh;
 };
 
-
 /**
  * ChManyBodyStateWrapper: thin helper class used as a place holder for arrays associated with a large collection of
  * elements. No memory allocation of freeing done by objects of this class. All its members are public.
  */
 class ChManyBodyStateWrapper {
-public:
+  public:
     unsigned int nElements;
     float sphereRadius;
 
-    int* grElem_X; /// X position in global reference frame of sphere center
-    int* grElem_Y; /// Y position in global reference frame of sphere center
-    int* grElem_Z; /// Z position in global reference frame of sphere center
+    int* grElem_X;  /// X position in global reference frame of sphere center
+    int* grElem_Y;  /// Y position in global reference frame of sphere center
+    int* grElem_Z;  /// Z position in global reference frame of sphere center
 
-    float* grElem_XDOT; /// X velocity in global reference frame of sphere center
-    float* grElem_YDOT; /// Y velocity in global reference frame of sphere center
-    float* grElem_ZDOT; /// Z velocity in global reference frame of sphere center
+    float* grElem_XDOT;  /// X velocity in global reference frame of sphere center
+    float* grElem_YDOT;  /// Y velocity in global reference frame of sphere center
+    float* grElem_ZDOT;  /// Z velocity in global reference frame of sphere center
 };
 
 /**

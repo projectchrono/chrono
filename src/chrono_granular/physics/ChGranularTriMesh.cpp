@@ -13,12 +13,16 @@
 // =============================================================================
 /*! \file */
 
+#include <vector>
 #include "ChGranularTriMesh.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
-#include <vector>
 
 namespace chrono {
 namespace granular {
+
+double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::get_max_K() {
+    return std::max(std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL), YoungModulus_SPH2MESH);
+}
 
 ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(
     float radiusSPH,

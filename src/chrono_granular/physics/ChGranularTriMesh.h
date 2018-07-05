@@ -78,7 +78,7 @@ class ChTriangleSoup {
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     : public ChSystemGranularMonodisperse_SMC_Frictionless {
   private:
-    ChTriangleSoup<float> meshSoup_HOST;                    //!< mesh soup interacting with granular material; HOST-side
+    ChTriangleSoup<float> meshSoup_HOST;  //!< mesh soup interacting with granular material; HOST-side
     ChTriangleSoup<int> meshSoup_DEVICE;  //!< mesh soup interacting with granular material; DEVICE-side
     double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
     float K_n_s2m_SU;  //!< size of the normal stiffness (SU) for sphere-to-mesh contact; expressed in sim. units
@@ -100,6 +100,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     void run_simulation(float t_end);
     void advance_simulation(float duration) { NOT_IMPLEMENTED_YET }
+    virtual double get_max_K();
 
     void setupSimulation();
 

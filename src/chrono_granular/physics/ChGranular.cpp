@@ -13,15 +13,20 @@
 // =============================================================================
 /*! \file */
 
-#include "ChGranular.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
+#include <cmath>
+#include "ChGranular.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
 template <int>
 __global__ void primingOperationsRectangularBox(int*, int*, int*, unsigned int*, unsigned int*, unsigned int);
+
+double chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
+    return std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL);
+}
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_simulation() {
     // Vectors get deallocated automatically
@@ -161,7 +166,7 @@ of various physical quantities set by the user.
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     MASS_UNIT = massSphere;
-    double K_stiffness = (YoungModulus_SPH2SPH > YoungModulus_SPH2WALL ? YoungModulus_SPH2SPH : YoungModulus_SPH2WALL);
+    double K_stiffness = get_max_K();
     TIME_UNIT = sqrt(massSphere / (PSI_h * K_stiffness)) / PSI_T;
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
@@ -181,10 +186,9 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_
 
     // TODO Make this legit, from user input
     Gamma_n_SU = .005;
-    
+
     // Handy debug output
     printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);
     printf("SU mass is %f\n", MASS_UNIT);
     printf("SU radius is %u\n", sphereRadius_SU);
 }
-
