@@ -142,6 +142,8 @@ class CH_VEHICLE_API ChVehicle {
     void SetChassisOutput(bool state);
 
     /// Advance the state of this vehicle by the specified time step.
+    /// This is done only if the vehicle owns the underlying Chrono system.
+    /// Otherwise, the caller is responsible for advancing the sate of the entire system.
     virtual void Advance(double step);
 
     /// Set the integration step size for the vehicle system.
