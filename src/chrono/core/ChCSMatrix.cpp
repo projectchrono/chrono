@@ -181,7 +181,7 @@ bool ChCSMatrix::Compress() {
 }
 
 int ChCSMatrix::Inflate(int storage_augm, int lead_sel, int trail_sel) {
-    assert(lead_sel >= 0 && lead_sel < m_num_rows && "Cannot inflate a row that does not exist");
+    assert(lead_sel >= 0 && lead_sel < *leading_dimension && "Cannot inflate a row(CSR)|column(CSC) that does not exist");
     if (trail_sel == -1)
         trail_sel = leadIndex[lead_sel + 1];
 
