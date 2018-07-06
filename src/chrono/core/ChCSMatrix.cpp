@@ -126,7 +126,8 @@ void ChCSMatrix::Reset(int nrows, int ncols, int nonzeros_hint) {
     auto lead_dim_new = row_major_format ? nrows : ncols;
     auto trail_dim_new = row_major_format ? ncols : nrows;
 
-    if (nonzeros_hint == 0 && lead_dim_new == *leading_dimension && trail_dim_new == *trailing_dimension && m_lock) {
+    if (nonzeros_hint == 0 && lead_dim_new == *leading_dimension && trail_dim_new == *trailing_dimension && m_lock &&
+        lead_dim_new != 0 && trail_dim_new != 0) {
         std::fill(values.begin(), values.begin() + leadIndex[*leading_dimension] - 1, 0);
     } else {
         if (nonzeros_hint == 0)
