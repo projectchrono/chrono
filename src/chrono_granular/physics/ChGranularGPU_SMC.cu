@@ -1162,11 +1162,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
     gpuErrchk(cudaDeviceSynchronize());
 
     // Seed arrays that are populated by the kernel call
-    // Set all the offsets to zero
-    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
-    // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+    resetBroadphaseInformation();
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
@@ -1181,155 +1177,19 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
     checkSDCounts(output_directory + "/step000000", true, false);
 }
 
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::run_simulation(float tEnd) {
-    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
-
-    // Settling simulation loop.
-    unsigned int stepSize_SU = 5;
-    unsigned int tEnd_SU = std::ceil(tEnd / (TIME_UNIT * PSI_h));
-    // Which timestep is it?
-    unsigned int currstep = 0;
-    // Which frame am I rendering?
-    unsigned int currframe = 1;
-
-    unsigned int nsteps = (1.0 * tEnd_SU) / stepSize_SU;
-    // If we are just doing priming, stop now
-    if (nsteps == 0) {
-        cleanup_simulation();
-        return;
-    }
-
-    printf("going until %u at timestep %u, %u timesteps at approx timestep %f\n", tEnd_SU, stepSize_SU, nsteps,
-           tEnd / nsteps);
-    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
-
-    float fps = 50;
-    // Number of frames to render
-    int nFrames = (int)fps * tEnd;
-    // number of steps to go before rendering a frame
-    int rendersteps = nFrames > 0 ? nsteps / nFrames : nsteps;
-
-    VERBOSE_PRINTF("Starting Main Simulation loop!\n");
-    // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
-        // Update the position and velocity of the BD, if relevant
-        if (!BD_is_fixed) {
-            updateBDPosition(crntTime_SU, stepSize_SU);
-        }
-        // reset forces to zero, note that vel update ~ force for forward euler
-        gpuErrchk(cudaMemset(pos_X_dt_update.data(), 0, nDEs * sizeof(float)));
-        gpuErrchk(cudaMemset(pos_Y_dt_update.data(), 0, nDEs * sizeof(float)));
-        gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
-
-        VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
-
-        // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
-        computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data());
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
-        VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
-        // Apply the updates we just made
-        applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data());
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-        VERBOSE_PRINTF("Resetting broadphase info!\n");
-
-        // Reset broadphase information
-        resetBroadphaseInformation();
-
-        VERBOSE_PRINTF("Starting updatePositions!\n");
-        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
-            SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-        // we don't want to render at every timestep, the file write is painful
-        currstep++;
-        if (currstep % rendersteps == 0) {
-            printf("currstep is %u, rendering frame %u\n", currstep, currframe);
-
-            char filename[100];
-            sprintf(filename, "%s/step%06d", output_directory.c_str(), currframe++);
-            checkSDCounts(std::string(filename), true, false);
-        }
-    }
-    printf("SU radius is %u\n", sphereRadius_SU);
-    // Don't write but print verbosely
-    checkSDCounts("", false, true);
-
-    cleanup_simulation();
-    return;
-}
-
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
-    if (!primed) {
-        switch_to_SimUnits();
-        generate_DEs();
-
-        // Set aside memory for holding data structures worked with. Get some initializations going
-        setup_simulation();
-        copy_const_data_to_device();
-        copyBD_Frame_to_device();
-        gpuErrchk(cudaDeviceSynchronize());
-
-        // Seed arrays that are populated by the kernel call
-        // Set all the offsets to zero
-        gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
-        // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-        gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-                             MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
-
-        printf("doing priming!\n");
-        printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
-
-        printf("doing priming!\n");
-        printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
-        primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-            pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
-        gpuErrchk(cudaDeviceSynchronize());
-        printf("priming finished!\n");
-        primed = true;
-    }
-
-    // Check in first timestep // TODO
-    checkSDCounts(output_directory + "/step000000", true, false);
 
     // Settling simulation loop.
     unsigned int stepSize_SU = 5;
     unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
-    // Which timestep is it? // TODO
-    unsigned int currstep = 0;
-    // Which frame am I rendering? // TODO
-    unsigned int currframe = 1;
+    unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
-    unsigned int nsteps = (1.0 * duration) / stepSize_SU;
-    // If we are just doing priming, stop now
-    if (nsteps == 0) {
-        return;
-    }
-
-    printf("advancing %u at timestep %u, %u timesteps at approx timestep %f\n", duration_SU, stepSize_SU, nsteps,
-           duration / nsteps);
+    printf("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
+           nsteps, duration / nsteps);
     printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 
-    float fps = 50;
-    // Number of frames to render
-    int nFrames = (int)fps * duration;
-    // number of steps to go before rendering a frame
-    int rendersteps = nFrames > 0 ? nsteps / nFrames : nsteps;
-
-    VERBOSE_PRINTF("Starting Main Simulation loop!\n");
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
         // Update the position and velocity of the BD, if relevant
@@ -1372,19 +1232,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        // we don't want to render at every timestep, the file write is painful
-        currstep++;
-        if (currstep % rendersteps == 0) {
-            printf("currstep is %u, rendering frame %u\n", currstep, currframe);
-
-            char filename[100];
-            sprintf(filename, "%s/step%06d", output_directory.c_str(), currframe++);
-            checkSDCounts(std::string(filename), true, false);
-        }
     }
     printf("SU radius is %u\n", sphereRadius_SU);
-    // Don't write but print verbosely
-    checkSDCounts("", false, true);
 
     return;
 }

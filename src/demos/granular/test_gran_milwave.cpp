@@ -97,7 +97,21 @@ double run_test(float boxL, float boxD, float boxH) {
     // Run wavetank experiment and time it
     timer.start();
     settlingExperiment.initialize();
-    settlingExperiment.run_simulation(timeEnd);
+    int fps = 50;
+    // assume we run for at least one frame
+    float frame_step = 1.0f / fps;
+    float curr_time = 0;
+    int currframe = 0;
+
+    // Run settling experiments
+    while (curr_time < timeEnd) {
+        settlingExperiment.advance_simulation(frame_step);
+        curr_time += frame_step;
+        printf("rendering frame %u\n", currframe);
+        char filename[100];
+        sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
+        settlingExperiment.checkSDCounts(std::string(filename), true, false);
+    }
     timer.stop();
     return timer.GetTimeSeconds();
 }

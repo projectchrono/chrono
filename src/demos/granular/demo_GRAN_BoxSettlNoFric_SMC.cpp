@@ -280,9 +280,26 @@ int main(int argc, char* argv[]) {
     // Tell the sim to unlock the bd so it can follow that position function
     settlingExperiment.set_BD_Fixed(false);
     settlingExperiment.setVerbose(verbose);
-
-    // Run settline experiments
+    // Finalize settings and initialize for runtime
     settlingExperiment.initialize();
-    settlingExperiment.run_simulation(timeEnd);
+
+    int fps = 50;
+    // assume we run for at least one frame
+    float frame_step = 1.0f / fps;
+    float curr_time = 0;
+    int currframe = 0;
+
+    std::cout << "frame step is " << frame_step << std::endl;
+
+    // Run settling experiments
+    while (curr_time < timeEnd) {
+        settlingExperiment.advance_simulation(frame_step);
+        curr_time += frame_step;
+        printf("rendering frame %u\n", currframe);
+        char filename[100];
+        sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
+        settlingExperiment.checkSDCounts(std::string(filename), true, false);
+    }
+
     return 0;
 }
