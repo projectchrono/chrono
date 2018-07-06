@@ -382,7 +382,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         this->LoadableGetStateBlock_x(0,state_x);
         this->LoadableGetStateBlock_w(0,state_w);
 
-        double Delta = 1e-8;
+        double Delta = 1e-10;
         
         int mrows_w = this->LoadableGet_ndof_w();
         int mrows_x = this->LoadableGet_ndof_x();
