@@ -94,9 +94,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     // Function members
     void copy_triangle_data_to_device();
 
-    // Mesh simulations should not have moving BD frames for now
-    virtual void copyBD_Frame_to_device() { NOT_IMPLEMENTED_YET; }
-
     void setupSoup_HOST_DEVICE(const char* meshFileName);
     void setupSoup_HOST(const std::vector<tinyobj::shape_t>& soup, unsigned int nTriangles);
     void cleanupSoup_HOST();

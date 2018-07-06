@@ -30,9 +30,9 @@
     dest[1] = v1[1] - v2[1]; \
     dest[2] = v1[2] - v2[2];
 
-#define SUBTRACT(dest, v1, v2)    \
-    dest[0] = v1.x - v2[0]; \
-    dest[1] = v1.y - v2[1]; \
+#define SUBTRACT(dest, v1, v2) \
+    dest[0] = v1.x - v2[0];    \
+    dest[1] = v1.y - v2[1];    \
     dest[2] = v1.z - v2[2];
 
 #define FINDMINMAX(x0, x1, x2, min, max) \
@@ -165,8 +165,8 @@ Output:
 - "true" if there is overlap; "false" otherwise
 NOTE: This function works with "float" - precision is not paramount.
 */
-__device__ bool check_TriangleBoxOverlap(const float (&boxcenter)[3],
-                                         const float (&boxhalfsize)[3],
+__device__ bool check_TriangleBoxOverlap(const float3& boxcenter,
+                                         const float3& boxhalfsize,
                                          const float3& vA,
                                          const float3& vB,
                                          const float3& vC) {

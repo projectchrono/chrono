@@ -15,8 +15,8 @@
 // =============================================================================
 
 /// test whether a box and a triangle are overlapping; used to check if a triangle touches an SD.
-__device__ bool check_TriangleBoxOverlap(const float (&boxcenter)[3],
-                                         const float (&boxhalfsize)[3],
+__device__ bool check_TriangleBoxOverlap(const float3& boxcenter,
+                                         const float3& boxhalfsize,
                                          const float3& vA,
                                          const float3& vB,
                                          const float3& vC);
