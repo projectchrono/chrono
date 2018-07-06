@@ -78,10 +78,15 @@ class ChTriangleSoup {
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     : public ChSystemGranularMonodisperse_SMC_Frictionless {
   public:
-    void run_simulation(float t_end);
     void advance_simulation(float duration);
+    /// Extra parameters needed for triangle-sphere contact
+    struct GranParamsHolder_trimesh {
+        float d_Gamma_n_s2m_SU;  //!< sphere-to-mesh contact damping coefficient, expressed in SU
+        float d_Kn_s2m_SU;       //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+    };
 
   private:
+    GranParamsHolder_trimesh tri_params;
     ChTriangleSoup<float> meshSoup_HOST;  //!< clean copy of mesh soup interacting with granular material; HOST-side
     ChTriangleSoup<float>
         meshSoupWorking_HOST;             //!< working copy of mesh soup interacting with granular material; HOST-side

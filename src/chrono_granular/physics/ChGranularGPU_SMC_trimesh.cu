@@ -579,10 +579,6 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::co
     // gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2m_SU, &K_n_s2m_SU, sizeof(d_Kn_s2m_SU)));
 }
 
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::run_simulation(float tEnd) {
-    NOT_IMPLEMENTED_YET;
-}
-
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(
     float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
