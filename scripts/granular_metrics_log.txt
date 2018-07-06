@@ -70,3 +70,15 @@ Running settling test!
 50 thousand bodies took 2.19273 seconds!
 500 thousand bodies took 16.1369 seconds!
 1 million bodies took 36.0991 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 06 Jul 2018 18:20:00 -0500
+commit f7d705f93f5a4219badb5554c2826fccfbcb9da1 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jul 6 18:19:26 2018 -0500 massive and painful changeover to a params holder and modular gpu utils
+Results:
+Running wavetank test!
+50 thousand bodies took 2.53357 seconds!
+500 thousand bodies took 17.7205 seconds!
+1 million bodies took 39.9154 seconds!
+Running settling test!
+50 thousand bodies took 2.56917 seconds!
+500 thousand bodies took 17.8368 seconds!
+1 million bodies took 39.4652 seconds!

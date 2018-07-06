@@ -29,6 +29,8 @@ double chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::get_max_
 }
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_simulation() {
+    // deallocate unified device struct
+    cudaFree(gran_params);
     // Vectors get deallocated automatically
 }
 
@@ -36,6 +38,8 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_si
  *
  */
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::setup_simulation() {
+    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
+
     partition_BD();
 
     // allocate mem for array saying for each SD how many spheres touch it
@@ -185,7 +189,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_
     K_n_s2w_SU = scalingFactor * (YoungModulus_SPH2WALL / K_stiffness);
 
     // TODO Make this legit, from user input
-    Gamma_n_SU = .005;
+    Gamma_n_s2s_SU = .005;
 
     // Handy debug output
     printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);

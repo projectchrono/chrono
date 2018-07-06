@@ -50,6 +50,38 @@ class CH_GRANULAR_API ChSystemGranular {
         // gpuErrchk(cudaDeviceReset());
     }
 
+    /// Parameters needed for sphere-based granular dynamics
+    struct GranParamsHolder {
+        // Use user-defined quantities for coefficients
+        // TODO we need to get the damping coefficient from user
+        float Gamma_n_s2s_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
+
+        float d_Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
+        float d_Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
+
+        unsigned int d_sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
+        unsigned int d_SD_Ldim_SU;       //!< L-dimension of the SD box, expressed in SU
+        unsigned int d_SD_Ddim_SU;       //!< D-dimension of the SD box, expressed in SU
+        unsigned int d_SD_Hdim_SU;       //!< H-dimension of the SD box, expressed in SU
+        unsigned int psi_T_dFactor;      //!< factor used in establishing the software-time-unit
+        unsigned int psi_h_dFactor;      //!< factor used in establishing the software-time-unit
+        unsigned int psi_L_dFactor;      //!< factor used in establishing the software-time-unit
+        unsigned int d_box_L_SU;         //!< L-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int d_box_D_SU;         //!< D-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int d_box_H_SU;         //!< H-dimension of the BD box in multiples of subdomains, expressed in SU
+        float gravAcc_X_d_factor_SU;     //!< Device counterpart of the constant gravity_X_SU
+        float gravAcc_Y_d_factor_SU;     //!< Device counterpart of the constant gravity_Y_SU
+        float gravAcc_Z_d_factor_SU;     //!< Device counterpart of the constant gravity_Z_SU
+
+        // Changed by updateBDPosition() at every timestep
+        int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
+        int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
+        int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
+
+        double d_DE_Mass;
+        float d_cohesion_ratio;
+    };
+
     ~ChSystemGranular() {}
 
     inline unsigned int elementCount() const { return nDEs; }
@@ -71,6 +103,9 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void initialize() = 0;
 
   protected:
+    /// holds the sphere and BD-related params in unified memory
+    GranParamsHolder* gran_params;
+
     /// Allows the code to be very verbose for debug
     bool verbose_runtime = false;
     /// How to write the output files? Default is CSV
@@ -273,7 +308,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     double YoungModulus_SPH2SPH;
     double YoungModulus_SPH2WALL;
-    float Gamma_n_SU;
+    float Gamma_n_s2s_SU;
     float K_n_s2s_SU;  /// size of the normal stiffness (SU) for sphere-to-sphere contact
     float K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
