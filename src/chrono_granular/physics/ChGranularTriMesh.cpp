@@ -14,6 +14,7 @@
 /*! \file */
 
 #include <vector>
+#include <algorithm>
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "ChGranularTriMesh.h"
