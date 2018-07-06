@@ -30,7 +30,7 @@ ChFsiInterface::ChFsiInterface(
       fsiBodeisPtr(other_fsiBodeisPtr),
       rigid_FSI_ForcesD(other_rigid_FSI_ForcesD),
       rigid_FSI_TorquesD(other_rigid_FSI_TorquesD) {
-  int numBodies = mphysicalSystem->Get_bodylist()->size();
+  int numBodies = mphysicalSystem->Get_bodylist().size();
   chronoRigidBackup = new ChronoBodiesDataH(numBodies);
 
   printf("** size chronoRigidBackup %d \n ",
@@ -114,7 +114,7 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 // FSI_Bodies_Index_H[i] is the the index of the i_th sph represented rigid body
 // in ChSystem
 void ChFsiInterface::Copy_External_To_ChSystem() {
-  int numBodies = mphysicalSystem->Get_bodylist()->size();
+  int numBodies = mphysicalSystem->Get_bodylist().size();
   if (chronoRigidBackup->pos_ChSystemH.size() != numBodies) {
     throw std::runtime_error("Size of the external data does not match the "
                              "ChSystem; thrown from Copy_External_To_ChSystem "
@@ -123,7 +123,7 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
   //#pragma omp parallel for // Arman: you can bring it back later, when you
   //have a lot of bodies
   for (int i = 0; i < numBodies; i++) {
-    auto mBody = mphysicalSystem->Get_bodylist()->at(i);
+    auto mBody = mphysicalSystem->Get_bodylist().at(i);
     mBody->SetPos(
         ChFsiTypeConvert::Real3ToChVector(chronoRigidBackup->pos_ChSystemH[i]));
     mBody->SetPos_dt(
@@ -144,7 +144,7 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
 void ChFsiInterface::Copy_ChSystem_to_External() {
   //	// Arman, assume no change in chrono num bodies. the resize is done in
   //initializaiton.
-  int numBodies = mphysicalSystem->Get_bodylist()->size();
+  int numBodies = mphysicalSystem->Get_bodylist().size();
   if (chronoRigidBackup->pos_ChSystemH.size() != numBodies) {
     throw std::runtime_error("Size of the external data does not match the "
                              "ChSystem; thrown from Copy_ChSystem_to_External "
@@ -154,7 +154,7 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
   //#pragma omp parallel for // Arman: you can bring it back later, when you
   //have a lot of bodies
   for (int i = 0; i < numBodies; i++) {
-    auto mBody = mphysicalSystem->Get_bodylist()->at(i);
+    auto mBody = mphysicalSystem->Get_bodylist().at(i);
     chronoRigidBackup->pos_ChSystemH[i] =
         ChFsiTypeConvert::ChVectorToReal3(mBody->GetPos());
     chronoRigidBackup->vel_ChSystemH[i] =
@@ -199,7 +199,7 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoBodiesData() {
-  int numBodies = mphysicalSystem->Get_bodylist()->size();
+  int numBodies = mphysicalSystem->Get_bodylist().size();
   chronoRigidBackup->resize(numBodies);
 }
 

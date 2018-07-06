@@ -17,8 +17,7 @@
 // inputs. If a joystick is present it will use that as an input; it will
 // otherwise default to a keyboard input.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
-// and update the current driver inputs. As such it does not need to override
-// the default no-op Advance() virtual method.
+// and update the current driver inputs.
 //
 // =============================================================================
 
@@ -43,8 +42,7 @@ namespace vehicle {
 /// Irrlicht-based GUI driver for the a vehicle. This class implements the
 /// functionality required by its base ChDriver class using keyboard inputs.
 /// As an Irrlicht event receiver, its OnEvent() callback is used to keep track
-/// and update the current driver inputs. As such it does not need to override
-/// the default no-op Advance() virtual method.
+/// and update the current driver inputs.
 ///
 /// @sa ChDataDriver
 class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceiver {

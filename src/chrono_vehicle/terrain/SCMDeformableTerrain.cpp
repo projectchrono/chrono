@@ -666,7 +666,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         utils::ChConvexHull2D ch(p.points);
         p.area = ch.GetArea();
         p.perimeter = ch.GetPerimeter();
-        if (p.area == 0) {
+        if (p.area < 1e-6) {
             p.Kc_b = 0;
         } else {
             double b = 2 * p.area / p.perimeter;

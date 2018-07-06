@@ -1389,6 +1389,7 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& t
             mresult.abs_hitNormal.Normalize();
             mresult.hit = true;
             mresult.dist_factor = rayCallback.m_closestHitFraction;
+            mresult.abs_hitPoint = mresult.abs_hitPoint - mresult.abs_hitNormal * mresult.hitModel->GetEnvelope();
             return true;
         }
     }
@@ -1432,6 +1433,7 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
                               rayCallback.m_hitNormalWorld[hit].z());
     mresult.abs_hitNormal.Normalize();
     mresult.dist_factor = fraction;
+    mresult.abs_hitPoint = mresult.abs_hitPoint - mresult.abs_hitNormal * mresult.hitModel->GetEnvelope();
     return true;
 }
 

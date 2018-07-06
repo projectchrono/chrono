@@ -132,11 +132,11 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
 }
 
 std::vector<std::shared_ptr<ChNodeFEAbase>> FEATire::GetInternalNodes() const {
-    return m_node_sets[0];
+    return m_node_sets.at("BC_INT");
 }
 
 std::vector<std::shared_ptr<fea::ChNodeFEAbase>> FEATire::GetConnectedNodes() const {
-    return m_node_sets[1];
+    return m_node_sets.at("BC_CONN");
 }
 
 }  // end namespace vehicle

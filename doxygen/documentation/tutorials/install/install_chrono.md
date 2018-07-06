@@ -13,6 +13,7 @@ Recommended compilers:
 - Microsoft Visual C++: Visual Studio from 2013 (free Community edition is fine, both 32 or 64 bit are ok)
 - MingW GNU C++ compiler for Windows
 - GNU C++ compiler for Linux-based platforms.
+- Xcode Package for MacOS: Download via App Store for free - it contains the clang++ compiler
 
 <small>Other compilers could work as well, but they might require changes to the CMake scripts.</small>
 
@@ -31,13 +32,16 @@ Moreover, in the Visual Studio 2017 (and later) installer make sure to install a
 
 ## 2) Install [CMake](http://www.cmake.org/cmake/resources/software.html)
 
-The free CMake utility is used to manage the building process. <br>
-For Visual Studio users: make sure to put the CMake executable in your *Path* environmental variable (the installer can do this for you).
+The free CMake utility is used to manage the building process.<br>
+For Visual Studio users: make sure to put the CMake executable in your *Path* environmental variable (the installer can do this for you). <br>
+For Xcode users: the CMake.app bundle also contains command line tools, you must set appropriate links to use it from the terminal. It is
+better to install a pure command line version via homebrew (https://brew.sh). After installing the home brew package manager type: <tt>brew install cmake</tt> in the terminal.
 
 
 ## 3) Install a GIT client
 
-On Windows, you might want to **download and install** [SourceTree](http://www.sourcetreeapp.com/).<br>
+On Windows and MacOS, you might want to **download and install** [SourceTree](http://www.sourcetreeapp.com/). <br>
+On MacOS you will find an Application Bundle under /Applications<br>
 On Linux, there are several good [options](https://git-scm.com/download/gui/linux).
 
 
@@ -69,13 +73,30 @@ The `master` branch is the most stable and tested. We will refer to this branch 
 - **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html) 
 - **unzip** it in a directory of your choice. For example, here we suppose that you unzipped it in <tt>C:/engine_demos/irrlicht-1.8.2</tt>.
 
-<div class="ce-warning"> 
+<div class="ce-info"> 
 Click here for the direct download of the 
 [release v.1.8.2 of Irrlicht](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip)<br>
-This release is tested to be stable and working well with Chrono. This is the recommended release.<br>
-Release v.1.8.4 should work perfectly as well.<br>
+This release is tested to be stable and working well with Chrono. This is the recommended release for Windows and Linux.<br>
+Release v.1.8.4 should work perfectly as well. On MacOS only use this one!<br>
 Release v.1.8.3 does not contain the precompiled 64bit dlls.<br>
-Release v.1.8.0 has issues with soft shadows.
+Release v.1.8.0 has issues with soft shadows.<br>
+</div>
+
+<div class="ce-warning"> 
+**MacOS issues:** irrlicht-1.8.4 is fairly outdated compared to XCode 9.3.1.<br>
+Before any building, you must correct a bug in the file:
+<tt>irrlicht-1.8.4/source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm</tt>. Open it with CotEdit or BBEdit. Search for the string <tt>NSFileManagerDelegate</tt> 
+and replace it by <tt>NSApplicationDelegate</tt>, don't forget to save your changes. In the terminal go to the directory containing the
+<tt>MacOSX.xcodeproj</tt> bundle:<br>
+<tt>cd irrlicht-1.8.4/source/Irrlicht/MacOSX</tt><br>
+To build the library, type:<br>
+<tt>xcodebuild</tt><br>
+The library <tt>libIrrlicht.a</tt> should be found in <tt>irrlicht-1.8.4/source/Irrlicht/MacOSX/build/Release</tt>. It can be used from here, but it is better
+to copy it to <tt>irrlicht-1.8.4/lib/MacOS</tt>. After copying type:<br>
+<tt>cd irrlicht-1.8.4/lib/MacOSX</tt><br>
+<tt>ranlib libIrrlicht.a</tt><br>
+Unlike the Windows version we get a static library, that will be part of <tt>libChrono_irrlicht.dylib</tt>, so we don't have to copy it around 
+anymore after building chrono.
 </div> 
 
 
@@ -142,15 +163,32 @@ For Visual Studio:
   and its demos will be compiled, creating many .exe and .dll files, this time in the bin/Release subdirectory.   
   This will take a few minutes.
 
+For Linux/GCC and for MacOS/clang:
+
+- CMake generates a hierarchy of makefiles in the directory specified in "Where to build the binaries".
+
+- To build the Chrono libraries and demo executables, simply invoke <tt>make</tt> from the command line in that directory.
+
+- Optionally, type <tt>make install</tt> to install the Chrono libraries, data files, and demo executables in the directory specified during CMake configuration.
+
+<div class="ce-warning"> 
+**MacOS issues:** clang++ does not come with OpenMP support out of the box.
+You will not be able to build <tt>libChrono_parallel</tt> successfully.<br> 
+However, OpenMP support can be added using the OpenMP sources from the <tt>llvm.org</tt> project. 
+Download the source code from there, then configure the omp library with CMake, build it, and install it to /usr/local.<br>
+Having done so, you can then configure Chrono with OpenMP support. For this, you must define the right compiler flags:<br>
+<tt>-Xpreprocessor -fopenmp</tt> for the compiler and <tt>-lomp</tt> for the linker.
+</div> 
+
+
 ## 8) Take the demos for a ride!
 
 Go to the directory that you set in "Where to build the binaries", 
-in our case <tt>C:/chrono_build</tt>, then go to <tt>bin/Release</tt> or <tt>bin/Debug</tt> directory.
-There you will find the **demo_xxxxx.exe** files that you can launch by **double-clicking** on them.
+in our case <tt>C:/chrono_build</tt>, then go to <tt>bin/Release</tt> or <tt>bin/Debug</tt> (Windows), or to <tt>bin</tt> (Linux).
 
 <div class="ce-info">
-It could happen that demos using 3D visualization might not start. This could happen if the **Irrlicht.dll** is missing.  
-You have to manually copy the Irrlicht.dll from your Irrlicht `/bin/Win64-visualStudio` directory (or /Win32-.. if you are on a 32 bit platform) into your `chrono_build/bin/Debug` and/or `chrono_build/bin/Release` directory.
+**Windows**: If demos using 3D visualization do not start, this may indicate that the **Irrlicht.dll** is not found.  
+You have to manually copy the Irrlicht.dll from your Irrlicht `/bin/Win64-visualStudio` directory into your `chrono_build/bin/Debug` and/or `chrono_build/bin/Release` directory.
 </div>
 
 <div class="ce-danger">

@@ -17,6 +17,8 @@
 #ifndef CHMESH_FILE_LOADER_H
 #define CHMESH_FILE_LOADER_H
 
+#include <map>
+
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChMesh.h"
 
@@ -56,7 +58,8 @@ class ChApiFea ChMeshFileLoader {
         std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
         const char* filename,                              ///< input file name
         std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
-        std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > >& node_sets,  ///< vect of vectors of 'marked'nodes
+        std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > >&
+            node_sets,                                 ///< vect of vectors of 'marked'nodes
         ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
         bool discard_unused_nodes =
@@ -67,13 +70,13 @@ class ChApiFea ChMeshFileLoader {
         std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
         const char* filename,                              ///< complete filename
         std::shared_ptr<ChMaterialShellANCF> my_material,  ///< material to be given to the shell
-        std::vector<double>& node_ave_area,             ///< output the average area of the nodes
-        std::vector<int>& BC_nodes,                    ///< material to be given to the shell
-        ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
-        double scaleFactor = 1,                       ///< import scale factor
-        bool printNodes = false,           ///< display the imported nodes
-        bool printElements = false         ///< display the imported elements
+        std::vector<double>& node_ave_area,                ///< output the average area of the nodes
+        std::vector<int>& BC_nodes,                        ///< material to be given to the shell
+        ChVector<> pos_transform = VNULL,                  ///< optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1),      ///< optional rotation/scaling of imported mesh
+        double scaleFactor = 1,                            ///< import scale factor
+        bool printNodes = false,                           ///< display the imported nodes
+        bool printElements = false                         ///< display the imported elements
     );
 };
 

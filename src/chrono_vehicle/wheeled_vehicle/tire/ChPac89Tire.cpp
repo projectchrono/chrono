@@ -158,13 +158,15 @@ void ChPac89Tire::Advance(double step) {
         return;
 
     if (m_states.vx != 0) {
-        m_states.cp_long_slip = -m_states.vsx / m_states.vx;
-        m_states.cp_side_slip = std::atan(m_states.vsy / std::abs(m_states.omega * (m_unloaded_radius - m_data.depth)));
+        m_states.cp_long_slip = -m_states.vsx / m_states.vx;        
     } else {
         m_states.cp_long_slip = 0;
+    }
+    if (m_states.omega != 0) {
+        m_states.cp_side_slip = std::atan(m_states.vsy / std::abs(m_states.omega * (m_unloaded_radius - m_data.depth)));
+    } else {
         m_states.cp_side_slip = 0;
     }
-
     // Ensure that cp_lon_slip stays between -1 & 1
     ChClampValue(m_states.cp_long_slip, -1.0, 1.0);
 
@@ -254,7 +256,12 @@ void ChPac89Tire::Advance(double step) {
     // Rolling Resistance
     {
         double Lrad = (m_unloaded_radius - m_data.depth);
-        My = m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
+        // Smoothing interval for My
+        const double vx_min = 0.125;
+        const double vx_max = 0.5;
+        // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
+        double myStartUp = ChSineStep(std::abs(m_states.vx), vx_min, 0.0, vx_max, 1.0);
+        My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 
     // std::cout << "Fx:" << Fx

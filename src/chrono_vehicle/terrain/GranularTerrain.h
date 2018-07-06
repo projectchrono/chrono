@@ -30,6 +30,8 @@
 
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -55,15 +57,15 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
 
     /// Set coefficient of friction.
     /// The default value is 0.9
-    void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
+    void SetContactFrictionCoefficient(float friction_coefficient);
 
     /// Set coefficient of restitution.
     /// The default value is 0.
-    void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
+    void SetContactRestitutionCoefficient(float restitution_coefficient);
 
     /// Set the cohesion constant.
     /// The default value is 0.
-    void SetContactCohesion(float cohesion) { m_cohesion = cohesion; }
+    void SetContactCohesion(float cohesion);
 
     /// Set contact material properties.
     /// These values are used to calculate contact material coefficients (if the containing
@@ -83,10 +85,18 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
                                         float gt   ///< [in] tangential contact damping
                                         );
 
-    /// Set outward collision envelope (default: 0).
+    /// Set contact material for SMC method.
+    void SetContactMaterialSMC(std::shared_ptr<ChMaterialSurfaceSMC> mat);
+
+    /// Set contact material for NSC method.
+    void SetContactMaterialNSC(std::shared_ptr<ChMaterialSurfaceNSC> mat);
+
+    /// Set outward collision envelope.
     /// This value is used for the internal custom collision detection for imposing
     /// boundary conditions.  Note that if the underlying system is of SMC type (i.e.,
     /// using a penalty-based contact method), the envelope is automatically set to 0.
+    /// For NSC systems (i.e., when using a complementarity-based contact method), if
+    /// the envelope is not specified, the default value is 5% of the particle radius.
     void SetCollisionEnvelope(double envelope) { m_envelope = envelope; }
 
     /// Set the minimum number of particles to be generated (default: 0).
@@ -112,23 +122,23 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     void SetStartIdentifier(int id) { m_start_id = id; }
 
     /// Get coefficient of friction for contact material.
-    float GetCoefficientFriction() const { return m_friction; }
+    float GetCoefficientFriction() const { return m_matSMC->GetSfriction(); }
     /// Get coefficient of restitution for contact material.
-    float GetCoefficientRestitution() const { return m_restitution; }
+    float GetCoefficientRestitution() const { return m_matSMC->GetRestitution(); }
     /// Get cohesion constant.
-    float GetCohesion() const { return m_cohesion; }
+    float GetCohesion() const { return m_matSMC->GetAdhesion(); }
     /// Get Young's modulus of elasticity for contact material.
-    float GetYoungModulus() const { return m_young_modulus; }
+    float GetYoungModulus() const { return m_matSMC->GetYoungModulus(); }
     /// Get Poisson ratio for contact material.
-    float GetPoissonRatio() const { return m_poisson_ratio; }
+    float GetPoissonRatio() const { return m_matSMC->GetPoissonRatio(); }
     /// Get normal stiffness coefficient for contact material.
-    float GetKn() const { return m_kn; }
+    float GetKn() const { return m_matSMC->GetKn(); }
     /// Get tangential stiffness coefficient for contact material.
-    float GetKt() const { return m_kt; }
+    float GetKt() const { return m_matSMC->GetKt(); }
     /// Get normal viscous damping coefficient for contact material.
-    float GetGn() const { return m_gn; }
+    float GetGn() const { return m_matSMC->GetGn(); }
     /// Get tangential viscous damping coefficient for contact material.
-    float GetGt() const { return m_gt; }
+    float GetGt() const { return m_matSMC->GetGt(); }
 
     /// Enable/disable visualization of boundaries (default: false).
     void EnableVisualization(bool val) { m_vis_enabled = val; }
@@ -230,15 +240,8 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChBody> m_ground;       ///< ground body
     std::shared_ptr<ChColorAsset> m_color;  ///< color of boundary visualization asset
 
-    float m_friction;       ///< contact coefficient of friction
-    float m_restitution;    ///< contact coefficient of restitution
-    float m_cohesion;       ///< contact cohesion constant
-    float m_young_modulus;  ///< contact material Young modulus
-    float m_poisson_ratio;  ///< contact material Poisson ratio
-    float m_kn;             ///< normal contact stiffness
-    float m_gn;             ///< normal contact damping
-    float m_kt;             ///< tangential contact stiffness
-    float m_gt;             ///< tangential contact damping
+    std::shared_ptr<ChMaterialSurfaceSMC> m_matSMC;  ///< contact material properties (SMC method)
+    std::shared_ptr<ChMaterialSurfaceNSC> m_matNSC;  ///< contact material properties (NSC method)
 
     bool m_verbose;  ///< verbose output
 

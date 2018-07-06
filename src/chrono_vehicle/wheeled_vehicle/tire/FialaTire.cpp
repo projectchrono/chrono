@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Radu Serban, Michael Taylor, Rainer Gericke
 // =============================================================================
 //
 // Fiala tire constructed with data from file (JSON format).
@@ -60,20 +60,29 @@ void FialaTire::Create(const rapidjson::Document& d) {
 
     m_mass = d["Mass"].GetDouble();
     m_inertia = LoadVectorJSON(d["Inertia"]);
-
+    if (d.HasMember("Coefficient of Friction")) {
+        // Default value = 0.8
+        m_mu_0 = d["Coefficient of Friction"].GetDouble();
+    }
+    if(d.HasMember("Nominal Vertical Force [N]")) {
+        // Helpful for plotting
+        m_Fz_nom = d["Nominal Vertical Force [N]"].GetDouble();
+    }
     // Read in Fiala tire model parameters
     m_unloaded_radius = d["Fiala Parameters"]["Unloaded Radius"].GetDouble();
     m_width = d["Fiala Parameters"]["Width"].GetDouble();
     m_normalStiffness = d["Fiala Parameters"]["Vertical Stiffness"].GetDouble();
     m_normalDamping = d["Fiala Parameters"]["Vertical Damping"].GetDouble();
-    m_rolling_resistance = 0;  // d["Fiala Parameters"]["Rolling Resistance"].GetDouble();
+    m_rolling_resistance = d["Fiala Parameters"]["Rolling Resistance"].GetDouble();
     m_c_slip = d["Fiala Parameters"]["CSLIP"].GetDouble();
     m_c_alpha = d["Fiala Parameters"]["CALPHA"].GetDouble();
     m_u_min = d["Fiala Parameters"]["UMIN"].GetDouble();
     m_u_max = d["Fiala Parameters"]["UMAX"].GetDouble();
     m_relax_length_x = d["Fiala Parameters"]["X Relaxation Length"].GetDouble();
     m_relax_length_y = d["Fiala Parameters"]["Y Relaxation Length"].GetDouble();
-
+    if(m_relax_length_x <= 0.0 || m_relax_length_y <= 0.0) {
+        m_dynamic_mode = false;
+    }
     m_visualization_width = m_width;
 
     // Check how to visualize this tire.

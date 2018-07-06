@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
     uint current_nodes = my_system.data_manager->num_fea_nodes;
 
-    std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
+    std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
     ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/beam.INP").c_str(), mmaterial, node_sets,
                                      tire_center, tire_alignment);
 
@@ -128,10 +128,10 @@ int main(int argc, char* argv[]) {
 
     my_system.Add(my_mesh);
 
-    for (int i = 0; i < node_sets.size(); i++) {
-        printf("Node sets: %d\n", node_sets[i].size());
-        for (int j = 0; j < node_sets[i].size(); j++) {
-            fea_container->AddConstraint(node_sets[i][j]->GetIndex() + current_nodes, PLATE);
+    for (auto nodeset_it = node_sets.begin(); nodeset_it != node_sets.end(); ++nodeset_it) {
+        printf("Node sets: %d\n", nodeset_it->second.size());
+        for (auto j = 0; j < nodeset_it->second.size(); j++) {
+            fea_container->AddConstraint(nodeset_it->second[j]->GetIndex() + current_nodes, PLATE);
         }
     }
 
