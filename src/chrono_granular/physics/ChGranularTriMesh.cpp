@@ -73,8 +73,65 @@ the input obj file.
 */
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST(const std::vector<tinyobj::shape_t>& shapes,
                                                                            unsigned int nTriangles) {
-    // Set up mesh from the input file
+    /// Set up the clean HOST mesh soup
+    meshSoup_HOST.nTrianglesInSoup = nTriangles;
 
+    meshSoup_HOST.triangleFamily_ID = new unsigned int[nTriangles];
+
+    meshSoup_HOST.node1_X = new float[nTriangles];
+    meshSoup_HOST.node1_Y = new float[nTriangles];
+    meshSoup_HOST.node1_Z = new float[nTriangles];
+
+    meshSoup_HOST.node2_X = new float[nTriangles];
+    meshSoup_HOST.node2_Y = new float[nTriangles];
+    meshSoup_HOST.node2_Z = new float[nTriangles];
+
+    meshSoup_HOST.node3_X = new float[nTriangles];
+    meshSoup_HOST.node3_Y = new float[nTriangles];
+    meshSoup_HOST.node3_Z = new float[nTriangles];
+
+    meshSoup_HOST.node1_XDOT = new float[nTriangles];
+    meshSoup_HOST.node1_YDOT = new float[nTriangles];
+    meshSoup_HOST.node1_ZDOT = new float[nTriangles];
+
+    meshSoup_HOST.node2_XDOT = new float[nTriangles];
+    meshSoup_HOST.node2_YDOT = new float[nTriangles];
+    meshSoup_HOST.node2_ZDOT = new float[nTriangles];
+
+    meshSoup_HOST.node3_XDOT = new float[nTriangles];
+    meshSoup_HOST.node3_YDOT = new float[nTriangles];
+    meshSoup_HOST.node3_ZDOT = new float[nTriangles];
+
+    /// Set up the working HOST mesh soup
+    meshSoupWorking_HOST.nTrianglesInSoup = nTriangles;
+
+    meshSoupWorking_HOST.triangleFamily_ID = new unsigned int[nTriangles];
+
+    meshSoupWorking_HOST.node1_X = new float[nTriangles];
+    meshSoupWorking_HOST.node1_Y = new float[nTriangles];
+    meshSoupWorking_HOST.node1_Z = new float[nTriangles];
+
+    meshSoupWorking_HOST.node2_X = new float[nTriangles];
+    meshSoupWorking_HOST.node2_Y = new float[nTriangles];
+    meshSoupWorking_HOST.node2_Z = new float[nTriangles];
+
+    meshSoupWorking_HOST.node3_X = new float[nTriangles];
+    meshSoupWorking_HOST.node3_Y = new float[nTriangles];
+    meshSoupWorking_HOST.node3_Z = new float[nTriangles];
+
+    meshSoupWorking_HOST.node1_XDOT = new float[nTriangles];
+    meshSoupWorking_HOST.node1_YDOT = new float[nTriangles];
+    meshSoupWorking_HOST.node1_ZDOT = new float[nTriangles];
+
+    meshSoupWorking_HOST.node2_XDOT = new float[nTriangles];
+    meshSoupWorking_HOST.node2_YDOT = new float[nTriangles];
+    meshSoupWorking_HOST.node2_ZDOT = new float[nTriangles];
+
+    meshSoupWorking_HOST.node3_XDOT = new float[nTriangles];
+    meshSoupWorking_HOST.node3_YDOT = new float[nTriangles];
+    meshSoupWorking_HOST.node3_ZDOT = new float[nTriangles];
+
+    // Set up mesh from the input file
     size_t tri_index = 0;
     for (auto shape : shapes) {
         std::vector<unsigned int>& indices = shape.mesh.indices;
@@ -119,70 +176,12 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST(const
 
             // If the normal created by a RHR traversal is not correct, switch two vertices
             if (norm_vert[0] * cross[0] + norm_vert[1] * cross[1] + norm_vert[2] * cross[2] < 0) {
-                GRANULAR_ERROR("Input mesh has inside-out elements.")
-                // std::swap(original_soup.node2_X[tri_index], original_soup.node3_X[tri_index]);
-                // std::swap(original_soup.node2_Y[tri_index], original_soup.node3_Y[tri_index]);
-                // std::swap(original_soup.node2_Z[tri_index], original_soup.node3_Z[tri_index]);
+                // GRANULAR_ERROR("Input mesh has inside-out elements.")
+                std::swap(meshSoup_HOST.node2_X[tri_index], meshSoup_HOST.node3_X[tri_index]);
+                std::swap(meshSoup_HOST.node2_Y[tri_index], meshSoup_HOST.node3_Y[tri_index]);
+                std::swap(meshSoup_HOST.node2_Z[tri_index], meshSoup_HOST.node3_Z[tri_index]);
             }
         }
-
-        /// Set up the clean HOST mesh soup
-        meshSoup_HOST.nTrianglesInSoup = nTriangles;
-
-        meshSoup_HOST.triangleFamily_ID = new unsigned int[nTriangles];
-
-        meshSoup_HOST.node1_X = new float[nTriangles];
-        meshSoup_HOST.node1_Y = new float[nTriangles];
-        meshSoup_HOST.node1_Z = new float[nTriangles];
-
-        meshSoup_HOST.node2_X = new float[nTriangles];
-        meshSoup_HOST.node2_Y = new float[nTriangles];
-        meshSoup_HOST.node2_Z = new float[nTriangles];
-
-        meshSoup_HOST.node3_X = new float[nTriangles];
-        meshSoup_HOST.node3_Y = new float[nTriangles];
-        meshSoup_HOST.node3_Z = new float[nTriangles];
-
-        meshSoup_HOST.node1_XDOT = new float[nTriangles];
-        meshSoup_HOST.node1_YDOT = new float[nTriangles];
-        meshSoup_HOST.node1_ZDOT = new float[nTriangles];
-
-        meshSoup_HOST.node2_XDOT = new float[nTriangles];
-        meshSoup_HOST.node2_YDOT = new float[nTriangles];
-        meshSoup_HOST.node2_ZDOT = new float[nTriangles];
-
-        meshSoup_HOST.node3_XDOT = new float[nTriangles];
-        meshSoup_HOST.node3_YDOT = new float[nTriangles];
-        meshSoup_HOST.node3_ZDOT = new float[nTriangles];
-
-        /// Set up the working HOST mesh soup
-        meshSoupWorking_HOST.nTrianglesInSoup = nTriangles;
-
-        meshSoupWorking_HOST.triangleFamily_ID = new unsigned int[nTriangles];
-
-        meshSoupWorking_HOST.node1_X = new float[nTriangles];
-        meshSoupWorking_HOST.node1_Y = new float[nTriangles];
-        meshSoupWorking_HOST.node1_Z = new float[nTriangles];
-
-        meshSoupWorking_HOST.node2_X = new float[nTriangles];
-        meshSoupWorking_HOST.node2_Y = new float[nTriangles];
-        meshSoupWorking_HOST.node2_Z = new float[nTriangles];
-
-        meshSoupWorking_HOST.node3_X = new float[nTriangles];
-        meshSoupWorking_HOST.node3_Y = new float[nTriangles];
-        meshSoupWorking_HOST.node3_Z = new float[nTriangles];
-
-        meshSoupWorking_HOST.node1_XDOT = new float[nTriangles];
-        meshSoupWorking_HOST.node1_YDOT = new float[nTriangles];
-        meshSoupWorking_HOST.node1_ZDOT = new float[nTriangles];
-
-        meshSoupWorking_HOST.node2_XDOT = new float[nTriangles];
-        meshSoupWorking_HOST.node2_YDOT = new float[nTriangles];
-        meshSoupWorking_HOST.node2_ZDOT = new float[nTriangles];
-
-        meshSoupWorking_HOST.node3_XDOT = new float[nTriangles];
-        meshSoupWorking_HOST.node3_YDOT = new float[nTriangles];
-        meshSoupWorking_HOST.node3_ZDOT = new float[nTriangles];
     }
 }
 

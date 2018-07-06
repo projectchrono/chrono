@@ -77,6 +77,10 @@ class ChTriangleSoup {
  */
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     : public ChSystemGranularMonodisperse_SMC_Frictionless {
+  public:
+    void run_simulation(float t_end);
+    void advance_simulation(float duration);
+
   private:
     ChTriangleSoup<float> meshSoup_HOST;  //!< clean copy of mesh soup interacting with granular material; HOST-side
     ChTriangleSoup<float>
@@ -100,8 +104,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void cleanupSoup_DEVICE();
     void update_DMeshSoup_Location();
 
-    void run_simulation(float t_end);
-    void advance_simulation(float duration);
     // void initialize();
 
     virtual double get_max_K();

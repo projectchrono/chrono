@@ -237,12 +237,14 @@ int main(int argc, char* argv[]) {
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
     float normStiffnessMSH2S = NORMAL_STIFFNESS_S2W;
 
+    float iteration_step = 0.2;
+
     GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
     bool verbose = false;
     float cohesion_ratio = 0;
 
     // Mesh values
-    std::string mesh_filename = std::string("basicWheelMesh.obj");
+    std::string mesh_filename = std::string("hmmwv_tire.obj");  // TODO scale and place in bottom of box
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd,
@@ -255,7 +257,7 @@ int main(int argc, char* argv[]) {
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity, mesh_filename);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
+    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -0.5f, 0.f);
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
@@ -267,18 +269,17 @@ int main(int argc, char* argv[]) {
     m_sys.setVerbose(verbose);
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
-    const float fakeTimeStep = 0.0001f;
-    const float fakeTimeEnd = 10.f;
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
 
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
-    for (float t = 0; t < fakeTimeEnd; t += fakeTimeStep) {
-        updateMeshSoup_Location(t, meshSoupLocOri);  // This is where the information would come from the vehicle
-        m_sys.meshSoup_applyRigidBodyMotion(t, meshSoupLocOri);
-        m_sys.collectGeneralizedForcesOnMeshSoup(t, genForcesOnMeshSoup);
+    for (float t = 0; t < timeEnd; t += iteration_step) {
+        m_sys.advance_simulation(iteration_step);
+        // updateMeshSoup_Location(t, meshSoupLocOri);  // This is where the information would come from the vehicle
+        // m_sys.meshSoup_applyRigidBodyMotion(t, meshSoupLocOri);
+        // m_sys.collectGeneralizedForcesOnMeshSoup(t, genForcesOnMeshSoup);
     }
 
     delete[] genForcesOnMeshSoup;

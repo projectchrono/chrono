@@ -535,6 +535,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     unsigned int nsteps = (1.0 * duration) / stepSize_SU;
 
     printf("advancing %u at timestep %u, %u timesteps at approx timestep %f\n", duration_SU, stepSize_SU, nsteps,
+    printf("duration: %0.4f advancing %u at timestep %u, %u timesteps at approx timestep %f\n", duration, duration_SU, stepSize_SU, nsteps,
            duration / nsteps);
     printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 
@@ -618,5 +619,32 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cl
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_DEVICE(
     unsigned int nTriangles) {
-    NOT_IMPLEMENTED_YET
+    /// Allocate the DEVICE mesh soup
+    meshSoup_DEVICE.nTrianglesInSoup = nTriangles;  // TODO this is not on device?
+
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.triangleFamily_ID, nTriangles * sizeof(unsigned int)));
+
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_X, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_Y, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_Z, nTriangles * sizeof(float)));
+
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_X, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_Y, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_Z, nTriangles * sizeof(float)));
+
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_X, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_Y, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_Z, nTriangles * sizeof(float)));
+
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_XDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_YDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_ZDOT, nTriangles * sizeof(float)));
+
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_XDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_YDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_ZDOT, nTriangles * sizeof(float)));
+
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_XDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_YDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_ZDOT, nTriangles * sizeof(float)));
 }
