@@ -408,6 +408,9 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
+	mintegrable->StateGatherReactions(L); // state <- system (may be needed for warm starting StateSolveCorrection) 
+	L *= dt; // because reactions = forces, here L = impulses
+
     Vold = V;
 
     // solve only 1st NR step, using v_new = 0, so  Dv = v_new , therefore
