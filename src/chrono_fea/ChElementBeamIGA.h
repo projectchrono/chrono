@@ -247,8 +247,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 dr0 += nodes[i]->GetX0ref().coord.pos * N(1,i);
             }
             this->Jacobian_s[ig] = dr0.Length(); // J = |dr0/du|
-
-            this->length += w*this->Jacobian_s[ig];
         } 
 
         // Gauss points for "b" bend components:
@@ -343,8 +341,12 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
 			// compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
 			this->strain_k_0[ig] = da;
+
+			// as a byproduct, also compute length 
+			this->length += w * this->Jacobian_b[ig];
         }
-        //this->mass = this->length * this->section->Area * this->section->density;
+
+		// as a byproduct, also compute total mass
 		this->mass = this->length * this->section->GetArea() * this->section->GetDensity();
     }
 
