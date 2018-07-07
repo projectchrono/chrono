@@ -130,7 +130,7 @@ __global__ void triangleSoupBroadPhase(
     __syncthreads();
 
     // Truth be told, we are not interested in SDs touched, but rather buckets touched. This next step associates SDs
-    // with "buckets". To save memory, since most SDs have no triangles, we "randomly" associate sevearl SDs with a
+    // with "buckets". To save memory, since most SDs have no triangles, we "randomly" associate several SDs with a
     // bucket. While the assignment of SDs to buckets is "random," the assignment scheme is deterministic: for
     // instance, SD 239 would always go to bucket 71.
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++)

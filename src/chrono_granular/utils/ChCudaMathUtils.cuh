@@ -56,14 +56,14 @@ inline __device__ double3 face_normal(const double3& A, const double3& B, const 
 }
 
 inline __device__ unsigned int hashmapTagGenerator(unsigned int seed) {
-    /// Generates a "random" hashtag using a Park-Miller RNG using only 32-bit arithmetic. Care was taken here to avoid
-    /// overflow. This is deterministic: the same seed will generate the same hashmap tag.
-    /// Source: https://en.wikipedia.org/wiki/Lehmer_random_number_generator
+    /// Generates a "random" hashtag empoloying a Park-Miller RNG using only 32-bit arithmetic. Care was taken here to
+    /// avoid overflow. This is deterministic: the same seed will generate the same hashmap tag. Source:
+    /// https://en.wikipedia.org/wiki/Lehmer_random_number_generator
     const unsigned int N = 0x7fffffff;
     const unsigned int G = 48271u;
     unsigned int div = seed / (N / G);  /// max : 2,147,483,646 / 44,488 = 48,271
     unsigned int rem = seed % (N / G);  /// max : 2,147,483,646 % 44,488 = 44,487
-    unsigned int a = rem * G;            /// max : 44,487 * 48,271 = 2,147,431,977
-    unsigned int b = div * (N % G);      /// max : 48,271 * 3,399 = 164,073,129
+    unsigned int a = rem * G;           /// max : 44,487 * 48,271 = 2,147,431,977
+    unsigned int b = div * (N % G);     /// max : 48,271 * 3,399 = 164,073,129
     return (a > b) ? (a - b) : (a + (N - b));
 }
