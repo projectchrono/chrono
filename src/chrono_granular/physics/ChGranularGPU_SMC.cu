@@ -12,902 +12,44 @@
 // Authors: Dan Negrut, Conlain Kelly
 // =============================================================================
 
-#include <cuda.h>
-#include <cassert>
-#include <cstdio>
-#include <fstream>
-#include <ios>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "../../chrono_thirdparty/cub/cub.cuh"
-#include "../ChGranularDefines.h"
-#include "../chrono_granular/physics/ChGranular.h"
-#include "chrono/core/ChVector.h"
-#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
+#include "../chrono_granular/physics/ChGranularGPU_SMC.cuh"
 
-// These are the max X, Y, Z dimensions in the BD frame
-#define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
-#define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
-#define MAX_Z_POS_UNSIGNED (d_SD_Hdim_SU * d_box_H_SU)
-
-#define CUDA_THREADS 128
-
-// Use user-defined quantities for coefficients
-__constant__ float d_Gamma_n;  //!< contact damping coefficient, expressed in SU
-// TODO we need to get the damping coefficient from user
-__constant__ float d_Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
-__constant__ float d_Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
-__constant__ float d_Kn_s2m_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
-
-__constant__ unsigned int d_sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
-__constant__ unsigned int d_SD_Ldim_SU;       //!< L-dimension of the SD box, expressed in SU
-__constant__ unsigned int d_SD_Ddim_SU;       //!< D-dimension of the SD box, expressed in SU
-__constant__ unsigned int d_SD_Hdim_SU;       //!< H-dimension of the SD box, expressed in SU
-__constant__ unsigned int psi_T_dFactor;      //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_h_dFactor;      //!< factor used in establishing the software-time-unit
-__constant__ unsigned int psi_L_dFactor;      //!< factor used in establishing the software-time-unit
-__constant__ unsigned int d_box_L_SU;         //!< L-dimension of the BD box in multiples of subdomains, expressed in SU
-__constant__ unsigned int d_box_D_SU;         //!< D-dimension of the BD box in multiples of subdomains, expressed in SU
-__constant__ unsigned int d_box_H_SU;         //!< H-dimension of the BD box in multiples of subdomains, expressed in SU
-__constant__ float gravAcc_X_d_factor_SU;     //!< Device counterpart of the constant gravity_X_SU
-__constant__ float gravAcc_Y_d_factor_SU;     //!< Device counterpart of the constant gravity_Y_SU
-__constant__ float gravAcc_Z_d_factor_SU;     //!< Device counterpart of the constant gravity_Z_SU
-
-// Changed by updateBDPosition() at every timestep
-__constant__ int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-__constant__ int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-__constant__ int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
-
-__constant__ double d_DE_Mass;
-__constant__ float d_cohesion_ratio;
-// todo put this in other file
-
-// Decide which SD owns this point in space
-// Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
-__device__ unsigned int figureOutOwnerSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z) {
-    // Note that this offset allows us to have moving walls and the like very easily
-    // printf("corner is %d, calc is %d\n", -d_BD_frame_X, (d_box_L_SU * d_SD_Ldim_SU) / 2);
-    long int sphCenter_X_modified = -d_BD_frame_X + sphCenter_X;
-    long int sphCenter_Y_modified = -d_BD_frame_Y + sphCenter_Y;
-    long int sphCenter_Z_modified = -d_BD_frame_Z + sphCenter_Z;
-    unsigned int n[3];
-    // Get the SD of the sphere's center in the xdir
-    n[0] = (sphCenter_X_modified) / d_SD_Ldim_SU;
-    // Same for D and H
-    n[1] = (sphCenter_Y_modified) / d_SD_Ddim_SU;
-    n[2] = (sphCenter_Z_modified) / d_SD_Hdim_SU;
-    return n[0] * d_box_D_SU * d_box_H_SU + n[1] * d_box_H_SU + n[2];
-}
-
-/// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
-/// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
-/// A bit set to 0 means the lower index, whereas 1 means the higher index (lower + 1)
-/// The kernel computes global x, y, and z indices for the bottom-left subdomain and then uses those to figure out which
-/// subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts these
-/// indices to indices into the global SD list via the (currently local) conv[3] data structure
-/// Should be mostly bug-free, especially away from boundaries
-__device__ void figureOutTouchedSD(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, unsigned int SDs[8]) {
-    // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
-    // We need to offset so that the bottom-left corner is at the origin
-    long int sphCenter_X_modified = -d_BD_frame_X + sphCenter_X;
-    long int sphCenter_Y_modified = -d_BD_frame_Y + sphCenter_Y;
-    long int sphCenter_Z_modified = -d_BD_frame_Z + sphCenter_Z;
-    unsigned int n[3];
-    // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
-    // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
-    // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
-    // nx = (xCenter - radius) / wx .
-    n[0] = (sphCenter_X_modified - d_sphereRadius_SU) / d_SD_Ldim_SU;
-    // Same for D and H
-    n[1] = (sphCenter_Y_modified - d_sphereRadius_SU) / d_SD_Ddim_SU;
-    n[2] = (sphCenter_Z_modified - d_sphereRadius_SU) / d_SD_Hdim_SU;
-    // This is kind of gross and hacky, if we're at the bottom boundary, the bottom SD is 0
-    // If we're at the top boundary, the top SD is the max
-    if (sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0) {
-        n[0] = 0;
-    } else if (sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS_UNSIGNED) {
-        n[0] = d_box_L_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
-    }
-    if (sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0) {
-        n[1] = 0;
-    } else if (sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_Y_POS_UNSIGNED) {
-        n[1] = d_box_D_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
-    }
-    if (sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0) {
-        n[2] = 0;
-    } else if (sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_Z_POS_UNSIGNED) {
-        n[2] = d_box_H_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
-    }
-    // n[0] += (sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0) -
-    //         (sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
-    // n[1] += (sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0) -
-    //         (sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
-    // n[2] += (sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0) -
-    //         (sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
-    // This conditional says if we're at the boundary
-    unsigned int boundary = sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0 ||
-                            sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS_UNSIGNED ||
-                            sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0 ||
-                            sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_Y_POS_UNSIGNED ||
-                            sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0 ||
-                            sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_Z_POS_UNSIGNED;
-    if (n[0] >= d_box_L_SU) {
-        ABORTABORTABORT(
-            "x is too large, boundary is %u, n is %u, nmax is %u, pos is %d, mod is %d, max is %d, dim is %d\n",
-            boundary, n[0], d_box_L_SU, sphCenter_X, sphCenter_X_modified, d_SD_Ldim_SU * d_box_L_SU, d_SD_Ldim_SU,
-            d_sphereRadius_SU);
-    }
-    // Find distance from next box in relevant dir to center, we may be straddling the two
-    int d[3];                                                 // Store penetrations
-    d[0] = (n[0] + 1) * d_SD_Ldim_SU - sphCenter_X_modified;  // dx = (nx + 1)* wx - x
-    d[1] = (n[1] + 1) * d_SD_Ddim_SU - sphCenter_Y_modified;
-    d[2] = (n[2] + 1) * d_SD_Hdim_SU - sphCenter_Z_modified;
-
-    // Calculate global indices from locals
-    // ones bit is x, twos bit is y, threes bit is z
-    // do some cute bit shifting and snag bit at correct place
-    // For each index in SDs
-    for (int i = 0; i < 8; i++) {
-        SDs[i] = 0;                // Init to 0
-        unsigned int valid = 0x1;  // Assume this SD is touched at start
-
-        // s adds an offset to directional index for SDs
-        // High/low in x-dir
-        // unsigned int s = i & 0x1; // Inlined now
-        // Scale to global index and add to total
-        SDs[i] += (n[0] + (i & 0x1)) * d_box_D_SU * d_box_H_SU;
-        // s == own[e] evals true if the current SD is owner
-        // If both touch it or we own it, the result is valid
-        valid &= (abs(d[0]) < d_sphereRadius_SU) || ((i & 0x1) == (d[0] < 0));
-
-        // High/low in y-dir
-        // s = i & 0x2; // Inlined now
-        // Scale to global index and add to total
-        SDs[i] += (n[1] + ((i >> 1) & 0x1)) * d_box_H_SU;
-        // If both touch it or we own it, the result is valid
-        valid &= (abs(d[1]) < d_sphereRadius_SU) || (((i >> 1) & 0x1) == (d[1] < 0));
-
-        // High/low in z-dir
-        // s = i & 0x4; // Inlined now
-        // Scale to global index and add to total
-        SDs[i] += (n[2] + ((i >> 2) & 0x1));
-        // If both touch it or we own it, the result is valid
-        valid &= (abs(d[2]) < d_sphereRadius_SU) || (((i >> 2) & 0x1) == (d[2] < 0));
-
-        // This is nasty but it checks if we're actually touching a bounary, in which case
-
-        // This ternary is hopefully better than a conditional
-        // If valid is false, then the SD is actually NULL_GRANULAR_ID
-        if (valid && SDs[i] >= d_box_D_SU * d_box_L_SU * d_box_H_SU) {
-            ABORTABORTABORT(
-                "UH OH!, sd overrun %u, boundary is %u, position is %d, %d, %d on thread %u, block %u, n is %u, %u, "
-                "%u\n",
-                SDs[i], boundary, sphCenter_X_modified, sphCenter_Y_modified, sphCenter_Z_modified, threadIdx.x,
-                blockIdx.x, n[0], n[1], n[2]);
-        }
-        SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);
-    }
-}
-/**
- * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time
- * stepping.
- *
- * Template arguments:
- *   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
- *
- * Assumptions:
- *   - Granular material is made up of monodisperse spheres.
- *   - The function below assumes the spheres are in a box
- *   - The box has dimensions L x D x H.
- *   - The reference frame associated with the box:
- *       - The x-axis is along the length L of the box
- *       - The y-axis is along the width D of the box
- *       - The z-axis is along the height H of the box
- *   - A sphere cannot touch more than eight SDs
- *
- * Basic idea: use domain decomposition on the rectangular box and figure out how many SDs each sphere touches.
- * The subdomains are axis-aligned relative to the reference frame associated with the *box*. The origin of the box is
- * at the center of the box. The orientation of the box is defined relative to a world inertial reference frame.
- *
- * Nomenclature:
- *   - SD: subdomain.
- *   - BD: the big-domain, which is the union of all SDs
- *   - NULL_GRANULAR_ID: the equivalent of a non-sphere SD ID, or a non-sphere ID
- *
- * Notes:
- *   - The SD with ID=0 is the catch-all SD. This is the SD in which a sphere ends up if its not inside the rectangular
- * box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
- *
- */
-template <
-    unsigned int
-        CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
-__global__ void
-primingOperationsRectangularBox(
-    int* d_sphere_pos_X,                       //!< Pointer to array containing data related to the spheres in the box
-    int* d_sphere_pos_Y,                       //!< Pointer to array containing data related to the spheres in the box
-    int* d_sphere_pos_Z,                       //!< Pointer to array containing data related to the spheres in the box
-    unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
-    unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction with SD_countsOfSpheresTouching.
-                                               //!< "spheres_in_SD_composite" says which SD contains what spheres
-    unsigned int nSpheres                      //!< Number of spheres in the box
-) {
-    int xSphCenter;
-    int ySphCenter;
-    int zSphCenter;
-
-    /// Set aside shared memory
-    volatile __shared__ size_t offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
-    volatile __shared__ bool shMem_head_flags[CUB_THREADS * 8];
-
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
-    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
-
-    typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
-    __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
-
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int sphIDs[8] = {mySphereID, mySphereID, mySphereID, mySphereID,
-                              mySphereID, mySphereID, mySphereID, mySphereID};
-
-    // This uses a lot of registers but is needed
-    unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
-                                  NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
-    if (mySphereID < nSpheres) {
-        // Coalesced mem access
-        xSphCenter = d_sphere_pos_X[mySphereID];
-        ySphCenter = d_sphere_pos_Y[mySphereID];
-        zSphCenter = d_sphere_pos_Z[mySphereID];
-
-        figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
-    }
-
-    __syncthreads();
-
-    // Sort by the ID of the SD touched
-    BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, sphIDs);
-    __syncthreads();
-
-    // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[8];
-    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
-    __syncthreads();
-
-    // Write back to shared memory; eight-way bank conflicts here - to revisit later
-    for (unsigned int i = 0; i < 8; i++) {
-        shMem_head_flags[8 * threadIdx.x + i] = head_flags[i];
-    }
-
-    // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
-    // No shmem bank coflicts here, good access...
-    for (unsigned int i = 0; i < 8; i++) {
-        offsetInComposite_SphInSD_Array[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID_LONG;
-    }
-
-    __syncthreads();
-
-    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS spheres. There
-    // will be some thread divergence here.
-    // Loop through each potential SD, after sorting, and see if it is the start of a head
-    for (unsigned int i = 0; i < 8; i++) {
-        // SD currently touched, could easily be inlined
-        unsigned int touchedSD = SDsTouched[i];
-        if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
-            // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
-            unsigned int idInShared = 8 * threadIdx.x + i;
-            unsigned int winningStreak = 0;
-            // This is the beginning of a sequence of SDs with a new ID
-            do {
-                winningStreak++;
-                // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < 8 * CUB_THREADS && !(shMem_head_flags[idInShared + winningStreak]));
-
-            // if (touchedSD >= d_box_L_SU * d_box_D_SU * d_box_H_SU) {
-            //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            // }
-
-            // Store start of new entries
-            size_t offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
-
-            // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
-            // Get the absolute offset
-            offset += ((size_t)touchedSD) * MAX_COUNT_OF_DEs_PER_SD;
-
-            // Produce the offsets for this streak of spheres with identical SD ids
-            for (unsigned int i = 0; i < winningStreak; i++)
-                offsetInComposite_SphInSD_Array[idInShared + i] = offset++;
-        }
-    }
-
-    __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
-
-    const size_t max_composite_index = (size_t)d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
-
-    // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
-    for (unsigned int i = 0; i < 8; i++) {
-        size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
-        if (offset != NULL_GRANULAR_ID_LONG) {
-            if (offset >= max_composite_index) {
-                ABORTABORTABORT(
-                    "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
-                    threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
-            } else {
-                spheres_in_SD_composite[offset] = sphIDs[i];
-            }
-        }
-    }
-}
-
-/**
-This device function computes the forces induces by the walls on the box on a sphere
-Input:
-  - alpha_h_bar: the size of the time step
-  - sphXpos: X location, measured in the box reference system, of the sphere
-  - sphYpos: Y location, measured in the box reference system, of the sphere
-  - sphZpos: Z location, measured in the box reference system, of the sphere
-  - sphXvel: X velocity, measured in the box reference system, of the sphere
-  - sphYvel: Y velocity, measured in the box reference system, of the sphere
-  - sphZvel: Z velocity, measured in the box reference system, of the sphere
-
-Output:
-  - X_Vel_corr: the X component of the force, as represented in the box reference system
-  - Y_Vel_corr: the Y component of the force, as represented in the box reference system
-  - Z_Vel_corr: the Z component of the force, as represented in the box reference system
-*/
-__device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step size.
-                                const int sphXpos,        //!< Global X position of DE
-                                const int sphYpos,        //!< Global Y position of DE
-                                const int sphZpos,        //!< Global Z position of DE
-                                const float sphXvel,      //!< Global X velocity of DE
-                                const float sphYvel,      //!< Global Y velocity of DE
-                                const float sphZvel,      //!< Global Z velocity of DE
-                                float& X_Vel_corr,        //!< Velocity correction in Xdir
-                                float& Y_Vel_corr,        //!< Velocity correction in Xdir
-                                float& Z_Vel_corr         //!< Velocity correction in Xdir
-) {
-    // Shift frame so that origin is at lower left corner
-    int sphXpos_modified = -d_BD_frame_X + sphXpos;
-    int sphYpos_modified = -d_BD_frame_Y + sphYpos;
-    int sphZpos_modified = -d_BD_frame_Z + sphZpos;
-
-    // penetration into wall
-    signed int pen = 0;
-    // Are we touching wall?
-    int touchingWall = 0;
-    // Compute spring factor in force
-    float scalingFactor = (1.0f * alpha_h_bar) * d_Kn_s2w_SU;
-
-    // tmp vars to save writes, probably not necessary
-    float xcomp = 0;
-    float ycomp = 0;
-    float zcomp = 0;
-
-    // Do x direction
-    // penetration of sphere into bottom x wall
-    pen = sphXpos_modified - (signed int)d_sphereRadius_SU;
-    // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
-    // in this case, pen is negative and we want a positive restorative force
-    // Need to get relative velocity
-    xcomp += touchingWall * (scalingFactor * abs(pen));
-
-    // Do top X wall
-    pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)d_sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
-    // in this case, pen is positive and we want a negative restorative force
-    xcomp += touchingWall * (-1 * scalingFactor * abs(pen));
-
-    // penetration of sphere into relevant wall
-    pen = sphYpos_modified - (signed int)d_sphereRadius_SU;
-    // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
-    // in this case, pen is negative and we want a positive restorative force
-    ycomp += touchingWall * (scalingFactor * abs(pen));
-
-    // Do top y wall
-    pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)d_sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
-    // in this case, pen is positive and we want a negative restorative force
-    ycomp += touchingWall * (-1 * scalingFactor * abs(pen));
-
-    // penetration of sphere into relevant wall
-    pen = sphZpos_modified - (signed int)d_sphereRadius_SU;
-    // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
-    // in this case, pen is negative and we want a positive restorative force
-    zcomp += touchingWall * (scalingFactor * abs(pen));
-
-    // Do top z wall
-    pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)d_sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
-    // in this case, pen is positive and we want a negative restorative force
-    zcomp += touchingWall * (-1 * scalingFactor * abs(pen));
-
-    // write back to "return" values
-    X_Vel_corr += xcomp;
-    Y_Vel_corr += ycomp;
-    Z_Vel_corr += zcomp;
-}
-/**
-This kernel applies the velocity updates computed in computeVelocityUpdates to each sphere. This has to be its own
-kernel since computeVelocityUpdates would otherwise both read and write to the global velocities, an undesirable effect.
-NOTE That this function uses the already-integrated forces, so for forward euler the updates are F * dt
-*/
-template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
-                                             //!< Should be a multiple of 32
-__global__ void applyVelocityUpdates(
-    unsigned int alpha_h_bar,      //!< Value that controls actual step size, not actually needed for this kernel
-    int* d_sphere_pos_X,           //!< Pointer to array containing data related to the
-                                   //!< spheres in the box
-    int* d_sphere_pos_Y,           //!< Pointer to array containing data related to the
-                                   //!< spheres in the box
-    int* d_sphere_pos_Z,           //!< Pointer to array containing data related to the
-                                   //!< spheres in the box
-    float* d_sphere_pos_X_update,  //!< Pointer to array containing data related to
-                                   //!< the spheres in the box
-    float* d_sphere_pos_Y_update,  //!< Pointer to array containing data related to
-                                   //!< the spheres in the box
-    float* d_sphere_pos_Z_update,  //!< Pointer to array containing data related to
-                                   //!< the spheres in the box
-    unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
-                                               //!< SD indicates how many
-                                               //!< spheres touch this SD
-    unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction
-                                               //!< with SD_countsOfSpheresTouching.
-
-    float* d_sphere_pos_X_dt,
-    float* d_sphere_pos_Y_dt,
-    float* d_sphere_pos_Z_dt) {
-    unsigned int thisSD = blockIdx.x;
-    unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
-    unsigned mySphereID;  // Bring in data from global into shmem. Only a subset of threads get to do this.
-    if (threadIdx.x < spheresTouchingThisSD) {
-        // We need long ints to index into composite array
-        size_t offset_in_composite_Array = ((size_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
-        mySphereID = spheres_in_SD_composite[offset_in_composite_Array];
-        unsigned int ownerSD =
-            figureOutOwnerSD(d_sphere_pos_X[mySphereID], d_sphere_pos_Y[mySphereID], d_sphere_pos_Z[mySphereID]);
-
-        // Each SD applies force updates to the bodies it *owns*, this should happen once for each body
-        if (thisSD == ownerSD) {
-            // Check to see if we messed up badly somewhere
-            if (d_sphere_pos_X_update[mySphereID] == NAN || d_sphere_pos_Y_update[mySphereID] == NAN ||
-                d_sphere_pos_Z_update[mySphereID] == NAN) {
-                ABORTABORTABORT("NAN velocity update computed -- sd is %u, sphere is %u, velXcorr is %f\n", thisSD,
-                                mySphereID, d_sphere_pos_X_update[mySphereID]);
-            }
-            // Probably does not need to be atomic, but no conflicts means it won't be too slow anyways
-            atomicAdd(d_sphere_pos_X_dt + mySphereID, d_sphere_pos_X_update[mySphereID]);
-            atomicAdd(d_sphere_pos_Y_dt + mySphereID, d_sphere_pos_Y_update[mySphereID]);
-            atomicAdd(d_sphere_pos_Z_dt + mySphereID, d_sphere_pos_Z_update[mySphereID]);
-        }
-    }
-    __syncthreads();
-}
-
-/**
-This kernel call figures out forces on a sphere and carries out numerical integration to get the velocity updates of a
-sphere.
-
-Template arguments:
-  - MAX_NSPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block
-collectives.
-
-Assumptions:
-    - A sphere cannot touch more than 12 other spheres (this is a proved results, of 1953).
-    - A "char" is stored on 8 bits and as such an unsigned char can hold positive numbers up to and including 255
-    - MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
-    - Granular material is made up of monodisperse spheres.
-    - The function below assumes the spheres are in a box
-    - The box has dimensions L x D x H.
-    - The reference frame associated with the box:
-      - The x-axis is along the length L of the box
-      - The y-axis is along the width D of the box
-      - The z-axis is along the height H of the box
-
-NOTE:
-  - Upon calling it with more than 256 threads, this kernel is going to make illegal memory accesses
-*/
-template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
-                                             //!< Should be a multiple of 32
-__global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value that controls actual step size.
-                                       int* d_sphere_pos_X,       //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
-                                       int* d_sphere_pos_Y,       //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
-                                       int* d_sphere_pos_Z,       //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
-                                       float* d_sphere_pos_X_update,  //!< Pointer to array containing data related to
-                                                                      //!< the spheres in the box
-                                       float* d_sphere_pos_Y_update,  //!< Pointer to array containing data related to
-                                                                      //!< the spheres in the box
-                                       float* d_sphere_pos_Z_update,  //!< Pointer to array containing data related to
-                                                                      //!< the spheres in the box
-                                       unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
-                                                                                  //!< SD indicates how many
-                                                                                  //!< spheres touch this SD
-                                       unsigned int* spheres_in_SD_composite,  //!< Big array that works in conjunction
-                                                                               //!< with SD_countsOfSpheresTouching.
-                                       float* d_sphere_pos_X_dt,
-                                       float* d_sphere_pos_Y_dt,
-                                       float* d_sphere_pos_Z_dt) {
-    // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
-    __shared__ int sphere_X[MAX_NSPHERES_PER_SD];
-    __shared__ int sphere_Y[MAX_NSPHERES_PER_SD];
-    __shared__ int sphere_Z[MAX_NSPHERES_PER_SD];
-    __shared__ float sphere_X_DOT[MAX_NSPHERES_PER_SD];
-    __shared__ float sphere_Y_DOT[MAX_NSPHERES_PER_SD];
-    __shared__ float sphere_Z_DOT[MAX_NSPHERES_PER_SD];
-
-    unsigned int thisSD = blockIdx.x;
-    unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
-    unsigned mySphereID;
-    unsigned char bodyB_list[12];
-    unsigned int ncontacts = 0;
-
-    // Bring in data from global into shmem. Only a subset of threads get to do this.
-    // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
-    if (threadIdx.x < spheresTouchingThisSD) {
-        // We need long ints to index into composite array
-        size_t offset_in_composite_Array = ((size_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
-        mySphereID = spheres_in_SD_composite[offset_in_composite_Array];
-        sphere_X[threadIdx.x] = d_sphere_pos_X[mySphereID];
-        sphere_Y[threadIdx.x] = d_sphere_pos_Y[mySphereID];
-        sphere_Z[threadIdx.x] = d_sphere_pos_Z[mySphereID];
-        sphere_X_DOT[threadIdx.x] = d_sphere_pos_X_dt[mySphereID];
-        sphere_Y_DOT[threadIdx.x] = d_sphere_pos_Y_dt[mySphereID];
-        sphere_Z_DOT[threadIdx.x] = d_sphere_pos_Z_dt[mySphereID];
-    }
-
-    __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
-
-    // Assumes each thread is a body, not the greatest assumption but we can fix that later
-    // Note that if we have more threads than bodies, some effort gets wasted.
-    unsigned int bodyA = threadIdx.x;
-
-    // If we overran, we have a major issue, time to crash before we make illegal memory accesses
-    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
-        // Crash now
-        ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
-    }
-
-    // Each body looks at each other body and computes the force that the other body exerts on it
-    if (bodyA < spheresTouchingThisSD) {
-        // The update we make to the velocities, it's ok for this to be a float since it should be pretty small anyways,
-        // gets truncated to int very soon
-        float bodyA_X_velCorr = 0.f;
-        float bodyA_Y_velCorr = 0.f;
-        float bodyA_Z_velCorr = 0.f;
-
-        float scalingFactor = alpha_h_bar * d_Kn_s2s_SU;
-        double sphdiameter = 2. * d_sphereRadius_SU;
-        double invSphDiameter = 1. / sphdiameter;
-        unsigned int ownerSD = figureOutOwnerSD(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA]);
-        for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
-            // unsigned int theirSphID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
-            // Don't check for collision with self
-            if (bodyA == bodyB)
-                continue;
-
-            // Compute penetration to check for collision, we can use ints provided the diameter is small enough
-            long int penetration_int = 0;
-
-            // This avoids computing a square to figure our if collision or not
-            long int deltaX = (sphere_X[bodyA] - sphere_X[bodyB]);
-            long int deltaY = (sphere_Y[bodyA] - sphere_Y[bodyB]);
-            long int deltaZ = (sphere_Z[bodyA] - sphere_Z[bodyB]);
-
-            penetration_int = deltaX * deltaX;
-            penetration_int += deltaY * deltaY;
-            penetration_int += deltaZ * deltaZ;
-
-            // Here we need to check if the contact point is in this SD.
-
-            // Take spatial average of positions to get position of contact point
-            // NOTE that we *do* want integer division since the SD-checking code uses ints anyways. Computing this as
-            // an int is *much* faster than float, much less double, on Conlain's machine
-            int contactX = (sphere_X[bodyB] + sphere_X[bodyA]) / 2;
-            int contactY = (sphere_Y[bodyB] + sphere_Y[bodyA]) / 2;
-            int contactZ = (sphere_Z[bodyB] + sphere_Z[bodyA]) / 2;
-
-            // We need to make sure we don't count a collision twice -- if a contact pair is in multiple SDs, count it
-            // only in the one that holds the contact point
-            unsigned int contactSD = figureOutOwnerSD(contactX, contactY, contactZ);
-
-            // We have a collision here, log it for later
-            // not very divergent, super quick
-            if (contactSD == thisSD && penetration_int < 4 * d_sphereRadius_SU * d_sphereRadius_SU) {
-                bodyB_list[ncontacts] = bodyB;  // Save the collision pair
-                ncontacts++;                    // Increment the contact counter
-            }
-        }
-
-        // NOTE that below here I used double precision because I didn't know how much precision I needed. Reducing the
-        // amount of doubles will certainly speed this up
-        // Run through and do actual force computations, for these we know each one is a legit collision
-        for (unsigned int idx = 0; idx < ncontacts; idx++) {
-            double penetration = 0;
-
-            // unsigned int theirSphID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
-            // Don't check for collision with self
-            unsigned char bodyB = bodyB_list[idx];
-
-            // NOTE below here, it seems faster to do coalesced shared mem accesses than caching sphere_X[bodyA] and the
-            // like in a register
-            // This avoids computing a square to figure our if collision or not
-            double deltaX = (sphere_X[bodyA] - sphere_X[bodyB]) * invSphDiameter;
-            double deltaY = (sphere_Y[bodyA] - sphere_Y[bodyB]) * invSphDiameter;
-            double deltaZ = (sphere_Z[bodyA] - sphere_Z[bodyB]) * invSphDiameter;
-
-            // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
-            float deltaX_dot = sphere_X_DOT[bodyA] - sphere_X_DOT[bodyB];
-            float deltaY_dot = sphere_Y_DOT[bodyA] - sphere_Y_DOT[bodyB];
-            float deltaZ_dot = sphere_Z_DOT[bodyA] - sphere_Z_DOT[bodyB];
-
-            penetration = deltaX * deltaX;
-            penetration += deltaY * deltaY;
-            penetration += deltaZ * deltaZ;
-            // We now have
-
-            // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA
-            // intrinsic:
-            // __device__ ​ float rnormf ( int  dim, const float* a)
-            // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
-
-            // Compute penetration term, this becomes the delta as we want it
-            // Makes more sense to find rsqrt, the compiler is doing this anyways
-            float penetrationNorm = rsqrt(penetration);
-            penetration = penetrationNorm - 1.;
-
-            // Compute nondim force term
-
-            // These lines use forward euler right now. Each has an alpha_h_bar term but we can use a different
-            // method simply by changing the following computations
-            // Compute force updates for spring term
-            float springTermX = scalingFactor * deltaX * sphdiameter * penetration / d_DE_Mass;
-            float springTermY = scalingFactor * deltaY * sphdiameter * penetration / d_DE_Mass;
-            float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration / d_DE_Mass;
-            // Compute force updates for damping term
-            float dampingTermX = -d_Gamma_n * alpha_h_bar * deltaX_dot;
-            float dampingTermY = -d_Gamma_n * alpha_h_bar * deltaY_dot;
-            float dampingTermZ = -d_Gamma_n * alpha_h_bar * deltaZ_dot;
-
-            float cohesionConstant = gravAcc_Z_d_factor_SU * d_cohesion_ratio;
-
-            // Compute force updates for cohesion term, is opposite the spring term
-            float cohesionTermX = cohesionConstant * deltaX / penetrationNorm;
-            float cohesionTermY = cohesionConstant * deltaY / penetrationNorm;
-            float cohesionTermZ = cohesionConstant * deltaZ / penetrationNorm;
-
-            // printf("fuck %f, %f\n", cohesionTermZ, cohesionConstant);
-
-            // Add damping term to spring term, write back to counter
-            bodyA_X_velCorr += springTermX + dampingTermX + cohesionTermX;
-            bodyA_Y_velCorr += springTermY + dampingTermY + cohesionTermY;
-            bodyA_Z_velCorr += springTermZ + dampingTermZ + cohesionTermZ;
-        }
-        // NOTE from Conlain -- this latex is broken, I think
-        /**
-        Compute now the forces on bodyA; i.e, what bodyA feels (if bodyA is in contact w/ anybody in this SD).
-
-        \f[ \mbox{penetration} = \left[\left(\frac{x_A}{2R} -
-        \frac{x_B}{2R}\right)^2 + \left(\frac{y_A}{2R} - \frac{y_B}{2R}\right)^2 + \left(\frac{z_A}{2R} -
-        \frac{z_B}{2R}\right)^2\right] \f]
-
-        The deformation that enters the computation of the normal contact force is scaled by the square of the step
-        size, the stiffness and the particle mass: \f[ h^2 \frac{K}{m} \delta \f] Then, the quantity that comes into
-        play in computing the update in positions looks like \f[ h^2 \frac{K}{m} \times 2R \times \left( \frac{
-        1}{\sqrt{(\left(\frac{x_A}{2R} - \frac{x_B}{2R}\right)^2 + \left(\frac{y_A}{2R} - \frac{y_B}{2R}\right)^2 +
-        \left(\frac{z_A}{2R} - \frac{z_B}{2R}\right)^2)}} -1 \right) \times \begin{bmatrix}
-        \frac{x_A}{2R} - \frac{x_B}{2R}  \vspace{0.2cm}\\
-        \frac{y_A}{2R} - \frac{y_B}{2R} \vspace{0.2cm}\\
-        \frac{z_A}{2R} - \frac{z_B}{2R}
-        \end{bmatrix}
-        \f]
-        */
-
-        // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
-        // this force.
-        // If this SD owns the body, add its wall forces and grav forces. This should be pretty non-divergent since
-        // most spheres won't be on the border
-        if (ownerSD == thisSD) {
-            // Perhaps this sphere is hitting the wall[s]
-            boxWallsEffects(alpha_h_bar, sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA],
-                            sphere_Y_DOT[bodyA], sphere_Z_DOT[bodyA], bodyA_X_velCorr, bodyA_Y_velCorr,
-                            bodyA_Z_velCorr);
-            // If the sphere belongs to this SD, add up the gravitational force component.
-
-            bodyA_X_velCorr += alpha_h_bar * gravAcc_X_d_factor_SU;
-            bodyA_Y_velCorr += alpha_h_bar * gravAcc_Y_d_factor_SU;
-            bodyA_Z_velCorr += alpha_h_bar * gravAcc_Z_d_factor_SU;
-        }
-
-        // Write the velocity updates back to global memory so that we can apply them AFTER this kernel finishes
-        atomicAdd(d_sphere_pos_X_update + mySphereID, bodyA_X_velCorr);
-        atomicAdd(d_sphere_pos_Y_update + mySphereID, bodyA_Y_velCorr);
-        atomicAdd(d_sphere_pos_Z_update + mySphereID, bodyA_Z_velCorr);
-    }
-    __syncthreads();
-}
-
-template <unsigned int THRDS_PER_BLOCK>  //!< Number of CUB threads engaged in block-collective CUB operations.
-                                         //!< Should be a multiple of 32
-__global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical integration time step
-                                int* d_sphere_pos_X,       //!< Pointer to array containing data related to the
-                                                           //!< spheres in the box
-                                int* d_sphere_pos_Y,       //!< Pointer to array containing data related to the
-                                                           //!< spheres in the box
-                                int* d_sphere_pos_Z,       //!< Pointer to array containing data related to the
-                                                           //!< spheres in the box
-                                float* d_sphere_pos_X_dt,  //!< Pointer to array containing data related to
-                                                           //!< the spheres in the box
-                                float* d_sphere_pos_Y_dt,  //!< Pointer to array containing data related to
-                                                           //!< the spheres in the box
-                                float* d_sphere_pos_Z_dt,  //!< Pointer to array containing data related to
-                                                           //!< the spheres in the box
-                                unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
-                                                                           //!< SD indicates how many
-                                                                           //!< spheres touch this SD
-                                unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction
-                                                                           //!< with SD_countsOfSpheresTouching.
-                                                                           //!< "spheres_in_SD_composite" says which
-                                                                           //!< SD contains what spheres
-                                unsigned int nSpheres) {
-    int xSphCenter;
-    int ySphCenter;
-    int zSphCenter;
-    /// Set aside shared memory
-    volatile __shared__ size_t offsetInComposite_SphInSD_Array[THRDS_PER_BLOCK * 8];
-    volatile __shared__ bool shMem_head_flags[THRDS_PER_BLOCK * 8];
-
-    typedef cub::BlockRadixSort<unsigned int, THRDS_PER_BLOCK, 8, unsigned int> BlockRadixSortOP;
-    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
-
-    typedef cub::BlockDiscontinuity<unsigned int, THRDS_PER_BLOCK> Block_Discontinuity;
-    __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
-
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int sphIDs[8] = {mySphereID, mySphereID, mySphereID, mySphereID,
-                              mySphereID, mySphereID, mySphereID, mySphereID};
-
-    // This uses a lot of registers but is needed
-    unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
-                                  NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
-    if (mySphereID < nSpheres) {
-        // Perform numerical integration. For now, use Explicit Euler. Hitting cache, also coalesced.
-        xSphCenter = alpha_h_bar * d_sphere_pos_X_dt[mySphereID];
-        ySphCenter = alpha_h_bar * d_sphere_pos_Y_dt[mySphereID];
-        zSphCenter = alpha_h_bar * d_sphere_pos_Z_dt[mySphereID];
-
-        xSphCenter += d_sphere_pos_X[mySphereID];
-        d_sphere_pos_X[mySphereID] = xSphCenter;
-
-        ySphCenter += d_sphere_pos_Y[mySphereID];
-        d_sphere_pos_Y[mySphereID] = ySphCenter;
-
-        zSphCenter += d_sphere_pos_Z[mySphereID];
-        d_sphere_pos_Z[mySphereID] = zSphCenter;
-
-        figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched);
-    }
-
-    __syncthreads();
-
-    // Sort by the ID of the SD touched
-    BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, sphIDs);
-    __syncthreads();
-
-    // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[8];
-    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
-    __syncthreads();
-
-    // Write back to shared memory; eight-way bank conflicts here - to revisit later
-    for (unsigned int i = 0; i < 8; i++) {
-        shMem_head_flags[8 * threadIdx.x + i] = head_flags[i];
-    }
-
-    // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
-    // No shmem bank coflicts here, good access...
-    for (unsigned int i = 0; i < 8; i++) {
-        offsetInComposite_SphInSD_Array[i * THRDS_PER_BLOCK + threadIdx.x] = NULL_GRANULAR_ID_LONG;
-    }
-
-    __syncthreads();
-
-    // Count how many times an SD shows up in conjunction with the collection of THRDS_PER_BLOCK spheres. There
-    // will be some thread divergence here.
-    // Loop through each potential SD, after sorting, and see if it is the start of a head
-    for (unsigned int i = 0; i < 8; i++) {
-        // SD currently touched, could easily be inlined
-        unsigned int touchedSD = SDsTouched[i];
-        if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
-            // current index into shared datastructure of length 8*THRDS_PER_BLOCK, could easily be inlined
-            unsigned int idInShared = 8 * threadIdx.x + i;
-            unsigned int winningStreak = 0;
-            // This is the beginning of a sequence of SDs with a new ID
-            do {
-                winningStreak++;
-                // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < 8 * THRDS_PER_BLOCK &&
-                     !(shMem_head_flags[idInShared + winningStreak]));
-
-            if (touchedSD >= d_box_L_SU * d_box_D_SU * d_box_H_SU) {
-                printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            }
-
-            // Store start of new entries, this can be a very large number
-            size_t offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
-
-            // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
-            // Get the absolute offset
-            offset += ((size_t)touchedSD) * MAX_COUNT_OF_DEs_PER_SD;
-
-            // Produce the offsets for this streak of spheres with identical SD ids
-            for (unsigned int i = 0; i < winningStreak; i++)
-                offsetInComposite_SphInSD_Array[idInShared + i] = offset++;
-        }
-    }
-
-    __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
-
-    const size_t max_composite_index = (size_t)d_box_D_SU * d_box_L_SU * d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
-
-    // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
-    // what is happening is anything real?
-    for (unsigned int i = 0; i < 8; i++) {
-        size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
-        if (offset != NULL_GRANULAR_ID_LONG) {
-            if (offset >= max_composite_index) {
-                ABORTABORTABORT(
-                    "overrun during updatePositions on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
-                    threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
-            } else {
-                spheres_in_SD_composite[offset] = sphIDs[i];
-            }
-        }
-    }
-}
 /// Copy constant sphere data to device, this should run at start
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
-    gpuErrchk(cudaMemcpyToSymbol(d_SD_Ldim_SU, &SD_L_SU, sizeof(d_SD_Ldim_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_SD_Ddim_SU, &SD_D_SU, sizeof(d_SD_Ddim_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_SD_Hdim_SU, &SD_H_SU, sizeof(d_SD_Hdim_SU)));
+    gran_params->d_SD_Ldim_SU = SD_L_SU;
+    gran_params->d_SD_Ddim_SU = SD_D_SU;
+    gran_params->d_SD_Hdim_SU = SD_H_SU;
     // Copy global BD size in multiples of SDs to device
-    gpuErrchk(cudaMemcpyToSymbol(d_box_L_SU, &nSDs_L_SU, sizeof(d_box_L_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_box_D_SU, &nSDs_D_SU, sizeof(d_box_D_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_box_H_SU, &nSDs_H_SU, sizeof(d_box_H_SU)));
+    gran_params->d_box_L_SU = nSDs_L_SU;
+    gran_params->d_box_D_SU = nSDs_D_SU;
+    gran_params->d_box_H_SU = nSDs_H_SU;
 
-    gpuErrchk(cudaMemcpyToSymbol(psi_T_dFactor, &psi_T_Factor, sizeof(psi_T_Factor)));
-    gpuErrchk(cudaMemcpyToSymbol(psi_h_dFactor, &psi_h_Factor, sizeof(psi_h_Factor)));
-    gpuErrchk(cudaMemcpyToSymbol(psi_L_dFactor, &psi_L_Factor, sizeof(psi_L_Factor)));
+    gran_params->psi_T_dFactor = psi_T_Factor;
+    gran_params->psi_h_dFactor = psi_h_Factor;
+    gran_params->psi_L_dFactor = psi_L_Factor;
 
-    gpuErrchk(cudaMemcpyToSymbol(gravAcc_X_d_factor_SU, &gravity_X_SU, sizeof(gravity_X_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(gravAcc_Y_d_factor_SU, &gravity_Y_SU, sizeof(gravity_Y_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(gravAcc_Z_d_factor_SU, &gravity_Z_SU, sizeof(gravity_Z_SU)));
+    gran_params->gravAcc_X_d_factor_SU = gravity_X_SU;
+    gran_params->gravAcc_Y_d_factor_SU = gravity_Y_SU;
+    gran_params->gravAcc_Z_d_factor_SU = gravity_Z_SU;
 
-    gpuErrchk(cudaMemcpyToSymbol(d_sphereRadius_SU, &sphereRadius_SU, sizeof(d_sphereRadius_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_Gamma_n, &Gamma_n_SU, sizeof(d_Gamma_n)));
-    gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2s_SU, &K_n_s2s_SU, sizeof(d_Kn_s2s_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2w_SU, &K_n_s2s_SU, sizeof(d_Kn_s2w_SU)));
-    gpuErrchk(cudaMemcpyToSymbol(d_DE_Mass, &MASS_UNIT, sizeof(MASS_UNIT)));
-    gpuErrchk(cudaMemcpyToSymbol(d_cohesion_ratio, &cohesion_over_gravity, sizeof(cohesion_over_gravity)));
+    gran_params->d_sphereRadius_SU = sphereRadius_SU;
+
+    gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
+    gran_params->d_Kn_s2s_SU = K_n_s2s_SU;
+    gran_params->d_Kn_s2w_SU = K_n_s2s_SU;
+
+    gran_params->d_DE_Mass = MASS_UNIT;
+    gran_params->d_cohesion_ratio = cohesion_over_gravity;
 }
 
 /// Similar to the copy_const_data_to_device, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_device() {
-    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X, &BD_frame_X, sizeof(BD_frame_X)));
-    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y, &BD_frame_Y, sizeof(BD_frame_Y)));
-    gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z, &BD_frame_Z, sizeof(BD_frame_Z)));
-
-    // gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_X_dot, &BD_frame_X_dot, sizeof(BD_frame_X_dot)));
-    // gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Y_dot, &BD_frame_Y_dot, sizeof(BD_frame_Y_dot)));
-    // gpuErrchk(cudaMemcpyToSymbol(d_BD_frame_Z_dot, &BD_frame_Z_dot, sizeof(BD_frame_Z_dot)));
+    // Unified memory does all the work here
+    gran_params->d_BD_frame_X = BD_frame_X;
+    gran_params->d_BD_frame_Y = BD_frame_Y;
+    gran_params->d_BD_frame_Z = BD_frame_Z;
 }
 
 // Check number of spheres in each SD and dump relevant info to file
@@ -1050,7 +192,8 @@ __global__ void owner_prepack(int* d_sphere_pos_X,
                               float* d_sphere_pos_Z_dt,
                               unsigned int nSpheres,
                               unsigned int* owners,
-                              sphere_data_struct* sphere_info) {
+                              sphere_data_struct* sphere_info,
+                              ParamsPtr gran_params) {
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // Only do this for valid spheres
@@ -1058,8 +201,9 @@ __global__ void owner_prepack(int* d_sphere_pos_X,
         return;
     }
     // Find this SD's owner
-    owners[mySphereID] =
-        figureOutOwnerSD(d_sphere_pos_X[mySphereID], d_sphere_pos_Y[mySphereID], d_sphere_pos_Z[mySphereID]);
+    owners[mySphereID] = SDTripletID(
+        pointSDTriplet(d_sphere_pos_X[mySphereID], d_sphere_pos_Y[mySphereID], d_sphere_pos_Z[mySphereID], gran_params),
+        gran_params);
 
     sphere_data_struct mydata = sphere_info[mySphereID];
 
@@ -1082,7 +226,8 @@ __global__ void owner_unpack(int* d_sphere_pos_X,
                              float* d_sphere_pos_Y_dt,
                              float* d_sphere_pos_Z_dt,
                              unsigned int nSpheres,
-                             sphere_data_struct* sphere_info) {
+                             sphere_data_struct* sphere_info,
+                             ParamsPtr gran_params) {
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // Only do this for valid spheres
@@ -1119,7 +264,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::d
     gpuErrchk(cudaMalloc(&d_sphere_data_2, nDEs * sizeof(sphere_data_struct)));
     owner_prepack<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
                                                            pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_owners,
-                                                           d_sphere_data);
+                                                           d_sphere_data, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
 
     // Create a set of DoubleBuffers to wrap pairs of device pointers
@@ -1141,7 +286,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::d
     gpuErrchk(cudaDeviceSynchronize());
 
     owner_unpack<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
-                                                          pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_values.Current());
+                                                          pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_values.Current(),
+                                                          gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     cudaFree(d_owners);
     cudaFree(d_owners_2);
@@ -1169,8 +315,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
     printf("doing priming!\n");
     printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 
-    primingOperationsRectangularBox<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-        pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
+    primingOperationsRectangularBox<CUDA_THREADS>
+        <<<nBlocks, CUDA_THREADS>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
+                                    DEs_in_SD_composite.data(), nDEs, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
     // Check in first timestep
@@ -1186,9 +333,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
     unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
-    printf("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
-           nsteps, duration / nsteps);
-    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+    VERBOSE_PRINTF("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
+                   stepSize_SU, nsteps, duration / nsteps);
+    VERBOSE_PRINTF("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
@@ -1207,7 +354,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
         computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data());
+            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
@@ -1216,7 +363,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
         applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data());
+            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -1228,12 +375,11 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
-            SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
+            SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs, gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
     }
-    printf("SU radius is %u\n", sphereRadius_SU);
 
     return;
 }
