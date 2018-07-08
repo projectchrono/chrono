@@ -22,6 +22,16 @@ endif("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
+# Enable creation of "application bundles" on MacOSX.
+# This is necessary for Irrlicht-based demos and optional for OpenGL or non-graphics demos.
+# For simplicity and consistency, we enable here MACOSX_BUNDLE for all subsequent programs.
+
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE ON)
+endif()
+
+#--------------------------------------------------------------
+
 message(STATUS "==== Demo programs ====")
 
 option(BUILD_DEMOS_BASE "Build demo programs for base Chrono module" TRUE)

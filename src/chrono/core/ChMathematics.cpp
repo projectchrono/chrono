@@ -114,4 +114,15 @@ double ChNoise(double x, double amp, double freq, int octaves, double amp_ratio)
     return ret;
 }
 
+double ChSineStep(double x, double x1, double y1, double x2, double y2) {
+    if (x <= x1)
+        return y1;
+    if (x >= x2)
+        return y2;
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    double y = y1 + dy * (x - x1) / dx - (dy / CH_C_2PI) * std::sin(CH_C_2PI * (x - x1) / dx);
+    return y;
+}
+
 }  // end namespace chrono

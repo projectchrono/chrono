@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2018 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -138,11 +138,11 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
     	}
         // Specification through load index
         unsigned int li = d["Load Index"].GetUint();
-        std::string vehicle_type = d["Name"].GetString();
-        if (vehicle_type.compare("truck") == 0) {
-            GuessTruck80Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li, p_use);
+        std::string vehicle_type = d["Vehicle Type"].GetString();
+        if (vehicle_type.compare("Truck") == 0) {
+            GuessTruck80Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
         } else {
-            GuessPassCar70Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li, p_use);
+            GuessPassCar70Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
         }
     } else if (d.HasMember("Maximum Bearing Capacity [N]")) {
     	// Information about tire inflation pressure might be present

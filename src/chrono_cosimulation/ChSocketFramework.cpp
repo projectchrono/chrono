@@ -33,11 +33,7 @@ ChSocketFramework::ChSocketFramework() {
 
 ChSocketFramework::~ChSocketFramework() {
 #ifdef WINDOWS_XP
-
-    if (WSACleanup()) {
-        throw ChExceptionSocket(0, "Error: calling WSACleanup()");
-    }
-
+    WSACleanup();
 #endif
 }
 

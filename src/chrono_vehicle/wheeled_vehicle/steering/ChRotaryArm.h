@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Rainer Gericke
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// Base class for a rotary arm steering subsystem. 
+// Base class for a rotary arm steering subsystem.
 // Derived from ChSteering, but still an abstract base class.
 //
 // The steering subsystem is modeled with respect to a right-handed frame with
@@ -89,21 +89,21 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        PITMANARM,     ///< Pitman arm location (com)
-        REV,           ///< location of joint between Pitman arm and chassis
+        PITMANARM,  ///< Pitman arm location (com)
+        REV,        ///< location of joint between Pitman arm and chassis
         NUM_POINTS
     };
 
     /// Identifiers for the various direction unit vectors.
     enum DirectionId {
-        REV_AXIS,        ///< revolute joint
+        REV_AXIS,  ///< revolute joint
         NUM_DIRS
     };
 
     /// Protected constructor.
     ChRotaryArm(const std::string& name,            ///< [in] name of the subsystem
                 bool vehicle_frame_inertia = false  ///< [in] inertia specified in vehicle-aligned centroidal frames?
-                );
+    );
 
     /// Indicate whether or not inertia matrices are specified with respect to a
     /// vehicle-aligned centroidal frame (flag=true) or with respect to the body
@@ -132,8 +132,6 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     /// Return the maximum rotation angle of the revolute joint.
     virtual double getMaxAngle() const = 0;
 
-    //std::shared_ptr<ChBody> m_arm;  ///< handle to the Pitman arm body
-
     std::shared_ptr<ChLinkMotorRotationAngle> m_revolute;  ///< handle to the chassis-arm revolute joint
 
   private:
@@ -144,6 +142,9 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     // Flag indicating that the inertia matrices for the upright and control arms
     // are provided in vehicle-aligned centroidal frames
     bool m_vehicle_frame_inertia;
+
+    bool m_pitman_arm_on_left_side;
+    bool m_steering_knuckle_on_left_side;
 
     // Points for arm visualization
     ChVector<> m_pC;

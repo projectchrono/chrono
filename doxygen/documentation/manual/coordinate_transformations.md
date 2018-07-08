@@ -21,7 +21,7 @@ In mathematical notation:
 The ChVector<> class is templated. One can have vectors with single 
 precision, as ChVector<float>, with double precision,
 as ChVector<double>, etc. 
-The default data type is double precision; i.e., ChVector<> defaults to ChVector<double>.
+The default data type is `double` precision; i.e., ChVector<> defaults to ChVector<double>.
  
 
 Example, creating a vector:
@@ -53,6 +53,7 @@ mvect3 = mvect1 % mvect2;  	// Operator for cross product: A%B means vector cros
 double val = mvect1 ^ mvect2;  	// Operator for inner product (scalar product)
 ~~~
 
+Chrono offers also an useful set of constant (double) vectors - `VNULL`, `VECT_X`, `VECT_Y`, `VECT_Z`, that represent the null and the axes unit vectors respectively.
 
 # Quaternions  {#manual_ChQuaternion}
 

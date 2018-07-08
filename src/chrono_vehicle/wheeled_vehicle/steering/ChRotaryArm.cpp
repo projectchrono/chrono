@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Rainer Gericke, Radu Serban
 // =============================================================================
 //
-// Base class for a Toe Bar steering subsystem.
+// Base class for a rotary arm steering subsystem.
 // Derived from ChSteering, but still an abstract base class.
 //
 // =============================================================================
@@ -105,7 +105,6 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     auto motor_fun = std::make_shared<ChFunction_Setpoint>();
     m_revolute->SetAngleFunction(motor_fun);
     chassis->GetSystem()->AddLink(m_revolute);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -137,7 +136,6 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
-
     // Visualization for arm
     {
         auto cyl = std::make_shared<ChCylinderShape>();
@@ -150,12 +148,11 @@ void ChRotaryArm::AddVisualizationAssets(VisualizationType vis) {
         col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
         m_link->AddAsset(col);
     }
-
- }
+}
 
 void ChRotaryArm::RemoveVisualizationAssets() {
     m_link->GetAssets().clear();
- }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -170,7 +167,6 @@ void ChRotaryArm::LogConstraintViolations() {
     ////    GetLog() << "  " << C->GetElement(3, 0) << "  ";
     ////    GetLog() << "  " << C->GetElement(4, 0) << "\n";
     ////}
-
 }
 
 // -----------------------------------------------------------------------------

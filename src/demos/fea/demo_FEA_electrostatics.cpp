@@ -19,17 +19,17 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_fea/ChElementSpring.h"
-#include "chrono_fea/ChElementBar.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChElementTetra_10.h"
-#include "chrono_fea/ChElementHexa_8.h"
-#include "chrono_fea/ChElementHexa_20.h"
 #include "chrono_fea/ChContinuumElectrostatics.h"
-#include "chrono_fea/ChNodeFEAxyzP.h"
+#include "chrono_fea/ChElementBar.h"
+#include "chrono_fea/ChElementHexa_20.h"
+#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementSpring.h"
+#include "chrono_fea/ChElementTetra_10.h"
+#include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChMeshFileLoader.h"
-#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono_fea/ChNodeFEAxyzP.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -79,14 +79,14 @@ int main(int argc, char* argv[]) {
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from SolidWorks simulation.
 
-    std::vector<std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
+    std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase> > > node_sets;
 
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/electrostatics.INP").c_str(), mmaterial,
                                          node_sets);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
-        return 0;
+        return 1;
     }
 
     //
@@ -94,16 +94,16 @@ int main(int argc, char* argv[]) {
     //
 
     // Impose potential on all nodes of 1st nodeset (see *NSET section in .imp file)
-    int nboundary = 0;
-    for (unsigned int inode = 0; inode < node_sets[nboundary].size(); ++inode) {
+    auto nboundary = "IMPV1";
+    for (unsigned int inode = 0; inode < node_sets.at(nboundary).size(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(node_sets[nboundary][inode])) {
             mnode->SetFixed(true);
             mnode->SetP(0);  // field: potential [V]
         }
     }
     // Impose potential on all nodes of 2nd nodeset (see *NSET section in .imp file)
-    nboundary = 1;
-    for (unsigned int inode = 0; inode < node_sets[nboundary].size(); ++inode) {
+    nboundary = "IMPV2";
+    for (unsigned int inode = 0; inode < node_sets.at(nboundary).size(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(node_sets[nboundary][inode])) {
             mnode->SetFixed(true);
             mnode->SetP(21);  // field: potential [V]
@@ -170,10 +170,10 @@ int main(int argc, char* argv[]) {
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetRelTolerance(1e-20);
     msolver->SetTolerance(1e-20);
-    //msolver->SetVerbose(true);
+    // msolver->SetVerbose(true);
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetTolForce(1e-20);
-    //my_system.SetParallelThreadNumber(1);
+    // my_system.SetParallelThreadNumber(1);
 
     // Note: in electrostatics, here you can have only a single linear (non transient) solution
     // so at this point you must do:

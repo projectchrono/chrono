@@ -163,7 +163,7 @@ For Visual Studio:
   and its demos will be compiled, creating many .exe and .dll files, this time in the bin/Release subdirectory.   
   This will take a few minutes.
 
-For Linux/GCC:
+For Linux/GCC and for MacOS/clang:
 
 - CMake generates a hierarchy of makefiles in the directory specified in "Where to build the binaries".
 
@@ -171,6 +171,14 @@ For Linux/GCC:
 
 - Optionally, type <tt>make install</tt> to install the Chrono libraries, data files, and demo executables in the directory specified during CMake configuration.
 
+<div class="ce-warning"> 
+**MacOS issues:** clang++ does not come with OpenMP support out of the box.
+You will not be able to build <tt>libChrono_parallel</tt> successfully.<br> 
+However, OpenMP support can be added using the OpenMP sources from the <tt>llvm.org</tt> project. 
+Download the source code from there, then configure the omp library with CMake, build it, and install it to /usr/local.<br>
+Having done so, you can then configure Chrono with OpenMP support. For this, you must define the right compiler flags:<br>
+<tt>-Xpreprocessor -fopenmp</tt> for the compiler and <tt>-lomp</tt> for the linker.
+</div> 
 
 
 ## 8) Take the demos for a ride!

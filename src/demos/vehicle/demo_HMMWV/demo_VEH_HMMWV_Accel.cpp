@@ -21,17 +21,23 @@
 
 #include <cmath>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChFileutils.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
+
+#ifdef CHRONO_POSTPROCESS
+#include "chrono_postprocess/ChGnuPlot.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -56,27 +62,11 @@ DrivelineType drive_type = DrivelineType::AWD;
 TireModelType tire_model = TireModelType::FIALA;
 
 // Terrain length (X direction)
-double terrainLength = 250.0;
-
-// Contact method
-ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
+double terrainLength = 300.0;
 
 // Simulation step sizes
 double step_size = 1e-3;
 double tire_step_size = 1e-3;
-
-// Simulation end time
-double t_end = 1000;
-
-// Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
-
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "HMMWV_ACCEL";
-const std::string pov_dir = out_dir + "/POVRAY";
-
-// POV-Ray output
-bool povray_output = false;
 
 // =============================================================================
 
@@ -90,7 +80,7 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
     HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(contact_method);
+    my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -99,7 +89,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.SetAerodynamicDrag(0.5, 5.0, 1.2);
-    my_hmmwv.Initialize();   
+    my_hmmwv.Initialize();
 
     // Set subsystem visualization mode
     VisualizationType tire_vis_type =
@@ -127,40 +117,11 @@ int main(int argc, char* argv[]) {
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     app.SetTimestep(step_size);
 
-    // -----------------
-    // Initialize output
-    // -----------------
-
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (povray_output) {
-        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-            std::cout << "Error creating directory " << pov_dir << std::endl;
-            return 1;
-        }
-        terrain.ExportMeshPovray(out_dir);
-    }
-
     // ----------------------------------------------
     // Create the straight path and the driver system
     // ----------------------------------------------
 
-    std::vector<ChVector<>> points;
-    std::vector<ChVector<>> inCV;
-    std::vector<ChVector<>> outCV;
-
-    points.push_back(ChVector<>(-terrainLength / 2, 0, 0.5));
-    inCV.push_back(ChVector<>(-terrainLength / 2, 0, 0.5));
-    outCV.push_back(ChVector<>(-terrainLength / 2 + 10, 0, 0.5));
-
-    points.push_back(ChVector<>(terrainLength / 2, 0, 0.5));
-    inCV.push_back(ChVector<>(terrainLength / 2 - 10, 0, 0.5));
-    outCV.push_back(ChVector<>(terrainLength / 2, 0, 0.5));
-
-    auto path = std::make_shared<ChBezierCurve>(points, inCV, outCV);
-
+    auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -179,15 +140,14 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Running average of vehicle speed
-    utils::ChRunningAverage speed_filter(20);
+    utils::ChRunningAverage speed_filter(500);
     double last_speed = -1;
 
-    // Number of simulation steps between miscellaneous events
-    int render_steps = (int)std::ceil(render_step_size / step_size);
+    // Record vehicle speed
+    ChFunction_Recorder speed_recorder;
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
-    int render_frame = 0;
     double time = 0;
     bool done = false;
 
@@ -195,26 +155,28 @@ int main(int argc, char* argv[]) {
         time = my_hmmwv.GetSystem()->GetChTime();
 
         double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
-        if (!done && time > 1 && std::abs((speed - last_speed) / step_size) < 0.001) {
-            std::cout << "Maximum speed: " << speed << std::endl;
-            done = true;
+        if (!done) {
+            speed_recorder.AddPoint(time, speed);
+            if (time > 1 && std::abs((speed - last_speed) / step_size) < 0.0005) {
+                done = true;
+                std::cout << "Maximum speed: " << speed << std::endl;
+#ifdef CHRONO_POSTPROCESS
+                postprocess::ChGnuPlot gplot;
+                gplot.SetGrid();
+                gplot.SetLabelX("time (s)");
+                gplot.SetLabelY("speed (m/s)");
+                gplot.Plot(speed_recorder, "", " with lines lt -1 lc rgb'#00AAEE' ");
+#endif
+            }
         }
         last_speed = speed;
 
         // End simulation
-        if (time >= t_end)
+        if (time >= 100)
             break;
 
         app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
         app.DrawAll();
-
-        // Output POV-Ray data
-        if (povray_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
-            render_frame++;
-        }
 
         // Collect output data from modules (for inter-module communication)
         double throttle_input = driver.GetThrottle();

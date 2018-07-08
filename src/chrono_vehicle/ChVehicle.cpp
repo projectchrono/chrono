@@ -116,6 +116,9 @@ void ChVehicle::Advance(double step) {
         m_output_frame++;
     }
 
+    if (!m_ownsSystem)
+        return;
+
     double t = 0;
     while (t < step) {
         double h = std::min<>(m_stepsize, step - t);

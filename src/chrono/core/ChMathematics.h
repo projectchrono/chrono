@@ -118,6 +118,10 @@ int ChSignum(T x) {
     return (x > T(0)) - (x < T(0));
 }
 
+/// Smooth (sinusoidal) ramp between y1 and y2.
+/// Note: must have x1 < x2 (no check).
+ChApi double ChSineStep(double x, double x1, double y1, double x2, double y2);
+
 /// Parameter make periodic in 0..1
 /// (using 0..1 modulus if closed, otherwise clamping in 0..1 range)
 ChApi void ChPeriodicPar(double& u, int closed);

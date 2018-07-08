@@ -12,6 +12,7 @@ ENDIF()
 
 SET(DEMOS
     demo_VEH_UAZBUS
+    demo_VEH_UAZ_JSON
 )
 
 #--------------------------------------------------------------

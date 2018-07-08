@@ -14,8 +14,6 @@
 // Class that renders the text and other UI elements
 // =============================================================================
 
-#include "chrono_opengl/UI/ChOpenGLHUD.h"
-#include "chrono_opengl/ChOpenGLMaterials.h"
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/solver/ChIterativeSolver.h"
 
@@ -32,6 +30,9 @@
 #include "resources/text_vert.h"
 #include "resources/bar_frag.h"
 #include "resources/bar_vert.h"
+
+#include "chrono_opengl/UI/ChOpenGLHUD.h"
+#include "chrono_opengl/ChOpenGLMaterials.h"
 
 namespace chrono {
 using namespace collision;

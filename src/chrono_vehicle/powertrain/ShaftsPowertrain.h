@@ -27,6 +27,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_powertrain
+/// @{
+
 class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
   public:
     ShaftsPowertrain(const std::string& filename);
@@ -72,6 +75,8 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     MapData m_tc_capacity_factor;
     MapData m_tc_torque_ratio;
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono
