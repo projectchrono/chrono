@@ -13,28 +13,14 @@
 // =============================================================================
 /*! \file */
 
-#include <cuda.h>
-#include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularCollision.cuh"
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
-#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
-#include "chrono_thirdparty/cub/cub.cuh"
 
 // TODO should this go here?
 // NOTE warpSize is a cuda environment value, but it is cc-dependent
 #define warp_size 32
-
-#define CUDA_THREADS 128
-
-// These are the max X, Y, Z dimensions in the BD frame
-#define MAX_X_POS_UNSIGNED (d_SD_Ldim_SU * d_box_L_SU)
-#define MAX_Y_POS_UNSIGNED (d_SD_Ddim_SU * d_box_D_SU)
-#define MAX_Z_POS_UNSIGNED (d_SD_Hdim_SU * d_box_H_SU)
-
-#define Min(a, b) (a < b) ? a : b
-#define Max(a, b) (a > b) ? a : b
 
 #define Triangle_Soup chrono::granular::ChTriangleSoup
 
@@ -592,7 +578,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
 
     printf("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
            nsteps, duration / nsteps);
-    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 
     VERBOSE_PRINTF("Starting Main Simulation loop!\n");
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions

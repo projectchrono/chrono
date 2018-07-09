@@ -322,6 +322,11 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
     printf("priming finished!\n");
     // Check in first timestep
     checkSDCounts(output_directory + "/step000000", true, false);
+
+    // TODO set globally
+    unsigned int stepSize_SU = 5;
+
+    VERBOSE_PRINTF("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
 
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
@@ -335,7 +340,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
 
     VERBOSE_PRINTF("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
-    VERBOSE_PRINTF("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {

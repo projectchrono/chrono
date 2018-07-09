@@ -14,6 +14,8 @@
 // Authors: Dan Negrut, Conlain Kelly
 // =============================================================================
 
+#pragma once
+
 /// test whether a box and a triangle are overlapping; used to check if a triangle touches an SD.
 __device__ bool check_TriangleBoxOverlap(float boxcenter[3],
                                          float boxhalfsize[3],

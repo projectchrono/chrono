@@ -14,6 +14,8 @@
 // Authors: Dan Negrut, Conlain Kelly
 // =============================================================================
 
+#pragma once
+
 #include <cuda.h>
 #include <cassert>
 #include <cstdio>
@@ -40,7 +42,7 @@ typedef const chrono::granular::ChSystemGranular::GranParamsHolder* ParamsPtr;
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
-__device__ uint3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {
+inline __device__ uint3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {
     // Note that this offset allows us to have moving walls and the like very easily
     // printf("corner is %d, calc is %d\n", -d_BD_frame_X, (gran_params->d_box_L_SU * gran_params->d_SD_Ldim_SU) /
     // 2);
@@ -57,18 +59,21 @@ __device__ uint3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_
 }
 
 // Convert triplet to single int SD ID
-__device__ unsigned int SDTripletID(const uint3& trip, ParamsPtr gran_params) {
-    return trip.x * gran_params->d_box_D_SU * gran_params->d_box_H_SU + trip.y * gran_params->d_box_H_SU + trip.z;
-}
-
-// Convert triplet to single int SD ID
-__device__ unsigned int SDTripletID(const unsigned int trip[3], ParamsPtr gran_params) {
-    return trip[0] * gran_params->d_box_D_SU * gran_params->d_box_H_SU + trip[1] * gran_params->d_box_H_SU + trip[2];
-}
-
-// Convert triplet to single int SD ID
-__device__ unsigned int SDTripletID(unsigned int i, unsigned int j, unsigned int k, ParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const unsigned int i,
+                                           const unsigned int j,
+                                           const unsigned int k,
+                                           ParamsPtr gran_params) {
     return i * gran_params->d_box_D_SU * gran_params->d_box_H_SU + j * gran_params->d_box_H_SU + k;
+}
+
+// Convert triplet to single int SD ID
+inline __device__ unsigned int SDTripletID(const uint3& trip, ParamsPtr gran_params) {
+    return SDTripletID(trip.x, trip.y, trip.z, gran_params);
+}
+
+// Convert triplet to single int SD ID
+inline __device__ unsigned int SDTripletID(const unsigned int trip[3], ParamsPtr gran_params) {
+    return SDTripletID(trip[0], trip[1], trip[2], gran_params);
 }
 
 /// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
@@ -78,11 +83,11 @@ __device__ unsigned int SDTripletID(unsigned int i, unsigned int j, unsigned int
 /// which subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts
 /// these indices to indices into the global SD list via the (currently local) conv[3] data structure Should be
 /// mostly bug-free, especially away from boundaries
-__device__ void figureOutTouchedSD(int sphCenter_X,
-                                   int sphCenter_Y,
-                                   int sphCenter_Z,
-                                   unsigned int SDs[8],
-                                   ParamsPtr gran_params) {
+inline __device__ void figureOutTouchedSD(int sphCenter_X,
+                                          int sphCenter_Y,
+                                          int sphCenter_Z,
+                                          unsigned int SDs[8],
+                                          ParamsPtr gran_params) {
     // grab radius
     const unsigned int d_sphereRadius_SU = gran_params->d_sphereRadius_SU;
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
@@ -354,17 +359,17 @@ Output:
   - Y_Vel_corr: the Y component of the force, as represented in the box reference system
   - Z_Vel_corr: the Z component of the force, as represented in the box reference system
 */
-__device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step size.
-                                const int sphXpos,        //!< Global X position of DE
-                                const int sphYpos,        //!< Global Y position of DE
-                                const int sphZpos,        //!< Global Z position of DE
-                                const float sphXvel,      //!< Global X velocity of DE
-                                const float sphYvel,      //!< Global Y velocity of DE
-                                const float sphZvel,      //!< Global Z velocity of DE
-                                float& X_Vel_corr,        //!< Velocity correction in Xdir
-                                float& Y_Vel_corr,        //!< Velocity correction in Xdir
-                                float& Z_Vel_corr,        //!< Velocity correction in Xdir
-                                ParamsPtr gran_params) {
+inline __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step size.
+                                       const int sphXpos,        //!< Global X position of DE
+                                       const int sphYpos,        //!< Global Y position of DE
+                                       const int sphZpos,        //!< Global Z position of DE
+                                       const float sphXvel,      //!< Global X velocity of DE
+                                       const float sphYvel,      //!< Global Y velocity of DE
+                                       const float sphZvel,      //!< Global Z velocity of DE
+                                       float& X_Vel_corr,        //!< Velocity correction in Xdir
+                                       float& Y_Vel_corr,        //!< Velocity correction in Xdir
+                                       float& Z_Vel_corr,        //!< Velocity correction in Xdir
+                                       ParamsPtr gran_params) {
     // classic radius grab
     const unsigned int d_sphereRadius_SU = gran_params->d_sphereRadius_SU;
 

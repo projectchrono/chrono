@@ -27,7 +27,6 @@
 #include <iostream>
 #include "chrono/core/ChTimer.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono_granular/physics/ChSettingsGranularSMC.h"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"

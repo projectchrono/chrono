@@ -14,12 +14,15 @@
 
 #pragma once
 
+#define Min(a, b) (a < b) ? a : b
+#define Max(a, b) (a > b) ? a : b
+
 inline __device__ double3 Cross(const double3& v1, const double3& v2) {
     return make_double3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
 }
 
 inline __device__ double Dot(const double3& v1, const double3& v2) {
-    return __dadd_ru(__dadd_ru(__dmul_ru(v1.x, v2.x), __dmul_ru(v1.y, v2.y)) , __dmul_ru(v1.z, v2.z));
+    return __dadd_ru(__dadd_ru(__dmul_ru(v1.x, v2.x), __dmul_ru(v1.y, v2.y)), __dmul_ru(v1.z, v2.z));
 }
 
 // Get vector 2-norm
