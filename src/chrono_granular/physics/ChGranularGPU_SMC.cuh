@@ -306,10 +306,6 @@ primingOperationsRectangularBox(
                 // Go until we run out of threads on the warp or until we find a new head
             } while (idInShared + winningStreak < 8 * CUB_THREADS && !(shMem_head_flags[idInShared + winningStreak]));
 
-            // if (touchedSD >= gran_params->d_box_L_SU * gran_params->d_box_D_SU * gran_params->d_box_H_SU) {
-            //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            // }
-
             // Store start of new entries
             size_t offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
 
@@ -694,8 +690,6 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
             float cohesionTermX = cohesionConstant * deltaX / penetrationNorm;
             float cohesionTermY = cohesionConstant * deltaY / penetrationNorm;
             float cohesionTermZ = cohesionConstant * deltaZ / penetrationNorm;
-
-            // printf("fuck %f, %f\n", cohesionTermZ, cohesionConstant);
 
             // Add damping term to spring term, write back to counter
             bodyA_X_velCorr += springTermX + dampingTermX + cohesionTermX;
