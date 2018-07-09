@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
     float normStiffnessMSH2S = NORMAL_STIFFNESS_S2W;
 
-    float iteration_step = 0.2;
+    float iteration_step = 0.02;
 
     GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
     bool verbose = false;
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity, mesh_filename);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -0.5f, 0.f);
+    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
@@ -274,11 +274,16 @@ int main(int argc, char* argv[]) {
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
 
     m_sys.initialize();
+    int currframe = 0;
 
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < timeEnd; t += iteration_step) {
         m_sys.advance_simulation(iteration_step);
+        printf("rendering frame %u\n", currframe);
+        char filename[100];
+        sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
+        m_sys.checkSDCounts(std::string(filename), true, false);
         // updateMeshSoup_Location(t, meshSoupLocOri);  // This is where the information would come from the vehicle
         // m_sys.meshSoup_applyRigidBodyMotion(t, meshSoupLocOri);
         // m_sys.collectGeneralizedForcesOnMeshSoup(t, genForcesOnMeshSoup);

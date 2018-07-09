@@ -44,8 +44,7 @@ typedef const chrono::granular::ChSystemGranular::GranParamsHolder* ParamsPtr;
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
 inline __device__ uint3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {
     // Note that this offset allows us to have moving walls and the like very easily
-    // printf("corner is %d, calc is %d\n", -d_BD_frame_X, (gran_params->d_box_L_SU * gran_params->d_SD_Ldim_SU) /
-    // 2);
+
     long int sphCenter_X_modified = -gran_params->d_BD_frame_X + sphCenter_X;
     long int sphCenter_Y_modified = -gran_params->d_BD_frame_Y + sphCenter_Y;
     long int sphCenter_Z_modified = -gran_params->d_BD_frame_Z + sphCenter_Z;

@@ -81,12 +81,14 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void advance_simulation(float duration);
     /// Extra parameters needed for triangle-sphere contact
     struct GranParamsHolder_trimesh {
-        float d_Gamma_n_s2m_SU;  //!< sphere-to-mesh contact damping coefficient, expressed in SU
-        float d_Kn_s2m_SU;       //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+        float d_Gamma_n_s2m_SU;              //!< sphere-to-mesh contact damping coefficient, expressed in SU
+        float d_Kn_s2m_SU;                   //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+        unsigned int num_triangle_families;  /// Number of triangle families
     };
+    virtual void initialize();
 
   private:
-    GranParamsHolder_trimesh tri_params;
+    GranParamsHolder_trimesh* tri_params;
     ChTriangleSoup<float> meshSoup_HOST;  //!< clean copy of mesh soup interacting with granular material; HOST-side
     ChTriangleSoup<float>
         meshSoupWorking_HOST;             //!< working copy of mesh soup interacting with granular material; HOST-side
@@ -96,14 +98,17 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     bool problemSetupFinished;
     float timeToWhichDEsHaveBeenPropagated;
 
+    std::vector<unsigned int, cudallocator<unsigned int>> BUCKET_countsOfTrianglesTouching;
+    std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_BUCKET_composite;
+
     // Function members
     void copy_triangle_data_to_device();
 
-    void setupSoup_HOST_DEVICE(const char* meshFileName);
-    void setupSoup_HOST(const std::vector<tinyobj::shape_t>& soup, unsigned int nTriangles);
-    void cleanupSoup_HOST();
-    void setupSoup_DEVICE(unsigned int nTriangles);
-    void cleanupSoup_DEVICE();
+    void setupTriMesh_HOST_DEVICE(const char* meshFileName);
+    void setupTriMesh_HOST(const std::vector<tinyobj::shape_t>& soup, unsigned int nTriangles);
+    void cleanupTriMesh_HOST();
+    void setupTriMesh_DEVICE(unsigned int nTriangles);
+    void cleanupTriMesh_DEVICE();
     void update_DMeshSoup_Location();
 
     // void initialize();

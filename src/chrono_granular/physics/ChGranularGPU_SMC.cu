@@ -143,6 +143,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(
         // Do nothing, only here for symmetry
     }
 }
+// Reset broadphase data structures
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
@@ -150,25 +151,24 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::resetBroad
     gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
                          MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 }
+// Reset velocity update data structures
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::resetUpdateInformation() {
+    // reset forces to zero, note that vel update acts as force for forward euler
+    gpuErrchk(cudaMemset(pos_X_dt_update.data(), 0, nDEs * sizeof(float)));
+    gpuErrchk(cudaMemset(pos_Y_dt_update.data(), 0, nDEs * sizeof(float)));
+    gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
+}
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int currTime_SU,
-                                                                                       const int stepSize_SU) {
-    float timeUU = (1.f * currTime_SU * TIME_UNIT * PSI_h);
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int stepSize_SU) {
+    float timeUU = (1.f * simTime_SU * TIME_UNIT * PSI_h);
     // Frequency of oscillation
     // float frame_X_old = BD_frame_X;
     // float frame_Y_old = BD_frame_Y;
     // float frame_Z_old = BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
-    // std::cout << "Time is " << timeUU << std::endl;
     BD_frame_X = (box_L * (BDPositionFunctionX(timeUU))) / LENGTH_UNIT;
     BD_frame_Y = (box_D * (BDPositionFunctionY(timeUU))) / LENGTH_UNIT;
     BD_frame_Z = (box_H * (BDPositionFunctionZ(timeUU))) / LENGTH_UNIT;
-    // printf("old X is %f, new is %d \n", frame_X_old, BD_frame_X);
-    // velocity is time derivative of position, use a first-order approximation to avoid continuity issues
-    // NOTE that as of 4/16/2018, the wall damping term is disabled due to some instability
-    // BD_frame_X_dot = (BD_frame_X - frame_X_old) / (1.f * stepSize_SU);
-    // BD_frame_Y_dot = (BD_frame_Y - frame_Y_old) / (1.f * stepSize_SU);
-    // BD_frame_Z_dot = (BD_frame_Z - frame_Z_old) / (1.f * stepSize_SU);
 
     copyBD_Frame_to_device();
 }
@@ -320,8 +320,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
                                     DEs_in_SD_composite.data(), nDEs, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
-    // Check in first timestep
-    checkSDCounts(output_directory + "/step000000", true, false);
 
     // TODO set globally
     unsigned int stepSize_SU = 5;
@@ -342,15 +340,12 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
                    stepSize_SU, nsteps, duration / nsteps);
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
+    for (unsigned int elapsedTime_SU = 0; elapsedTime_SU < stepSize_SU * nsteps; elapsedTime_SU += stepSize_SU) {
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
-            updateBDPosition(crntTime_SU, stepSize_SU);  // TODO current time
+            updateBDPosition(stepSize_SU);  // TODO current time
         }
-        // reset forces to zero, note that vel update ~ force for forward euler
-        gpuErrchk(cudaMemset(pos_X_dt_update.data(), 0, nDEs * sizeof(float)));
-        gpuErrchk(cudaMemset(pos_Y_dt_update.data(), 0, nDEs * sizeof(float)));
-        gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
+        resetUpdateInformation();
 
         VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
 
@@ -373,7 +368,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
         gpuErrchk(cudaDeviceSynchronize());
         VERBOSE_PRINTF("Resetting broadphase info!\n");
 
-        // Reset broadphase information
         resetBroadphaseInformation();
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
@@ -383,6 +377,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+        simTime_SU += stepSize_SU;  // Advance current time
     }
 
     return;

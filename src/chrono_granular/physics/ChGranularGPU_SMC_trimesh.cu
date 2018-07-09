@@ -22,7 +22,12 @@
 // NOTE warpSize is a cuda environment value, but it is cc-dependent
 #define warp_size 32
 
+#define NUM_TRIANGLE_FAMILIES 4
+
 #define Triangle_Soup chrono::granular::ChTriangleSoup
+
+typedef const chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsHolder_trimesh*
+    MeshParamsPtr;
 
 /// Takes in a triangle's position and finds out what SDs it touches
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
@@ -142,13 +147,13 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 template <unsigned int CUB_THREADS>  //!< Number of threads engaged in block-collective CUB operations (multiple of 32)
 __global__ void triangleSoupBroadPhase(
     Triangle_Soup<int>& d_triangleSoup,
+    unsigned int*
+        d_BUCKET_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
+    unsigned int*
+        d_triangles_in_BUCKET_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
+                                          //!< "triangles_in_SD_composite" says which SD contains what triangles.
     ParamsPtr gran_params,
-    unsigned int*
-        BUCKET_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
-    unsigned int*
-        triangles_in_BUCKET_composite  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
-                                       //!< "triangles_in_SD_composite" says which SD contains what triangles.
-) {
+    MeshParamsPtr mesh_params) {
     /// Set aside shared memory
     volatile __shared__ unsigned int offsetInComposite_TriangleInSD_Array[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
@@ -226,7 +231,7 @@ __global__ void triangleSoupBroadPhase(
             // }
 
             // Store start of new entries
-            unsigned int offset = atomicAdd(BUCKET_countsOfTrianglesTouching + touchedBucket, winningStreak);
+            unsigned int offset = atomicAdd(d_BUCKET_countsOfTrianglesTouching + touchedBucket, winningStreak);
 
             // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
             // Get the absolute offset
@@ -244,7 +249,7 @@ __global__ void triangleSoupBroadPhase(
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         unsigned int offset = offsetInComposite_TriangleInSD_Array[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID_LONG) {
-            triangles_in_BUCKET_composite[offset] = triangleIDs[i];
+            d_triangles_in_BUCKET_composite[offset] = triangleIDs[i];
         }
     }
 }
@@ -253,9 +258,6 @@ __global__ void triangleSoupBroadPhase(
 This kernel call figures out forces on a sphere and carries out numerical integration to get the velocity updates of a
 sphere.
 N_CUDATHREADS - Number of threads in a CUDA block
-MAX_NSPHERES_PER_SD - Max number of elements per SD. Shoudld be a power of two
-MAX_TRIANGLES_PER_SD - Max number of elements per SD. Shoudld be a power of two
-TRIANGLE_FAMILIES - The number of families that the triangles can belong to
 
 Overview of implementation: One warp of threads will work on 32 triangles at a time to figure out the force that
 they impress on a particular sphere. Note that each sphere enlists the services of one warp. If there are, say,
@@ -268,45 +270,48 @@ be produced to account for the interaction between the said triangle and sphere 
 */
 #define Terrain chrono::granular::ChManyBodyStateWrapper
 
-template <unsigned int N_CUDATHREADS,
-          unsigned int MAX_NSPHERES_PER_SD,
-          unsigned int MAX_TRIANGLES_PER_SD,
-          unsigned int TRIANGLE_FAMILIES>
+template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
-    Triangle_Soup<int>& d_triangleSoup,          //!< Contains information pertaining to triangle soup (in device mem.)
-    Terrain& d_terrain,                          //!< Wrapper that stores terrain information available on the device
+    Triangle_Soup<int>& d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
+    int* d_sphere_pos_X,
+    int* d_sphere_pos_Y,
+    int* d_sphere_pos_Z,
+    float* d_sphere_pos_X_dt,
+    float* d_sphere_pos_Y_dt,
+    float* d_sphere_pos_Z_dt,
     unsigned int* SD_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int*
         triangles_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
                                     //!< "triangles_in_SD_composite" says which SD contains what triangles.
     unsigned int*
         SD_countsOfGrElemsTouching,         //!< Array that for each SD indicates how many grain elements touch this SD
-    unsigned int* grElems_in_SD_composite)  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
+    unsigned int* grElems_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
                                             //!< "grElems_in_SD_composite" says which SD contains what grElements.
-{
-    __shared__ unsigned int grElemID[MAX_NSPHERES_PER_SD];  //!< global ID of the grElements touching this SD
-    __shared__ unsigned int triangID[MAX_NSPHERES_PER_SD];  //!< global ID of the triangles touching this SD
+    ParamsPtr gran_params,
+    MeshParamsPtr mesh_params) {
+    __shared__ unsigned int grElemID[MAX_COUNT_OF_DEs_PER_SD];  //!< global ID of the grElements touching this SD
+    __shared__ unsigned int triangID[MAX_COUNT_OF_DEs_PER_SD];  //!< global ID of the triangles touching this SD
 
-    __shared__ int sphX[MAX_NSPHERES_PER_SD];  //!< X coordinate of the grElement
-    __shared__ int sphY[MAX_NSPHERES_PER_SD];  //!< Y coordinate of the grElement
-    __shared__ int sphZ[MAX_NSPHERES_PER_SD];  //!< Z coordinate of the grElement
+    __shared__ int sphX[MAX_COUNT_OF_DEs_PER_SD];  //!< X coordinate of the grElement
+    __shared__ int sphY[MAX_COUNT_OF_DEs_PER_SD];  //!< Y coordinate of the grElement
+    __shared__ int sphZ[MAX_COUNT_OF_DEs_PER_SD];  //!< Z coordinate of the grElement
 
-    __shared__ int node1_X[MAX_TRIANGLES_PER_SD];  //!< X coordinate of the 1st node of the triangle
-    __shared__ int node1_Y[MAX_TRIANGLES_PER_SD];  //!< Y coordinate of the 1st node of the triangle
-    __shared__ int node1_Z[MAX_TRIANGLES_PER_SD];  //!< Z coordinate of the 1st node of the triangle
+    __shared__ int node1_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 1st node of the triangle
+    __shared__ int node1_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 1st node of the triangle
+    __shared__ int node1_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 1st node of the triangle
 
-    __shared__ int node2_X[MAX_TRIANGLES_PER_SD];  //!< X coordinate of the 2nd node of the triangle
-    __shared__ int node2_Y[MAX_TRIANGLES_PER_SD];  //!< Y coordinate of the 2nd node of the triangle
-    __shared__ int node2_Z[MAX_TRIANGLES_PER_SD];  //!< Z coordinate of the 2nd node of the triangle
+    __shared__ int node2_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 2nd node of the triangle
+    __shared__ int node2_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 2nd node of the triangle
+    __shared__ int node2_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 2nd node of the triangle
 
-    __shared__ int node3_X[MAX_TRIANGLES_PER_SD];  //!< X coordinate of the 3rd node of the triangle
-    __shared__ int node3_Y[MAX_TRIANGLES_PER_SD];  //!< Y coordinate of the 3rd node of the triangle
-    __shared__ int node3_Z[MAX_TRIANGLES_PER_SD];  //!< Z coordinate of the 3rd node of the triangle
+    __shared__ int node3_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 3rd node of the triangle
+    __shared__ int node3_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 3rd node of the triangle
+    __shared__ int node3_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 3rd node of the triangle
 
     volatile __shared__ float tempShMem[6 * (N_CUDATHREADS / warp_size)];  // used to do a block-level reduce
 
     float forceActingOnSphere[3];  //!< 3 registers will hold the value of the force on the sphere
-    float genForceActingOnMeshes[TRIANGLE_FAMILIES * 6];  //!< 6 components per family: 3 forces and 3 torques
+    float genForceActingOnMeshes[NUM_TRIANGLE_FAMILIES * 6];  //!< 6 components per family: 3 forces and 3 torques
 
     unsigned int thisSD = blockIdx.x;
     unsigned int nSD_triangles = SD_countsOfTrianglesTouching[thisSD];
@@ -321,11 +326,11 @@ __global__ void interactionTerrain_TriangleSoup(
     for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
         local_ID += sphereTrip * blockDim.x;
         if (local_ID < nSD_spheres) {
-            unsigned int globalID = grElems_in_SD_composite[local_ID + thisSD * MAX_NSPHERES_PER_SD];
+            unsigned int globalID = grElems_in_SD_composite[local_ID + thisSD * MAX_COUNT_OF_DEs_PER_SD];
             grElemID[local_ID] = globalID;
-            sphX[local_ID] = d_terrain.grElem_X[globalID];
-            sphY[local_ID] = d_terrain.grElem_Y[globalID];
-            sphZ[local_ID] = d_terrain.grElem_Z[globalID];
+            sphX[local_ID] = d_sphere_pos_X[globalID];
+            sphY[local_ID] = d_sphere_pos_Y[globalID];
+            sphZ[local_ID] = d_sphere_pos_Z[globalID];
         }
     }
     // Populate the shared memory with mesh triangle data
@@ -334,7 +339,7 @@ __global__ void interactionTerrain_TriangleSoup(
     for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
         local_ID += triangTrip * blockDim.x;
         if (local_ID < nSD_triangles) {
-            unsigned int globalID = triangles_in_SD_composite[local_ID + thisSD * MAX_TRIANGLES_PER_SD];
+            unsigned int globalID = triangles_in_SD_composite[local_ID + thisSD * MAX_TRIANGLE_COUNT_PER_BUCKET];
             triangID[local_ID] = globalID;
             node1_X[local_ID] = d_triangleSoup.node1_X[globalID];
             node1_Y[local_ID] = d_triangleSoup.node1_Y[globalID];
@@ -353,7 +358,7 @@ __global__ void interactionTerrain_TriangleSoup(
     __syncthreads();  // this call ensures data is in its place in shared memory
 
     /// Zero out the force and torque at the onset of the computation
-    for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
+    for (local_ID = 0; local_ID < NUM_TRIANGLE_FAMILIES; local_ID++) {
         unsigned int dummyOffset = 6 * local_ID;
         /// forces acting on the triangle, in global reference frame
         genForceActingOnMeshes[dummyOffset++] = 0.f;
@@ -401,7 +406,7 @@ __global__ void interactionTerrain_TriangleSoup(
                     double3 B = make_double3(node2_X[targetTriangle], node2_Y[targetTriangle], node2_Z[targetTriangle]);
                     double3 C = make_double3(node3_X[targetTriangle], node3_Y[targetTriangle], node3_Z[targetTriangle]);
                     double3 sphCntr = make_double3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]);
-                    face_sphere_cd(A, B, C, sphCntr, d_terrain.sphereRadius, norm, depth, pt1, pt2, eff_radius);
+                    face_sphere_cd(A, B, C, sphCntr, gran_params->d_sphereRadius_SU, norm, depth, pt1, pt2, eff_radius);
 
                     /// Use the CD information to compute the force on the grElement
 
@@ -425,7 +430,7 @@ __global__ void interactionTerrain_TriangleSoup(
     }
     /// Done computing the forces acting on the triangles in this SD. A block reduce is carried out next. Start by
     /// doing a reduce at the warp level.
-    for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
+    for (local_ID = 0; local_ID < NUM_TRIANGLE_FAMILIES; local_ID++) {
         /// six generalized forces acting on the triangle, expressed in the global reference frame
         unsigned int dummyIndx = 6 * local_ID;
         for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
@@ -463,7 +468,7 @@ __global__ void interactionTerrain_TriangleSoup(
     /// Lane zero in each warp holds the result of a warp-level reduce operation. Sum up these "Lane zero" values in
     /// the final result, which is block-level
     bool threadIsLaneZeroInWarp = ((threadIdx.x & (warp_size - 1)) == 0);
-    for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
+    for (local_ID = 0; local_ID < NUM_TRIANGLE_FAMILIES; local_ID++) {
         unsigned int offsetGenForceArray = 6 * local_ID;
         /// Place in ShMem forces/torques (expressed in global reference frame) acting on this family of triangles
         if (threadIsLaneZeroInWarp) {
@@ -542,19 +547,19 @@ __global__ void interactionTerrain_TriangleSoup(
             genForceActingOnMeshes[offsetGenForceArray] = forceActingOnSphere[2];
         }  /// this is the end of the "for each mesh" loop
 
-        /// At this point, the first thread of the block has in genForceActingOnMeshes[6*TRIANGLE_FAMILIES] the
+        /// At this point, the first thread of the block has in genForceActingOnMeshes[6*NUM_TRIANGLE_FAMILIES] the
         /// forces and torques acting on each mesh family. Bcast the force values to all threads in the warp.
         /// To this end, synchronize all threads in warp and get "value" from lane 0
-        for (local_ID = 0; local_ID < 6 * TRIANGLE_FAMILIES; local_ID++)
+        for (local_ID = 0; local_ID < 6 * NUM_TRIANGLE_FAMILIES; local_ID++)
             genForceActingOnMeshes[local_ID] = __shfl_sync(0xffffffff, genForceActingOnMeshes[local_ID], 0);
 
         /// At this point, all threads in the first warp have the generalized forces acting on all meshes. Do an
         /// atomic add to compund the value of the generalized forces acting on the meshes that come in contact with
         /// the granular material.
-        unsigned int nTrips = (6 * TRIANGLE_FAMILIES) / warp_size;
+        unsigned int nTrips = (6 * NUM_TRIANGLE_FAMILIES) / warp_size;
         for (local_ID = 0; local_ID < nTrips + 1; local_ID++) {
-            unsigned int offset = threadIdx.x + local_ID * (6 * TRIANGLE_FAMILIES);
-            if (offset < 6 * TRIANGLE_FAMILIES)
+            unsigned int offset = threadIdx.x + local_ID * (6 * NUM_TRIANGLE_FAMILIES);
+            if (offset < 6 * NUM_TRIANGLE_FAMILIES)
                 atomicAdd(d_triangleSoup.generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
         }
     }
@@ -562,8 +567,42 @@ __global__ void interactionTerrain_TriangleSoup(
 
 /// Copy const triangle data to device
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
-    // Handle what's specific to the case when the mesh is present
-    // gpuErrchk(cudaMemcpyToSymbol(d_Kn_s2m_SU, &K_n_s2m_SU, sizeof(d_Kn_s2m_SU)));
+    // unified memory does some copying for us, cool
+    tri_params->d_Gamma_n_s2m_SU = 0;  // no damping on mesh for now
+    tri_params->d_Kn_s2m_SU = 7;       // TODO Nic you get to deal with this
+    // tri_params->num_triangle_families = 4;  // TODO make this legit
+    // Or Conlain can deal with it later, no way this actually runs cleanly anyways
+}
+
+__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
+    switch_to_SimUnits();
+    generate_DEs();
+
+    // Set aside memory for holding data structures worked with. Get some initializations going
+    setup_simulation();
+    copy_const_data_to_device();
+    copy_triangle_data_to_device();
+    copyBD_Frame_to_device();
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // Seed arrays that are populated by the kernel call
+    resetBroadphaseInformation();
+
+    // Figure our the number of blocks that need to be launched to cover the box
+    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+    printf("doing priming!\n");
+    printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
+
+    primingOperationsRectangularBox<CUDA_THREADS>
+        <<<nBlocks, CUDA_THREADS>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
+                                    DEs_in_SD_composite.data(), nDEs, gran_params);
+    gpuErrchk(cudaDeviceSynchronize());
+    printf("priming finished!\n");
+
+    // TODO set globally
+    unsigned int stepSize_SU = 5;
+
+    VERBOSE_PRINTF("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
 
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(
@@ -582,52 +621,64 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     VERBOSE_PRINTF("Starting Main Simulation loop!\n");
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
-        /// DO STEP LOOP HERE
+        // Update the position and velocity of the BD, if relevant
+        if (!BD_is_fixed) {
+            updateBDPosition(stepSize_SU);
+        }
+        resetUpdateInformation();
+        update_DMeshSoup_Location();  // TODO where does this go?
 
-        // // reset forces to zero, note that vel update ~ force for forward euler
-        // gpuErrchk(cudaMemset(pos_X_dt_update.data(), 0, nDEs * sizeof(float)));
-        // gpuErrchk(cudaMemset(pos_Y_dt_update.data(), 0, nDEs * sizeof(float)));
-        // gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
-        //
-        // VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
-        //
-        // // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
-        // computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-        //     stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(),
-        //     pos_Y_dt_update.data(), pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(),
-        //     DEs_in_SD_composite.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data());
-        // gpuErrchk(cudaPeekAtLastError());
-        // gpuErrchk(cudaDeviceSynchronize());
-        //
-        // VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
-        // // Apply the updates we just made
-        // applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-        //     stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(),
-        //     pos_Y_dt_update.data(), pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(),
-        //     DEs_in_SD_composite.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data());
-        //
-        // gpuErrchk(cudaPeekAtLastError());
-        // gpuErrchk(cudaDeviceSynchronize());
-        // VERBOSE_PRINTF("Resetting broadphase info!\n");
-        //
-        // // Reset broadphase information
-        // resetBroadphaseInformation();
-        //
-        // VERBOSE_PRINTF("Starting updatePositions!\n");
-        // updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
-        //     stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(),
-        //     pos_Z_dt.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs);
-        //
-        // gpuErrchk(cudaPeekAtLastError());
-        // gpuErrchk(cudaDeviceSynchronize());
+        VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
+
+        // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
+        computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_Triangles_PER_SD>>>(
+            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        // broadphase the triangles
+        triangleSoupBroadPhase<CUDA_THREADS>
+            <<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(),
+                                                triangles_in_BUCKET_composite.data(), gran_params, tri_params);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        // TODO please do not use a template here
+        // compute sphere-triangle forces
+        interactionTerrain_TriangleSoup<CUDA_THREADS><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+            meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(),
+            BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(), gran_params, tri_params);
+
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
+        // Apply the updates we just made
+        applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
+
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        VERBOSE_PRINTF("Resetting broadphase info!\n");
+
+        resetBroadphaseInformation();
+
+        VERBOSE_PRINTF("Starting updatePositions!\n");
+        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
+            SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs, gran_params);
+
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
     }
-    printf("SU radius is %u\n", sphereRadius_SU);
-    // Don't write but print verbosely
-
     return;
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupSoup_DEVICE() {
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVICE() {
     cudaFree(meshSoup_DEVICE.triangleFamily_ID);
 
     cudaFree(meshSoup_DEVICE.node1_X);
@@ -657,7 +708,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cl
     cudaFree(meshSoup_DEVICE.generalizedForcesPerFamily);
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_DEVICE(
+void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     unsigned int nTriangles) {
     /// Allocate the DEVICE mesh soup
     meshSoup_DEVICE.nTrianglesInSoup = nTriangles;  // TODO this is not on device?

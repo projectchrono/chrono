@@ -290,12 +290,13 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string ofile, bool write_out, bool verbose);
     void writeFile(std::string ofile, unsigned int* deCounts);
-    virtual void updateBDPosition(const int currTime_SU, const int stepSize_SU);
+    virtual void updateBDPosition(const int stepSize_SU);
 
   protected:
     virtual void copy_const_data_to_device();
     virtual void copyBD_Frame_to_device();
     virtual void resetBroadphaseInformation();
+    virtual void resetUpdateInformation();
 
     virtual void switch_to_SimUnits();
 
@@ -313,6 +314,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     float K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
+
+    /// Total time elapsed since beginning of simulation
+    unsigned int simTime_SU;
 
     friend class ChSystemGranularMonodisperse_SMC_Frictionless_trimesh;
 };

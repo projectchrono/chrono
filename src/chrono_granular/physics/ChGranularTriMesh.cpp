@@ -34,13 +34,13 @@ ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ChSystemGranularMonodispe
     : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density),
       problemSetupFinished(false),
       timeToWhichDEsHaveBeenPropagated(0.f) {
-    setupSoup_HOST_DEVICE(meshFileName.c_str());
+    setupTriMesh_HOST_DEVICE(meshFileName.c_str());
 }
 
 ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {
     // work to do here
-    cleanupSoup_DEVICE();
-    cleanupSoup_HOST();
+    cleanupTriMesh_DEVICE();
+    cleanupTriMesh_HOST();
 }
 
 /** \brief Method reads in a mesh soup; indirectly allocates memory on HOST and DEVICE to store mesh soup.
@@ -53,27 +53,39 @@ ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::~ChSystemGranularMonodisp
  *
  * \attention The mesh soup, provided in the input file, should be in obj format.
  */
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST_DEVICE(const char* mesh_filename) {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST_DEVICE(const char* mesh_filename) {
     std::vector<tinyobj::shape_t> shapes;
 
     // The mesh soup stored in an obj file
-    tinyobj::LoadObj(shapes, mesh_filename);
+    std::string load_result = tinyobj::LoadObj(shapes, mesh_filename);
+    if (load_result.length() != 0) {
+        std::cerr << load_result << "\n";
+        GRANULAR_ERROR("Failed to load triangle mesh\n");
+    }
 
     unsigned int nTriangles = 0;
-    for (auto shape : shapes)
+    for (auto shape : shapes) {
         nTriangles += shape.mesh.indices.size() / 3;
-
+    }
     // Allocate memory to store mesh soup; done both on the HOST and DEVICE sides
-    setupSoup_HOST(shapes, nTriangles);
-    setupSoup_DEVICE(nTriangles);
+    setupTriMesh_HOST(shapes, nTriangles);
+    setupTriMesh_DEVICE(nTriangles);
+
+    // Allocate triangle collision memory
+    BUCKET_countsOfTrianglesTouching.resize(TRIANGLEBUCKET_COUNT);
+    triangles_in_BUCKET_composite.resize(TRIANGLEBUCKET_COUNT * MAX_TRIANGLE_COUNT_PER_BUCKET);
+
+    // Allocate triangle collision parameters
+    gpuErrchk(cudaMallocManaged(&tri_params, sizeof(GranParamsHolder_trimesh), cudaMemAttachGlobal));
 }
 
 /**
 On the HOST sice, allocate memory to hang on to the mesh soup. The HOST mesh soup is initialized with values provided in
 the input obj file.
 */
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST(const std::vector<tinyobj::shape_t>& shapes,
-                                                                           unsigned int nTriangles) {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST(
+    const std::vector<tinyobj::shape_t>& shapes,
+    unsigned int nTriangles) {
     /// Set up the clean HOST mesh soup
     meshSoup_HOST.nTrianglesInSoup = nTriangles;
 
@@ -186,7 +198,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSoup_HOST(const
     }
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupSoup_HOST() {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_HOST() {
     delete[] meshSoup_HOST.triangleFamily_ID;
 
     delete[] meshSoup_HOST.node1_X;

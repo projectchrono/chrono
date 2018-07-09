@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setOutputDirectory(output_prefix);
     settlingExperiment.setOutputMode(write_mode);
     // Make a dam break style sim
-    settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
+    settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
 
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
     std::function<double(double)> posFunX = [](double t) {
         // Start oscillating at t = .5s
         double t0 = .5;
-        double freq = .2 * M_PI;
+        double freq = .1 * M_PI;
 
         if (t < t0) {
             return -.5;
@@ -276,9 +276,9 @@ int main(int argc, char* argv[]) {
         }
     };
     // Set the position of the BD
-    settlingExperiment.setBDPositionFunction(posFunX, posFunStill, posFunStill);
+    // settlingExperiment.setBDPositionFunction(posFunStill, posFunX, posFunStill);
     // Tell the sim to unlock the bd so it can follow that position function
-    settlingExperiment.set_BD_Fixed(false);
+    settlingExperiment.set_BD_Fixed(true);
     settlingExperiment.setVerbose(verbose);
     // Finalize settings and initialize for runtime
     settlingExperiment.initialize();

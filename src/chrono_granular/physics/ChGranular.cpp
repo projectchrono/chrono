@@ -44,10 +44,10 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::setup_simu
 
     // allocate mem for array saying for each SD how many spheres touch it
     // gpuErrchk(cudaMalloc(&SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int)));
-    SD_NumOf_DEs_Touching.resize(nSDs * sizeof(unsigned int));
+    SD_NumOf_DEs_Touching.resize(nSDs);
     // allocate mem for array that for each SD has the list of all spheres touching it; big array
-    // gpuErrchk(cudaMalloc(&DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
-    DEs_in_SD_composite.resize(MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int));
+    // gpuErrchk(cudaMalloc(&DEs_in_SD_composite, MAX_COUNT_OF_DEs_PER_SD * nSDs));
+    DEs_in_SD_composite.resize(MAX_COUNT_OF_DEs_PER_SD * nSDs);
 }
 
 // Set the bounds to fill in our box
