@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "../../chrono_thirdparty/cub/cub.cuh"
+
 #include <cuda.h>
 #include <cassert>
 #include <cstdio>
@@ -24,7 +26,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "../../chrono_thirdparty/cub/cub.cuh"
 #include "../ChGranularDefines.h"
 #include "../chrono_granular/physics/ChGranular.h"
 #include "chrono/core/ChVector.h"

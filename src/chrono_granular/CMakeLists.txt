@@ -59,6 +59,7 @@ message ( ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VER
   ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     IF(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
       IF(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
+        SET(CUDA_SEPARABLE_COMPILATION OFF)
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std c++11)
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11)
       ENDIF()
@@ -190,8 +191,7 @@ SET(ChronoEngine_Granular_CUDA
     physics/ChGranularGPU_SMC.cuh
     physics/ChGranularGPU_SMC_trimesh.cu
     physics/ChGranularCollision.cuh
-    physics/ChGranularCollision.cu
-    physics/ChGranularBoxTriangle.cu
+    physics/ChGranularBoxTriangle.cuh
 	utils/ChGranularUtilities_CUDA.cuh
 	utils/ChCudaMathUtils.cuh
     )

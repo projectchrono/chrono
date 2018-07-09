@@ -11,6 +11,9 @@
 /* suggestions and discussions on how to optimize code. */
 /* Thanks to David Hunt for finding a ">="-bug!         */
 /********************************************************/
+
+#pragma once
+
 #include <math.h>
 #include <stdio.h>
 
@@ -46,7 +49,7 @@
     if (x2 > max)                        \
         max = x2;
 
-__device__ bool planeBoxOverlap(float normal[3], float vert[3], float maxbox[3]) {
+inline __device__ bool planeBoxOverlap(float normal[3], float vert[3], float maxbox[3]) {
     int q;
     float vmin[3], vmax[3], v;
     for (q = X; q <= Z; q++) {
@@ -165,11 +168,11 @@ Output:
 - "true" if there is overlap; "false" otherwise
 NOTE: This function works with "float" - precision is not paramount.
 */
-__device__ bool check_TriangleBoxOverlap(float boxcenter[3],
-                                         float boxhalfsize[3],
-                                         const float3& vA,
-                                         const float3& vB,
-                                         const float3& vC) {
+inline __device__ bool check_TriangleBoxOverlap(float boxcenter[3],
+                                                float boxhalfsize[3],
+                                                const float3& vA,
+                                                const float3& vB,
+                                                const float3& vC) {
     /**    Use the separating axis theorem to test overlap between triangle and box.
     We test for overlap in these directions:
     1) the {x,y,z}-directions (actually, since we use the AABB of the triangle we do not even need to test these)

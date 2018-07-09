@@ -271,7 +271,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChSystemGranularMonodisperse {
   public:
     ChSystemGranularMonodisperse_SMC_Frictionless(float radiusSPH, float density)
-        : ChSystemGranularMonodisperse(radiusSPH, density) {}
+        : ChSystemGranularMonodisperse(radiusSPH, density), simTime_SU(0) {}
 
     virtual ~ChSystemGranularMonodisperse_SMC_Frictionless() {}
 
@@ -317,8 +317,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     /// Total time elapsed since beginning of simulation
     unsigned int simTime_SU;
-
-    friend class ChSystemGranularMonodisperse_SMC_Frictionless_trimesh;
 };
 
 /**

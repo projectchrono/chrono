@@ -14,8 +14,8 @@
 
 #pragma once
 
-#define Min(a, b) (a < b) ? a : b
-#define Max(a, b) (a > b) ? a : b
+#define MIN(a, b) (a < b) ? a : b
+#define MAX(a, b) (a > b) ? a : b
 
 inline __device__ double3 Cross(const double3& v1, const double3& v2) {
     return make_double3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
