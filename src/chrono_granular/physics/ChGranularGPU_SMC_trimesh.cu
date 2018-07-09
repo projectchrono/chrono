@@ -22,7 +22,12 @@
 
 // TODO should this go here?
 // NOTE warpSize is a cuda environment value, but it is cc-dependent
-#define warp_size 32
+#if __CUDA_ARCH__ <= 600
+// all devices of compute capability <= 6.0
+static const int warp_size = 32;
+#else
+static const int warp_size = warpSize;
+#endif
 
 #define NUM_TRIANGLE_FAMILIES 4
 
