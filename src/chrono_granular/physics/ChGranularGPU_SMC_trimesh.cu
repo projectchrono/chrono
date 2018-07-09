@@ -639,6 +639,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
         gpuErrchk(cudaDeviceSynchronize());
 
         // broadphase the triangles
+        // todo teh mesh soup needs to be unified memory I think
         triangleSoupBroadPhase<CUDA_THREADS>
             <<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(),
                                                 triangles_in_BUCKET_composite.data(), gran_params, tri_params);
@@ -676,66 +677,4 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
         gpuErrchk(cudaDeviceSynchronize());
     }
     return;
-}
-
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVICE() {
-    cudaFree(meshSoup_DEVICE.triangleFamily_ID);
-
-    cudaFree(meshSoup_DEVICE.node1_X);
-    cudaFree(meshSoup_DEVICE.node1_Y);
-    cudaFree(meshSoup_DEVICE.node1_Z);
-
-    cudaFree(meshSoup_DEVICE.node2_X);
-    cudaFree(meshSoup_DEVICE.node2_Y);
-    cudaFree(meshSoup_DEVICE.node2_Z);
-
-    cudaFree(meshSoup_DEVICE.node3_X);
-    cudaFree(meshSoup_DEVICE.node3_Y);
-    cudaFree(meshSoup_DEVICE.node3_Z);
-
-    cudaFree(meshSoup_DEVICE.node1_XDOT);
-    cudaFree(meshSoup_DEVICE.node1_YDOT);
-    cudaFree(meshSoup_DEVICE.node1_ZDOT);
-
-    cudaFree(meshSoup_DEVICE.node2_XDOT);
-    cudaFree(meshSoup_DEVICE.node2_YDOT);
-    cudaFree(meshSoup_DEVICE.node2_ZDOT);
-
-    cudaFree(meshSoup_DEVICE.node3_XDOT);
-    cudaFree(meshSoup_DEVICE.node3_YDOT);
-    cudaFree(meshSoup_DEVICE.node3_ZDOT);
-
-    cudaFree(meshSoup_DEVICE.generalizedForcesPerFamily);
-}
-
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
-    unsigned int nTriangles) {
-    /// Allocate the DEVICE mesh soup
-    meshSoup_DEVICE.nTrianglesInSoup = nTriangles;  // TODO this is not on device?
-
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.triangleFamily_ID, nTriangles * sizeof(unsigned int)));
-
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_X, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_Y, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_Z, nTriangles * sizeof(float)));
-
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_X, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_Y, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_Z, nTriangles * sizeof(float)));
-
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_X, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_Y, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_Z, nTriangles * sizeof(float)));
-
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_XDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_YDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_ZDOT, nTriangles * sizeof(float)));
-
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_XDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_YDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_ZDOT, nTriangles * sizeof(float)));
-
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_XDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_YDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_ZDOT, nTriangles * sizeof(float)));
 }

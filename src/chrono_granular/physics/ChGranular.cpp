@@ -21,9 +21,6 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
-template <int>
-__global__ void primingOperationsRectangularBox(int*, int*, int*, unsigned int*, unsigned int*, unsigned int);
-
 double chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
     return std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL);
 }
