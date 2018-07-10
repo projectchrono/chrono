@@ -45,8 +45,8 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
       m_vnum(0.01),
       m_gamma(0),
       m_gamma_limit(5),
-      m_begin_start_transition(0.5),
-      m_end_start_transition(1.0) {
+      m_begin_start_transition(0.1),
+      m_end_start_transition(0.5) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -321,9 +321,13 @@ void ChTMeasyTire::Advance(double step) {
 
     // Rolling Resistance, Ramp Like Signum inhibits 'switching' of My
     {
+        // smoothing interval for My
+        const double vx_min = 0.125;
+        const double vx_max = 0.5;
+
         double Lrad = (m_unloaded_radius - m_data.depth);
         m_rolling_resistance = InterpL(Fz, m_TMeasyCoeff.rrcoeff_pn, m_TMeasyCoeff.rrcoeff_p2n);
-        My = -m_rolling_resistance * m_data.normal_force * Lrad * RampSignum(m_states.omega);
+        My = -ChSineStep(m_states.vta,vx_min,0.0,vx_max,1.0) * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 
     double Ms = 0.0;
@@ -650,21 +654,6 @@ void ChTMeasyTire::SetVerticalStiffness(std::vector<double>& defl, std::vector<d
 void ChTMeasyTire::UpdateVerticalStiffness() {
     const double kN2N = 1000.0;
     m_TMeasyCoeff.cz = kN2N * (m_a1 + 2.0 * m_a2 * m_data.depth);
-}
-
-double ChTMeasyTire::RampSignum(double x) {
-    // Signum with a Ramp to smooth switching states
-    double full_at = 0.1;
-    double b = 1.0 / full_at;
-
-    if (std::abs(x) < full_at) {
-        return b * x;
-    }
-    if (x > full_at) {
-        return 1.0;
-    } else {
-        return -1.0;
-    }
 }
 
 double ChTMeasyTire::GetTireMaxLoad(unsigned int li) {
