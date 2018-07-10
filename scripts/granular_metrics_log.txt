@@ -126,3 +126,15 @@ Running settling test!
 50 thousand bodies took 2.7685 seconds!
 500 thousand bodies took 18.0938 seconds!
 1 million bodies took 42.2136 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 10 Jul 2018 11:54:06 -0500
+commit ed3bf84ef1aed6f530212c0d4999031e13d8ca62 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jul 10 11:53:52 2018 -0500 Cleanup shared memory in sphere-sphere broadphase
+Results:
+Running wavetank test!
+50 thousand bodies took 3.47281 seconds!
+500 thousand bodies took 18.5562 seconds!
+1 million bodies took 39.9928 seconds!
+Running settling test!
+50 thousand bodies took 2.479 seconds!
+500 thousand bodies took 17.6614 seconds!
+1 million bodies took 40.2821 seconds!

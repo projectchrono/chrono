@@ -240,7 +240,10 @@ primingOperationsRectangularBox(
     int zSphCenter;
 
     /// Set aside shared memory
-    volatile __shared__ size_t offsetInComposite_SphInSD_Array[CUB_THREADS * 8];
+    // SD component of offset into composite array
+    volatile __shared__ unsigned int SD_composite_offsets[CUB_THREADS * 8];
+    // sphere component of offset into composite array
+    volatile __shared__ unsigned char sphere_composite_offsets[CUB_THREADS * 8];
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * 8];
 
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
@@ -285,7 +288,8 @@ primingOperationsRectangularBox(
     // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
     // No shmem bank coflicts here, good access...
     for (unsigned int i = 0; i < 8; i++) {
-        offsetInComposite_SphInSD_Array[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID_LONG;
+        SD_composite_offsets[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
+        sphere_composite_offsets[i * CUB_THREADS + threadIdx.x] = 0;
     }
 
     __syncthreads();
@@ -299,7 +303,7 @@ primingOperationsRectangularBox(
         if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
             // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
             unsigned int idInShared = 8 * threadIdx.x + i;
-            unsigned int winningStreak = 0;
+            unsigned int winningStreak = 0;  // should always be under 256 by simulation constraints
             // This is the beginning of a sequence of SDs with a new ID
             do {
                 winningStreak++;
@@ -307,15 +311,19 @@ primingOperationsRectangularBox(
             } while (idInShared + winningStreak < 8 * CUB_THREADS && !(shMem_head_flags[idInShared + winningStreak]));
 
             // Store start of new entries
-            size_t offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
+            unsigned char sphere_offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
 
-            // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
-            // Get the absolute offset
-            offset += ((size_t)touchedSD) * MAX_COUNT_OF_DEs_PER_SD;
+            // The value sphere_offset now gives a *relative* offset in the composite array; i.e.,
+            // spheres_in_SD_composite. Get the SD component
+            unsigned int sd_offset = touchedSD * MAX_COUNT_OF_DEs_PER_SD;
 
             // Produce the offsets for this streak of spheres with identical SD ids
-            for (unsigned int i = 0; i < winningStreak; i++)
-                offsetInComposite_SphInSD_Array[idInShared + i] = offset++;
+            for (unsigned int i = 0; i < winningStreak; i++) {
+                // set the SD offset
+                SD_composite_offsets[idInShared + i] = sd_offset;
+                // add this sphere to that sd, incrementing offset for next guy
+                sphere_composite_offsets[idInShared + i] = sphere_offset++;
+            }
         }
     }
 
@@ -326,8 +334,10 @@ primingOperationsRectangularBox(
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
-        size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
-        if (offset != NULL_GRANULAR_ID_LONG) {
+        // Add offsets together
+        // bad SD means not a valid offset
+        if (SD_composite_offsets[8 * threadIdx.x + i] != NULL_GRANULAR_ID) {
+            size_t offset = SD_composite_offsets[8 * threadIdx.x + i] + sphere_composite_offsets[8 * threadIdx.x + i];
             if (offset >= max_composite_index) {
                 ABORTABORTABORT(
                     "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
@@ -740,8 +750,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
     __syncthreads();
 }
 
-template <unsigned int THRDS_PER_BLOCK>  //!< Number of CUB threads engaged in block-collective CUB operations.
-                                         //!< Should be a multiple of 32
+template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
+                                     //!< Should be a multiple of 32
 __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical integration time step
                                 int* d_sphere_pos_X,       //!< Pointer to array containing data related to the
                                                            //!< spheres in the box
@@ -768,13 +778,16 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     int ySphCenter;
     int zSphCenter;
     /// Set aside shared memory
-    volatile __shared__ size_t offsetInComposite_SphInSD_Array[THRDS_PER_BLOCK * 8];
-    volatile __shared__ bool shMem_head_flags[THRDS_PER_BLOCK * 8];
+    // SD component of offset into composite array
+    volatile __shared__ unsigned int SD_composite_offsets[CUB_THREADS * 8];
+    // sphere component of offset into composite array
+    volatile __shared__ unsigned char sphere_composite_offsets[CUB_THREADS * 8];
+    volatile __shared__ bool shMem_head_flags[CUB_THREADS * 8];
 
-    typedef cub::BlockRadixSort<unsigned int, THRDS_PER_BLOCK, 8, unsigned int> BlockRadixSortOP;
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
 
-    typedef cub::BlockDiscontinuity<unsigned int, THRDS_PER_BLOCK> Block_Discontinuity;
+    typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
     __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
 
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
@@ -822,42 +835,46 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
     // No shmem bank coflicts here, good access...
     for (unsigned int i = 0; i < 8; i++) {
-        offsetInComposite_SphInSD_Array[i * THRDS_PER_BLOCK + threadIdx.x] = NULL_GRANULAR_ID_LONG;
+        SD_composite_offsets[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
+        sphere_composite_offsets[i * CUB_THREADS + threadIdx.x] = 0;
     }
 
     __syncthreads();
 
-    // Count how many times an SD shows up in conjunction with the collection of THRDS_PER_BLOCK spheres. There
+    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS spheres. There
     // will be some thread divergence here.
     // Loop through each potential SD, after sorting, and see if it is the start of a head
     for (unsigned int i = 0; i < 8; i++) {
         // SD currently touched, could easily be inlined
         unsigned int touchedSD = SDsTouched[i];
         if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
-            // current index into shared datastructure of length 8*THRDS_PER_BLOCK, could easily be inlined
+            // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
             unsigned int idInShared = 8 * threadIdx.x + i;
             unsigned int winningStreak = 0;
             // This is the beginning of a sequence of SDs with a new ID
             do {
                 winningStreak++;
                 // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < 8 * THRDS_PER_BLOCK &&
-                     !(shMem_head_flags[idInShared + winningStreak]));
+            } while (idInShared + winningStreak < 8 * CUB_THREADS && !(shMem_head_flags[idInShared + winningStreak]));
 
             if (touchedSD >= gran_params->d_box_L_SU * gran_params->d_box_D_SU * gran_params->d_box_H_SU) {
                 printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
             }
 
-            // Store start of new entries, this can be a very large number
-            size_t offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
+            // Store start of new entries
+            unsigned char sphere_offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
 
-            // The value offset now gives a *relative* offset in the composite array; i.e., spheres_in_SD_composite.
-            // Get the absolute offset
-            offset += ((size_t)touchedSD) * MAX_COUNT_OF_DEs_PER_SD;
+            // The value sphere_offset now gives a *relative* offset in the composite array; i.e.,
+            // spheres_in_SD_composite. Get the SD component
+            unsigned int sd_offset = touchedSD * MAX_COUNT_OF_DEs_PER_SD;
 
             // Produce the offsets for this streak of spheres with identical SD ids
-            for (unsigned int i = 0; i < winningStreak; i++)
-                offsetInComposite_SphInSD_Array[idInShared + i] = offset++;
+            for (unsigned int i = 0; i < winningStreak; i++) {
+                // set the SD offset
+                SD_composite_offsets[idInShared + i] = sd_offset;
+                // add this sphere to that sd, incrementing offset for next guy
+                sphere_composite_offsets[idInShared + i] = sphere_offset++;
+            }
         }
     }
 
@@ -867,13 +884,14 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
         (size_t)gran_params->d_box_D_SU * gran_params->d_box_L_SU * gran_params->d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
-    // what is happening is anything real?
     for (unsigned int i = 0; i < 8; i++) {
-        size_t offset = offsetInComposite_SphInSD_Array[8 * threadIdx.x + i];
-        if (offset != NULL_GRANULAR_ID_LONG) {
+        // Add offsets together
+        // bad SD means not a valid offset
+        if (SD_composite_offsets[8 * threadIdx.x + i] != NULL_GRANULAR_ID) {
+            size_t offset = SD_composite_offsets[8 * threadIdx.x + i] + sphere_composite_offsets[8 * threadIdx.x + i];
             if (offset >= max_composite_index) {
                 ABORTABORTABORT(
-                    "overrun during updatePositions on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
+                    "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
                     threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
             } else {
                 spheres_in_SD_composite[offset] = sphIDs[i];
