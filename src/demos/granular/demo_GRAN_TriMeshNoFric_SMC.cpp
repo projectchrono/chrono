@@ -270,6 +270,7 @@ int main(int argc, char* argv[]) {
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
+    std::cout << nSoupFamilies << " soup families \n";
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
 

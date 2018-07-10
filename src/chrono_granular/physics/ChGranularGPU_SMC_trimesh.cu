@@ -38,23 +38,23 @@ typedef const chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
 
 /// Takes in a triangle's position and finds out what SDs it touches
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
-                                             const Triangle_Soup<int>& triangleSoup,
+                                             const Triangle_Soup<float>* triangleSoup,
                                              unsigned int* touchedSDs,
                                              ParamsPtr gran_params) {
     unsigned int SD_count = 0;
     float3 vA, vB, vC;
     // Coalesced memory accesses; we have an int to float conversion here
-    vA.x = triangleSoup.node1_X[triangleID];
-    vA.y = triangleSoup.node1_Y[triangleID];
-    vA.z = triangleSoup.node1_Z[triangleID];
+    vA.x = triangleSoup->node1_X[triangleID];
+    vA.y = triangleSoup->node1_Y[triangleID];
+    vA.z = triangleSoup->node1_Z[triangleID];
 
-    vB.x = triangleSoup.node2_X[triangleID];
-    vB.y = triangleSoup.node2_Y[triangleID];
-    vB.z = triangleSoup.node2_Z[triangleID];
+    vB.x = triangleSoup->node2_X[triangleID];
+    vB.y = triangleSoup->node2_Y[triangleID];
+    vB.z = triangleSoup->node2_Z[triangleID];
 
-    vC.x = triangleSoup.node3_X[triangleID];
-    vC.y = triangleSoup.node3_Y[triangleID];
-    vC.z = triangleSoup.node3_Z[triangleID];
+    vC.x = triangleSoup->node3_X[triangleID];
+    vC.y = triangleSoup->node3_Y[triangleID];
+    vC.z = triangleSoup->node3_Z[triangleID];
 
     uint3 SDA = pointSDTriplet(vA.x, vA.y, vA.z, gran_params);  // SD indices for point A
     uint3 SDB = pointSDTriplet(vB.x, vB.y, vB.z, gran_params);  // SD indices for point B
@@ -153,7 +153,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
  */
 template <unsigned int CUB_THREADS>  //!< Number of threads engaged in block-collective CUB operations (multiple of 32)
 __global__ void triangleSoupBroadPhase(
-    Triangle_Soup<int>& d_triangleSoup,
+    Triangle_Soup<float>* d_triangleSoup,
     unsigned int*
         d_BUCKET_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int*
@@ -182,7 +182,7 @@ __global__ void triangleSoupBroadPhase(
         SDsTouched[i] = NULL_GRANULAR_ID;
     }
 
-    if (myTriangleID < d_triangleSoup.nTrianglesInSoup)
+    if (myTriangleID < d_triangleSoup->nTrianglesInSoup)
         triangle_figureOutTouchedSDs(myTriangleID, d_triangleSoup, SDsTouched, gran_params);
 
     __syncthreads();
@@ -279,7 +279,7 @@ be produced to account for the interaction between the said triangle and sphere 
 
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
-    Triangle_Soup<int>& d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
+    Triangle_Soup<float>* d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
     int* d_sphere_pos_X,
     int* d_sphere_pos_Y,
     int* d_sphere_pos_Z,
@@ -348,17 +348,17 @@ __global__ void interactionTerrain_TriangleSoup(
         if (local_ID < nSD_triangles) {
             unsigned int globalID = triangles_in_SD_composite[local_ID + thisSD * MAX_TRIANGLE_COUNT_PER_BUCKET];
             triangID[local_ID] = globalID;
-            node1_X[local_ID] = d_triangleSoup.node1_X[globalID];
-            node1_Y[local_ID] = d_triangleSoup.node1_Y[globalID];
-            node1_Z[local_ID] = d_triangleSoup.node1_Z[globalID];
+            node1_X[local_ID] = d_triangleSoup->node1_X[globalID];
+            node1_Y[local_ID] = d_triangleSoup->node1_Y[globalID];
+            node1_Z[local_ID] = d_triangleSoup->node1_Z[globalID];
 
-            node2_X[local_ID] = d_triangleSoup.node2_X[globalID];
-            node2_Y[local_ID] = d_triangleSoup.node2_Y[globalID];
-            node2_Z[local_ID] = d_triangleSoup.node2_Z[globalID];
+            node2_X[local_ID] = d_triangleSoup->node2_X[globalID];
+            node2_Y[local_ID] = d_triangleSoup->node2_Y[globalID];
+            node2_Z[local_ID] = d_triangleSoup->node2_Z[globalID];
 
-            node3_X[local_ID] = d_triangleSoup.node3_X[globalID];
-            node3_Y[local_ID] = d_triangleSoup.node3_Y[globalID];
-            node3_Z[local_ID] = d_triangleSoup.node3_Z[globalID];
+            node3_X[local_ID] = d_triangleSoup->node3_X[globalID];
+            node3_Y[local_ID] = d_triangleSoup->node3_Y[globalID];
+            node3_Z[local_ID] = d_triangleSoup->node3_Z[globalID];
         }
     }
 
@@ -567,7 +567,7 @@ __global__ void interactionTerrain_TriangleSoup(
         for (local_ID = 0; local_ID < nTrips + 1; local_ID++) {
             unsigned int offset = threadIdx.x + local_ID * (6 * NUM_TRIANGLE_FAMILIES);
             if (offset < 6 * NUM_TRIANGLE_FAMILIES)
-                atomicAdd(d_triangleSoup.generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
+                atomicAdd(d_triangleSoup->generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
         }
     }
 }

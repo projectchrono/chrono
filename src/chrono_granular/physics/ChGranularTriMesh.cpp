@@ -67,6 +67,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST_DE
     for (auto shape : shapes) {
         nTriangles += shape.mesh.indices.size() / 3;
     }
+    printf("nFamiliesInSoup is %u\n", nTriangles);
     // Allocate memory to store mesh soup; done both on the HOST and DEVICE sides
     setupTriMesh_HOST(shapes, nTriangles);
     setupTriMesh_DEVICE(nTriangles);
@@ -253,64 +254,68 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_HOST(
 }
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVICE() {
-    cudaFree(meshSoup_DEVICE.triangleFamily_ID);
+    cudaFree(meshSoup_DEVICE->triangleFamily_ID);
 
-    cudaFree(meshSoup_DEVICE.node1_X);
-    cudaFree(meshSoup_DEVICE.node1_Y);
-    cudaFree(meshSoup_DEVICE.node1_Z);
+    cudaFree(meshSoup_DEVICE->node1_X);
+    cudaFree(meshSoup_DEVICE->node1_Y);
+    cudaFree(meshSoup_DEVICE->node1_Z);
 
-    cudaFree(meshSoup_DEVICE.node2_X);
-    cudaFree(meshSoup_DEVICE.node2_Y);
-    cudaFree(meshSoup_DEVICE.node2_Z);
+    cudaFree(meshSoup_DEVICE->node2_X);
+    cudaFree(meshSoup_DEVICE->node2_Y);
+    cudaFree(meshSoup_DEVICE->node2_Z);
 
-    cudaFree(meshSoup_DEVICE.node3_X);
-    cudaFree(meshSoup_DEVICE.node3_Y);
-    cudaFree(meshSoup_DEVICE.node3_Z);
+    cudaFree(meshSoup_DEVICE->node3_X);
+    cudaFree(meshSoup_DEVICE->node3_Y);
+    cudaFree(meshSoup_DEVICE->node3_Z);
 
-    cudaFree(meshSoup_DEVICE.node1_XDOT);
-    cudaFree(meshSoup_DEVICE.node1_YDOT);
-    cudaFree(meshSoup_DEVICE.node1_ZDOT);
+    cudaFree(meshSoup_DEVICE->node1_XDOT);
+    cudaFree(meshSoup_DEVICE->node1_YDOT);
+    cudaFree(meshSoup_DEVICE->node1_ZDOT);
 
-    cudaFree(meshSoup_DEVICE.node2_XDOT);
-    cudaFree(meshSoup_DEVICE.node2_YDOT);
-    cudaFree(meshSoup_DEVICE.node2_ZDOT);
+    cudaFree(meshSoup_DEVICE->node2_XDOT);
+    cudaFree(meshSoup_DEVICE->node2_YDOT);
+    cudaFree(meshSoup_DEVICE->node2_ZDOT);
 
-    cudaFree(meshSoup_DEVICE.node3_XDOT);
-    cudaFree(meshSoup_DEVICE.node3_YDOT);
-    cudaFree(meshSoup_DEVICE.node3_ZDOT);
+    cudaFree(meshSoup_DEVICE->node3_XDOT);
+    cudaFree(meshSoup_DEVICE->node3_YDOT);
+    cudaFree(meshSoup_DEVICE->node3_ZDOT);
 
-    cudaFree(meshSoup_DEVICE.generalizedForcesPerFamily);
+    cudaFree(meshSoup_DEVICE->generalizedForcesPerFamily);
 }
 
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     unsigned int nTriangles) {
-    meshSoup_DEVICE.nTrianglesInSoup = nTriangles;  // TODO this is not on device?
+    // Allocate the device soup storage
+    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(meshSoup_DEVICE), cudaMemAttachGlobal));
 
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.triangleFamily_ID, nTriangles * sizeof(unsigned int)));
+    meshSoup_DEVICE->nTrianglesInSoup = nTriangles;  // TODO this is not on device?
 
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_X, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_Y, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_Z, nTriangles * sizeof(float)));
+    // Allocate all of the requisite pointers
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->triangleFamily_ID, nTriangles * sizeof(unsigned int)));
 
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_X, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_Y, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_Z, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node1_X, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node1_Y, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node1_Z, nTriangles * sizeof(float)));
 
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_X, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_Y, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_Z, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node2_X, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node2_Y, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node2_Z, nTriangles * sizeof(float)));
 
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_XDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_YDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node1_ZDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node3_X, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node3_Y, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node3_Z, nTriangles * sizeof(float)));
 
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_XDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_YDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node2_ZDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node1_XDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node1_YDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node1_ZDOT, nTriangles * sizeof(float)));
 
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_XDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_YDOT, nTriangles * sizeof(float)));
-    gpuErrchk(cudaMalloc(&meshSoup_DEVICE.node3_ZDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node2_XDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node2_YDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node2_ZDOT, nTriangles * sizeof(float)));
+
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node3_XDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node3_YDOT, nTriangles * sizeof(float)));
+    gpuErrchk(cudaMalloc(&meshSoup_DEVICE->node3_ZDOT, nTriangles * sizeof(float)));
 }
 
 // void LoadSoup(ChTriangleSoup& original_soup,
@@ -339,25 +344,25 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::se
  * that the material impresses on each family of the mesh soup is computed.
  */
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
-    cudaMemcpy(meshSoup_DEVICE.node1_X, meshSoupWorking_HOST.node1_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE->node1_X, meshSoupWorking_HOST.node1_X, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node1_Y, meshSoupWorking_HOST.node1_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE->node1_Y, meshSoupWorking_HOST.node1_Y, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node1_Z, meshSoupWorking_HOST.node1_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
-               cudaMemcpyHostToDevice);
-
-    cudaMemcpy(meshSoup_DEVICE.node2_X, meshSoupWorking_HOST.node2_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
-               cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node2_Y, meshSoupWorking_HOST.node2_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
-               cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node2_Z, meshSoupWorking_HOST.node2_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE->node1_Z, meshSoupWorking_HOST.node1_Z, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
 
-    cudaMemcpy(meshSoup_DEVICE.node3_X, meshSoupWorking_HOST.node3_X, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE->node2_X, meshSoupWorking_HOST.node2_X, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node3_Y, meshSoupWorking_HOST.node3_Y, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE->node2_Y, meshSoupWorking_HOST.node2_Y, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
-    cudaMemcpy(meshSoup_DEVICE.node3_Z, meshSoupWorking_HOST.node3_Z, meshSoup_DEVICE.nTrianglesInSoup * sizeof(int),
+    cudaMemcpy(meshSoup_DEVICE->node2_Z, meshSoupWorking_HOST.node2_Z, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+
+    cudaMemcpy(meshSoup_DEVICE->node3_X, meshSoupWorking_HOST.node3_X, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE->node3_Y, meshSoupWorking_HOST.node3_Y, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
+               cudaMemcpyHostToDevice);
+    cudaMemcpy(meshSoup_DEVICE->node3_Z, meshSoupWorking_HOST.node3_Z, meshSoup_DEVICE->nTrianglesInSoup * sizeof(int),
                cudaMemcpyHostToDevice);
 }
 
@@ -372,7 +377,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Loc
 * the DEs are moved forward in time. In other words, the forces are associated with the configuration of the DE system
 * from time timeToWhichDEsHaveBeenPropagated upon entrying this function.
 * The logic is this: when the time integration is carried out, the forces are measured and saved in
-* meshSoup_DEVICE.nFamiliesInSoup. Then, the numerical integration takes places and the state of DEs is update along
+* meshSoup_DEVICE->nFamiliesInSoup. Then, the numerical integration takes places and the state of DEs is update along
 * with the value of timeToWhichDEsHaveBeenPropagated.
 *
 * \param [in] crntTime The time at which the force is computed
@@ -393,8 +398,8 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedFo
     timeToWhichDEsHaveBeenPropagated = crntTime;
 
     // Values in meshSoup_DEVICE are legit and ready to be loaded in user provided array.
-    gpuErrchk(cudaMemcpy(genForcesOnSoup, meshSoup_DEVICE.generalizedForcesPerFamily,
-                         6 * meshSoup_DEVICE.nFamiliesInSoup * sizeof(float), cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaMemcpy(genForcesOnSoup, meshSoup_DEVICE->generalizedForcesPerFamily,
+                         6 * meshSoup_DEVICE->nFamiliesInSoup * sizeof(float), cudaMemcpyDeviceToHost));
 }
 
 /**

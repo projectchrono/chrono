@@ -89,10 +89,12 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
   private:
     GranParamsHolder_trimesh* tri_params;
-    ChTriangleSoup<float> meshSoup_HOST;  //!< clean copy of mesh soup interacting with granular material; HOST-side
-    ChTriangleSoup<float>
-        meshSoupWorking_HOST;             //!< working copy of mesh soup interacting with granular material; HOST-side
-    ChTriangleSoup<int> meshSoup_DEVICE;  //!< mesh soup interacting with granular material; DEVICE-side
+    /// clean copy of mesh soup interacting with granular material; HOST-side
+    ChTriangleSoup<float> meshSoup_HOST;
+    /// working copy of mesh soup interacting with granular material; HOST-side
+    ChTriangleSoup<float> meshSoupWorking_HOST;
+    // store a pointer since we use unified memory for this
+    ChTriangleSoup<float>* meshSoup_DEVICE;  //!< mesh soup interacting with granular material; DEVICE-side
     double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
     float K_n_s2m_SU;  //!< size of the normal stiffness (SU) for sphere-to-mesh contact; expressed in sim. units
     bool problemSetupFinished;
@@ -121,8 +123,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, std::string meshFileName);
     virtual ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
 
-    inline void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
-    inline unsigned int nMeshesInSoup() const { return meshSoup_HOST.nFamiliesInSoup; }
+    void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
+    unsigned int nMeshesInSoup() const { return meshSoup_HOST.nFamiliesInSoup; }
     void collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup);
     void meshSoup_applyRigidBodyMotion(float crntTime, double* position_orientation_data);
 };
