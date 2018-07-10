@@ -752,19 +752,25 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
 
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                      //!< Should be a multiple of 32
-__global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical integration time step
-                                int* d_sphere_pos_X,       //!< Pointer to array containing data related to the
-                                                           //!< spheres in the box
-                                int* d_sphere_pos_Y,       //!< Pointer to array containing data related to the
-                                                           //!< spheres in the box
-                                int* d_sphere_pos_Z,       //!< Pointer to array containing data related to the
-                                                           //!< spheres in the box
-                                float* d_sphere_pos_X_dt,  //!< Pointer to array containing data related to
-                                                           //!< the spheres in the box
-                                float* d_sphere_pos_Y_dt,  //!< Pointer to array containing data related to
-                                                           //!< the spheres in the box
-                                float* d_sphere_pos_Z_dt,  //!< Pointer to array containing data related to
-                                                           //!< the spheres in the box
+__global__ void updatePositions(unsigned int alpha_h_bar,      //!< The numerical integration time step
+                                int* d_sphere_pos_X,           //!< Pointer to array containing data related to the
+                                                               //!< spheres in the box
+                                int* d_sphere_pos_Y,           //!< Pointer to array containing data related to the
+                                                               //!< spheres in the box
+                                int* d_sphere_pos_Z,           //!< Pointer to array containing data related to the
+                                                               //!< spheres in the box
+                                float* d_sphere_pos_X_dt,      //!< Pointer to array containing data related to
+                                                               //!< the spheres in the box
+                                float* d_sphere_pos_Y_dt,      //!< Pointer to array containing data related to
+                                                               //!< the spheres in the box
+                                float* d_sphere_pos_Z_dt,      //!< Pointer to array containing data related to
+                                                               //!< the spheres in the box
+                                float* d_sphere_pos_X_update,  //!< Pointer to array containing data related to
+                                                               //!< the spheres in the box
+                                float* d_sphere_pos_Y_update,  //!< Pointer to array containing data related to
+                                                               //!< the spheres in the box
+                                float* d_sphere_pos_Z_update,  //!< Pointer to array containing data related to
+                                                               //!< the spheres in the box
                                 unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
                                                                            //!< SD indicates how many
                                                                            //!< spheres touch this SD
@@ -799,6 +805,17 @@ __global__ void updatePositions(unsigned int alpha_h_bar,  //!< The numerical in
     unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
                                   NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     if (mySphereID < nSpheres) {
+        // Check to see if we messed up badly somewhere
+        if (d_sphere_pos_X_update[mySphereID] == NAN || d_sphere_pos_Y_update[mySphereID] == NAN ||
+            d_sphere_pos_Z_update[mySphereID] == NAN) {
+            ABORTABORTABORT("NAN velocity update computed -- sphere is %u, velXcorr is %f\n", mySphereID,
+                            d_sphere_pos_X_update[mySphereID]);
+        }
+        // Probably does not need to be atomic, but no conflicts means it won't be too slow anyways
+        atomicAdd(d_sphere_pos_X_dt + mySphereID, d_sphere_pos_X_update[mySphereID]);
+        atomicAdd(d_sphere_pos_Y_dt + mySphereID, d_sphere_pos_Y_update[mySphereID]);
+        atomicAdd(d_sphere_pos_Z_dt + mySphereID, d_sphere_pos_Z_update[mySphereID]);
+
         // Perform numerical integration. For now, use Explicit Euler. Hitting cache, also coalesced.
         xSphCenter = alpha_h_bar * d_sphere_pos_X_dt[mySphereID];
         ySphCenter = alpha_h_bar * d_sphere_pos_Y_dt[mySphereID];

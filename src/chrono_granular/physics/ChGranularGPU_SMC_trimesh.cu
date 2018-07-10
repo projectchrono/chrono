@@ -659,15 +659,15 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(),
             BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(), gran_params, tri_params);
 
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
-        VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
-        // Apply the updates we just made
-        applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
+        // gpuErrchk(cudaPeekAtLastError());
+        // gpuErrchk(cudaDeviceSynchronize());
+        //
+        // VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
+        // // Apply the updates we just made
+        // applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+        //     stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+        //     pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+        //     pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -678,7 +678,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
-            SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), nDEs, gran_params);
+            pos_X_dt_update.data(), pos_Y_dt_update.data(), pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(),
+            DEs_in_SD_composite.data(), nDEs, gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
