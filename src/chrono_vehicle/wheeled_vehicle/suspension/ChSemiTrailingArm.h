@@ -95,6 +95,9 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
     /// Get the current global COM location of the suspension subsystem.
     virtual ChVector<> GetCOMPos() const override;
 
+    /// Get the wheel track for the suspension subsystem.
+    virtual double GetTrack() override;
+
     /// Get a handle to the specified spring element.
     std::shared_ptr<ChLinkSpringCB> GetSpring(VehicleSide side) const { return m_spring[side]; }
 
