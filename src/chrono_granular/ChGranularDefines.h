@@ -26,8 +26,6 @@
 #define AVERAGE_SPHERES_PER_SD_H_DIR 3.5
 /// Anticipated max number of DEs in an SD; used for setting aside memory ahead of time
 #define MAX_COUNT_OF_DEs_PER_SD 256
-/// Anticipated max number of mesh triangles in an SD; used for setting aside memory ahead of time
-#define MAX_COUNT_OF_Triangles_PER_SD 64
 /// Value that indicates non-valid ID. The assumption is that an ID is always a positive integer
 #define NULL_GRANULAR_ID UINT_MAX
 /// Value that indicates non-valid ID in long size_t form. This allows > 4 billion entries into an array
@@ -44,7 +42,7 @@
 #define PSI_h 4
 /// Value that controls the time unit. It is like a safety factor.
 #define PSI_T 8
-/// Max number of SDs that a mesh triangle can touch
+/// Max number of SDs that a mesh triangle can touch. Note that it can touch an equal number of buckets
 #define MAX_SDs_TOUCHED_BY_TRIANGLE 8
 /// The number of buckets used to host the triangles that touch a subset of SDs. If memory was not an issue, we'd
 /// have as many an buckets as SD and one bucket would handle one SD. Yet this would lead to a lot of wasted memory
