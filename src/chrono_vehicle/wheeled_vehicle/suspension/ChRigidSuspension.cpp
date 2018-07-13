@@ -130,6 +130,13 @@ ChVector<> ChRigidSuspension::GetCOMPos() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the wheel track using the spindle local position.
+// -----------------------------------------------------------------------------
+double ChRigidSuspension::GetTrack() {
+    return 2 * getLocation(SPINDLE).y();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidSuspension::LogConstraintViolations(VehicleSide side) {
     // Revolute joint

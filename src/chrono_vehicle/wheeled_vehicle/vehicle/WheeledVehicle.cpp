@@ -490,6 +490,31 @@ void WheeledVehicle::Create(const std::string& filename) {
         LoadBrake(vehicle::GetDataFile(file_name), i, VehicleSide::RIGHT, output);
     }
 
+    // Get the wheelbase (if defined in JSON file).
+    // Otherwise, approximate as distance between first and last suspensions.
+    if (d.HasMember("Wheelbase")) {
+        m_wheelbase = d["Wheelbase"].GetDouble();
+    } else {
+        m_wheelbase = m_suspLocations[0].x() - m_suspLocations[m_num_axles - 1].x();
+    }
+    assert(m_wheelbase > 0);
+
+    // Get the minimum turning radius (if defined in JSON file).
+    // Otherwise, use default value.
+    if (d.HasMember("Minimum Turning Radius")) {
+        m_turn_radius = d["Minimum Turning Radius"].GetDouble();
+    } else {
+        m_turn_radius = ChWheeledVehicle::GetMinTurningRadius();
+    }
+
+    // Set maximum steering angle. Use value from JSON file is provided.
+    // Otherwise, use default estimate.
+    if (d.HasMember("Maximum Steering Angle")) {
+        m_steer_angle = d["Maximum Steering Angle"].GetDouble() * CH_C_DEG_TO_RAD;
+    } else {
+        m_steer_angle = ChWheeledVehicle::GetMaxSteeringAngle();
+    }
+
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 

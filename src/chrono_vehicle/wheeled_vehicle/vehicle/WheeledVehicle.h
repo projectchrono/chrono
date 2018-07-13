@@ -43,6 +43,10 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
 
     virtual int GetNumberAxles() const override { return m_num_axles; }
 
+    virtual double GetWheelbase() const override { return m_wheelbase; }
+    virtual double GetMinTurningRadius() const { return m_turn_radius; }
+    virtual double GetMaxSteeringAngle() const { return m_steer_angle; }
+
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
@@ -60,6 +64,7 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     int m_num_axles;                           // number of axles for this vehicle
     std::vector<ChVector<> > m_suspLocations;  // locations of the suspensions relative to chassis
     std::vector<int> m_suspSteering;           // indexes of steering subsystems (-1 indicates a non-steered suspension)
+    double m_wheelbase;                        // vehicle wheel base
 
     std::vector<ChVector<> > m_arbLocations;  // locations of the antirollbar subsystems relative to chassis
     std::vector<int> m_arbSuspension;         // indexes of steering subsystems
@@ -69,6 +74,9 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     std::vector<ChQuaternion<> > m_strRotations;  // orientations of the steering subsystems relative to chassis
 
     std::vector<int> m_driven_susp;  // indexes of the driven suspensions
+
+    double m_turn_radius;  // minimum turning radius
+    double m_steer_angle;  // maximum steering angle
 };
 
 /// @} vehicle_wheeled

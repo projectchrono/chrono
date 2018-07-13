@@ -33,6 +33,10 @@ class TT_Tractor : public chrono::vehicle::ChWheeledVehicle {
 
     virtual int GetNumberAxles() const override { return 2; }
 
+    virtual double GetWheelbase() const override { return 3.38; }
+    virtual double GetMinTurningRadius() const override { return 7.7; }
+    virtual double GetMaxSteeringAngle() const override { return 30 * chrono::CH_C_DEG_TO_RAD; }
+
     double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
     double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
     double GetSpringDeformation(const chrono::vehicle::WheelID& wheel_id) const;

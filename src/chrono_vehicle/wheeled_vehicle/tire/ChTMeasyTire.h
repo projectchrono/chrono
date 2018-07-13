@@ -304,7 +304,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     double InterpQ(double fz, double w1, double w2) {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };
-    double RampSignum(double inval);
 
   private:
     void UpdateVerticalStiffness();

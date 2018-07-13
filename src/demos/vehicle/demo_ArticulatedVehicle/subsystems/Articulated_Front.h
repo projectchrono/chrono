@@ -64,6 +64,10 @@ class Articulated_Front : public chrono::vehicle::ChWheeledVehicle {
 
     virtual int GetNumberAxles() const override { return 1; }
 
+    virtual double GetWheelbase() const override { return 1.0; }
+    virtual double GetMinTurningRadius() const override { return 5.0; }
+    virtual double GetMaxSteeringAngle() const override { return 0.0; }
+
     virtual void Initialize(const chrono::ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 };
 
