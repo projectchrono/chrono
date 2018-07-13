@@ -639,6 +639,159 @@ public:
 };
 
 
+
+
+
+/// Base interface for structural damping of beam sections of Cosserat type,
+/// where xyz force "n" and xyz torque "m" are a 6-dimensional function of
+/// generalized strain speeds, "e'" traction/shear speed and "k'" curvature speed, as:
+///   {n,m}=f({e',k'}) 
+/// Children classes implement this function in different ways. 
+
+class ChApiFea ChDampingCosserat {
+public:
+
+
+	ChDampingCosserat() {
+		section = nullptr;
+	}
+
+	virtual ~ChDampingCosserat() {}
+
+
+	/// Compute the generalized cut force and cut torque, caused by structural damping,
+	/// given actual deformation speed and curvature speed. 
+	/// This MUST be implemented by subclasses.
+	virtual void ComputeStress(
+		ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
+		ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
+		const ChVector<>& dstrain_e, ///< the local strain speed (deformation part): x= elongation speed, y and z are shear speeds
+		const ChVector<>& dstrain_k  ///< the local strain speed (curvature part), x= torsion speed, y and z are line curvature speeds
+	) = 0;
+
+	/// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
+	/// This must be overridden by subclasses if an analytical solution is
+	/// known (preferred for high performance), otherwise the base behaviour here is to compute
+	/// [Rm] by numerical differentiation calling ComputeStress() multiple times.
+	virtual void ComputeDampingMatrix(
+		ChMatrixDynamic<>& R,       ///< return the 6x6 material stiffness matrix values here
+		const ChVector<>& dstrain_e, ///< the current strain speed (deformation part)
+		const ChVector<>& dstrain_k  ///< the current strain speed (curvature part)
+	) {
+		double epsi = 1e-6;
+		double invepsi = 1.0 / epsi;
+		ChVector<> astress_n;
+		ChVector<> astress_m;
+		ChVector<> bstress_n;
+		ChVector<> bstress_m;
+		ChVector<> strain_e_inc = dstrain_e;
+		ChVector<> strain_k_inc = dstrain_k;
+		this->ComputeStress(astress_n, astress_m, dstrain_e, dstrain_k);
+		for (int i = 0;i < 3; ++i) {
+			strain_e_inc[i] += epsi;
+			this->ComputeStress(bstress_n, bstress_m, strain_e_inc, strain_k_inc);
+			R.PasteVector((bstress_n - astress_n)*invepsi, 0, i);
+			R.PasteVector((bstress_m - astress_m)*invepsi, 3, i);
+			strain_e_inc[i] -= epsi;
+		}
+		for (int i = 0;i < 3; ++i) {
+			strain_k_inc[i] += epsi;
+			this->ComputeStress(bstress_n, bstress_m, strain_e_inc, strain_k_inc);
+			R.PasteVector((bstress_n - astress_n)*invepsi, 0, i + 3);
+			R.PasteVector((bstress_m - astress_m)*invepsi, 3, i + 3);
+			strain_k_inc[i] -= epsi;
+		}
+	}
+
+
+	/// Shortcut: set parameters at once, given the y and z widths of the beam assumed
+	/// with rectangular shape.
+	virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
+
+	/// Shortcut: set parameters at once, given the diameter of the beam assumed
+	/// with circular shape.
+	virtual void SetAsCircularSection(double diameter) = 0;
+
+
+	ChBeamSectionCosserat* section;
+};
+
+
+/// Simple linear lumped damping of beam sections of Cosserat type,
+///   {n,m}=f({e',k'}) 
+/// where damping is proportional to speed of deformation/curvature via 
+/// linear constants:
+///   n = R_e * e'
+///   m = R_k * k'
+
+class ChApiFea ChDampingCosseratLinear : public ChDampingCosserat {
+public:
+
+	ChDampingCosseratLinear() {
+	}
+
+	virtual ~ChDampingCosseratLinear() {}
+
+
+	/// Compute the generalized cut force and cut torque, caused by structural damping,
+	/// given actual deformation speed and curvature speed. 
+	/// This MUST be implemented by subclasses.
+	virtual void ComputeStress(
+		ChVector<>& stress_n,      ///< return the local stress (generalized force), x component = traction along beam
+		ChVector<>& stress_m,      ///< return the local stress (generalized torque), x component = torsion torque along beam
+		const ChVector<>& dstrain_e, ///< the local strain speed (deformation part): x= elongation speed, y and z are shear speeds
+		const ChVector<>& dstrain_k  ///< the local strain speed (curvature part), x= torsion speed, y and z are line curvature speeds
+	) {
+		stress_n.x() = dstrain_e.x() * R_e.x();
+		stress_n.y() = dstrain_e.y() * R_e.y();
+		stress_n.z() = dstrain_e.z() * R_e.z();
+		stress_m.x() = dstrain_k.x() * R_k.x();
+		stress_m.y() = dstrain_k.y() * R_k.y();
+		stress_m.z() = dstrain_k.z() * R_k.z();
+	}
+
+	/// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
+	/// This must be overridden by subclasses if an analytical solution is
+	/// known (preferred for high performance), otherwise the base behaviour here is to compute
+	/// [Rm] by numerical differentiation calling ComputeStress() multiple times.
+	virtual void ComputeDampingMatrix(
+		ChMatrixDynamic<>& R,       ///< return the 6x6 material stiffness matrix values here
+		const ChVector<>& dstrain_e, ///< the current strain speed (deformation part)
+		const ChVector<>& dstrain_k  ///< the current strain speed (curvature part)
+	) {
+		R(0, 0) = R_e.x();
+		R(1, 1) = R_e.y();
+		R(2, 2) = R_e.z();
+		R(3, 3) = R_k.x();
+		R(4, 4) = R_k.y();
+		R(5, 5) = R_k.z();
+	}
+
+	ChVector<> GetDampingCoefficientsRe() {
+		return R_e;
+	}
+	void SetDampingCoefficientsRe(const ChVector<> mR_e) {
+		R_e = mR_e;
+	}
+
+	ChVector<> GetDampingCoefficientsRk() {
+		return R_k;
+	}
+	void SetDampingCoefficientsRk(const ChVector<> mR_k) {
+		R_k = mR_k;
+	}
+
+	virtual void SetAsRectangularSection(double width_y, double width_z) {};
+	virtual void SetAsCircularSection(double diameter) {};
+
+private:
+	ChVector<> R_e;
+	ChVector<> R_k;
+};
+
+
+
+
 /// Base class for properties of beam sections of Cosserat type (with shear too).
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
@@ -648,12 +801,16 @@ class ChApiFea ChBeamSectionCosserat : public ChBeamSectionProperties {
 
 	  ChBeamSectionCosserat(
 					std::shared_ptr<ChElasticityCosserat> melasticity,  /// the elasticity model for this section, ex.ChElasticityCosseratSimple 
-					std::shared_ptr<ChPlasticityCosserat> mplasticity = nullptr /// the plasticity model for this section, if any
+					std::shared_ptr<ChPlasticityCosserat> mplasticity = nullptr, /// the plasticity model for this section, if any
+					std::shared_ptr<ChDampingCosserat> mdamping  = nullptr /// the damping model for this section, if any
 	  ) {
 		this->SetElasticity(melasticity);
 		
 		if (mplasticity)
 			this->SetPlasticity(mplasticity);
+
+		if (mdamping)
+			this->SetDamping(mdamping);
     }
 
     virtual ~ChBeamSectionCosserat() {}
@@ -730,6 +887,18 @@ class ChApiFea ChBeamSectionCosserat : public ChBeamSectionProperties {
 		return this->plasticity;
 	}
 
+	/// Set the damping model for this section.
+	/// By default no damping.
+	void SetDamping(std::shared_ptr<ChDampingCosserat> mdamping) {
+		damping = mdamping;
+		damping->section = this;
+	}
+
+	/// Get the damping model for this section. 
+	/// By default no damping.
+	std::shared_ptr<ChDampingCosserat> GetDamping() {
+		return this->damping;
+	}
 
 	/// Shortcut: set elastic and plastic constants
 	/// at once, given the y and z widths of the beam assumed
@@ -744,6 +913,8 @@ class ChApiFea ChBeamSectionCosserat : public ChBeamSectionProperties {
 			this->elasticity->SetAsRectangularSection(width_y, width_z);
 		if (this->plasticity)
 			this->plasticity->SetAsRectangularSection(width_y, width_z);
+		if (this->damping)
+			this->damping->SetAsRectangularSection(width_y, width_z);
 	}
 
 	/// Shortcut: set elastic and plastic constants
@@ -758,12 +929,15 @@ class ChApiFea ChBeamSectionCosserat : public ChBeamSectionProperties {
 			this->elasticity->SetAsCircularSection(diameter);
 		if (this->plasticity)
 			this->plasticity->SetAsCircularSection(diameter);
+		if (this->damping)
+			this->damping->SetAsCircularSection(diameter);
 	}
 
 
 private:
 	std::shared_ptr<ChElasticityCosserat> elasticity;
 	std::shared_ptr<ChPlasticityCosserat> plasticity;
+	std::shared_ptr<ChDampingCosserat> damping;
 };
 
 

@@ -115,33 +115,55 @@ int main(int argc, char* argv[]) {
     // of elements and their referenced nodes.
     auto my_mesh = std::make_shared<ChMesh>();
 
+	
     // Create the horizontal beam
+	
+	double beam_wy = 0.10;
+    double beam_wz = 0.01;
+
+	/*
     auto msection1 = std::make_shared<ChBeamSectionAdvanced>();
 
-    double beam_wy = 0.10;
-    double beam_wz = 0.01;
     msection1->SetDensity(2700);
     msection1->SetYoungModulus(73.0e9);
     msection1->SetGwithPoissonRatio(0.3);
     msection1->SetAsRectangularSection(beam_wy, beam_wz);
     msection1->SetBeamRaleyghDamping(0.000);
-
+	*/
     // This helps creating sequences of nodes and ChElementBeamEuler elements:
     ChBuilderBeam builder;
-
+	/*
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
                       msection1,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
                       16,                    // the number of ChElementBeamEuler to create
                       vA,                    // the 'A' point in space (beginning of beam)
                       vC,                    // the 'B' point in space (end of beam)
                       ChVector<>(0, 1, 0));  // the 'Y' up direction of the section for the beam
-
+					  
     // After having used BuildBeam(), you can retrieve the nodes used for the beam,
     // For example say you want to fix the A end and apply a force to the B end:
     builder.GetLastBeamNodes().front()->SetFixed(true);
-
-    auto node_tip = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
-    auto node_mid = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes()[7]);
+	auto node_tip = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
+	auto node_mid = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes()[7]);
+	*/
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(73.0e9);
+	melasticity->SetGwithPoissonRatio(0.3);
+	melasticity->SetBeamRaleyghDamping(0.0000);
+	auto msection1 = std::make_shared<ChBeamSectionCosserat>(melasticity);
+	msection1->SetDensity(2700);
+	msection1->SetAsRectangularSection(beam_wy, beam_wz);
+	ChBuilderBeamIGA builder_iga;
+	builder_iga.BuildBeam(my_mesh,            // the mesh to put the elements in
+		msection1,              // section of the beam
+		16,             // number of sections (spans)
+		vA,   // start point
+		vC,// end point
+		VECT_Y,                // suggested Y direction of section
+		3);                // order (3 = cubic, etc)
+		builder_iga.GetLastBeamNodes().front()->SetFixed(true);
+    auto node_tip = std::shared_ptr<ChNodeFEAxyzrot>(builder_iga.GetLastBeamNodes().back());
+    auto node_mid = std::shared_ptr<ChNodeFEAxyzrot>(builder_iga.GetLastBeamNodes()[7]);
 
     // Create the vertical beam
     auto msection2 = std::make_shared<ChBeamSectionAdvanced>();
@@ -149,7 +171,7 @@ int main(int argc, char* argv[]) {
     double hbeam_d = 0.024;
     msection2->SetDensity(2700);
     msection2->SetYoungModulus(73.0e9);
-    msection1->SetGwithPoissonRatio(0.3);
+    msection2->SetGwithPoissonRatio(0.3);
     msection2->SetBeamRaleyghDamping(0.000);
     msection2->SetAsCircularSection(hbeam_d);
 
