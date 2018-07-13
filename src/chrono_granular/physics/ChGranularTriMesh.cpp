@@ -75,6 +75,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST_DE
     // Allocate triangle collision memory
     BUCKET_countsOfTrianglesTouching.resize(TRIANGLEBUCKET_COUNT);
     triangles_in_BUCKET_composite.resize(TRIANGLEBUCKET_COUNT * MAX_TRIANGLE_COUNT_PER_BUCKET);
+    triangles_in_BUCKET_composite.resize(nSDs);
 
     // Allocate triangle collision parameters
     gpuErrchk(cudaMallocManaged(&tri_params, sizeof(GranParamsHolder_trimesh), cudaMemAttachGlobal));
