@@ -66,13 +66,13 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     unsigned int L[3];  // Min SD index along each axis
     unsigned int U[3];  // Max SD index along each axis
 
-    L[0] = Min(SDA.x, Min(SDB.x, SDC.x));
-    L[1] = Min(SDA.y, Min(SDB.y, SDC.y));
-    L[2] = Min(SDA.z, Min(SDB.z, SDC.z));
+    L[0] = MIN(SDA.x, MIN(SDB.x, SDC.x));
+    L[1] = MIN(SDA.y, MIN(SDB.y, SDC.y));
+    L[2] = MIN(SDA.z, MIN(SDB.z, SDC.z));
 
-    U[0] = Max(SDA.x, Max(SDB.x, SDC.x));
-    U[1] = Max(SDA.y, Max(SDB.y, SDC.y));
-    U[2] = Max(SDA.z, Max(SDB.z, SDC.z));
+    U[0] = MAX(SDA.x, MAX(SDB.x, SDC.x));
+    U[1] = MAX(SDA.y, MAX(SDB.y, SDC.y));
+    U[2] = MAX(SDA.z, MAX(SDB.z, SDC.z));
 
     // Case 1: All vetices are in the same SD
     if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
