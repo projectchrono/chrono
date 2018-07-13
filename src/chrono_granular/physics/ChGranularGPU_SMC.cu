@@ -322,6 +322,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
     printf("priming finished!\n");
 
     printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+    printf("running at approximate timestep %f\n", stepSize_SU * TIME_UNIT * PSI_h);
 }
 
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {

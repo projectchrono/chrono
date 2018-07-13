@@ -41,7 +41,7 @@
 /// a sphere
 #define PSI_h 4
 /// Value that controls the time unit. It is like a safety factor.
-#define PSI_T 8
+#define PSI_T 16
 /// Max number of SDs that a mesh triangle can touch. Note that it can touch an equal number of buckets
 #define MAX_SDs_TOUCHED_BY_TRIANGLE 8
 /// The number of buckets used to host the triangles that touch a subset of SDs. If memory was not an issue, we'd

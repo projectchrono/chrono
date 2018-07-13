@@ -198,3 +198,15 @@ Running settling test!
 50 thousand bodies took 2.47396 seconds!
 500 thousand bodies took 17.0874 seconds!
 1 million bodies took 34.228 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 13 Jul 2018 15:17:57 -0500
+commit ba463b7b440a7ed6d74b8925c408f3e3e2277743 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jul 13 15:17:37 2018 -0500 Cleanup velocity updates, fix dump broadphase overflow
+Results:
+Running wavetank test!
+50 thousand bodies took 2.65567 seconds!
+500 thousand bodies took 16.4418 seconds!
+1 million bodies took 34.4515 seconds!
+Running settling test!
+50 thousand bodies took 2.44682 seconds!
+500 thousand bodies took 16.4265 seconds!
+1 million bodies took 34.4685 seconds!
