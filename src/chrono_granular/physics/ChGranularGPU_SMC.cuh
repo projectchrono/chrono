@@ -686,9 +686,9 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
             // These lines use forward euler right now. Each has an alpha_h_bar term but we can use a different
             // method simply by changing the following computations
             // Compute force updates for spring term
-            float springTermX = scalingFactor * deltaX * sphdiameter * penetration / gran_params->d_DE_Mass;
-            float springTermY = scalingFactor * deltaY * sphdiameter * penetration / gran_params->d_DE_Mass;
-            float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration / gran_params->d_DE_Mass;
+            float springTermX = scalingFactor * deltaX * sphdiameter * penetration;
+            float springTermY = scalingFactor * deltaY * sphdiameter * penetration;
+            float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration;
             // Compute force updates for damping term
             float dampingTermX = -gran_params->Gamma_n_s2s_SU * alpha_h_bar * deltaX_dot;
             float dampingTermY = -gran_params->Gamma_n_s2s_SU * alpha_h_bar * deltaY_dot;
