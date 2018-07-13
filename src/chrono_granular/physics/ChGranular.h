@@ -79,6 +79,7 @@ class CH_GRANULAR_API ChSystemGranular {
         int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
         double d_DE_Mass;
+        /// Ratio of cohesion force to gravity
         float d_cohesion_ratio;
     };
 
@@ -102,6 +103,9 @@ class CH_GRANULAR_API ChSystemGranular {
     /// Initialize simulation so that it can be advanced
     virtual void initialize() = 0;
 
+    /// allows the user to request a step size, will find the closest SU size to it
+    virtual void suggest_stepSize_UU(float size_UU) { suggested_step_UU = size_UU; }
+
   protected:
     /// holds the sphere and BD-related params in unified memory
     GranParamsHolder* gran_params;
@@ -116,7 +120,7 @@ class CH_GRANULAR_API ChSystemGranular {
     double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
     double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
     double MASS_UNIT;    //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
-                         //!< equal the the mass of a sphere
+    //!< equal the the mass of a sphere
 
     unsigned int nDEs;  //!< Number of discrete elements
     unsigned int nSDs;  //!< Number of subdomains that the BD is split in
@@ -143,6 +147,11 @@ class CH_GRANULAR_API ChSystemGranular {
     float gravity_Y_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
     float gravity_Z_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
 
+    /// User provided, default is 0 so that it takes the smallest possible
+    float suggested_step_UU = 0;
+    /// Step size in SU, user can request a larger one but default is 1
+    unsigned int stepSize_SU;
+
     /// Entry "i" says how many spheres touch SD i
     std::vector<unsigned int, cudallocator<unsigned int>> SD_NumOf_DEs_Touching;
 
@@ -160,6 +169,12 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
     virtual void determine_new_stepSize() = 0;  //!< Implements a strategy for changing the integration time step.
+
+    virtual unsigned int determine_stepSize_SU() {
+        float suggested_SU = suggested_step_UU / (TIME_UNIT * PSI_h);
+        // round to closest int, with minimum of 1
+        return std::max(std::round(suggested_SU), 1.0f);
+    }
 };
 
 /**

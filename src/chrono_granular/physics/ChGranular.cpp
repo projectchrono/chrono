@@ -187,6 +187,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_
 
     // TODO Make this legit, from user input
     Gamma_n_s2s_SU = .005;
+    stepSize_SU = determine_stepSize_SU();
 
     // Handy debug output
     printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);

@@ -643,9 +643,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
-    // TODO set globally
-    unsigned int stepSize_SU = 5;
-
     VERBOSE_PRINTF("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
 
@@ -655,7 +652,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
 
     // Settling simulation loop.
-    unsigned int stepSize_SU = 5;
     unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 

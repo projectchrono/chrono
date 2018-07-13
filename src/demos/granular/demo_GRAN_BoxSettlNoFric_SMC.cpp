@@ -241,6 +241,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
     settlingExperiment.setOutputDirectory(output_prefix);
     settlingExperiment.setOutputMode(write_mode);
+    settlingExperiment.suggest_stepSize_UU(1e-4);
     // Make a dam break style sim
     settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
 
@@ -283,7 +284,7 @@ int main(int argc, char* argv[]) {
     // Finalize settings and initialize for runtime
     settlingExperiment.initialize();
 
-    int fps = 50;
+    int fps = 100;
     // assume we run for at least one frame
     float frame_step = 1.0f / fps;
     float curr_time = 0;
