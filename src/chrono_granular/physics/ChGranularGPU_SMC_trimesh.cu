@@ -643,7 +643,7 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
-    VERBOSE_PRINTF("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
 
 __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(
@@ -655,8 +655,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
-    printf("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
-           nsteps, duration / nsteps);
+    VERBOSE_PRINTF("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
+                   stepSize_SU, nsteps, duration / nsteps);
 
     VERBOSE_PRINTF("Starting Main Simulation loop!\n");
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions

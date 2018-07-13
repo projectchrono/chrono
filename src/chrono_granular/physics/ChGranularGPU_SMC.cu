@@ -321,8 +321,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
-    // TODO set globally
-
     printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
 
@@ -334,8 +332,8 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
     unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
-    printf("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU, stepSize_SU,
-           nsteps, duration / nsteps);
+    VERBOSE_PRINTF("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
+                   stepSize_SU, nsteps, duration / nsteps);
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int elapsedTime_SU = 0; elapsedTime_SU < stepSize_SU * nsteps; elapsedTime_SU += stepSize_SU) {
