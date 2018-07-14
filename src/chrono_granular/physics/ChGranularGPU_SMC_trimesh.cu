@@ -594,20 +594,22 @@ __global__ void interactionTerrain_TriangleSoup(
             genForceActingOnMeshes[offsetGenForceArray] = forceActingOnSphere[2];
         }  /// this is the end of the "for each mesh" loop
 
-        /// At this point, the first thread of the block has in genForceActingOnMeshes[6*TRIANGLE_FAMILIES] the
-        /// forces and torques acting on each mesh family. Bcast the force values to all threads in the warp.
-        /// To this end, synchronize all threads in warp and get "value" from lane 0
+        // At this point, the first thread of the block has in genForceActingOnMeshes[6*TRIANGLE_FAMILIES] the
+        // forces and torques acting on each mesh family. Bcast the force values to all threads in the warp.
+        // To this end, synchronize all threads in warp and get "value" from lane 0
         for (local_ID = 0; local_ID < 6 * TRIANGLE_FAMILIES; local_ID++)
             genForceActingOnMeshes[local_ID] = __shfl_sync(0xffffffff, genForceActingOnMeshes[local_ID], 0);
 
-        /// At this point, all threads in the first warp have the generalized forces acting on all meshes. Do an
-        /// atomic add to compund the value of the generalized forces acting on the meshes that come in contact with
-        /// the granular material.
-        unsigned int nTrips = (6 * TRIANGLE_FAMILIES) / warp_size;
-        for (local_ID = 0; local_ID < nTrips + 1; local_ID++) {
-            unsigned int offset = threadIdx.x + local_ID * (6 * TRIANGLE_FAMILIES);
-            if (offset < 6 * TRIANGLE_FAMILIES)
-                atomicAdd(d_triangleSoup->generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
+        // At this point, all threads in the *first* warp have the generalized forces acting on all meshes. Do an
+        // atomic add to compund the value of the generalized forces acting on the meshes that come in contact with
+        // the granular material.
+        if (threadIdx.x < warp_size) {
+            unsigned int nTrips = (6 * TRIANGLE_FAMILIES + warp_size - 1) / warp_size;
+            for (local_ID = 0; local_ID < nTrips; local_ID++) {
+                unsigned int offset = threadIdx.x + local_ID * warp_size;
+                if (offset < 6 * TRIANGLE_FAMILIES)
+                    atomicAdd(d_triangleSoup->generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
+            }
         }
     }
 }
