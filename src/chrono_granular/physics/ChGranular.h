@@ -19,6 +19,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <algorithm>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include "../ChApiGranular.h"
