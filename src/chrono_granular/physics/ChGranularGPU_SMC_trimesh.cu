@@ -347,12 +347,16 @@ __global__ void interactionTerrain_TriangleSoup(
     float forceActingOnSphere[3];  //!< 3 registers will hold the value of the force on the sphere
     float genForceActingOnMeshes[TRIANGLE_FAMILIES * 6];  //!< 6 components per family: 3 forces and 3 torques
 
-    unsigned int thisSD = blockIdx.x;
+    // define an alias first
+#define thisSD blockIdx.x 
+    
     unsigned int nSD_triangles = SD_countsOfTrianglesTouching[thisSD];
-    unsigned int nSD_spheres = SD_countsOfGrElemsTouching[thisSD];
+    if (nSD_triangles == 0)
+        return; // no triangle touches this SD; return right away
 
-    if (nSD_triangles == 0 || nSD_spheres == 0)
-        return;
+    unsigned int nSD_spheres = SD_countsOfGrElemsTouching[thisSD];
+    if (nSD_spheres == 0)
+        return; // no sphere to speak of in this SD
 
     // Getting here means that there are both triangles and DEs in this SD.
     // First, figure out which bucket stores the triangles associated with this SD.
