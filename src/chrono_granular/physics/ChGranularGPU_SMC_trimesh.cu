@@ -405,7 +405,7 @@ __global__ void interactionTerrain_TriangleSoup(
 
     __syncthreads();  // this call ensures data is in its place in shared memory
 
-    /// Zero out the force and torque at the onset of the computation
+    // Zero out the force and torque at the onset of the computation
     for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
         unsigned int dummyOffset = 6 * local_ID;
         /// forces acting on the triangle, in global reference frame
@@ -415,19 +415,18 @@ __global__ void interactionTerrain_TriangleSoup(
         /// torques with respect to global reference frame, expressed in global reference frame
         genForceActingOnMeshes[dummyOffset++] = 0.f;
         genForceActingOnMeshes[dummyOffset++] = 0.f;
-        genForceActingOnMeshes[dummyOffset++] = 0.f;
+        genForceActingOnMeshes[dummyOffset] = 0.f;
     }
 
     // Each sphere has one warp of threads dedicated to identifying all triangles that this sphere
     // touches. Upon a contact event, we'll compute the normal force on the sphere; and, the force and torque
-    // impressed upon the triangle
+    // impressed upon the triangle that comes in contact with this sphere
 
-    unsigned int nSpheresProcessedAtOneTime =
-        blockDim.x / warp_size;  /// One warp allocated to slave serving one sphere
+    unsigned int nSpheresProcessedAtOneTime = blockDim.x / warp_size;  // One warp allocated to slave serving one sphere
     tripsToCoverSpheres = (nSD_spheres + nSpheresProcessedAtOneTime - 1) / nSpheresProcessedAtOneTime;
     tripsToCoverTriangles = (nBKT_triangles + warp_size - 1) / warp_size;
 
-    unsigned sphere_Local_ID = threadIdx.x / warp_size;
+    unsigned sphere_Local_ID = threadIdx.x / warp_size; // the local ID of the sphere served by one warp of threads
     for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
         /// before starting dealing with a sphere, zero out the forces acting on it; all threads in the block are
         /// doing this
@@ -436,10 +435,10 @@ __global__ void interactionTerrain_TriangleSoup(
         forceActingOnSphere[2] = 0.f;
         sphere_Local_ID += sphereTrip * nSpheresProcessedAtOneTime;
         if (sphere_Local_ID < nSD_spheres) {
-            /// Figure out which triangles this sphere collides with; each thread in a warp slaving for this sphere
-            /// looks at one triangle at a time. The collection of threads in the warp sweeps through all the
-            /// triangles that touch this SD. NOTE: to avoid double-counting, a sphere-triangle collision event is
-            /// counted only if the collision point is in this SD.
+            // Figure out which triangles this sphere collides with; each thread in a warp slaving for this sphere
+            // looks at one triangle at a time. The collection of threads in the warp sweeps through all the
+            // triangles in this BUCKET. NOTE: to avoid double-counting, a sphere-triangle collision event is
+            // counted only if the collision point is in this SD.
             unsigned int targetTriangle = (threadIdx.x & (warp_size - 1));  // computes modulo 32 of the thread index
             for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
                 targetTriangle += triangTrip * warp_size;
@@ -461,10 +460,10 @@ __global__ void interactionTerrain_TriangleSoup(
                     /// Use the CD information to compute the force and torque on the triangle
                 }
             }
-            /// down to the point where we need to collect the forces from all the threads in the wrap; this is a
-            /// warp reduce operation. The resultant force acting on this grElement is stored in the first lane of
-            /// the warp. NOTE: In this warp-level operations participate only the warps that are slaving for a
-            /// sphere; i.e., some warps see no action
+            // down to the point where we need to collect the forces from all the threads in the wrap; this is a
+            // warp reduce operation. The resultant force acting on this grElement is stored in the first lane of
+            // the warp. NOTE: In this warp-level operations participate only the warps that are slaving for a
+            // sphere; i.e., some warps see no action
             for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
             for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
@@ -472,12 +471,12 @@ __global__ void interactionTerrain_TriangleSoup(
             for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
                 forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
 
-            /// done with the computation of all the contacts that the triangles impress on this sphere. Update the
-            /// position of the sphere based on this force
+            // done with the computation of all the contacts that the triangles impress on this sphere. Update the
+            // position of the sphere based on this force
         }
     }
-    /// Done computing the forces acting on the triangles in this SD. A block reduce is carried out next. Start by
-    /// doing a reduce at the warp level.
+    // Done computing the forces acting on the triangles in this SD. A block reduce is carried out next. Start by
+    // doing a reduce at the warp level.
     for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
         /// six generalized forces acting on the triangle, expressed in the global reference frame
         unsigned int dummyIndx = 6 * local_ID;
@@ -513,12 +512,12 @@ __global__ void interactionTerrain_TriangleSoup(
 
     __syncthreads();
 
-    /// Lane zero in each warp holds the result of a warp-level reduce operation. Sum up these "Lane zero" values in
-    /// the final result, which is block-level
+    // Lane zero in each warp holds the result of a warp-level reduce operation. Sum up these "Lane zero" values in
+    // the final result, which is block-level
     bool threadIsLaneZeroInWarp = ((threadIdx.x & (warp_size - 1)) == 0);
     for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
         unsigned int offsetGenForceArray = 6 * local_ID;
-        /// Place in ShMem forces/torques (expressed in global reference frame) acting on this family of triangles
+        // Place in ShMem forces/torques (expressed in global reference frame) acting on this family of triangles
         if (threadIsLaneZeroInWarp) {
             unsigned int offsetShMem = 6 * (threadIdx.x / warp_size);
             tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
@@ -531,21 +530,21 @@ __global__ void interactionTerrain_TriangleSoup(
         }
         __syncthreads();
 
-        /// Going to trash the values in "forceActingOnSphere", not needed anymore. Reuse the registers, which will
-        /// now store the vaule of the triangle force and torque...
+        // Going to trash the values in "forceActingOnSphere", they're not needed anymore. Reuse the registers, which
+        // will now store the vaule of the triangle force and torque...
         if (threadIdx.x < warp_size) {
-            /// only first thread in block participates in this reduce operation.
-            /// NOTE: an implicit assumption is made here - warp_size is larger than or equal to N_CUDATHREADS /
-            /// warp_size. This is true today as N_CUDATHREADS cannot be larger than 1024 and warp_size is 32.
+            // only first warp in block participates in this reduce operation.
+            // ASSUMPTION: warp_size is larger than or equal to N_CUDATHREADS / warp_size. This is true today as
+            // N_CUDATHREADS cannot be larger than 1024 and warp_size is 32.
 
-            /// Work on forces first. Place data from ShMem into registers associated w/ first warp
+            // Work on forces first. Place data from ShMem into registers associated w/ first warp
             unsigned int offsetShMem = 6 * threadIdx.x;
             if (threadIdx.x < (N_CUDATHREADS / warp_size)) {
                 forceActingOnSphere[0] = tempShMem[offsetShMem++];
                 forceActingOnSphere[1] = tempShMem[offsetShMem++];
-                forceActingOnSphere[2] = tempShMem[offsetShMem++];
+                forceActingOnSphere[2] = tempShMem[offsetShMem++];  // NOTE: ++ is needed here, offsetShMem used later
             } else {
-                /// this is hit only by a subset of threads from first warp of the block
+                // this is hit only by a subset of threads from first warp of the block
                 forceActingOnSphere[0] = 0.f;
                 forceActingOnSphere[1] = 0.f;
                 forceActingOnSphere[2] = 0.f;
@@ -567,13 +566,13 @@ __global__ void interactionTerrain_TriangleSoup(
                 forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
             genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[2];
 
-            /// Finally, work on torques
+            // Finally, work on torques
             if (threadIdx.x < (N_CUDATHREADS / warp_size)) {
                 forceActingOnSphere[0] = tempShMem[offsetShMem++];
                 forceActingOnSphere[1] = tempShMem[offsetShMem++];
                 forceActingOnSphere[2] = tempShMem[offsetShMem];
             } else {
-                /// this is hit only by a subset of threads from first warp of the block
+                // this is hit only by a subset of threads from first warp of the block
                 forceActingOnSphere[0] = 0.f;
                 forceActingOnSphere[1] = 0.f;
                 forceActingOnSphere[2] = 0.f;
