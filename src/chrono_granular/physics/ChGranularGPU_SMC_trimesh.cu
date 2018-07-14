@@ -455,9 +455,9 @@ __global__ void interactionTerrain_TriangleSoup(
                     double3 sphCntr = make_double3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]);
                     face_sphere_cd(A, B, C, sphCntr, gran_params->d_sphereRadius_SU, norm, depth, pt1, pt2, eff_radius);
 
-                    /// Use the CD information to compute the force on the grElement
+                    // Use the CD information to compute the force on the grElement
 
-                    /// Use the CD information to compute the force and torque on the triangle
+                    // Use the CD information to compute the force and torque on the triangle
                 }
             }
             // down to the point where we need to collect the forces from all the threads in the wrap; this is a

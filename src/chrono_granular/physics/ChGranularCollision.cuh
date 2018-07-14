@@ -93,28 +93,27 @@ __device__ bool snap_to_face(const double3& A, const double3& B, const double3& 
 }
 
 /**
-TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
+/brif TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
+
 The triangular face is defined by points A1, B1, C1. The sequence is important as it defines the positive face via a
 right-hand rule.
 The sphere is centered at pos2 and has radius2.
-See NOTE below for the meaning of the input variable "separation."
+The index "1" is associated with the triangle. The index "2" is associated with the sphere.
+The coordinates of the face and sphere are assumed to be provided in the same reference frame.
+
 Output:
-  - pt1:      contact point on triangle (in global frame)
-  - pt2:      contact point on sphere (in global frame)
+  - pt1:      contact point on triangle
+  - pt2:      contact point on sphere
   - depth:    penetration distance (a negative value means that overlap exists)
-  - norm:     contact normal, from pt2 to pt1 (in global frame)
+  - norm:     contact normal, from pt2 to pt1
   - eff_rad:  effective contact radius
 A return value of "true" signals collision.
-NOTE: The face and sphere are reported as colliding when the distance between them is at most 'separation'. If
-separation is grater than zero, the bodies can still be flagged in contact despite the depth being positive. The
-"separation" variable comes into play for NSC. For SMC, "separation" is zero.
 */
-
-__device__ bool face_sphere_cd(const double3& A1,
-                               const double3& B1,
-                               const double3& C1,
-                               const double3& pos2,
-                               const double& radius2,
+__device__ bool face_sphere_cd(const double3& A1,      //!< First vertex of the triangle
+                               const double3& B1,      //!< Second vertex of the triangle
+                               const double3& C1,      //!< Third vertex of the triangle
+                               const double3& pos2,    //!< Location of the center of the sphere
+                               const double& radius2,  //!< Sphere radius
                                double3& norm,
                                double& depth,
                                double3& pt1,
