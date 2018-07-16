@@ -27,6 +27,15 @@ namespace chrono {
 
 class ChSystemDistributed;
 
+// TODO replace this
+
+// typedef struct ShapeNode {
+//     ShapeNode(int bsi, int s, bool f) : body_shapes_index(bsi), size(s), free(f) {}
+//     int body_shapes_index;
+//     int size;
+//     bool free;
+// } ShapeNode;
+
 /// Linked-list node for tracking free shapes
 struct LocalShapeNode {
     struct LocalShapeNode* next;  ///< Next node in the free list
@@ -41,6 +50,9 @@ class CH_DISTR_API ChDistributedDataManager {
   public:
     ChDistributedDataManager(ChSystemDistributed* my_sys);
     virtual ~ChDistributedDataManager();
+
+    bool initial_add;  ///< Indicates that the system is undergoing its inital setup. Allows for some shortcuts
+                       ///< by assuming contiguous valid data.
 
     /* Basic distributed values */
     std::vector<unsigned int> global_id;                ///< Global id of each body. Maps local index to global index.
@@ -77,6 +89,9 @@ class CH_DISTR_API ChDistributedDataManager {
      * 2) Find individual indices in data_manager->shape_data to index to from body_shapes
      */
 
+    // std::list<ShapeNode> ddm_free_shapes;
+
+    // TODO replace
     struct LocalShapeNode* local_free_shapes;  ///< Linked-list of BLOCKS in ddm->body_shapes, indicating free/alloc'd
 
     std::vector<bool> dm_free_shapes;  ///< Indicates that the space in the data_manager->shape_data is available

@@ -38,6 +38,8 @@ class ChCollisionSystemDistributed : public ChCollisionSystemParallel {
     /// chrono::parallel and marks the space as free
     virtual void Remove(ChCollisionModel* model) override;
 
+    virtual void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) override;
+
   protected:
     ChDistributedDataManager* ddm;
 };

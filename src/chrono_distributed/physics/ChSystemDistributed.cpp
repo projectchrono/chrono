@@ -15,6 +15,8 @@
 #include <cstdlib>
 
 #include <mpi.h>
+#include <cfloat>
+#include <climits>
 #include <cmath>
 #include <cstring>
 #include <fstream>
@@ -27,6 +29,7 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/ChDistributedDataManager.h"
+#include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 #include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
@@ -41,14 +44,21 @@
 using namespace chrono;
 using namespace collision;
 
-/// Helper function for visualizing the shapes free list.
+// Structure of force data used internally for MPI sending contact forces.
+struct internal_force {
+    uint gid;
+    double force[3];
+};
+
+// Helper function for visualizing the shapes free list.
 static void PrintNode(LocalShapeNode* node) {
     std::cout << "| index = " << node->body_shapes_index << " size = " << node->size << " free = " << node->free
               << "| ---> ";
 }
 
-ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects) {
-    this->world = world;
+ChSystemDistributed::ChSystemDistributed(MPI_Comm communicator, double ghostlayer, unsigned int maxobjects)
+    : ghost_layer(ghostlayer), master_rank(0), num_bodies_global(0) {
+    MPI_Comm_dup(communicator, &world);
     MPI_Comm_size(world, &num_ranks);
     MPI_Comm_rank(world, &my_rank);
     int name_len = -1;
@@ -58,13 +68,10 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
     domain = new ChDomainDistributed(this);
     comm = new ChCommDistributed(this);
 
-    this->ghost_layer = ghost_layer;
-    this->num_bodies_global = 0;
-
     data_manager->system_timer.AddTimer("Exchange");
 
     // Reserve starting space
-    int init = max_objects;  // / num_ranks;
+    int init = maxobjects;  // / num_ranks;
     bodylist.reserve(init);
 
     ddm->global_id.reserve(init);
@@ -97,26 +104,14 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
 
     collision_system = std::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
 
-    // Co-simulation
     /* Create and Commit all custom MPI Data Types */
-    // CosimForce
-    MPI_Datatype type_cosim_force[3] = {MPI_UNSIGNED, MPI_INT, MPI_DOUBLE};
-    int blocklen_cosim_force[3] = {1, 1, 3};
-    MPI_Aint disp_cosim_force[3];
-    disp_cosim_force[0] = offsetof(CosimForce, gid);
-    disp_cosim_force[1] = offsetof(CosimForce, owner_rank);
-    disp_cosim_force[2] = offsetof(CosimForce, force);
-    MPI_Type_create_struct(3, blocklen_cosim_force, disp_cosim_force, type_cosim_force, &CosimForceType);
-    PMPI_Type_commit(&CosimForceType);
-
-    // CosimDispl
-    MPI_Datatype type_cosim_displ[2] = {MPI_DOUBLE, MPI_UNSIGNED};
-    int blocklen_cosim_displ[2] = {13, 1};
-    MPI_Aint disp_cosim_displ[2];
-    disp_cosim_displ[0] = offsetof(CosimDispl, A);
-    disp_cosim_displ[1] = offsetof(CosimDispl, gid);
-    MPI_Type_create_struct(2, blocklen_cosim_displ, disp_cosim_displ, type_cosim_displ, &CosimDisplType);
-    PMPI_Type_commit(&CosimDisplType);
+    MPI_Datatype type_force[2] = {MPI_UNSIGNED, MPI_DOUBLE};
+    int blocklen_force[2] = {1, 3};
+    MPI_Aint disp_force[2];
+    disp_force[0] = offsetof(internal_force, gid);
+    disp_force[1] = offsetof(internal_force, force);
+    MPI_Type_create_struct(2, blocklen_force, disp_force, type_force, &InternalForceType);
+    PMPI_Type_commit(&InternalForceType);
 }
 
 ChSystemDistributed::~ChSystemDistributed() {
@@ -125,7 +120,7 @@ ChSystemDistributed::~ChSystemDistributed() {
     // delete ddm;
 }
 
-bool ChSystemDistributed::InSub(ChVector<double> pos) {
+bool ChSystemDistributed::InSub(const ChVector<double>& pos) const {
     int split_axis = domain->GetSplitAxis();
 
     double pos_axis = pos[split_axis];
@@ -137,6 +132,7 @@ bool ChSystemDistributed::InSub(ChVector<double> pos) {
 
 bool ChSystemDistributed::Integrate_Y() {
     assert(domain->IsSplit());
+    ddm->initial_add = false;
 
     bool ret = ChSystemParallelSMC::Integrate_Y();
     if (num_ranks != 1) {
@@ -159,8 +155,18 @@ void ChSystemDistributed::UpdateRigidBodies() {
     }
 }
 
+ChBody* ChSystemDistributed::NewBody() {
+    return new ChBody(std::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+}
+
+ChBodyAuxRef* ChSystemDistributed::NewBodyAuxRef() {
+    return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
+}
+
 void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
     newbody->SetGid(num_bodies_global);
+    num_bodies_global++;
+
     distributed::COMM_STATUS status = distributed::GLOBAL;
 
     ddm->body_shape_start.push_back(0);
@@ -188,7 +194,17 @@ void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
 }
 
 void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
+    // Assign global ID to the body (whether or not it is kept on this rank)
     newbody->SetGid(num_bodies_global);
+
+    // Increment global body ID counter.
+    num_bodies_global++;
+
+    // Add body on the rank whose sub-domain contains the current body position.
+    if (!InSub(newbody->GetPos())) {
+        return;
+    }
+
     distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);
 
     // Check for collision with this sub-domain
@@ -215,6 +231,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     if (status == distributed::UNOWNED_UP || status == distributed::UNOWNED_DOWN) {
         return;
     }
+
     // Makes space for shapes TODO Does this work for mid-simulation add by user?
     ddm->body_shape_start.push_back(0);
     ddm->body_shape_count.push_back(0);
@@ -228,9 +245,9 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
 
     data_manager->num_rigid_bodies++;
-    newbody->SetSystem(this);  // TODO Syncs collision model
+    newbody->SetSystem(this);  // NOTE Syncs collision model
 
-    // actual data is set in UpdateBodies().
+    // Actual data is set in UpdateBodies().
     data_manager->host_data.pos_rigid.push_back(real3());
     data_manager->host_data.rot_rigid.push_back(quaternion());
     data_manager->host_data.active_rigid.push_back(true);
@@ -286,11 +303,11 @@ void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
 
     ddm->comm_status[index] = distributed::EMPTY;
     bodylist[index]->SetBodyFixed(true);
-    bodylist[index]->SetCollide(false);
+    bodylist[index]->SetCollide(false);  // NOTE: Calls collisionsystem::remove
     if (index < ddm->first_empty)
         ddm->first_empty = index;
-    GetLog() << "REMOVEBODY\n";
     ddm->gid_to_localid.erase(body->GetGid());
+    body->GetAssets().clear();
 }
 
 // Used to end the program on an error and print a message.
@@ -360,7 +377,7 @@ void ChSystemDistributed::PrintShapeData() {
                             data_manager->shape_data.sphere_rigid[data_manager->shape_data.start_rigid[shape_index]]);
                         break;
                     case chrono::collision::BOX:
-                        printf("%d | Box: ", my_rank);  // TODO
+                        printf("%d | Box: ", my_rank);
                         break;
                     default:
                         printf("Undefined Shape, ");
@@ -413,151 +430,24 @@ double ChSystemDistributed::GetLowestZ(uint* local_id) {
     return min;
 }
 
+double ChSystemDistributed::GetHighestZ() {
+    double max = DBL_MIN;
+    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+        if (ddm->comm_status[i] != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] > max) {
+            max = data_manager->host_data.pos_rigid[i][2];
+        }
+    }
+    double reduction;
+    MPI_Allreduce(&max, &reduction, 1, MPI_DOUBLE, MPI_MAX, world);
+    return reduction;
+}
+
 void ChSystemDistributed::CheckIds() {
     for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
         if (bodylist[i]->GetId() != i) {
             GetLog() << "Mismatched ID " << i << " Ranks " << my_rank << "\n";
         }
     }
-}
-
-// Co-simuation
-// Call on all ranks, rank 0 will return results
-// Make sure forces is large enough to hold all of the data
-int ChSystemDistributed::CollectCosimForces(CosimForce* forces) {
-    // Gather forces on cosim bodies
-    std::vector<CosimForce> send;
-    for (uint i = ddm->first_cosim; i <= ddm->last_cosim; i++) {
-        int local = ddm->GetLocalIndex(i);
-        if (local != -1 &&
-            (ddm->comm_status[local] == distributed::OWNED || ddm->comm_status[local] == distributed::SHARED_UP ||
-             ddm->comm_status[local] == distributed::SHARED_DOWN)) {
-            // Get force on body at index local
-            int contact_index = data_manager->host_data.ct_body_map[local];
-            real3 f = data_manager->host_data.ct_body_force[contact_index];
-            CosimForce cf = {i, my_rank, {f[0], f[1], f[2]}};
-            send.push_back(std::move(cf));
-        }
-    }
-
-    // Rank 0 recvs all messages sent to it and appends the values into its gid vector
-    MPI_Request r_bar;
-    MPI_Status s_bar;
-    CosimForce* buf = forces;
-    int num_gids = 0;
-    if (my_rank == 0) {
-        // Write rank 0 values
-        if (send.size() > 0) {
-            std::memcpy(buf, send.data(), sizeof(CosimForce) * send.size());
-            buf += send.size();
-            num_gids += send.size();
-        }
-        MPI_Ibarrier(MPI_COMM_WORLD, &r_bar);
-        MPI_Status s_prob;
-        int message_waiting = 0;
-        int r_bar_flag = 0;
-
-        MPI_Test(&r_bar, &r_bar_flag, &s_bar);
-        while (!r_bar_flag) {
-            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &message_waiting, &s_prob);
-            if (message_waiting) {
-                int count;
-                MPI_Get_count(&s_prob, CosimForceType, &count);
-                MPI_Request r_recv;
-                MPI_Irecv(buf, count, CosimForceType, s_prob.MPI_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &r_recv);
-                buf += count;
-                num_gids += count;
-            }
-            MPI_Test(&r_bar, &r_bar_flag, &s_bar);
-        }
-    }
-    // All other ranks send their elements, if they have any
-    else {
-        if (send.size() > 0) {
-            MPI_Request r_send;
-            // Non-blocking synchronous Send
-            MPI_Issend(send.data(), send.size(), CosimForceType, 0, 0, MPI_COMM_WORLD, &r_send);
-
-            MPI_Status s_send;
-            MPI_Wait(&r_send, &s_send);
-        }
-        // Reaching here indicates to the comm that this rank's message has been recved by rank 0
-        MPI_Ibarrier(MPI_COMM_WORLD, &r_bar);
-    }
-
-    MPI_Status stat;
-    MPI_Wait(&r_bar, &stat);  // TODO makes all ranks wait? Could non-masters be doing anything?
-
-    return num_gids;
-}
-
-void ChSystemDistributed::DistributeCosimPositions(CosimDispl* displacements, uint* GIDs, int* ranks, int size) {
-    CosimDispl* displ;
-    int count;
-    CosimDispl empty;
-    empty.gid = UINT_MAX;
-
-    // Rank 0 sends the appropriate data to each rank
-    if (my_rank == 0) {
-        std::vector<std::vector<CosimDispl>> send_bufs;
-        send_bufs.resize(num_ranks);
-        for (int i = 0; i < size; i++) {
-            send_bufs[ranks[i]].push_back(displacements[i]);
-        }
-
-        for (int i = 0; i < num_ranks; i++) {
-            if (send_bufs[i].empty()) {
-                send_bufs[i].push_back(empty);
-            }
-        }
-
-        for (int i = 1; i < num_ranks; i++) {
-            MPI_Request req;
-            MPI_Send(&(send_bufs[i][0]), send_bufs[i].size(), CosimDisplType, i, 0, world);
-        }
-        count = send_bufs[0].size();
-        displ = new CosimDispl[count];
-        std::copy(send_bufs[0].begin(), send_bufs[0].end(), displ);
-    }
-    // Other ranks recieve their data from rank 0
-    else {
-        MPI_Status stat;
-        MPI_Probe(0, 0, world, &stat);
-        MPI_Get_count(&stat, CosimDisplType, &count);
-        displ = new CosimDispl[count];
-        MPI_Recv(displ, count, CosimDisplType, 0, 0, world, &stat);
-    }
-
-    // If non-empty message
-    if (displ[0].gid != UINT_MAX) {
-        // Update the positions of each cosimulation triangle on the rank
-        for (int i = 0; i < count; i++) {
-            int local = ddm->gid_to_localid[displ[i].gid];  // NOTE: Don't need to check since already validated
-
-            // Get shape index NOTE: Supposes one shape per cosim body
-            // type is triangle, count is 1,
-            shape_container& shape_data = data_manager->shape_data;
-            int start = ddm->body_shape_start[local];
-            int cs_index = ddm->body_shapes[start];
-            int cs_start = shape_data.start_rigid[cs_index];
-
-            // Overwrite triangle data
-            shape_data.ObA_rigid[cs_index] = real3(displ[i].A[0], displ[i].A[1], displ[i].A[2]);
-            shape_data.ObR_rigid[cs_index] = quaternion(displ[i].R[0], displ[i].R[1], displ[i].R[2], displ[i].R[3]);
-            shape_data.triangle_rigid[cs_start] = real3(displ[i].A[0], displ[i].A[1], displ[i].A[2]);
-            shape_data.triangle_rigid[cs_start + 1] = real3(displ[i].B[0], displ[i].B[1], displ[i].B[2]);
-            shape_data.triangle_rigid[cs_start + 2] = real3(displ[i].C[0], displ[i].C[1], displ[i].C[2]);
-        }
-    }
-
-    delete[] displ;
-}
-
-void ChSystemDistributed::SetFirstCosimGID(uint gid) {
-    ddm->first_cosim = gid;
-}
-void ChSystemDistributed::SetLastCosimGID(uint gid) {
-    ddm->last_cosim = gid;
 }
 
 void ChSystemDistributed::SanityCheck() {
@@ -602,4 +492,270 @@ void ChSystemDistributed::SanityCheck() {
         curr = curr->next;
     }
     // std::cout << " NULL\n";
+}
+
+int ChSystemDistributed::RemoveBodiesBelow(double z) {
+    int count = 0;
+    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+        auto status = ddm->comm_status[i];
+        if (status != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] < z) {
+            RemoveBody(bodylist[i]);
+            if (status == distributed::OWNED || status == distributed::SHARED_DOWN ||
+                status == distributed::SHARED_UP) {
+                count++;
+            }
+        }
+    }
+    int final_count;
+    MPI_Reduce((void*)&count, (void*)&final_count, 1, MPI_INT, MPI_SUM, 0, world);
+    return final_count;
+}
+
+void ChSystemDistributed::SetBodyStates(const std::vector<uint>& gids, const std::vector<BodyState>& states) {
+    for (size_t i = 0; i < gids.size(); i++) {
+        SetBodyState(gids[i], states[i]);
+    }
+}
+
+void ChSystemDistributed::SetBodyState(uint gid, const BodyState& state) {
+    int local_id = ddm->GetLocalIndex(gid);
+    if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
+        bodylist[local_id]->SetPos(state.pos);
+        bodylist[local_id]->SetRot(state.rot);
+        bodylist[local_id]->SetPos_dt(state.pos_dt);
+        bodylist[local_id]->SetRot_dt(state.rot_dt);
+    }
+}
+
+void ChSystemDistributed::SetSphereShapes(const std::vector<uint>& gids,
+                                          const std::vector<int>& shape_idx,
+                                          const std::vector<double>& radii) {
+    for (size_t i = 0; i < gids.size(); i++) {
+        SetSphereShape(gids[i], shape_idx[i], radii[i]);
+    }
+}
+
+void ChSystemDistributed::SetSphereShape(uint gid, int shape_idx, double radius) {
+    int local_id = ddm->GetLocalIndex(gid);
+    if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
+        int ddm_start = ddm->body_shape_start[local_id];
+        int dm_start = ddm->body_shapes[ddm_start + shape_idx];  // index in data_manager of the desired shape
+        int sphere_start = data_manager->shape_data.start_rigid[dm_start];
+        data_manager->shape_data.sphere_rigid[sphere_start] = radius;
+    }
+}
+
+void ChSystemDistributed::SetTriangleShapes(const std::vector<uint>& gids,
+                                            const std::vector<int>& shape_idx,
+                                            const std::vector<TriData>& new_shapes) {
+    for (size_t i = 0; i < gids.size(); i++) {
+        SetTriangleShape(gids[i], shape_idx[i], new_shapes[i]);
+    }
+}
+
+void ChSystemDistributed::SetTriangleShape(uint gid, int shape_idx, const TriData& new_shape) {
+    int local_id = ddm->GetLocalIndex(gid);
+    if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
+        int ddm_start = ddm->body_shape_start[local_id];
+        int dm_start = ddm->body_shapes[ddm_start + shape_idx];  // index in data_manager of the desired shape
+        int triangle_start = data_manager->shape_data.start_rigid[dm_start];
+        data_manager->shape_data.triangle_rigid[triangle_start] =
+            real3(new_shape.v1.x(), new_shape.v1.y(), new_shape.v1.z());
+        data_manager->shape_data.triangle_rigid[triangle_start + 1] =
+            real3(new_shape.v2.x(), new_shape.v2.y(), new_shape.v2.z());
+        data_manager->shape_data.triangle_rigid[triangle_start + 2] =
+            real3(new_shape.v3.x(), new_shape.v3.y(), new_shape.v3.z());
+    }
+}
+
+// TODO: only return for bodies with nonzero contact force
+// std::vector<std::pair<uint, ChVector<>>> ChSystemDistributed::GetBodyContactForces(
+//     const std::vector<uint>& gids) const {
+//     // Gather forces on specified bodies
+//     std::vector<internal_force> send;
+//     for (uint i = 0; i < gids.size(); i++) {
+//         uint gid = gids[i];
+//         int local = ddm->GetLocalIndex(gid);
+//         if (local != -1 &&
+//             (ddm->comm_status[local] == distributed::OWNED || ddm->comm_status[local] == distributed::SHARED_UP ||
+//              ddm->comm_status[local] == distributed::SHARED_DOWN)) {
+//             // Get force on body at index local
+//             int contact_index = data_manager->host_data.ct_body_map[local];
+//             if (contact_index != -1) {
+//                 real3 f = data_manager->host_data.ct_body_force[contact_index];
+//                 internal_force cf = {gid, {f[0], f[1], f[2]}};
+//                 send.push_back(std::move(cf));
+//             }
+//         }
+//     }
+//
+//     // Master rank receives all messages sent to it and appends the values to its gid vector
+//     MPI_Request r_bar;
+//     MPI_Status s_bar;
+//     internal_force* buffer = new internal_force[gids.size()];  // Beginning of buffer
+//     internal_force* buf = buffer;                              // Moving pointer into buffer
+//     int num_gids = 0;
+//     if (my_rank == master_rank) {
+//         // Write own values
+//         if (send.size() > 0) {
+//             std::memcpy(buf, send.data(), sizeof(internal_force) * send.size());
+//             buf += send.size();
+//             num_gids += send.size();
+//         }
+//         MPI_Ibarrier(world, &r_bar);
+//         MPI_Status s_prob;
+//         int message_waiting = 0;
+//         int r_bar_flag = 0;
+//
+//         MPI_Test(&r_bar, &r_bar_flag, &s_bar);
+//         while (!r_bar_flag) {
+//             MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, world, &message_waiting, &s_prob);
+//             if (message_waiting) {
+//                 int count;
+//                 MPI_Get_count(&s_prob, InternalForceType, &count);
+//                 std::cout << "COUNT A: " << count << "\n";
+//                 MPI_Request r_recv;
+//                 MPI_Irecv(buf, count, InternalForceType, s_prob.MPI_SOURCE, MPI_ANY_TAG, world, &r_recv);
+//                 buf += count;
+//                 num_gids += count;
+//             }
+//             MPI_Test(&r_bar, &r_bar_flag, &s_bar);
+//         }
+//     } else {
+//         // All other ranks send their elements, if they have any
+//         if (send.size() > 0) {
+//             MPI_Request r_send;
+//             // Non-blocking synchronous Send
+//             MPI_Issend(send.data(), send.size(), InternalForceType, master_rank, 0, world, &r_send);
+//
+//             MPI_Status s_send;
+//             MPI_Wait(&r_send, &s_send);
+//         }
+//         // Reaching here indicates to the comm that this rank's message has been recved by rank 0
+//         MPI_Ibarrier(world, &r_bar);
+//     }
+//
+//     MPI_Status stat;
+//     MPI_Wait(&r_bar, &stat);  // Wait for completion of all sending
+//
+//     // At this point, buf holds all forces on master_rank. All other ranks have num_gids=0.
+//     std::vector<std::pair<uint, ChVector<>>> forces;
+//     for (int i = 0; i < num_gids; i++) {
+//         ChVector<> frc(buffer[i].force[0], buffer[i].force[1], buffer[i].force[2]);
+//         forces.push_back(std::make_pair(buffer[i].gid, frc));
+//     }
+//
+//     delete[] buffer;
+//     return forces;
+// }
+
+std::vector<std::pair<uint, ChVector<>>> ChSystemDistributed::GetBodyContactForces(
+    const std::vector<uint>& gids) const {
+    // Gather forces on specified bodies
+    std::vector<internal_force> send;
+    for (uint i = 0; i < gids.size(); i++) {
+        uint gid = gids[i];
+        int local = ddm->GetLocalIndex(gid);
+        if (local != -1 &&
+            (ddm->comm_status[local] == distributed::OWNED || ddm->comm_status[local] == distributed::SHARED_UP ||
+             ddm->comm_status[local] == distributed::SHARED_DOWN)) {
+            // Get force on body at index local
+            int contact_index = data_manager->host_data.ct_body_map[local];
+            if (contact_index != -1) {
+                real3 f = data_manager->host_data.ct_body_force[contact_index];
+                if (!IsZero(f)) {
+                    internal_force cf = {gid, {f[0], f[1], f[2]}};
+                    send.push_back(std::move(cf));
+                }
+            }
+        }
+    }
+
+    // Send all forces to the master rank
+    // Buffer to collect forces on the master rank
+    internal_force* buffer = new internal_force[gids.size()];
+    int index = 0;  // Working index into buffer
+    if (my_rank == master_rank) {
+        std::memcpy(buffer, send.data(), sizeof(internal_force) * send.size());
+        index += send.size();
+
+        // Recv from all other ranks
+        for (int i = 1; i < num_ranks; i++) {
+            int count = 0;
+            MPI_Status status;
+            MPI_Probe(i, 0, world, &status);
+            MPI_Get_count(&status, InternalForceType, &count);
+            MPI_Recv(buffer + index, count, InternalForceType, i, 0, world, &status);
+            index += count;
+        }
+    } else {
+        MPI_Send(send.data(), send.size(), InternalForceType, master_rank, 0, world);
+    }
+
+    // At this point, buf holds all forces on master_rank. All other ranks have index=0.
+    std::vector<std::pair<uint, ChVector<>>> forces;
+    for (int i = 0; i < index; i++) {
+        ChVector<> frc(buffer[i].force[0], buffer[i].force[1], buffer[i].force[2]);
+        forces.push_back(std::make_pair(buffer[i].gid, frc));
+    }
+
+    delete[] buffer;
+    return forces;
+}
+
+// NOTE: This function implies that real is double
+real3 ChSystemDistributed::GetBodyContactForce(uint gid) const {
+    real3 force(0);
+
+    // Check if specified body is owned by this rank and get force
+    int local = ddm->GetLocalIndex(gid);
+    bool found = local != -1 &&
+                 (ddm->comm_status[local] == distributed::OWNED || ddm->comm_status[local] == distributed::SHARED_UP ||
+                  ddm->comm_status[local] == distributed::SHARED_DOWN);
+    if (found) {
+        // Get force on body at index local
+        int contact_index = data_manager->host_data.ct_body_map[local];
+        if (contact_index != -1) {
+            force = data_manager->host_data.ct_body_force[contact_index];
+        }
+    }
+
+    // Master rank receives from owning rank
+    MPI_Request r_bar;
+    MPI_Status s_bar;
+    int num_gids = 0;
+    if (my_rank == master_rank) {
+        MPI_Ibarrier(world, &r_bar);
+        MPI_Status s_prob;
+        int message_waiting = 0;
+        int r_bar_flag = 0;
+
+        // Recving loop
+        MPI_Test(&r_bar, &r_bar_flag, &s_bar);
+        while (!r_bar_flag) {
+            MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, world, &message_waiting, &s_prob);
+            if (message_waiting) {
+                MPI_Request r_recv;
+                MPI_Irecv(&force, 3, MPI_DOUBLE, s_prob.MPI_SOURCE, MPI_ANY_TAG, world, &r_recv);
+            }
+            MPI_Test(&r_bar, &r_bar_flag, &s_bar);
+        }
+    } else {
+        // All other ranks send their elements, if they have any
+        if (found) {
+            MPI_Request r_send;
+            // Non-blocking synchronous Send
+            MPI_Issend(&force, 3, MPI_DOUBLE, master_rank, 0, world, &r_send);
+
+            MPI_Status s_send;
+            MPI_Wait(&r_send, &s_send);
+        }
+        // Reaching here indicates to the comm that this rank's message has been recved by rank 0
+        MPI_Ibarrier(world, &r_bar);
+    }
+
+    MPI_Status stat;
+    MPI_Wait(&r_bar, &stat);  // Wait for completion of all sending
+
+    return force;
 }

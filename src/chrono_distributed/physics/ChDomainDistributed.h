@@ -31,7 +31,7 @@ class ChSystemDistributed;
 /// The global domain is split along the longest axis.
 /// Within each sub-domain, there are layers of ownership:
 ///
-/// 
+///
 /// 0 < RANK < NUM_RANKS - 1:
 ///
 /// Unowned_up (high + ghostlayer <= pos)
@@ -42,7 +42,7 @@ class ChSystemDistributed;
 /// Ghost_down (low - ghost_layer <= pos < low)
 /// Unowned_down (pos < low - ghostlayer)
 ///
-/// 
+///
 /// RANK = 0:
 ///
 /// Unowned_up (high + ghostlayer <= pos)
@@ -133,6 +133,9 @@ class CH_DISTR_API ChDomainDistributed {
     void SetSplitAxis(int i);
     /// x = 0, y = 1, z = 2
     int GetSplitAxis() { return split_axis; }
+
+    /// Returns the rank which has ownership of a body with the given position
+    int GetRank(ChVector<double> pos);
 
     /// Returns true if the domain has been set.
     bool IsSplit() { return split; }

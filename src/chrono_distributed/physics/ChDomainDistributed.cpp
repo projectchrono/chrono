@@ -71,11 +71,11 @@ void ChDomainDistributed::SetSimDomain(double xlo, double xhi, double ylo, doubl
 
 void ChDomainDistributed::SplitDomain() {
     // Length of this subdomain along the long axis
-    double sub_len = (boxhi[split_axis] - boxlo[split_axis]) / (double)my_sys->GetNumRanks();
+    double sub_len = (boxhi[split_axis] - boxlo[split_axis]) / my_sys->num_ranks;
 
     for (int i = 0; i < 3; i++) {
         if (split_axis == i) {
-            sublo[i] = boxlo[i] + my_sys->GetMyRank() * sub_len;
+            sublo[i] = boxlo[i] + my_sys->my_rank * sub_len;
             subhi[i] = sublo[i] + sub_len;
         } else {
             sublo[i] = boxlo[i];
@@ -85,12 +85,19 @@ void ChDomainDistributed::SplitDomain() {
     split = true;
 }
 
+int ChDomainDistributed::GetRank(ChVector<double> pos) {
+    double sub_len = subhi[split_axis] - sublo[split_axis];
+    double pt = pos[split_axis] - boxlo[split_axis];
+
+    return (int)(pt / sub_len);
+}
+
 distributed::COMM_STATUS ChDomainDistributed::GetRegion(double pos) {
-    int num_ranks = my_sys->GetNumRanks();
+    int num_ranks = my_sys->num_ranks;
     if (num_ranks == 1) {
         return distributed::OWNED;
     }
-    int my_rank = my_sys->GetMyRank();
+    int my_rank = my_sys->my_rank;
     double ghost_layer = my_sys->GetGhostLayer();
     double high = subhi[split_axis];
     double low = sublo[split_axis];
@@ -166,7 +173,7 @@ void ChDomainDistributed::PrintDomain() {
              << boxlo.z() << " to " << boxhi.z()
              << "\n"
                 "Subdomain: Rank "
-             << my_sys->GetMyRank()
+             << my_sys->my_rank
              << "\n"
                 "\tX: "
              << sublo.x() << " to " << subhi.x()

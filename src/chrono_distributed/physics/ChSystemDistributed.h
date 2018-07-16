@@ -32,19 +32,6 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 namespace chrono {
-typedef struct CosimForce {
-    uint gid;
-    int owner_rank;
-    double force[3];
-} CosimForce;
-
-typedef struct CosimDispl {
-    double A[3];
-    double B[3];
-    double C[3];
-    double R[4];
-    uint gid;
-} CosimDispl;
 
 class ChDomainDistributed;
 class ChCommDistributed;
@@ -54,47 +41,67 @@ class ChDataManagerDistr;
 /// Add bodies and set all settings through the system.
 /// The simulation runs on all ranks given in the world parameter.
 class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
-    friend class ChCommDistributed;
-
   public:
-    /// world specifies on which MPI_Comm the simulation should run.
-    ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects);
+    /// Construct a distributed Chrono system using the specified MPI communicator.
+    ChSystemDistributed(MPI_Comm communicator, double ghostlayer, unsigned int maxobjects);
     virtual ~ChSystemDistributed();
 
-    /// Returns the number of MPI ranks the system is using.
-    int GetNumRanks() { return num_ranks; }
+    /// Return the system's MPI intra-communicator.
+    MPI_Comm GetCommunicator() const { return world; }
 
-    /// Returns the number of the rank the system is running on.
-    int GetMyRank() { return my_rank; }
+    /// Return the size of the group associated with the system's intra-communicator.
+    int GetCommSize() const { return num_ranks; }
 
-    /// Returns the distance into the neighboring sub-domain that is considered shared.
-    double GetGhostLayer() { return ghost_layer; }
+    /// Return the rank of the calling process in the system's intra-communicator.
+    int GetCommRank() const { return my_rank; }
 
-    /// A running count of the number of global bodies for
-    /// identification purposes
-    int GetNumBodiesGlobal() { return num_bodies_global; }
+    /// Set the calling process as 'master' in the intra-communicator used by this system.
+    /// For efficiency, certain functions report information only on this single rank.  This saves
+    /// a potentially unnecessary scatter operation (if needed, such an operation should be performed
+    /// in user code).  By default this is rank 0 in the system's intra-communicator.
+    void SetMaster() { master_rank = my_rank; }
+ 
+    /// Return the rank (in the system's intra-communicator) of the process marked as 'master'.
+    /// Certain functions return information only on this process.
+    int GetMasterRank() const { return master_rank; }
 
-    /// Should be called every add to the GLOBAL system i.e. regardless of whether
-    /// the body in question is retained by the system on a particular rank, this
-    /// should be called after an AddBody call.
-    int IncrementGID() { return num_bodies_global++; }
+    /// Return true if the calling process is the one marked as 'master'.
+    bool OnMaster() const { return my_rank == master_rank; }
 
-    /// Returns true if pos is within this rank's sub-domain.
-    bool InSub(ChVector<double> pos);
+    /// Set the distance into the neighboring sub-domain that is considered shared.
+    void SetGhostLayer(double ghostlayer) { ghost_layer = ghostlayer; }
 
-    /// Add a body to the system. Should be called on every rank for every body.
-    /// Classifies the body and decides whether or not to keep it on this rank.
-    void AddBody(std::shared_ptr<ChBody> newbody) override;
+    /// Return the distance into the neighboring sub-domain that is considered shared.
+    double GetGhostLayer() const { return ghost_layer; }
 
-    /// Adds a body to the system regardless of its location. Should only be called
-    /// if the caller needs a body added to the entire system. NOTE: A body crossing
-    /// multiple sub-domains will not be correctly advanced.
-    void AddBodyTrust(std::shared_ptr<ChBody> newbody);
+    /// Return the current global number of bodies in the system.
+    unsigned int GetNumBodiesGlobal() const { return num_bodies_global; }
 
-    /// Removes a body from the simulation based on the ID of the body (not based on
+    /// Return true if pos is within this rank's sub-domain.
+    bool InSub(const ChVector<double>& pos) const;
+
+    /// Create a new body, consistent with the contact method and collision model used by this system.
+    /// The returned body is not added to the system.
+    virtual ChBody* NewBody() override;
+
+    /// Create a new body with non-centroidal reference frame, consistent with the contact method and
+    /// collision model used by this system.  The returned body is not added to the system.
+    virtual ChBodyAuxRef* NewBodyAuxRef() override;
+
+    /// Add a body to the system. 
+    /// This function should be called *on all ranks*.
+    /// AddBody classifies the body and decides whether or not to keep it on each rank.
+    virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+
+    /// Add a body to the system on all ranks, regardless of its location.
+    /// This body should not have associated collision geometry.
+    /// NOTE: A body crossing multiple sub-domains will not be correctly advanced.
+    void AddBodyAllRanks(std::shared_ptr<ChBody> body);
+
+    /// Remove a body from the simulation based on the ID of the body (not based on
     /// object comparison between ChBodys). Should be called on all ranks to ensure
     /// that the correct body is found and removed where it exists.
-    void RemoveBody(std::shared_ptr<ChBody> body) override;
+    virtual void RemoveBody(std::shared_ptr<ChBody> body) override;
 
     /// Wraps the super-class Integrate_Y call and introduces a call that carries
     /// out all inter-rank communication.
@@ -108,10 +115,10 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     void RemoveBodyExchange(int index);
 
     /// Returns the ChDomainDistributed object associated with the system.
-    ChDomainDistributed* GetDomain() { return domain; }
+    ChDomainDistributed* GetDomain() const { return domain; }
 
     /// Returns the ChCommDistributed object associated with the system.
-    ChCommDistributed* GetComm() { return comm; }
+    ChCommDistributed* GetComm() const { return comm; }
 
     /// Prints msg to the user and ends execution with an MPI abort.
     void ErrorAbort(std::string msg);
@@ -125,9 +132,6 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     /// Prints measures for computing efficiency.
     void PrintEfficiency();
 
-    /// Returns the MPI communicator being used by the system.
-    MPI_Comm GetMPIWorld() { return world; }
-
     /// Central data storages for chrono_distributed. Adds scaffolding data
     /// around ChDataManager used by chrono_parallel in order to maintain
     /// a consistent and correct view of all valid data.
@@ -139,29 +143,72 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     /// Debugging function
     double GetLowestZ(uint* gid);
 
+    /// Returns the highest z coordinate in the system
+    double GetHighestZ();
+
     /// Checks for consistency in IDs in the system. Should only be used
     /// for debugging.
     void CheckIds();
 
-    // Co-Simulation
-    /// User functions for setting the range of GIDs that correspond to co-simulation triangles
-    void SetFirstCosimGID(uint gid);
-    void SetLastCosimGID(uint gid);
-
-    /// Tells the simulation to send all forces on co-simulation bodies to the master rank
-    /// Output: GIDS <- array of global IDS reporting force; forces <- array of corresponding forces
-    /// Call on all ranks - rank 0 returns valid count and fills forces arg
-    int CollectCosimForces(CosimForce* forces);
-
-    /// Updates the positions of all cosimulation bodies in the system
-    /// Call on all ranks?TODO
-    void DistributeCosimPositions(CosimDispl* displacements, uint* GIDs, int* ranks, int size);
-
-    void AddBodyAllRanks(std::shared_ptr<ChBody> body);
+    /// Removes all bodies below the given height - initial implementation of a
+    /// deactivating boundary condition.
+    int RemoveBodiesBelow(double z);
 
     /// Checks structures added by chrono_distributed. Prints ERROR messages at
     /// inconsistencies.
     void SanityCheck();
+
+    /// Stores all data needed to fully update the state of a body
+    typedef struct BodyState {
+        ChVector<> pos;
+        ChQuaternion<> rot;
+        ChVector<> pos_dt;
+        ChQuaternion<> rot_dt;
+    } BodyState;
+
+    /// Updates the states of all bodies listed in the gids parameter
+    /// Must be called on all system ranks and inputs must be complete and
+    /// valid on each rank.
+    /// NOTE: The change in position should be small in comparison to the ghost
+    /// layer of this system.
+    /// NOTE: The new states will reach the data_manager at the beginning of the
+    /// next time step.
+    void SetBodyStates(const std::vector<uint>& gids, const std::vector<BodyState>& states);
+    void SetBodyState(uint gid, const BodyState& state);
+
+    /// Updates each sphere shape associated with bodies with global ids gids.
+    /// shape_idx identifies the index of the shape within its body's collisionsystem model.
+    /// Must be called on all system ranks and inputs must be complete and
+    /// valid on each rank.
+    void SetSphereShapes(const std::vector<uint>& gids,
+                         const std::vector<int>& shape_idx,
+                         const std::vector<double>& radii);
+    void SetSphereShape(uint gid, int shape_idx, double radius);
+
+    /// Structure of vertex data for a triangle in the bodies existing local frame
+    typedef struct TriData {
+        ChVector<double> v1;
+        ChVector<double> v2;
+        ChVector<double> v3;
+    } TriData;
+
+    /// Updates triangle shapes associated with bodies identified by gids.
+    /// shape_idx identifies the index of the shape within its body's collisionsystem model.
+    /// Must be called on all system ranks and inputs must be complete and
+    /// valid on each rank.
+    void SetTriangleShapes(const std::vector<uint>& gids,
+                           const std::vector<int>& shape_idx,
+                           const std::vector<TriData>& new_shapes);
+    void SetTriangleShape(uint gid, int shape_idx, const TriData& new_shape);
+
+    /// Get contact forces experienced by any of the bodies specified through their global IDs.
+    /// Must be called on all system ranks; return value valid only on 'master' rank.
+    /// Returns a vector of pairs of global IDs and corresponding contact forces.
+    std::vector<std::pair<uint, ChVector<>>> GetBodyContactForces(const std::vector<uint>& gids) const;
+
+    /// Get the contact force experienced by the body with given global ID.
+    /// Must be called on all system ranks; return value valid only on 'master' rank.
+    virtual real3 GetBodyContactForce(uint gid) const override;
 
   protected:
     /// Number of MPI ranks
@@ -169,6 +216,9 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 
     /// MPI rank
     int my_rank;
+
+    /// Master MPI rank
+    int master_rank;
 
     /// Length into the neighboring sub-domain which is considered shared.
     double ghost_layer;
@@ -191,8 +241,10 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     void AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status);
 
     // Co-simulation
-    MPI_Datatype CosimForceType;
-    MPI_Datatype CosimDisplType;
+    MPI_Datatype InternalForceType;
+
+    friend class ChCommDistributed;
+    friend class ChDomainDistributed;
 };
 
 } /* namespace chrono */

@@ -20,6 +20,7 @@ ChDistributedDataManager::ChDistributedDataManager(ChSystemDistributed* my_sys) 
     this->my_sys = my_sys;
     data_manager = my_sys->data_manager;
     first_empty = 0;
+    initial_add = true;
 }
 
 ChDistributedDataManager::~ChDistributedDataManager() {}
@@ -32,6 +33,7 @@ int ChDistributedDataManager::GetLocalIndex(unsigned int gid) {
     return -1;
 }
 
+// TODO replace
 void ChDistributedDataManager::DefragmentFreeList() {
     struct LocalShapeNode* curr = local_free_shapes;
     if (curr == NULL)

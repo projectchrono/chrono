@@ -39,11 +39,12 @@ typedef struct BodyExchange {
     double inertiaXX[3];
     double inertiaXY[3];
     float mu;
-    float adhesionMultDMT;
+    float cohesion;
     float ym_kn;
     float pr_kt;
     float restit_gn;
     float gt;
+    int identifier;
 } BodyExchange;
 
 typedef struct BodyUpdate {
@@ -57,17 +58,17 @@ typedef struct BodyUpdate {
 typedef struct Shape {
     uint gid;
     int type;
+    short coll_fam[2];
     double A[3];  // A
     double R[4];
     double data[6];  // B C and shape-specific data
-    /*short2 fam;*/
 } Shape;
 
 /// This class holds functions for processing the system's bodies to determine
 /// when a body needs to be sent to another rank for either an update or for
 /// creation of a ghost. The class also decides how to update the comm_status of
 /// each body based on its position and its comm_status.
-/// 
+///
 /// Actions:
 ///
 /// A body with an OWNED comm_status will be packed for exchange to create a ghost body on another rank when it

@@ -14,6 +14,7 @@
 
 #include <mpi.h>
 #include <omp.h>
+#include <climits>
 #include <forward_list>
 #include <memory>
 #include <string>
@@ -44,15 +45,16 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
 
     /* Create and Commit all custom MPI Data Types */
     // Exchange
-    MPI_Datatype type_exchange[4] = {MPI_UNSIGNED, MPI_BYTE, MPI_DOUBLE, MPI_FLOAT};
-    int blocklen_exchange[4] = {1, 1, 20, 6};
-    MPI_Aint disp_exchange[4];
+    MPI_Datatype type_exchange[5] = {MPI_UNSIGNED, MPI_BYTE, MPI_DOUBLE, MPI_FLOAT, MPI_INT};
+    int blocklen_exchange[5] = {1, 1, 20, 6, 1};
+    MPI_Aint disp_exchange[5];
     disp_exchange[0] = offsetof(BodyExchange, gid);
     disp_exchange[1] = offsetof(BodyExchange, collide);
     disp_exchange[2] = offsetof(BodyExchange, pos);
     disp_exchange[3] = offsetof(BodyExchange, mu);
+    disp_exchange[4] = offsetof(BodyExchange, identifier);
     MPI_Datatype temp_type;
-    MPI_Type_create_struct(4, blocklen_exchange, disp_exchange, type_exchange, &temp_type);
+    MPI_Type_create_struct(5, blocklen_exchange, disp_exchange, type_exchange, &temp_type);
     MPI_Aint lb, extent;
     MPI_Type_get_extent(temp_type, &lb, &extent);
     MPI_Type_create_resized(temp_type, lb, extent, &BodyExchangeType);
@@ -69,15 +71,16 @@ ChCommDistributed::ChCommDistributed(ChSystemDistributed* my_sys) {
     MPI_Type_commit(&BodyUpdateType);
 
     // Shape
-    MPI_Datatype type_shape[3] = {MPI_UNSIGNED, MPI_INT, MPI_DOUBLE};
-    int blocklen_shape[3] = {1, 1, 13};
-    MPI_Aint disp_shape[3];
+    MPI_Datatype type_shape[4] = {MPI_UNSIGNED, MPI_INT, MPI_SHORT, MPI_DOUBLE};
+    int blocklen_shape[4] = {1, 1, 2, 13};
+    MPI_Aint disp_shape[4];
     disp_shape[0] = offsetof(Shape, gid);
     disp_shape[1] = offsetof(Shape, type);
-    disp_shape[2] = offsetof(Shape, A);
+    disp_shape[2] = offsetof(Shape, coll_fam);
+    disp_shape[3] = offsetof(Shape, A);
 
     MPI_Datatype temp_type_s;
-    MPI_Type_create_struct(3, blocklen_shape, disp_shape, type_shape, &temp_type_s);
+    MPI_Type_create_struct(4, blocklen_shape, disp_shape, type_shape, &temp_type_s);
     MPI_Aint lb_s, extent_s;
     MPI_Type_get_extent(temp_type_s, &lb_s, &extent_s);
     MPI_Type_create_resized(temp_type_s, lb_s, extent_s, &ShapeType);
@@ -145,20 +148,20 @@ void ChCommDistributed::ProcessUpdates(int num_recv, BodyUpdate* buf) {
             if (ddm->comm_status[index] != distributed::GHOST_UP &&
                 ddm->comm_status[index] != distributed::GHOST_DOWN) {
                 my_sys->ErrorAbort(std::string("Trying to update a non-ghost body on rank ") +
-                                   std::to_string(my_sys->GetMyRank()) + std::string("GID ") +
+                                   std::to_string(my_sys->my_rank) + std::string("GID ") +
                                    std::to_string((buf + n)->gid) + std::string("\n"));
             }
             body = (*data_manager->body_list)[index];
             UnpackUpdate(buf + n, body);
             if ((buf + n)->update_type == distributed::FINAL_UPDATE_GIVE) {
-                GetLog() << "GIVE " << ddm->global_id[index] << " to rank " << my_sys->GetMyRank() << "\n";
+                GetLog() << "GIVE " << ddm->global_id[index] << " to rank " << my_sys->my_rank << "\n";
                 ddm->comm_status[index] = distributed::OWNED;
             } else if ((buf + n)->update_type == distributed::UPDATE_TRANSFER_SHARE) {
                 ddm->comm_status[index] = (ddm->comm_status[index] == distributed::GHOST_UP) ? distributed::SHARED_UP
                                                                                              : distributed::SHARED_DOWN;
             }
         } else {
-            GetLog() << "GID " << (buf + n)->gid << " NOT found rank " << my_sys->GetMyRank() << "\n";
+            GetLog() << "GID " << (buf + n)->gid << " NOT found rank " << my_sys->my_rank << "\n";
             my_sys->ErrorAbort("Body to be updated not found\n");
         }
     }
@@ -190,15 +193,13 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
         int local_id = ddm->GetLocalIndex(gid);
         if (local_id == -1) {
             my_sys->ErrorAbort(std::string("ProcessShapes: GID ") + std::to_string(gid) + " not found on rank " +
-                               std::to_string(my_sys->GetMyRank()) + "\n");
+                               std::to_string(my_sys->my_rank) + "\n");
         }
         std::shared_ptr<ChBody> body = (*ddm->data_manager->body_list)[local_id];
 
-        /*
-        short2 fam = (buf + n)->fam;
-        body->GetCollisionModel()->SetFamily(fam.x);
-        body->GetCollisionModel()->SetFamilyMask(fam.y);
-        */
+        body->GetCollisionModel()->SetFamilyGroup((buf + n)->coll_fam[0]);
+        body->GetCollisionModel()->SetFamilyMask((buf + n)->coll_fam[1]);
+
         double* rot;
         double* data;
 
@@ -218,14 +219,16 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
                                                       ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
                     break;
                 case chrono::collision::TRIANGLEMESH:
-                    // AddTriangle(A, B, C, pos, rot)
-                    // pos == (0,0,0) because the addition to the position is done at the initial add TODO ?
                     std::static_pointer_cast<ChCollisionModelDistributed>(body->GetCollisionModel())
                         ->AddTriangle(A, ChVector<>(data[0], data[1], data[2]), ChVector<>(data[3], data[4], data[5]),
                                       ChVector<>(0, 0, 0), ChQuaternion<>(rot[0], rot[1], rot[2], rot[3]));
                     break;
+                case chrono::collision::ELLIPSOID:
+                    body->GetCollisionModel()->AddEllipsoid(
+                        data[0], data[1], data[2], A, ChMatrix33<>(ChQuaternion<>(rot[0], rot[1], rot[2], rot[3])));
+                    break;
                 default:
-                    GetLog() << "Error: gid " << gid << " rank " << my_sys->GetMyRank() << " type " << (buf + n)->type
+                    GetLog() << "Error: gid " << gid << " rank " << my_sys->my_rank << " type " << (buf + n)->type
                              << "\n";
                     my_sys->ErrorAbort("Unpacking undefined collision shape\n");
             }
@@ -238,8 +241,8 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
 
 // Handle all necessary communication
 void ChCommDistributed::Exchange() {
-    int my_rank = my_sys->GetMyRank();
-    int num_ranks = my_sys->GetNumRanks();
+    int my_rank = my_sys->my_rank;
+    int num_ranks = my_sys->num_ranks;
     std::forward_list<int> exchanges_up;
     std::forward_list<int> exchanges_down;
 
@@ -305,7 +308,7 @@ void ChCommDistributed::Exchange() {
             }
         }  // end of exchange section
 
-            // Update Loop
+        // Update Loop
 #pragma omp section
         {
             // PACKING and UPDATING comm_status of existing bodies
@@ -358,14 +361,14 @@ void ChCommDistributed::Exchange() {
                           ddm->comm_status[i] == distributed::SHARED_DOWN)) {
                     int up;
                     if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
-                        GetLog() << "GIVE " << ddm->global_id[i] << " from rank " << my_sys->GetMyRank() << "\n";
+                        GetLog() << "GIVE " << ddm->global_id[i] << " from rank " << my_rank << "\n";
                         BodyUpdate b_upd = {};
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_up_buf.push_back(b_upd);
                         num_update_up++;  // TODO might be able to eliminate
                         up = 1;
                     } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
-                        GetLog() << "GIVE " << ddm->global_id[i] << " from rank " << my_sys->GetMyRank() << "\n";
+                        GetLog() << "GIVE " << ddm->global_id[i] << " from rank " << my_rank << "\n";
                         BodyUpdate b_upd = {};
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_down_buf.push_back(b_upd);
@@ -379,7 +382,7 @@ void ChCommDistributed::Exchange() {
             }  // End of packing for loop
         }      // End of update section
 
-            // Update Take Loop
+        // Update Take Loop
 #pragma omp section
         {
             // PACKING and UPDATING comm_status of existing bodies
@@ -509,7 +512,7 @@ void ChCommDistributed::Exchange() {
             }
 
             // Recv Exchanges
-            if (my_sys->GetMyRank() != 0) {
+            if (my_rank != 0) {
                 MPI_Probe(my_rank - 1, 1, my_sys->world, &recv_status_exchange_down);
                 MPI_Get_count(&recv_status_exchange_down, BodyExchangeType, &num_recv_exchange_down);
                 recv_exchange_down = new BodyExchange[num_recv_exchange_down];
@@ -535,7 +538,7 @@ void ChCommDistributed::Exchange() {
             }
 
             // Recv Updates
-            if (my_sys->GetMyRank() != 0) {
+            if (my_rank != 0) {
                 MPI_Probe(my_rank - 1, 3, my_sys->world, &recv_status_update_down);
                 MPI_Get_count(&recv_status_update_down, BodyUpdateType, &num_recv_update_down);
                 recv_update_down = new BodyUpdate[num_recv_update_down];
@@ -560,7 +563,7 @@ void ChCommDistributed::Exchange() {
             }
 
             // Recv Takes
-            if (my_sys->GetMyRank() != 0) {
+            if (my_rank != 0) {
                 MPI_Probe(my_rank - 1, 5, my_sys->world, &recv_status_take_down);
                 MPI_Get_count(&recv_status_take_down, MPI_UNSIGNED, &num_recv_take_down);
                 recv_take_down = new uint[num_recv_take_down];
@@ -575,17 +578,17 @@ void ChCommDistributed::Exchange() {
                          &recv_status_take_up);
             }
 
-			// Make sure all non-blocking communications are done.
-			if (my_rank != num_ranks - 1) {
-				MPI_Wait(&rq_exchange_up, MPI_STATUS_IGNORE);
-				MPI_Wait(&rq_update_up, MPI_STATUS_IGNORE);
-				MPI_Wait(&rq_take_up, MPI_STATUS_IGNORE);
-			}
-			if (my_rank != 0) {
-				MPI_Wait(&rq_exchange_down, MPI_STATUS_IGNORE);
-				MPI_Wait(&rq_update_down, MPI_STATUS_IGNORE);
-				MPI_Wait(&rq_take_down, MPI_STATUS_IGNORE);
-			}
+            // Make sure all non-blocking communications are done.
+            if (my_rank != num_ranks - 1) {
+                MPI_Wait(&rq_exchange_up, MPI_STATUS_IGNORE);
+                MPI_Wait(&rq_update_up, MPI_STATUS_IGNORE);
+                MPI_Wait(&rq_take_up, MPI_STATUS_IGNORE);
+            }
+            if (my_rank != 0) {
+                MPI_Wait(&rq_exchange_down, MPI_STATUS_IGNORE);
+                MPI_Wait(&rq_update_down, MPI_STATUS_IGNORE);
+                MPI_Wait(&rq_take_down, MPI_STATUS_IGNORE);
+            }
         }  // End of send/recv section
 
 // TODO could do in parallel if counting the spaces in the buffers in the first pass
@@ -642,7 +645,7 @@ void ChCommDistributed::Exchange() {
     }
 
     // Recv Shapes
-    if (my_sys->GetMyRank() != 0) {
+    if (my_rank != 0) {
         MPI_Probe(my_rank - 1, 7, my_sys->world, &recv_status_shapes_down);
         MPI_Get_count(&recv_status_shapes_down, ShapeType, &num_recv_shapes_down);
         recv_shapes_down = new Shape[num_recv_shapes_down];
@@ -662,12 +665,12 @@ void ChCommDistributed::Exchange() {
     if (my_rank != num_ranks - 1)
         ProcessShapes(num_recv_shapes_up, recv_shapes_up);
 
-	if (my_rank != num_ranks - 1) {
-		MPI_Wait(&rq_shapes_up, MPI_STATUS_IGNORE);
-	}
-	if (my_rank != 0) {
-		MPI_Wait(&rq_shapes_down, MPI_STATUS_IGNORE);
-	}
+    if (my_rank != num_ranks - 1) {
+        MPI_Wait(&rq_shapes_up, MPI_STATUS_IGNORE);
+    }
+    if (my_rank != 0) {
+        MPI_Wait(&rq_shapes_down, MPI_STATUS_IGNORE);
+    }
 
     // Free all dynamic memory used for recving
     delete[] recv_exchange_down;
@@ -679,12 +682,15 @@ void ChCommDistributed::Exchange() {
     delete[] recv_shapes_down;
     delete[] recv_shapes_up;
 
-    MPI_Barrier(my_sys->GetMPIWorld());
+    MPI_Barrier(my_sys->world);
 }
 
 void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     // Global Id
     buf->gid = ddm->global_id[index];
+
+    // User-controlled identifier
+    buf->identifier = my_sys->bodylist[index]->GetIdentifier();
 
     // Position and rotation
     real3 pos = data_manager->host_data.pos_rigid[index];
@@ -727,7 +733,14 @@ void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     // Material SMC
     buf->mu = data_manager->host_data.mu[index];  // Static Friction
 
-    buf->adhesionMultDMT = data_manager->host_data.adhesionMultDMT_data[index];  // Adhesion
+    switch (data_manager->settings.solver.adhesion_force_model) {
+        case ChSystemSMC::Constant:
+            buf->cohesion = data_manager->host_data.cohesion_data[index];  // constant adhesion/cohesion
+            break;
+        case ChSystemSMC::DMT:
+            buf->cohesion = data_manager->host_data.adhesionMultDMT_data[index];  // Derjagin-Muller-Toropov coefficient
+            break;
+    }
 
     if (data_manager->settings.solver.use_material_properties) {
         buf->ym_kn = data_manager->host_data.elastic_moduli[index].x;  // Young's Modulus
@@ -753,6 +766,9 @@ void ChCommDistributed::UnpackExchange(BodyExchange* buf, std::shared_ptr<ChBody
     // Global Id
     body->SetGid(buf->gid);
 
+    // User-controlled identifier
+    body->SetIdentifier(buf->identifier);
+
     // Position and rotation
     body->SetPos(ChVector<double>(buf->pos[0], buf->pos[1], buf->pos[2]));
 
@@ -773,7 +789,15 @@ void ChCommDistributed::UnpackExchange(BodyExchange* buf, std::shared_ptr<ChBody
     std::shared_ptr<ChMaterialSurfaceSMC> mat = std::make_shared<ChMaterialSurfaceSMC>();
 
     mat->SetFriction(buf->mu);  // Static Friction
-    mat->adhesionMultDMT = buf->adhesionMultDMT;
+
+    switch (data_manager->settings.solver.adhesion_force_model) {
+        case ChSystemSMC::Constant:
+            mat->SetAdhesion(buf->cohesion);  // constant adhesion/cohesion
+            break;
+        case ChSystemSMC::DMT:
+            mat->SetAdhesionMultDMT(buf->cohesion);  // Derjagin-Muller-Toropov coefficient
+            break;
+    }
 
     if (data_manager->settings.solver.use_material_properties) {
         mat->young_modulus = buf->ym_kn;
@@ -836,6 +860,7 @@ void ChCommDistributed::UnpackUpdate(BodyUpdate* buf, std::shared_ptr<ChBody> bo
 // Packs all shapes for a single body into the buffer
 int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
     int shape_count = ddm->body_shape_count[index];
+    shape_container& shape_data = data_manager->shape_data;
 
     // Pack each shape on the body
     for (int i = 0; i < shape_count; i++) {
@@ -844,43 +869,48 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
         int shape_index =
             ddm->body_shapes[ddm->body_shape_start[index] + i];  // index of the shape in data_manager->shape_data
 
-        int type = data_manager->shape_data.typ_rigid[shape_index];
-        int start = data_manager->shape_data.start_rigid[shape_index];
+        int type = shape_data.typ_rigid[shape_index];
+        int start = shape_data.start_rigid[shape_index];
         shape.type = type;
 
-        shape.A[0] = data_manager->shape_data.ObA_rigid[shape_index].x;
-        shape.A[1] = data_manager->shape_data.ObA_rigid[shape_index].y;
-        shape.A[2] = data_manager->shape_data.ObA_rigid[shape_index].z;
+        shape.A[0] = shape_data.ObA_rigid[shape_index].x;
+        shape.A[1] = shape_data.ObA_rigid[shape_index].y;
+        shape.A[2] = shape_data.ObA_rigid[shape_index].z;
 
-        shape.R[0] = data_manager->shape_data.ObR_rigid[shape_index].w;
-        shape.R[1] = data_manager->shape_data.ObR_rigid[shape_index].x;
-        shape.R[2] = data_manager->shape_data.ObR_rigid[shape_index].y;
-        shape.R[3] = data_manager->shape_data.ObR_rigid[shape_index].z;
+        shape.R[0] = shape_data.ObR_rigid[shape_index].w;
+        shape.R[1] = shape_data.ObR_rigid[shape_index].x;
+        shape.R[2] = shape_data.ObR_rigid[shape_index].y;
+        shape.R[3] = shape_data.ObR_rigid[shape_index].z;
 
-        /*(buf + i)->fam = data_manager->shape_data.fam_rigid[shape_index];*/
+        shape.coll_fam[0] = shape_data.fam_rigid[shape_index].x;
+        shape.coll_fam[1] = shape_data.fam_rigid[shape_index].y;
 
-        switch (type) {
+         switch (type) {
             case chrono::collision::SPHERE:
-                shape.data[0] = data_manager->shape_data.sphere_rigid[start];
-#ifdef DistrDebug
-                GetLog() << "Packing sphere: " << (*buf)[i].data[0];
-#endif
+                shape.data[0] = shape_data.sphere_rigid[start];
                 break;
             case chrono::collision::BOX:
-                shape.data[0] = data_manager->shape_data.box_like_rigid[start].x;
-                shape.data[1] = data_manager->shape_data.box_like_rigid[start].y;
-                shape.data[2] = data_manager->shape_data.box_like_rigid[start].z;
+                shape.data[0] = shape_data.box_like_rigid[start].x;
+                shape.data[1] = shape_data.box_like_rigid[start].y;
+                shape.data[2] = shape_data.box_like_rigid[start].z;
                 break;
             case chrono::collision::TRIANGLEMESH:
                 // Pack B
-                shape.data[0] = data_manager->shape_data.triangle_rigid[start + 1].x;
-                shape.data[1] = data_manager->shape_data.triangle_rigid[start + 1].y;
-                shape.data[2] = data_manager->shape_data.triangle_rigid[start + 1].z;
+                shape.data[0] = shape_data.triangle_rigid[start + 1].x;
+                shape.data[1] = shape_data.triangle_rigid[start + 1].y;
+                shape.data[2] = shape_data.triangle_rigid[start + 1].z;
 
                 // Pack C
-                shape.data[3] = data_manager->shape_data.triangle_rigid[start + 2].x;
-                shape.data[4] = data_manager->shape_data.triangle_rigid[start + 2].y;
-                shape.data[5] = data_manager->shape_data.triangle_rigid[start + 2].z;
+                shape.data[3] = shape_data.triangle_rigid[start + 2].x;
+                shape.data[4] = shape_data.triangle_rigid[start + 2].y;
+                shape.data[5] = shape_data.triangle_rigid[start + 2].z;
+                break;
+            case chrono::collision::ELLIPSOID:
+                // Pack B
+                shape.data[0] = shape_data.box_like_rigid[start].x;
+                shape.data[1] = shape_data.box_like_rigid[start].y;
+                shape.data[2] = shape_data.box_like_rigid[start].z;
+                break;
 
             default:
                 my_sys->ErrorAbort("Invalid shape for transfer\n");
