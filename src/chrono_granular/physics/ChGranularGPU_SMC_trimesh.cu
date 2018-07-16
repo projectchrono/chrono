@@ -671,7 +671,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
             updateBDPosition(stepSize_SU);
         }
         resetUpdateInformation();
-        update_DMeshSoup_Location();  // TODO where does this go?
 
         VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
 

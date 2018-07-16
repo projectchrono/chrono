@@ -280,6 +280,7 @@ int main(int argc, char* argv[]) {
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < timeEnd; t += iteration_step) {
+        m_sys.meshSoup_applyRigidBodyMotion(t, meshSoupLocOri);
         m_sys.advance_simulation(iteration_step);
         printf("rendering frame %u\n", currframe);
         char filename[100];
