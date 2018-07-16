@@ -39,7 +39,7 @@ using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 // Select Path Follower, uncomment to select the pure PID steering controller
-//#define USE_PID 1
+#define USE_PID 1
 
 // The extended steering controller only works inside the path limits
 // =============================================================================
@@ -49,7 +49,7 @@ using namespace chrono::vehicle::hmmwv;
 ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 
 // Type of tire model (RIGID, LUGRE, FIALA, PACEJKA, or TMEASY)
-TireModelType tire_model = TireModelType::TMEASY;
+TireModelType tire_model = TireModelType::RIGID;
 
 // Type of powertrain model (SHAFTS or SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
