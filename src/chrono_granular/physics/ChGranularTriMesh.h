@@ -91,6 +91,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     GranParamsHolder_trimesh* tri_params;
     /// clean copy of mesh soup interacting with granular material; HOST-side
     ChTriangleSoup<float> meshSoup_HOST;
+    /// working copy of mesh soup interacting with granular material; HOST-side
+    ChTriangleSoup<float> meshSoupWorking_HOST;
     // store a pointer since we use unified memory for this
     ChTriangleSoup<float>* meshSoup_DEVICE;  //!< mesh soup interacting with granular material; DEVICE-side
     double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
@@ -110,6 +112,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void cleanupTriMesh_HOST();
     void setupTriMesh_DEVICE(unsigned int nTriangles);
     void cleanupTriMesh_DEVICE();
+    void update_DMeshSoup_Location();
 
     // void initialize();
 
