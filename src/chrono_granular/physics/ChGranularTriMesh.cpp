@@ -94,7 +94,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
         std::vector<tinyobj::shape_t> shapes;
 
         // The mesh soup stored in an obj file
-        std::string load_result = tinyobj::LoadObj(shapes, mesh_filename);
+        std::string load_result = tinyobj::LoadObj(shapes, mesh_filename.c_str());
         if (load_result.length() != 0) {
             std::cerr << load_result << "\n";
             GRANULAR_ERROR("Failed to load triangle mesh\n");
@@ -103,7 +103,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
         for (auto shape : shapes) {
             nTriangles += shape.mesh.indices.size() / 3;
         }
-		all_shapes.push_back(shapes);
+        all_shapes.push_back(shapes);
     }
 
     printf("nTriangles is %u\n", nTriangles);
