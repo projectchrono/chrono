@@ -29,13 +29,10 @@ double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::get_max_K() {
 
 ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(
     float radiusSPH,
-    float density,
-    std::string meshFileName)
+    float density)
     : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density),
       problemSetupFinished(false),
-      timeToWhichDEsHaveBeenPropagated(0.f) {
-    setupTriMesh_HOST_DEVICE(meshFileName.c_str());
-}
+      timeToWhichDEsHaveBeenPropagated(0.f) {}
 
 ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {
     // work to do here
@@ -53,24 +50,68 @@ ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::~ChSystemGranularMonodisp
  *
  * \attention The mesh soup, provided in the input file, should be in obj format.
  */
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST_DEVICE(const char* mesh_filename) {
-    std::vector<tinyobj::shape_t> shapes;
+// void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST_DEVICE(
+//     const char* mesh_filename) {  // NOTE: being replaced by load_meshes below
+//     std::vector<tinyobj::shape_t> shapes;
+//
+//     // The mesh soup stored in an obj file
+//     std::string load_result = tinyobj::LoadObj(shapes, mesh_filename);
+//     if (load_result.length() != 0) {
+//         std::cerr << load_result << "\n";
+//         GRANULAR_ERROR("Failed to load triangle mesh\n");
+//     }
+//
+//     unsigned int nTriangles = 0;
+//     for (auto shape : shapes) {
+//         nTriangles += shape.mesh.indices.size() / 3;
+//     }
+//     printf("nFamiliesInSoup is %u\n", nTriangles);
+//     // Allocate memory to store mesh soup; done both on the HOST and DEVICE sides
+//     setupTriMesh_HOST(shapes, nTriangles);
+//     setupTriMesh_DEVICE(nTriangles);
+//
+//     // Allocate triangle collision memory
+//     BUCKET_countsOfTrianglesTouching.resize(TRIANGLEBUCKET_COUNT);
+//     triangles_in_BUCKET_composite.resize(TRIANGLEBUCKET_COUNT * MAX_TRIANGLE_COUNT_PER_BUCKET);
+//     triangles_in_BUCKET_composite.resize(nSDs);
+//
+//     // Allocate triangle collision parameters
+//     gpuErrchk(cudaMallocManaged(&tri_params, sizeof(GranParamsHolder_trimesh), cudaMemAttachGlobal));
+// }
 
-    // The mesh soup stored in an obj file
-    std::string load_result = tinyobj::LoadObj(shapes, mesh_filename);
-    if (load_result.length() != 0) {
-        std::cerr << load_result << "\n";
-        GRANULAR_ERROR("Failed to load triangle mesh\n");
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vector<std::string> objfilenames,
+                                                                        std::vector<float3> scalings) {
+    if (objfilenames.size() != scalings.size()) {
+        GRANULAR_ERROR("Vectors of obj files and scalings must have same size\n");
     }
 
+    // Load all shapes into vectors of shape_t
     unsigned int nTriangles = 0;
-    for (auto shape : shapes) {
-        nTriangles += shape.mesh.indices.size() / 3;
+    unsigned int nFamiliesInSoup = 0;
+    std::vector<std::vector<tinyobj::shape_t>> all_shapes;
+    for (auto mesh_filename : objfilenames) {
+        nFamiliesInSoup++;
+        std::vector<tinyobj::shape_t> shapes;
+
+        // The mesh soup stored in an obj file
+        std::string load_result = tinyobj::LoadObj(shapes, mesh_filename);
+        if (load_result.length() != 0) {
+            std::cerr << load_result << "\n";
+            GRANULAR_ERROR("Failed to load triangle mesh\n");
+        }
+
+        for (auto shape : shapes) {
+            nTriangles += shape.mesh.indices.size() / 3;
+        }
+		all_shapes.push_back(shapes);
     }
-    printf("nFamiliesInSoup is %u\n", nTriangles);
+
+    printf("nTriangles is %u\n", nTriangles);
+    printf("nTrianglesFailiesInSoup is %u\n", nFamiliesInSoup);
+
     // Allocate memory to store mesh soup; done both on the HOST and DEVICE sides
-    setupTriMesh_HOST(shapes, nTriangles);
-    setupTriMesh_DEVICE(nTriangles);
+    setupTriMesh_HOST(all_shapes, nTriangles);
+    setupTriMesh_DEVICE(nTriangles);  // TODO
 
     // Allocate triangle collision memory
     BUCKET_countsOfTrianglesTouching.resize(TRIANGLEBUCKET_COUNT);
@@ -86,9 +127,9 @@ On the HOST sice, allocate memory to hang on to the mesh soup. The HOST mesh sou
 the input obj file.
 */
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST(
-    const std::vector<tinyobj::shape_t>& shapes,
+    const std::vector<std::vector<tinyobj::shape_t>>& all_shapes,
     unsigned int nTriangles) {
-    /// Set up the clean HOST mesh soup
+    /// Allocate the clean HOST mesh soup
     meshSoup_HOST.nTrianglesInSoup = nTriangles;
 
     meshSoup_HOST.triangleFamily_ID = new unsigned int[nTriangles];
@@ -117,7 +158,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST(
     meshSoup_HOST.node3_YDOT = new float[nTriangles];
     meshSoup_HOST.node3_ZDOT = new float[nTriangles];
 
-    /// Set up the working HOST mesh soup
+    /// Allocate the working HOST mesh soup
     meshSoupWorking_HOST.nTrianglesInSoup = nTriangles;
 
     meshSoupWorking_HOST.triangleFamily_ID = new unsigned int[nTriangles];
@@ -146,57 +187,67 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_HOST(
     meshSoupWorking_HOST.node3_YDOT = new float[nTriangles];
     meshSoupWorking_HOST.node3_ZDOT = new float[nTriangles];
 
-    // Set up mesh from the input file
+    // Setup the clean HOST copy of the mesh soup from the obj file data
     size_t tri_index = 0;
-    for (auto shape : shapes) {
-        std::vector<unsigned int>& indices = shape.mesh.indices;
-        std::vector<float>& positions = shape.mesh.positions;
-        std::vector<float>& normals = shape.mesh.normals;
+    unsigned int family = 0;
+    // for each obj file data set
+    for (auto shapes : all_shapes) {
+        // for each shape in this obj file data set
+        for (auto shape : shapes) {
+            std::vector<unsigned int>& indices = shape.mesh.indices;
+            std::vector<float>& positions = shape.mesh.positions;
+            std::vector<float>& normals = shape.mesh.normals;
 
-        // Grab three indices which indicate the vertices of a triangle
-        for (size_t i = 0; i < indices.size(); i += 9, tri_index++) {
-            meshSoup_HOST.node1_X[tri_index] = positions[indices[i + 0]];
-            meshSoup_HOST.node1_Y[tri_index] = positions[indices[i + 1]];
-            meshSoup_HOST.node1_Z[tri_index] = positions[indices[i + 2]];
+            // Grab three indices which indicate the vertices of a triangle
+            // for each triangle in this shape
+            for (size_t i = 0; i < indices.size(); i += 9, tri_index++) {
+                meshSoup_HOST.node1_X[tri_index] = positions[indices[i + 0]];
+                meshSoup_HOST.node1_Y[tri_index] = positions[indices[i + 1]];
+                meshSoup_HOST.node1_Z[tri_index] = positions[indices[i + 2]];
 
-            meshSoup_HOST.node2_X[tri_index] = positions[indices[i + 3]];
-            meshSoup_HOST.node2_Y[tri_index] = positions[indices[i + 4]];
-            meshSoup_HOST.node2_Z[tri_index] = positions[indices[i + 5]];
+                meshSoup_HOST.node2_X[tri_index] = positions[indices[i + 3]];
+                meshSoup_HOST.node2_Y[tri_index] = positions[indices[i + 4]];
+                meshSoup_HOST.node2_Z[tri_index] = positions[indices[i + 5]];
 
-            meshSoup_HOST.node3_X[tri_index] = positions[indices[i + 6]];
-            meshSoup_HOST.node3_Y[tri_index] = positions[indices[i + 7]];
-            meshSoup_HOST.node3_Z[tri_index] = positions[indices[i + 8]];
+                meshSoup_HOST.node3_X[tri_index] = positions[indices[i + 6]];
+                meshSoup_HOST.node3_Y[tri_index] = positions[indices[i + 7]];
+                meshSoup_HOST.node3_Z[tri_index] = positions[indices[i + 8]];
 
-            // Normal of a vertex... Should still work
-            float norm_vert[3] = {0};
-            norm_vert[0] = normals[indices[i + 0]];
-            norm_vert[1] = normals[indices[i + 1]];
-            norm_vert[2] = normals[indices[i + 2]];
+                meshSoup_HOST.triangleFamily_ID[tri_index] = family;
 
-            // Generate normal using RHR from nodes 1, 2, and 3
-            float AB[3];
-            AB[0] = positions[indices[i + 3]] - positions[indices[i + 0]];
-            AB[1] = positions[indices[i + 4]] - positions[indices[i + 1]];
-            AB[2] = positions[indices[i + 5]] - positions[indices[i + 2]];
+                // Normal of a vertex... Should still work TODO: test
+                float norm_vert[3] = {0};
+                norm_vert[0] = normals[indices[i + 0]];
+                norm_vert[1] = normals[indices[i + 1]];
+                norm_vert[2] = normals[indices[i + 2]];
 
-            float AC[3];
-            AC[0] = positions[indices[i + 6]] - positions[indices[i + 0]];
-            AC[1] = positions[indices[i + 7]] - positions[indices[i + 1]];
-            AC[2] = positions[indices[i + 8]] - positions[indices[i + 2]];
+                // Generate normal using RHR from nodes 1, 2, and 3
+                float AB[3];
+                AB[0] = positions[indices[i + 3]] - positions[indices[i + 0]];
+                AB[1] = positions[indices[i + 4]] - positions[indices[i + 1]];
+                AB[2] = positions[indices[i + 5]] - positions[indices[i + 2]];
 
-            float cross[3];
-            cross[0] = AB[1] * AC[2] - AB[2] * AC[1];
-            cross[1] = -(AB[0] * AC[2] - AB[2] * AC[0]);
-            cross[2] = AB[0] * AC[1] - AB[1] * AC[0];
+                float AC[3];
+                AC[0] = positions[indices[i + 6]] - positions[indices[i + 0]];
+                AC[1] = positions[indices[i + 7]] - positions[indices[i + 1]];
+                AC[2] = positions[indices[i + 8]] - positions[indices[i + 2]];
 
-            // If the normal created by a RHR traversal is not correct, switch two vertices
-            if (norm_vert[0] * cross[0] + norm_vert[1] * cross[1] + norm_vert[2] * cross[2] < 0) {
-                // GRANULAR_ERROR("Input mesh has inside-out elements.")
-                std::swap(meshSoup_HOST.node2_X[tri_index], meshSoup_HOST.node3_X[tri_index]);
-                std::swap(meshSoup_HOST.node2_Y[tri_index], meshSoup_HOST.node3_Y[tri_index]);
-                std::swap(meshSoup_HOST.node2_Z[tri_index], meshSoup_HOST.node3_Z[tri_index]);
+                float cross[3];
+                cross[0] = AB[1] * AC[2] - AB[2] * AC[1];
+                cross[1] = -(AB[0] * AC[2] - AB[2] * AC[0]);
+                cross[2] = AB[0] * AC[1] - AB[1] * AC[0];
+
+                // If the normal created by a RHR traversal is not correct, switch two vertices
+                if (norm_vert[0] * cross[0] + norm_vert[1] * cross[1] + norm_vert[2] * cross[2] < 0) {
+                    // GRANULAR_ERROR("Input mesh has inside-out elements.")
+                    std::swap(meshSoup_HOST.node2_X[tri_index], meshSoup_HOST.node3_X[tri_index]);
+                    std::swap(meshSoup_HOST.node2_Y[tri_index], meshSoup_HOST.node3_Y[tri_index]);
+                    std::swap(meshSoup_HOST.node2_Z[tri_index], meshSoup_HOST.node3_Z[tri_index]);
+                }
+                tri_index++;
             }
         }
+        family++;
     }
 }
 
@@ -284,6 +335,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cl
     cudaFree(meshSoup_DEVICE->generalizedForcesPerFamily);
 }
 
+// NOTE this only allocates the device copy of the working mesh, nothing is set
 void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     unsigned int nTriangles) {
     // Allocate the device soup storage
@@ -447,14 +499,13 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSimulation() {
  */
 
 /**
- * meshSoup_HOST holds a clean mesh soup in the global reference frame
+ * meshSoup_HOST holds a clean const mesh soup in the local reference frame of each family
  * Outputs transformed mesh soup to meshSoupWorking_HOST
  * The number of entries in the array is 7 * nFamiliesInSoup
  * First three entries are the location of the mesh reference frame wrt global ref frame.
  * The next four entries provide the orientation of the mesh wrt global ref frame (Euler params).
  */
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidBodyMotion(
-    float crntTime,
     double* position_orientation_data) {
     // Assemble displacements and rotations for each family transform
     std::vector<ChVector<>> pos;
@@ -492,6 +543,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidB
         meshSoupWorking_HOST.node3_Y[i] = node3.y();
         meshSoupWorking_HOST.node3_Z[i] = node3.z();
     }
+    update_DMeshSoup_Location();
 }
 }  // namespace granular
 }  // namespace chrono

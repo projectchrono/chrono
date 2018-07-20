@@ -78,6 +78,14 @@ class ChTriangleSoup {
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     : public ChSystemGranularMonodisperse_SMC_Frictionless {
   public:
+    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density);
+    virtual ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
+
+    void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
+    unsigned int nMeshesInSoup() const { return meshSoup_HOST.nFamiliesInSoup; }
+    void collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup);
+    void meshSoup_applyRigidBodyMotion(double* position_orientation_data);
+
     void advance_simulation(float duration);
     /// Extra parameters needed for triangle-sphere contact
     struct GranParamsHolder_trimesh {
@@ -85,7 +93,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
         float d_Kn_s2m_SU;                   //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
         unsigned int num_triangle_families;  /// Number of triangle families
     };
+
     virtual void initialize();
+    void load_meshes(std::vector<std::string> objfilenames, std::vector<float3> scalefactors);
 
   private:
     GranParamsHolder_trimesh* tri_params;
@@ -108,7 +118,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void copy_triangle_data_to_device();
 
     void setupTriMesh_HOST_DEVICE(const char* meshFileName);
-    void setupTriMesh_HOST(const std::vector<tinyobj::shape_t>& soup, unsigned int nTriangles);
+    void setupTriMesh_HOST(const std::vector<std::vector<tinyobj::shape_t>>& all_shapes, unsigned int nTriangles);
     void cleanupTriMesh_HOST();
     void setupTriMesh_DEVICE(unsigned int nTriangles);
     void cleanupTriMesh_DEVICE();
@@ -119,15 +129,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     virtual double get_max_K();
 
     void setupSimulation();
-
-  public:
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density, std::string meshFileName);
-    virtual ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
-
-    void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
-    unsigned int nMeshesInSoup() const { return meshSoup_HOST.nFamiliesInSoup; }
-    void collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup);
-    void meshSoup_applyRigidBodyMotion(float crntTime, double* position_orientation_data);
 };
 
 }  // namespace granular

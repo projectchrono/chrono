@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Chrono::Granular demo using SMC method. A body who's geometry is described
-// by a trinagle mesh is dragged over granular terrain. No friction present.
+// by a trinagle mesh is initialized under settling granular material. No friction present.
 //
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
@@ -200,8 +200,15 @@ bool GetProblemSpecs(int argc,
     return true;
 }
 
-void updateMeshSoup_Location(float crntTime, double* meshSoup_applyRigidBodyMotion) {
-    ;
+// Remains still for still_time and then begins to move up at Z_vel
+double pos_func_Z(double t, float boxH) {
+    double still_time = 3;
+    double Z_vel = 1;
+    if (t < still_time) {
+        return boxH / 4;
+    } else {
+        return (t - still_time) * Z_vel + boxH / 4;
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -244,7 +251,10 @@ int main(int argc, char* argv[]) {
     float cohesion_ratio = 0;
 
     // Mesh values
-    std::string mesh_filename = std::string("hmmwv_tire.obj");  // TODO scale and place in bottom of box
+    std::vector<std::string> mesh_filenames;
+    std::vector<float3> mesh_scalings;
+    mesh_filenames.push_back(std::string("hmmwv_tire.obj"));
+    mesh_scalings.push_back(make_float3(1, 1, 1));  // TODO scalings based on mesh
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd,
@@ -254,7 +264,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity, mesh_filename);
+    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
     m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
@@ -263,6 +273,8 @@ int main(int argc, char* argv[]) {
     m_sys.set_Cohesion_ratio(cohesion_ratio);
     m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
 
+    m_sys.load_meshes(mesh_filenames, mesh_scalings);
+	
     /// output preferences
     m_sys.setOutputDirectory(output_prefix);
     m_sys.setOutputMode(write_mode);
@@ -280,14 +292,23 @@ int main(int argc, char* argv[]) {
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < timeEnd; t += iteration_step) {
+        // Generate next tire location and orientation
+        meshSoupLocOri[0] = boxL / 2;  // Keep wheel centered in X and Y
+        meshSoupLocOri[1] = boxD / 2;
+        meshSoupLocOri[2] = pos_func_Z(t, boxH);  // Get next position and orientation from the prescribed function
+        meshSoupLocOri[3] = 1;                    // No rotation in this demo
+        meshSoupLocOri[4] = 0;
+        meshSoupLocOri[5] = 0;
+        meshSoupLocOri[6] = 0;
+
+        m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
+
         m_sys.advance_simulation(iteration_step);
+
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
-        m_sys.checkSDCounts(std::string(filename), true, false);
-        // updateMeshSoup_Location(t, meshSoupLocOri);  // This is where the information would come from the vehicle
-        // m_sys.meshSoup_applyRigidBodyMotion(t, meshSoupLocOri);
-        // m_sys.collectGeneralizedForcesOnMeshSoup(t, genForcesOnMeshSoup);
+        m_sys.checkSDCounts(std::string(filename), true, false);  // Output metrics
     }
 
     delete[] genForcesOnMeshSoup;

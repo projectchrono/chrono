@@ -119,6 +119,35 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     }
 }
 
+// NOTE: Reduction valid on threadIdx.x == 0 only
+__device__ float block_sum_shfl(float var, unsigned int blocksize) {
+    __shared__ float shMem[warp_size];  // Enough entries for each warp to write its reduction
+
+    // Each warp sums all copies of var from its lanes into var on lane 0
+    for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+        var += __shfl_down_sync(0xffffffff, var, offset);
+    }
+
+    // Sum all lane 0 vars
+    // Each lane 0 writes its var into shared mem
+    if ((threadIdx.x & (warp_size - 1)) == 0) {
+        unsigned int offsetShMem = threadIdx.x / warp_size;
+        shMem[offsetShMem] = var;
+    }
+
+    __syncthreads();  // Wait for all warps to finish writing to shared mem
+
+    // Warp 0 sums vars from shared mem written by all warps in the block
+    if (threadIdx.x / warp_size == 0) {
+        var = shMem[threadIdx.x];
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+            var += __shfl_down_sync(0xffffffff, var, offset);
+        }
+    }
+
+    return var;
+}
+
 /**
  * This kernel carries out broadphase for the triangle soup
  *
@@ -348,15 +377,15 @@ __global__ void interactionTerrain_TriangleSoup(
     float genForceActingOnMeshes[TRIANGLE_FAMILIES * 6];  //!< 6 components per family: 3 forces and 3 torques
 
     // define an alias first
-#define thisSD blockIdx.x 
-    
+#define thisSD blockIdx.x
+
     unsigned int nSD_triangles = SD_countsOfTrianglesTouching[thisSD];
     if (nSD_triangles == 0)
-        return; // no triangle touches this SD; return right away
+        return;  // no triangle touches this SD; return right away
 
     unsigned int nSD_spheres = SD_countsOfGrElemsTouching[thisSD];
     if (nSD_spheres == 0)
-        return; // no sphere to speak of in this SD
+        return;  // no sphere to speak of in this SD
 
     // Getting here means that there are both triangles and DEs in this SD.
     // First, figure out which bucket stores the triangles associated with this SD.
@@ -426,7 +455,7 @@ __global__ void interactionTerrain_TriangleSoup(
     tripsToCoverSpheres = (nSD_spheres + nSpheresProcessedAtOneTime - 1) / nSpheresProcessedAtOneTime;
     tripsToCoverTriangles = (nBKT_triangles + warp_size - 1) / warp_size;
 
-    unsigned sphere_Local_ID = threadIdx.x / warp_size; // the local ID of the sphere served by one warp of threads
+    unsigned sphere_Local_ID = threadIdx.x / warp_size;  // the local ID of the sphere served by one warp of threads
     for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
         /// before starting dealing with a sphere, zero out the forces acting on it; all threads in the block are
         /// doing this
@@ -671,7 +700,6 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
             updateBDPosition(stepSize_SU);
         }
         resetUpdateInformation();
-        update_DMeshSoup_Location();  // TODO where does this go?
 
         VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
 
