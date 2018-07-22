@@ -9,13 +9,16 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly
+// Authors: Dan Negrut, Conlain Kelly, Nic Olsen
 // =============================================================================
 
 #include "../chrono_granular/physics/ChGranularGPU_SMC.cuh"
 
+namespace chrono {
+namespace granular {
+
 /// Copy constant sphere data to device, this should run at start
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device() {
+__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
     gran_params->d_SD_Ldim_SU = SD_L_SU;
     gran_params->d_SD_Ddim_SU = SD_D_SU;
@@ -39,13 +42,13 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::c
     gran_params->d_Kn_s2s_SU = K_n_s2s_SU;
     gran_params->d_Kn_s2w_SU = K_n_s2s_SU;
 
-    gran_params->d_DE_Mass = MASS_UNIT;
+    gran_params->d_DE_Mass = gran_params->MASS_UNIT;
     gran_params->d_cohesion_ratio = cohesion_over_gravity;
 }
 
 /// Similar to the copy_const_data_to_device, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_device() {
+__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_device() {
     // Unified memory does all the work here
     gran_params->d_BD_frame_X = BD_frame_X;
     gran_params->d_BD_frame_Y = BD_frame_Y;
@@ -53,9 +56,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::c
 }
 
 // Check number of spheres in each SD and dump relevant info to file
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCounts(std::string ofile,
-                                                                                    bool write_out = false,
-                                                                                    bool verbose = false) {
+void ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCounts(std::string ofile,
+                                                                  bool write_out = false,
+                                                                  bool verbose = false) {
     // Count of DEs in each SD
     unsigned int* sdvals = SD_NumOf_DEs_Touching.data();
     // DEs that are in each SD
@@ -101,8 +104,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCou
     delete[] deCounts;
 }
 // This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile,
-                                                                                unsigned int* deCounts) {
+void ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile, unsigned int* deCounts) {
     // unnecessary if called by checkSDCounts()
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRN_OUTPUT_MODE::BINARY) {
@@ -144,7 +146,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(
     }
 }
 // Reset broadphase data structures
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation() {
+void ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
@@ -152,23 +154,23 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::resetBroad
                          MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 }
 // Reset velocity update data structures
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::resetUpdateInformation() {
+void ChSystemGranularMonodisperse_SMC_Frictionless::resetUpdateInformation() {
     // reset forces to zero, note that vel update acts as force for forward euler
     gpuErrchk(cudaMemset(pos_X_dt_update.data(), 0, nDEs * sizeof(float)));
     gpuErrchk(cudaMemset(pos_Y_dt_update.data(), 0, nDEs * sizeof(float)));
     gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int stepSize_SU) {
-    float timeUU = (1.f * simTime_SU * TIME_UNIT * PSI_h);
+void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int stepSize_SU) {
+    float timeUU = (1.f * simTime_SU * gran_params->TIME_UNIT * PSI_h);
     // Frequency of oscillation
     // float frame_X_old = BD_frame_X;
     // float frame_Y_old = BD_frame_Y;
     // float frame_Z_old = BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
-    BD_frame_X = (box_L * (BDPositionFunctionX(timeUU))) / LENGTH_UNIT;
-    BD_frame_Y = (box_D * (BDPositionFunctionY(timeUU))) / LENGTH_UNIT;
-    BD_frame_Z = (box_H * (BDPositionFunctionZ(timeUU))) / LENGTH_UNIT;
+    BD_frame_X = (box_L * (BDPositionFunctionX(timeUU))) / gran_params->LENGTH_UNIT;
+    BD_frame_Y = (box_D * (BDPositionFunctionY(timeUU))) / gran_params->LENGTH_UNIT;
+    BD_frame_Z = (box_H * (BDPositionFunctionZ(timeUU))) / gran_params->LENGTH_UNIT;
 
     copyBD_Frame_to_device();
 }
@@ -247,7 +249,7 @@ __global__ void owner_unpack(int* d_sphere_pos_X,
 
 // Sorts data by owner SD, makes nicer memory accesses
 // Uses a boatload of memory
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
+__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
     VERBOSE_PRINTF("Starting defrag run!\n");
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
 
@@ -297,7 +299,9 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::d
     VERBOSE_PRINTF("defrag finished!\n");
 }
 
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
+__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
+    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
+
     switch_to_SimUnits();
     generate_DEs();
 
@@ -322,15 +326,15 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::i
     printf("priming finished!\n");
 
     printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
-    printf("running at approximate timestep %f\n", stepSize_SU * TIME_UNIT * PSI_h);
+    printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT * PSI_h);
 }
 
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
+__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
 
     // Settling simulation loop.
-    unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
+    unsigned int duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -380,3 +384,5 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::a
 
     return;
 }
+}  // namespace granular
+}  // namespace chrono

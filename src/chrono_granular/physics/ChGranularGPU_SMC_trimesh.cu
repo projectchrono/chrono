@@ -33,16 +33,54 @@ static const int warp_size = warpSize;
 
 #define Triangle_Soup chrono::granular::ChTriangleSoup
 
-typedef const chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsHolder_trimesh*
-    MeshParamsPtr;
+namespace chrono {
+namespace granular {
+typedef const ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
 
-/// Takes in a triangle's position and finds out what SDs it touches
+/// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
+template <class T, class T3>
+__device__ T3 apply_frame_transform(T3 point, T* pos, T* rot_mat) {
+    T3 result;
+
+    // Apply roation matrix to point
+    result.x = rot_mat[0] * point.x + rot_mat[1] * point.y + rot_mat[2] * point.z;
+    result.y = rot_mat[3] * point.x + rot_mat[4] * point.y + rot_mat[5] * point.z;
+    result.z = rot_mat[6] * point.x + rot_mat[7] * point.y + rot_mat[8] * point.z;
+
+    // Apply translation
+    result.x += pos[0];
+    result.y += pos[1];
+    result.z += pos[2];
+
+    return result;
+}
+
+template <class T3>
+__device__ T3 convert_pos_UU2SU(T3 pos, ParamsPtr gran_params) {
+    T3 result;
+    result.x = pos.x / gran_params->LENGTH_UNIT;
+    result.y = pos.y / gran_params->LENGTH_UNIT;
+    result.z = pos.z / gran_params->LENGTH_UNIT;
+    return result;
+}
+
+/// Takes in a triangle's position in UU and finds out what SDs it touches
+/// Triangle broadphase is done in float by applying the frame transform
+/// and then converting the GRF position to SU
+/// TODO how to pass around the frame on device for multiple families??
+/// TODO could do a struct for pos and ep and struct for pos and rot mat
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                              const Triangle_Soup<float>* triangleSoup,
                                              unsigned int* touchedSDs,
-                                             ParamsPtr gran_params) {
+                                             ParamsPtr gran_params,
+                                             MeshParamsPtr tri_params) {
+    printf("triangleSoup %p\n", triangleSoup);
+    printf("triangleSoup->triangleFamily_ID %p\n", triangleSoup->triangleFamily_ID);
+
     unsigned int SD_count = 0;
-    float3 vA, vB, vC;
+    float3 vA, vB, vC;  // vertices of the triangle
+
+    // Read LRF UU vertices of the triangle
     // Coalesced memory accesses; we have an int to float conversion here
     vA.x = triangleSoup->node1_X[triangleID];
     vA.y = triangleSoup->node1_Y[triangleID];
@@ -56,6 +94,21 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     vC.y = triangleSoup->node3_Y[triangleID];
     vC.z = triangleSoup->node3_Z[triangleID];
 
+    // Transform LRF to GRF
+    unsigned int fam = triangleSoup->triangleFamily_ID[triangleID];
+    vA = apply_frame_transform<float, float3>(vA, tri_params->fam_frame_broad[fam].pos,
+                                              tri_params->fam_frame_broad[fam].rot_mat);
+    vB = apply_frame_transform<float, float3>(vB, tri_params->fam_frame_broad[fam].pos,
+                                              tri_params->fam_frame_broad[fam].rot_mat);
+    vC = apply_frame_transform<float, float3>(vC, tri_params->fam_frame_broad[fam].pos,
+                                              tri_params->fam_frame_broad[fam].rot_mat);
+
+    // Convert UU to SU
+    vA = convert_pos_UU2SU<float3>(vA, gran_params);
+    vB = convert_pos_UU2SU<float3>(vB, gran_params);
+    vC = convert_pos_UU2SU<float3>(vC, gran_params);
+
+    // Perform broadphase on UU vertices
     uint3 SDA = pointSDTriplet(vA.x, vA.y, vA.z, gran_params);  // SD indices for point A
     uint3 SDB = pointSDTriplet(vB.x, vB.y, vB.z, gran_params);  // SD indices for point B
     uint3 SDC = pointSDTriplet(vC.x, vC.y, vC.z, gran_params);  // SD indices for point C
@@ -119,9 +172,10 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     }
 }
 
-// NOTE: Reduction valid on threadIdx.x == 0 only
-__device__ float block_sum_shfl(float var, unsigned int blocksize) {
-    __shared__ float shMem[warp_size];  // Enough entries for each warp to write its reduction
+// Sums all values of var parameter within a block and writes the final result to dest
+template <typename T>
+__device__ void block_sum_shfl(T var, unsigned int blocksize, T* dest) {
+    __shared__ T shMem[warp_size];  // Enough entries for each warp to write its reduction
 
     // Each warp sums all copies of var from its lanes into var on lane 0
     for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
@@ -145,7 +199,9 @@ __device__ float block_sum_shfl(float var, unsigned int blocksize) {
         }
     }
 
-    return var;
+    if (threadIdx.x == 0) {
+        *dest = var;
+    }
 }
 
 /**
@@ -208,7 +264,7 @@ __global__ void triangleSoupBroadPhase(
     }
 
     if (myTriangleID < d_triangleSoup->nTrianglesInSoup) {
-        triangle_figureOutTouchedSDs(myTriangleID, d_triangleSoup, SDsTouched, gran_params);
+        triangle_figureOutTouchedSDs(myTriangleID, d_triangleSoup, SDsTouched, gran_params, mesh_params);
     }
 
     __syncthreads();
@@ -644,7 +700,7 @@ __global__ void interactionTerrain_TriangleSoup(
 }
 
 /// Copy const triangle data to device
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
     // unified memory does some copying for us, cool
     tri_params->d_Gamma_n_s2m_SU = 0;  // no damping on mesh for now
     tri_params->d_Kn_s2m_SU = 7;       // TODO Nic you get to deal with this
@@ -652,11 +708,14 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::co
     // Or Conlain can deal with it later, no way this actually runs cleanly anyways
 }
 
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
+__host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
+    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
+
     switch_to_SimUnits();
     generate_DEs();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
+    printf("setup_simulation\n");
     setup_simulation();
     copy_const_data_to_device();
     copy_triangle_data_to_device();
@@ -680,13 +739,12 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
 
-__host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(
-    float duration) {
+__host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
 
     // Settling simulation loop.
-    unsigned int duration_SU = std::ceil(duration / (TIME_UNIT * PSI_h));
+    unsigned int duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -753,3 +811,5 @@ __host__ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless_tr
     }
     return;
 }
+}  // namespace granular
+}  // namespace chrono

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut
+// Authors: Dan Negrut, Nic Olsen
 // =============================================================================
 /*! \file */
 
@@ -82,6 +82,11 @@ class CH_GRANULAR_API ChSystemGranular {
         double d_DE_Mass;
         /// Ratio of cohesion force to gravity
         float d_cohesion_ratio;
+
+        double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
+        double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
+        double MASS_UNIT;  //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
+        //!< equal the the mass of a sphere
     };
 
     ~ChSystemGranular() {}
@@ -117,11 +122,6 @@ class CH_GRANULAR_API ChSystemGranular {
     GRN_OUTPUT_MODE file_write_mode = CSV;
     /// Directory to write to, this code assumes it already exists
     std::string output_directory;
-
-    double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
-    double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
-    double MASS_UNIT;    //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
-    //!< equal the the mass of a sphere
 
     unsigned int nDEs;  //!< Number of discrete elements
     unsigned int nSDs;  //!< Number of subdomains that the BD is split in
@@ -172,7 +172,7 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void determine_new_stepSize() = 0;  //!< Implements a strategy for changing the integration time step.
 
     virtual unsigned int determine_stepSize_SU() {
-        float suggested_SU = suggested_step_UU / (TIME_UNIT * PSI_h);
+        float suggested_SU = suggested_step_UU / (gran_params->TIME_UNIT * PSI_h);
         // round to closest int, with minimum of 1
         return std::max(std::round(suggested_SU), 1.0f);
     }

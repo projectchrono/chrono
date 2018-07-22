@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut
+// Authors: Dan Negrut, Nic Olsen
 // =============================================================================
 /*! \file */
 
@@ -21,11 +21,14 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
-double chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
+namespace chrono {
+namespace granular {
+
+double ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
     return std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL);
 }
 
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_simulation() {
+void ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_simulation() {
     // deallocate unified device struct
     cudaFree(gran_params);
     // Vectors get deallocated automatically
@@ -34,9 +37,7 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_si
 /** This method sets up the data structures used to perform a simulation.
  *
  */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::setup_simulation() {
-    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
-
+void ChSystemGranularMonodisperse_SMC_Frictionless::setup_simulation() {
     partition_BD();
 
     // allocate mem for array saying for each SD how many spheres touch it
@@ -48,12 +49,12 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::setup_simu
 }
 
 // Set the bounds to fill in our box
-void chrono::granular::ChSystemGranularMonodisperse::setFillBounds(float xmin,
-                                                                   float ymin,
-                                                                   float zmin,
-                                                                   float xmax,
-                                                                   float ymax,
-                                                                   float zmax) {
+void ChSystemGranularMonodisperse::setFillBounds(float xmin,
+                                                 float ymin,
+                                                 float zmin,
+                                                 float xmax,
+                                                 float ymax,
+                                                 float zmax) {
     boxFillXmin = xmin;
     boxFillYmin = ymin;
     boxFillZmin = zmin;
@@ -62,7 +63,7 @@ void chrono::granular::ChSystemGranularMonodisperse::setFillBounds(float xmin,
     boxFillZmax = zmax;
 }
 
-void chrono::granular::ChSystemGranularMonodisperse::generate_DEs() {
+void ChSystemGranularMonodisperse::generate_DEs() {
     // Create the falling balls
     float ball_epsilon = sphereRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
     printf("eps is %f, rad is %5f\n", ball_epsilon, sphereRadius_SU * 1.0f);
@@ -73,18 +74,18 @@ void chrono::granular::ChSystemGranularMonodisperse::generate_DEs() {
 
     // generate from bottom to twice the generateDepth
     // average high and low to get midpoint of generation
-    float xmid = box_L * (boxFillXmax + boxFillXmin) / (4. * LENGTH_UNIT);
-    float ymid = box_D * (boxFillYmax + boxFillYmin) / (4. * LENGTH_UNIT);
-    float zmid = box_H * (boxFillZmax + boxFillZmin) / (4. * LENGTH_UNIT);
+    float xmid = box_L * (boxFillXmax + boxFillXmin) / (4. * gran_params->LENGTH_UNIT);
+    float ymid = box_D * (boxFillYmax + boxFillYmin) / (4. * gran_params->LENGTH_UNIT);
+    float zmid = box_H * (boxFillZmax + boxFillZmin) / (4. * gran_params->LENGTH_UNIT);
     // half-spans in each dimension, the difference
-    float xlen = abs(box_L * (boxFillXmax - boxFillXmin) / (4. * LENGTH_UNIT));
-    float ylen = abs(box_D * (boxFillYmax - boxFillYmin) / (4. * LENGTH_UNIT));
-    float zlen = abs(box_H * (boxFillZmax - boxFillZmin) / (4. * LENGTH_UNIT));
-    float generateHalfDepth = box_H / (3. * LENGTH_UNIT);
+    float xlen = abs(box_L * (boxFillXmax - boxFillXmin) / (4. * gran_params->LENGTH_UNIT));
+    float ylen = abs(box_D * (boxFillYmax - boxFillYmin) / (4. * gran_params->LENGTH_UNIT));
+    float zlen = abs(box_H * (boxFillZmax - boxFillZmin) / (4. * gran_params->LENGTH_UNIT));
+    float generateHalfDepth = box_H / (3. * gran_params->LENGTH_UNIT);
 
-    // float generateX = -box_D / (2. * LENGTH_UNIT) + generateHalfDepth;
-    // float generateY = -box_D / (2. * LENGTH_UNIT) + generateHalfDepth;
-    // float generateZ = -box_H / (2. * LENGTH_UNIT) + generateHalfHeight;
+    // float generateX = -box_D / (2. * gran_params->LENGTH_UNIT) + generateHalfDepth;
+    // float generateY = -box_D / (2. * gran_params->LENGTH_UNIT) + generateHalfDepth;
+    // float generateZ = -box_H / (2. * gran_params->LENGTH_UNIT) + generateHalfHeight;
     ChVector<float> boxCenter(xmid, ymid, zmid);
     // We need to subtract off a sphere radius to ensure we don't get put at the edge
     ChVector<float> hdims{xlen - sphereRadius_SU, ylen - sphereRadius_SU, zlen - sphereRadius_SU};
@@ -118,14 +119,14 @@ in order to cover the entire BD.
 BD: Bid domain.
 SD: Sub-domain.
 */
-void chrono::granular::ChSystemGranularMonodisperse::partition_BD() {
+void ChSystemGranularMonodisperse::partition_BD() {
     double tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_L_DIR;
     unsigned int howMany = (unsigned int)(std::ceil(box_L / tempDIM));
     // work with an even kFac to hit the CM of the box.
     if (howMany & 1)
         howMany++;
     tempDIM = box_L / howMany;
-    SD_L_SU = (unsigned int)std::ceil(tempDIM / LENGTH_UNIT);
+    SD_L_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
     nSDs_L_SU = howMany;
 
     tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_D_DIR;
@@ -134,7 +135,7 @@ void chrono::granular::ChSystemGranularMonodisperse::partition_BD() {
     if (howMany & 1)
         howMany++;
     tempDIM = box_D / howMany;
-    SD_D_SU = (unsigned int)std::ceil(tempDIM / LENGTH_UNIT);
+    SD_D_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
     nSDs_D_SU = howMany;
 
     tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_H_DIR;
@@ -143,7 +144,7 @@ void chrono::granular::ChSystemGranularMonodisperse::partition_BD() {
     if (howMany & 1)
         howMany++;
     tempDIM = box_H / howMany;
-    SD_H_SU = (unsigned int)std::ceil(tempDIM / LENGTH_UNIT);
+    SD_H_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
     nSDs_H_SU = howMany;
 
     nSDs = nSDs_L_SU * nSDs_D_SU * nSDs_H_SU;
@@ -164,16 +165,16 @@ void chrono::granular::ChSystemGranularMonodisperse::partition_BD() {
 This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
 of various physical quantities set by the user.
 */
-void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
+void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
-    MASS_UNIT = massSphere;
+    gran_params->MASS_UNIT = massSphere;
     double K_stiffness = get_max_K();
-    TIME_UNIT = sqrt(massSphere / (PSI_h * K_stiffness)) / PSI_T;
+    gran_params->TIME_UNIT = sqrt(massSphere / (PSI_h * K_stiffness)) / PSI_T;
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
-    LENGTH_UNIT = massSphere * magGravAcc / (PSI_L * K_stiffness);
+    gran_params->LENGTH_UNIT = massSphere * magGravAcc / (PSI_L * K_stiffness);
 
-    sphereRadius_SU = sphere_radius / LENGTH_UNIT;
+    sphereRadius_SU = sphere_radius / gran_params->LENGTH_UNIT;
 
     float scalingFactor = ((float)PSI_L) / (PSI_T * PSI_T * PSI_h);
     gravity_X_SU = scalingFactor * X_accGrav / magGravAcc;
@@ -191,6 +192,8 @@ void chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_
 
     // Handy debug output
     printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);
-    printf("SU mass is %f\n", MASS_UNIT);
+    printf("SU mass is %f\n", gran_params->MASS_UNIT);
     printf("SU radius is %u\n", sphereRadius_SU);
 }
+}  // namespace granular
+}  // namespace chrono

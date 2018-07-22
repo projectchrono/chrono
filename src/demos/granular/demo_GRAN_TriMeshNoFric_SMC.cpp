@@ -252,9 +252,14 @@ int main(int argc, char* argv[]) {
 
     // Mesh values
     std::vector<std::string> mesh_filenames;
+    std::string mesh_filename = std::string("hmmwv_tire.obj");
+
     std::vector<float3> mesh_scalings;
-    mesh_filenames.push_back(std::string("hmmwv_tire.obj"));
-    mesh_scalings.push_back(make_float3(1, 1, 1));  // TODO scalings based on mesh
+    float3 scaling;
+    scaling.x = 1;
+    scaling.y = 1;
+    scaling.z = 1;
+    mesh_scalings.push_back(scaling);  // TODO scalings based on mesh
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd,
@@ -263,18 +268,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    mesh_filenames.push_back(mesh_filename);
+
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, 0.f, 1.f);
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
     m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings);
-	
+
     /// output preferences
     m_sys.setOutputDirectory(output_prefix);
     m_sys.setOutputMode(write_mode);
