@@ -704,8 +704,6 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_t
     // unified memory does some copying for us, cool
     tri_params->d_Gamma_n_s2m_SU = 0;  // no damping on mesh for now
     tri_params->d_Kn_s2m_SU = 7;       // TODO Nic you get to deal with this
-    // tri_params->num_triangle_families = 4;  // TODO make this legit
-    // Or Conlain can deal with it later, no way this actually runs cleanly anyways
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
@@ -766,24 +764,29 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
             pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
+
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        // broadphase the triangles
-        // todo teh mesh soup needs to be unified memory I think
-        triangleSoupBroadPhase<CUDA_THREADS><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
-            SD_countsOfTrianglesTouching.data(), gran_params, tri_params);
+        if (meshSoup_DEVICE->nFamiliesInSoup != 0) {
+            // broadphase the triangles
+            // todo teh mesh soup needs to be unified memory I think
+            triangleSoupBroadPhase<CUDA_THREADS><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+                meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
+                SD_countsOfTrianglesTouching.data(), gran_params, tri_params);
+        }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        // TODO please do not use a template here
-        // compute sphere-triangle forces
-        interactionTerrain_TriangleSoup<CUDA_THREADS><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(),
-            BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
-            SD_countsOfTrianglesTouching.data(), gran_params, tri_params);
 
+        if (meshSoup_DEVICE->nFamiliesInSoup != 0) {
+            // TODO please do not use a template here
+            // compute sphere-triangle forces
+            interactionTerrain_TriangleSoup<CUDA_THREADS><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+                meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(),
+                pos_Y_dt_update.data(), pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(),
+                DEs_in_SD_composite.data(), BUCKET_countsOfTrianglesTouching.data(),
+                triangles_in_BUCKET_composite.data(), SD_countsOfTrianglesTouching.data(), gran_params, tri_params);
+        }
         // gpuErrchk(cudaPeekAtLastError());
         // gpuErrchk(cudaDeviceSynchronize());
         //

@@ -105,6 +105,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     virtual void initialize();
     void load_meshes(std::vector<std::string> objfilenames, std::vector<float3> scalefactors);
+    void write_meshes(std::string outfilename);
 
   private:
     GranParamsHolder_trimesh* tri_params;

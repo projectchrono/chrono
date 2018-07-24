@@ -15,6 +15,8 @@
 
 #include <vector>
 #include <algorithm>
+#include <fstream>
+#include <string>
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "ChGranularTriMesh.h"
@@ -67,7 +69,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
     }
 
     printf("nTriangles is %u\n", nTriangles);
-    printf("nTrianglesFailiesInSoup is %u\n", nFamiliesInSoup);
+    printf("nTriangleFamiliesInSoup is %u\n", nFamiliesInSoup);
 
     // Allocate triangle collision parameters
     gpuErrchk(cudaMallocManaged(&tri_params, sizeof(GranParamsHolder_trimesh), cudaMemAttachGlobal));
@@ -81,6 +83,50 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
     BUCKET_countsOfTrianglesTouching.resize(TRIANGLEBUCKET_COUNT);
     triangles_in_BUCKET_composite.resize(TRIANGLEBUCKET_COUNT * MAX_TRIANGLE_COUNT_PER_BUCKET);
     triangles_in_BUCKET_composite.resize(nSDs);
+
+    // DEBUGGING CHECKS
+    // for (unsigned int i = 0; i < meshSoup_DEVICE->nTrianglesInSoup; i++) {
+    //     printf("%0.4f, %0.4f, %0.4f", meshSoup_DEVICE->node1_X[i], mesh)
+    // }
+}
+
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::string filename) {
+    printf("Writing meshes\n");
+    std::ofstream outfile(filename + "_mesh.vtk", std::ios::out);
+    std::ostringstream ostream;
+    ostream << "# vtk DataFile Version 1.0\n";
+    ostream << "Unstructured Grid Example\n";
+    ostream << "ASCII\n";
+    ostream << "\n\n";
+
+    ostream << "DATASET UNSTRUCTURED_GRID\n";
+    ostream << "POINTS " << meshSoup_DEVICE->nTrianglesInSoup * 3 << " float\n";
+
+    // Write all vertices
+    for (unsigned int tri_i = 0; tri_i < meshSoup_DEVICE->nTrianglesInSoup; tri_i++) {
+        ostream << meshSoup_DEVICE->node1_X[tri_i] << " " << meshSoup_DEVICE->node1_Y[tri_i] << " "
+                << meshSoup_DEVICE->node1_Z[tri_i] << "\n";
+
+        ostream << meshSoup_DEVICE->node2_X[tri_i] << " " << meshSoup_DEVICE->node2_Y[tri_i] << " "
+                << meshSoup_DEVICE->node2_Z[tri_i] << "\n";
+
+        ostream << meshSoup_DEVICE->node3_X[tri_i] << " " << meshSoup_DEVICE->node3_Y[tri_i] << " "
+                << meshSoup_DEVICE->node3_Z[tri_i] << "\n";
+    }
+
+    ostream << "\n\n";
+    ostream << "CELLS " << meshSoup_DEVICE->nTrianglesInSoup << " " << 3 * meshSoup_DEVICE->nTrianglesInSoup << "\n";
+    for (unsigned int tri_i = 0; tri_i < meshSoup_DEVICE->nTrianglesInSoup; tri_i++) {
+        ostream << "3 " << 3 * tri_i << " " << 3 * tri_i + 1 << " " << 3 * tri_i + 2 << "\n";
+    }
+
+    ostream << "\n\n";
+    ostream << "CELL_TYPES " << meshSoup_DEVICE->nTrianglesInSoup << "\n";
+    for (unsigned int tri_i = 0; tri_i < meshSoup_DEVICE->nTrianglesInSoup; tri_i++) {
+        ostream << "9\n";
+    }
+
+    outfile << ostream.str();
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVICE() {
@@ -121,37 +167,38 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
 
     meshSoup_DEVICE->nTrianglesInSoup = nTriangles;
 
-    // Allocate all of the requisite pointers
-    gpuErrchk(
-        cudaMallocManaged(&meshSoup_DEVICE->triangleFamily_ID, nTriangles * sizeof(unsigned int), cudaMemAttachGlobal));
+    if (nTriangles != 0) {
+        // Allocate all of the requisite pointers
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->triangleFamily_ID, nTriangles * sizeof(unsigned int),
+                                    cudaMemAttachGlobal));
 
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
 
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
 
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
 
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
 
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
 
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
+    }
     printf("Done allocating nodes for %d triangles\n", nTriangles);
 
-    // Setup the clean HOST copy of the mesh soup from the obj file data
+    // Setup the clean copy of the mesh soup from the obj file data
     size_t tri_index = 0;
     unsigned int family = 0;
     // for each obj file data set
@@ -161,6 +208,8 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
             std::vector<unsigned int>& indices = shape.mesh.indices;
             std::vector<float>& positions = shape.mesh.positions;
             std::vector<float>& normals = shape.mesh.normals;
+            printf("shape_t: indices (%d) positions(%d) normals(%d)\n", indices.size(), positions.size(),
+                   normals.size());
 
             // Grab three indices which indicate the vertices of a triangle
             // for each triangle in this shape
@@ -216,14 +265,16 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     }
     meshSoup_DEVICE->nFamiliesInSoup = family;
 
-    // Allocate memory for the float and double frames
-    gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_broad,
-                                meshSoup_DEVICE->nFamiliesInSoup * sizeof(tri_params->fam_frame_broad),
-                                cudaMemAttachGlobal));
-    gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_narrow,
-                                meshSoup_DEVICE->nFamiliesInSoup * sizeof(tri_params->fam_frame_narrow),
-                                cudaMemAttachGlobal));
-}
+    if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
+        // Allocate memory for the float and double frames
+        gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_broad,
+                                    meshSoup_DEVICE->nFamiliesInSoup * sizeof(tri_params->fam_frame_broad),
+                                    cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_narrow,
+                                    meshSoup_DEVICE->nFamiliesInSoup * sizeof(tri_params->fam_frame_narrow),
+                                    cudaMemAttachGlobal));
+    }
+}  // namespace granular
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
     // TODO implement this in the unified-memory mesh setup

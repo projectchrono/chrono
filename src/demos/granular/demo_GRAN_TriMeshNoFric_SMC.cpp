@@ -85,23 +85,23 @@ CSimpleOptA::SOption g_options[] = {{OPT_MESH_FILE, "-m", SO_REQ_SEP},
 // Show command line usage
 // -----------------------------------------------------------------------------
 void showUsage() {
-    std::cout << "Options:" << std::endl;
-    std::cout << "-m=<mesh_file_name>" << std::endl;
-    std::cout << "-sr <sphere_radius>" << std::endl;
-    std::cout << "-v or --verbose" << std::endl;
-    std::cout << "--density=<density>" << std::endl;
-    std::cout << "--write_mode=<write_mode> (csv, binary, or none)" << std::endl;
-    std::cout << "--output_dir=<output_dir>" << std::endl;
-    std::cout << "-e=<time_end>" << std::endl;
-    std::cout << "--boxlength=<box_length>" << std::endl;
-    std::cout << "--boxdepth=<box_depth>" << std::endl;
-    std::cout << "--boxheight=<box_height>" << std::endl;
-    std::cout << "--gravacc=<accValue>" << std::endl;
-    std::cout << "--cohes_ratio=<cohesValue>" << std::endl;
-    std::cout << "--normStiffS2S=<stiffValuesS2S>" << std::endl;
-    std::cout << "--normStiffS2W=<stiffValuesS2W>" << std::endl;
-    std::cout << "--normStiffMSH2S=<stiffValuesMSH2S>" << std::endl;
-    std::cout << "-h / --help / -? \t Show this help." << std::endl;
+    cout << "Options:" << endl;
+    cout << "-m=<mesh_file_name>" << endl;
+    cout << "-sr <sphere_radius>" << endl;
+    cout << "-v or --verbose" << endl;
+    cout << "--density=<density>" << endl;
+    cout << "--write_mode=<write_mode> (csv, binary, or none)" << endl;
+    cout << "--output_dir=<output_dir>" << endl;
+    cout << "-e=<time_end>" << endl;
+    cout << "--boxlength=<box_length>" << endl;
+    cout << "--boxdepth=<box_depth>" << endl;
+    cout << "--boxheight=<box_height>" << endl;
+    cout << "--gravacc=<accValue>" << endl;
+    cout << "--cohes_ratio=<cohesValue>" << endl;
+    cout << "--normStiffS2S=<stiffValuesS2S>" << endl;
+    cout << "--normStiffS2W=<stiffValuesS2W>" << endl;
+    cout << "--normStiffMSH2S=<stiffValuesMSH2S>" << endl;
+    cout << "-h / --help / -? \t Show this help." << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ void showUsage() {
 // -----------------------------------------------------------------------------
 bool GetProblemSpecs(int argc,
                      char** argv,
-                     std::string& meshFileName,
+                     string& meshFileName,
                      float& ball_radius,
                      float& ballDensity,
                      float& box_L,
@@ -122,7 +122,7 @@ bool GetProblemSpecs(int argc,
                      float& normalStiffMesh2S,
                      float& cohesion_ratio,
                      bool& verbose,
-                     std::string& output_dir,
+                     string& output_dir,
                      GRN_OUTPUT_MODE& write_mode) {
     // Create the option parser and pass it the program arguments and the array of valid options.
     CSimpleOptA args(argc, argv, g_options);
@@ -131,7 +131,7 @@ bool GetProblemSpecs(int argc,
     while (args.Next()) {
         // Exit immediately if we encounter an invalid argument.
         if (args.LastError() != SO_SUCCESS) {
-            std::cout << "Invalid argument: " << args.OptionText() << std::endl;
+            cout << "Invalid argument: " << args.OptionText() << endl;
             showUsage();
             return false;
         }
@@ -142,54 +142,54 @@ bool GetProblemSpecs(int argc,
                 showUsage();
                 return false;
             case OPT_DENSITY:
-                ballDensity = std::stof(args.OptionArg());
+                ballDensity = stof(args.OptionArg());
                 break;
             case OPT_WRITE_MODE:
-                if (args.OptionArg() == std::string("binary")) {
+                if (args.OptionArg() == string("binary")) {
                     write_mode = GRN_OUTPUT_MODE::BINARY;
-                } else if (args.OptionArg() == std::string("csv")) {
+                } else if (args.OptionArg() == string("csv")) {
                     write_mode = GRN_OUTPUT_MODE::CSV;
-                } else if (args.OptionArg() == std::string("none")) {
+                } else if (args.OptionArg() == string("none")) {
                     write_mode = GRN_OUTPUT_MODE::NONE;
                 } else {
-                    std::cout << "Unknown file write mode! Options are 'csv', 'binary', or 'none'\n";
+                    cout << "Unknown file write mode! Options are 'csv', 'binary', or 'none'\n";
                 }
                 break;
             case OPT_OUTPUT_DIR:
                 output_dir = args.OptionArg();
                 break;
             case OPT_SPH_RADIUS:
-                ball_radius = std::stof(args.OptionArg());
+                ball_radius = stof(args.OptionArg());
                 break;
             case OPT_BOX_L:
-                box_L = std::stof(args.OptionArg());
+                box_L = stof(args.OptionArg());
                 break;
             case OPT_BOX_D:
-                box_D = std::stof(args.OptionArg());
+                box_D = stof(args.OptionArg());
                 break;
             case OPT_BOX_H:
-                box_H = std::stof(args.OptionArg());
+                box_H = stof(args.OptionArg());
                 break;
             case OPT_GRAV_ACC:
-                gravAcc = std::stof(args.OptionArg());
+                gravAcc = stof(args.OptionArg());
                 break;
             case OPT_STIFFNESS_S2S:
-                normalStiffS2S = std::stof(args.OptionArg());
+                normalStiffS2S = stof(args.OptionArg());
                 break;
             case OPT_STIFFNESS_S2W:
-                normalStiffS2W = std::stof(args.OptionArg());
+                normalStiffS2W = stof(args.OptionArg());
                 break;
             case OPT_STIFFNESS_MSH2S:
-                normalStiffMesh2S = std::stof(args.OptionArg());
+                normalStiffMesh2S = stof(args.OptionArg());
                 break;
             case OPT_MESH_FILE:
-                /// normalStiffMesh2S = std::stof(args.OptionArg()); -- TODO
+                /// normalStiffMesh2S = stof(args.OptionArg()); -- TODO
                 break;
             case OPT_COHESION_RATIO:
-                cohesion_ratio = std::stof(args.OptionArg());
+                cohesion_ratio = stof(args.OptionArg());
                 break;
             case OPT_TIMEEND:
-                time_end = std::stof(args.OptionArg());
+                time_end = stof(args.OptionArg());
                 break;
             case OPT_VERBOSE:
                 verbose = true;
@@ -218,7 +218,7 @@ double pos_func_Z(double t, float boxH) {
 int main(int argc, char* argv[]) {
 #define BOX_L_cm 40.f
 #define BOX_D_cm 40.f
-#define BOX_H_cm 12.f
+#define BOX_H_cm 40.f
 #define RADIUS 1.f
 #define SPH_DENSITY 1.50f
 #define TIME_END 4.f
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
 #define CYL_RADIUS 20.f
 #define CYL_WIDTH 20.f
 
-    std::string output_prefix = "../results";
+    string output_prefix = "../results";
 
     // Default values
     float ballRadius = RADIUS;
@@ -251,10 +251,10 @@ int main(int argc, char* argv[]) {
     float cohesion_ratio = 0;
 
     // Mesh values
-    std::vector<std::string> mesh_filenames;
-    std::string mesh_filename = std::string("hmmwv_tire.obj");
+    vector<string> mesh_filenames;
+    string mesh_filename = string("hmmwv_tire.obj");
 
-    std::vector<float3> mesh_scalings;
+    vector<float3> mesh_scalings;
     float3 scaling;
     scaling.x = 1;
     scaling.y = 1;
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-1.f, 1.f, -1.f, 1.f, 0.f, 1.f);
+    m_sys.setFillBounds(-1.f, -1.f, 0.f, 1.f, 1.f, 1.f);
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
@@ -289,12 +289,16 @@ int main(int argc, char* argv[]) {
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
-    std::cout << nSoupFamilies << " soup families \n";
+    cout << nSoupFamilies << " soup families \n";
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
 
     m_sys.initialize();
     int currframe = 0;
+
+    char filename[100];
+    sprintf(filename, "%s/outfile", output_prefix.c_str());
+    m_sys.write_meshes(string(filename));
 
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
@@ -315,7 +319,8 @@ int main(int argc, char* argv[]) {
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
-        m_sys.checkSDCounts(std::string(filename), true, false);  // Output metrics
+        m_sys.checkSDCounts(string(filename), true, false);  // Output metrics
+        m_sys.write_meshes(string(filename));
     }
 
     delete[] genForcesOnMeshSoup;
