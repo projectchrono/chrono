@@ -31,17 +31,17 @@ namespace uaz {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 UAZBUS_Vehicle::UAZBUS_Vehicle(const bool fixed,
-                         SteeringType steering_model,
-                         ChMaterialSurface::ContactMethod contact_method,
-                         ChassisCollisionType chassis_collision_type)
+                               SteeringType steering_model,
+                               ChMaterialSurface::ContactMethod contact_method,
+                               ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, steering_model, chassis_collision_type);
 }
 
 UAZBUS_Vehicle::UAZBUS_Vehicle(ChSystem* system,
-                         const bool fixed,
-                         SteeringType steering_model,
-                         ChassisCollisionType chassis_collision_type)
+                               const bool fixed,
+                               SteeringType steering_model,
+                               ChassisCollisionType chassis_collision_type)
     : ChWheeledVehicle("UAZBUS", system), m_omega({0, 0, 0, 0}) {
     Create(fixed, steering_model, chassis_collision_type);
 }
@@ -51,22 +51,19 @@ void UAZBUS_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisColl
     // Create the chassis subsystem
     // -------------------------------------------
     m_chassis = std::make_shared<UAZBUS_Chassis>("Chassis", fixed, chassis_collision_type);
-    std::cout << "Vehicle Chassis init." << std::endl;
+
     // -------------------------------------------
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(2);
     m_suspensions[0] = std::make_shared<UAZBUS_ToeBarLeafspringAxle>("FrontSusp");
-    std::cout << "Vehicle Front Axle init." << std::endl;
     m_suspensions[1] = std::make_shared<UAZBUS_LeafspringAxle>("RearSusp");
-    std::cout << "Vehicle Rear Axle init." << std::endl;
 
     // -----------------------------
     // Create the steering subsystem
     // -----------------------------
     m_steerings.resize(1);
     m_steerings[0] = std::make_shared<UAZBUS_RotaryArm>("Steering");
-    std::cout << "Vehicle Steering init." << std::endl;
 
     // -----------------
     // Create the wheels
@@ -76,14 +73,12 @@ void UAZBUS_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisColl
     m_wheels[1] = std::make_shared<UAZBUS_WheelRight>("Wheel_FR");
     m_wheels[2] = std::make_shared<UAZBUS_WheelLeft>("Wheel_RL");
     m_wheels[3] = std::make_shared<UAZBUS_WheelRight>("Wheel_RR");
-    std::cout << "Vehicle Wheels init." << std::endl;
 
     // --------------------
     // Create the driveline
     // --------------------
     m_driveline = std::make_shared<UAZBUS_Driveline4WD>("Driveline");
     // m_driveline = std::make_shared<UAZBUS_SimpleDriveline>("Driveline");
-    std::cout << "Vehicle Driveline init." << std::endl;
 
     // -----------------
     // Create the brakes
@@ -93,7 +88,6 @@ void UAZBUS_Vehicle::Create(bool fixed, SteeringType steering_model, ChassisColl
     m_brakes[1] = std::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FR");
     m_brakes[2] = std::make_shared<UAZBUS_BrakeSimpleRear>("Brake_RL");
     m_brakes[3] = std::make_shared<UAZBUS_BrakeSimpleRear>("Brake_RR");
-    std::cout << "Vehicle Brakes init." << std::endl;
 }
 
 UAZBUS_Vehicle::~UAZBUS_Vehicle() {}
@@ -103,10 +97,10 @@ UAZBUS_Vehicle::~UAZBUS_Vehicle() {}
 void UAZBUS_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // Invoke base class method to initialize the chassis.
     ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
-    std::cout << "ChVehicle init" << std::endl;
+
     // Initialize the steering subsystem (specify the steering subsystem's frame
     // relative to the chassis reference frame).
-    ChVector<> offset = ChVector<>(0,0,0);
+    ChVector<> offset = ChVector<>(0, 0, 0);
     ChQuaternion<> rotation = Q_from_AngAxis(0, ChVector<>(0, 1, 0));
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
 
@@ -114,10 +108,8 @@ void UAZBUS_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // frames relative to the chassis reference frame).
     m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), m_steerings[0]->GetSteeringLink(), 0,
                                  m_omega[0], m_omega[1]);
-    std::cout << "Vorderachse init" << std::endl;
-    m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-2.3, 0, 0), m_chassis->GetBody(), -1,
-                                 m_omega[2], m_omega[3]);
-    std::cout << "Hinterachse init" << std::endl;
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-2.3, 0, 0), m_chassis->GetBody(), -1, m_omega[2],
+                                 m_omega[3]);
 
     // Initialize wheels
     m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
@@ -143,11 +135,13 @@ void UAZBUS_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double UAZBUS_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
+        ->GetSpringForce(wheel_id.side());
 }
 
 double UAZBUS_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
+        ->GetSpringLength(wheel_id.side());
 }
 
 double UAZBUS_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
@@ -158,11 +152,13 @@ double UAZBUS_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double UAZBUS_Vehicle::GetShockForce(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
+        ->GetShockForce(wheel_id.side());
 }
 
 double UAZBUS_Vehicle::GetShockLength(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
+    return std::static_pointer_cast<ChToeBarLeafspringAxle>(m_suspensions[wheel_id.axle()])
+        ->GetShockLength(wheel_id.side());
 }
 
 double UAZBUS_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
