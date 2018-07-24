@@ -16,9 +16,9 @@
 #pragma once
 
 //#include "chrono_granular/ChGranularDefines.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularUtilities.h"
-#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
 namespace chrono {
 namespace granular {
@@ -127,7 +127,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     // Function members
     void copy_triangle_data_to_device();
 
-    void setupTriMesh_DEVICE(const std::vector<std::vector<tinyobj::shape_t>>& all_shapes, unsigned int nTriangles);
+    void setupTriMesh_DEVICE(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
+                             unsigned int nTriangles);
     void cleanupTriMesh_DEVICE();
     void update_DMeshSoup_Location();
 

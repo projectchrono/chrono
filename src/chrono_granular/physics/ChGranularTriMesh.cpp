@@ -19,6 +19,9 @@
 #include <string>
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChMatrix33.h"
+#include "chrono/geometry/ChTriangle.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "ChGranularTriMesh.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
@@ -47,25 +50,18 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
         GRANULAR_ERROR("Vectors of obj files and scalings must have same size\n");
     }
 
-    // Load all shapes into vectors of shape_t
     unsigned int nTriangles = 0;
     unsigned int nFamiliesInSoup = 0;
-    std::vector<std::vector<tinyobj::shape_t>> all_shapes;
-    for (auto mesh_filename : objfilenames) {
+    std::vector<ChTriangleMeshConnected> all_meshes;
+    for (unsigned int i = 0; i < objfilenames.size(); i++) {
+        all_meshes.push_back(ChTriangleMeshConnected());
+        ChTriangleMeshConnected& mesh = all_meshes.end();
+
+        mesh.LoadWavefrontMesh(GetChronoDataFile(objfilenames[i]), true, false);
+        // mesh.Transform({0, 0, 0}, ChMatrix33<>(scalings[i].x, scalings[i].y, scalings[i].z));
+
+        nTriangles += mesh.getNumTriangles();
         nFamiliesInSoup++;
-        std::vector<tinyobj::shape_t> shapes;
-
-        // The mesh soup stored in an obj file
-        std::string load_result = tinyobj::LoadObj(shapes, mesh_filename.c_str());
-        if (load_result.length() != 0) {
-            std::cerr << load_result << "\n";
-            GRANULAR_ERROR("Failed to load triangle mesh\n");
-        }
-
-        for (auto shape : shapes) {
-            nTriangles += shape.mesh.indices.size() / 3;
-        }
-        all_shapes.push_back(shapes);
     }
 
     printf("nTriangles is %u\n", nTriangles);
@@ -76,18 +72,13 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
 
     // Allocate memory to store mesh soup in unified memory
     printf("Allocating mesh unified memory\n");
-    setupTriMesh_DEVICE(all_shapes, nTriangles);
+    setupTriMesh_DEVICE(all_meshes, nTriangles);
     printf("Done allocating mesh unified memory\n");
 
     // Allocate triangle collision memory
     BUCKET_countsOfTrianglesTouching.resize(TRIANGLEBUCKET_COUNT);
     triangles_in_BUCKET_composite.resize(TRIANGLEBUCKET_COUNT * MAX_TRIANGLE_COUNT_PER_BUCKET);
     triangles_in_BUCKET_composite.resize(nSDs);
-
-    // DEBUGGING CHECKS
-    // for (unsigned int i = 0; i < meshSoup_DEVICE->nTrianglesInSoup; i++) {
-    //     printf("%0.4f, %0.4f, %0.4f", meshSoup_DEVICE->node1_X[i], mesh)
-    // }
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::string filename) {
@@ -115,7 +106,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::st
     }
 
     ostream << "\n\n";
-    ostream << "CELLS " << meshSoup_DEVICE->nTrianglesInSoup << " " << 3 * meshSoup_DEVICE->nTrianglesInSoup << "\n";
+    ostream << "CELLS " << meshSoup_DEVICE->nTrianglesInSoup << " " << 4 * meshSoup_DEVICE->nTrianglesInSoup << "\n";
     for (unsigned int tri_i = 0; tri_i < meshSoup_DEVICE->nTrianglesInSoup; tri_i++) {
         ostream << "3 " << 3 * tri_i << " " << 3 * tri_i + 1 << " " << 3 * tri_i + 2 << "\n";
     }
@@ -160,7 +151,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVIC
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
-    const std::vector<std::vector<tinyobj::shape_t>>& all_shapes,
+    const std::vector<ChTriangleMeshConnected>& all_meshes,
     unsigned int nTriangles) {
     // Allocate the device soup storage
     gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(meshSoup_DEVICE), cudaMemAttachGlobal));
@@ -199,70 +190,66 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     printf("Done allocating nodes for %d triangles\n", nTriangles);
 
     // Setup the clean copy of the mesh soup from the obj file data
-    size_t tri_index = 0;
     unsigned int family = 0;
+    unsigned int tri_i = 0;
     // for each obj file data set
-    for (auto shapes : all_shapes) {
-        // for each shape in this obj file data set
-        for (auto shape : shapes) {
-            std::vector<unsigned int>& indices = shape.mesh.indices;
-            std::vector<float>& positions = shape.mesh.positions;
-            std::vector<float>& normals = shape.mesh.normals;
-            printf("shape_t: indices (%d) positions(%d) normals(%d)\n", indices.size(), positions.size(),
-                   normals.size());
+    for (auto mesh : all_meshes) {
+        int n_triangles_mesh = mesh.getNumTriangles();
+        for (int i = 0; i < n_triangles_mesh; i++) {
+            ChTriangle tri = mesh.GetTriangle(i);
 
-            // Grab three indices which indicate the vertices of a triangle
-            // for each triangle in this shape
-            for (size_t i = 0; i < indices.size(); i += 9, tri_index++) {
-                meshSoup_DEVICE->node1_X[tri_index] = positions[indices[i + 0]];
-                meshSoup_DEVICE->node1_Y[tri_index] = positions[indices[i + 1]];
-                meshSoup_DEVICE->node1_Z[tri_index] = positions[indices[i + 2]];
+            meshSoup_DEVICE->node1_X[tri_i] = p1.x();
+            meshSoup_DEVICE->node1_Y[tri_i] = p1.y();
+            meshSoup_DEVICE->node1_Z[tri_i] = p1.z();
 
-                meshSoup_DEVICE->node2_X[tri_index] = positions[indices[i + 3]];
-                meshSoup_DEVICE->node2_Y[tri_index] = positions[indices[i + 4]];
-                meshSoup_DEVICE->node2_Z[tri_index] = positions[indices[i + 5]];
+            meshSoup_DEVICE->node2_X[tri_i] = p2.x();
+            meshSoup_DEVICE->node2_Y[tri_i] = p2.y();
+            meshSoup_DEVICE->node2_Z[tri_i] = p2.z();
 
-                meshSoup_DEVICE->node3_X[tri_index] = positions[indices[i + 6]];
-                meshSoup_DEVICE->node3_Y[tri_index] = positions[indices[i + 7]];
-                meshSoup_DEVICE->node3_Z[tri_index] = positions[indices[i + 8]];
+            meshSoup_DEVICE->node3_X[tri_i] = p3.x();
+            meshSoup_DEVICE->node3_Y[tri_i] = p3.y();
+            meshSoup_DEVICE->node3_Z[tri_i] = p3.z();
 
-                meshSoup_DEVICE->triangleFamily_ID[tri_index] = family;
+            meshSoup_DEVICE->triangleFamily_ID[tri_i] = family;
 
-                // Normal of a vertex... Should still work TODO: test
-                float norm_vert[3] = {0};
-                norm_vert[0] = normals[indices[i + 0]];
-                norm_vert[1] = normals[indices[i + 1]];
-                norm_vert[2] = normals[indices[i + 2]];
-
-                // Generate normal using RHR from nodes 1, 2, and 3
-                float AB[3];
-                AB[0] = positions[indices[i + 3]] - positions[indices[i + 0]];
-                AB[1] = positions[indices[i + 4]] - positions[indices[i + 1]];
-                AB[2] = positions[indices[i + 5]] - positions[indices[i + 2]];
-
-                float AC[3];
-                AC[0] = positions[indices[i + 6]] - positions[indices[i + 0]];
-                AC[1] = positions[indices[i + 7]] - positions[indices[i + 1]];
-                AC[2] = positions[indices[i + 8]] - positions[indices[i + 2]];
-
-                float cross[3];
-                cross[0] = AB[1] * AC[2] - AB[2] * AC[1];
-                cross[1] = -(AB[0] * AC[2] - AB[2] * AC[0]);
-                cross[2] = AB[0] * AC[1] - AB[1] * AC[0];
-
-                // If the normal created by a RHR traversal is not correct, switch two vertices
-                if (norm_vert[0] * cross[0] + norm_vert[1] * cross[1] + norm_vert[2] * cross[2] < 0) {
-                    // GRANULAR_ERROR("Input mesh has inside-out elements.")
-                    std::swap(meshSoup_DEVICE->node2_X[tri_index], meshSoup_DEVICE->node3_X[tri_index]);
-                    std::swap(meshSoup_DEVICE->node2_Y[tri_index], meshSoup_DEVICE->node3_Y[tri_index]);
-                    std::swap(meshSoup_DEVICE->node2_Z[tri_index], meshSoup_DEVICE->node3_Z[tri_index]);
-                }
-                tri_index++;
-            }
+            tri_i++;
         }
-        printf("Done writing family %d\n", family);
+
+        // TODO
+        // // Normal of a vertex... Should still work TODO: test
+        // float norm_vert[3] = {0};
+        // norm_vert[0] = normals[indices[i + 0]];
+        // norm_vert[1] = normals[indices[i + 1]];
+        // norm_vert[2] = normals[indices[i + 2]];
+        //
+        // // Generate normal using RHR from nodes 1, 2, and 3
+        // float AB[3];
+        // AB[0] = positions[indices[i + 3]] - positions[indices[i + 0]];
+        // AB[1] = positions[indices[i + 4]] - positions[indices[i + 1]];
+        // AB[2] = positions[indices[i + 5]] - positions[indices[i + 2]];
+        //
+        // float AC[3];
+        // AC[0] = positions[indices[i + 6]] - positions[indices[i + 0]];
+        // AC[1] = positions[indices[i + 7]] - positions[indices[i + 1]];
+        // AC[2] = positions[indices[i + 8]] - positions[indices[i + 2]];
+        //
+        // float cross[3];
+        // cross[0] = AB[1] * AC[2] - AB[2] * AC[1];
+        // cross[1] = -(AB[0] * AC[2] - AB[2] * AC[0]);
+        // cross[2] = AB[0] * AC[1] - AB[1] * AC[0];
+        //
+        // // If the normal created by a RHR traversal is not correct, switch two vertices
+        // if (norm_vert[0] * cross[0] + norm_vert[1] * cross[1] + norm_vert[2] * cross[2] < 0) {
+        // GRANULAR_ERROR("Input mesh has inside-out elements.")
+        // std::swap(meshSoup_DEVICE->node2_X[tri_index], meshSoup_DEVICE->node3_X[tri_index]);
+        // std::swap(meshSoup_DEVICE->node2_Y[tri_index], meshSoup_DEVICE->node3_Y[tri_index]);
+        // std::swap(meshSoup_DEVICE->node2_Z[tri_index], meshSoup_DEVICE->node3_Z[tri_index]);
+        // }
+
         family++;
+        printf("Done writing family %d\n", family);
     }
+
     meshSoup_DEVICE->nFamiliesInSoup = family;
 
     if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
@@ -274,7 +261,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
                                     meshSoup_DEVICE->nFamiliesInSoup * sizeof(tri_params->fam_frame_narrow),
                                     cudaMemAttachGlobal));
     }
-}  // namespace granular
+}
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
     // TODO implement this in the unified-memory mesh setup
