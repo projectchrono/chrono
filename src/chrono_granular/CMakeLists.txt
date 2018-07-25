@@ -19,7 +19,7 @@ if(NOT ENABLE_MODULE_GRANULAR)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
       message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION} does not support USE_GRANULAR_CUDA by default")
-      set(USE_GRANULAR_CUDA OFF CACHE OFF "")
+      set(USE_GRANULAR_CUDA OFF)
       mark_as_advanced(FORCE USE_GRANULAR_CUDA)
     endif()
   endif()
@@ -47,10 +47,12 @@ set(CH_GRANULAR_C_FLAGS "")
 # ----- CUDA support -----
 find_package(CUDA QUIET REQUIRED)
 
-cmake_dependent_option(USE_GRANULAR_CUDA "Enable CUDA support in Chrono::Granular" ON "CUDA_FOUND" OFF)
+#cmake_dependent_option(USE_GRANULAR_CUDA "Enable CUDA support in Chrono::Granular" ON "CUDA_FOUND" OFF)
+option(USE_GRANULAR_CUDA "Enable CUDA support in Chrono::Granular" ON)
+
+SET(USE_GRANULAR_CUDA ON)
 
 message( "Dan Flags are " ${CUDA_NVCC_FLAGS})
-
 IF(USE_GRANULAR_CUDA)
   SET(CUDA_SEPARABLE_COMPILATION ON)
 message ( ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} )
@@ -62,6 +64,7 @@ message ( ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VER
         SET(CUDA_SEPARABLE_COMPILATION OFF)
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std c++11)
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11)
+        SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
       ENDIF()
     ENDIF()
     SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
@@ -83,7 +86,8 @@ ENDIF()
 
 # ----- SIMD (SSE or AVX) support -----
 
-cmake_dependent_option(USE_GRANULAR_SIMD "Enable SIMD support in Chrono::Granular (if available)" ON "CHRONO_HAS_AVX" OFF)
+#cmake_dependent_option(USE_GRANULAR_SIMD "Enable SIMD support in Chrono::Granular (if available)" ON "CHRONO_HAS_AVX" OFF)
+option(USE_GRANULAR_SIMD "Enable SIMD support in Chrono::Granular (if available)" OFF)
 
 if(USE_GRANULAR_SIMD)
   set(CHRONO_GRANULAR_USE_SIMD "#define CHRONO_GRANULAR_USE_SIMD")
@@ -245,11 +249,3 @@ mark_as_advanced(FORCE
     CUDA_HOST_COMPILER)
 
 message( "Flags are " ${CUDA_NVCC_FLAGS})
-
-
-
-
-
-
-
-
