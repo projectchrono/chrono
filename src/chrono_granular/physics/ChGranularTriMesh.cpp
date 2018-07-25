@@ -59,7 +59,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
         geometry::ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
 
         mesh.LoadWavefrontMesh(GetChronoDataFile(objfilenames[i]), true, false);
-        // mesh.Transform({0, 0, 0}, ChMatrix33<>(scalings[i].x, scalings[i].y, scalings[i].z));
+        mesh.Transform({0, 0, 0}, ChMatrix33<>(ChVector<>(scalings[i].x, scalings[i].y, scalings[i].z)));
 
         nTriangles += mesh.getNumTriangles();
         nFamiliesInSoup++;
@@ -213,40 +213,25 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
 
             meshSoup_DEVICE->triangleFamily_ID[tri_i] = family;
 
+            // TODO: test
+            // Normal of a single vertex... Should still work
+            int normal_i = mesh.m_face_n_indices[i].x();  // normals at each vertex of this triangle
+            ChVector<double> normal = mesh.m_normals[normal_i];
+
+            // Generate normal using RHR from nodes 1, 2, and 3
+            ChVector<double> AB = tri.p2 - tri.p1;
+            ChVector<double> AC = tri.p3 - tri.p1;
+            ChVector<double> cross;
+            cross.Cross(AB, AC);
+
+            // If the normal created by a RHR traversal is not correct, switch two vertices
+            if (cross.Dot(normal) < 0) {
+                std::swap(meshSoup_DEVICE->node2_X[tri_i], meshSoup_DEVICE->node3_X[tri_i]);
+                std::swap(meshSoup_DEVICE->node2_Y[tri_i], meshSoup_DEVICE->node3_Y[tri_i]);
+                std::swap(meshSoup_DEVICE->node2_Z[tri_i], meshSoup_DEVICE->node3_Z[tri_i]);
+            }
             tri_i++;
         }
-
-        // TODO
-        // // Normal of a vertex... Should still work TODO: test
-        // float norm_vert[3] = {0};
-        // norm_vert[0] = normals[indices[i + 0]];
-        // norm_vert[1] = normals[indices[i + 1]];
-        // norm_vert[2] = normals[indices[i + 2]];
-        //
-        // // Generate normal using RHR from nodes 1, 2, and 3
-        // float AB[3];
-        // AB[0] = positions[indices[i + 3]] - positions[indices[i + 0]];
-        // AB[1] = positions[indices[i + 4]] - positions[indices[i + 1]];
-        // AB[2] = positions[indices[i + 5]] - positions[indices[i + 2]];
-        //
-        // float AC[3];
-        // AC[0] = positions[indices[i + 6]] - positions[indices[i + 0]];
-        // AC[1] = positions[indices[i + 7]] - positions[indices[i + 1]];
-        // AC[2] = positions[indices[i + 8]] - positions[indices[i + 2]];
-        //
-        // float cross[3];
-        // cross[0] = AB[1] * AC[2] - AB[2] * AC[1];
-        // cross[1] = -(AB[0] * AC[2] - AB[2] * AC[0]);
-        // cross[2] = AB[0] * AC[1] - AB[1] * AC[0];
-        //
-        // // If the normal created by a RHR traversal is not correct, switch two vertices
-        // if (norm_vert[0] * cross[0] + norm_vert[1] * cross[1] + norm_vert[2] * cross[2] < 0) {
-        // GRANULAR_ERROR("Input mesh has inside-out elements.")
-        // std::swap(meshSoup_DEVICE->node2_X[tri_index], meshSoup_DEVICE->node3_X[tri_index]);
-        // std::swap(meshSoup_DEVICE->node2_Y[tri_index], meshSoup_DEVICE->node3_Y[tri_index]);
-        // std::swap(meshSoup_DEVICE->node2_Z[tri_index], meshSoup_DEVICE->node3_Z[tri_index]);
-        // }
-
         family++;
         printf("Done writing family %d\n", family);
     }

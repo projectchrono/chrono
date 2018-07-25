@@ -296,9 +296,10 @@ int main(int argc, char* argv[]) {
     m_sys.initialize();
     int currframe = 0;
 
-    char filename[100];
-    sprintf(filename, "%s/outfile", output_prefix.c_str());
-    m_sys.write_meshes(string(filename));
+    // Uncomment the following to test correct loading of a mesh
+    // char filename[100];
+    // sprintf(filename, "%s/outfile", output_prefix.c_str());
+    // m_sys.write_meshes(string(filename));
 
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
