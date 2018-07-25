@@ -113,10 +113,8 @@ void Sedan_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwd
     m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
     // Initialize the driveline subsystem
-    std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
+    std::vector<int> driven_susp_indexes = {0};
 
-    driven_susp_indexes[0] = 0;
-    driven_susp_indexes[1] = 1;
 
     m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp_indexes);
 
