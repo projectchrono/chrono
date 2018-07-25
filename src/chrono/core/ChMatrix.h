@@ -15,7 +15,6 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
-#include <immintrin.h>
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChException.h"
@@ -23,6 +22,9 @@
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 
+#if defined(CHRONO_HAS_SSE) || defined(CHRONO_HAS_AVX)
+#include <immintrin.h>
+#endif
 namespace chrono {
 
 //

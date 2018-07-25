@@ -13,6 +13,12 @@
 // =============================================================================
 /*! \file */
 // These two must be included first
+
+// NOTE: DON'T MOVE OR CHANGES THESE THREE LINES
+#include "chrono/ChConfig.h"
+#undef CHRONO_HAS_SSE
+#undef CHRONO_HAS_AVX
+
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 // these define things that mess with cub
