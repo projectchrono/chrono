@@ -162,7 +162,7 @@ class ChTimer {
 
     /// Returns the time in [ms] since start(). It does not require stop(). 
 	unsigned long long GetTimeMillisecondsIntermediate() const {
-        return std::chrono::duration_cast<std::chrono::milliseconds>(m_start - std::chrono::high_resolution_clock::now()).count();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start).count();
     }
 
 	/// Returns the time in [us]. 
@@ -173,7 +173,7 @@ class ChTimer {
 
     /// Returns the time in [us] since start(). It does not require stop(). 
 	unsigned long long GetTimeMicrosecondsIntermediate() const {
-        return std::chrono::duration_cast<std::chrono::microseconds>(m_start - std::chrono::high_resolution_clock::now()).count();
+        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - m_start).count();
     }
 
     /// Returns the time in [s], with real_type precision
@@ -184,7 +184,7 @@ class ChTimer {
 
     /// Returns the time in [s] since start(). It does not require stop(). 
 	seconds_type GetTimeSecondsIntermediate() const {
-        std::chrono::duration<seconds_type> int_time = m_start - std::chrono::high_resolution_clock::now();
+        std::chrono::duration<seconds_type> int_time = std::chrono::high_resolution_clock::now() - m_start;
         return int_time.count();
     }
 
