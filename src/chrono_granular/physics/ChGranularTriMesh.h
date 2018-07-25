@@ -130,7 +130,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void setupTriMesh_DEVICE(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
                              unsigned int nTriangles);
     void cleanupTriMesh_DEVICE();
-    void update_DMeshSoup_Location();
 
     // void initialize();
 
@@ -140,6 +139,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     template <typename T>
     void generate_rot_matrix(double* ep, T* rot_mat);
+
+    template <class T>
+    void ApplyFrameTransform(ChVector<T>& p, T* pos, T* rot_mat);
 };
 
 }  // namespace granular

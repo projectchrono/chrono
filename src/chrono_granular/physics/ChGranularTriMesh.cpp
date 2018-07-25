@@ -82,6 +82,19 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
     triangles_in_BUCKET_composite.resize(nSDs);
 }
 
+template <class T>
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ApplyFrameTransform(ChVector<T>& p, T* pos, T* rot_mat) {
+    // Apply roation matrix to point
+    p[0] = rot_mat[0] * p[0] + rot_mat[1] * p[1] + rot_mat[2] * p[2];
+    p[1] = rot_mat[3] * p[0] + rot_mat[4] * p[1] + rot_mat[5] * p[2];
+    p[2] = rot_mat[6] * p[0] + rot_mat[7] * p[1] + rot_mat[8] * p[2];
+
+    // Apply translation
+    p[0] += pos[0];
+    p[1] += pos[1];
+    p[2] += pos[2];
+}
+
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::string filename) {
     printf("Writing meshes\n");
     std::ofstream outfile(filename + "_mesh.vtk", std::ios::out);
@@ -96,14 +109,20 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::st
 
     // Write all vertices
     for (unsigned int tri_i = 0; tri_i < meshSoup_DEVICE->nTrianglesInSoup; tri_i++) {
-        ostream << meshSoup_DEVICE->node1_X[tri_i] << " " << meshSoup_DEVICE->node1_Y[tri_i] << " "
-                << meshSoup_DEVICE->node1_Z[tri_i] << "\n";
+        ChVector<float> p1(meshSoup_DEVICE->node1_X[tri_i], meshSoup_DEVICE->node1_Y[tri_i],
+                           meshSoup_DEVICE->node1_Z[tri_i]);
+        ChVector<float> p2(meshSoup_DEVICE->node2_X[tri_i], meshSoup_DEVICE->node2_Y[tri_i],
+                           meshSoup_DEVICE->node2_Z[tri_i]);
+        ChVector<float> p3(meshSoup_DEVICE->node3_X[tri_i], meshSoup_DEVICE->node3_Y[tri_i],
+                           meshSoup_DEVICE->node3_Z[tri_i]);
 
-        ostream << meshSoup_DEVICE->node2_X[tri_i] << " " << meshSoup_DEVICE->node2_Y[tri_i] << " "
-                << meshSoup_DEVICE->node2_Z[tri_i] << "\n";
+        ApplyFrameTransform<float>(p1, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
+        ApplyFrameTransform<float>(p2, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
+        ApplyFrameTransform<float>(p3, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
 
-        ostream << meshSoup_DEVICE->node3_X[tri_i] << " " << meshSoup_DEVICE->node3_Y[tri_i] << " "
-                << meshSoup_DEVICE->node3_Z[tri_i] << "\n";
+        ostream << p1.x() << " " << p1.y() << " " << p1.z() << "\n";
+        ostream << p2.x() << " " << p2.y() << " " << p2.z() << "\n";
+        ostream << p3.x() << " " << p3.y() << " " << p3.z() << "\n";
     }
 
     ostream << "\n\n";
@@ -249,10 +268,6 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     }
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::update_DMeshSoup_Location() {
-    // TODO implement this in the unified-memory mesh setup
-}
-
 /**
 * \brief Collects the forces that each mesh feels as a result of their interaction with the DEs.
 *
@@ -322,7 +337,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSimulation() {
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidBodyMotion(
     double* position_orientation_data) {
-    // Create both broadphase and narrowphase frames for each family
+    // Set both broadphase and narrowphase frames for each family
     for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
         generate_rot_matrix<float>(position_orientation_data + 7 * fam + 3, tri_params->fam_frame_broad[fam].rot_mat);
         tri_params->fam_frame_broad[fam].pos[0] = (float)position_orientation_data[7 * fam + 0];

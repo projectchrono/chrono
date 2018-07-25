@@ -145,6 +145,48 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile,
         // Do nothing, only here for symmetry
     }
 }
+
+// This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
+void ChSystemGranularMonodisperse_SMC_Frictionless::writeFileUU(std::string ofile) {
+    // The file writes are a pretty big slowdown in CSV mode
+    if (file_write_mode == GRN_OUTPUT_MODE::BINARY) {
+        // TODO implement this
+        // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
+        // much faster write due to no formatting
+        // std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
+        //
+        // for (unsigned int n = 0; n < nDEs; n++) {
+        //     float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+        //                       pos_Z_dt.at(n) * pos_Z_dt.at(n));
+        //
+        //     ptFile.write((const char*)&pos_X.at(n), sizeof(int));
+        //     ptFile.write((const char*)&pos_Y.at(n), sizeof(int));
+        //     ptFile.write((const char*)&pos_Z.at(n), sizeof(int));
+        //     ptFile.write((const char*)&pos_X_dt.at(n), sizeof(float));
+        //     ptFile.write((const char*)&pos_Y_dt.at(n), sizeof(float));
+        //     ptFile.write((const char*)&pos_Z_dt.at(n), sizeof(float));
+        //     ptFile.write((const char*)&absv, sizeof(float));
+        //     ptFile.write((const char*)&deCounts[n], sizeof(int));
+        // }
+    } else if (file_write_mode == GRN_OUTPUT_MODE::CSV) {
+        // CSV is much slower but requires less postprocessing
+        std::ofstream ptFile(ofile + ".csv", std::ios::out);
+
+        // Dump to a stream, write to file only at end
+        std::ostringstream outstrstream;
+        outstrstream << "x,y,z\n";
+
+        for (unsigned int n = 0; n < nDEs; n++) {
+            outstrstream << pos_X.at(n) * gran_params->LENGTH_UNIT << "," << pos_Y.at(n) * gran_params->LENGTH_UNIT
+                         << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "\n";
+        }
+
+        ptFile << outstrstream.str();
+    } else if (file_write_mode == GRN_OUTPUT_MODE::NONE) {
+        // Do nothing, only here for symmetry
+    }
+}
+
 // Reset broadphase data structures
 void ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation() {
     // Set all the offsets to zero

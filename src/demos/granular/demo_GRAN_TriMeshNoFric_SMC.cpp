@@ -203,11 +203,11 @@ bool GetProblemSpecs(int argc,
 // Remains still for still_time and then begins to move up at Z_vel
 double pos_func_Z(double t, float boxH) {
     double still_time = 3;
-    double Z_vel = 1;
+    double Z_vel = 10;
     if (t < still_time) {
-        return boxH / 4;
+        return -boxH / 4;
     } else {
-        return (t - still_time) * Z_vel + boxH / 4;
+        return (t - still_time) * Z_vel - boxH / 4;
     }
 }
 
@@ -252,14 +252,14 @@ int main(int argc, char* argv[]) {
 
     // Mesh values
     vector<string> mesh_filenames;
-    string mesh_filename = string("hmmwv_tire.obj");
+    string mesh_filename = string("cylinder.obj");
 
     vector<float3> mesh_scalings;
     float3 scaling;
-    scaling.x = 1;
-    scaling.y = 1;
-    scaling.z = 1;
-    mesh_scalings.push_back(scaling);  // TODO scalings based on mesh
+    scaling.x = 10;
+    scaling.y = 10;
+    scaling.z = 10;
+    mesh_scalings.push_back(scaling);
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd,
@@ -296,17 +296,30 @@ int main(int argc, char* argv[]) {
     m_sys.initialize();
     int currframe = 0;
 
-    // Uncomment the following to test correct loading of a mesh
-    // char filename[100];
-    // sprintf(filename, "%s/outfile", output_prefix.c_str());
-    // m_sys.write_meshes(string(filename));
+    // Uncomment the following to test loading of a mesh
+    // int fakeframe = 0;
+    // for (float t = 0; t < timeEnd; t += iteration_step) {
+    //     char filename[100];
+    //     sprintf(filename, "%s/step%06d", output_prefix.c_str(), fakeframe++);
+    //     meshSoupLocOri[0] = 0;  // Keep wheel centered in X and Y
+    //     meshSoupLocOri[1] = 0;
+    //     meshSoupLocOri[2] = pos_func_Z(t, boxH);  // Get next position and orientation from the prescribed function
+    //     meshSoupLocOri[3] = 1;                    // No rotation in this demo
+    //     meshSoupLocOri[4] = 0;
+    //     meshSoupLocOri[5] = 0;
+    //     meshSoupLocOri[6] = 0;
+    //     m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);
+    //     m_sys.write_meshes(string(filename));
+    //     m_sys.writeFileUU(string(filename));
+    // }
+    // return 0;
 
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
     // Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < timeEnd; t += iteration_step) {
         // Generate next tire location and orientation
-        meshSoupLocOri[0] = boxL / 2;  // Keep wheel centered in X and Y
-        meshSoupLocOri[1] = boxD / 2;
+        meshSoupLocOri[0] = 0;  // Keep wheel centered in X and Y
+        meshSoupLocOri[1] = 0;
         meshSoupLocOri[2] = pos_func_Z(t, boxH);  // Get next position and orientation from the prescribed function
         meshSoupLocOri[3] = 1;                    // No rotation in this demo
         meshSoupLocOri[4] = 0;
@@ -320,7 +333,7 @@ int main(int argc, char* argv[]) {
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
-        m_sys.checkSDCounts(string(filename), true, false);  // Output metrics
+        m_sys.writeFileUU(string(filename));
         m_sys.write_meshes(string(filename));
     }
 
