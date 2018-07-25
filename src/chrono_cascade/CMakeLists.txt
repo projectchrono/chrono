@@ -43,9 +43,9 @@ SET(ChronoEngine_CASCADE_HEADERS
 #-----------------------------------------------------------------------------	
 
 SET(CH_CASCADE_DIR "" CACHE PATH  "Where is your OpenCASCADE SDK installed?")
+SET(CH_CASCADE_LIBDIR "" CACHE PATH "Path to the OpenCASCADE library directory.")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(CH_CASCADE_LIBDIR "" CACHE PATH "Path to the OpenCASCADE library directory.")
     FILE(GLOB CH_CASCADE_LIBS "${CH_CASCADE_LIBDIR}/*.lib")
     SET (CH_CASCADE_INCLUDES "${CH_CASCADE_DIR}/inc")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
