@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <fstream>
 #include <string>
+#include "chrono/physics/ChGlobal.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
@@ -52,10 +53,10 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
 
     unsigned int nTriangles = 0;
     unsigned int nFamiliesInSoup = 0;
-    std::vector<ChTriangleMeshConnected> all_meshes;
+    std::vector<geometry::ChTriangleMeshConnected> all_meshes;
     for (unsigned int i = 0; i < objfilenames.size(); i++) {
-        all_meshes.push_back(ChTriangleMeshConnected());
-        ChTriangleMeshConnected& mesh = all_meshes.end();
+        all_meshes.push_back(geometry::ChTriangleMeshConnected());
+        geometry::ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
 
         mesh.LoadWavefrontMesh(GetChronoDataFile(objfilenames[i]), true, false);
         // mesh.Transform({0, 0, 0}, ChMatrix33<>(scalings[i].x, scalings[i].y, scalings[i].z));
@@ -151,7 +152,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVIC
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
-    const std::vector<ChTriangleMeshConnected>& all_meshes,
+    const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
     unsigned int nTriangles) {
     // Allocate the device soup storage
     gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(meshSoup_DEVICE), cudaMemAttachGlobal));
@@ -196,19 +197,19 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     for (auto mesh : all_meshes) {
         int n_triangles_mesh = mesh.getNumTriangles();
         for (int i = 0; i < n_triangles_mesh; i++) {
-            ChTriangle tri = mesh.GetTriangle(i);
+            geometry::ChTriangle tri = mesh.getTriangle(i);
 
-            meshSoup_DEVICE->node1_X[tri_i] = p1.x();
-            meshSoup_DEVICE->node1_Y[tri_i] = p1.y();
-            meshSoup_DEVICE->node1_Z[tri_i] = p1.z();
+            meshSoup_DEVICE->node1_X[tri_i] = tri.p1.x();
+            meshSoup_DEVICE->node1_Y[tri_i] = tri.p1.y();
+            meshSoup_DEVICE->node1_Z[tri_i] = tri.p1.z();
 
-            meshSoup_DEVICE->node2_X[tri_i] = p2.x();
-            meshSoup_DEVICE->node2_Y[tri_i] = p2.y();
-            meshSoup_DEVICE->node2_Z[tri_i] = p2.z();
+            meshSoup_DEVICE->node2_X[tri_i] = tri.p2.x();
+            meshSoup_DEVICE->node2_Y[tri_i] = tri.p2.y();
+            meshSoup_DEVICE->node2_Z[tri_i] = tri.p2.z();
 
-            meshSoup_DEVICE->node3_X[tri_i] = p3.x();
-            meshSoup_DEVICE->node3_Y[tri_i] = p3.y();
-            meshSoup_DEVICE->node3_Z[tri_i] = p3.z();
+            meshSoup_DEVICE->node3_X[tri_i] = tri.p3.x();
+            meshSoup_DEVICE->node3_Y[tri_i] = tri.p3.y();
+            meshSoup_DEVICE->node3_Z[tri_i] = tri.p3.z();
 
             meshSoup_DEVICE->triangleFamily_ID[tri_i] = family;
 
