@@ -79,7 +79,6 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
     // Allocate triangle collision memory
     BUCKET_countsOfTrianglesTouching.resize(TRIANGLEBUCKET_COUNT);
     triangles_in_BUCKET_composite.resize(TRIANGLEBUCKET_COUNT * MAX_TRIANGLE_COUNT_PER_BUCKET);
-    triangles_in_BUCKET_composite.resize(nSDs);
 }
 
 template <class T>
@@ -174,7 +173,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
     unsigned int nTriangles) {
     // Allocate the device soup storage
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(meshSoup_DEVICE), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(ChTriangleSoup<float>), cudaMemAttachGlobal));
 
     meshSoup_DEVICE->nTrianglesInSoup = nTriangles;
 
@@ -260,10 +259,10 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
         // Allocate memory for the float and double frames
         gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_broad,
-                                    meshSoup_DEVICE->nFamiliesInSoup * sizeof(tri_params->fam_frame_broad),
+                                    meshSoup_DEVICE->nFamiliesInSoup * sizeof(ChFamilyFrame<float>),
                                     cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_narrow,
-                                    meshSoup_DEVICE->nFamiliesInSoup * sizeof(tri_params->fam_frame_narrow),
+                                    meshSoup_DEVICE->nFamiliesInSoup * sizeof(ChFamilyFrame<double>),
                                     cudaMemAttachGlobal));
     }
 }
@@ -320,7 +319,6 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSimulation() {
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
     copy_const_data_to_device();
-    copy_triangle_data_to_device();
     gpuErrchk(cudaDeviceSynchronize());
 
     // Seed arrays that are populated by the kernel call

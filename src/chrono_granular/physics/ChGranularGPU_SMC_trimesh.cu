@@ -73,16 +73,11 @@ __device__ T3 convert_pos_UU2SU(T3 pos, ParamsPtr gran_params) {
 /// Takes in a triangle's position in UU and finds out what SDs it touches
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
-/// TODO how to pass around the frame on device for multiple families??
-/// TODO could do a struct for pos and ep and struct for pos and rot mat
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                              const Triangle_Soup<float>* triangleSoup,
                                              unsigned int* touchedSDs,
                                              ParamsPtr gran_params,
                                              MeshParamsPtr tri_params) {
-    printf("triangleSoup %p\n", triangleSoup);
-    printf("triangleSoup->triangleFamily_ID %p\n", triangleSoup->triangleFamily_ID);
-
     unsigned int SD_count = 0;
     float3 vA, vB, vC;  // vertices of the triangle
 
@@ -141,7 +136,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
     for (unsigned int i = 0; i < 3; i++) {
         if (L[i] != U[i]) {
-            axes_diff = i;  // If there is more than one, it won't be used anyway
+            axes_diff = i;  // If there are more than one, this won't be used anyway
             n_axes_diff++;
         }
     }
@@ -279,10 +274,11 @@ __global__ void triangleSoupBroadPhase(
     // with "buckets". To save memory, since most SDs have no triangles, we "randomly" associate several SDs with a
     // bucket. While the assignment of SDs to buckets is "random," the assignment scheme is deterministic: for
     // instance, SD 239 would always go to bucket 71.
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++)
+    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         if (SDsTouched[i] != NULL_GRANULAR_ID) {
             BKTsTouched[i] = hashmapBKTid(SDsTouched[i]) % TRIANGLEBUCKET_COUNT;
         }
+    }
 
     // Earmark SDs that are touched by at least one triangle. This step is needed since when computing the
     // mesh-GrMat interaction we only want to do narrow phase on an SD that actually is touched by triangles. Keep
@@ -303,7 +299,7 @@ __global__ void triangleSoupBroadPhase(
     // flag that SD as being touched by a triangle
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         if (head_flags[i] && (SDsTouched[i] != NULL_GRANULAR_ID))
-            atomicAdd(SD_countsOfTrianglesTouching, 1);
+            atomicAdd(SD_countsOfTrianglesTouching + SDsTouched[i], 1);  // TODO check
     }
 
     // Back at working with buckets. For all purposes, the role that SDs play in this kernel is over.
@@ -710,6 +706,8 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_t
     // unified memory does some copying for us, cool
     tri_params->d_Gamma_n_s2m_SU = 0;  // no damping on mesh for now
     tri_params->d_Kn_s2m_SU = 7;       // TODO Nic you get to deal with this
+
+    SD_countsOfTrianglesTouching.resize(nSDs);  // TODO is this right/does it belong here?
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
@@ -774,12 +772,13 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        if (meshSoup_DEVICE->nFamiliesInSoup != 0) {
+        if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
             // broadphase the triangles
-            // todo teh mesh soup needs to be unified memory I think
-            triangleSoupBroadPhase<CUDA_THREADS><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-                meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
-                SD_countsOfTrianglesTouching.data(), gran_params, tri_params);
+            // TODO check these block/thread counts
+            triangleSoupBroadPhase<CUDA_THREADS>
+                <<<(meshSoup_DEVICE->nTrianglesInSoup + CUDA_THREADS - 1) / CUDA_THREADS, CUDA_THREADS>>>(
+                    meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
+                    SD_countsOfTrianglesTouching.data(), gran_params, tri_params);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
