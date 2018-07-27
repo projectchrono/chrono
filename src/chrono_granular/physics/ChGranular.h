@@ -67,9 +67,9 @@ class CH_GRANULAR_API ChSystemGranular {
         unsigned int psi_T_dFactor;      //!< factor used in establishing the software-time-unit
         unsigned int psi_h_dFactor;      //!< factor used in establishing the software-time-unit
         unsigned int psi_L_dFactor;      //!< factor used in establishing the software-time-unit
-        unsigned int d_box_L_SU;         //!< L-dimension of the BD box in multiples of subdomains, expressed in SU
-        unsigned int d_box_D_SU;         //!< D-dimension of the BD box in multiples of subdomains, expressed in SU
-        unsigned int d_box_H_SU;         //!< H-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int d_box_L;            //!< L-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int d_box_D;            //!< D-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int d_box_H;            //!< H-dimension of the BD box in multiples of subdomains, expressed in SU
         float gravAcc_X_d_factor_SU;     //!< Device counterpart of the constant gravity_X_SU
         float gravAcc_Y_d_factor_SU;     //!< Device counterpart of the constant gravity_Y_SU
         float gravAcc_Z_d_factor_SU;     //!< Device counterpart of the constant gravity_Z_SU
@@ -254,9 +254,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     unsigned int SD_D_SU;  //!< Size of the SD in the D direction (expressed in Simulation Units)
     unsigned int SD_H_SU;  //!< Size of the SD in the H direction (expressed in Simulation Units)
 
-    unsigned int nSDs_L_SU;  //!< Number of SDs along the L dimension of the box
-    unsigned int nSDs_D_SU;  //!< Number of SDs along the D dimension of the box
-    unsigned int nSDs_H_SU;  //!< Number of SDs along the H dimension of the box
+    unsigned int nSDs_L;  //!< Number of SDs along the L dimension of the box
+    unsigned int nSDs_D;  //!< Number of SDs along the D dimension of the box
+    unsigned int nSDs_H;  //!< Number of SDs along the H dimension of the box
 
     /// Store the prescribed position function for the BD, used for wavetank-y stuff
     // Default is at rest

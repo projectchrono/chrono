@@ -33,9 +33,9 @@
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
 // These are the max X, Y, Z dimensions in the BD frame
-#define MAX_X_POS_UNSIGNED (gran_params->d_SD_Ldim_SU * gran_params->d_box_L_SU)
-#define MAX_Y_POS_UNSIGNED (gran_params->d_SD_Ddim_SU * gran_params->d_box_D_SU)
-#define MAX_Z_POS_UNSIGNED (gran_params->d_SD_Hdim_SU * gran_params->d_box_H_SU)
+#define MAX_X_POS_UNSIGNED (gran_params->d_SD_Ldim_SU * gran_params->d_box_L)
+#define MAX_Y_POS_UNSIGNED (gran_params->d_SD_Ddim_SU * gran_params->d_box_D)
+#define MAX_Z_POS_UNSIGNED (gran_params->d_SD_Hdim_SU * gran_params->d_box_H)
 
 #define CUDA_THREADS 128
 
@@ -64,7 +64,7 @@ inline __device__ unsigned int SDTripletID(const unsigned int i,
                                            const unsigned int j,
                                            const unsigned int k,
                                            ParamsPtr gran_params) {
-    return i * gran_params->d_box_D_SU * gran_params->d_box_H_SU + j * gran_params->d_box_H_SU + k;
+    return i * gran_params->d_box_D * gran_params->d_box_H + j * gran_params->d_box_H + k;
 }
 
 // Convert triplet to single int SD ID
@@ -110,17 +110,17 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
     if (sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0) {
         n[0] = 0;
     } else if (sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS_UNSIGNED) {
-        n[0] = gran_params->d_box_L_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+        n[0] = gran_params->d_box_L - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     if (sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0) {
         n[1] = 0;
     } else if (sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_Y_POS_UNSIGNED) {
-        n[1] = gran_params->d_box_D_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+        n[1] = gran_params->d_box_D - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     if (sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0) {
         n[2] = 0;
     } else if (sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_Z_POS_UNSIGNED) {
-        n[2] = gran_params->d_box_H_SU - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+        n[2] = gran_params->d_box_H - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     // n[0] += (sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0) -
     //         (sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
@@ -135,11 +135,11 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
                             sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_Y_POS_UNSIGNED ||
                             sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0 ||
                             sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_Z_POS_UNSIGNED;
-    if (n[0] >= gran_params->d_box_L_SU) {
+    if (n[0] >= gran_params->d_box_L) {
         ABORTABORTABORT(
             "x is too large, boundary is %u, n is %u, nmax is %u, pos is %d, mod is %d, max is %d, dim is %d\n",
-            boundary, n[0], gran_params->d_box_L_SU, sphCenter_X, sphCenter_X_modified,
-            gran_params->d_SD_Ldim_SU * gran_params->d_box_L_SU, gran_params->d_SD_Ldim_SU, d_sphereRadius_SU);
+            boundary, n[0], gran_params->d_box_L, sphCenter_X, sphCenter_X_modified,
+            gran_params->d_SD_Ldim_SU * gran_params->d_box_L, gran_params->d_SD_Ldim_SU, d_sphereRadius_SU);
     }
     // Find distance from next box in relevant dir to center, we may be straddling the two
     int d[3];                                                              // Store penetrations
@@ -159,7 +159,7 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
         // High/low in x-dir
         // unsigned int s = i & 0x1; // Inlined now
         // Scale to global index and add to total
-        SDs[i] += (n[0] + (i & 0x1)) * gran_params->d_box_D_SU * gran_params->d_box_H_SU;
+        SDs[i] += (n[0] + (i & 0x1)) * gran_params->d_box_D * gran_params->d_box_H;
         // s == own[e] evals true if the current SD is owner
         // If both touch it or we own it, the result is valid
         valid &= (abs(d[0]) < d_sphereRadius_SU) || ((i & 0x1) == (d[0] < 0));
@@ -167,7 +167,7 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
         // High/low in y-dir
         // s = i & 0x2; // Inlined now
         // Scale to global index and add to total
-        SDs[i] += (n[1] + ((i >> 1) & 0x1)) * gran_params->d_box_H_SU;
+        SDs[i] += (n[1] + ((i >> 1) & 0x1)) * gran_params->d_box_H;
         // If both touch it or we own it, the result is valid
         valid &= (abs(d[1]) < d_sphereRadius_SU) || (((i >> 1) & 0x1) == (d[1] < 0));
 
@@ -182,7 +182,7 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
 
         // This ternary is hopefully better than a conditional
         // If valid is false, then the SD is actually NULL_GRANULAR_ID
-        if (valid && SDs[i] >= gran_params->d_box_D_SU * gran_params->d_box_L_SU * gran_params->d_box_H_SU) {
+        if (valid && SDs[i] >= gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H) {
             ABORTABORTABORT(
                 "UH OH!, sd overrun %u, boundary is %u, position is %d, %d, %d on thread %u, block %u, n is %u, %u, "
                 "%u\n",
@@ -331,7 +331,7 @@ primingOperationsRectangularBox(
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
     const size_t max_composite_index =
-        (size_t)gran_params->d_box_D_SU * gran_params->d_box_L_SU * gran_params->d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
+        (size_t)gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
@@ -882,7 +882,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
                 // Go until we run out of threads on the warp or until we find a new head
             } while (idInShared + winningStreak < 8 * CUB_THREADS && !(shMem_head_flags[idInShared + winningStreak]));
 
-            if (touchedSD >= gran_params->d_box_L_SU * gran_params->d_box_D_SU * gran_params->d_box_H_SU) {
+            if (touchedSD >= gran_params->d_box_L * gran_params->d_box_D * gran_params->d_box_H) {
                 printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
             }
 
@@ -906,7 +906,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
     const size_t max_composite_index =
-        (size_t)gran_params->d_box_D_SU * gran_params->d_box_L_SU * gran_params->d_box_H_SU * MAX_COUNT_OF_DEs_PER_SD;
+        (size_t)gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {

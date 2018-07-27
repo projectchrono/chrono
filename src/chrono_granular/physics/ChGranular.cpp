@@ -127,7 +127,7 @@ void ChSystemGranularMonodisperse::partition_BD() {
         howMany++;
     tempDIM = box_L / howMany;
     SD_L_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
-    nSDs_L_SU = howMany;
+    nSDs_L = howMany;
 
     tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_D_DIR;
     howMany = (unsigned int)(std::ceil(box_D / tempDIM));
@@ -136,7 +136,7 @@ void ChSystemGranularMonodisperse::partition_BD() {
         howMany++;
     tempDIM = box_D / howMany;
     SD_D_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
-    nSDs_D_SU = howMany;
+    nSDs_D = howMany;
 
     tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_H_DIR;
     howMany = (unsigned int)(std::ceil(box_H / tempDIM));
@@ -145,16 +145,16 @@ void ChSystemGranularMonodisperse::partition_BD() {
         howMany++;
     tempDIM = box_H / howMany;
     SD_H_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
-    nSDs_H_SU = howMany;
+    nSDs_H = howMany;
 
-    nSDs = nSDs_L_SU * nSDs_D_SU * nSDs_H_SU;
-    printf("%u Sds as %u, %u, %u\n", nSDs, nSDs_L_SU, nSDs_D_SU, nSDs_H_SU);
+    nSDs = nSDs_L * nSDs_D * nSDs_H;
+    printf("%u Sds as %u, %u, %u\n", nSDs, nSDs_L, nSDs_D, nSDs_H);
 
     // Place BD frame at bottom-left corner, one half-length in each direction
     // Can change later if desired
-    BD_frame_X = -.5 * (nSDs_L_SU * SD_L_SU);
-    BD_frame_Y = -.5 * (nSDs_D_SU * SD_D_SU);
-    BD_frame_Z = -.5 * (nSDs_H_SU * SD_H_SU);
+    BD_frame_X = -.5 * (nSDs_L * SD_L_SU);
+    BD_frame_Y = -.5 * (nSDs_D * SD_D_SU);
+    BD_frame_Z = -.5 * (nSDs_H * SD_H_SU);
     // BD starts at rest
     BD_frame_X_dot = 0;
     BD_frame_Y_dot = 0;

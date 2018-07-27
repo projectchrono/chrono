@@ -55,6 +55,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
     unsigned int nFamiliesInSoup = 0;
     std::vector<geometry::ChTriangleMeshConnected> all_meshes;
     for (unsigned int i = 0; i < objfilenames.size(); i++) {
+        printf("importing %s\n", objfilenames[i].c_str());
         all_meshes.push_back(geometry::ChTriangleMeshConnected());
         geometry::ChTriangleMeshConnected& mesh = all_meshes[all_meshes.size() - 1];
 

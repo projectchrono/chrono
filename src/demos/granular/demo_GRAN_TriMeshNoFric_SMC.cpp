@@ -252,13 +252,13 @@ int main(int argc, char* argv[]) {
 
     // Mesh values
     vector<string> mesh_filenames;
-    string mesh_filename = string("cylinder.obj");
+    string mesh_filename = string("plain.obj");
 
     vector<float3> mesh_scalings;
     float3 scaling;
     scaling.x = 10;
     scaling.y = 10;
-    scaling.z = 10;
+    scaling.z = 5;
     mesh_scalings.push_back(scaling);
 
     // Some of the default values might be overwritten by user via command line

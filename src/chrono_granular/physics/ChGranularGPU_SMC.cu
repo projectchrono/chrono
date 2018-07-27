@@ -24,9 +24,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_
     gran_params->d_SD_Ddim_SU = SD_D_SU;
     gran_params->d_SD_Hdim_SU = SD_H_SU;
     // Copy global BD size in multiples of SDs to device
-    gran_params->d_box_L_SU = nSDs_L_SU;
-    gran_params->d_box_D_SU = nSDs_D_SU;
-    gran_params->d_box_H_SU = nSDs_H_SU;
+    gran_params->d_box_L = nSDs_L;
+    gran_params->d_box_D = nSDs_D;
+    gran_params->d_box_H = nSDs_H;
 
     gran_params->psi_T_dFactor = psi_T_Factor;
     gran_params->psi_h_dFactor = psi_h_Factor;
@@ -174,11 +174,15 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::writeFileUU(std::string ofil
 
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
-        outstrstream << "x,y,z\n";
+        outstrstream << "x,y,z,USU\n";
 
         for (unsigned int n = 0; n < nDEs; n++) {
+            // TODO convert absv into UU
+            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                              pos_Z_dt.at(n) * pos_Z_dt.at(n));
+
             outstrstream << pos_X.at(n) * gran_params->LENGTH_UNIT << "," << pos_Y.at(n) * gran_params->LENGTH_UNIT
-                         << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "\n";
+                         << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "," << absv << "\n";
         }
 
         ptFile << outstrstream.str();
