@@ -299,11 +299,11 @@ __global__ void triangleSoupBroadPhase(
 
     // Earmark SDs that are touched by at least one triangle. This step is needed since when computing the
     // mesh-GrMat interaction we only want to do narrow phase on an SD that actually is touched by triangles. Keep
-    // in mind thta several SDs deposit their triangles in the same bucket. As such, later one during narrow phase/force
+    // in mind that several SDs deposit their triangles in the same bucket. As such, later one during narrow phase/force
     // computation, if an SD looks for a bucket and sees triangles in there, if we know that this SD is touching zero
     // triangles then that SD is not going to do narrow phase on the triangles in that bucket since these triangles
     // actually are associated with other SDs that happen to deposit their triangles in this same bucket.
-    // NOTE why are we sorting this? also we can't use this storage like that, it's for a key-value sort
+    // TODO why are we sorting this? also we can't use this storage like that, it's for a key-value sort
     BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, triangleIDs);
     __syncthreads();
 
@@ -328,7 +328,7 @@ __global__ void triangleSoupBroadPhase(
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, BKTsTouched, cub::Inequality());
     __syncthreads();
 
-    // Write back to shared memory; eight-way bank conflicts here - to revisit later
+    // Write back to shared memory; TODO eight-way bank conflicts here - to revisit later
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         shMem_head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i] = head_flags[i];
     }
@@ -336,7 +336,7 @@ __global__ void triangleSoupBroadPhase(
     // Seed offsetInComposite_TriangleInSD_Array with "no valid ID" so that we know later on what is legit;
     // No shmem bank coflicts here, good access...
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
-        offsetInComposite_TriangleInBKT_Array[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID_LONG;
+        offsetInComposite_TriangleInBKT_Array[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
     }
 
     __syncthreads();
@@ -591,9 +591,10 @@ __global__ void interactionTerrain_TriangleSoup(
                     double3 sphCntr = make_double3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]);
 
                     // TODO Conlain, check this force computation
-                    // If there is a collision
+                    // If there is a collision, add an impulse to the sphere
                     if (face_sphere_cd(A, B, C, sphCntr, gran_params->d_sphereRadius_SU, norm, depth, pt1, pt2,
-                                       eff_radius)) {
+                                       eff_radius) &&
+                        SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD) {
                         float scalingFactor = alpha_h_bar * gran_params->d_Kn_s2s_SU;
                         double sphdiameter = 2. * gran_params->d_sphereRadius_SU;
                         double invSphDiameter = 1. / sphdiameter;

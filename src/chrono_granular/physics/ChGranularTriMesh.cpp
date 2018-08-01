@@ -352,17 +352,15 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidB
 
 template <typename T>
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::generate_rot_matrix(double* ep, T* rot_mat) {
-    rot_mat[0] = ep[0] * ep[0] + ep[1] * ep[1] - ep[2] * ep[2] - ep[3] * ep[3];
-    rot_mat[1] = 2 * (ep[1] * ep[2] + ep[0] * ep[3]);
-    rot_mat[2] = 2 * (ep[1] * ep[3] - ep[0] * ep[2]);
-
-    rot_mat[3] = 2 * (ep[1] * ep[2] - ep[0] * ep[3]);
-    rot_mat[4] = ep[0] * ep[0] - ep[1] * ep[1] + ep[2] * ep[2] - ep[3] * ep[3];
-    rot_mat[5] = 2 * (ep[2] * ep[3] + ep[0] * ep[1]);
-
-    rot_mat[6] = 2 * (ep[1] * ep[3] + ep[0] * ep[2]);
-    rot_mat[7] = 2 * (ep[2] * ep[3] - ep[0] * ep[1]);
-    rot_mat[8] = ep[0] * ep[0] - ep[1] * ep[1] - ep[2] * ep[2] + ep[3] * ep[3];
+    rot_mat[0] = (T)(2 * (ep[0] * ep[0] + ep[1] * ep[1] - 0.5));
+    rot_mat[1] = (T)(2 * (ep[1] * ep[2] - ep[0] * ep[3]));
+    rot_mat[2] = (T)(2 * (ep[1] * ep[3] + ep[0] * ep[2]));
+    rot_mat[3] = (T)(2 * (ep[1] * ep[2] + ep[0] * ep[3]));
+    rot_mat[4] = (T)(2 * (ep[0] * ep[0] + ep[2] * ep[2] - 0.5));
+    rot_mat[5] = (T)(2 * (ep[2] * ep[3] - ep[0] * ep[1]));
+    rot_mat[6] = (T)(2 * (ep[1] * ep[3] - ep[0] * ep[2]));
+    rot_mat[7] = (T)(2 * (ep[2] * ep[3] + ep[0] * ep[1]));
+    rot_mat[8] = (T)(2 * (ep[0] * ep[0] + ep[3] * ep[3] - 0.5));
 }
 
 }  // namespace granular
