@@ -32,12 +32,12 @@ All rights reserved.
 #define HACD_MANIFOLD_MESH_H
 #include <iostream>
 #include <fstream>
-#include <hacdVersion.h>
-#include <hacdCircularList.h>
-#include <hacdVector.h>
-#include <hacdSArray.h>
+#include "hacdVersion.h"
+#include "hacdCircularList.h"
+#include "hacdVector.h"
+#include "hacdSArray.h"
 #include <set>
-#include <hacdMicroAllocator.h>
+#include "hacdMicroAllocator.h"
 namespace HACD
 {
 	class TMMTriangle;

@@ -16,7 +16,7 @@ subject to the following restrictions:
 #define BT_MULTI_SAP_BROADPHASE
 
 #include "btBroadphaseInterface.h"
-#include "LinearMath/btAlignedObjectArray.h"
+#include "../../LinearMath/btAlignedObjectArray.h"
 #include "btOverlappingPairCache.h"
 
 
