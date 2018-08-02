@@ -183,7 +183,7 @@ bool GetProblemSpecs(int argc,
                 normalStiffMesh2S = stof(args.OptionArg());
                 break;
             case OPT_MESH_FILE:
-                /// normalStiffMesh2S = stof(args.OptionArg()); -- TODO
+                normalStiffMesh2S = stof(args.OptionArg());
                 break;
             case OPT_COHESION_RATIO:
                 cohesion_ratio = stof(args.OptionArg());
@@ -224,6 +224,7 @@ int main(int argc, char* argv[]) {
 #define TIME_END 4.f
 #define GRAV_ACCELERATION 980.f
 #define NORMAL_STIFFNESS_S2S 1e7f
+#define NORMAL_STIFFNESS_M2S 1e7f
 #define NORMAL_STIFFNESS_S2W 1e7f
 #define CYL_RADIUS 20.f
 #define CYL_WIDTH 20.f
@@ -242,7 +243,7 @@ int main(int argc, char* argv[]) {
     float grav_acceleration = GRAV_ACCELERATION;
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
-    float normStiffnessMSH2S = NORMAL_STIFFNESS_S2W;
+    float normStiffness_MSH2S = NORMAL_STIFFNESS_M2S;
 
     float iteration_step = 0.02;
 
@@ -252,18 +253,18 @@ int main(int argc, char* argv[]) {
 
     // Mesh values
     vector<string> mesh_filenames;
-    string mesh_filename = string("plain.obj");
+    string mesh_filename = string("plane_coarse.obj");
 
     vector<float3> mesh_scalings;
     float3 scaling;
-    scaling.x = 10;
-    scaling.y = 10;
-    scaling.z = 5;
+    scaling.x = 2.5;
+    scaling.y = 2.5;
+    scaling.z = 1;
     mesh_scalings.push_back(scaling);
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd,
-                        grav_acceleration, normStiffness_S2S, normStiffness_S2W, normStiffnessMSH2S, cohesion_ratio,
+                        grav_acceleration, normStiffness_S2S, normStiffness_S2W, normStiffness_MSH2S, cohesion_ratio,
                         verbose, output_prefix, write_mode) == false) {
         return 1;
     }
@@ -274,9 +275,10 @@ int main(int argc, char* argv[]) {
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-1.f, -1.f, 0.f, 1.f, 1.f, 1.f);
+    m_sys.setFillBounds(-0.1f, -0.1f, -0.4f, 0.1f, 0.1f, -0.2f);
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
+    m_sys.set_YoungModulus_SPH2MESH(normStiffness_MSH2S);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
     m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
 

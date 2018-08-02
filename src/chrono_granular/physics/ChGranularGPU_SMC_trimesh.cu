@@ -436,17 +436,17 @@ __global__ void interactionTerrain_TriangleSoup(
     __shared__ int sphY[MAX_COUNT_OF_DEs_PER_SD];  //!< Y coordinate of the grElement
     __shared__ int sphZ[MAX_COUNT_OF_DEs_PER_SD];  //!< Z coordinate of the grElement
 
-    __shared__ int node1_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 1st node of the triangle
-    __shared__ int node1_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 1st node of the triangle
-    __shared__ int node1_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 1st node of the triangle
+    __shared__ double node1_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 1st node of the triangle
+    __shared__ double node1_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 1st node of the triangle
+    __shared__ double node1_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 1st node of the triangle
 
-    __shared__ int node2_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 2nd node of the triangle
-    __shared__ int node2_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 2nd node of the triangle
-    __shared__ int node2_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 2nd node of the triangle
+    __shared__ double node2_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 2nd node of the triangle
+    __shared__ double node2_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 2nd node of the triangle
+    __shared__ double node2_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 2nd node of the triangle
 
-    __shared__ int node3_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 3rd node of the triangle
-    __shared__ int node3_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 3rd node of the triangle
-    __shared__ int node3_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 3rd node of the triangle
+    __shared__ double node3_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 3rd node of the triangle
+    __shared__ double node3_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 3rd node of the triangle
+    __shared__ double node3_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 3rd node of the triangle
 
     volatile __shared__ float tempShMem[6 * (N_CUDATHREADS / warp_size)];  // used to do a block-level reduce
 
@@ -496,6 +496,9 @@ __global__ void interactionTerrain_TriangleSoup(
         if (local_ID < nBKT_triangles) {
             unsigned int globalID = triangles_in_BKT_composite[local_ID + whichBKT * MAX_TRIANGLE_COUNT_PER_BUCKET];
             triangID[local_ID] = globalID;
+
+            // Read node positions from global memory into shared memory
+            // NOTE implicit cast from float to double here
             node1_X[local_ID] = d_triangleSoup->node1_X[globalID];
             node1_Y[local_ID] = d_triangleSoup->node1_Y[globalID];
             node1_Z[local_ID] = d_triangleSoup->node1_Z[globalID];
@@ -588,6 +591,7 @@ __global__ void interactionTerrain_TriangleSoup(
                     B = convert_pos_UU2SU<double3>(B, gran_params);
                     C = convert_pos_UU2SU<double3>(C, gran_params);
 
+                    // NOTE implicit cast from int to double
                     double3 sphCntr = make_double3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]);
 
                     // TODO Conlain, check this force computation
@@ -595,12 +599,11 @@ __global__ void interactionTerrain_TriangleSoup(
                     if (face_sphere_cd(A, B, C, sphCntr, gran_params->d_sphereRadius_SU, norm, depth, pt1, pt2,
                                        eff_radius) &&
                         SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD) {
-                        float scalingFactor = alpha_h_bar * gran_params->d_Kn_s2s_SU;
+                        float scalingFactor = alpha_h_bar * mesh_params->d_Kn_s2m_SU;
                         double sphdiameter = 2. * gran_params->d_sphereRadius_SU;
                         double invSphDiameter = 1. / sphdiameter;
 
                         // Use the CD information to compute the force on the grElement
-                        // TODO are these computed correctly?? sign of depth??
                         double deltaX = -depth * norm.x * invSphDiameter;
                         double deltaY = -depth * norm.y * invSphDiameter;
                         double deltaZ = -depth * norm.z * invSphDiameter;
@@ -802,15 +805,20 @@ __global__ void interactionTerrain_TriangleSoup(
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
     // unified memory does some copying for us, cool
     tri_params->d_Gamma_n_s2m_SU = 0;  // no damping on mesh for now
-    tri_params->d_Kn_s2m_SU = 7;       // TODO Nic you get to deal with this
+    tri_params->d_Kn_s2m_SU = K_n_s2m_SU;
 
-    SD_countsOfTrianglesTouching.resize(nSDs);  // TODO is this right/does it belong here?
+    SD_countsOfTrianglesTouching.resize(nSDs);
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
 
     switch_to_SimUnits();
+
+    double K_stiffness = get_max_K();
+    float scalingFactor = (1.f / (1.f * PSI_T * PSI_T * PSI_h));
+    K_n_s2m_SU = scalingFactor * (YoungModulus_SPH2MESH / K_stiffness);
+
     generate_DEs();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
@@ -862,7 +870,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
 
         // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
-        computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_TRIANGLE_COUNT_PER_BUCKET>>>(
+        computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
             pos_Y_dt.data(), pos_Z_dt.data(), gran_params);

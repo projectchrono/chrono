@@ -88,7 +88,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density);
     virtual ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
 
-    void set_YoungModulus_SPH2IMPLEMENT(double someValue) { YoungModulus_SPH2MESH = someValue; }
+    void set_YoungModulus_SPH2MESH(double someValue) { YoungModulus_SPH2MESH = someValue; }
     unsigned int nMeshesInSoup() const { return meshSoup_DEVICE->nFamiliesInSoup; }
     void collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup);
     void meshSoup_applyRigidBodyMotion(double* position_orientation_data);
@@ -116,7 +116,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     ChTriangleSoup<float>* meshSoup_DEVICE;
 
     double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
-    float K_n_s2m_SU;  //!< size of the normal stiffness (SU) for sphere-to-mesh contact; expressed in sim. units
+    float K_n_s2m_SU;              //!< size of the normal stiffness (SU) for sphere-to-mesh contact
     bool problemSetupFinished;
     float timeToWhichDEsHaveBeenPropagated;
 
