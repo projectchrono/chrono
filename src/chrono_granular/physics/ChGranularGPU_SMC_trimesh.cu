@@ -250,10 +250,10 @@ template <unsigned int CUB_THREADS>  //!< Number of threads engaged in block-col
 __global__ void triangleSoupBroadPhase(
     Triangle_Soup<float>* d_triangleSoup,
     unsigned int*
-        BUCKET_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
+        BUCKET_countsOfTrianglesTouching,  //!< Array that for each BKT indicates how many triangles touch this BKT
     unsigned int*
-        triangles_in_BUCKET_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
-                                        //!< "triangles_in_SD_composite" says which SD contains what triangles.
+        triangles_in_BUCKET_composite,  //!< Big array that works in conjunction with BUCKET_countsOfTrianglesTouching.
+                                        //!< "triangles_in_BUCKET_composite" says which BKT contains what triangles.
     unsigned int* SD_countsOfTrianglesTouching,  //!< If SD 629 has any triangle touching it, then
                                                  //!< SD_countsOfTrianglesTouching[629]>0.
     ParamsPtr gran_params,
@@ -287,10 +287,10 @@ __global__ void triangleSoupBroadPhase(
 
     __syncthreads();
 
-    // Truth be told, we are not interested in SDs touched, but rather buckets touched. This next step associates SDs
-    // with "buckets". To save memory, since most SDs have no triangles, we "randomly" associate several SDs with a
-    // bucket. While the assignment of SDs to buckets is "random," the assignment scheme is deterministic: for
-    // instance, SD 239 would always go to bucket 71.
+    // We are actually not interested in SDs touched, but rather buckets touched. This next step associates SDs with
+    // "buckets". To save memory, since most SDs have no triangles, we "randomly" associate several SDs with a bucket.
+    // While the assignment of SDs to buckets is "random," the assignment scheme is deterministic: for instance, the
+    // triangles in SD 239 will always go to bucket 71. Several SDs send their triangles to the same bucket.
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         if (SDsTouched[i] != NULL_GRANULAR_ID) {
             BKTsTouched[i] = hashmapBKTid(SDsTouched[i]) % TRIANGLEBUCKET_COUNT;
@@ -299,7 +299,7 @@ __global__ void triangleSoupBroadPhase(
 
     // Earmark SDs that are touched by at least one triangle. This step is needed since when computing the
     // mesh-GrMat interaction we only want to do narrow phase on an SD that actually is touched by triangles. Keep
-    // in mind that several SDs deposit their triangles in the same bucket. As such, later one during narrow phase/force
+    // in mind that several SDs deposit their triangles in the same bucket. As such, later on during narrow phase/force
     // computation, if an SD looks for a bucket and sees triangles in there, if we know that this SD is touching zero
     // triangles then that SD is not going to do narrow phase on the triangles in that bucket since these triangles
     // actually are associated with other SDs that happen to deposit their triangles in this same bucket.
@@ -320,21 +320,26 @@ __global__ void triangleSoupBroadPhase(
         }
     }
 
-    // Back at working with buckets. For all purposes, the role that SDs play in this kernel is over.
+    // Back at working with buckets. For all purposes, the role that SDs play in this kernel is over. Everything else in
+    // this kernel deals with buckets.
     BlockRadixSortOP(temp_storage_sort).Sort(BKTsTouched, triangleIDs);
     __syncthreads();
 
-    // Do a winningStreak search on whole block, might not have high utilization here
+    // Prep work that allows later on to do a winningStreak search on whole block
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, BKTsTouched, cub::Inequality());
     __syncthreads();
 
-    // Write back to shared memory; TODO eight-way bank conflicts here - to revisit later
+    // Write back to shared memory; TODO eight-way bank conflicts here - to revisit later.
+    // This information should be in shared memory since one thread might reach beyond the MAX_SDs_TOUCHED_BY_TRIANGLE
+    // slots associated with it. For instance, BKT 14 might be associated with 50 triangles, in which case the winning
+    // streak would be very long and go beyond what a thread stores in its registers. The only way to allow a thread to
+    // see what the neighboring thread stores is via shared memory.
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         shMem_head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i] = head_flags[i];
     }
 
-    // Seed offsetInComposite_TriangleInSD_Array with "no valid ID" so that we know later on what is legit;
-    // No shmem bank coflicts here, good access...
+    // Seed offsetInComposite_TriangleInBKT_Array with "no valid ID" so that we know later on what is legit;
+    // No shmem bank coflicts here, good access pattern...
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         offsetInComposite_TriangleInBKT_Array[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
     }
@@ -345,18 +350,19 @@ __global__ void triangleSoupBroadPhase(
     // will be some thread divergence here.
     // Loop through each potential BKT, after sorting, and see if it is the start of a head
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
-        // SD currently touched, could easily be inlined
+        // BKT currently touched, could easily be inlined
         unsigned int touchedBucket = BKTsTouched[i];
         if (head_flags[i] && (touchedBucket != NULL_GRANULAR_ID)) {
             // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
-            unsigned int idInShared = MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i;
+            unsigned int idInSharedMem = MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i;
             unsigned int winningStreak = 0;
             // This is the beginning of a sequence of BKTs with a new ID
             do {
                 winningStreak++;
-                // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < MAX_SDs_TOUCHED_BY_TRIANGLE * CUB_THREADS &&
-                     !(shMem_head_flags[idInShared + winningStreak]));
+                // Go until we run out of threads on the warp or until we find a new head. Note that the order in this
+                // "while" test below is important - it prevents out of bounds indexing
+            } while (idInSharedMem + winningStreak < MAX_SDs_TOUCHED_BY_TRIANGLE * CUB_THREADS &&
+                     !(shMem_head_flags[idInSharedMem + winningStreak]));
 
             // if (touchedSD >= d_box_L * d_box_D * d_box_H) {
             //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
@@ -370,14 +376,14 @@ __global__ void triangleSoupBroadPhase(
             offset += touchedBucket * MAX_TRIANGLE_COUNT_PER_BUCKET;
 
             // Produce the offsets for this streak of triangles with identical BKT ids
-            for (unsigned int i = 0; i < winningStreak; i++)
-                offsetInComposite_TriangleInBKT_Array[idInShared + i] = offset++;
+            for (unsigned int w = 0; w < winningStreak; w++)
+                offsetInComposite_TriangleInBKT_Array[idInSharedMem + w] = offset++;
         }
     }
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-    // Write out the data now; register with triangles_in_SD_composite each sphere that touches a certain ID
+    // Write out the data now; register with triangles_in_BUCKET_composite each triangle that touches a certain BKT
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
         unsigned int offset = offsetInComposite_TriangleInBKT_Array[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID) {
