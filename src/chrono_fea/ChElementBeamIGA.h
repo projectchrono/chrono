@@ -868,12 +868,12 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 u,  
                 knots, 
                 N);           ///< h
-
+		
         ChVector<> dr0; 
         for (int i = 0 ; i< nodes.size(); ++i) {
             dr0 += nodes[i]->GetX0ref().coord.pos * N(1,i);
         }
-        detJ = dr0.Length(); // J = |dr0/du|
+        detJ = dr0.Length() * c1;
 
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i*6;
