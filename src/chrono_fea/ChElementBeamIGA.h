@@ -234,7 +234,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
             // absyssa in span range:
             double u = (c1 * eta + c2); 
             // scaling = gauss weight * change of range:
-            double w = ChQuadrature::GetStaticTables()->Weight[int_order_s-1][ig] * c1;
+            double w = ChQuadrature::GetStaticTables()->Weight[int_order_s-1][ig];
 
             // compute the basis functions N(u) at given u:
             int nspan = order;
@@ -273,7 +273,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
             // absyssa in span range:
             double u = (c1 * eta + c2); 
             // scaling = gauss weight * change of range:
-            double w = ChQuadrature::GetStaticTables()->Weight[int_order_b-1][ig] * c1;
+            double w = ChQuadrature::GetStaticTables()->Weight[int_order_b-1][ig];
 
             // compute the basis functions N(u) at given u:
             int nspan = order;
@@ -348,7 +348,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 			this->strain_k_0[ig] = da;
 
 			// as a byproduct, also compute length 
-			this->length += w * this->Jacobian_b[ig];
+			this->length += w * Jsu * Jue;
         }
 
 		// as a byproduct, also compute total mass
