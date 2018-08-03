@@ -191,6 +191,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     stepSize_SU = determine_stepSize_SU();
 
     // Handy debug output
+    printf("SU step size: %d\n", stepSize_SU);
     printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);
     printf("SU mass is %f\n", gran_params->MASS_UNIT);
     printf("SU radius is %u\n", sphereRadius_SU);

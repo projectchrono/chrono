@@ -117,6 +117,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
     float K_n_s2m_SU;              //!< size of the normal stiffness (SU) for sphere-to-mesh contact
+    float Gamma_n_s2m_SU;
+
     bool problemSetupFinished;
     float timeToWhichDEsHaveBeenPropagated;
 

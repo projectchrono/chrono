@@ -200,17 +200,6 @@ bool GetProblemSpecs(int argc,
     return true;
 }
 
-// Remains still for still_time and then begins to move up at Z_vel
-double pos_func_Z(double t, float boxH) {
-    double still_time = 3;
-    double Z_vel = 10;
-    if (t < still_time) {
-        return -boxH / 4;
-    } else {
-        return (t - still_time) * Z_vel - boxH / 4;
-    }
-}
-
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
 // There is no friction. The units are always cm/s/g[L/T/M].
@@ -253,9 +242,9 @@ int main(int argc, char* argv[]) {
 
     vector<float3> mesh_scalings;
     float3 scaling;
-    scaling.x = 2.5;
-    scaling.y = 2.5;
-    scaling.z = 1;
+    scaling.x = 6;
+    scaling.y = 6;
+    scaling.z = 2;
     mesh_scalings.push_back(scaling);
 
     // Some of the default values might be overwritten by user via command line
@@ -271,13 +260,13 @@ int main(int argc, char* argv[]) {
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-0.1f, -0.1f, -0.4f, 0.1f, 0.1f, -0.2f);
+    m_sys.setFillBounds(-0.2f, -0.2f, 0.f, 0.f, 0.f, -0.2f);
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_YoungModulus_SPH2MESH(normStiffness_MSH2S);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
     m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
-    m_sys.suggest_stepSize_UU(1e-4);
+    m_sys.suggest_stepSize_UU(1e-5);
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings);
 
@@ -288,7 +277,7 @@ int main(int argc, char* argv[]) {
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
-    cout << nSoupFamilies << " soup families \n";
+    cout << nSoupFamilies << " soup families\n";
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
 
@@ -319,21 +308,20 @@ int main(int argc, char* argv[]) {
         // Generate next tire location and orientation
         meshSoupLocOri[0] = 0;  // Keep wheel centered in X and Y
         meshSoupLocOri[1] = 0;
-        meshSoupLocOri[2] = pos_func_Z(t, boxH);  // Get next position and orientation from the prescribed function
-        meshSoupLocOri[3] = 1;                    // No rotation in this demo
+        meshSoupLocOri[2] = -4.0;  // Right under the single particle
+        meshSoupLocOri[3] = 1;     // No rotation in this demo
         meshSoupLocOri[4] = 0;
         meshSoupLocOri[5] = 0;
         meshSoupLocOri[6] = 0;
 
         m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
-
+		printf("rendering frame %u\n", currframe);
+		char filename[100];
+		sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
+		m_sys.writeFileUU(string(filename));
+		m_sys.write_meshes(string(filename));
+		
         m_sys.advance_simulation(iteration_step);
-
-        printf("rendering frame %u\n", currframe);
-        char filename[100];
-        sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
-        m_sys.writeFileUU(string(filename));
-        m_sys.write_meshes(string(filename));
     }
 
     delete[] genForcesOnMeshSoup;

@@ -419,6 +419,9 @@ __global__ void interactionTerrain_TriangleSoup(
     int* d_sphere_pos_X,
     int* d_sphere_pos_Y,
     int* d_sphere_pos_Z,
+    float* d_sphere_pos_X_dt,
+    float* d_sphere_pos_Y_dt,
+    float* d_sphere_pos_Z_dt,
     float* d_sphere_pos_X_dt_update,
     float* d_sphere_pos_Y_dt_update,
     float* d_sphere_pos_Z_dt_update,
@@ -441,6 +444,10 @@ __global__ void interactionTerrain_TriangleSoup(
     __shared__ int sphX[MAX_COUNT_OF_DEs_PER_SD];  //!< X coordinate of the grElement
     __shared__ int sphY[MAX_COUNT_OF_DEs_PER_SD];  //!< Y coordinate of the grElement
     __shared__ int sphZ[MAX_COUNT_OF_DEs_PER_SD];  //!< Z coordinate of the grElement
+
+    __shared__ float sphere_X_DOT[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ float sphere_Y_DOT[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ float sphere_Z_DOT[MAX_COUNT_OF_DEs_PER_SD];
 
     __shared__ double node1_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 1st node of the triangle
     __shared__ double node1_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 1st node of the triangle
@@ -492,6 +499,10 @@ __global__ void interactionTerrain_TriangleSoup(
             sphX[local_ID] = d_sphere_pos_X[globalID];
             sphY[local_ID] = d_sphere_pos_Y[globalID];
             sphZ[local_ID] = d_sphere_pos_Z[globalID];
+
+            sphere_X_DOT[local_ID] = d_sphere_pos_X_dt[globalID];
+            sphere_Y_DOT[local_ID] = d_sphere_pos_Y_dt[globalID];
+            sphere_Z_DOT[local_ID] = d_sphere_pos_Z_dt[globalID];
         }
     }
     // Populate the shared memory with mesh triangle data
@@ -614,6 +625,13 @@ __global__ void interactionTerrain_TriangleSoup(
                         double deltaY = -depth * norm.y * invSphDiameter;
                         double deltaZ = -depth * norm.z * invSphDiameter;
 
+                        // Velocity difference, it's better to do a coalesced access here than a fragmented access
+                        // inside
+                        // TODO: Assumes stationary mesh
+                        float deltaX_dot = sphere_X_DOT[sphere_Local_ID];
+                        float deltaY_dot = sphere_Y_DOT[sphere_Local_ID];
+                        float deltaZ_dot = sphere_Z_DOT[sphere_Local_ID];
+
                         double penetration = deltaX * deltaX;
                         penetration += deltaY * deltaY;
                         penetration += deltaZ * deltaZ;
@@ -626,13 +644,17 @@ __global__ void interactionTerrain_TriangleSoup(
                         float springTermY = scalingFactor * deltaY * sphdiameter * penetration;
                         float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration;
 
-                        // TODO Compute force updates for damping term
+                        // TODO Compute force updates for damping term correctly
+                        float dampingTermX = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaX_dot;
+                        float dampingTermY = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaY_dot;
+                        float dampingTermZ = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaZ_dot;
+
                         // TODO Compute force updates for cohesion term, is opposite the spring term
 
                         // TODO sum contributing forces
-                        float bodyA_X_velCorr = springTermX;
-                        float bodyA_Y_velCorr = springTermY;
-                        float bodyA_Z_velCorr = springTermZ;
+                        float bodyA_X_velCorr = springTermX + dampingTermX;
+                        float bodyA_Y_velCorr = springTermY + dampingTermY;
+                        float bodyA_Z_velCorr = springTermZ + dampingTermZ;
 
                         // TODO: Use the CD information to compute the force and torque on the family of this triangle
 
@@ -812,6 +834,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_t
     // unified memory does some copying for us, cool
     tri_params->d_Gamma_n_s2m_SU = 0;  // no damping on mesh for now
     tri_params->d_Kn_s2m_SU = K_n_s2m_SU;
+    tri_params->d_Gamma_n_s2m_SU = Gamma_n_s2m_SU;
 
     SD_countsOfTrianglesTouching.resize(nSDs);
 }
@@ -824,6 +847,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
     double K_stiffness = get_max_K();
     float scalingFactor = (1.f / (1.f * PSI_T * PSI_T * PSI_h));
     K_n_s2m_SU = scalingFactor * (YoungModulus_SPH2MESH / K_stiffness);
+    Gamma_n_s2m_SU = 0.005;
 
     generate_DEs();
 
@@ -899,23 +923,15 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
             // TODO please do not use a template here
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-                stepSize_SU, meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(),
-                pos_Y_dt_update.data(), pos_Z_dt_update.data(), BUCKET_countsOfTrianglesTouching.data(),
-                triangles_in_BUCKET_composite.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(),
-                SD_countsOfTrianglesTouching.data(), gran_params, tri_params);
+                stepSize_SU, meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
+                pos_Y_dt.data(), pos_Z_dt.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+                pos_Z_dt_update.data(), BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
+                SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), SD_countsOfTrianglesTouching.data(),
+                gran_params, tri_params);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
-        // Apply the updates we just made
-        applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
-
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
         VERBOSE_PRINTF("Resetting broadphase info!\n");
 
         resetBroadphaseInformation();

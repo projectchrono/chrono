@@ -135,6 +135,8 @@ __device__ bool face_sphere_cd(const double3& A1,      //!< First vertex of the 
     double3 faceLoc;
 
     if (snap_to_face(A1, B1, C1, pos2, faceLoc)) {
+        return false;  // Don't report contact unless the closest point is on the face
+
         // Closest face feature is an edge. If the distance between the sphere
         // center and the closest point is more than the radius plus the
         // separation value, then there is no contact. Also, ignore contact if
