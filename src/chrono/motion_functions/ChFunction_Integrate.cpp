@@ -68,11 +68,11 @@ double ChFunction_Integrate::Get_y(double x) const {
     i_a = (int)(floor(position));
     i_b = i_a + 1;
 
-    if (i_a == num_samples - 1)
+    if (i_b > num_samples - 1)
         return array_x->GetElement(num_samples - 1, 0);
 
-    if ((i_a < 0) || (i_b >= num_samples))
-        return 0.0;
+    if (i_a < 0)
+        return array_x->GetElement(0, 0);
 
     double weightB = position - (double)i_a;
     double weightA = 1 - weightB;
