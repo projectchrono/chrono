@@ -53,7 +53,7 @@ UAZBUS_Chassis::UAZBUS_Chassis(const std::string& name, bool fixed, ChassisColli
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(2.0, 1.0, 0.2));
+    BoxShape box1(ChVector<>(-1.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.6, 1.0, 0.2));
 
     m_has_primitives = true;
     m_vis_boxes.push_back(box1);

@@ -89,9 +89,7 @@ void UAZBUS::Initialize() {
                          : new UAZBUS_Vehicle(m_fixed, m_steeringType, m_contactMethod, m_chassisCollisionType);
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
-    std::cout << "WheelAngVel init." << std::endl;
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
-    std::cout << "Vehicle init." << std::endl;
 
     if (m_vehicle_step_size > 0) {
         m_vehicle->SetStepsize(m_vehicle_step_size);
@@ -105,13 +103,11 @@ void UAZBUS::Initialize() {
     // Create and initialize the powertrain system
     m_powertrain = new UAZBUS_SimpleMapPowertrain("powertrain");
     m_powertrain->Initialize(GetChassisBody(), m_vehicle->GetDriveshaft());
-    std::cout << "Powertrain init." << std::endl;
-    
+
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
         case TireModelType::RIGID:
         case TireModelType::RIGID_MESH: {
-            std::cout << "Init RIGID" << std::endl;
             bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
             UAZBUS_RigidTire* tire_FL = new UAZBUS_RigidTire("FL", use_mesh);
             UAZBUS_RigidTire* tire_FR = new UAZBUS_RigidTire("FR", use_mesh);
@@ -168,10 +164,10 @@ void UAZBUS::SetTireVisualizationType(VisualizationType vis) {
 
 // -----------------------------------------------------------------------------
 void UAZBUS::Synchronize(double time,
-                      double steering_input,
-                      double braking_input,
-                      double throttle_input,
-                      const ChTerrain& terrain) {
+                         double steering_input,
+                         double braking_input,
+                         double throttle_input,
+                         const ChTerrain& terrain) {
     TerrainForces tire_forces(4);
     WheelState wheel_states[4];
 
