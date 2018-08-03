@@ -416,27 +416,35 @@ class  ChElementBeamIGA :   public ChElementBeam,
             K.PasteMatrix(Jcolumn,0,i);
         }
 
-        /*
+		// finally, store K into H:
+
+		K.MatrScale(Kfactor);
+
+		H.PasteMatrix(K, 0, 0);
+
         // Compute R=-dQ(x,v)/dv by backward differentiation
-        for (int i=0; i<mrows_w; ++i) {
-            (*state_w)(i)+= Delta;
-            this->loader.ComputeQ(state_x, state_w);   // Q1 = Q(x, v+Dv)
-            Q1 = this->loader.Q;
-            (*state_w)(i)-= Delta;
-            
-            Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because R=-dQ/dv
-            this->jacobians->R.PasteMatrix(Jcolumn,0,i);
-        }
-        */
+		if (this->section->GetDamping()) {
+			ChStateDelta  state_w_inc(mrows_w, nullptr);
+			ChMatrixDynamic<> R(mrows_w, mrows_w);
 
+			for (int i = 0; i < mrows_w; ++i) {
+				Q1.Reset(mrows_w, 1);
 
-        // finally, store K into H:
+				state_delta(i) += Delta;
+				this->ComputeInternalForces_impl(Q1, state_x, state_w+state_w_inc, true); // Q1 = Q(x, v+Dv)
+				state_delta(i) -= Delta;
 
-        double mkrfactor = Kfactor; 
+				Jcolumn = (Q1 - Q0)*(-1.0 / Delta);   // - sign because R=-dQ/dv
+				R.PasteMatrix(Jcolumn, 0, i);
+			}
+			
+			R.MatrScale(Rfactor);
 
-        K.MatrScale(mkrfactor);
+			H.PasteSumMatrix(R, 0, 0);
+		}
 
-        H.PasteMatrix(K, 0, 0);  
+		
+        
 
 
 
@@ -636,15 +644,20 @@ class  ChElementBeamIGA :   public ChElementBeam,
 				this->strain_e[ig] = astrain_e;
 				this->strain_k[ig] = astrain_k;
 			}
-/*
-            // add viscous damping, Rayleigh type
-            astress_n.x() += astrain_e_dt.x() * E * Area      * section->rdamping;
-            astress_n.y() += astrain_e_dt.y() * Ky * G * Area * section->rdamping;
-            astress_n.z() += astrain_e_dt.z() * Ky * G * Area * section->rdamping;
-            astress_m.x() += astrain_k_dt.x() * G * Jpolar    * section->rdamping;
-            astress_m.y() += astrain_k_dt.y() * E * Iyy       * section->rdamping;
-            astress_m.z() += astrain_k_dt.z() * E * Izz       * section->rdamping;
-*/
+
+            // add viscous damping 
+			if (this->section->GetDamping()) {
+				ChVector<> n_sp;
+				ChVector<> m_sp;
+				this->section->GetDamping()->ComputeStress(
+					n_sp,
+					m_sp,
+					astrain_e_dt,
+					astrain_k_dt);
+				astress_n += n_sp;
+				astress_m += m_sp;
+			}
+
             // compute internal force, in generalized coordinates:
 
             ChVector<> stress_n_abs = R * astress_n;
