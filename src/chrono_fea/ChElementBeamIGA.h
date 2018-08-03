@@ -294,8 +294,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
             }
             this->Jacobian_b[ig] = dr0.Length(); // J = |dr0/du|
 
-            //this->length += w*this->Jacobian_b[ig];
-
 			// From now on, compute initial strains as in ComputeInternalForces 
 
 			// Jacobian Jsu = ds/du
@@ -498,6 +496,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         // Do quadrature over the "s" shear Gauss points 
         // (only if int_order_b != int_order_s, otherwise do a single loop later over "b" bend points also for shear)
 
+		//***TODO*** maybe not needed: separate bending and shear integration points. 
 
 
 
