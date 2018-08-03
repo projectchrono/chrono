@@ -62,7 +62,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
 	std::vector< std::unique_ptr<ChBeamMaterialInternalData> > plastic_data_old;
 	std::vector< std::unique_ptr<ChBeamMaterialInternalData> > plastic_data;
 
-    std::shared_ptr<ChBeamSectionAdvanced> section_old;
 	std::shared_ptr<ChBeamSectionCosserat> section;
 
   public:
@@ -170,11 +169,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
     // FEM functions
     //
 
-    /// Set the section & material of beam element .
-    /// It is a shared property, so it can be shared between other beams.
-    void SetSection_old(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section_old = my_material; }
-    /// Get the section & material of the element
-    std::shared_ptr<ChBeamSectionAdvanced> GetSection_old() { return section_old; }
 
 	/// Set the section & material of beam element .
 	/// It is a shared property, so it can be shared between other beams.
