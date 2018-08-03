@@ -425,14 +425,15 @@ class  ChElementBeamIGA :   public ChElementBeam,
         // Compute R=-dQ(x,v)/dv by backward differentiation
 		if (this->section->GetDamping()) {
 			ChStateDelta  state_w_inc(mrows_w, nullptr);
+			state_w_inc = state_w;
 			ChMatrixDynamic<> R(mrows_w, mrows_w);
 
 			for (int i = 0; i < mrows_w; ++i) {
 				Q1.Reset(mrows_w, 1);
 
-				state_delta(i) += Delta;
-				this->ComputeInternalForces_impl(Q1, state_x, state_w+state_w_inc, true); // Q1 = Q(x, v+Dv)
-				state_delta(i) -= Delta;
+				state_w_inc(i) += Delta;
+				this->ComputeInternalForces_impl(Q1, state_x, state_w_inc, true); // Q1 = Q(x, v+Dv)
+				state_w_inc(i) -= Delta;
 
 				Jcolumn = (Q1 - Q0)*(-1.0 / Delta);   // - sign because R=-dQ/dv
 				R.PasteMatrix(Jcolumn, 0, i);
