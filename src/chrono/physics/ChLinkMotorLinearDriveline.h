@@ -62,6 +62,12 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMotorLinearDriveline* Clone() const override { return new ChLinkMotorLinearDriveline(*this); }
 
+	void SetSystem(ChSystem* m_system) override {
+		ChPhysicsItem::SetSystem(m_system);
+		innershaft1lin->SetSystem(m_system);
+		innershaft2lin->SetSystem(m_system);
+		innershaft2rot->SetSystem(m_system);
+	}
 
     /// Access the inner 1D shaft connected to the translation of body1 about dir of linear guide.
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
