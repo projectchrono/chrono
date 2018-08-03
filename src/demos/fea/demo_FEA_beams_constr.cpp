@@ -311,13 +311,13 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = std::make_shared<ChSolverMKL<>>();
     my_system.SetSolver(mkl_solver);
 
-    application.SetTimestep(0.0005);
+    application.SetTimestep(0.001);
     application.SetVideoframeSaveInterval(10);
 
     // Use the following for less numerical damping, 2nd order accuracy (but slower)
-    // my_system.SetTimestepperType(ChTimestepper::Type::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
-        mystepper->SetVerbose(true);
+        //mystepper->SetVerbose(true);
         mystepper->SetStepControl(false);
     }
 
