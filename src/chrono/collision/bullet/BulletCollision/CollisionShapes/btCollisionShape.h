@@ -16,10 +16,10 @@ subject to the following restrictions:
 #ifndef COLLISION_SHAPE_H
 #define COLLISION_SHAPE_H
 
-#include "LinearMath/btTransform.h"
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btMatrix3x3.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
+#include "../../LinearMath/btTransform.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btMatrix3x3.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
 class btSerializer;
 
 

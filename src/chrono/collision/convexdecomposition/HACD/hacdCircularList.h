@@ -16,8 +16,8 @@
 #ifndef HACD_CIRCULAR_LIST_H
 #define HACD_CIRCULAR_LIST_H
 #include<stdlib.h>
-#include<hacdVersion.h>
-#include <hacdMicroAllocator.h>
+#include "hacdVersion.h"
+#include "hacdMicroAllocator.h"
 namespace HACD
 {
 	//!	CircularListElement class.
@@ -81,5 +81,5 @@ namespace HACD
         
 	};
 }
-#include<hacdCircularList.inl>
+#include "hacdCircularList.inl"
 #endif

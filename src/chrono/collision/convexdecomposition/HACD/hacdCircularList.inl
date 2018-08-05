@@ -1,8 +1,8 @@
 #pragma once
 #ifndef HACD_CIRCULAR_LIST_INL
 #define HACD_CIRCULAR_LIST_INL
-#include<stdlib.h>
-#include<hacdVersion.h>
+#include <stdlib.h>
+#include "hacdVersion.h"
 namespace HACD
 {
 	template < typename T > 
