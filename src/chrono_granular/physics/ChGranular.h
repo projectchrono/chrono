@@ -21,8 +21,9 @@
 #include <vector>
 #include <algorithm>
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include "../ChApiGranular.h"
+#include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities.h"
 #include "cudalloc.hpp"
@@ -200,6 +201,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     virtual double get_max_K() = 0;
 
     virtual void generate_DEs();
+    virtual void generate_DEs_FillBounds();
+    virtual void generate_DEs_positions();
 
     /// Set the BD to be fixed or not, if fixed it will ignore any given position functions
     virtual void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
@@ -208,6 +211,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     /// Passing xmin = -1, xmax = 1 means fill the box in xdir
     // TODO comment this more
     void setFillBounds(float xmin, float ymin, float zmin, float xmax, float ymax, float zmax);
+
+    void setParticlePositions(std::vector<ChVector<float>>& points);
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
@@ -263,6 +268,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     std::function<double(double)> BDPositionFunctionX = [](double a) { return 0; };
     std::function<double(double)> BDPositionFunctionY = [](double a) { return 0; };
     std::function<double(double)> BDPositionFunctionZ = [](double a) { return 0; };
+
+    std::vector<ChVector<float>> h_points;
 
     /// The position of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
     int BD_frame_X;

@@ -161,9 +161,9 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     for (unsigned int i = L[0]; i <= U[0]; i++) {
         for (unsigned int j = L[1]; j <= U[1]; j++) {
             for (unsigned int k = L[2]; k <= U[2]; k++) {
-                SDhalfSizes[0] = gran_params->d_SD_Ldim_SU;
-                SDhalfSizes[1] = gran_params->d_SD_Ddim_SU;
-                SDhalfSizes[2] = gran_params->d_SD_Hdim_SU;
+                SDhalfSizes[0] = gran_params->d_SD_Ldim_SU / 2;
+                SDhalfSizes[1] = gran_params->d_SD_Ddim_SU / 2;
+                SDhalfSizes[2] = gran_params->d_SD_Hdim_SU / 2;
 
                 SDcenter[0] = gran_params->d_BD_frame_X + (i * 2 + 1) * SDhalfSizes[0];
                 SDcenter[1] = gran_params->d_BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];

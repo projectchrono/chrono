@@ -16,8 +16,10 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cmath>
+#include <vector>
 #include "ChGranular.h"
 #include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
@@ -63,7 +65,43 @@ void ChSystemGranularMonodisperse::setFillBounds(float xmin,
     boxFillZmax = zmax;
 }
 
+// Set particle positions in UU
+void ChSystemGranularMonodisperse::setParticlePositions(std::vector<ChVector<float>>& points) {
+    h_points = points;  // Copy points to class vector
+}
+
 void ChSystemGranularMonodisperse::generate_DEs() {
+    // Each fills h_points with positions to be copied
+    if (h_points.size() == 0) {
+        generate_DEs_FillBounds();
+    } else {
+        generate_DEs_positions();
+    }
+
+    nDEs = (unsigned int)h_points.size();
+    std::cout << nDEs << " balls added!" << std::endl;
+
+    // Allocate space for new bodies
+    pos_X.resize(nDEs);
+    pos_Y.resize(nDEs);
+    pos_Z.resize(nDEs);
+    pos_X_dt.resize(nDEs, 0);
+    pos_Y_dt.resize(nDEs, 0);
+    pos_Z_dt.resize(nDEs, 0);
+    pos_X_dt_update.resize(nDEs, 0);
+    pos_Y_dt_update.resize(nDEs, 0);
+    pos_Z_dt_update.resize(nDEs, 0);
+
+    // Copy from array of structs to 3 arrays
+    for (unsigned int i = 0; i < nDEs; i++) {
+        auto vec = h_points.at(i);
+        pos_X.at(i) = (int)(vec.x());
+        pos_Y.at(i) = (int)(vec.y());
+        pos_Z.at(i) = (int)(vec.z());
+    }
+}
+
+void ChSystemGranularMonodisperse::generate_DEs_FillBounds() {
     // Create the falling balls
     float ball_epsilon = sphereRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
     printf("eps is %f, rad is %5f\n", ball_epsilon, sphereRadius_SU * 1.0f);
@@ -89,27 +127,12 @@ void ChSystemGranularMonodisperse::generate_DEs() {
     ChVector<float> boxCenter(xmid, ymid, zmid);
     // We need to subtract off a sphere radius to ensure we don't get put at the edge
     ChVector<float> hdims{xlen - sphereRadius_SU, ylen - sphereRadius_SU, zlen - sphereRadius_SU};
-    std::vector<ChVector<float>> points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
+    h_points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
+}
 
-    nDEs = (unsigned int)points.size();
-    std::cout << nDEs << " balls added!" << std::endl;
-    // Allocate space for new bodies
-    pos_X.resize(nDEs);
-    pos_Y.resize(nDEs);
-    pos_Z.resize(nDEs);
-    pos_X_dt.resize(nDEs, 0);
-    pos_Y_dt.resize(nDEs, 0);
-    pos_Z_dt.resize(nDEs, 0);
-    pos_X_dt_update.resize(nDEs, 0);
-    pos_Y_dt_update.resize(nDEs, 0);
-    pos_Z_dt_update.resize(nDEs, 0);
-    // Copy from array of structs to 3 arrays
-    for (unsigned int i = 0; i < nDEs; i++) {
-        auto vec = points.at(i);
-        pos_X.at(i) = (int)(vec.x());
-        pos_Y.at(i) = (int)(vec.y());
-        pos_Z.at(i) = (int)(vec.z());
-        // printf("int is %d, float is %f\n", pos_X.at(i), vec.x());
+void ChSystemGranularMonodisperse::generate_DEs_positions() {
+    for (auto& point : h_points) {
+        point /= gran_params->LENGTH_UNIT;
     }
 }
 
