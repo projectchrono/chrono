@@ -95,9 +95,9 @@ __device__ bool snap_to_face(const double3& A, const double3& B, const double3& 
 /**
 /brif TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
 
-The triangular face is defined by points A1, B1, C1. The sequence is important as it defines the positive face via a
+The triangular face is defined by points A, B, C. The sequence is important as it defines the positive face via a
 right-hand rule.
-The sphere is centered at pos2 and has radius2.
+The sphere is centered at sphere_pos and has radius.
 The index "1" is associated with the triangle. The index "2" is associated with the sphere.
 The coordinates of the face and sphere are assumed to be provided in the same reference frame.
 
@@ -109,58 +109,41 @@ Output:
   - eff_rad:  effective contact radius
 A return value of "true" signals collision.
 */
-__device__ bool face_sphere_cd(const double3& A1,      //!< First vertex of the triangle
-                               const double3& B1,      //!< Second vertex of the triangle
-                               const double3& C1,      //!< Third vertex of the triangle
-                               const double3& pos2,    //!< Location of the center of the sphere
-                               const double& radius2,  //!< Sphere radius
+__device__ bool face_sphere_cd(const double3& A,           //!< First vertex of the triangle
+                               const double3& B,           //!< Second vertex of the triangle
+                               const double3& C,           //!< Third vertex of the triangle
+                               const double3& sphere_pos,  //!< Location of the center of the sphere
+                               const double& radius,       //!< Sphere radius
                                double3& norm,
                                double& depth,
                                double3& pt1,
                                double3& pt2,
                                double& eff_radius) {
     // Calculate face normal.
-    double3 nrm1 = face_normal(A1, B1, C1);
+    double3 nrm1 = face_normal(A, B, C);
 
     // Calculate signed height of sphere center above face plane. If the
-    // height is larger than the sphere radius plus the separation value
-    // or if the sphere center is below the plane, there is no contact.
-    double h = Dot(pos2 - A1, nrm1);
+    // height is larger than the sphere radius plus the separation value,
+    // there is no contact.
+    double h = Dot(sphere_pos - A, nrm1);
 
-    if (h >= radius2) {  // TODO adapt for always going with the normal
+    if (h >= radius || h <= -radius) {
         return false;
     }
     // Find the closest point on the face to the sphere center and determine
     // whether or not this location is inside the face or on an edge.
     double3 faceLoc;
 
-    if (snap_to_face(A1, B1, C1, pos2, faceLoc)) {
+    if (snap_to_face(A, B, C, sphere_pos, faceLoc)) {
         return false;  // Don't report contact unless the closest point is on the face
-
-        // Closest face feature is an edge. If the distance between the sphere
-        // center and the closest point is more than the radius plus the
-        // separation value, then there is no contact. Also, ignore contact if
-        // the sphere center (almost) coincides with the closest point, in
-        // which case we couldn't decide on the proper contact direction.
-        double3 delta = pos2 - faceLoc;
-        double dist2 = Dot(delta, delta);
-
-        if (dist2 >= radius2 * radius2 || dist2 <= 1e-12f) {
-            return false;
-        }
-        double dist = sqrt(dist2);
-        norm = delta / dist;
-        depth = dist - radius2;
-        eff_radius = radius2 * EDGE_RADIUS / (radius2 + EDGE_RADIUS);
-    } else {
-        // Closest point on face is inside the face.
-        norm = nrm1;
-        depth = h - radius2;
-        eff_radius = radius2;
     }
 
+    // Closest point on face is inside the face.
+    norm = nrm1;
+    depth = h - radius;
+    eff_radius = radius;
     pt1 = faceLoc;
-    pt2 = pos2 - radius2 * norm;
+    pt2 = sphere_pos - radius * norm;
 
     return true;
 }

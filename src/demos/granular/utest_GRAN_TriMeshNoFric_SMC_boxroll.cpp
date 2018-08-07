@@ -38,7 +38,7 @@ using namespace std;
 // -----------------------------------------------------------------------------
 enum {
     OPT_HELP,
-    OPT_MESH_FILE,
+    OPT_TEST,
     OPT_SPH_RADIUS,
     OPT_TIMEEND,
     OPT_DENSITY,
@@ -55,14 +55,16 @@ enum {
     OPT_VERBOSE
 };
 
+enum { SINGLE_ON_VERTEX = 0, SINGLE_TO_CORNER = 1, MULTI_TO_CORNER = 2, SINGLE_TO_INV_CORNER = 3 };
+
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
 // - the ID for the option (returned from OptionId() during processing)
 // - the option as it should appear on the command line
 // - type of the option
 // The last entry must be SO_END_OF_OPTIONS
-CSimpleOptA::SOption g_options[] = {{OPT_MESH_FILE, "-m", SO_REQ_SEP},
-                                    {OPT_SPH_RADIUS, "-sr", SO_REQ_SEP},
+CSimpleOptA::SOption g_options[] = {{OPT_SPH_RADIUS, "-sr", SO_REQ_SEP},
                                     {OPT_TIMEEND, "-e", SO_REQ_SEP},
+                                    {OPT_TEST, "--test", SO_REQ_SEP},
                                     {OPT_DENSITY, "--density", SO_REQ_SEP},
                                     {OPT_WRITE_MODE, "--write_mode", SO_REQ_SEP},
                                     {OPT_OUTPUT_DIR, "--output_dir", SO_REQ_SEP},
@@ -86,10 +88,11 @@ CSimpleOptA::SOption g_options[] = {{OPT_MESH_FILE, "-m", SO_REQ_SEP},
 // -----------------------------------------------------------------------------
 void showUsage() {
     cout << "Options:" << endl;
-    cout << "-m=<mesh_file_name>" << endl;
     cout << "-sr <sphere_radius>" << endl;
     cout << "-v or --verbose" << endl;
     cout << "--density=<density>" << endl;
+    cout << "--test=<test_case> (0:SINGLE_ON_VERTEX, 1:SINGLE_TO_CORNER, 2:MULTI_TO_CORNER, 3:SINGLE_TO_INV_CORNER)"
+         << endl;
     cout << "--write_mode=<write_mode> (csv, binary, or none)" << endl;
     cout << "--output_dir=<output_dir>" << endl;
     cout << "-e=<time_end>" << endl;
@@ -109,7 +112,7 @@ void showUsage() {
 // -----------------------------------------------------------------------------
 bool GetProblemSpecs(int argc,
                      char** argv,
-                     string& meshFileName,
+                     int& test,
                      float& ball_radius,
                      float& ballDensity,
                      float& box_L,
@@ -126,6 +129,8 @@ bool GetProblemSpecs(int argc,
                      GRN_OUTPUT_MODE& write_mode) {
     // Create the option parser and pass it the program arguments and the array of valid options.
     CSimpleOptA args(argc, argv, g_options);
+
+    test = -1;
 
     // Then loop for as long as there are arguments to be processed.
     while (args.Next()) {
@@ -155,6 +160,9 @@ bool GetProblemSpecs(int argc,
                     cout << "Unknown file write mode! Options are 'csv', 'binary', or 'none'\n";
                 }
                 break;
+            case OPT_TEST:
+                test = stoi(args.OptionArg());
+                break;
             case OPT_OUTPUT_DIR:
                 output_dir = args.OptionArg();
                 break;
@@ -182,9 +190,6 @@ bool GetProblemSpecs(int argc,
             case OPT_STIFFNESS_MSH2S:
                 normalStiffMesh2S = stof(args.OptionArg());
                 break;
-            case OPT_MESH_FILE:
-                normalStiffMesh2S = stof(args.OptionArg());
-                break;
             case OPT_COHESION_RATIO:
                 cohesion_ratio = stof(args.OptionArg());
                 break;
@@ -196,7 +201,11 @@ bool GetProblemSpecs(int argc,
                 break;
         }
     }
-
+    if (test < 0 || test > 3) {
+        cout << "Invalid test" << endl;
+        showUsage();
+        return false;
+    }
     return true;
 }
 
@@ -219,6 +228,7 @@ int main(int argc, char* argv[]) {
     string output_prefix = "../results";
 
     // Default values
+    int test;
     float ballRadius = RADIUS;
     float ballDensity = SPH_DENSITY;
     float boxL = BOX_L_cm;
@@ -236,25 +246,12 @@ int main(int argc, char* argv[]) {
     bool verbose = false;
     float cohesion_ratio = 0;
 
-    // Mesh values
-    vector<string> mesh_filenames;
-    string mesh_filename = string("square_box.obj");
-
-    vector<float3> mesh_scalings;
-    float3 scaling;
-    scaling.x = 4;
-    scaling.y = 4;
-    scaling.z = 4;
-    mesh_scalings.push_back(scaling);
-
     // Some of the default values might be overwritten by user via command line
-    if (GetProblemSpecs(argc, argv, mesh_filename, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd,
-                        grav_acceleration, normStiffness_S2S, normStiffness_S2W, normStiffness_MSH2S, cohesion_ratio,
-                        verbose, output_prefix, write_mode) == false) {
+    if (GetProblemSpecs(argc, argv, test, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
+                        normStiffness_S2S, normStiffness_S2W, normStiffness_MSH2S, cohesion_ratio, verbose,
+                        output_prefix, write_mode) == false) {
         return 1;
     }
-
-    mesh_filenames.push_back(mesh_filename);
 
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
@@ -262,24 +259,78 @@ int main(int argc, char* argv[]) {
     m_sys.set_BD_Fixed(true);
 
     std::vector<ChVector<float>> pos;
-    pos.push_back(ChVector<float>(-1.1f, 1.1f, ballRadius));
-    // float eps = 2.01;
-    // for (float x = -4.f + ballRadius * eps; x < 4.f - ballRadius; x += ballRadius * eps) {
-    //     for (float y = -4.f + ballRadius * eps; y < 4.f - ballRadius; y += ballRadius * eps) {
-    //         for (float z = 0.f + ballRadius; z < 6.f; z += ballRadius * eps) {
-    //             pos.push_back(ChVector<float>(x, y, z));
-    //         }
-    //     }
-    // }
+    switch (test) {
+        case SINGLE_ON_VERTEX:
+            pos.push_back(ChVector<float>(0.f, 0.f, ballRadius));
+            break;
+
+        case SINGLE_TO_CORNER:
+            pos.push_back(ChVector<float>(-5.f, -6.f, ballRadius));
+            break;
+
+        case MULTI_TO_CORNER:
+            pos.push_back(ChVector<float>(1.f, 1.f, ballRadius));
+            pos.push_back(ChVector<float>(2.f, 4.f, ballRadius));
+            pos.push_back(ChVector<float>(4.f, 2.f, ballRadius));
+            pos.push_back(ChVector<float>(4.f, 5.f, ballRadius));
+            break;
+
+        case SINGLE_TO_INV_CORNER:
+            pos.push_back(ChVector<float>(10, 10, ballRadius));
+            break;
+    }
+
     m_sys.setParticlePositions(pos);
 
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_YoungModulus_SPH2MESH(normStiffness_MSH2S);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
-    m_sys.set_gravitational_acceleration(400.f, -400.f, -GRAV_ACCELERATION);  // pull ball to the corner of the box
-    m_sys.suggest_stepSize_UU(1e-5);
 
+    switch (test) {
+        case SINGLE_ON_VERTEX:
+            m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
+            break;
+
+        case SINGLE_TO_CORNER:
+            m_sys.set_gravitational_acceleration(-400.f, -400.f, -GRAV_ACCELERATION);
+            break;
+
+        case MULTI_TO_CORNER:
+            m_sys.set_gravitational_acceleration(-400.f, -400.f, -GRAV_ACCELERATION);
+            break;
+
+        case SINGLE_TO_INV_CORNER:
+            m_sys.set_gravitational_acceleration(-400.f, -400.f, -GRAV_ACCELERATION);
+            break;
+    }
+
+    m_sys.suggest_stepSize_UU(1e-4);
+
+    // Mesh values
+    vector<string> mesh_filenames;
+    string mesh_filename;
+
+    vector<float3> mesh_scalings;
+    float3 scaling;
+    scaling.x = 15;
+    scaling.y = 15;
+    scaling.z = 10;
+
+    switch (test) {
+        case SINGLE_ON_VERTEX:
+        case SINGLE_TO_CORNER:
+        case MULTI_TO_CORNER:
+            mesh_filename = string("square_box.obj");
+            break;
+
+        case SINGLE_TO_INV_CORNER:
+            mesh_filename = string("box_inverted_corner.obj");
+            break;
+    }
+
+    mesh_scalings.push_back(scaling);
+    mesh_filenames.push_back(mesh_filename);
     m_sys.load_meshes(mesh_filenames, mesh_scalings);
 
     /// output preferences
