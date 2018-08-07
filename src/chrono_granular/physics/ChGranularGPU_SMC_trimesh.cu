@@ -214,12 +214,11 @@ __device__ void block_sum_shfl(T var, unsigned int blocksize, T* dest) {
 
 // Reset velocity update data structures
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::resetTriangleBroadphaseInformation() {
-    gpuErrchk(cudaMemset(SD_countsOfTrianglesTouching.data(), 0, SD_countsOfTrianglesTouching.size() * sizeof(float)));
+    gpuErrchk(cudaMemset(SD_isTouchingTriangle.data(), 0, SD_isTouchingTriangle.size() * sizeof(unsigned int)));
     gpuErrchk(cudaMemset(BUCKET_countsOfTrianglesTouching.data(), 0,
-                         BUCKET_countsOfTrianglesTouching.size() * sizeof(float)));
-    gpuErrchk(
-        cudaMemset(triangles_in_BUCKET_composite.data(), 0, triangles_in_BUCKET_composite.size() * sizeof(float)));
-    gpuErrchk(cudaMemset(SD_countsOfTrianglesTouching.data(), 0, SD_countsOfTrianglesTouching.size() * sizeof(float)));
+                         BUCKET_countsOfTrianglesTouching.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(triangles_in_BUCKET_composite.data(), 0,
+                         triangles_in_BUCKET_composite.size() * sizeof(unsigned int)));
 }
 
 /**
@@ -234,8 +233,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::resetTriangleBroadph
  *   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
  *
  * Arguments:
- * SD_countsOfTrianglesTouching - array that for each SD indicates how many triangles touch this SD
- * triangles_in_SD_composite - big array that works in conjunction with SD_countsOfTrianglesTouching.
+ * SD_isTouchingTriangle - array that for each SD indicates how many triangles touch this SD
  *
  * Assumptions:
  *   - The size of the SD for the granular material and for the mesh is the same.
@@ -254,8 +252,8 @@ __global__ void triangleSoupBroadPhase(
     unsigned int*
         triangles_in_BUCKET_composite,  //!< Big array that works in conjunction with BUCKET_countsOfTrianglesTouching.
                                         //!< "triangles_in_BUCKET_composite" says which BKT contains what triangles.
-    unsigned int* SD_countsOfTrianglesTouching,  //!< If SD 629 has any triangle touching it, then
-                                                 //!< SD_countsOfTrianglesTouching[629]>0.
+    unsigned int* SD_isTouchingTriangle,  //!< If SD 629 has any triangle touching it, then
+                                          //!< SD_isTouchingTriangle[629]>0.
     ParamsPtr gran_params,
     MeshParamsPtr mesh_params) {
     /// Set aside shared memory
@@ -296,10 +294,33 @@ __global__ void triangleSoupBroadPhase(
             BKTsTouched[i] = hashmapBKTid(SDsTouched[i]) % TRIANGLEBUCKET_COUNT;
         }
     }
+    // Earmark SDs that are touched by at least one triangle. This step is needed since when computing the
+    // mesh-GrMat interaction we only want to do narrow phase on an SD that actually is touched by triangles. Keep
+    // in mind that several SDs deposit their triangles in the same bucket. As such, later on during narrow phase/force
+    // computation, if an SD looks for a bucket and sees triangles in there, if we know that this SD is touching zero
+    // triangles then that SD is not going to do narrow phase on the triangles in that bucket since these triangles
+    // actually are associated with other SDs that happen to deposit their triangles in this same bucket.
+    // TODO why are we sorting this? also we can't use this storage like that, it's for a key-value sort
+    BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, triangleIDs);
+    __syncthreads();
 
+    // Do a winningStreak search on whole block, might not have high utilization here
+    bool head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE];
+    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
+    __syncthreads();
+
+    // If a thread is associated with a legit discontinuity; i.e., not one associated with NULL_GRANULAR_ID, it should
+    // flag that SD as being touched by a triangle
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
-        if (SDsTouched[i] != NULL_GRANULAR_ID) {
-            atomicAdd(SD_countsOfTrianglesTouching + SDsTouched[i], 1);
+        if (head_flags[i] && SDsTouched[i] != NULL_GRANULAR_ID) {
+            atomicAdd(SD_isTouchingTriangle + SDsTouched[i], 1);  // Mark that this SD is touched
+        }
+    }
+
+    // Restore triangleIDS
+    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
+        if (BKTsTouched[i] != NULL_GRANULAR_ID) {
+            triangleIDs[i] = myTriangleID;
         }
     }
 
@@ -309,7 +330,6 @@ __global__ void triangleSoupBroadPhase(
     __syncthreads();
 
     // Prep work that allows later on to do a winningStreak search on whole block
-    bool head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE];
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, BKTsTouched, cub::Inequality());
     __syncthreads();
 
@@ -410,15 +430,13 @@ __global__ void interactionTerrain_TriangleSoup(
     float* d_sphere_pos_Y_dt_update,
     float* d_sphere_pos_Z_dt_update,
     unsigned int* BKT_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
-    unsigned int*
-        triangles_in_BKT_composite,  //!< Big array that works in conjunction with SD_countsOfTrianglesTouching.
-                                     //!< "triangles_in_SD_composite" says which SD contains what triangles.
+    unsigned int* triangles_in_BKT_composite,     //!< Big array that works in conjunction with SD_isTouchingTriangle.
     unsigned int*
         SD_countsOfGrElemsTouching,         //!< Array that for each SD indicates how many grain elements touch this SD
     unsigned int* grElems_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
                                             //!< "grElems_in_SD_composite" says which SD contains what grElements.
-    unsigned int* SD_countsOfTrianglesTouching,  //!< The length of this array is equal to number of SDs. If SD 423 is
-                                                 //!< touched by any triangle, then SD_countsOfTrianglesTouching[423]>0.
+    unsigned int* SD_isTouchingTriangle,    //!< The length of this array is equal to number of SDs. If SD 423 is
+                                            //!< touched by any triangle, then SD_isTouchingTriangle[423]>0.
 
     ParamsPtr gran_params,
     MeshParamsPtr mesh_params) {
@@ -453,8 +471,7 @@ __global__ void interactionTerrain_TriangleSoup(
     // define an alias first
 #define thisSD blockIdx.x
 
-    unsigned int nSD_triangles = SD_countsOfTrianglesTouching[thisSD];
-    if (nSD_triangles == 0) {
+    if (SD_isTouchingTriangle[thisSD] == 0) {
         return;  // no triangle touches this SD; return right away
     }
     unsigned int nSD_spheres = SD_countsOfGrElemsTouching[thisSD];
@@ -641,7 +658,6 @@ __global__ void interactionTerrain_TriangleSoup(
                         float bodyA_Z_velCorr = springTermZ + dampingTermZ;
 
                         // TODO: Use the CD information to compute the force and torque on the family of this triangle
-
                         forceActingOnSphere[0] += bodyA_X_velCorr;
                         forceActingOnSphere[1] += bodyA_Y_velCorr;
                         forceActingOnSphere[2] += bodyA_Z_velCorr;
@@ -820,7 +836,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_t
     tri_params->d_Kn_s2m_SU = K_n_s2m_SU;
     tri_params->d_Gamma_n_s2m_SU = Gamma_n_s2m_SU;
 
-    SD_countsOfTrianglesTouching.resize(nSDs);
+    SD_isTouchingTriangle.resize(nSDs);
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
@@ -898,7 +914,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
             triangleSoupBroadPhase<CUDA_THREADS>
                 <<<(meshSoup_DEVICE->nTrianglesInSoup + CUDA_THREADS - 1) / CUDA_THREADS, CUDA_THREADS>>>(
                     meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
-                    SD_countsOfTrianglesTouching.data(), gran_params, tri_params);
+                    SD_isTouchingTriangle.data(), gran_params, tri_params);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -910,8 +926,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
                 stepSize_SU, meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
                 pos_Y_dt.data(), pos_Z_dt.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
                 pos_Z_dt_update.data(), BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
-                SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), SD_countsOfTrianglesTouching.data(),
-                gran_params, tri_params);
+                SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), SD_isTouchingTriangle.data(), gran_params,
+                tri_params);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

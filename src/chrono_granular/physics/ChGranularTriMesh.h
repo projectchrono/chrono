@@ -124,7 +124,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     std::vector<unsigned int, cudallocator<unsigned int>> BUCKET_countsOfTrianglesTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_BUCKET_composite;
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_countsOfTrianglesTouching;
+    std::vector<unsigned int, cudallocator<unsigned int>>
+        SD_isTouchingTriangle;  // Entry is nonzero if the corresponding SD is touched by at least one triangle
 
     // Function members
     void copy_triangle_data_to_device();
