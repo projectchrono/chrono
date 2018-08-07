@@ -297,25 +297,8 @@ __global__ void triangleSoupBroadPhase(
         }
     }
 
-    // Earmark SDs that are touched by at least one triangle. This step is needed since when computing the
-    // mesh-GrMat interaction we only want to do narrow phase on an SD that actually is touched by triangles. Keep
-    // in mind that several SDs deposit their triangles in the same bucket. As such, later on during narrow phase/force
-    // computation, if an SD looks for a bucket and sees triangles in there, if we know that this SD is touching zero
-    // triangles then that SD is not going to do narrow phase on the triangles in that bucket since these triangles
-    // actually are associated with other SDs that happen to deposit their triangles in this same bucket.
-    // TODO why are we sorting this? also we can't use this storage like that, it's for a key-value sort
-    BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, triangleIDs);
-    __syncthreads();
-
-    // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE];
-    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
-    __syncthreads();
-
-    // If a thread is associated with a legit discontinuity; i.e., not one associated with NULL_GRANULAR_ID, it should
-    // flag that SD as being touched by a triangle
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
-        if (head_flags[i] && (SDsTouched[i] != NULL_GRANULAR_ID)) {
+        if (SDsTouched[i] != NULL_GRANULAR_ID) {
             atomicAdd(SD_countsOfTrianglesTouching + SDsTouched[i], 1);
         }
     }
@@ -326,6 +309,7 @@ __global__ void triangleSoupBroadPhase(
     __syncthreads();
 
     // Prep work that allows later on to do a winningStreak search on whole block
+    bool head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE];
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, BKTsTouched, cub::Inequality());
     __syncthreads();
 
@@ -640,9 +624,9 @@ __global__ void interactionTerrain_TriangleSoup(
                         penetration = penetrationNorm - 1.;
 
                         // Compute force updates for spring term
-                        float springTermX = scalingFactor * deltaX * sphdiameter * penetration;
-                        float springTermY = scalingFactor * deltaY * sphdiameter * penetration;
-                        float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration;
+                        float springTermX = scalingFactor * deltaX * sphdiameter;
+                        float springTermY = scalingFactor * deltaY * sphdiameter;
+                        float springTermZ = scalingFactor * deltaZ * sphdiameter;
 
                         // TODO Compute force updates for damping term correctly
                         float dampingTermX = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaX_dot;

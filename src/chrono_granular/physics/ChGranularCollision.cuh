@@ -11,7 +11,7 @@
 //
 // Contains collision helper functions from ChNarrowphaseR
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly
+// Authors: Dan Negrut, Conlain Kelly, Nic Olsen
 // =============================================================================
 
 #pragma once
@@ -127,9 +127,9 @@ __device__ bool face_sphere_cd(const double3& A1,      //!< First vertex of the 
     // or if the sphere center is below the plane, there is no contact.
     double h = Dot(pos2 - A1, nrm1);
 
-    if (h >= radius2 || h <= 0.f)
+    if (h >= radius2) {  // TODO adapt for always going with the normal
         return false;
-
+    }
     // Find the closest point on the face to the sphere center and determine
     // whether or not this location is inside the face or on an edge.
     double3 faceLoc;
@@ -145,9 +145,9 @@ __device__ bool face_sphere_cd(const double3& A1,      //!< First vertex of the 
         double3 delta = pos2 - faceLoc;
         double dist2 = Dot(delta, delta);
 
-        if (dist2 >= radius2 * radius2 || dist2 <= 1e-12f)
+        if (dist2 >= radius2 * radius2 || dist2 <= 1e-12f) {
             return false;
-
+        }
         double dist = sqrt(dist2);
         norm = delta / dist;
         depth = dist - radius2;

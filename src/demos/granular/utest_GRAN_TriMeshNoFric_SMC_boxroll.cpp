@@ -242,9 +242,9 @@ int main(int argc, char* argv[]) {
 
     vector<float3> mesh_scalings;
     float3 scaling;
-    scaling.x = 6;
-    scaling.y = 6;
-    scaling.z = 2;
+    scaling.x = 4;
+    scaling.y = 4;
+    scaling.z = 4;
     mesh_scalings.push_back(scaling);
 
     // Some of the default values might be overwritten by user via command line
@@ -260,12 +260,24 @@ int main(int argc, char* argv[]) {
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-0.2f, -0.2f, 0.f, 0.f, 0.f, -0.2f);
+
+    std::vector<ChVector<float>> pos;
+    pos.push_back(ChVector<float>(-1.1f, 1.1f, ballRadius));
+    // float eps = 2.01;
+    // for (float x = -4.f + ballRadius * eps; x < 4.f - ballRadius; x += ballRadius * eps) {
+    //     for (float y = -4.f + ballRadius * eps; y < 4.f - ballRadius; y += ballRadius * eps) {
+    //         for (float z = 0.f + ballRadius; z < 6.f; z += ballRadius * eps) {
+    //             pos.push_back(ChVector<float>(x, y, z));
+    //         }
+    //     }
+    // }
+    m_sys.setParticlePositions(pos);
+
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_YoungModulus_SPH2MESH(normStiffness_MSH2S);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
-    m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
+    m_sys.set_gravitational_acceleration(400.f, -400.f, -GRAV_ACCELERATION);  // pull ball to the corner of the box
     m_sys.suggest_stepSize_UU(1e-5);
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings);
@@ -282,7 +294,7 @@ int main(int argc, char* argv[]) {
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
 
     m_sys.initialize();
-    int currframe = 0;
+    unsigned int currframe = 0;
 
     // Uncomment the following to test loading of a mesh
     // int fakeframe = 0;
@@ -306,21 +318,21 @@ int main(int argc, char* argv[]) {
     // Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < timeEnd; t += iteration_step) {
         // Generate next tire location and orientation
-        meshSoupLocOri[0] = 0;  // Keep wheel centered in X and Y
+        meshSoupLocOri[0] = 0;
         meshSoupLocOri[1] = 0;
-        meshSoupLocOri[2] = -4.0;  // Right under the single particle
-        meshSoupLocOri[3] = 1;     // No rotation in this demo
+        meshSoupLocOri[2] = 0;
+        meshSoupLocOri[3] = 1;  // No rotation in this demo
         meshSoupLocOri[4] = 0;
         meshSoupLocOri[5] = 0;
         meshSoupLocOri[6] = 0;
 
         m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
-		printf("rendering frame %u\n", currframe);
-		char filename[100];
-		sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
-		m_sys.writeFileUU(string(filename));
-		m_sys.write_meshes(string(filename));
-		
+        printf("rendering frame %u\n", currframe);
+        char filename[100];
+        sprintf(filename, "%s/step%06u", output_prefix.c_str(), currframe++);
+        m_sys.writeFileUU(string(filename));
+        m_sys.write_meshes(string(filename));
+
         m_sys.advance_simulation(iteration_step);
     }
 
