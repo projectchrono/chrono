@@ -210,3 +210,19 @@ Running settling test!
 50 thousand bodies took 2.44682 seconds!
 500 thousand bodies took 16.4265 seconds!
 1 million bodies took 34.4685 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 13 Aug 2018 13:40:07 -0500
+commit 1aa49f832c69221303e6f7bbc066670549681043 Author: Nicholas <nicholas.olsen@wisc.edu> Date: Tue Aug 7 16:33:24 2018 -0500 Adds test options to mesh unit test
+Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 13 Aug 2018 13:40:31 -0500
+commit b4a6bcf7f8deb62faaa40bae457d58a1ee9f2be8 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Aug 13 13:40:31 2018 -0500 cleanup granular cmakelists
+Results:
+Running wavetank test!
+50 thousand bodies took 2.88634 seconds!
+500 thousand bodies took 21.8905 seconds!
+1 million bodies took 44.6597 seconds!
+Running settling test!
+50 thousand bodies took 2.94631 seconds!
+500 thousand bodies took 20.862 seconds!
+1 million bodies took 44.7035 seconds!

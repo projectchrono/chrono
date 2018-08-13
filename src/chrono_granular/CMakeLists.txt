@@ -8,30 +8,11 @@
 option(ENABLE_MODULE_GRANULAR "Enable the Chrono Granular module" OFF)
 
 # Return now if this module is not enabled
-
 if(NOT ENABLE_MODULE_GRANULAR)
-  mark_as_advanced(FORCE BLAZE_DIR)
-  mark_as_advanced(FORCE USE_GRANULAR_SIMD)
-
-  # GCC > 4.9 does not support CUDA (<= 8.0) by default.
-  # Users may explicitly select CUDA support if they are sure that their compiler
-  # does make use of any conflicting features, such as C++14.
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
-      message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION} does not support USE_GRANULAR_CUDA by default")
-      set(USE_GRANULAR_CUDA OFF)
-      mark_as_advanced(FORCE USE_GRANULAR_CUDA)
-    endif()
-  endif()
-
   return()
 endif()
 
 message(STATUS "==== Chrono Granular module ====")
-
-mark_as_advanced(CLEAR BLAZE_DIR)
-mark_as_advanced(CLEAR USE_GRANULAR_SIMD)
-mark_as_advanced(CLEAR USE_GRANULAR_CUDA)
 
 # ------------------------------------------------------------------------------
 # Additional compiler flags
@@ -47,92 +28,28 @@ set(CH_GRANULAR_C_FLAGS "")
 # ----- CUDA support -----
 find_package(CUDA QUIET REQUIRED)
 
-#cmake_dependent_option(USE_GRANULAR_CUDA "Enable CUDA support in Chrono::Granular" ON "CUDA_FOUND" OFF)
-option(USE_GRANULAR_CUDA "Enable CUDA support in Chrono::Granular" ON)
-
-SET(USE_GRANULAR_CUDA ON)
-
-message( "Dan Flags are " ${CUDA_NVCC_FLAGS})
-IF(USE_GRANULAR_CUDA)
-  SET(CUDA_SEPARABLE_COMPILATION ON)
-message ( ${CMAKE_SYSTEM_NAME} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} )
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
-  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+SET(CUDA_SEPARABLE_COMPILATION OFF)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    SET(CUDA_SEPARABLE_COMPILATION ON)
+    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     IF(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
       IF(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
-        SET(CUDA_SEPARABLE_COMPILATION OFF)
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std c++11)
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11)
+        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std c++14)
+        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -std=c++14)
         SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
+      ELSE()
+        message(FATAL_ERROR "Using GCC version:  ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
       ENDIF()
     ENDIF()
     SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
-  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
-  ENDIF()
-
-  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_35,code=sm_35)
-  message( "Dan 2 Flags are " ${CUDA_NVCC_FLAGS})
-  #INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
-  #SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
-  #LIST(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
-  message( "Dan 3 Flags are " ${CUDA_NVCC_FLAGS})
-
-  SET(CHRONO_GRANULAR_USE_CUDA "#define CHRONO_GRANULAR_USE_CUDA")
-ELSE()
-  SET(CHRONO_GRANULAR_USE_CUDA "#undef CHRONO_GRANULAR_USE_CUDA")
+    ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    message(FATAL_ERROR "macOS is not supported!")
 ENDIF()
 
-# ----- SIMD (SSE or AVX) support -----
-
-#cmake_dependent_option(USE_GRANULAR_SIMD "Enable SIMD support in Chrono::Granular (if available)" ON "CHRONO_HAS_AVX" OFF)
-option(USE_GRANULAR_SIMD "Enable SIMD support in Chrono::Granular (if available)" OFF)
-
-if(USE_GRANULAR_SIMD)
-  set(CHRONO_GRANULAR_USE_SIMD "#define CHRONO_GRANULAR_USE_SIMD")
-endif()
-
-
-# ----- Thrust library -----
-
-find_package(Thrust)
-
-# ----- Blaze library -----
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "C:/Program\ Files\ \(x86\)" "C:/Program\ Files")
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
-ENDIF()
-
-# ----- Configure Blaze and Thrust -----
-
-IF(ENABLE_OPENMP)
-  add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
-  add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP)
-ELSEIF(ENABLE_TBB)
-  add_definitions(-DBLAZE_USE_CPP_THREADS)
-  add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_TBB)
-  add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_TBB)
-ELSE()
-  add_definitions(-DBLAZE_USE_CPP_THREADS)
-  add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP)
-  add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP)
-ENDIF()
-
-# ----- BOOST -- required for Blaze -----
-
-set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
-find_package(Boost REQUIRED)
-
-if (Boost_FOUND)
-  message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
-else()
-  mark_as_advanced(CLEAR BOOST_ROOT)
-endif()
+SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_35,code=sm_35)
+message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
@@ -154,11 +71,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_granular/ChConfigGranular.h"
 # Collect all additional include directories necessary for the GRANULAR module
 # ------------------------------------------------------------------------------
 
-SET(CH_GRANULAR_INCLUDES
-    ${BLAZE_DIR}
-    ${Boost_INCLUDE_DIRS}
-    ${THRUST_INCLUDE_DIR}
-)
+SET(CH_GRANULAR_INCLUDES ${CUDA_INCLUDE_DIRS})
 
 INCLUDE_DIRECTORIES(${CH_GRANULAR_INCLUDES})
 
@@ -217,7 +130,7 @@ CUDA_ADD_LIBRARY(ChronoEngine_granular SHARED
             ${ChronoEngine_Granular_PHYSICS}
             ${ChronoEngine_Granular_CUDA}
             )
-SET(CHRONO_GRANULAR_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
+SET(CHRONO_GRANULAR_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
 
 SET_TARGET_PROPERTIES(ChronoEngine_granular PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
@@ -234,11 +147,9 @@ INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_granular
         FILES_MATCHING PATTERN "*.h")
 
-IF(USE_GRANULAR_CUDA)
-  INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-          DESTINATION include/chrono_granular
-          FILES_MATCHING PATTERN "*.cuh")
-ENDIF()
+INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+      DESTINATION include/chrono_granular
+      FILES_MATCHING PATTERN "*.cuh")
 
 mark_as_advanced(FORCE
     CUDA_BUILD_CUBIN
@@ -247,5 +158,3 @@ mark_as_advanced(FORCE
     CUDA_SDK_ROOT_DIR
     CUDA_VERBOSE_BUILD
     CUDA_HOST_COMPILER)
-
-message( "Flags are " ${CUDA_NVCC_FLAGS})
