@@ -34,6 +34,17 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     SET(CUDA_SEPARABLE_COMPILATION ON)
     SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  
+    GET_PROPERTY(GRAN_CMAKE_BUILD_TYPE GLOBAL PROPERTY CMAKE_BUILD_TYPE)
+
+    SET(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -Xcompiler -g)
+    SET(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xcompiler -DNDEBUG)
+    SET(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
+    SET(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
+    message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+    message(STATUS "rel flags are" ${CUDA_NVCC_FLAGS_RELEASE})
+    
+    
     IF(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
       IF(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
         SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std c++14)
@@ -50,6 +61,8 @@ ENDIF()
 
 SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_35,code=sm_35)
 message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+
+
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
