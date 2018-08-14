@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
     // Finalize settings and initialize for runtime
     settlingExperiment.initialize();
 
-    int fps = 100;
+    int fps = 50;
     // assume we run for at least one frame
     float frame_step = 1.0f / fps;
     float curr_time = 0;

@@ -250,3 +250,15 @@ Running settling test!
 50 thousand bodies took 2.14155 seconds!
 500 thousand bodies took 13.7708 seconds!
 1 million bodies took 29.5196 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 14 Aug 2018 16:00:36 -0500
+commit 9a6111521fb52a8e412b03e8c233514d593ef281 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Aug 14 16:00:36 2018 -0500 change fps for box sim, why did I push 100
+Results:
+Running wavetank test!
+50 thousand bodies took 2.19621 seconds!
+500 thousand bodies took 13.6646 seconds!
+1 million bodies took 28.6438 seconds!
+Running settling test!
+50 thousand bodies took 2.07246 seconds!
+500 thousand bodies took 14.0861 seconds!
+1 million bodies took 29.0623 seconds!
