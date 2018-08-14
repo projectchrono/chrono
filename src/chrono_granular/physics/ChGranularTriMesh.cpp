@@ -207,6 +207,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
     }
+
     printf("Done allocating nodes for %d triangles\n", nTriangles);
 
     // Setup the clean copy of the mesh soup from the obj file data
@@ -258,6 +259,8 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     meshSoup_DEVICE->nFamiliesInSoup = family;
 
     if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->generalizedForcesPerFamily,
+                                    6 * meshSoup_DEVICE->nFamiliesInSoup * sizeof(float), cudaMemAttachGlobal));
         // Allocate memory for the float and double frames
         gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_broad,
                                     meshSoup_DEVICE->nFamiliesInSoup * sizeof(ChFamilyFrame<float>),

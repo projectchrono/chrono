@@ -633,6 +633,12 @@ __global__ void interactionTerrain_TriangleSoup(
                         float deltaY_dot = sphere_Y_DOT[sphere_Local_ID];
                         float deltaZ_dot = sphere_Z_DOT[sphere_Local_ID];
 
+                        float projection = deltaX_dot * norm.x + deltaY_dot * norm.y + deltaZ_dot * norm.z;
+
+                        float deltaX_dot_n = projection * norm.x;
+                        float deltaY_dot_n = projection * norm.y;
+                        float deltaZ_dot_n = projection * norm.z;
+
                         double penetration = deltaX * deltaX;
                         penetration += deltaY * deltaY;
                         penetration += deltaZ * deltaZ;
@@ -645,17 +651,17 @@ __global__ void interactionTerrain_TriangleSoup(
                         float springTermY = scalingFactor * deltaY * sphdiameter;
                         float springTermZ = scalingFactor * deltaZ * sphdiameter;
 
-                        // TODO Compute force updates for damping term correctly - should include penetration?
-                        float dampingTermX = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaX_dot;
-                        float dampingTermY = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaY_dot;
-                        float dampingTermZ = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaZ_dot;
+                        // TODO Compute force updates for damping term correctly - should include penetration? units?
+                        float dampingTermX = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaX_dot_n;
+                        float dampingTermY = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaY_dot_n;
+                        float dampingTermZ = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaZ_dot_n;
 
                         // TODO Compute force updates for cohesion term, is opposite the spring term
 
                         // TODO sum contributing forces
-                        float bodyA_X_velCorr = springTermX;  // + dampingTermX;
-                        float bodyA_Y_velCorr = springTermY;  // + dampingTermY;
-                        float bodyA_Z_velCorr = springTermZ;  // + dampingTermZ;
+                        float bodyA_X_velCorr = springTermX + dampingTermX;
+                        float bodyA_Y_velCorr = springTermY + dampingTermY;
+                        float bodyA_Z_velCorr = springTermZ + dampingTermZ;
 
                         // TODO: Use the CD information to compute the force and torque on the family of this triangle
                         forceActingOnSphere[0] += bodyA_X_velCorr;
