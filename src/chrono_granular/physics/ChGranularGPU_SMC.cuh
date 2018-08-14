@@ -565,6 +565,9 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
     unsigned mySphereID;
     unsigned char bodyB_list[12];
     unsigned int ncontacts = 0;
+    if (spheresTouchingThisSD == 0) {
+        return;  // no spheres here, move along
+    }
 
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
@@ -651,7 +654,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
         // amount of doubles will certainly speed this up
         // Run through and do actual force computations, for these we know each one is a legit collision
         for (unsigned int idx = 0; idx < ncontacts; idx++) {
-            double penetration = 0;
+            // distance between sphere centers divided by sphere diameter
+            double distance_normalized = 0;
 
             // unsigned int theirSphID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
             // Don't check for collision with self
@@ -669,9 +673,9 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
             float deltaY_dot = sphere_Y_DOT[bodyA] - sphere_Y_DOT[bodyB];
             float deltaZ_dot = sphere_Z_DOT[bodyA] - sphere_Z_DOT[bodyB];
 
-            penetration = deltaX * deltaX;
-            penetration += deltaY * deltaY;
-            penetration += deltaZ * deltaZ;
+            distance_normalized = deltaX * deltaX;
+            distance_normalized += deltaY * deltaY;
+            distance_normalized += deltaZ * deltaZ;
             // We now have
 
             // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA
@@ -681,8 +685,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
 
             // Compute penetration term, this becomes the delta as we want it
             // Makes more sense to find rsqrt, the compiler is doing this anyways
-            float penetrationNorm = rsqrt(penetration);
-            penetration = penetrationNorm - 1.;
+            float reciplength = rsqrt(distance_normalized);
+            float penetration = reciplength - 1.;
 
             // Compute nondim force term
 
@@ -700,9 +704,9 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
             float cohesionConstant = gran_params->gravAcc_Z_d_factor_SU * gran_params->d_cohesion_ratio;
 
             // Compute force updates for cohesion term, is opposite the spring term
-            float cohesionTermX = cohesionConstant * deltaX / penetrationNorm;
-            float cohesionTermY = cohesionConstant * deltaY / penetrationNorm;
-            float cohesionTermZ = cohesionConstant * deltaZ / penetrationNorm;
+            float cohesionTermX = cohesionConstant * deltaX * reciplength;
+            float cohesionTermY = cohesionConstant * deltaY * reciplength;
+            float cohesionTermZ = cohesionConstant * deltaZ * reciplength;
 
             // Add damping term to spring term, write back to counter
             bodyA_X_velCorr += springTermX + dampingTermX + cohesionTermX;
