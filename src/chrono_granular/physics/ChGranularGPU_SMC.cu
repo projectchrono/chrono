@@ -345,6 +345,40 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
     VERBOSE_PRINTF("defrag finished!\n");
 }
 
+__global__ void generate_absv(const unsigned int nDEs,
+                              const float* velX,
+                              const float* velY,
+                              const float* velZ,
+                              float* d_absv) {
+    unsigned int my_sphere = blockIdx.x * blockDim.x + threadIdx.x;
+    if (my_sphere < nDEs) {
+        float v[3] = {velX[my_sphere], velY[my_sphere], velZ[my_sphere]};
+        d_absv[my_sphere] = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
+    }
+}
+
+__host__ float ChSystemGranular::get_max_vel(const float* velX, const float* velY, const float* velZ) {
+    float* d_absv;
+    float* d_max_vel;
+    float h_max_vel;
+    gpuErrchk(cudaMalloc(&d_absv, nDEs * sizeof(float)));
+    gpuErrchk(cudaMalloc(&d_max_vel, sizeof(float)));
+
+    generate_absv<<<(nDEs + 255) / 256, 256>>>(nDEs, d_absv);
+
+    void* d_temp_storage = NULL;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel);
+    gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel);
+    gpuErrchk(cudaMemcpy(&h_max_vel, d_max_vel, sizeof(float), cudaMemcpyDeviceToHost));
+
+    gpuErrchk(cudaFree(d_absv));
+    gpuErrchk(cudaFree(d_max_vel));
+
+    return h_max_vel;
+}
+
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
 
@@ -401,15 +435,6 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
             pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
-        // gpuErrchk(cudaPeekAtLastError());
-        // gpuErrchk(cudaDeviceSynchronize());
-        //
-        // VERBOSE_PRINTF("Starting applyVelocityUpdates!\n");
-        // // Apply the updates we just made
-        // applyVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-        //     stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-        //     pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-        //     pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

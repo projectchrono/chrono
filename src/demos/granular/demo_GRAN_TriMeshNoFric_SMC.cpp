@@ -201,7 +201,7 @@ bool GetProblemSpecs(int argc,
 
 // Remains still for still_time and then begins to move up at Z_vel
 double pos_func_Z(double t, float boxH) {
-    double still_time = 3;
+    double still_time = 2;
     double Z_vel = 10;
     if (t < still_time) {
         return -boxH / 4;
@@ -248,13 +248,13 @@ int main(int argc, char* argv[]) {
 
     // Mesh values
     std::vector<std::string> mesh_filenames;
-    std::string mesh_filename = std::string("square_box.obj");
+    std::string mesh_filename = std::string("sphere_fine.obj");
 
     std::vector<float3> mesh_scalings;
     float3 scaling;
-    scaling.x = 2.5;
-    scaling.y = 2.5;
-    scaling.z = 1;
+    scaling.x = 8;
+    scaling.y = 8;
+    scaling.z = 8;
     mesh_scalings.push_back(scaling);
 
     // Some of the default values might be overwritten by user via command line
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
     m_sys.setBOXdims(boxL, boxD, boxH);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-0.1f, -0.1f, -0.4f, 0.1f, 0.1f, -0.2f);
+    m_sys.setFillBounds(-1.f, -1.f, 0.f, 1.f, 1.f, 1.f);
     m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     m_sys.set_YoungModulus_SPH2MESH(normStiffness_MSH2S);
@@ -316,7 +316,7 @@ int main(int argc, char* argv[]) {
     // Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < timeEnd; t += iteration_step) {
         // Generate next tire location and orientation
-        meshSoupLocOri[0] = 0;  // Keep wheel centered in X and Y
+        meshSoupLocOri[0] = 0.00001;  // Keep wheel centered in X and Y
         meshSoupLocOri[1] = 0;
         meshSoupLocOri[2] = pos_func_Z(t, boxH);  // Get next position and orientation from the prescribed function
         meshSoupLocOri[3] = 1;                    // No rotation in this demo

@@ -570,9 +570,9 @@ __global__ void interactionTerrain_TriangleSoup(
                 if (targetTriangle < nBKT_triangles) {
                     /// we have a valid sphere and a valid triganle; check if in contact
                     double3 norm;
-                    double depth;
                     double3 pt1;
                     double3 pt2;
+                    double depth;
 
                     // Transform vertices into GRF SU
                     double3 A, B, C;  // vertices of the triangle

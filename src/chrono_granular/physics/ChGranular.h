@@ -101,17 +101,18 @@ class CH_GRANULAR_API ChSystemGranular {
     }
 
     /// Set the output mode of the simulation
-    virtual void setOutputMode(GRN_OUTPUT_MODE mode) { file_write_mode = mode; }
+    void setOutputMode(GRN_OUTPUT_MODE mode) { file_write_mode = mode; }
     /// Set the simulation's output directory, files are output as step%06d, where the number is replaced by the current
     /// render frame. This directory is assumed to be created by the user, either manually or in the driver file.
-    virtual void setOutputDirectory(std::string dir) { output_directory = dir; }
+    void setOutputDirectory(std::string dir) { output_directory = dir; }
 
-    virtual void setVerbose(bool is_verbose) { verbose_runtime = is_verbose; }
+    void setVerbose(bool is_verbose) { verbose_runtime = is_verbose; }
     /// Initialize simulation so that it can be advanced
     virtual void initialize() = 0;
 
     /// allows the user to request a step size, will find the closest SU size to it
     virtual void suggest_stepSize_UU(float size_UU) { suggested_step_UU = size_UU; }
+    float get_max_vel(const float* velX, const float* velY, const float* velZ);
 
   protected:
     /// holds the sphere and BD-related params in unified memory
