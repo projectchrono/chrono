@@ -55,31 +55,27 @@ class CH_GRANULAR_API ChSystemGranular {
         // TODO we need to get the damping coefficient from user
         float Gamma_n_s2s_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
 
-        float d_Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
-        float d_Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
+        float Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
+        float Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
 
-        unsigned int d_sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
-        unsigned int d_SD_Ldim_SU;       //!< L-dimension of the SD box, expressed in SU
-        unsigned int d_SD_Ddim_SU;       //!< D-dimension of the SD box, expressed in SU
-        unsigned int d_SD_Hdim_SU;       //!< H-dimension of the SD box, expressed in SU
-        unsigned int psi_T_dFactor;      //!< factor used in establishing the software-time-unit
-        unsigned int psi_h_dFactor;      //!< factor used in establishing the software-time-unit
-        unsigned int psi_L_dFactor;      //!< factor used in establishing the software-time-unit
-        unsigned int d_box_L;            //!< L-dimension of the BD box in multiples of subdomains, expressed in SU
-        unsigned int d_box_D;            //!< D-dimension of the BD box in multiples of subdomains, expressed in SU
-        unsigned int d_box_H;            //!< H-dimension of the BD box in multiples of subdomains, expressed in SU
-        float gravAcc_X_d_factor_SU;     //!< Device counterpart of the constant gravity_X_SU
-        float gravAcc_Y_d_factor_SU;     //!< Device counterpart of the constant gravity_Y_SU
-        float gravAcc_Z_d_factor_SU;     //!< Device counterpart of the constant gravity_Z_SU
+        unsigned int sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
+        unsigned int SD_size_X_SU;       //!< X-dimension of the SD box, expressed in SU
+        unsigned int SD_size_Y_SU;       //!< Y-dimension of the SD box, expressed in SU
+        unsigned int SD_size_Z_SU;       //!< Z-dimension of the SD box, expressed in SU
+        unsigned int nSDs_X;             //!< X-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int nSDs_Y;             //!< Y-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int nSDs_Z;             //!< Z-dimension of the BD box in multiples of subdomains, expressed in SU
+        float gravAcc_X_SU;     //!< Device counterpart of the constant gravity_X_SU
+        float gravAcc_Y_SU;     //!< Device counterpart of the constant gravity_Y_SU
+        float gravAcc_Z_SU;     //!< Device counterpart of the constant gravity_Z_SU
 
         // Changed by updateBDPosition() at every timestep
-        int d_BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-        int d_BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-        int d_BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
+        int BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
+        int BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
+        int BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
-        double d_DE_Mass;
         /// Ratio of cohesion force to gravity
-        float d_cohesion_ratio;
+        float cohesion_ratio;
 
         double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
         double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
@@ -250,13 +246,13 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 
     unsigned int sphereRadius_SU;  //!< Size of the sphere radius, in Simulation Units
 
-    unsigned int SD_L_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
-    unsigned int SD_D_SU;  //!< Size of the SD in the D direction (expressed in Simulation Units)
-    unsigned int SD_H_SU;  //!< Size of the SD in the H direction (expressed in Simulation Units)
+    unsigned int SD_size_X_SU;  //!< Size of the SD in the L direction (expressed in Simulation Units)
+    unsigned int SD_size_Y_SU;  //!< Size of the SD in the D direction (expressed in Simulation Units)
+    unsigned int SD_size_Z_SU;  //!< Size of the SD in the H direction (expressed in Simulation Units)
 
-    unsigned int nSDs_L;  //!< Number of SDs along the L dimension of the box
-    unsigned int nSDs_D;  //!< Number of SDs along the D dimension of the box
-    unsigned int nSDs_H;  //!< Number of SDs along the H dimension of the box
+    unsigned int nSDs_X;  //!< Number of SDs along the L dimension of the box
+    unsigned int nSDs_Y;  //!< Number of SDs along the D dimension of the box
+    unsigned int nSDs_Z;  //!< Number of SDs along the H dimension of the box
 
     /// Store the prescribed position function for the BD, used for wavetank-y stuff
     // Default is at rest

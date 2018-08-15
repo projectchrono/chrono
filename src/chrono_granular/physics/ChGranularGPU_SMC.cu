@@ -20,39 +20,34 @@ namespace granular {
 /// Copy constant sphere data to device, this should run at start
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
-    gran_params->d_SD_Ldim_SU = SD_L_SU;
-    gran_params->d_SD_Ddim_SU = SD_D_SU;
-    gran_params->d_SD_Hdim_SU = SD_H_SU;
+    gran_params->SD_size_X_SU = SD_size_X_SU;
+    gran_params->SD_size_Y_SU = SD_size_Y_SU;
+    gran_params->SD_size_Z_SU = SD_size_Z_SU;
     // Copy global BD size in multiples of SDs to device
-    gran_params->d_box_L = nSDs_L;
-    gran_params->d_box_D = nSDs_D;
-    gran_params->d_box_H = nSDs_H;
+    gran_params->nSDs_X = nSDs_X;
+    gran_params->nSDs_Y = nSDs_Y;
+    gran_params->nSDs_Z = nSDs_Z;
 
-    gran_params->psi_T_dFactor = psi_T_Factor;
-    gran_params->psi_h_dFactor = psi_h_Factor;
-    gran_params->psi_L_dFactor = psi_L_Factor;
+    gran_params->gravAcc_X_SU = gravity_X_SU;
+    gran_params->gravAcc_Y_SU = gravity_Y_SU;
+    gran_params->gravAcc_Z_SU = gravity_Z_SU;
 
-    gran_params->gravAcc_X_d_factor_SU = gravity_X_SU;
-    gran_params->gravAcc_Y_d_factor_SU = gravity_Y_SU;
-    gran_params->gravAcc_Z_d_factor_SU = gravity_Z_SU;
-
-    gran_params->d_sphereRadius_SU = sphereRadius_SU;
+    gran_params->sphereRadius_SU = sphereRadius_SU;
 
     gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
-    gran_params->d_Kn_s2s_SU = K_n_s2s_SU;
-    gran_params->d_Kn_s2w_SU = K_n_s2s_SU;
+    gran_params->Kn_s2s_SU = K_n_s2s_SU;
+    gran_params->Kn_s2w_SU = K_n_s2s_SU;
 
-    gran_params->d_DE_Mass = gran_params->MASS_UNIT;
-    gran_params->d_cohesion_ratio = cohesion_over_gravity;
+    gran_params->cohesion_ratio = cohesion_over_gravity;
 }
 
 /// Similar to the copy_const_data_to_device, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_device() {
     // Unified memory does all the work here
-    gran_params->d_BD_frame_X = BD_frame_X;
-    gran_params->d_BD_frame_Y = BD_frame_Y;
-    gran_params->d_BD_frame_Z = BD_frame_Z;
+    gran_params->BD_frame_X = BD_frame_X;
+    gran_params->BD_frame_Y = BD_frame_Y;
+    gran_params->BD_frame_Z = BD_frame_Z;
 }
 
 // Check number of spheres in each SD and dump relevant info to file
