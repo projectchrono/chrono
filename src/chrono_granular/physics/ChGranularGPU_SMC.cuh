@@ -330,15 +330,16 @@ primingOperationsRectangularBox(
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-    const size_t max_composite_index =
-        (size_t)gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H * MAX_COUNT_OF_DEs_PER_SD;
+    const uint64_t max_composite_index =
+        (uint64_t)gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
         // Add offsets together
         // bad SD means not a valid offset
         if (SD_composite_offsets[8 * threadIdx.x + i] != NULL_GRANULAR_ID) {
-            size_t offset = SD_composite_offsets[8 * threadIdx.x + i] + sphere_composite_offsets[8 * threadIdx.x + i];
+            uint64_t offset =
+                (uint64_t)SD_composite_offsets[8 * threadIdx.x + i] + sphere_composite_offsets[8 * threadIdx.x + i];
             if (offset >= max_composite_index) {
                 ABORTABORTABORT(
                     "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
@@ -479,7 +480,7 @@ __global__ void applyVelocityUpdates(
     unsigned mySphereID;  // Bring in data from global into shmem. Only a subset of threads get to do this.
     if (threadIdx.x < spheresTouchingThisSD) {
         // We need int64_ts to index into composite array
-        size_t offset_in_composite_Array = ((size_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
+        uint64_t offset_in_composite_Array = ((uint64_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
         mySphereID = spheres_in_SD_composite[offset_in_composite_Array];
         unsigned int ownerSD = SDTripletID(pointSDTriplet(d_sphere_pos_X[mySphereID], d_sphere_pos_Y[mySphereID],
                                                           d_sphere_pos_Z[mySphereID], gran_params),
@@ -573,7 +574,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (threadIdx.x < spheresTouchingThisSD) {
         // We need int64_ts to index into composite array
-        size_t offset_in_composite_Array = ((size_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
+        uint64_t offset_in_composite_Array = ((uint64_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
         mySphereID = spheres_in_SD_composite[offset_in_composite_Array];
         sphere_X[threadIdx.x] = d_sphere_pos_X[mySphereID];
         sphere_Y[threadIdx.x] = d_sphere_pos_Y[mySphereID];
@@ -909,15 +910,16 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-    const size_t max_composite_index =
-        (size_t)gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H * MAX_COUNT_OF_DEs_PER_SD;
+    const uint64_t max_composite_index =
+        (uint64_t)gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
         // Add offsets together
         // bad SD means not a valid offset
         if (SD_composite_offsets[8 * threadIdx.x + i] != NULL_GRANULAR_ID) {
-            size_t offset = SD_composite_offsets[8 * threadIdx.x + i] + sphere_composite_offsets[8 * threadIdx.x + i];
+            uint64_t offset =
+                (uint64_t)SD_composite_offsets[8 * threadIdx.x + i] + sphere_composite_offsets[8 * threadIdx.x + i];
             if (offset >= max_composite_index) {
                 ABORTABORTABORT(
                     "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",

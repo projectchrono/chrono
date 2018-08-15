@@ -262,3 +262,19 @@ Running settling test!
 50 thousand bodies took 2.07246 seconds!
 500 thousand bodies took 14.0861 seconds!
 1 million bodies took 29.0623 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 08:54:31 -0500
+commit e340b572f3c41eac32fda687445034c538255030 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 08:54:31 2018 -0500 fix silly 64 bit int assignment issue, replace size_t->uint64_t
+Results:
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 08:56:30 -0500
+commit 7a06ad0b0ebfb220bd69d61eb42285b758e7606e Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 08:54:31 2018 -0500 fix silly 64 bit int assignment issue, replace size_t->uint64_t
+Results:
+Running wavetank test!
+50 thousand bodies took 2.23347 seconds!
+500 thousand bodies took 15.9625 seconds!
+1 million bodies took 32.2398 seconds!
+Running settling test!
+50 thousand bodies took 2.1192 seconds!
+500 thousand bodies took 15.6178 seconds!
+1 million bodies took 32.6834 seconds!
