@@ -159,13 +159,13 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     for (unsigned int i = L[0]; i <= U[0]; i++) {
         for (unsigned int j = L[1]; j <= U[1]; j++) {
             for (unsigned int k = L[2]; k <= U[2]; k++) {
-                SDhalfSizes[0] = gran_params->d_SD_Ldim_SU / 2;
-                SDhalfSizes[1] = gran_params->d_SD_Ddim_SU / 2;
-                SDhalfSizes[2] = gran_params->d_SD_Hdim_SU / 2;
+                SDhalfSizes[0] = gran_params->SD_size_X_SU / 2;
+                SDhalfSizes[1] = gran_params->SD_size_Y_SU / 2;
+                SDhalfSizes[2] = gran_params->SD_size_Z_SU / 2;
 
-                SDcenter[0] = gran_params->d_BD_frame_X + (i * 2 + 1) * SDhalfSizes[0];
-                SDcenter[1] = gran_params->d_BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
-                SDcenter[2] = gran_params->d_BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
+                SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * SDhalfSizes[0];
+                SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
+                SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
 
                 if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     touchedSDs[SD_count++] = SDTripletID(i, j, k, gran_params);
@@ -365,7 +365,7 @@ __global__ void triangleSoupBroadPhase(
             } while (idInSharedMem + winningStreak < MAX_SDs_TOUCHED_BY_TRIANGLE * CUB_THREADS &&
                      !(shMem_head_flags[idInSharedMem + winningStreak]));
 
-            // if (touchedSD >= d_box_L * d_box_D * d_box_H) {
+            // if (touchedSD >= nSDs_X * nSDs_Y * nSDs_Z) {
             //     printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
             // }
 
@@ -611,9 +611,9 @@ __global__ void interactionTerrain_TriangleSoup(
 
                     // TODO Conlain, check this force computation
                     // If there is a collision, add an impulse to the sphere
-                    if (face_sphere_cd(A, B, C, sphCntr, gran_params->d_sphereRadius_SU, norm, depth, pt1, pt2) &&
+                    if (face_sphere_cd(A, B, C, sphCntr, gran_params->sphereRadius_SU, norm, depth, pt1, pt2) &&
                         SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD) {
-                        float scalingFactor = alpha_h_bar * mesh_params->d_Kn_s2m_SU;
+                        float scalingFactor = alpha_h_bar * mesh_params->Kn_s2m_SU;
 
                         // Use the CD information to compute the force on the grElement
                         double deltaX = -depth * norm.x;
@@ -830,15 +830,13 @@ __global__ void interactionTerrain_TriangleSoup(
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
     // unified memory does some copying for us, cool
     tri_params->d_Gamma_n_s2m_SU = 0;  // no damping on mesh for now
-    tri_params->d_Kn_s2m_SU = K_n_s2m_SU;
+    tri_params->Kn_s2m_SU = K_n_s2m_SU;
     tri_params->d_Gamma_n_s2m_SU = Gamma_n_s2m_SU;
 
     SD_isTouchingTriangle.resize(nSDs);
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
-    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
-
     switch_to_SimUnits();
 
     double K_stiffness = get_max_K();

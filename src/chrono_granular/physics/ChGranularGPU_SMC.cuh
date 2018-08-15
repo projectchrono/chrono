@@ -33,9 +33,9 @@
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
 // These are the max X, Y, Z dimensions in the BD frame
-#define MAX_X_POS_UNSIGNED (gran_params->d_SD_Ldim_SU * gran_params->d_box_L)
-#define MAX_Y_POS_UNSIGNED (gran_params->d_SD_Ddim_SU * gran_params->d_box_D)
-#define MAX_Z_POS_UNSIGNED (gran_params->d_SD_Hdim_SU * gran_params->d_box_H)
+#define MAX_X_POS_UNSIGNED (gran_params->SD_size_X_SU * gran_params->nSDs_X)
+#define MAX_Y_POS_UNSIGNED (gran_params->SD_size_Y_SU * gran_params->nSDs_Y)
+#define MAX_Z_POS_UNSIGNED (gran_params->SD_size_Z_SU * gran_params->nSDs_Z)
 
 #define CUDA_THREADS 128
 
@@ -47,15 +47,15 @@ typedef const chrono::granular::ChSystemGranular::GranParamsHolder* ParamsPtr;
 inline __device__ uint3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {
     // Note that this offset allows us to have moving walls and the like very easily
 
-    int64_t sphCenter_X_modified = -gran_params->d_BD_frame_X + sphCenter_X;
-    int64_t sphCenter_Y_modified = -gran_params->d_BD_frame_Y + sphCenter_Y;
-    int64_t sphCenter_Z_modified = -gran_params->d_BD_frame_Z + sphCenter_Z;
+    int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
+    int64_t sphCenter_Y_modified = -gran_params->BD_frame_Y + sphCenter_Y;
+    int64_t sphCenter_Z_modified = -gran_params->BD_frame_Z + sphCenter_Z;
     uint3 n;
     // Get the SD of the sphere's center in the xdir
-    n.x = (sphCenter_X_modified) / gran_params->d_SD_Ldim_SU;
+    n.x = (sphCenter_X_modified) / gran_params->SD_size_X_SU;
     // Same for D and H
-    n.y = (sphCenter_Y_modified) / gran_params->d_SD_Ddim_SU;
-    n.z = (sphCenter_Z_modified) / gran_params->d_SD_Hdim_SU;
+    n.y = (sphCenter_Y_modified) / gran_params->SD_size_Y_SU;
+    n.z = (sphCenter_Z_modified) / gran_params->SD_size_Z_SU;
     return n;
 }
 
@@ -64,7 +64,7 @@ inline __device__ unsigned int SDTripletID(const unsigned int i,
                                            const unsigned int j,
                                            const unsigned int k,
                                            ParamsPtr gran_params) {
-    return i * gran_params->d_box_D * gran_params->d_box_H + j * gran_params->d_box_H + k;
+    return i * gran_params->nSDs_Y * gran_params->nSDs_Z + j * gran_params->nSDs_Z + k;
 }
 
 // Convert triplet to single int SD ID
@@ -90,62 +90,62 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
                                           unsigned int SDs[8],
                                           ParamsPtr gran_params) {
     // grab radius
-    const unsigned int d_sphereRadius_SU = gran_params->d_sphereRadius_SU;
+    const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
     // We need to offset so that the bottom-left corner is at the origin
-    int64_t sphCenter_X_modified = -gran_params->d_BD_frame_X + sphCenter_X;
-    int64_t sphCenter_Y_modified = -gran_params->d_BD_frame_Y + sphCenter_Y;
-    int64_t sphCenter_Z_modified = -gran_params->d_BD_frame_Z + sphCenter_Z;
+    int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
+    int64_t sphCenter_Y_modified = -gran_params->BD_frame_Y + sphCenter_Y;
+    int64_t sphCenter_Z_modified = -gran_params->BD_frame_Z + sphCenter_Z;
     unsigned int n[3];
     // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
     // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
     // nx = (xCenter - radius) / wx .
-    n[0] = (sphCenter_X_modified - d_sphereRadius_SU) / gran_params->d_SD_Ldim_SU;
+    n[0] = (sphCenter_X_modified - sphereRadius_SU) / gran_params->SD_size_X_SU;
     // Same for D and H
-    n[1] = (sphCenter_Y_modified - d_sphereRadius_SU) / gran_params->d_SD_Ddim_SU;
-    n[2] = (sphCenter_Z_modified - d_sphereRadius_SU) / gran_params->d_SD_Hdim_SU;
+    n[1] = (sphCenter_Y_modified - sphereRadius_SU) / gran_params->SD_size_Y_SU;
+    n[2] = (sphCenter_Z_modified - sphereRadius_SU) / gran_params->SD_size_Z_SU;
     // This is kind of gross and hacky, if we're at the bottom boundary, the bottom SD is 0
     // If we're at the top boundary, the top SD is the max
-    if (sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0) {
+    if (sphCenter_X_modified - (signed int)sphereRadius_SU <= 0) {
         n[0] = 0;
-    } else if (sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS_UNSIGNED) {
-        n[0] = gran_params->d_box_L - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+    } else if (sphCenter_X_modified + (signed int)sphereRadius_SU >= MAX_X_POS_UNSIGNED) {
+        n[0] = gran_params->nSDs_X - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    if (sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0) {
+    if (sphCenter_Y_modified - (signed int)sphereRadius_SU <= 0) {
         n[1] = 0;
-    } else if (sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_Y_POS_UNSIGNED) {
-        n[1] = gran_params->d_box_D - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+    } else if (sphCenter_Y_modified + (signed int)sphereRadius_SU >= MAX_Y_POS_UNSIGNED) {
+        n[1] = gran_params->nSDs_Y - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    if (sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0) {
+    if (sphCenter_Z_modified - (signed int)sphereRadius_SU <= 0) {
         n[2] = 0;
-    } else if (sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_Z_POS_UNSIGNED) {
-        n[2] = gran_params->d_box_H - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+    } else if (sphCenter_Z_modified + (signed int)sphereRadius_SU >= MAX_Z_POS_UNSIGNED) {
+        n[2] = gran_params->nSDs_Z - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    // n[0] += (sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0) -
-    //         (sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
-    // n[1] += (sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0) -
-    //         (sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
-    // n[2] += (sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0) -
-    //         (sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS);
+    // n[0] += (sphCenter_X_modified - (signed int)sphereRadius_SU <= 0) -
+    //         (sphCenter_X_modified + (signed int)sphereRadius_SU >= MAX_X_POS);
+    // n[1] += (sphCenter_Y_modified - (signed int)sphereRadius_SU <= 0) -
+    //         (sphCenter_Y_modified + (signed int)sphereRadius_SU >= MAX_X_POS);
+    // n[2] += (sphCenter_Z_modified - (signed int)sphereRadius_SU <= 0) -
+    //         (sphCenter_Z_modified + (signed int)sphereRadius_SU >= MAX_X_POS);
     // This conditional says if we're at the boundary
-    unsigned int boundary = sphCenter_X_modified - (signed int)d_sphereRadius_SU <= 0 ||
-                            sphCenter_X_modified + (signed int)d_sphereRadius_SU >= MAX_X_POS_UNSIGNED ||
-                            sphCenter_Y_modified - (signed int)d_sphereRadius_SU <= 0 ||
-                            sphCenter_Y_modified + (signed int)d_sphereRadius_SU >= MAX_Y_POS_UNSIGNED ||
-                            sphCenter_Z_modified - (signed int)d_sphereRadius_SU <= 0 ||
-                            sphCenter_Z_modified + (signed int)d_sphereRadius_SU >= MAX_Z_POS_UNSIGNED;
-    if (n[0] >= gran_params->d_box_L) {
+    unsigned int boundary = sphCenter_X_modified - (signed int)sphereRadius_SU <= 0 ||
+                            sphCenter_X_modified + (signed int)sphereRadius_SU >= MAX_X_POS_UNSIGNED ||
+                            sphCenter_Y_modified - (signed int)sphereRadius_SU <= 0 ||
+                            sphCenter_Y_modified + (signed int)sphereRadius_SU >= MAX_Y_POS_UNSIGNED ||
+                            sphCenter_Z_modified - (signed int)sphereRadius_SU <= 0 ||
+                            sphCenter_Z_modified + (signed int)sphereRadius_SU >= MAX_Z_POS_UNSIGNED;
+    if (n[0] >= gran_params->nSDs_X) {
         ABORTABORTABORT(
             "x is too large, boundary is %u, n is %u, nmax is %u, pos is %d, mod is %d, max is %d, dim is %d\n",
-            boundary, n[0], gran_params->d_box_L, sphCenter_X, sphCenter_X_modified,
-            gran_params->d_SD_Ldim_SU * gran_params->d_box_L, gran_params->d_SD_Ldim_SU, d_sphereRadius_SU);
+            boundary, n[0], gran_params->nSDs_X, sphCenter_X, sphCenter_X_modified,
+            gran_params->SD_size_X_SU * gran_params->nSDs_X, gran_params->SD_size_X_SU, sphereRadius_SU);
     }
     // Find distance from next box in relevant dir to center, we may be straddling the two
     int d[3];                                                              // Store penetrations
-    d[0] = (n[0] + 1) * gran_params->d_SD_Ldim_SU - sphCenter_X_modified;  // dx = (nx + 1)* wx - x
-    d[1] = (n[1] + 1) * gran_params->d_SD_Ddim_SU - sphCenter_Y_modified;
-    d[2] = (n[2] + 1) * gran_params->d_SD_Hdim_SU - sphCenter_Z_modified;
+    d[0] = (n[0] + 1) * gran_params->SD_size_X_SU - sphCenter_X_modified;  // dx = (nx + 1)* wx - x
+    d[1] = (n[1] + 1) * gran_params->SD_size_Y_SU - sphCenter_Y_modified;
+    d[2] = (n[2] + 1) * gran_params->SD_size_Z_SU - sphCenter_Z_modified;
 
     // Calculate global indices from locals
     // ones bit is x, twos bit is y, threes bit is z
@@ -159,30 +159,30 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
         // High/low in x-dir
         // unsigned int s = i & 0x1; // Inlined now
         // Scale to global index and add to total
-        SDs[i] += (n[0] + (i & 0x1)) * gran_params->d_box_D * gran_params->d_box_H;
+        SDs[i] += (n[0] + (i & 0x1)) * gran_params->nSDs_Y * gran_params->nSDs_Z;
         // s == own[e] evals true if the current SD is owner
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[0]) < d_sphereRadius_SU) || ((i & 0x1) == (d[0] < 0));
+        valid &= (abs(d[0]) < sphereRadius_SU) || ((i & 0x1) == (d[0] < 0));
 
         // High/low in y-dir
         // s = i & 0x2; // Inlined now
         // Scale to global index and add to total
-        SDs[i] += (n[1] + ((i >> 1) & 0x1)) * gran_params->d_box_H;
+        SDs[i] += (n[1] + ((i >> 1) & 0x1)) * gran_params->nSDs_Z;
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[1]) < d_sphereRadius_SU) || (((i >> 1) & 0x1) == (d[1] < 0));
+        valid &= (abs(d[1]) < sphereRadius_SU) || (((i >> 1) & 0x1) == (d[1] < 0));
 
         // High/low in z-dir
         // s = i & 0x4; // Inlined now
         // Scale to global index and add to total
         SDs[i] += (n[2] + ((i >> 2) & 0x1));
         // If both touch it or we own it, the result is valid
-        valid &= (abs(d[2]) < d_sphereRadius_SU) || (((i >> 2) & 0x1) == (d[2] < 0));
+        valid &= (abs(d[2]) < sphereRadius_SU) || (((i >> 2) & 0x1) == (d[2] < 0));
 
         // This is nasty but it checks if we're actually touching a bounary, in which case
 
         // This ternary is hopefully better than a conditional
         // If valid is false, then the SD is actually NULL_GRANULAR_ID
-        if (valid && SDs[i] >= gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H) {
+        if (valid && SDs[i] >= gran_params->nSDs_Y * gran_params->nSDs_X * gran_params->nSDs_Z) {
             ABORTABORTABORT(
                 "UH OH!, sd overrun %u, boundary is %u, position is %d, %d, %d on thread %u, block %u, n is %u, %u, "
                 "%u\n",
@@ -330,7 +330,7 @@ primingOperationsRectangularBox(
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
     const uint64_t max_composite_index =
-        (uint64_t)gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H * MAX_COUNT_OF_DEs_PER_SD;
+        (uint64_t)gran_params->nSDs_Y * gran_params->nSDs_X * gran_params->nSDs_Z * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
@@ -378,19 +378,19 @@ inline __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integratio
                                        float& Z_Vel_corr,        //!< Velocity correction in Xdir
                                        ParamsPtr gran_params) {
     // classic radius grab
-    const unsigned int d_sphereRadius_SU = gran_params->d_sphereRadius_SU;
+    const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
     // Shift frame so that origin is at lower left corner
-    int sphXpos_modified = -gran_params->d_BD_frame_X + sphXpos;
-    int sphYpos_modified = -gran_params->d_BD_frame_Y + sphYpos;
-    int sphZpos_modified = -gran_params->d_BD_frame_Z + sphZpos;
+    int sphXpos_modified = -gran_params->BD_frame_X + sphXpos;
+    int sphYpos_modified = -gran_params->BD_frame_Y + sphYpos;
+    int sphZpos_modified = -gran_params->BD_frame_Z + sphZpos;
 
     // penetration into wall
     signed int pen = 0;
     // Are we touching wall?
     int touchingWall = 0;
     // Compute spring factor in force
-    float scalingFactor = (1.0f * alpha_h_bar) * gran_params->d_Kn_s2w_SU;
+    float scalingFactor = (1.0f * alpha_h_bar) * gran_params->Kn_s2w_SU;
 
     // tmp vars to save writes, probably not necessary
     float xcomp = 0;
@@ -399,42 +399,42 @@ inline __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integratio
 
     // Do x direction
     // penetration of sphere into bottom x wall
-    pen = sphXpos_modified - (signed int)d_sphereRadius_SU;
+    pen = sphXpos_modified - (signed int)sphereRadius_SU;
     // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
+    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
     // Need to get relative velocity
     xcomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top X wall
-    pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)d_sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
+    pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)sphereRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
     xcomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
     // penetration of sphere into relevant wall
-    pen = sphYpos_modified - (signed int)d_sphereRadius_SU;
+    pen = sphYpos_modified - (signed int)sphereRadius_SU;
     // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
+    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
     ycomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top y wall
-    pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)d_sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
+    pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)sphereRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
     ycomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
     // penetration of sphere into relevant wall
-    pen = sphZpos_modified - (signed int)d_sphereRadius_SU;
+    pen = sphZpos_modified - (signed int)sphereRadius_SU;
     // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
+    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
     zcomp += touchingWall * (scalingFactor * abs(pen));
 
     // Do top z wall
-    pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)d_sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < d_sphereRadius_SU;
+    pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)sphereRadius_SU);
+    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
     zcomp += touchingWall * (-1 * scalingFactor * abs(pen));
 
@@ -550,7 +550,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
                                        float* d_sphere_pos_Z_dt,
                                        ParamsPtr gran_params) {
     // still moar radius grab
-    const unsigned int d_sphereRadius_SU = gran_params->d_sphereRadius_SU;
+    const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
     // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
     __shared__ int sphere_X[MAX_NSPHERES_PER_SD];
@@ -567,6 +567,12 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
     unsigned int ncontacts = 0;
     if (spheresTouchingThisSD == 0) {
         return;  // no spheres here, move along
+    }
+
+    // If we overran, we have a major issue, time to crash before we make illegal memory accesses
+    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
+        // Crash now
+        ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
     }
 
     // Bring in data from global into shmem. Only a subset of threads get to do this.
@@ -589,12 +595,6 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
     // Note that if we have more threads than bodies, some effort gets wasted.
     unsigned int bodyA = threadIdx.x;
 
-    // If we overran, we have a major issue, time to crash before we make illegal memory accesses
-    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
-        // Crash now
-        ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
-    }
-
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
         // The update we make to the velocities, it's ok for this to be a float since it should be pretty small anyways,
@@ -603,8 +603,8 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
         float bodyA_Y_velCorr = 0.f;
         float bodyA_Z_velCorr = 0.f;
 
-        float scalingFactor = alpha_h_bar * gran_params->d_Kn_s2s_SU;
-        double sphdiameter = 2. * d_sphereRadius_SU;
+        float scalingFactor = alpha_h_bar * gran_params->Kn_s2s_SU;
+        double sphdiameter = 2. * sphereRadius_SU;
         double invSphDiameter = 1. / sphdiameter;
         unsigned int ownerSD =
             SDTripletID(pointSDTriplet(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], gran_params), gran_params);
@@ -640,7 +640,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
             unsigned int contactSD =
                 SDTripletID(pointSDTriplet(contactX, contactY, contactZ, gran_params), gran_params);
 
-            const int64_t contact_threshold = 4l * d_sphereRadius_SU * d_sphereRadius_SU;
+            const int64_t contact_threshold = 4l * sphereRadius_SU * sphereRadius_SU;
 
             // We have a collision here, log it for later
             // not very divergent, super quick
@@ -701,7 +701,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
             float dampingTermY = -gran_params->Gamma_n_s2s_SU * alpha_h_bar * deltaY_dot;
             float dampingTermZ = -gran_params->Gamma_n_s2s_SU * alpha_h_bar * deltaZ_dot;
 
-            float cohesionConstant = gran_params->gravAcc_Z_d_factor_SU * gran_params->d_cohesion_ratio;
+            float cohesionConstant = gran_params->gravAcc_Z_SU * gran_params->cohesion_ratio;
 
             // Compute force updates for cohesion term, is opposite the spring term
             float cohesionTermX = cohesionConstant * deltaX * reciplength;
@@ -744,9 +744,9 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
                             gran_params);
             // If the sphere belongs to this SD, add up the gravitational force component.
 
-            bodyA_X_velCorr += alpha_h_bar * gran_params->gravAcc_X_d_factor_SU;
-            bodyA_Y_velCorr += alpha_h_bar * gran_params->gravAcc_Y_d_factor_SU;
-            bodyA_Z_velCorr += alpha_h_bar * gran_params->gravAcc_Z_d_factor_SU;
+            bodyA_X_velCorr += alpha_h_bar * gran_params->gravAcc_X_SU;
+            bodyA_Y_velCorr += alpha_h_bar * gran_params->gravAcc_Y_SU;
+            bodyA_Z_velCorr += alpha_h_bar * gran_params->gravAcc_Z_SU;
         }
 
         // Write the velocity updates back to global memory so that we can apply them AFTER this kernel finishes
@@ -886,7 +886,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
                 // Go until we run out of threads on the warp or until we find a new head
             } while (idInShared + winningStreak < 8 * CUB_THREADS && !(shMem_head_flags[idInShared + winningStreak]));
 
-            if (touchedSD >= gran_params->d_box_L * gran_params->d_box_D * gran_params->d_box_H) {
+            if (touchedSD >= gran_params->nSDs_X * gran_params->nSDs_Y * gran_params->nSDs_Z) {
                 printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
             }
 
@@ -909,7 +909,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
     const uint64_t max_composite_index =
-        (uint64_t)gran_params->d_box_D * gran_params->d_box_L * gran_params->d_box_H * MAX_COUNT_OF_DEs_PER_SD;
+        (uint64_t)gran_params->nSDs_Y * gran_params->nSDs_X * gran_params->nSDs_Z * MAX_COUNT_OF_DEs_PER_SD;
 
     // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < 8; i++) {
