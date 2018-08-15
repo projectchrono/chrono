@@ -316,14 +316,13 @@ primingOperationsRectangularBox(
 
             // The value sphere_offset now gives a *relative* offset in the composite array; i.e.,
             // spheres_in_SD_composite. Get the SD component
-            unsigned int sd_offset = touchedSD * MAX_COUNT_OF_DEs_PER_SD;
 
             // Produce the offsets for this streak of spheres with identical SD ids
-            for (unsigned int i = 0; i < winningStreak; i++) {
+            for (unsigned int sphereInStreak = 0; sphereInStreak < winningStreak; sphereInStreak++) {
                 // set the SD offset
-                SD_composite_offsets[idInShared + i] = sd_offset;
+                SD_composite_offsets[idInShared + sphereInStreak] = touchedSD;
                 // add this sphere to that sd, incrementing offset for next guy
-                sphere_composite_offsets[idInShared + i] = sphere_offset++;
+                sphere_composite_offsets[idInShared + sphereInStreak] = sphere_offset++;
             }
         }
     }
@@ -338,8 +337,8 @@ primingOperationsRectangularBox(
         // Add offsets together
         // bad SD means not a valid offset
         if (SD_composite_offsets[8 * threadIdx.x + i] != NULL_GRANULAR_ID) {
-            uint64_t offset =
-                (uint64_t)SD_composite_offsets[8 * threadIdx.x + i] + sphere_composite_offsets[8 * threadIdx.x + i];
+            uint64_t offset = (uint64_t)SD_composite_offsets[8 * threadIdx.x + i] * MAX_COUNT_OF_DEs_PER_SD +
+                              sphere_composite_offsets[8 * threadIdx.x + i];
             if (offset >= max_composite_index) {
                 ABORTABORTABORT(
                     "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
@@ -896,14 +895,13 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
 
             // The value sphere_offset now gives a *relative* offset in the composite array; i.e.,
             // spheres_in_SD_composite. Get the SD component
-            unsigned int sd_offset = touchedSD * MAX_COUNT_OF_DEs_PER_SD;
 
             // Produce the offsets for this streak of spheres with identical SD ids
-            for (unsigned int i = 0; i < winningStreak; i++) {
+            for (unsigned int sphereInStreak = 0; sphereInStreak < winningStreak; sphereInStreak++) {
                 // set the SD offset
-                SD_composite_offsets[idInShared + i] = sd_offset;
+                SD_composite_offsets[idInShared + sphereInStreak] = touchedSD;
                 // add this sphere to that sd, incrementing offset for next guy
-                sphere_composite_offsets[idInShared + i] = sphere_offset++;
+                sphere_composite_offsets[idInShared + sphereInStreak] = sphere_offset++;
             }
         }
     }
@@ -918,8 +916,8 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
         // Add offsets together
         // bad SD means not a valid offset
         if (SD_composite_offsets[8 * threadIdx.x + i] != NULL_GRANULAR_ID) {
-            uint64_t offset =
-                (uint64_t)SD_composite_offsets[8 * threadIdx.x + i] + sphere_composite_offsets[8 * threadIdx.x + i];
+            uint64_t offset = (uint64_t)SD_composite_offsets[8 * threadIdx.x + i] * MAX_COUNT_OF_DEs_PER_SD +
+                              sphere_composite_offsets[8 * threadIdx.x + i];
             if (offset >= max_composite_index) {
                 ABORTABORTABORT(
                     "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
