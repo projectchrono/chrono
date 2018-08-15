@@ -113,12 +113,11 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
                                const double3& B,           //!< Second vertex of the triangle
                                const double3& C,           //!< Third vertex of the triangle
                                const double3& sphere_pos,  //!< Location of the center of the sphere
-                               const double& radius,       //!< Sphere radius
+                               const int radius,           //!< Sphere radius
                                double3& norm,
                                double& depth,
                                double3& pt1,
-                               double3& pt2,
-                               double& eff_radius) {
+                               double3& pt2) {
     // Calculate face normal.
     double3 nrm1 = face_normal(A, B, C);
 
@@ -130,6 +129,7 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
     if (h >= radius || h <= -radius) {
         return false;
     }
+	
     // Find the closest point on the face to the sphere center and determine
     // whether or not this location is inside the face or on an edge.
     double3 faceLoc;
@@ -141,7 +141,6 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
     // Closest point on face is inside the face.
     norm = nrm1;
     depth = h - radius;
-    eff_radius = radius;
     pt1 = faceLoc;
     pt2 = sphere_pos - radius * norm;
 

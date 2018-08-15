@@ -46,7 +46,7 @@ typedef const ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsH
 
 /// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
 template <class T, class T3>
-__device__ T3 apply_frame_transform(T3 point, T* pos, T* rot_mat) {
+__device__ T3 apply_frame_transform(const T3& point, const T* pos, const T* rot_mat) {
     T3 result;
 
     // Apply roation matrix to point
@@ -63,12 +63,10 @@ __device__ T3 apply_frame_transform(T3 point, T* pos, T* rot_mat) {
 }
 
 template <class T3>
-__device__ T3 convert_pos_UU2SU(T3 pos, ParamsPtr gran_params) {
-    T3 result;
-    result.x = pos.x / gran_params->LENGTH_UNIT;
-    result.y = pos.y / gran_params->LENGTH_UNIT;
-    result.z = pos.z / gran_params->LENGTH_UNIT;
-    return result;
+__device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
+    pos.x /= gran_params->LENGTH_UNIT;
+    pos.y /= gran_params->LENGTH_UNIT;
+    pos.z /= gran_params->LENGTH_UNIT;
 }
 
 /// Takes in a triangle's position in UU and finds out what SDs it touches
@@ -105,9 +103,9 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                               tri_params->fam_frame_broad[fam].rot_mat);
 
     // Convert UU to SU
-    vA = convert_pos_UU2SU<float3>(vA, gran_params);
-    vB = convert_pos_UU2SU<float3>(vB, gran_params);
-    vC = convert_pos_UU2SU<float3>(vC, gran_params);
+    convert_pos_UU2SU<float3>(vA, gran_params);
+    convert_pos_UU2SU<float3>(vB, gran_params);
+    convert_pos_UU2SU<float3>(vC, gran_params);
 
     // Perform broadphase on UU vertices
     uint3 SDA = pointSDTriplet(vA.x, vA.y, vA.z, gran_params);  // SD indices for point A
@@ -300,7 +298,6 @@ __global__ void triangleSoupBroadPhase(
     // computation, if an SD looks for a bucket and sees triangles in there, if we know that this SD is touching zero
     // triangles then that SD is not going to do narrow phase on the triangles in that bucket since these triangles
     // actually are associated with other SDs that happen to deposit their triangles in this same bucket.
-    // TODO why are we sorting this? also we can't use this storage like that, it's for a key-value sort
     BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, triangleIDs);
     __syncthreads();
 
@@ -576,13 +573,13 @@ __global__ void interactionTerrain_TriangleSoup(
                     double depth;
                     double3 pt1;
                     double3 pt2;
-                    double eff_radius;
 
                     // Transform vertices into GRF SU
                     double3 A, B, C;  // vertices of the triangle
 
                     // Read LRF UU vertices of the triangle
-                    // Coalesced memory accesses; we have an int to double conversion here
+                    // We have an int to double conversion here
+                    // NOTE: uncoalesced
                     A.x = node1_X[targetTriangle];
                     A.y = node1_Y[targetTriangle];
                     A.z = node1_Z[targetTriangle];
@@ -605,51 +602,41 @@ __global__ void interactionTerrain_TriangleSoup(
                                                                mesh_params->fam_frame_narrow[fam].rot_mat);
 
                     // Convert UU to SU
-                    A = convert_pos_UU2SU<double3>(A, gran_params);
-                    B = convert_pos_UU2SU<double3>(B, gran_params);
-                    C = convert_pos_UU2SU<double3>(C, gran_params);
+                    convert_pos_UU2SU<double3>(A, gran_params);
+                    convert_pos_UU2SU<double3>(B, gran_params);
+                    convert_pos_UU2SU<double3>(C, gran_params);
 
                     // NOTE implicit cast from int to double
                     double3 sphCntr = make_double3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]);
 
                     // TODO Conlain, check this force computation
                     // If there is a collision, add an impulse to the sphere
-                    if (face_sphere_cd(A, B, C, sphCntr, gran_params->d_sphereRadius_SU, norm, depth, pt1, pt2,
-                                       eff_radius) &&
+                    if (face_sphere_cd(A, B, C, sphCntr, gran_params->d_sphereRadius_SU, norm, depth, pt1, pt2) &&
                         SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD) {
                         float scalingFactor = alpha_h_bar * mesh_params->d_Kn_s2m_SU;
-                        double sphdiameter = 2. * gran_params->d_sphereRadius_SU;
-                        double invSphDiameter = 1. / sphdiameter;
 
                         // Use the CD information to compute the force on the grElement
-                        double deltaX = -depth * norm.x * invSphDiameter;
-                        double deltaY = -depth * norm.y * invSphDiameter;
-                        double deltaZ = -depth * norm.z * invSphDiameter;
+                        double deltaX = -depth * norm.x;
+                        double deltaY = -depth * norm.y;
+                        double deltaZ = -depth * norm.z;
 
                         // Velocity difference, it's better to do a coalesced access here than a fragmented access
                         // inside
                         // TODO: Assumes stationary mesh
-                        float deltaX_dot = sphere_X_DOT[sphere_Local_ID];
-                        float deltaY_dot = sphere_Y_DOT[sphere_Local_ID];
-                        float deltaZ_dot = sphere_Z_DOT[sphere_Local_ID];
+                        float deltaX_dot_n = sphere_X_DOT[sphere_Local_ID];
+                        float deltaY_dot_n = sphere_Y_DOT[sphere_Local_ID];
+                        float deltaZ_dot_n = sphere_Z_DOT[sphere_Local_ID];
 
-                        float projection = deltaX_dot * norm.x + deltaY_dot * norm.y + deltaZ_dot * norm.z;
+                        float projection = deltaX_dot_n * norm.x + deltaY_dot_n * norm.y + deltaZ_dot_n * norm.z;
 
-                        float deltaX_dot_n = projection * norm.x;
-                        float deltaY_dot_n = projection * norm.y;
-                        float deltaZ_dot_n = projection * norm.z;
-
-                        double penetration = deltaX * deltaX;
-                        penetration += deltaY * deltaY;
-                        penetration += deltaZ * deltaZ;
-
-                        float penetrationNorm = rsqrt(penetration);
-                        penetration = penetrationNorm - 1.;
+                        deltaX_dot_n = projection * norm.x;
+                        deltaY_dot_n = projection * norm.y;
+                        deltaZ_dot_n = projection * norm.z;
 
                         // Compute force updates for spring term
-                        float springTermX = scalingFactor * deltaX * sphdiameter;
-                        float springTermY = scalingFactor * deltaY * sphdiameter;
-                        float springTermZ = scalingFactor * deltaZ * sphdiameter;
+                        float springTermX = scalingFactor * deltaX;
+                        float springTermY = scalingFactor * deltaY;
+                        float springTermZ = scalingFactor * deltaZ;
 
                         // TODO Compute force updates for damping term correctly - should include penetration? units?
                         float dampingTermX = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaX_dot_n;
@@ -675,12 +662,15 @@ __global__ void interactionTerrain_TriangleSoup(
             // warp reduce operation. The resultant force acting on this grElement is stored in the first lane of
             // the warp. NOTE: In this warp-level operations participate only the warps that are slaving for a
             // sphere; i.e., some warps see no action
-            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
                 forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
-            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
+            }
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
                 forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
-            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
+            }
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
                 forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
+            }
 
             // done with the computation of all the contacts that the triangles impress on this sphere. Update the
             // position of the sphere based on this force
@@ -693,6 +683,7 @@ __global__ void interactionTerrain_TriangleSoup(
             }
         }  // end of valid sphere if
     }      // end of per-sphere loop
+
     // Done computing the forces acting on the triangles in this SD. A block reduce is carried out next. Start by
     // doing a reduce at the warp level.
     // for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
