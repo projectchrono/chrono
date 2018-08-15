@@ -569,6 +569,12 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
         return;  // no spheres here, move along
     }
 
+    // If we overran, we have a major issue, time to crash before we make illegal memory accesses
+    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
+        // Crash now
+        ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
+    }
+
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (threadIdx.x < spheresTouchingThisSD) {
@@ -588,12 +594,6 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
     // Assumes each thread is a body, not the greatest assumption but we can fix that later
     // Note that if we have more threads than bodies, some effort gets wasted.
     unsigned int bodyA = threadIdx.x;
-
-    // If we overran, we have a major issue, time to crash before we make illegal memory accesses
-    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
-        // Crash now
-        ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
-    }
 
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
