@@ -298,7 +298,6 @@ __global__ void triangleSoupBroadPhase(
     // computation, if an SD looks for a bucket and sees triangles in there, if we know that this SD is touching zero
     // triangles then that SD is not going to do narrow phase on the triangles in that bucket since these triangles
     // actually are associated with other SDs that happen to deposit their triangles in this same bucket.
-    // TODO why are we sorting this? also we can't use this storage like that, it's for a key-value sort
     BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, triangleIDs);
     __syncthreads();
 
@@ -574,13 +573,13 @@ __global__ void interactionTerrain_TriangleSoup(
                     double depth;
                     double3 pt1;
                     double3 pt2;
-                    double eff_radius;
 
                     // Transform vertices into GRF SU
                     double3 A, B, C;  // vertices of the triangle
 
                     // Read LRF UU vertices of the triangle
-                    // Coalesced memory accesses; we have an int to double conversion here
+                    // We have an int to double conversion here
+                    // NOTE: uncoalesced
                     A.x = node1_X[targetTriangle];
                     A.y = node1_Y[targetTriangle];
                     A.z = node1_Z[targetTriangle];
