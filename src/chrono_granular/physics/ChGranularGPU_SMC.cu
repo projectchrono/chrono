@@ -346,8 +346,6 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
-    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
-
     switch_to_SimUnits();
     generate_DEs();
 

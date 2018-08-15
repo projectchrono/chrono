@@ -25,16 +25,18 @@
 
 namespace chrono {
 namespace granular {
+ChSystemGranular::ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0) {
+    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
+}
 
+ChSystemGranular::~ChSystemGranular() {
+    gpuErrchk(cudaFree(gran_params));
+}
 double ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
     return std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL);
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_simulation() {
-    // deallocate unified device struct
-    cudaFree(gran_params);
-    // Vectors get deallocated automatically
-}
+void ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_simulation() {}
 
 /** This method sets up the data structures used to perform a simulation.
  *

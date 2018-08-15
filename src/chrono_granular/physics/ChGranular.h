@@ -46,11 +46,8 @@ enum GRN_TIME_STEPPING { AUTO, USER_SET };
 
 class CH_GRANULAR_API ChSystemGranular {
   public:
-    ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0) {
-        // Allow us to use the fancy cudalloc mapped memory
-        // cudaSetDeviceFlags(cudaDeviceMapHost);
-        // gpuErrchk(cudaDeviceReset());
-    }
+    ChSystemGranular();
+    virtual ~ChSystemGranular();
 
     /// Parameters needed for sphere-based granular dynamics
     struct GranParamsHolder {
@@ -89,8 +86,6 @@ class CH_GRANULAR_API ChSystemGranular {
         double MASS_UNIT;  //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
         //!< equal the the mass of a sphere
     };
-
-    ~ChSystemGranular() {}
 
     inline unsigned int elementCount() const { return nDEs; }
     inline unsigned int get_SD_count() const { return nSDs; }
@@ -193,7 +188,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
         psi_L_Factor = PSI_L;
     }
 
-    ~ChSystemGranularMonodisperse() {}
+    virtual ~ChSystemGranularMonodisperse() {}
 
     virtual void advance_simulation(float duration) = 0;
 
@@ -370,7 +365,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_NSC_Frictionless : public ChS
     ChSystemGranularMonodisperse_NSC_Frictionless(float radiusSPH, float density)
         : ChSystemGranularMonodisperse(radiusSPH, density) {}
 
-    ~ChSystemGranularMonodisperse_NSC_Frictionless() {}
+    virtual ~ChSystemGranularMonodisperse_NSC_Frictionless() {}
 
     virtual void setup_simulation() {
         exit(1);

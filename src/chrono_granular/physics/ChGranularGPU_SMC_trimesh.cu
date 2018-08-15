@@ -837,8 +837,6 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_t
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize() {
-    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
-
     switch_to_SimUnits();
 
     double K_stiffness = get_max_K();
