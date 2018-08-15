@@ -15,7 +15,7 @@
 // Base class for processing the interface between chrono and fsi modules
 // =============================================================================
 
-#include "chrono_fsi/ChFsiInterface.h"
+#include "chrono_fsi/ChFsiInterface.cuh"
 #include "chrono_fsi/ChFsiTypeConvert.h"
 
 namespace chrono {

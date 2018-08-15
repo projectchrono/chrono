@@ -14,7 +14,7 @@
 //
 // Utility function to print the save fluid, bce, and boundary data into file
 // =============================================================================
-#include "chrono_fsi/utils/ChUtilsPrintSph.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChParams.cuh"
 #include <fstream>

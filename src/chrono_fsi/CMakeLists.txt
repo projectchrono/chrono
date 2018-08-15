@@ -94,7 +94,7 @@ SET(ChronoEngine_FSI_SOURCES
     ChFsiDataManager.cu
     ChFsiForceParallel.cu
     ChFsiGeneral.cu
-    ChFsiInterface.cpp
+    ChFsiInterface.cu
     ChSystemFsi.cpp
     ChFsiTypeConvert.cpp
 )
@@ -108,7 +108,7 @@ SET(ChronoEngine_FSI_HEADERS
     ChFsiDataManager.cuh
     ChFsiForceParallel.cuh
     ChFsiGeneral.cuh
-    ChFsiInterface.h
+    ChFsiInterface.cuh
     ChSystemFsi.h
     ChSphGeneral.cuh
     ChApiFsi.h
@@ -124,14 +124,14 @@ set(ChronoEngine_FSI_UTILS_SOURCES
     utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsGeneratorFsi.cpp
-    utils/ChUtilsPrintSph.cpp
+    utils/ChUtilsPrintSph.cu
 )
 
 set(ChronoEngine_FSI_UTILS_HEADERS
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsGeneratorFsi.h
-    utils/ChUtilsPrintSph.h
+    utils/ChUtilsPrintSph.cuh
     utils/ChUtilsPrintStruct.h
 )
 
