@@ -326,3 +326,27 @@ Running settling test!
 50 thousand bodies took 2.05715 seconds!
 500 thousand bodies took 13.4082 seconds!
 1 million bodies took 31.2856 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 15 Aug 2018 17:39:20 -0500
+commit fb71fa16f6c9a815c420c2a02489fedfb8c981eb Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 15 17:39:20 2018 -0500 remove old/unused code
+Results:
+Running wavetank test!
+50 thousand bodies took 1.9545 seconds!
+500 thousand bodies took 13.3127 seconds!
+1 million bodies took 30.6902 seconds!
+Running settling test!
+50 thousand bodies took 1.97951 seconds!
+500 thousand bodies took 13.2813 seconds!
+1 million bodies took 30.3378 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 16 Aug 2018 09:22:23 -0500
+commit 3f0bfbca5b09b9e5d5371eed1f3446068e899852 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Aug 16 09:22:23 2018 -0500 update scaling script
+Results:
+Running wavetank test!
+50 thousand bodies took 2.00439 seconds!
+500 thousand bodies took 14.0609 seconds!
+1 million bodies took 31.4875 seconds!
+Running settling test!
+50 thousand bodies took 1.98374 seconds!
+500 thousand bodies took 13.6322 seconds!
+1 million bodies took 32.1213 seconds!
