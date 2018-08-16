@@ -352,20 +352,20 @@ __global__ void generate_absv(const unsigned int nDEs,
     }
 }
 
-__host__ float ChSystemGranular::get_max_vel(const float* velX, const float* velY, const float* velZ) {
+__host__ float ChSystemGranular::get_max_vel() {
     float* d_absv;
     float* d_max_vel;
     float h_max_vel;
     gpuErrchk(cudaMalloc(&d_absv, nDEs * sizeof(float)));
     gpuErrchk(cudaMalloc(&d_max_vel, sizeof(float)));
 
-    generate_absv<<<(nDEs + 255) / 256, 256>>>(nDEs, d_absv);
+    generate_absv<<<(nDEs + 255) / 256, 256>>>(nDEs, pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(), d_absv);
 
     void* d_temp_storage = NULL;
     size_t temp_storage_bytes = 0;
-    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel);
+    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel, nDEs);
     gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel);
+    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, d_absv, d_max_vel, nDEs);
     gpuErrchk(cudaMemcpy(&h_max_vel, d_max_vel, sizeof(float), cudaMemcpyDeviceToHost));
 
     gpuErrchk(cudaFree(d_absv));

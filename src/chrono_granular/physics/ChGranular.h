@@ -59,15 +59,15 @@ class CH_GRANULAR_API ChSystemGranular {
         float Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
 
         unsigned int sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
-        unsigned int SD_size_X_SU;       //!< X-dimension of the SD box, expressed in SU
-        unsigned int SD_size_Y_SU;       //!< Y-dimension of the SD box, expressed in SU
-        unsigned int SD_size_Z_SU;       //!< Z-dimension of the SD box, expressed in SU
-        unsigned int nSDs_X;             //!< X-dimension of the BD box in multiples of subdomains, expressed in SU
-        unsigned int nSDs_Y;             //!< Y-dimension of the BD box in multiples of subdomains, expressed in SU
-        unsigned int nSDs_Z;             //!< Z-dimension of the BD box in multiples of subdomains, expressed in SU
-        float gravAcc_X_SU;     //!< Device counterpart of the constant gravity_X_SU
-        float gravAcc_Y_SU;     //!< Device counterpart of the constant gravity_Y_SU
-        float gravAcc_Z_SU;     //!< Device counterpart of the constant gravity_Z_SU
+        unsigned int SD_size_X_SU;     //!< X-dimension of the SD box, expressed in SU
+        unsigned int SD_size_Y_SU;     //!< Y-dimension of the SD box, expressed in SU
+        unsigned int SD_size_Z_SU;     //!< Z-dimension of the SD box, expressed in SU
+        unsigned int nSDs_X;           //!< X-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int nSDs_Y;           //!< Y-dimension of the BD box in multiples of subdomains, expressed in SU
+        unsigned int nSDs_Z;           //!< Z-dimension of the BD box in multiples of subdomains, expressed in SU
+        float gravAcc_X_SU;            //!< Device counterpart of the constant gravity_X_SU
+        float gravAcc_Y_SU;            //!< Device counterpart of the constant gravity_Y_SU
+        float gravAcc_Z_SU;            //!< Device counterpart of the constant gravity_Z_SU
 
         // Changed by updateBDPosition() at every timestep
         int BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
@@ -103,7 +103,6 @@ class CH_GRANULAR_API ChSystemGranular {
 
     /// allows the user to request a step size, will find the closest SU size to it
     virtual void suggest_stepSize_UU(float size_UU) { suggested_step_UU = size_UU; }
-    float get_max_vel(const float* velX, const float* velY, const float* velZ);
 
   protected:
     /// holds the sphere and BD-related params in unified memory
@@ -169,6 +168,7 @@ class CH_GRANULAR_API ChSystemGranular {
         // round to closest int, with minimum of 1
         return std::max(std::round(suggested_SU), 1.0f);
     }
+    float get_max_vel();
 };
 
 /**
