@@ -29,37 +29,34 @@ set(CH_GRANULAR_C_FLAGS "")
 find_package(CUDA QUIET REQUIRED)
 
 message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
-SET(CUDA_SEPARABLE_COMPILATION OFF)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    SET(CUDA_SEPARABLE_COMPILATION ON)
-    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  
-    GET_PROPERTY(GRAN_CMAKE_BUILD_TYPE GLOBAL PROPERTY CMAKE_BUILD_TYPE)
-
-    SET(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -Xcompiler -g)
-    SET(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xcompiler -DNDEBUG)
-    SET(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
-    SET(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
+set(CUDA_SEPARABLE_COMPILATION OFF)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CUDA_SEPARABLE_COMPILATION ON)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -Xcompiler -g)
+    set(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xcompiler -DNDEBUG)
+    set(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
+    set(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
     message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
     message(STATUS "rel flags are" ${CUDA_NVCC_FLAGS_RELEASE})
     
     
-    IF(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-      IF(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std c++14)
-        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -std=c++14)
-        SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+      if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
+        set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std c++14)
+        set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -std=c++14)
+        set(CUDA_PROPAGATE_HOST_FLAGS OFF)
       ELSE()
         message(FATAL_ERROR "Using GCC version:  ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
-      ENDIF()
-    ENDIF()
-    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
-    ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+      endif()
+    endif()
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
+    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message(FATAL_ERROR "macOS is not supported!")
-ENDIF()
+endif()
 
-SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_35,code=sm_35)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_35,code=sm_35)
 message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
 
 
@@ -72,7 +69,7 @@ message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
 # Place the header file in the library output directory and make sure it can
 # be found at compile time.
 
-CONFIGURE_FILE(
+configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/ChConfigGranular.h.in
   ${PROJECT_BINARY_DIR}/chrono_granular/ChConfigGranular.h
   )
@@ -84,39 +81,39 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_granular/ChConfigGranular.h"
 # Collect all additional include directories necessary for the GRANULAR module
 # ------------------------------------------------------------------------------
 
-SET(CH_GRANULAR_INCLUDES ${CUDA_INCLUDE_DIRS})
+set(CH_GRANULAR_INCLUDES ${CUDA_INCLUDE_DIRS})
 
-INCLUDE_DIRECTORIES(${CH_GRANULAR_INCLUDES})
+include_directories(${CH_GRANULAR_INCLUDES})
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
 # ------------------------------------------------------------------------------
 
-SET(CH_GRANULAR_CXX_FLAGS "${CH_GRANULAR_CXX_FLAGS}" PARENT_SCOPE)
-SET(CH_GRANULAR_C_FLAGS "${CH_GRANULAR_C_FLAGS}" PARENT_SCOPE)
-SET(CH_GRANULAR_INCLUDES "${CH_GRANULAR_INCLUDES}" PARENT_SCOPE)
+set(CH_GRANULAR_CXX_FLAGS "${CH_GRANULAR_CXX_FLAGS}" PARENT_SCOPE)
+set(CH_GRANULAR_C_FLAGS "${CH_GRANULAR_C_FLAGS}" PARENT_SCOPE)
+set(CH_GRANULAR_INCLUDES "${CH_GRANULAR_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # List the files in the Chrono-Granular module
 # ------------------------------------------------------------------------------
 
-SET(ChronoEngine_Granular_BASE
+set(ChronoEngine_Granular_BASE
     ChApiGranular.h
     ChGranularDefines.h
     )
 
-SOURCE_GROUP("" FILES ${ChronoEngine_Granular_BASE})
+source_group("" FILES ${ChronoEngine_Granular_BASE})
 
-SET(ChronoEngine_Granular_PHYSICS
+set(ChronoEngine_Granular_PHYSICS
     physics/ChGranular.h
     physics/ChGranular.cpp
     physics/ChGranularTriMesh.h
 	physics/ChGranularTriMesh.cpp
     )
 
-SOURCE_GROUP(physics FILES ${ChronoEngine_Granular_PHYSICS})
+source_group(physics FILES ${ChronoEngine_Granular_PHYSICS})
 
-SET(ChronoEngine_Granular_CUDA
+set(ChronoEngine_Granular_CUDA
     physics/ChGranularGPU_SMC.cu
     physics/ChGranularGPU_SMC.cuh
     physics/ChGranularGPU_SMC_trimesh.cu
@@ -126,13 +123,13 @@ SET(ChronoEngine_Granular_CUDA
 	utils/ChCudaMathUtils.cuh
     )
 
-SOURCE_GROUP(cuda FILES ${ChronoEngine_Granular_CUDA})
+source_group(cuda FILES ${ChronoEngine_Granular_CUDA})
 
-SET(ChronoEngine_Granular_UTILITIES
+set(ChronoEngine_Granular_UTILITIES
     utils/ChGranularUtilities.h
     )
 
-SOURCE_GROUP(utilities FILES ${ChronoEngine_Granular_UTILITIES})
+source_group(utilities FILES ${ChronoEngine_Granular_UTILITIES})
 
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_granular library
@@ -143,24 +140,24 @@ CUDA_ADD_LIBRARY(ChronoEngine_granular SHARED
             ${ChronoEngine_Granular_PHYSICS}
             ${ChronoEngine_Granular_CUDA}
             )
-SET(CHRONO_GRANULAR_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
+set(CHRONO_GRANULAR_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK})
 
-SET_TARGET_PROPERTIES(ChronoEngine_granular PROPERTIES
+set_target_properties(ChronoEngine_granular PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_GRANULAR")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_granular ${CHRONO_GRANULAR_LINKED_LIBRARIES})
+target_link_libraries(ChronoEngine_granular ${CHRONO_GRANULAR_LINKED_LIBRARIES})
 
-INSTALL(TARGETS ChronoEngine_granular
+install(TARGETS ChronoEngine_granular
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib64
         ARCHIVE DESTINATION lib64)
 
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_granular
         FILES_MATCHING PATTERN "*.h")
 
-INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
       DESTINATION include/chrono_granular
       FILES_MATCHING PATTERN "*.cuh")
 
