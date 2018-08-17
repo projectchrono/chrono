@@ -82,17 +82,24 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
     triangles_in_BUCKET_composite.resize(TRIANGLEBUCKET_COUNT * MAX_TRIANGLE_COUNT_PER_BUCKET);
 }
 
+// result = rot_mat * p + pos
 template <class T>
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ApplyFrameTransform(ChVector<T>& p, T* pos, T* rot_mat) {
-    // Apply roation matrix to point
-    p[0] = rot_mat[0] * p[0] + rot_mat[1] * p[1] + rot_mat[2] * p[2];
-    p[1] = rot_mat[3] * p[0] + rot_mat[4] * p[1] + rot_mat[5] * p[2];
-    p[2] = rot_mat[6] * p[0] + rot_mat[7] * p[1] + rot_mat[8] * p[2];
+ChVector<T> ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ApplyFrameTransform(ChVector<T>& p,
+                                                                                       T* pos,
+                                                                                       T* rot_mat) {
+    ChVector<T> result;
+
+    // Apply rotation matrix to point
+    result[0] = rot_mat[0] * p[0] + rot_mat[1] * p[1] + rot_mat[2] * p[2];
+    result[1] = rot_mat[3] * p[0] + rot_mat[4] * p[1] + rot_mat[5] * p[2];
+    result[2] = rot_mat[6] * p[0] + rot_mat[7] * p[1] + rot_mat[8] * p[2];
 
     // Apply translation
-    p[0] += pos[0];
-    p[1] += pos[1];
-    p[2] += pos[2];
+    result[0] += pos[0];
+    result[1] += pos[1];
+    result[2] += pos[2];
+
+    return result;
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::string filename) {
@@ -116,9 +123,9 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::st
         ChVector<float> p3(meshSoup_DEVICE->node3_X[tri_i], meshSoup_DEVICE->node3_Y[tri_i],
                            meshSoup_DEVICE->node3_Z[tri_i]);
 
-        ApplyFrameTransform<float>(p1, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
-        ApplyFrameTransform<float>(p2, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
-        ApplyFrameTransform<float>(p3, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
+        p1 = ApplyFrameTransform<float>(p1, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
+        p2 = ApplyFrameTransform<float>(p2, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
+        p3 = ApplyFrameTransform<float>(p3, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
 
         ostream << p1.x() << " " << p1.y() << " " << p1.z() << "\n";
         ostream << p2.x() << " " << p2.y() << " " << p2.z() << "\n";
