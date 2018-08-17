@@ -315,8 +315,8 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    m_sys.suggest_stepSize_UU(1e-4);
-
+    m_sys.set_timeStepping(GRN_TIME_STEPPING::FIXED);
+    m_sys.set_fixed_stepSize(1e-4);
     // Mesh values
     std::vector<std::string> mesh_filenames;
     std::string mesh_filename;

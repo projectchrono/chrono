@@ -276,7 +276,8 @@ int main(int argc, char* argv[]) {
     m_sys.set_YoungModulus_SPH2MESH(normStiffness_MSH2S);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
     m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
-    m_sys.suggest_stepSize_UU(1e-4);
+    m_sys.set_timeStepping(GRN_TIME_STEPPING::FIXED);
+    m_sys.set_fixed_stepSize(1e-4);
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings);
 

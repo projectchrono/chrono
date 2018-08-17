@@ -241,8 +241,9 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
     settlingExperiment.setOutputDirectory(output_prefix);
     settlingExperiment.setOutputMode(write_mode);
-    settlingExperiment.suggest_stepSize_UU(1e-4);
-    // Make a dam break style sim
+    settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
+    settlingExperiment.set_fixed_stepSize(1e-4);
+
     settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
 
     ChFileutils::MakeDirectory(output_prefix.c_str());

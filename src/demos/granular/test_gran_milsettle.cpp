@@ -77,8 +77,8 @@ double run_test(float boxL, float boxD, float boxH) {
     // Tell the sim to unlock the bd so it can follow that position function
     settlingExperiment.set_BD_Fixed(false);
     settlingExperiment.setVerbose(verbose);
-    settlingExperiment.suggest_stepSize_UU(1e-3);
-
+    settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
+    settlingExperiment.set_fixed_stepSize(1e-3);
     ChTimer<double> timer;
 
     // Run wavetank experiment and time it
