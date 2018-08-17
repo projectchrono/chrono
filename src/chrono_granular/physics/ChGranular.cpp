@@ -25,7 +25,7 @@
 
 namespace chrono {
 namespace granular {
-ChSystemGranular::ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0) {
+ChSystemGranular::ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), elapsedSimTime(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
 }
 
@@ -213,7 +213,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
 
     // TODO Make this legit, from user input
     Gamma_n_s2s_SU = .005;
-    stepSize_SU = determine_stepSize_SU();
+    determine_new_stepSize_SU();
 
     // Handy debug output
     printf("SU step size: %d\n", stepSize_SU);

@@ -42,7 +42,7 @@ namespace granular {
 // How are we writing?
 enum GRN_OUTPUT_MODE { CSV, BINARY, NONE };
 // How are we stepping through time?
-enum GRN_TIME_STEPPING { AUTO, USER_SET };
+enum GRN_TIME_STEPPING { AUTO, FIXED };
 
 class CH_GRANULAR_API ChSystemGranular {
   public:
@@ -80,7 +80,6 @@ class CH_GRANULAR_API ChSystemGranular {
         double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
         double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
         double MASS_UNIT;  //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
-        //!< equal the the mass of a sphere
     };
 
     inline unsigned int elementCount() const { return nDEs; }
@@ -102,7 +101,9 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void initialize() = 0;
 
     /// allows the user to request a step size, will find the closest SU size to it
-    virtual void suggest_stepSize_UU(float size_UU) { suggested_step_UU = size_UU; }
+    void set_max_stepSize(float size_UU) { max_step_UU = size_UU; }
+    void set_fixed_stepSize(float size_UU) { fixed_step_UU = size_UU; }
+    void set_timeStepping(GRN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
 
   protected:
     /// holds the sphere and BD-related params in unified memory
@@ -140,10 +141,12 @@ class CH_GRANULAR_API ChSystemGranular {
     float gravity_Y_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
     float gravity_Z_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
 
-    /// User provided, default is 0 so that it takes the smallest possible
-    float suggested_step_UU = 0;
+    /// User provided maximum timestep in UU, used in adaptive timestepping
+    float max_step_UU = 1e-3;
+    /// User provided fixed timestep in UU, used in USER_SET timestepping
+    float fixed_step_UU = 1e-4;
     /// Step size in SU, user can request a larger one but default is 1
-    unsigned int stepSize_SU;
+    float stepSize_SU;
 
     /// Entry "i" says how many spheres touch SD i
     std::vector<unsigned int, cudallocator<unsigned int>> SD_NumOf_DEs_Touching;
@@ -161,13 +164,11 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void copy_const_data_to_device() = 0;
     virtual void setup_simulation() = 0;
     virtual void cleanup_simulation() = 0;
-    virtual void determine_new_stepSize() = 0;  //!< Implements a strategy for changing the integration time step.
 
-    virtual unsigned int determine_stepSize_SU() {
-        float suggested_SU = suggested_step_UU / (gran_params->TIME_UNIT * PSI_h);
-        // round to closest int, with minimum of 1
-        return std::max(std::round(suggested_SU), 1.0f);
-    }
+    virtual void determine_new_stepSize_SU() = 0;
+
+    /// Total time elapsed since beginning of simulation
+    unsigned int elapsedSimTime;
     float get_max_vel();
 };
 
@@ -225,6 +226,38 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     inline size_t nSpheres() { return nDEs; }
 
   protected:
+    const float new_step_freq = .01;
+    virtual void determine_new_stepSize_SU() {
+        if (time_stepping == GRN_TIME_STEPPING::FIXED) {
+            stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * PSI_h);
+        } else {
+            static float new_step_start = 0;
+            static float new_step_stop = new_step_start + new_step_freq;
+
+            if (elapsedSimTime > new_step_stop) {
+                new_step_stop += new_step_freq;  // assumes we never have a timestep larger than new_step_freq
+                float max_v = get_max_vel();
+
+                constexpr float num_disp_grav =
+                    8;  // maximum number of gravity displacements we allow moving in one timestep
+                constexpr float num_disp_radius = .1;  // maximum fraction of radius we allow moving in one timestep
+                float max_displacement_grav = num_disp_grav * psi_T_Factor;
+                float max_displacement_radius = num_disp_radius * gran_params->sphereRadius_SU;
+
+                // TODO consider gravity drift
+
+                // find the highest position displacement we allow
+                float max_displacement = std::min(max_displacement_grav, max_displacement_radius);
+                float suggested_SU = max_displacement / max_v;
+
+                float max_step_SU = max_step_UU * (gran_params->TIME_UNIT * PSI_h);
+                std::cout << "choosing new timestep " << suggested_SU << std::endl;
+                // don't go above max
+                stepSize_SU = std::min(suggested_SU, max_step_SU);
+            }
+        }
+    }
+
     /// amount to fill box, as proportions of half-length
     /// Default is full box
     float boxFillXmin = -1.f;
@@ -286,7 +319,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChSystemGranularMonodisperse {
   public:
     ChSystemGranularMonodisperse_SMC_Frictionless(float radiusSPH, float density)
-        : ChSystemGranularMonodisperse(radiusSPH, density), simTime_SU(0) {}
+        : ChSystemGranularMonodisperse(radiusSPH, density) {}
 
     virtual ~ChSystemGranularMonodisperse_SMC_Frictionless() {}
 
@@ -317,10 +350,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     virtual void switch_to_SimUnits();
 
     virtual void cleanup_simulation();
-    virtual void determine_new_stepSize() {
-        exit(1);
-        return;
-    }
     virtual void defragment_data();
 
     double YoungModulus_SPH2SPH;
@@ -330,9 +359,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     float K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
-
-    /// Total time elapsed since beginning of simulation
-    unsigned int simTime_SU;
 };
 }  // namespace granular
 }  // namespace chrono

@@ -203,15 +203,14 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::resetUpdateInformation() {
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int stepSize_SU) {
-    float timeUU = (1.f * simTime_SU * gran_params->TIME_UNIT * PSI_h);
     // Frequency of oscillation
     // float frame_X_old = BD_frame_X;
     // float frame_Y_old = BD_frame_Y;
     // float frame_Z_old = BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
-    BD_frame_X = (box_L * (BDPositionFunctionX(timeUU))) / gran_params->LENGTH_UNIT;
-    BD_frame_Y = (box_D * (BDPositionFunctionY(timeUU))) / gran_params->LENGTH_UNIT;
-    BD_frame_Z = (box_H * (BDPositionFunctionZ(timeUU))) / gran_params->LENGTH_UNIT;
+    BD_frame_X = (box_L * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    BD_frame_Y = (box_D * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    BD_frame_Z = (box_H * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
 
     copyBD_Frame_to_device();
 }
@@ -398,7 +397,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
-    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+    printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
     printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT * PSI_h);
 }
 
@@ -415,6 +414,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int elapsedTime_SU = 0; elapsedTime_SU < stepSize_SU * nsteps; elapsedTime_SU += stepSize_SU) {
+        determine_new_stepSize_SU();  // doesn't always change the timestep
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
             updateBDPosition(stepSize_SU);  // TODO current time
@@ -443,7 +443,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        simTime_SU += stepSize_SU;  // Advance current time
+        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT * PSI_h;  // Advance current time
     }
 
     return;
