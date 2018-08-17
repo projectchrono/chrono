@@ -97,7 +97,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     /// Extra parameters needed for triangle-sphere contact
     struct GranParamsHolder_trimesh {
         float d_Gamma_n_s2m_SU;              //!< sphere-to-mesh contact damping coefficient, expressed in SU
-        float Kn_s2m_SU;                   //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+        float Kn_s2m_SU;                     //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
         unsigned int num_triangle_families;  /// Number of triangle families
         ChFamilyFrame<float>* fam_frame_broad;
         ChFamilyFrame<double>* fam_frame_narrow;
@@ -145,7 +145,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void generate_rot_matrix(double* ep, T* rot_mat);
 
     template <class T>
-    void ApplyFrameTransform(ChVector<T>& p, T* pos, T* rot_mat);
+    ChVector<T> ApplyFrameTransform(ChVector<T>& p, T* pos, T* rot_mat);
 };
 
 }  // namespace granular
