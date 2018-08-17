@@ -18,7 +18,7 @@
 //#define BEAM_VERBOSE
 
 #include "chrono_fea/ChElementBeam.h"
-#include "chrono_fea/ChBeamSection.h"
+#include "chrono_fea/ChBeamSectionCosserat.h"
 #include "chrono_fea/ChNodeFEAxyzrot.h"
 #include "chrono/geometry/ChBasisToolsBspline.h"
 #include "chrono/core/ChQuadrature.h"
@@ -62,8 +62,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 	std::vector< std::unique_ptr<ChBeamMaterialInternalData> > plastic_data_old;
 	std::vector< std::unique_ptr<ChBeamMaterialInternalData> > plastic_data;
 
-    std::shared_ptr<ChBeamSectionAdvanced> section_old;
-	std::shared_ptr<ChBeamSectionTimoshenko> section;
+	std::shared_ptr<ChBeamSectionCosserat> section;
 
   public:
     ChElementBeamIGA() {
@@ -126,9 +125,22 @@ class  ChElementBeamIGA :   public ChElementBeam,
         }
         Kmatr.SetVariables(mvars);
 
-        // Reduced integration for in-between elements:
+        // integration for in-between elements:
         int_order_s = 1;
-        int_order_b = 1;
+
+		 // FULL OVER INTEGRATION:
+		//int_order_b = myorder+1;
+		 // FULL EXACT INTEGRATION:
+		int_order_b = (int)std::ceil((this->order + 1.0) / 2.0);
+		 // REDUCED INTEGRATION:
+        //int_order_b = myorder; 
+		 // SELECTIVE INTEGRATION:
+		//int_order_b = 1;
+
+		// ensure integration order is odd, to have a centered gauss point
+		//if (int_order_b % 2 == 0) {
+		//	int_order_b += 1;
+		//}
 
         // Full integration for end elements:
         int multiplicity_a = 1;
@@ -157,17 +169,12 @@ class  ChElementBeamIGA :   public ChElementBeam,
     // FEM functions
     //
 
-    /// Set the section & material of beam element .
-    /// It is a shared property, so it can be shared between other beams.
-    void SetSection_old(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section_old = my_material; }
-    /// Get the section & material of the element
-    std::shared_ptr<ChBeamSectionAdvanced> GetSection_old() { return section_old; }
 
 	/// Set the section & material of beam element .
 	/// It is a shared property, so it can be shared between other beams.
-	void SetSection(std::shared_ptr<ChBeamSectionTimoshenko> my_material) { section = my_material; }
+	void SetSection(std::shared_ptr<ChBeamSectionCosserat> my_material) { section = my_material; }
 	/// Get the section & material of the element
-	std::shared_ptr<ChBeamSectionTimoshenko> GetSection() { return section; }
+	std::shared_ptr<ChBeamSectionCosserat> GetSection() { return section; }
 
     /// Access the local knot sequence of this element (ex.for diagnostics)
     ChVectorDynamic<>& GetKnotSequence() {return this->knots;}
@@ -227,7 +234,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
             // absyssa in span range:
             double u = (c1 * eta + c2); 
             // scaling = gauss weight * change of range:
-            double w = ChQuadrature::GetStaticTables()->Weight[int_order_s-1][ig] * c1;
+            double w = ChQuadrature::GetStaticTables()->Weight[int_order_s-1][ig];
 
             // compute the basis functions N(u) at given u:
             int nspan = order;
@@ -247,8 +254,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 dr0 += nodes[i]->GetX0ref().coord.pos * N(1,i);
             }
             this->Jacobian_s[ig] = dr0.Length(); // J = |dr0/du|
-
-            this->length += w*this->Jacobian_s[ig];
         } 
 
         // Gauss points for "b" bend components:
@@ -268,7 +273,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
             // absyssa in span range:
             double u = (c1 * eta + c2); 
             // scaling = gauss weight * change of range:
-            double w = ChQuadrature::GetStaticTables()->Weight[int_order_b-1][ig] * c1;
+            double w = ChQuadrature::GetStaticTables()->Weight[int_order_b-1][ig];
 
             // compute the basis functions N(u) at given u:
             int nspan = order;
@@ -288,8 +293,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 dr0 += nodes[i]->GetX0ref().coord.pos * N(1,i);
             }
             this->Jacobian_b[ig] = dr0.Length(); // J = |dr0/du|
-
-            //this->length += w*this->Jacobian_b[ig];
 
 			// From now on, compute initial strains as in ComputeInternalForces 
 
@@ -343,8 +346,12 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
 			// compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
 			this->strain_k_0[ig] = da;
+
+			// as a byproduct, also compute length 
+			this->length += w * Jsu * Jue;
         }
-        //this->mass = this->length * this->section->Area * this->section->density;
+
+		// as a byproduct, also compute total mass
 		this->mass = this->length * this->section->GetArea() * this->section->GetDensity();
     }
 
@@ -380,7 +387,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         this->LoadableGetStateBlock_x(0,state_x);
         this->LoadableGetStateBlock_w(0,state_w);
 
-        double Delta = 1e-8;
+        double Delta = 1e-10;
         
         int mrows_w = this->LoadableGet_ndof_w();
         int mrows_x = this->LoadableGet_ndof_x();
@@ -400,7 +407,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         for (int i=0; i<mrows_w; ++i) {
             state_delta(i)+= Delta;
             this->LoadableStateIncrement(0, state_x_inc, state_x, 0, state_delta);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
-   //GetLog() << " col." << i << " state_x_inc = " << state_x_inc << "\n";
+
             Q1.Reset(mrows_w,1);
             this->ComputeInternalForces_impl(Q1, state_x_inc, state_w, true);   // Q1 = Q(x+Dx, v)
             state_delta(i)-= Delta;
@@ -409,27 +416,36 @@ class  ChElementBeamIGA :   public ChElementBeam,
             K.PasteMatrix(Jcolumn,0,i);
         }
 
-        /*
+		// finally, store K into H:
+
+		K.MatrScale(Kfactor);
+
+		H.PasteMatrix(K, 0, 0);
+
         // Compute R=-dQ(x,v)/dv by backward differentiation
-        for (int i=0; i<mrows_w; ++i) {
-            (*state_w)(i)+= Delta;
-            this->loader.ComputeQ(state_x, state_w);   // Q1 = Q(x, v+Dv)
-            Q1 = this->loader.Q;
-            (*state_w)(i)-= Delta;
-            
-            Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because R=-dQ/dv
-            this->jacobians->R.PasteMatrix(Jcolumn,0,i);
-        }
-        */
+		if (this->section->GetDamping()) {
+			ChStateDelta  state_w_inc(mrows_w, nullptr);
+			state_w_inc = state_w;
+			ChMatrixDynamic<> R(mrows_w, mrows_w);
 
+			for (int i = 0; i < mrows_w; ++i) {
+				Q1.Reset(mrows_w, 1);
 
-        // finally, store K into H:
+				state_w_inc(i) += Delta;
+				this->ComputeInternalForces_impl(Q1, state_x, state_w_inc, true); // Q1 = Q(x, v+Dv)
+				state_w_inc(i) -= Delta;
 
-        double mkrfactor = Kfactor; 
+				Jcolumn = (Q1 - Q0)*(-1.0 / Delta);   // - sign because R=-dQ/dv
+				R.PasteMatrix(Jcolumn, 0, i);
+			}
+			
+			R.MatrScale(Rfactor);
 
-        K.MatrScale(mkrfactor);
+			H.PasteSumMatrix(R, 0, 0);
+		}
 
-        H.PasteMatrix(K, 0, 0);  
+		
+        
 
 
 
@@ -439,17 +455,22 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
         ChMatrixDynamic<> Mloc(6 * (int)nodes.size(), 6 * (int)nodes.size());
 
-        double lmass = mass /(double)nodes.size();
+        double nmass = mass /(double)nodes.size();
          //Iyy and Izz: (orthogonal to spline) approx as 1/50 lumped mass at half dist:
-        double lineryz = (1. / 50.) * mass * pow(length, 2);  // note: 1/50 can be even less (this is 0 in many texts, but 0 means no explicit integrator could be used) 
-         //Ixx: (tangent to spline) approx as half cuboid
-        double linerx =  (1. / 2.) * (1. / 12.) * mass * (pow(section->GetDrawThicknessY(),2) + pow(section->GetDrawThicknessZ(),2)); 
+        double lineryz = (1. / 50.) * nmass * pow(length, 2);  // note: 1/50 can be even less (this is 0 in many texts, but 0 means no explicit integrator could be used) 
+         //Ixx: (tangent to spline) approx as node cuboid
+        double linerx =  (1. / 12.) * nmass * (pow(section->GetDrawThicknessY(),2) + pow(section->GetDrawThicknessZ(),2));
 
         for (int i = 0; i< nodes.size(); ++i) {
             int stride = i*6;
-            Mloc(stride+0, stride+0) += Mfactor * lmass;  // node A x,y,z
-            Mloc(stride+1, stride+1) += Mfactor * lmass;
-            Mloc(stride+2, stride+2) += Mfactor * lmass;
+			double nodelineryz = lineryz;
+			//if (i == 0 || i == (nodes.size() - 1)) {
+				// node overlapped in neighbouring element
+			//	nodelineryz = lineryz * 0.5;
+			//}
+            Mloc(stride+0, stride+0) += Mfactor * nmass;  // node A x,y,z
+            Mloc(stride+1, stride+1) += Mfactor * nmass;
+            Mloc(stride+2, stride+2) += Mfactor * nmass;
             Mloc(stride+3, stride+3) += Mfactor * linerx;  // node A Ixx,Iyy,Izz 
             Mloc(stride+4, stride+4) += Mfactor * lineryz;
             Mloc(stride+5, stride+5) += Mfactor * lineryz;
@@ -489,11 +510,9 @@ class  ChElementBeamIGA :   public ChElementBeam,
         // Do quadrature over the "s" shear Gauss points 
         // (only if int_order_b != int_order_s, otherwise do a single loop later over "b" bend points also for shear)
 
-        if (int_order_b != int_order_s)
-        for (int ig = 0; ig < int_order_s; ++ig) {
-            GetLog() << "WARNING! int_order_b != int_order_s NOT YET IMPLEMENTED! \n";
-        } 
-        
+		//***TODO*** maybe not needed: separate bending and shear integration points. 
+
+
 
         // Do quadrature over the "b" bend Gauss points
 
@@ -523,9 +542,9 @@ class  ChElementBeamIGA :   public ChElementBeam,
 				knots,
 				N);           ///< here return N and dN/du 
 
-		 // interpolate rotation of section at given u, to compute R.
-		 // Note: this is approximate.
-		 // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
+			// interpolate rotation of section at given u, to compute R.
+			// Note: this is approximate.
+			// A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
 			ChQuaternion<> q_delta;
 			ChVector<> da = VNULL;
 			ChVector<> delta_rot_dir;
@@ -626,15 +645,20 @@ class  ChElementBeamIGA :   public ChElementBeam,
 				this->strain_e[ig] = astrain_e;
 				this->strain_k[ig] = astrain_k;
 			}
-/*
-            // add viscous damping, Rayleigh type
-            astress_n.x() += astrain_e_dt.x() * E * Area      * section->rdamping;
-            astress_n.y() += astrain_e_dt.y() * Ky * G * Area * section->rdamping;
-            astress_n.z() += astrain_e_dt.z() * Ky * G * Area * section->rdamping;
-            astress_m.x() += astrain_k_dt.x() * G * Jpolar    * section->rdamping;
-            astress_m.y() += astrain_k_dt.y() * E * Iyy       * section->rdamping;
-            astress_m.z() += astrain_k_dt.z() * E * Izz       * section->rdamping;
-*/
+
+            // add viscous damping 
+			if (this->section->GetDamping()) {
+				ChVector<> n_sp;
+				ChVector<> m_sp;
+				this->section->GetDamping()->ComputeStress(
+					n_sp,
+					m_sp,
+					astrain_e_dt,
+					astrain_k_dt);
+				astress_n += n_sp;
+				astress_m += m_sp;
+			}
+
             // compute internal force, in generalized coordinates:
 
             ChVector<> stress_n_abs = R * astress_n;
@@ -642,12 +666,10 @@ class  ChElementBeamIGA :   public ChElementBeam,
 
             for (int i = 0; i< nodes.size(); ++i) {
                 
-                if (int_order_b == int_order_s) {
-                    // -Force_i = w * Jue * Jsu * Jsu^-1 * N' * R * C * (strain_e - strain_e0)
-                    //          = w * Jue * N'            * stress_n_abs
-                    ChVector<> Force_i = stress_n_abs* N(1,i) * (-w*Jue);
-			        Fi.PasteSumVector(Force_i, i *6, 0);
-                }
+                // -Force_i = w * Jue * Jsu * Jsu^-1 * N' * R * C * (strain_e - strain_e0)
+                //          = w * Jue * N'            * stress_n_abs
+                ChVector<> Force_i = stress_n_abs* N(1,i) * (-w*Jue);
+			    Fi.PasteSumVector(Force_i, i *6, 0);
 
                 // -Torque_i =   w * Jue * Jsu * Jsu^-1 * R_i^t * N'               * R * D * (strain_k - strain_k0) + 
                 //             + w * Jue * Jsu *        R_i^t * N  * skew(r')^t  * R * C * (strain_e - strain_e0)
@@ -847,12 +869,12 @@ class  ChElementBeamIGA :   public ChElementBeam,
                 u,  
                 knots, 
                 N);           ///< h
-
+		
         ChVector<> dr0; 
         for (int i = 0 ; i< nodes.size(); ++i) {
             dr0 += nodes[i]->GetX0ref().coord.pos * N(1,i);
         }
-        detJ = dr0.Length(); // J = |dr0/du|
+        detJ = dr0.Length() * c1;
 
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i*6;

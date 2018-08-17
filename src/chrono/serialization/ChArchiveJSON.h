@@ -28,11 +28,9 @@
 
 namespace chrono {
 
-/// ASCII 'LOG' ARCHIVES (only output, for debugging etc.)
-
 
 ///
-/// This is a class for serializing to ascii logging 
+/// This is a class for serializing to JSON
 ///
 
 class  ChArchiveOutJSON : public ChArchiveOut {
@@ -178,10 +176,10 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             nitems.push(0);
             is_array.push(true);
       }
-      virtual void out_array_between (size_t msize) {
+      virtual void out_array_between (ChValue& bVal, size_t msize) {
 
       }
-      virtual void out_array_end (size_t msize) {
+      virtual void out_array_end (ChValue& bVal, size_t msize) {
             --tablevel;
             nitems.pop();
             is_array.pop();
@@ -230,9 +228,10 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       virtual void out_ref          (ChValue& bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID)  {
           const char* classname = bVal.GetClassRegisteredName().c_str();
           comma_cr();
-          indent();
-          if (is_array.top()==false)
-            (*ostream) << "\"" << bVal.name() << "\"" << "\t: \n";
+		  if (is_array.top() == false) {
+			  indent();
+			  (*ostream) << "\"" << bVal.name() << "\"" << "\t: \n";
+		  }
           indent();
           (*ostream) << "{ ";
           

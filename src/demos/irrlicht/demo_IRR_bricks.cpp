@@ -45,7 +45,7 @@ void create_wall_bodies(ChSystemNSC& mphysicalSystem) {
     mmaterial->SetFriction(0.4f);
     mmaterial->SetCompliance(0.0000005f);
     mmaterial->SetComplianceT(0.0000005f);
-    mmaterial->SetDampingF(0.2f);
+    mmaterial->SetDampingF(0.1f);
 
     // Create bricks
     for (int ai = 0; ai < 1; ai++)  // N. of walls
@@ -115,7 +115,7 @@ void create_jengatower_bodies(ChSystemNSC& mphysicalSystem) {
     mmaterial->SetFriction(0.4f);
     mmaterial->SetCompliance(0.0000005f);
     mmaterial->SetComplianceT(0.0000005f);
-    mmaterial->SetDampingF(0.2f);
+    mmaterial->SetDampingF(0.1f);
 
     // Create bricks
     for (int bi = 0; bi < 12; bi += 2) {
@@ -221,19 +221,19 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-    mphysicalSystem.SetSolverType(ChSolver::Type::SOR_MULTITHREAD);
-
-    //mphysicalSystem.SetUseSleeping(true);
-
-    mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.6);  // used by Anitescu stepper only
-    mphysicalSystem.SetMaxItersSolverSpeed(40);
-    mphysicalSystem.SetMaxItersSolverStab(20);  // unuseful for Anitescu, only Tasora uses this
-    mphysicalSystem.SetSolverWarmStarting(true);
+	mphysicalSystem.SetSolverType(ChSolver::Type::SOR); //SOR_MULTITHREAD);
     mphysicalSystem.SetParallelThreadNumber(4);
+    
+	//mphysicalSystem.SetUseSleeping(true);
+
+    mphysicalSystem.SetMaxItersSolverSpeed(40);
+    mphysicalSystem.SetSolverWarmStarting(false);
+
 
     //
     // THE SOFT-REAL-TIME CYCLE
     //
+	mphysicalSystem.SetMaxPenetrationRecoverySpeed(1.0);
 
     application.SetStepManage(true);
     application.SetTimestep(0.02);

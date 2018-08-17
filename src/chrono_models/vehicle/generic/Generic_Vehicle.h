@@ -49,6 +49,10 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
 
     virtual int GetNumberAxles() const override { return 2; }
 
+    virtual double GetWheelbase() const override { return 3.378; }
+    virtual double GetMinTurningRadius() const override { return 8.0; }
+    virtual double GetMaxSteeringAngle() const override { return 25 * CH_C_DEG_TO_RAD; }
+
     double GetSpringForce(const WheelID& wheel_id) const;
     double GetSpringLength(const WheelID& wheel_id) const;
     double GetSpringDeformation(const WheelID& wheel_id) const;

@@ -29,73 +29,10 @@ namespace chrono {
 /// Unilateral (contact) constraints.
 class CH_PARALLEL_API ChConstraintRigidRigid {
   public:
-    ChConstraintRigidRigid() {
-        data_manager = 0;
-        offset = 3;
-        inv_h = inv_hpa = inv_hhpa = 0;
-    }
-
+    ChConstraintRigidRigid();
     ~ChConstraintRigidRigid() {}
 
-    void Setup(ChParallelDataManager* data_container_) {
-        data_manager = data_container_;
-        uint num_contacts = data_manager->num_rigid_contacts;
-        inv_h = 1 / data_manager->settings.step_size;
-        inv_hpa = 1 / (data_manager->settings.step_size + data_manager->settings.solver.alpha);
-        inv_hhpa = inv_h * inv_hpa;
-
-        if (num_contacts > 0) {
-            contact_active_pairs.resize(int(num_contacts));
-            data_manager->host_data.coh_rigid_rigid.resize(num_contacts);
-            data_manager->host_data.fric_rigid_rigid.resize(num_contacts);
-            rotated_point_a.resize(num_contacts);
-            rotated_point_b.resize(num_contacts);
-            quat_a.resize(num_contacts);
-            quat_b.resize(num_contacts);
-
-#pragma omp parallel for
-            for (int i = 0; i < (signed)num_contacts; i++) {
-                vec2 body = data_manager->host_data.bids_rigid_rigid[i];
-                uint b1 = body.x;
-                uint b2 = body.y;
-
-                contact_active_pairs[i] =
-                    bool2(data_manager->host_data.active_rigid[b1] != 0, data_manager->host_data.active_rigid[b2] != 0);
-
-                real coh = data_manager->composition_strategy->CombineCohesion(
-                    data_manager->host_data.cohesion_data[b1], data_manager->host_data.cohesion_data[b2]);
-                data_manager->host_data.coh_rigid_rigid[i] = coh;
-
-                const real3& f_a = data_manager->host_data.fric_data[b1];
-                const real3& f_b = data_manager->host_data.fric_data[b2];
-                real3 mu;
-                mu.x = data_manager->composition_strategy->CombineFriction(f_a.x, f_b.x); // sliding
-                mu.y = data_manager->composition_strategy->CombineFriction(f_a.y, f_b.y); // rolling
-                mu.z = data_manager->composition_strategy->CombineFriction(f_a.z, f_b.z); // spinning
-                data_manager->host_data.fric_rigid_rigid[i] = mu;
-
-                {
-                    quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b1];
-                    real3 sbar =
-                        Rotate(data_manager->host_data.cpta_rigid_rigid[i] - data_manager->host_data.pos_rigid[b1],
-                               quaternion_conjugate);
-
-                    rotated_point_a[i] = real3_int(sbar, b1);
-                    quat_a[i] = quaternion_conjugate;
-                }
-                {
-                    quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b2];
-                    real3 sbar =
-                        Rotate(data_manager->host_data.cptb_rigid_rigid[i] - data_manager->host_data.pos_rigid[b2],
-                               quaternion_conjugate);
-
-                    rotated_point_b[i] = real3_int(sbar, b2);
-                    quat_b[i] = quaternion_conjugate;
-                }
-            }
-        }
-    }
-
+    void Setup(ChParallelDataManager* dm);
     void Project(real* gamma);
     void Project_Single(int index, real* gamma);
     void host_Project_single(int index, vec2* ids, real3* friction, real* cohesion, real* gamma);
@@ -117,6 +54,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
     /// Fill-in the non zero entries in the bilateral jacobian with ones.
     /// This operation is sequential.
     void GenerateSparsity();
+
     int offset;
 
   protected:
@@ -132,6 +70,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
     ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
-/// @} parallel_colision
+/// @} parallel_constraint
 
 } // end namespace chrono

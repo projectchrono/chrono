@@ -125,6 +125,21 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// speed about its rotation axis.
     WheelState GetWheelState(const WheelID& wheel_id) const;
 
+    /// Return the vehicle wheelbase.
+    virtual double GetWheelbase() const  = 0;
+
+    /// Return the vehicle wheel track of the specified suspension subsystem.
+    double GetWheeltrack(int id) const { return m_suspensions[id]->GetTrack(); }
+
+    /// Return the minimum turning radius.
+    /// A concrete wheeled vehicle class should override the default value (20 m).
+    virtual double GetMinTurningRadius() const { return 20; }
+
+    /// Return the maximum steering angle.
+    /// This default implementation estimates the maximum steering angle based on a bicycle model
+    /// and the vehicle minimum turning radius.
+    virtual double GetMaxSteeringAngle() const;
+
     /// Set visualization type for the suspension subsystems.
     /// This function should be called only after vehicle initialization.
     void SetSuspensionVisualizationType(VisualizationType vis);

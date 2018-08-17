@@ -196,6 +196,8 @@ set(CV_POVERTRAIN_FILES
     powertrain/ChSimpleMapPowertrain.h
     powertrain/ChSimpleMapPowertrain.cpp
 
+    powertrain/SimpleMapPowertrain.h
+    powertrain/SimpleMapPowertrain.cpp
     powertrain/SimplePowertrain.h
     powertrain/SimplePowertrain.cpp
     powertrain/ShaftsPowertrain.h
@@ -332,11 +334,15 @@ set(CV_WV_STEERING_FILES
     wheeled_vehicle/steering/ChPitmanArmShafts.cpp
     wheeled_vehicle/steering/ChRackPinion.h
     wheeled_vehicle/steering/ChRackPinion.cpp
+    wheeled_vehicle/steering/ChRotaryArm.h
+    wheeled_vehicle/steering/ChRotaryArm.cpp
 
     wheeled_vehicle/steering/PitmanArm.h
     wheeled_vehicle/steering/PitmanArm.cpp
     wheeled_vehicle/steering/RackPinion.h
     wheeled_vehicle/steering/RackPinion.cpp
+    wheeled_vehicle/steering/RotaryArm.h
+    wheeled_vehicle/steering/RotaryArm.cpp
 )
 source_group("wheeled_vehicle\\steering" FILES ${CV_WV_STEERING_FILES})
 
@@ -361,6 +367,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChRigidSuspension.cpp
     wheeled_vehicle/suspension/ChRigidPinnedAxle.h
     wheeled_vehicle/suspension/ChRigidPinnedAxle.cpp
+    wheeled_vehicle/suspension/ChLeafspringAxle.h
+    wheeled_vehicle/suspension/ChLeafspringAxle.cpp
+    wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h
+    wheeled_vehicle/suspension/ChToeBarLeafspringAxle.cpp
 
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
@@ -378,6 +388,10 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/SemiTrailingArm.cpp
     wheeled_vehicle/suspension/ThreeLinkIRS.h
     wheeled_vehicle/suspension/ThreeLinkIRS.cpp
+    wheeled_vehicle/suspension/LeafspringAxle.h
+    wheeled_vehicle/suspension/LeafspringAxle.cpp
+    wheeled_vehicle/suspension/ToeBarLeafspringAxle.h
+    wheeled_vehicle/suspension/ToeBarLeafspringAxle.cpp
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 

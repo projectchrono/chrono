@@ -7,6 +7,11 @@
 message(STATUS "==== Chrono Engine core module ====")
 
 #-----------------------------------------------------------------------------
+# Double precision support for Bullet
+#-----------------------------------------------------------------------------
+option(USE_BULLET_DOUBLE "Compile Chrono::Engine with double precision support in Bullet" OFF)
+
+#-----------------------------------------------------------------------------
 # Includes for the main library
 #-----------------------------------------------------------------------------
 
@@ -101,6 +106,7 @@ set(ChronoEngine_serialization_HEADERS
     serialization/ChArchiveBinary.h
     serialization/ChArchiveAsciiDump.h
     serialization/ChArchiveJSON.h
+	serialization/ChArchiveXML.h
 	serialization/ChArchiveExplorer.h
     )
 
@@ -1018,9 +1024,13 @@ if (UNIX)
 endif()
 
 # Set some custom properties of this target
-set_target_properties(ChronoEngine PROPERTIES
-    LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-    COMPILE_DEFINITIONS "CH_API_COMPILE")
+set_target_properties(ChronoEngine PROPERTIES LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine PRIVATE "CH_API_COMPILE")
+
+if (USE_BULLET_DOUBLE)
+    target_compile_definitions(ChronoEngine PRIVATE "BT_USE_DOUBLE_PRECISION")
+endif()
 
 if(XCODE_VERSION)
     set_target_properties(ChronoEngine PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT ${ENABLE_OPENMP})

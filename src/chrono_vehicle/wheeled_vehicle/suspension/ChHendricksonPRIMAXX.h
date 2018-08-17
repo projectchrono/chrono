@@ -100,6 +100,9 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Get the current global COM location of the suspension subsystem.
     virtual ChVector<> GetCOMPos() const override;
 
+    /// Get the wheel track for the suspension subsystem.
+    virtual double GetTrack() override;
+
     /// There could be a spring (coil or air) and damper element between chassis and lower beam
     /// and a second spring and damper element between chassis and housing
 

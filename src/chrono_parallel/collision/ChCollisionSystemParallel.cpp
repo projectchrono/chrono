@@ -274,5 +274,18 @@ std::vector<vec2> ChCollisionSystemParallel::GetOverlappingPairs() {
     return pairs;
 }
 
+void ChCollisionSystemParallel::SetAABB(real3 aabbmin, real3 aabbmax) {
+    data_manager->settings.collision.aabb_min = aabbmin;
+    data_manager->settings.collision.aabb_max = aabbmax;
+    data_manager->settings.collision.use_aabb_active = true;
+}
+
+bool ChCollisionSystemParallel::GetAABB(real3& aabbmin, real3& aabbmax) {
+    aabbmin = data_manager->settings.collision.aabb_min;
+    aabbmax = data_manager->settings.collision.aabb_max;
+
+    return data_manager->settings.collision.use_aabb_active;
+}
+
 }  // end namespace collision
 }  // end namespace chrono

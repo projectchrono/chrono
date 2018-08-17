@@ -362,7 +362,26 @@ void ChAssembly::Setup() {
         }
     }
 
-    ndoc += nbodies;  // add one quaternion constr. for each active body.
+	for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+	{
+		std::shared_ptr<ChLink> Lpointer = linklist[ip];
+
+		if (Lpointer->IsActive()) {
+			nlinks++;
+
+			Lpointer->SetOffset_x(this->offset_x + ncoords);
+			Lpointer->SetOffset_w(this->offset_w + ncoords_w);
+			Lpointer->SetOffset_L(this->offset_L + ndoc_w);
+
+			Lpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
+
+			ncoords += Lpointer->GetDOF();
+			ncoords_w += Lpointer->GetDOF_w();
+			ndoc_w += Lpointer->GetDOC();
+			ndoc_w_C += Lpointer->GetDOC_c();
+			ndoc_w_D += Lpointer->GetDOC_d();
+		}
+	}
 
     for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip)  // ITERATE on other physics
     {
@@ -384,26 +403,7 @@ void ChAssembly::Setup() {
         ndoc_w_D += PHpointer->GetDOC_d();
     }
 
-    for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-    {
-        std::shared_ptr<ChLink> Lpointer = linklist[ip];
-
-        if (Lpointer->IsActive()) {
-            nlinks++;
-
-            Lpointer->SetOffset_x(this->offset_x + ncoords);
-            Lpointer->SetOffset_w(this->offset_w + ncoords_w);
-            Lpointer->SetOffset_L(this->offset_L + ndoc_w);
-
-            Lpointer->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
-
-            ncoords += Lpointer->GetDOF();
-            ncoords_w += Lpointer->GetDOF_w();
-            ndoc_w += Lpointer->GetDOC();
-            ndoc_w_C += Lpointer->GetDOC_c();
-            ndoc_w_D += Lpointer->GetDOC_d();
-        }
-    }
+    
 
     ndoc = ndoc_w + nbodies;          // number of constraints including quaternion constraints.
     nsysvars = ncoords + ndoc;        // total number of variables (coordinates + lagrangian multipliers)

@@ -25,7 +25,7 @@
 #include "chrono_fsi/ChBce.cuh"
 #include "chrono_fsi/ChFluidDynamics.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/ChFsiInterface.h"
+#include "chrono_fsi/ChFsiInterface.cuh"
 
 namespace chrono {
 namespace fsi {

@@ -35,7 +35,7 @@ MESSAGE(STATUS "Mumps arithmetic set to '${MUMPS_ARITHMETIC}'")
 OPTION(MUMPS_IS_SHARED_LIB "Link Mumps as shared library (only lib<arithmetic>mumps will be needed then)" ON)
 
 UNSET(MUMPS_FOUND)
-find_package(MUMPS REQUIRED)
+find_package(Mumps REQUIRED)
 
 ################# BLAS library ##########################
 #BLAS configuration

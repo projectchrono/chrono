@@ -126,7 +126,8 @@ void ChCSMatrix::Reset(int nrows, int ncols, int nonzeros_hint) {
     auto lead_dim_new = row_major_format ? nrows : ncols;
     auto trail_dim_new = row_major_format ? ncols : nrows;
 
-    if (nonzeros_hint == 0 && lead_dim_new == *leading_dimension && trail_dim_new == *trailing_dimension && m_lock) {
+    if (nonzeros_hint == 0 && lead_dim_new == *leading_dimension && trail_dim_new == *trailing_dimension && m_lock &&
+        lead_dim_new != 0 && trail_dim_new != 0) {
         std::fill(values.begin(), values.begin() + leadIndex[*leading_dimension] - 1, 0);
     } else {
         if (nonzeros_hint == 0)
@@ -180,7 +181,7 @@ bool ChCSMatrix::Compress() {
 }
 
 int ChCSMatrix::Inflate(int storage_augm, int lead_sel, int trail_sel) {
-    assert(lead_sel >= 0 && lead_sel < m_num_rows && "Cannot inflate a row that does not exist");
+    assert(lead_sel >= 0 && lead_sel < *leading_dimension && "Cannot inflate a row(CSR)|column(CSC) that does not exist");
     if (trail_sel == -1)
         trail_sel = leadIndex[lead_sel + 1];
 

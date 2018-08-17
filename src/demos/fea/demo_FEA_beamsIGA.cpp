@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChFileutils.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -30,6 +31,8 @@
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -72,11 +75,11 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
@@ -153,7 +156,7 @@ void MakeAndRunDemo0(ChIrrApp& myapp) {
 // rod automatically divided in Nel elements:
 //
 
-void MakeAndRunDemo1(ChIrrApp& myapp) {
+void MakeAndRunDemo1(ChIrrApp& myapp, int nsections=32, int order=2) {
 
 	// Clear previous demo, if any:
 	myapp.GetSystem()->Clear();
@@ -166,35 +169,43 @@ void MakeAndRunDemo1(ChIrrApp& myapp) {
 	my_mesh->SetAutomaticGravity(false);
 	myapp.GetSystem()->Add(my_mesh);
 
+	double beam_L = 0.4;
+	double beam_tip_load = -2;
 
 	// Create a section, i.e. thickness and material properties
 	// for beams. This will be shared among some beams.
 
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
-
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
-	melasticity->SetYoungModulus(0.02e10);
-	melasticity->SetGshearModulus(0.02e10 * 0.3);
+/*
+	auto melasticity = std::make_shared<ChElasticityCosseratMesh>();
+	auto mmeshmaterial = std::make_shared<ChElasticityCosseratMesh::ChSectionMaterial>();
+	mmeshmaterial->E = 0.02e10;
+	mmeshmaterial->G = 0.02e10 * 0.3;
+	melasticity->Materials().push_back(mmeshmaterial);
+*/
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus( 0.02e10);
+	melasticity->SetGshearModulus(0.02e10 * 0.38);
 	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
-	// Example B.  
 	// Use the ChBuilderBeamIGA tool for creating a straight rod 
 	// divided in Nel elements:
 
 	ChBuilderBeamIGA builder;
 	builder.BuildBeam(      my_mesh,            // the mesh to put the elements in
-	msection,           // section of the beam
-	15,                 // number of sections (spans)
-	ChVector<>(0,  0,0),// start point
-	ChVector<>(0.4,0,0),// end point
-	VECT_Y,             // suggested Y direction of section
-	3);                 // order (3 = cubic, etc)
+	msection,              // section of the beam
+	nsections,             // number of sections (spans)
+	ChVector<>(0,  0,0),   // start point
+	ChVector<>(beam_L,0,0),// end point
+	VECT_Y,                // suggested Y direction of section
+	order);                // order (3 = cubic, etc)
 	builder.GetLastBeamNodes().front()->SetFixed(true);
-	builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0,-2,0));
+	builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, beam_tip_load,0));
 	//builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(0,0, 1.2));
 
 	
@@ -223,12 +234,17 @@ void MakeAndRunDemo1(ChIrrApp& myapp) {
 	// Do a linear static analysis.
 	myapp.GetSystem()->DoStaticLinear();
 
-	GetLog() << "\n\n TEST LINEAR STATIC: \n  for straght bar, tip displacement y = "
-		<< builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y()
-		<< "\n"
-		<< "  exact should be: y = " <<
-		(4 * -2 * pow(0.4, 3) / (melasticity->GetYoungModulus()*beam_wz*pow(beam_wy, 3)))
-		+ (-2 * 0.4) / ((5. / 6.)*melasticity->GetGshearModulus()*beam_wz*beam_wy)
+	// For comparison with analytical results.
+	double poisson = melasticity->GetYoungModulus() / (2.0 * melasticity->GetGshearModulus()) - 1.0;
+	double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
+	double analytic_timoshenko_displ =  (beam_tip_load * pow(beam_L, 3)) / (3 * melasticity->GetYoungModulus()* (1./12.)*beam_wz*pow(beam_wy, 3))
+		+ (beam_tip_load * beam_L) / (Ks_y*melasticity->GetGshearModulus()*beam_wz*beam_wy); // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
+	double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
+	
+
+	GetLog() << "\n LINEAR STATIC cantilever, order= " << order << "  nsections= " << nsections
+		<< "  rel.error=  " 
+		<< fabs((numerical_displ-analytic_timoshenko_displ)/analytic_timoshenko_displ)
 		<< "\n";
 
 	while (ID_current_example == 1 && myapp.GetDevice()->run()) {
@@ -244,6 +260,7 @@ void MakeAndRunDemo1(ChIrrApp& myapp) {
 //
 // Example C: Automatic creation of the nodes and knots using the 
 // ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline.
+// Also attach a rigid body to the end of the spline.
 //
 
 void MakeAndRunDemo2(ChIrrApp& myapp) {
@@ -266,18 +283,15 @@ void MakeAndRunDemo2(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
-	// Example C. 
-	// Automatic creation of the nodes and knots using the 
-	// ChBuilderBeamIGA tool for creating a generic curved rod that matches a Bspline:
-	
+
 	ChBuilderBeamIGA builderR;
 
 	std::vector< ChVector<> > my_points = { {0,0,0.2}, {0,0,0.3}, { 0,-0.01,0.4 } , {0,-0.04,0.5}, {0,-0.1,0.6} };
@@ -359,25 +373,29 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 	double beam_wy = 0.012;
 	double beam_wz = 0.025;
 
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.02e10);
 	melasticity->SetGshearModulus(0.02e10 * 0.3);
 	melasticity->SetBeamRaleyghDamping(0.0000);
 
-	auto mplasticity = std::make_shared<ChPlasticityTimoshenkoLumped>();
+	auto mplasticity = std::make_shared<ChPlasticityCosseratLumped>();
 	// The isotropic hardening curve. The value at zero absyssa is the initial yeld.
-	//mplasticity->n_yeld_x = std::make_shared<ChFunction_Const>(3000);
-	mplasticity->n_yeld_x = std::make_shared<ChFunction_Ramp>(3000, 1e3);
+	mplasticity->n_yeld_x = std::make_shared<ChFunction_Const>(3000);
+	//mplasticity->n_yeld_x = std::make_shared<ChFunction_Ramp>(3000, 1e3);
 	// The optional kinematic hardening curve:
-	//mplasticity->n_beta_x = std::make_shared<ChFunction_Ramp>(0, 1e3);
+	mplasticity->n_beta_x = std::make_shared<ChFunction_Ramp>(0, 1e3);
 
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity, mplasticity);
+	// for bending (on y and z): some kinematic hardening
+	mplasticity->n_yeld_My = std::make_shared<ChFunction_Const>(0.3);
+	mplasticity->n_beta_My = std::make_shared<ChFunction_Ramp>(0, 0.001e2);
+	mplasticity->n_yeld_Mz = std::make_shared<ChFunction_Const>(0.3);
+	mplasticity->n_beta_Mz = std::make_shared<ChFunction_Ramp>(0, 0.001e2);
+
+
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity);
 	msection->SetDensity(1000);
 	msection->SetAsRectangularSection(beam_wy, beam_wz);
 
-
-	// Example D. 
-	// Plasticity. 
 
 	ChBuilderBeamIGA builder;
 	builder.BuildBeam(my_mesh,            // the mesh to put the elements in
@@ -397,8 +415,8 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 
 	auto motor = std::make_shared<ChLinkMotorLinearPosition>();
 	myapp.GetSystem()->Add(motor);
-	motor->Initialize(builder.GetLastBeamNodes().back(), truss, ChFrame<>(builder.GetLastBeamNodes().back()->GetCoord()));
-	//motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::PRISMATIC);
+	motor->Initialize(builder.GetLastBeamNodes().back(), truss, ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::Q_from_AngAxis(0*CH_C_PI_2, VECT_Z)));
+	motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
 	auto rampup = std::make_shared<ChFunction_Ramp>(0, 0.1);
 	auto rampdo = std::make_shared<ChFunction_Ramp>(0, -0.1);
 	auto motfun = std::make_shared<ChFunction_Sequence>();
@@ -446,7 +464,8 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 		ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNdofs(), builder.GetLastBeamElements()[0]->GetNdofs());
 		builder.GetLastBeamElements()[0]->ComputeKRMmatricesGlobal(mK, 1, 0, 0);
 		auto plasticdat = builder.GetLastBeamElements()[0]->GetPlasticData()[0].get();
-		auto plasticdata = dynamic_cast<ChInternalDataLumpedTimoshenko*>(plasticdat);
+		auto plasticdata = dynamic_cast<ChInternalDataLumpedCosserat*>(plasticdat);
+		
 		my_plasticfile << myapp.GetSystem()->GetChTime() << " "
 			<< builder.GetLastBeamElements()[0]->GetStrainE()[0].x() << " "
 			<< builder.GetLastBeamElements()[0]->GetStressN()[0].x() << " "
@@ -455,13 +474,190 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
 			<< mK(0, 0) << " "
 			<< motor->GetMotorForce() << " "
 			<< motor->GetMotorPos() << "\n";
-
+		/*
+		my_plasticfile << myapp.GetSystem()->GetChTime() << " "
+			<< builder.GetLastBeamElements()[0]->GetStrainK()[0].z() << " "
+			<< builder.GetLastBeamElements()[0]->GetStressM()[0].z() << " "
+			<< plasticdata->p_strain_acc << " "
+			<< plasticdata->p_strain_k.z() << " "
+			<< mK(5, 5) << " "
+			<< motor->GetMotorForce() << " "
+			<< motor->GetMotorPos() << "\n";
+			*/
 		myapp.EndScene();
 	}
 }
 
 
+//
+// Example E: Jeffcott rotor. 
+// Create IGA beams, connect an offset flywheel, and make it rotate 
+// with a motor, up to resonance.
+//
 
+void MakeAndRunDemo4(ChIrrApp& myapp) {
+
+	// Clear previous demo, if any:
+	myapp.GetSystem()->Clear();
+	myapp.GetSystem()->SetChTime(0);
+
+	// Create a mesh, that is a container for groups
+	// of elements and their referenced nodes.
+	// Remember to add it to the system.
+	auto my_mesh = std::make_shared<ChMesh>();
+	myapp.GetSystem()->Add(my_mesh);
+
+	my_mesh->SetAutomaticGravity(true,2); // for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
+	myapp.GetSystem()->Set_G_acc(ChVector<>(0,-9.81, 0));
+
+	double beam_L = 6;
+	double beam_ro = 0.050;
+	double beam_ri = 0.045;
+
+	// Create a section, i.e. thickness and material properties
+	// for beams. This will be shared among some beams.
+
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(210e9);
+	melasticity->SetGwithPoissonRatio(0.3);
+	melasticity->SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+	melasticity->SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+	melasticity->SetJ  ( (CH_C_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
+	msection->SetDensity(7800);
+	msection->SetCircular(true);
+	msection->SetDrawCircularRadius(beam_ro); // SetAsCircularSection(..) would overwrite Ixx Iyy J etc.
+	msection->SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
+
+	// Use the ChBuilderBeamIGA tool for creating a straight rod 
+	// divided in Nel elements:
+
+	ChBuilderBeamIGA builder;
+	builder.BuildBeam(my_mesh,      // the mesh to put the elements in
+		msection,					// section of the beam
+		20,							// number of sections (spans)
+		ChVector<>(0, 0, 0),		// start point
+		ChVector<>(beam_L, 0, 0),	// end point
+		VECT_Y,						// suggested Y direction of section
+		1);							// order (3 = cubic, etc)
+
+	auto node_mid = builder.GetLastBeamNodes()[(int)floor(builder.GetLastBeamNodes().size()/2.0)];
+	
+	// Create the flywheel and attach it to the center of the beam
+	
+	auto mbodyflywheel = std::make_shared<ChBodyEasyCylinder>(0.24, 0.05, 7800); // R, h, density
+	mbodyflywheel->SetCoord(
+			ChCoordsys<>(node_mid->GetPos() + ChVector<>(0,0.05,0), // flywheel initial center (plus Y offset)
+			Q_from_AngAxis(CH_C_PI_2,VECT_Z)) // flywheel initial alignment (rotate 90° so cylinder axis is on X)
+	);
+	myapp.GetSystem()->Add(mbodyflywheel);
+
+	auto myjoint = std::make_shared<ChLinkMateFix>();
+	myjoint->Initialize(node_mid, mbodyflywheel);
+	myapp.GetSystem()->Add(myjoint);
+
+	// Create the truss
+	auto truss = std::make_shared<ChBody>();
+	truss->SetBodyFixed(true);
+	myapp.GetSystem()->Add(truss);
+
+	// Create the end bearing 
+	auto bearing = std::make_shared<ChLinkMateGeneric>(false, true, true, false, true, true);
+	bearing->Initialize(builder.GetLastBeamNodes().back(),
+		truss,
+		ChFrame<>(builder.GetLastBeamNodes().back()->GetPos())
+	);
+	myapp.GetSystem()->Add(bearing);
+
+	// Create the motor that rotates the beam
+	auto rotmotor1 = std::make_shared<ChLinkMotorRotationSpeed>();
+
+	// Connect the rotor and the stator and add the motor to the system:
+	rotmotor1->Initialize(builder.GetLastBeamNodes().front(),                // body A (slave)
+		truss,               // body B (master)
+		ChFrame<>(builder.GetLastBeamNodes().front()->GetPos(), Q_from_AngAxis(CH_C_PI_2, VECT_Y))// motor frame, in abs. coords
+	);
+ 	myapp.GetSystem()->Add(rotmotor1);
+	
+	// use a custom function for setting the speed of the motor
+	class ChFunction_myf : public ChFunction {
+	public:
+		virtual ChFunction_myf* Clone() const override { return new ChFunction_myf(); }
+
+		virtual double Get_y(double x) const override {
+			double A1 = 0.8;
+			double A2 = 1.2;
+			double T1 = 0.5;
+			double T2 = 1.0;
+			double T3 = 1.25; 
+			double w = 60;
+			if (x < T1)
+				return A1 * w * (1. - cos(CH_C_PI*x / T1)) / 2.0;
+			else if (x > T1 && x <= T2)
+				return A1 * w;
+			else if (x > T2 && x <= T3)
+				return A1 * w + (A2 - A1) * w * (1.0 - cos(CH_C_PI*(x - T2) / (T3 - T2))) / 2.0;
+			else // if (x > T3)
+				return A2 * w;
+		}
+	};
+
+	auto f_ramp = std::make_shared<ChFunction_myf>();
+	rotmotor1->SetMotorFunction(f_ramp);
+
+	// Attach a visualization of the FEM mesh.
+
+	auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamA->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+	mvisualizebeamA->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizebeamA);
+
+	auto mvisualizebeamC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizebeamC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_CSYS);
+	mvisualizebeamC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizebeamC->SetSymbolsThickness(0.006);
+	mvisualizebeamC->SetSymbolsScale(0.01);
+	mvisualizebeamC->SetZbufferHide(false);
+	my_mesh->AddAsset(mvisualizebeamC);
+
+	// This is needed if you want to see things in Irrlicht 3D view.
+	myapp.AssetBindAll();
+	myapp.AssetUpdateAll();
+
+	// Mark completion of system construction
+	myapp.GetSystem()->SetupInitial();
+	
+	// Prepare file for output data
+	const std::string out_dir = GetChronoOutputPath() + "JEFFCOTT_ROTOR";
+	if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+		std::cout << "Error creating directory " << out_dir << std::endl;
+		return;
+	}
+	std::string filename = out_dir + "/rotor_displ.dat";
+	chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
+
+	// Set to a more precise HHT timestepper if needed
+	//myapp.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
+	if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(myapp.GetSystem()->GetTimestepper())) {
+		mystepper->SetStepControl(false);
+		mystepper->SetModifiedNewton(false);
+	}
+
+	myapp.SetTimestep(0.002);
+	myapp.GetSystem()->DoStaticLinear();
+
+	while (ID_current_example == 4 && myapp.GetDevice()->run()) {
+		myapp.BeginScene();
+		myapp.DrawAll();
+		myapp.DoStep();
+		file_out1	<< myapp.GetSystem()->GetChTime() << " " 
+					<< node_mid->GetPos().y() << " "
+					<< node_mid->GetPos().z() << "\n";
+		myapp.EndScene();
+	}
+
+}
 
 /// Following class will be used to manage events from the user interface
 
@@ -484,6 +680,9 @@ public:
 				return true;
 			case irr::KEY_KEY_3:
 				ID_current_example = 3;
+				return true;
+			case irr::KEY_KEY_4:
+				ID_current_example = 4;
 				return true;
 			default:
 				break;
@@ -526,7 +725,7 @@ int main(int argc, char* argv[]) {
 	application.SetUserEventReceiver(&receiver);
 
 	// Some help on the screen
-	auto gad_textFPS = application.GetIGUIEnvironment()->addStaticText(L" Press 1: static analysis \n Press 2: curved beam connected to body \n Press 3: plasticity", irr::core::rect<irr::s32>(10, 60, 250, 110), false, true, 0);
+	auto gad_textFPS = application.GetIGUIEnvironment()->addStaticText(L" Press 1: static analysis \n Press 2: curved beam connected to body \n Press 3: plasticity \n Press 4: Jeffcott rotor", irr::core::rect<irr::s32>(10, 80, 250, 150), false, true, 0);
 	
 
 	// Solver default settings for all the sub demos:
@@ -552,13 +751,49 @@ int main(int argc, char* argv[]) {
 	while (true) {
 		switch (ID_current_example) {
 		case 1:
-			MakeAndRunDemo1(application);
+			/*
+			MakeAndRunDemo1(application, 4,1);
+			MakeAndRunDemo1(application, 8,1);
+			MakeAndRunDemo1(application,16,1);
+			MakeAndRunDemo1(application,32,1);
+			MakeAndRunDemo1(application,64,1);
+			MakeAndRunDemo1(application,512, 1);
+			MakeAndRunDemo1(application, 4, 2);
+			MakeAndRunDemo1(application, 8, 2);
+			MakeAndRunDemo1(application, 16, 2);
+			MakeAndRunDemo1(application, 32, 2);
+			MakeAndRunDemo1(application, 64, 2);
+			MakeAndRunDemo1(application, 512, 2);
+			MakeAndRunDemo1(application, 4, 3);
+			MakeAndRunDemo1(application, 8, 3);
+			MakeAndRunDemo1(application, 16, 3);
+			MakeAndRunDemo1(application, 32, 3);
+			MakeAndRunDemo1(application, 64, 3);
+			MakeAndRunDemo1(application, 512, 3);
+			MakeAndRunDemo1(application, 4, 4);
+			MakeAndRunDemo1(application, 8, 4);
+			MakeAndRunDemo1(application, 16, 4);
+			MakeAndRunDemo1(application, 32, 4);
+			MakeAndRunDemo1(application, 64, 4);
+			MakeAndRunDemo1(application, 512, 4);
+			MakeAndRunDemo1(application, 4, 5);
+			MakeAndRunDemo1(application, 8, 5);
+			MakeAndRunDemo1(application, 16, 5);
+			MakeAndRunDemo1(application, 32, 5);
+			MakeAndRunDemo1(application, 64, 5);
+			MakeAndRunDemo1(application, 512, 5);
+			system("pause");
+			*/
+			MakeAndRunDemo1(application, 64, 3);
 			break;
 		case 2:
 			MakeAndRunDemo2(application);
 			break;
 		case 3:
 			MakeAndRunDemo3(application);
+			break;
+		case 4:
+			MakeAndRunDemo4(application);
 			break;
 		default:
 			break;

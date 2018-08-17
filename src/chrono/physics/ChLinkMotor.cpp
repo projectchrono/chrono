@@ -19,7 +19,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChLinkMotor)  NO! ABSTRACT!
 
-ChLinkMotor::ChLinkMotor() {}
+ChLinkMotor::ChLinkMotor() {
+	m_func = std::make_shared<ChFunction_Const>(0); // defaults to no motion.
+}
 
 ChLinkMotor::ChLinkMotor(const ChLinkMotor& other) : ChLinkMateGeneric(other) {
     m_func = other.m_func;

@@ -79,7 +79,7 @@ ChParserOpenSim::ChParserOpenSim()
 // Enable collision and specify collision families.
 // -----------------------------------------------------------------------------
 
-void ChParserOpenSim::EnableCollision(int family_1, int family_2) {
+void ChParserOpenSim::SetCollisionFamilies(int family_1, int family_2) {
     assert(family_1 != family_2);
     assert(family_1 >= 0 && family_1 <= 15);
     assert(family_2 >= 0 && family_2 <= 15);
@@ -759,7 +759,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             rot.Set_A_Xdir(p1 - p2);
             // Center of cylinder is halfway between points
             collision_cylinder_specs new_cyl;
-            new_cyl.rad = .075;
+            new_cyl.rad = .02;
             new_cyl.hlen = (p1 - p2).Length() / 2;
             new_cyl.pos = (p2 - p1) / 2;
             new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngZ(-CH_C_PI / 2);
@@ -777,7 +777,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             rot.Set_A_Xdir(p2 - p1);
             // Center of cylinder is halfway between points
             collision_cylinder_specs new_cyl;
-            new_cyl.rad = .075;
+            new_cyl.rad = .02;
             new_cyl.hlen = (p2 - p1).Length() / 2;
             new_cyl.pos = (p1 - p2) / 2;
             new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngZ(-CH_C_PI / 2);

@@ -48,6 +48,6 @@ class CH_PARALLEL_API ChConstraintBilateral {
     ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager.
 };
 
-/// @} parallel_colision
+/// @} parallel_constraint
 
 } // end namespace chrono

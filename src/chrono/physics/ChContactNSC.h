@@ -117,7 +117,16 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         this->objB->ComputeJacobianForContactPart(this->p2, this->contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(),
                                                   Tv.Get_tuple_b(), true);
 
-        react_force = VNULL;
+		
+		if (reactions_cache) {
+			react_force.x() = reactions_cache[0];
+			react_force.y() = reactions_cache[1];
+			react_force.z() = reactions_cache[2];
+			//GetLog() << "Reset Fn=" << (double)reactions_cache[0] << "  at cache address:" << (int)this->reactions_cache << "\n";
+		}
+		else {
+			react_force = VNULL;
+		}
     }
 
     /// Get the contact force, if computed, in contact coordinate system
@@ -141,6 +150,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         react_force.x() = L(off_L);
         react_force.y() = L(off_L + 1);
         react_force.z() = L(off_L + 2);
+		reactions_cache[0] = (float)L(off_L); //react_force.x();
+		reactions_cache[1] = (float)L(off_L + 1);//react_force.y();
+		reactions_cache[2] = (float)L(off_L + 2);//react_force.z();
     }
 
     virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    
@@ -200,12 +212,13 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
                 double qc = inv_hpa * this->norm_dist;  //***TODO*** see how to move this in KRMmatricesLoad()
-
-                // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outgoing
-                // speed, but
-                // also the reaction, so it might allow more 'sinking'.
-                // if (do_clamp)
-                //    qc = ChMax(qc, -recovery_clamp);
+				
+                // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outbound
+                // speed, but also the reaction, so it might allow longer 'sinking' not related to the real compliance.
+				// I.e. If clamping kicks in (when using large timesteps and low compliance), it acts as a numerical damping.
+				if (do_clamp) {
+					qc = ChMax(qc, -recovery_clamp);
+				}
 
                 Qc(off_L) += qc;
 
@@ -297,12 +310,14 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
-                // GetLog()<< "compliance " << (int)this << "  compl=" << this->compliance << "  damping=" <<
-                // this->dampingf
-                // << "  h=" << h << "\n";
+				double qc = inv_hpa * this->norm_dist;
 
-                // no clamping of residual
-                Nx.Set_b_i(Nx.Get_b_i() + inv_hpa * this->norm_dist);  // was (inv_h)* ...   //***TEST DAMPING***//
+				// If clamping kicks in(when using large timesteps and low compliance), it acts as a numerical damping.
+				if (do_clamp)
+					qc = ChMax(qc, -recovery_clamp);
+
+                Nx.Set_b_i(Nx.Get_b_i() + qc); 
+
             } else {
                 // GetLog()<< "rigid " << (int)this << "  recov_clamp=" << recovery_clamp << "\n";
                 if (do_clamp)

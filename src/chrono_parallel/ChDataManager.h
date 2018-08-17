@@ -23,6 +23,8 @@
 
 #include <memory>
 
+#include "chrono/physics/ChContactContainer.h"
+
 // Chrono::Parallel headers
 #include "chrono_parallel/ChTimerParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
@@ -304,9 +306,11 @@ struct host_container {
     /// This is precomputed at every timestep for all contacts in parallel.
     /// Improves performance and reduces conditionals later on.
     custom_vector<real3> fric_rigid_rigid;
-    /// Holds the cohesion value for each contact, similar to friction this is
-    /// precomputed for all contacts in parallel.
+    /// Holds the cohesion value for each contact.
+    /// Similar to friction this is precomputed for all contacts in parallel.
     custom_vector<real> coh_rigid_rigid;
+    /// Precomputed compliance values for all contacts.
+    custom_vector<real4> compliance_rigid_rigid;
 
     // Object data
     custom_vector<real3> pos_rigid;
@@ -344,7 +348,7 @@ struct host_container {
     custom_vector<char> shaft_active;  ///< shaft active (not sleeping nor fixed) flags
 
     // Material properties (NSC)
-    custom_vector<real3> fric_data;        ///< friction information (sliding and rolling)
+    custom_vector<real3> fric_data;        ///< friction information (sliding, rolling, spinning)
     custom_vector<real> cohesion_data;     ///< constant cohesion forces (NSC and SMC)
     custom_vector<real4> compliance_data;  ///< compliance (NSC only)
 
@@ -461,6 +465,9 @@ class CH_PARALLEL_API ChParallelDataManager {
 
     /// Material composition strategy.
     std::unique_ptr<ChMaterialCompositionStrategy<real>> composition_strategy;
+
+    /// User-provided callback for overriding coposite material properties.
+    ChContactContainer::AddContactCallback* add_contact_callback;
 
     /// Output a vector (one dimensional matrix) from blaze to a file.
     int OutputBlazeVector(DynamicVector<real> src, std::string filename);

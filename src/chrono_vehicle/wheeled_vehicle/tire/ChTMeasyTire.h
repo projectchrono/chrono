@@ -214,9 +214,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         double& depth                   ///< [out] penetration depth (positive if contact occurred)
     );
 
-    /// Sine Step Function
-    double SinStep(double x, double x1, double h1, double x2, double h2);
-
     /// Return the vertical tire stiffness contribution to the normal force.
     double GetNormalStiffnessForce(double depth);
 
@@ -268,7 +265,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
     typedef struct {
         double pn;      ///< Nominal vertical force [N]
-        double pn_max;  ///< Maximum vertical force [N] (currently not used)
+        double pn_max;  ///< Maximum vertical force [N]
 
         double mu_0;  ///< Local friction coefficient of the road for given parameters
         double cx;    ///< Linear stiffness x [N/m]
@@ -307,7 +304,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     double InterpQ(double fz, double w1, double w2) {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };
-    double RampSignum(double inval);
 
   private:
     void UpdateVerticalStiffness();
