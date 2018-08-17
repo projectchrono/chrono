@@ -115,21 +115,20 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
                                const double3& sphere_pos,  //!< Location of the center of the sphere
                                const int radius,           //!< Sphere radius
                                double3& norm,
-                               double& depth,
-                               double3& pt1,
-                               double3& pt2) {
+                               float& depth,
+                               double3& pt1) {
     // Calculate face normal.
     double3 nrm1 = face_normal(A, B, C);
 
     // Calculate signed height of sphere center above face plane. If the
     // height is larger than the sphere radius plus the separation value,
     // there is no contact.
-    double h = Dot(sphere_pos - A, nrm1);
+    float h = Dot(sphere_pos - A, nrm1);
 
     if (h >= radius || h <= -radius) {
         return false;
     }
-	
+
     // Find the closest point on the face to the sphere center and determine
     // whether or not this location is inside the face or on an edge.
     double3 faceLoc;
@@ -142,7 +141,6 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
     norm = nrm1;
     depth = h - radius;
     pt1 = faceLoc;
-    pt2 = sphere_pos - radius * norm;
 
     return true;
 }

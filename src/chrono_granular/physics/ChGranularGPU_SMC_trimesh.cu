@@ -565,13 +565,11 @@ __global__ void interactionTerrain_TriangleSoup(
             // counted only if the collision point is in this SD.
             unsigned int targetTriangle = (threadIdx.x & (warp_size - 1));  // computes modulo 32 of the thread index
             for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
-                targetTriangle += triangTrip * warp_size;
                 if (targetTriangle < nBKT_triangles) {
                     /// we have a valid sphere and a valid triganle; check if in contact
                     double3 norm;
                     double3 pt1;
-                    double3 pt2;
-                    double depth;
+                    float depth;
 
                     // Transform vertices into GRF SU
                     double3 A, B, C;  // vertices of the triangle
@@ -610,7 +608,7 @@ __global__ void interactionTerrain_TriangleSoup(
 
                     // TODO Conlain, check this force computation
                     // If there is a collision, add an impulse to the sphere
-                    if (face_sphere_cd(A, B, C, sphCntr, gran_params->sphereRadius_SU, norm, depth, pt1, pt2) &&
+                    if (face_sphere_cd(A, B, C, sphCntr, gran_params->sphereRadius_SU, norm, depth, pt1) &&
                         SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD) {
                         float scalingFactor = alpha_h_bar * mesh_params->Kn_s2m_SU;
 
@@ -655,6 +653,7 @@ __global__ void interactionTerrain_TriangleSoup(
                         forceActingOnSphere[2] += bodyA_Z_velCorr;
                     }
                 }
+                targetTriangle += warp_size;
             }  // end of per-triangle loop
 
             // down to the point where we need to collect the forces from all the threads in the warp; this is a
