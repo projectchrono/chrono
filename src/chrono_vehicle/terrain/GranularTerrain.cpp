@@ -41,8 +41,6 @@
 #include <cmath>
 
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -73,15 +71,7 @@ GranularTerrain::GranularTerrain(ChSystem* system)
       m_vis_enabled(false),
       m_moving_patch(false),
       m_moved(false),
-      m_friction(0.9f),
-      m_restitution(0.0f),
-      m_cohesion(0.0f),
-      m_young_modulus(2e5f),
-      m_poisson_ratio(0.3f),
-      m_kn(2e5f),
-      m_gn(40),
-      m_kt(2e5f),
-      m_gt(20) {
+      m_envelope(-1) {
     // Create the ground body and add it to the system.
     m_ground = std::shared_ptr<ChBody>(system->NewBody());
     m_ground->SetName("ground");
@@ -89,6 +79,23 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     m_ground->SetBodyFixed(true);
     m_ground->SetCollide(false);
     system->AddBody(m_ground);
+
+    // Set default parameters for contact materials
+    m_matSMC = std::make_shared<ChMaterialSurfaceSMC>();
+    m_matSMC->SetFriction(0.9f);
+    m_matSMC->SetRestitution(0.0f);
+    m_matSMC->SetAdhesion(0.0f);
+    m_matSMC->SetYoungModulus(2e5f);
+    m_matSMC->SetPoissonRatio(0.3f);
+    m_matSMC->SetKn(2e5f);
+    m_matSMC->SetGn(40.0f);
+    m_matSMC->SetKt(2e5f);
+    m_matSMC->SetGt(20.0f);
+
+    m_matNSC = std::make_shared<ChMaterialSurfaceNSC>();
+    m_matNSC->SetFriction(0.9f);
+    m_matNSC->SetRestitution(0.0f);
+    m_matNSC->SetCohesion(0.0f);
 
     // Create the default color asset
     m_color = std::make_shared<ChColorAsset>();
@@ -98,16 +105,39 @@ GranularTerrain::GranularTerrain(ChSystem* system)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void GranularTerrain::SetContactFrictionCoefficient(float friction_coefficient) {
+    m_matSMC->SetFriction(friction_coefficient);
+    m_matNSC->SetFriction(friction_coefficient);
+}
+
+void GranularTerrain::SetContactRestitutionCoefficient(float restitution_coefficient) {
+    m_matSMC->SetRestitution(restitution_coefficient);
+    m_matNSC->SetRestitution(restitution_coefficient);
+}
+
+void GranularTerrain::SetContactCohesion(float cohesion) {
+    m_matSMC->SetAdhesion(cohesion);
+    m_matNSC->SetCohesion(cohesion);
+}
+
 void GranularTerrain::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
+    m_matSMC->SetYoungModulus(young_modulus);
+    m_matSMC->SetPoissonRatio(poisson_ratio);
 }
 
 void GranularTerrain::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
+    m_matSMC->SetKn(kn);
+    m_matSMC->SetGn(gn);
+    m_matSMC->SetKt(kt);
+    m_matSMC->SetGt(gt);
+}
+
+void GranularTerrain::SetContactMaterialSMC(std::shared_ptr<ChMaterialSurfaceSMC> mat) {
+    m_matSMC = mat;
+}
+
+void GranularTerrain::SetContactMaterialNSC(std::shared_ptr<ChMaterialSurfaceNSC> mat) {
+    m_matNSC = mat;
 }
 
 // -----------------------------------------------------------------------------
@@ -388,29 +418,15 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     // Create the contact material.
     std::shared_ptr<ChMaterialSurface> mat;
-
-    // Set contact material properties for the ground (container) body.
     switch (m_ground->GetContactMethod()) {
         case ChMaterialSurface::NSC: {
-            auto matNSC = std::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(m_friction);
-            matNSC->SetRestitution(m_restitution);
-            matNSC->SetCohesion(m_cohesion);
-            mat = matNSC;
+            mat = m_matNSC;
+            if (m_envelope < 0)
+                m_envelope = 0.05 * radius;
             break;
         }
         case ChMaterialSurface::SMC: {
-            auto matSMC = std::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(m_friction);
-            matSMC->SetRestitution(m_restitution);
-            matSMC->SetYoungModulus(m_young_modulus);
-            matSMC->SetAdhesion(m_cohesion);
-            matSMC->SetPoissonRatio(m_poisson_ratio);
-            matSMC->SetKn(m_kn);
-            matSMC->SetGn(m_gn);
-            matSMC->SetKt(m_kt);
-            matSMC->SetGt(m_gt);
-            mat = matSMC;
+            mat = m_matSMC;
             m_envelope = 0;  // collision envelope reset to 0
             break;
         }
@@ -529,7 +545,7 @@ double GranularTerrain::GetHeight(double x, double y) const {
 }
 
 float GranularTerrain::GetCoefficientFriction(double x, double y) const {
-    return m_friction_fun ? (*m_friction_fun)(x, y) : m_friction;
+    return m_friction_fun ? (*m_friction_fun)(x, y) : m_matSMC->GetSfriction();
 }
 
 }  // end namespace vehicle

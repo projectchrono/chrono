@@ -38,6 +38,11 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
+// Select Path Follower, uncomment to select the pure PID steering controller
+#define USE_PID 1
+
+// The extended steering controller only works inside the path limits
+// =============================================================================
 // Problem parameters
 
 // Contact method type
@@ -113,14 +118,23 @@ int filter_window_size = 20;
 
 // Custom Irrlicht event receiver for selecting current driver model.
 class ChDriverSelector : public irr::IEventReceiver {
-  public:
+    public:
+
+#ifdef USE_PID
     ChDriverSelector(const ChVehicle& vehicle, ChPathFollowerDriver* driver_follower, ChIrrGuiDriver* driver_gui)
         : m_vehicle(vehicle),
           m_driver_follower(driver_follower),
           m_driver_gui(driver_gui),
           m_driver(m_driver_follower),
           m_using_gui(false) {}
-
+#else
+    ChDriverSelector(const ChVehicle& vehicle, ChPathFollowerDriverXT* driver_follower, ChIrrGuiDriver* driver_gui)
+        : m_vehicle(vehicle),
+          m_driver_follower(driver_follower),
+          m_driver_gui(driver_gui),
+          m_driver(m_driver_follower),
+          m_using_gui(false) {}
+#endif
     ChDriver* GetDriver() { return m_driver; }
     bool UsingGUI() const { return m_using_gui; }
 
@@ -179,7 +193,11 @@ class ChDriverSelector : public irr::IEventReceiver {
   private:
     bool m_using_gui;
     const ChVehicle& m_vehicle;
+#ifdef USE_PID
     ChPathFollowerDriver* m_driver_follower;
+#else
+    ChPathFollowerDriverXT* m_driver_follower;
+#endif
     ChIrrGuiDriver* m_driver_gui;
     ChDriver* m_driver;
 };
@@ -242,9 +260,13 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering Controller Demo",
+#ifdef USE_PID
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering PID Controller Demo",
                         irr::core::dimension2d<irr::u32>(800, 640));
-
+#else
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"Steering XT Controller Demo",
+                        irr::core::dimension2d<irr::u32>(800, 640));
+#endif
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
     app.AddTypicalLogo();
@@ -270,17 +292,30 @@ int main(int argc, char* argv[]) {
     // Create both a GUI driver and a path-follower and allow switching between them
     ChIrrGuiDriver driver_gui(app);
     driver_gui.Initialize();
-    
+
+#ifdef USE_PID
     ChPathFollowerDriver driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed);
     driver_follower.GetSteeringController().SetLookAheadDistance(5);
     driver_follower.GetSteeringController().SetGains(0.8, 0, 0);
     driver_follower.GetSpeedController().SetGains(0.4, 0, 0);
-    
     driver_follower.Initialize();
 
     // Create and register a custom Irrlicht event receiver to allow selecting the
     // current driver model.
     ChDriverSelector selector(my_hmmwv.GetVehicle(), &driver_follower, &driver_gui);
+#else
+    //ChPathFollowerDriverXT driver_follower(my_hmmwv.GetVehicle(), path, "my_path", target_speed, my_hmmwv.GetVehicle().GetMaxSteeringAngle());
+    ChPathFollowerDriverXT driver_follower( my_hmmwv.GetVehicle(), path, "my_path", target_speed, my_hmmwv.GetVehicle().GetMaxSteeringAngle());
+    driver_follower.GetSteeringController().SetLookAheadDistance(5);
+    driver_follower.GetSteeringController().SetGains(0.4, 1, 1, 1);
+    driver_follower.GetSpeedController().SetGains(0.4, 0, 0);
+    driver_follower.Initialize();
+
+    // Create and register a custom Irrlicht event receiver to allow selecting the
+    // current driver model.
+    ChDriverSelector selector(my_hmmwv.GetVehicle(), &driver_follower, &driver_gui);
+#endif
+
     app.SetUserEventReceiver(&selector);
 
     // Finalize construction of visualization assets

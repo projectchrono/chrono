@@ -41,6 +41,8 @@
 #include <string>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/serialization/ChArchive.h"
 
@@ -228,6 +230,14 @@ class ChApi ChBezierCurveTracker {
     /// interval and curve parameter within that interval from the last query). As
     /// such, this function should be called with a continuous sequence of locations.
     int calcClosestPoint(const ChVector<>& loc, ChVector<>& point);
+
+    /// Calculate the closest point on the underlying curve to the specified location.
+    /// Return the TNB (tangent-normal-binormal) frame and the curvature at the closest point.
+    /// The ChFrame 'tnb' has X axis along the tangent, Y axis along the normal, and Z axis
+    /// along the binormal.  The frame location is the closest point on the Bezier curve.
+    /// Note that the normal and binormal are not defined at points with zero curvature.
+    /// In such cases, we return an orthonormal frame with X axis along the tangent.
+    int calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb, double& curvature);
 
     /// Set if the path is treated as an open loop or a closed loop for tracking
     void setIsClosedPath(bool isClosedPath);

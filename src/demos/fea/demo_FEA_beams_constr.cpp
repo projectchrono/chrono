@@ -115,44 +115,46 @@ int main(int argc, char* argv[]) {
     // of elements and their referenced nodes.
     auto my_mesh = std::make_shared<ChMesh>();
 
-    // Create the horizontal beam
-    auto msection1 = std::make_shared<ChBeamSectionAdvanced>();
-
-    double beam_wy = 0.10;
+	
+    // Create the horizontal beam (use an IGA-beam finite element type, for example)
+	
+	double beam_wy = 0.10;
     double beam_wz = 0.01;
-    msection1->SetDensity(2700);
-    msection1->SetYoungModulus(73.0e9);
-    msection1->SetGwithPoissonRatio(0.3);
-    msection1->SetAsRectangularSection(beam_wy, beam_wz);
-    msection1->SetBeamRaleyghDamping(0.000);
 
-    // This helps creating sequences of nodes and ChElementBeamEuler elements:
-    ChBuilderBeam builder;
+	// Create a section, with elasticity property. 
+	// IGA beams require ChBeamSectionCosserat sections.
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
+	melasticity->SetYoungModulus(73.0e9);
+	melasticity->SetGwithPoissonRatio(0.3);
+	melasticity->SetBeamRaleyghDamping(0.0000);
+	auto msection1 = std::make_shared<ChBeamSectionCosserat>(melasticity);
+	msection1->SetDensity(2700);
+	msection1->SetAsRectangularSection(beam_wy, beam_wz);
 
-    builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
-                      msection1,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
-                      16,                    // the number of ChElementBeamEuler to create
-                      vA,                    // the 'A' point in space (beginning of beam)
-                      vC,                    // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0));  // the 'Y' up direction of the section for the beam
+	ChBuilderBeamIGA builder_iga;
+	builder_iga.BuildBeam(my_mesh,            // the mesh to put the elements in
+		msection1,              // section of the beam
+		32,             // number of sections (spans)
+		vA,   // start point
+		vC,// end point
+		VECT_Y,                // suggested Y direction of section
+		3);                // order (3 = cubic, etc)
+	builder_iga.GetLastBeamNodes().front()->SetFixed(true);
+    auto node_tip = std::shared_ptr<ChNodeFEAxyzrot>(builder_iga.GetLastBeamNodes().back());
+    auto node_mid = std::shared_ptr<ChNodeFEAxyzrot>(builder_iga.GetLastBeamNodes()[17]);
 
-    // After having used BuildBeam(), you can retrieve the nodes used for the beam,
-    // For example say you want to fix the A end and apply a force to the B end:
-    builder.GetLastBeamNodes().front()->SetFixed(true);
 
-    auto node_tip = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
-    auto node_mid = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes()[7]);
-
-    // Create the vertical beam
+    // Create the vertical beam (Here use Euler beams, for example).
     auto msection2 = std::make_shared<ChBeamSectionAdvanced>();
 
     double hbeam_d = 0.024;
     msection2->SetDensity(2700);
     msection2->SetYoungModulus(73.0e9);
-    msection1->SetGwithPoissonRatio(0.3);
+    msection2->SetGwithPoissonRatio(0.3);
     msection2->SetBeamRaleyghDamping(0.000);
     msection2->SetAsCircularSection(hbeam_d);
 
+	ChBuilderBeam builder;
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
                       msection2,             // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
                       3,                     // the number of ChElementBeamEuler to create
@@ -174,6 +176,7 @@ int main(int argc, char* argv[]) {
     auto msphereconstr2 = std::make_shared<ChSphereShape>();
     msphereconstr2->GetSphereGeometry().rad = 0.01;
     constr_bb->AddAsset(msphereconstr2);
+
 
     // Create a beam as a crank
     auto msection3 = std::make_shared<ChBeamSectionAdvanced>();
@@ -289,13 +292,13 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = std::make_shared<ChSolverMKL<>>();
     my_system.SetSolver(mkl_solver);
 
-    application.SetTimestep(0.0005);
+    application.SetTimestep(0.001);
     application.SetVideoframeSaveInterval(10);
 
     // Use the following for less numerical damping, 2nd order accuracy (but slower)
-    // my_system.SetTimestepperType(ChTimestepper::Type::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
-        mystepper->SetVerbose(true);
+        //mystepper->SetVerbose(true);
         mystepper->SetStepControl(false);
     }
 
@@ -309,7 +312,6 @@ int main(int argc, char* argv[]) {
     chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
 
     while (application.GetDevice()->run()) {
-        // builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(0, 0, 0.1 * application.GetSystem()->GetChTime()));
 
         application.BeginScene();
 

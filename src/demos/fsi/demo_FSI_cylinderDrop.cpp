@@ -46,7 +46,7 @@
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 // FSI Interface Includes
 #include "demos/fsi/params_demo_FSI_cylinderDrop.h"

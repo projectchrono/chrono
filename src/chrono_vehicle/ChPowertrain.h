@@ -90,7 +90,7 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
                              ) = 0;
 
     /// Advance the state of this powertrain system by the specified time step.
-    virtual void Advance(double step) = 0;
+    virtual void Advance(double step) {}
 
   protected:
     DriveMode m_drive_mode;

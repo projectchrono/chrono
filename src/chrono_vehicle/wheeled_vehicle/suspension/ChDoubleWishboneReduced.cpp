@@ -176,6 +176,13 @@ ChVector<> ChDoubleWishboneReduced::GetCOMPos() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the wheel track using the spindle local position.
+// -----------------------------------------------------------------------------
+double ChDoubleWishboneReduced::GetTrack() {
+    return 2 * getLocation(SPINDLE).y();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
     ChSuspension::AddVisualizationAssets(vis);

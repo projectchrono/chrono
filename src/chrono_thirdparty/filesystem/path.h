@@ -30,6 +30,11 @@
 # include <linux/limits.h>
 #endif
 
+#ifdef __APPLE__
+# include <limits.h>
+#endif
+
+
 NAMESPACE_BEGIN(filesystem)
 
 /**

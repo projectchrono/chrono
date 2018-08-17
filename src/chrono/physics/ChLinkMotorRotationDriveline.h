@@ -64,6 +64,12 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     virtual ChLinkMotorRotationDriveline* Clone() const override { return new ChLinkMotorRotationDriveline(*this); }
 
 
+	void SetSystem(ChSystem* m_system) override {
+		ChPhysicsItem::SetSystem(m_system);
+		innershaft1->SetSystem(m_system);
+		innershaft2->SetSystem(m_system);
+	}
+
     /// Access the inner 1D shaft connected to the rotation of body1 about dir of motor shaft.
     /// The shaft can be connected to other shafts with ChShaftsClutch or similar items.
     std::shared_ptr<ChShaft> GetInnerShaft1() const { return innershaft1; }

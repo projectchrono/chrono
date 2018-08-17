@@ -1,0 +1,11 @@
+{
+  "Gains":
+  {
+    "Kp":   0.4,    // P factor for PDT1 controller
+    "Wy":   1.0,    // Weighting factor for lateral deviation
+    "Wh":   1.0,    // Weighting factor for heading deviation
+    "Wa":   1.0     // Weighting factor for Ackermann angle
+  },
+  
+  "Lookahead Distance": 5.0
+}

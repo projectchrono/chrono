@@ -23,30 +23,38 @@ mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
 mark_as_advanced(CLEAR CUDA_USE_STATIC_CUDA_RUNTIME)
 mark_as_advanced(CLEAR USE_FSI_DOUBLE)
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
-find_package(CUDA)
-
-#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
-#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --device-c")
-
-# Chrono FSI on GCC requires explicit C++11 support. '-std=c++11' must also be
-# passed to the host compiler to override -std=c++14 if it is enabled.
+SET(CUDA_SEPARABLE_COMPILATION OFF)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	SET(CUDA_SEPARABLE_COMPILATION ON)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++11")
-  SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11")
+  IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
+    SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
+    SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++14")
+    SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++14")
+  ENDIF()
+ENDIF()
+SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
 ENDIF()
 
-# Detect CUDA architecture and get best NVCC flags
+# SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_30,code=sm_30)
+
 INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
 SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
 LIST(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
+
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
+
+find_package(CUDA)
 
 message(STATUS "  CUDA toolkit includes:    ${CUDA_TOOLKIT_ROOT_DIR}/include")
 message(STATUS "  CUDA SDK includes:        ${CUDA_SDK_ROOT_DIR}/common/inc")
 message(STATUS "  CUDA compile flags:       ${CUDA_NVCC_FLAGS}")
 
-option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
+option(CUDA_PROPAGATE_HOST_FLAGS "Pass host compiler flags to cuda compiler" OFF)
 option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
 IF(USE_FSI_DOUBLE)
   SET(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
@@ -86,7 +94,7 @@ SET(ChronoEngine_FSI_SOURCES
     ChFsiDataManager.cu
     ChFsiForceParallel.cu
     ChFsiGeneral.cu
-    ChFsiInterface.cpp
+    ChFsiInterface.cu
     ChSystemFsi.cpp
     ChFsiTypeConvert.cpp
 )
@@ -100,7 +108,7 @@ SET(ChronoEngine_FSI_HEADERS
     ChFsiDataManager.cuh
     ChFsiForceParallel.cuh
     ChFsiGeneral.cuh
-    ChFsiInterface.h
+    ChFsiInterface.cuh
     ChSystemFsi.h
     ChSphGeneral.cuh
     ChApiFsi.h
@@ -116,14 +124,14 @@ set(ChronoEngine_FSI_UTILS_SOURCES
     utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsGeneratorFsi.cpp
-    utils/ChUtilsPrintSph.cpp
+    utils/ChUtilsPrintSph.cu
 )
 
 set(ChronoEngine_FSI_UTILS_HEADERS
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsGeneratorFsi.h
-    utils/ChUtilsPrintSph.h
+    utils/ChUtilsPrintSph.cuh
     utils/ChUtilsPrintStruct.h
 )
 

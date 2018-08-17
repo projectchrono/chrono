@@ -20,12 +20,12 @@ using parallel computing within Chrono::Engine
 ## Requirements
 
 - To **run** applications based on this module you need:
-    - the [Blaze](https://code.google.com/p/blaze-lib/) library
+    - the [Blaze](https://bitbucket.org/blaze-lib/blaze) library
     - the [Boost](http://www.boost.org) library
     - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
 
 - To **build** this module you need:
-    - the [Blaze](https://code.google.com/p/blaze-lib/) library
+    - the [Blaze](https://bitbucket.org/blaze-lib/blaze) library
     - the [Boost](http://www.boost.org) library
     - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
 
@@ -33,7 +33,7 @@ using parallel computing within Chrono::Engine
 ## Building instructions
   
 1. Download and install these libraries (depending on the platform, the process can be different)
-    - the [Blaze](https://code.google.com/p/blaze-lib/) library
+    - the [Blaze](https://bitbucket.org/blaze-lib/blaze) library
     - the [Boost](http://www.boost.org) library
     - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
 

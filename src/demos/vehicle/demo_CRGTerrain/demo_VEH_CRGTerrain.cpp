@@ -34,6 +34,10 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
+// Select Path Follower, uncomment the next line to get the puer PID driver
+//#define USE_PID 1
+
+// =============================================================================
 // Problem parameters
 
 // Type of tire model (LUGRE, FIALA, PACEJKA, or TMEASY)
@@ -100,19 +104,31 @@ int main(int argc, char* argv[]) {
     bool path_is_closed = terrain.IsPathClosed();
     double road_length = terrain.GetLength();
 
-    // Create the driver system
+#ifdef USE_PID
+    // Create the driver system based on PID steering controller
     ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed);
     driver.GetSteeringController().SetLookAheadDistance(5);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.Initialize();
 
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo PID Steering",
+                        irr::core::dimension2d<irr::u32>(800, 640));
+#else
+    // Create the driver system based on XT steering controller
+    ChPathFollowerDriverXT driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed, my_hmmwv.GetVehicle().GetMaxSteeringAngle());    
+    driver.GetSteeringController().SetLookAheadDistance(5);
+    driver.GetSteeringController().SetGains(0.4, 1, 1, 1);
+    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    driver.Initialize();
+
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo XT Steering",
+                        irr::core::dimension2d<irr::u32>(800, 640));
+#endif
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
 
-    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo",
-                        irr::core::dimension2d<irr::u32>(800, 640));
 
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
@@ -214,6 +230,6 @@ int main(int argc, char* argv[]) {
 
         app.EndScene();
     }
-
+    
     return 0;
 }

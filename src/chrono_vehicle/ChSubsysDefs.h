@@ -204,6 +204,115 @@ class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
     ChFunction_Recorder m_map;
 };
 
+/// Utility class for specifying a linear translational spring force with bump and rebound stop.
+class LinearSpringBistopForce : public ChLinkSpringCB::ForceFunctor {
+  public:
+    /// Use default bump stop and rebound stop maps
+    LinearSpringBistopForce(double k, double min_length, double max_length)
+        : m_k(k), m_min_length(min_length), m_max_length(max_length) {
+        // From ADAMS/Car example
+        m_bump.AddPoint(0.0, 0.0);
+        m_bump.AddPoint(2.0e-3, 200.0);
+        m_bump.AddPoint(4.0e-3, 400.0);
+        m_bump.AddPoint(6.0e-3, 600.0);
+        m_bump.AddPoint(8.0e-3, 800.0);
+        m_bump.AddPoint(10.0e-3, 1000.0);
+        m_bump.AddPoint(20.0e-3, 2500.0);
+        m_bump.AddPoint(30.0e-3, 4500.0);
+        m_bump.AddPoint(40.0e-3, 7500.0);
+        m_bump.AddPoint(50.0e-3, 12500.0);
+        m_bump.AddPoint(60.0e-3, 125000.0);
+
+        m_rebound.AddPoint(0.0, 0.0);
+        m_rebound.AddPoint(2.0e-3, 200.0);
+        m_rebound.AddPoint(4.0e-3, 400.0);
+        m_rebound.AddPoint(6.0e-3, 600.0);
+        m_rebound.AddPoint(8.0e-3, 800.0);
+        m_rebound.AddPoint(10.0e-3, 1000.0);
+        m_rebound.AddPoint(20.0e-3, 2500.0);
+        m_rebound.AddPoint(30.0e-3, 4500.0);
+        m_rebound.AddPoint(40.0e-3, 7500.0);
+        m_rebound.AddPoint(50.0e-3, 12500.0);
+        m_rebound.AddPoint(60.0e-3, 125000.0);
+    }
+
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
+        double force = 0;
+
+        double defl_spring = rest_length - length;
+        double defl_bump = 0.0;
+        double defl_rebound = 0.0;
+
+        if (length < m_min_length) {
+            defl_bump = m_min_length - length;
+        }
+
+        if (length > m_max_length) {
+            defl_rebound = length - m_max_length;
+        }
+
+        force = defl_spring * m_k + m_bump.Get_y(defl_bump) - m_rebound.Get_y(defl_rebound);
+
+        return force;
+    }
+
+  private:
+    double m_k;
+    double m_min_length;
+    double m_max_length;
+
+    ChFunction_Recorder m_bump;
+    ChFunction_Recorder m_rebound;
+};
+
+/// Utility class for specifying a degressive translational damper force.
+class DegressiveDamperForce : public ChLinkSpringCB::ForceFunctor {
+  public:
+    /// Fallback to LinearDamperForce
+    DegressiveDamperForce(double c_compression)
+        : m_c_compression(c_compression), m_degr_compression(0), m_c_expansion(c_compression), m_degr_expansion(0) {}
+    
+    /// Fallback to LinearDamperForce with different compression and expansion bins
+    DegressiveDamperForce(double c_compression, double c_expansion)
+        : m_c_compression(c_compression), m_degr_compression(0), m_c_expansion(c_expansion), m_degr_expansion(0) {}
+
+    /// Different compression and expansion degressivity, same damper coefficient at origin
+    DegressiveDamperForce(double c_compression, double degr_compression, double degr_expansion)
+        : m_c_compression(c_compression),
+          m_degr_compression(degr_compression),
+          m_c_expansion(c_compression),
+          m_degr_expansion(degr_expansion) {}
+
+    /// Full parametrization
+    DegressiveDamperForce(double c_compression, double degr_compression, double c_expansion, double degr_expansion)
+        : m_c_compression(c_compression),
+          m_degr_compression(degr_compression),
+          m_c_expansion(c_expansion),
+          m_degr_expansion(degr_expansion) {}
+
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
+        if (vel >= 0) {
+            return -m_c_expansion * vel / (1.0 + m_degr_expansion * vel);
+        } else {
+            return -m_c_compression * vel / (1.0 + m_degr_compression * std::abs(vel));
+        }
+    }
+
+  private:
+    double m_c_compression;
+    double m_c_expansion;
+    double m_degr_compression;
+    double m_degr_expansion;
+};
+
 /// Utility class for specifying a map translational damper force.
 class MapDamperForce : public ChLinkSpringCB::ForceFunctor {
   public:
@@ -422,10 +531,10 @@ enum Enum {
 
 /// Enum for track shoe types.
 enum class TrackShoeType {
-    SINGLE_PIN,   ///< single-pin track shoe and sprocket
-    DOUBLE_PIN,   ///< double-pin track shoe and sprocket
-    BAND_BUSHING, ///< rigid tooth-rigid web continuous band track shoe and sprocket
-    BAND_ANCF     ///< rigid tooth-ANCF web continuous band track shoe and sprocket
+    SINGLE_PIN,    ///< single-pin track shoe and sprocket
+    DOUBLE_PIN,    ///< double-pin track shoe and sprocket
+    BAND_BUSHING,  ///< rigid tooth-rigid web continuous band track shoe and sprocket
+    BAND_ANCF      ///< rigid tooth-ANCF web continuous band track shoe and sprocket
 };
 
 /// Enum for guide pin (track shoe/roadwheel/idler).

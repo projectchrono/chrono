@@ -45,8 +45,8 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
       m_vnum(0.01),
       m_gamma(0),
       m_gamma_limit(5),
-      m_begin_start_transition(0.5),
-      m_end_start_transition(1.0) {
+      m_begin_start_transition(0.1),
+      m_end_start_transition(0.5) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -80,23 +80,6 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
                            (2.0 * (m_TMeasyCoeff.rdynco_p2n - m_TMeasyCoeff.rdynco_pn));
         m_rdynco_crit = InterpL(m_fz_rdynco_crit, m_TMeasyCoeff.rdynco_pn, m_TMeasyCoeff.rdynco_p2n);
     }
-}
-
-// -----------------------------------------------------------------------------
-double ChTMeasyTire::SinStep(double x, double x1, double h1, double x2, double h2) {
-    // Smooth Step Function
-    double h;
-
-    if (x < x1) {
-        h = h1;
-    } else if (x > x2) {
-        h = h2;
-    } else {
-        double dh = h2 - h1;
-        double dx = x2 - x1;
-        h = h1 + dh / dx * (x - x1) - (dh / CH_C_2PI) * sin(CH_C_2PI / dx * (x - x1));
-    }
-    return h;
 }
 
 // -----------------------------------------------------------------------------
@@ -338,14 +321,18 @@ void ChTMeasyTire::Advance(double step) {
 
     // Rolling Resistance, Ramp Like Signum inhibits 'switching' of My
     {
+        // smoothing interval for My
+        const double vx_min = 0.125;
+        const double vx_max = 0.5;
+
         double Lrad = (m_unloaded_radius - m_data.depth);
         m_rolling_resistance = InterpL(Fz, m_TMeasyCoeff.rrcoeff_pn, m_TMeasyCoeff.rrcoeff_p2n);
-        My = -m_rolling_resistance * m_data.normal_force * Lrad * RampSignum(m_states.omega);
+        My = -ChSineStep(m_states.vta,vx_min,0.0,vx_max,1.0) * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
 
     double Ms = 0.0;
 
-    double startup = SinStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+    double startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
 
     if (m_consider_relaxation) {
         double vtxs = m_states.vta * hsxn;
@@ -362,6 +349,10 @@ void ChTMeasyTire::Advance(double step) {
         while (t < step) {
             // Ensure we integrate exactly to 'step'
             double h = std::min<>(m_stepsize, step - t);
+            // limit delay time of bore torque Mb to realistic values
+            double tau = ChClamp(relax / m_states.vta, 1.0e-4, 0.25);
+            double gain = 1.0/tau;
+            
             switch (m_integration_method) {
                 case 1: {
                     // explicit Euler, may be unstable
@@ -386,9 +377,9 @@ void ChTMeasyTire::Advance(double step) {
                                                     (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
                                                     (vtys * m_TMeasyCoeff.dy + fos);
                     // 0. order tire dynamics
-                    double dMb = -m_states.vta / relax;
+                    double dMb = -gain;
                     m_states.Mb_dyn =
-                        m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
+                        m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * gain;
                     break;
                 }
             }
@@ -665,21 +656,6 @@ void ChTMeasyTire::UpdateVerticalStiffness() {
     m_TMeasyCoeff.cz = kN2N * (m_a1 + 2.0 * m_a2 * m_data.depth);
 }
 
-double ChTMeasyTire::RampSignum(double x) {
-    // Signum with a Ramp to smooth switching states
-    double full_at = 0.1;
-    double b = 1.0 / full_at;
-
-    if (std::abs(x) < full_at) {
-        return b * x;
-    }
-    if (x > full_at) {
-        return 1.0;
-    } else {
-        return -1.0;
-    }
-}
-
 double ChTMeasyTire::GetTireMaxLoad(unsigned int li) {
     double Weight_per_Tire[] = {
         45,    46.5,  47.5,   48.7,   50,     51.5,   53,     54.5,   56,     58,     60,     61.5,   63,     65,
@@ -882,6 +858,7 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,   // tire load force [N]
     double xi = 0.05;                  // damping ratio
 
     m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMeasyCoeff.pn_max = 3.5 * m_TMeasyCoeff.pn;
 
     double CZ = m_TMeasyCoeff.pn / defl_max;
     double DZ = xi * sqrt(CZ * GetMass());
@@ -962,6 +939,7 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,   // tire load force [N]
     double xi = 0.05;                  // damping ration
 
     m_TMeasyCoeff.pn = 0.5 * tireLoad * pow(pinfl_use / pinfl_li, 0.8);
+    m_TMeasyCoeff.pn_max = 3.5 * m_TMeasyCoeff.pn;
 
     m_width = tireWidth;
     m_unloaded_radius = secth + rimDia / 2.0;

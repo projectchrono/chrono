@@ -299,6 +299,6 @@ void BuildRigidFluidBoundary(const real contact_mu,
                              const uint start_boundary,
                              ChParallelDataManager* data_manager);
 
-/// @} parallel_colision
+/// @} parallel_constraint
 
 } // end namespace chrono

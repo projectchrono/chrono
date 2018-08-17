@@ -326,6 +326,13 @@ ChVector<> ChHendricksonPRIMAXX::GetCOMPos() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the wheel track using the spindle local position.
+// -----------------------------------------------------------------------------
+double ChHendricksonPRIMAXX::GetTrack() {
+    return 2 * getLocation(SPINDLE).y();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     double unit = inches ? 1 / 0.0254 : 1.0;

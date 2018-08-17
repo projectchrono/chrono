@@ -215,16 +215,24 @@ WheelState ChWheeledVehicle::GetWheelState(const WheelID& wheel_id) const {
     state.lin_vel = GetWheelLinVel(wheel_id);
     state.ang_vel = GetWheelAngVel(wheel_id);
 
-ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-state.omega = ang_vel_loc.y();
+    ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
+    state.omega = ang_vel_loc.y();
 
-return state;
+    return state;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChWheeledVehicle::GetDriveshaftSpeed() const {
     return m_driveline->GetDriveshaftSpeed();
+}
+
+// -----------------------------------------------------------------------------
+// Estimate the maximum steering angle based on a bicycle model, from the vehicle
+// minimum turning radius, the wheelbase, and the track of the front suspension.
+// -----------------------------------------------------------------------------
+double ChWheeledVehicle::GetMaxSteeringAngle() const {
+    return std::asin(GetWheelbase() / (GetMinTurningRadius() - 0.5 * GetWheeltrack(0)));
 }
 
 // -----------------------------------------------------------------------------

@@ -46,9 +46,9 @@ void create_items(ChIrrAppInterface& application) {
 
     auto material = std::make_shared<ChMaterialSurfaceNSC>();
     material->SetFriction(0.4f);
-    material->SetCompliance(0.001f / 700);                // as 1/K, in m/N. es: 1mm/700N
+    material->SetCompliance(0.001/1200);                // as 1/K, in m/N. es: 1mm/1200N
     material->SetComplianceT(material->GetCompliance());  // use tangential compliance as normal compliance
-    material->SetDampingF(0.2f);                          // damping factor, 0...1
+    material->SetDampingF(0.1f);                          // damping factor, 0...1
     material->SetRestitution(0.0);
 
     bool do_wall = false;
@@ -59,8 +59,6 @@ void create_items(ChIrrAppInterface& application) {
 
     double sphrad = 0.2;
     double dens = 1000;
-    double sphmass = dens * (4. / 3.) * CH_C_PI * pow(sphrad, 3);
-    double sphinertia = (2. / 5.) * sphmass * pow(sphrad, 2);
 
     if (do_stack) {
         int nbodies = 15;
@@ -139,7 +137,7 @@ void create_items(ChIrrAppInterface& application) {
                                                               dens * hfactor,  // density
                                                               true,            // collide enable?
                                                               true);           // visualization?
-        mrigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.1, -1));
+        mrigidHeavy->SetPos(ChVector<>(0.5, sphrad + 0.6, -1));
         mrigidHeavy->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
         mrigidHeavy->SetMaterialSurface(material);
 
@@ -157,7 +155,8 @@ void create_items(ChIrrAppInterface& application) {
                                                        true);      // visualization?
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
     mrigidFloor->SetBodyFixed(true);
-    mrigidFloor->GetMaterialSurfaceNSC()->SetFriction(0.6f);
+	mrigidFloor->SetMaterialSurface(material);
+    //mrigidFloor->GetMaterialSurfaceNSC()->SetFriction(0.6f);
     mrigidFloor->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
 
     application.GetSystem()->Add(mrigidFloor);
@@ -213,9 +212,11 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetMaxItersSolverStab(5);
     mphysicalSystem.SetParallelThreadNumber(1);
 
-    mphysicalSystem.SetMaxPenetrationRecoverySpeed(10);
+	// When using compliance, exp. for large compliances, the max. penetration recovery speed
+	// also affects reaction forces, thus it must be deactivated (or used as a very large value)
+    mphysicalSystem.SetMaxPenetrationRecoverySpeed(100000);
 
-    application.SetTimestep(0.01);
+    application.SetTimestep(0.005);
     application.SetPaused(true);
 
     

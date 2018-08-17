@@ -77,6 +77,36 @@ else()
 endif()
 source_group("hmmwv" FILES ${CVM_HMMWV_FILES} ${CVM_HMMWV_FEA_FILES})
 
+set(CVM_UAZ_FILES
+    uaz/UAZBUS.cpp
+    uaz/UAZBUS.h
+    uaz/UAZBUS_BrakeSimple.cpp
+    uaz/UAZBUS_BrakeSimple.h
+    uaz/UAZBUS_Chassis.cpp
+    uaz/UAZBUS_Chassis.h
+    uaz/UAZBUS_Driveline2WD.cpp
+    uaz/UAZBUS_Driveline2WD.h
+    uaz/UAZBUS_Driveline4WD.cpp
+    uaz/UAZBUS_Driveline4WD.h
+    uaz/UAZBUS_LeafspringAxle.cpp
+    uaz/UAZBUS_LeafspringAxle.h
+    uaz/UAZBUS_RigidTire.cpp
+    uaz/UAZBUS_RigidTire.h
+    uaz/UAZBUS_RotaryArm.cpp
+    uaz/UAZBUS_RotaryArm.h
+    uaz/UAZBUS_SimpleMapPowertrain.cpp
+    uaz/UAZBUS_SimpleMapPowertrain.h
+    uaz/UAZBUS_TMeasyTire.cpp
+    uaz/UAZBUS_TMeasyTire.h
+    uaz/UAZBUS_ToeBarLeafspringAxle.cpp
+    uaz/UAZBUS_ToeBarLeafspringAxle.h
+    uaz/UAZBUS_Vehicle.cpp
+    uaz/UAZBUS_Vehicle.h
+    uaz/UAZBUS_Wheel.cpp
+    uaz/UAZBUS_Wheel.h
+)
+source_group("uaz" FILES ${CVM_UAZ_FILES})
+
 set(CVM_GENERIC_FILES
     generic/Generic_AntirollBarRSD.h
     generic/Generic_AntirollBarRSD.cpp
@@ -119,6 +149,34 @@ set(CVM_GENERIC_FILES
     generic/Generic_RigidPinnedAxle.cpp
 )
 source_group("generic" FILES ${CVM_GENERIC_FILES})
+
+set(CVM_SEDAN_FILES
+    sedan/Sedan.cpp
+    sedan/Sedan.h
+    sedan/Sedan_BrakeSimple.cpp
+    sedan/Sedan_BrakeSimple.h
+    sedan/Sedan_Chassis.h
+    sedan/Sedan_Chassis.cpp
+    sedan/Sedan_DoubleWishbone.cpp
+    sedan/Sedan_DoubleWishbone.h
+    sedan/Sedan_Driveline2WD.cpp
+    sedan/Sedan_Driveline2WD.h
+    sedan/Sedan_MultiLink.cpp
+    sedan/Sedan_MultiLink.h
+    sedan/Sedan_RigidTire.cpp
+    sedan/Sedan_RigidTire.h
+    sedan/Sedan_TMeasyTire.cpp
+    sedan/Sedan_TMeasyTire.h
+    sedan/Sedan_RackPinion.cpp
+    sedan/Sedan_RackPinion.h
+    sedan/Sedan_SimpleMapPowertrain.cpp
+    sedan/Sedan_SimpleMapPowertrain.h
+    sedan/Sedan_Vehicle.h
+    sedan/Sedan_Vehicle.cpp
+    sedan/Sedan_Wheel.cpp
+    sedan/Sedan_Wheel.h
+)
+source_group("sedan" FILES ${CVM_SEDAN_FILES})
 
 set(CVM_M113_FILES
     m113/M113_BrakeSimple.h
@@ -164,7 +222,7 @@ if(ENABLE_MODULE_FEA)
         m113/M113_TrackShoeBandANCF.cpp
         m113/M113_TrackShoeBandANCF.h
 	    m113/M113_TrackAssemblyBandANCF.cpp
-	    m113/M113_TrackAssemblyBandANCF.h	
+	    m113/M113_TrackAssemblyBandANCF.h
     )
 else()
     set(CVM_M113_FEA_FILES "")
@@ -221,7 +279,9 @@ add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
     ${CVM_HMMWV_FEA_FILES}
+    ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
+    ${CVM_SEDAN_FILES}
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
     ${CVM_M113_FEA_FILES}

@@ -131,11 +131,11 @@ int main(int argc, char* argv[]) {
 	msection_OLD->SetGshearModulus(0.01e9 * 0.7);
 	msection_OLD->SetBeamRaleyghDamping(0.1);
 
-	auto melasticity = std::make_shared<ChElasticityTimoshenkoSimple>();
+	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.01e9);
 	melasticity->SetGshearModulus(0.01e9 * 0.7);
 	melasticity->SetBeamRaleyghDamping(0.1);
-	auto msection = std::make_shared<ChBeamSectionTimoshenko>(melasticity);
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
 	msection->SetDensity(1000);
 	msection->SetAsCircularSection(wire_diameter);
 

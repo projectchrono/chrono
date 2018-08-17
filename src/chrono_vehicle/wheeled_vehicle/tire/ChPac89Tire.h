@@ -105,7 +105,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
 	
 	/// Get the tire deflection
 	virtual double GetDeflection() const override { return m_data.depth; }
-	
+  
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
     virtual double GetNormalStiffnessForce(double depth) const = 0;

@@ -73,6 +73,22 @@ if (NOT Chrono_FOUND)
   return()
 endif()
 
+#--------------------------------------------------------------
+# Enable creation of "application bundles" on MacOSX.
+#--------------------------------------------------------------
+
+# This is necessary for any Irrlicht-based project (like the example here).
+# For OpenGL-based or non-graphics projects, this is optional and the block
+# below can be removed (or else explcitly set CMAKE_MACOSX_BUNDLE to 'OFF').
+#
+# If creating application bundles, the build output will be named 'myexe.app'.
+# Use the convenience script 'run_app.sh' available under 'contrib/appbundle-macosx/'
+# to run:
+#     start_demo.sh myexe.app
+
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE ON)
+endif()
 
 #--------------------------------------------------------------
 # Add path to Chrono headers and to headers of all dependencies
