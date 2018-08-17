@@ -409,7 +409,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
     unsigned int duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
-    VERBOSE_PRINTF("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
+    VERBOSE_PRINTF("advancing by %f at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions

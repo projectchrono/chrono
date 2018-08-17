@@ -683,147 +683,159 @@ __global__ void interactionTerrain_TriangleSoup(
         sphere_Local_ID += nSpheresProcessedAtOneTime;  // go to next set of spheress
     }                                                   // end of per-sphere loop
 
-    // Done computing the forces acting on the triangles in this SD. A block reduce is carried out next. Start by
-    // doing a reduce at the warp level.
-    // for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
-    //     /// six generalized forces acting on the triangle, expressed in the global reference frame
-    //     unsigned int dummyIndx = 6 * local_ID;
-    //     for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //         genForceActingOnMeshes[dummyIndx] +=
-    //             __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
-    //     dummyIndx++;
-    //
-    //     for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //         genForceActingOnMeshes[dummyIndx] +=
-    //             __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
-    //     dummyIndx++;
-    //
-    //     for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //         genForceActingOnMeshes[dummyIndx] +=
-    //             __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
-    //     dummyIndx++;
-    //
-    //     for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //         genForceActingOnMeshes[dummyIndx] +=
-    //             __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
-    //     dummyIndx++;
-    //
-    //     for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //         genForceActingOnMeshes[dummyIndx] +=
-    //             __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
-    //     dummyIndx++;
-    //
-    //     for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //         genForceActingOnMeshes[dummyIndx] +=
-    //             __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
-    // }
-    //
-    // __syncthreads();
-    //
-    // // Lane zero in each warp holds the result of a warp-level reduce operation. Sum up these "Lane zero" values in
-    // // the final result, which is block-level
-    // bool threadIsLaneZeroInWarp = ((threadIdx.x & (warp_size - 1)) == 0);
-    // for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
-    //     unsigned int offsetGenForceArray = 6 * local_ID;
-    //     // Place in ShMem forces/torques (expressed in global reference frame) acting on this family of triangles
-    //     if (threadIsLaneZeroInWarp) {
-    //         unsigned int offsetShMem = 6 * (threadIdx.x / warp_size);
-    //         tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
-    //         tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
-    //         tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
-    //
-    //         tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
-    //         tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
-    //         tempShMem[offsetShMem] = genForceActingOnMeshes[offsetGenForceArray];
-    //     }
-    //     __syncthreads();
-    //
-    //     // TODO just create a new local array, registers will be reallocate to that by the compiler, this naming is
-    //     // asking for trouble
-    //     // Going to trash the values in "forceActingOnSphere", they're not needed anymore. Reuse the registers, which
-    //     // will now store the vaule of the triangle force and torque...
-    //     if (threadIdx.x < warp_size) {
-    //         // only first warp in block participates in this reduce operation.
-    //         // ASSUMPTION: warp_size is larger than or equal to N_CUDATHREADS / warp_size. This is true today as
-    //         // N_CUDATHREADS cannot be larger than 1024 and warp_size is 32.
-    //
-    //         // Work on forces first. Place data from ShMem into registers associated w/ first warp
-    //         unsigned int offsetShMem = 6 * threadIdx.x;
-    //         if (threadIdx.x < (N_CUDATHREADS / warp_size)) {
-    //             forceActingOnSphere[0] = tempShMem[offsetShMem++];
-    //             forceActingOnSphere[1] = tempShMem[offsetShMem++];
-    //             forceActingOnSphere[2] = tempShMem[offsetShMem++];  // NOTE: ++ is needed here, offsetShMem used
-    //             later
-    //         } else {
-    //             // this is hit only by a subset of threads from first warp of the block
-    //             forceActingOnSphere[0] = 0.f;
-    //             forceActingOnSphere[1] = 0.f;
-    //             forceActingOnSphere[2] = 0.f;
-    //         }
-    //
-    //         offsetGenForceArray = 6 * local_ID;
-    //         // X component of the force on mesh "local_ID"
-    //         for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //             forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
-    //         genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[0];
-    //
-    //         // Y component of the force on mesh "local_ID"
-    //         for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //             forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
-    //         genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[1];
-    //
-    //         // Z component of the force on mesh "local_ID"
-    //         for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //             forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
-    //         genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[2];
-    //
-    //         // Finally, work on torques
-    //         if (threadIdx.x < (N_CUDATHREADS / warp_size)) {
-    //             forceActingOnSphere[0] = tempShMem[offsetShMem++];
-    //             forceActingOnSphere[1] = tempShMem[offsetShMem++];
-    //             forceActingOnSphere[2] = tempShMem[offsetShMem];
-    //         } else {
-    //             // this is hit only by a subset of threads from first warp of the block
-    //             forceActingOnSphere[0] = 0.f;
-    //             forceActingOnSphere[1] = 0.f;
-    //             forceActingOnSphere[2] = 0.f;
-    //         }
-    //
-    //         // X component of the torque on mesh "local_ID"
-    //         for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //             forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
-    //         genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[0];
-    //
-    //         // Y component of the torque on mesh "local_ID"
-    //         for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //             forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
-    //         genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[1];
-    //
-    //         // Z component of the torque on mesh "local_ID"
-    //         for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2)
-    //             forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
-    //         genForceActingOnMeshes[offsetGenForceArray] = forceActingOnSphere[2];
-    //     }  /// this is the end of the "for each mesh" loop
-    //
-    //     // At this point, the first thread of the block has in genForceActingOnMeshes[6*TRIANGLE_FAMILIES] the
-    //     // forces and torques acting on each mesh family. Bcast the force values to all threads in the warp.
-    //     // To this end, synchronize all threads in warp and get "value" from lane 0
-    //     for (local_ID = 0; local_ID < 6 * TRIANGLE_FAMILIES; local_ID++)
-    //         genForceActingOnMeshes[local_ID] = __shfl_sync(0xffffffff, genForceActingOnMeshes[local_ID], 0);
-    //
-    //     // At this point, all threads in the *first* warp have the generalized forces acting on all meshes. Do an
-    //     // atomic add to compund the value of the generalized forces acting on the meshes that come in contact with
-    //     // the granular material.
-    //     if (threadIdx.x < warp_size) {
-    //         unsigned int nTrips = (6 * TRIANGLE_FAMILIES + warp_size - 1) / warp_size;
-    //         for (local_ID = 0; local_ID < nTrips; local_ID++) {
-    //             unsigned int offset = threadIdx.x + local_ID * warp_size;
-    //             if (offset < 6 * TRIANGLE_FAMILIES)
-    //                 atomicAdd(d_triangleSoup->generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
-    //         }
-    //     }
-    // }
-}
+    // Done computing the forces acting on the triangles in this SD.A block reduce is carried out next. Start by doing a
+    // reduce at the warp level.
+    for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
+        /// six generalized forces acting on the triangle, expressed in the global reference frame
+        unsigned int dummyIndx = 6 * local_ID;
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+            genForceActingOnMeshes[dummyIndx] +=
+                __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
+        }
+        dummyIndx++;
+
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+            genForceActingOnMeshes[dummyIndx] +=
+                __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
+        }
+        dummyIndx++;
+
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+            genForceActingOnMeshes[dummyIndx] +=
+                __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
+        }
+        dummyIndx++;
+
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+            genForceActingOnMeshes[dummyIndx] +=
+                __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
+        }
+        dummyIndx++;
+
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+            genForceActingOnMeshes[dummyIndx] +=
+                __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
+        }
+        dummyIndx++;
+
+        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+            genForceActingOnMeshes[dummyIndx] +=
+                __shfl_down_sync(0xffffffff, genForceActingOnMeshes[dummyIndx], offset);
+        }
+    }
+
+    __syncthreads();
+
+    // Lane zero in each warp holds the result of a warp-level reduce operation. Sum up these "Lane zero" values in
+    // the final result, which is block-level
+    bool threadIsLaneZeroInWarp = ((threadIdx.x & (warp_size - 1)) == 0);
+    for (local_ID = 0; local_ID < TRIANGLE_FAMILIES; local_ID++) {
+        unsigned int offsetGenForceArray = 6 * local_ID;
+        // Place in ShMem forces/torques (expressed in global reference frame) acting on this family of triangles
+        if (threadIsLaneZeroInWarp) {
+            unsigned int offsetShMem = 6 * (threadIdx.x / warp_size);
+            tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
+            tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
+            tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
+
+            tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
+            tempShMem[offsetShMem++] = genForceActingOnMeshes[offsetGenForceArray++];
+            tempShMem[offsetShMem] = genForceActingOnMeshes[offsetGenForceArray];
+        }
+        __syncthreads();
+
+        // TODO just create a new local array, registers will be reallocate to that by the compiler, this naming is
+        // asking for trouble
+        // Going to trash the values in "forceActingOnSphere", they're not needed anymore. Reuse the registers, which
+        // will now store the vaule of the triangle force and torque...
+        if (threadIdx.x < warp_size) {
+            // only first warp in block participates in this reduce operation.
+            // ASSUMPTION: warp_size is larger than or equal to N_CUDATHREADS / warp_size. This is true today as
+            // N_CUDATHREADS cannot be larger than 1024 and warp_size is 32.
+
+            // Work on forces first. Place data from ShMem into registers associated w/ first warp
+            unsigned int offsetShMem = 6 * threadIdx.x;
+            if (threadIdx.x < (N_CUDATHREADS / warp_size)) {
+                forceActingOnSphere[0] = tempShMem[offsetShMem++];
+                forceActingOnSphere[1] = tempShMem[offsetShMem++];
+                forceActingOnSphere[2] = tempShMem[offsetShMem++];  // NOTE: ++ is needed here, offsetShMem used later
+            } else {
+                // this is hit only by a subset of threads from first warp of the block
+                forceActingOnSphere[0] = 0.f;
+                forceActingOnSphere[1] = 0.f;
+                forceActingOnSphere[2] = 0.f;
+            }
+
+            offsetGenForceArray = 6 * local_ID;
+            // X component of the force on mesh "local_ID"
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+                forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
+            }
+            genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[0];
+
+            // Y component of the force on mesh "local_ID"
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+                forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
+            }
+            genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[1];
+
+            // Z component of the force on mesh "local_ID"
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+                forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
+            }
+            genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[2];
+
+            // Finally, work on torques
+            if (threadIdx.x < (N_CUDATHREADS / warp_size)) {
+                forceActingOnSphere[0] = tempShMem[offsetShMem++];
+                forceActingOnSphere[1] = tempShMem[offsetShMem++];
+                forceActingOnSphere[2] = tempShMem[offsetShMem];
+            } else {
+                // this is hit only by a subset of threads from first warp of the block
+                forceActingOnSphere[0] = 0.f;
+                forceActingOnSphere[1] = 0.f;
+                forceActingOnSphere[2] = 0.f;
+            }
+
+            // X component of the torque on mesh "local_ID"
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+                forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
+            }
+            genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[0];
+
+            // Y component of the torque on mesh "local_ID"
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+                forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
+            }
+            genForceActingOnMeshes[offsetGenForceArray++] = forceActingOnSphere[1];
+
+            // Z component of the torque on mesh "local_ID"
+            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
+                forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
+            }
+            genForceActingOnMeshes[offsetGenForceArray] = forceActingOnSphere[2];
+        }  /// this is the end of the "for each mesh" loop
+
+        // At this point, the first thread of the block has in genForceActingOnMeshes[6*TRIANGLE_FAMILIES] the
+        // forces and torques acting on each mesh family. Bcast the force values to all threads in the warp.
+        // To this end, synchronize all threads in warp and get "value" from lane 0
+        for (local_ID = 0; local_ID < 6 * TRIANGLE_FAMILIES; local_ID++) {
+            genForceActingOnMeshes[local_ID] = __shfl_sync(0xffffffff, genForceActingOnMeshes[local_ID], 0);
+        }
+        // At this point, all threads in the *first* warp have the generalized forces acting on all meshes. Do an
+        // atomic add to compund the value of the generalized forces acting on the meshes that come in contact with
+        // the granular material.
+        if (threadIdx.x < warp_size) {
+            unsigned int nTrips = (6 * TRIANGLE_FAMILIES + warp_size - 1) / warp_size;
+            for (local_ID = 0; local_ID < nTrips; local_ID++) {
+                unsigned int offset = threadIdx.x + local_ID * warp_size;
+                if (offset < 6 * TRIANGLE_FAMILIES) {
+                    atomicAdd(d_triangleSoup->generalizedForcesPerFamily + offset, genForceActingOnMeshes[offset]);
+                }
+            }
+        }
+    }
+}  // namespace granular
 
 /// Copy const triangle data to device
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
@@ -867,7 +879,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
-    printf("z grav term with timestep %u is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+    printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(float duration) {
@@ -878,7 +890,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
     unsigned int duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
-    VERBOSE_PRINTF("advancing by %u at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
+    VERBOSE_PRINTF("advancing by %u at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
 
     VERBOSE_PRINTF("Starting Main Simulation loop!\n");
