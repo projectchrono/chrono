@@ -87,7 +87,7 @@ inline __device__ unsigned int SDTripletID(const unsigned int trip[3], ParamsPtr
 inline __device__ void figureOutTouchedSD(int sphCenter_X,
                                           int sphCenter_Y,
                                           int sphCenter_Z,
-                                          unsigned int SDs[8],
+                                          unsigned int SDs[MAX_SDs_TOUCHED_BY_SPHERE],
                                           ParamsPtr gran_params) {
     // grab radius
     const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
@@ -242,12 +242,12 @@ primingOperationsRectangularBox(
 
     /// Set aside shared memory
     // SD component of offset into composite array
-    volatile __shared__ unsigned int SD_composite_offsets[CUB_THREADS * 8];
+    volatile __shared__ unsigned int SD_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
     // sphere component of offset into composite array
-    volatile __shared__ unsigned char sphere_composite_offsets[CUB_THREADS * 8];
-    volatile __shared__ bool shMem_head_flags[CUB_THREADS * 8];
+    volatile __shared__ unsigned char sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
+    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
 
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_SPHERE, unsigned int> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
 
     typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
@@ -255,12 +255,13 @@ primingOperationsRectangularBox(
 
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int sphIDs[8] = {mySphereID, mySphereID, mySphereID, mySphereID,
-                              mySphereID, mySphereID, mySphereID, mySphereID};
+    unsigned int sphIDs[MAX_SDs_TOUCHED_BY_SPHERE] = {mySphereID, mySphereID, mySphereID, mySphereID,
+                                                      mySphereID, mySphereID, mySphereID, mySphereID};
 
     // This uses a lot of registers but is needed
-    unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
-                                  NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
+    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
+                                                          NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
+                                                          NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     if (mySphereID < nSpheres) {
         // Coalesced mem access
         xSphCenter = d_sphere_pos_X[mySphereID];
@@ -277,7 +278,7 @@ primingOperationsRectangularBox(
     __syncthreads();
 
     // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[8];
+    bool head_flags[MAX_SDs_TOUCHED_BY_SPHERE];
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
     __syncthreads();
 
@@ -792,12 +793,12 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
     int zSphCenter;
     /// Set aside shared memory
     // SD component of offset into composite array
-    volatile __shared__ unsigned int SD_composite_offsets[CUB_THREADS * 8];
+    volatile __shared__ unsigned int SD_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
     // sphere component of offset into composite array
-    volatile __shared__ unsigned char sphere_composite_offsets[CUB_THREADS * 8];
-    volatile __shared__ bool shMem_head_flags[CUB_THREADS * 8];
+    volatile __shared__ unsigned char sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
+    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
 
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, 8, unsigned int> BlockRadixSortOP;
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_SPHERE, unsigned int> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
 
     typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
@@ -805,12 +806,13 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
 
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int sphIDs[8] = {mySphereID, mySphereID, mySphereID, mySphereID,
-                              mySphereID, mySphereID, mySphereID, mySphereID};
+    unsigned int sphIDs[MAX_SDs_TOUCHED_BY_SPHERE] = {mySphereID, mySphereID, mySphereID, mySphereID,
+                                                      mySphereID, mySphereID, mySphereID, mySphereID};
 
     // This uses a lot of registers but is needed
-    unsigned int SDsTouched[8] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
-                                  NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID};
+    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
+                                                          NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
+                                                          NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     // Write back velocity updates
     if (mySphereID < nSpheres) {
         // Check to see if we messed up badly somewhere
@@ -852,7 +854,7 @@ __global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numer
     __syncthreads();
 
     // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[8];
+    bool head_flags[MAX_SDs_TOUCHED_BY_SPHERE];
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
     __syncthreads();
 
