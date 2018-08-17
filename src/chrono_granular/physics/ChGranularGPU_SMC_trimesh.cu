@@ -490,7 +490,6 @@ __global__ void interactionTerrain_TriangleSoup(
     unsigned int tripsToCoverSpheres = (nSD_spheres + blockDim.x - 1) / blockDim.x;
     unsigned int local_ID = threadIdx.x;
     for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
-        local_ID += sphereTrip * blockDim.x;
         if (local_ID < nSD_spheres) {
             unsigned int globalID = grElems_in_SD_composite[local_ID + thisSD * MAX_COUNT_OF_DEs_PER_SD];
             grElemID[local_ID] = globalID;
@@ -502,12 +501,12 @@ __global__ void interactionTerrain_TriangleSoup(
             sphere_Y_DOT[local_ID] = d_sphere_pos_Y_dt[globalID];
             sphere_Z_DOT[local_ID] = d_sphere_pos_Z_dt[globalID];
         }
+        local_ID += blockDim.x;
     }
     // Populate the shared memory with mesh triangle data
     unsigned int tripsToCoverTriangles = (nBKT_triangles + blockDim.x - 1) / blockDim.x;
     local_ID = threadIdx.x;
     for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
-        local_ID += triangTrip * blockDim.x;
         if (local_ID < nBKT_triangles) {
             unsigned int globalID = triangles_in_BKT_composite[local_ID + whichBKT * MAX_TRIANGLE_COUNT_PER_BUCKET];
             triangID[local_ID] = globalID;
@@ -526,6 +525,7 @@ __global__ void interactionTerrain_TriangleSoup(
             node3_Y[local_ID] = d_triangleSoup->node3_Y[globalID];
             node3_Z[local_ID] = d_triangleSoup->node3_Z[globalID];
         }
+        local_ID += blockDim.x;
     }
 
     __syncthreads();  // this call ensures data is in its place in shared memory
@@ -558,7 +558,6 @@ __global__ void interactionTerrain_TriangleSoup(
         forceActingOnSphere[0] = 0.f;
         forceActingOnSphere[1] = 0.f;
         forceActingOnSphere[2] = 0.f;
-        sphere_Local_ID += sphereTrip * nSpheresProcessedAtOneTime;
         if (sphere_Local_ID < nSD_spheres) {
             // Figure out which triangles this sphere collides with; each thread in a warp slaving for this sphere
             // looks at one triangle at a time. The collection of threads in the warp sweeps through all the
@@ -681,8 +680,9 @@ __global__ void interactionTerrain_TriangleSoup(
                 atomicAdd(d_sphere_pos_Y_dt_update + grElemID[sphere_Local_ID], forceActingOnSphere[1]);
                 atomicAdd(d_sphere_pos_Z_dt_update + grElemID[sphere_Local_ID], forceActingOnSphere[2]);
             }
-        }  // end of valid sphere if
-    }      // end of per-sphere loop
+        }                                               // end of valid sphere if
+        sphere_Local_ID += nSpheresProcessedAtOneTime;  // go to next set of spheress
+    }                                                   // end of per-sphere loop
 
     // Done computing the forces acting on the triangles in this SD. A block reduce is carried out next. Start by
     // doing a reduce at the warp level.
