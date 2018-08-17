@@ -28,6 +28,14 @@ set(CH_GRANULAR_C_FLAGS "")
 # ----- CUDA support -----
 find_package(CUDA QUIET REQUIRED)
 
+
+option(GRANULAR_VERBOSE_PTXAS "Enable verbose output from ptxas during compilation" OFF)
+mark_as_advanced(GRANULAR_VERBOSE_PTXAS)
+
+if(GRANULAR_VERBOSE_PTXAS)
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} --ptxas-options=-v)
+endif()
+
 message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
 set(CUDA_SEPARABLE_COMPILATION OFF)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
