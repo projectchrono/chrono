@@ -202,7 +202,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::resetUpdateInformation() {
     gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const int stepSize_SU) {
+void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const float stepSize_SU) {
     // Frequency of oscillation
     // float frame_X_old = BD_frame_X;
     // float frame_Y_old = BD_frame_Y;
@@ -406,14 +406,14 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
     unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
 
     // Settling simulation loop.
-    unsigned int duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
+    float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
     unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
 
-    VERBOSE_PRINTF("advancing by %f at timestep %u, %u timesteps at approx user timestep %f\n", duration_SU,
+    VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (unsigned int elapsedTime_SU = 0; elapsedTime_SU < stepSize_SU * nsteps; elapsedTime_SU += stepSize_SU) {
+    for (float elapsedTime_SU = 0; elapsedTime_SU < stepSize_SU * nsteps; elapsedTime_SU += stepSize_SU) {
         determine_new_stepSize_SU();  // doesn't always change the timestep
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {

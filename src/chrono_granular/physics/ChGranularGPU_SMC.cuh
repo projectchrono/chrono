@@ -452,7 +452,7 @@ NOTE That this function uses the already-integrated forces, so for forward euler
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
 __global__ void applyVelocityUpdates(
-    unsigned int alpha_h_bar,         //!< Value that controls actual step size, not actually needed for this kernel
+    const float alpha_h_bar,          //!< Value that controls actual step size, not actually needed for this kernel
     int* d_sphere_pos_X,              //!< Pointer to array containing data related to the
                                       //!< spheres in the box
     int* d_sphere_pos_Y,              //!< Pointer to array containing data related to the
@@ -528,13 +528,13 @@ NOTE:
 */
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
-__global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value that controls actual step size.
-                                       int* d_sphere_pos_X,       //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
-                                       int* d_sphere_pos_Y,       //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
-                                       int* d_sphere_pos_Z,       //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
+__global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that controls actual step size.
+                                       int* d_sphere_pos_X,      //!< Pointer to array containing data related to the
+                                                                 //!< spheres in the box
+                                       int* d_sphere_pos_Y,      //!< Pointer to array containing data related to the
+                                                                 //!< spheres in the box
+                                       int* d_sphere_pos_Z,      //!< Pointer to array containing data related to the
+                                                                 //!< spheres in the box
                                        float* d_sphere_pos_X_dt_update,  //!< Pointer to array containing data related
                                                                          //!< to the spheres in the box
                                        float* d_sphere_pos_Y_dt_update,  //!< Pointer to array containing data related
@@ -760,7 +760,7 @@ __global__ void computeVelocityUpdates(unsigned int alpha_h_bar,  //!< Value tha
 
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                      //!< Should be a multiple of 32
-__global__ void updatePositions(unsigned int alpha_h_bar,         //!< The numerical integration time step
+__global__ void updatePositions(const float alpha_h_bar,          //!< The numerical integration time step
                                 int* d_sphere_pos_X,              //!< Pointer to array containing data related to the
                                                                   //!< spheres in the box
                                 int* d_sphere_pos_Y,              //!< Pointer to array containing data related to the

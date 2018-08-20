@@ -339,7 +339,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     void checkSDCounts(std::string ofile, bool write_out, bool verbose);
     void writeFile(std::string ofile, unsigned int* deCounts);
     void writeFileUU(std::string ofile);
-    virtual void updateBDPosition(const int stepSize_SU);
+    virtual void updateBDPosition(const float stepSize_SU);
 
   protected:
     virtual void copy_const_data_to_device();

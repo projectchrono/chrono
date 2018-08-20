@@ -415,7 +415,7 @@ be produced to account for the interaction between the said triangle and sphere 
 
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
-    unsigned int alpha_h_bar,
+    const float alpha_h_bar,
     Triangle_Soup<float>* d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
     int* d_sphere_pos_X,
     int* d_sphere_pos_Y,
