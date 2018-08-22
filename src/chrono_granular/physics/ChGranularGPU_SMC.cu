@@ -383,6 +383,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
     copyBD_Frame_to_device();
     gpuErrchk(cudaDeviceSynchronize());
 
+    determine_new_stepSize_SU();
+
     // Seed arrays that are populated by the kernel call
     resetBroadphaseInformation();
 
@@ -407,7 +409,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
 
     // Settling simulation loop.
     float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
-    unsigned int nsteps = (1.0 * duration_SU) / stepSize_SU;
+    unsigned int nsteps = duration_SU / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);

@@ -47,6 +47,8 @@ using namespace chrono::granular;
 // -----------------------------------------------------------------------------
 enum {
     OPT_HELP,
+    OPT_RUN_MODE,
+    OPT_STEP_MODE,
     OPT_BALL_RADIUS,
     OPT_TIMEEND,
     OPT_DENSITY,
@@ -62,6 +64,8 @@ enum {
     OPT_VERBOSE
 };
 
+enum { SETTLING = 0, WAVETANK = 1, BOUNCING_PLATE = 2 };
+
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
 // - the ID for the option (returned from OptionId() during processing)
 // - the option as it should appear on the command line
@@ -69,6 +73,8 @@ enum {
 // The last entry must be SO_END_OF_OPTIONS
 CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_TIMEEND, "-e", SO_REQ_SEP},
+                                    {OPT_RUN_MODE, "--run_mode", SO_REQ_SEP},
+                                    {OPT_STEP_MODE, "--step_mode", SO_REQ_SEP},
                                     {OPT_DENSITY, "--density", SO_REQ_SEP},
                                     {OPT_WRITE_MODE, "--write_mode", SO_REQ_SEP},
                                     {OPT_OUTPUT_DIR, "--output_dir", SO_REQ_SEP},
@@ -93,6 +99,8 @@ void showUsage() {
     std::cout << "Options:" << std::endl;
     std::cout << "-br <ball_radius>" << std::endl;
     std::cout << "-v or --verbose" << std::endl;
+    std::cout << "--run_mode=<run_mode> (0:settling, 1:wavetank, 2:bouncing_plate)" << std::endl;
+    std::cout << "--step_mode=<step_mode> (auto or fixed)" << std::endl;
     std::cout << "--density=<density>" << std::endl;
     std::cout << "--write_mode=<write_mode> (csv, binary, or none)" << std::endl;
     std::cout << "--output_dir=<output_dir>" << std::endl;
@@ -123,6 +131,8 @@ bool GetProblemSpecs(int argc,
                      float& normalStiffS2W,
                      float& cohesion_ratio,
                      bool& verbose,
+                     int& run_mode,
+                     GRN_TIME_STEPPING& step_mode,
                      std::string& output_dir,
                      GRN_OUTPUT_MODE& write_mode) {
     // Create the option parser and pass it the program arguments and the array of valid options.
@@ -142,6 +152,9 @@ bool GetProblemSpecs(int argc,
             case OPT_HELP:
                 showUsage();
                 return false;
+            case OPT_RUN_MODE:
+                run_mode = std::stoi(args.OptionArg());
+                break;
             case OPT_DENSITY:
                 ballDensity = std::stof(args.OptionArg());
                 break;
@@ -154,6 +167,17 @@ bool GetProblemSpecs(int argc,
                     write_mode = GRN_OUTPUT_MODE::NONE;
                 } else {
                     std::cout << "Unknown file write mode! Options are 'csv', 'binary', or 'none'\n";
+                    return false;
+                }
+                break;
+            case OPT_STEP_MODE:
+                if (args.OptionArg() == std::string("auto")) {
+                    step_mode = GRN_TIME_STEPPING::AUTO;
+                } else if (args.OptionArg() == std::string("fixed")) {
+                    step_mode = GRN_TIME_STEPPING::FIXED;
+                } else {
+                    std::cout << "Unknown step mode! Options are 'auto' or 'fixed'\n";
+                    return false;
                 }
                 break;
             case OPT_OUTPUT_DIR:
@@ -222,13 +246,16 @@ int main(int argc, char* argv[]) {
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
     GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
+    GRN_TIME_STEPPING step_mode = GRN_TIME_STEPPING::FIXED;
+
     bool verbose = false;
     float cohesion_ratio = 0;
+    int run_mode = SETTLING;
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W, cohesion_ratio, verbose, output_prefix,
-                        write_mode) == false) {
+                        normStiffness_S2S, normStiffness_S2W, cohesion_ratio, verbose, run_mode, step_mode,
+                        output_prefix, write_mode) == false) {
         return 1;
     }
 
@@ -241,8 +268,11 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
     settlingExperiment.setOutputDirectory(output_prefix);
     settlingExperiment.setOutputMode(write_mode);
-    settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_fixed_stepSize(1e-4);
+
+    // settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
+    settlingExperiment.set_timeStepping(step_mode);
+    settlingExperiment.set_fixed_stepSize(1e-3);
+    settlingExperiment.set_max_adaptive_stepSize(1e-4);
 
     settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
 
@@ -252,7 +282,7 @@ int main(int argc, char* argv[]) {
     // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
     // will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means
     // that the box will be centered at x = boxL
-    std::function<double(double)> posFunX = [](double t) {
+    std::function<double(double)> posFunWave = [](double t) {
         // Start oscillating at t = .5s
         double t0 = .5;
         double freq = .1 * M_PI;
@@ -277,10 +307,22 @@ int main(int argc, char* argv[]) {
             return (-.5 + .01 * std::sin((t - t0) * freq));
         }
     };
-    // Set the position of the BD
-    // settlingExperiment.setBDPositionFunction(posFunStill, posFunX, posFunStill);
-    // Tell the sim to unlock the bd so it can follow that position function
-    settlingExperiment.set_BD_Fixed(true);
+
+    switch (run_mode) {
+        case SETTLING:
+            settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunStill);
+            settlingExperiment.set_BD_Fixed(true);
+            break;
+        case WAVETANK:
+            settlingExperiment.setBDPositionFunction(posFunStill, posFunWave, posFunStill);
+            settlingExperiment.set_BD_Fixed(false);
+            break;
+        case BOUNCING_PLATE:
+            settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunZBouncing);
+            settlingExperiment.set_BD_Fixed(false);
+            break;
+    }
+
     settlingExperiment.setVerbose(verbose);
     // Finalize settings and initialize for runtime
     settlingExperiment.initialize();

@@ -32,6 +32,48 @@ ChSystemGranular::ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), n
 ChSystemGranular::~ChSystemGranular() {
     gpuErrchk(cudaFree(gran_params));
 }
+
+void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
+    // std::cerr << "determining new step!\n";
+    if (time_stepping == GRN_TIME_STEPPING::AUTO) {
+        static float new_step_stop = 0;
+        if (elapsedSimTime >= new_step_stop) {
+            // printf("-------------------------\n");
+            // std::cerr << "elapsed is " << elapsedSimTime << ", stop is " << new_step_stop << std::endl;
+            new_step_stop += new_step_freq;  // assumes we never have a timestep larger than new_step_freq
+            float max_v = get_max_vel();
+            if (max_v <= 0) {
+                // clearly we have an issue, just fallback to the fixed step
+                stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * PSI_h);
+            } else {
+                // maximum number of gravity displacements we allow moving in one timestep
+                constexpr float num_disp_grav = 100;
+                // maximum fraction of radius we allow moving in one timestep
+                constexpr float num_disp_radius = .1;
+                float max_displacement_grav = num_disp_grav * psi_T_Factor;
+                float max_displacement_radius = num_disp_radius * sphereRadius_SU;
+
+                // TODO consider gravity drift
+
+                // find the highest position displacement we allow
+                float max_displacement = std::min(max_displacement_grav, max_displacement_radius);
+                float suggested_SU = max_displacement / max_v;
+                float max_step_SU = max_adaptive_step_UU / (gran_params->TIME_UNIT * PSI_h);
+                float min_step_SU = 1e-5 / (gran_params->TIME_UNIT * PSI_h);
+                printf("grav step is %f, rad step is %f\n", max_displacement_grav / max_v,
+                       max_displacement_radius / max_v);
+
+                // don't go above max
+                stepSize_SU = std::max(std::min(suggested_SU, max_step_SU), min_step_SU);
+            }
+            printf("new timestep is %f SU, %f UU\n", stepSize_SU, stepSize_SU * (gran_params->TIME_UNIT * PSI_h));
+            // printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+        }
+    } else {
+        stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * PSI_h);
+    }
+}
+
 double ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
     return std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL);
 }
@@ -213,7 +255,6 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
 
     // TODO Make this legit, from user input
     Gamma_n_s2s_SU = .005;
-    determine_new_stepSize_SU();
 
     // Handy debug output
     printf("SU step size: %d\n", stepSize_SU);
