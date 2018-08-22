@@ -839,7 +839,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
     switch_to_SimUnits();
 
     double K_stiffness = get_max_K();
-    float scalingFactor = (1.f / (1.f * PSI_T * PSI_T * PSI_h));
+    float scalingFactor =
+        (1.f / (1.f * gran_params->psi_T_factor * gran_params->psi_T_factor * gran_params->psi_h_factor));
     K_n_s2m_SU = scalingFactor * (YoungModulus_SPH2MESH / K_stiffness);
     Gamma_n_s2m_SU = 0.005;
 
@@ -853,17 +854,19 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
     copyBD_Frame_to_device();
     gpuErrchk(cudaDeviceSynchronize());
 
+    determine_new_stepSize_SU();
+
     // Seed arrays that are populated by the kernel call
     resetBroadphaseInformation();
 
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+    unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     printf("doing priming!\n");
     printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 
-    primingOperationsRectangularBox<CUDA_THREADS>
-        <<<nBlocks, CUDA_THREADS>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
-                                    DEs_in_SD_composite.data(), nDEs, gran_params);
+    primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
+        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
+                                              DEs_in_SD_composite.data(), nDEs, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
@@ -872,10 +875,10 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+    unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
+    float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * gran_params->psi_h_factor));
     unsigned int nsteps = duration_SU / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -907,10 +910,11 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
             // broadphase the triangles
             // TODO check these block/thread counts
-            triangleSoupBroadPhase<CUDA_THREADS>
-                <<<(meshSoup_DEVICE->nTrianglesInSoup + CUDA_THREADS - 1) / CUDA_THREADS, CUDA_THREADS>>>(
-                    meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
-                    SD_isTouchingTriangle.data(), gran_params, tri_params);
+            triangleSoupBroadPhase<CUDA_THREADS_PER_BLOCK>
+                <<<(meshSoup_DEVICE->nTrianglesInSoup + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK,
+                   CUDA_THREADS_PER_BLOCK>>>(meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(),
+                                             triangles_in_BUCKET_composite.data(), SD_isTouchingTriangle.data(),
+                                             gran_params, tri_params);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -918,7 +922,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         if (meshSoup_DEVICE->nFamiliesInSoup != 0) {
             // TODO please do not use a template here
             // compute sphere-triangle forces
-            interactionTerrain_TriangleSoup<CUDA_THREADS><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+            interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
                 stepSize_SU, meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
                 pos_Y_dt.data(), pos_Z_dt.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
                 pos_Z_dt_update.data(), BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
@@ -933,14 +937,14 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         resetBroadphaseInformation();
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
-        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+        updatePositions<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
             pos_X_dt_update.data(), pos_Y_dt_update.data(), pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(),
             DEs_in_SD_composite.data(), nDEs, gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT * PSI_h;  // Advance current time
+        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT * gran_params->psi_h_factor;  // Advance current time
     }
     return;
 }

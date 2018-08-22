@@ -291,7 +291,7 @@ __global__ void owner_unpack(int* d_sphere_pos_X,
 // Uses a boatload of memory
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
     VERBOSE_PRINTF("Starting defrag run!\n");
-    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+    unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Set of pointers for each buffer
     unsigned int* d_owners;
@@ -304,7 +304,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
     gpuErrchk(cudaMalloc(&d_sphere_data, nDEs * sizeof(sphere_data_struct)));
     gpuErrchk(cudaMalloc(&d_owners_2, nDEs * sizeof(unsigned int)));
     gpuErrchk(cudaMalloc(&d_sphere_data_2, nDEs * sizeof(sphere_data_struct)));
-    owner_prepack<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
+    owner_prepack<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
                                                            pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_owners,
                                                            d_sphere_data, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
@@ -327,7 +327,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
     cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys, d_values, nDEs);
     gpuErrchk(cudaDeviceSynchronize());
 
-    owner_unpack<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
+    owner_unpack<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
                                                           pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_values.Current(),
                                                           gran_params);
     gpuErrchk(cudaDeviceSynchronize());
@@ -389,26 +389,26 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
     resetBroadphaseInformation();
 
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+    unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     printf("doing priming!\n");
     printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 
-    primingOperationsRectangularBox<CUDA_THREADS>
-        <<<nBlocks, CUDA_THREADS>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
+    primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
+        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
                                     DEs_in_SD_composite.data(), nDEs, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
     printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
-    printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT * PSI_h);
+    printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT * gran_params->psi_h_factor);
 }
 
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nDEs + CUDA_THREADS - 1) / CUDA_THREADS;
+    unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * PSI_h));
+    float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * gran_params->psi_h_factor));
     unsigned int nsteps = duration_SU / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -438,14 +438,14 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
         resetBroadphaseInformation();
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
-        updatePositions<CUDA_THREADS><<<nBlocks, CUDA_THREADS>>>(
+        updatePositions<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
             pos_X_dt_update.data(), pos_Y_dt_update.data(), pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(),
             DEs_in_SD_composite.data(), nDEs, gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT * PSI_h;  // Advance current time
+        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT * gran_params->psi_h_factor;  // Advance current time
     }
 
     return;

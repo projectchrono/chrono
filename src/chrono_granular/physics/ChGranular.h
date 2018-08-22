@@ -74,6 +74,10 @@ class CH_GRANULAR_API ChSystemGranular {
         int BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
         int BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
+        unsigned int psi_T_factor;
+        unsigned int psi_h_factor;
+        unsigned int psi_L_factor;
+
         /// Ratio of cohesion force to gravity
         float cohesion_ratio;
 
@@ -137,9 +141,12 @@ class CH_GRANULAR_API ChSystemGranular {
     float Y_accGrav;  //!< Y component of the gravitational acceleration
     float Z_accGrav;  //!< Z component of the gravitational acceleration
 
-    float gravity_X_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_X/g)\f$, where g is the gravitational acceleration
-    float gravity_Y_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
-    float gravity_Z_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
+    float gravity_X_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+                         //!< \times (g_X/g)\f$, where g is the gravitational acceleration
+    float gravity_Y_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+                         //!< \times (g_Y/g)\f$, where g is the gravitational acceleration
+    float gravity_Z_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+                         //!< \times (g_Z/g)\f$, where g is the gravitational acceleration
 
     /// User provided maximum timestep in UU, used in adaptive timestepping
     float max_adaptive_step_UU = 1e-3;
@@ -180,10 +187,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     ChSystemGranularMonodisperse(float radiusSPH, float density) : ChSystemGranular() {
         sphere_radius = radiusSPH;
         sphere_density = density;
-
-        psi_T_Factor = PSI_T;
-        psi_h_Factor = PSI_h;
-        psi_L_Factor = PSI_L;
     }
 
     virtual ~ChSystemGranularMonodisperse() {}
@@ -209,9 +212,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
-    virtual void setBDPositionFunction(std::function<double(double)> fx,
-                                       std::function<double(double)> fy,
-                                       std::function<double(double)> fz) {
+    void setBDPositionFunction(std::function<double(double)> fx,
+                               std::function<double(double)> fy,
+                               std::function<double(double)> fz) {
         BDPositionFunctionX = fx;
         BDPositionFunctionY = fy;
         BDPositionFunctionZ = fz;
@@ -221,6 +224,12 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
         box_L = L_DIM;
         box_D = D_DIM;
         box_H = H_DIM;
+    }
+
+    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
+        gran_params->psi_T_factor = psi_T_new;
+        gran_params->psi_h_factor = psi_h_new;
+        gran_params->psi_L_factor = psi_L_new;
     }
 
     inline size_t nSpheres() { return nDEs; }
@@ -244,10 +253,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     float box_L;  //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
     float box_D;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
     float box_H;  //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
-
-    unsigned int psi_T_Factor;
-    unsigned int psi_h_Factor;
-    unsigned int psi_L_Factor;
 
     unsigned int sphereRadius_SU;  //!< Size of the sphere radius, in Simulation Units
 

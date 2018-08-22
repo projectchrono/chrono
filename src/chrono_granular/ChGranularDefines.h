@@ -18,6 +18,8 @@
 
 ///< At most 8 domains are touched by a sphere
 #define MAX_SDs_TOUCHED_BY_SPHERE 8
+///< At most 8 domains are touched by a sphere
+#define MAX_SPHERES_TOUCHED_BY_SPHERE 12
 /// The L-size of an SD should contain, on average, about these many spheres
 #define AVERAGE_SPHERES_PER_SD_L_DIR 3.5
 /// The D-size of an SD should contain, on average, about these many spheres
@@ -28,18 +30,14 @@
 #define MAX_COUNT_OF_DEs_PER_SD 256
 /// Value that indicates non-valid ID. The assumption is that an ID is always a positive integer
 #define NULL_GRANULAR_ID UINT_MAX
-/// Value that indicates a non-valid (ILLegal) physical attribute for integer attributes
-#define ILL_GRANULAR_VAL INT_MAX
-/// The number of average contacts per DE. High values are safe but might also translate into wasted memory
-#define AVERAGE_COUNT_CONTACTS_PER_DE 8
 /// Value that controls the length unit. It is this many simulation length units that a sphere deforms under its own
 /// weight.
-#define PSI_L 16
+#define PSI_L_DEFAULT 16
 /// Value that controls the time unit. It is this many simulation time units that it will take to clear a deformation of
 /// a sphere
-#define PSI_h 4
+#define PSI_h_DEFAULT 4
 /// Value that controls the time unit. It is like a safety factor.
-#define PSI_T 16
+#define PSI_T_DEFAULT 16
 /// Max number of SDs that a mesh triangle can touch. Note that it can touch an equal number of buckets
 #define MAX_SDs_TOUCHED_BY_TRIANGLE 8
 /// The number of buckets used to host the triangles that touch a subset of SDs. If memory was not an issue, we'd
@@ -53,9 +51,5 @@
 /// bucket. Note that if TRIANGLE_BUCKET_COUNT is small, a lot of SDs will send their triangles to the same bucket,
 /// which means that MAX_TRIANGLE_COUNT_PER_BUCKET should be cranked up.
 #define MAX_TRIANGLE_COUNT_PER_BUCKET 256
-
-//////////////////////////////////////////////////////////////////////////////
-/// COLLISION DETECTION RELATED QUANTITIES
-//////////////////////////////////////////////////////////////////////////////
-/// Fictitious radius of curvature for collision with a corner or an edge.
-#define EDGE_RADIUS 0.1
+/// Number of threads in a block when that number is allowed to vary.
+#define CUDA_THREADS_PER_BLOCK 128

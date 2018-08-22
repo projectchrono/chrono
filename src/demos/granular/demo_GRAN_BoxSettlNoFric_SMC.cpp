@@ -49,6 +49,7 @@ enum {
     OPT_HELP,
     OPT_RUN_MODE,
     OPT_STEP_MODE,
+    OPT_PSI_FACTORS,
     OPT_BALL_RADIUS,
     OPT_TIMEEND,
     OPT_DENSITY,
@@ -75,6 +76,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_BALL_RADIUS, "-br", SO_REQ_SEP},
                                     {OPT_TIMEEND, "-e", SO_REQ_SEP},
                                     {OPT_RUN_MODE, "--run_mode", SO_REQ_SEP},
                                     {OPT_STEP_MODE, "--step_mode", SO_REQ_SEP},
+                                    {OPT_PSI_FACTORS, "--psi_factors", SO_REQ_SEP},
                                     {OPT_DENSITY, "--density", SO_REQ_SEP},
                                     {OPT_WRITE_MODE, "--write_mode", SO_REQ_SEP},
                                     {OPT_OUTPUT_DIR, "--output_dir", SO_REQ_SEP},
@@ -101,6 +103,8 @@ void showUsage() {
     std::cout << "-v or --verbose" << std::endl;
     std::cout << "--run_mode=<run_mode> (0:settling, 1:wavetank, 2:bouncing_plate)" << std::endl;
     std::cout << "--step_mode=<step_mode> (auto or fixed)" << std::endl;
+    std::cout << "--psi_factors=<gran_params->psi_T_factor> <gran_params->psi_h_factor> <gran_params->psi_L_factor>"
+              << std::endl;
     std::cout << "--density=<density>" << std::endl;
     std::cout << "--write_mode=<write_mode> (csv, binary, or none)" << std::endl;
     std::cout << "--output_dir=<output_dir>" << std::endl;
@@ -132,6 +136,7 @@ bool GetProblemSpecs(int argc,
                      float& cohesion_ratio,
                      bool& verbose,
                      int& run_mode,
+                     unsigned int (&psi_factors)[3],
                      GRN_TIME_STEPPING& step_mode,
                      std::string& output_dir,
                      GRN_OUTPUT_MODE& write_mode) {
@@ -170,6 +175,14 @@ bool GetProblemSpecs(int argc,
                     return false;
                 }
                 break;
+            case OPT_PSI_FACTORS: {
+                std::stringstream ss(args.OptionArg());
+                ss >> psi_factors[0];
+                ss >> psi_factors[1];
+                ss >> psi_factors[2];
+                printf("new psi factors are %u, %u, %u\n", psi_factors[0], psi_factors[1], psi_factors[2]);
+                break;
+            }
             case OPT_STEP_MODE:
                 if (args.OptionArg() == std::string("auto")) {
                     step_mode = GRN_TIME_STEPPING::AUTO;
@@ -247,6 +260,7 @@ int main(int argc, char* argv[]) {
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
     GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
     GRN_TIME_STEPPING step_mode = GRN_TIME_STEPPING::FIXED;
+    unsigned int psi_factors[3];
 
     bool verbose = false;
     float cohesion_ratio = 0;
@@ -254,7 +268,7 @@ int main(int argc, char* argv[]) {
 
     // Some of the default values might be overwritten by user via command line
     if (GetProblemSpecs(argc, argv, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W, cohesion_ratio, verbose, run_mode, step_mode,
+                        normStiffness_S2S, normStiffness_S2W, cohesion_ratio, verbose, run_mode, psi_factors, step_mode,
                         output_prefix, write_mode) == false) {
         return 1;
     }
