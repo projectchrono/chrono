@@ -82,8 +82,6 @@ double ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
     return std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL);
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless::cleanup_simulation() {}
-
 /** This method sets up the data structures used to perform a simulation.
  *
  */
@@ -160,21 +158,21 @@ void ChSystemGranularMonodisperse::generate_DEs_FillBounds() {
 
     // generate from bottom to twice the generateDepth
     // average high and low to get midpoint of generation
-    float xmid = box_L * (boxFillXmax + boxFillXmin) / (4. * gran_params->LENGTH_UNIT);
-    float ymid = box_D * (boxFillYmax + boxFillYmin) / (4. * gran_params->LENGTH_UNIT);
-    float zmid = box_H * (boxFillZmax + boxFillZmin) / (4. * gran_params->LENGTH_UNIT);
+    float xmid = box_size_X * (boxFillXmax + boxFillXmin) / (4. * gran_params->LENGTH_UNIT);
+    float ymid = box_size_Y * (boxFillYmax + boxFillYmin) / (4. * gran_params->LENGTH_UNIT);
+    float zmid = box_size_Z * (boxFillZmax + boxFillZmin) / (4. * gran_params->LENGTH_UNIT);
     // half-spans in each dimension, the difference
-    float xlen = abs(box_L * (boxFillXmax - boxFillXmin) / (4. * gran_params->LENGTH_UNIT));
-    float ylen = abs(box_D * (boxFillYmax - boxFillYmin) / (4. * gran_params->LENGTH_UNIT));
-    float zlen = abs(box_H * (boxFillZmax - boxFillZmin) / (4. * gran_params->LENGTH_UNIT));
-    float generateHalfDepth = box_H / (3. * gran_params->LENGTH_UNIT);
+    float xlen = abs(box_size_X * (boxFillXmax - boxFillXmin) / (4. * gran_params->LENGTH_UNIT));
+    float ylen = abs(box_size_Y * (boxFillYmax - boxFillYmin) / (4. * gran_params->LENGTH_UNIT));
+    float zlen = abs(box_size_Z * (boxFillZmax - boxFillZmin) / (4. * gran_params->LENGTH_UNIT));
+    float generateHalfDepth = box_size_Z / (3. * gran_params->LENGTH_UNIT);
 
-    // float generateX = -box_D / (2. * gran_params->LENGTH_UNIT) + generateHalfDepth;
-    // float generateY = -box_D / (2. * gran_params->LENGTH_UNIT) + generateHalfDepth;
-    // float generateZ = -box_H / (2. * gran_params->LENGTH_UNIT) + generateHalfHeight;
+    // float generateX = -box_size_Y / (2. * gran_params->LENGTH_UNIT) + generateHalfDepth;
+    // float generateY = -box_size_Y / (2. * gran_params->LENGTH_UNIT) + generateHalfDepth;
+    // float generateZ = -box_size_Z / (2. * gran_params->LENGTH_UNIT) + generateHalfHeight;
     ChVector<float> boxCenter(xmid, ymid, zmid);
     // We need to subtract off a sphere radius to ensure we don't get put at the edge
-    ChVector<float> hdims{xlen - sphereRadius_SU, ylen - sphereRadius_SU, zlen - sphereRadius_SU};
+    ChVector<float> hdims(xlen - sphereRadius_SU, ylen - sphereRadius_SU, zlen - sphereRadius_SU);
     h_points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
 }
 
@@ -187,34 +185,34 @@ void ChSystemGranularMonodisperse::generate_DEs_positions() {
 /**
 This method figures out how big a SD is, and how many SDs are going to be necessary
 in order to cover the entire BD.
-BD: Bid domain.
+BD: Big domain.
 SD: Sub-domain.
 */
 void ChSystemGranularMonodisperse::partition_BD() {
-    double tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_L_DIR;
-    unsigned int howMany = (unsigned int)(std::ceil(box_L / tempDIM));
+    double tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_X_DIR;
+    unsigned int howMany = (unsigned int)(std::ceil(box_size_X / tempDIM));
     // work with an even kFac to hit the CM of the box.
     if (howMany & 1)
         howMany++;
-    tempDIM = box_L / howMany;
+    tempDIM = box_size_X / howMany;
     SD_size_X_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
     nSDs_X = howMany;
 
-    tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_D_DIR;
-    howMany = (unsigned int)(std::ceil(box_D / tempDIM));
+    tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_Y_DIR;
+    howMany = (unsigned int)(std::ceil(box_size_Y / tempDIM));
     // work with an even kFac to hit the CM of the box.
     if (howMany & 1)
         howMany++;
-    tempDIM = box_D / howMany;
+    tempDIM = box_size_Y / howMany;
     SD_size_Y_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
     nSDs_Y = howMany;
 
-    tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_H_DIR;
-    howMany = (unsigned int)(std::ceil(box_H / tempDIM));
+    tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_Z_DIR;
+    howMany = (unsigned int)(std::ceil(box_size_Z / tempDIM));
     // work with an even kFac to hit the CM of the box.
     if (howMany & 1)
         howMany++;
-    tempDIM = box_H / howMany;
+    tempDIM = box_size_Z / howMany;
     SD_size_Z_SU = (unsigned int)std::ceil(tempDIM / gran_params->LENGTH_UNIT);
     nSDs_Z = howMany;
 

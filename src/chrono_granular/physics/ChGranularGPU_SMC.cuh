@@ -677,7 +677,6 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
             distance_normalized = deltaX * deltaX;
             distance_normalized += deltaY * deltaY;
             distance_normalized += deltaZ * deltaZ;
-            // We now have
 
             // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA
             // intrinsic:

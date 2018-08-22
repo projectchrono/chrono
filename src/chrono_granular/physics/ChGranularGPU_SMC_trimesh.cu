@@ -14,7 +14,7 @@
 /*! \file */
 // These two must be included first
 
-// NOTE: DON'T MOVE OR CHANGES THESE THREE LINES
+// NOTE: DON'T MOVE OR CHANGE THESE THREE LINES
 #include "chrono/ChConfig.h"
 #undef CHRONO_HAS_SSE
 #undef CHRONO_HAS_AVX
@@ -22,34 +22,25 @@
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
+
 // these define things that mess with cub
 #include "chrono_granular/physics/ChGranularCollision.cuh"
 #include "chrono_granular/physics/ChGranularBoxTriangle.cuh"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 
 // TODO should this go here?
-// NOTE warpSize is a cuda environment value, but it is cc-dependent
-#if __CUDA_ARCH__ <= 600
-// all devices of compute capability <= 6.0
-static const int warp_size = 32;
-#else
-static const int warp_size = warpSize;
-#endif
-
-#define NUM_TRIANGLE_FAMILIES 4
-
-#define Triangle_Soup chrono::granular::ChTriangleSoup
 
 namespace chrono {
 namespace granular {
 typedef const ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
+typedef ChTriangleSoup<float>* TriangleSoupPtr;
 
 /// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
 template <class T, class T3>
 __device__ T3 apply_frame_transform(const T3& point, const T* pos, const T* rot_mat) {
     T3 result;
 
-    // Apply roation matrix to point
+    // Apply rotation matrix to point
     result.x = rot_mat[0] * point.x + rot_mat[1] * point.y + rot_mat[2] * point.z;
     result.y = rot_mat[3] * point.x + rot_mat[4] * point.y + rot_mat[5] * point.z;
     result.z = rot_mat[6] * point.x + rot_mat[7] * point.y + rot_mat[8] * point.z;
@@ -73,7 +64,7 @@ __device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
-                                             const Triangle_Soup<float>* triangleSoup,
+                                             const TriangleSoupPtr triangleSoup,
                                              unsigned int* touchedSDs,
                                              ParamsPtr gran_params,
                                              MeshParamsPtr tri_params) {
@@ -244,7 +235,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::resetTriangleBroadph
  */
 template <unsigned int CUB_THREADS>  //!< Number of threads engaged in block-collective CUB operations (multiple of 32)
 __global__ void triangleSoupBroadPhase(
-    Triangle_Soup<float>* d_triangleSoup,
+    const TriangleSoupPtr d_triangleSoup,
     unsigned int*
         BUCKET_countsOfTrianglesTouching,  //!< Array that for each BKT indicates how many triangles touch this BKT
     unsigned int*
@@ -416,7 +407,7 @@ be produced to account for the interaction between the said triangle and sphere 
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
     const float alpha_h_bar,
-    Triangle_Soup<float>* d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
+    TriangleSoupPtr d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
     int* d_sphere_pos_X,
     int* d_sphere_pos_Y,
     int* d_sphere_pos_Z,
@@ -636,9 +627,9 @@ __global__ void interactionTerrain_TriangleSoup(
                         float springTermZ = scalingFactor * deltaZ;
 
                         // TODO Compute force updates for damping term correctly - should include penetration? units?
-                        float dampingTermX = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaX_dot_n;
-                        float dampingTermY = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaY_dot_n;
-                        float dampingTermZ = -mesh_params->d_Gamma_n_s2m_SU * alpha_h_bar * deltaZ_dot_n;
+                        float dampingTermX = -mesh_params->Gamma_n_s2m_SU * alpha_h_bar * deltaX_dot_n;
+                        float dampingTermY = -mesh_params->Gamma_n_s2m_SU * alpha_h_bar * deltaY_dot_n;
+                        float dampingTermZ = -mesh_params->Gamma_n_s2m_SU * alpha_h_bar * deltaZ_dot_n;
 
                         // TODO Compute force updates for cohesion term, is opposite the spring term
 
@@ -841,9 +832,9 @@ __global__ void interactionTerrain_TriangleSoup(
 /// Copy const triangle data to device
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
     // unified memory does some copying for us, cool
-    tri_params->d_Gamma_n_s2m_SU = 0;  // no damping on mesh for now
+    tri_params->Gamma_n_s2m_SU = 0;  // no damping on mesh for now
     tri_params->Kn_s2m_SU = K_n_s2m_SU;
-    tri_params->d_Gamma_n_s2m_SU = Gamma_n_s2m_SU;
+    tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
 
     SD_isTouchingTriangle.resize(nSDs);
 }

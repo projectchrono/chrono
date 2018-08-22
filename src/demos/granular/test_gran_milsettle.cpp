@@ -54,10 +54,10 @@ float cohesion_ratio = 2;
 // Run a wavetank for a monodisperse collection of spheres in a rectangular box, undergoing a wave motion
 // There is no friction. The units are always cm/g/s[L/M/T].
 // -----------------------------------------------------------------------------
-double run_test(float boxL, float boxD, float boxH) {
+double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless settlingExperiment(ballRadius, ballDensity);
-    settlingExperiment.setBOXdims(boxL, boxD, boxH);
+    settlingExperiment.setBOXdims(box_size_X, box_size_Y, box_size_Z);
     settlingExperiment.set_YoungModulus_SPH2SPH(normStiffness_S2S);
     settlingExperiment.set_YoungModulus_SPH2WALL(normStiffness_S2W);
     settlingExperiment.set_Cohesion_ratio(cohesion_ratio);

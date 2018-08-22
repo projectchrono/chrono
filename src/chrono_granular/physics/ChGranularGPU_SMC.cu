@@ -208,9 +208,9 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const float
     // float frame_Y_old = BD_frame_Y;
     // float frame_Z_old = BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
-    BD_frame_X = (box_L * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-    BD_frame_Y = (box_D * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-    BD_frame_Z = (box_H * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    BD_frame_X = (box_size_X * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    BD_frame_Y = (box_size_Y * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    BD_frame_Z = (box_size_Z * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
 
     copyBD_Frame_to_device();
 }
@@ -304,9 +304,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
     gpuErrchk(cudaMalloc(&d_sphere_data, nDEs * sizeof(sphere_data_struct)));
     gpuErrchk(cudaMalloc(&d_owners_2, nDEs * sizeof(unsigned int)));
     gpuErrchk(cudaMalloc(&d_sphere_data_2, nDEs * sizeof(sphere_data_struct)));
-    owner_prepack<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
-                                                           pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_owners,
-                                                           d_sphere_data, gran_params);
+    owner_prepack<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+        pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_owners,
+        d_sphere_data, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
 
     // Create a set of DoubleBuffers to wrap pairs of device pointers
@@ -327,9 +327,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
     cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys, d_values, nDEs);
     gpuErrchk(cudaDeviceSynchronize());
 
-    owner_unpack<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
-                                                          pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_values.Current(),
-                                                          gran_params);
+    owner_unpack<CUDA_THREADS_PER_BLOCK>
+        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
+                                              pos_Y_dt.data(), pos_Z_dt.data(), nDEs, d_values.Current(), gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     cudaFree(d_owners);
     cudaFree(d_owners_2);
@@ -395,7 +395,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
 
     primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
         <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
-                                    DEs_in_SD_composite.data(), nDEs, gran_params);
+                                              DEs_in_SD_composite.data(), nDEs, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 

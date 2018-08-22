@@ -90,13 +90,26 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     void set_YoungModulus_SPH2MESH(double someValue) { YoungModulus_SPH2MESH = someValue; }
     unsigned int nMeshesInSoup() const { return meshSoup_DEVICE->nFamiliesInSoup; }
-    void collectGeneralizedForcesOnMeshSoup(float crntTime, float* genForcesOnSoup);
+
+    /**
+    * \brief Collects the forces that each mesh feels as a result of their interaction with the DEs.
+    * Each generalized force acting on a family in the soup has six components: three forces &
+    * three torques.
+    *
+    * \param [in] crntTime The time at which the force is computed
+    * \param [out] genForcesOnSoup Array that stores the generalized forces on the meshes in the soup
+
+    * \return nothing
+    *
+    * \attention The size of genForcesOnSoup should be 6 * nFamiliesInSoup
+    */
+    void collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup);
     void meshSoup_applyRigidBodyMotion(double* position_orientation_data);
 
     void advance_simulation(float duration);
     /// Extra parameters needed for triangle-sphere contact
     struct GranParamsHolder_trimesh {
-        float d_Gamma_n_s2m_SU;              //!< sphere-to-mesh contact damping coefficient, expressed in SU
+        float Gamma_n_s2m_SU;              //!< sphere-to-mesh contact damping coefficient, expressed in SU
         float Kn_s2m_SU;                     //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
         unsigned int num_triangle_families;  /// Number of triangle families
         ChFamilyFrame<float>* fam_frame_broad;
@@ -118,9 +131,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
     float K_n_s2m_SU;              //!< size of the normal stiffness (SU) for sphere-to-mesh contact
     float Gamma_n_s2m_SU;
-
-    bool problemSetupFinished;
-    float timeToWhichDEsHaveBeenPropagated;
 
     std::vector<unsigned int, cudallocator<unsigned int>> BUCKET_countsOfTrianglesTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_BUCKET_composite;

@@ -36,9 +36,7 @@ double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::get_max_K() {
 ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(
     float radiusSPH,
     float density)
-    : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density),
-      problemSetupFinished(false),
-      timeToWhichDEsHaveBeenPropagated(0.f) {}
+    : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density) {}
 
 ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {
     // work to do here
@@ -278,70 +276,11 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     }
 }
 
-/**
-* \brief Collects the forces that each mesh feels as a result of their interaction with the DEs.
-*
-* The generalized forces felt by each family in the triangle soup are copied from the device into the host array
-that is
-* provided to this function. Each generalized force acting on a family in the soup has six components: three forces
-&
-* three torques.
-*
-* The forces measured are based on the position of the DEs as they are at the beginning of this function call,
-before
-* the DEs are moved forward in time. In other words, the forces are associated with the configuration of the DE
-system
-* from time timeToWhichDEsHaveBeenPropagated upon entrying this function.
-* The logic is this: when the time integration is carried out, the forces are measured and saved in
-* meshSoup_DEVICE->nFamiliesInSoup. Then, the numerical integration takes places and the state of DEs is update
-along
-* with the value of timeToWhichDEsHaveBeenPropagated.
-*
-* \param [in] crntTime The time at which the force is computed
-* \param [out] genForcesOnSoup Array that stores the generalized forces on the meshes in the soup
-
-* \return nothing
-*
-* \attention The size of genForcesOnSoup should be 6 * nFamiliesInSoup
-*/
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(float crntTime,
-                                                                                               float* genForcesOnSoup) {
-    if (!problemSetupFinished) {
-        setupSimulation();
-        problemSetupFinished = true;
-    }
-
-    // update the time that the DE system has reached
-    timeToWhichDEsHaveBeenPropagated = crntTime;
-
-    // Values in meshSoup_DEVICE are legit and ready to be loaded in user provided array.
-    gpuErrchk(cudaMemcpy(genForcesOnSoup, meshSoup_DEVICE->generalizedForcesPerFamily,
-                         6 * meshSoup_DEVICE->nFamiliesInSoup * sizeof(float), cudaMemcpyDeviceToHost));
-}
-
-/**
- * \brief Function sets up data structures, allocates space on the device, generates the spheres, etc.
- *
- */
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupSimulation() {
-    switch_to_SimUnits();
-    generate_DEs();
-
-    // Set aside memory for holding data structures worked with. Get some initializations going
-    setup_simulation();
-    copy_const_data_to_device();
-    gpuErrchk(cudaDeviceSynchronize());
-
-    // Seed arrays that are populated by the kernel call
-    // Set all the offsets to zero
-    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
-    // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
-
-    // Figure our the number of blocks that need to be launched to cover the box
-    printf("doing priming!\n");
-    printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
+void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
+    // todo accumulate forces
+    // // Values in meshSoup_DEVICE are legit and ready to be loaded in user provided array.
+    // gpuErrchk(cudaMemcpy(genForcesOnSoup, meshSoup_DEVICE->generalizedForcesPerFamily,
+    //                      6 * meshSoup_DEVICE->nFamiliesInSoup * sizeof(float), cudaMemcpyDeviceToHost));
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidBodyMotion(

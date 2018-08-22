@@ -170,7 +170,6 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void partition_BD() = 0;
     virtual void copy_const_data_to_device() = 0;
     virtual void setup_simulation() = 0;
-    virtual void cleanup_simulation() = 0;
 
     virtual void determine_new_stepSize_SU() = 0;
 
@@ -221,9 +220,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     }
 
     void setBOXdims(float L_DIM, float D_DIM, float H_DIM) {
-        box_L = L_DIM;
-        box_D = D_DIM;
-        box_H = H_DIM;
+        box_size_X = L_DIM;
+        box_size_Y = D_DIM;
+        box_size_Z = H_DIM;
     }
 
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
@@ -250,9 +249,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     float sphere_radius;   /// User defined radius of the sphere
     float sphere_density;  /// User defined density of the sphere
 
-    float box_L;  //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
-    float box_D;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
-    float box_H;  //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
+    float box_size_X;  //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
+    float box_size_Y;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
+    float box_size_Z;  //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
 
     unsigned int sphereRadius_SU;  //!< Size of the sphere radius, in Simulation Units
 
@@ -325,14 +324,15 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     virtual void switch_to_SimUnits();
 
-    virtual void cleanup_simulation();
     virtual void defragment_data();
 
     double YoungModulus_SPH2SPH;
     double YoungModulus_SPH2WALL;
     float Gamma_n_s2s_SU;
-    float K_n_s2s_SU;  /// size of the normal stiffness (SU) for sphere-to-sphere contact
-    float K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
+    /// size of the normal stiffness (SU) for sphere-to-sphere contact
+    float K_n_s2s_SU;
+    /// size of the normal stiffness (SU) for sphere-to-wall contact
+    float K_n_s2w_SU;
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
 };
