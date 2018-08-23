@@ -180,7 +180,7 @@ class ChApi ChFilterPDT1 : public ChAnalogueFilter {
 // For the sake of stability and numerical efficiency they are based
 // on the bilinear transform (Tustin method)
 
-class ChButterworth_Lowpass
+class ChApi ChButterworth_Lowpass
 {
 public:
     ChButterworth_Lowpass();
@@ -213,7 +213,7 @@ private:
     std::vector<double> m_biq_y_hist1, m_biq_y_hist2;
 };
 
-class ChButterworth_Highpass
+class ChApi ChButterworth_Highpass
 {
 public:
     ChButterworth_Highpass();
@@ -246,7 +246,7 @@ private:
     std::vector<double> m_biq_y_hist1, m_biq_y_hist2;
 };
 
-class ChISO2631_1_AVTransition
+class ChApi ChISO2631_1_AVTransition
 {
 public:
     ChISO2631_1_AVTransition();
@@ -271,7 +271,7 @@ private:
 
 };
 
-class ChISO2631_1_UpwardStep
+class ChApi ChISO2631_1_UpwardStep
 {
 public:
     ChISO2631_1_UpwardStep();
@@ -295,7 +295,7 @@ private:
 
 };
 
-class ChISO2631_1_Wk
+class ChApi ChISO2631_1_Wk
 {
 public:
     ChISO2631_1_Wk();
@@ -322,7 +322,7 @@ private:
     ChISO2631_1_UpwardStep   ups;
 };
 
-class ChISO2631_1_Wd
+class ChApi ChISO2631_1_Wd
 {
 public:
     ChISO2631_1_Wd();
@@ -344,7 +344,7 @@ private:
     ChISO2631_1_AVTransition avt;
 };
 
-class ChISO2631_1_Wf
+class ChApi ChISO2631_1_Wf
 {
 public:
     ChISO2631_1_Wf();
@@ -371,7 +371,7 @@ private:
 };
 
 // ISO2631-5 weighting filter for shock like signal in horizontal direction, does work with sample rate = 160 Hz only
-class ChISO2631_5_Wxy
+class ChApi ChISO2631_5_Wxy
 {
 public:
     ChISO2631_5_Wxy();
@@ -397,7 +397,7 @@ private:
 // ISO2631-5 weighting filter for shock like signal in vertical direction
 // Unlike ChISO2631_5_Wxy this filter is nonlinear and works with a sample rate of fs = 160 Hz (step = 1/160 s) only!
 // unfiltered input u -> filtered output y
-class ChISO2631_5_Wz
+class ChApi ChISO2631_5_Wz
 {
 public:
     ChISO2631_5_Wz();
@@ -411,7 +411,7 @@ private:
 // Easy to use class for evaluation of ISO 2361-1 vibration load on sitting vehicle occupants
 // input: 3 seat accelerations x,y,z in [m/s^2]
 // sample rate should be >= 250 Hz resp. step <= 1/250 s
-class ChISO2631_Vibration_SeatCushionLogger
+class ChApi ChISO2631_Vibration_SeatCushionLogger
 {
 public:
     ChISO2631_Vibration_SeatCushionLogger();
@@ -501,7 +501,7 @@ private:
 // internal filtering works with 160 Hz sample rate as demanded by ISO 2631-5
 // downsampling is done automatically antialiasing included
 
-class ChISO2631_Shock_SeatCushionLogger
+class ChApi ChISO2631_Shock_SeatCushionLogger
 {
 public:
     ChISO2631_Shock_SeatCushionLogger();

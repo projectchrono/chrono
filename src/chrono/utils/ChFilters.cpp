@@ -223,7 +223,7 @@ void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc)
     const unsigned int nPolesMax = 6;
 
     m_Ts = step;
-    double wc = fc *2.0 * M_PI;
+    double wc = fc * CH_C_2PI;
 
     if(nPoles < nPolesMin) {
         nPoles = 1;
