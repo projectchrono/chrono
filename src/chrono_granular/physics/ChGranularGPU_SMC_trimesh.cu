@@ -651,6 +651,36 @@ __global__ void interactionTerrain_TriangleSoup(
                         forceActingOnSphere[0] += bodyA_X_velCorr;
                         forceActingOnSphere[1] += bodyA_Y_velCorr;
                         forceActingOnSphere[2] += bodyA_Z_velCorr;
+
+                        // total force is opposite the triangle normal
+                        // force on mesh is total force projected from the contact point on the triangle to mesh center
+                        // torque
+                        // TODO assumes pos is the center of mass of the mesh
+                        // TODO precision?
+                        double3 meshCenter = make_double3(mesh_params->fam_frame_narrow[fam].pos[0],
+                                                          mesh_params->fam_frame_narrow[fam].pos[1],
+                                                          mesh_params->fam_frame_narrow[fam].pos[2]);
+
+                        double3 toCenter = pt1 - meshCenter;
+                        toCenter = toCenter / Length(toCenter);
+                        double3 force_total =
+                            make_double3(bodyA_X_velCorr, bodyA_Y_velCorr, bodyA_Z_velCorr) / alpha_h_bar;
+                        double3 force_N = Dot(force_total, toCenter) * toCenter;
+
+                        // TODO reorder for register use
+                        // TODO be waaaayyyy less dumb about register use
+                        double3 force_T = force_total - force_N;
+                        double3 fromCenter = meshCenter - pt1;
+                        double3 torque = Cross(fromCenter, force_T);
+
+                        unsigned int fam = d_triangleSoup->triangleFamily_ID[targetTriangle];
+                        genForceActingOnMeshes[fam * 6 + 0] += force_N.x;
+                        genForceActingOnMeshes[fam * 6 + 1] += force_N.y;
+                        genForceActingOnMeshes[fam * 6 + 2] += force_N.z;
+
+                        genForceActingOnMeshes[fam * 6 + 3] += torque.x;
+                        genForceActingOnMeshes[fam * 6 + 4] += torque.y;
+                        genForceActingOnMeshes[fam * 6 + 5] += torque.z;
                     }
                 }
                 targetTriangle += warp_size;
@@ -682,10 +712,6 @@ __global__ void interactionTerrain_TriangleSoup(
         }                                               // end of valid sphere if
         sphere_Local_ID += nSpheresProcessedAtOneTime;  // go to next set of spheress
     }                                                   // end of per-sphere loop
-
-    // TODO generate force on triangle
-
-    //////////////////////////////////////////////////////////////////////
 
     // Done computing the forces acting on the triangles in this SD. A block reduce is carried out next. Start by doing
     // a reduce at the warp level.
