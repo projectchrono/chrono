@@ -412,7 +412,7 @@ int test_iso2631_5_wxy()
     size_t nTvals = Tlen/ts + 1;
     t.resize(nTvals);
     sig_in_wxy.resize(nTvals);
-    for(size_t i=0; i<=nTvals; i++) {
+    for(size_t i=0; i<nTvals; i++) {
         t[i] = ts * double(i);
         if(t[i] <= 0.05) {
             sig_in_wxy[i] = 40.0 * t[i] + 0.0;
@@ -533,7 +533,7 @@ int test_iso2631_5_wz()
     size_t nTvals = Tlen/ts + 1;
     t.resize(nTvals);
     sig_in_wz.resize(nTvals);
-    for(size_t i=0; i<=nTvals; i++) {
+    for(size_t i=0; i<nTvals; i++) {
         t[i] = ts * double(i);
         if(t[i] <= 0.05) {
             sig_in_wz[i] = 40.0 * t[i] + 0.0;
