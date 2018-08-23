@@ -696,17 +696,18 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
             float springTermX = scalingFactor * deltaX * sphdiameter * penetration;
             float springTermY = scalingFactor * deltaY * sphdiameter * penetration;
             float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration;
+
             // Compute force updates for damping term
             float dampingTermX = -gran_params->Gamma_n_s2s_SU * alpha_h_bar * deltaX_dot;
             float dampingTermY = -gran_params->Gamma_n_s2s_SU * alpha_h_bar * deltaY_dot;
             float dampingTermZ = -gran_params->Gamma_n_s2s_SU * alpha_h_bar * deltaZ_dot;
 
-            float cohesionConstant = gran_params->gravAcc_Z_SU * gran_params->cohesion_ratio;
+            float cohesionConstant = gran_params->gravMag_SU * gran_params->cohesion_ratio;
 
             // Compute force updates for cohesion term, is opposite the spring term
-            float cohesionTermX = cohesionConstant * deltaX * reciplength;
-            float cohesionTermY = cohesionConstant * deltaY * reciplength;
-            float cohesionTermZ = cohesionConstant * deltaZ * reciplength;
+            float cohesionTermX = cohesionConstant * deltaX * reciplength / 2.0;
+            float cohesionTermY = cohesionConstant * deltaY * reciplength / 2.0;
+            float cohesionTermZ = cohesionConstant * deltaZ * reciplength / 2.0;
 
             // Add damping term to spring term, write back to counter
             bodyA_X_velCorr += springTermX + dampingTermX + cohesionTermX;

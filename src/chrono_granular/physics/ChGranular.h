@@ -68,6 +68,7 @@ class CH_GRANULAR_API ChSystemGranular {
         float gravAcc_X_SU;            //!< Device counterpart of the constant gravity_X_SU
         float gravAcc_Y_SU;            //!< Device counterpart of the constant gravity_Y_SU
         float gravAcc_Z_SU;            //!< Device counterpart of the constant gravity_Z_SU
+        float gravMag_SU;
 
         // Changed by updateBDPosition() at every timestep
         int BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
@@ -83,7 +84,7 @@ class CH_GRANULAR_API ChSystemGranular {
 
         double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
         double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
-        double MASS_UNIT;  //!< Any mass quanity is measured as a positive multiple of MASS_UNIT. NOTE: The MASS_UNIT is
+        double MASS_UNIT;    //!< Any mass quanity is measured as a positive multiple of MASS_UNIT.
     };
 
     inline unsigned int elementCount() const { return nDEs; }
@@ -249,9 +250,12 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     float sphere_radius;   /// User defined radius of the sphere
     float sphere_density;  /// User defined density of the sphere
 
-    float box_size_X;  //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
-    float box_size_Y;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
-    float box_size_Z;  //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
+    float box_size_X;  //!< length of physical box; will define the local X axis located at the CM of the box (left to
+                       //!< right)
+    float
+        box_size_Y;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
+    float box_size_Z;  //!< height of physical box; will define the local Z axis located at the CM of the box (pointing
+                       //!< up)
 
     unsigned int sphereRadius_SU;  //!< Size of the sphere radius, in Simulation Units
 

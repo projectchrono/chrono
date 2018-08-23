@@ -31,7 +31,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_
     gran_params->gravAcc_X_SU = gravity_X_SU;
     gran_params->gravAcc_Y_SU = gravity_Y_SU;
     gran_params->gravAcc_Z_SU = gravity_Z_SU;
-
+    gran_params->gravMag_SU =
+        std::sqrt(gravity_X_SU * gravity_X_SU + gravity_Y_SU * gravity_Y_SU + gravity_Z_SU * gravity_Z_SU);
+		
     gran_params->sphereRadius_SU = sphereRadius_SU;
 
     gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
