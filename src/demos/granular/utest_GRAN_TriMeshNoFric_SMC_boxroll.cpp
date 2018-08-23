@@ -68,9 +68,9 @@ CSimpleOptA::SOption g_options[] = {{OPT_SPH_RADIUS, "-sr", SO_REQ_SEP},
                                     {OPT_DENSITY, "--density", SO_REQ_SEP},
                                     {OPT_WRITE_MODE, "--write_mode", SO_REQ_SEP},
                                     {OPT_OUTPUT_DIR, "--output_dir", SO_REQ_SEP},
-                                    {OPT_BOX_L, "--boxlength", SO_REQ_SEP},
-                                    {OPT_BOX_D, "--boxdepth", SO_REQ_SEP},
-                                    {OPT_BOX_H, "--boxheight", SO_REQ_SEP},
+                                    {OPT_BOX_L, "--box_size_X", SO_REQ_SEP},
+                                    {OPT_BOX_D, "--box_size_Y", SO_REQ_SEP},
+                                    {OPT_BOX_H, "--box_size_Z", SO_REQ_SEP},
                                     {OPT_GRAV_ACC, "--gravacc", SO_REQ_SEP},
                                     {OPT_COHESION_RATIO, "--cohes_ratio", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2S, "--normStiffS2S", SO_REQ_SEP},
@@ -98,9 +98,9 @@ void showUsage() {
     std::cout << "--write_mode=<write_mode> (csv, binary, or none)" << std::endl;
     std::cout << "--output_dir=<output_dir>" << std::endl;
     std::cout << "-e=<time_end>" << std::endl;
-    std::cout << "--boxlength=<box_length>" << std::endl;
-    std::cout << "--boxdepth=<box_depth>" << std::endl;
-    std::cout << "--boxheight=<box_height>" << std::endl;
+    std::cout << "--box_size_X=<box_length>" << std::endl;
+    std::cout << "--box_size_Y=<box_depth>" << std::endl;
+    std::cout << "--box_size_Z=<box_height>" << std::endl;
     std::cout << "--gravacc=<accValue>" << std::endl;
     std::cout << "--cohes_ratio=<cohesValue>" << std::endl;
     std::cout << "--normStiffS2S=<stiffValuesS2S>" << std::endl;
@@ -216,9 +216,9 @@ bool GetProblemSpecs(int argc,
 // There is no friction. The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-#define BOX_L_cm 40.f
-#define BOX_D_cm 40.f
-#define BOX_H_cm 40.f
+#define box_size_X_cm 40.f
+#define box_size_Y_cm 40.f
+#define box_size_Z_cm 40.f
 #define RADIUS 1.f
 #define SPH_DENSITY 1.50f
 #define TIME_END 4.f
@@ -233,9 +233,9 @@ int main(int argc, char* argv[]) {
     int test;
     float ballRadius = RADIUS;
     float ballDensity = SPH_DENSITY;
-    float boxL = BOX_L_cm;
-    float boxD = BOX_D_cm;
-    float boxH = BOX_H_cm;
+    float box_size_X = box_size_X_cm;
+    float box_size_Y = box_size_Y_cm;
+    float box_size_Z = box_size_Z_cm;
     float timeEnd = TIME_END;
     float grav_acceleration = GRAV_ACCELERATION;
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
     float cohesion_ratio = 0;
 
     // Some of the default values might be overwritten by user via command line
-    if (GetProblemSpecs(argc, argv, test, ballRadius, ballDensity, boxL, boxD, boxH, timeEnd, grav_acceleration,
+    if (GetProblemSpecs(argc, argv, test, ballRadius, ballDensity, box_size_X, box_size_Y, box_size_Z, timeEnd, grav_acceleration,
                         normStiffness_S2S, normStiffness_S2W, normStiffness_MSH2S, cohesion_ratio, verbose,
                         output_prefix, write_mode) == false) {
         return 1;
@@ -257,7 +257,7 @@ int main(int argc, char* argv[]) {
 
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
-    m_sys.setBOXdims(boxL, boxD, boxH);
+    m_sys.setBOXdims(box_size_X, box_size_Y, box_size_Z);
     m_sys.set_BD_Fixed(true);
 
     std::vector<ChVector<float>> pos;
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
     //     sprintf(filename, "%s/step%06d", output_prefix.c_str(), fakeframe++);
     //     meshSoupLocOri[0] = 0;  // Keep wheel centered in X and Y
     //     meshSoupLocOri[1] = 0;
-    //     meshSoupLocOri[2] = pos_func_Z(t, boxH);  // Get next position and orientation from the prescribed function
+    //     meshSoupLocOri[2] = pos_func_Z(t, box_size_Z);  // Get next position and orientation from the prescribed function
     //     meshSoupLocOri[3] = 1;                    // No rotation in this demo
     //     meshSoupLocOri[4] = 0;
     //     meshSoupLocOri[5] = 0;

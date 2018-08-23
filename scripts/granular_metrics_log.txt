@@ -366,3 +366,39 @@ Running settling test!
 50 thousand bodies took 2.02512 seconds!
 500 thousand bodies took 14.4336 seconds!
 1 million bodies took 31.5135 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 Aug 2018 12:39:50 -0500
+commit dee0c28ba0fef52aba85b48364f267d1067d46c2 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 22 12:39:50 2018 -0500 add adaptive timestep, more functionality in box settle demo
+Results:
+Running wavetank test!
+50 thousand bodies took 1.84997 seconds!
+500 thousand bodies took 13.8393 seconds!
+1 million bodies took 30.6431 seconds!
+Running settling test!
+50 thousand bodies took 1.91813 seconds!
+500 thousand bodies took 13.3303 seconds!
+1 million bodies took 29.9703 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 Aug 2018 14:48:29 -0500
+commit 36faf2f093a269b49606f8e6178fe61f8df511a6 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 22 14:48:29 2018 -0500 cleanup how parameters are handled, make PSIs runtime
+Results:
+Running wavetank test!
+50 thousand bodies took 2.24023 seconds!
+500 thousand bodies took 15.704 seconds!
+1 million bodies took 36.1435 seconds!
+Running settling test!
+50 thousand bodies took 1.98061 seconds!
+500 thousand bodies took 13.5302 seconds!
+1 million bodies took 31.3075 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 22 Aug 2018 15:47:43 -0500
+commit ac348701d5a624992b4139457011a15ace624c3a Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Aug 22 15:47:33 2018 -0500 overall cleanup, move away from l,d,h
+Results:
+Running wavetank test!
+50 thousand bodies took 1.9532 seconds!
+500 thousand bodies took 14.4338 seconds!
+1 million bodies took 31.636 seconds!
+Running settling test!
+50 thousand bodies took 1.97413 seconds!
+500 thousand bodies took 13.6718 seconds!
+1 million bodies took 31.4931 seconds!

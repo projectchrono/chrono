@@ -74,6 +74,10 @@ class CH_GRANULAR_API ChSystemGranular {
         int BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
         int BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
+        unsigned int psi_T_factor;
+        unsigned int psi_h_factor;
+        unsigned int psi_L_factor;
+
         /// Ratio of cohesion force to gravity
         float cohesion_ratio;
 
@@ -101,7 +105,7 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void initialize() = 0;
 
     /// allows the user to request a step size, will find the closest SU size to it
-    void set_max_stepSize(float size_UU) { max_step_UU = size_UU; }
+    void set_max_adaptive_stepSize(float size_UU) { max_adaptive_step_UU = size_UU; }
     void set_fixed_stepSize(float size_UU) { fixed_step_UU = size_UU; }
     void set_timeStepping(GRN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
 
@@ -137,12 +141,15 @@ class CH_GRANULAR_API ChSystemGranular {
     float Y_accGrav;  //!< Y component of the gravitational acceleration
     float Z_accGrav;  //!< Z component of the gravitational acceleration
 
-    float gravity_X_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_X/g)\f$, where g is the gravitational acceleration
-    float gravity_Y_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Y/g)\f$, where g is the gravitational acceleration
-    float gravity_Z_SU;  //!< \f$Psi_L/(Psi_T^2 Psi_h) \times (g_Z/g)\f$, where g is the gravitational acceleration
+    float gravity_X_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+                         //!< \times (g_X/g)\f$, where g is the gravitational acceleration
+    float gravity_Y_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+                         //!< \times (g_Y/g)\f$, where g is the gravitational acceleration
+    float gravity_Z_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+                         //!< \times (g_Z/g)\f$, where g is the gravitational acceleration
 
     /// User provided maximum timestep in UU, used in adaptive timestepping
-    float max_step_UU = 1e-3;
+    float max_adaptive_step_UU = 1e-3;
     /// User provided fixed timestep in UU, used in USER_SET timestepping
     float fixed_step_UU = 1e-4;
     /// Step size in SU, user can request a larger one but default is 1
@@ -163,12 +170,11 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void partition_BD() = 0;
     virtual void copy_const_data_to_device() = 0;
     virtual void setup_simulation() = 0;
-    virtual void cleanup_simulation() = 0;
 
     virtual void determine_new_stepSize_SU() = 0;
 
     /// Total time elapsed since beginning of simulation
-    unsigned int elapsedSimTime;
+    float elapsedSimTime;
     float get_max_vel();
 };
 
@@ -180,10 +186,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     ChSystemGranularMonodisperse(float radiusSPH, float density) : ChSystemGranular() {
         sphere_radius = radiusSPH;
         sphere_density = density;
-
-        psi_T_Factor = PSI_T;
-        psi_h_Factor = PSI_h;
-        psi_L_Factor = PSI_L;
     }
 
     virtual ~ChSystemGranularMonodisperse() {}
@@ -209,54 +211,31 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
-    virtual void setBDPositionFunction(std::function<double(double)> fx,
-                                       std::function<double(double)> fy,
-                                       std::function<double(double)> fz) {
+    void setBDPositionFunction(std::function<double(double)> fx,
+                               std::function<double(double)> fy,
+                               std::function<double(double)> fz) {
         BDPositionFunctionX = fx;
         BDPositionFunctionY = fy;
         BDPositionFunctionZ = fz;
     }
 
     void setBOXdims(float L_DIM, float D_DIM, float H_DIM) {
-        box_L = L_DIM;
-        box_D = D_DIM;
-        box_H = H_DIM;
+        box_size_X = L_DIM;
+        box_size_Y = D_DIM;
+        box_size_Z = H_DIM;
+    }
+
+    void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
+        gran_params->psi_T_factor = psi_T_new;
+        gran_params->psi_h_factor = psi_h_new;
+        gran_params->psi_L_factor = psi_L_new;
     }
 
     inline size_t nSpheres() { return nDEs; }
 
   protected:
     const float new_step_freq = .01;
-    virtual void determine_new_stepSize_SU() {
-        if (time_stepping == GRN_TIME_STEPPING::FIXED) {
-            stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * PSI_h);
-        } else {
-            static float new_step_start = 0;
-            static float new_step_stop = new_step_start + new_step_freq;
-
-            if (elapsedSimTime > new_step_stop) {
-                new_step_stop += new_step_freq;  // assumes we never have a timestep larger than new_step_freq
-                float max_v = get_max_vel();
-
-                constexpr float num_disp_grav =
-                    8;  // maximum number of gravity displacements we allow moving in one timestep
-                constexpr float num_disp_radius = .1;  // maximum fraction of radius we allow moving in one timestep
-                float max_displacement_grav = num_disp_grav * psi_T_Factor;
-                float max_displacement_radius = num_disp_radius * gran_params->sphereRadius_SU;
-
-                // TODO consider gravity drift
-
-                // find the highest position displacement we allow
-                float max_displacement = std::min(max_displacement_grav, max_displacement_radius);
-                float suggested_SU = max_displacement / max_v;
-
-                float max_step_SU = max_step_UU * (gran_params->TIME_UNIT * PSI_h);
-                std::cout << "choosing new timestep " << suggested_SU << std::endl;
-                // don't go above max
-                stepSize_SU = std::min(suggested_SU, max_step_SU);
-            }
-        }
-    }
+    virtual void determine_new_stepSize_SU();
 
     /// amount to fill box, as proportions of half-length
     /// Default is full box
@@ -270,13 +249,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     float sphere_radius;   /// User defined radius of the sphere
     float sphere_density;  /// User defined density of the sphere
 
-    float box_L;  //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
-    float box_D;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
-    float box_H;  //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
-
-    unsigned int psi_T_Factor;
-    unsigned int psi_h_Factor;
-    unsigned int psi_L_Factor;
+    float box_size_X;  //!< length of physical box; will define the local X axis located at the CM of the box (left to right)
+    float box_size_Y;  //!< depth of physical box; will define the local Y axis located at the CM of the box (into screen)
+    float box_size_Z;  //!< height of physical box; will define the local Z axis located at the CM of the box (pointing up)
 
     unsigned int sphereRadius_SU;  //!< Size of the sphere radius, in Simulation Units
 
@@ -339,7 +314,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     void checkSDCounts(std::string ofile, bool write_out, bool verbose);
     void writeFile(std::string ofile, unsigned int* deCounts);
     void writeFileUU(std::string ofile);
-    virtual void updateBDPosition(const int stepSize_SU);
+    virtual void updateBDPosition(const float stepSize_SU);
 
   protected:
     virtual void copy_const_data_to_device();
@@ -349,14 +324,15 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     virtual void switch_to_SimUnits();
 
-    virtual void cleanup_simulation();
     virtual void defragment_data();
 
     double YoungModulus_SPH2SPH;
     double YoungModulus_SPH2WALL;
     float Gamma_n_s2s_SU;
-    float K_n_s2s_SU;  /// size of the normal stiffness (SU) for sphere-to-sphere contact
-    float K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
+    /// size of the normal stiffness (SU) for sphere-to-sphere contact
+    float K_n_s2s_SU;
+    /// size of the normal stiffness (SU) for sphere-to-wall contact
+    float K_n_s2w_SU;
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
 };

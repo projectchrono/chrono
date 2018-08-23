@@ -103,10 +103,8 @@ The coordinates of the face and sphere are assumed to be provided in the same re
 
 Output:
   - pt1:      contact point on triangle
-  - pt2:      contact point on sphere
   - depth:    penetration distance (a negative value means that overlap exists)
   - norm:     contact normal, from pt2 to pt1
-  - eff_rad:  effective contact radius
 A return value of "true" signals collision.
 */
 __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of the triangle
