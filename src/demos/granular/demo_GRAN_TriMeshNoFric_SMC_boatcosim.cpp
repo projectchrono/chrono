@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
 
         // Apply forces to the boat for the duration of the iteration
         float boat_force[6];
-        m_sys_gran.collectGeneralizedForcesOnMeshSoup(t, boat_force);
+        m_sys_gran.collectGeneralizedForcesOnMeshSoup(boat_force);
         boat->Accumulate_force(ChVector<>(boat_force[0], boat_force[1], boat_force[2]), boat_pos, false);
         // boat->Accumulate_torque(ChVector<>(boat_force[3], boat_force[4], boat_force[5]), false);
         std::cout << "pos (" << boat_pos.x() << ", " << boat_pos.y() << ", " << boat_pos.z() << ")" << std::endl;
