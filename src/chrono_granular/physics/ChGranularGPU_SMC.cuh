@@ -717,25 +717,6 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
             bodyA_Y_velCorr += springTermY + dampingTermY + cohesionTermY;
             bodyA_Z_velCorr += springTermZ + dampingTermZ + cohesionTermZ;
         }
-        // NOTE from Conlain -- this latex is broken, I think
-        /**
-        Compute now the forces on bodyA; i.e, what bodyA feels (if bodyA is in contact w/ anybody in this SD).
-
-        \f[ \mbox{penetration} = \left[\left(\frac{x_A}{2R} -
-        \frac{x_B}{2R}\right)^2 + \left(\frac{y_A}{2R} - \frac{y_B}{2R}\right)^2 + \left(\frac{z_A}{2R} -
-        \frac{z_B}{2R}\right)^2\right] \f]
-
-        The deformation that enters the computation of the normal contact force is scaled by the square of the step
-        size, the stiffness and the particle mass: \f[ h^2 \frac{K}{m} \delta \f] Then, the quantity that comes into
-        play in computing the update in positions looks like \f[ h^2 \frac{K}{m} \times 2R \times \left( \frac{
-        1}{\sqrt{(\left(\frac{x_A}{2R} - \frac{x_B}{2R}\right)^2 + \left(\frac{y_A}{2R} - \frac{y_B}{2R}\right)^2 +
-        \left(\frac{z_A}{2R} - \frac{z_B}{2R}\right)^2)}} -1 \right) \times \begin{bmatrix}
-        \frac{x_A}{2R} - \frac{x_B}{2R}  \vspace{0.2cm}\\
-        \frac{y_A}{2R} - \frac{y_B}{2R} \vspace{0.2cm}\\
-        \frac{z_A}{2R} - \frac{z_B}{2R}
-        \end{bmatrix}
-        \f]
-        */
 
         // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
         // this force.

@@ -28,8 +28,6 @@
 #include "chrono_granular/physics/ChGranularBoxTriangle.cuh"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 
-// TODO should this go here?
-
 namespace chrono {
 namespace granular {
 typedef const ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
@@ -649,7 +647,7 @@ __global__ void interactionTerrain_TriangleSoup(
                         float bodyA_Y_velCorr = springTermY + dampingTermY + cohesionTermY;
                         float bodyA_Z_velCorr = springTermZ + dampingTermZ + cohesionTermZ;
 
-                        // TODO: Use the CD information to compute the force and torque on the family of this triangle
+                        // Use the CD information to compute the force and torque on the family of this triangle
                         forceActingOnSphere[0] += bodyA_X_velCorr;
                         forceActingOnSphere[1] += bodyA_Y_velCorr;
                         forceActingOnSphere[2] += bodyA_Z_velCorr;
