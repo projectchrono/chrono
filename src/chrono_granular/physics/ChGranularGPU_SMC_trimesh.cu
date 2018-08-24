@@ -626,17 +626,28 @@ __global__ void interactionTerrain_TriangleSoup(
                         float springTermY = scalingFactor * deltaY;
                         float springTermZ = scalingFactor * deltaZ;
 
-                        // TODO Compute force updates for damping term correctly - should include penetration? units?
-                        float dampingTermX = -mesh_params->Gamma_n_s2m_SU * alpha_h_bar * deltaX_dot_n;
-                        float dampingTermY = -mesh_params->Gamma_n_s2m_SU * alpha_h_bar * deltaY_dot_n;
-                        float dampingTermZ = -mesh_params->Gamma_n_s2m_SU * alpha_h_bar * deltaZ_dot_n;
+                        // Compute force updates for damping term
+                        // TODO effective mass based on mesh mass
+                        const float m_eff = 0.5;
 
-                        // TODO Compute force updates for cohesion term, is opposite the spring term
+                        float dampingTermX = -mesh_params->Gamma_n_s2m_SU * deltaX_dot_n * m_eff * alpha_h_bar;
+                        float dampingTermY = -mesh_params->Gamma_n_s2m_SU * deltaY_dot_n * m_eff * alpha_h_bar;
+                        float dampingTermZ = -mesh_params->Gamma_n_s2m_SU * deltaZ_dot_n * m_eff * alpha_h_bar;
 
-                        // TODO sum contributing forces
-                        float bodyA_X_velCorr = springTermX + dampingTermX;
-                        float bodyA_Y_velCorr = springTermY + dampingTermY;
-                        float bodyA_Z_velCorr = springTermZ + dampingTermZ;
+                        // Compute force updates for cohesion term, is opposite the spring term
+                        // TODO What to use for the mass being affected by gravity??
+                        float cohesionConstant =
+                            1.0 * gran_params->gravMag_SU * gran_params->cohesion_ratio * alpha_h_bar;
+
+                        // NOTE the cancelation of two negatives
+                        float cohesionTermX = cohesionConstant * deltaX / depth;
+                        float cohesionTermY = cohesionConstant * deltaY / depth;
+                        float cohesionTermZ = cohesionConstant * deltaZ / depth;
+
+                        // Sum contributing forces
+                        float bodyA_X_velCorr = springTermX + dampingTermX + cohesionTermX;
+                        float bodyA_Y_velCorr = springTermY + dampingTermY + cohesionTermY;
+                        float bodyA_Z_velCorr = springTermZ + dampingTermZ + cohesionTermZ;
 
                         // TODO: Use the CD information to compute the force and torque on the family of this triangle
                         forceActingOnSphere[0] += bodyA_X_velCorr;
