@@ -435,11 +435,8 @@ double ChButterworth_Highpass::Filter(double u)
     return y;
 }
 
-
-
-ChISO2631_1_AVTransition::ChISO2631_1_AVTransition()
-{
-    
+ChISO2631_1_AVTransition::ChISO2631_1_AVTransition() {
+    Reset();
 }
 
 ChISO2631_1_AVTransition::ChISO2631_1_AVTransition(double step, double f4, double Q4)
@@ -524,10 +521,8 @@ void ChISO2631_1_AVTransition::Reset()
     m_y_hist1 = m_y_hist2 = 0.0;
 }
 
-
-ChISO2631_1_UpwardStep::ChISO2631_1_UpwardStep()
-{
-    
+ChISO2631_1_UpwardStep::ChISO2631_1_UpwardStep() {
+    Reset();
 }
 
 ChISO2631_1_UpwardStep::ChISO2631_1_UpwardStep(double step, double f5, double f6, double Q5, double Q6)
@@ -737,18 +732,14 @@ const double ChISO2631_5_Wxy::m_a0 = 1.0;
 const double ChISO2631_5_Wxy::m_a1 = -1.957115;
 const double ChISO2631_5_Wxy::m_a2 = 0.963949;
 
-ChISO2631_5_Wxy::ChISO2631_5_Wxy()
-{
-    
+ChISO2631_5_Wxy::ChISO2631_5_Wxy() {
+    Reset();
 }
 
-
-void ChISO2631_5_Wxy::Reset()
-{
+void ChISO2631_5_Wxy::Reset() {
     m_u_hist1 = m_u_hist2 = 0.0;
     m_y_hist1 = m_y_hist2 = 0.0;
 }
-
 
 double ChISO2631_5_Wxy::Filter(double u)
 {
