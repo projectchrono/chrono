@@ -283,12 +283,12 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedFo
     float alpha_k_star = get_max_K();
     float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
     float sphere_mass = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius;                // UU sphere mass
-    float C_F = gran_params->psi_L_factor / (alpha_g * sphere_mass * gran_params->psi_h_factor *
-                                             gran_params->psi_T_factor * gran_params->psi_T_factor);
+    float C_F =
+        gran_params->psi_L / (alpha_g * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
 
-    float C_TAU = (alpha_k_star * gran_params->psi_L_factor * gran_params->psi_L_factor) /
-                  (alpha_g * alpha_g * sphere_mass * sphere_mass * gran_params->psi_h_factor *
-                   gran_params->psi_T_factor * gran_params->psi_T_factor);
+    float C_TAU =
+        (alpha_k_star * gran_params->psi_L * gran_params->psi_L) /
+        (alpha_g * alpha_g * sphere_mass * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
 
     for (unsigned int i = 0; i < 6 * meshSoup_DEVICE->nFamiliesInSoup; i += 6) {
         genForcesOnSoup[i + 0] *= C_F;

@@ -27,9 +27,9 @@ namespace chrono {
 namespace granular {
 ChSystemGranular::ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), elapsedSimTime(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
-    gran_params->psi_T_factor = PSI_T_DEFAULT;
-    gran_params->psi_h_factor = PSI_h_DEFAULT;
-    gran_params->psi_L_factor = PSI_L_DEFAULT;
+    gran_params->psi_T = PSI_T_DEFAULT;
+    gran_params->psi_h = PSI_h_DEFAULT;
+    gran_params->psi_L = PSI_L_DEFAULT;
 }
 
 ChSystemGranular::~ChSystemGranular() {
@@ -47,13 +47,13 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
             float max_v = get_max_vel();
             if (max_v <= 0) {
                 // clearly we have an issue, just fallback to the fixed step
-                stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h_factor);
+                stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h);
             } else {
                 // maximum number of gravity displacements we allow moving in one timestep
                 constexpr float num_disp_grav = 100;
                 // maximum fraction of radius we allow moving in one timestep
                 constexpr float num_disp_radius = .1;
-                float max_displacement_grav = num_disp_grav * gran_params->psi_T_factor;
+                float max_displacement_grav = num_disp_grav * gran_params->psi_T;
                 float max_displacement_radius = num_disp_radius * sphereRadius_SU;
 
                 // TODO consider gravity drift
@@ -61,8 +61,8 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
                 // find the highest position displacement we allow
                 float max_displacement = std::min(max_displacement_grav, max_displacement_radius);
                 float suggested_SU = max_displacement / max_v;
-                float max_step_SU = max_adaptive_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h_factor);
-                float min_step_SU = 1e-5 / (gran_params->TIME_UNIT * gran_params->psi_h_factor);
+                float max_step_SU = max_adaptive_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h);
+                float min_step_SU = 1e-5 / (gran_params->TIME_UNIT * gran_params->psi_h);
                 printf("grav step is %f, rad step is %f\n", max_displacement_grav / max_v,
                        max_displacement_radius / max_v);
 
@@ -70,11 +70,11 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
                 stepSize_SU = std::max(std::min(suggested_SU, max_step_SU), min_step_SU);
             }
             printf("new timestep is %f SU, %f UU\n", stepSize_SU,
-                   stepSize_SU * (gran_params->TIME_UNIT * gran_params->psi_h_factor));
+                   stepSize_SU * (gran_params->TIME_UNIT * gran_params->psi_h));
             // printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
         }
     } else {
-        stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h_factor);
+        stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h);
     }
 }
 
@@ -238,21 +238,20 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     gran_params->MASS_UNIT = massSphere;
     double K_stiffness = get_max_K();
-    gran_params->TIME_UNIT = sqrt(massSphere / (gran_params->psi_h_factor * K_stiffness)) / gran_params->psi_T_factor;
+    gran_params->TIME_UNIT = sqrt(massSphere / (gran_params->psi_h * K_stiffness)) / gran_params->psi_T;
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
-    gran_params->LENGTH_UNIT = massSphere * magGravAcc / (gran_params->psi_L_factor * K_stiffness);
+    gran_params->LENGTH_UNIT = massSphere * magGravAcc / (gran_params->psi_L * K_stiffness);
 
     sphereRadius_SU = sphere_radius / gran_params->LENGTH_UNIT;
 
-    float scalingFactor = ((float)gran_params->psi_L_factor) /
-                          (gran_params->psi_T_factor * gran_params->psi_T_factor * gran_params->psi_h_factor);
+    float scalingFactor = ((float)gran_params->psi_L) / (gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
     gravity_X_SU = scalingFactor * X_accGrav / magGravAcc;
     gravity_Y_SU = scalingFactor * Y_accGrav / magGravAcc;
     gravity_Z_SU = scalingFactor * Z_accGrav / magGravAcc;
 
     /// SU values for normal stiffnesses for S2S and S2W
-    scalingFactor = (1.f / (1.f * gran_params->psi_T_factor * gran_params->psi_T_factor * gran_params->psi_h_factor));
+    scalingFactor = (1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h));
     K_n_s2s_SU = scalingFactor * (YoungModulus_SPH2SPH / K_stiffness);
     K_n_s2w_SU = scalingFactor * (YoungModulus_SPH2WALL / K_stiffness);
 

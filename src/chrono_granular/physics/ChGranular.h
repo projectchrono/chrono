@@ -75,9 +75,9 @@ class CH_GRANULAR_API ChSystemGranular {
         int BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
         int BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
 
-        unsigned int psi_T_factor;
-        unsigned int psi_h_factor;
-        unsigned int psi_L_factor;
+        unsigned int psi_T;
+        unsigned int psi_h;
+        unsigned int psi_L;
 
         /// Ratio of cohesion force to gravity
         float cohesion_ratio;
@@ -142,11 +142,11 @@ class CH_GRANULAR_API ChSystemGranular {
     float Y_accGrav;  //!< Y component of the gravitational acceleration
     float Z_accGrav;  //!< Z component of the gravitational acceleration
 
-    float gravity_X_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+    float gravity_X_SU;  //!< \f$gran_params->psi_L/(gran_params->psi_T^2 gran_params->psi_h)
                          //!< \times (g_X/g)\f$, where g is the gravitational acceleration
-    float gravity_Y_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+    float gravity_Y_SU;  //!< \f$gran_params->psi_L/(gran_params->psi_T^2 gran_params->psi_h)
                          //!< \times (g_Y/g)\f$, where g is the gravitational acceleration
-    float gravity_Z_SU;  //!< \f$gran_params->psi_L_factor/(gran_params->psi_T_factor^2 gran_params->psi_h_factor)
+    float gravity_Z_SU;  //!< \f$gran_params->psi_L/(gran_params->psi_T^2 gran_params->psi_h)
                          //!< \times (g_Z/g)\f$, where g is the gravitational acceleration
 
     /// User provided maximum timestep in UU, used in adaptive timestepping
@@ -227,9 +227,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     }
 
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
-        gran_params->psi_T_factor = psi_T_new;
-        gran_params->psi_h_factor = psi_h_new;
-        gran_params->psi_L_factor = psi_L_new;
+        gran_params->psi_T = psi_T_new;
+        gran_params->psi_h = psi_h_new;
+        gran_params->psi_L = psi_L_new;
     }
 
     inline size_t nSpheres() { return nDEs; }

@@ -869,8 +869,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
     switch_to_SimUnits();
 
     double K_stiffness = get_max_K();
-    float scalingFactor =
-        (1.f / (1.f * gran_params->psi_T_factor * gran_params->psi_T_factor * gran_params->psi_h_factor));
+    float scalingFactor = (1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h));
     K_n_s2m_SU = scalingFactor * (YoungModulus_SPH2MESH / K_stiffness);
     Gamma_n_s2m_SU = 0.005;
 
@@ -908,7 +907,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * gran_params->psi_h_factor));
+    float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * gran_params->psi_h));
     unsigned int nsteps = duration_SU / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -974,7 +973,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT * gran_params->psi_h_factor;  // Advance current time
+        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT * gran_params->psi_h;  // Advance current time
     }
     return;
 }
