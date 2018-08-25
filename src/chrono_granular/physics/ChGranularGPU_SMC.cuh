@@ -698,6 +698,16 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
             float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration;
 
             // Compute force updates for damping term
+            // Project relative velocity to the normal
+            // n = delta * reciplength
+            // proj = Dot(delta_dot, n)
+            float projection = (deltaX_dot * deltaX + deltaY_dot * deltaY + deltaZ_dot * deltaZ) * reciplength;
+
+            // delta_dot = proj * n
+            deltaX_dot = projection * deltaX * reciplength;
+            deltaY_dot = projection * deltaY * reciplength;
+            deltaZ_dot = projection * deltaZ * reciplength;
+
             constexpr float m_eff = 0.5;
 
             float dampingTermX = -gran_params->Gamma_n_s2s_SU * deltaX_dot * m_eff * alpha_h_bar;
