@@ -82,9 +82,9 @@ class CH_GRANULAR_API ChSystemGranular {
         /// Ratio of cohesion force to gravity
         float cohesion_ratio;
 
-        double LENGTH_UNIT;  //!< Any length expressed in SU is a multiple of LENGTH_UNIT
-        double TIME_UNIT;    //!< Any time quanity in SU is measured as a positive multiple of TIME_UNIT
-        double MASS_UNIT;    //!< Any mass quanity is measured as a positive multiple of MASS_UNIT.
+        double LENGTH_UNIT;  //!< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
+        double TIME_UNIT;    //!< 1 / C_T. Any time quanity in SU is measured as a positive multiple of TIME_UNIT
+        double MASS_UNIT;    //!< 1 / C_M. Any mass quanity is measured as a positive multiple of MASS_UNIT.
     };
 
     inline unsigned int elementCount() const { return nDEs; }

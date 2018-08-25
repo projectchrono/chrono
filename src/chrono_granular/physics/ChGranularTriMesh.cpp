@@ -286,13 +286,13 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedFo
         (alpha_g * alpha_g * sphere_mass * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
 
     for (unsigned int i = 0; i < 6 * meshSoup_DEVICE->nFamiliesInSoup; i += 6) {
-        genForcesOnSoup[i + 0] *= C_F;
-        genForcesOnSoup[i + 1] *= C_F;
-        genForcesOnSoup[i + 2] *= C_F;
+        genForcesOnSoup[i + 0] /= C_F;  // Divide by C_F to go from SU to UU
+        genForcesOnSoup[i + 1] /= C_F;
+        genForcesOnSoup[i + 2] /= C_F;
 
-        genForcesOnSoup[i + 3] *= C_TAU;
-        genForcesOnSoup[i + 4] *= C_TAU;
-        genForcesOnSoup[i + 5] *= C_TAU;
+        genForcesOnSoup[i + 3] /= C_TAU;  // Divide by C_TAU to go from SU to UU
+        genForcesOnSoup[i + 4] /= C_TAU;
+        genForcesOnSoup[i + 5] /= C_TAU;
     }
 }
 
