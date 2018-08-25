@@ -245,10 +245,11 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
 
     sphereRadius_SU = sphere_radius / gran_params->LENGTH_UNIT;
 
-    float scalingFactor = ((float)gran_params->psi_L) / (gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
-    gravity_X_SU = scalingFactor * X_accGrav / magGravAcc;
-    gravity_Y_SU = scalingFactor * Y_accGrav / magGravAcc;
-    gravity_Z_SU = scalingFactor * Z_accGrav / magGravAcc;
+    float g_scalingFactor =
+        ((float)gran_params->psi_L) / (gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
+    gravity_X_SU = g_scalingFactor * X_accGrav / magGravAcc;
+    gravity_Y_SU = g_scalingFactor * Y_accGrav / magGravAcc;
+    gravity_Z_SU = g_scalingFactor * Z_accGrav / magGravAcc;
 
     /// SU values for normal stiffnesses for S2S and S2W
     float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
