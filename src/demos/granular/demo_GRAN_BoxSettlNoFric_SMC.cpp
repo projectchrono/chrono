@@ -276,8 +276,8 @@ int main(int argc, char* argv[]) {
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless settlingExperiment(ballRadius, ballDensity);
     settlingExperiment.setBOXdims(box_size_X, box_size_Y, box_size_Z);
-    settlingExperiment.set_YoungModulus_SPH2SPH(normStiffness_S2S);
-    settlingExperiment.set_YoungModulus_SPH2WALL(normStiffness_S2W);
+    settlingExperiment.set_K_n_SPH2SPH(normStiffness_S2S);
+    settlingExperiment.set_K_n_SPH2WALL(normStiffness_S2W);
     settlingExperiment.set_Cohesion_ratio(cohesion_ratio);
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
     settlingExperiment.setOutputDirectory(output_prefix);

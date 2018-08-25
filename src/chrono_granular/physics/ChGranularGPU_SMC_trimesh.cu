@@ -867,7 +867,6 @@ __global__ void interactionTerrain_TriangleSoup(
 /// Copy const triangle data to device
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::copy_triangle_data_to_device() {
     // unified memory does some copying for us, cool
-    tri_params->Gamma_n_s2m_SU = 0;  // no damping on mesh for now
     tri_params->Kn_s2m_SU = K_n_s2m_SU;
     tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
 
@@ -878,9 +877,12 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
     switch_to_SimUnits();
 
     double K_stiffness = get_max_K();
-    float scalingFactor = (1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h));
-    K_n_s2m_SU = scalingFactor * (YoungModulus_SPH2MESH / K_stiffness);
-    Gamma_n_s2m_SU = 0.005;
+    float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
+    K_n_s2m_SU = K_scalingFactor * (K_n_s2m_UU / K_stiffness);
+
+    float massSphere = 4.f / 3.f * M_PI * sphere_radius * sphere_radius * sphere_radius;
+    float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
+    Gamma_n_s2m_SU = Gamma_scalingFactor * Gamma_n_s2m_UU;
 
     generate_DEs();
 

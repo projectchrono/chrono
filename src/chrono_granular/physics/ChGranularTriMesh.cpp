@@ -30,13 +30,8 @@ namespace chrono {
 namespace granular {
 
 double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::get_max_K() {
-    return std::max(std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL), YoungModulus_SPH2MESH);
+    return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
 }
-
-ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(
-    float radiusSPH,
-    float density)
-    : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density) {}
 
 ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {
     // work to do here

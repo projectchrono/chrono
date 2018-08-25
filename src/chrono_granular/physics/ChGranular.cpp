@@ -79,7 +79,7 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
 }
 
 double ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
-    return std::max(YoungModulus_SPH2SPH, YoungModulus_SPH2WALL);
+    return std::max(K_n_s2s_UU, K_n_s2w_UU);
 }
 
 /** This method sets up the data structures used to perform a simulation.
@@ -251,12 +251,13 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     gravity_Z_SU = scalingFactor * Z_accGrav / magGravAcc;
 
     /// SU values for normal stiffnesses for S2S and S2W
-    scalingFactor = (1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h));
-    K_n_s2s_SU = scalingFactor * (YoungModulus_SPH2SPH / K_stiffness);
-    K_n_s2w_SU = scalingFactor * (YoungModulus_SPH2WALL / K_stiffness);
+    float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
+    K_n_s2s_SU = K_scalingFactor * (K_n_s2s_UU / K_stiffness);
+    K_n_s2w_SU = K_scalingFactor * (K_n_s2w_UU / K_stiffness);
 
-    // TODO Make this legit, from user input
-    Gamma_n_s2s_SU = .005;
+    float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
+    Gamma_n_s2s_SU = Gamma_scalingFactor * Gamma_n_s2s_UU;
+    Gamma_n_s2w_SU = Gamma_scalingFactor * Gamma_n_s2w_UU;
 
     // Handy debug output
     printf("SU step size: %d\n", stepSize_SU);

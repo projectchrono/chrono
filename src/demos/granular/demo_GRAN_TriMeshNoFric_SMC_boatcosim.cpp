@@ -243,9 +243,9 @@ int main(int argc, char* argv[]) {
     m_sys_gran.setBOXdims(boxX, boxY, boxZ);
     m_sys_gran.set_BD_Fixed(true);
     m_sys_gran.setFillBounds(-1.f, -1.f, -1.f, 1.f, 1.f, 0.f);
-    m_sys_gran.set_YoungModulus_SPH2SPH(normStiffness_S2S);
-    m_sys_gran.set_YoungModulus_SPH2WALL(normStiffness_S2W);
-    m_sys_gran.set_YoungModulus_SPH2MESH(normStiffness_MSH2S);
+    m_sys_gran.set_K_n_SPH2SPH(normStiffness_S2S);
+    m_sys_gran.set_K_n_SPH2WALL(normStiffness_S2W);
+    m_sys_gran.set_K_n_SPH2MESH(normStiffness_MSH2S);
     m_sys_gran.set_Cohesion_ratio(cohesion_ratio);
     m_sys_gran.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
     m_sys_gran.set_timeStepping(GRN_TIME_STEPPING::FIXED);

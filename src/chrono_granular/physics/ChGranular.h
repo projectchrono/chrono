@@ -298,12 +298,20 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChSystemGranularMonodisperse {
   public:
     ChSystemGranularMonodisperse_SMC_Frictionless(float radiusSPH, float density)
-        : ChSystemGranularMonodisperse(radiusSPH, density) {}
+        : ChSystemGranularMonodisperse(radiusSPH, density),
+          K_n_s2s_UU(0),
+          K_n_s2w_UU(0),
+          Gamma_n_s2s_UU(0),
+          Gamma_n_s2w_UU(0) {}
 
     virtual ~ChSystemGranularMonodisperse_SMC_Frictionless() {}
 
-    inline void set_YoungModulus_SPH2SPH(double someValue) { YoungModulus_SPH2SPH = someValue; }
-    inline void set_YoungModulus_SPH2WALL(double someValue) { YoungModulus_SPH2WALL = someValue; }
+    inline void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
+    inline void set_K_n_SPH2WALL(double someValue) { K_n_s2w_UU = someValue; }
+
+    inline void set_Gamma_n_SPH2SPH(double someValue) { Gamma_n_s2s_UU = someValue; }
+    inline void set_Gamma_n_SPH2WALL(double someValue) { Gamma_n_s2w_UU = someValue; }
+
     /// Set the ratio of cohesion to gravity for monodisperse spheres
     inline void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
@@ -330,13 +338,18 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     virtual void defragment_data();
 
-    double YoungModulus_SPH2SPH;
-    double YoungModulus_SPH2WALL;
-    float Gamma_n_s2s_SU;
-    /// size of the normal stiffness (SU) for sphere-to-sphere contact
-    float K_n_s2s_SU;
-    /// size of the normal stiffness (SU) for sphere-to-wall contact
-    float K_n_s2w_SU;
+    double K_n_s2s_UU;
+    double K_n_s2s_SU;  /// size of the normal stiffness (SU) for sphere-to-sphere contact
+
+    double K_n_s2w_UU;
+    double K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
+
+    double Gamma_n_s2s_UU;
+    double Gamma_n_s2s_SU;
+
+    double Gamma_n_s2w_UU;
+    double Gamma_n_s2w_SU;
+
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
 };

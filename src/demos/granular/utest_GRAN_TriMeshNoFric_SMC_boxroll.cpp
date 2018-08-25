@@ -291,9 +291,9 @@ int main(int argc, char* argv[]) {
 
     m_sys.setParticlePositions(pos);
 
-    m_sys.set_YoungModulus_SPH2SPH(normStiffness_S2S);
-    m_sys.set_YoungModulus_SPH2WALL(normStiffness_S2W);
-    m_sys.set_YoungModulus_SPH2MESH(normStiffness_MSH2S);
+    m_sys.set_K_n_SPH2SPH(normStiffness_S2S);
+    m_sys.set_K_n_SPH2WALL(normStiffness_S2W);
+    m_sys.set_K_n_SPH2MESH(normStiffness_MSH2S);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
 
     switch (test) {

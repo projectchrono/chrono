@@ -85,10 +85,13 @@ class ChFamilyFrame {
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     : public ChSystemGranularMonodisperse_SMC_Frictionless {
   public:
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density);
+    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density)
+        : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density), K_n_s2m_UU(0), Gamma_n_s2m_UU(0) {}
     virtual ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
 
-    void set_YoungModulus_SPH2MESH(double someValue) { YoungModulus_SPH2MESH = someValue; }
+    void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
+    void set_Gamma_n_SPH2MESH(double someValue) { Gamma_n_s2m_UU = someValue; }
+
     unsigned int nMeshesInSoup() const { return meshSoup_DEVICE->nFamiliesInSoup; }
 
     /**
@@ -109,7 +112,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void advance_simulation(float duration);
     /// Extra parameters needed for triangle-sphere contact
     struct GranParamsHolder_trimesh {
-        float Gamma_n_s2m_SU;              //!< sphere-to-mesh contact damping coefficient, expressed in SU
+        float Gamma_n_s2m_SU;                //!< sphere-to-mesh contact damping coefficient, expressed in SU
         float Kn_s2m_SU;                     //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
         unsigned int num_triangle_families;  /// Number of triangle families
         ChFamilyFrame<float>* fam_frame_broad;
@@ -128,9 +131,11 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     // Stored in UU
     ChTriangleSoup<float>* meshSoup_DEVICE;
 
-    double YoungModulus_SPH2MESH;  //!< the stiffness associated w/ contact between a mesh element and gran material
-    float K_n_s2m_SU;              //!< size of the normal stiffness (SU) for sphere-to-mesh contact
-    float Gamma_n_s2m_SU;
+    double K_n_s2m_UU;  //!< the stiffness associated w/ contact between a mesh element and gran material
+    double K_n_s2m_SU;  //!< size of the normal stiffness (SU) for sphere-to-mesh contact
+
+    double Gamma_n_s2m_UU;
+    double Gamma_n_s2m_SU;
 
     std::vector<unsigned int, cudallocator<unsigned int>> BUCKET_countsOfTrianglesTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_BUCKET_composite;

@@ -58,8 +58,8 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless settlingExperiment(ballRadius, ballDensity);
     settlingExperiment.setBOXdims(box_size_X, box_size_Y, box_size_Z);
-    settlingExperiment.set_YoungModulus_SPH2SPH(normStiffness_S2S);
-    settlingExperiment.set_YoungModulus_SPH2WALL(normStiffness_S2W);
+    settlingExperiment.set_K_n_SPH2SPH(normStiffness_S2S);
+    settlingExperiment.set_K_n_SPH2WALL(normStiffness_S2W);
     settlingExperiment.set_Cohesion_ratio(cohesion_ratio);
     settlingExperiment.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
     settlingExperiment.setOutputDirectory(output_prefix);
