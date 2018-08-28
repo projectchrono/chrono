@@ -60,8 +60,8 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Mesh values
-    std::vector<std::string> mesh_filenames;
-    std::string mesh_filename = std::string("sphere_fine.obj");
+    std::vector<string> mesh_filenames;
+    string mesh_filename = string("sphere_fine.obj");
 
     std::vector<float3> mesh_scalings;
     float3 scaling;
@@ -71,7 +71,6 @@ int main(int argc, char* argv[]) {
     mesh_scalings.push_back(scaling);
 
     // Some of the default values might be overwritten by user via command line
-    printf("JSON file: %s\n", argv[1]);
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
@@ -121,8 +120,8 @@ int main(int argc, char* argv[]) {
     //     meshSoupLocOri[5] = 0;
     //     meshSoupLocOri[6] = 0;
     //     m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);
-    //     m_sys.write_meshes(std::string(filename));
-    //     m_sys.writeFileUU(std::string(filename));
+    //     m_sys.write_meshes(string(filename));
+    //     m_sys.writeFileUU(string(filename));
     // }
     // return 0;
 
@@ -143,11 +142,11 @@ int main(int argc, char* argv[]) {
 
         m_sys.advance_simulation(iteration_step);
 
-        printf("rendering frame %u\n", currframe);
+        cout << "Rendering frame " << currframe << endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        m_sys.writeFileUU(std::string(filename));
-        m_sys.write_meshes(std::string(filename));
+        m_sys.writeFileUU(string(filename));
+        m_sys.write_meshes(string(filename));
     }
 
     delete[] genForcesOnMeshSoup;

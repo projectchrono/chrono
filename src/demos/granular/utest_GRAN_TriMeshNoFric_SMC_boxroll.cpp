@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Nic Olsen, Dan Negrut
 // =============================================================================
 //
 // Chrono::Granular demo using SMC method. A body who's geometry is described
@@ -23,14 +23,22 @@
 #include <iostream>
 #include <string>
 #include "chrono/core/ChFileutils.h"
-#include "chrono/core/ChTimer.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 
+#include "ChGranular_json_parser.hpp"
+
 using namespace chrono;
 using namespace chrono::granular;
+
+using std::cout;
+using std::endl;
+using std::string;
+using std::stof;
+using std::stoi;
+using std::vector;
 
 // -----------------------------------------------------------------------------
 // ID values to identify command line arguments
@@ -39,18 +47,13 @@ using namespace chrono::granular;
 enum {
     OPT_HELP,
     OPT_TEST,
-    OPT_SPH_RADIUS,
     OPT_TIMEEND,
-    OPT_DENSITY,
-    OPT_BOX_L,
-    OPT_BOX_D,
-    OPT_BOX_H,
-    OPT_GRAV_ACC,
     OPT_COHESION_RATIO,
     OPT_STIFFNESS_S2S,
     OPT_STIFFNESS_S2W,
     OPT_STIFFNESS_MSH2S,
-    OPT_WRITE_MODE,
+    OPT_DAMPING_S2S,
+    OPT_DAMPING_S2MSH,
     OPT_OUTPUT_DIR,
     OPT_VERBOSE
 };
@@ -62,20 +65,15 @@ enum { SINGLE_ON_VERTEX = 0, SINGLE_TO_CORNER = 1, MULTI_TO_CORNER = 2, SINGLE_T
 // - the option as it should appear on the command line
 // - type of the option
 // The last entry must be SO_END_OF_OPTIONS
-CSimpleOptA::SOption g_options[] = {{OPT_SPH_RADIUS, "-sr", SO_REQ_SEP},
-                                    {OPT_TIMEEND, "-e", SO_REQ_SEP},
+CSimpleOptA::SOption g_options[] = {{OPT_TIMEEND, "-e", SO_REQ_SEP},
                                     {OPT_TEST, "--test", SO_REQ_SEP},
-                                    {OPT_DENSITY, "--density", SO_REQ_SEP},
-                                    {OPT_WRITE_MODE, "--write_mode", SO_REQ_SEP},
                                     {OPT_OUTPUT_DIR, "--output_dir", SO_REQ_SEP},
-                                    {OPT_BOX_L, "--box_size_X", SO_REQ_SEP},
-                                    {OPT_BOX_D, "--box_size_Y", SO_REQ_SEP},
-                                    {OPT_BOX_H, "--box_size_Z", SO_REQ_SEP},
-                                    {OPT_GRAV_ACC, "--gravacc", SO_REQ_SEP},
                                     {OPT_COHESION_RATIO, "--cohes_ratio", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2S, "--normStiffS2S", SO_REQ_SEP},
                                     {OPT_STIFFNESS_S2W, "--normStiffS2W", SO_REQ_SEP},
                                     {OPT_STIFFNESS_MSH2S, "--normStiffMSH2S", SO_REQ_SEP},
+                                    {OPT_DAMPING_S2S, "--normDampS2S", SO_REQ_SEP},
+                                    {OPT_DAMPING_S2MSH, "--normDampS2M", SO_REQ_SEP},
                                     {OPT_VERBOSE, "--verbose", SO_NONE},
                                     {OPT_VERBOSE, "-v", SO_NONE},
                                     {OPT_HELP, "-?", SO_NONE},
@@ -87,26 +85,20 @@ CSimpleOptA::SOption g_options[] = {{OPT_SPH_RADIUS, "-sr", SO_REQ_SEP},
 // Show command line usage
 // -----------------------------------------------------------------------------
 void showUsage() {
-    std::cout << "Options:" << std::endl;
-    std::cout << "-sr <sphere_radius>" << std::endl;
-    std::cout << "-v or --verbose" << std::endl;
-    std::cout << "--density=<density>" << std::endl;
-    std::cout
-        << "--test=<test_case> (0:SINGLE_ON_VERTEX, 1:SINGLE_TO_CORNER, 2:MULTI_TO_CORNER, 3:SINGLE_TO_INV_CORNER, "
-           "4:BOX_FILL)"
-        << std::endl;
-    std::cout << "--write_mode=<write_mode> (csv, binary, or none)" << std::endl;
-    std::cout << "--output_dir=<output_dir>" << std::endl;
-    std::cout << "-e=<time_end>" << std::endl;
-    std::cout << "--box_size_X=<box_length>" << std::endl;
-    std::cout << "--box_size_Y=<box_depth>" << std::endl;
-    std::cout << "--box_size_Z=<box_height>" << std::endl;
-    std::cout << "--gravacc=<accValue>" << std::endl;
-    std::cout << "--cohes_ratio=<cohesValue>" << std::endl;
-    std::cout << "--normStiffS2S=<stiffValuesS2S>" << std::endl;
-    std::cout << "--normStiffS2W=<stiffValuesS2W>" << std::endl;
-    std::cout << "--normStiffMSH2S=<stiffValuesMSH2S>" << std::endl;
-    std::cout << "-h / --help / -? \t Show this help." << std::endl;
+    cout << "Options:" << endl;
+    cout << "-v or --verbose" << endl;
+    cout << "--test=<test_case> (0:SINGLE_ON_VERTEX, 1:SINGLE_TO_CORNER, 2:MULTI_TO_CORNER, 3:SINGLE_TO_INV_CORNER, "
+            "4:BOX_FILL)"
+         << endl;
+    cout << "--output_dir=<output_dir>" << endl;
+    cout << "-e=<time_end>" << endl;
+    cout << "--cohes_ratio=<cohesValue>" << endl;
+    cout << "--normStiffS2S=<stiffValuesS2S>" << endl;
+    cout << "--normStiffS2W=<stiffValuesS2W>" << endl;
+    cout << "--normStiffMSH2S=<stiffValuesMSH2S>" << endl;
+    cout << "--normDampS2S=<sphere-sphere damping>" << endl;
+    cout << "--normDampS2M=<sphere-mesh damping>" << endl;
+    cout << "-h / --help / -? \t Show this help." << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -115,20 +107,15 @@ void showUsage() {
 bool GetProblemSpecs(int argc,
                      char** argv,
                      int& test,
-                     float& ball_radius,
-                     float& ballDensity,
-                     float& box_L,
-                     float& box_D,
-                     float& box_H,
                      float& time_end,
-                     float& gravAcc,
                      float& normalStiffS2S,
                      float& normalStiffS2W,
                      float& normalStiffMesh2S,
+                     float& normalDampS2S,
+                     float& normalDampS2M,
                      float& cohesion_ratio,
                      bool& verbose,
-                     std::string& output_dir,
-                     GRN_OUTPUT_MODE& write_mode) {
+                     string& output_dir) {
     // Create the option parser and pass it the program arguments and the array of valid options.
     CSimpleOptA args(argc, argv, g_options);
 
@@ -138,7 +125,7 @@ bool GetProblemSpecs(int argc,
     while (args.Next()) {
         // Exit immediately if we encounter an invalid argument.
         if (args.LastError() != SO_SUCCESS) {
-            std::cout << "Invalid argument: " << args.OptionText() << std::endl;
+            cout << "Invalid argument: " << args.OptionText() << endl;
             showUsage();
             return false;
         }
@@ -148,55 +135,26 @@ bool GetProblemSpecs(int argc,
             case OPT_HELP:
                 showUsage();
                 return false;
-            case OPT_DENSITY:
-                ballDensity = std::stof(args.OptionArg());
-                break;
-            case OPT_WRITE_MODE:
-                if (args.OptionArg() == std::string("binary")) {
-                    write_mode = GRN_OUTPUT_MODE::BINARY;
-                } else if (args.OptionArg() == std::string("csv")) {
-                    write_mode = GRN_OUTPUT_MODE::CSV;
-                } else if (args.OptionArg() == std::string("none")) {
-                    write_mode = GRN_OUTPUT_MODE::NONE;
-                } else {
-                    std::cout << "Unknown file write mode! Options are 'csv', 'binary', or 'none'\n";
-                }
-                break;
             case OPT_TEST:
-                test = std::stoi(args.OptionArg());
+                test = stoi(args.OptionArg());
                 break;
             case OPT_OUTPUT_DIR:
                 output_dir = args.OptionArg();
                 break;
-            case OPT_SPH_RADIUS:
-                ball_radius = std::stof(args.OptionArg());
-                break;
-            case OPT_BOX_L:
-                box_L = std::stof(args.OptionArg());
-                break;
-            case OPT_BOX_D:
-                box_D = std::stof(args.OptionArg());
-                break;
-            case OPT_BOX_H:
-                box_H = std::stof(args.OptionArg());
-                break;
-            case OPT_GRAV_ACC:
-                gravAcc = std::stof(args.OptionArg());
-                break;
             case OPT_STIFFNESS_S2S:
-                normalStiffS2S = std::stof(args.OptionArg());
+                normalStiffS2S = stof(args.OptionArg());
                 break;
             case OPT_STIFFNESS_S2W:
-                normalStiffS2W = std::stof(args.OptionArg());
+                normalStiffS2W = stof(args.OptionArg());
                 break;
             case OPT_STIFFNESS_MSH2S:
-                normalStiffMesh2S = std::stof(args.OptionArg());
+                normalStiffMesh2S = stof(args.OptionArg());
                 break;
             case OPT_COHESION_RATIO:
-                cohesion_ratio = std::stof(args.OptionArg());
+                cohesion_ratio = stof(args.OptionArg());
                 break;
             case OPT_TIMEEND:
-                time_end = std::stof(args.OptionArg());
+                time_end = stof(args.OptionArg());
                 break;
             case OPT_VERBOSE:
                 verbose = true;
@@ -204,7 +162,7 @@ bool GetProblemSpecs(int argc,
         }
     }
     if (test < 0 || test > 4) {
-        std::cout << "Invalid test" << std::endl;
+        cout << "Invalid test" << endl;
         showUsage();
         return false;
     }
@@ -216,73 +174,65 @@ bool GetProblemSpecs(int argc,
 // There is no friction. The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-#define box_size_X_cm 40.f
-#define box_size_Y_cm 40.f
-#define box_size_Z_cm 40.f
-#define RADIUS 1.f
-#define SPH_DENSITY 1.50f
 #define TIME_END 4.f
-#define GRAV_ACCELERATION 980.f
 #define NORMAL_STIFFNESS_S2S 1e7f
 #define NORMAL_STIFFNESS_M2S 1e7f
 #define NORMAL_STIFFNESS_S2W 1e7f
+#define NORMAL_DAMPING_S2S 3e4f
+#define NORMAL_DAMPING_S2M 3e4f
 
-    std::string output_prefix = "../results";
+    string output_dir = "../results";
 
     // Default values
     int test;
-    float ballRadius = RADIUS;
-    float ballDensity = SPH_DENSITY;
-    float box_size_X = box_size_X_cm;
-    float box_size_Y = box_size_Y_cm;
-    float box_size_Z = box_size_Z_cm;
-    float timeEnd = TIME_END;
-    float grav_acceleration = GRAV_ACCELERATION;
+    float sphere_radius = 1.f;
+    float sphere_density = 1.5f;
+    float time_end = TIME_END;
     float normStiffness_S2S = NORMAL_STIFFNESS_S2S;
     float normStiffness_S2W = NORMAL_STIFFNESS_S2W;
-    float normStiffness_MSH2S = NORMAL_STIFFNESS_M2S;
+    float normStiffness_M2S = NORMAL_STIFFNESS_M2S;
+    float normDamp_S2S = NORMAL_DAMPING_S2S;
+    float normDamp_S2M = NORMAL_DAMPING_S2M;
 
     float iteration_step = 0.02;
 
-    GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
+    GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::CSV;
     bool verbose = false;
     float cohesion_ratio = 0;
 
-    // Some of the default values might be overwritten by user via command line
-    if (GetProblemSpecs(argc, argv, test, ballRadius, ballDensity, box_size_X, box_size_Y, box_size_Z, timeEnd, grav_acceleration,
-                        normStiffness_S2S, normStiffness_S2W, normStiffness_MSH2S, cohesion_ratio, verbose,
-                        output_prefix, write_mode) == false) {
+    if (GetProblemSpecs(argc, argv, test, time_end, normStiffness_S2S, normStiffness_S2W, normStiffness_M2S,
+                        normDamp_S2S, normDamp_S2M, cohesion_ratio, verbose, output_dir) == false) {
         return 1;
     }
 
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(ballRadius, ballDensity);
-    m_sys.setBOXdims(box_size_X, box_size_Y, box_size_Z);
+    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(sphere_radius, sphere_density);
+    m_sys.setBOXdims(40, 40, 40);
     m_sys.set_BD_Fixed(true);
 
-    std::vector<ChVector<float>> pos;
+    vector<ChVector<float>> pos;
     switch (test) {
         case SINGLE_ON_VERTEX:
-            pos.push_back(ChVector<float>(0.f, 0.f, ballRadius));
+            pos.push_back(ChVector<float>(0.f, 0.f, sphere_radius));
             break;
 
         case SINGLE_TO_CORNER:
-            pos.push_back(ChVector<float>(-5.f, -6.f, ballRadius));
+            pos.push_back(ChVector<float>(-5.f, -6.f, sphere_radius));
             break;
 
         case MULTI_TO_CORNER:
-            pos.push_back(ChVector<float>(1.f, 1.f, ballRadius));
-            pos.push_back(ChVector<float>(2.f, 4.f, ballRadius));
-            pos.push_back(ChVector<float>(4.f, 2.f, ballRadius));
-            pos.push_back(ChVector<float>(4.f, 5.f, ballRadius));
+            pos.push_back(ChVector<float>(1.f, 1.f, sphere_radius));
+            pos.push_back(ChVector<float>(2.f, 4.f, sphere_radius));
+            pos.push_back(ChVector<float>(4.f, 2.f, sphere_radius));
+            pos.push_back(ChVector<float>(4.f, 5.f, sphere_radius));
             break;
 
         case SINGLE_TO_INV_CORNER:
-            pos.push_back(ChVector<float>(10, -10, ballRadius));
+            pos.push_back(ChVector<float>(10, -10, sphere_radius));
             break;
 
         case BOX_FILL:
-            utils::PDSampler<float> sampler(ballRadius * 2.1);
+            utils::PDSampler<float> sampler(sphere_radius * 2.1);
             ChVector<float> boxCenter(0, 0, 10);
             ChVector<float> hdims(9, 9, 9);
             pos = sampler.SampleBox(boxCenter, hdims);
@@ -293,35 +243,36 @@ int main(int argc, char* argv[]) {
 
     m_sys.set_K_n_SPH2SPH(normStiffness_S2S);
     m_sys.set_K_n_SPH2WALL(normStiffness_S2W);
-    m_sys.set_K_n_SPH2MESH(normStiffness_MSH2S);
+    m_sys.set_K_n_SPH2MESH(normStiffness_M2S);
     m_sys.set_Cohesion_ratio(cohesion_ratio);
 
     switch (test) {
         case SINGLE_ON_VERTEX:
         case BOX_FILL:
-            m_sys.set_gravitational_acceleration(0.f, 0.f, -GRAV_ACCELERATION);
+            m_sys.set_gravitational_acceleration(0.f, 0.f, -980);
             break;
 
         case SINGLE_TO_CORNER:
-            m_sys.set_gravitational_acceleration(-400.f, -400.f, -GRAV_ACCELERATION);
+            m_sys.set_gravitational_acceleration(-400.f, -400.f, -980);
             break;
 
         case MULTI_TO_CORNER:
-            m_sys.set_gravitational_acceleration(-400.f, -400.f, -GRAV_ACCELERATION);
+            m_sys.set_gravitational_acceleration(-400.f, -400.f, -980);
             break;
 
         case SINGLE_TO_INV_CORNER:
-            m_sys.set_gravitational_acceleration(-400.f, 400.f, -GRAV_ACCELERATION);
+            m_sys.set_gravitational_acceleration(-400.f, 400.f, -980);
             break;
     }
 
     m_sys.set_timeStepping(GRN_TIME_STEPPING::FIXED);
     m_sys.set_fixed_stepSize(1e-4);
-    // Mesh values
-    std::vector<std::string> mesh_filenames;
-    std::string mesh_filename;
 
-    std::vector<float3> mesh_scalings;
+    // Mesh values
+    vector<string> mesh_filenames;
+    string mesh_filename;
+
+    vector<float3> mesh_scalings;
     float3 scaling;
 
     switch (test) {
@@ -331,21 +282,21 @@ int main(int argc, char* argv[]) {
             scaling.x = 15;
             scaling.y = 15;
             scaling.z = 10;
-            mesh_filename = std::string("square_box.obj");
+            mesh_filename = string("square_box.obj");
             break;
 
         case BOX_FILL:
             scaling.x = 10;
             scaling.y = 10;
             scaling.z = 10;
-            mesh_filename = std::string("square_box.obj");
+            mesh_filename = string("square_box.obj");
             break;
 
         case SINGLE_TO_INV_CORNER:
             scaling.x = 15;
             scaling.y = 15;
             scaling.z = 10;
-            mesh_filename = std::string("inverted_corner.obj");
+            mesh_filename = string("inverted_corner.obj");
             break;
     }
 
@@ -354,55 +305,37 @@ int main(int argc, char* argv[]) {
     m_sys.load_meshes(mesh_filenames, mesh_scalings);
 
     /// output preferences
-    m_sys.setOutputDirectory(output_prefix);
+    m_sys.setOutputDirectory(output_dir);
     m_sys.setOutputMode(write_mode);
     m_sys.setVerbose(verbose);
-    ChFileutils::MakeDirectory(output_prefix.c_str());
+    ChFileutils::MakeDirectory(output_dir.c_str());
 
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
-    std::cout << nSoupFamilies << " soup families\n";
+    cout << nSoupFamilies << " soup families" << endl;
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
 
     m_sys.initialize();
     unsigned int currframe = 0;
 
-    // Uncomment the following to test loading of a mesh
-    // int fakeframe = 0;
-    // for (float t = 0; t < timeEnd; t += iteration_step) {
-    //     char filename[100];
-    //     sprintf(filename, "%s/step%06d", output_prefix.c_str(), fakeframe++);
-    //     meshSoupLocOri[0] = 0;  // Keep wheel centered in X and Y
-    //     meshSoupLocOri[1] = 0;
-    //     meshSoupLocOri[2] = pos_func_Z(t, box_size_Z);  // Get next position and orientation from the prescribed function
-    //     meshSoupLocOri[3] = 1;                    // No rotation in this demo
-    //     meshSoupLocOri[4] = 0;
-    //     meshSoupLocOri[5] = 0;
-    //     meshSoupLocOri[6] = 0;
-    //     m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);
-    //     m_sys.write_meshes(std::string(filename));
-    //     m_sys.writeFileUU(std::string(filename));
-    // }
-    // return 0;
-
-    // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the particles.
-    // Conversely, the particles impress a force and torque upon the mesh soup
-    for (float t = 0; t < timeEnd; t += iteration_step) {
+    // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the
+    // particles. Conversely, the particles impress a force and torque upon the mesh soup
+    for (float t = 0; t < time_end; t += iteration_step) {
         // Generate next tire location and orientation
         meshSoupLocOri[0] = 0;
         meshSoupLocOri[1] = 0;
         meshSoupLocOri[2] = 0;
-        meshSoupLocOri[3] = 1;  // No rotation in this demo
+        meshSoupLocOri[3] = 1;
         meshSoupLocOri[4] = 0;
         meshSoupLocOri[5] = 0;
         meshSoupLocOri[6] = 0;
 
         m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
-        printf("rendering frame %u\n", currframe);
+        cout << "Rendering frame " << currframe << endl;
         char filename[100];
-        sprintf(filename, "%s/step%06u", output_prefix.c_str(), currframe++);
-        m_sys.writeFileUU(std::string(filename));
-        m_sys.write_meshes(std::string(filename));
+        sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe++);
+        m_sys.writeFileUU(string(filename));
+        m_sys.write_meshes(string(filename));
 
         m_sys.advance_simulation(iteration_step);
     }

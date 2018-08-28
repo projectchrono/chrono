@@ -74,6 +74,7 @@ void InvalidArg(string arg) {
 // Returns true on successful parameter load.
 // Returns false and prints error on invalid argument.
 bool ParseJSON(const char* json_file, sim_param_holder& params) {
+    cout << "Reading parameters: " << json_file << endl;
     FILE* fp = fopen(json_file, "r");
     if (!fp) {
         cout << "Invalid JSON file" << endl;
