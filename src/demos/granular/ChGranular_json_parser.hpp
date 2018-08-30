@@ -78,6 +78,7 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     FILE* fp = fopen(json_file, "r");
     if (!fp) {
         cout << "Invalid JSON file" << endl;
+		ShowJSONUsage();
         return false;
     }
 
