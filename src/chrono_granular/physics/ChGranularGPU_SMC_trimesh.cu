@@ -918,7 +918,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = std::ceil(duration / (gran_params->TIME_UNIT * gran_params->psi_h));
+    float duration_SU = std::ceil(duration / gran_params->TIME_UNIT);
     unsigned int nsteps = duration_SU / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -984,7 +984,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT * gran_params->psi_h;  // Advance current time
+        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT;  // Advance current time
     }
     return;
 }

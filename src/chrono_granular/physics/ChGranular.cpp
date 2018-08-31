@@ -47,7 +47,7 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
             float max_v = get_max_vel();
             if (max_v <= 0) {
                 // clearly we have an issue, just fallback to the fixed step
-                stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h);
+                stepSize_SU = fixed_step_UU / gran_params->TIME_UNIT;
             } else {
                 // maximum number of gravity displacements we allow moving in one timestep
                 constexpr float num_disp_grav = 100;
@@ -61,20 +61,19 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
                 // find the highest position displacement we allow
                 float max_displacement = std::min(max_displacement_grav, max_displacement_radius);
                 float suggested_SU = max_displacement / max_v;
-                float max_step_SU = max_adaptive_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h);
-                float min_step_SU = 1e-5 / (gran_params->TIME_UNIT * gran_params->psi_h);
+                float max_step_SU = max_adaptive_step_UU / gran_params->TIME_UNIT;
+                float min_step_SU = 1e-5 / gran_params->TIME_UNIT;
                 printf("grav step is %f, rad step is %f\n", max_displacement_grav / max_v,
                        max_displacement_radius / max_v);
 
                 // don't go above max
                 stepSize_SU = std::max(std::min(suggested_SU, max_step_SU), min_step_SU);
             }
-            printf("new timestep is %f SU, %f UU\n", stepSize_SU,
-                   stepSize_SU * (gran_params->TIME_UNIT * gran_params->psi_h));
+            printf("new timestep is %f SU, %f UU\n", stepSize_SU, stepSize_SU * gran_params->TIME_UNIT);
             // printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
         }
     } else {
-        stepSize_SU = fixed_step_UU / (gran_params->TIME_UNIT * gran_params->psi_h);
+        stepSize_SU = fixed_step_UU / gran_params->TIME_UNIT;
     }
 }
 
