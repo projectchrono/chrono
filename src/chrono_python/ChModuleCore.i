@@ -51,6 +51,13 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChLoad.h"
+#include "chrono/physics/ChLoadsBody.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChPathShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChSurfaceShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -61,6 +68,9 @@ using namespace chrono::geometry;
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
 
+// Cross-inheritance between Python and c++ for callbacks that must be inherited.
+// Put this 'director' feature _before_ class wrapping declaration.
+%feature("director") chrono::ChLoadBase;
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
@@ -104,6 +114,13 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChCylinderShape)
 %shared_ptr(chrono::ChTexture)
 %shared_ptr(chrono::ChCamera) 
+%shared_ptr(chrono::ChLineShape)
+%shared_ptr(chrono::ChSurfaceShape)
+%shared_ptr(chrono::ChPathShape)
+%shared_ptr(chrono::ChPointPointDrawing)
+%shared_ptr(chrono::ChPointPointSegment)
+%shared_ptr(chrono::ChPointPointSpring)
+%shared_ptr(chrono::ChTriangleMeshShape)
 
 %shared_ptr(chrono::ChFunction)  
 %shared_ptr(chrono::ChFunction_Const)
@@ -129,6 +146,7 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::collision::ChCollisionModel)
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChMaterialSurfaceNSC)
+%shared_ptr(chrono::ChMaterialSurfaceSMC)
 %shared_ptr(chrono::ChMaterialSurface)
 %shared_ptr(chrono::ChBodyFrame)
 %shared_ptr(chrono::ChMarker)
@@ -170,8 +188,10 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChSolver)
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChSystemNSC)
+%shared_ptr(chrono::ChSystemSMC)
 %shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChProximityContainer)
+%shared_ptr(chrono::ChLoadContainer)
 
 %shared_ptr(chrono::ChLinkBase)
 %shared_ptr(chrono::ChLink)
@@ -211,6 +231,7 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
 %shared_ptr(chrono::ChLinkScrew)
 %shared_ptr(chrono::ChLinkSpring)
+%shared_ptr(chrono::ChLinkSpringCB)
 %shared_ptr(chrono::ChLinkUniversal)
 
 %shared_ptr(chrono::ChShaft)
@@ -236,6 +257,19 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChLinkMotorRotationDriveline)
 %shared_ptr(chrono::ChLinkMotorRotationSpeed)
 %shared_ptr(chrono::ChLinkMotorRotationTorque)
+%shared_ptr(chrono::ChLoadBase)
+%shared_ptr(chrono::ChLoad)
+%shared_ptr(chrono::ChLoadCustom)
+%shared_ptr(chrono::ChLoadCustomMultiple)
+%shared_ptr(chrono::ChLoadBodyForce)
+%shared_ptr(chrono::ChLoadBodyTorque)
+%shared_ptr(chrono::ChLoadBodyBody)
+%shared_ptr(chrono::ChLoadBodyBodyTorque)
+%shared_ptr(chrono::ChLoadBodyBodyBushingSpherical)
+%shared_ptr(chrono::ChLoadBodyBodyBushingPlastic)
+%shared_ptr(chrono::ChLoadBodyBodyBushingMate)
+%shared_ptr(chrono::ChLoadBodyBodyBushingPlastic)
+%shared_ptr(chrono::ChLoadBodyBodyBushingGeneric)
 
 
 //
@@ -298,12 +332,18 @@ using namespace chrono::geometry;
 %include "ChCylinderShape.i"
 %include "ChTexture.i"
 %include "ChCamera.i"
+%include "../chrono/assets/ChLineShape.h"
+%include "../chrono/assets/ChPathShape.h"
+%include "../chrono/assets/ChPointPointDrawing.h"
+%include "../chrono/assets/ChSurfaceShape.h"
+%include "../chrono/assets/ChTriangleMeshShape.h"
 
 // physics/  classes
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "ChMaterialSurface.i"
 %include "ChMaterialSurfaceNSC.i"
+%include "ChMaterialSurfaceSMC.i"
 %include "ChBodyFrame.i"
 %include "ChMarker.i"
 %include "ChForce.i"
@@ -318,8 +358,10 @@ using namespace chrono::geometry;
 %include "../chrono/solver/ChSolver.h"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"
+%include "ChSystemSMC.i"
 %include "ChContactContainer.i"
 %include "ChProximityContainer.i"
+%include "ChLoadContainer.i"
 %include "ChLinkBase.i"
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
@@ -334,6 +376,7 @@ using namespace chrono::geometry;
 %include "ChLinkPulley.i"
 %include "ChLinkScrew.i"
 %include "ChLinkSpring.i"
+%include "ChLinkSpringCB.i"
 %include "ChLinkGear.i"
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
@@ -349,12 +392,10 @@ using namespace chrono::geometry;
 %include "ChShaftsPlanetary.i"
 %include "ChShaftsThermalEngine.i"
 %include "ChLinkMotor.i"
+%include "../chrono/physics/ChLoad.h"
+%include "../chrono/physics/ChLoadsBody.h"
+%include "../chrono/physics/ChLoadContainer.h"
 
-
-// collision/   classes
-/*
-%include "ChCollisionInfo.i"
-*/
 
 
 
@@ -382,6 +423,15 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChAsset,ChCylinderShape)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChTexture)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChAssetLevel)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChCamera)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChLineShape)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChSurfaceShape)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChPathShape)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChPointPointDrawing)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChPointPointSegment)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChPointPointSpring)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChTriangleMeshShape)
+
 %DefChSharedPtrDynamicDowncast(ChBodyFrame, ChBody)
 %DefChSharedPtrDynamicDowncast(ChBodyFrame, ChBodyAuxRef)
 %DefChSharedPtrDynamicDowncast(ChBodyFrame, ChConveyor)
@@ -425,6 +475,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpringCB)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotor)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinear)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorLinearDriveline)
@@ -436,7 +487,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationDriveline)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationSpeed)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMotorRotationTorque)
-
+%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLoadContainer)
 
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkMarkers)
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkMasked)
@@ -498,6 +549,17 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsPlanetary)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsTorqueBase)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsThermalEngine)
+
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadCustom)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadCustomMultiple)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyForce)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyTorque)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBody)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyTorque)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingSpherical)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingPlastic)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingMate)
+%DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingGeneric)
 
 // .. to complete
 
