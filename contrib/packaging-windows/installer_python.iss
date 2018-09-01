@@ -45,19 +45,19 @@ DisableProgramGroupPage=yes
 Source: {#MyChronoEngineSDK}\data\*; Excludes: "*\.svn,\mpi,\vehicle,\cascade"; DestDir: "{app}\data"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\src\demos\python\*; DestDir: "{app}\src\demos\python\"; Flags: recursesubdirs createallsubdirs
 
-Source: {#MyWin64PythonDir}\_ChronoEngine_python_core.pyd; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\_ChronoEngine_python_postprocess.pyd; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\_ChronoEngine_python_irrlicht.pyd; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\_ChronoEngine_python_fea.pyd; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_postprocess.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_irrlicht.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_fea.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\Irrlicht.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_python_core.py; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_python_postprocess.py; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_python_irrlicht.py; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_python_fea.py; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
+Source: {#MyWin64PythonDir}\_ChronoEngine_python_core.pyd; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\_ChronoEngine_python_postprocess.pyd; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\_ChronoEngine_python_irrlicht.pyd; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\_ChronoEngine_python_fea.pyd; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_postprocess.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_irrlicht.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_fea.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\Irrlicht.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_python_core.py; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_python_postprocess.py; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_python_irrlicht.py; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_python_fea.py; DestDir: {app};  Flags: ignoreversion;
 
 [Icons]
 Name: "{group}\ProjectChrono"; Filename: "http://www.projectchrono.org"
