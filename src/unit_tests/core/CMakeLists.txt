@@ -7,6 +7,7 @@ SET(TESTS
     utest_CH_math
     utest_CH_sparse_matrix
     utest_CH_ChCSMatrix
+    utest_CH_ISO2631
     #utest_CH_stream
 )
 
