@@ -832,10 +832,10 @@ void ChIrrAppInterface::DrawAll() {
         GetSceneManager()->drawAll();  // DRAW 3D SCENE the usual way, if no shadow maps
 
     int dmode = gad_drawcontacts->getSelected();
-    ChIrrTools::drawAllContactPoints(*system, GetVideoDriver(), symbolscale, (ChIrrTools::eCh_ContactsDrawMode)dmode);
+    ChIrrTools::drawAllContactPoints(system->GetContactContainer(), GetVideoDriver(), symbolscale, (ChIrrTools::eCh_ContactsDrawMode)dmode);
 
     int lmode = gad_labelcontacts->getSelected();
-    ChIrrTools::drawAllContactLabels(*system, GetDevice(), (ChIrrTools::eCh_ContactsLabelMode)lmode);
+    ChIrrTools::drawAllContactLabels(system->GetContactContainer(), GetDevice(), (ChIrrTools::eCh_ContactsLabelMode)lmode);
 
     int dmodeli = gad_drawlinks->getSelected();
     ChIrrTools::drawAllLinks(*system, GetVideoDriver(), symbolscale, (ChIrrTools::eCh_LinkDrawMode)dmodeli);

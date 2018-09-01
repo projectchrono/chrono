@@ -113,15 +113,15 @@ class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
     double clen;
 };
 
-int ChIrrTools::drawAllContactPoints(ChSystem& mphysicalSystem,
+int ChIrrTools::drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontainer,
                                      irr::video::IVideoDriver* driver,
                                      double mlen,
                                      eCh_ContactsDrawMode drawtype) {
     if (drawtype == CONTACT_NONE)
         return 0;
 
-    if (mphysicalSystem.GetNcontacts() == 0)
-        return 0;
+    //if (mphysicalSystem.GetNcontacts() == 0)
+    //    return 0;
 
     driver->setTransform(irr::video::ETS_WORLD, irr::core::matrix4());
     irr::video::SMaterial mattransp;
@@ -136,7 +136,7 @@ int ChIrrTools::drawAllContactPoints(ChSystem& mphysicalSystem,
     my_drawer.drawtype = drawtype;
 
     // scan all contacts
-    mphysicalSystem.GetContactContainer()->ReportAllContacts(&my_drawer);
+    mcontainer->ReportAllContacts(&my_drawer);
 
     return 0;
 }
@@ -199,15 +199,15 @@ class _label_reporter_class : public ChContactContainer::ReportContactCallback {
     irr::video::SColor ccol;
 };
 
-int ChIrrTools::drawAllContactLabels(ChSystem& mphysicalSystem,
+int ChIrrTools::drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontainer,
                                      irr::IrrlichtDevice* device,
                                      eCh_ContactsLabelMode labeltype,
                                      irr::video::SColor mcol) {
     if (labeltype == CONTACT_NONE_VAL)
         return 0;
 
-    if (mphysicalSystem.GetNcontacts() == 0)
-        return 0;
+    //if (mphysicalSystem.GetNcontacts() == 0)
+    //   return 0;
 
     _label_reporter_class my_label_rep;
 
@@ -216,7 +216,7 @@ int ChIrrTools::drawAllContactLabels(ChSystem& mphysicalSystem,
     my_label_rep.labeltype = labeltype;
 
     // scan all contacts
-    mphysicalSystem.GetContactContainer()->ReportAllContacts(&my_label_rep);
+    mcontainer->ReportAllContacts(&my_label_rep);
 
     return 0;
 }

@@ -102,14 +102,14 @@ class ChApiIrr ChIrrTools {
     /// current Irrlicht viewer (the IVideoDriver). The contact points are
     /// visually represented with short lines, of length mlen, aligned to contact
     /// normals.
-    static int drawAllContactPoints(ChSystem& mphysicalSystem,
+	static int drawAllContactPoints(std::shared_ptr<ChContactContainer> mcontactcontainer,
                                     irr::video::IVideoDriver* driver,
                                     double mlen = 1.0,
                                     eCh_ContactsDrawMode drawtype = CONTACT_NORMALS);
 
     /// Easy-to-use function which draws contact informations as labels at the
     /// contact point
-    static int drawAllContactLabels(ChSystem& mphysicalSystem,
+    static int drawAllContactLabels(std::shared_ptr<ChContactContainer> mcontactcontainer,
                                     irr::IrrlichtDevice* device,
                                     eCh_ContactsLabelMode labeltype = CONTACT_FORCES_N_VAL,
                                     irr::video::SColor mcol = irr::video::SColor(255, 255, 255, 255));
