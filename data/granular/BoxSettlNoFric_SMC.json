@@ -19,4 +19,5 @@
 	"psi_L": 16,
 	"output_dir": "output",
 	"write_mode": "csv"
+	"run_mode" : 1
 }

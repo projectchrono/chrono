@@ -170,6 +170,10 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
         params.psi_L = doc["psi_L"].GetInt();
         cout << "params.psi_L " << params.psi_L << endl;
     }
+    if (doc.HasMember("run_mode") && doc["run_mode"].IsInt()) {
+        params.run_mode = doc["run_mode"].GetInt();
+        cout << "params.run_mode " << params.psi_L << endl;
+    }
     GRN_TIME_STEPPING step_mode;
     if (doc.HasMember("step_mode") && doc["step_mode"].IsString()) {
         if (doc["step_mode"].GetString() == string("fixed")) {

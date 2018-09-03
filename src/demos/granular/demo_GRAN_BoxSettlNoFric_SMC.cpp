@@ -70,8 +70,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setOutputDirectory(params.output_dir);
     settlingExperiment.setOutputMode(params.write_mode);
 
-    // settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    // settlingExperiment.set_timeStepping(params.step_mode);
+    settlingExperiment.set_timeStepping(params.step_mode);
     settlingExperiment.set_fixed_stepSize(params.step_size);
     // settlingExperiment.set_max_adaptive_stepSize(1e-4);
 
@@ -109,7 +108,7 @@ int main(int argc, char* argv[]) {
         }
     };
 
-    switch (run_mode) {
+    switch (params.run_mode) {
         case SETTLING:
             settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunStill);
             settlingExperiment.set_BD_Fixed(true);
