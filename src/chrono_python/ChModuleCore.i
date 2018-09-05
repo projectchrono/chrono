@@ -58,6 +58,8 @@
 #include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/collision/ChCCollisionUtils.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -111,6 +113,7 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChObjShapeFile)
 %shared_ptr(chrono::ChBoxShape) 
 %shared_ptr(chrono::ChSphereShape)
+%shared_ptr(chrono::ChEllipsoidShape)
 %shared_ptr(chrono::ChCylinderShape)
 %shared_ptr(chrono::ChTexture)
 %shared_ptr(chrono::ChCamera) 
@@ -319,6 +322,7 @@ using namespace chrono::geometry;
 %include "ChGeometry.i"
 
 %include "ChCollisionModel.i"
+%include "../chrono/collision/ChCCollisionUtils.h"
 
 // assets
 %include "ChAsset.i"
@@ -337,6 +341,7 @@ using namespace chrono::geometry;
 %include "../chrono/assets/ChPointPointDrawing.h"
 %include "../chrono/assets/ChSurfaceShape.h"
 %include "../chrono/assets/ChTriangleMeshShape.h"
+%include "../chrono/assets/ChEllipsoidShape.h"
 
 // physics/  classes
 %include "ChObject.i"
@@ -431,6 +436,7 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChAsset,ChPointPointSegment)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChPointPointSpring)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChTriangleMeshShape)
+%DefChSharedPtrDynamicDowncast(ChAsset,ChEllipsoidShape)
 
 %DefChSharedPtrDynamicDowncast(ChBodyFrame, ChBody)
 %DefChSharedPtrDynamicDowncast(ChBodyFrame, ChBodyAuxRef)
