@@ -33,31 +33,6 @@ namespace granular {
 typedef const ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
 typedef ChTriangleSoup<float>* TriangleSoupPtr;
 
-/// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
-template <class T, class T3>
-__device__ T3 apply_frame_transform(const T3& point, const T* pos, const T* rot_mat) {
-    T3 result;
-
-    // Apply rotation matrix to point
-    result.x = rot_mat[0] * point.x + rot_mat[1] * point.y + rot_mat[2] * point.z;
-    result.y = rot_mat[3] * point.x + rot_mat[4] * point.y + rot_mat[5] * point.z;
-    result.z = rot_mat[6] * point.x + rot_mat[7] * point.y + rot_mat[8] * point.z;
-
-    // Apply translation
-    result.x += pos[0];
-    result.y += pos[1];
-    result.z += pos[2];
-
-    return result;
-}
-
-template <class T3>
-__device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
-    pos.x /= gran_params->LENGTH_UNIT;
-    pos.y /= gran_params->LENGTH_UNIT;
-    pos.z /= gran_params->LENGTH_UNIT;
-}
-
 /// Takes in a triangle's position in UU and finds out what SDs it touches
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
@@ -951,7 +926,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
+            pos_Y_dt.data(), pos_Z_dt.data(), gran_params, BC_type_list.data(), BC_params_list.data(),
+            BC_params_list.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
     settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
     settlingExperiment.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    settlingExperiment.set_Gamma_n_SPH2WALL(params.normalDampS2W);
     settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
     settlingExperiment.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     settlingExperiment.setOutputDirectory(params.output_dir);
@@ -123,11 +124,17 @@ int main(int argc, char* argv[]) {
             break;
     }
 
+    float hdims[3] = {2.f, 2.f, 2.f};
+    float center[3] = {0.f, 0.f, -10.f};
+
     settlingExperiment.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
     settlingExperiment.initialize();
+    // settlingExperiment.Create_BC_AABox(hdims, center, false);
+    // settlingExperiment.Create_BC_Sphere(center, 3.f, true);
+    settlingExperiment.Create_BC_Cone(center, .7, params.box_Z, center[2] + 2, true);
 
-    int fps = 50;
+    int fps = 100;
     // assume we run for at least one frame
     float frame_step = 1.0f / fps;
     float curr_time = 0;
@@ -142,7 +149,7 @@ int main(int argc, char* argv[]) {
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        settlingExperiment.checkSDCounts(std::string(filename), true, false);
+        settlingExperiment.writeFileUU(std::string(filename));
     }
 
     return 0;

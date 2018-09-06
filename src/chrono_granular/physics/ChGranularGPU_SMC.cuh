@@ -31,14 +31,37 @@
 #include "../chrono_granular/physics/ChGranular.h"
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
+#include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
 
 // These are the max X, Y, Z dimensions in the BD frame
 #define MAX_X_POS_UNSIGNED (gran_params->SD_size_X_SU * gran_params->nSDs_X)
 #define MAX_Y_POS_UNSIGNED (gran_params->SD_size_Y_SU * gran_params->nSDs_Y)
 #define MAX_Z_POS_UNSIGNED (gran_params->SD_size_Z_SU * gran_params->nSDs_Z)
 
-// Do two things: make the naming nicer and require a cosnt pointer everywhere
-typedef const chrono::granular::ChSystemGranular::GranParamsHolder* ParamsPtr;
+/// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
+template <class T, class T3>
+__device__ T3 apply_frame_transform(const T3& point, const T* pos, const T* rot_mat) {
+    T3 result;
+
+    // Apply rotation matrix to point
+    result.x = rot_mat[0] * point.x + rot_mat[1] * point.y + rot_mat[2] * point.z;
+    result.y = rot_mat[3] * point.x + rot_mat[4] * point.y + rot_mat[5] * point.z;
+    result.z = rot_mat[6] * point.x + rot_mat[7] * point.y + rot_mat[8] * point.z;
+
+    // Apply translation
+    result.x += pos[0];
+    result.y += pos[1];
+    result.z += pos[2];
+
+    return result;
+}
+
+template <class T3>
+__device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
+    pos.x /= gran_params->LENGTH_UNIT;
+    pos.y /= gran_params->LENGTH_UNIT;
+    pos.z /= gran_params->LENGTH_UNIT;
+}
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
@@ -351,6 +374,47 @@ primingOperationsRectangularBox(
     }
 }
 
+/// Compute forces on a sphere created by various
+inline __device__ void applyBCForces(const float alpha_h_bar,  //!< Integration step size.
+                                     const int sphXpos,        //!< Global X position of DE
+                                     const int sphYpos,        //!< Global Y position of DE
+                                     const int sphZpos,        //!< Global Z position of DE
+                                     const float sphXvel,      //!< Global X velocity of DE
+                                     const float sphYvel,      //!< Global Y velocity of DE
+                                     const float sphZvel,      //!< Global Z velocity of DE
+                                     float& X_Vel_corr,        //!< Velocity correction in Xdir
+                                     float& Y_Vel_corr,        //!< Velocity correction in Xdir
+                                     float& Z_Vel_corr,        //!< Velocity correction in Xdir
+                                     ParamsPtr gran_params,
+                                     BC_type* bc_type_list,
+                                     BC_params_t* bc_params_list,
+                                     unsigned int nBCs) {
+    // store forces on body
+    float xforce = 0;
+    float yforce = 0;
+    float zforce = 0;
+    for (unsigned int i = 0; i < nBCs; i++) {
+        switch (bc_type_list[i]) {
+            case BC_type::AA_BOX: {
+                addBCForces_AABox(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
+                                  gran_params, bc_params_list[i]);
+            }
+            case BC_type::SPHERE: {
+                addBCForces_Sphere(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
+                                   gran_params, bc_params_list[i]);
+            }
+            case BC_type::CONE: {
+                addBCForces_Cone(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
+                                 gran_params, bc_params_list[i]);
+            }
+        }
+    }
+    // perform on-the-fly integration for the moment
+    X_Vel_corr += xforce * alpha_h_bar;
+    Y_Vel_corr += yforce * alpha_h_bar;
+    Z_Vel_corr += zforce * alpha_h_bar;
+}
+
 /**
 This device function computes the forces induces by the walls on the box on a sphere
 Input:
@@ -374,9 +438,9 @@ inline __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integratio
                                        const float sphXvel,      //!< Global X velocity of DE
                                        const float sphYvel,      //!< Global Y velocity of DE
                                        const float sphZvel,      //!< Global Z velocity of DE
-                                       float& X_Vel_corr,        //!< Velocity correction in Xdir
-                                       float& Y_Vel_corr,        //!< Velocity correction in Xdir
-                                       float& Z_Vel_corr,        //!< Velocity correction in Xdir
+                                       float& Xforce,            //!< Velocity correction in Xdir
+                                       float& Yforce,            //!< Velocity correction in Xdir
+                                       float& Zforce,            //!< Velocity correction in Xdir
                                        ParamsPtr gran_params) {
     // classic radius grab
     const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
@@ -390,8 +454,8 @@ inline __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integratio
     signed int pen = 0;
     // Are we touching wall?
     int touchingWall = 0;
-    // Compute spring factor in force
-    float scalingFactor = (1.0f * alpha_h_bar) * gran_params->Kn_s2w_SU;
+
+    constexpr float m_eff = 0.5;
 
     // tmp vars to save writes, probably not necessary
     float xcomp = 0;
@@ -405,44 +469,50 @@ inline __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integratio
     touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
     // Need to get relative velocity
-    xcomp += touchingWall * (scalingFactor * abs(pen));
+    xcomp += touchingWall * (gran_params->Kn_s2w_SU * abs(pen));
+    xcomp += -1 * touchingWall * (sphXvel - gran_params->BD_frame_X_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
 
     // Do top X wall
     pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)sphereRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    xcomp += touchingWall * (-1 * scalingFactor * abs(pen));
+    xcomp += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(pen);
+    xcomp += -1 * touchingWall * (sphXvel - gran_params->BD_frame_X_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
 
     // penetration of sphere into relevant wall
     pen = sphYpos_modified - (signed int)sphereRadius_SU;
     // true if sphere touching wall
     touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
-    ycomp += touchingWall * (scalingFactor * abs(pen));
+    ycomp += touchingWall * (gran_params->Kn_s2w_SU * abs(pen));
+    ycomp += -1 * touchingWall * (sphYvel - gran_params->BD_frame_Y_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
 
     // Do top y wall
     pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)sphereRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    ycomp += touchingWall * (-1 * scalingFactor * abs(pen));
+    ycomp += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(pen);
+    ycomp += -1 * touchingWall * (sphYvel - gran_params->BD_frame_Y_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
 
     // penetration of sphere into relevant wall
     pen = sphZpos_modified - (signed int)sphereRadius_SU;
     // true if sphere touching wall
     touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is negative and we want a positive restorative force
-    zcomp += touchingWall * (scalingFactor * abs(pen));
+    zcomp += touchingWall * (gran_params->Kn_s2w_SU * abs(pen));
+    zcomp += -1 * touchingWall * (sphZvel - gran_params->BD_frame_Z_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
 
     // Do top z wall
     pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)sphereRadius_SU);
     touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
     // in this case, pen is positive and we want a negative restorative force
-    zcomp += touchingWall * (-1 * scalingFactor * abs(pen));
+    zcomp += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(pen);
+    zcomp += -1 * touchingWall * (sphZvel - gran_params->BD_frame_Z_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
 
     // write back to "return" values
-    X_Vel_corr += xcomp;
-    Y_Vel_corr += ycomp;
-    Z_Vel_corr += zcomp;
+    Xforce += xcomp * alpha_h_bar;
+    Yforce += ycomp * alpha_h_bar;
+    Zforce += zcomp * alpha_h_bar;
 }
 /**
 This kernel applies the velocity updates computed in computeVelocityUpdates to each sphere. This has to be its own
@@ -549,7 +619,10 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
                                        float* d_sphere_pos_X_dt,
                                        float* d_sphere_pos_Y_dt,
                                        float* d_sphere_pos_Z_dt,
-                                       ParamsPtr gran_params) {
+                                       ParamsPtr gran_params,
+                                       BC_type* bc_type_list,
+                                       BC_params_t* bc_params_list,
+                                       unsigned int nBCs) {
     // still moar radius grab
     const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
@@ -737,6 +810,10 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
             boxWallsEffects(alpha_h_bar, sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA],
                             sphere_Y_DOT[bodyA], sphere_Z_DOT[bodyA], bodyA_X_velCorr, bodyA_Y_velCorr, bodyA_Z_velCorr,
                             gran_params);
+
+            applyBCForces(alpha_h_bar, sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA],
+                          sphere_Y_DOT[bodyA], sphere_Z_DOT[bodyA], bodyA_X_velCorr, bodyA_Y_velCorr, bodyA_Z_velCorr,
+                          gran_params, bc_type_list, bc_params_list, nBCs);
             // If the sphere belongs to this SD, add up the gravitational force component.
 
             bodyA_X_velCorr += alpha_h_bar * gran_params->gravAcc_X_SU;

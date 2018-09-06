@@ -37,8 +37,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_
     gran_params->sphereRadius_SU = sphereRadius_SU;
 
     gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
+    gran_params->Gamma_n_s2w_SU = Gamma_n_s2w_SU;
     gran_params->Kn_s2s_SU = K_n_s2s_SU;
-    gran_params->Kn_s2w_SU = K_n_s2s_SU;
+    gran_params->Kn_s2w_SU = K_n_s2w_SU;
 
     gran_params->cohesion_ratio = cohesion_over_gravity;
 }
@@ -50,6 +51,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_dev
     gran_params->BD_frame_X = BD_frame_X;
     gran_params->BD_frame_Y = BD_frame_Y;
     gran_params->BD_frame_Z = BD_frame_Z;
+    gran_params->BD_frame_X_dot = BD_frame_X_dot;
+    gran_params->BD_frame_Y_dot = BD_frame_Y_dot;
+    gran_params->BD_frame_Z_dot = BD_frame_Z_dot;
 }
 
 // Check number of spheres in each SD and dump relevant info to file
@@ -206,13 +210,17 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::resetUpdateInformation() {
 
 void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const float stepSize_SU) {
     // Frequency of oscillation
-    // float frame_X_old = BD_frame_X;
-    // float frame_Y_old = BD_frame_Y;
-    // float frame_Z_old = BD_frame_Z;
+    float frame_X_old = BD_frame_X;
+    float frame_Y_old = BD_frame_Y;
+    float frame_Z_old = BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
     BD_frame_X = (box_size_X * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
     BD_frame_Y = (box_size_Y * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
     BD_frame_Z = (box_size_Z * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+
+    BD_frame_X_dot = (BD_frame_X - frame_X_old) / stepSize_SU;
+    BD_frame_Y_dot = (BD_frame_Y - frame_Y_old) / stepSize_SU;
+    BD_frame_Z_dot = (BD_frame_Z - frame_Z_old) / stepSize_SU;
 
     copyBD_Frame_to_device();
 }
@@ -431,7 +439,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
         computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
+            pos_Y_dt.data(), pos_Z_dt.data(), gran_params, BC_type_list.data(), BC_params_list.data(),
+            BC_params_list.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
