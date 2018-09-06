@@ -465,6 +465,15 @@ __global__ void interactionTerrain_TriangleSoup(
         return;  // no sphere to speak of in this SD
     }
 
+    // Clear forces on meshes
+    unsigned int n_fam_trips = (6 * TRIANGLE_FAMILIES + blockDim.x - 1) / blockDim.x;
+    for (unsigned int fam_trip = 0; fam_trip < n_fam_trips; fam_trip++) {
+        unsigned int offset = threadIdx.x + fam_trip * blockDim.x;
+        if (offset < 6 * TRIANGLE_FAMILIES) {
+            d_triangleSoup->generalizedForcesPerFamily[offset] = 0;
+        }
+    }
+
     // Getting here means that there are both triangles and DEs in this SD.
     // First, figure out which bucket stores the triangles associated with this SD.
     unsigned int whichBKT = hashmapBKTid(thisSD) % TRIANGLEBUCKET_COUNT;
@@ -661,10 +670,10 @@ __global__ void interactionTerrain_TriangleSoup(
                                                           mesh_params->fam_frame_narrow[fam].pos[1],
                                                           mesh_params->fam_frame_narrow[fam].pos[2]);
 
-                        double3 toCenter = pt1 - meshCenter;
-                        toCenter = toCenter / Length(toCenter);
+                        double3 toCenter = meshCenter - pt1;
+                        toCenter = toCenter / Length(toCenter);  // Normalize vector toward center
                         double3 force_total =
-                            make_double3(bodyA_X_velCorr, bodyA_Y_velCorr, bodyA_Z_velCorr) / alpha_h_bar;
+                            make_double3(-bodyA_X_velCorr, -bodyA_Y_velCorr, -bodyA_Z_velCorr) / alpha_h_bar;
                         double3 force_N = Dot(force_total, toCenter) * toCenter;
 
                         // TODO reorder for register use
