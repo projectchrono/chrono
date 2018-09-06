@@ -414,3 +414,15 @@ Running settling test!
 50 thousand bodies took 1.96308 seconds!
 500 thousand bodies took 14.2697 seconds!
 1 million bodies took 31.6361 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 06 Sep 2018 18:40:19 -0500
+commit 562f0ec16f8eaaec5cb7be0dbc8542c421053d5d Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Sep 6 18:39:56 2018 -0500 update metrics to do same test as before, add s2w to json file
+Results:
+Running wavetank test!
+50 thousand bodies took 2.94459 seconds!
+500 thousand bodies took 15.0757 seconds!
+1 million bodies took 29.5533 seconds!
+Running settling test!
+50 thousand bodies took 2.94954 seconds!
+500 thousand bodies took 15.0401 seconds!
+1 million bodies took 30.0515 seconds!
