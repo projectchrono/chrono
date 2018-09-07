@@ -654,7 +654,7 @@ __global__ void interactionTerrain_TriangleSoup(
                         double3 fromCenter = meshCenter - pt1;
                         double3 torque = Cross(fromCenter, force_T);
 
-                        unsigned int fam = d_triangleSoup->triangleFamily_ID[targetTriangle];
+                        unsigned int fam = d_triangleSoup->triangleFamily_ID[triangID[targetTriangle]];
                         genForceActingOnMeshes[fam * 6 + 0] += force_N.x;
                         genForceActingOnMeshes[fam * 6 + 1] += force_N.y;
                         genForceActingOnMeshes[fam * 6 + 2] += force_N.z;
@@ -827,8 +827,8 @@ __global__ void interactionTerrain_TriangleSoup(
         // At this point, the first thread of the block has in genForceActingOnMeshes[6*TRIANGLE_FAMILIES] the
         // forces and torques acting on each mesh family. Bcast the force values to all threads in the warp.
         // To this end, synchronize all threads in warp and get "value" from lane 0
-        for (fam = 0; fam < 6 * TRIANGLE_FAMILIES; fam++) {
-            genForceActingOnMeshes[fam] = __shfl_sync(0xffffffff, genForceActingOnMeshes[fam], 0);
+        for (unsigned int i = 0; i < 6 * TRIANGLE_FAMILIES; i++) {
+            genForceActingOnMeshes[i] = __shfl_sync(0xffffffff, genForceActingOnMeshes[i], 0);
         }
         // At this point, all threads in the *first* warp have the generalized forces acting on all meshes. Do an
         // atomic add to compund the value of the generalized forces acting on the meshes that come in contact with

@@ -116,9 +116,13 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::st
         ChVector<float> p3(meshSoup_DEVICE->node3_X[tri_i], meshSoup_DEVICE->node3_Y[tri_i],
                            meshSoup_DEVICE->node3_Z[tri_i]);
 
-        p1 = ApplyFrameTransform<float>(p1, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
-        p2 = ApplyFrameTransform<float>(p2, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
-        p3 = ApplyFrameTransform<float>(p3, tri_params->fam_frame_broad->pos, tri_params->fam_frame_broad->rot_mat);
+        unsigned int fam = meshSoup_DEVICE->triangleFamily_ID[tri_i];
+        p1 = ApplyFrameTransform<float>(p1, tri_params->fam_frame_broad[fam].pos,
+                                        tri_params->fam_frame_broad[fam].rot_mat);
+        p2 = ApplyFrameTransform<float>(p2, tri_params->fam_frame_broad[fam].pos,
+                                        tri_params->fam_frame_broad[fam].rot_mat);
+        p3 = ApplyFrameTransform<float>(p3, tri_params->fam_frame_broad[fam].pos,
+                                        tri_params->fam_frame_broad[fam].rot_mat);
 
         ostream << p1.x() << " " << p1.y() << " " << p1.z() << "\n";
         ostream << p2.x() << " " << p2.y() << " " << p2.z() << "\n";
