@@ -433,11 +433,11 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
         }
         resetUpdateInformation();
 
-        VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
+        VERBOSE_PRINTF("Starting computeSphereForces!\n");
 
-        // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
-        computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+        // Compute sphere-sphere forces
+        computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+            pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
             pos_Y_dt.data(), pos_Z_dt.data(), gran_params, BC_type_list.data(), BC_params_list.data(),
             BC_params_list.size());

@@ -426,3 +426,15 @@ Running settling test!
 50 thousand bodies took 2.94954 seconds!
 500 thousand bodies took 15.0401 seconds!
 1 million bodies took 30.0515 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 06 Sep 2018 19:17:22 -0500
+commit 1646092eb9bcb6da72e556485df9ada0bcdf2c98 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Sep 6 19:17:07 2018 -0500 remove all numerical integration from narrowphase, rename that kernel
+Results:
+Running wavetank test!
+50 thousand bodies took 1.71318 seconds!
+500 thousand bodies took 11.1316 seconds!
+1 million bodies took 22.4727 seconds!
+Running settling test!
+50 thousand bodies took 1.49015 seconds!
+500 thousand bodies took 10.9845 seconds!
+1 million bodies took 22.4947 seconds!

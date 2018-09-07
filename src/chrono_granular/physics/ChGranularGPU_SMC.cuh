@@ -375,16 +375,15 @@ primingOperationsRectangularBox(
 }
 
 /// Compute forces on a sphere created by various
-inline __device__ void applyBCForces(const float alpha_h_bar,  //!< Integration step size.
-                                     const int sphXpos,        //!< Global X position of DE
-                                     const int sphYpos,        //!< Global Y position of DE
-                                     const int sphZpos,        //!< Global Z position of DE
-                                     const float sphXvel,      //!< Global X velocity of DE
-                                     const float sphYvel,      //!< Global Y velocity of DE
-                                     const float sphZvel,      //!< Global Z velocity of DE
-                                     float& X_Vel_corr,        //!< Velocity correction in Xdir
-                                     float& Y_Vel_corr,        //!< Velocity correction in Xdir
-                                     float& Z_Vel_corr,        //!< Velocity correction in Xdir
+inline __device__ void applyBCForces(const int sphXpos,    //!< Global X position of DE
+                                     const int sphYpos,    //!< Global Y position of DE
+                                     const int sphZpos,    //!< Global Z position of DE
+                                     const float sphXvel,  //!< Global X velocity of DE
+                                     const float sphYvel,  //!< Global Y velocity of DE
+                                     const float sphZvel,  //!< Global Z velocity of DE
+                                     float& X_force,       //!< Force in Xdir
+                                     float& Y_force,       //!< Force in Ydir
+                                     float& Z_force,       //!< Force in Zdir
                                      ParamsPtr gran_params,
                                      BC_type* bc_type_list,
                                      BC_params_t* bc_params_list,
@@ -410,15 +409,14 @@ inline __device__ void applyBCForces(const float alpha_h_bar,  //!< Integration 
         }
     }
     // perform on-the-fly integration for the moment
-    X_Vel_corr += xforce * alpha_h_bar;
-    Y_Vel_corr += yforce * alpha_h_bar;
-    Z_Vel_corr += zforce * alpha_h_bar;
+    X_force += xforce;
+    Y_force += yforce;
+    Z_force += zforce;
 }
 
 /**
 This device function computes the forces induces by the walls on the box on a sphere
 Input:
-  - alpha_h_bar: the size of the time step
   - sphXpos: X location, measured in the box reference system, of the sphere
   - sphYpos: Y location, measured in the box reference system, of the sphere
   - sphZpos: Z location, measured in the box reference system, of the sphere
@@ -431,16 +429,15 @@ Output:
   - Y_Vel_corr: the Y component of the force, as represented in the box reference system
   - Z_Vel_corr: the Z component of the force, as represented in the box reference system
 */
-inline __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integration step size.
-                                       const int sphXpos,        //!< Global X position of DE
-                                       const int sphYpos,        //!< Global Y position of DE
-                                       const int sphZpos,        //!< Global Z position of DE
-                                       const float sphXvel,      //!< Global X velocity of DE
-                                       const float sphYvel,      //!< Global Y velocity of DE
-                                       const float sphZvel,      //!< Global Z velocity of DE
-                                       float& Xforce,            //!< Velocity correction in Xdir
-                                       float& Yforce,            //!< Velocity correction in Xdir
-                                       float& Zforce,            //!< Velocity correction in Xdir
+inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X position of DE
+                                       const int sphYpos,    //!< Global Y position of DE
+                                       const int sphZpos,    //!< Global Z position of DE
+                                       const float sphXvel,  //!< Global X velocity of DE
+                                       const float sphYvel,  //!< Global Y velocity of DE
+                                       const float sphZvel,  //!< Global Z velocity of DE
+                                       float& Xforce,        //!< Force in Xdir
+                                       float& Yforce,        //!< Force in Ydir
+                                       float& Zforce,        //!< Force in Zdir
                                        ParamsPtr gran_params) {
     // classic radius grab
     const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
@@ -510,72 +507,13 @@ inline __device__ void boxWallsEffects(const float alpha_h_bar,  //!< Integratio
     zcomp += -1 * touchingWall * (sphZvel - gran_params->BD_frame_Z_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
 
     // write back to "return" values
-    Xforce += xcomp * alpha_h_bar;
-    Yforce += ycomp * alpha_h_bar;
-    Zforce += zcomp * alpha_h_bar;
-}
-/**
-This kernel applies the velocity updates computed in computeVelocityUpdates to each sphere. This has to be its own
-kernel since computeVelocityUpdates would otherwise both read and write to the global velocities, an undesirable effect.
-NOTE That this function uses the already-integrated forces, so for forward euler the updates are F * dt
-*/
-template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
-                                             //!< Should be a multiple of 32
-__global__ void applyVelocityUpdates(
-    const float alpha_h_bar,          //!< Value that controls actual step size, not actually needed for this kernel
-    int* d_sphere_pos_X,              //!< Pointer to array containing data related to the
-                                      //!< spheres in the box
-    int* d_sphere_pos_Y,              //!< Pointer to array containing data related to the
-                                      //!< spheres in the box
-    int* d_sphere_pos_Z,              //!< Pointer to array containing data related to the
-                                      //!< spheres in the box
-    float* d_sphere_pos_X_dt_update,  //!< Pointer to array containing data related to
-                                      //!< the spheres in the box
-    float* d_sphere_pos_Y_dt_update,  //!< Pointer to array containing data related to
-                                      //!< the spheres in the box
-    float* d_sphere_pos_Z_dt_update,  //!< Pointer to array containing data related to
-                                      //!< the spheres in the box
-    unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
-                                               //!< SD indicates how many
-                                               //!< spheres touch this SD
-    unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction
-                                               //!< with SD_countsOfSpheresTouching.
-
-    float* d_sphere_pos_X_dt,
-    float* d_sphere_pos_Y_dt,
-    float* d_sphere_pos_Z_dt,
-    ParamsPtr gran_params) {
-    unsigned int thisSD = blockIdx.x;
-    unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
-    unsigned mySphereID;  // Bring in data from global into shmem. Only a subset of threads get to do this.
-    if (threadIdx.x < spheresTouchingThisSD) {
-        // We need int64_ts to index into composite array
-        uint64_t offset_in_composite_Array = ((uint64_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
-        mySphereID = spheres_in_SD_composite[offset_in_composite_Array];
-        unsigned int ownerSD = SDTripletID(pointSDTriplet(d_sphere_pos_X[mySphereID], d_sphere_pos_Y[mySphereID],
-                                                          d_sphere_pos_Z[mySphereID], gran_params),
-                                           gran_params);
-
-        // Each SD applies force updates to the bodies it *owns*, this should happen once for each body
-        if (thisSD == ownerSD) {
-            // Check to see if we messed up badly somewhere
-            if (d_sphere_pos_X_dt_update[mySphereID] == NAN || d_sphere_pos_Y_dt_update[mySphereID] == NAN ||
-                d_sphere_pos_Z_dt_update[mySphereID] == NAN) {
-                ABORTABORTABORT("NAN velocity update computed -- sd is %u, sphere is %u, velXcorr is %f\n", thisSD,
-                                mySphereID, d_sphere_pos_X_dt_update[mySphereID]);
-            }
-            // Probably does not need to be atomic, but no conflicts means it won't be too slow anyways
-            atomicAdd(d_sphere_pos_X_dt + mySphereID, d_sphere_pos_X_dt_update[mySphereID]);
-            atomicAdd(d_sphere_pos_Y_dt + mySphereID, d_sphere_pos_Y_dt_update[mySphereID]);
-            atomicAdd(d_sphere_pos_Z_dt + mySphereID, d_sphere_pos_Z_dt_update[mySphereID]);
-        }
-    }
-    __syncthreads();
+    Xforce += xcomp;
+    Yforce += ycomp;
+    Zforce += zcomp;
 }
 
 /**
-This kernel call figures out forces on a sphere and carries out numerical integration to get the velocity updates of a
-sphere.
+This kernel call figures out forces cuased by sphere-sphere interactions
 
 Template arguments:
   - MAX_NSPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block
@@ -598,31 +536,30 @@ NOTE:
 */
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
-__global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that controls actual step size.
-                                       int* d_sphere_pos_X,      //!< Pointer to array containing data related to the
-                                                                 //!< spheres in the box
-                                       int* d_sphere_pos_Y,      //!< Pointer to array containing data related to the
-                                                                 //!< spheres in the box
-                                       int* d_sphere_pos_Z,      //!< Pointer to array containing data related to the
-                                                                 //!< spheres in the box
-                                       float* d_sphere_pos_X_dt_update,  //!< Pointer to array containing data related
-                                                                         //!< to the spheres in the box
-                                       float* d_sphere_pos_Y_dt_update,  //!< Pointer to array containing data related
-                                                                         //!< to the spheres in the box
-                                       float* d_sphere_pos_Z_dt_update,  //!< Pointer to array containing data related
-                                                                         //!< to the spheres in the box
-                                       unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
-                                                                                  //!< SD indicates how many
-                                                                                  //!< spheres touch this SD
-                                       unsigned int* spheres_in_SD_composite,  //!< Big array that works in conjunction
+__global__ void computeSphereForces(int* d_sphere_pos_X,  //!< Pointer to array containing data related to the
+                                                          //!< spheres in the box
+                                    int* d_sphere_pos_Y,  //!< Pointer to array containing data related to the
+                                                          //!< spheres in the box
+                                    int* d_sphere_pos_Z,  //!< Pointer to array containing data related to the
+                                                          //!< spheres in the box
+                                    float* d_sphere_pos_X_dt_update,  //!< Pointer to array containing data related
+                                                                      //!< to the spheres in the box
+                                    float* d_sphere_pos_Y_dt_update,  //!< Pointer to array containing data related
+                                                                      //!< to the spheres in the box
+                                    float* d_sphere_pos_Z_dt_update,  //!< Pointer to array containing data related
+                                                                      //!< to the spheres in the box
+                                    unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
+                                                                               //!< SD indicates how many
+                                                                               //!< spheres touch this SD
+                                    unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction
                                                                                //!< with SD_countsOfSpheresTouching.
-                                       float* d_sphere_pos_X_dt,
-                                       float* d_sphere_pos_Y_dt,
-                                       float* d_sphere_pos_Z_dt,
-                                       ParamsPtr gran_params,
-                                       BC_type* bc_type_list,
-                                       BC_params_t* bc_params_list,
-                                       unsigned int nBCs) {
+                                    float* d_sphere_pos_X_dt,
+                                    float* d_sphere_pos_Y_dt,
+                                    float* d_sphere_pos_Z_dt,
+                                    ParamsPtr gran_params,
+                                    BC_type* bc_type_list,
+                                    BC_params_t* bc_params_list,
+                                    unsigned int nBCs) {
     // still moar radius grab
     const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
@@ -671,13 +608,12 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
 
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
-        // The update we make to the velocities, it's ok for this to be a float since it should be pretty small anyways,
-        // gets truncated to int very soon
-        float bodyA_X_velCorr = 0.f;
-        float bodyA_Y_velCorr = 0.f;
-        float bodyA_Z_velCorr = 0.f;
+        // Force generated by this contact
+        float bodyA_X_force = 0.f;
+        float bodyA_Y_force = 0.f;
+        float bodyA_Z_force = 0.f;
 
-        float scalingFactor = alpha_h_bar * gran_params->Kn_s2s_SU;
+        float scalingFactor = gran_params->Kn_s2s_SU;
         double sphdiameter = 2. * sphereRadius_SU;
         double invSphDiameter = 1. / sphdiameter;
         unsigned int ownerSD =
@@ -763,8 +699,6 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
 
             // Compute nondim force term
 
-            // These lines use forward euler right now. Each has an alpha_h_bar term but we can use a different
-            // method simply by changing the following computations
             // Compute force updates for spring term
             float springTermX = scalingFactor * deltaX * sphdiameter * penetration;
             float springTermY = scalingFactor * deltaY * sphdiameter * penetration;
@@ -783,12 +717,12 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
 
             constexpr float m_eff = 0.5;
 
-            float dampingTermX = -gran_params->Gamma_n_s2s_SU * deltaX_dot * m_eff * alpha_h_bar;
-            float dampingTermY = -gran_params->Gamma_n_s2s_SU * deltaY_dot * m_eff * alpha_h_bar;
-            float dampingTermZ = -gran_params->Gamma_n_s2s_SU * deltaZ_dot * m_eff * alpha_h_bar;
+            float dampingTermX = -gran_params->Gamma_n_s2s_SU * deltaX_dot * m_eff;
+            float dampingTermY = -gran_params->Gamma_n_s2s_SU * deltaY_dot * m_eff;
+            float dampingTermZ = -gran_params->Gamma_n_s2s_SU * deltaZ_dot * m_eff;
 
             constexpr float sphere_mass = 1.0;
-            float cohesionConstant = sphere_mass * gran_params->gravMag_SU * gran_params->cohesion_ratio * alpha_h_bar;
+            float cohesionConstant = sphere_mass * gran_params->gravMag_SU * gran_params->cohesion_ratio;
 
             // Compute force updates for cohesion term, is opposite the spring term
             float cohesionTermX = -cohesionConstant * deltaX * reciplength;
@@ -796,9 +730,9 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
             float cohesionTermZ = -cohesionConstant * deltaZ * reciplength;
 
             // Add damping term to spring term, write back to counter
-            bodyA_X_velCorr += springTermX + dampingTermX + cohesionTermX;
-            bodyA_Y_velCorr += springTermY + dampingTermY + cohesionTermY;
-            bodyA_Z_velCorr += springTermZ + dampingTermZ + cohesionTermZ;
+            bodyA_X_force += springTermX + dampingTermX + cohesionTermX;
+            bodyA_Y_force += springTermY + dampingTermY + cohesionTermY;
+            bodyA_Z_force += springTermZ + dampingTermZ + cohesionTermZ;
         }
 
         // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
@@ -807,28 +741,30 @@ __global__ void computeVelocityUpdates(const float alpha_h_bar,  //!< Value that
         // most spheres won't be on the border
         if (ownerSD == thisSD) {
             // Perhaps this sphere is hitting the wall[s]
-            boxWallsEffects(alpha_h_bar, sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA],
-                            sphere_Y_DOT[bodyA], sphere_Z_DOT[bodyA], bodyA_X_velCorr, bodyA_Y_velCorr, bodyA_Z_velCorr,
-                            gran_params);
+            boxWallsEffects(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
+                            sphere_Z_DOT[bodyA], bodyA_X_force, bodyA_Y_force, bodyA_Z_force, gran_params);
 
-            applyBCForces(alpha_h_bar, sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA],
-                          sphere_Y_DOT[bodyA], sphere_Z_DOT[bodyA], bodyA_X_velCorr, bodyA_Y_velCorr, bodyA_Z_velCorr,
-                          gran_params, bc_type_list, bc_params_list, nBCs);
+            applyBCForces(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
+                          sphere_Z_DOT[bodyA], bodyA_X_force, bodyA_Y_force, bodyA_Z_force, gran_params, bc_type_list,
+                          bc_params_list, nBCs);
             // If the sphere belongs to this SD, add up the gravitational force component.
 
-            bodyA_X_velCorr += alpha_h_bar * gran_params->gravAcc_X_SU;
-            bodyA_Y_velCorr += alpha_h_bar * gran_params->gravAcc_Y_SU;
-            bodyA_Z_velCorr += alpha_h_bar * gran_params->gravAcc_Z_SU;
+            bodyA_X_force += gran_params->gravAcc_X_SU;
+            bodyA_Y_force += gran_params->gravAcc_Y_SU;
+            bodyA_Z_force += gran_params->gravAcc_Z_SU;
         }
 
-        // Write the velocity updates back to global memory so that we can apply them AFTER this kernel finishes
-        atomicAdd(d_sphere_pos_X_dt_update + mySphereID, bodyA_X_velCorr);
-        atomicAdd(d_sphere_pos_Y_dt_update + mySphereID, bodyA_Y_velCorr);
-        atomicAdd(d_sphere_pos_Z_dt_update + mySphereID, bodyA_Z_velCorr);
+        // Write the force back to global memory so that we can apply them AFTER this kernel finishes
+        atomicAdd(d_sphere_pos_X_dt_update + mySphereID, bodyA_X_force);
+        atomicAdd(d_sphere_pos_Y_dt_update + mySphereID, bodyA_Y_force);
+        atomicAdd(d_sphere_pos_Z_dt_update + mySphereID, bodyA_Z_force);
     }
     __syncthreads();
 }
 
+/**
+ * Numerically integrates force to velocity and velocity to position, then computes the broadphase on the new positions
+ */
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                      //!< Should be a multiple of 32
 __global__ void updatePositions(const float alpha_h_bar,          //!< The numerical integration time step
@@ -894,9 +830,9 @@ __global__ void updatePositions(const float alpha_h_bar,          //!< The numer
         }
 
         // Probably does not need to be atomic, but no conflicts means it won't be too slow anyways
-        atomicAdd(d_sphere_pos_X_dt + mySphereID, d_sphere_pos_X_dt_update[mySphereID]);
-        atomicAdd(d_sphere_pos_Y_dt + mySphereID, d_sphere_pos_Y_dt_update[mySphereID]);
-        atomicAdd(d_sphere_pos_Z_dt + mySphereID, d_sphere_pos_Z_dt_update[mySphereID]);
+        atomicAdd(d_sphere_pos_X_dt + mySphereID, alpha_h_bar * d_sphere_pos_X_dt_update[mySphereID]);
+        atomicAdd(d_sphere_pos_Y_dt + mySphereID, alpha_h_bar * d_sphere_pos_Y_dt_update[mySphereID]);
+        atomicAdd(d_sphere_pos_Z_dt + mySphereID, alpha_h_bar * d_sphere_pos_Z_dt_update[mySphereID]);
     }
     // wait for everyone to finish
     __syncthreads();
