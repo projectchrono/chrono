@@ -536,18 +536,18 @@ NOTE:
 */
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
-__global__ void computeSphereForces(int* d_sphere_pos_X,  //!< Pointer to array containing data related to the
-                                                          //!< spheres in the box
-                                    int* d_sphere_pos_Y,  //!< Pointer to array containing data related to the
-                                                          //!< spheres in the box
-                                    int* d_sphere_pos_Z,  //!< Pointer to array containing data related to the
-                                                          //!< spheres in the box
-                                    float* d_sphere_pos_X_dt_update,  //!< Pointer to array containing data related
-                                                                      //!< to the spheres in the box
-                                    float* d_sphere_pos_Y_dt_update,  //!< Pointer to array containing data related
-                                                                      //!< to the spheres in the box
-                                    float* d_sphere_pos_Z_dt_update,  //!< Pointer to array containing data related
-                                                                      //!< to the spheres in the box
+__global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to array containing data related to the
+                                                              //!< spheres in the box
+                                    int* d_sphere_pos_Y,      //!< Pointer to array containing data related to the
+                                                              //!< spheres in the box
+                                    int* d_sphere_pos_Z,      //!< Pointer to array containing data related to the
+                                                              //!< spheres in the box
+                                    float* d_sphere_force_X,  //!< Pointer to array containing data related
+                                                              //!< to the spheres in the box
+                                    float* d_sphere_force_Y,  //!< Pointer to array containing data related
+                                                              //!< to the spheres in the box
+                                    float* d_sphere_force_Z,  //!< Pointer to array containing data related
+                                                              //!< to the spheres in the box
                                     unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
                                                                                //!< SD indicates how many
                                                                                //!< spheres touch this SD
@@ -755,9 +755,9 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,  //!< Pointer to array 
         }
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes
-        atomicAdd(d_sphere_pos_X_dt_update + mySphereID, bodyA_X_force);
-        atomicAdd(d_sphere_pos_Y_dt_update + mySphereID, bodyA_Y_force);
-        atomicAdd(d_sphere_pos_Z_dt_update + mySphereID, bodyA_Z_force);
+        atomicAdd(d_sphere_force_X + mySphereID, bodyA_X_force);
+        atomicAdd(d_sphere_force_Y + mySphereID, bodyA_Y_force);
+        atomicAdd(d_sphere_force_Z + mySphereID, bodyA_Z_force);
     }
     __syncthreads();
 }
@@ -767,25 +767,31 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,  //!< Pointer to array 
  */
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                      //!< Should be a multiple of 32
-__global__ void updatePositions(const float alpha_h_bar,          //!< The numerical integration time step
-                                int* d_sphere_pos_X,              //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
-                                int* d_sphere_pos_Y,              //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
-                                int* d_sphere_pos_Z,              //!< Pointer to array containing data related to the
-                                                                  //!< spheres in the box
-                                float* d_sphere_pos_X_dt,         //!< Pointer to array containing data related to
-                                                                  //!< the spheres in the box
-                                float* d_sphere_pos_Y_dt,         //!< Pointer to array containing data related to
-                                                                  //!< the spheres in the box
-                                float* d_sphere_pos_Z_dt,         //!< Pointer to array containing data related to
-                                                                  //!< the spheres in the box
-                                float* d_sphere_pos_X_dt_update,  //!< Pointer to array containing data related to
-                                                                  //!< the spheres in the box
-                                float* d_sphere_pos_Y_dt_update,  //!< Pointer to array containing data related to
-                                                                  //!< the spheres in the box
-                                float* d_sphere_pos_Z_dt_update,  //!< Pointer to array containing data related to
-                                                                  //!< the spheres in the box
+__global__ void updatePositions(const float alpha_h_bar,      //!< The numerical integration time step
+                                int* d_sphere_pos_X,          //!< Pointer to array containing data related to the
+                                                              //!< spheres in the box
+                                int* d_sphere_pos_Y,          //!< Pointer to array containing data related to the
+                                                              //!< spheres in the box
+                                int* d_sphere_pos_Z,          //!< Pointer to array containing data related to the
+                                                              //!< spheres in the box
+                                float* d_sphere_pos_X_dt,     //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
+                                float* d_sphere_pos_Y_dt,     //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
+                                float* d_sphere_pos_Z_dt,     //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
+                                float* d_sphere_force_X,      //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
+                                float* d_sphere_force_Y,      //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
+                                float* d_sphere_force_Z,      //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
+                                float* d_sphere_force_X_old,  //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
+                                float* d_sphere_force_Y_old,  //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
+                                float* d_sphere_force_Z_old,  //!< Pointer to array containing data related to
+                                                              //!< the spheres in the box
                                 unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
                                                                            //!< SD indicates how many
                                                                            //!< spheres touch this SD
@@ -794,7 +800,8 @@ __global__ void updatePositions(const float alpha_h_bar,          //!< The numer
                                                                            //!< "spheres_in_SD_composite" says which
                                                                            //!< SD contains what spheres
                                 unsigned int nSpheres,
-                                ParamsPtr gran_params) {
+                                ParamsPtr gran_params,
+                                chrono::granular::GRN_TIME_INTEGRATOR integrator) {
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
@@ -820,27 +827,85 @@ __global__ void updatePositions(const float alpha_h_bar,          //!< The numer
     unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
                                                           NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
                                                           NULL_GRANULAR_ID, NULL_GRANULAR_ID};
+
+    float old_vel_x = 0;
+    float old_vel_y = 0;
+    float old_vel_z = 0;
     // Write back velocity updates
     if (mySphereID < nSpheres) {
         // Check to see if we messed up badly somewhere
-        if (d_sphere_pos_X_dt_update[mySphereID] == NAN || d_sphere_pos_Y_dt_update[mySphereID] == NAN ||
-            d_sphere_pos_Z_dt_update[mySphereID] == NAN) {
-            ABORTABORTABORT("NAN velocity update computed -- sphere is %u, velXcorr is %f\n", mySphereID,
-                            d_sphere_pos_X_dt_update[mySphereID]);
+        if (d_sphere_force_X[mySphereID] == NAN || d_sphere_force_Y[mySphereID] == NAN ||
+            d_sphere_force_Z[mySphereID] == NAN) {
+            ABORTABORTABORT("NAN force computed -- sphere is %u, x force is %f\n", mySphereID,
+                            d_sphere_force_X[mySphereID]);
+        }
+
+        float v_update_x = 0;
+        float v_update_y = 0;
+        float v_update_z = 0;
+
+        old_vel_x = d_sphere_pos_X_dt[mySphereID];
+        old_vel_y = d_sphere_pos_Y_dt[mySphereID];
+        old_vel_z = d_sphere_pos_Z_dt[mySphereID];
+        // no divergence, same for every thread in block
+        switch (integrator) {
+            case chrono::granular::GRN_TIME_INTEGRATOR::FORWARD_EULER: {
+                v_update_x = alpha_h_bar * d_sphere_force_X[mySphereID];
+                v_update_y = alpha_h_bar * d_sphere_force_Y[mySphereID];
+                v_update_z = alpha_h_bar * d_sphere_force_Z[mySphereID];
+                break;
+            }
+            case chrono::granular::GRN_TIME_INTEGRATOR::CHUNG: {
+                float gamma_hat = -.5f;
+                float gamma = 3.f / 2.f;
+                v_update_x =
+                    alpha_h_bar * (d_sphere_force_X[mySphereID] * gamma + d_sphere_force_X_old[mySphereID] * gamma_hat);
+                v_update_y =
+                    alpha_h_bar * (d_sphere_force_Y[mySphereID] * gamma + d_sphere_force_Y_old[mySphereID] * gamma_hat);
+                v_update_z =
+                    alpha_h_bar * (d_sphere_force_Z[mySphereID] * gamma + d_sphere_force_Z_old[mySphereID] * gamma_hat);
+                break;
+            }
         }
 
         // Probably does not need to be atomic, but no conflicts means it won't be too slow anyways
-        atomicAdd(d_sphere_pos_X_dt + mySphereID, alpha_h_bar * d_sphere_pos_X_dt_update[mySphereID]);
-        atomicAdd(d_sphere_pos_Y_dt + mySphereID, alpha_h_bar * d_sphere_pos_Y_dt_update[mySphereID]);
-        atomicAdd(d_sphere_pos_Z_dt + mySphereID, alpha_h_bar * d_sphere_pos_Z_dt_update[mySphereID]);
+        atomicAdd(d_sphere_pos_X_dt + mySphereID, v_update_x);
+        atomicAdd(d_sphere_pos_Y_dt + mySphereID, v_update_y);
+        atomicAdd(d_sphere_pos_Z_dt + mySphereID, v_update_z);
     }
     // wait for everyone to finish
     __syncthreads();
     if (mySphereID < nSpheres) {
+        float position_update_x = 0;
+        float position_update_y = 0;
+        float position_update_z = 0;
+        // no divergence, same for every thread in block
+        switch (integrator) {
+            case chrono::granular::GRN_TIME_INTEGRATOR::FORWARD_EULER: {
+                position_update_x = alpha_h_bar * d_sphere_pos_X_dt[mySphereID];
+                position_update_y = alpha_h_bar * d_sphere_pos_Y_dt[mySphereID];
+                position_update_z = alpha_h_bar * d_sphere_pos_Z_dt[mySphereID];
+                break;
+            }
+            case chrono::granular::GRN_TIME_INTEGRATOR::CHUNG: {
+                float beta = 28.f / 27.f;
+                float beta_hat = .5 - beta;
+                position_update_x =
+                    alpha_h_bar * (old_vel_x + alpha_h_bar * (d_sphere_force_X[mySphereID] * beta +
+                                                              d_sphere_force_X_old[mySphereID] * beta_hat));
+                position_update_y =
+                    alpha_h_bar * (old_vel_y + alpha_h_bar * (d_sphere_force_Y[mySphereID] * beta +
+                                                              d_sphere_force_Y_old[mySphereID] * beta_hat));
+                position_update_z =
+                    alpha_h_bar * (old_vel_z + alpha_h_bar * (d_sphere_force_Z[mySphereID] * beta +
+                                                              d_sphere_force_Z_old[mySphereID] * beta_hat));
+                break;
+            }
+        }
         // Perform numerical integration. For now, use Explicit Euler. Hitting cache, also coalesced.
-        xSphCenter = alpha_h_bar * d_sphere_pos_X_dt[mySphereID];
-        ySphCenter = alpha_h_bar * d_sphere_pos_Y_dt[mySphereID];
-        zSphCenter = alpha_h_bar * d_sphere_pos_Z_dt[mySphereID];
+        xSphCenter = position_update_x;
+        ySphCenter = position_update_y;
+        zSphCenter = position_update_z;
 
         xSphCenter += d_sphere_pos_X[mySphereID];
         d_sphere_pos_X[mySphereID] = xSphCenter;

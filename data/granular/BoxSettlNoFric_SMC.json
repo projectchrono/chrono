@@ -1,10 +1,10 @@
 {
-	"sphere_radius": 1,
+	"sphere_radius": 0.5,
 	"sphere_density": 1.5,
-	"box_X": 40,
-	"box_Y": 40,
-	"box_Z": 12,
-	"step_size": 1e-3,
+	"box_X": 30,
+	"box_Y": 30,
+	"box_Z": 30,
+	"step_size": 1e-4,
 	"time_end": 4,
 	"grav_X": 0,
 	"grav_Y": 0,
@@ -19,6 +19,6 @@
 	"psi_T": 16,
 	"psi_L": 16,
 	"output_dir": "output",
-	"write_mode": "csv"
-	"run_mode" : 1
+	"write_mode": "csv",
+	"run_mode" : 0
 }

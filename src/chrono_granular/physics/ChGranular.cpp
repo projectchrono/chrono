@@ -211,9 +211,15 @@ void ChSystemGranularMonodisperse::generate_DEs() {
     pos_X_dt.resize(nDEs, 0);
     pos_Y_dt.resize(nDEs, 0);
     pos_Z_dt.resize(nDEs, 0);
-    pos_X_dt_update.resize(nDEs, 0);
-    pos_Y_dt_update.resize(nDEs, 0);
-    pos_Z_dt_update.resize(nDEs, 0);
+    sphere_force_X.resize(nDEs, 0);
+    sphere_force_Y.resize(nDEs, 0);
+    sphere_force_Z.resize(nDEs, 0);
+
+    if (time_integrator == GRN_TIME_INTEGRATOR::CHUNG) {
+        sphere_force_X_old.resize(nDEs, 0);
+        sphere_force_Y_old.resize(nDEs, 0);
+        sphere_force_Z_old.resize(nDEs, 0);
+    }
 
     // Copy from array of structs to 3 arrays
     for (unsigned int i = 0; i < nDEs; i++) {

@@ -72,8 +72,8 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setOutputMode(params.write_mode);
 
     settlingExperiment.set_timeStepping(params.step_mode);
+    settlingExperiment.set_timeIntegrator(GRN_TIME_INTEGRATOR::FORWARD_EULER);
     settlingExperiment.set_fixed_stepSize(params.step_size);
-    // settlingExperiment.set_max_adaptive_stepSize(1e-4);
 
     settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
 
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.initialize();
     // settlingExperiment.Create_BC_AABox(hdims, center, false);
     // settlingExperiment.Create_BC_Sphere(center, 3.f, true);
-    settlingExperiment.Create_BC_Cone(center, .7, params.box_Z, center[2] + 2, true);
+    // settlingExperiment.Create_BC_Cone(center, .7, params.box_Z, center[2] + 2, true);
 
     int fps = 100;
     // assume we run for at least one frame

@@ -44,6 +44,8 @@ namespace granular {
 enum GRN_OUTPUT_MODE { CSV, BINARY, NONE };
 // How are we stepping through time?
 enum GRN_TIME_STEPPING { AUTO, FIXED };
+/// How are we integrating w.r.t. time
+enum GRN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG };
 
 class CH_GRANULAR_API ChSystemGranular {
   public:
@@ -72,6 +74,7 @@ class CH_GRANULAR_API ChSystemGranular {
     void set_max_adaptive_stepSize(float size_UU) { max_adaptive_step_UU = size_UU; }
     void set_fixed_stepSize(float size_UU) { fixed_step_UU = size_UU; }
     void set_timeStepping(GRN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
+    void set_timeIntegrator(GRN_TIME_INTEGRATOR new_integrator) { time_integrator = new_integrator; }
 
   protected:
     /// holds the sphere and BD-related params in unified memory
@@ -97,9 +100,14 @@ class CH_GRANULAR_API ChSystemGranular {
     std::vector<float, cudallocator<float>> pos_Y_dt;
     std::vector<float, cudallocator<float>> pos_Z_dt;
 
-    std::vector<float, cudallocator<float>> pos_X_dt_update;
-    std::vector<float, cudallocator<float>> pos_Y_dt_update;
-    std::vector<float, cudallocator<float>> pos_Z_dt_update;
+    std::vector<float, cudallocator<float>> sphere_force_X;
+    std::vector<float, cudallocator<float>> sphere_force_Y;
+    std::vector<float, cudallocator<float>> sphere_force_Z;
+
+    /// used for chung integrator
+    std::vector<float, cudallocator<float>> sphere_force_X_old;
+    std::vector<float, cudallocator<float>> sphere_force_Y_old;
+    std::vector<float, cudallocator<float>> sphere_force_Z_old;
 
     float X_accGrav;  //!< X component of the gravitational acceleration
     float Y_accGrav;  //!< Y component of the gravitational acceleration
@@ -125,7 +133,8 @@ class CH_GRANULAR_API ChSystemGranular {
     /// Array containing the IDs of the spheres stored in the SDs associated with the box
     std::vector<unsigned int, cudallocator<unsigned int>> DEs_in_SD_composite;
 
-    GRN_TIME_STEPPING time_stepping;  //!< Indicates what type of time stepping the simulation employs.
+    GRN_TIME_STEPPING time_stepping;      //!< Indicates what type of time stepping the simulation employs.
+    GRN_TIME_INTEGRATOR time_integrator;  //!< Indicates what type of time integrator the simulation employs.
 
     bool primed = false;  //!< Indicates that the priming step has occurred
 

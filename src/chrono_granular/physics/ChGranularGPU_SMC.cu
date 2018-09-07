@@ -202,10 +202,20 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation()
 }
 // Reset velocity update data structures
 void ChSystemGranularMonodisperse_SMC_Frictionless::resetUpdateInformation() {
-    // reset forces to zero, note that vel update acts as force for forward euler
-    gpuErrchk(cudaMemset(pos_X_dt_update.data(), 0, nDEs * sizeof(float)));
-    gpuErrchk(cudaMemset(pos_Y_dt_update.data(), 0, nDEs * sizeof(float)));
-    gpuErrchk(cudaMemset(pos_Z_dt_update.data(), 0, nDEs * sizeof(float)));
+    // cache past force data
+    if (time_integrator == GRN_TIME_INTEGRATOR::CHUNG) {
+        gpuErrchk(cudaMemcpy(sphere_force_X_old.data(), sphere_force_X.data(), nDEs * sizeof(float),
+                             cudaMemcpyDeviceToDevice));
+        gpuErrchk(cudaMemcpy(sphere_force_Y_old.data(), sphere_force_Y.data(), nDEs * sizeof(float),
+                             cudaMemcpyDeviceToDevice));
+        gpuErrchk(cudaMemcpy(sphere_force_Z_old.data(), sphere_force_Z.data(), nDEs * sizeof(float),
+                             cudaMemcpyDeviceToDevice));
+        gpuErrchk(cudaDeviceSynchronize());
+    }
+    // reset forces to zero
+    gpuErrchk(cudaMemset(sphere_force_X.data(), 0, nDEs * sizeof(float)));
+    gpuErrchk(cudaMemset(sphere_force_Y.data(), 0, nDEs * sizeof(float)));
+    gpuErrchk(cudaMemset(sphere_force_Z.data(), 0, nDEs * sizeof(float)));
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const float stepSize_SU) {
@@ -437,8 +447,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
 
         // Compute sphere-sphere forces
         computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+            pos_X.data(), pos_Y.data(), pos_Z.data(), sphere_force_X.data(), sphere_force_Y.data(),
+            sphere_force_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
             pos_Y_dt.data(), pos_Z_dt.data(), gran_params, BC_type_list.data(), BC_params_list.data(),
             BC_params_list.size());
 
@@ -451,8 +461,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
-            pos_X_dt_update.data(), pos_Y_dt_update.data(), pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(),
-            DEs_in_SD_composite.data(), nDEs, gran_params);
+            sphere_force_X.data(), sphere_force_Y.data(), sphere_force_Z.data(), sphere_force_X_old.data(),
+            sphere_force_Y_old.data(), sphere_force_Z_old.data(), SD_NumOf_DEs_Touching.data(),
+            DEs_in_SD_composite.data(), nDEs, gran_params, time_integrator);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

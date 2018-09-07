@@ -386,9 +386,9 @@ __global__ void interactionTerrain_TriangleSoup(
     float* d_sphere_pos_X_dt,
     float* d_sphere_pos_Y_dt,
     float* d_sphere_pos_Z_dt,
-    float* d_sphere_pos_X_dt_update,
-    float* d_sphere_pos_Y_dt_update,
-    float* d_sphere_pos_Z_dt_update,
+    float* d_sphere_force_X,
+    float* d_sphere_force_Y,
+    float* d_sphere_force_Z,
     unsigned int* BKT_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int* triangles_in_BKT_composite,     //!< Big array that works in conjunction with SD_isTouchingTriangle.
     unsigned int*
@@ -686,9 +686,9 @@ __global__ void interactionTerrain_TriangleSoup(
 
             // Write velocity update for this sphere back to global memory from each lane 0
             if ((threadIdx.x & (warp_size - 1)) == 0) {
-                atomicAdd(d_sphere_pos_X_dt_update + grElemID[sphere_Local_ID], forceActingOnSphere[0]);
-                atomicAdd(d_sphere_pos_Y_dt_update + grElemID[sphere_Local_ID], forceActingOnSphere[1]);
-                atomicAdd(d_sphere_pos_Z_dt_update + grElemID[sphere_Local_ID], forceActingOnSphere[2]);
+                atomicAdd(d_sphere_force_X + grElemID[sphere_Local_ID], forceActingOnSphere[0]);
+                atomicAdd(d_sphere_force_Y + grElemID[sphere_Local_ID], forceActingOnSphere[1]);
+                atomicAdd(d_sphere_force_Z + grElemID[sphere_Local_ID], forceActingOnSphere[2]);
             }
         }                                               // end of valid sphere if
         sphere_Local_ID += nSpheresProcessedAtOneTime;  // go to next set of spheress
@@ -921,8 +921,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
 
         // Compute sphere-sphere forces
         computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-            pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
+            pos_X.data(), pos_Y.data(), pos_Z.data(), sphere_force_X.data(), sphere_force_Y.data(),
+            sphere_force_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
             pos_Y_dt.data(), pos_Z_dt.data(), gran_params, BC_type_list.data(), BC_params_list.data(),
             BC_params_list.size());
 
@@ -946,7 +946,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
                 meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(),
-                pos_Z_dt.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(), pos_Z_dt_update.data(),
+                pos_Z_dt.data(), sphere_force_X.data(), sphere_force_Y.data(), sphere_force_Z.data(),
                 BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
                 SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), SD_isTouchingTriangle.data(), gran_params,
                 tri_params);
@@ -961,8 +961,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
             stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
-            pos_X_dt_update.data(), pos_Y_dt_update.data(), pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(),
-            DEs_in_SD_composite.data(), nDEs, gran_params);
+            sphere_force_X.data(), sphere_force_Y.data(), sphere_force_Z.data(), sphere_force_X_old.data(),
+            sphere_force_Y_old.data(), sphere_force_Z_old.data(), SD_NumOf_DEs_Touching.data(),
+            DEs_in_SD_composite.data(), nDEs, gran_params, time_integrator);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
