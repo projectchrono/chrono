@@ -117,7 +117,6 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         this->objB->ComputeJacobianForContactPart(this->p2, this->contact_plane, Nx.Get_tuple_b(), Tu.Get_tuple_b(),
                                                   Tv.Get_tuple_b(), true);
 
-		
 		if (reactions_cache) {
 			react_force.x() = reactions_cache[0];
 			react_force.y() = reactions_cache[1];
@@ -150,9 +149,12 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         react_force.x() = L(off_L);
         react_force.y() = L(off_L + 1);
         react_force.z() = L(off_L + 2);
-		reactions_cache[0] = (float)L(off_L); //react_force.x();
-		reactions_cache[1] = (float)L(off_L + 1);//react_force.y();
-		reactions_cache[2] = (float)L(off_L + 2);//react_force.z();
+
+        if (reactions_cache) {
+            reactions_cache[0] = (float)L(off_L);      // react_force.x();
+            reactions_cache[1] = (float)L(off_L + 1);  // react_force.y();
+            reactions_cache[2] = (float)L(off_L + 2);  // react_force.z();
+        }
     }
 
     virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    
