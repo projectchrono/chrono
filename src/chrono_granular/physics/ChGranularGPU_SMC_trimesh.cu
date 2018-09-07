@@ -33,31 +33,6 @@ namespace granular {
 typedef const ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
 typedef ChTriangleSoup<float>* TriangleSoupPtr;
 
-/// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
-template <class T, class T3>
-__device__ T3 apply_frame_transform(const T3& point, const T* pos, const T* rot_mat) {
-    T3 result;
-
-    // Apply rotation matrix to point
-    result.x = rot_mat[0] * point.x + rot_mat[1] * point.y + rot_mat[2] * point.z;
-    result.y = rot_mat[3] * point.x + rot_mat[4] * point.y + rot_mat[5] * point.z;
-    result.z = rot_mat[6] * point.x + rot_mat[7] * point.y + rot_mat[8] * point.z;
-
-    // Apply translation
-    result.x += pos[0];
-    result.y += pos[1];
-    result.z += pos[2];
-
-    return result;
-}
-
-template <class T3>
-__device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
-    pos.x /= gran_params->LENGTH_UNIT;
-    pos.y /= gran_params->LENGTH_UNIT;
-    pos.z /= gran_params->LENGTH_UNIT;
-}
-
 /// Takes in a triangle's position in UU and finds out what SDs it touches
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
@@ -404,7 +379,6 @@ be produced to account for the interaction between the said triangle and sphere 
 
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
-    const float alpha_h_bar,
     TriangleSoupPtr d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
     int* d_sphere_pos_X,
     int* d_sphere_pos_Y,
@@ -608,7 +582,7 @@ __global__ void interactionTerrain_TriangleSoup(
                     // If there is a collision, add an impulse to the sphere
                     if (face_sphere_cd(A, B, C, sphCntr, gran_params->sphereRadius_SU, norm, depth, pt1) &&
                         SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD) {
-                        float scalingFactor = alpha_h_bar * mesh_params->Kn_s2m_SU;
+                        float scalingFactor = mesh_params->Kn_s2m_SU;
 
                         // Use the CD information to compute the force on the grElement
                         double deltaX = -depth * norm.x;
@@ -637,14 +611,13 @@ __global__ void interactionTerrain_TriangleSoup(
                         // TODO effective mass based on mesh mass
                         const float m_eff = 0.5;
 
-                        float dampingTermX = -mesh_params->Gamma_n_s2m_SU * deltaX_dot_n * m_eff * alpha_h_bar;
-                        float dampingTermY = -mesh_params->Gamma_n_s2m_SU * deltaY_dot_n * m_eff * alpha_h_bar;
-                        float dampingTermZ = -mesh_params->Gamma_n_s2m_SU * deltaZ_dot_n * m_eff * alpha_h_bar;
+                        float dampingTermX = -mesh_params->Gamma_n_s2m_SU * deltaX_dot_n * m_eff;
+                        float dampingTermY = -mesh_params->Gamma_n_s2m_SU * deltaY_dot_n * m_eff;
+                        float dampingTermZ = -mesh_params->Gamma_n_s2m_SU * deltaZ_dot_n * m_eff;
 
                         // Compute force updates for cohesion term, is opposite the spring term
                         // TODO What to use for the mass being affected by gravity??
-                        float cohesionConstant =
-                            1.0 * gran_params->gravMag_SU * gran_params->cohesion_ratio * alpha_h_bar;
+                        float cohesionConstant = 1.0 * gran_params->gravMag_SU * gran_params->cohesion_ratio;
 
                         // NOTE the cancelation of two negatives
                         float cohesionTermX = cohesionConstant * deltaX / depth;
@@ -652,14 +625,14 @@ __global__ void interactionTerrain_TriangleSoup(
                         float cohesionTermZ = cohesionConstant * deltaZ / depth;
 
                         // Sum contributing forces
-                        float bodyA_X_velCorr = springTermX + dampingTermX + cohesionTermX;
-                        float bodyA_Y_velCorr = springTermY + dampingTermY + cohesionTermY;
-                        float bodyA_Z_velCorr = springTermZ + dampingTermZ + cohesionTermZ;
+                        float bodyA_X_force = springTermX + dampingTermX + cohesionTermX;
+                        float bodyA_Y_force = springTermY + dampingTermY + cohesionTermY;
+                        float bodyA_Z_force = springTermZ + dampingTermZ + cohesionTermZ;
 
                         // Use the CD information to compute the force and torque on the family of this triangle
-                        forceActingOnSphere[0] += bodyA_X_velCorr;
-                        forceActingOnSphere[1] += bodyA_Y_velCorr;
-                        forceActingOnSphere[2] += bodyA_Z_velCorr;
+                        forceActingOnSphere[0] += bodyA_X_force;
+                        forceActingOnSphere[1] += bodyA_Y_force;
+                        forceActingOnSphere[2] += bodyA_Z_force;
 
                         // total force is opposite the triangle normal
                         // force on mesh is total force projected from the contact point on the triangle to mesh center
@@ -672,8 +645,7 @@ __global__ void interactionTerrain_TriangleSoup(
 
                         double3 toCenter = meshCenter - pt1;
                         toCenter = toCenter / Length(toCenter);  // Normalize vector toward center
-                        double3 force_total =
-                            make_double3(-bodyA_X_velCorr, -bodyA_Y_velCorr, -bodyA_Z_velCorr) / alpha_h_bar;
+                        double3 force_total = make_double3(-bodyA_X_force, -bodyA_Y_force, -bodyA_Z_force);
                         double3 force_N = Dot(force_total, toCenter) * toCenter;
 
                         // TODO reorder for register use
@@ -945,13 +917,14 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         resetUpdateInformation();
         resetTriangleBroadphaseInformation();
 
-        VERBOSE_PRINTF("Starting computeVelocityUpdates!\n");
+        VERBOSE_PRINTF("Starting computeSphereForces!\n");
 
-        // Compute forces and crank into vel updates, we have 2 kernels to avoid a race condition
-        computeVelocityUpdates<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
+        // Compute sphere-sphere forces
+        computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
+            pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
             pos_Z_dt_update.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data(), gran_params);
+            pos_Y_dt.data(), pos_Z_dt.data(), gran_params, BC_type_list.data(), BC_params_list.data(),
+            BC_params_list.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -972,9 +945,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
             // TODO please do not use a template here
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-                stepSize_SU, meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(),
-                pos_Y_dt.data(), pos_Z_dt.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(),
-                pos_Z_dt_update.data(), BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
+                meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(),
+                pos_Z_dt.data(), pos_X_dt_update.data(), pos_Y_dt_update.data(), pos_Z_dt_update.data(),
+                BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
                 SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), SD_isTouchingTriangle.data(), gran_params,
                 tri_params);
         }

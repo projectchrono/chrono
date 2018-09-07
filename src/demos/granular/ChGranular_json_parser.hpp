@@ -28,6 +28,7 @@ typedef struct sim_param_holder {
     float normalStiffS2W;
     float normalStiffS2M;
     float normalDampS2S;
+    float normalDampS2W;
     float normalDampS2M;
     float cohesion_ratio;
     bool verbose;
@@ -56,6 +57,7 @@ void ShowJSONUsage() {
     cout << "normalStiffS2W" << endl;
     cout << "normalStiffS2M" << endl;
     cout << "normalDampS2S" << endl;
+    cout << "normalDampS2W" << endl;
     cout << "normalDampS2M" << endl;
     cout << "cohesion_ratio" << endl;
     cout << "verbose" << endl;
@@ -78,7 +80,7 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     FILE* fp = fopen(json_file, "r");
     if (!fp) {
         cout << "Invalid JSON file" << endl;
-		ShowJSONUsage();
+        ShowJSONUsage();
         return false;
     }
 
@@ -146,6 +148,10 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
         params.normalDampS2S = doc["normalDampS2S"].GetDouble();
         cout << "params.normalDampS2S " << params.normalDampS2S << endl;
     }
+    if (doc.HasMember("normalDampS2W") && doc["normalDampS2W"].IsNumber()) {
+        params.normalDampS2W = doc["normalDampS2W"].GetDouble();
+        cout << "params.normalDampS2W " << params.normalDampS2W << endl;
+    }
     if (doc.HasMember("normalDampS2M") && doc["normalDampS2M"].IsNumber()) {
         params.normalDampS2M = doc["normalDampS2M"].GetDouble();
         cout << "params.normalDampS2M " << params.normalDampS2M << endl;
@@ -172,7 +178,7 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     }
     if (doc.HasMember("run_mode") && doc["run_mode"].IsInt()) {
         params.run_mode = doc["run_mode"].GetInt();
-        cout << "params.run_mode " << params.psi_L << endl;
+        cout << "params.run_mode " << params.run_mode << endl;
     }
     GRN_TIME_STEPPING step_mode;
     if (doc.HasMember("step_mode") && doc["step_mode"].IsString()) {

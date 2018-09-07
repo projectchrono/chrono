@@ -42,7 +42,7 @@ std::string output_prefix = "../results";
 // Default values
 float ballRadius = 1.f;
 float ballDensity = 1.50f;
-float timeEnd = 1.f;
+float timeEnd = .25f;
 float grav_acceleration = -980.f;
 float normStiffness_S2S = 1e7f;
 float normStiffness_S2W = 1e7f;
@@ -78,7 +78,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     settlingExperiment.set_BD_Fixed(false);
     settlingExperiment.setVerbose(verbose);
     settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_fixed_stepSize(1e-3);
+    settlingExperiment.set_fixed_stepSize(2.5e-4);
     ChTimer<double> timer;
 
     // Run wavetank experiment and time it

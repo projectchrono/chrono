@@ -25,6 +25,7 @@
 #include "../ChApiGranular.h"
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
+#include "chrono_granular/physics/ChGranularBoundaryConditions.h"
 #include "chrono_granular/utils/ChGranularUtilities.h"
 #include "cudalloc.hpp"
 
@@ -48,44 +49,6 @@ class CH_GRANULAR_API ChSystemGranular {
   public:
     ChSystemGranular();
     virtual ~ChSystemGranular();
-
-    /// Parameters needed for sphere-based granular dynamics
-    struct GranParamsHolder {
-        // Use user-defined quantities for coefficients
-        // TODO we need to get the damping coefficient from user
-        float Gamma_n_s2s_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
-
-        float Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
-        float Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
-
-        unsigned int sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
-        unsigned int SD_size_X_SU;     //!< X-dimension of the SD box, expressed in SU
-        unsigned int SD_size_Y_SU;     //!< Y-dimension of the SD box, expressed in SU
-        unsigned int SD_size_Z_SU;     //!< Z-dimension of the SD box, expressed in SU
-        unsigned int nSDs_X;           //!< X-dimension of the BD box in multiples of subdomains, expressed in SU
-        unsigned int nSDs_Y;           //!< Y-dimension of the BD box in multiples of subdomains, expressed in SU
-        unsigned int nSDs_Z;           //!< Z-dimension of the BD box in multiples of subdomains, expressed in SU
-        float gravAcc_X_SU;            //!< Device counterpart of the constant gravity_X_SU
-        float gravAcc_Y_SU;            //!< Device counterpart of the constant gravity_Y_SU
-        float gravAcc_Z_SU;            //!< Device counterpart of the constant gravity_Z_SU
-        float gravMag_SU;
-
-        // Changed by updateBDPosition() at every timestep
-        int BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-        int BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-        int BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
-
-        unsigned int psi_T;
-        unsigned int psi_h;
-        unsigned int psi_L;
-
-        /// Ratio of cohesion force to gravity
-        float cohesion_ratio;
-
-        double LENGTH_UNIT;  //!< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
-        double TIME_UNIT;    //!< 1 / C_T. Any time quanity in SU is measured as a positive multiple of TIME_UNIT
-        double MASS_UNIT;    //!< 1 / C_M. Any mass quanity is measured as a positive multiple of MASS_UNIT.
-    };
 
     inline unsigned int elementCount() const { return nDEs; }
     inline unsigned int get_SD_count() const { return nSDs; }
@@ -234,7 +197,20 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 
     inline size_t nSpheres() { return nDEs; }
 
+    /// Create an axis-aligned box BC
+    void Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
+
+    /// Create an axis-aligned sphere BC
+    void Create_BC_Sphere(float center[3], float radius, bool outward_normal);
+
+    /// Create an z-axis aligned cone
+    void Create_BC_Cone(float cone_tip[3], float slope, float hmax, float hmin, bool outward_normal);
+
   protected:
+    /// List of generalized BCs that constrain sphere motion
+    std::vector<BC_type, cudallocator<BC_type>> BC_type_list;
+    std::vector<BC_params_t, cudallocator<BC_params_t>> BC_params_list;
+
     const float new_step_freq = .01;
     virtual void determine_new_stepSize_SU();
 
@@ -279,11 +255,11 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
     int BD_frame_X;
     int BD_frame_Y;
     int BD_frame_Z;
-    //
+
     /// The velocity of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
-    int BD_frame_X_dot;
-    int BD_frame_Y_dot;
-    int BD_frame_Z_dot;
+    float BD_frame_X_dot;
+    float BD_frame_Y_dot;
+    float BD_frame_Z_dot;
 
     /// Allow the user to set the BD to be fixed, ignoring any given position functions
     bool BD_is_fixed = true;
@@ -339,16 +315,16 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     virtual void defragment_data();
 
     double K_n_s2s_UU;
-    double K_n_s2s_SU;  /// size of the normal stiffness (SU) for sphere-to-sphere contact
+    float K_n_s2s_SU;  /// size of the normal stiffness (SU) for sphere-to-sphere contact
 
     double K_n_s2w_UU;
-    double K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
+    float K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
 
     double Gamma_n_s2s_UU;
-    double Gamma_n_s2s_SU;
+    float Gamma_n_s2s_SU;
 
     double Gamma_n_s2w_UU;
-    double Gamma_n_s2w_SU;
+    float Gamma_n_s2w_SU;
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;

@@ -22,6 +22,7 @@
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
+#include "chrono_granular/physics/ChGranularBoundaryConditions.h"
 
 namespace chrono {
 namespace granular {
@@ -34,6 +35,83 @@ ChSystemGranular::ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), n
 
 ChSystemGranular::~ChSystemGranular() {
     gpuErrchk(cudaFree(gran_params));
+}
+
+// just a handy helper function
+template <typename T1, typename T2>
+inline T1 convertToPosSU(T2 val, ParamsPtr gran_params) {
+    return val / gran_params->LENGTH_UNIT;
+}
+
+void ChSystemGranularMonodisperse::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
+    BC_params_t p;
+    printf("UU bounds are %f,%f,%f,%f,%f,%f", center[0] + hdims[0], center[1] + hdims[1], center[2] + hdims[2],
+           center[0] - hdims[0], center[1] - hdims[1], center[2] - hdims[2]);
+
+    // Find two corners to describe box
+    p.AABox_params.max_corner.x = convertToPosSU<int, float>(center[0] + hdims[0], gran_params);
+    p.AABox_params.max_corner.y = convertToPosSU<int, float>(center[1] + hdims[1], gran_params);
+    p.AABox_params.max_corner.z = convertToPosSU<int, float>(center[2] + hdims[2], gran_params);
+    p.AABox_params.min_corner.x = convertToPosSU<int, float>(center[0] - hdims[0], gran_params);
+    p.AABox_params.min_corner.y = convertToPosSU<int, float>(center[1] - hdims[1], gran_params);
+    p.AABox_params.min_corner.z = convertToPosSU<int, float>(center[2] - hdims[2], gran_params);
+
+    printf("SU bounds are %d, %d, %d, %d, %d, %d", p.AABox_params.max_corner.x, p.AABox_params.max_corner.y,
+           p.AABox_params.max_corner.z, p.AABox_params.min_corner.x, p.AABox_params.min_corner.y,
+           p.AABox_params.min_corner.z);
+
+    if (outward_normal) {
+        p.AABox_params.normal_sign = 1;
+    } else {
+        // normal is inward, flip force sign
+        p.AABox_params.normal_sign = -1;
+    }
+    BC_type_list.push_back(BC_type::AA_BOX);
+    BC_params_list.push_back(p);
+}
+
+void ChSystemGranularMonodisperse::Create_BC_Sphere(float center[3], float radius, bool outward_normal) {
+    BC_params_t p;
+    // set center, radius, norm
+    p.sphere_params.sphere_center.x = convertToPosSU<int, float>(center[0], gran_params);
+    p.sphere_params.sphere_center.y = convertToPosSU<int, float>(center[1], gran_params);
+    p.sphere_params.sphere_center.z = convertToPosSU<int, float>(center[2], gran_params);
+    p.sphere_params.radius = convertToPosSU<int, float>(radius, gran_params);
+
+    if (outward_normal) {
+        p.sphere_params.normal_sign = 1;
+    } else {
+        // normal is inward, flip force sign
+        p.sphere_params.normal_sign = -1;
+    }
+
+    BC_type_list.push_back(BC_type::SPHERE);
+    BC_params_list.push_back(p);
+}
+
+void ChSystemGranularMonodisperse::Create_BC_Cone(float cone_tip[3],
+                                                  float slope,
+                                                  float hmax,
+                                                  float hmin,
+                                                  bool outward_normal) {
+    BC_params_t p;
+    // set center, radius, norm
+    p.cone_params.cone_tip.x = convertToPosSU<int, float>(cone_tip[0], gran_params);
+    p.cone_params.cone_tip.y = convertToPosSU<int, float>(cone_tip[1], gran_params);
+    p.cone_params.cone_tip.z = convertToPosSU<int, float>(cone_tip[2], gran_params);
+    p.cone_params.hmax = convertToPosSU<int, float>(hmax, gran_params);
+    p.cone_params.hmin = convertToPosSU<int, float>(hmin, gran_params);
+    p.cone_params.slope = slope;
+
+    if (outward_normal) {
+        p.cone_params.normal_sign = 1;
+    } else {
+        // normal is inward, flip force sign
+        p.cone_params.normal_sign = -1;
+    }
+
+    BC_type_list.push_back(BC_type::CONE);
+    BC_params_list.push_back(p);
 }
 
 void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
