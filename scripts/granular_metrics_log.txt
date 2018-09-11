@@ -450,3 +450,15 @@ Running settling test!
 50 thousand bodies took 1.44191 seconds!
 500 thousand bodies took 10.4667 seconds!
 1 million bodies took 21.6277 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 11 Sep 2018 14:05:34 -0500
+commit 0dcb13dca3d1c0808012787c2d8c55e906d4a320 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Sep 11 14:05:18 2018 -0500 Update some trimesh internals for better performance
+Results:
+Running wavetank test!
+50 thousand bodies took 1.41068 seconds!
+500 thousand bodies took 10.324 seconds!
+1 million bodies took 21.6163 seconds!
+Running settling test!
+50 thousand bodies took 1.34125 seconds!
+500 thousand bodies took 10.3409 seconds!
+1 million bodies took 21.01 seconds!

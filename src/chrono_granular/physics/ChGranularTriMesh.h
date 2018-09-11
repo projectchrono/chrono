@@ -32,8 +32,7 @@ namespace granular {
  *
  */
 template <class T>
-class ChTriangleSoup {
-  public:
+struct ChTriangleSoup {
     unsigned int nTrianglesInSoup;    //!< total number of triangles in the soup
     unsigned int nFamiliesInSoup;     //!< indicates how many meshes are squashed together in this soup
     unsigned int* triangleFamily_ID;  //!< each entry says what family that triagnle belongs to; size: nTrianglesInSoup
@@ -67,8 +66,7 @@ class ChTriangleSoup {
 };
 
 template <class T>
-class ChFamilyFrame {
-  public:
+struct ChFamilyFrame {
     T pos[3];
     T rot_mat[9];
 };

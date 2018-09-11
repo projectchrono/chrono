@@ -275,9 +275,6 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
-    gpuErrchk(cudaMemcpy(genForcesOnSoup, meshSoup_DEVICE->generalizedForcesPerFamily,
-                         6 * meshSoup_DEVICE->nFamiliesInSoup * sizeof(float), cudaMemcpyDeviceToHost));
-
     float alpha_k_star = get_max_K();
     float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
     float sphere_mass =
@@ -289,14 +286,17 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedFo
         (alpha_k_star * gran_params->psi_L * gran_params->psi_L) /
         (alpha_g * alpha_g * sphere_mass * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
 
+    // pull directly from unified memory
     for (unsigned int i = 0; i < 6 * meshSoup_DEVICE->nFamiliesInSoup; i += 6) {
-        genForcesOnSoup[i + 0] /= C_F;  // Divide by C_F to go from SU to UU
-        genForcesOnSoup[i + 1] /= C_F;
-        genForcesOnSoup[i + 2] /= C_F;
+        // Divide by C_F to go from SU to UU
+        genForcesOnSoup[i + 0] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 0] / C_F;
+        genForcesOnSoup[i + 1] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 1] / C_F;
+        genForcesOnSoup[i + 2] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 2] / C_F;
 
-        genForcesOnSoup[i + 3] /= C_TAU;  // Divide by C_TAU to go from SU to UU
-        genForcesOnSoup[i + 4] /= C_TAU;
-        genForcesOnSoup[i + 5] /= C_TAU;
+        // Divide by C_TAU to go from SU to UU
+        genForcesOnSoup[i + 3] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 3] / C_TAU;
+        genForcesOnSoup[i + 4] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 4] / C_TAU;
+        genForcesOnSoup[i + 5] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 5] / C_TAU;
     }
 }
 
