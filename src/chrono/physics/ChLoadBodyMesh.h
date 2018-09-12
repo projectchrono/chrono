@@ -99,7 +99,7 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
                                  ChMatrix<>& mM          ///< result dQ/da
                                  ) override;
 
-    virtual bool IsStiff() { return false; }
+    virtual bool IsStiff() override { return false; }
 
     virtual void CreateJacobianMatrices() override;
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;

@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <cstdlib>
 #include <algorithm>
+#include <cstdlib>
 
 #include "chrono/physics/ChMatterSPH.h"
 #include "chrono/physics/ChSystem.h"
@@ -288,7 +288,8 @@ void ChMatterSPH::FillBox(const ChVector<> size,
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector<> pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(), iz * spacing - 0.5 * size.z());
+                ChVector<> pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(),
+                               iz * spacing - 0.5 * size.z());
                 pos += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
                                   mrandomness * ChRandom() * spacing);
                 AddNode(boxcoords.TransformLocalToParent(pos));
@@ -366,7 +367,7 @@ void ChMatterSPH::IntLoadResidual_F(
     const unsigned int off,  // offset in R residual (not used here! use particle's offsets)
     ChVectorDynamic<>& R,    // result: the R residual, R += c*F
     const double c           // a scaling factor
-    ) {
+) {
     // COMPUTE THE SPH FORCES HERE
 
     // First, find if any ChProximityContainerSPH object is present
@@ -374,7 +375,7 @@ void ChMatterSPH::IntLoadResidual_F(
 
     std::shared_ptr<ChProximityContainerSPH> edges;
     for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(otherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(otherphysics)))
             break;
     }
     assert(edges);  // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
@@ -434,7 +435,7 @@ void ChMatterSPH::IntLoadResidual_Mv(const unsigned int off,      // offset in R
                                      ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                      const ChVectorDynamic<>& w,  // the w vector
                                      const double c               // a scaling factor
-                                     ) {
+) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         R(off + 3 * j) += c * nodes[j]->GetMass() * w(off + 3 * j);
         R(off + 3 * j + 1) += c * nodes[j]->GetMass() * w(off + 3 * j + 1);
@@ -480,12 +481,11 @@ void ChMatterSPH::VariablesFbReset() {
 void ChMatterSPH::VariablesFbLoadForces(double factor) {
     // COMPUTE THE SPH FORCES HERE
 
-    // First, find if any ChProximityContainerSPH object is present
-    // in the system,
+    // First, find if any ChProximityContainerSPH object is present in the system
 
     std::shared_ptr<ChProximityContainerSPH> edges;
     for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(otherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerSPH>(otherphysics)))
             break;
     }
     assert(edges);  // If using a ChMatterSPH, you must add also a ChProximityContainerSPH.
