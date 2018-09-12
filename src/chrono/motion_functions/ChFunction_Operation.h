@@ -51,9 +51,7 @@ CH_ENUM_MAPPER_END(eChOperation);
 /// math operation between A and  B operands
 ///   - fa = first operand function
 ///   - fb = second operand function
-
 class ChApi ChFunction_Operation : public ChFunction {
-
   private:
     std::shared_ptr<ChFunction> fa;
     std::shared_ptr<ChFunction> fb;
@@ -83,33 +81,13 @@ class ChApi ChFunction_Operation : public ChFunction {
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Operation>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(fa);
-        marchive << CHNVP(fb);
-        eChOperation_mapper mmapper;
-        marchive << CHNVP(mmapper(op_type), "operation_type");
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Operation>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(fa);
-        marchive >> CHNVP(fb);
-        eChOperation_mapper mmapper;
-        marchive >> CHNVP(mmapper(op_type), "operation_type");
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Operation,0)
+CH_CLASS_VERSION(ChFunction_Operation, 0)
 
 }  // end namespace chrono
 

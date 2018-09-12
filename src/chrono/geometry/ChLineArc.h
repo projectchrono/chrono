@@ -24,9 +24,7 @@ namespace geometry {
 
 /// Geometric object representing an arc or a circle in 3D space.
 /// By default it is evaluated clockwise from angle1 to angle2.
-
 class ChApi ChLineArc : public ChLine {
-
   public:
     ChCoordsys<> origin;    ///< center position and plane of the arc: xy used for plane, z for axis.
     double radius;          ///< arc radius
@@ -51,8 +49,7 @@ class ChApi ChLineArc : public ChLine {
     virtual int Get_complexity() const override { return 2; }
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(ChVector<>& pos,
-                          const double parU) const override;
+    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
 
     /// Returns curve length. sampling does not matter
     double Length(int sampling) const override { return fabs(radius * (angle1 - angle2)); }
@@ -66,37 +63,16 @@ class ChApi ChLineArc : public ChLine {
     // shortcut for setting angle2 in degrees instead than radians
     void SetAngle2deg(double a2) { angle2 = a2 * CH_C_DEG_TO_RAD; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChLineArc>();
-        // serialize parent class
-        ChLine::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(origin);
-        marchive << CHNVP(radius);
-        marchive << CHNVP(angle1);
-        marchive << CHNVP(angle2);
-        marchive << CHNVP(counterclockwise);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChLineArc>();
-        // deserialize parent class
-        ChLine::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(origin);
-        marchive >> CHNVP(radius);
-        marchive >> CHNVP(angle1);
-        marchive >> CHNVP(angle2);
-        marchive >> CHNVP(counterclockwise);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChLineArc,0)
+CH_CLASS_VERSION(geometry::ChLineArc, 0)
 
 }  // end namespace chrono
 

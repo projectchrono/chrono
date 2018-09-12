@@ -38,7 +38,6 @@ class ChTag;
 
 /// Base class for items which can be named, deleted, copied. etc. as in the editor of a 3d modeler.
 class ChApi ChObj {
-
   private:
     std::string name;  ///< name of object
     int identifier;    ///< object identifier
@@ -86,18 +85,17 @@ class ChApi ChObj {
     void MFlagSetOFF(int& mflag, int mask) { mflag &= ~mask; }
     int MFlagGet(int& mflag, int mask) { return (mflag & mask); }
 
-    /// Method to allow serialization of transient data in archives.
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
-    // Method to allow mnemonic names in (de)serialization of containers (std::vector, arrays, etc.) 
-    virtual std::string& ArchiveContainerName() {return name;}
+    // Method to allow mnemonic names in (de)serialization of containers (std::vector, arrays, etc.)
+    virtual std::string& ArchiveContainerName() { return name; }
 };
 
-CH_CLASS_VERSION(ChObj,0)
-
+CH_CLASS_VERSION(ChObj, 0)
 
 // Functions to manipulate STL containers of ChObj objects
 

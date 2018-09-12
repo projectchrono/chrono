@@ -115,4 +115,26 @@ double ChFunction_Recorder::Get_y_dxdx(double x) const {
     return ChFunction::Get_y_dxdx(x);
 }
 
+void ChFunction_Recorder::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Recorder>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data: copy to vector and store
+    std::vector<ChRecPoint> tmpvect{std::begin(m_points), std::end(m_points)};
+    marchive << CHNVP(tmpvect);
+}
+
+void ChFunction_Recorder::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Recorder>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data: load vector of points and copy to list
+    std::vector<ChRecPoint> tmpvect;
+    marchive >> CHNVP(tmpvect);
+    m_points.clear();
+    std::copy(tmpvect.begin(), tmpvect.end(), std::back_inserter(m_points));
+}
+
 }  // end namespace chrono

@@ -21,9 +21,7 @@ namespace chrono {
 namespace geometry {
 
 /// A conical geometric object for collisions and visualization.
-
 class ChApi ChCone : public ChGeometry {
-
   public:
     ChVector<> center;  ///< base center
     ChVector<> rad;     ///< cone radius
@@ -58,31 +56,16 @@ class ChApi ChCone : public ChGeometry {
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChCone>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChCone>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChCone,0)
+CH_CLASS_VERSION(geometry::ChCone, 0)
 
 }  // end namespace chrono
 

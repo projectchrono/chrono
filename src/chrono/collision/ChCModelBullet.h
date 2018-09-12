@@ -33,11 +33,8 @@ namespace collision {
 
 class ChConvexDecomposition;
 
-///  A wrapper to use the Bullet collision detection
-///  library
-
+///  A wrapper to use the Bullet collision detection  library
 class ChApi ChModelBullet : public ChCollisionModel {
-
   protected:
     // The Bullet collision object containing Bullet geometries
     btCollisionObject* bt_collision_object;
@@ -247,12 +244,12 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// This is an alternative way of specifying the collision family for this
     /// object.  The value family_group must have a single bit set (i.e. it must
     /// be a power of 2). The corresponding family is then the bit position.
-    virtual void SetFamilyGroup(short group);
+    virtual void SetFamilyGroup(short int group) override;
 
     /// Set the collision mask for this model.
     /// Any set bit in the specified mask indicates that this model collides with
     /// all objects whose family is equal to the bit position.
-    virtual void SetFamilyMask(short mask);
+    virtual void SetFamilyMask(short int mask) override;
 
     /// Returns the axis aligned bounding box (AABB) of the collision model,
     /// i.e. max-min along the x,y,z world axes. Remember that SyncPosition()
@@ -268,19 +265,11 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// It can also change the outward envelope; the inward margin is automatically the radius of the sphere.
     bool SetSphereRadius(double coll_radius, double out_envelope);
 
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
-
-    //
-    // CUSTOM BULLET
-    //
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     /// Return the pointer to the Bullet model
     btCollisionObject* GetBulletModel() { return this->bt_collision_object; }

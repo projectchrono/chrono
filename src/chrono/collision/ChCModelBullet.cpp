@@ -36,8 +36,7 @@ namespace chrono {
 
 namespace collision {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChModelBullet)
 
 

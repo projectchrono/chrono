@@ -18,10 +18,8 @@
 namespace chrono {
 namespace collision {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
-
+// Register into the object factory, to enable run-time dynamic creation and persistence
+// CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
 
 static double default_model_envelope = 0.03;
 static double default_safe_margin = 0.01;
@@ -147,6 +145,24 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
         this->AddConvexHull(ptlist, pos, rot);
     ptlist.clear();
     return true;
+}
+
+void ChCollisionModel::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCollisionModel>();
+
+    // serialize all member data:
+    marchive << CHNVP(model_envelope);
+    marchive << CHNVP(model_safe_margin);
+}
+
+void ChCollisionModel::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChCollisionModel>();
+
+    // stream in all member data:
+    marchive >> CHNVP(model_envelope);
+    marchive >> CHNVP(model_safe_margin);
 }
 
 }  // end namespace collision

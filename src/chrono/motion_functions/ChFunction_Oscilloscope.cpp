@@ -79,4 +79,30 @@ double ChFunction_Oscilloscope::Get_y(double x) const {
     return y;
 }
 
+void ChFunction_Oscilloscope::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Oscilloscope>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(values);
+    marchive << CHNVP(end_x);
+    marchive << CHNVP(dx);
+    marchive << CHNVP(max_amount);
+    marchive << CHNVP(amount);
+}
+
+void ChFunction_Oscilloscope::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Oscilloscope>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(values);
+    marchive >> CHNVP(end_x);
+    marchive >> CHNVP(dx);
+    marchive >> CHNVP(max_amount);
+    marchive >> CHNVP(amount);
+}
+
 }  // end namespace chrono

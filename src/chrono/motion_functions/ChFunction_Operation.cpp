@@ -94,4 +94,28 @@ void ChFunction_Operation::Estimate_x_range(double& xmin, double& xmax) const {
     xmax = ChMax(amax, bmax);
 }
 
+void ChFunction_Operation::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Operation>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(fa);
+    marchive << CHNVP(fb);
+    eChOperation_mapper mmapper;
+    marchive << CHNVP(mmapper(op_type), "operation_type");
+}
+
+void ChFunction_Operation::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Operation>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(fa);
+    marchive >> CHNVP(fb);
+    eChOperation_mapper mmapper;
+    marchive >> CHNVP(mmapper(op_type), "operation_type");
+}
+
 }  // end namespace chrono

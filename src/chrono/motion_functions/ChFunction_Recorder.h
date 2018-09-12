@@ -15,8 +15,8 @@
 #ifndef CHFUNCT_RECORDER_H
 #define CHFUNCT_RECORDER_H
 
-#include <list>
 #include <iterator>
+#include <list>
 
 #include "chrono/motion_functions/ChFunction_Base.h"
 
@@ -48,9 +48,7 @@ class ChApi ChRecPoint {
 ///
 /// y = interpolation of array of (x,y) data,
 ///     where (x,y) points can be inserted randomly.
-
 class ChApi ChFunction_Recorder : public ChFunction {
-
   private:
     std::list<ChRecPoint> m_points;  ///< the list of points
     mutable std::list<ChRecPoint>::const_iterator m_last;
@@ -81,31 +79,13 @@ class ChApi ChFunction_Recorder : public ChFunction {
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Recorder>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data: copy to vector and store
-        std::vector<ChRecPoint> tmpvect{std::begin(m_points), std::end(m_points)};
-        marchive << CHNVP(tmpvect);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Recorder>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data: load vector of points and copy to list
-        std::vector<ChRecPoint> tmpvect;
-        marchive >> CHNVP(tmpvect);
-        m_points.clear();
-        std::copy(tmpvect.begin(), tmpvect.end(), std::back_inserter(m_points));
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Recorder,0)
+CH_CLASS_VERSION(ChFunction_Recorder, 0)
 
 }  // end namespace chrono
 

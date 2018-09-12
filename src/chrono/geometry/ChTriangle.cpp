@@ -185,5 +185,27 @@ double ChTriangle::PointLineDistance(ChVector<>& p, ChVector<>& dA, ChVector<>& 
     return mdist;
 }
 
+void ChTriangle::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChTriangle>();
+    // serialize parent class
+    ChGeometry::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(p1);
+    marchive << CHNVP(p2);
+    marchive << CHNVP(p3);
+}
+
+void ChTriangle::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChTriangle>();
+    // deserialize parent class
+    ChGeometry::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(p1);
+    marchive >> CHNVP(p2);
+    marchive >> CHNVP(p3);
+}
+
 }  // end namespace geometry
 }  // end namespace chrono

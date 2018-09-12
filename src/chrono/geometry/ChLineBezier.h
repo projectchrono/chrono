@@ -29,7 +29,6 @@ namespace geometry {
 
 /// Geometric object representing a piecewise cubic Bezier curve in 3D.
 class ChApi ChLineBezier : public ChLine {
-
   public:
     ChLineBezier() {}
     ChLineBezier(std::shared_ptr<ChBezierCurve> path);
@@ -46,27 +45,13 @@ class ChApi ChLineBezier : public ChLine {
     virtual void Set_complexity(int mc) override {}
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(ChVector<>& pos,
-                          const double parU) const override;
+    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChLineBezier>();
-        // serialize parent class
-        ChLine::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(m_path);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChLineBezier>();
-        // deserialize parent class
-        ChLine::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(m_path);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
     std::shared_ptr<ChBezierCurve> m_path;  ///< handle to a Bezier curve
@@ -74,7 +59,7 @@ class ChApi ChLineBezier : public ChLine {
 
 }  // end of namespace geometry
 
-CH_CLASS_VERSION(geometry::ChLineBezier,0)
+CH_CLASS_VERSION(geometry::ChLineBezier, 0)
 
 }  // end of namespace chrono
 

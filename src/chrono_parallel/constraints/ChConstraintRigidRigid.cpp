@@ -234,15 +234,15 @@ void ChConstraintRigidRigid::Setup(ChParallelDataManager* dm) {
             icontact.eff_radius = data_manager->host_data.erad_rigid_rigid[i];
 
             ChMaterialCompositeNSC mat;
-            mat.static_friction = mu_sliding;
-            mat.sliding_friction = mu_sliding;
-            mat.rolling_friction = mu_rolling;
-            mat.spinning_friction = mu_spinning;
-            mat.cohesion = coh;
-            mat.compliance = compliance_normal;
-            mat.complianceT = compliance_sliding;
-            mat.complianceRoll = compliance_rolling;
-            mat.complianceSpin = compliance_spinning;
+            mat.static_friction = static_cast<float>(mu_sliding);
+            mat.sliding_friction = static_cast<float>(mu_sliding);
+            mat.rolling_friction = static_cast<float>(mu_rolling);
+            mat.spinning_friction = static_cast<float>(mu_spinning);
+            mat.cohesion = static_cast<float>(coh);
+            mat.compliance = static_cast<float>(compliance_normal);
+            mat.complianceT = static_cast<float>(compliance_sliding);
+            mat.complianceRoll = static_cast<float>(compliance_rolling);
+            mat.complianceSpin = static_cast<float>(compliance_spinning);
             mat.restitution = 0;
             mat.dampingf = 0;
 

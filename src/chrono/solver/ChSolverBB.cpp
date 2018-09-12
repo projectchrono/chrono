@@ -20,15 +20,15 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSolverBB)
 
 double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                         ) {
+) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
     // If stiffness blocks are used, the Schur complement cannot be esily
     // used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
     //***TODO*** Solve_SupportingStiffness() was not working. Is there a way to make this working? probably not..
-//    if (sysd.GetKblocksList().size() > 0)
-//        return this->Solve_SupportingStiffness(sysd);
+    //    if (sysd.GetKblocksList().size() > 0)
+    //        return this->Solve_SupportingStiffness(sysd);
 
     // Tuning of the spectral gradient search
     double a_min = 1e-13;
@@ -45,7 +45,6 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
     bool do_BB2 = false;
     double neg_BB1_fallback = 0.11;
     double neg_BB2_fallback = 0.12;
-
 
     int i_friction_comp = 0;
     tot_iterations = 0;
@@ -367,14 +366,14 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-
 double ChSolverBB::Solve_SupportingStiffness(
     ChSystemDescriptor& sysd  ///< system description with constraints and variables
-    ) {
-
+) {
     //***TODO*** Solve_SupportingStiffness() was not working. Is there a way to make this working? probably not..
     //***DEPRECATED***
-    throw ChException("ChSolverBB::Solve_SupportingStiffness() is not yet working. Do NOT use BarzilaiBorwein solver if you have stiffness matrices.");
+    throw ChException(
+        "ChSolverBB::Solve_SupportingStiffness() is not yet working. Do NOT use BarzilaiBorwein solver if you have "
+        "stiffness matrices.");
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
@@ -670,6 +669,28 @@ double ChSolverBB::Solve_SupportingStiffness(
         GetLog() << "-----\n";
 
     return lastgoodres;
+}
+
+void ChSolverBB::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChSolverBB>();
+    // serialize parent class
+    ChIterativeSolver::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(n_armijo);
+    marchive << CHNVP(max_armijo_backtrace);
+    marchive << CHNVP(diag_preconditioning);
+}
+
+void ChSolverBB::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChSolverBB>();
+    // deserialize parent class
+    ChIterativeSolver::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(n_armijo);
+    marchive >> CHNVP(max_armijo_backtrace);
+    marchive >> CHNVP(diag_preconditioning);
 }
 
 }  // end namespace chrono

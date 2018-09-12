@@ -21,9 +21,7 @@ namespace chrono {
 namespace geometry {
 
 /// A cylindrical geometric object for collisions and visualization.
-
 class ChApi ChCylinder : public ChGeometry {
-
   public:
     ChVector<> p1;  ///< center of first base
     ChVector<> p2;  ///< center of second base
@@ -55,31 +53,16 @@ class ChApi ChCylinder : public ChGeometry {
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChCylinder>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(p1);
-        marchive << CHNVP(p2);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChCylinder>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(p1);
-        marchive >> CHNVP(p2);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChCylinder,0)
+CH_CLASS_VERSION(geometry::ChCylinder, 0)
 
 }  // end namespace chrono
 

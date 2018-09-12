@@ -21,9 +21,7 @@ namespace chrono {
 namespace geometry {
 
 /// A rounded cylinder (sphere-swept cylinder) geometric object for collision and visualization.
-
 class ChApi ChRoundedCylinder : public ChGeometry {
-
   public:
     ChVector<> center;  ///< cylinder center
     double rad;         ///< cylinder radius
@@ -60,35 +58,16 @@ class ChApi ChRoundedCylinder : public ChGeometry {
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChRoundedCylinder>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
-        marchive << CHNVP(hlen);
-        marchive << CHNVP(radsphere);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChRoundedCylinder>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
-        marchive >> CHNVP(hlen);
-        marchive >> CHNVP(radsphere);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChRoundedCylinder,0)
+CH_CLASS_VERSION(geometry::ChRoundedCylinder, 0)
 
 }  // end namespace chrono
 

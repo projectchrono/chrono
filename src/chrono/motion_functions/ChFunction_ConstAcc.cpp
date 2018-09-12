@@ -101,4 +101,28 @@ double ChFunction_ConstAcc::Get_Cv() const {
     return 2 * (end) / (end - av * end + aw * end);
 }
 
+void ChFunction_ConstAcc::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_ConstAcc>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(h);
+    marchive << CHNVP(end);
+    marchive << CHNVP(aw);
+    marchive << CHNVP(av);
+}
+
+void ChFunction_ConstAcc::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_ConstAcc>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(h);
+    marchive >> CHNVP(end);
+    marchive >> CHNVP(aw);
+    marchive >> CHNVP(av);
+}
+
 }  // end namespace chrono

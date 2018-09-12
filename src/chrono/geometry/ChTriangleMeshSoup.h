@@ -23,11 +23,8 @@ namespace chrono {
 namespace geometry {
 
 /// A basic triangle mesh: just a list of triangles (no edge connectivity info).
-
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
-
   private:
-
     std::vector<ChTriangle> m_triangles;  ///< triangle list
 
   public:
@@ -63,30 +60,16 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
 
     virtual GeometryType GetClassType() const override { return TRIANGLEMESH_SOUP; }
 
-    /// Method to allow de serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChTriangleMeshSoup>();
-        // serialize parent class
-        ChTriangleMesh::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(m_triangles);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChTriangleMeshSoup>();
-        // deserialize parent class
-        ChTriangleMesh::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(m_triangles);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChTriangleMeshSoup,0)
+CH_CLASS_VERSION(geometry::ChTriangleMeshSoup, 0)
 
 }  // end namespace chrono
 

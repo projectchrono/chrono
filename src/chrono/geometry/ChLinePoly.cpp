@@ -92,7 +92,6 @@ double ChLinePoly::Length(int sampling) const {
 }
 
 // Draw into the current graph viewport of a ChFile_ps file
-
 bool ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
     ChVector2<> mp1;
     ChVector<> mv1;
@@ -120,6 +119,26 @@ bool ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_inte
     mfle->GrRestore();    // restore old modes, with old clipping
 
     return true;
+}
+
+void ChLinePoly::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChLinePoly>();
+    // serialize parent class
+    ChLine::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(points);
+    marchive << CHNVP(degree);
+}
+
+void ChLinePoly::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChLinePoly>();
+    // deserialize parent class
+    ChLine::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(points);
+    marchive >> CHNVP(degree);
 }
 
 }  // end namespace geometry

@@ -19,20 +19,38 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunction_Setpoint)
 
-
 void ChFunction_Setpoint::SetSetpoint(double setpoint, double x) {
     Y = setpoint;
     if (x > this->last_x) {
-      
-        double dx = x-last_x;
-        Y_dx = ( Y - last_Y ) / dx;
+        double dx = x - last_x;
+        Y_dx = (Y - last_Y) / dx;
         Y_dxdx = (Y_dx - last_Y_dx) / dx;
-
     }
     last_x = x;
     last_Y = Y;
     last_Y_dx = Y_dx;
 }
 
+void ChFunction_Setpoint::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Setpoint>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(Y);
+    marchive << CHNVP(Y_dx);
+    marchive << CHNVP(Y_dxdx);
+}
+
+void ChFunction_Setpoint::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Setpoint>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(Y);
+    marchive >> CHNVP(Y_dx);
+    marchive >> CHNVP(Y_dxdx);
+}
 
 }  // end namespace chrono

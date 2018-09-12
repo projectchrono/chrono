@@ -26,7 +26,6 @@ namespace chrono {
 /// Mask structure for N scalar constraint equations between two bodies.
 
 class ChApi ChLinkMask {
-
   protected:
     std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraint states
 
@@ -101,27 +100,20 @@ class ChApi ChLinkMask {
     /// off (broken) at once, because marked as 'broken'. Return n.of changed.
     int SetAllBroken(bool mdis);
 
-    //
-    // STREAMING
-    //
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow deserialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-CH_CLASS_VERSION(ChLinkMask,0)
-
+CH_CLASS_VERSION(ChLinkMask, 0)
 
 // -----------------------------------------------------------------------------
 
 /// Specialized ChLinkMask class, for constraint equations of
 /// the ChLinkLock link.
-
 class ChApi ChLinkMaskLF : public ChLinkMask {
-
   public:
     /// Create a ChLinkMaskLF which has 7 scalar constraints of
     /// class ChConstraintTwoBodies(). This is useful in case it must
@@ -152,8 +144,7 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChLinkMaskLF,0)
-
+CH_CLASS_VERSION(ChLinkMaskLF, 0)
 
 }  // end namespace chrono
 

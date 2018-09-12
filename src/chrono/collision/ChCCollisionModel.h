@@ -27,7 +27,6 @@ namespace chrono {
 // forward references
 class ChPhysicsItem;
 
-
 namespace collision {
 /// Shape types that can be created.
 enum ShapeType {
@@ -47,15 +46,11 @@ enum ShapeType {
     TETRAHEDRON   // Currently implemented in parallel only
 };
 
-///
 /// Class containing the geometric model ready for collision detection.
 /// Each rigid body will have a ChCollisionModel.
 /// A ChCollisionModel will contain all the geometric description(s)
 /// of the shape of the rigid body, for collision purposes.
-///
-
 class ChApi ChCollisionModel {
-
   public:
     ChCollisionModel();
 
@@ -165,9 +160,9 @@ class ChApi ChCollisionModel {
         const geometry::ChTriangleMesh& trimesh,  ///< the triangle mesh
         bool is_static,  ///< true only if model doesn't move (es.a terrain). May improve performance
         bool is_convex,  ///< true if mesh convex hull is used (only for simple mesh). May improve robustness
-        const ChVector<>& pos = ChVector<>(),      ///< displacement respect to COG (optional)
+        const ChVector<>& pos = ChVector<>(),       ///< displacement respect to COG (optional)
         const ChMatrix33<>& rot = ChMatrix33<>(1),  ///< the rotation of the mesh - matrix must be orthogonal
-        double sphereswept_thickness = 0.0      ///< optional: outward sphereswept layer (when supported)
+        double sphereswept_thickness = 0.0          ///< optional: outward sphereswept layer (when supported)
         ) = 0;
 
     /// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
@@ -189,21 +184,26 @@ class ChApi ChCollisionModel {
     /// that defines a 2D collision shape that will collide with another 2D line of the same type
     /// if aligned on the same plane. This is useful for mechanisms that work on a plane, and that
     /// require more precise collision that is not possible with current 3D shapes. For example,
-    /// the line can contain concave or convex round fillets. 
-    /// Requirements: 
+    /// the line can contain concave or convex round fillets.
+    /// Requirements:
     /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
     /// - the line must contain only ChLineSegment and ChLineArc sub-lines
     /// - the sublines must follow in the proper order, with coincident corners, and must be closed.
     virtual bool Add2Dpath(geometry::ChLinePath& mpath,
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
-                           const double thickness = 0.001) { return true; };
+                           const double thickness = 0.001) {
+        return true;
+    };
 
     /// Add a point-like sphere, that will collide with other geometries,
     /// but won't ever create contacts between them.
-    virtual bool AddPoint(  double radius = 0,                     ///< the radius of the node 
-                            const ChVector<>& pos = ChVector<>()   ///< the position of the node in model coordinates
-                           ) { this->AddSphere(radius,pos); return true;}
+    virtual bool AddPoint(double radius = 0,                    ///< the radius of the node
+                          const ChVector<>& pos = ChVector<>()  ///< the position of the node in model coordinates
+    ) {
+        this->AddSphere(radius, pos);
+        return true;
+    }
 
     /// Add all shapes already contained in another model.
     /// If possible, child classes implement this so that underlying shapes are
@@ -219,25 +219,24 @@ class ChApi ChCollisionModel {
                                         const ChMatrix33<>& rot = ChMatrix33<>(1));
 
     // OTHER FUNCTIONS
-    //
 
-    /// Gets the pointer to the contactable object 
-    ChContactable* GetContactable() {return mcontactable;}
+    /// Gets the pointer to the contactable object
+    ChContactable* GetContactable() { return mcontactable; }
 
     /// Sets the pointer to the contactable object.
     /// A derived class may override this, but should always invoke this base class implementation.
-    virtual void SetContactable(ChContactable* mc) { mcontactable = mc;}
+    virtual void SetContactable(ChContactable* mc) { mcontactable = mc; }
 
     /// Gets the pointer to the client owner ChPhysicsItem.
     /// Default: just casts GetContactable(). Just for backward compatibility.
     /// It might return null if contactable not inherited by  ChPhysicsItem.
     /// ***TODO*** remove the need of ChPhysicsItem*, just use ChContactable* in all code
-    virtual ChPhysicsItem* GetPhysicsItem(); 
+    virtual ChPhysicsItem* GetPhysicsItem();
 
     /// Sets the position and orientation of the collision
     /// model as the rigid body current position.
-    /// By default it uses GetCsysForCollisionModel 
-    virtual void SyncPosition() =0;
+    /// By default it uses GetCsysForCollisionModel
+    virtual void SyncPosition() = 0;
 
     /// By default, all collision objects belong to family n.0,
     /// but you can set family in range 0..15. This is used when
@@ -274,6 +273,7 @@ class ChApi ChCollisionModel {
     /// The collision family of this model is the position of the single set bit
     /// in the return value.
     virtual short int GetFamilyGroup() const { return family_group; }
+
     /// Set the collision family group of this model.
     /// This is an alternative way of specifying the collision family for this
     /// object.  The value family_group must have a single bit set (i.e. it must
@@ -284,14 +284,13 @@ class ChApi ChCollisionModel {
     /// Each bit of the return value indicates whether this model collides with
     /// the corresponding family (bit set) or not (bit unset).
     virtual short int GetFamilyMask() const { return family_mask; }
+
     /// Set the collision mask for this model.
     /// Any set bit in the specified mask indicates that this model collides with
     /// all objects whose family is equal to the bit position.
     virtual void SetFamilyMask(short int mask);
 
-
     // TOLERANCES, ENVELOPES, THRESHOLDS
-    //
 
     /// Sets the suggested collision 'inward safe margin' for the
     /// shapes to be added from now on, using the AddBox,
@@ -346,32 +345,11 @@ class ChApi ChCollisionModel {
     /// MUST be implemented by child classes!
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const = 0;
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChCollisionModel>();
-
-        // serialize all member data:
-        marchive << CHNVP(model_envelope);
-        marchive << CHNVP(model_safe_margin);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChCollisionModel>();
-
-        // stream in all member data:
-        marchive >> CHNVP(model_envelope);
-        marchive >> CHNVP(model_safe_margin);
-    }
-
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
   protected:
     virtual float GetSuggestedFullMargin() { return model_envelope + model_safe_margin; }
@@ -392,7 +370,7 @@ class ChApi ChCollisionModel {
 
 }  // end namespace collision
 
-CH_CLASS_VERSION(collision::ChCollisionModel,0)
+CH_CLASS_VERSION(collision::ChCollisionModel, 0)
 
 }  // end namespace chrono
 

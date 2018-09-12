@@ -15,16 +15,16 @@
 #ifndef CHFUNCT_BASE_H
 #define CHFUNCT_BASE_H
 
+#include <memory.h>
+#include <cfloat>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
-#include <cmath>
-#include <cfloat>
-#include <memory.h>
 #include <list>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
 #include "chrono/core/ChFilePS.h"
+#include "chrono/core/ChMath.h"
 
 namespace chrono {
 
@@ -44,7 +44,6 @@ namespace chrono {
 /// Get_y() method, in order to represent more complex functions.
 
 class ChApi ChFunction {
-
   public:
     /// Enumeration of function types.
     enum FunctionType {
@@ -122,7 +121,7 @@ class ChApi ChFunction {
     virtual double Get_y_dN(double x, int derivate) const;
 
     /// Update could be implemented by children classes, ex. to launch callbacks
-    virtual void Update(const double x) {};
+    virtual void Update(const double x) {}
 
     //
     // Some analysis functions. If derivate=0, they are applied on y(x), if derivate =1, on dy/dx, etc.
@@ -157,7 +156,7 @@ class ChApi ChFunction {
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow deserialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
     /// Plot function in graph space of the ChFile_ps postscript file
@@ -173,7 +172,7 @@ class ChApi ChFunction {
 
 /// @} chrono_functions
 
-CH_CLASS_VERSION(ChFunction,0)
+CH_CLASS_VERSION(ChFunction, 0)
 
 }  // end namespace chrono
 

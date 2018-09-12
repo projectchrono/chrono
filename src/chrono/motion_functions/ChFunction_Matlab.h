@@ -20,9 +20,7 @@
 namespace chrono {
 
 /// Matlab function: y = matlab evaluation of function y=f(x)
-
 class ChApi ChFunction_Matlab : public ChFunction {
-
   private:
     static const int CHF_MATLAB_STRING_LEN = 200;
     char mat_command[CHF_MATLAB_STRING_LEN];  ///< matlab command
@@ -44,29 +42,14 @@ class ChApi ChFunction_Matlab : public ChFunction {
     void Set_Command(const char* m_command) { strcpy(mat_command, m_command); }
     const char* Get_Command() const { return mat_command; }
 
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Matlab>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(mat_command);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Matlab>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(mat_command);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Matlab,0)
+CH_CLASS_VERSION(ChFunction_Matlab, 0)
 
 }  // end namespace chrono
 
