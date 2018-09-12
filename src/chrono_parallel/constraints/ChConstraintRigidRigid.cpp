@@ -47,6 +47,8 @@ void ChConstraintRigidRigid::func_Project_normal(int index, const vec2* ids, con
             gamma[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
             gamma[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
             break;
+        default:
+            break;
     }
 }
 

@@ -81,6 +81,9 @@ int main(int argc, char* argv[]) {
                 track_assembly = assembly;
                 break;
             }
+            default:
+                GetLog() << "Track type NOT supported\n";
+                break;
         }
 
         rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::NSC);
