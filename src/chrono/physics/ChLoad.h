@@ -268,17 +268,6 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
     virtual int LoadGet_field_ncoords() override;
 
-    /// Compute Q, the generalized load.
-    /// Called automatically at each Update().
-    /// NOTE: The computed Q must be stored in this->load_Q.
-    /// NOTE: Given that multiple ChLoadable objects are referenced here, their sub-forces Q are
-    /// assumed appended in sequence in the "load_Q" vector, in the same order that has been
-    /// used in the std::vector "mloadables" at ChLoadCustomMultiple creation.
-    /// MUST BE IMPLEMENTED BY CHILDREN CLASSES!!!
-    virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
-                          ChStateDelta* state_w  ///< state speed to evaluate Q
-                          ) = 0;
-
     /// Compute jacobians (default fallback).
     /// Compute the K=-dQ/dx, R=-dQ/dv , M=-dQ/da jacobians.
     /// Uses a numerical differentiation for computing K, R, M jacobians, if stiff load.

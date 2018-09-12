@@ -57,7 +57,7 @@ class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
     double GetAngleOffset() { return rot_offset; }
 
     /// Get the current actuator reaction torque [Nm]
-    virtual double GetMotorTorque() const { return -this->react_torque.z(); }
+    virtual double GetMotorTorque() const override { return -this->react_torque.z(); }
 
     void Update(double mytime, bool update_assets) override;
 

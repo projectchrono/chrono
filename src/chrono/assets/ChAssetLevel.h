@@ -54,7 +54,7 @@ class ChApi ChAssetLevel : public ChAsset {
     /// Updates all children assets, if any. Overrides default behaviour that does nothing.
     /// Note that when calls Update() on children assets, their 'coords' will be the result
     /// of concatenating this frame csys and 'coords'.
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
