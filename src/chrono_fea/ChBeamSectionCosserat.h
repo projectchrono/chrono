@@ -608,23 +608,19 @@ public:
 	// Populate a vector with the appropriate ChBeamSectionPlasticity data structures.
 	// Children classes may override this. By default uses ChBeamMaterialInternalData for basic plasticity.
 	// Thanks to unique_ptr there is no need to call delete for the pointed objects.
-	virtual void CreatePlasticityData(
-		int numpoints,
-		std::vector< std::unique_ptr<ChBeamMaterialInternalData> >& plastic_data
-	) {
-		plastic_data.resize(numpoints);
-		for (int i = 0; i < numpoints; ++i) {
-			plastic_data[i] = std::unique_ptr<ChBeamMaterialInternalData>(new ChInternalDataLumpedCosserat());
-		}
-	};
+    virtual void CreatePlasticityData(int numpoints,
+                                      std::vector<std::unique_ptr<ChBeamMaterialInternalData>>& plastic_data) override {
+        plastic_data.resize(numpoints);
+        for (int i = 0; i < numpoints; ++i) {
+            plastic_data[i] = std::unique_ptr<ChBeamMaterialInternalData>(new ChInternalDataLumpedCosserat());
+        }
+    }
 
+    virtual void SetAsRectangularSection(double width_y, double width_z) override {}
 
-	virtual void SetAsRectangularSection(double width_y, double width_z) override {};
+    virtual void SetAsCircularSection(double diameter) override {}
 
-	virtual void SetAsCircularSection(double diameter) override {};
-
-
-	std::shared_ptr<ChFunction> n_yeld_x; // sigma_y(p_strain_acc)
+    std::shared_ptr<ChFunction> n_yeld_x; // sigma_y(p_strain_acc)
 	std::shared_ptr<ChFunction> n_beta_x; // beta(p_strain_acc)
 	std::shared_ptr<ChFunction> n_yeld_y; // sigma_y(p_strain_acc)
 	std::shared_ptr<ChFunction> n_beta_y; // beta(p_strain_acc)

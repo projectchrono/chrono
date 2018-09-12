@@ -778,11 +778,11 @@ class  ChElementBeamIGA :   public ChElementBeam,
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
 
-	virtual void EleDoIntegration() {
+	virtual void EleDoIntegration() override {
 		for (size_t i = 0; i < this->plastic_data.size(); ++i) {
 			this->plastic_data_old[i]->Copy(*this->plastic_data[i]);
 		}
-	};
+	}
 
     //
     // Functions for ChLoadable interface
