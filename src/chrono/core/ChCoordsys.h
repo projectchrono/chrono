@@ -10,11 +10,13 @@
 //
 // =============================================================================
 
+#pragma once
 #ifndef CHCOORDSYS_H
 #define CHCOORDSYS_H
 
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChMatrix33.h"
 
 namespace chrono {
 
@@ -60,55 +62,18 @@ class ChCoordsys {
         rot.Q_from_AngAxis(alpha, mu);
     };
 
-	// Construct from triad.  Origin, xdir-origin defines x direction, ydir-origin lies in x-y plane (not co-linear with x-origin).
-	explicit ChCoordsys(const ChVector<Real>& origin, const ChVector<Real>& xdir, const ChVector<Real>& ydir) {
-		ChVector<Real> ux, uy, uz;
-
-		// Get orthonormal vectors from points provided
-		ux = xdir - origin;
+	// Construct from triad.  P, Q-P defines x direction, R-P lies in x-y plane (not co-linear with Q-P).
+	explicit ChCoordsys(const ChVector<Real>& P, const ChVector<Real>& Q, const ChVector<Real>& R) {
+		ChVector<Real> ux = Q - P;
 		ux.Normalize();
-		uz = ux % (ydir - origin);
+		ChVector<Real> uz = ux % (R - P);
 		uz.Normalize();
-		uy = uz % ux;
-		uy.Normalize();
+		ChVector<Real> uy = uz % ux;
 
-		Real R[3][3];
-		R[0][0] = ux.x(); R[0][1] = uy.x(); R[0][2] = uz.x();
-		R[1][0] = ux.y(); R[1][1] = uy.y(); R[1][2] = uz.y();
-		R[2][0] = ux.z(); R[2][1] = uy.z(); R[2][2] = uz.z();
-
-		Real e[4];
-
-		Real trace = R[0][0] + R[1][1] + R[2][2];
-
-		if (trace >= 0) {
-			// Rotation angle is not close to pi
-			Real s = (Real)sqrt(1 + trace) * 2;
-			e[0] = s / 4;
-			e[1] = (R[1][2] - R[2][1]) / s;
-			e[2] = (R[2][0] - R[0][2]) / s;
-			e[3] = (R[0][1] - R[1][0]) / s;
-		}
-		else
-		{
-			// Rotation angle is close to pi
-			// See: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-			int i0 = getMaxIdx(R[0][0], R[1][1], R[2][2]);
-			int i1 = (i0 + 1) % 3;
-			int i2 = (i1 + 1) % 3;
-			Real s = (Real)sqrt(1 + R[i0][i0] - R[i1][i1] - R[i2][i2]) * 2;
-			e[0] = (R[i2][i1] - R[i1][i2]) / s;
-			e[i0 + 1] = s / 4;
-			e[i1 + 1] = (R[i0][i1] + R[i1][i0]) / s;
-			e[i2 + 1] = (R[i0][i2] + R[i2][i0]) / s;
-		}
-		pos.Set(origin);
-		rot.Set(e[0], e[1], e[2], e[3]);
-	}
-	static int getMaxIdx(Real x0, Real x1, Real x2) {
-		if (x0 >= x1 && x0 >= x2) return 0;
-		else if (x1 >= x2) return 1;
-		else return 2;
+		ChMatrix33<Real> R;
+		R.Set_A_axis(ux, uy, uz);
+		rot = R.Get_A_quaternion();
+		pos = P;
 	}
 
     /// Copy constructor

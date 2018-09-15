@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
-
+#pragma once
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 

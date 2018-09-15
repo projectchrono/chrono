@@ -144,6 +144,8 @@ class ChMatrixNM : public ChMatrix<Real> {
         return result;
     }
 
+	// Josh was here :) 
+
     /// Multiplies this matrix by a scalar value
     /// Performance warning: a new object is created.
     ChMatrixNM<Real, preall_rows, preall_columns> operator*(const Real factor) const {

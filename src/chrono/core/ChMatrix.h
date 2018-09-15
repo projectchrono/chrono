@@ -12,8 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHMATRIX_H
-#define CHMATRIX_H
+#pragma once
 
 #include <immintrin.h>
 
@@ -1194,4 +1193,3 @@ class ChMatrix {
 
 }  // end namespace chrono
 
-#endif
