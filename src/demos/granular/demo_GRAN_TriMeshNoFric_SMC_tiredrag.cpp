@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     mesh_scalings.push_back(scaling);
     sim_param_holder params;
     // Some of the default values might be overwritten by user via command line
-    if (argc != 2 || ParseJSON(argv[1], params)) {
+    if (argc != 2 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }

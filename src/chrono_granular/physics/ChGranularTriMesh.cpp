@@ -263,14 +263,12 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
 
     if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->generalizedForcesPerFamily,
-                                    6 * meshSoup_DEVICE->nFamiliesInSoup * sizeof(float), cudaMemAttachGlobal));
+                                    6 * MAX_TRIANGLE_FAMILIES * sizeof(float), cudaMemAttachGlobal));
         // Allocate memory for the float and double frames
-        gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_broad,
-                                    meshSoup_DEVICE->nFamiliesInSoup * sizeof(ChFamilyFrame<float>),
+        gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_broad, MAX_TRIANGLE_FAMILIES * sizeof(ChFamilyFrame<float>),
                                     cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_narrow,
-                                    meshSoup_DEVICE->nFamiliesInSoup * sizeof(ChFamilyFrame<double>),
-                                    cudaMemAttachGlobal));
+                                    MAX_TRIANGLE_FAMILIES * sizeof(ChFamilyFrame<double>), cudaMemAttachGlobal));
     }
 }
 

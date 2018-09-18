@@ -200,8 +200,8 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation()
     gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
                          MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 }
-// Reset velocity update data structures
-void ChSystemGranularMonodisperse_SMC_Frictionless::resetUpdateInformation() {
+// Reset sphere-sphere force data structures
+void ChSystemGranularMonodisperse_SMC_Frictionless::resetSphereForces() {
     // cache past force data
     if (time_integrator == GRN_TIME_INTEGRATOR::CHUNG) {
         gpuErrchk(cudaMemcpy(sphere_force_X_old.data(), sphere_force_X.data(), nDEs * sizeof(float),
@@ -441,7 +441,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
         if (!BD_is_fixed) {
             updateBDPosition(stepSize_SU);  // TODO current time
         }
-        resetUpdateInformation();
+        resetSphereForces();
 
         VERBOSE_PRINTF("Starting computeSphereForces!\n");
 

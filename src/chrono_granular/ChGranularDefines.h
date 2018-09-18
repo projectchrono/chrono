@@ -39,7 +39,8 @@
 /// Value that controls the time unit. It is like a safety factor.
 #define PSI_T_DEFAULT 16
 /// Max number of SDs that a mesh triangle can touch. Note that it can touch an equal number of buckets
-#define MAX_SDs_TOUCHED_BY_TRIANGLE 8
+#define MAX_SDs_TOUCHED_BY_TRIANGLE 32
+#define MAX_TRIANGLE_FAMILIES 4
 /// The number of buckets used to host the triangles that touch a subset of SDs. If memory was not an issue, we'd
 /// have as many an buckets as SD and one bucket would handle one SD. Yet this would lead to a lot of wasted memory
 /// since most SDs have no triangles touching them. As such, the idea is to group a number of SDs associated with a
@@ -50,7 +51,7 @@
 /// bucket. This number is not the amount of memory, rather the max number of triangles we anticipate to see in a
 /// bucket. Note that if TRIANGLE_BUCKET_COUNT is small, a lot of SDs will send their triangles to the same bucket,
 /// which means that MAX_TRIANGLE_COUNT_PER_BUCKET should be cranked up.
-#define MAX_TRIANGLE_COUNT_PER_BUCKET 256
+#define MAX_TRIANGLE_COUNT_PER_BUCKET 512
 /// Number of threads in a block when that number is allowed to vary.
 #define CUDA_THREADS_PER_BLOCK 128
 

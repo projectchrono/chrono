@@ -62,7 +62,7 @@ struct ChTriangleSoup {
     float* node3_ZDOT;  //!< Z velocity in global reference frame of node 3
 
     float* generalizedForcesPerFamily;  //!< Generalized forces acting on each family. Expressed
-                                        //!< in the global reference frame. Size: 6 * TRIANGLE_FAMILIES.
+                                        //!< in the global reference frame. Size: 6 * MAX_TRIANGLE_FAMILIES.
 };
 
 template <class T>
@@ -135,14 +135,15 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     double Gamma_n_s2m_UU;
     double Gamma_n_s2m_SU;
 
+    /// Number of triangles touching each bucket
     std::vector<unsigned int, cudallocator<unsigned int>> BUCKET_countsOfTrianglesTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_BUCKET_composite;
-    std::vector<unsigned int, cudallocator<unsigned int>>
-        SD_isTouchingTriangle;  // Entry is nonzero if the corresponding SD is touched by at least one triangle
-
+    // Number of triangles touching each SD
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_isTouchingTriangle;
     // Function members
     void copy_triangle_data_to_device();
     void resetTriangleBroadphaseInformation();
+    void resetTriangleForces();
 
     void setupTriMesh_DEVICE(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
                              unsigned int nTriangles);

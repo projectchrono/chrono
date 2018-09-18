@@ -29,6 +29,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 #include "ChGranular_json_parser.hpp"
 

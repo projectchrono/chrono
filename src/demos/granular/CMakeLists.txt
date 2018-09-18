@@ -28,7 +28,8 @@ SET(DEMOS
     demo_GRAN_PoiseuilleCylSMC
     demo_GRAN_TriMeshNoFric_SMC
 	demo_GRAN_TriMeshNoFric_SMC_tiredrag
-	demo_GRAN_TriMeshNoFric_SMC_ballcosim
+  demo_GRAN_TriMeshNoFric_SMC_ballcosim
+	demo_GRAN_TriMeshNoFric_SMC_robosimian
     test_gran_milwave
     test_gran_milsettle
 	utest_GRAN_TriMeshNoFric_SMC_boxroll
