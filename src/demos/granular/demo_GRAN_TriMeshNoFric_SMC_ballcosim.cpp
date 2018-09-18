@@ -59,7 +59,19 @@ int main(int argc, char* argv[]) {
     scaling.x = 10;
     scaling.y = 10;
     scaling.z = 10;
-    mesh_scalings.push_back(scaling);
+
+    // starting positions of mesh-based balls
+    std::vector<ChVector<double>> ball_positions;
+    ball_positions.push_back({0, 0, scaling.z});
+    unsigned int num_mesh_balls = ball_positions.size();
+
+    // add mesh to granular system
+    for (unsigned int i = 0; i < num_mesh_balls; i++) {
+        mesh_scalings.push_back(scaling);
+    }
+    for (unsigned int i = 0; i < num_mesh_balls; i++) {
+        mesh_filenames.push_back(mesh_filename);
+    }
 
     sim_param_holder params;
     // Some of the default values might be overwritten by user via command line
@@ -67,8 +79,6 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-
-    mesh_filenames.push_back(mesh_filename);
 
     // Setup granular simulation
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys_gran(params.sphere_radius, params.sphere_density);
@@ -81,7 +91,7 @@ int main(int argc, char* argv[]) {
     auto points = sampler.SampleBox(pos, hdims);
     m_sys_gran.setParticlePositions(points);
 
-    m_sys_gran.set_BD_Fixed(false);
+    m_sys_gran.set_BD_Fixed(true);
     std::function<double(double)> pos_func_still = [](double t) { return -0.5; };
     std::function<double(double)> pos_func_wave = [](double t) {
         double t0 = 0.5;
@@ -128,50 +138,77 @@ int main(int argc, char* argv[]) {
     m_sys_ball.Set_G_acc(ChVector<>(0, 0, -980));
 
     double ball_radius = scaling.z;
-    double ball_density = params.sphere_density / 50;
+    double ball_density = params.sphere_density / 20;
     double ball_mass = 4 * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3;
 
-    // ChMatrix33<double> inertia;
-    ChVector<double> start_pos(0, 0, scaling.z);
+    // 2/5 M R^2
+    double inertia = 2. / 5. * ball_mass * ball_radius * ball_radius;
 
-    std::shared_ptr<ChBody> ball(m_sys_ball.NewBody());
-    ball->SetMass(ball_mass);
-    // ball->SetInertia(inertia); // TODO inertia
-    ball->SetPos(start_pos);
-
-    m_sys_ball.AddBody(ball);
+    std::vector<std::shared_ptr<ChBody>> chrono_bodies;
+    for (unsigned int i = 0; i < num_mesh_balls; i++) {
+        std::shared_ptr<ChBody> ball(m_sys_ball.NewBody());
+        ball->SetMass(ball_mass);
+        ball->SetInertiaXX(ChVector<>(inertia, inertia, inertia));
+        ball->SetPos(ball_positions[i]);
+        m_sys_ball.AddBody(ball);
+        // add to list to keep track of
+        chrono_bodies.push_back(ball);
+    }
     unsigned int out_fps = 50;
     unsigned int out_steps = 1 / (out_fps * iteration_step);
 
     cout << "out_steps " << out_steps << endl;
     unsigned int curr_step = 0;
     for (float t = 0; t < params.time_end; t += iteration_step, curr_step++) {
-        auto ball_pos = ball->GetPos();
-        auto ball_rot = ball->GetRot();
+        for (unsigned int i = 0; i < num_mesh_balls; i++) {
+            std::shared_ptr<ChBody> ball = chrono_bodies[i];
+            auto ball_pos = ball->GetPos();
+            auto ball_rot = ball->GetRot();
 
-        meshSoupLocOri[0] = ball_pos.x();
-        meshSoupLocOri[1] = ball_pos.y();
-        meshSoupLocOri[2] = ball_pos.z();
-        meshSoupLocOri[3] = ball_rot[0];
-        meshSoupLocOri[4] = ball_rot[1];
-        meshSoupLocOri[5] = ball_rot[2];
-        meshSoupLocOri[6] = ball_rot[3];
+            unsigned int body_family_offset = i * 7;
 
+            meshSoupLocOri[body_family_offset + 0] = ball_pos.x();
+            meshSoupLocOri[body_family_offset + 1] = ball_pos.y();
+            meshSoupLocOri[body_family_offset + 2] = ball_pos.z();
+            meshSoupLocOri[body_family_offset + 3] = ball_rot[0];
+            meshSoupLocOri[body_family_offset + 4] = ball_rot[1];
+            meshSoupLocOri[body_family_offset + 5] = ball_rot[2];
+            meshSoupLocOri[body_family_offset + 6] = ball_rot[3];
+        }
         m_sys_gran.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
 
         m_sys_gran.advance_simulation(iteration_step);
         if (currframe >= 30) {
-            // Apply forces to the ball for the duration of the iteration
-            float ball_force[6];
+            float ball_force[6 * num_mesh_balls];
             m_sys_gran.collectGeneralizedForcesOnMeshSoup(ball_force);
-            ball->Accumulate_force(ChVector<>(ball_force[0], ball_force[1], ball_force[2]), ball_pos, false);
-            // ball->Accumulate_torque(ChVector<>(ball_force[3], ball_force[4], ball_force[5]), false);
+            // Apply forces to the ball for the duration of the iteration
+            for (unsigned int i = 0; i < num_mesh_balls; i++) {
+                std::shared_ptr<ChBody> ball = chrono_bodies[i];
+
+                auto ball_pos = ball->GetPos();
+                auto ball_rot = ball->GetRot();
+
+                unsigned int body_family_offset = i * 6;
+
+                ball->Accumulate_force(
+                    ChVector<>(ball_force[body_family_offset + 0], ball_force[body_family_offset + 1],
+                               ball_force[body_family_offset + 2]),
+                    ball_pos, false);
+                ball->Accumulate_torque(
+                    ChVector<>(ball_force[body_family_offset + 3], ball_force[body_family_offset + 4], ball_force[5]),
+                    false);
+            }
+
             // cout << "pos(" << ball_pos.x() << ", " << ball_pos.y() << ", " << ball_pos.z() << ") " << endl;
             // cout << "force (" << ball_force[0] << ", " << ball_force[1] << ", " << ball_force[2] << "); torque ("
             //      << ball_force[3] << ", " << ball_force[4] << ", " << ball_force[5] << ")" << endl;
-            m_sys_ball.DoStepDynamics(iteration_step);
 
-            ball->Empty_forces_accumulators();
+            m_sys_ball.DoStepDynamics(iteration_step);
+            // empty forces on each ball
+            for (unsigned int i = 0; i < num_mesh_balls; i++) {
+                std::shared_ptr<ChBody> ball = chrono_bodies[i];
+                ball->Empty_forces_accumulators();
+            }
         }
         if (curr_step % out_steps == 0) {
             cout << "Rendering frame " << currframe << endl;

@@ -71,11 +71,11 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setOutputDirectory(params.output_dir);
     settlingExperiment.setOutputMode(params.write_mode);
 
-    settlingExperiment.set_timeStepping(params.step_mode);
+    settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
     settlingExperiment.set_timeIntegrator(GRN_TIME_INTEGRATOR::FORWARD_EULER);
     settlingExperiment.set_fixed_stepSize(params.step_size);
 
-    settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+    settlingExperiment.setFillBounds(-1.f, 1.f, .5f, 1.f, -1.f, 1.f);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
 
@@ -125,14 +125,14 @@ int main(int argc, char* argv[]) {
     }
 
     float hdims[3] = {2.f, 2.f, 2.f};
-    float center[3] = {0.f, 0.f, -10.f};
+    float center[3] = {0.f, 0.f, -params.box_Z / 2};
 
     settlingExperiment.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
     settlingExperiment.initialize();
     // settlingExperiment.Create_BC_AABox(hdims, center, false);
     // settlingExperiment.Create_BC_Sphere(center, 3.f, true);
-    // settlingExperiment.Create_BC_Cone(center, .7, params.box_Z, center[2] + 2, true);
+    settlingExperiment.Create_BC_Cone(center, .7, params.box_Z, center[2] + 2, true);
 
     int fps = 100;
     // assume we run for at least one frame

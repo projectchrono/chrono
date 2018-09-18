@@ -13,6 +13,7 @@
 	"normalStiffS2W": 1e7,
 	"normalStiffS2M": 1e7,
 	"normalDampS2S": 6e3,
+	"normalDampS2W": 6e3,
 	"normalDampS2M": 6e3,
 	"cohesion_ratio": 0,
 	"verbose": false,
