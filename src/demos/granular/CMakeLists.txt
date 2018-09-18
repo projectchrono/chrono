@@ -5,17 +5,17 @@
 INCLUDE_DIRECTORIES(${CH_GRANULAR_INCLUDES})
 
 SET(LIBRARIES
-    ChronoEngine
-    ChronoEngine_granular
+		ChronoEngine
+		ChronoEngine_granular
 )
 
 IF(ENABLE_MODULE_OPENGL)
-    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+		INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
+		SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
 
-    IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-       SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-    ENDIF()
+		IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+			 SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+		ENDIF()
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -24,15 +24,14 @@ ENDIF()
 
 # Programs that can work with or without OpenGL
 SET(DEMOS
-    demo_GRAN_BoxSettlNoFric_SMC
-    demo_GRAN_PoiseuilleCylSMC
-    demo_GRAN_TriMeshNoFric_SMC
-	demo_GRAN_TriMeshNoFric_SMC_tiredrag
-  demo_GRAN_TriMeshNoFric_SMC_ballcosim
-	demo_GRAN_TriMeshNoFric_SMC_robosimian
-    test_gran_milwave
-    test_gran_milsettle
-	utest_GRAN_TriMeshNoFric_SMC_boxroll
+		demo_GRAN_BoxSettlNoFric_SMC
+		demo_GRAN_PoiseuilleCylSMC
+		demo_GRAN_TriMeshNoFric_SMC
+		demo_GRAN_TriMeshNoFric_SMC_tiredrag
+		demo_GRAN_TriMeshNoFric_SMC_ballcosim
+		test_gran_milwave
+		test_gran_milsettle
+		utest_GRAN_TriMeshNoFric_SMC_boxroll
 )
 
 # ------------------------------------------------------------------------------
@@ -42,21 +41,21 @@ SET(DEMOS
 MESSAGE(STATUS "Demo programs for GRANULAR module...")
 
 FOREACH(PROGRAM ${DEMOS})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+		MESSAGE(STATUS "...add ${PROGRAM}")
 
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+		ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+		SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
 
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-    )
+		SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+				FOLDER demos
+				COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}"
+				LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+		)
 
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+		TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+		ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+		INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
 ENDFOREACH(PROGRAM)
 
