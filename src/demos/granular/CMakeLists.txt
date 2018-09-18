@@ -1,6 +1,7 @@
 # ------------------------------------------------------------------------------
 # Additional include paths and libraries
 # ------------------------------------------------------------------------------
+ADD_SUBDIRECTORY(robosimian)
 
 INCLUDE_DIRECTORIES(${CH_GRANULAR_INCLUDES})
 
@@ -8,15 +9,6 @@ SET(LIBRARIES
 		ChronoEngine
 		ChronoEngine_granular
 )
-
-IF(ENABLE_MODULE_OPENGL)
-		INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-		SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
-
-		IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-			 SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-		ENDIF()
-ENDIF()
 
 # ------------------------------------------------------------------------------
 # List of all executables
@@ -59,5 +51,4 @@ FOREACH(PROGRAM ${DEMOS})
 
 ENDFOREACH(PROGRAM)
 
-ADD_SUBDIRECTORY(robosimian)
 

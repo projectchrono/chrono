@@ -31,7 +31,7 @@
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "ChGranular_json_parser.hpp"
+#include "../ChGranular_json_parser.hpp"
 
 using namespace chrono;
 using namespace chrono::granular;

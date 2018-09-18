@@ -1,11 +1,11 @@
 # Test programs for RoboSimian simulation
 # ------------------------------------------------------------------------------
-
-if(NOT ENABLE_MODULE_PARALLEL OR NOT ENABLE_MODULE_VEHICLE)
+# MESSAGE(WARNING "HERE!!!!")
+if(NOT ENABLE_MODULE_VEHICLE)
   return()
 endif()
 
-if(NOT ENABLE_MODULE_IRRLICHT OR NOT ENABLE_MODULE_OPENGL)
+if(NOT ENABLE_MODULE_IRRLICHT)
   return()
 endif()
 
@@ -13,9 +13,8 @@ endif()
 # Additional include paths and libraries
 # ------------------------------------------------------------------------------
 
-include_directories(${CH_PARALLEL_INCLUDES})
 include_directories(${CH_IRRLICHTINC})
-include_directories(${CH_OPENGL_INCLUDES})
+include_directories(${CH_GRANULAR_INCLUDES})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
@@ -30,15 +29,22 @@ set(PROGRAMS
 set(MODEL_FILES
     robosimian.h
     robosimian.cpp
-    granular.h
-    granular.cpp
+    # granular.h
+    # granular.cpp
+)
+
+SET(LIBRARIES
+    ChronoEngine
+    ChronoEngine_vehicle
+    ChronoEngine_irrlicht
+    ChronoEngine_granular
 )
 
 # ------------------------------------------------------------------------------
 # Add all executables
 # ------------------------------------------------------------------------------
 
-message(STATUS "Test programs for RoboSimian...")
+message(STATUS "Test programs for GRANULAR RoboSimian...")
 
 foreach(PROGRAM ${PROGRAMS})
     message(STATUS "...add ${PROGRAM}")
@@ -48,16 +54,13 @@ foreach(PROGRAM ${PROGRAMS})
 
     set_target_properties(${PROGRAM} PROPERTIES
         FOLDER tests
-        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}"
     )
 
-    target_link_libraries(${PROGRAM}
-                          ChronoEngine
-                          ChronoEngine_parallel
-                          ChronoEngine_vehicle
-                          ChronoEngine_irrlicht
-                          ChronoEngine_opengl)
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
+		ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+                          
 
 endforeach(PROGRAM)
 

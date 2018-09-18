@@ -498,3 +498,15 @@ Running settling test!
 50 thousand bodies took 1.36415 seconds!
 500 thousand bodies took 10.3529 seconds!
 1 million bodies took 21.7185 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 18 Sep 2018 18:45:19 -0500
+commit fe998e4c2d69fbdf1e6a4d8caa9e115e33080757 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Sep 18 18:45:18 2018 -0500 fix granular robosimian cmake
+Results:
+Running wavetank test!
+50 thousand bodies took 1.52954 seconds!
+500 thousand bodies took 10.8266 seconds!
+1 million bodies took 22.0536 seconds!
+Running settling test!
+50 thousand bodies took 2.03551 seconds!
+500 thousand bodies took 10.7719 seconds!
+1 million bodies took 22.0778 seconds!
