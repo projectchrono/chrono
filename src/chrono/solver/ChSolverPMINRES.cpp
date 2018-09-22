@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSolverPMINRES)
 
 double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                              ) {
+) {
     bool do_preconditioning = this->diag_preconditioning;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -287,7 +287,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd  ///< system description 
 
 double ChSolverPMINRES::Solve_SupportingStiffness(
     ChSystemDescriptor& sysd  ///< system description with constraints and variables
-    ) {
+) {
     bool do_preconditioning = this->diag_preconditioning;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -518,6 +518,28 @@ double ChSolverPMINRES::Solve_SupportingStiffness(
         GetLog() << "residual: " << mr.NormTwo() << " ---\n";
 
     return maxviolation;
+}
+
+void ChSolverPMINRES::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChSolverPMINRES>();
+    // serialize parent class
+    ChIterativeSolver::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(grad_diffstep);
+    marchive << CHNVP(rel_tolerance);
+    marchive << CHNVP(diag_preconditioning);
+}
+
+void ChSolverPMINRES::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChSolverPMINRES>();
+    // deserialize parent class
+    ChIterativeSolver::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(grad_diffstep);
+    marchive >> CHNVP(rel_tolerance);
+    marchive >> CHNVP(diag_preconditioning);
 }
 
 }  // end namespace chrono

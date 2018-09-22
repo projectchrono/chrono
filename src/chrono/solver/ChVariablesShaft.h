@@ -25,7 +25,6 @@ class ChShaft;
 /// a shaft, with inertia and associated variable (rotational speed)
 
 class ChApi ChVariablesShaft : public ChVariables {
-
   private:
     ChShaft* m_shaft;      ///< associated shaft element
     double m_inertia;      ///< shaft inertia
@@ -88,6 +87,7 @@ class ChApi ChVariablesShaft : public ChVariables {
     /// Optimized: doesn't fill unneeded elements except mass.
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite<ChVariablesShaft>();
@@ -97,7 +97,7 @@ class ChApi ChVariablesShaft : public ChVariables {
         marchive << CHNVP(m_inertia);
     }
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead<ChVariablesShaft>();

@@ -19,4 +19,43 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCamera)
 
+ChCamera::ChCamera()
+    : position(ChVector<>(0, 1, 1)),
+      aimpoint(VNULL),
+      upvector(VECT_Y),
+      angle(50),
+      fov(3),
+      hvratio(4.0 / 3),
+      isometric(false){};
+
+void ChCamera::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCamera>();
+    // serialize parent class
+    ChAsset::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(position);
+    marchive << CHNVP(aimpoint);
+    marchive << CHNVP(upvector);
+    marchive << CHNVP(angle);
+    marchive << CHNVP(fov);
+    marchive << CHNVP(hvratio);
+    marchive << CHNVP(isometric);
+}
+
+void ChCamera::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChCamera>();
+    // deserialize parent class
+    ChAsset::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(position);
+    marchive >> CHNVP(aimpoint);
+    marchive >> CHNVP(upvector);
+    marchive >> CHNVP(angle);
+    marchive >> CHNVP(fov);
+    marchive >> CHNVP(hvratio);
+    marchive >> CHNVP(isometric);
+}
+
 }  // end namespace chrono

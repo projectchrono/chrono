@@ -33,11 +33,8 @@ namespace collision {
 
 class ChConvexDecomposition;
 
-///  A wrapper to use the Bullet collision detection
-///  library
-
+///  A wrapper to use the Bullet collision detection  library
 class ChApi ChModelBullet : public ChCollisionModel {
-
   protected:
     // The Bullet collision object containing Bullet geometries
     btCollisionObject* bt_collision_object;
@@ -53,12 +50,12 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// Also, if you begin the definition of a model, AFTER adding
     /// the geometric description, remember to call the ClearModel().
     /// MUST be inherited by child classes! (ex for resetting also BV hierarchies)
-    virtual int ClearModel();
+    virtual int ClearModel() override;
 
     /// Builds the BV hierarchy.
     /// Call this function AFTER adding the geometric description.
     /// MUST be inherited by child classes! (ex for building BV hierarchies)
-    virtual int BuildModel();
+    virtual int BuildModel() override;
 
     //
     // GEOMETRY DESCRIPTION
@@ -67,35 +64,35 @@ class ChApi ChModelBullet : public ChCollisionModel {
     //  the ClearModel() BuildModel() pair.
 
     /// Add a sphere shape to this model, for collision purposes
-    virtual bool AddSphere(double radius, const ChVector<>& pos = ChVector<>());
+    virtual bool AddSphere(double radius, const ChVector<>& pos = ChVector<>()) override;
 
     /// Add an ellipsoid shape to this model, for collision purposes
     virtual bool AddEllipsoid(double rx,
                               double ry,
                               double rz,
                               const ChVector<>& pos = ChVector<>(),
-                              const ChMatrix33<>& rot = ChMatrix33<>(1));
+                              const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Add a box shape to this model, for collision purposes
     virtual bool AddBox(double hx,
                         double hy,
                         double hz,
                         const ChVector<>& pos = ChVector<>(),
-                        const ChMatrix33<>& rot = ChMatrix33<>(1));
+                        const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Add a cylinder to this model (default axis on Y direction), for collision purposes
     virtual bool AddCylinder(double rx,
                              double rz,
                              double hy,
                              const ChVector<>& pos = ChVector<>(),
-                             const ChMatrix33<>& rot = ChMatrix33<>(1));
+                             const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Add a cylinder to this model (default axis on Y direction), for collision purposes
     virtual bool AddCone(double rx,
                          double rz,
                          double hy,
                          const ChVector<>& pos = ChVector<>(),
-                         const ChMatrix33<>& rot = ChMatrix33<>(1)) {
+                         const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
         return false;
     }
 
@@ -103,7 +100,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     virtual bool AddCapsule(double radius,
                             double hlen,
                             const ChVector<>& pos = ChVector<>(),
-                            const ChMatrix33<>& rot = ChMatrix33<>(1)) {
+                            const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
         return false;
     }
 
@@ -113,7 +110,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
                                double hz,
                                double sphere_r,
                                const ChVector<>& pos = ChVector<>(),
-                               const ChMatrix33<>& rot = ChMatrix33<>(1)) {
+                               const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
         return false;
     }
 
@@ -123,7 +120,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
                                     double hy,
                                     double sphere_r,
                                     const ChVector<>& pos = ChVector<>(),
-                                    const ChMatrix33<>& rot = ChMatrix33<>(1)) {
+                                    const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
         return false;
     }
 
@@ -133,7 +130,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
                                 double hy,
                                 double sphere_r,
                                 const ChVector<>& pos = ChVector<>(),
-                                const ChMatrix33<>& rot = ChMatrix33<>(1)) {
+                                const ChMatrix33<>& rot = ChMatrix33<>(1)) override {
         return false;
     }
 
@@ -142,7 +139,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// Points are passed as a list, that is instantly copied into the model.
     virtual bool AddConvexHull(std::vector<ChVector<double>>& pointlist,
                                const ChVector<>& pos = ChVector<>(),
-                               const ChMatrix33<>& rot = ChMatrix33<>(1));
+                               const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Add a triangle mesh to this model, passing a triangle mesh (do not delete the triangle mesh
     /// until the collision model, because depending on the implementation of inherited ChCollisionModel
@@ -154,7 +151,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
                                  bool is_convex,
                                  const ChVector<>& pos = ChVector<>(),
                                  const ChMatrix33<>& rot = ChMatrix33<>(1),
-                                 double sphereswept_thickness = 0.0);
+                                 double sphereswept_thickness = 0.0) override;
 
     /// CUSTOM for this class only: add a concave triangle mesh that will be managed
     /// by GImpact mesh-mesh algorithm. Note that, despite this can work with
@@ -189,7 +186,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
                            double R_hor,
                            double R_offset,
                            const ChVector<>& pos = ChVector<>(),
-                           const ChMatrix33<>& rot = ChMatrix33<>(1));
+                           const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Add a 2D closed line, defined on the XY plane passing by pos and aligned as rot,
     /// that defines a 2D collision shape that will collide with another 2D line of the same type
@@ -203,13 +200,13 @@ class ChApi ChModelBullet : public ChCollisionModel {
     virtual bool Add2Dpath(geometry::ChLinePath& mpath,
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
-                           const double thickness = 0.001);
+                           const double thickness = 0.001) override;
 
     /// Add a point-like sphere, that will collide with other geometries,
     /// but won't ever create contacts between them.
     virtual bool AddPoint(double radius = 0,                    ///< the radius of the node
                           const ChVector<>& pos = ChVector<>()  ///< the position of the node in model coordinates
-    );
+    ) override;
 
     /// Add a triangle from  mesh.
     /// For efficiency, points are stored as pointers. Thus, the user must
@@ -235,52 +232,44 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// shared (not copied) among the models; this will save memory when you must
     /// simulate thousands of objects with the same collision shape.
     /// The 'another' model must be of ChModelBullet subclass.
-    virtual bool AddCopyOfAnotherModel(ChCollisionModel* another);
+    virtual bool AddCopyOfAnotherModel(ChCollisionModel* another) override;
 
-    virtual void SetFamily(int mfamily);
-    virtual int GetFamily();
-    virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily);
-    virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily);
-    virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
+    virtual void SetFamily(int mfamily) override;
+    virtual int GetFamily() override;
+    virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily) override;
+    virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily) override;
+    virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily) override;
 
     /// Set the collision family group of this model.
     /// This is an alternative way of specifying the collision family for this
     /// object.  The value family_group must have a single bit set (i.e. it must
     /// be a power of 2). The corresponding family is then the bit position.
-    virtual void SetFamilyGroup(short group);
+    virtual void SetFamilyGroup(short int group) override;
 
     /// Set the collision mask for this model.
     /// Any set bit in the specified mask indicates that this model collides with
     /// all objects whose family is equal to the bit position.
-    virtual void SetFamilyMask(short mask);
+    virtual void SetFamilyMask(short int mask) override;
 
     /// Returns the axis aligned bounding box (AABB) of the collision model,
     /// i.e. max-min along the x,y,z world axes. Remember that SyncPosition()
     /// should be invoked before calling this.
-    virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const;
+    virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const override;
 
     /// Sets the position and orientation of the collision
     /// model as the current position of the corresponding ChContactable
-    virtual void SyncPosition();
+    virtual void SyncPosition() override;
 
     /// If the collision shape is a sphere, resize it and return true (if no
     /// sphere is found in this collision shape, return false).
     /// It can also change the outward envelope; the inward margin is automatically the radius of the sphere.
     bool SetSphereRadius(double coll_radius, double out_envelope);
 
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
-
-    //
-    // CUSTOM BULLET
-    //
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     /// Return the pointer to the Bullet model
     btCollisionObject* GetBulletModel() { return this->bt_collision_object; }

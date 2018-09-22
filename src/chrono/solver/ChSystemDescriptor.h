@@ -22,6 +22,7 @@
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
+
 /// Base class for collecting objects inherited from ChConstraint,
 /// ChVariables and optionally ChKblock. These objects
 /// can be used to define a sparse representation of the system.
@@ -69,7 +70,6 @@ namespace chrono {
 /// and variables structures with other, more efficient data schemes.
 
 class ChApi ChSystemDescriptor {
-
   protected:
     //
     // DATA
@@ -272,8 +272,8 @@ class ChApi ChSystemDescriptor {
                                        ChMatrix<>* lvector,  ///< optional matrix with the vector to be multiplied (if
                                        /// null, use current constr. multipliers l_i)
                                        std::vector<bool>* enabled = 0  ///< optional: vector of enable flags, one per
-                                       /// scalar constraint. true=enable, false=disable
-                                       ///(skip)
+                                                                       /// scalar constraint. true=enable, false=disable
+                                                                       ///(skip)
     );
 
     /// Performs the product of the entire system matrix (KKT matrix), by a vector x ={q,l}
@@ -349,8 +349,8 @@ class ChApi ChSystemDescriptor {
         ChMatrix<>* Bvector,  ///< fill this vector as the known term 'b', if not null
         ChMatrix<>* Frict,    ///< fill as a vector with friction coefficients (=-1 for
         /// tangent comp.; =-2 for bilaterals), if not null
-        bool only_bilaterals = false, ///< skip unilateral constraints
-        bool skip_contacts_uv = false ///< skip the tangential reaction constraints
+        bool only_bilaterals = false,  ///< skip unilateral constraints
+        bool skip_contacts_uv = false  ///< skip the tangential reaction constraints
     );
 
     /// Create and return the assembled system matrix and RHS vector.
@@ -370,10 +370,7 @@ class ChApi ChSystemDescriptor {
     ///    dump_b.dat   has the constraint rhs
     virtual void DumpLastMatrices(bool assembled = false, const char* path = "");
 
-    //
-    // SERIALIZATION
-    //
-
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite<ChSystemDescriptor>();
@@ -382,7 +379,7 @@ class ChApi ChSystemDescriptor {
         marchive << CHNVP(num_threads);
     }
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead<ChSystemDescriptor>();

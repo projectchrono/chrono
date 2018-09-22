@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/motion_functions/ChFunction_Const.h"
 #include "chrono/motion_functions/ChFunction_Integrate.h"
+#include "chrono/motion_functions/ChFunction_Const.h"
 
 namespace chrono {
 
@@ -83,6 +83,36 @@ double ChFunction_Integrate::Get_y(double x) const {
 void ChFunction_Integrate::Estimate_x_range(double& xmin, double& xmax) const {
     xmin = x_start;
     xmax = x_end;
+}
+
+void ChFunction_Integrate::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Integrate>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(fa);
+    marchive << CHNVP(order);
+    marchive << CHNVP(C_start);
+    marchive << CHNVP(x_start);
+    marchive << CHNVP(x_end);
+    marchive << CHNVP(num_samples);
+}
+
+void ChFunction_Integrate::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Integrate>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(fa);
+    marchive >> CHNVP(order);
+    marchive >> CHNVP(C_start);
+    marchive >> CHNVP(x_start);
+    marchive >> CHNVP(x_end);
+    marchive >> CHNVP(num_samples);
+    array_x->Reset(num_samples, 1);
+    ComputeIntegral();
 }
 
 }  // end namespace chrono

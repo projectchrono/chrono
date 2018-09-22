@@ -25,7 +25,6 @@ namespace chrono {
 /// passed to the solver.
 
 class ChApi ChSolverMINRES : public ChIterativeSolver {
-
   protected:
     double feas_tolerance;
     int max_fixedpoint_steps;
@@ -58,7 +57,7 @@ class ChApi ChSolverMINRES : public ChIterativeSolver {
     /// Solve() automatically falls back to this function.
     virtual double Solve_SupportingStiffness(
         ChSystemDescriptor& sysd  ///< system description with constraints and variables
-        );
+    );
 
     void SetFeasTolerance(double mf) { this->feas_tolerance = mf; }
     double GetFeasTolerance() { return this->feas_tolerance; }
@@ -73,30 +72,10 @@ class ChApi ChSolverMINRES : public ChIterativeSolver {
     bool GetDiagonalPreconditioning() { return this->diag_preconditioning; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChSolverMINRES>();
-        // serialize parent class
-        ChIterativeSolver::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(feas_tolerance);
-        marchive << CHNVP(max_fixedpoint_steps);
-        marchive << CHNVP(diag_preconditioning);
-        marchive << CHNVP(rel_tolerance);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChSolverMINRES>();
-        // deserialize parent class
-        ChIterativeSolver::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(feas_tolerance);
-        marchive >> CHNVP(max_fixedpoint_steps);
-        marchive >> CHNVP(diag_preconditioning);
-        marchive >> CHNVP(rel_tolerance);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

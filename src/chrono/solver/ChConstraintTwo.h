@@ -31,7 +31,6 @@ namespace chrono {
 /// must set at least the c_i and b_i values, and jacobians.
 
 class ChApi ChConstraintTwo : public ChConstraint {
-
   protected:
     ChVariables* variables_a;  ///< The first  constrained object
     ChVariables* variables_b;  ///< The second constrained object
@@ -68,10 +67,10 @@ class ChApi ChConstraintTwo : public ChConstraint {
     virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b) = 0;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

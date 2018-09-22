@@ -60,7 +60,7 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
     bool GetAvoidPositionDrift() { return this->avoid_position_drift; }
 
     /// Get the current actuator reaction force [N]
-    virtual double GetMotorForce() const { return -this->react_force.x(); }
+    virtual double GetMotorForce() const override { return -this->react_force.x(); }
 
     void Update(double mytime, bool update_assets) override;
 

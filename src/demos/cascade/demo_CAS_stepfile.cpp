@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     mfloor->SetBodyFixed(true);
     application.GetSystem()->Add(mfloor);
 
-    std::shared_ptr<ChColorAsset> mcolor(new ChColorAsset(0.3,0.3,0.8));
+    std::shared_ptr<ChColorAsset> mcolor(new ChColorAsset(0.3f, 0.3f, 0.8f));
     mfloor->AddAsset(mcolor);
 
 

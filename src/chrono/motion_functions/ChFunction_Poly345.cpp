@@ -61,4 +61,24 @@ double ChFunction_Poly345::Get_y_dxdx(double x) const {
     return ret;
 }
 
+void ChFunction_Poly345::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Poly345>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(h);
+    marchive << CHNVP(end);
+}
+
+void ChFunction_Poly345::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Poly345>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(h);
+    marchive >> CHNVP(end);
+}
+
 }  // end namespace chrono

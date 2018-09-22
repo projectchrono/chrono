@@ -70,6 +70,8 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed, ChassisCollisi
         case ChassisCollisionType::MESH:
             m_coll_mesh_names.push_back("hmmwv/hmmwv_chassis_simple.obj");
             break;
+        default:
+            break;
     }
 }
 

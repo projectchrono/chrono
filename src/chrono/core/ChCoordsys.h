@@ -13,8 +13,8 @@
 #ifndef CHCOORDSYS_H
 #define CHCOORDSYS_H
 
-#include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
 
 namespace chrono {
 
@@ -37,17 +37,10 @@ namespace chrono {
 template <class Real = double>
 class ChCoordsys {
   public:
-    //
-    // DATA
-    //
-
     ChVector<Real> pos;
     ChQuaternion<Real> rot;
 
-    //
-    // CONSTRUCTORS
-    //
-
+  public:
     // Default constructor (identity frame)
     ChCoordsys() : pos(ChVector<Real>(0, 0, 0)), rot(ChQuaternion<Real>(1, 0, 0, 0)){};
 
@@ -259,8 +252,7 @@ class ChCoordsys {
     //
 
     /// Method to allow serialization of transient data in archives.
-    void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
         marchive.VersionWrite<ChCoordsys<double>>();
         // stream out all member data
@@ -268,20 +260,17 @@ class ChCoordsys {
         marchive << CHNVP(rot);
     }
 
-    /// Method to allow de serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    /// Method to allow de-serialization of transient data from archives.
+    void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
         int version = marchive.VersionRead<ChCoordsys<double>>();
         // stream in all member data
         marchive >> CHNVP(pos);
         marchive >> CHNVP(rot);
     }
-
 };
 
-CH_CLASS_VERSION(ChCoordsys<double>,0)
-
+CH_CLASS_VERSION(ChCoordsys<double>, 0)
 
 //
 // MIXED ARGUMENT OPERATORS

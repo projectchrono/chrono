@@ -55,4 +55,22 @@ double ChFunction_Matlab::Get_y_dxdx(double x) const {
     return ((Get_y_dx(x + BDF_STEP_HIGH) - Get_y_dx(x)) / BDF_STEP_HIGH);
 }
 
+void ChFunction_Matlab::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Matlab>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(mat_command);
+}
+
+void ChFunction_Matlab::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Matlab>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(mat_command);
+}
+
 }  // end namespace chrono

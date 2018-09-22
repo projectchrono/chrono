@@ -77,6 +77,9 @@ void HMMWV_VehicleFull::Create(bool fixed,
         case SteeringType::PITMAN_ARM_SHAFTS:
             m_steerings[0] = std::make_shared<HMMWV_PitmanArmShafts>("Steering", rigid_steering_column);
             break;
+        default:
+            GetLog() << "Steering type NOT supported\n";
+            break;
     }
 
     // -----------------

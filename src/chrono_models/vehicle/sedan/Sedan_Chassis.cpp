@@ -70,6 +70,8 @@ Sedan_Chassis::Sedan_Chassis(const std::string& name, bool fixed, ChassisCollisi
         case ChassisCollisionType::MESH:
             m_coll_mesh_names.push_back("sedan/sedan_chassis_col.obj");
             break;
+        default:
+            break;
     }
 }
 

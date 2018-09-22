@@ -19,10 +19,8 @@
 
 namespace chrono {
 
-/// Base class for assets that define something about visualization (rendering,
-/// post processing, etc.)
+/// Base class for assets that define something about visualization (rendering, post processing, etc.)
 /// It contains basic information about position, color, and visibility.
-
 class ChApi ChVisualization : public ChAsset {
   public:
     virtual ~ChVisualization() {}
@@ -63,7 +61,10 @@ class ChApi ChVisualization : public ChAsset {
   protected:
     ChVisualization();
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     bool visible;

@@ -52,5 +52,27 @@ void ChCapsule::CovarianceMatrix(ChMatrix33<>& C) const {
     C(2, 2) = center.z() * center.z();
 }
 
+void ChCapsule::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCapsule>();
+    // serialize parent class
+    ChGeometry::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(center);
+    marchive << CHNVP(rad);
+    marchive << CHNVP(hlen);
+}
+
+void ChCapsule::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChCapsule>();
+    // deserialize parent class
+    ChGeometry::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(center);
+    marchive >> CHNVP(rad);
+    marchive >> CHNVP(hlen);
+}
+
 }  // end namespace geometry
 }  // end namespace chrono

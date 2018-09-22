@@ -15,8 +15,8 @@
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 
-#include "chrono/core/ChVector.h"
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVector.h"
 
 namespace chrono {
 
@@ -363,9 +363,7 @@ class ChQuaternion {
                             const ChQuaternion<Real>& qdt,
                             const ChVector<Real>& qimm_dtdt);
 
-    // STREAMING
-
-    /// Method to allow serialization of transient data in archives.
+    /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
@@ -1073,18 +1071,17 @@ inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_ax
     } else {
         // For almost zero rotation
         a_angle = 0.0;
-        a_axis.x() = 1; //data[1] * 2.0;
-        a_axis.y() = 0; //data[2] * 2.0;
-        a_axis.z() = 0; //data[3] * 2.0;
+        a_axis.x() = 1;  // data[1] * 2.0;
+        a_axis.y() = 0;  // data[2] * 2.0;
+        a_axis.z() = 0;  // data[3] * 2.0;
     }
-    // Ensure that angle is always in  [-PI...PI] range 
-    if (a_angle> CH_C_PI) {
+    // Ensure that angle is always in  [-PI...PI] range
+    if (a_angle > CH_C_PI) {
         a_angle -= CH_C_2PI;
-    } else if (a_angle<-CH_C_PI) {
+    } else if (a_angle < -CH_C_PI) {
         a_angle += CH_C_2PI;
     }
 }
-
 
 template <class Real>
 inline void ChQuaternion<Real>::Q_from_NasaAngles(const ChVector<Real>& ang) {
@@ -1258,10 +1255,10 @@ inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChQuaternion<double>>();  // must use specialized template (any)
     // stream out all member data
-    marchive << CHNVP(data[0],"e0");
-    marchive << CHNVP(data[1],"e1");
-    marchive << CHNVP(data[2],"e2");
-    marchive << CHNVP(data[3],"e3");
+    marchive << CHNVP(data[0], "e0");
+    marchive << CHNVP(data[1], "e1");
+    marchive << CHNVP(data[2], "e2");
+    marchive << CHNVP(data[3], "e3");
 }
 
 template <class Real>
@@ -1269,10 +1266,10 @@ inline void ChQuaternion<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
     // stream in all member data
-    marchive >> CHNVP(data[0],"e0");
-    marchive >> CHNVP(data[1],"e1");
-    marchive >> CHNVP(data[2],"e2");
-    marchive >> CHNVP(data[3],"e3");
+    marchive >> CHNVP(data[0], "e0");
+    marchive >> CHNVP(data[1], "e1");
+    marchive >> CHNVP(data[2], "e2");
+    marchive >> CHNVP(data[3], "e3");
 }
 
 }  // end namespace chrono

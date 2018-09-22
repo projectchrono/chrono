@@ -28,9 +28,7 @@ namespace chrono {
 /// forcefields for cloth simulation etc.) or highly optimized GPU buffers,
 /// etc. etc.
 /// This is only the basic interface with the features that are in common.
-
 class ChApi ChProximityContainer : public ChPhysicsItem {
-
   public:
     ChProximityContainer() : add_proximity_callback(NULL), report_proximity_callback(NULL) {}
     ChProximityContainer(const ChProximityContainer& other);
@@ -102,10 +100,6 @@ class ChApi ChProximityContainer : public ChPhysicsItem {
     /// function of the provided callback object.
     /// Derived classes of ChProximityContainer should try to implement this.
     virtual void ReportAllProximities(ReportProximityCallback* mcallback) = 0;
-
-    //
-    // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);

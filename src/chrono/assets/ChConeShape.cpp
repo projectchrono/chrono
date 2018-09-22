@@ -18,4 +18,22 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConeShape)
 
+void ChConeShape::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChConeShape>();
+    // serialize parent class
+    ChVisualization::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(gcone);
+}
+
+void ChConeShape::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChConeShape>();
+    // deserialize parent class
+    ChVisualization::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(gcone);
+}
+
 }  // end namespace chrono

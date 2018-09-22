@@ -54,7 +54,6 @@ enum eChConstraintMode {
 /// to implement these methods, and to add further features..
 
 class ChApi ChConstraint {
-
   protected:
     double c_i;  ///< The 'c_i' residual of the constraint (if satisfied, c must be
                  ///=0)
@@ -171,12 +170,12 @@ class ChApi ChConstraint {
     /// not 'valid'.)
     virtual bool IsActive() const {
         /*
-						return ( valid &&
-								!disabled &&
-								!redundant &&
-								!broken &&
-								mode!=(CONSTRAINT_FREE));
-								*/  // Optimized:
+                        return ( valid &&
+                                !disabled &&
+                                !redundant &&
+                                !broken &&
+                                mode!=(CONSTRAINT_FREE));
+                                */  // Optimized:
                                     // booleans
                                     // precomputed
                                     // and cached
@@ -308,7 +307,7 @@ class ChApi ChConstraint {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
   private:

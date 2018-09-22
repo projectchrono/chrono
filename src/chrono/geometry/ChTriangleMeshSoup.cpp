@@ -37,5 +37,23 @@ void ChTriangleMeshSoup::Transform(const ChVector<> displ, const ChMatrix33<> ro
     }
 }
 
+void ChTriangleMeshSoup::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChTriangleMeshSoup>();
+    // serialize parent class
+    ChTriangleMesh::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(m_triangles);
+}
+
+void ChTriangleMeshSoup::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChTriangleMeshSoup>();
+    // deserialize parent class
+    ChTriangleMesh::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(m_triangles);
+}
+
 }  // end namespace geometry
 }  // end namespace chrono

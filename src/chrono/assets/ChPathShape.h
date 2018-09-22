@@ -35,7 +35,10 @@ class ChApi ChPathShape : public ChVisualization {
     unsigned int GetNumRenderPoints() const { return npoints; }
     void SetNumRenderPoints(unsigned int n) { npoints = n; }
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:

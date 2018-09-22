@@ -474,7 +474,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             ExtraLength = -(shoe_points.back() - shoe_points.front()).Length();
         }
 
-        if (abs(ExtraLength) < Tolerance) {
+        if (std::abs(ExtraLength) < Tolerance) {
             std::cout << "Belt Wrap Algorithm Conveged after " << iter << " iterations - Extra Length: " << ExtraLength
                       << " - Length Tolerance: " << Tolerance << std::endl;
             break;

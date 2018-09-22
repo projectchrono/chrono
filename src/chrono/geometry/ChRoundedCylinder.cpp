@@ -36,5 +36,29 @@ void ChRoundedCylinder::CovarianceMatrix(ChMatrix33<>& C) const {
     C(2, 2) = center.z() * center.z();
 }
 
+void ChRoundedCylinder::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChRoundedCylinder>();
+    // serialize parent class
+    ChGeometry::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(center);
+    marchive << CHNVP(rad);
+    marchive << CHNVP(hlen);
+    marchive << CHNVP(radsphere);
+}
+
+void ChRoundedCylinder::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChRoundedCylinder>();
+    // deserialize parent class
+    ChGeometry::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(center);
+    marchive >> CHNVP(rad);
+    marchive >> CHNVP(hlen);
+    marchive >> CHNVP(radsphere);
+}
+
 }  // end namespace geometry
 }  // end namespace chrono

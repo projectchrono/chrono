@@ -78,7 +78,7 @@ bool moving_patch = true;
 double slope = 0;
 
 // Particle radius (mm)
-double radius = 20;
+double radius = 40;
 
 // Granular material density (kg/m3)
 double rho = 2000;
@@ -506,10 +506,11 @@ int main(int argc, char* argv[]) {
             // Advance vehicle systems
             driver->Advance(time_step);
             hmmwv->Advance(time_step);
-        } else {
-            // Advance system state (no vehicle created yet)
-            system->DoStepDynamics(time_step);
         }
+
+        // Advance system state (no vehicle created yet)
+        system->DoStepDynamics(time_step);
+
 
 #ifdef CHRONO_OPENGL
         if (render) {

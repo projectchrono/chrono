@@ -227,6 +227,8 @@ int main(int argc, char* argv[]) {
                     gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
                     break;
                 }
+                default:
+                    break;
             }
             gl_window.Render();
         } else {

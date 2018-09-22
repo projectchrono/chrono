@@ -401,6 +401,38 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
 }
 
 // -----------------------------------------------------------------------------
+
+void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite<ChBezierCurve>();
+
+    // serialize all member data:
+    marchive << CHNVP(m_points);
+    marchive << CHNVP(m_inCV);
+    marchive << CHNVP(m_outCV);
+    marchive << CHNVP(m_maxNumIters);
+    marchive << CHNVP(m_sqrDistTol);
+    marchive << CHNVP(m_cosAngleTol);
+    marchive << CHNVP(m_paramTol);
+}
+
+void ChBezierCurve::ArchiveIN(ChArchiveIn& marchive)
+{
+    // version number
+    int version = marchive.VersionRead<ChBezierCurve>();
+
+    // stream in all member data:
+    marchive >> CHNVP(m_points);
+    marchive >> CHNVP(m_inCV);
+    marchive >> CHNVP(m_outCV);
+    marchive >> CHNVP(m_maxNumIters);
+    marchive >> CHNVP(m_sqrDistTol);
+    marchive >> CHNVP(m_cosAngleTol);
+    marchive >> CHNVP(m_paramTol);
+}
+
+// -----------------------------------------------------------------------------
 // ChBezierCurveTracker::reset()
 //
 // This function reinitializes the pathTracker at the specified location. It

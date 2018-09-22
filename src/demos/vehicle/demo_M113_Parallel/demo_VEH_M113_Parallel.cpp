@@ -468,6 +468,7 @@ int main(int argc, char* argv[]) {
         driver.Advance(time_step);
         powertrain.Advance(time_step);
         vehicle.Advance(time_step);
+        system->DoStepDynamics(time_step);
 
 #ifdef CHRONO_OPENGL
         if (gl_window.Active())

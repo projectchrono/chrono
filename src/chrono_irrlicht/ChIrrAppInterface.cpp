@@ -602,8 +602,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     hstr += " 'F2-F3-F4' key: auto rotate camera.\n";
     gad_textHelp->setText(hstr.c_str());
 
-    ///
-    this->device->getVideoDriver()->getScreenSize().Height;
     gad_treeview = GetIGUIEnvironment()->addTreeView(
                                       irr::core::rect<irr::s32>(2, 80, 
                                       300, // this->device->getVideoDriver()->getScreenSize().Width

@@ -490,11 +490,7 @@ class ChFrame {
                                   +de3 * v.x() + de0 * v.y() - de1 * v.z(), -de2 * v.x() + de1 * v.y() + de0 * v.z());
     }
 
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data in archives.
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
         marchive.VersionWrite<ChFrame<double>>();
@@ -502,7 +498,7 @@ class ChFrame {
         marchive << CHNVP(coord);
     }
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
         int version = marchive.VersionRead<ChFrame<double>>();
@@ -512,8 +508,7 @@ class ChFrame {
     }
 };
 
-CH_CLASS_VERSION(ChFrame<double>,0)
-
+CH_CLASS_VERSION(ChFrame<double>, 0)
 
 //
 // MIXED ARGUMENT OPERATORS
