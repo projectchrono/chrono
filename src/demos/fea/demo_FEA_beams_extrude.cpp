@@ -71,7 +71,7 @@ std::shared_ptr<ChBody> CreateLobedGear (
         double phase = CH_C_2PI * ((double)i/(double)lobe_copies);
         // this is a quick shortcut from ChUtilsCreators.h, 
         // it both adds the collision shape and the visualization asset:
-        /*
+        
         utils::AddCylinderGeometry(
             mgear.get(), 
             lobe_width*0.5, 
@@ -79,13 +79,14 @@ std::shared_ptr<ChBody> CreateLobedGear (
             ChVector<>(lobe_primitive_rad*sin(phase), lobe_primitive_rad*cos(phase),0),
             Q_from_AngAxis(CH_C_PI_2, VECT_X), // rotate cylinder axis: from default on Y axis, to Z axis
             true);    
-        */  
+        /* 
         utils::AddBoxGeometry(
             mgear.get(), 
             ChVector<>(lobe_width, lobe_outer_rad-lobe_inner_rad, lobe_thickness)*0.5, // half size used in this function 
             ChVector<>(0.5*(lobe_outer_rad+lobe_inner_rad)*sin(phase), 0.5*(lobe_outer_rad+lobe_inner_rad)*cos(phase),0),
             Q_from_AngAxis(-phase, VECT_Z), // rotate cylinder axis: from default on Y axis, to Z axis
             true);
+			*/
     }
     utils::AddCylinderGeometry( mgear.get(), lobe_inner_rad, lobe_thickness*0.5,  ChVector<>(0,0,0), Q_from_AngAxis(CH_C_PI_2, VECT_X), true);
     mgear->GetCollisionModel()->BuildModel();
@@ -123,19 +124,22 @@ int main(int argc, char* argv[]) {
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
 
-    auto msection_OLD = std::make_shared<ChBeamSectionAdvanced>();
-
-    double wire_diameter = 0.012;
-    msection_OLD->SetAsCircularSection(wire_diameter); 
-	msection_OLD->SetYoungModulus(0.01e9);  // not exactly a steel wire...
-	msection_OLD->SetGshearModulus(0.01e9 * 0.7);
-	msection_OLD->SetBeamRaleyghDamping(0.1);
+    double wire_diameter = 0.010;
 
 	auto melasticity = std::make_shared<ChElasticityCosseratSimple>();
-	melasticity->SetYoungModulus(0.01e9);
-	melasticity->SetGshearModulus(0.01e9 * 0.7);
-	melasticity->SetBeamRaleyghDamping(0.1);
-	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity);
+	melasticity->SetYoungModulus(0.5e9);
+	melasticity->SetGshearModulus(0.5e9 * 0.7);
+
+	auto mdamping = std::make_shared<ChDampingCosseratLinear>();
+	mdamping->SetDampingCoefficientsRe((1e-3)*ChVector<>(1, 1, 1)); 
+	mdamping->SetDampingCoefficientsRk((1e-4)*ChVector<>(1, 1, 1)); //***??? -/+
+
+	auto mplasticity = std::make_shared<ChPlasticityCosseratLumped>();
+	mplasticity->n_yeld_Mx = std::make_shared<ChFunction_Ramp>(1, 0.01);
+	mplasticity->n_yeld_My = std::make_shared<ChFunction_Ramp>(0.2, 0.001);
+	mplasticity->n_yeld_Mz = std::make_shared<ChFunction_Ramp>(0.2, 0.001);
+
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity, mdamping);
 	msection->SetDensity(1000);
 	msection->SetAsCircularSection(wire_diameter);
 
@@ -147,11 +151,10 @@ int main(int argc, char* argv[]) {
     // option A: Hertz contact force model
     my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
-    mysurfmaterial->SetYoungModulus(12e3);  // to adjust heuristically..
+    mysurfmaterial->SetYoungModulus(20e3);  // to adjust heuristically..
     mysurfmaterial->SetRestitution(0.1f);
     mysurfmaterial->SetFriction(0.2f);
 	*/
-
     
     // Option B: Hooke force model 
     my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
@@ -159,8 +162,8 @@ int main(int argc, char* argv[]) {
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetKn(350); // contact normal stiffness
     mysurfmaterial->SetKt(350); // contact tangential stiffness
-    mysurfmaterial->SetGn(20);   // contact normal damping
-    mysurfmaterial->SetGt(20);   // contact tangential damping
+    mysurfmaterial->SetGn(25);   // contact normal damping
+    mysurfmaterial->SetGt(25);   // contact tangential damping
     mysurfmaterial->SetFriction(0.2f);
     
 
@@ -168,58 +171,24 @@ int main(int argc, char* argv[]) {
     // Add the EXTRUDER
     //
 
-    auto extruder = std::make_shared<ChExtruderBeamEuler>(
-            &my_system,                 // the physical system 
-            my_mesh,                    // the mesh where to add the beams
-            msection_OLD,                   // section for created beam
-            0.020,                        // beam element length (size of discretization: the smaller, the more precise)
-            ChCoordsys<>(ChVector<>(0,0,0)), // outlet coordinate system (x axis is the extrusion dir)
-            0.04                         // the extrusion speed
-            );
-
-    // Enable collision for extruded beam
-    extruder->SetContact( mysurfmaterial,  // the NSC material for contact surfaces
-                          1.15*wire_diameter*0.5  // the radius of the collision spheres at the nodes, (enlarge 15%)
-                          );
-/*
     auto extruder = std::make_shared<ChExtruderBeamIGA>(
             &my_system,                 // the physical system 
             my_mesh,                    // the mesh where to add the beams
             msection,                   // section for created beam
-            0.020,                        // beam element length (size of discretization: the smaller, the more precise)
+            0.015,                        // beam element length (size of discretization: the smaller, the more precise)
             ChCoordsys<>(ChVector<>(0,0,0)), // outlet coordinate system (x axis is the extrusion dir)
-            0.04,                        // the extrusion speed
-            2                            // the order of beams
+            0.08,                        // the extrusion speed
+            1                            // the order of beams
             );
-*/
+
     // Enable collision for extruded beam
     extruder->SetContact( mysurfmaterial,  // the NSC material for contact surfaces
                           1.15*wire_diameter*0.5  // the radius of the collision spheres at the nodes, (enlarge 15%)
                           );
 
-    //
-    // Add some other beams 
-    //
-    // ***NOTE: hack! this is needed because if the extruder starts with 0 beams in the scene, the 
-    //    ChVisualizationFEAmesh does not visualize any of the newly generated beams by extrusion. Must be fixed.
 
-    double beam_L = 0.1;
-
-    auto hnode1 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(-0.4, 0, 0)));
-    auto hnode2 = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(-0.4+beam_L, 0, 0)));
-    my_mesh->AddNode(hnode1);
-    my_mesh->AddNode(hnode2);
-
-    auto belement1 = std::make_shared<ChElementBeamEuler>();
-    belement1->SetNodes(hnode1, hnode2);
-    belement1->SetSection(msection_OLD);
-
-    my_mesh->AddElement(belement1);
-    // Fix a node to ground - the easy way, without constraints
-    hnode1->SetFixed(true);
-    
-	// We do not want gravity effect on FEA elements in this demo
-	my_mesh->SetAutomaticGravity(true);
+	// Do we want gravity effect on FEA elements in this demo?
+	my_mesh->SetAutomaticGravity(false);
 
     //
     // Attach a visualization of the FEM mesh.
@@ -252,11 +221,11 @@ int main(int argc, char* argv[]) {
     int    lobe_copies = 8;
     double lobe_width = 0.03;
     double lobe_primitive_rad = 0.3;
-    double lobe_inner_rad = 0.23;
+    double lobe_inner_rad = 0.13;
     double lobe_outer_rad = 0.34;
     double lobe_thickness = 0.08;
-    ChVector<> gear_centerLOW(0.4,-lobe_primitive_rad,0);
-    ChVector<> gear_centerHI (0.4, lobe_primitive_rad,0);
+    ChVector<> gear_centerLOW(0.3,-lobe_primitive_rad+0.01,0);
+    ChVector<> gear_centerHI (0.3, lobe_primitive_rad-0.01,0);
 
     auto gearLOW =  CreateLobedGear (gear_centerLOW, lobe_copies, lobe_width, lobe_primitive_rad, 
                     lobe_inner_rad, lobe_outer_rad, lobe_thickness, my_system, mysurfmaterial); 
@@ -265,7 +234,7 @@ int main(int argc, char* argv[]) {
     mgear_motorLOW->Initialize(gearLOW, mground, ChFrame<>(gear_centerLOW));
     my_system.Add(mgear_motorLOW);
 
-    auto mgear_speedLOW = std::make_shared<ChFunction_Const>(-0.1); // [rad/s]
+    auto mgear_speedLOW = std::make_shared<ChFunction_Const>(-0.2); // [rad/s]
     mgear_motorLOW->SetSpeedFunction(mgear_speedLOW);
 
     auto gearHI =  CreateLobedGear (gear_centerHI, lobe_copies, lobe_width, lobe_primitive_rad, 
@@ -276,7 +245,7 @@ int main(int argc, char* argv[]) {
     mgear_motorHI->Initialize(gearHI, mground, ChFrame<>(gear_centerHI));
     my_system.Add(mgear_motorHI);
 
-    auto mgear_speedHI = std::make_shared<ChFunction_Const>( 0.1); // [rad/s]
+    auto mgear_speedHI = std::make_shared<ChFunction_Const>( 0.2); // [rad/s]
     mgear_motorHI->SetSpeedFunction(mgear_speedHI);
 
 
@@ -325,7 +294,7 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = std::make_shared<ChSolverMKL<>>();
     my_system.SetSolver(mkl_solver);
             
-    application.SetTimestep(0.001);
+    application.SetTimestep(0.0002);
     application.SetVideoframeSaveInterval(20);
     while (application.GetDevice()->run()) {
         application.BeginScene();
