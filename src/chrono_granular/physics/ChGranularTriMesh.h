@@ -107,7 +107,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
     void collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup);
     void meshSoup_applyRigidBodyMotion(double* position_orientation_data);
 
-    void advance_simulation(float duration);
+    virtual double advance_simulation(float duration) override;
     /// Extra parameters needed for triangle-sphere contact
     struct GranParamsHolder_trimesh {
         float Gamma_n_s2m_SU;                //!< sphere-to-mesh contact damping coefficient, expressed in SU
@@ -117,9 +117,14 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
         ChFamilyFrame<double>* fam_frame_narrow;
     };
 
-    virtual void initialize();
+    virtual void initialize() override;
     void load_meshes(std::vector<std::string> objfilenames, std::vector<float3> scalefactors);
     void write_meshes(std::string outfilename);
+
+    /// Enable mesh contact
+    void enableMeshCollision() { mesh_collision_enabled = true; }
+    /// Disable mesh contact
+    void disableMeshCollision() { mesh_collision_enabled = false; }
 
   private:
     GranParamsHolder_trimesh* tri_params;
@@ -134,6 +139,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     double Gamma_n_s2m_UU;
     double Gamma_n_s2m_SU;
+
+    bool mesh_collision_enabled = true;
 
     /// Number of triangles touching each bucket
     std::vector<unsigned int, cudallocator<unsigned int>> BUCKET_countsOfTrianglesTouching;
@@ -151,9 +158,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
 
     // void initialize();
 
-    virtual double get_max_K();
-
-    void setupSimulation();
+    virtual double get_max_K() override;
 
     template <typename T>
     void generate_rot_matrix(double* ep, T* rot_mat);

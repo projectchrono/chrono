@@ -44,49 +44,6 @@ void ShowUsage() {
     cout << "usage: ./demo_GRAN_TriMeshNoFric_SMC_ballcosim <json_file>" << endl;
 }
 
-void AddContainer(ChSystemSMC* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-
-    // Material properties (same on bin and balls)
-    float Y = 2e6f;
-    float mu = 0.4f;
-    float cr = 0.4f;
-
-    // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceSMC>();
-    mat->SetYoungModulus(Y);
-    mat->SetFriction(mu);
-    mat->SetRestitution(cr);
-
-    // Create the containing bin (4 x 4 x 1)
-    auto bin = std::shared_ptr<ChBody>(sys->NewBody());
-    bin->SetMaterialSurface(mat);
-    bin->SetIdentifier(binId);
-    bin->SetMass(1);
-    bin->SetPos(ChVector<>(0, 0, 0));
-    // bin->SetRot(Q_from_AngY(tilt_angle));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(true);
-
-    ChVector<> hdim(30, 30, 30);
-    double hthick = 0.5;
-
-    bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hdim.z() - hthick));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()),
-                          ChVector<>(hdim.x() + hthick, 0, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, -hdim.y() - hthick, hdim.z()));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()),
-                          ChVector<>(0, hdim.y() + hthick, hdim.z()));
-    bin->GetCollisionModel()->BuildModel();
-
-    sys->AddBody(bin);
-}
-
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
 // There is no friction. The units are always cm/s/g[L/T/M].

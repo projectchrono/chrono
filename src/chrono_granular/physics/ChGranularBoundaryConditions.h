@@ -49,8 +49,5 @@ union BC_params_t {
 };
 
 enum BC_type { SPHERE, AA_BOX, CONE };
-
-typedef bool (*BCfunc_t)(const int, const int, const int, float&, float&, float&, const BC_params_t&, ParamsPtr);
-
 }  // namespace granular
 }  // namespace chrono

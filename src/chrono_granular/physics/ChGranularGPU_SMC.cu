@@ -17,6 +17,31 @@
 namespace chrono {
 namespace granular {
 
+__host__ double ChSystemGranular::get_max_z() const {
+    int* max_z_d;
+    int max_z_h;
+    void* d_temp_storage = NULL;
+    size_t temp_storage_bytes = 0;
+
+    gpuErrchk(cudaMalloc(&max_z_d, sizeof(int)));
+
+    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, pos_Z.data(), max_z_d, nDEs);
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // Allocate temporary storage
+    cudaMalloc(&d_temp_storage, temp_storage_bytes);
+    // Run max-reduction
+    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, pos_Z.data(), max_z_d, nDEs);
+    gpuErrchk(cudaDeviceSynchronize());
+
+    gpuErrchk(cudaMemcpy(&max_z_h, max_z_d, sizeof(int), cudaMemcpyDeviceToHost));
+
+    double max_z_UU = max_z_h * gran_params->LENGTH_UNIT;
+    gpuErrchk(cudaDeviceSynchronize());
+
+    return max_z_UU;
+}
+
 /// Copy constant sphere data to device, this should run at start
 __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
@@ -423,7 +448,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
     printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT);
 }
 
-__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
+__host__ double ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -433,9 +458,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
-
+    float time_elapsed_SU = 0;  // time elapsed in this advance call
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (float elapsedTime_SU = 0; elapsedTime_SU < stepSize_SU * nsteps; elapsedTime_SU += stepSize_SU) {
+    for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determine_new_stepSize_SU();  // doesn't always change the timestep
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
@@ -470,7 +495,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(
         elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT;  // Advance current time
     }
 
-    return;
+    return time_elapsed_SU * gran_params->TIME_UNIT;  // return elapsed UU time
 }
 }  // namespace granular
 }  // namespace chrono

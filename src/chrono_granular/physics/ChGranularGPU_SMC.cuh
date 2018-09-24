@@ -65,13 +65,13 @@ __device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
-inline __device__ uint3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {
+inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {
     // Note that this offset allows us to have moving walls and the like very easily
 
     int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
     int64_t sphCenter_Y_modified = -gran_params->BD_frame_Y + sphCenter_Y;
     int64_t sphCenter_Z_modified = -gran_params->BD_frame_Z + sphCenter_Z;
-    uint3 n;
+    int3 n;
     // Get the SD of the sphere's center in the xdir
     n.x = (sphCenter_X_modified) / gran_params->SD_size_X_SU;
     // Same for D and H
@@ -80,21 +80,30 @@ inline __device__ uint3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sph
     return n;
 }
 
+// inline __device__ pointSDID(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {}
+
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const unsigned int i,
-                                           const unsigned int j,
-                                           const unsigned int k,
-                                           ParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int i, const int j, const int k, ParamsPtr gran_params) {
+    // if we're outside the BD in any direction, this is an invalid SD
+    if (i < 0 || i >= gran_params->nSDs_X) {
+        return NULL_GRANULAR_ID;
+    }
+    if (j < 0 || j >= gran_params->nSDs_Y) {
+        return NULL_GRANULAR_ID;
+    }
+    if (k < 0 || k >= gran_params->nSDs_Z) {
+        return NULL_GRANULAR_ID;
+    }
     return i * gran_params->nSDs_Y * gran_params->nSDs_Z + j * gran_params->nSDs_Z + k;
 }
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const uint3& trip, ParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int3& trip, ParamsPtr gran_params) {
     return SDTripletID(trip.x, trip.y, trip.z, gran_params);
 }
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const unsigned int trip[3], ParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int trip[3], ParamsPtr gran_params) {
     return SDTripletID(trip[0], trip[1], trip[2], gran_params);
 }
 

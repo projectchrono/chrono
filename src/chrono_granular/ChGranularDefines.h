@@ -39,7 +39,7 @@
 /// Value that controls the time unit. It is like a safety factor.
 #define PSI_T_DEFAULT 16
 /// Max number of SDs that a mesh triangle can touch. Note that it can touch an equal number of buckets
-#define MAX_SDs_TOUCHED_BY_TRIANGLE 32
+#define MAX_SDs_TOUCHED_BY_TRIANGLE 64
 #define MAX_TRIANGLE_FAMILIES 4
 /// The number of buckets used to host the triangles that touch a subset of SDs. If memory was not an issue, we'd
 /// have as many an buckets as SD and one bucket would handle one SD. Yet this would lead to a lot of wasted memory
@@ -62,53 +62,3 @@ static const int warp_size = 32;
 #else
 static const int warp_size = warpSize;
 #endif
-
-namespace chrono {
-namespace granular {
-
-/// Parameters needed for sphere-based granular dynamics
-struct GranParamsHolder {
-    // Use user-defined quantities for coefficients
-    // TODO we need to get the damping coefficient from user
-    float Gamma_n_s2s_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
-    float Gamma_n_s2w_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
-
-    float Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
-    float Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
-
-    unsigned int sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
-    unsigned int SD_size_X_SU;     //!< X-dimension of the SD box, expressed in SU
-    unsigned int SD_size_Y_SU;     //!< Y-dimension of the SD box, expressed in SU
-    unsigned int SD_size_Z_SU;     //!< Z-dimension of the SD box, expressed in SU
-    unsigned int nSDs_X;           //!< X-dimension of the BD box in multiples of subdomains, expressed in SU
-    unsigned int nSDs_Y;           //!< Y-dimension of the BD box in multiples of subdomains, expressed in SU
-    unsigned int nSDs_Z;           //!< Z-dimension of the BD box in multiples of subdomains, expressed in SU
-    float gravAcc_X_SU;            //!< Device counterpart of the constant gravity_X_SU
-    float gravAcc_Y_SU;            //!< Device counterpart of the constant gravity_Y_SU
-    float gravAcc_Z_SU;            //!< Device counterpart of the constant gravity_Z_SU
-    float gravMag_SU;
-
-    // Changed by updateBDPosition() at every timestep
-    int BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-    int BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-    int BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
-    float BD_frame_X_dot;
-    float BD_frame_Y_dot;
-    float BD_frame_Z_dot;
-
-    unsigned int psi_T;
-    unsigned int psi_h;
-    unsigned int psi_L;
-
-    /// Ratio of cohesion force to gravity
-    float cohesion_ratio;
-
-    double LENGTH_UNIT;  //!< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
-    double TIME_UNIT;    //!< 1 / C_T. Any time quanity in SU is measured as a positive multiple of TIME_UNIT
-    double MASS_UNIT;    //!< 1 / C_M. Any mass quanity is measured as a positive multiple of MASS_UNIT.
-};
-}  // namespace granular
-}  // namespace chrono
-
-// Do two things: make the naming nicer and require a const pointer everywhere
-typedef const chrono::granular::GranParamsHolder* ParamsPtr;

@@ -510,3 +510,15 @@ Running settling test!
 50 thousand bodies took 2.03551 seconds!
 500 thousand bodies took 10.7719 seconds!
 1 million bodies took 22.0778 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 24 Sep 2018 14:32:03 -0500
+commit 3ff5bd3e16f67729e970a2be08a77b4afb5b5a73 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Sep 24 14:32:03 2018 -0500 ugly commit, cleanup granular and add cosim support
+Results:
+Running wavetank test!
+50 thousand bodies took 2.11858 seconds!
+500 thousand bodies took 17.5668 seconds!
+1 million bodies took 32.1079 seconds!
+Running settling test!
+50 thousand bodies took 1.92752 seconds!
+500 thousand bodies took 15.0624 seconds!
+1 million bodies took 30.4242 seconds!

@@ -72,12 +72,12 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     convert_pos_UU2SU<float3>(vC, gran_params);
 
     // Perform broadphase on UU vertices
-    uint3 SDA = pointSDTriplet(vA.x, vA.y, vA.z, gran_params);  // SD indices for point A
-    uint3 SDB = pointSDTriplet(vB.x, vB.y, vB.z, gran_params);  // SD indices for point B
-    uint3 SDC = pointSDTriplet(vC.x, vC.y, vC.z, gran_params);  // SD indices for point C
+    int3 SDA = pointSDTriplet(vA.x, vA.y, vA.z, gran_params);  // SD indices for point A
+    int3 SDB = pointSDTriplet(vB.x, vB.y, vB.z, gran_params);  // SD indices for point B
+    int3 SDC = pointSDTriplet(vC.x, vC.y, vC.z, gran_params);  // SD indices for point C
 
-    unsigned int L[3];  // Min SD index along each axis
-    unsigned int U[3];  // Max SD index along each axis
+    int L[3];  // Min SD index along each axis
+    int U[3];  // Max SD index along each axis
 
     L[0] = MIN(SDA.x, MIN(SDB.x, SDC.x));
     L[1] = MIN(SDA.y, MIN(SDB.y, SDC.y));
@@ -95,7 +95,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
     unsigned int SD_count = 0;
     unsigned int n_axes_diff = 0;  // Count axes that have different SD bounds
-    unsigned int axes_diff;
+    unsigned int axes_diff;        // axis of variation (if only one)
 
     for (unsigned int i = 0; i < 3; i++) {
         if (L[i] != U[i]) {
@@ -106,12 +106,12 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
     // Case 2: Triangle lies in a Nx1x1, 1xNx1, or 1x1xN block of SDs
     if (n_axes_diff == 1) {
-        unsigned int SD_i[3] = {L[0], L[1], L[2]};
+        int SD_i[3] = {L[0], L[1], L[2]};  // start at 'bottom' and move up
         if (U[axes_diff] - L[axes_diff] >= MAX_SDs_TOUCHED_BY_TRIANGLE) {
             ABORTABORTABORT("SD_count exceeds MAX_SDs_TOUCHED_BY_TRIANGLE\n");
         }
-        for (unsigned int i = L[axes_diff]; i <= U[axes_diff]; i++) {
-            SD_i[axes_diff] = i;
+        for (int i = L[axes_diff]; i <= U[axes_diff]; i++) {
+            SD_i[axes_diff] = i;  // current SD index along this direction
             touchedSDs[SD_count++] = SDTripletID(SD_i, gran_params);
         }
         return;
@@ -880,7 +880,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
     printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
 
-__host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(float duration) {
+__host__ double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -892,8 +892,10 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
                    stepSize_SU, nsteps, duration / nsteps);
 
     VERBOSE_PRINTF("Starting Main Simulation loop!\n");
+
+    float time_elapsed_SU = 0;  // time elapsed in this call (SU)
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
-    for (float crntTime_SU = 0; crntTime_SU < stepSize_SU * nsteps; crntTime_SU += stepSize_SU) {
+    for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determine_new_stepSize_SU();  // doesn't always change the timestep
 
         // Update the position and velocity of the BD, if relevant
@@ -916,19 +918,19 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
+        if (meshSoup_DEVICE->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+            const int nthreads = 64;
             // broadphase the triangles
             // TODO check these block/thread counts
-            triangleSoupBroadPhase<CUDA_THREADS_PER_BLOCK>
-                <<<(meshSoup_DEVICE->nTrianglesInSoup + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK,
-                   CUDA_THREADS_PER_BLOCK>>>(meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(),
-                                             triangles_in_BUCKET_composite.data(), SD_isTouchingTriangle.data(),
-                                             gran_params, tri_params);
+            triangleSoupBroadPhase<nthreads>
+                <<<(meshSoup_DEVICE->nTrianglesInSoup + nthreads - 1) / nthreads, nthreads>>>(
+                    meshSoup_DEVICE, BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
+                    SD_isTouchingTriangle.data(), gran_params, tri_params);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        if (meshSoup_DEVICE->nFamiliesInSoup != 0) {
+        if (meshSoup_DEVICE->nFamiliesInSoup != 0 && mesh_collision_enabled) {
             // TODO please do not use a template here
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
@@ -956,7 +958,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_sim
         gpuErrchk(cudaDeviceSynchronize());
         elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT;  // Advance current time
     }
-    return;
+    return time_elapsed_SU * gran_params->TIME_UNIT;  // return elapsed UU time
 }
 }  // namespace granular
 }  // namespace chrono

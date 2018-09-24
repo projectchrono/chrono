@@ -442,6 +442,8 @@ class RoboSimian {
 
     void ReportContacts();
 
+    std::vector<std::shared_ptr<Limb>> GetLimbs() const { return m_limbs; }
+
   private:
     void Create(bool has_sled, bool fixed);
 

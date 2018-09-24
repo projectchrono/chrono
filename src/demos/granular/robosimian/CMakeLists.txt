@@ -24,6 +24,7 @@ endif()
 
 set(PROGRAMS
   demo_GRAN_TriMeshNoFric_SMC_robosimian
+  test_RS_robosimian_granular
 )
 
 set(MODEL_FILES
