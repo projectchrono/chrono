@@ -53,17 +53,20 @@ int main(int argc, char* argv[]) {
 
     // Mesh values
     std::vector<string> mesh_filenames;
-    string mesh_filename = string("boat.obj");
+    string mesh_filename = string("robosim_cyl.obj");
 
     std::vector<float3> mesh_scalings;
     float3 scaling;
-    scaling.x = 20;
-    scaling.y = 20;
-    scaling.z = 20;
+    scaling.x = 100;
+    scaling.y = 100;
+    scaling.z = 100;
 
     // starting positions of mesh-based balls
     std::vector<ChVector<double>> wheel_positions;
-    wheel_positions.push_back({0, 0, 20});
+    wheel_positions.push_back({-20, -20, 12});
+    wheel_positions.push_back({-20, 20, 12});
+    wheel_positions.push_back({20, -20, 12});
+    wheel_positions.push_back({20, 20, 12});
     unsigned int num_mesh_balls = wheel_positions.size();
 
     // add mesh to granular system
@@ -116,7 +119,7 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys_gran.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     m_sys_gran.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    m_sys_gran.set_timeIntegrator(GRN_TIME_INTEGRATOR::CHUNG);
+    m_sys_gran.set_timeIntegrator(GRN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys_gran.set_fixed_stepSize(params.step_size);
 
     m_sys_gran.load_meshes(mesh_filenames, mesh_scalings);
@@ -139,29 +142,24 @@ int main(int argc, char* argv[]) {
     m_sys_robo.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     m_sys_robo.SetTimestepperType(ChTimestepper::Type::EULER_EXPLICIT);
     m_sys_robo.Set_G_acc(ChVector<>(0, 0, -980));
-    AddContainer(&m_sys_robo);
 
-    // double wheel_mass = 1.499326 * 1000;
-    double wheel_mass = 8000;
+    double wheel_mass = 1.499326 * 1000;
 
-    // 2/5 M R^2
-
-    float lx = 40;
-    float ly = 15;
-    float lz = 10;
-
-    float diagx = wheel_mass / 5. * (ly * ly + lz * lz);
-    float diagy = wheel_mass / 5. * (lx * lx + lz * lz);
-    float diagz = wheel_mass / 5. * (lx * lx + ly * ly);
+    double h = 12.3;
+    double r = 24;
+    double Ix = wheel_mass * (3 * r * r + h * h) / 12.;
+    double Iy = Ix;
+    double Iz = .5 * wheel_mass * r * r;
 
     std::vector<std::shared_ptr<ChBody>> chrono_bodies;
     for (unsigned int i = 0; i < num_mesh_balls; i++) {
         std::shared_ptr<ChBody> wheel(m_sys_robo.NewBody());
         wheel->SetMass(wheel_mass);
-        wheel->SetInertiaXX(ChVector<>(diagx, diagy, diagz));
+        wheel->SetInertiaXX(ChVector<>(0.006378, 0.006377, 0.009155) * 1e7);
+        // wheel->SetInertiaXX(ChVector<>(0.0, 0.0, 2.29));
         // wheel->SetInertiaXY(ChVector<>(63.78, 63.77, 91.55));
         wheel->SetPos(wheel_positions[i]);
-        // wheel->SetRot(Q_from_AngX(CH_C_PI / 2));
+        wheel->SetRot(Q_from_AngX(CH_C_PI / 2));
         // wheel->SetWvel_par({0, 2 * 2 * CH_C_PI, 0});
         m_sys_robo.AddBody(wheel);
         // add to list to keep track of
