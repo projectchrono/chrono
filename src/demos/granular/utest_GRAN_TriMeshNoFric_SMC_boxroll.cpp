@@ -40,7 +40,14 @@ using std::stof;
 using std::stoi;
 using std::vector;
 
-enum { SINGLE_ON_VERTEX = 0, SINGLE_TO_CORNER = 1, MULTI_TO_CORNER = 2, SINGLE_TO_INV_CORNER = 3, BOX_FILL = 4 };
+enum {
+    SINGLE_ON_VERTEX = 0,
+    SINGLE_TO_CORNER = 1,
+    MULTI_TO_CORNER = 2,
+    SINGLE_TO_INV_CORNER = 3,
+    BOX_FILL = 4,
+    SINGLE_ON_LAYER
+};
 
 // -----------------------------------------------------------------------------
 // Show command line usage
@@ -56,7 +63,7 @@ void ShowUsage() {
 int main(int argc, char* argv[]) {
     string output_dir = "output";
 
-    float iteration_step = 0.02;
+    float fps = 100;
 
     bool verbose = false;
     float cohesion_ratio = 0;
@@ -69,6 +76,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    float iteration_step = 1 / fps;
     // Setup simulation
     ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(params.sphere_radius, params.sphere_density);
 
@@ -86,7 +94,7 @@ int main(int argc, char* argv[]) {
     ChFileutils::MakeDirectory(output_dir.c_str());
 
     m_sys.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRN_TIME_INTEGRATOR::FORWARD_EULER);
+    m_sys.set_timeIntegrator(GRN_TIME_INTEGRATOR::CHUNG);
     m_sys.set_fixed_stepSize(params.step_size);
 
     m_sys.setBOXdims(40, 40, 40);
@@ -95,7 +103,7 @@ int main(int argc, char* argv[]) {
     vector<ChVector<float>> pos;
     switch (params.run_mode) {
         case SINGLE_ON_VERTEX:
-            pos.push_back(ChVector<float>(0.f, 0.f, params.sphere_radius));
+            pos.push_back(ChVector<float>(0.f, 0.1f, 3 * params.sphere_radius));
             break;
 
         case SINGLE_TO_CORNER:
@@ -114,10 +122,13 @@ int main(int argc, char* argv[]) {
             break;
 
         case BOX_FILL:
-            utils::PDSampler<float> sampler(params.sphere_radius * 2.1);
-            ChVector<float> boxCenter(0, 0, 10);
-            ChVector<float> hdims(9, 9, 9);
+            utils::HCPSampler<float> sampler(params.sphere_radius * 2.1);
+            ChVector<float> boxCenter(0, 0, params.sphere_radius * 2.1);
+            ChVector<float> hdims(9, 9, 0);
             pos = sampler.SampleBox(boxCenter, hdims);
+            boxCenter.z() += params.sphere_radius * 2.1;
+            pos = sampler.SampleBox(boxCenter, hdims);
+            pos.push_back(ChVector<float>(0.f, -5.f, 5.f * params.sphere_radius));
             break;
     }
 
@@ -186,9 +197,21 @@ int main(int argc, char* argv[]) {
     m_sys.initialize();
     unsigned int currframe = 0;
 
+    double sphere_mass =
+        4. / 3. * CH_C_PI * params.sphere_density * params.sphere_radius * params.sphere_radius * params.sphere_radius;
+
+    double sphere_weight = abs(sphere_mass * params.grav_Z);
+
     // Run a loop that is typical of co-simulation. For instance, the wheeled is moved a bit, which moves the
     // particles. Conversely, the particles impress a force and torque upon the mesh soup
     for (float t = 0; t < params.time_end; t += iteration_step) {
+        float ball_force[6 * nSoupFamilies];
+        m_sys.collectGeneralizedForcesOnMeshSoup(ball_force);
+
+        printf("forces are (%f, %f, %f), torques are (%f, %f, %f)\n", ball_force[0], ball_force[1], ball_force[2],
+               ball_force[3], ball_force[4], ball_force[5]);
+        printf("sphere weight is %f, %f total spheres\n", sphere_weight, sphere_weight * pos.size());
+        printf("ratio of z force to sphere weights is %f \n", ball_force[2] / (sphere_weight * pos.size()));
         // Generate next tire location and orientation
         meshSoupLocOri[0] = 0;
         meshSoupLocOri[1] = 0;

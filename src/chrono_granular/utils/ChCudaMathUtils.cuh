@@ -21,11 +21,21 @@
 inline __device__ double3 Cross(const double3& v1, const double3& v2) {
     return make_double3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
 }
+inline __device__ float3 Cross(const float3& v1, const float3& v2) {
+    return make_float3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+}
+
+inline __device__ float3 Cross(const uint3& v1, const float3& v2) {
+    return make_float3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+}
 
 inline __device__ double Dot(const double3& v1, const double3& v2) {
     return __dadd_ru(__dadd_ru(__dmul_ru(v1.x, v2.x), __dmul_ru(v1.y, v2.y)), __dmul_ru(v1.z, v2.z));
 }
 inline __device__ float Dot(const float3& v1, const float3& v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+}
+inline __device__ float Dot(const float3& v1, const double3& v2) {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
@@ -44,6 +54,10 @@ inline __device__ double3 operator*(const double& a, const double3& v) {
 }
 // Multiply a * v
 inline __device__ float3 operator*(const float& a, const float3& v) {
+    return make_float3(a * v.x, a * v.y, a * v.z);
+}
+// Multiply a * v
+inline __device__ float3 operator*(const float3& v, const float& a) {
     return make_float3(a * v.x, a * v.y, a * v.z);
 }
 
@@ -69,6 +83,10 @@ inline __device__ float3 operator-(const float3& v1, const float3& v2) {
 // v1 + v2
 inline __device__ double3 operator+(const double3& v1, const double3& v2) {
     return make_double3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+}
+// v1 + v2
+inline __device__ float3 operator+(const float3& v1, const float3& v2) {
+    return make_float3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 }
 
 /// This utility function returns the normal to the triangular face defined by

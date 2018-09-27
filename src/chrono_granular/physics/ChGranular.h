@@ -40,6 +40,41 @@
 namespace chrono {
 namespace granular {
 
+/// hold pointers
+struct sphereDataStruct {
+  public:
+    /// Store positions and velocities in unified memory
+    int* pos_X;
+    int* pos_Y;
+    int* pos_Z;
+    float* pos_X_dt;
+    float* pos_Y_dt;
+    float* pos_Z_dt;
+
+    /// store angular velocity (axis and magnitude in one vector)
+    float* omega_X;
+    float* omega_Y;
+    float* omega_Z;
+
+    float* sphere_force_X;
+    float* sphere_force_Y;
+    float* sphere_force_Z;
+
+    /// store angular acceleration (axis and magnitude in one vector)
+    float* sphere_torque_X;
+    float* sphere_torque_Y;
+    float* sphere_torque_Z;
+
+    /// used for chung integrator
+    float* sphere_force_X_old;
+    float* sphere_force_Y_old;
+    float* sphere_force_Z_old;
+
+    /// sphere broadphase data
+    unsigned int* SD_NumOf_DEs_Touching;
+    unsigned int* DEs_in_SD_composite;
+};
+
 // How are we writing?
 enum GRN_OUTPUT_MODE { CSV, BINARY, NONE };
 // How are we stepping through time?
@@ -95,7 +130,7 @@ class CH_GRANULAR_API ChSystemGranular {
 
     // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
     // Makes somewhat faster memcpys
-    /// Store x positions and velocities, copied back occasionally
+    /// Store positions and velocities in unified memory
     std::vector<int, cudallocator<int>> pos_X;
     std::vector<int, cudallocator<int>> pos_Y;
     std::vector<int, cudallocator<int>> pos_Z;
@@ -103,25 +138,34 @@ class CH_GRANULAR_API ChSystemGranular {
     std::vector<float, cudallocator<float>> pos_Y_dt;
     std::vector<float, cudallocator<float>> pos_Z_dt;
 
+    /// store angular velocity (axis and magnitude in one vector)
+    std::vector<float, cudallocator<float>> omega_X;
+    std::vector<float, cudallocator<float>> omega_Y;
+    std::vector<float, cudallocator<float>> omega_Z;
+
     std::vector<float, cudallocator<float>> sphere_force_X;
     std::vector<float, cudallocator<float>> sphere_force_Y;
     std::vector<float, cudallocator<float>> sphere_force_Z;
+
+    /// store angular acceleration (axis and magnitude in one vector)
+    std::vector<float, cudallocator<float>> sphere_torque_X;
+    std::vector<float, cudallocator<float>> sphere_torque_Y;
+    std::vector<float, cudallocator<float>> sphere_torque_Z;
 
     /// used for chung integrator
     std::vector<float, cudallocator<float>> sphere_force_X_old;
     std::vector<float, cudallocator<float>> sphere_force_Y_old;
     std::vector<float, cudallocator<float>> sphere_force_Z_old;
 
-    float X_accGrav;  //!< X component of the gravitational acceleration
-    float Y_accGrav;  //!< Y component of the gravitational acceleration
-    float Z_accGrav;  //!< Z component of the gravitational acceleration
+    /// gravity in user units
+    float X_accGrav;
+    float Y_accGrav;
+    float Z_accGrav;
 
-    float gravity_X_SU;  //!< \f$gran_params->psi_L/(gran_params->psi_T^2 gran_params->psi_h)
-                         //!< \times (g_X/g)\f$, where g is the gravitational acceleration
-    float gravity_Y_SU;  //!< \f$gran_params->psi_L/(gran_params->psi_T^2 gran_params->psi_h)
-                         //!< \times (g_Y/g)\f$, where g is the gravitational acceleration
-    float gravity_Z_SU;  //!< \f$gran_params->psi_L/(gran_params->psi_T^2 gran_params->psi_h)
-                         //!< \times (g_Z/g)\f$, where g is the gravitational acceleration
+    ///  gravity in sim units
+    float gravity_X_SU;
+    float gravity_Y_SU;
+    float gravity_Z_SU;
 
     /// User provided maximum timestep in UU, used in adaptive timestepping
     float max_adaptive_step_UU = 1e-3;
@@ -148,6 +192,9 @@ class CH_GRANULAR_API ChSystemGranular {
     virtual void setup_simulation() = 0;
 
     virtual void determine_new_stepSize_SU() = 0;
+
+    /// collect all the sphere data into a struct
+    sphereDataStruct packSphereDataPointers();
 
     /// Total time elapsed since beginning of simulation
     float elapsedSimTime;
@@ -300,6 +347,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     inline void set_Gamma_n_SPH2SPH(double someValue) { Gamma_n_s2s_UU = someValue; }
     inline void set_Gamma_n_SPH2WALL(double someValue) { Gamma_n_s2w_UU = someValue; }
 
+    inline void set_mu_t_SPH2SPH(double someValue) { mu_t_s2s_UU = someValue; }
+    inline void set_Gamma_t_SPH2SPH(double someValue) { Gamma_t_s2s_UU = someValue; }
+
     /// Set the ratio of cohesion to gravity for monodisperse spheres
     inline void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
@@ -326,17 +376,29 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     virtual void defragment_data();
 
+    /// size of the normal stiffness (SU) for sphere-to-sphere contact
     double K_n_s2s_UU;
-    float K_n_s2s_SU;  /// size of the normal stiffness (SU) for sphere-to-sphere contact
+    float K_n_s2s_SU;
 
+    /// size of the normal stiffness (SU) for sphere-to-wall contact
     double K_n_s2w_UU;
-    float K_n_s2w_SU;  /// size of the normal stiffness (SU) for sphere-to-wall contact
+    float K_n_s2w_SU;
 
+    /// normal damping for sphere-to-sphere
     double Gamma_n_s2s_UU;
     float Gamma_n_s2s_SU;
 
+    /// normal damping for sphere-to-wall
     double Gamma_n_s2w_UU;
     float Gamma_n_s2w_SU;
+
+    /// tangential stiffness for sphere-to-sphere
+    double mu_t_s2s_UU;
+    float mu_t_s2s_SU;
+
+    /// tangential damping for sphere-to-sphere
+    double Gamma_t_s2s_UU;
+    float Gamma_t_s2s_SU;
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;

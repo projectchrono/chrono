@@ -871,9 +871,10 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
     printf("doing priming!\n");
     printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 
+    auto sphere_data = packSphereDataPointers();
+
     primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
-        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
-                                              DEs_in_SD_composite.data(), nDEs, gran_params);
+        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nDEs, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
@@ -881,6 +882,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::initialize(
 }
 
 __host__ double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_simulation(float duration) {
+    auto sphere_data = packSphereDataPointers();
+
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -910,10 +913,7 @@ __host__ double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_s
 
         // Compute sphere-sphere forces
         computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            pos_X.data(), pos_Y.data(), pos_Z.data(), sphere_force_X.data(), sphere_force_Y.data(),
-            sphere_force_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data(), gran_params, BC_type_list.data(), BC_params_list.data(),
-            BC_params_list.size());
+            sphere_data, gran_params, BC_type_list.data(), BC_params_list.data(), BC_params_list.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -948,11 +948,8 @@ __host__ double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::advance_s
         resetBroadphaseInformation();
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
-        updatePositions<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
-            sphere_force_X.data(), sphere_force_Y.data(), sphere_force_Z.data(), sphere_force_X_old.data(),
-            sphere_force_Y_old.data(), sphere_force_Z_old.data(), SD_NumOf_DEs_Touching.data(),
-            DEs_in_SD_composite.data(), nDEs, gran_params, time_integrator);
+        updatePositions<CUDA_THREADS_PER_BLOCK>
+            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params, time_integrator);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

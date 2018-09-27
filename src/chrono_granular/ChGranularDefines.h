@@ -68,13 +68,17 @@ namespace granular {
 
 /// Parameters needed for sphere-based granular dynamics
 struct GranParamsHolder {
+    // Timestep in SU
+    float alpha_h_bar;
     // Use user-defined quantities for coefficients
     // TODO we need to get the damping coefficient from user
     float Gamma_n_s2s_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
     float Gamma_n_s2w_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
+    float Gamma_t_s2s_SU;
 
     float Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
     float Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
+    float mu_t_s2s_SU;
 
     unsigned int sphereRadius_SU;  //!< Radius of the sphere, expressed in SU
     unsigned int SD_size_X_SU;     //!< X-dimension of the SD box, expressed in SU

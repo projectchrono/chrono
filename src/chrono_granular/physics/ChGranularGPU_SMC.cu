@@ -37,6 +37,7 @@ __host__ double ChSystemGranular::get_max_z() const {
     gpuErrchk(cudaMemcpy(&max_z_h, max_z_d, sizeof(int), cudaMemcpyDeviceToHost));
 
     double max_z_UU = max_z_h * gran_params->LENGTH_UNIT;
+    gpuErrchk(cudaFree(max_z_d));
     gpuErrchk(cudaDeviceSynchronize());
 
     return max_z_UU;
@@ -60,6 +61,9 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_
         std::sqrt(gravity_X_SU * gravity_X_SU + gravity_Y_SU * gravity_Y_SU + gravity_Z_SU * gravity_Z_SU);
 
     gran_params->sphereRadius_SU = sphereRadius_SU;
+
+    gran_params->Gamma_t_s2s_SU = Gamma_t_s2s_SU;
+    gran_params->mu_t_s2s_SU = mu_t_s2s_SU;
 
     gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
     gran_params->Gamma_n_s2w_SU = Gamma_n_s2w_SU;
@@ -200,7 +204,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::writeFileUU(std::string ofil
 
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
-        outstrstream << "x,y,z,USU\n";
+        outstrstream << "x,y,z,USU,wx,wy,wz\n";
 
         for (unsigned int n = 0; n < nDEs; n++) {
             // TODO convert absv into UU
@@ -208,7 +212,8 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::writeFileUU(std::string ofil
                               pos_Z_dt.at(n) * pos_Z_dt.at(n));
 
             outstrstream << pos_X.at(n) * gran_params->LENGTH_UNIT << "," << pos_Y.at(n) * gran_params->LENGTH_UNIT
-                         << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "," << absv << "\n";
+                         << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "," << absv << "," << omega_X.at(n) << ","
+                         << omega_Y.at(n) << "," << omega_Z.at(n) << "\n";
         }
 
         ptFile << outstrstream.str();
@@ -241,6 +246,11 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::resetSphereForces() {
     gpuErrchk(cudaMemset(sphere_force_X.data(), 0, nDEs * sizeof(float)));
     gpuErrchk(cudaMemset(sphere_force_Y.data(), 0, nDEs * sizeof(float)));
     gpuErrchk(cudaMemset(sphere_force_Z.data(), 0, nDEs * sizeof(float)));
+
+    // reset torques to zero
+    gpuErrchk(cudaMemset(sphere_torque_X.data(), 0, nDEs * sizeof(float)));
+    gpuErrchk(cudaMemset(sphere_torque_Y.data(), 0, nDEs * sizeof(float)));
+    gpuErrchk(cudaMemset(sphere_torque_Z.data(), 0, nDEs * sizeof(float)));
 }
 
 void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const float stepSize_SU) {
@@ -438,9 +448,10 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
     printf("doing priming!\n");
     printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
 
+    auto sphere_data = packSphereDataPointers();
+
     primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
-        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(pos_X.data(), pos_Y.data(), pos_Z.data(), SD_NumOf_DEs_Touching.data(),
-                                              DEs_in_SD_composite.data(), nDEs, gran_params);
+        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nDEs, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
     printf("priming finished!\n");
 
@@ -449,6 +460,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
 }
 
 __host__ double ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
+    auto sphere_data = packSphereDataPointers();
+
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -462,6 +475,8 @@ __host__ double ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulatio
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determine_new_stepSize_SU();  // doesn't always change the timestep
+
+        gran_params->alpha_h_bar = stepSize_SU;
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
             updateBDPosition(stepSize_SU);  // TODO current time
@@ -472,10 +487,7 @@ __host__ double ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulatio
 
         // Compute sphere-sphere forces
         computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            pos_X.data(), pos_Y.data(), pos_Z.data(), sphere_force_X.data(), sphere_force_Y.data(),
-            sphere_force_Z.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), pos_X_dt.data(),
-            pos_Y_dt.data(), pos_Z_dt.data(), gran_params, BC_type_list.data(), BC_params_list.data(),
-            BC_params_list.size());
+            sphere_data, gran_params, BC_type_list.data(), BC_params_list.data(), BC_params_list.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -484,11 +496,8 @@ __host__ double ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulatio
         resetBroadphaseInformation();
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
-        updatePositions<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-            stepSize_SU, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(),
-            sphere_force_X.data(), sphere_force_Y.data(), sphere_force_Z.data(), sphere_force_X_old.data(),
-            sphere_force_Y_old.data(), sphere_force_Z_old.data(), SD_NumOf_DEs_Touching.data(),
-            DEs_in_SD_composite.data(), nDEs, gran_params, time_integrator);
+        updatePositions<CUDA_THREADS_PER_BLOCK>
+            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params, time_integrator);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

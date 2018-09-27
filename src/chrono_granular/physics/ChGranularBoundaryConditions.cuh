@@ -145,6 +145,7 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
         // Project relative velocity to the normal
         // n = delta * reciplength
         // proj = Dot(delta_dot, n)
+        // TODO this assumes walls at rest
         float projection = (sphXvel * dX + sphYvel * dY + sphZvel * dZ) * reciplength;
 
         constexpr float m_eff = 0.5;

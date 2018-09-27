@@ -67,6 +67,10 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
     settlingExperiment.set_Gamma_n_SPH2SPH(params.normalDampS2S);
     settlingExperiment.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+
+    settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    settlingExperiment.set_mu_t_SPH2SPH(params.tangentStiffS2S);
+
     settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
     settlingExperiment.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     settlingExperiment.setOutputDirectory(params.output_dir);
@@ -75,19 +79,29 @@ int main(int argc, char* argv[]) {
     // Fill box with bodies
     std::vector<ChVector<float>> body_points;
 
-    double fill_bottom = -params.box_Z / 2;
-    double fill_top = 0;
     chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
 
+    float center_pt[3] = {0.f, 0.f, -2.05f * params.sphere_radius - params.box_Z / 4};
+
+    // width we want to fill to
+    double fill_width = params.box_Z / 4;
+    // height that makes this width above the cone
+    double fill_height = fill_width;
+
+    // fill to top
+    double fill_top = params.box_Z / 2 - 2.05 * params.sphere_radius;
+    double fill_bottom = fill_top + 2.05 * params.sphere_radius - fill_height + center_pt[2];
+
+    printf("width is %f, bot is %f, top is %f, height is %f\n", fill_width, fill_bottom, fill_top, fill_height);
     // fill box, layer by layer
-    ChVector<> hdims(params.box_X / 2 - params.sphere_radius, params.box_Y / 2 - params.sphere_radius, 0);
+    ChVector<> hdims(fill_width - params.sphere_radius, fill_width - params.sphere_radius, 0);
     ChVector<> center(0, 0, fill_bottom);
     // shift up for bottom of box
     center.z() += 3 * params.sphere_radius;
 
     while (center.z() < fill_top) {
         std::cout << "Create layer at " << center.z() << std::endl;
-        auto points = sampler.SampleBox(center, hdims);
+        auto points = sampler.SampleCylinderZ(center, fill_width - params.sphere_radius, 0);
         body_points.insert(body_points.end(), points.begin(), points.end());
         center.z() += 2.05 * params.sphere_radius;
     }
@@ -95,10 +109,8 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setParticlePositions(body_points);
 
     settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_timeIntegrator(GRN_TIME_INTEGRATOR::CHUNG);
+    settlingExperiment.set_timeIntegrator(GRN_TIME_INTEGRATOR::FORWARD_EULER);
     settlingExperiment.set_fixed_stepSize(params.step_size);
-
-    settlingExperiment.setFillBounds(-1.f, 1.f, .5f, 1.f, -1.f, 1.f);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
 
@@ -148,16 +160,15 @@ int main(int argc, char* argv[]) {
     }
 
     // float hdims[3] = {2.f, 2.f, 2.f};
-    // float center[3] = {0.f, 0.f, -params.box_Z / 2};
 
     settlingExperiment.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
     settlingExperiment.initialize();
-    // settlingExperiment.Create_BC_AABox(hdims, center, false);
-    // settlingExperiment.Create_BC_Sphere(center, 3.f, true);
-    // settlingExperiment.Create_BC_Cone(center, .7, params.box_Z, center[2] + 2, true);
+    // settlingExperiment.Create_BC_AABox(hdims, center_pt, false);
+    // settlingExperiment.Create_BC_Sphere(center_pt, 3.f, true);
+    // settlingExperiment.Create_BC_Cone(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true);
 
-    int fps = 50;
+    int fps = 100;
     // assume we run for at least one frame
     float frame_step = 1.0f / fps;
     float curr_time = 0;

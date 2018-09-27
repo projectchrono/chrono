@@ -24,12 +24,14 @@ typedef struct sim_param_holder {
     float grav_X;
     float grav_Y;
     float grav_Z;
-    float normalStiffS2S;
-    float normalStiffS2W;
-    float normalStiffS2M;
-    float normalDampS2S;
-    float normalDampS2W;
-    float normalDampS2M;
+    double normalStiffS2S;
+    double normalStiffS2W;
+    double normalStiffS2M;
+    double normalDampS2S;
+    double normalDampS2W;
+    double normalDampS2M;
+    double tangentDampS2S;
+    double tangentStiffS2S;
     float cohesion_ratio;
     bool verbose;
     int run_mode;
@@ -59,6 +61,8 @@ void ShowJSONUsage() {
     cout << "normalDampS2S" << endl;
     cout << "normalDampS2W" << endl;
     cout << "normalDampS2M" << endl;
+    cout << "tangentDampS2S" << endl;
+    cout << "tangentStiffS2S" << endl;
     cout << "cohesion_ratio" << endl;
     cout << "verbose" << endl;
     cout << "psi_h" << endl;
@@ -152,9 +156,13 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
         params.normalDampS2W = doc["normalDampS2W"].GetDouble();
         cout << "params.normalDampS2W " << params.normalDampS2W << endl;
     }
-    if (doc.HasMember("normalDampS2M") && doc["normalDampS2M"].IsNumber()) {
-        params.normalDampS2M = doc["normalDampS2M"].GetDouble();
-        cout << "params.normalDampS2M " << params.normalDampS2M << endl;
+    if (doc.HasMember("tangentDampS2S") && doc["tangentDampS2S"].IsNumber()) {
+        params.tangentDampS2S = doc["tangentDampS2S"].GetDouble();
+        cout << "params.tangentDampS2S " << params.tangentDampS2S << endl;
+    }
+    if (doc.HasMember("tangentStiffS2S") && doc["tangentStiffS2S"].IsNumber()) {
+        params.tangentStiffS2S = doc["tangentStiffS2S"].GetDouble();
+        cout << "params.tangentStiffS2S " << params.tangentStiffS2S << endl;
     }
     if (doc.HasMember("cohesion_ratio") && doc["cohesion_ratio"].IsNumber()) {
         params.cohesion_ratio = doc["cohesion_ratio"].GetDouble();

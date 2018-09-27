@@ -26,6 +26,34 @@
 
 namespace chrono {
 namespace granular {
+sphereDataStruct ChSystemGranular::packSphereDataPointers() {
+    sphereDataStruct packed;
+
+    // Set data from system
+    packed.pos_X = pos_X.data();
+    packed.pos_Y = pos_Y.data();
+    packed.pos_Z = pos_Z.data();
+    packed.pos_X_dt = pos_X_dt.data();
+    packed.pos_Y_dt = pos_Y_dt.data();
+    packed.pos_Z_dt = pos_Z_dt.data();
+    packed.omega_X = omega_X.data();
+    packed.omega_Y = omega_Y.data();
+    packed.omega_Z = omega_Z.data();
+    packed.sphere_force_X = sphere_force_X.data();
+    packed.sphere_force_Y = sphere_force_Y.data();
+    packed.sphere_force_Z = sphere_force_Z.data();
+    packed.sphere_torque_X = sphere_torque_X.data();
+    packed.sphere_torque_Y = sphere_torque_Y.data();
+    packed.sphere_torque_Z = sphere_torque_Z.data();
+    packed.sphere_force_X_old = sphere_force_X_old.data();
+    packed.sphere_force_Y_old = sphere_force_Y_old.data();
+    packed.sphere_force_Z_old = sphere_force_Z_old.data();
+
+    packed.SD_NumOf_DEs_Touching = SD_NumOf_DEs_Touching.data();
+    packed.DEs_in_SD_composite = DEs_in_SD_composite.data();
+    return packed;
+}
+
 ChSystemGranular::ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), elapsedSimTime(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
     gran_params->psi_T = PSI_T_DEFAULT;
@@ -215,6 +243,16 @@ void ChSystemGranularMonodisperse::generate_DEs() {
     sphere_force_Y.resize(nDEs, 0);
     sphere_force_Z.resize(nDEs, 0);
 
+    // add rotational DOFs
+    omega_X.resize(nDEs, 0);
+    omega_Y.resize(nDEs, 0);
+    omega_Z.resize(nDEs, 0);
+
+    // add torques
+    sphere_torque_X.resize(nDEs, 0);
+    sphere_torque_Y.resize(nDEs, 0);
+    sphere_torque_Z.resize(nDEs, 0);
+
     if (time_integrator == GRN_TIME_INTEGRATOR::CHUNG) {
         sphere_force_X_old.resize(nDEs, 0);
         sphere_force_Y_old.resize(nDEs, 0);
@@ -339,13 +377,17 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     K_n_s2s_SU = K_scalingFactor * (K_n_s2s_UU / K_stiffness);
     K_n_s2w_SU = K_scalingFactor * (K_n_s2w_UU / K_stiffness);
 
+    mu_t_s2s_SU = K_scalingFactor * (mu_t_s2s_UU / K_stiffness);
+    printf("%f, %f is params\n", mu_t_s2s_UU, mu_t_s2s_SU);
+
     float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
     Gamma_n_s2s_SU = Gamma_scalingFactor * Gamma_n_s2s_UU;
     Gamma_n_s2w_SU = Gamma_scalingFactor * Gamma_n_s2w_UU;
+    Gamma_t_s2s_SU = Gamma_scalingFactor * Gamma_t_s2s_UU;
 
     // Handy debug output
+    printf("UU mass is %f\n", gran_params->MASS_UNIT);
     printf("SU gravity is %f, %f, %f\n", gravity_X_SU, gravity_Y_SU, gravity_Z_SU);
-    printf("SU mass is %f\n", gran_params->MASS_UNIT);
     printf("SU radius is %u\n", sphereRadius_SU);
 }
 }  // namespace granular

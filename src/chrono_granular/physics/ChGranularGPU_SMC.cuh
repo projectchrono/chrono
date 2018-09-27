@@ -31,7 +31,10 @@
 #include "../chrono_granular/physics/ChGranular.h"
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
+#include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
+
+using chrono::granular::sphereDataStruct;
 
 // These are the max X, Y, Z dimensions in the BD frame
 #define MAX_X_POS_UNSIGNED (gran_params->SD_size_X_SU * gran_params->nSDs_X)
@@ -253,19 +256,11 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
  * box. Usually, there is no sphere in this SD (THIS IS NOT IMPLEMENTED AS SUCH FOR NOW)
  *
  */
-template <
-    unsigned int
-        CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a multiple of 32
-__global__ void
-primingOperationsRectangularBox(
-    int* d_sphere_pos_X,                       //!< Pointer to array containing data related to the spheres in the box
-    int* d_sphere_pos_Y,                       //!< Pointer to array containing data related to the spheres in the box
-    int* d_sphere_pos_Z,                       //!< Pointer to array containing data related to the spheres in the box
-    unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each SD indicates how many spheres touch this SD
-    unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction with SD_countsOfSpheresTouching.
-                                               //!< "spheres_in_SD_composite" says which SD contains what spheres
-    unsigned int nSpheres,                     //!< Number of spheres in the box
-    ParamsPtr gran_params) {
+template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a
+                                     //!< multiple of 32
+__global__ void primingOperationsRectangularBox(sphereDataStruct sphere_data,
+                                                unsigned int nSpheres,  //!< Number of spheres in the box
+                                                ParamsPtr gran_params) {
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
@@ -294,9 +289,9 @@ primingOperationsRectangularBox(
                                                           NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     if (mySphereID < nSpheres) {
         // Coalesced mem access
-        xSphCenter = d_sphere_pos_X[mySphereID];
-        ySphCenter = d_sphere_pos_Y[mySphereID];
-        zSphCenter = d_sphere_pos_Z[mySphereID];
+        xSphCenter = sphere_data.pos_X[mySphereID];
+        ySphCenter = sphere_data.pos_Y[mySphereID];
+        zSphCenter = sphere_data.pos_Z[mySphereID];
 
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched, gran_params);
     }
@@ -344,10 +339,10 @@ primingOperationsRectangularBox(
                      !(shMem_head_flags[idInShared + winningStreak]));
 
             // Store start of new entries
-            unsigned char sphere_offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
+            unsigned char sphere_offset = atomicAdd(sphere_data.SD_NumOf_DEs_Touching + touchedSD, winningStreak);
 
             // The value sphere_offset now gives a *relative* offset in the composite array; i.e.,
-            // spheres_in_SD_composite. Get the SD component
+            // sphere_data.DEs_in_SD_composite. Get the SD component
 
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int sphereInStreak = 0; sphereInStreak < winningStreak; sphereInStreak++) {
@@ -364,7 +359,7 @@ primingOperationsRectangularBox(
     const uint64_t max_composite_index =
         (uint64_t)gran_params->nSDs_Y * gran_params->nSDs_X * gran_params->nSDs_Z * MAX_COUNT_OF_DEs_PER_SD;
 
-    // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
+    // Write out the data now; reister with sphere_data.DEs_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
         // Add offsets together
         // bad SD means not a valid offset
@@ -377,7 +372,7 @@ primingOperationsRectangularBox(
                     "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
                     threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
             } else {
-                spheres_in_SD_composite[offset] = sphIDs[i];
+                sphere_data.DEs_in_SD_composite[offset] = sphIDs[i];
             }
         }
     }
@@ -448,77 +443,122 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
                                        float& Yforce,        //!< Force in Ydir
                                        float& Zforce,        //!< Force in Zdir
                                        ParamsPtr gran_params) {
-    // classic radius grab
-    const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
+    // classic radius grab, but signed so we can negate it easier
+    const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
 
     // Shift frame so that origin is at lower left corner
     int sphXpos_modified = -gran_params->BD_frame_X + sphXpos;
     int sphYpos_modified = -gran_params->BD_frame_Y + sphYpos;
     int sphZpos_modified = -gran_params->BD_frame_Z + sphZpos;
 
-    // penetration into wall
-    signed int pen = 0;
     // Are we touching wall?
     int touchingWall = 0;
 
-    constexpr float m_eff = 0.5;
+    constexpr float sphere_mass_SU = 1.f;
+    constexpr float m_eff = sphere_mass_SU / 2.f;
+    // cache force
+    float3 wall_force = {0, 0, 0};
 
-    // tmp vars to save writes, probably not necessary
-    float xcomp = 0;
-    float ycomp = 0;
-    float zcomp = 0;
-
+    float3 delta_V = make_float3(sphXvel - gran_params->BD_frame_X_dot, sphYvel - gran_params->BD_frame_Y_dot,
+                                 sphZvel - gran_params->BD_frame_Z_dot);
     // Do x direction
     // penetration of sphere into bottom x wall
-    pen = sphXpos_modified - (signed int)sphereRadius_SU;
-    // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // in this case, pen is negative and we want a positive restorative force
-    // Need to get relative velocity
-    xcomp += touchingWall * (gran_params->Kn_s2w_SU * abs(pen));
-    xcomp += -1 * touchingWall * (sphXvel - gran_params->BD_frame_X_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
+    signed int xpen = sphXpos_modified - (signed int)sphereRadius_SU;
+    // if sphere center is within one radius of wall
+    touchingWall = (xpen < 0) && abs(xpen) < sphereRadius_SU;
+    // in this case, xpen is negative and we want a positive restorative force=
+    wall_force.x += touchingWall * (gran_params->Kn_s2w_SU * abs(xpen));
+    wall_force.x += -1 * touchingWall * (delta_V.x) * gran_params->Gamma_n_s2w_SU * m_eff;
+    // add friction on each wall
+    // wall_force.y += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.y * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.y);
+    //
+    // wall_force.z += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.z * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.z);
 
     // Do top X wall
-    pen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // in this case, pen is positive and we want a negative restorative force
-    xcomp += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(pen);
-    xcomp += -1 * touchingWall * (sphXvel - gran_params->BD_frame_X_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
+    xpen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)sphereRadius_SU);
+    touchingWall = (xpen < 0) && abs(xpen) < sphereRadius_SU;
+    // in this case, xpen is positive and we want a negative restorative force
+    wall_force.x += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(xpen);
+    wall_force.x += -1 * touchingWall * (delta_V.x) * gran_params->Gamma_n_s2w_SU * m_eff;
+    // add friction on each wall
+    // wall_force.y += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.y * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.y);
+    //
+    // wall_force.z += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.z * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.z);
 
-    // penetration of sphere into relevant wall
-    pen = sphYpos_modified - (signed int)sphereRadius_SU;
+    // do again for y, z
+    signed int ypen = sphYpos_modified - (signed int)sphereRadius_SU;
     // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // in this case, pen is negative and we want a positive restorative force
-    ycomp += touchingWall * (gran_params->Kn_s2w_SU * abs(pen));
-    ycomp += -1 * touchingWall * (sphYvel - gran_params->BD_frame_Y_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
+    touchingWall = (ypen < 0) && abs(ypen) < sphereRadius_SU;
+    // in this case, ypen is negative and we want a positive restorative force
+    wall_force.y += touchingWall * (gran_params->Kn_s2w_SU * abs(ypen));
+    wall_force.y += -1 * touchingWall * (delta_V.y) * gran_params->Gamma_n_s2w_SU * m_eff;
+    // add friction on each wall
+    // wall_force.x += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.x * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.x);
+    //
+    // wall_force.z += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.z * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.z);
 
     // Do top y wall
-    pen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // in this case, pen is positive and we want a negative restorative force
-    ycomp += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(pen);
-    ycomp += -1 * touchingWall * (sphYvel - gran_params->BD_frame_Y_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
+    ypen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)sphereRadius_SU);
+    touchingWall = (ypen < 0) && abs(ypen) < sphereRadius_SU;
+    // in this case, ypen is positive and we want a negative restorative force
+    wall_force.y += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(ypen);
+    wall_force.y += -1 * touchingWall * (delta_V.y) * gran_params->Gamma_n_s2w_SU * m_eff;
+    // add friction on each wall
+    // wall_force.x += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.x * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.x);
+    //
+    // wall_force.z += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.z * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.z);
 
     // penetration of sphere into relevant wall
-    pen = sphZpos_modified - (signed int)sphereRadius_SU;
+    signed int zpen = sphZpos_modified - (signed int)sphereRadius_SU;
     // true if sphere touching wall
-    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // in this case, pen is negative and we want a positive restorative force
-    zcomp += touchingWall * (gran_params->Kn_s2w_SU * abs(pen));
-    zcomp += -1 * touchingWall * (sphZvel - gran_params->BD_frame_Z_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
+    touchingWall = (zpen < 0) && abs(zpen) < sphereRadius_SU;
+    // in this case, zpen is negative and we want a positive restorative force
+    wall_force.z += touchingWall * (gran_params->Kn_s2w_SU * abs(zpen));
+    wall_force.z += -1 * touchingWall * (delta_V.z) * gran_params->Gamma_n_s2w_SU * m_eff;
+    // add friction on each wall
+    // wall_force.x += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.x * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.x);
+    //
+    // wall_force.y += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.y * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.y);
 
     // Do top z wall
-    pen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)sphereRadius_SU);
-    touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // in this case, pen is positive and we want a negative restorative force
-    zcomp += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(pen);
-    zcomp += -1 * touchingWall * (sphZvel - gran_params->BD_frame_Z_dot) * gran_params->Gamma_n_s2w_SU * m_eff;
+    zpen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)sphereRadius_SU);
+    touchingWall = (zpen < 0) && abs(zpen) < sphereRadius_SU;
+    // in this case, zpen is positive and we want a negative restorative force
+    wall_force.z += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(zpen);
+    wall_force.z += -1 * touchingWall * (delta_V.z) * gran_params->Gamma_n_s2w_SU * m_eff;
+    // add friction on each wall
+    // wall_force.x += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.x * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.x);
+    //
+    // wall_force.y += -1 * touchingWall *
+    //                 (gran_params->mu_t_s2s_SU * delta_V.y * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.y);
 
     // write back to "return" values
-    Xforce += xcomp;
-    Yforce += ycomp;
-    Zforce += zcomp;
+    Xforce += wall_force.x;
+    Yforce += wall_force.y;
+    Zforce += wall_force.z;
 }
 
 /**
@@ -545,26 +585,7 @@ NOTE:
 */
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
-__global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to array containing data related to the
-                                                              //!< spheres in the box
-                                    int* d_sphere_pos_Y,      //!< Pointer to array containing data related to the
-                                                              //!< spheres in the box
-                                    int* d_sphere_pos_Z,      //!< Pointer to array containing data related to the
-                                                              //!< spheres in the box
-                                    float* d_sphere_force_X,  //!< Pointer to array containing data related
-                                                              //!< to the spheres in the box
-                                    float* d_sphere_force_Y,  //!< Pointer to array containing data related
-                                                              //!< to the spheres in the box
-                                    float* d_sphere_force_Z,  //!< Pointer to array containing data related
-                                                              //!< to the spheres in the box
-                                    unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
-                                                                               //!< SD indicates how many
-                                                                               //!< spheres touch this SD
-                                    unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction
-                                                                               //!< with SD_countsOfSpheresTouching.
-                                    float* d_sphere_pos_X_dt,
-                                    float* d_sphere_pos_Y_dt,
-                                    float* d_sphere_pos_Z_dt,
+__global__ void computeSphereForces(sphereDataStruct sphere_data,
                                     ParamsPtr gran_params,
                                     BC_type* bc_type_list,
                                     BC_params_t* bc_params_list,
@@ -576,12 +597,15 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to ar
     __shared__ int sphere_X[MAX_NSPHERES_PER_SD];
     __shared__ int sphere_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sphere_Z[MAX_NSPHERES_PER_SD];
+    __shared__ float omega_X[MAX_NSPHERES_PER_SD];
+    __shared__ float omega_Y[MAX_NSPHERES_PER_SD];
+    __shared__ float omega_Z[MAX_NSPHERES_PER_SD];
     __shared__ float sphere_X_DOT[MAX_NSPHERES_PER_SD];
     __shared__ float sphere_Y_DOT[MAX_NSPHERES_PER_SD];
     __shared__ float sphere_Z_DOT[MAX_NSPHERES_PER_SD];
 
     unsigned int thisSD = blockIdx.x;
-    unsigned int spheresTouchingThisSD = SD_countsOfSpheresTouching[thisSD];
+    unsigned int spheresTouchingThisSD = sphere_data.SD_NumOf_DEs_Touching[thisSD];
     unsigned mySphereID;
     unsigned char bodyB_list[MAX_SPHERES_TOUCHED_BY_SPHERE];
     unsigned int ncontacts = 0;
@@ -600,13 +624,16 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to ar
     if (threadIdx.x < spheresTouchingThisSD) {
         // We need int64_ts to index into composite array
         uint64_t offset_in_composite_Array = ((uint64_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
-        mySphereID = spheres_in_SD_composite[offset_in_composite_Array];
-        sphere_X[threadIdx.x] = d_sphere_pos_X[mySphereID];
-        sphere_Y[threadIdx.x] = d_sphere_pos_Y[mySphereID];
-        sphere_Z[threadIdx.x] = d_sphere_pos_Z[mySphereID];
-        sphere_X_DOT[threadIdx.x] = d_sphere_pos_X_dt[mySphereID];
-        sphere_Y_DOT[threadIdx.x] = d_sphere_pos_Y_dt[mySphereID];
-        sphere_Z_DOT[threadIdx.x] = d_sphere_pos_Z_dt[mySphereID];
+        mySphereID = sphere_data.DEs_in_SD_composite[offset_in_composite_Array];
+        sphere_X[threadIdx.x] = sphere_data.pos_X[mySphereID];
+        sphere_Y[threadIdx.x] = sphere_data.pos_Y[mySphereID];
+        sphere_Z[threadIdx.x] = sphere_data.pos_Z[mySphereID];
+        omega_X[threadIdx.x] = sphere_data.omega_X[mySphereID];
+        omega_Y[threadIdx.x] = sphere_data.omega_Y[mySphereID];
+        omega_Z[threadIdx.x] = sphere_data.omega_Z[mySphereID];
+        sphere_X_DOT[threadIdx.x] = sphere_data.pos_X_dt[mySphereID];
+        sphere_Y_DOT[threadIdx.x] = sphere_data.pos_Y_dt[mySphereID];
+        sphere_Z_DOT[threadIdx.x] = sphere_data.pos_Z_dt[mySphereID];
     }
 
     __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
@@ -618,17 +645,16 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to ar
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
         // Force generated by this contact
-        float bodyA_X_force = 0.f;
-        float bodyA_Y_force = 0.f;
-        float bodyA_Z_force = 0.f;
+        float3 bodyA_force = {0.f, 0.f, 0.f};
+        float3 bodyA_torque = {0.f, 0.f, 0.f};
 
         float scalingFactor = gran_params->Kn_s2s_SU;
-        double sphdiameter = 2. * sphereRadius_SU;
-        double invSphDiameter = 1. / sphdiameter;
+        float sphdiameter = 2. * sphereRadius_SU;
+        double invSphDiameter = 1. / (2. * sphereRadius_SU);
         unsigned int ownerSD =
             SDTripletID(pointSDTriplet(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], gran_params), gran_params);
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
-            // unsigned int theirSphID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
+            // unsigned int theirSphID = sphere_data.DEs_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
             // Don't check for collision with self
             if (bodyA == bodyB)
                 continue;
@@ -674,27 +700,28 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to ar
         // Run through and do actual force computations, for these we know each one is a legit collision
         for (unsigned int idx = 0; idx < ncontacts; idx++) {
             // distance between sphere centers divided by sphere diameter
-            double distance_normalized = 0;
 
-            // unsigned int theirSphID = spheres_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
+            // unsigned int theirSphID = sphere_data.DEs_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
             // Don't check for collision with self
             unsigned char bodyB = bodyB_list[idx];
 
             // NOTE below here, it seems faster to do coalesced shared mem accesses than caching sphere_X[bodyA] and the
             // like in a register
             // This avoids computing a square to figure our if collision or not
-            double deltaX = (sphere_X[bodyA] - sphere_X[bodyB]) * invSphDiameter;
-            double deltaY = (sphere_Y[bodyA] - sphere_Y[bodyB]) * invSphDiameter;
-            double deltaZ = (sphere_Z[bodyA] - sphere_Z[bodyB]) * invSphDiameter;
+            double3 delta_r;  // points from b to a
+            delta_r.x = (sphere_X[bodyA] - sphere_X[bodyB]) * invSphDiameter;
+            delta_r.y = (sphere_Y[bodyA] - sphere_Y[bodyB]) * invSphDiameter;
+            delta_r.z = (sphere_Z[bodyA] - sphere_Z[bodyB]) * invSphDiameter;
+
+            float3 v_rel;
 
             // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
-            float deltaX_dot = sphere_X_DOT[bodyA] - sphere_X_DOT[bodyB];
-            float deltaY_dot = sphere_Y_DOT[bodyA] - sphere_Y_DOT[bodyB];
-            float deltaZ_dot = sphere_Z_DOT[bodyA] - sphere_Z_DOT[bodyB];
+            v_rel.x = sphere_X_DOT[bodyA] - sphere_X_DOT[bodyB];
+            v_rel.y = sphere_Y_DOT[bodyA] - sphere_Y_DOT[bodyB];
+            v_rel.z = sphere_Z_DOT[bodyA] - sphere_Z_DOT[bodyB];
 
-            distance_normalized = deltaX * deltaX;
-            distance_normalized += deltaY * deltaY;
-            distance_normalized += deltaZ * deltaZ;
+            // // distance between sphere centers divided by sphere diameter
+            // double d2_normalized = Dot(delta_r, delta_r);
 
             // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA
             // intrinsic:
@@ -703,45 +730,65 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to ar
 
             // Compute penetration term, this becomes the delta as we want it
             // Makes more sense to find rsqrt, the compiler is doing this anyways
-            float reciplength = rsqrt(distance_normalized);
+            float reciplength = rsqrt(Dot(delta_r, delta_r));
             float penetration = reciplength - 1.;
 
             // Compute nondim force term
 
             // Compute force updates for spring term
-            float springTermX = scalingFactor * deltaX * sphdiameter * penetration;
-            float springTermY = scalingFactor * deltaY * sphdiameter * penetration;
-            float springTermZ = scalingFactor * deltaZ * sphdiameter * penetration;
+            float springTermX = scalingFactor * delta_r.x * sphdiameter * penetration;
+            float springTermY = scalingFactor * delta_r.y * sphdiameter * penetration;
+            float springTermZ = scalingFactor * delta_r.z * sphdiameter * penetration;
 
             // Compute force updates for damping term
             // Project relative velocity to the normal
-            // n = delta * reciplength
+            // n = delta_r * reciplength
             // proj = Dot(delta_dot, n)
-            float projection = (deltaX_dot * deltaX + deltaY_dot * deltaY + deltaZ_dot * deltaZ) * reciplength;
+            float projection = Dot(v_rel, delta_r) * reciplength;
 
             // delta_dot = proj * n
-            deltaX_dot = projection * deltaX * reciplength;
-            deltaY_dot = projection * deltaY * reciplength;
-            deltaZ_dot = projection * deltaZ * reciplength;
+            float3 vrel_n = projection * make_float3(delta_r.x, delta_r.y, delta_r.z) * reciplength;
 
-            constexpr float m_eff = 0.5;
+            // remove normal component, add back rotational components
+            v_rel = v_rel - vrel_n +
+                    Cross(make_float3(delta_r.x, delta_r.y, delta_r.z),
+                          make_float3(omega_X[bodyA] - omega_X[bodyB], omega_Y[bodyA] - omega_Y[bodyB],
+                                      omega_Z[bodyA] - omega_Z[bodyB]));
 
-            float dampingTermX = -gran_params->Gamma_n_s2s_SU * deltaX_dot * m_eff;
-            float dampingTermY = -gran_params->Gamma_n_s2s_SU * deltaY_dot * m_eff;
-            float dampingTermZ = -gran_params->Gamma_n_s2s_SU * deltaZ_dot * m_eff;
+            // TODO improve this
+            // one-step tangential displacement
+            float3 ut = v_rel * gran_params->alpha_h_bar;
 
-            constexpr float sphere_mass = 1.0;
-            float cohesionConstant = sphere_mass * gran_params->gravMag_SU * gran_params->cohesion_ratio;
+            constexpr float sphere_mass_SU = 1.f;
+            constexpr float m_eff = sphere_mass_SU / 2.f;
+
+            float3 friction_term = -gran_params->mu_t_s2s_SU * ut - gran_params->Gamma_t_s2s_SU * m_eff * v_rel;
+            // printf("friction_term is (%f, %f, %f), ut is (%f, %f, %f), mut is %f\n", friction_term.x,
+            // friction_term.y,
+            //        friction_term.z, ut.x, ut.y, ut.z, gran_params->mu_t_s2s_SU);
+
+            float dampingTermX = -gran_params->Gamma_n_s2s_SU * vrel_n.x * m_eff;
+            float dampingTermY = -gran_params->Gamma_n_s2s_SU * vrel_n.y * m_eff;
+            float dampingTermZ = -gran_params->Gamma_n_s2s_SU * vrel_n.z * m_eff;
+
+            float cohesionConstant = sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
 
             // Compute force updates for cohesion term, is opposite the spring term
-            float cohesionTermX = -cohesionConstant * deltaX * reciplength;
-            float cohesionTermY = -cohesionConstant * deltaY * reciplength;
-            float cohesionTermZ = -cohesionConstant * deltaZ * reciplength;
+            float cohesionTermX = -cohesionConstant * delta_r.x * reciplength;
+            float cohesionTermY = -cohesionConstant * delta_r.y * reciplength;
+            float cohesionTermZ = -cohesionConstant * delta_r.z * reciplength;
 
             // Add damping term to spring term, write back to counter
-            bodyA_X_force += springTermX + dampingTermX + cohesionTermX;
-            bodyA_Y_force += springTermY + dampingTermY + cohesionTermY;
-            bodyA_Z_force += springTermZ + dampingTermZ + cohesionTermZ;
+            bodyA_force.x += springTermX + dampingTermX + cohesionTermX;
+            bodyA_force.y += springTermY + dampingTermY + cohesionTermY;
+            bodyA_force.z += springTermZ + dampingTermZ + cohesionTermZ;
+
+            // compute torque on body
+            // multiply by diameter, but normalize by radius to keep numbers sane
+            bodyA_torque = bodyA_torque + 2 * Cross(make_float3(delta_r.x, delta_r.y, delta_r.z), bodyA_force);
+
+            // Now add friction, the cross should have removed it, but there's no need to add it in yet
+            bodyA_force = bodyA_force + friction_term;
         }
 
         // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
@@ -751,22 +798,28 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to ar
         if (ownerSD == thisSD) {
             // Perhaps this sphere is hitting the wall[s]
             boxWallsEffects(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
-                            sphere_Z_DOT[bodyA], bodyA_X_force, bodyA_Y_force, bodyA_Z_force, gran_params);
+                            sphere_Z_DOT[bodyA], bodyA_force.x, bodyA_force.y, bodyA_force.z, gran_params);
 
             applyBCForces(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
-                          sphere_Z_DOT[bodyA], bodyA_X_force, bodyA_Y_force, bodyA_Z_force, gran_params, bc_type_list,
+                          sphere_Z_DOT[bodyA], bodyA_force.x, bodyA_force.y, bodyA_force.z, gran_params, bc_type_list,
                           bc_params_list, nBCs);
             // If the sphere belongs to this SD, add up the gravitational force component.
+            bodyA_force.x += gran_params->gravAcc_X_SU;
+            bodyA_force.y += gran_params->gravAcc_Y_SU;
+            bodyA_force.z += gran_params->gravAcc_Z_SU;
 
-            bodyA_X_force += gran_params->gravAcc_X_SU;
-            bodyA_Y_force += gran_params->gravAcc_Y_SU;
-            bodyA_Z_force += gran_params->gravAcc_Z_SU;
+            // gravity exerts no force
         }
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes
-        atomicAdd(d_sphere_force_X + mySphereID, bodyA_X_force);
-        atomicAdd(d_sphere_force_Y + mySphereID, bodyA_Y_force);
-        atomicAdd(d_sphere_force_Z + mySphereID, bodyA_Z_force);
+        atomicAdd(sphere_data.sphere_force_X + mySphereID, bodyA_force.x);
+        atomicAdd(sphere_data.sphere_force_Y + mySphereID, bodyA_force.y);
+        atomicAdd(sphere_data.sphere_force_Z + mySphereID, bodyA_force.z);
+
+        // write back torques for later
+        atomicAdd(sphere_data.sphere_torque_X + mySphereID, bodyA_torque.x);
+        atomicAdd(sphere_data.sphere_torque_Y + mySphereID, bodyA_torque.y);
+        atomicAdd(sphere_data.sphere_torque_Z + mySphereID, bodyA_torque.z);
     }
     __syncthreads();
 }
@@ -776,38 +829,8 @@ __global__ void computeSphereForces(int* d_sphere_pos_X,      //!< Pointer to ar
  */
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                      //!< Should be a multiple of 32
-__global__ void updatePositions(const float alpha_h_bar,      //!< The numerical integration time step
-                                int* d_sphere_pos_X,          //!< Pointer to array containing data related to the
-                                                              //!< spheres in the box
-                                int* d_sphere_pos_Y,          //!< Pointer to array containing data related to the
-                                                              //!< spheres in the box
-                                int* d_sphere_pos_Z,          //!< Pointer to array containing data related to the
-                                                              //!< spheres in the box
-                                float* d_sphere_pos_X_dt,     //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                float* d_sphere_pos_Y_dt,     //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                float* d_sphere_pos_Z_dt,     //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                float* d_sphere_force_X,      //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                float* d_sphere_force_Y,      //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                float* d_sphere_force_Z,      //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                float* d_sphere_force_X_old,  //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                float* d_sphere_force_Y_old,  //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                float* d_sphere_force_Z_old,  //!< Pointer to array containing data related to
-                                                              //!< the spheres in the box
-                                unsigned int* SD_countsOfSpheresTouching,  //!< The array that for each
-                                                                           //!< SD indicates how many
-                                                                           //!< spheres touch this SD
-                                unsigned int* spheres_in_SD_composite,     //!< Big array that works in conjunction
-                                                                           //!< with SD_countsOfSpheresTouching.
-                                                                           //!< "spheres_in_SD_composite" says which
-                                                                           //!< SD contains what spheres
+__global__ void updatePositions(const float alpha_h_bar,  //!< The numerical integration time step
+                                sphereDataStruct sphere_data,
                                 unsigned int nSpheres,
                                 ParamsPtr gran_params,
                                 chrono::granular::GRN_TIME_INTEGRATOR integrator) {
@@ -843,44 +866,64 @@ __global__ void updatePositions(const float alpha_h_bar,      //!< The numerical
     // Write back velocity updates
     if (mySphereID < nSpheres) {
         // Check to see if we messed up badly somewhere
-        if (d_sphere_force_X[mySphereID] == NAN || d_sphere_force_Y[mySphereID] == NAN ||
-            d_sphere_force_Z[mySphereID] == NAN) {
+        if (sphere_data.sphere_force_X[mySphereID] == NAN || sphere_data.sphere_force_Y[mySphereID] == NAN ||
+            sphere_data.sphere_force_Z[mySphereID] == NAN) {
             ABORTABORTABORT("NAN force computed -- sphere is %u, x force is %f\n", mySphereID,
-                            d_sphere_force_X[mySphereID]);
+                            sphere_data.sphere_force_X[mySphereID]);
         }
+
+        // inertia normalized by radius
+        float sphere_inertia = 2.f / 5.f * gran_params->sphereRadius_SU;
 
         float v_update_x = 0;
         float v_update_y = 0;
         float v_update_z = 0;
 
-        old_vel_x = d_sphere_pos_X_dt[mySphereID];
-        old_vel_y = d_sphere_pos_Y_dt[mySphereID];
-        old_vel_z = d_sphere_pos_Z_dt[mySphereID];
+        float omega_update_x = 0;
+        float omega_update_y = 0;
+        float omega_update_z = 0;
+
+        old_vel_x = sphere_data.pos_X_dt[mySphereID];
+        old_vel_y = sphere_data.pos_Y_dt[mySphereID];
+        old_vel_z = sphere_data.pos_Z_dt[mySphereID];
         // no divergence, same for every thread in block
         switch (integrator) {
             case chrono::granular::GRN_TIME_INTEGRATOR::FORWARD_EULER: {
-                v_update_x = alpha_h_bar * d_sphere_force_X[mySphereID];
-                v_update_y = alpha_h_bar * d_sphere_force_Y[mySphereID];
-                v_update_z = alpha_h_bar * d_sphere_force_Z[mySphereID];
+                v_update_x = alpha_h_bar * sphere_data.sphere_force_X[mySphereID];
+                v_update_y = alpha_h_bar * sphere_data.sphere_force_Y[mySphereID];
+                v_update_z = alpha_h_bar * sphere_data.sphere_force_Z[mySphereID];
+
+                // tau = I alpha => alpha = tau / I
+                omega_update_x = alpha_h_bar * sphere_data.sphere_torque_X[mySphereID] / sphere_inertia;
+                omega_update_y = alpha_h_bar * sphere_data.sphere_torque_Y[mySphereID] / sphere_inertia;
+                omega_update_z = alpha_h_bar * sphere_data.sphere_torque_Z[mySphereID] / sphere_inertia;
                 break;
             }
             case chrono::granular::GRN_TIME_INTEGRATOR::CHUNG: {
                 float gamma_hat = -.5f;
                 float gamma = 3.f / 2.f;
-                v_update_x =
-                    alpha_h_bar * (d_sphere_force_X[mySphereID] * gamma + d_sphere_force_X_old[mySphereID] * gamma_hat);
-                v_update_y =
-                    alpha_h_bar * (d_sphere_force_Y[mySphereID] * gamma + d_sphere_force_Y_old[mySphereID] * gamma_hat);
-                v_update_z =
-                    alpha_h_bar * (d_sphere_force_Z[mySphereID] * gamma + d_sphere_force_Z_old[mySphereID] * gamma_hat);
+                v_update_x = alpha_h_bar * (sphere_data.sphere_force_X[mySphereID] * gamma +
+                                            sphere_data.sphere_force_X_old[mySphereID] * gamma_hat);
+                v_update_y = alpha_h_bar * (sphere_data.sphere_force_Y[mySphereID] * gamma +
+                                            sphere_data.sphere_force_Y_old[mySphereID] * gamma_hat);
+                v_update_z = alpha_h_bar * (sphere_data.sphere_force_Z[mySphereID] * gamma +
+                                            sphere_data.sphere_force_Z_old[mySphereID] * gamma_hat);
                 break;
             }
         }
 
         // Probably does not need to be atomic, but no conflicts means it won't be too slow anyways
-        atomicAdd(d_sphere_pos_X_dt + mySphereID, v_update_x);
-        atomicAdd(d_sphere_pos_Y_dt + mySphereID, v_update_y);
-        atomicAdd(d_sphere_pos_Z_dt + mySphereID, v_update_z);
+        atomicAdd(sphere_data.pos_X_dt + mySphereID, v_update_x);
+        atomicAdd(sphere_data.pos_Y_dt + mySphereID, v_update_y);
+        atomicAdd(sphere_data.pos_Z_dt + mySphereID, v_update_z);
+
+        // printf("tau is (%f, %f, %f), domega is (%f, %f, %f)\n", sphere_data.sphere_torque_X[mySphereID],
+        //        sphere_data.sphere_torque_Y[mySphereID], sphere_data.sphere_torque_Z[mySphereID], omega_update_x,
+        //        omega_update_y, omega_update_z);
+
+        atomicAdd(sphere_data.omega_X + mySphereID, omega_update_x);
+        atomicAdd(sphere_data.omega_Y + mySphereID, omega_update_y);
+        atomicAdd(sphere_data.omega_Z + mySphereID, omega_update_z);
     }
     // wait for everyone to finish
     __syncthreads();
@@ -891,23 +934,23 @@ __global__ void updatePositions(const float alpha_h_bar,      //!< The numerical
         // no divergence, same for every thread in block
         switch (integrator) {
             case chrono::granular::GRN_TIME_INTEGRATOR::FORWARD_EULER: {
-                position_update_x = alpha_h_bar * d_sphere_pos_X_dt[mySphereID];
-                position_update_y = alpha_h_bar * d_sphere_pos_Y_dt[mySphereID];
-                position_update_z = alpha_h_bar * d_sphere_pos_Z_dt[mySphereID];
+                position_update_x = alpha_h_bar * sphere_data.pos_X_dt[mySphereID];
+                position_update_y = alpha_h_bar * sphere_data.pos_Y_dt[mySphereID];
+                position_update_z = alpha_h_bar * sphere_data.pos_Z_dt[mySphereID];
                 break;
             }
             case chrono::granular::GRN_TIME_INTEGRATOR::CHUNG: {
                 float beta = 28.f / 27.f;
                 float beta_hat = .5 - beta;
                 position_update_x =
-                    alpha_h_bar * (old_vel_x + alpha_h_bar * (d_sphere_force_X[mySphereID] * beta +
-                                                              d_sphere_force_X_old[mySphereID] * beta_hat));
+                    alpha_h_bar * (old_vel_x + alpha_h_bar * (sphere_data.sphere_force_X[mySphereID] * beta +
+                                                              sphere_data.sphere_force_X_old[mySphereID] * beta_hat));
                 position_update_y =
-                    alpha_h_bar * (old_vel_y + alpha_h_bar * (d_sphere_force_Y[mySphereID] * beta +
-                                                              d_sphere_force_Y_old[mySphereID] * beta_hat));
+                    alpha_h_bar * (old_vel_y + alpha_h_bar * (sphere_data.sphere_force_Y[mySphereID] * beta +
+                                                              sphere_data.sphere_force_Y_old[mySphereID] * beta_hat));
                 position_update_z =
-                    alpha_h_bar * (old_vel_z + alpha_h_bar * (d_sphere_force_Z[mySphereID] * beta +
-                                                              d_sphere_force_Z_old[mySphereID] * beta_hat));
+                    alpha_h_bar * (old_vel_z + alpha_h_bar * (sphere_data.sphere_force_Z[mySphereID] * beta +
+                                                              sphere_data.sphere_force_Z_old[mySphereID] * beta_hat));
                 break;
             }
         }
@@ -916,14 +959,14 @@ __global__ void updatePositions(const float alpha_h_bar,      //!< The numerical
         ySphCenter = position_update_y;
         zSphCenter = position_update_z;
 
-        xSphCenter += d_sphere_pos_X[mySphereID];
-        d_sphere_pos_X[mySphereID] = xSphCenter;
+        xSphCenter += sphere_data.pos_X[mySphereID];
+        sphere_data.pos_X[mySphereID] = xSphCenter;
 
-        ySphCenter += d_sphere_pos_Y[mySphereID];
-        d_sphere_pos_Y[mySphereID] = ySphCenter;
+        ySphCenter += sphere_data.pos_Y[mySphereID];
+        sphere_data.pos_Y[mySphereID] = ySphCenter;
 
-        zSphCenter += d_sphere_pos_Z[mySphereID];
-        d_sphere_pos_Z[mySphereID] = zSphCenter;
+        zSphCenter += sphere_data.pos_Z[mySphereID];
+        sphere_data.pos_Z[mySphereID] = zSphCenter;
 
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched, gran_params);
     }
@@ -976,10 +1019,10 @@ __global__ void updatePositions(const float alpha_h_bar,      //!< The numerical
             }
 
             // Store start of new entries
-            unsigned char sphere_offset = atomicAdd(SD_countsOfSpheresTouching + touchedSD, winningStreak);
+            unsigned char sphere_offset = atomicAdd(sphere_data.SD_NumOf_DEs_Touching + touchedSD, winningStreak);
 
             // The value sphere_offset now gives a *relative* offset in the composite array; i.e.,
-            // spheres_in_SD_composite. Get the SD component
+            // sphere_data.DEs_in_SD_composite. Get the SD component
 
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int sphereInStreak = 0; sphereInStreak < winningStreak; sphereInStreak++) {
@@ -996,7 +1039,7 @@ __global__ void updatePositions(const float alpha_h_bar,      //!< The numerical
     const uint64_t max_composite_index =
         (uint64_t)gran_params->nSDs_Y * gran_params->nSDs_X * gran_params->nSDs_Z * MAX_COUNT_OF_DEs_PER_SD;
 
-    // Write out the data now; reister with spheres_in_SD_composite each sphere that touches a certain ID
+    // Write out the data now; reister with sphere_data.DEs_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
         // Add offsets together
         // bad SD means not a valid offset
@@ -1009,7 +1052,7 @@ __global__ void updatePositions(const float alpha_h_bar,      //!< The numerical
                     "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
                     threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
             } else {
-                spheres_in_SD_composite[offset] = sphIDs[i];
+                sphere_data.DEs_in_SD_composite[offset] = sphIDs[i];
             }
         }
     }
