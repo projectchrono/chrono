@@ -99,6 +99,11 @@ Unlike the Windows version we get a static library, that will be part of <tt>lib
 anymore after building chrono.
 </div> 
 
+<div class="ce-danger">
+NEW ISSUE WITH XCODE 10 AND MACOSX MOJAVE: Irrlicht cannot actually be built under this configuration! 
+If you use Xcode 10 under MacOSX High Sierra: install irrlicht with homebrew, it cannot be (re)built either, but the ready built library is working.
+Actually you should avoid to install Mojave!
+</div>
 
 
 ## 6) Run CMake
