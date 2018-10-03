@@ -172,6 +172,10 @@ void ChChaseCamera::SetCameraAngle(double angle) {
     m_angle = angle;
 }
 
+void ChChaseCamera::SetChassis(std::shared_ptr<ChBody> chassis) {
+    m_chassis = chassis;
+}
+
 // -----------------------------------------------------------------------------
 // Return the camera location and the camera target (look at) location,
 // respectively.

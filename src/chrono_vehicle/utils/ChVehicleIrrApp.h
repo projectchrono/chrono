@@ -145,7 +145,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     ChVehicle* m_vehicle;        ///< pointer to the associated vehicle system
     ChPowertrain* m_powertrain;  ///< pointer to the associated powertrain system
 
-  private:
+  protected:
     void renderGrid();
     void renderStats();
 

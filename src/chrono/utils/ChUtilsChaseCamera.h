@@ -69,6 +69,8 @@ class ChApi ChChaseCamera {
 
     void SetMultLimits(double minMult, double maxMult);
 
+    void SetChassis(std::shared_ptr<ChBody> chassis);
+
   private:
     ChVector<> calcDeriv(const ChVector<>& loc);
 
