@@ -284,8 +284,6 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedFo
         (alpha_k_star * gran_params->psi_L * gran_params->psi_L) /
         (alpha_g * alpha_g * sphere_mass * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
 
-    printf("C_F is %f, C_T is %f\n", C_F, C_TAU);
-
     // pull directly from unified memory
     for (unsigned int i = 0; i < 6 * meshSoup_DEVICE->nFamiliesInSoup; i += 6) {
         // Divide by C_F to go from SU to UU

@@ -366,6 +366,35 @@ void ShowUsage() {
     cout << "usage: ./demo_GRAN_TriMeshNoFric_SMC_ballcosim <json_file>" << endl;
 }
 
+// Take a ChBody and write its
+void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string obj_name) {
+    // Write the mesh name to find
+    outstream << obj_name << ",";
+
+    // Get frame position
+    ChVector<> pos = body.GetPos();
+    ChQuaternion<> rot = body.GetRot();
+    // Get basis vectors
+    ChVector<> vx = rot.GetXaxis();
+    ChVector<> vy = rot.GetYaxis();
+    ChVector<> vz = rot.GetZaxis();
+
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z();
+    outstream << "\n";
+}
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -459,30 +488,6 @@ int main(int argc, char* argv[]) {
 
     driver->SetTimeOffsets(duration_pose, duration_settle_robot);
     robot.SetDriver(driver);
-
-    // -------------------------------
-    // Cast rays into collision models
-    // -------------------------------
-
-    ////RayCaster caster(&my_sys, ChFrame<>(ChVector<>(2, 0, -1), Q_from_AngY(-CH_C_PI_2)), ChVector2<>(2.5, 2.5),
-    /// 0.02);
-    // RayCaster caster(&my_sys, ChFrame<>(ChVector<>(0, -2, -1), Q_from_AngX(-CH_C_PI_2)), ChVector2<>(2.5, 2.5),
-    // 0.02);
-
-    // -------------------------------
-    // Create the visualization window
-    // -------------------------------
-
-    // RobotIrrApp application(&robot, driver.get(), L"RoboSimian", irr::core::dimension2d<irr::u32>(800, 600));
-    // irrlicht::ChIrrWizard::add_typical_Logo(application.GetDevice());
-    // irrlicht::ChIrrWizard::add_typical_Sky(application.GetDevice());
-    // irrlicht::ChIrrWizard::add_typical_Lights(application.GetDevice(), irr::core::vector3df(100.f, 100.f, 100.f),
-    //                                           irr::core::vector3df(100.f, -100.f, 80.f));
-    // irrlicht::ChIrrWizard::add_typical_Camera(application.GetDevice(), irr::core::vector3df(1, -2.75f, 0.2f),
-    //                                           irr::core::vector3df(1, 0, 0));
-    //
-    // application.AssetBindAll();
-    // application.AssetUpdateAll();
 
     // -----------------------------
     // Initialize output directories
@@ -632,43 +637,15 @@ int main(int argc, char* argv[]) {
             // add meshes back in
             m_sys_gran.enableMeshCollision();
 
-            // // Rigid terrain parameters
-            // double length = 8;
-            // double width = 2;
-
-            // // Create terrain
-            // ChVector<> hdim(length / 2, width / 2, 0.1);
-            // ChVector<> loc(length / 4, 0, z - 0.1);
-            // auto ground = CreateTerrain(my_sys, hdim, loc);
-            // // application.AssetBind(ground);
-            // // application.AssetUpdate(ground);
-            //
-            // // Coordinate system for grid
-            // ChCoordsys<> gridCsys =
-            //     ChCoordsys<>(ChVector<>(length / 4, 0, z + 0.005), chrono::Q_from_AngAxis(-CH_C_PI_2, VECT_Z));
-            // int gridNu = static_cast<int>(width / 0.1);
-            // int gridNv = static_cast<int>(length / 0.1);
-            // // application.EnableGrid(gridCsys, gridNu, gridNv);
-
             // Release robot
             robot.GetChassis()->GetBody()->SetBodyFixed(false);
 
             terrain_created = true;
         }
 
-        // application.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        // application.DrawAll();
-
         if (data_output && sim_frame % output_steps == 0) {
             robot.Output();
         }
-
-        ////double time = my_sys.GetChTime();
-        ////double A = CH_C_PI / 6;
-        ////double freq = 2;
-        ////double val = 0.5 * A * (1 - std::cos(CH_C_2PI * freq * time));
-        ////robot.Activate(robosimian::FR, "joint2", time, val);
-        ////robot.Activate(robosimian::RL, "joint5", time, val);
 
         // empty forces on each wheel
         for (unsigned int i = 0; i < num_mesh_wheels; i++) {
@@ -730,21 +707,26 @@ int main(int argc, char* argv[]) {
                 sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), render_frame + 1);
                 utils::WriteShapesPovray(&my_sys, filename);
             }
-            // if (image_output) {
-            //     char filename[100];
-            //     sprintf(filename, "%s/img_%04d.jpg", img_dir.c_str(), render_frame + 1);
-            //     irr::video::IImage* image = application.GetVideoDriver()->createScreenShot();
-            //     if (image) {
-            //         application.GetVideoDriver()->writeImageToFile(image, filename);
-            //         image->drop();
-            //     }
-            // }
 
             cout << "Rendering frame " << render_frame << endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), render_frame);
             m_sys_gran.writeFileUU(string(filename));
+            // write some VTKs for debug
             m_sys_gran.write_meshes(string(filename));
+
+            // write mesh transforms for ospray renderer
+            char mesh_output[100];
+            sprintf(mesh_output, "%s/step%06d_meshes.csv", params.output_dir.c_str(), render_frame);
+            std::ofstream meshfile{string(mesh_output)};
+            std::ostringstream outstream;
+            outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3\n";
+
+            // write each mesh to the output file
+            for (auto b : wheel_bodies) {
+                writeMeshFrames(outstream, *b, "grousery_wheel.obj");
+            }
+            meshfile << outstream.str();
 
             render_frame++;
         }
@@ -755,13 +737,7 @@ int main(int argc, char* argv[]) {
 
         curr_time += time_step;
 
-        ////if (my_sys.GetNcontacts() > 0) {
-        ////    robot.ReportContacts();
-        ////}
-
         sim_frame++;
-
-        // application.EndScene();
     }
 
     std::cout << "avg. speed: " << cbk.GetAvgSpeed() << std::endl;
