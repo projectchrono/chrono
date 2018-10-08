@@ -367,12 +367,16 @@ void ShowUsage() {
 }
 
 // Take a ChBody and write its
-void writeMeshFrames(std::ostringstream& outstream, ChBody& body, std::string obj_name) {
+void writeMeshFrames(std::ostringstream& outstream,
+                     ChBody& body,
+                     std::string obj_name,
+                     float mesh_scaling,
+                     double terrain_offset) {
     // Write the mesh name to find
     outstream << obj_name << ",";
 
     // Get frame position
-    ChVector<> pos = body.GetPos();
+    ChVector<> pos = (body.GetPos() + ChVector<>(0, 0, terrain_offset)) * mesh_scaling;
     ChQuaternion<> rot = body.GetRot();
     // Get basis vectors
     ChVector<> vx = rot.GetXaxis();
@@ -633,6 +637,7 @@ int main(int argc, char* argv[]) {
             double max_gran_z = m_sys_gran.get_max_z() / 100;
             // we want the wheels just above terrain height
             robot_granular_offset = -wheel_z + max_gran_z;
+            printf("offset is %f\n", robot_granular_offset);
 
             // add meshes back in
             m_sys_gran.enableMeshCollision();
@@ -724,7 +729,7 @@ int main(int argc, char* argv[]) {
 
             // write each mesh to the output file
             for (auto b : wheel_bodies) {
-                writeMeshFrames(outstream, *b, "grousery_wheel.obj");
+                writeMeshFrames(outstream, *b, "grousery_wheel.obj", scaling.z, robot_granular_offset);
             }
             meshfile << outstream.str();
 
