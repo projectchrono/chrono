@@ -628,7 +628,7 @@ int main(int argc, char* argv[]) {
     double robot_granular_offset = 1.5;  // 1.5;
 
     double curr_time = 0;
-    while (curr_time < time_end) {
+    while (curr_time < time_end && curr_time < params.time_end) {
         if (drop && !terrain_created && my_sys.GetChTime() > time_create_terrain) {
             // Set terrain height to be _just_ below wheel
             double wheel_z = robot.GetWheelPos(robosimian::FR).z() - 0.13;

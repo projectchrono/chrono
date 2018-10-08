@@ -5,7 +5,7 @@
 	"box_Y": 200,
 	"box_Z": 200,
 	"step_size": 2e-5,
-	"time_end": 10,
+	"time_end": 2,
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
