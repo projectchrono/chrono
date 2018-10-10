@@ -43,7 +43,7 @@ class ChApi ChRunningAverage {
     /// Construct a running moving average filter (backward).
     /// The filter only uses previous data (as specified by the filter span)
     ChRunningAverage(int n  ///< filter span
-    );
+                     );
 
     ~ChRunningAverage() {}
 
@@ -70,7 +70,7 @@ class ChApi ChMovingAverage {
     /// The average is calculated over 2*n+1 points
     ChMovingAverage(const std::valarray<double>& data,  ///< input data
                     int n                               ///< filter half-span
-    );
+                    );
 
     ~ChMovingAverage() {}
 
@@ -243,6 +243,26 @@ class ChApi ChButterworth_Highpass {
     // state buffers for a possible biquad lowpasses
     std::vector<double> m_biq_u_hist1, m_biq_u_hist2;
     std::vector<double> m_biq_y_hist1, m_biq_y_hist2;
+};
+
+class ChApi ChAbsorbed_Power_Vertical {
+  public:
+    ChAbsorbed_Power_Vertical();
+    ChAbsorbed_Power_Vertical(double step);
+    void Reset();
+    void Config(double step);
+    double Filter(double u);
+
+  private:
+    double m_Ts;
+
+    // digital filter coefficients
+    double m_b0, m_b1, m_b2, m_b3;
+    double m_a0, m_a1, m_a2, m_a3;
+
+    // history buffers
+    double m_u_hist1, m_u_hist2, m_u_hist3;
+    double m_y_hist1, m_y_hist2, m_y_hist3;
 };
 
 class ChApi ChISO2631_1_AVTransition {
@@ -421,6 +441,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     double GetVDV();
     double GetAVGSpeed() { return mean(m_data_speed); }
     double GetSeverityVDV() { return GetVDV() / (GetAW_V() * pow(m_logging_time, 0.25)); }
+    double GetAbsorbedPowerVertical();
     void GeneratePlotFile(std::string fName, std::string testInfo);
 
   private:
@@ -436,6 +457,8 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     std::vector<double> m_data_acc_x;
     std::vector<double> m_data_acc_y;
     std::vector<double> m_data_acc_z;
+
+    std::vector<double> m_data_acc_ap_z;  // vertical acceleration in ft/s^2 for absorbed power calculation
 
     // freqency weighted data series
     std::vector<double> m_data_acc_x_wd;
@@ -467,6 +490,8 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChISO2631_1_Wd m_filter_wd_y;
     ChISO2631_1_Wk m_filter_wk_z;
 
+    ChAbsorbed_Power_Vertical m_filter_abspow;
+
     // filter classes for time integral aw
     ChFilterI m_filter_int_aw_x;
     ChFilterI m_filter_int_aw_y;
@@ -494,17 +519,19 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     ChISO2631_Shock_SeatCushionLogger();
     ChISO2631_Shock_SeatCushionLogger(double step);
     void Config(double step);
-    void AddData(double speed, double acc_x, double acc_y, double acc_z);
-    void AddData(double speed, ChVector<>& acc_v) { AddData(speed, acc_v.x(), acc_v.y(), acc_v.z()); }
+    void AddData(double acc_x, double acc_y, double acc_z);
+    void AddData(ChVector<>& acc_v) { AddData(acc_v.x(), acc_v.y(), acc_v.z()); }
     void Reset();
     // Se = equivalent static spine compressive stress [MPa]
     // Se < 0.5 MPa : low risk of severe health effect
     // Se > 0.8 Mpa : high risk of severe health effect
     double GetSe();
-    double GetSpeed() { return m_speed; }
+    // Legacy Method for Military Vehicles from NRMM
+    // Calculates the max. Value of Az filtered by 30 Hz Butterworth Lowpass
+    // Result should not exceed 2.5 g
+    double GetLegacyAz();
 
   private:
-    double m_speed;
     // time step = 1/fs for the input data
     double m_step_inp;
     // running time of data loging
@@ -528,7 +555,10 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     ChButterworth_Lowpass m_lpy;
     ChButterworth_Lowpass m_lpz;
 
-    // buffers for raw input data
+    // legacy lowpass
+    ChButterworth_Lowpass m_legacy_lpz;
+
+    // buffers for raw but antialiased input data
     ChFunction_Recorder m_raw_inp_x;
     ChFunction_Recorder m_raw_inp_y;
     ChFunction_Recorder m_raw_inp_z;

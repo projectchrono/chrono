@@ -291,8 +291,9 @@ int main(int argc, char* argv[]) {
     double awv = seat_logger.GetAW_V();
     double vdv = seat_logger.GetVDV();
     double svdv = seat_logger.GetSeverityVDV();
+    double ap = seat_logger.GetAbsorbedPowerVertical();
 
-    GetLog() << "Ride Quality Results:\n";
+    GetLog() << "Ride Quality Results #1 (ISO 2631-1):\n";
     GetLog() << "  Average Speed                = " << avg_speed << " m/s\n";
     GetLog() << "  Weighted Acceleration        = " << awv << " m/s^2\n";
     GetLog() << "  Vibration Dose Value         = " << vdv << " m/s^1.75\n";
@@ -314,5 +315,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "  VDV > " << ride_limit << "m/s^1.75 (above limit)\n";
         }
     }
+    GetLog() << "\nRide Quality Results #2 (Absorbed Power Method):\n";
+    GetLog() << "  Absorbed Power                = " << ap << " W\n";
     return 0;
 }

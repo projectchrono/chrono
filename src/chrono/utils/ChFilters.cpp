@@ -760,6 +760,64 @@ void ChISO2631_5_Wz::Filter(std::vector<double>& u, std::vector<double>& y) {
     y.erase(y.begin(), y.begin() + 8);  // get rid of leading zeros
 }
 
+// Absorbed Power Vertical Filter Class
+ChAbsorbed_Power_Vertical::ChAbsorbed_Power_Vertical() {
+    Reset();
+}
+
+ChAbsorbed_Power_Vertical::ChAbsorbed_Power_Vertical(double step) {
+    Config(step);
+}
+
+double ChAbsorbed_Power_Vertical::Filter(double u) {
+    double y = m_b0 * u + m_b1 * m_u_hist1 + m_b2 * m_u_hist2 + m_b3 * m_u_hist3 - m_a1 * m_y_hist1 - m_a2 * m_y_hist2 -
+               m_a3 * m_y_hist3;
+
+    m_u_hist3 = m_u_hist2;
+    m_u_hist2 = m_u_hist1;
+    m_u_hist1 = u;
+
+    m_y_hist3 = m_y_hist2;
+    m_y_hist2 = m_y_hist1;
+    m_y_hist1 = y;
+
+    return y;
+}
+
+void ChAbsorbed_Power_Vertical::Reset() {
+    // keep filter coefficients, clear history buffer
+    m_u_hist1 = m_u_hist2 = m_u_hist3 = 0;
+    m_y_hist1 = m_y_hist2 = m_y_hist3 = 0;
+}
+
+void ChAbsorbed_Power_Vertical::Config(double step) {
+    m_Ts = step;
+
+    m_b0 = (29.0 * m_Ts * (22.0 * m_Ts + 1.0));
+    m_b1 = (29.0 * m_Ts * (22.0 * m_Ts - 1.0));
+    m_b2 = (-29.0 * m_Ts * (22.0 * m_Ts + 1.0));
+    m_b3 = -29.0 * m_Ts * (22.0 * m_Ts - 1.0);
+
+    m_a0 = ((63.0 * m_Ts + 2.0) * (375.0 * m_Ts * m_Ts + 24.0 * m_Ts + 2.0));
+    m_a1 = ((63.0 * m_Ts - 2.0) * (375.0 * m_Ts * m_Ts + 24.0 * m_Ts + 2.0) +
+            (63.0 * m_Ts + 2.0) * (750.0 * m_Ts * m_Ts - 4.0));
+    m_a2 = ((63.0 * m_Ts + 2.0) * (375.0 * m_Ts * m_Ts - 24.0 * m_Ts + 2.0) +
+            (63.0 * m_Ts - 2.0) * (750.0 * m_Ts * m_Ts - 4.0));
+    m_a3 = (63.0 * m_Ts - 2.0) * (375.0 * m_Ts * m_Ts - 24.0 * m_Ts + 2.0);
+
+    m_b0 /= m_a0;
+    m_b1 /= m_a0;
+    m_b2 /= m_a0;
+    m_b3 /= m_a0;
+
+    m_a1 /= m_a0;
+    m_a2 /= m_a0;
+    m_a3 /= m_a0;
+    m_a0 = 1.0;
+
+    Reset();
+}
+
 // ISO 2661-1 Seat cushion logger class
 ChISO2631_Vibration_SeatCushionLogger::ChISO2631_Vibration_SeatCushionLogger() {}
 
@@ -776,6 +834,8 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
     m_filter_wd_y.Config(step);
     m_filter_wk_z.Config(step);
 
+    m_filter_abspow.Config(step);
+
     m_filter_int_aw_x.Config(step);
     m_filter_int_aw_y.Config(step);
     m_filter_int_aw_z.Config(step);
@@ -788,6 +848,7 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
 }
 
 void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, double acc_y, double acc_z) {
+    const double meter_to_ft = 3.280839895;
     double startFactor = ChSineStep(m_logging_time, m_tstart1, 0.0, m_tstart2, 1.0);
 
     m_data_speed.push_back(speed);
@@ -795,6 +856,8 @@ void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, 
     m_data_acc_x.push_back(startFactor * acc_x);
     m_data_acc_y.push_back(startFactor * acc_y);
     m_data_acc_z.push_back(startFactor * acc_z);
+
+    m_data_acc_ap_z.push_back(startFactor * acc_z * meter_to_ft);
 
     m_data_acc_x_wd.push_back(m_filter_wd_x.Filter(m_data_acc_x.back()));
     m_data_acc_y_wd.push_back(m_filter_wd_y.Filter(m_data_acc_y.back()));
@@ -838,6 +901,29 @@ double ChISO2631_Vibration_SeatCushionLogger::GetVDV() {
                 pow(kz * m_data_vdv_z_avg.back(), 2.0));
 }
 
+double ChISO2631_Vibration_SeatCushionLogger::GetAbsorbedPowerVertical() {
+    double ap = 0.0;
+    ChFilterI m_filter_int_abspow(m_step);
+
+    std::vector<double> ap_buf, ap_buf_int, ap_buf_avg;
+    for (size_t i = 0; i < m_data_acc_ap_z.size(); i++) {
+        ap_buf.push_back(m_filter_abspow.Filter(m_data_acc_ap_z[i]));
+    }
+    for (size_t i = 0; i < m_data_acc_ap_z.size(); i++) {
+        ap_buf_int.push_back(m_filter_int_abspow.Filter(ap_buf[i] * ap_buf[i]));
+    }
+    for (size_t i = 0; i < m_data_acc_ap_z.size(); i++) {
+        double time = m_step * double(i);
+        if (i == 0) {
+            ap_buf_avg.push_back(0.0);
+        } else {
+            ap_buf_avg.push_back(ap_buf_int[i] / time);
+        }
+    }
+    ap = ap_buf_avg.back();
+    return ap;
+}
+
 void ChISO2631_Vibration_SeatCushionLogger::Reset() {
     // Reset() prepares the instance for reusing with the same configuration, but new input data
     m_logging_time = 0.0;
@@ -848,6 +934,8 @@ void ChISO2631_Vibration_SeatCushionLogger::Reset() {
     m_data_acc_x.clear();
     m_data_acc_y.clear();
     m_data_acc_z.clear();
+
+    m_data_acc_ap_z.clear();
 
     m_data_acc_x_wd.clear();
     m_data_acc_y_wd.clear();
@@ -873,6 +961,8 @@ void ChISO2631_Vibration_SeatCushionLogger::Reset() {
     m_filter_wd_x.Reset();
     m_filter_wd_y.Reset();
     m_filter_wk_z.Reset();
+
+    m_filter_abspow.Reset();
 
     m_filter_int_aw_x.Reset();
     m_filter_int_aw_y.Reset();
@@ -965,20 +1055,17 @@ void ChISO2631_Vibration_SeatCushionLogger::GeneratePlotFile(std::string fName, 
 
 // ISO2631-5 shock data logger
 
-ChISO2631_Shock_SeatCushionLogger::ChISO2631_Shock_SeatCushionLogger() : m_speed(0) {}
+ChISO2631_Shock_SeatCushionLogger::ChISO2631_Shock_SeatCushionLogger() {}
 
 ChISO2631_Shock_SeatCushionLogger::ChISO2631_Shock_SeatCushionLogger(double step) {
     Config(step);
 }
 
-void ChISO2631_Shock_SeatCushionLogger::AddData(double speed, double ax, double ay, double az) {
+void ChISO2631_Shock_SeatCushionLogger::AddData(double ax, double ay, double az) {
     double startFactor = ChSineStep(m_logging_time, m_tstart1, 0.0, m_tstart2, 1.0);
 
     // speed of a vehicle changes very much during obstacle crossing, we take the first value as significant
     // instead of an average value
-    if (m_speed == 0.0) {
-        m_speed = speed;
-    }
     m_raw_inp_x.AddPoint(m_logging_time, m_lpx.Filter(startFactor * ax));
     m_raw_inp_y.AddPoint(m_logging_time, m_lpy.Filter(startFactor * ay));
     m_raw_inp_z.AddPoint(m_logging_time, m_lpz.Filter(startFactor * az));
@@ -992,6 +1079,8 @@ void ChISO2631_Shock_SeatCushionLogger::Config(double step) {
     m_lpx.Config(4, m_step_inp, 75.0);
     m_lpy.Config(4, m_step_inp, 75.0);
     m_lpz.Config(4, m_step_inp, 75.0);
+
+    m_legacy_lpz.Config(4, m_step_inp, 30.0);
 
     Reset();
 }
@@ -1030,6 +1119,22 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     return pow(pow(m_mx * m_dkx, 6.0) + pow(m_my * m_dky, 6.0) + pow(m_mz * m_dkz, 6.0), 1.0 / 6.0);
 }
 
+double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
+    const double to_g = 0.1019716213;
+    double az_max = 0;
+    size_t nInDat = m_logging_time / m_step_inp;
+
+    std::vector<double> legacy_az;
+    for (int i = 0; i < nInDat; i++) {
+        double t = m_step_inp * double(i);
+        legacy_az.push_back(m_legacy_lpz.Filter(m_raw_inp_z.Get_y(t) * to_g));
+        if (legacy_az[i] > az_max) {
+            az_max = legacy_az[i];
+        }
+    }
+    return az_max;
+}
+
 double ChISO2631_Shock_SeatCushionLogger::CalcPeaks(std::vector<double>& v, bool vertical) {
     double d = 0.0;
     size_t id1 = 0;
@@ -1064,11 +1169,11 @@ double ChISO2631_Shock_SeatCushionLogger::CalcPeaks(std::vector<double>& v, bool
 void ChISO2631_Shock_SeatCushionLogger::Reset() {
     m_logging_time = 0.0;
 
-    m_speed = 0;
-
     m_lpx.Reset();
     m_lpy.Reset();
     m_lpz.Reset();
+
+    m_legacy_lpz.Reset();
 
     m_weighting_x.Reset();
     m_weighting_y.Reset();
