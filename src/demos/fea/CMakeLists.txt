@@ -7,6 +7,7 @@ SET(FEA_DEMOS
 )
 
 SET(FEA_DEMOS_MKL
+	demo_FEA_beamsANCF
 )
 
 # List all FEA demos that use Irrlicht
