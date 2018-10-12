@@ -217,9 +217,5 @@ int main(int argc, char* argv[]) {
 		std::cout << "\n IGA Elapsed Time: " << IGAduration << "\n\n";
 	}
 
-
-	char stop;
-	std::cout << "\n Press any button to exit";
-	std::cin >> stop;
-	return 0;
+    return 0;
 }
