@@ -175,17 +175,17 @@ void AddTriangleMeshGeometry(ChBody* body,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
                              bool visualization) {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(obj_filename, false, false);
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(obj_filename, false, false);
 
-    for (int i = 0; i < trimesh.m_vertices.size(); i++)
-        trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+    for (int i = 0; i < trimesh->m_vertices.size(); i++)
+        trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
 
     body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
 
     if (visualization) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetMesh(*trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->Pos = ChVector<>(0, 0, 0);
         trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
@@ -425,22 +425,22 @@ void AddTriangle(ChBody* body,
                  const ChVector<>& pos,
                  const ChQuaternion<>& rot,
                  bool visualization) {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.m_vertices.clear();
-    trimesh.m_face_v_indices.clear();
-    trimesh.m_vertices.push_back(vertA);
-    trimesh.m_vertices.push_back(vertB);
-    trimesh.m_vertices.push_back(vertC);
-    trimesh.m_face_v_indices.push_back(ChVector<int>(0, 1, 2));
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->m_vertices.clear();
+    trimesh->m_face_v_indices.clear();
+    trimesh->m_vertices.push_back(vertA);
+    trimesh->m_vertices.push_back(vertB);
+    trimesh->m_vertices.push_back(vertC);
+    trimesh->m_face_v_indices.push_back(ChVector<int>(0, 1, 2));
 
-    for (int i = 0; i < trimesh.m_vertices.size(); i++)
-        trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+    for (int i = 0; i < trimesh->m_vertices.size(); i++)
+        trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
 
     body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
 
     if (visualization) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetMesh(*trimesh);
         trimesh_shape->SetName(name);
         trimesh_shape->Pos = ChVector<>(0, 0, 0);
         trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);

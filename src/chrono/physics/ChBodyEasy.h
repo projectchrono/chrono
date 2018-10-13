@@ -350,11 +350,14 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
         double sphere_swept = 0.001,  ///< radius of 'inflating' of mesh, leads to more robust collision detection
         bool visual_asset = true,     ///< attach a visualization asset to the body
         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
-    )
+        )
         : ChBodyAuxRef(contact_method) {
+        auto trimesh = std::make_shared< geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(filename, true, true);
+
         auto vshape = std::make_shared<ChTriangleMeshShape>();
-        vshape->GetMesh().LoadWavefrontMesh(filename, true, true);
-        this->AddAsset(vshape);  // assets are respect to REF c.sys
+        vshape->SetMesh(*trimesh);
+        AddAsset(vshape);  // assets are respect to REF c.sys
 
         if (!visual_asset) {
             vshape->SetVisible(false);
@@ -365,21 +368,20 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
             double mass;
             ChVector<> baricenter;
             ChMatrix33<> inertia;
-            vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
+            trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
             ChMatrix33<> principal_inertia_csys;
             double principal_I[3];
             inertia.FastEigen(principal_inertia_csys, principal_I);
-            this->SetMass(mass * mdensity);
-            this->SetInertiaXX(
-                ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
+            SetMass(mass * mdensity);
+            SetInertiaXX(ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
             // Set the COG coordinates to barycenter, without displacing the REF reference
-            this->SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
+            SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
         }
 
         if (collide) {
+            // coll.model is respect to REF c.sys
             GetCollisionModel()->ClearModel();
-            GetCollisionModel()->AddTriangleMesh(vshape->GetMesh(), false, false, VNULL, ChMatrix33<>(1),
-                                                 sphere_swept);  // coll.model is respect to REF c.sys
+            GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), sphere_swept);
             GetCollisionModel()->BuildModel();
             SetCollide(true);
         }

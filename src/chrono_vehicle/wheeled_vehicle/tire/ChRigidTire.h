@@ -110,7 +110,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh
     double m_sweep_sphere_radius;    ///< radius of sweeping sphere for mesh contact
 
-    geometry::ChTriangleMeshConnected* m_trimesh;  ///< contact mesh
+    std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< contact mesh
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
     std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset

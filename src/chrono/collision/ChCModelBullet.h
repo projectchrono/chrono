@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_MODELBULLET_H
 #define CHC_MODELBULLET_H
@@ -141,17 +143,17 @@ class ChApi ChModelBullet : public ChCollisionModel {
                                const ChVector<>& pos = ChVector<>(),
                                const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
-    /// Add a triangle mesh to this model, passing a triangle mesh (do not delete the triangle mesh
-    /// until the collision model, because depending on the implementation of inherited ChCollisionModel
-    /// classes, maybe the triangle is referenced via a striding interface or just copied)
-    /// Note: if possible, in sake of high performance, avoid triangle meshes and prefer simplified
-    /// representations as compounds of convex shapes of boxes/spheres/etc.. type.
-    virtual bool AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
-                                 bool is_static,
-                                 bool is_convex,
-                                 const ChVector<>& pos = ChVector<>(),
-                                 const ChMatrix33<>& rot = ChMatrix33<>(1),
-                                 double sphereswept_thickness = 0.0) override;
+    /// Add a triangle mesh to this model, passing a triangle mesh.
+    /// Note: if possible, for better performance, avoid triangle meshes and prefer simplified
+    /// representations as compounds of primitive convex shapes (boxes, sphers, etc).
+    virtual bool AddTriangleMesh(                           //
+        std::shared_ptr<geometry::ChTriangleMesh> trimesh,  ///< the triangle mesh
+        bool is_static,                                     ///< true if model doesn't move. May improve performance.
+        bool is_convex,                                     ///< if true, a convex hull is used. May improve robustness.
+        const ChVector<>& pos = ChVector<>(),               ///< displacement respect to COG
+        const ChMatrix33<>& rot = ChMatrix33<>(1),          ///< the rotation of the mesh
+        double sphereswept_thickness = 0.0                  ///< outward sphere-swept layer (when supported)
+        ) override;
 
     /// CUSTOM for this class only: add a concave triangle mesh that will be managed
     /// by GImpact mesh-mesh algorithm. Note that, despite this can work with
@@ -278,6 +280,8 @@ class ChApi ChModelBullet : public ChCollisionModel {
     void _injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape);
 
     void onFamilyChange();
+
+    std::vector<std::shared_ptr<geometry::ChTriangleMesh>> m_trimeshes;
 };
 
 }  // end namespace collision

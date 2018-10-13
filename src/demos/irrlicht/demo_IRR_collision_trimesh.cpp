@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     mfloor2->SetBodyFixed(true);
     mphysicalSystem.Add(mfloor2);
 
-    ChTriangleMeshConnected mmeshbox;
-    mmeshbox.LoadWavefrontMesh(GetChronoDataFile("cube.obj"),true,true);
+    auto mmeshbox = std::make_shared<ChTriangleMeshConnected>();
+    mmeshbox->LoadWavefrontMesh(GetChronoDataFile("cube.obj"),true,true);
 
     mfloor2->GetCollisionModel()->ClearModel();
     mfloor2->GetCollisionModel()->AddTriangleMesh(mmeshbox,false, false, VNULL, ChMatrix33<>(1), 0.005);
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     mfloor2->SetCollide(true);
 
     auto masset_meshbox = std::make_shared<ChTriangleMeshShape>();
-    masset_meshbox->SetMesh(mmeshbox);
+    masset_meshbox->SetMesh(*mmeshbox);
     mfloor2->AddAsset(masset_meshbox);
 
     auto masset_texture = std::make_shared<ChTexture>();
@@ -108,19 +108,20 @@ int main(int argc, char* argv[]) {
 	// between 15 falling shapes; also we want to call RepairDuplicateVertexes() on the
 	// imported mesh; also we want to scale the imported mesh using Transform().
 
-    ChTriangleMeshConnected mmesh;
-    mmesh.LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"),false,true);
-    mmesh.Transform(ChVector<>(0,0,0), ChMatrix33<>(1.2)); // scale to a different size 
-    mmesh.RepairDuplicateVertexes(1e-9); // if meshes are not watertight
+    auto mmesh = std::make_shared<ChTriangleMeshConnected>();
+    mmesh->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"), false, true);
+    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1.2));  // scale to a different size
+    mmesh->RepairDuplicateVertexes(1e-9);                      // if meshes are not watertight
+
     // compute mass inertia from mesh
     double mmass;
-    ChVector<>mcog;
+    ChVector<> mcog;
     ChMatrix33<> minertia;
     double mdensity = 1000;
-    mmesh.ComputeMassProperties(true,mmass,mcog,minertia); 
+    mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_csys;
     double principal_I[3];
-    minertia.FastEigen(principal_inertia_csys, principal_I);       
+    minertia.FastEigen(principal_inertia_csys, principal_I);
 
     for (int j= 0; j<15;++j) {
 		
@@ -142,7 +143,7 @@ int main(int argc, char* argv[]) {
         mfalling->SetCollide(true);
 
         auto masset_mesh = std::make_shared<ChTriangleMeshShape>();
-        masset_mesh->SetMesh(mmesh);
+        masset_mesh->SetMesh(*mmesh);
         masset_mesh->SetBackfaceCull(true);
         mfalling->AddAsset(masset_mesh);
     }

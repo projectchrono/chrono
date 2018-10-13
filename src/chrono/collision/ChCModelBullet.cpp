@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
 #include <memory>
@@ -488,25 +488,26 @@ class btGImpactMeshShape_handlemesh : public btGImpactMeshShape {
 };
 
 /// Add a triangle mesh to this model
-bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
+bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
                                     bool is_static,
                                     bool is_convex,
                                     const ChVector<>& pos,
                                     const ChMatrix33<>& rot,
                                     double sphereswept_thickness) {
-    if (!trimesh.getNumTriangles())
+    if (!trimesh->getNumTriangles())
         return false;
 
-    if (geometry::ChTriangleMeshConnected* mesh = dynamic_cast<geometry::ChTriangleMeshConnected*> ( const_cast<geometry::ChTriangleMesh*>(&trimesh))) {
+    m_trimeshes.push_back(trimesh);  // cache pointer to triangle mesh
 
-        std::vector<std::array<int,4>> trimap;
+    if (auto mesh = std::dynamic_pointer_cast<geometry::ChTriangleMeshConnected>(trimesh)) {
+        std::vector<std::array<int, 4>> trimap;
         mesh->ComputeNeighbouringTriangleMap(trimap);
-        
-        std::map<std::pair<int,int>, std::pair<int, int>> winged_edges;
+
+        std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
         mesh->ComputeWingedEdges(winged_edges, true);
 
-        std::vector<bool> added_vertexes (mesh->m_vertices.size());
-        
+        std::vector<bool> added_vertexes(mesh->m_vertices.size());
+
         // iterate on triangles
         for (int it = 0; it < mesh->m_face_v_indices.size(); ++it) {
             // edges = pairs of vertexes indexes
@@ -514,12 +515,12 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
             std::pair<int, int> medgeB(mesh->m_face_v_indices[it].y(), mesh->m_face_v_indices[it].z());
             std::pair<int, int> medgeC(mesh->m_face_v_indices[it].z(), mesh->m_face_v_indices[it].x());
             // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
-            if (medgeA.first>medgeA.second) 
+            if (medgeA.first > medgeA.second)
                 medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
-            if (medgeB.first>medgeB.second) 
+            if (medgeB.first > medgeB.second)
                 medgeB = std::pair<int, int>(medgeB.second, medgeB.first);
-            if (medgeC.first>medgeC.second) 
-                medgeC = std::pair<int, int>(medgeC.second, medgeC.first);  
+            if (medgeC.first > medgeC.second)
+                medgeC = std::pair<int, int>(medgeC.second, medgeC.first);
             auto wingedgeA = winged_edges.find(medgeA);
             auto wingedgeB = winged_edges.find(medgeB);
             auto wingedgeC = winged_edges.find(medgeC);
@@ -552,21 +553,21 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
                     i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].z();
             }
 
-            this->AddTriangleProxy(&mesh->m_vertices[mesh->m_face_v_indices[it].x()], 
-                                   &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
-                                   &mesh->m_vertices[mesh->m_face_v_indices[it].z()],
-                                   // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to edge
-                                   wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A] : &mesh->m_vertices[mesh->m_face_v_indices[it].z()], 
-                                   wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B] : &mesh->m_vertices[mesh->m_face_v_indices[it].x()],
-                                   wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C] : &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
-                                   !added_vertexes[mesh->m_face_v_indices[it].x()],
-                                   !added_vertexes[mesh->m_face_v_indices[it].y()],
-                                   !added_vertexes[mesh->m_face_v_indices[it].z()],
-                                   // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
-                                   wingedgeA->second.first != -1,
-                                   wingedgeB->second.first != -1,
-                                   wingedgeC->second.first != -1,
-                                   sphereswept_thickness);
+            this->AddTriangleProxy(&mesh->m_vertices[mesh->m_face_v_indices[it].x()],
+                &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
+                &mesh->m_vertices[mesh->m_face_v_indices[it].z()],
+                // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to edge
+                wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A] : &mesh->m_vertices[mesh->m_face_v_indices[it].z()],
+                wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B] : &mesh->m_vertices[mesh->m_face_v_indices[it].x()],
+                wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C] : &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
+                !added_vertexes[mesh->m_face_v_indices[it].x()],
+                !added_vertexes[mesh->m_face_v_indices[it].y()],
+                !added_vertexes[mesh->m_face_v_indices[it].z()],
+                // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
+                wingedgeA->second.first != -1,
+                wingedgeB->second.first != -1,
+                wingedgeC->second.first != -1,
+                sphereswept_thickness);
             // Mark added vertexes
             added_vertexes[mesh->m_face_v_indices[it].x()] = true;
             added_vertexes[mesh->m_face_v_indices[it].y()] = true;
@@ -580,29 +581,31 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
     }
 
     btTriangleMesh* bulletMesh = new btTriangleMesh;
-    for (int i = 0; i < trimesh.getNumTriangles(); i++) {
+    for (int i = 0; i < trimesh->getNumTriangles(); i++) {
         // bulletMesh->m_weldingThreshold = ...
-        bulletMesh->addTriangle(ChVectToBullet(trimesh.getTriangle(i).p1), ChVectToBullet(trimesh.getTriangle(i).p2),
-                                ChVectToBullet(trimesh.getTriangle(i).p3),
-                                true);  // try to remove duplicate vertices
+        bulletMesh->addTriangle(ChVectToBullet(trimesh->getTriangle(i).p1), ChVectToBullet(trimesh->getTriangle(i).p2),
+            ChVectToBullet(trimesh->getTriangle(i).p3),
+            true);  // try to remove duplicate vertices
     }
 
     if (is_static) {
         // Here a static btBvhTriangleMeshShape should suffice, but looks like that the btGImpactMeshShape works
         // better..
         btCollisionShape* pShape = (btBvhTriangleMeshShape*)new btBvhTriangleMeshShape_handlemesh(bulletMesh);
-        pShape->setMargin((btScalar) this->GetSafeMargin());
+        pShape->setMargin((btScalar)this->GetSafeMargin());
         // ((btBvhTriangleMeshShape*)pShape)->refitTree();
         // btCollisionShape* pShape = new btGImpactMeshShape_handlemesh(bulletMesh);
         // pShape->setMargin((btScalar) this->GetSafeMargin() );
         //((btGImpactMeshShape_handlemesh*)pShape)->updateBound();
         _injectShape(pos, rot, pShape);
-    } else {
+    }
+    else {
         if (is_convex) {
             btCollisionShape* pShape = (btConvexTriangleMeshShape*)new btConvexTriangleMeshShape_handlemesh(bulletMesh);
-            pShape->setMargin((btScalar) this->GetEnvelope());
+            pShape->setMargin((btScalar)this->GetEnvelope());
             _injectShape(pos, rot, pShape);
-        } else {
+        }
+        else {
             // Note: currently there's no 'perfect' convex decomposition method,
             // so here the code is a bit experimental...
 
@@ -613,15 +616,15 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
 
             // ----- ..or use this? (using the JR convex decomposition) :
             ChConvexDecompositionJR mydecompositionJR;
-            mydecompositionJR.AddTriangleMesh(trimesh);
+            mydecompositionJR.AddTriangleMesh(*trimesh);
             mydecompositionJR.SetParameters(0,      // skin width
-                                            9, 64,  // depth, max vertices in hull
-                                            5,      // concavity percent
-                                            5,      // merge threshold percent
-                                            5,      // split threshold percent
-                                            true,   // use initial island generation
-                                            false   // use island generation (unsupported-disabled)
-                                            );
+                9, 64,  // depth, max vertices in hull
+                5,      // concavity percent
+                5,      // merge threshold percent
+                5,      // split threshold percent
+                true,   // use initial island generation
+                false   // use island generation (unsupported-disabled)
+            );
             mydecompositionJR.ComputeConvexDecomposition();
             GetLog() << " found n.hulls=" << mydecompositionJR.GetHullCount() << "\n";
             this->AddTriangleMeshConcaveDecomposed(mydecompositionJR, pos, rot);

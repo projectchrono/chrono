@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHC_COLLISIONMODEL_H
 #define CHC_COLLISIONMODEL_H
@@ -151,18 +153,16 @@ class ChApi ChCollisionModel {
                                const ChVector<>& pos = ChVector<>(),
                                const ChMatrix33<>& rot = ChMatrix33<>(1)) = 0;
 
-    /// Add a triangle mesh to this model, passing a triangle mesh (do not delete the triangle mesh
-    /// until the collision model, because depending on the implementation of inherited ChCollisionModel
-    /// classes, maybe the triangle is referenced via a striding interface or just copied)
-    /// Note: if possible, in sake of high performance, avoid triangle meshes and prefer simplified
-    /// representations as compounds of convex shapes of boxes/spheres/etc.. type. See functions above.
-    virtual bool AddTriangleMesh(
-        const geometry::ChTriangleMesh& trimesh,  ///< the triangle mesh
-        bool is_static,  ///< true only if model doesn't move (es.a terrain). May improve performance
-        bool is_convex,  ///< true if mesh convex hull is used (only for simple mesh). May improve robustness
-        const ChVector<>& pos = ChVector<>(),       ///< displacement respect to COG (optional)
-        const ChMatrix33<>& rot = ChMatrix33<>(1),  ///< the rotation of the mesh - matrix must be orthogonal
-        double sphereswept_thickness = 0.0          ///< optional: outward sphereswept layer (when supported)
+    /// Add a triangle mesh to this model, passing a triangle mesh.
+    /// Note: if possible, for better performance, avoid triangle meshes and prefer simplified
+    /// representations as compounds of primitive convex shapes (boxes, sphers, etc).
+    virtual bool AddTriangleMesh(                           //
+        std::shared_ptr<geometry::ChTriangleMesh> trimesh,  ///< the triangle mesh
+        bool is_static,                                     ///< true if model doesn't move. May improve performance.
+        bool is_convex,                                     ///< if true, a convex hull is used. May improve robustness.
+        const ChVector<>& pos = ChVector<>(),               ///< displacement respect to COG
+        const ChMatrix33<>& rot = ChMatrix33<>(1),          ///< the rotation of the mesh
+        double sphereswept_thickness = 0.0                  ///< outward sphere-swept layer (when supported)
         ) = 0;
 
     /// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.
