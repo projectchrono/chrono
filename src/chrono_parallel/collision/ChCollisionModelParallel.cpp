@@ -277,7 +277,7 @@ bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVe
     return true;
 }
 
-bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> >& pointlist,
+bool ChCollisionModelParallel::AddConvexHull(const std::vector<ChVector<double> >& pointlist,
                                              const ChVector<>& pos,
                                              const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -345,6 +345,7 @@ bool ChCollisionModelParallel::AddCopyOfAnotherModel(ChCollisionModel* another) 
     // NOT SUPPORTED
     return false;
 }
+
 void ChCollisionModelParallel::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {}
 
 void ChCollisionModelParallel::SyncPosition() {

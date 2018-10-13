@@ -149,7 +149,7 @@ class ChApi ChCollisionModel {
     /// Add a convex hull to this model. A convex hull is simply a point cloud that describe
     /// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
     /// Points are passed as a list, that is instantly copied into the model.
-    virtual bool AddConvexHull(std::vector<ChVector<double> >& pointlist,
+    virtual bool AddConvexHull(const std::vector<ChVector<double> >& pointlist,
                                const ChVector<>& pos = ChVector<>(),
                                const ChMatrix33<>& rot = ChMatrix33<>(1)) = 0;
 
@@ -189,7 +189,7 @@ class ChApi ChCollisionModel {
     /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
     /// - the line must contain only ChLineSegment and ChLineArc sub-lines
     /// - the sublines must follow in the proper order, with coincident corners, and must be closed.
-    virtual bool Add2Dpath(geometry::ChLinePath& mpath,
+    virtual bool Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpath,
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
                            const double thickness = 0.001) {

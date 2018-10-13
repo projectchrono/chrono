@@ -139,7 +139,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// Add a convex hull to this model. A convex hull is simply a point cloud that describe
     /// a convex polytope. Connectivity between the vertexes, as faces/edges in triangle meshes is not necessary.
     /// Points are passed as a list, that is instantly copied into the model.
-    virtual bool AddConvexHull(std::vector<ChVector<double>>& pointlist,
+    virtual bool AddConvexHull(const std::vector<ChVector<double>>& pointlist,
                                const ChVector<>& pos = ChVector<>(),
                                const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
@@ -160,7 +160,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// arbitrary meshes, there could be issues of robustness and precision, so
     /// when possible, prefer simplified representations as compounds of convex
     /// shapes of boxes/spheres/etc.. type.
-    virtual bool AddTriangleMeshConcave(const geometry::ChTriangleMesh& trimesh,
+    virtual bool AddTriangleMeshConcave(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
                                         const ChVector<>& pos = ChVector<>(),
                                         const ChMatrix33<>& rot = ChMatrix33<>(1));
 
@@ -171,7 +171,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// arbitrary meshes, there could be issues of robustness and precision, so
     /// when possible, prefer simplified representations as compounds of convex
     /// shapes of boxes/spheres/etc.. type.
-    virtual bool AddTriangleMeshConcaveDecomposed(ChConvexDecomposition& mydecomposition,
+    virtual bool AddTriangleMeshConcaveDecomposed(std::shared_ptr<ChConvexDecomposition> mydecomposition,
                                                   const ChVector<>& pos = ChVector<>(),
                                                   const ChMatrix33<>& rot = ChMatrix33<>(1));
 
@@ -199,7 +199,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// - the line must be clockwise for inner material, (counterclockwise=hollow, material outside)
     /// - the line must contain only ChLineSegment and ChLineArc sub-lines
     /// - the sublines must follow in the proper order, with coincident corners, and must be closed.
-    virtual bool Add2Dpath(geometry::ChLinePath& mpath,
+    virtual bool Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpath,
                            const ChVector<>& pos = ChVector<>(),
                            const ChMatrix33<>& rot = ChMatrix33<>(1),
                            const double thickness = 0.001) override;
@@ -208,7 +208,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     /// but won't ever create contacts between them.
     virtual bool AddPoint(double radius = 0,                    ///< the radius of the node
                           const ChVector<>& pos = ChVector<>()  ///< the position of the node in model coordinates
-    ) override;
+                          ) override;
 
     /// Add a triangle from  mesh.
     /// For efficiency, points are stored as pointers. Thus, the user must

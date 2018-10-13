@@ -251,7 +251,7 @@ bool ChModelBullet::AddBarrel(double Y_low,
 }
 
 
-bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
+bool ChModelBullet::Add2Dpath(std::shared_ptr<geometry::ChLinePath> mpath,
                            const ChVector<>& pos,
                            const ChMatrix33<>& rot,
                            const double mthickness)
@@ -262,8 +262,8 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
     //if (!mpath.Get_closed()) 
     //    throw ChException("Error! Add2Dpath requires a CLOSED ChLinePath!");
 
-    for (size_t i = 0; i < mpath.GetSubLinesCount(); ++i) {
-        if (auto msegment = std::dynamic_pointer_cast<geometry::ChLineSegment>(mpath.GetSubLineN(i))) {
+    for (size_t i = 0; i < mpath->GetSubLinesCount(); ++i) {
+        if (auto msegment = std::dynamic_pointer_cast<geometry::ChLineSegment>(mpath->GetSubLineN(i))) {
             if ((msegment->pA.z() != 0) || (msegment->pB.z() != 0))
                 throw ChException("Error! Add2Dpath: a sub segment of the ChLinePath had non-zero z coordinate!");
 
@@ -273,7 +273,7 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
 
             mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
             _injectShape(pos, rot, mshape);
-        } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath.GetSubLineN(i))) {
+        } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath->GetSubLineN(i))) {
             if ((marc->origin.pos.z() != 0))
                 throw ChException(
                     "Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be "
@@ -294,13 +294,13 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
 
         size_t i_prev = i;
         size_t i_next = i + 1;
-        if (i_next >= mpath.GetSubLinesCount())
-            if ((mpath.GetEndA() - mpath.GetEndB()).Length() <
+        if (i_next >= mpath->GetSubLinesCount())
+            if ((mpath->GetEndA() - mpath->GetEndB()).Length() <
                 1e-9)        // can't use Get_closed() that is user preference via Set_closed()
                 i_next = 0;  // closed path
-        if (i_next < mpath.GetSubLinesCount()) {
-            std::shared_ptr<geometry::ChLine> mline_prev = mpath.GetSubLineN(i_prev);
-            std::shared_ptr<geometry::ChLine> mline_next = mpath.GetSubLineN(i_next);
+        if (i_next < mpath->GetSubLinesCount()) {
+            std::shared_ptr<geometry::ChLine> mline_prev = mpath->GetSubLineN(i_prev);
+            std::shared_ptr<geometry::ChLine> mline_next = mpath->GetSubLineN(i_next);
             ChVector<> pos_prev, pos_next;
             ChVector<> dir_prev, dir_next;
             mline_prev->Evaluate(pos_prev, 1);
@@ -380,7 +380,7 @@ bool ChModelBullet::AddTriangleProxy(ChVector<>* p1,                ///< points 
 }
 
 
-bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
+bool ChModelBullet::AddConvexHull(const std::vector<ChVector<double> >& pointlist,
                                   const ChVector<>& pos,
                                   const ChMatrix33<>& rot) {
 
@@ -615,36 +615,36 @@ bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> tr
             */
 
             // ----- ..or use this? (using the JR convex decomposition) :
-            ChConvexDecompositionJR mydecompositionJR;
-            mydecompositionJR.AddTriangleMesh(*trimesh);
-            mydecompositionJR.SetParameters(0,      // skin width
-                9, 64,  // depth, max vertices in hull
-                5,      // concavity percent
-                5,      // merge threshold percent
-                5,      // split threshold percent
-                true,   // use initial island generation
-                false   // use island generation (unsupported-disabled)
+            auto mydecompositionJR = std::make_shared<ChConvexDecompositionJR>();
+            mydecompositionJR->AddTriangleMesh(*trimesh);
+            mydecompositionJR->SetParameters(0,      // skin width
+                                             9, 64,  // depth, max vertices in hull
+                                             5,      // concavity percent
+                                             5,      // merge threshold percent
+                                             5,      // split threshold percent
+                                             true,   // use initial island generation
+                                             false   // use island generation (unsupported-disabled)
             );
-            mydecompositionJR.ComputeConvexDecomposition();
-            GetLog() << " found n.hulls=" << mydecompositionJR.GetHullCount() << "\n";
+            mydecompositionJR->ComputeConvexDecomposition();
+            GetLog() << " found n.hulls=" << mydecompositionJR->GetHullCount() << "\n";
             this->AddTriangleMeshConcaveDecomposed(mydecompositionJR, pos, rot);
 
             /*
             // ----- ..or use this? (using the HACD convex decomposition) :
-            ChConvexDecompositionHACD mydecompositionHACD;
-            mydecompositionHACD.AddTriangleMesh(trimesh);
-            mydecompositionHACD.SetParameters          (2, // clusters
-                                                        0, // no decimation
-                                                        0.0, // small cluster threshold
-                                                        false, // add faces points
-                                                        false, // add extra dist points
-                                                        100.0, // max concavity
-                                                        30, // cc connect dist
-                                                        0.0, // volume weight beta
-                                                        0.0, // compacity alpha
-                                                        50 // vertices per cc
-                                                        );
-            mydecompositionHACD.ComputeConvexDecomposition();
+            auto mydecompositionHACD = std::make_shared<ChConvexDecompositionHACD>();
+            mydecompositionHACD->AddTriangleMesh(trimesh);
+            mydecompositionHACD->SetParameters(2,      // clusters
+                                               0,      // no decimation
+                                               0.0,    // small cluster threshold
+                                               false,  // add faces points
+                                               false,  // add extra dist points
+                                               100.0,  // max concavity
+                                               30,     // cc connect dist
+                                               0.0,    // volume weight beta
+                                               0.0,    // compacity alpha
+                                               50      // vertices per cc
+            );
+            mydecompositionHACD->ComputeConvexDecomposition();
             this->AddTriangleMeshConcaveDecomposed(mydecompositionHACD, pos, rot);
             */
         }
@@ -653,17 +653,17 @@ bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> tr
     return true;
 }
 
-bool ChModelBullet::AddTriangleMeshConcave(const geometry::ChTriangleMesh& trimesh,
+bool ChModelBullet::AddTriangleMeshConcave(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
                                            const ChVector<>& pos,
                                            const ChMatrix33<>& rot) {
-    if (!trimesh.getNumTriangles())
+    if (!trimesh->getNumTriangles())
         return false;
 
     btTriangleMesh* bulletMesh = new btTriangleMesh;
-    for (int i = 0; i < trimesh.getNumTriangles(); i++) {
+    for (int i = 0; i < trimesh->getNumTriangles(); i++) {
         // bulletMesh->m_weldingThreshold = ...
-        bulletMesh->addTriangle(ChVectToBullet(trimesh.getTriangle(i).p1), ChVectToBullet(trimesh.getTriangle(i).p2),
-                                ChVectToBullet(trimesh.getTriangle(i).p3),
+        bulletMesh->addTriangle(ChVectToBullet(trimesh->getTriangle(i).p1), ChVectToBullet(trimesh->getTriangle(i).p2),
+                                ChVectToBullet(trimesh->getTriangle(i).p3),
                                 true);  // try to remove duplicate vertices
     }
 
@@ -678,15 +678,15 @@ bool ChModelBullet::AddTriangleMeshConcave(const geometry::ChTriangleMesh& trime
     return true;
 }
 
-bool ChModelBullet::AddTriangleMeshConcaveDecomposed(ChConvexDecomposition& mydecomposition,
+bool ChModelBullet::AddTriangleMeshConcaveDecomposed(std::shared_ptr<ChConvexDecomposition> mydecomposition,
                                                      const ChVector<>& pos,
                                                      const ChMatrix33<>& rot) {
     // note: since the convex hulls are ot shrunk, the safe margin will be set to zero (must be set before adding them)
     this->SetSafeMargin(0);
 
-    for (unsigned int j = 0; j < mydecomposition.GetHullCount(); j++) {
+    for (unsigned int j = 0; j < mydecomposition->GetHullCount(); j++) {
         std::vector<ChVector<double> > ptlist;
-        mydecomposition.GetConvexHullResult(j, ptlist);
+        mydecomposition->GetConvexHullResult(j, ptlist);
 
         if (ptlist.size())
             this->AddConvexHull(ptlist, pos, rot);

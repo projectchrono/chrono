@@ -145,7 +145,7 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
                             const ChVector<>& pos = ChVector<>(),
                             const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
-    virtual bool AddConvexHull(std::vector<ChVector<double> >& pointlist,
+    virtual bool AddConvexHull(const std::vector<ChVector<double> >& pointlist,
                                const ChVector<>& pos = ChVector<>(),
                                const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
