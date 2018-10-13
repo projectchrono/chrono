@@ -54,8 +54,8 @@ Sedan_WheelRight::Sedan_WheelRight(const std::string& name) : Sedan_Wheel(name) 
 // -----------------------------------------------------------------------------
 void Sedan_Wheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetStatic(true);

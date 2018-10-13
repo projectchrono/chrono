@@ -263,15 +263,15 @@ class MySimpleTank {
             // Visualization:
             auto shoe_mesh = std::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_mesh);
-            shoe_mesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj").c_str());
-            shoe_mesh->GetMesh().Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj").c_str());
+            shoe_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_mesh->SetVisible(true);
 
             // Visualize collision mesh
             auto shoe_coll_mesh = std::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_coll_mesh);
-            shoe_coll_mesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("shoe_collision.obj").c_str());
-            shoe_coll_mesh->GetMesh().Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_collision.obj").c_str());
+            shoe_coll_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_coll_mesh->SetVisible(false);
 
             // Collision:

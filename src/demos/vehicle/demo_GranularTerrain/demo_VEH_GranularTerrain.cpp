@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
 
     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(*trimesh);
+    trimesh_shape->SetMesh(trimesh);
     body->AddAsset(trimesh_shape);
 
     body->GetCollisionModel()->ClearModel();

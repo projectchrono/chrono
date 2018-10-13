@@ -77,7 +77,7 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshSha
     if (amesh->getMeshBufferCount() == 0)
         return;
 
-    geometry::ChTriangleMeshConnected* mmesh = &trianglemesh->GetMesh();
+    geometry::ChTriangleMeshConnected* mmesh = trianglemesh->GetMesh().get();
     unsigned int ntriangles = (unsigned int)mmesh->getIndicesVertexes().size();
     unsigned int nvertexes = ntriangles * 3;  // suboptimal, because some vertexes might be shared
 

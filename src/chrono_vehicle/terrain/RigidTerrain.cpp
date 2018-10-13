@@ -251,7 +251,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     // Create the visualization asset.
     if (visualization) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(*patch->m_trimesh);
+        trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
         trimesh_shape->SetStatic(true);
         patch->m_body->AddAsset(trimesh_shape);
@@ -391,7 +391,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     // Create the visualization asset.
     if (visualization) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(*patch->m_trimesh);
+        trimesh_shape->SetMesh(patch->m_trimesh);
         trimesh_shape->SetName(mesh_name);
         patch->m_body->AddAsset(trimesh_shape);
     }

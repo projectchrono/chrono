@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
 
     std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
-    mrigidmesh->SetMesh(*trimesh);
+    mrigidmesh->SetMesh(trimesh);
     mrigidbody->AddAsset(mrigidmesh);
 
     mrigidbody->GetCollisionModel()->ClearModel();

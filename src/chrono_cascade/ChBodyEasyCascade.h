@@ -99,7 +99,7 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
             ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, objshape);
 
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(*trimesh);
+            trimesh_shape->SetMesh(trimesh);
             this->AddAsset(trimesh_shape);
 
             // Add a collision shape if needed

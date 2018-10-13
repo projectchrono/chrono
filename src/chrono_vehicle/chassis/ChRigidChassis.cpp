@@ -101,8 +101,8 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
         return;
 
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_vis_mesh_file), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_vis_mesh_file), false, false);
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_vis_mesh_name);

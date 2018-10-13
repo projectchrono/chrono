@@ -306,7 +306,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         this->AddAsset(new_glyphs_asset);
         glyphs_asset = new_glyphs_asset;
     }
-    geometry::ChTriangleMeshConnected& trianglemesh = mesh_asset->GetMesh();
+    auto trianglemesh = mesh_asset->GetMesh();
 
     size_t n_verts = 0;
     size_t n_vcols = 0;
@@ -421,22 +421,22 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     // B - resize mesh buffers if needed
     //
 
-    if (trianglemesh.getCoordsVertices().size() != n_verts)
-        trianglemesh.getCoordsVertices().resize(n_verts);
-    if (trianglemesh.getCoordsColors().size() != n_vcols)
-        trianglemesh.getCoordsColors().resize(n_vcols);
-    if (trianglemesh.getIndicesVertexes().size() != n_triangles)
-        trianglemesh.getIndicesVertexes().resize(n_triangles);
+    if (trianglemesh->getCoordsVertices().size() != n_verts)
+        trianglemesh->getCoordsVertices().resize(n_verts);
+    if (trianglemesh->getCoordsColors().size() != n_vcols)
+        trianglemesh->getCoordsColors().resize(n_vcols);
+    if (trianglemesh->getIndicesVertexes().size() != n_triangles)
+        trianglemesh->getIndicesVertexes().resize(n_triangles);
 
     if (this->smooth_faces) {
-        if (trianglemesh.getCoordsNormals().size() != n_vnorms)
-            trianglemesh.getCoordsNormals().resize(n_vnorms);
-        if (trianglemesh.getIndicesNormals().size() != n_triangles)
-            trianglemesh.getIndicesNormals().resize(n_triangles);
+        if (trianglemesh->getCoordsNormals().size() != n_vnorms)
+            trianglemesh->getCoordsNormals().resize(n_vnorms);
+        if (trianglemesh->getIndicesNormals().size() != n_triangles)
+            trianglemesh->getIndicesNormals().resize(n_triangles);
         if (normal_accumulators.size() != n_vnorms)
             normal_accumulators.resize(n_vnorms);
 
-        TriangleNormalsReset(trianglemesh.getCoordsNormals(), normal_accumulators);
+        TriangleNormalsReset(trianglemesh->getCoordsNormals(), normal_accumulators);
     }
 
     //
@@ -485,47 +485,47 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     p2 = vc + this->shrink_factor * (p2 - vc);
                     p3 = vc + this->shrink_factor * (p3 - vc);
                 }
-                trianglemesh.getCoordsVertices()[i_verts] = p0;
+                trianglemesh->getCoordsVertices()[i_verts] = p0;
                 ++i_verts;
-                trianglemesh.getCoordsVertices()[i_verts] = p1;
+                trianglemesh->getCoordsVertices()[i_verts] = p1;
                 ++i_verts;
-                trianglemesh.getCoordsVertices()[i_verts] = p2;
+                trianglemesh->getCoordsVertices()[i_verts] = p2;
                 ++i_verts;
-                trianglemesh.getCoordsVertices()[i_verts] = p3;
+                trianglemesh->getCoordsVertices()[i_verts] = p3;
                 ++i_verts;
 
                 // color
-                trianglemesh.getCoordsColors()[i_vcols] =
+                trianglemesh->getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node0, 0, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
-                trianglemesh.getCoordsColors()[i_vcols] =
+                trianglemesh->getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node1, 1, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
-                trianglemesh.getCoordsColors()[i_vcols] =
+                trianglemesh->getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node2, 2, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
-                trianglemesh.getCoordsColors()[i_vcols] =
+                trianglemesh->getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node3, 3, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
 
                 // faces indexes
                 ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 2) + ivert_offset;
+                trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 2) + ivert_offset;
                 ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(1, 3, 2) + ivert_offset;
+                trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(1, 3, 2) + ivert_offset;
                 ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(2, 3, 0) + ivert_offset;
+                trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(2, 3, 0) + ivert_offset;
                 ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(3, 1, 0) + ivert_offset;
+                trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(3, 1, 0) + ivert_offset;
                 ++i_triindex;
 
                 // normals indices (if not defaulting to flat triangles)
                 if (this->smooth_faces) {
                     ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-                    trianglemesh.getIndicesNormals()[i_triindex - 4] = ChVector<int>(0, 0, 0) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 3] = ChVector<int>(1, 1, 1) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 2] = ChVector<int>(2, 2, 2) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 1] = ChVector<int>(3, 3, 3) + inorm_offset;
+                    trianglemesh->getIndicesNormals()[i_triindex - 4] = ChVector<int>(0, 0, 0) + inorm_offset;
+                    trianglemesh->getIndicesNormals()[i_triindex - 3] = ChVector<int>(1, 1, 1) + inorm_offset;
+                    trianglemesh->getIndicesNormals()[i_triindex - 2] = ChVector<int>(2, 2, 2) + inorm_offset;
+                    trianglemesh->getIndicesNormals()[i_triindex - 1] = ChVector<int>(3, 3, 3) + inorm_offset;
                     i_vnorms += 4;
                 }
             }
@@ -554,47 +554,47 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     p2 = vc + this->shrink_factor * (p2 - vc);
                     p3 = vc + this->shrink_factor * (p3 - vc);
                 }
-                trianglemesh.getCoordsVertices()[i_verts] = p0;
+                trianglemesh->getCoordsVertices()[i_verts] = p0;
                 ++i_verts;
-                trianglemesh.getCoordsVertices()[i_verts] = p1;
+                trianglemesh->getCoordsVertices()[i_verts] = p1;
                 ++i_verts;
-                trianglemesh.getCoordsVertices()[i_verts] = p2;
+                trianglemesh->getCoordsVertices()[i_verts] = p2;
                 ++i_verts;
-                trianglemesh.getCoordsVertices()[i_verts] = p3;
+                trianglemesh->getCoordsVertices()[i_verts] = p3;
                 ++i_verts;
 
                 // color
-                trianglemesh.getCoordsColors()[i_vcols] =
+                trianglemesh->getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node0, 0, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
-                trianglemesh.getCoordsColors()[i_vcols] =
+                trianglemesh->getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node1, 1, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
-                trianglemesh.getCoordsColors()[i_vcols] =
+                trianglemesh->getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node2, 2, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
-                trianglemesh.getCoordsColors()[i_vcols] =
+                trianglemesh->getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node3, 3, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
 
                 // faces indexes
                 ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 2) + ivert_offset;
+                trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 2) + ivert_offset;
                 ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(1, 3, 2) + ivert_offset;
+                trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(1, 3, 2) + ivert_offset;
                 ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(2, 3, 0) + ivert_offset;
+                trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(2, 3, 0) + ivert_offset;
                 ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(3, 1, 0) + ivert_offset;
+                trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(3, 1, 0) + ivert_offset;
                 ++i_triindex;
 
                 // normals indices (if not defaulting to flat triangles)
                 if (this->smooth_faces) {
                     ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-                    trianglemesh.getIndicesNormals()[i_triindex - 4] = ChVector<int>(0, 0, 0) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 3] = ChVector<int>(1, 1, 1) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 2] = ChVector<int>(2, 2, 2) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 1] = ChVector<int>(3, 3, 3) + inorm_offset;
+                    trianglemesh->getIndicesNormals()[i_triindex - 4] = ChVector<int>(0, 0, 0) + inorm_offset;
+                    trianglemesh->getIndicesNormals()[i_triindex - 3] = ChVector<int>(1, 1, 1) + inorm_offset;
+                    trianglemesh->getIndicesNormals()[i_triindex - 2] = ChVector<int>(2, 2, 2) + inorm_offset;
+                    trianglemesh->getIndicesNormals()[i_triindex - 1] = ChVector<int>(3, 3, 3) + inorm_offset;
                     i_vnorms += 4;
                 }
             }
@@ -603,7 +603,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
                 std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
                 std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
-                UpdateBuffers_Hex(FEMmesh->GetElement(iel), trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex);
+                UpdateBuffers_Hex(FEMmesh->GetElement(iel), *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex);
             }
 
             // ------------ELEMENT IS A BEAM?
@@ -696,11 +696,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
                         for (int is = 0; is < msection_pts.size(); ++is) {
                             ChVector<> Rw = msectionrot.Rotate(msection_pts[is]);
-                            trianglemesh.getCoordsVertices()[i_verts] = P + Rw;
+                            trianglemesh->getCoordsVertices()[i_verts] = P + Rw;
                             ++i_verts;
-                            trianglemesh.getCoordsColors()[i_vcols] = mcol;
+                            trianglemesh->getCoordsColors()[i_vcols] = mcol;
                             ++i_vcols;
-                            trianglemesh.getCoordsNormals()[i_vnorms] = msectionrot.Rotate(Rw.GetNormalized());
+                            trianglemesh->getCoordsNormals()[i_vnorms] = msectionrot.Rotate(Rw.GetNormalized());
                             ++i_vnorms;
                         }
                         // no need to compute normals later with TriangleNormalsCompute
@@ -716,15 +716,15 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                                 int ipaa = ipa + (int)msection_pts.size();
                                 int ipbb = ipb + (int)msection_pts.size();
 
-                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                trianglemesh->getIndicesVertexes()[i_triindex] =
                                     ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex] =
+                                trianglemesh->getIndicesNormals()[i_triindex] =
                                     ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
                                 ++i_triindex;
 
-                                trianglemesh.getIndicesVertexes()[i_triindex] =
+                                trianglemesh->getIndicesVertexes()[i_triindex] =
                                     ChVector<int>(ipa, ipb, ipbb) + islice_offset + ivert_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex] =
+                                trianglemesh->getIndicesNormals()[i_triindex] =
                                     ChVector<int>(ipa, ipb, ipbb) + islice_offset + ivert_offset;
                                 ++i_triindex;
                             }
@@ -732,53 +732,53 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     }
                     // if rectangle shape...
                     else {
-                        trianglemesh.getCoordsVertices()[i_verts] =
+                        trianglemesh->getCoordsVertices()[i_verts] =
                             P + msectionrot.Rotate(ChVector<>(0, -y_thick, -z_thick));
                         ++i_verts;
-                        trianglemesh.getCoordsVertices()[i_verts] =
+                        trianglemesh->getCoordsVertices()[i_verts] =
                             P + msectionrot.Rotate(ChVector<>(0, y_thick, -z_thick));
                         ++i_verts;
-                        trianglemesh.getCoordsVertices()[i_verts] =
+                        trianglemesh->getCoordsVertices()[i_verts] =
                             P + msectionrot.Rotate(ChVector<>(0, y_thick, z_thick));
                         ++i_verts;
-                        trianglemesh.getCoordsVertices()[i_verts] =
+                        trianglemesh->getCoordsVertices()[i_verts] =
                             P + msectionrot.Rotate(ChVector<>(0, -y_thick, z_thick));
                         ++i_verts;
 
-                        trianglemesh.getCoordsColors()[i_vcols] = mcol;
+                        trianglemesh->getCoordsColors()[i_vcols] = mcol;
                         ++i_vcols;
-                        trianglemesh.getCoordsColors()[i_vcols] = mcol;
+                        trianglemesh->getCoordsColors()[i_vcols] = mcol;
                         ++i_vcols;
-                        trianglemesh.getCoordsColors()[i_vcols] = mcol;
+                        trianglemesh->getCoordsColors()[i_vcols] = mcol;
                         ++i_vcols;
-                        trianglemesh.getCoordsColors()[i_vcols] = mcol;
+                        trianglemesh->getCoordsColors()[i_vcols] = mcol;
                         ++i_vcols;
 
                         if (in > 0) {
                             ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
                             ChVector<int> islice_offset((in - 1) * 4, (in - 1) * 4, (in - 1) * 4);
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(4, 0, 1) + islice_offset + ivert_offset;
                             ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(4, 1, 5) + islice_offset + ivert_offset;
                             ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(5, 1, 2) + islice_offset + ivert_offset;
                             ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(5, 2, 6) + islice_offset + ivert_offset;
                             ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(6, 2, 3) + islice_offset + ivert_offset;
                             ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(6, 3, 7) + islice_offset + ivert_offset;
                             ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(7, 3, 0) + islice_offset + ivert_offset;
                             ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(7, 0, 4) + islice_offset + ivert_offset;
                             ++i_triindex;
 
@@ -786,21 +786,21 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                                 ChVector<int> islice_normoffset((in - 1) * 8, (in - 1) * 8,
                                                                 (in - 1) * 8);  //***TO DO*** fix errors in normals
                                 ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-                                trianglemesh.getIndicesNormals()[i_triindex - 8] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 8] =
                                     ChVector<int>(8, 0, 1) + islice_normoffset + inorm_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex - 7] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 7] =
                                     ChVector<int>(8, 1, 9) + islice_normoffset + inorm_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex - 6] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 6] =
                                     ChVector<int>(9 + 4, 1 + 4, 2 + 4) + islice_normoffset + inorm_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex - 5] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 5] =
                                     ChVector<int>(9 + 4, 2 + 4, 10 + 4) + islice_normoffset + inorm_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex - 4] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 4] =
                                     ChVector<int>(10, 2, 3) + islice_normoffset + inorm_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex - 3] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 3] =
                                     ChVector<int>(10, 3, 11) + islice_normoffset + inorm_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex - 2] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 2] =
                                     ChVector<int>(11 + 4, 3 + 4, 0 + 4) + islice_normoffset + inorm_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex - 1] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 1] =
                                     ChVector<int>(11 + 4, 0 + 4, 8 + 4) + islice_normoffset + inorm_offset;
                                 i_vnorms += 8;
                             }
@@ -839,10 +839,10 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         ChVector<float> mcol = ComputeFalseColor(sresult);
                         */
 
-                        trianglemesh.getCoordsVertices()[i_verts] = P;
+                        trianglemesh->getCoordsVertices()[i_verts] = P;
                         ++i_verts;
 
-                        trianglemesh.getCoordsColors()[i_vcols] = mcol;
+                        trianglemesh->getCoordsColors()[i_vcols] = mcol;
                         ++i_vcols;
 
                         ++i_vnorms;
@@ -850,12 +850,12 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         if (iu > 0 && iv > 0) {
                             ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
 
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
                                               iu * shell_resolution + iv - 1) +
                                 ivert_offset;
                             ++i_triindex;
-                            trianglemesh.getIndicesVertexes()[i_triindex] =
+                            trianglemesh->getIndicesVertexes()[i_triindex] =
                                 ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
                                               (iu - 1) * shell_resolution + iv - 1) +
                                 ivert_offset;
@@ -863,11 +863,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
                             if (this->smooth_faces) {
                                 ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-                                trianglemesh.getIndicesNormals()[i_triindex - 2] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 2] =
                                     ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
                                                   iu * shell_resolution + iv - 1) +
                                     inorm_offset;
-                                trianglemesh.getIndicesNormals()[i_triindex - 1] =
+                                trianglemesh->getIndicesNormals()[i_triindex - 1] =
                                     ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
                                                   (iu - 1) * shell_resolution + iv - 1) +
                                     inorm_offset;
@@ -907,30 +907,30 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     //    p1.x() +=1;
                     //    p2.x() +=1;
 
-                    trianglemesh.getCoordsVertices()[i_verts] = p0;
+                    trianglemesh->getCoordsVertices()[i_verts] = p0;
                     ++i_verts;
-                    trianglemesh.getCoordsVertices()[i_verts] = p1;
+                    trianglemesh->getCoordsVertices()[i_verts] = p1;
                     ++i_verts;
-                    trianglemesh.getCoordsVertices()[i_verts] = p2;
+                    trianglemesh->getCoordsVertices()[i_verts] = p2;
                     ++i_verts;
 
                     // color
-                    trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
                     ++i_vcols;
-                    trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
                     ++i_vcols;
-                    trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
                     ++i_vcols;
 
                     // faces indexes
                     ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
-                    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 2) + ivert_offset;
+                    trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 2) + ivert_offset;
                     ++i_triindex;
 
                     // normals indices (if not defaulting to flat triangles)
                     if (this->smooth_faces) {
                         ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-                        trianglemesh.getIndicesNormals()[i_triindex - 4] = ChVector<int>(0, 0, 0) + inorm_offset;
+                        trianglemesh->getIndicesNormals()[i_triindex - 4] = ChVector<int>(0, 0, 0) + inorm_offset;
                         i_vnorms += 1;
                     }
                 }
@@ -960,30 +960,30 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     ChVector<> p1 = mface->GetNode2()->pos;
                     ChVector<> p2 = mface->GetNode3()->pos;
 
-                    trianglemesh.getCoordsVertices()[i_verts] = p0;
+                    trianglemesh->getCoordsVertices()[i_verts] = p0;
                     ++i_verts;
-                    trianglemesh.getCoordsVertices()[i_verts] = p1;
+                    trianglemesh->getCoordsVertices()[i_verts] = p1;
                     ++i_verts;
-                    trianglemesh.getCoordsVertices()[i_verts] = p2;
+                    trianglemesh->getCoordsVertices()[i_verts] = p2;
                     ++i_verts;
 
                     // color
-                    trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
                     ++i_vcols;
-                    trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
                     ++i_vcols;
-                    trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
+                    trianglemesh->getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
                     ++i_vcols;
 
                     // faces indexes
                     ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
-                    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 2) + ivert_offset;
+                    trianglemesh->getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 2) + ivert_offset;
                     ++i_triindex;
 
                     // normals indices (if not defaulting to flat triangles)
                     if (this->smooth_faces) {
                         ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-                        trianglemesh.getIndicesNormals()[i_triindex - 4] = ChVector<int>(0, 0, 0) + inorm_offset;
+                        trianglemesh->getIndicesNormals()[i_triindex - 4] = ChVector<int>(0, 0, 0) + inorm_offset;
                         i_vnorms += 1;
                     }
                 }
@@ -992,12 +992,12 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     }      // End of case of contact surfaces
 
     if (need_automatic_smoothing) {
-        for (unsigned int itri = 0; itri < trianglemesh.getIndicesVertexes().size(); ++itri)
-            TriangleNormalsCompute(trianglemesh.getIndicesNormals()[itri], trianglemesh.getIndicesVertexes()[itri],
-                                   trianglemesh.getCoordsVertices(), trianglemesh.getCoordsNormals(),
+        for (unsigned int itri = 0; itri < trianglemesh->getIndicesVertexes().size(); ++itri)
+            TriangleNormalsCompute(trianglemesh->getIndicesNormals()[itri], trianglemesh->getIndicesVertexes()[itri],
+                                   trianglemesh->getCoordsVertices(), trianglemesh->getCoordsNormals(),
                                    normal_accumulators);
 
-        TriangleNormalsSmooth(trianglemesh.getCoordsNormals(), normal_accumulators);
+        TriangleNormalsSmooth(trianglemesh->getCoordsNormals(), normal_accumulators);
     }
 
     // other flags

@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
         mfloor->SetCollide(true);
 
         auto masset_meshbox = std::make_shared<ChTriangleMeshShape>();
-        masset_meshbox->SetMesh(*mmeshbox);
+        masset_meshbox->SetMesh(mmeshbox);
         mfloor->AddAsset(masset_meshbox);
 
         auto masset_texture = std::make_shared<ChTexture>();

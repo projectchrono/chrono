@@ -437,8 +437,8 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
             auto mytrimeshshapeasset = std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset);
 
             if (myobjshapeasset || mytrimeshshapeasset) {
-                ChTriangleMeshConnected* mytrimesh = 0;
-                ChTriangleMeshConnected* temp_allocated_loadtrimesh = 0;
+                ChTriangleMeshConnected* mytrimesh = nullptr;
+                ChTriangleMeshConnected* temp_allocated_loadtrimesh = nullptr;
 
                 if (myobjshapeasset) {
                     try {
@@ -461,7 +461,7 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 }
 
                 if (mytrimeshshapeasset) {
-                    mytrimesh = &mytrimeshshapeasset->GetMesh();
+                    mytrimesh = mytrimeshshapeasset->GetMesh().get();
                 }
 
                 // POV macro to build the asset - begin

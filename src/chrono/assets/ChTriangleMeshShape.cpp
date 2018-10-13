@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Alesandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 
