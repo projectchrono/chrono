@@ -228,7 +228,7 @@ void ChTrackShoeBand::AddShoeVisualization() {
 void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
     auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
     auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
-    std::vector<geometry::ChTriangleMeshConnected> meshes = { mesh_shape1->GetMesh(), mesh_shape2->GetMesh() };
+    std::vector<geometry::ChTriangleMeshConnected> meshes = { *mesh_shape1->GetMesh(), *mesh_shape2->GetMesh() };
     std::string filename = out_dir + "/" + GetTreadVisualizationMeshName() + ".obj";
     geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
 }
@@ -236,7 +236,7 @@ void ChTrackShoeBand::WriteTreadVisualizationMesh(const std::string& out_dir) {
 void ChTrackShoeBand::ExportTreadVisualizationMeshPovray(const std::string& out_dir) {
     auto mesh_shape1 = ToothMesh(GetBeltWidth() / 2 - GetToothWidth() / 2);
     auto mesh_shape2 = ToothMesh(-GetBeltWidth() / 2 + GetToothWidth() / 2);
-    std::vector<geometry::ChTriangleMeshConnected> meshes = { mesh_shape1->GetMesh(), mesh_shape2->GetMesh() };
+    std::vector<geometry::ChTriangleMeshConnected> meshes = { *mesh_shape1->GetMesh(), *mesh_shape2->GetMesh() };
     auto trimesh = geometry::ChTriangleMeshConnected::Merge(meshes);
     utils::WriteMeshPovray(trimesh, GetTreadVisualizationMeshName(), out_dir, ChColor(1, 1, 1));
 }
@@ -288,11 +288,11 @@ std::shared_ptr<ChTriangleMeshShape> ChTrackShoeBand::ToothMesh(double y) {
     size_t np = ProfilePoints(points2, normals2);
 
     // Create the triangular mesh.
-    geometry::ChTriangleMeshConnected trimesh;
-    std::vector<ChVector<>>& vertices = trimesh.getCoordsVertices();
-    std::vector<ChVector<>>& normals = trimesh.getCoordsNormals();
-    std::vector<ChVector<int>>& idx_vertices = trimesh.getIndicesVertexes();
-    std::vector<ChVector<int>>& idx_normals = trimesh.getIndicesNormals();
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    std::vector<ChVector<>>& vertices = trimesh->getCoordsVertices();
+    std::vector<ChVector<>>& normals = trimesh->getCoordsNormals();
+    std::vector<ChVector<int>>& idx_vertices = trimesh->getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = trimesh->getIndicesNormals();
 
     // Number of vertices:
     //   - 1 for the middle of the tooth base on +y side

@@ -9,6 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Alesandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHTRIANGLEMESHSHAPE_H
 #define CHTRIANGLEMESHSHAPE_H
@@ -25,7 +27,7 @@ namespace chrono {
 /// (POVray, Irrlich,etc.) these flags might not be supported.
 class ChApi ChTriangleMeshShape : public ChVisualization {
   protected:
-    geometry::ChTriangleMeshConnected trimesh;
+    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
 
     bool wireframe;
     bool backface_cull;
@@ -34,15 +36,11 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     ChVector<> scale;
 
   public:
-    ChTriangleMeshShape() {
-        wireframe = false;
-        backface_cull = false;
-    };
+    ChTriangleMeshShape();
+    ~ChTriangleMeshShape() {}
 
-    virtual ~ChTriangleMeshShape(){};
-
-    geometry::ChTriangleMeshConnected& GetMesh() { return trimesh; }
-    void SetMesh(const geometry::ChTriangleMeshConnected& mesh) { trimesh = mesh; }
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() { return trimesh; }
+    void SetMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh) { trimesh = mesh; }
 
     bool IsWireframe() const { return wireframe; }
     void SetWireframe(bool mw) { wireframe = mw; }

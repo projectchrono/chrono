@@ -147,12 +147,15 @@ int main(int argc, char* argv[]) {
     body->SetRot(Q_from_AngZ(CH_C_PI_2));
     system->AddBody(body);
 
-    auto mesh = std::make_shared<ChTriangleMeshShape>();
-    mesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
-    body->AddAsset(mesh);
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
+
+    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+    trimesh_shape->SetMesh(trimesh);
+    body->AddAsset(trimesh_shape);
 
     body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(mesh->GetMesh(), false, false, VNULL, ChMatrix33<>(1), 0.01);
+    body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
     body->GetCollisionModel()->BuildModel();
 
     ////utils::AddSphereGeometry(body.get(), tire_rad, ChVector<>(0, 0, 0));

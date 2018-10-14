@@ -225,7 +225,7 @@ class ChBodyEasyConvexHull : public ChBody {
         : ChBody(contact_method) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
-        lh.ComputeHull(points, vshape->GetMesh());
+        lh.ComputeHull(points, *vshape->GetMesh());
         if (visual_asset) {
             this->AddAsset(vshape);
         }
@@ -233,11 +233,11 @@ class ChBodyEasyConvexHull : public ChBody {
         double mass;
         ChVector<> baricenter;
         ChMatrix33<> inertia;
-        vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
+        vshape->GetMesh()->ComputeMassProperties(true, mass, baricenter, inertia);
 
         // Translate the convex hull baricenter so that body origin is also baricenter
-        for (unsigned int i = 0; i < vshape->GetMesh().getCoordsVertices().size(); ++i)
-            vshape->GetMesh().getCoordsVertices()[i] -= baricenter;
+        for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
+            vshape->GetMesh()->getCoordsVertices()[i] -= baricenter;
 
         this->SetDensity((float)mdensity);
         this->SetMass(mass * mdensity);
@@ -247,9 +247,9 @@ class ChBodyEasyConvexHull : public ChBody {
             // avoid passing to collision the inner points discarded by convex hull
             // processor, so use mesh vertexes instead of all argument points
             std::vector<ChVector<> > points_reduced;
-            points_reduced.resize(vshape->GetMesh().getCoordsVertices().size());
-            for (unsigned int i = 0; i < vshape->GetMesh().getCoordsVertices().size(); ++i)
-                points_reduced[i] = vshape->GetMesh().getCoordsVertices()[i];
+            points_reduced.resize(vshape->GetMesh()->getCoordsVertices().size());
+            for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
+                points_reduced[i] = vshape->GetMesh()->getCoordsVertices()[i];
 
             GetCollisionModel()->ClearModel();
             GetCollisionModel()->AddConvexHull(points_reduced);
@@ -287,7 +287,7 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
         : ChBodyAuxRef(contact_method) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
-        lh.ComputeHull(points, vshape->GetMesh());
+        lh.ComputeHull(points, *vshape->GetMesh());
         if (visual_asset) {
             this->AddAsset(vshape);  // assets are respect to REF c.sys
         }
@@ -295,7 +295,7 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
         double mass;
         ChVector<> baricenter;
         ChMatrix33<> inertia;
-        vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
+        vshape->GetMesh()->ComputeMassProperties(true, mass, baricenter, inertia);
         ChMatrix33<> principal_inertia_csys;
         double principal_I[3];
         inertia.FastEigen(principal_inertia_csys, principal_I);
@@ -312,9 +312,9 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
             // avoid passing to collision the inner points discarded by convex hull
             // processor, so use mesh vertexes instead of all argument points
             std::vector<ChVector<> > points_reduced;
-            points_reduced.resize(vshape->GetMesh().getCoordsVertices().size());
-            for (unsigned int i = 0; i < vshape->GetMesh().getCoordsVertices().size(); ++i)
-                points_reduced[i] = vshape->GetMesh().getCoordsVertices()[i];
+            points_reduced.resize(vshape->GetMesh()->getCoordsVertices().size());
+            for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
+                points_reduced[i] = vshape->GetMesh()->getCoordsVertices()[i];
 
             GetCollisionModel()->ClearModel();
             GetCollisionModel()->AddConvexHull(points_reduced);  // coll.model is respect to REF c.sys
@@ -350,11 +350,14 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
         double sphere_swept = 0.001,  ///< radius of 'inflating' of mesh, leads to more robust collision detection
         bool visual_asset = true,     ///< attach a visualization asset to the body
         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
-    )
+        )
         : ChBodyAuxRef(contact_method) {
+        auto trimesh = std::make_shared< geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(filename, true, true);
+
         auto vshape = std::make_shared<ChTriangleMeshShape>();
-        vshape->GetMesh().LoadWavefrontMesh(filename, true, true);
-        this->AddAsset(vshape);  // assets are respect to REF c.sys
+        vshape->SetMesh(trimesh);
+        AddAsset(vshape);  // assets are respect to REF c.sys
 
         if (!visual_asset) {
             vshape->SetVisible(false);
@@ -365,21 +368,20 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
             double mass;
             ChVector<> baricenter;
             ChMatrix33<> inertia;
-            vshape->GetMesh().ComputeMassProperties(true, mass, baricenter, inertia);
+            trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
             ChMatrix33<> principal_inertia_csys;
             double principal_I[3];
             inertia.FastEigen(principal_inertia_csys, principal_I);
-            this->SetMass(mass * mdensity);
-            this->SetInertiaXX(
-                ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
+            SetMass(mass * mdensity);
+            SetInertiaXX(ChVector<>(principal_I[0] * mdensity, principal_I[1] * mdensity, principal_I[2] * mdensity));
             // Set the COG coordinates to barycenter, without displacing the REF reference
-            this->SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
+            SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
         }
 
         if (collide) {
+            // coll.model is respect to REF c.sys
             GetCollisionModel()->ClearModel();
-            GetCollisionModel()->AddTriangleMesh(vshape->GetMesh(), false, false, VNULL, ChMatrix33<>(1),
-                                                 sphere_swept);  // coll.model is respect to REF c.sys
+            GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), sphere_swept);
             GetCollisionModel()->BuildModel();
             SetCollide(true);
         }

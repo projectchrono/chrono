@@ -266,20 +266,21 @@ ChApi void LoadConvexHulls(const std::string& file_name,
 						   geometry::ChTriangleMeshConnected& convex_mesh,
 						   std::vector<std::vector<ChVector<double> > >& convex_hulls);
 
-// Given a convex mesh and it's decomposition add it to a ChBody
+// Given a convex mesh and its decomposition add it to a ChBody
 // use_original_asset can be used to specify if the mesh or the convex decomp
 // should be used for visualization
 ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
-                                   geometry::ChTriangleMeshConnected& convex_mesh,
+                                   std::shared_ptr<geometry::ChTriangleMeshConnected> convex_mesh,
                                    collision::ChConvexDecompositionHACDv2& convex_shape,
                                    const ChVector<>& pos = ChVector<>(0, 0, 0),
                                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                                    bool use_original_asset = true);
+
 // Add a convex mesh to an object based on a set of points,
 // unlike the previous version, this version will use the
 // triangle mesh to set the visualization geometry
 ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
-                                   geometry::ChTriangleMeshConnected& convex_mesh,
+                                   std::shared_ptr<geometry::ChTriangleMeshConnected> convex_mesh,
                                    std::vector<std::vector<ChVector<double> > >& convex_hulls,
                                    const ChVector<>& pos = ChVector<>(0, 0, 0),
                                    const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));

@@ -225,8 +225,9 @@ class MySimpleTank {
 
         // Load a triangle mesh for collision
         IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("shoe_collision.obj").c_str());
-        ChTriangleMeshSoup temp_trianglemesh;
-        fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, irmesh_shoe_collision->getMesh(0));
+        
+        auto trimesh = std::make_shared<ChTriangleMeshSoup>();
+        fillChTrimeshFromIrlichtMesh(trimesh.get(), irmesh_shoe_collision->getMesh(0));
 
         ChVector<> mesh_displacement(shoelength * 0.5, 0, 0);  // as mesh origin is not in body center of mass
         ChVector<> joint_displacement(-shoelength * 0.5, 0, 0);  // pos. of shoe-shoe constraint, relative to COG.
@@ -262,22 +263,22 @@ class MySimpleTank {
             // Visualization:
             auto shoe_mesh = std::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_mesh);
-            shoe_mesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj").c_str());
-            shoe_mesh->GetMesh().Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj").c_str());
+            shoe_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_mesh->SetVisible(true);
 
-            // Mesh for collision - NOTE: DO NOT USE THIS - TEST: USE OLD temp_trianglemesh AS IT TRIGGERS FASTER CONVEXDECOMPOSITION
+            // Visualize collision mesh
             auto shoe_coll_mesh = std::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_coll_mesh);
-            shoe_coll_mesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("shoe_collision.obj").c_str());
-            shoe_coll_mesh->GetMesh().Transform(-mesh_displacement, ChMatrix33<>(1));
+            shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_collision.obj").c_str());
+            shoe_coll_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_coll_mesh->SetVisible(false);
 
             // Collision:
             firstBodyShoe->GetCollisionModel()->SetSafeMargin(0.004);  // inward safe margin
             firstBodyShoe->GetCollisionModel()->SetEnvelope(0.010);  // distance of the outward "collision envelope"
             firstBodyShoe->GetCollisionModel()->ClearModel();
-            firstBodyShoe->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, false, false, mesh_displacement, ChMatrix33<>(1), 0.005);  
+            firstBodyShoe->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, mesh_displacement, ChMatrix33<>(1), 0.005);  
             firstBodyShoe->GetCollisionModel()->BuildModel();  // Creates the collision model
             firstBodyShoe->SetCollide(true);
 

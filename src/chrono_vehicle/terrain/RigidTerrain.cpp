@@ -239,7 +239,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     auto patch = AddPatch(position);
 
     // Load mesh from file
-    patch->m_trimesh.LoadWavefrontMesh(mesh_file, true, true);
+    patch->m_trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    patch->m_trimesh->LoadWavefrontMesh(mesh_file, true, true);
 
     // Create the collision model
     patch->m_body->GetCollisionModel()->ClearModel();
@@ -297,22 +298,23 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
     unsigned int n_faces = 2 * (nv_x - 1) * (nv_y - 1);
 
     // Resize mesh arrays.
-    patch->m_trimesh.getCoordsVertices().resize(n_verts);
-    patch->m_trimesh.getCoordsNormals().resize(n_verts);
-    patch->m_trimesh.getCoordsUV().resize(n_verts);
-    patch->m_trimesh.getCoordsColors().resize(n_verts);
+    patch->m_trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    patch->m_trimesh->getCoordsVertices().resize(n_verts);
+    patch->m_trimesh->getCoordsNormals().resize(n_verts);
+    patch->m_trimesh->getCoordsUV().resize(n_verts);
+    patch->m_trimesh->getCoordsColors().resize(n_verts);
 
-    patch->m_trimesh.getIndicesVertexes().resize(n_faces);
-    patch->m_trimesh.getIndicesNormals().resize(n_faces);
+    patch->m_trimesh->getIndicesVertexes().resize(n_faces);
+    patch->m_trimesh->getIndicesNormals().resize(n_faces);
 
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
     // Readability aliases
-    std::vector<ChVector<> >& vertices = patch->m_trimesh.getCoordsVertices();
-    std::vector<ChVector<> >& normals = patch->m_trimesh.getCoordsNormals();
-    std::vector<ChVector<int> >& idx_vertices = patch->m_trimesh.getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = patch->m_trimesh.getIndicesNormals();
+    std::vector<ChVector<> >& vertices = patch->m_trimesh->getCoordsVertices();
+    std::vector<ChVector<> >& normals = patch->m_trimesh->getCoordsNormals();
+    std::vector<ChVector<int> >& idx_vertices = patch->m_trimesh->getIndicesVertexes();
+    std::vector<ChVector<int> >& idx_normals = patch->m_trimesh->getIndicesNormals();
 
     // Load mesh vertices.
     // Note that pixels in a BMP start at top-left corner.
@@ -336,9 +338,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(const ChCoordsys<>& 
             // Initialize vertex normal to (0, 0, 0).
             normals[iv] = ChVector<>(0, 0, 0);
             // Assign color white to all vertices
-            patch->m_trimesh.getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
+            patch->m_trimesh->getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
-            patch->m_trimesh.getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
+            patch->m_trimesh->getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
             ++iv;
         }
     }
@@ -461,10 +463,10 @@ void RigidTerrain::Patch::SetTexture(const std::string& tex_file, float tex_scal
 void RigidTerrain::Patch::ExportMeshPovray(const std::string& out_dir) {
     switch (m_type) {
         case MESH:
-            utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
+            utils::WriteMeshPovray(*m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
             break;
         case HEIGHT_MAP:
-            utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
+            utils::WriteMeshPovray(*m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
                                    ChQuaternion<>(1, 0, 0, 0), true);
             break;
         default:

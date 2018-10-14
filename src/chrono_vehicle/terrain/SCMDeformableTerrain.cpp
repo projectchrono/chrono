@@ -270,14 +270,15 @@ SCMDeformableSoil::SCMDeformableSoil(ChSystem* system) {
 
 // Initialize the terrain as a flat grid
 void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, int nX, int nY) {
-    m_trimesh_shape->GetMesh().Clear();
+    m_trimesh_shape->GetMesh()->Clear();
     // Readability aliases
-    std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
-    std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
-    std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = m_trimesh_shape->GetMesh().getIndicesNormals();
-    std::vector<ChVector<> >& uv_coords = m_trimesh_shape->GetMesh().getCoordsUV();
-    std::vector<ChVector<float> >& colors = m_trimesh_shape->GetMesh().getCoordsColors();
+    auto trimesh = m_trimesh_shape->GetMesh();
+    std::vector<ChVector<> >& vertices = trimesh->getCoordsVertices();
+    std::vector<ChVector<> >& normals = trimesh->getCoordsNormals();
+    std::vector<ChVector<int> >& idx_vertices = trimesh->getIndicesVertexes();
+    std::vector<ChVector<int> >& idx_normals = trimesh->getIndicesNormals();
+    std::vector<ChVector<> >& uv_coords = trimesh->getCoordsUV();
+    std::vector<ChVector<float> >& colors = trimesh->getCoordsColors();
 
     unsigned int nvx = nX+1;
     unsigned int nvy = nY+1;
@@ -333,8 +334,8 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
 
 // Initialize the terrain from a specified .obj mesh file.
 void SCMDeformableSoil::Initialize(const std::string& mesh_file) {
-    m_trimesh_shape->GetMesh().Clear();
-    m_trimesh_shape->GetMesh().LoadWavefrontMesh(mesh_file, true, true);
+    m_trimesh_shape->GetMesh()->Clear();
+    m_trimesh_shape->GetMesh()->LoadWavefrontMesh(mesh_file, true, true);
 }
 
 // Initialize the terrain from a specified height map.
@@ -344,7 +345,8 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
                               double sizeY,
                               double hMin,
                               double hMax) {
-    m_trimesh_shape->GetMesh().Clear();
+    auto trimesh = m_trimesh_shape->GetMesh();
+    trimesh->Clear();
 
     // Read the BMP file nd extract number of pixels.
     BMP hmap;
@@ -369,22 +371,22 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     unsigned int n_faces = 2 * (nv_x - 1) * (nv_y - 1);
 
     // Resize mesh arrays.
-    m_trimesh_shape->GetMesh().getCoordsVertices().resize(n_verts);
-    m_trimesh_shape->GetMesh().getCoordsNormals().resize(n_verts);
-    m_trimesh_shape->GetMesh().getCoordsUV().resize(n_verts);
-    m_trimesh_shape->GetMesh().getCoordsColors().resize(n_verts);
+    trimesh->getCoordsVertices().resize(n_verts);
+    trimesh->getCoordsNormals().resize(n_verts);
+    trimesh->getCoordsUV().resize(n_verts);
+    trimesh->getCoordsColors().resize(n_verts);
 
-    m_trimesh_shape->GetMesh().getIndicesVertexes().resize(n_faces);
-    m_trimesh_shape->GetMesh().getIndicesNormals().resize(n_faces);
+    trimesh->getIndicesVertexes().resize(n_faces);
+    trimesh->getIndicesNormals().resize(n_faces);
 
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
     // Readability aliases
-    std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
-    std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
-    std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = m_trimesh_shape->GetMesh().getIndicesNormals();
+    std::vector<ChVector<> >& vertices = trimesh->getCoordsVertices();
+    std::vector<ChVector<> >& normals = trimesh->getCoordsNormals();
+    std::vector<ChVector<int> >& idx_vertices = trimesh->getIndicesVertexes();
+    std::vector<ChVector<int> >& idx_normals = trimesh->getIndicesNormals();
 
     // Load mesh vertices.
     // Note that pixels in a BMP start at top-left corner.
@@ -408,9 +410,9 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
             // Initialize vertex normal to (0, 0, 0).
             normals[iv] = ChVector<>(0, 0, 0);
             // Assign color white to all vertices
-            m_trimesh_shape->GetMesh().getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
+            trimesh->getCoordsColors()[iv] = ChVector<float>(1, 1, 1);
             // Set UV coordinates in [0,1] x [0,1]
-            m_trimesh_shape->GetMesh().getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
+            trimesh->getCoordsUV()[iv] = ChVector<>(ix * x_scale, iy * y_scale, 0.0);
             ++iv;
         }
     }
@@ -461,8 +463,8 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
 // Set up auxiliary data structures.
 void SCMDeformableSoil::SetupAuxData() {
     // better readability:
-    std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
-    std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
+    std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh()->getIndicesVertexes();
+    std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh()->getCoordsVertices();
 
     // Reset and initialize computation data:
     //
@@ -499,7 +501,7 @@ void SCMDeformableSoil::SetupAuxData() {
         connected_vertexes[idx_vertices[iface][2]].insert(idx_vertices[iface][1]);
     }
 
-    m_trimesh_shape->GetMesh().ComputeNeighbouringTriangleMap(this->tri_map);
+    m_trimesh_shape->GetMesh()->ComputeNeighbouringTriangleMap(this->tri_map);
 }
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
@@ -511,11 +513,12 @@ void SCMDeformableSoil::ComputeInternalForces() {
     m_timer_visualization.reset();
 
     // Readability aliases
-    std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
-    std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
-    std::vector<ChVector<float> >& colors =  m_trimesh_shape->GetMesh().getCoordsColors();
-    std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
-    std::vector<ChVector<int> >& idx_normals = m_trimesh_shape->GetMesh().getIndicesNormals();
+    auto trimesh = m_trimesh_shape->GetMesh();
+    std::vector<ChVector<> >& vertices = trimesh->getCoordsVertices();
+    std::vector<ChVector<> >& normals = trimesh->getCoordsNormals();
+    std::vector<ChVector<float> >& colors = trimesh->getCoordsColors();
+    std::vector<ChVector<int> >& idx_vertices = trimesh->getIndicesVertexes();
+    std::vector<ChVector<int> >& idx_normals = trimesh->getIndicesNormals();
     
     // 
     // Reset the load list and map of contact forces
@@ -851,7 +854,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
         // perform refinement using the LEPP  algorithm, also refining the soil-specific vertex attributes
         for (int i = 0; i < 1; ++i) {
-            m_trimesh_shape->GetMesh().RefineMeshEdges(
+            m_trimesh_shape->GetMesh()->RefineMeshEdges(
                 marked_tris,
                 refinement_resolution,
                 &refinement_criterion,
