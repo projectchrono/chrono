@@ -332,7 +332,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              const std::string& name,
                                              const ChVector<>& pos,
                                              const ChQuaternion<>& rot,
-                                             std::shared_ptr<ChMaterialSurfaceNSC>& material,
+                                             std::shared_ptr<ChMaterialSurfaceNSC> material,
                                              double total_mass) {
     assert(material->GetContactMethod() == system->GetContactMethod());
 
