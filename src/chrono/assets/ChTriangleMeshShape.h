@@ -36,11 +36,7 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     ChVector<> scale;
 
   public:
-    ChTriangleMeshShape() {
-        wireframe = false;
-        backface_cull = false;
-    };
-
+    ChTriangleMeshShape();
     ~ChTriangleMeshShape() {}
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() { return trimesh; }

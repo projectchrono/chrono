@@ -19,6 +19,10 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTriangleMeshShape)
 
+ChTriangleMeshShape::ChTriangleMeshShape() : name(""), scale(ChVector<>(1)), wireframe(false), backface_cull(false) {
+    trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+};
+
 void ChTriangleMeshShape::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChTriangleMeshShape>();
