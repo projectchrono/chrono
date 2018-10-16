@@ -117,6 +117,8 @@ class ChApiIrr ChIrrAppInterface {
     void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
 	/// Set if the COG frames will be plotted
 	void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
+	/// Set if the Bullet collision shapes will be plotted
+	void SetPlotCollisionShapes(bool val) { this->gad_plot_collisionshapes->setChecked(val); }
 	/// Set if the link frames will be plotted
     void SetPlotLinkFrames(bool val) { this->gad_plot_linkframes->setChecked(val); }
 	/// Set if the COG frames will be plotted
@@ -271,6 +273,7 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIComboBox* gad_labellinks;
     irr::gui::IGUICheckBox* gad_plot_aabb;
     irr::gui::IGUICheckBox* gad_plot_cogs;
+	irr::gui::IGUICheckBox* gad_plot_collisionshapes;
     irr::gui::IGUICheckBox* gad_plot_linkframes;
     irr::gui::IGUICheckBox* gad_plot_convergence;
 

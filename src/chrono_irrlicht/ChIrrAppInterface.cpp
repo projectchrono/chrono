@@ -425,7 +425,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     skin->setColor(irr::gui::EGDC_FOCUSED_EDITABLE, irr::video::SColor(255, 0, 255, 255));
     skin->setColor(irr::gui::EGDC_3D_HIGH_LIGHT, irr::video::SColor(200, 210, 210, 210));
 
-    gad_tabbed = GetIGUIEnvironment()->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 496), 0, true, true);
+    gad_tabbed = GetIGUIEnvironment()->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 510), 0, true, true);
     gad_tab1 = gad_tabbed->addTab(L"Stats");
     gad_tab2 = gad_tabbed->addTab(L"System");
     gad_tab3 = gad_tabbed->addTab(L"Help");
@@ -484,14 +484,16 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15),
                                                             gad_tab1, 9920, L"Draw link frames");
 
-    gad_symbolscale =
-        GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(170, 330, 200, 330 + 15), true, gad_tab1, 9921);
-    gad_symbolscale_info = GetIGUIEnvironment()->addStaticText(
-        L"Symbols scale", irr::core::rect<irr::s32>(110, 330, 170, 330 + 15), false, false, gad_tab1);
-    SetSymbolscale(symbolscale);
+    gad_plot_collisionshapes = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15),
+                                                             gad_tab1, 9902, L"Draw collision shapes");
 
-    gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15),
-                                                             gad_tab1, 9902, L"Plot convergence");
+	gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15),
+														gad_tab1, 9902, L"Plot convergence");
+
+	gad_symbolscale = GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(170, 330, 200, 330 + 15), true, gad_tab1, 9921);
+	gad_symbolscale_info = GetIGUIEnvironment()->addStaticText(
+		L"Symbols scale", irr::core::rect<irr::s32>(110, 330, 170, 330 + 15), false, false, gad_tab1);
+	SetSymbolscale(symbolscale);
 
     // --
 
@@ -849,6 +851,9 @@ void ChIrrAppInterface::DrawAll() {
 
     if (gad_plot_linkframes->isChecked())
         ChIrrTools::drawAllLinkframes(*system, GetVideoDriver(), symbolscale);
+
+	if (gad_plot_collisionshapes->isChecked())
+		ChIrrTools::drawCollisionShapes(*system, GetDevice());
 
     if (gad_plot_convergence->isChecked())
         ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0, 500.0);
