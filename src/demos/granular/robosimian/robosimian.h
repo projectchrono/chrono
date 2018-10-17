@@ -27,6 +27,11 @@
 #include "chrono/physics/ChLinkMotorRotation.h"
 #include "chrono/physics/ChSystem.h"
 
+#include "chrono/assets/ChCylinderShape.h"
+
+// used for rendering
+extern std::vector<std::pair<std::string, std::shared_ptr<chrono::ChBodyAuxRef>>> mesh_body_list;
+
 namespace robosimian {
 
 // -----------------------------------------------------------------------------

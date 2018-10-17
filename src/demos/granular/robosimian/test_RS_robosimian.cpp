@@ -34,15 +34,15 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-double time_step = 1e-4;
+double time_step = 5e-3;
 
 // Drop the robot on rigid terrain
 bool drop = true;
 
 // Phase durations
-double duration_pose = 1.0;          // Interval to assume initial pose
+double duration_pose = .25;          // Interval to assume initial pose
 double duration_settle_robot = 0.5;  // Interval to allow robot settling on terrain
-double duration_sim = 10;            // Duration of actual locomotion simulation
+double duration_sim = 60;            // Duration of actual locomotion simulation
 
 // Output frequencies
 double output_fps = 100;
@@ -417,21 +417,21 @@ int main(int argc, char* argv[]) {
     ////    GetChronoDataFile("robosimian/actuation/walking_cycle.txt"),  // cycle input file
     ////    "",                                                           // stop input file
     ////    true);
-    ////auto driver = std::make_shared<robosimian::Driver>(
-    ////    GetChronoDataFile("robosimian/actuation/sculling_start.txt"),   // start input file
-    ////    GetChronoDataFile("robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
-    ////    GetChronoDataFile("robosimian/actuation/sculling_stop.txt"),    // stop input file
-    ////    true);
-    ////auto driver = std::make_shared<robosimian::Driver>(
-    ////    GetChronoDataFile("robosimian/actuation/inchworming_start.txt"),  // start input file
-    ////    GetChronoDataFile("robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
-    ////    GetChronoDataFile("robosimian/actuation/inchworming_stop.txt"),   // stop input file
-    ////    true);
     auto driver = std::make_shared<robosimian::Driver>(
-        GetChronoDataFile("robosimian/actuation/driving_start.txt"),  // start input file
-        GetChronoDataFile("robosimian/actuation/driving_cycle.txt"),  // cycle input file
-        GetChronoDataFile("robosimian/actuation/driving_stop.txt"),   // stop input file
+        GetChronoDataFile("robosimian/actuation/sculling_start.txt"),   // start input file
+        GetChronoDataFile("robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
+        GetChronoDataFile("robosimian/actuation/sculling_stop.txt"),    // stop input file
         true);
+    // auto driver = std::make_shared<robosimian::Driver>(
+    //     GetChronoDataFile("robosimian/actuation/inchworming_start.txt"),  // start input file
+    //     GetChronoDataFile("robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
+    //     GetChronoDataFile("robosimian/actuation/inchworming_stop.txt"),   // stop input file
+    //     true);
+    // auto driver = std::make_shared<robosimian::Driver>(
+    //     GetChronoDataFile("robosimian/actuation/driving_start.txt"),  // start input file
+    //     GetChronoDataFile("robosimian/actuation/driving_cycle.txt"),  // cycle input file
+    //     GetChronoDataFile("robosimian/actuation/driving_stop.txt"),   // stop input file
+    //     true);
 
     RobotDriverCallback cbk(&robot);
     driver->RegisterPhaseChangeCallback(&cbk);

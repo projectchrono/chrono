@@ -34,6 +34,8 @@
 
 using namespace chrono;
 
+std::vector<std::pair<std::string, std::shared_ptr<chrono::ChBodyAuxRef>>> mesh_body_list;
+
 namespace robosimian {
 
 // =============================================================================
@@ -117,7 +119,7 @@ const Link WheelMountLink("robosim_wheel_mount",
                           ChVector<>(0.000702, 0.000026, -0.000028),
                           {CylinderShape(ChVector<>(0.12024, 0.02, 0), QUNIT, 0.0545, 0.175)});
 
-const Link WheelLink("robosim_wheel",
+const Link WheelLink("grousery_wheel",
                      ChVector<>(0, 0, 0),
                      ChColor(0.6f, 0.6f, 0.6f),
                      1.499326,
@@ -463,10 +465,10 @@ void RoboSimian::Create(bool has_sled, bool fixed) {
     ////m_wheel_right = std::make_shared<WheelDD>("dd_wheel_right", 3, m_system);
 
     // Default visualization: COLLISION shapes
-    SetVisualizationTypeChassis(VisualizationType::COLLISION);
-    SetVisualizationTypeSled(VisualizationType::COLLISION);
-    SetVisualizationTypeLimbs(VisualizationType::COLLISION);
-    SetVisualizationTypeWheels(VisualizationType::COLLISION);
+    SetVisualizationTypeChassis(VisualizationType::MESH);
+    SetVisualizationTypeSled(VisualizationType::MESH);
+    SetVisualizationTypeLimbs(VisualizationType::MESH);
+    SetVisualizationTypeWheels(VisualizationType::MESH);
 }
 
 void RoboSimian::Initialize(const ChCoordsys<>& pos) {
@@ -800,6 +802,8 @@ void Part::AddVisualizationAssets(VisualizationType vis) {
         ////trimesh_shape->Pos = m_offset;
         trimesh_shape->SetStatic(true);
         m_body->AddAsset(trimesh_shape);
+        mesh_body_list.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(vis_mesh_file, m_body));
+        printf("adding mesh %s, body is %p\n", vis_mesh_file.c_str(), m_body);
         return;
     }
 
