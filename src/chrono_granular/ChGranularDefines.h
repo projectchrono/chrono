@@ -40,7 +40,7 @@
 #define PSI_T_DEFAULT 16
 /// Max number of SDs that a mesh triangle can touch. Note that it can touch an equal number of buckets
 #define MAX_SDs_TOUCHED_BY_TRIANGLE 64
-#define MAX_TRIANGLE_FAMILIES 4
+#define MAX_TRIANGLE_FAMILIES 5
 /// The number of buckets used to host the triangles that touch a subset of SDs. If memory was not an issue, we'd
 /// have as many an buckets as SD and one bucket would handle one SD. Yet this would lead to a lot of wasted memory
 /// since most SDs have no triangles touching them. As such, the idea is to group a number of SDs associated with a

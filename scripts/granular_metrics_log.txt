@@ -582,3 +582,15 @@ Running settling test!
 50 thousand bodies took 2.10037 seconds!
 500 thousand bodies took 16.2035 seconds!
 1 million bodies took 34.8273 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 18 Oct 2018 17:01:29 -0500
+commit d3f43db3be5fe77d7886819686de118f6700cd15 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Oct 18 17:00:10 2018 -0500 Add sled support and set up for cluster runs, fix force buggo
+Results:
+Running wavetank test!
+50 thousand bodies took 2.29349 seconds!
+500 thousand bodies took 16.5214 seconds!
+1 million bodies took 35.2612 seconds!
+Running settling test!
+50 thousand bodies took 2.31169 seconds!
+500 thousand bodies took 17.0054 seconds!
+1 million bodies took 35.3206 seconds!

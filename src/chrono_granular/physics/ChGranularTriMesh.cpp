@@ -238,7 +238,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
             meshSoup_DEVICE->triangleFamily_ID[tri_i] = family;
 
             // Normal of a single vertex... Should still work
-            int normal_i = mesh.m_face_n_indices[i].x();  // normals at each vertex of this triangle
+            int normal_i = mesh.m_face_n_indices.at(i).x();  // normals at each vertex of this triangle
             ChVector<double> normal = mesh.m_normals[normal_i];
 
             // Generate normal using RHR from nodes 1, 2, and 3

@@ -144,6 +144,11 @@ void writeMeshFrames(std::ostringstream& outstream,
                      std::string obj_name,
                      float mesh_scaling,
                      ChVector<> terrain_offset) {
+    // these don't actually do anything, don't render them
+    if (obj_name == "robosimian/obj/robosim_fts.obj") {
+        return;
+    }
+
     // Write the mesh name to find
     outstream << obj_name << ",";
 
@@ -220,6 +225,7 @@ int main(int argc, char* argv[]) {
 
     robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI)));
 
+    std::vector<std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>> gran_collision_bodies;
     std::shared_ptr<robosimian::Driver> driver;
     // -----------------------------------
     // Create a driver and attach to robot
@@ -251,6 +257,8 @@ int main(int argc, char* argv[]) {
                 GetChronoDataFile("robosimian/actuation/sculling_cycle2.txt"),  // cycle input file
                 GetChronoDataFile("robosimian/actuation/sculling_stop.txt"),    // stop input file
                 true);
+            gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+                "robosimian/obj/robosim_sled_coll.obj", robot.GetSledBody()));
             break;
     }
 
@@ -275,32 +283,35 @@ int main(int argc, char* argv[]) {
     double iteration_step = 1e-4;
 
     // Mesh values
-    string mesh_filename = string("grousery_wheel.obj");
+    string wheel_mesh_filename = string("robosimian/obj/grousery_wheel.obj");
 
     float3 scaling;
     scaling.x = 100;
     scaling.y = 100;
     scaling.z = 100;
-    std::vector<std::shared_ptr<ChBodyAuxRef>> wheel_bodies;
     {
         auto limbs = robot.GetLimbs();
-        wheel_bodies.push_back(limbs[robosimian::FR]->GetWheelBody());
-        wheel_bodies.push_back(limbs[robosimian::FL]->GetWheelBody());
-        wheel_bodies.push_back(limbs[robosimian::RR]->GetWheelBody());
-        wheel_bodies.push_back(limbs[robosimian::RL]->GetWheelBody());
+        gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+            wheel_mesh_filename, limbs[robosimian::FR]->GetWheelBody()));
+        gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+            wheel_mesh_filename, limbs[robosimian::FL]->GetWheelBody()));
+        gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+            wheel_mesh_filename, limbs[robosimian::RR]->GetWheelBody()));
+        gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+            wheel_mesh_filename, limbs[robosimian::RL]->GetWheelBody()));
     }
 
-    unsigned int num_mesh_wheels = wheel_bodies.size();
+    unsigned int num_mesh_bodies = gran_collision_bodies.size();
 
     std::vector<string> mesh_filenames;
     std::vector<float3> mesh_scalings;
 
     // add mesh to granular system
-    for (unsigned int i = 0; i < num_mesh_wheels; i++) {
+    for (unsigned int i = 0; i < num_mesh_bodies; i++) {
         mesh_scalings.push_back(scaling);
     }
-    for (unsigned int i = 0; i < num_mesh_wheels; i++) {
-        mesh_filenames.push_back(mesh_filename);
+    for (unsigned int i = 0; i < num_mesh_bodies; i++) {
+        mesh_filenames.push_back(gran_collision_bodies[i].first);
     }
 
     // Setup granular simulation
@@ -398,13 +409,13 @@ int main(int argc, char* argv[]) {
         }
 
         // empty forces on each wheel
-        for (unsigned int i = 0; i < num_mesh_wheels; i++) {
-            auto wheel = wheel_bodies[i];
+        for (unsigned int i = 0; i < num_mesh_bodies; i++) {
+            auto wheel = gran_collision_bodies[i].second;
             wheel->Empty_forces_accumulators();
         }
         // update each mesh in gpu code
-        for (unsigned int i = 0; i < num_mesh_wheels; i++) {
-            auto ball = wheel_bodies[i];
+        for (unsigned int i = 0; i < num_mesh_bodies; i++) {
+            auto ball = gran_collision_bodies[i].second;
             auto ball_pos = ball->GetPos();
             auto ball_rot = ball->GetRot();
 
@@ -420,11 +431,11 @@ int main(int argc, char* argv[]) {
         }
         m_sys_gran.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
 
-        float wheel_force[6 * num_mesh_wheels];
+        float wheel_force[6 * num_mesh_bodies];
         m_sys_gran.collectGeneralizedForcesOnMeshSoup(wheel_force);
         // Apply forces to the ball for the duration of the iteration
-        for (unsigned int i = 0; i < num_mesh_wheels; i++) {
-            auto wheel = wheel_bodies[i];
+        for (unsigned int i = 0; i < num_mesh_bodies; i++) {
+            auto wheel = gran_collision_bodies[i].second;
 
             auto wheel_pos = wheel->GetPos();
             auto wheel_rot = wheel->GetRot();
@@ -437,7 +448,7 @@ int main(int argc, char* argv[]) {
             wheel->Accumulate_force(
                 F_cgs_to_SI * ChVector<>(wheel_force[body_family_offset + 0], wheel_force[body_family_offset + 1],
                                          wheel_force[body_family_offset + 2]),
-                wheel_pos, false);
+                ChVector<>(0, 0, 0), true);
             wheel->Accumulate_torque(r_cgs_to_SI * F_cgs_to_SI *
                                          ChVector<>(wheel_force[body_family_offset + 3],
                                                     wheel_force[body_family_offset + 4], wheel_force[5]),
