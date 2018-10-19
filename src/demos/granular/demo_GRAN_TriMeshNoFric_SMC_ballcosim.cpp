@@ -52,13 +52,13 @@ int main(int argc, char* argv[]) {
 
     // Mesh values
     std::vector<string> mesh_filenames;
-    string mesh_filename = string("sphere_fine.obj");
+    string mesh_filename = string("boat.obj");
 
     std::vector<float3> mesh_scalings;
     float3 scaling;
-    scaling.x = 10;
-    scaling.y = 10;
-    scaling.z = 10;
+    scaling.x = 25;
+    scaling.y = 25;
+    scaling.z = 25;
 
     // starting positions of mesh-based balls
     std::vector<ChVector<double>> ball_positions;
@@ -154,10 +154,9 @@ int main(int argc, char* argv[]) {
         // add to list to keep track of
         chrono_bodies.push_back(ball);
     }
-    unsigned int out_fps = 50;
+    unsigned int out_fps = 100;
     unsigned int out_steps = 1 / (out_fps * iteration_step);
 
-    cout << "out_steps " << out_steps << endl;
     unsigned int curr_step = 0;
     for (float t = 0; t < params.time_end; t += iteration_step, curr_step++) {
         for (unsigned int i = 0; i < num_mesh_balls; i++) {

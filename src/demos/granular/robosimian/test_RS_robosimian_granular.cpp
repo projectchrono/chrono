@@ -103,39 +103,8 @@ double RobotDriverCallback::GetAvgSpeed() const {
     return GetDistance() / GetDuration();
 }
 
-// =============================================================================
-
-std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, const ChVector<>& hdim, const ChVector<>& loc) {
-    auto ground = std::shared_ptr<ChBody>(sys.NewBody());
-    ground->SetBodyFixed(true);
-    ground->SetCollide(true);
-
-    ground->GetCollisionModel()->ClearModel();
-    ground->GetCollisionModel()->AddBox(hdim.x(), hdim.y(), hdim.z(), loc);
-    ground->GetCollisionModel()->BuildModel();
-
-    float friction = 0.4f;
-    switch (ground->GetContactMethod()) {
-        case ChMaterialSurface::NSC:
-            ground->GetMaterialSurfaceNSC()->SetFriction(friction);
-            break;
-        case ChMaterialSurface::SMC:
-            ground->GetMaterialSurfaceSMC()->SetFriction(friction);
-            break;
-    }
-
-    auto box = std::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = hdim;
-    box->GetBoxGeometry().Pos = loc;
-    ground->AddAsset(box);
-
-    sys.AddBody(ground);
-
-    return ground;
-}
-
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_TriMeshNoFric_SMC_ballcosim <json_file>" << endl;
+    cout << "usage: ./test_RS_robosimian_granular <json_file>" << endl;
 }
 
 // Take a ChBody and write its
@@ -224,6 +193,7 @@ int main(int argc, char* argv[]) {
     // Initialize Robosimian robot
 
     robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI)));
+    robot.SetCollide(false);  // no collision outside of granular material
 
     std::vector<std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>> gran_collision_bodies;
     std::shared_ptr<robosimian::Driver> driver;
@@ -289,17 +259,16 @@ int main(int argc, char* argv[]) {
     scaling.x = 100;
     scaling.y = 100;
     scaling.z = 100;
-    {
-        auto limbs = robot.GetLimbs();
-        gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
-            wheel_mesh_filename, limbs[robosimian::FR]->GetWheelBody()));
-        gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
-            wheel_mesh_filename, limbs[robosimian::FL]->GetWheelBody()));
-        gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
-            wheel_mesh_filename, limbs[robosimian::RR]->GetWheelBody()));
-        gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
-            wheel_mesh_filename, limbs[robosimian::RL]->GetWheelBody()));
-    }
+
+    auto limbs = robot.GetLimbs();
+    gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+        wheel_mesh_filename, limbs[robosimian::FR]->GetWheelBody()));
+    gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+        wheel_mesh_filename, limbs[robosimian::FL]->GetWheelBody()));
+    gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+        wheel_mesh_filename, limbs[robosimian::RR]->GetWheelBody()));
+    gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
+        wheel_mesh_filename, limbs[robosimian::RL]->GetWheelBody()));
 
     unsigned int num_mesh_bodies = gran_collision_bodies.size();
 
@@ -377,7 +346,7 @@ int main(int argc, char* argv[]) {
 
     // robot should be 100 away from -x boundary of box
 
-    double robot_offset_x = (-.5 * params.box_X + 100.) / 100.;
+    double robot_offset_x = 0;  //(-.5 * params.box_X + 100.) / 100.;
     printf("x offset is %f\n", robot_offset_x);
 
     // account for the frame difference between robot and terrain
@@ -415,49 +384,49 @@ int main(int argc, char* argv[]) {
         }
         // update each mesh in gpu code
         for (unsigned int i = 0; i < num_mesh_bodies; i++) {
-            auto ball = gran_collision_bodies[i].second;
-            auto ball_pos = ball->GetPos();
-            auto ball_rot = ball->GetRot();
+            auto mesh = gran_collision_bodies[i].second;
+            auto mesh_pos = mesh->GetPos();
+            auto mesh_rot = mesh->GetRot();
 
             unsigned int body_family_offset = i * 7;
 
-            meshSoupLocOri[body_family_offset + 0] = (robot_granular_offset.x() + ball_pos.x()) * 100;
-            meshSoupLocOri[body_family_offset + 1] = (robot_granular_offset.y() + ball_pos.y()) * 100;
-            meshSoupLocOri[body_family_offset + 2] = (robot_granular_offset.z() + ball_pos.z()) * 100;
-            meshSoupLocOri[body_family_offset + 3] = ball_rot[0];
-            meshSoupLocOri[body_family_offset + 4] = ball_rot[1];
-            meshSoupLocOri[body_family_offset + 5] = ball_rot[2];
-            meshSoupLocOri[body_family_offset + 6] = ball_rot[3];
+            meshSoupLocOri[body_family_offset + 0] = (robot_granular_offset.x() + mesh_pos.x()) * 100;
+            meshSoupLocOri[body_family_offset + 1] = (robot_granular_offset.y() + mesh_pos.y()) * 100;
+            meshSoupLocOri[body_family_offset + 2] = (robot_granular_offset.z() + mesh_pos.z()) * 100;
+            meshSoupLocOri[body_family_offset + 3] = mesh_rot[0];
+            meshSoupLocOri[body_family_offset + 4] = mesh_rot[1];
+            meshSoupLocOri[body_family_offset + 5] = mesh_rot[2];
+            meshSoupLocOri[body_family_offset + 6] = mesh_rot[3];
         }
         m_sys_gran.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
 
-        float wheel_force[6 * num_mesh_bodies];
-        m_sys_gran.collectGeneralizedForcesOnMeshSoup(wheel_force);
-        // Apply forces to the ball for the duration of the iteration
+        float mesh_forces[6 * num_mesh_bodies];
+        m_sys_gran.collectGeneralizedForcesOnMeshSoup(mesh_forces);
+        // Apply forces to the mesh for the duration of the iteration
         for (unsigned int i = 0; i < num_mesh_bodies; i++) {
-            auto wheel = gran_collision_bodies[i].second;
+            auto mesh = gran_collision_bodies[i].second;
 
-            auto wheel_pos = wheel->GetPos();
-            auto wheel_rot = wheel->GetRot();
+            auto mesh_pos = mesh->GetPos();
+            auto mesh_rot = mesh->GetRot();
 
             unsigned int body_family_offset = i * 6;
 
             double F_cgs_to_SI = 1e-5;
             double r_cgs_to_SI = 1e-2;
 
-            wheel->Accumulate_force(
-                F_cgs_to_SI * ChVector<>(wheel_force[body_family_offset + 0], wheel_force[body_family_offset + 1],
-                                         wheel_force[body_family_offset + 2]),
-                ChVector<>(0, 0, 0), true);
-            wheel->Accumulate_torque(r_cgs_to_SI * F_cgs_to_SI *
-                                         ChVector<>(wheel_force[body_family_offset + 3],
-                                                    wheel_force[body_family_offset + 4], wheel_force[5]),
-                                     false);
+            mesh->Accumulate_force(
+                F_cgs_to_SI * ChVector<>(mesh_forces[body_family_offset + 0], mesh_forces[body_family_offset + 1],
+                                         mesh_forces[body_family_offset + 2]),
+                mesh_pos, false);
+            mesh->Accumulate_torque(r_cgs_to_SI * F_cgs_to_SI *
+                                        ChVector<>(mesh_forces[body_family_offset + 3],
+                                                   mesh_forces[body_family_offset + 4], mesh_forces[5]),
+                                    false);
             if (sim_frame % render_steps == 0) {
-                cout << "wheel " << i << " pos(" << wheel_pos.x() << ", " << wheel_pos.y() << ", " << wheel_pos.z()
-                     << ") " << endl;
-                cout << "force (" << wheel_force[0] << ", " << wheel_force[1] << ", " << wheel_force[2] << "); torque ("
-                     << wheel_force[3] << ", " << wheel_force[4] << ", " << wheel_force[5] << ")" << endl;
+                cout << "wheel " << i << " pos(" << mesh_pos.x() << ", " << mesh_pos.y() << ", " << mesh_pos.z() << ") "
+                     << endl;
+                cout << "force (" << mesh_forces[0] << ", " << mesh_forces[1] << ", " << mesh_forces[2] << "); torque ("
+                     << mesh_forces[3] << ", " << mesh_forces[4] << ", " << mesh_forces[5] << ")" << endl;
             }
         }
 
@@ -468,7 +437,7 @@ int main(int argc, char* argv[]) {
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), render_frame);
             m_sys_gran.writeFileUU(string(filename));
             // // write some VTKs for debug
-            // m_sys_gran.write_meshes(string(filename));
+            m_sys_gran.write_meshes(string(filename));
 
             // write mesh transforms for ospray renderer
             char mesh_output[100];
