@@ -39,6 +39,10 @@ if(NOT MKL_LIBRARIES)
   set(MKL_ROOT "" CACHE PATH "Location of MKL installation")
 endif()
 
+# Make required libraries visible from outside current directory
+set(CH_MKL_LIBRARIES ${MKL_LIBRARIES} ${IOMP5_LIBRARY})
+SET(CH_MKL_LIBRARIES "${CH_MKL_LIBRARIES}" PARENT_SCOPE)
+
 # ------------------------------------------------------------------------------
 # Set up linking line for Intel OpenMP library
 # ------------------------------------------------------------------------------
