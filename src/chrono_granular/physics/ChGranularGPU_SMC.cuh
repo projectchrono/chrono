@@ -471,12 +471,12 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     wall_force.x += -1 * touchingWall * (delta_V.x) * gran_params->Gamma_n_s2w_SU * m_eff;
     // add friction on each wall
     // wall_force.y += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.y * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.y);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.y * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.y);
     //
     // wall_force.z += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.z * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.z);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.z * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.z);
 
     // Do top X wall
     xpen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)sphereRadius_SU);
@@ -486,12 +486,12 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     wall_force.x += -1 * touchingWall * (delta_V.x) * gran_params->Gamma_n_s2w_SU * m_eff;
     // add friction on each wall
     // wall_force.y += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.y * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.y);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.y * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.y);
     //
     // wall_force.z += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.z * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.z);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.z * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.z);
 
     // do again for y, z
     signed int ypen = sphYpos_modified - (signed int)sphereRadius_SU;
@@ -502,12 +502,12 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     wall_force.y += -1 * touchingWall * (delta_V.y) * gran_params->Gamma_n_s2w_SU * m_eff;
     // add friction on each wall
     // wall_force.x += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.x * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.x);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.x * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.x);
     //
     // wall_force.z += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.z * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.z);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.z * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.z);
 
     // Do top y wall
     ypen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)sphereRadius_SU);
@@ -517,12 +517,12 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     wall_force.y += -1 * touchingWall * (delta_V.y) * gran_params->Gamma_n_s2w_SU * m_eff;
     // add friction on each wall
     // wall_force.x += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.x * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.x);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.x * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.x);
     //
     // wall_force.z += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.z * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.z);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.z * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.z);
 
     // penetration of sphere into relevant wall
     signed int zpen = sphZpos_modified - (signed int)sphereRadius_SU;
@@ -533,12 +533,12 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     wall_force.z += -1 * touchingWall * (delta_V.z) * gran_params->Gamma_n_s2w_SU * m_eff;
     // add friction on each wall
     // wall_force.x += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.x * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.x);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.x * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.x);
     //
     // wall_force.y += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.y * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.y);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.y * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.y);
 
     // Do top z wall
     zpen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)sphereRadius_SU);
@@ -548,12 +548,12 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     wall_force.z += -1 * touchingWall * (delta_V.z) * gran_params->Gamma_n_s2w_SU * m_eff;
     // add friction on each wall
     // wall_force.x += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.x * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.x);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.x * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.x);
     //
     // wall_force.y += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2s_SU * delta_V.y * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2s_SU * m_eff * delta_V.y);
+    //                 (gran_params->mu_t_s2w_SU * delta_V.y * gran_params->alpha_h_bar +
+    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.y);
 
     // write back to "return" values
     Xforce += wall_force.x;
@@ -833,7 +833,7 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
                                 sphereDataStruct sphere_data,
                                 unsigned int nSpheres,
                                 ParamsPtr gran_params,
-                                chrono::granular::GRN_TIME_INTEGRATOR integrator) {
+                                chrono::granular::GRAN_TIME_INTEGRATOR integrator) {
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
@@ -888,7 +888,7 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         old_vel_z = sphere_data.pos_Z_dt[mySphereID];
         // no divergence, same for every thread in block
         switch (integrator) {
-            case chrono::granular::GRN_TIME_INTEGRATOR::FORWARD_EULER: {
+            case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 v_update_x = alpha_h_bar * sphere_data.sphere_force_X[mySphereID];
                 v_update_y = alpha_h_bar * sphere_data.sphere_force_Y[mySphereID];
                 v_update_z = alpha_h_bar * sphere_data.sphere_force_Z[mySphereID];
@@ -899,7 +899,7 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
                 omega_update_z = alpha_h_bar * sphere_data.sphere_torque_Z[mySphereID] / sphere_inertia;
                 break;
             }
-            case chrono::granular::GRN_TIME_INTEGRATOR::CHUNG: {
+            case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
                 float gamma_hat = -.5f;
                 float gamma = 3.f / 2.f;
                 v_update_x = alpha_h_bar * (sphere_data.sphere_force_X[mySphereID] * gamma +
@@ -933,13 +933,13 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         float position_update_z = 0;
         // no divergence, same for every thread in block
         switch (integrator) {
-            case chrono::granular::GRN_TIME_INTEGRATOR::FORWARD_EULER: {
+            case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 position_update_x = alpha_h_bar * sphere_data.pos_X_dt[mySphereID];
                 position_update_y = alpha_h_bar * sphere_data.pos_Y_dt[mySphereID];
                 position_update_z = alpha_h_bar * sphere_data.pos_Z_dt[mySphereID];
                 break;
             }
-            case chrono::granular::GRN_TIME_INTEGRATOR::CHUNG: {
+            case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
                 float beta = 28.f / 27.f;
                 float beta_hat = .5 - beta;
                 position_update_x =

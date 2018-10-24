@@ -54,7 +54,7 @@ sphereDataStruct ChSystemGranular::packSphereDataPointers() {
     return packed;
 }
 
-ChSystemGranular::ChSystemGranular() : time_stepping(GRN_TIME_STEPPING::AUTO), nDEs(0), elapsedSimTime(0) {
+ChSystemGranular::ChSystemGranular() : time_stepping(GRAN_TIME_STEPPING::AUTO), nDEs(0), elapsedSimTime(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
     gran_params->psi_T = PSI_T_DEFAULT;
     gran_params->psi_h = PSI_h_DEFAULT;
@@ -144,7 +144,7 @@ void ChSystemGranularMonodisperse::Create_BC_Cone(float cone_tip[3],
 
 void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
     // std::cerr << "determining new step!\n";
-    if (time_stepping == GRN_TIME_STEPPING::AUTO) {
+    if (time_stepping == GRAN_TIME_STEPPING::AUTO) {
         static float new_step_stop = 0;
         if (elapsedSimTime >= new_step_stop) {
             // printf("-------------------------\n");
@@ -183,14 +183,14 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
     }
 }
 
-double ChSystemGranularMonodisperse_SMC_Frictionless::get_max_K() {
+double ChSystemGranularMonodisperse_SMC::get_max_K() {
     return std::max(K_n_s2s_UU, K_n_s2w_UU);
 }
 
 /** This method sets up the data structures used to perform a simulation.
  *
  */
-void ChSystemGranularMonodisperse_SMC_Frictionless::setup_simulation() {
+void ChSystemGranularMonodisperse_SMC::setup_simulation() {
     partition_BD();
 
     // allocate mem for array saying for each SD how many spheres touch it
@@ -253,7 +253,7 @@ void ChSystemGranularMonodisperse::generate_DEs() {
     sphere_torque_Y.resize(nDEs, 0);
     sphere_torque_Z.resize(nDEs, 0);
 
-    if (time_integrator == GRN_TIME_INTEGRATOR::CHUNG) {
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         sphere_force_X_old.resize(nDEs, 0);
         sphere_force_Y_old.resize(nDEs, 0);
         sphere_force_Z_old.resize(nDEs, 0);
@@ -355,7 +355,7 @@ void ChSystemGranularMonodisperse::partition_BD() {
 This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
 of various physical quantities set by the user.
 */
-void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
+void ChSystemGranularMonodisperse_SMC::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     gran_params->MASS_UNIT = massSphere;
     double K_stiffness = get_max_K();
@@ -378,11 +378,13 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::switch_to_SimUnits() {
     K_n_s2w_SU = K_scalingFactor * (K_n_s2w_UU / K_stiffness);
 
     mu_t_s2s_SU = K_scalingFactor * (mu_t_s2s_UU / K_stiffness);
+    mu_t_s2w_SU = K_scalingFactor * (mu_t_s2w_UU / K_stiffness);
 
     float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
     Gamma_n_s2s_SU = Gamma_scalingFactor * Gamma_n_s2s_UU;
     Gamma_n_s2w_SU = Gamma_scalingFactor * Gamma_n_s2w_UU;
     Gamma_t_s2s_SU = Gamma_scalingFactor * Gamma_t_s2s_UU;
+    Gamma_t_s2w_SU = Gamma_scalingFactor * Gamma_t_s2w_UU;
 
     // Handy debug output
     printf("UU mass is %f\n", gran_params->MASS_UNIT);

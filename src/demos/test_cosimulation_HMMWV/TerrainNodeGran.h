@@ -131,7 +131,7 @@ class TerrainNodeGran : public BaseNode {
 
     int m_world_rank;  ///< process rank in MPI_COMM_WORLD
 
-    chrono::granular::ChSystemGranularMonodisperse_SMC_Frictionless* m_system;  ///< containing system
+    chrono::granular::ChSystemGranularMonodisperse_SMC* m_system;  ///< containing system
     bool m_constructed;                                                         ///< system construction completed?
 
     std::shared_ptr<chrono::ChMaterialSurfaceSMC> m_material_terrain;  ///< material properties for terrain bodies

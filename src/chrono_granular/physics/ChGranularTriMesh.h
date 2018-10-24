@@ -80,12 +80,11 @@ struct ChFamilyFrame {
  * Assumptions: Mono-disperse setup, one radius for all spheres. There is no friction. There can be adehsion.
  * The granular material interacts through an implement that is defined via a triangular mesh.
  */
-class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless_trimesh
-    : public ChSystemGranularMonodisperse_SMC_Frictionless {
+class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_trimesh : public ChSystemGranularMonodisperse_SMC {
   public:
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh(float radiusSPH, float density)
-        : ChSystemGranularMonodisperse_SMC_Frictionless(radiusSPH, density), K_n_s2m_UU(0), Gamma_n_s2m_UU(0) {}
-    virtual ~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh();
+    ChSystemGranularMonodisperse_SMC_trimesh(float radiusSPH, float density)
+        : ChSystemGranularMonodisperse_SMC(radiusSPH, density), K_n_s2m_UU(0), Gamma_n_s2m_UU(0) {}
+    virtual ~ChSystemGranularMonodisperse_SMC_trimesh();
 
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
     void set_Gamma_n_SPH2MESH(double someValue) { Gamma_n_s2m_UU = someValue; }

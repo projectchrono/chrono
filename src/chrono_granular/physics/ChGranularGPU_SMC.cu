@@ -44,7 +44,7 @@ __host__ double ChSystemGranular::get_max_z() const {
 }
 
 /// Copy constant sphere data to device, this should run at start
-__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_device() {
+__host__ void ChSystemGranularMonodisperse_SMC::copy_const_data_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
     gran_params->SD_size_X_SU = SD_size_X_SU;
     gran_params->SD_size_Y_SU = SD_size_Y_SU;
@@ -64,6 +64,8 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_
 
     gran_params->Gamma_t_s2s_SU = Gamma_t_s2s_SU;
     gran_params->mu_t_s2s_SU = mu_t_s2s_SU;
+    gran_params->Gamma_t_s2w_SU = Gamma_t_s2w_SU;
+    gran_params->mu_t_s2w_SU = mu_t_s2w_SU;
 
     gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
     gran_params->Gamma_n_s2w_SU = Gamma_n_s2w_SU;
@@ -75,7 +77,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copy_const_data_to_
 
 /// Similar to the copy_const_data_to_device, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
-__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_device() {
+__host__ void ChSystemGranularMonodisperse_SMC::copyBD_Frame_to_device() {
     // Unified memory does all the work here
     gran_params->BD_frame_X = BD_frame_X;
     gran_params->BD_frame_Y = BD_frame_Y;
@@ -86,9 +88,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::copyBD_Frame_to_dev
 }
 
 // Check number of spheres in each SD and dump relevant info to file
-void ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCounts(std::string ofile,
-                                                                  bool write_out = false,
-                                                                  bool verbose = false) {
+void ChSystemGranularMonodisperse_SMC::checkSDCounts(std::string ofile, bool write_out = false, bool verbose = false) {
     // Count of DEs in each SD
     unsigned int* sdvals = SD_NumOf_DEs_Touching.data();
     // DEs that are in each SD
@@ -134,10 +134,10 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::checkSDCounts(std::string of
     delete[] deCounts;
 }
 // This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
-void ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile, unsigned int* deCounts) {
+void ChSystemGranularMonodisperse_SMC::writeFile(std::string ofile, unsigned int* deCounts) {
     // unnecessary if called by checkSDCounts()
     // The file writes are a pretty big slowdown in CSV mode
-    if (file_write_mode == GRN_OUTPUT_MODE::BINARY) {
+    if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
         // much faster write due to no formatting
         std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
@@ -155,7 +155,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile,
             ptFile.write((const char*)&absv, sizeof(float));
             ptFile.write((const char*)&deCounts[n], sizeof(int));
         }
-    } else if (file_write_mode == GRN_OUTPUT_MODE::CSV) {
+    } else if (file_write_mode == GRAN_OUTPUT_MODE::CSV) {
         // CSV is much slower but requires less postprocessing
         std::ofstream ptFile(ofile + ".csv", std::ios::out);
 
@@ -171,15 +171,15 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::writeFile(std::string ofile,
         }
 
         ptFile << outstrstream.str();
-    } else if (file_write_mode == GRN_OUTPUT_MODE::NONE) {
+    } else if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
         // Do nothing, only here for symmetry
     }
 }
 
 // This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
-void ChSystemGranularMonodisperse_SMC_Frictionless::writeFileUU(std::string ofile) {
+void ChSystemGranularMonodisperse_SMC::writeFileUU(std::string ofile) {
     // The file writes are a pretty big slowdown in CSV mode
-    if (file_write_mode == GRN_OUTPUT_MODE::BINARY) {
+    if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
         // TODO implement this
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
         // much faster write due to no formatting
@@ -198,7 +198,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::writeFileUU(std::string ofil
         //     ptFile.write((const char*)&absv, sizeof(float));
         //     ptFile.write((const char*)&deCounts[n], sizeof(int));
         // }
-    } else if (file_write_mode == GRN_OUTPUT_MODE::CSV) {
+    } else if (file_write_mode == GRAN_OUTPUT_MODE::CSV) {
         // CSV is much slower but requires less postprocessing
         std::ofstream ptFile(ofile + ".csv", std::ios::out);
 
@@ -217,13 +217,13 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::writeFileUU(std::string ofil
         }
 
         ptFile << outstrstream.str();
-    } else if (file_write_mode == GRN_OUTPUT_MODE::NONE) {
+    } else if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
         // Do nothing, only here for symmetry
     }
 }
 
 // Reset broadphase data structures
-void ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation() {
+void ChSystemGranularMonodisperse_SMC::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
@@ -231,9 +231,9 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::resetBroadphaseInformation()
                          MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 }
 // Reset sphere-sphere force data structures
-void ChSystemGranularMonodisperse_SMC_Frictionless::resetSphereForces() {
+void ChSystemGranularMonodisperse_SMC::resetSphereForces() {
     // cache past force data
-    if (time_integrator == GRN_TIME_INTEGRATOR::CHUNG) {
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         gpuErrchk(cudaMemcpy(sphere_force_X_old.data(), sphere_force_X.data(), nDEs * sizeof(float),
                              cudaMemcpyDeviceToDevice));
         gpuErrchk(cudaMemcpy(sphere_force_Y_old.data(), sphere_force_Y.data(), nDEs * sizeof(float),
@@ -253,7 +253,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless::resetSphereForces() {
     gpuErrchk(cudaMemset(sphere_torque_Z.data(), 0, nDEs * sizeof(float)));
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless::updateBDPosition(const float stepSize_SU) {
+void ChSystemGranularMonodisperse_SMC::updateBDPosition(const float stepSize_SU) {
     // Frequency of oscillation
     float frame_X_old = BD_frame_X;
     float frame_Y_old = BD_frame_Y;
@@ -344,7 +344,7 @@ __global__ void owner_unpack(int* d_sphere_pos_X,
 
 // Sorts data by owner SD, makes nicer memory accesses
 // Uses a boatload of memory
-__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::defragment_data() {
+__host__ void ChSystemGranularMonodisperse_SMC::defragment_data() {
     VERBOSE_PRINTF("Starting defrag run!\n");
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -428,7 +428,7 @@ __host__ float ChSystemGranular::get_max_vel() {
     return h_max_vel;
 }
 
-__host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
+__host__ void ChSystemGranularMonodisperse_SMC::initialize() {
     switch_to_SimUnits();
     generate_DEs();
 
@@ -459,7 +459,7 @@ __host__ void ChSystemGranularMonodisperse_SMC_Frictionless::initialize() {
     printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT);
 }
 
-__host__ double ChSystemGranularMonodisperse_SMC_Frictionless::advance_simulation(float duration) {
+__host__ double ChSystemGranularMonodisperse_SMC::advance_simulation(float duration) {
     auto sphere_data = packSphereDataPointers();
 
     // Figure our the number of blocks that need to be launched to cover the box

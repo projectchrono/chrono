@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup granular simulation
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys_gran(params.sphere_radius, params.sphere_density);
+    ChSystemGranularMonodisperse_SMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density);
     m_sys_gran.setBOXdims(params.box_X, params.box_Y, params.box_Z);
 
     chrono::utils::PDSampler<float> sampler(2.1 * params.sphere_radius);
@@ -118,8 +118,8 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_Gamma_n_SPH2MESH(params.normalDampS2M);
     m_sys_gran.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys_gran.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    m_sys_gran.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    m_sys_gran.set_timeIntegrator(GRN_TIME_INTEGRATOR::FORWARD_EULER);
+    m_sys_gran.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    m_sys_gran.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys_gran.set_fixed_stepSize(params.step_size);
 
     m_sys_gran.load_meshes(mesh_filenames, mesh_scalings);

@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = 1 / fps;
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(params.sphere_radius, params.sphere_density);
+    ChSystemGranularMonodisperse_SMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
 
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -89,12 +89,12 @@ int main(int argc, char* argv[]) {
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
-    m_sys.setOutputMode(GRN_OUTPUT_MODE::CSV);
+    m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
     m_sys.setOutputDirectory(params.output_dir);
     ChFileutils::MakeDirectory(output_dir.c_str());
 
-    m_sys.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRN_TIME_INTEGRATOR::CHUNG);
+    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     m_sys.set_fixed_stepSize(params.step_size);
 
     m_sys.setBOXdims(40, 40, 40);

@@ -29,17 +29,17 @@
 namespace chrono {
 namespace granular {
 
-double ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::get_max_K() {
+double ChSystemGranularMonodisperse_SMC_trimesh::get_max_K() {
     return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
 }
 
-ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::~ChSystemGranularMonodisperse_SMC_Frictionless_trimesh() {
+ChSystemGranularMonodisperse_SMC_trimesh::~ChSystemGranularMonodisperse_SMC_trimesh() {
     // work to do here
     cleanupTriMesh_DEVICE();
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vector<std::string> objfilenames,
-                                                                        std::vector<float3> scalings) {
+void ChSystemGranularMonodisperse_SMC_trimesh::load_meshes(std::vector<std::string> objfilenames,
+                                                           std::vector<float3> scalings) {
     if (objfilenames.size() != scalings.size()) {
         GRANULAR_ERROR("Vectors of obj files and scalings must have same size\n");
     }
@@ -77,9 +77,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::load_meshes(std::vec
 
 // result = rot_mat * p + pos
 template <class T>
-ChVector<T> ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ApplyFrameTransform(ChVector<T>& p,
-                                                                                       T* pos,
-                                                                                       T* rot_mat) {
+ChVector<T> ChSystemGranularMonodisperse_SMC_trimesh::ApplyFrameTransform(ChVector<T>& p, T* pos, T* rot_mat) {
     ChVector<T> result;
 
     // Apply rotation matrix to point
@@ -95,7 +93,7 @@ ChVector<T> ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::ApplyFrameTra
     return result;
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::string filename) {
+void ChSystemGranularMonodisperse_SMC_trimesh::write_meshes(std::string filename) {
     printf("Writing meshes\n");
     std::ofstream outfile(filename + "_mesh.vtk", std::ios::out);
     std::ostringstream ostream;
@@ -144,7 +142,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::st
     outfile << ostream.str();
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVICE() {
+void ChSystemGranularMonodisperse_SMC_trimesh::cleanupTriMesh_DEVICE() {
     cudaFree(meshSoup_DEVICE->triangleFamily_ID);
 
     cudaFree(meshSoup_DEVICE->node1_X);
@@ -174,7 +172,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVIC
     cudaFree(meshSoup_DEVICE->generalizedForcesPerFamily);
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
+void ChSystemGranularMonodisperse_SMC_trimesh::setupTriMesh_DEVICE(
     const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
     unsigned int nTriangles) {
     // Allocate the device soup storage
@@ -272,7 +270,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     }
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
+void ChSystemGranularMonodisperse_SMC_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
     float alpha_k_star = get_max_K();
     float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
     float sphere_mass =
@@ -298,8 +296,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::collectGeneralizedFo
     }
 }
 
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidBodyMotion(
-    double* position_orientation_data) {
+void ChSystemGranularMonodisperse_SMC_trimesh::meshSoup_applyRigidBodyMotion(double* position_orientation_data) {
     // Set both broadphase and narrowphase frames for each family
     for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
         generate_rot_matrix<float>(position_orientation_data + 7 * fam + 3, tri_params->fam_frame_broad[fam].rot_mat);
@@ -315,7 +312,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::meshSoup_applyRigidB
 }
 
 template <typename T>
-void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::generate_rot_matrix(double* ep, T* rot_mat) {
+void ChSystemGranularMonodisperse_SMC_trimesh::generate_rot_matrix(double* ep, T* rot_mat) {
     rot_mat[0] = (T)(2 * (ep[0] * ep[0] + ep[1] * ep[1] - 0.5));
     rot_mat[1] = (T)(2 * (ep[1] * ep[2] - ep[0] * ep[3]));
     rot_mat[2] = (T)(2 * (ep[1] * ep[3] + ep[0] * ep[2]));

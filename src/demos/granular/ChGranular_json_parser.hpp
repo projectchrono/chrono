@@ -38,9 +38,9 @@ typedef struct sim_param_holder {
     unsigned int psi_h;
     unsigned int psi_T;
     unsigned int psi_L;
-    GRN_TIME_STEPPING step_mode;
+    GRAN_TIME_STEPPING step_mode;
     string output_dir;
-    GRN_OUTPUT_MODE write_mode;
+    GRAN_OUTPUT_MODE write_mode;
 } sim_param_holder;
 
 void ShowJSONUsage() {
@@ -188,13 +188,13 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
         params.run_mode = doc["run_mode"].GetInt();
         cout << "params.run_mode " << params.run_mode << endl;
     }
-    GRN_TIME_STEPPING step_mode;
+    GRAN_TIME_STEPPING step_mode;
     if (doc.HasMember("step_mode") && doc["step_mode"].IsString()) {
         if (doc["step_mode"].GetString() == string("fixed")) {
-            params.step_mode = GRN_TIME_STEPPING::FIXED;
+            params.step_mode = GRAN_TIME_STEPPING::FIXED;
             cout << "params.step_mode " << params.step_mode << endl;
         } else if (doc["step_mode"].GetString() == string("auto")) {
-            params.step_mode = GRN_TIME_STEPPING::AUTO;
+            params.step_mode = GRAN_TIME_STEPPING::AUTO;
             cout << "params.step_mode " << params.step_mode << endl;
         } else {
             InvalidArg("step_mode");
@@ -207,13 +207,13 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     }
     if (doc.HasMember("write_mode") && doc["write_mode"].IsString()) {
         if (doc["write_mode"].GetString() == string("binary")) {
-            params.write_mode = GRN_OUTPUT_MODE::BINARY;
+            params.write_mode = GRAN_OUTPUT_MODE::BINARY;
             cout << "params.write_mode " << params.write_mode << endl;
         } else if (doc["write_mode"].GetString() == string("csv")) {
-            params.write_mode = GRN_OUTPUT_MODE::CSV;
+            params.write_mode = GRAN_OUTPUT_MODE::CSV;
             cout << "params.write_mode " << params.write_mode << endl;
         } else if (doc["write_mode"].GetString() == string("none")) {
-            params.write_mode = GRN_OUTPUT_MODE::NONE;
+            params.write_mode = GRAN_OUTPUT_MODE::NONE;
             cout << "params.write_mode " << params.write_mode << endl;
         } else {
             InvalidArg("write_mode");

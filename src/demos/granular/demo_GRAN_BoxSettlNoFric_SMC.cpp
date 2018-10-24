@@ -49,7 +49,7 @@ void ShowUsage() {
 // There is no friction. The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    GRN_TIME_STEPPING step_mode = GRN_TIME_STEPPING::FIXED;
+    GRAN_TIME_STEPPING step_mode = GRAN_TIME_STEPPING::FIXED;
     int run_mode = SETTLING;
 
     sim_param_holder params;
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC_Frictionless settlingExperiment(params.sphere_radius, params.sphere_density);
+    ChSystemGranularMonodisperse_SMC settlingExperiment(params.sphere_radius, params.sphere_density);
     settlingExperiment.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
     settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -108,8 +108,8 @@ int main(int argc, char* argv[]) {
 
     settlingExperiment.setParticlePositions(body_points);
 
-    settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_timeIntegrator(GRN_TIME_INTEGRATOR::FORWARD_EULER);
+    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     settlingExperiment.set_fixed_stepSize(params.step_size);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());

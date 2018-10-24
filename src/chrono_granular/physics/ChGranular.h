@@ -76,11 +76,13 @@ struct sphereDataStruct {
 };
 
 // How are we writing?
-enum GRN_OUTPUT_MODE { CSV, BINARY, NONE };
+enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
 // How are we stepping through time?
-enum GRN_TIME_STEPPING { AUTO, FIXED };
+enum GRAN_TIME_STEPPING { AUTO, FIXED };
 /// How are we integrating w.r.t. time
-enum GRN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG };
+enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG };
+
+enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
 class CH_GRANULAR_API ChSystemGranular {
   public:
@@ -96,7 +98,7 @@ class CH_GRANULAR_API ChSystemGranular {
     }
 
     /// Set the output mode of the simulation
-    void setOutputMode(GRN_OUTPUT_MODE mode) { file_write_mode = mode; }
+    void setOutputMode(GRAN_OUTPUT_MODE mode) { file_write_mode = mode; }
     /// Set the simulation's output directory, files are output as step%06d, where the number is replaced by the current
     /// render frame. This directory is assumed to be created by the user, either manually or in the driver file.
     void setOutputDirectory(std::string dir) { output_directory = dir; }
@@ -108,8 +110,8 @@ class CH_GRANULAR_API ChSystemGranular {
     /// allows the user to request a step size, will find the closest SU size to it
     void set_max_adaptive_stepSize(float size_UU) { max_adaptive_step_UU = size_UU; }
     void set_fixed_stepSize(float size_UU) { fixed_step_UU = size_UU; }
-    void set_timeStepping(GRN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
-    void set_timeIntegrator(GRN_TIME_INTEGRATOR new_integrator) { time_integrator = new_integrator; }
+    void set_timeStepping(GRAN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
+    void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) { time_integrator = new_integrator; }
 
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
@@ -121,7 +123,7 @@ class CH_GRANULAR_API ChSystemGranular {
     /// Allows the code to be very verbose for debug
     bool verbose_runtime = false;
     /// How to write the output files? Default is CSV
-    GRN_OUTPUT_MODE file_write_mode = CSV;
+    GRAN_OUTPUT_MODE file_write_mode = CSV;
     /// Directory to write to, this code assumes it already exists
     std::string output_directory;
 
@@ -180,8 +182,8 @@ class CH_GRANULAR_API ChSystemGranular {
     /// Array containing the IDs of the spheres stored in the SDs associated with the box
     std::vector<unsigned int, cudallocator<unsigned int>> DEs_in_SD_composite;
 
-    GRN_TIME_STEPPING time_stepping;      //!< Indicates what type of time stepping the simulation employs.
-    GRN_TIME_INTEGRATOR time_integrator;  //!< Indicates what type of time integrator the simulation employs.
+    GRAN_TIME_STEPPING time_stepping;      //!< Indicates what type of time stepping the simulation employs.
+    GRAN_TIME_INTEGRATOR time_integrator;  //!< Indicates what type of time integrator the simulation employs.
 
     bool primed = false;  //!< Indicates that the priming step has occurred
 
@@ -327,19 +329,20 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 };
 
 /**
- * ChSystemGranularMonodisperse_SMC_Frictionless: Mono-disperse setup, one radius for all spheres. There is no friction,
+ * ChSystemGranularMonodisperse_SMC: Mono-disperse setup, one radius for all spheres. There is no friction,
  * which means that there is no need to keep data that stores history for contacts
  */
-class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChSystemGranularMonodisperse {
+class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranularMonodisperse {
   public:
-    ChSystemGranularMonodisperse_SMC_Frictionless(float radiusSPH, float density)
+    ChSystemGranularMonodisperse_SMC(float radiusSPH, float density)
         : ChSystemGranularMonodisperse(radiusSPH, density),
           K_n_s2s_UU(0),
           K_n_s2w_UU(0),
           Gamma_n_s2s_UU(0),
-          Gamma_n_s2w_UU(0) {}
+          Gamma_n_s2w_UU(0),
+          fric_mode(FRICTIONLESS) {}
 
-    virtual ~ChSystemGranularMonodisperse_SMC_Frictionless() {}
+    virtual ~ChSystemGranularMonodisperse_SMC() {}
 
     inline void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
     inline void set_K_n_SPH2WALL(double someValue) { K_n_s2w_UU = someValue; }
@@ -350,8 +353,13 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     inline void set_mu_t_SPH2SPH(double someValue) { mu_t_s2s_UU = someValue; }
     inline void set_Gamma_t_SPH2SPH(double someValue) { Gamma_t_s2s_UU = someValue; }
 
+    inline void set_mu_t_SPH2WALL(double someValue) { mu_t_s2w_UU = someValue; }
+    inline void set_Gamma_t_SPH2WALL(double someValue) { Gamma_t_s2w_UU = someValue; }
+
     /// Set the ratio of cohesion to gravity for monodisperse spheres
     inline void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
+
+    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { fric_mode = new_mode; }
 
     virtual void setup_simulation();  ///!< set up data structures and carry out pre-processing tasks
     /// advance simulation by duration seconds in user units, return actual duration elapsed
@@ -376,6 +384,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
 
     virtual void defragment_data();
 
+    GRAN_FRICTION_MODE fric_mode;
+
     /// size of the normal stiffness (SU) for sphere-to-sphere contact
     double K_n_s2s_UU;
     float K_n_s2s_SU;
@@ -399,6 +409,14 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_Frictionless : public ChS
     /// tangential damping for sphere-to-sphere
     double Gamma_t_s2s_UU;
     float Gamma_t_s2s_SU;
+
+    /// tangential stiffness for sphere-to-wall
+    double mu_t_s2w_UU;
+    float mu_t_s2w_SU;
+
+    /// tangential damping for sphere-to-wall
+    double Gamma_t_s2w_UU;
+    float Gamma_t_s2w_SU;
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;

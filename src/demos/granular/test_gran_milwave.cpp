@@ -45,7 +45,7 @@ float timeEnd = .25f;
 float grav_acceleration = -980.f;
 float normStiffness_S2S = 1e7f;
 float normStiffness_S2W = 1e7f;
-GRN_OUTPUT_MODE write_mode = GRN_OUTPUT_MODE::BINARY;
+GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::BINARY;
 bool verbose = false;
 float cohesion_ratio = 2;
 
@@ -55,7 +55,7 @@ float cohesion_ratio = 2;
 // -----------------------------------------------------------------------------
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC_Frictionless settlingExperiment(ballRadius, ballDensity);
+    ChSystemGranularMonodisperse_SMC settlingExperiment(ballRadius, ballDensity);
     settlingExperiment.setBOXdims(box_size_X, box_size_Y, box_size_Z);
     settlingExperiment.set_K_n_SPH2SPH(normStiffness_S2S);
     settlingExperiment.set_K_n_SPH2WALL(normStiffness_S2W);
@@ -90,7 +90,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Tell the sim to unlock the bd so it can follow that position function
     settlingExperiment.set_BD_Fixed(false);
     settlingExperiment.setVerbose(verbose);
-    settlingExperiment.set_timeStepping(GRN_TIME_STEPPING::FIXED);
+    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     settlingExperiment.set_fixed_stepSize(2.5e-4);
 
     ChTimer<double> timer;
