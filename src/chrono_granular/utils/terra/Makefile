@@ -12,7 +12,7 @@ CXXSTD	:= -std=c++11
 # Linker options
 LDOPT 	:= $(OPT) 
 LDFLAGS := -g -pg
-EXEC 	:=  distance
+EXEC 	:=  distance distance_gpu
 .DEFAULT_GOAL := all
 
 .PHONY: debug
@@ -23,6 +23,9 @@ all : Makefile $(EXEC)
 
 distance: distance.cpp Makefile timer.h # Rebuild on Makefile or header changes
 	$(CXX) $(MOREFLAGS) $(CXXSTD) $(WFLAGS) $(FLAGS) $(OPT) $(CXXFLAGS) $< -o $@
+	
+distance_gpu: distance_gpu.cu Makefile timer.h # Rebuild on Makefile or header changes
+	nvcc -O3 -Xcompiler -fopenmp $< -o $@
 
 .PHONY: clean
 clean:
