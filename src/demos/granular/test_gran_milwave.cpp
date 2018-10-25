@@ -73,7 +73,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // that the box will be centered at x = box_size_X
     std::function<double(double)> posFunX = [](double t) {
         // Start oscillating at t0 seconds
-        double t0 = .5;
+        double t0 = 0;
         double freq = .25 * M_PI;
 
         if (t < t0) {

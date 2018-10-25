@@ -439,9 +439,11 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
                                        const float sphXvel,  //!< Global X velocity of DE
                                        const float sphYvel,  //!< Global Y velocity of DE
                                        const float sphZvel,  //!< Global Z velocity of DE
-                                       float& Xforce,        //!< Force in Xdir
-                                       float& Yforce,        //!< Force in Ydir
-                                       float& Zforce,        //!< Force in Zdir
+                                       const float omegaX,   //!< Global X velocity of DE
+                                       const float omegaY,   //!< Global Y velocity of DE
+                                       const float omegaZ,   //!< Global Z velocity of DE
+                                       float3& force_from_wall,
+                                       float3& torque_from_wall,
                                        ParamsPtr gran_params) {
     // classic radius grab, but signed so we can negate it easier
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
@@ -451,114 +453,148 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     int sphYpos_modified = -gran_params->BD_frame_Y + sphYpos;
     int sphZpos_modified = -gran_params->BD_frame_Z + sphZpos;
 
-    // Are we touching wall?
-    int touchingWall = 0;
-
     constexpr float sphere_mass_SU = 1.f;
     constexpr float m_eff = sphere_mass_SU / 2.f;
     // cache force
     float3 wall_force = {0, 0, 0};
+    float3 wall_torque = {0, 0, 0};
 
-    float3 delta_V = make_float3(sphXvel - gran_params->BD_frame_X_dot, sphYvel - gran_params->BD_frame_Y_dot,
-                                 sphZvel - gran_params->BD_frame_Z_dot);
-    // Do x direction
-    // penetration of sphere into bottom x wall
-    signed int xpen = sphXpos_modified - (signed int)sphereRadius_SU;
-    // if sphere center is within one radius of wall
-    touchingWall = (xpen < 0) && abs(xpen) < sphereRadius_SU;
-    // in this case, xpen is negative and we want a positive restorative force=
-    wall_force.x += touchingWall * (gran_params->Kn_s2w_SU * abs(xpen));
-    wall_force.x += -1 * touchingWall * (delta_V.x) * gran_params->Gamma_n_s2w_SU * m_eff;
-    // add friction on each wall
-    // wall_force.y += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.y * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.y);
-    //
-    // wall_force.z += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.z * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.z);
+    // velocity difference of COMs
+    float3 delta_V_com = make_float3(sphXvel - gran_params->BD_frame_X_dot, sphYvel - gran_params->BD_frame_Y_dot,
+                                     sphZvel - gran_params->BD_frame_Z_dot);
+    // r times Omega, these are components of r cross omega
+    float3 r_Omega = {sphereRadius_SU * omegaX, sphereRadius_SU * omegaY, sphereRadius_SU * omegaZ};
+
+    float3 normal_damping_force = delta_V_com * gran_params->Gamma_n_s2w_SU * m_eff;
+
+    // TODO how does multistep work here?
+
+    // float3 tangent_spring_force_irrot = gran_params->K_t_s2w_SU * delta_V * gran_params->alpha_h_bar;
+    // float3 tangent_damping_force_irrot = gran_params->Gamma_t_s2w_SU * m_eff * delta_V;
+
+    // scaling factors for tangential spring/damping forces
+    float composite_t_fac = gran_params->K_t_s2w_SU * gran_params->alpha_h_bar +
+                            gran_params->Gamma_t_s2w_SU * m_eff;  // include time integration for now
+
+    signed int penetration;
+
+    // Todo could dump into float[3] and make this much easier to read
+
+    // Do X direction
+    // penetration of sphere into bottom X wall
+    penetration = sphXpos_modified - (signed int)sphereRadius_SU;
+    // if leftmost part is below wall, we have contact
+    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
+        float3 curr_contrib = {0, 0, 0};
+        // positive (upwards) restorative force
+        curr_contrib.x += gran_params->Kn_s2w_SU * abs(penetration);
+        // damping always has this minus sign
+        curr_contrib.x += -1 * normal_damping_force.x;
+
+        // add tangential forces
+        // w cross r = -r w_z e_y + r w_y e_z
+        curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.z));
+        curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.y));
+        wall_force = wall_force + curr_contrib;
+        wall_torque = wall_torque + make_float3(0, curr_contrib.z, -curr_contrib.y);
+    }
 
     // Do top X wall
-    xpen = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)sphereRadius_SU);
-    touchingWall = (xpen < 0) && abs(xpen) < sphereRadius_SU;
-    // in this case, xpen is positive and we want a negative restorative force
-    wall_force.x += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(xpen);
-    wall_force.x += -1 * touchingWall * (delta_V.x) * gran_params->Gamma_n_s2w_SU * m_eff;
-    // add friction on each wall
-    // wall_force.y += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.y * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.y);
-    //
-    // wall_force.z += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.z * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.z);
+    penetration = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)sphereRadius_SU);
+    // if leftmost part is below wall, we have contact
+    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
+        float3 curr_contrib = {0, 0, 0};
 
-    // do again for y, z
-    signed int ypen = sphYpos_modified - (signed int)sphereRadius_SU;
-    // true if sphere touching wall
-    touchingWall = (ypen < 0) && abs(ypen) < sphereRadius_SU;
-    // in this case, ypen is negative and we want a positive restorative force
-    wall_force.y += touchingWall * (gran_params->Kn_s2w_SU * abs(ypen));
-    wall_force.y += -1 * touchingWall * (delta_V.y) * gran_params->Gamma_n_s2w_SU * m_eff;
-    // add friction on each wall
-    // wall_force.x += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.x * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.x);
-    //
-    // wall_force.z += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.z * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.z);
+        // negative (downwards) restorative force
+        curr_contrib.x += -1 * gran_params->Kn_s2w_SU * abs(penetration);
+        // damping always has this minus sign
+        curr_contrib.x += -1 * normal_damping_force.x;
 
-    // Do top y wall
-    ypen = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)sphereRadius_SU);
-    touchingWall = (ypen < 0) && abs(ypen) < sphereRadius_SU;
-    // in this case, ypen is positive and we want a negative restorative force
-    wall_force.y += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(ypen);
-    wall_force.y += -1 * touchingWall * (delta_V.y) * gran_params->Gamma_n_s2w_SU * m_eff;
-    // add friction on each wall
-    // wall_force.x += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.x * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.x);
-    //
-    // wall_force.z += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.z * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.z);
+        // add tangential forces
+        curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.z));
+        curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.y));
+        wall_force = wall_force + curr_contrib;
+        wall_torque = wall_torque + make_float3(0, -curr_contrib.z, curr_contrib.y);
+    }
 
-    // penetration of sphere into relevant wall
-    signed int zpen = sphZpos_modified - (signed int)sphereRadius_SU;
-    // true if sphere touching wall
-    touchingWall = (zpen < 0) && abs(zpen) < sphereRadius_SU;
-    // in this case, zpen is negative and we want a positive restorative force
-    wall_force.z += touchingWall * (gran_params->Kn_s2w_SU * abs(zpen));
-    wall_force.z += -1 * touchingWall * (delta_V.z) * gran_params->Gamma_n_s2w_SU * m_eff;
-    // add friction on each wall
-    // wall_force.x += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.x * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.x);
-    //
-    // wall_force.y += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.y * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.y);
+    // Do Y direction
+    // penetration of sphere into bottom Y wall
+    penetration = sphYpos_modified - (signed int)sphereRadius_SU;
+    // if leftmost part is below wall, we have contact
+    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
+        float3 curr_contrib = {0, 0, 0};
 
-    // Do top z wall
-    zpen = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)sphereRadius_SU);
-    touchingWall = (zpen < 0) && abs(zpen) < sphereRadius_SU;
-    // in this case, zpen is positive and we want a negative restorative force
-    wall_force.z += -1 * touchingWall * gran_params->Kn_s2w_SU * abs(zpen);
-    wall_force.z += -1 * touchingWall * (delta_V.z) * gran_params->Gamma_n_s2w_SU * m_eff;
-    // add friction on each wall
-    // wall_force.x += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.x * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.x);
-    //
-    // wall_force.y += -1 * touchingWall *
-    //                 (gran_params->mu_t_s2w_SU * delta_V.y * gran_params->alpha_h_bar +
-    //                  gran_params->Gamma_t_s2w_SU * m_eff * delta_V.y);
+        // positive (upwards) restorative force
+        curr_contrib.y += gran_params->Kn_s2w_SU * abs(penetration);
+        // damping always has this minus sign
+        curr_contrib.y += -1 * normal_damping_force.y;
+
+        // add tangential forces
+        curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.x));
+        curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.z));
+
+        wall_force = wall_force + curr_contrib;
+        wall_torque = wall_torque + make_float3(curr_contrib.z, 0, -curr_contrib.x);
+    }
+
+    // Do top Y wall
+    penetration = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)sphereRadius_SU);
+    // if leftmost part is below wall, we have contact
+    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
+        float3 curr_contrib = {0, 0, 0};
+
+        // negative (downwards) restorative force
+        curr_contrib.y += -1 * gran_params->Kn_s2w_SU * abs(penetration);
+        // damping always has this minus sign
+        curr_contrib.y += -1 * normal_damping_force.y;
+
+        // add tangential forces
+        curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.x));
+        curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.z));
+        wall_force = wall_force + curr_contrib;
+        wall_torque = wall_torque + make_float3(-curr_contrib.z, 0, curr_contrib.x);
+    }
+
+    // Do Z direction
+    // penetration of sphere into bottom Z wall
+    penetration = sphZpos_modified - (signed int)sphereRadius_SU;
+    // if leftmost part is below wall, we have contact
+    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
+        float3 curr_contrib = {0, 0, 0};
+
+        // positive (upwards) restorative force
+        curr_contrib.z += gran_params->Kn_s2w_SU * abs(penetration);
+        // damping always has this minus sign
+        curr_contrib.z += -1 * normal_damping_force.z;
+
+        // add tangential forces
+        curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.y));
+        curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.x));
+        wall_force = wall_force + curr_contrib;
+        wall_torque = wall_torque + make_float3(curr_contrib.y, -curr_contrib.x, 0);
+    }
+
+    // Do top Z wall
+    penetration = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)sphereRadius_SU);
+    // if leftmost part is below wall, we have contact
+    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
+        float3 curr_contrib = {0, 0, 0};
+
+        // negative (downwards) restorative force
+        curr_contrib.z += -1 * gran_params->Kn_s2w_SU * abs(penetration);
+        // damping always has this minus sign
+        curr_contrib.z += -1 * normal_damping_force.z;
+
+        // add tangential forces
+        curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.y));
+        curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.x));
+        wall_force = wall_force + curr_contrib;
+        wall_torque = wall_torque + make_float3(-curr_contrib.y, curr_contrib.x, 0);
+    }
 
     // write back to "return" values
-    Xforce += wall_force.x;
-    Yforce += wall_force.y;
-    Zforce += wall_force.z;
+    force_from_wall = force_from_wall + wall_force;
+    torque_from_wall = torque_from_wall + wall_torque;
 }
 
 /**
@@ -798,7 +834,8 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         if (ownerSD == thisSD) {
             // Perhaps this sphere is hitting the wall[s]
             boxWallsEffects(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
-                            sphere_Z_DOT[bodyA], bodyA_force.x, bodyA_force.y, bodyA_force.z, gran_params);
+                            sphere_Z_DOT[bodyA], omega_X[bodyA], omega_Y[bodyA], omega_Z[bodyA], bodyA_force,
+                            bodyA_torque, gran_params);
 
             applyBCForces(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
                           sphere_Z_DOT[bodyA], bodyA_force.x, bodyA_force.y, bodyA_force.z, gran_params, bc_type_list,

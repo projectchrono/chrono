@@ -31,7 +31,11 @@ typedef struct sim_param_holder {
     double normalDampS2W;
     double normalDampS2M;
     double tangentDampS2S;
+    double tangentDampS2W;
+    double tangentDampS2M;
     double tangentStiffS2S;
+    double tangentStiffS2W;
+    double tangentStiffS2M;
     float cohesion_ratio;
     bool verbose;
     int run_mode;
@@ -156,13 +160,33 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
         params.normalDampS2W = doc["normalDampS2W"].GetDouble();
         cout << "params.normalDampS2W " << params.normalDampS2W << endl;
     }
-    if (doc.HasMember("tangentDampS2S") && doc["tangentDampS2S"].IsNumber()) {
-        params.tangentDampS2S = doc["tangentDampS2S"].GetDouble();
-        cout << "params.tangentDampS2S " << params.tangentDampS2S << endl;
+    if (doc.HasMember("normalDampS2M") && doc["normalDampS2M"].IsNumber()) {
+        params.normalDampS2M = doc["normalDampS2M"].GetDouble();
+        cout << "params.normalDampS2M " << params.normalDampS2M << endl;
     }
     if (doc.HasMember("tangentStiffS2S") && doc["tangentStiffS2S"].IsNumber()) {
         params.tangentStiffS2S = doc["tangentStiffS2S"].GetDouble();
         cout << "params.tangentStiffS2S " << params.tangentStiffS2S << endl;
+    }
+    if (doc.HasMember("tangentStiffS2W") && doc["tangentStiffS2W"].IsNumber()) {
+        params.tangentStiffS2W = doc["tangentStiffS2W"].GetDouble();
+        cout << "params.tangentStiffS2W " << params.tangentStiffS2W << endl;
+    }
+    if (doc.HasMember("tangentStiffS2M") && doc["tangentStiffS2M"].IsNumber()) {
+        params.tangentStiffS2M = doc["tangentStiffS2M"].GetDouble();
+        cout << "params.tangentStiffS2M " << params.tangentStiffS2M << endl;
+    }
+    if (doc.HasMember("tangentDampS2S") && doc["tangentDampS2S"].IsNumber()) {
+        params.tangentDampS2S = doc["tangentDampS2S"].GetDouble();
+        cout << "params.tangentDampS2S " << params.tangentDampS2S << endl;
+    }
+    if (doc.HasMember("tangentDampS2W") && doc["tangentDampS2W"].IsNumber()) {
+        params.tangentDampS2W = doc["tangentDampS2W"].GetDouble();
+        cout << "params.tangentDampS2W " << params.tangentDampS2W << endl;
+    }
+    if (doc.HasMember("tangentDampS2M") && doc["tangentDampS2M"].IsNumber()) {
+        params.tangentDampS2M = doc["tangentDampS2M"].GetDouble();
+        cout << "params.tangentDampS2M " << params.tangentDampS2M << endl;
     }
     if (doc.HasMember("cohesion_ratio") && doc["cohesion_ratio"].IsNumber()) {
         params.cohesion_ratio = doc["cohesion_ratio"].GetDouble();

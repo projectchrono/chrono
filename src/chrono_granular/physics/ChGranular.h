@@ -350,10 +350,10 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranular
     inline void set_Gamma_n_SPH2SPH(double someValue) { Gamma_n_s2s_UU = someValue; }
     inline void set_Gamma_n_SPH2WALL(double someValue) { Gamma_n_s2w_UU = someValue; }
 
-    inline void set_mu_t_SPH2SPH(double someValue) { mu_t_s2s_UU = someValue; }
+    inline void set_K_t_SPH2SPH(double someValue) { K_t_s2s_UU = someValue; }
     inline void set_Gamma_t_SPH2SPH(double someValue) { Gamma_t_s2s_UU = someValue; }
 
-    inline void set_mu_t_SPH2WALL(double someValue) { mu_t_s2w_UU = someValue; }
+    inline void set_K_t_SPH2WALL(double someValue) { K_t_s2w_UU = someValue; }
     inline void set_Gamma_t_SPH2WALL(double someValue) { Gamma_t_s2w_UU = someValue; }
 
     /// Set the ratio of cohesion to gravity for monodisperse spheres
@@ -403,16 +403,16 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranular
     float Gamma_n_s2w_SU;
 
     /// tangential stiffness for sphere-to-sphere
-    double mu_t_s2s_UU;
-    float mu_t_s2s_SU;
+    double K_t_s2s_UU;
+    float K_t_s2s_SU;
+
+    /// tangential stiffness for sphere-to-wall
+    double K_t_s2w_UU;
+    float K_t_s2w_SU;
 
     /// tangential damping for sphere-to-sphere
     double Gamma_t_s2s_UU;
     float Gamma_t_s2s_SU;
-
-    /// tangential stiffness for sphere-to-wall
-    double mu_t_s2w_UU;
-    float mu_t_s2w_SU;
 
     /// tangential damping for sphere-to-wall
     double Gamma_t_s2w_UU;

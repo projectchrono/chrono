@@ -89,6 +89,9 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_trimesh : public ChSystem
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
     void set_Gamma_n_SPH2MESH(double someValue) { Gamma_n_s2m_UU = someValue; }
 
+    void set_K_t_SPH2MESH(double someValue) { K_t_s2m_UU = someValue; }
+    void set_Gamma_t_SPH2MESH(double someValue) { Gamma_t_s2m_UU = someValue; }
+
     unsigned int nMeshesInSoup() const { return meshSoup_DEVICE->nFamiliesInSoup; }
 
     /**
@@ -138,6 +141,12 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_trimesh : public ChSystem
 
     double Gamma_n_s2m_UU;
     double Gamma_n_s2m_SU;
+
+    double K_t_s2m_UU;
+    double K_t_s2m_SU;
+
+    double Gamma_t_s2m_UU;
+    double Gamma_t_s2m_SU;
 
     bool mesh_collision_enabled = true;
 

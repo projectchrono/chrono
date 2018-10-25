@@ -377,8 +377,10 @@ void ChSystemGranularMonodisperse_SMC::switch_to_SimUnits() {
     K_n_s2s_SU = K_scalingFactor * (K_n_s2s_UU / K_stiffness);
     K_n_s2w_SU = K_scalingFactor * (K_n_s2w_UU / K_stiffness);
 
-    mu_t_s2s_SU = K_scalingFactor * (mu_t_s2s_UU / K_stiffness);
-    mu_t_s2w_SU = K_scalingFactor * (mu_t_s2w_UU / K_stiffness);
+    K_t_s2s_SU = K_scalingFactor * (K_t_s2s_UU / K_stiffness);
+    K_t_s2w_SU = K_scalingFactor * (K_t_s2w_UU / K_stiffness);
+
+    printf("units are %f, %f, %f, %f\n", K_t_s2s_SU, K_t_s2s_UU, K_t_s2w_SU, K_t_s2w_UU);
 
     float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
     Gamma_n_s2s_SU = Gamma_scalingFactor * Gamma_n_s2s_UU;

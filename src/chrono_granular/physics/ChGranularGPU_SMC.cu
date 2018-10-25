@@ -62,15 +62,15 @@ __host__ void ChSystemGranularMonodisperse_SMC::copy_const_data_to_device() {
 
     gran_params->sphereRadius_SU = sphereRadius_SU;
 
-    gran_params->Gamma_t_s2s_SU = Gamma_t_s2s_SU;
-    gran_params->mu_t_s2s_SU = mu_t_s2s_SU;
-    gran_params->Gamma_t_s2w_SU = Gamma_t_s2w_SU;
-    gran_params->mu_t_s2w_SU = mu_t_s2w_SU;
-
-    gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
-    gran_params->Gamma_n_s2w_SU = Gamma_n_s2w_SU;
     gran_params->Kn_s2s_SU = K_n_s2s_SU;
     gran_params->Kn_s2w_SU = K_n_s2w_SU;
+    gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
+    gran_params->Gamma_n_s2w_SU = Gamma_n_s2w_SU;
+
+    gran_params->K_t_s2s_SU = K_t_s2s_SU;
+    gran_params->K_t_s2w_SU = K_t_s2w_SU;
+    gran_params->Gamma_t_s2s_SU = Gamma_t_s2s_SU;
+    gran_params->Gamma_t_s2w_SU = Gamma_t_s2w_SU;
 
     gran_params->cohesion_ratio = cohesion_over_gravity;
 }

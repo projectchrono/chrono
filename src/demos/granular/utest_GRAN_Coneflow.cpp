@@ -79,18 +79,39 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setOutputDirectory(params.output_dir);
     settlingExperiment.setOutputMode(params.write_mode);
 
-    // fill box, layer by layer
-    ChVector<> hdims(params.box_X / 4.f, params.box_Y / 4.f, params.box_Z / 2);
-    ChVector<> center(0, 0, 0);
+    settlingExperiment.set_BD_Fixed(true);
 
     // Fill box with bodies
-    std::vector<ChVector<float>> body_points =
-        PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.02);
-    std::vector<ChVector<float>> first_points;
-    first_points.push_back(body_points.at(0));
-    first_points.push_back(body_points.at(1));
+    std::vector<ChVector<float>> body_points;
 
-    settlingExperiment.setParticlePositions(first_points);
+    chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
+
+    float center_pt[3] = {0.f, 0.f, -2.05f * params.sphere_radius - params.box_Z / 4};
+
+    // width we want to fill to
+    double fill_width = params.box_Z / 4;
+    // height that makes this width above the cone
+    double fill_height = fill_width;
+
+    // fill to top
+    double fill_top = params.box_Z / 2 - 2.05 * params.sphere_radius;
+    double fill_bottom = fill_top + 2.05 * params.sphere_radius - fill_height + center_pt[2];
+
+    printf("width is %f, bot is %f, top is %f, height is %f\n", fill_width, fill_bottom, fill_top, fill_height);
+    // fill box, layer by layer
+    ChVector<> hdims(fill_width - params.sphere_radius, fill_width - params.sphere_radius, 0);
+    ChVector<> center(0, 0, fill_bottom);
+    // shift up for bottom of box
+    center.z() += 3 * params.sphere_radius;
+
+    while (center.z() < fill_top) {
+        std::cout << "Create layer at " << center.z() << std::endl;
+        auto points = sampler.SampleCylinderZ(center, fill_width - params.sphere_radius, 0);
+        body_points.insert(body_points.end(), points.begin(), points.end());
+        center.z() += 2.05 * params.sphere_radius;
+    }
+
+    settlingExperiment.setParticlePositions(body_points);
 
     settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
@@ -98,63 +119,16 @@ int main(int argc, char* argv[]) {
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
 
-    // TODO clean up this API
-    // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
-    // will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means
-    // that the box will be centered at x = box_size_X
-    std::function<double(double)> posFunWave = [](double t) {
-        // Start oscillating at t = .5s
-        double t0 = .5;
-        double freq = .1 * M_PI;
-
-        if (t < t0) {
-            return -.5;
-        } else {
-            return (-.5 + .5 * std::sin((t - t0) * freq));
-        }
-    };
-    // Stay centered at origin
-    std::function<double(double)> posFunStill = [](double t) { return -.5; };
-
-    std::function<double(double)> posFunZBouncing = [](double t) {
-        // Start oscillating at t = .5s
-        double t0 = .5;
-        double freq = 20 * M_PI;
-
-        if (t < t0) {
-            return -.5;
-        } else {
-            return (-.5 + .01 * std::sin((t - t0) * freq));
-        }
-    };
-
-    switch (params.run_mode) {
-        case SETTLING:
-            settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunStill);
-            settlingExperiment.set_BD_Fixed(true);
-            break;
-        case WAVETANK:
-            settlingExperiment.setBDPositionFunction(posFunStill, posFunWave, posFunStill);
-            settlingExperiment.set_BD_Fixed(false);
-            break;
-        case BOUNCING_PLATE:
-            settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunZBouncing);
-            settlingExperiment.set_BD_Fixed(false);
-            break;
-    }
-
     // float hdims[3] = {2.f, 2.f, 2.f};
+    settlingExperiment.Create_BC_Cone(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true);
 
     settlingExperiment.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
     settlingExperiment.initialize();
-    // settlingExperiment.Create_BC_AABox(hdims, center_pt, false);
-    // settlingExperiment.Create_BC_Sphere(center_pt, 3.f, true);
-    // settlingExperiment.Create_BC_Cone(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true);
 
     int fps = 100;
     // assume we run for at least one frame
-    float frame_step = 1.0f / fps;
+    float frame_step = 1. / fps;
     float curr_time = 0;
     int currframe = 0;
 
