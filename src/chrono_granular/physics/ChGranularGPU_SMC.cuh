@@ -735,46 +735,38 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         // amount of doubles will certainly speed this up
         // Run through and do actual force computations, for these we know each one is a legit collision
         for (unsigned int idx = 0; idx < ncontacts; idx++) {
-            // distance between sphere centers divided by sphere diameter
-
-            // unsigned int theirSphID = sphere_data.DEs_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
             // Don't check for collision with self
             unsigned char bodyB = bodyB_list[idx];
 
             // NOTE below here, it seems faster to do coalesced shared mem accesses than caching sphere_X[bodyA] and the
             // like in a register
             // This avoids computing a square to figure our if collision or not
-            double3 delta_r;  // points from b to a
+
+            float reciplength = 0;
+            // compute penetrations in double
+            {
+                double3 delta_r_double;  // points from b to a
+                delta_r_double.x = (sphere_X[bodyA] - sphere_X[bodyB]) * invSphDiameter;
+                delta_r_double.y = (sphere_Y[bodyA] - sphere_Y[bodyB]) * invSphDiameter;
+                delta_r_double.z = (sphere_Z[bodyA] - sphere_Z[bodyB]) * invSphDiameter;
+                // compute in double then convert to float
+                reciplength = rsqrt(Dot(delta_r_double, delta_r_double));
+            }
+
+            // Compute penetration term, this becomes the delta as we want it
+            float penetration = reciplength - 1.;
+
+            // compute these in float now
+            float3 delta_r;  // points from b to a
             delta_r.x = (sphere_X[bodyA] - sphere_X[bodyB]) * invSphDiameter;
             delta_r.y = (sphere_Y[bodyA] - sphere_Y[bodyB]) * invSphDiameter;
             delta_r.z = (sphere_Z[bodyA] - sphere_Z[bodyB]) * invSphDiameter;
 
-            float3 v_rel;
-
             // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
+            float3 v_rel;
             v_rel.x = sphere_X_DOT[bodyA] - sphere_X_DOT[bodyB];
             v_rel.y = sphere_Y_DOT[bodyA] - sphere_Y_DOT[bodyB];
             v_rel.z = sphere_Z_DOT[bodyA] - sphere_Z_DOT[bodyB];
-
-            // // distance between sphere centers divided by sphere diameter
-            // double d2_normalized = Dot(delta_r, delta_r);
-
-            // Note: this can be accelerated should we decide to go w/ float. Then we can use the CUDA
-            // intrinsic:
-            // __device__ ​ float rnormf ( int  dim, const float* a)
-            // http://docs.nvidia.com/cuda/cuda-math-api/group__CUDA__MATH__SINGLE.html#group__CUDA__MATH__SINGLE
-
-            // Compute penetration term, this becomes the delta as we want it
-            // Makes more sense to find rsqrt, the compiler is doing this anyways
-            float reciplength = rsqrt(Dot(delta_r, delta_r));
-            float penetration = reciplength - 1.;
-
-            // Compute nondim force term
-
-            // Compute force updates for spring term
-            float springTermX = scalingFactor * delta_r.x * sphdiameter * penetration;
-            float springTermY = scalingFactor * delta_r.y * sphdiameter * penetration;
-            float springTermZ = scalingFactor * delta_r.z * sphdiameter * penetration;
 
             // Compute force updates for damping term
             // Project relative velocity to the normal
@@ -783,45 +775,39 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             float projection = Dot(v_rel, delta_r) * reciplength;
 
             // delta_dot = proj * n
-            float3 vrel_n = projection * make_float3(delta_r.x, delta_r.y, delta_r.z) * reciplength;
+            float3 vrel_n = projection * delta_r * reciplength;
 
             // remove normal component, add back rotational components
             v_rel = v_rel - vrel_n +
-                    Cross(make_float3(delta_r.x, delta_r.y, delta_r.z),
-                          make_float3(omega_X[bodyA] - omega_X[bodyB], omega_Y[bodyA] - omega_Y[bodyB],
-                                      omega_Z[bodyA] - omega_Z[bodyB]));
-
-            // TODO improve this
-            // one-step tangential displacement
-            float3 ut = v_rel * gran_params->alpha_h_bar;
+                    Cross(delta_r, make_float3(omega_X[bodyA] - omega_X[bodyB], omega_Y[bodyA] - omega_Y[bodyB],
+                                               omega_Z[bodyA] - omega_Z[bodyB]));
 
             constexpr float sphere_mass_SU = 1.f;
             constexpr float m_eff = sphere_mass_SU / 2.f;
 
-            float3 friction_term = -gran_params->mu_t_s2s_SU * ut - gran_params->Gamma_t_s2s_SU * m_eff * v_rel;
-            // printf("friction_term is (%f, %f, %f), ut is (%f, %f, %f), mut is %f\n", friction_term.x,
-            // friction_term.y,
-            //        friction_term.z, ut.x, ut.y, ut.z, gran_params->mu_t_s2s_SU);
+            const float cohesionConstant = sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
 
-            float dampingTermX = -gran_params->Gamma_n_s2s_SU * vrel_n.x * m_eff;
-            float dampingTermY = -gran_params->Gamma_n_s2s_SU * vrel_n.y * m_eff;
-            float dampingTermZ = -gran_params->Gamma_n_s2s_SU * vrel_n.z * m_eff;
+            // Compute each force term
+            float3 springTerm = scalingFactor * delta_r * sphdiameter * penetration;
+            float3 dampingTerm = -gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;
+            float3 cohesionTerm = -cohesionConstant * delta_r * reciplength;
 
-            float cohesionConstant = sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
-
-            // Compute force updates for cohesion term, is opposite the spring term
-            float cohesionTermX = -cohesionConstant * delta_r.x * reciplength;
-            float cohesionTermY = -cohesionConstant * delta_r.y * reciplength;
-            float cohesionTermZ = -cohesionConstant * delta_r.z * reciplength;
+            // TODO improve this
+            // one-step tangential displacement
+            float3 ut = v_rel * gran_params->alpha_h_bar;
+            float3 friction_term = -gran_params->K_t_s2s_SU * ut - gran_params->Gamma_t_s2s_SU * m_eff * v_rel;
 
             // Add damping term to spring term, write back to counter
-            bodyA_force.x += springTermX + dampingTermX + cohesionTermX;
-            bodyA_force.y += springTermY + dampingTermY + cohesionTermY;
-            bodyA_force.z += springTermZ + dampingTermZ + cohesionTermZ;
+            bodyA_force.x += springTerm.x + dampingTerm.x + cohesionTerm.x;
+            bodyA_force.y += springTerm.y + dampingTerm.y + cohesionTerm.y;
+            bodyA_force.z += springTerm.z + dampingTerm.z + cohesionTerm.z;
 
             // compute torque on body
             // multiply by diameter, but normalize by radius to keep numbers sane
-            bodyA_torque = bodyA_torque + 2 * Cross(make_float3(delta_r.x, delta_r.y, delta_r.z), bodyA_force);
+            constexpr float diameter_over_radius = 2;
+            // note these don't have a += operator rn
+            bodyA_torque =
+                bodyA_torque + diameter_over_radius * Cross(make_float3(delta_r.x, delta_r.y, delta_r.z), bodyA_force);
 
             // Now add friction, the cross should have removed it, but there's no need to add it in yet
             bodyA_force = bodyA_force + friction_term;
