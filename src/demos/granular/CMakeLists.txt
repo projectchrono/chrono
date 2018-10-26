@@ -24,6 +24,7 @@ SET(DEMOS
 		test_gran_milwave
 		test_gran_milsettle
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
+		test_GRAN_meshforce
 )
 
 # ------------------------------------------------------------------------------
