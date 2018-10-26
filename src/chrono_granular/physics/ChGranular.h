@@ -88,8 +88,11 @@ enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 struct GranParamsHolder {
     // Timestep in SU
     float alpha_h_bar;
+
+    GRAN_FRICTION_MODE friction_mode;
+    GRAN_TIME_INTEGRATOR integrator_type;
+
     // Use user-defined quantities for coefficients
-    // TODO we need to get the damping coefficient from user
     float Gamma_n_s2s_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
     float Gamma_n_s2w_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
     float Gamma_t_s2s_SU;
@@ -170,7 +173,11 @@ class CH_GRANULAR_API ChSystemGranular {
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
 
+    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { fric_mode = new_mode; }
+
   protected:
+    /// Holds the friction mode for the system
+    GRAN_FRICTION_MODE fric_mode;
     /// holds the sphere and BD-related params in unified memory
     GranParamsHolder* gran_params;
 
@@ -383,8 +390,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
 };
 
 /**
- * ChSystemGranularMonodisperse_SMC: Mono-disperse setup, one radius for all spheres. There is no friction,
- * which means that there is no need to keep data that stores history for contacts
+ * ChSystemGranularMonodisperse_SMC: Mono-disperse setup, one radius for all spheres.
  */
 class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranularMonodisperse {
   public:
@@ -393,8 +399,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranular
           K_n_s2s_UU(0),
           K_n_s2w_UU(0),
           Gamma_n_s2s_UU(0),
-          Gamma_n_s2w_UU(0),
-          fric_mode(FRICTIONLESS) {}
+          Gamma_n_s2w_UU(0) {}
 
     virtual ~ChSystemGranularMonodisperse_SMC() {}
 
@@ -412,8 +417,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranular
 
     /// Set the ratio of cohesion to gravity for monodisperse spheres
     inline void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
-
-    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { fric_mode = new_mode; }
 
     virtual void setup_simulation();  ///!< set up data structures and carry out pre-processing tasks
     /// advance simulation by duration seconds in user units, return actual duration elapsed
@@ -437,8 +440,6 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranular
     virtual void switch_to_SimUnits();
 
     virtual void defragment_data();
-
-    GRAN_FRICTION_MODE fric_mode;
 
     /// size of the normal stiffness (SU) for sphere-to-sphere contact
     double K_n_s2s_UU;

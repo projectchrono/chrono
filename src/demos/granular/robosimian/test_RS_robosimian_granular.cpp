@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
                 GetChronoDataFile("robosimian/actuation/sculling_stop.txt"),    // stop input file
                 true);
             gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
-                "robosimian/obj/robosim_sled_coll.obj", robot.GetSledBody()));
+                "robosimian/obj/robosim_sled_collision_clean.obj", robot.GetSledBody()));
             break;
     }
 

@@ -26,6 +26,19 @@
 
 namespace chrono {
 namespace granular {
+
+ChSystemGranular::ChSystemGranular()
+    : time_stepping(GRAN_TIME_STEPPING::AUTO), nDEs(0), elapsedSimTime(0), fric_mode(FRICTIONLESS) {
+    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
+    gran_params->psi_T = PSI_T_DEFAULT;
+    gran_params->psi_h = PSI_h_DEFAULT;
+    gran_params->psi_L = PSI_L_DEFAULT;
+}
+
+ChSystemGranular::~ChSystemGranular() {
+    gpuErrchk(cudaFree(gran_params));
+}
+
 sphereDataStruct ChSystemGranular::packSphereDataPointers() {
     sphereDataStruct packed;
 
@@ -36,15 +49,19 @@ sphereDataStruct ChSystemGranular::packSphereDataPointers() {
     packed.pos_X_dt = pos_X_dt.data();
     packed.pos_Y_dt = pos_Y_dt.data();
     packed.pos_Z_dt = pos_Z_dt.data();
-    packed.omega_X = omega_X.data();
-    packed.omega_Y = omega_Y.data();
-    packed.omega_Z = omega_Z.data();
+
+    if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+        packed.omega_X = omega_X.data();
+        packed.omega_Y = omega_Y.data();
+        packed.omega_Z = omega_Z.data();
+        packed.sphere_torque_X = sphere_torque_X.data();
+        packed.sphere_torque_Y = sphere_torque_Y.data();
+        packed.sphere_torque_Z = sphere_torque_Z.data();
+    }
+
     packed.sphere_force_X = sphere_force_X.data();
     packed.sphere_force_Y = sphere_force_Y.data();
     packed.sphere_force_Z = sphere_force_Z.data();
-    packed.sphere_torque_X = sphere_torque_X.data();
-    packed.sphere_torque_Y = sphere_torque_Y.data();
-    packed.sphere_torque_Z = sphere_torque_Z.data();
     packed.sphere_force_X_old = sphere_force_X_old.data();
     packed.sphere_force_Y_old = sphere_force_Y_old.data();
     packed.sphere_force_Z_old = sphere_force_Z_old.data();
@@ -52,17 +69,6 @@ sphereDataStruct ChSystemGranular::packSphereDataPointers() {
     packed.SD_NumOf_DEs_Touching = SD_NumOf_DEs_Touching.data();
     packed.DEs_in_SD_composite = DEs_in_SD_composite.data();
     return packed;
-}
-
-ChSystemGranular::ChSystemGranular() : time_stepping(GRAN_TIME_STEPPING::AUTO), nDEs(0), elapsedSimTime(0) {
-    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
-    gran_params->psi_T = PSI_T_DEFAULT;
-    gran_params->psi_h = PSI_h_DEFAULT;
-    gran_params->psi_L = PSI_L_DEFAULT;
-}
-
-ChSystemGranular::~ChSystemGranular() {
-    gpuErrchk(cudaFree(gran_params));
 }
 
 // just a handy helper function
@@ -243,15 +249,17 @@ void ChSystemGranularMonodisperse::generate_DEs() {
     sphere_force_Y.resize(nDEs, 0);
     sphere_force_Z.resize(nDEs, 0);
 
-    // add rotational DOFs
-    omega_X.resize(nDEs, 0);
-    omega_Y.resize(nDEs, 0);
-    omega_Z.resize(nDEs, 0);
+    if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+        // add rotational DOFs
+        omega_X.resize(nDEs, 0);
+        omega_Y.resize(nDEs, 0);
+        omega_Z.resize(nDEs, 0);
 
-    // add torques
-    sphere_torque_X.resize(nDEs, 0);
-    sphere_torque_Y.resize(nDEs, 0);
-    sphere_torque_Z.resize(nDEs, 0);
+        // add torques
+        sphere_torque_X.resize(nDEs, 0);
+        sphere_torque_Y.resize(nDEs, 0);
+        sphere_torque_Z.resize(nDEs, 0);
+    }
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         sphere_force_X_old.resize(nDEs, 0);

@@ -69,6 +69,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     settlingExperiment.setOutputMode(write_mode);
     // Make a dam break style sim
     settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
+    settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
 
     ChFileutils::MakeDirectory(output_prefix.c_str());
 

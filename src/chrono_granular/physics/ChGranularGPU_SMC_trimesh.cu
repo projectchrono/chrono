@@ -800,7 +800,7 @@ __host__ double ChSystemGranularMonodisperse_SMC_trimesh::advance_simulation(flo
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS_PER_BLOCK>
-            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params, time_integrator);
+            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

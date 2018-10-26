@@ -73,6 +73,9 @@ __host__ void ChSystemGranularMonodisperse_SMC::copy_const_data_to_device() {
     gran_params->Gamma_t_s2w_SU = Gamma_t_s2w_SU;
 
     gran_params->cohesion_ratio = cohesion_over_gravity;
+
+    gran_params->integrator_type = time_integrator;
+    gran_params->friction_mode = fric_mode;
 }
 
 /// Similar to the copy_const_data_to_device, but saves us a big copy
@@ -212,8 +215,12 @@ void ChSystemGranularMonodisperse_SMC::writeFileUU(std::string ofile) {
                               pos_Z_dt.at(n) * pos_Z_dt.at(n));
 
             outstrstream << pos_X.at(n) * gran_params->LENGTH_UNIT << "," << pos_Y.at(n) * gran_params->LENGTH_UNIT
-                         << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "," << absv << "," << omega_X.at(n) << ","
-                         << omega_Y.at(n) << "," << omega_Z.at(n) << "\n";
+                         << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "," << absv;
+
+            if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+                outstrstream << "," << omega_X.at(n) << "," << omega_Y.at(n) << "," << omega_Z.at(n);
+            }
+            outstrstream << "\n";
         }
 
         ptFile << outstrstream.str();
@@ -247,10 +254,12 @@ void ChSystemGranularMonodisperse_SMC::resetSphereForces() {
     gpuErrchk(cudaMemset(sphere_force_Y.data(), 0, nDEs * sizeof(float)));
     gpuErrchk(cudaMemset(sphere_force_Z.data(), 0, nDEs * sizeof(float)));
 
-    // reset torques to zero
-    gpuErrchk(cudaMemset(sphere_torque_X.data(), 0, nDEs * sizeof(float)));
-    gpuErrchk(cudaMemset(sphere_torque_Y.data(), 0, nDEs * sizeof(float)));
-    gpuErrchk(cudaMemset(sphere_torque_Z.data(), 0, nDEs * sizeof(float)));
+    // reset torques to zero, if applicable
+    if (fric_mode != FRICTIONLESS) {
+        gpuErrchk(cudaMemset(sphere_torque_X.data(), 0, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(sphere_torque_Y.data(), 0, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(sphere_torque_Z.data(), 0, nDEs * sizeof(float)));
+    }
 }
 
 void ChSystemGranularMonodisperse_SMC::updateBDPosition(const float stepSize_SU) {
@@ -497,7 +506,7 @@ __host__ double ChSystemGranularMonodisperse_SMC::advance_simulation(float durat
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS_PER_BLOCK>
-            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params, time_integrator);
+            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

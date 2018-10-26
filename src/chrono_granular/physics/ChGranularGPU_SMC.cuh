@@ -457,6 +457,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     constexpr float m_eff = sphere_mass_SU / 2.f;
     // cache force
     float3 wall_force = {0, 0, 0};
+    // cache force divided by radius
     float3 wall_torque = {0, 0, 0};
 
     // velocity difference of COMs
@@ -491,12 +492,14 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         // damping always has this minus sign
         curr_contrib.x += -1 * normal_damping_force.x;
 
-        // add tangential forces
-        // w cross r = -r w_z e_y + r w_y e_z
-        curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.z));
-        curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.y));
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // add tangential forces
+            // w cross r = -r w_z e_y + r w_y e_z
+            curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.z));
+            curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.y));
+            wall_torque = wall_torque + make_float3(0, curr_contrib.z, -curr_contrib.y);
+        }
         wall_force = wall_force + curr_contrib;
-        wall_torque = wall_torque + make_float3(0, curr_contrib.z, -curr_contrib.y);
     }
 
     // Do top X wall
@@ -510,11 +513,13 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         // damping always has this minus sign
         curr_contrib.x += -1 * normal_damping_force.x;
 
-        // add tangential forces
-        curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.z));
-        curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.y));
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // add tangential forces
+            curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.z));
+            curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.y));
+            wall_torque = wall_torque + make_float3(0, -curr_contrib.z, curr_contrib.y);
+        }
         wall_force = wall_force + curr_contrib;
-        wall_torque = wall_torque + make_float3(0, -curr_contrib.z, curr_contrib.y);
     }
 
     // Do Y direction
@@ -529,12 +534,13 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         // damping always has this minus sign
         curr_contrib.y += -1 * normal_damping_force.y;
 
-        // add tangential forces
-        curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.x));
-        curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.z));
-
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // add tangential forces
+            curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.x));
+            curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.z));
+            wall_torque = wall_torque + make_float3(curr_contrib.z, 0, -curr_contrib.x);
+        }
         wall_force = wall_force + curr_contrib;
-        wall_torque = wall_torque + make_float3(curr_contrib.z, 0, -curr_contrib.x);
     }
 
     // Do top Y wall
@@ -548,11 +554,13 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         // damping always has this minus sign
         curr_contrib.y += -1 * normal_damping_force.y;
 
-        // add tangential forces
-        curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.x));
-        curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.z));
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // add tangential forces
+            curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.x));
+            curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.z));
+            wall_torque = wall_torque + make_float3(-curr_contrib.z, 0, curr_contrib.x);
+        }
         wall_force = wall_force + curr_contrib;
-        wall_torque = wall_torque + make_float3(-curr_contrib.z, 0, curr_contrib.x);
     }
 
     // Do Z direction
@@ -566,12 +574,13 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         curr_contrib.z += gran_params->Kn_s2w_SU * abs(penetration);
         // damping always has this minus sign
         curr_contrib.z += -1 * normal_damping_force.z;
-
-        // add tangential forces
-        curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.y));
-        curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.x));
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // add tangential forces
+            curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.y));
+            curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.x));
+            wall_torque = wall_torque + make_float3(curr_contrib.y, -curr_contrib.x, 0);
+        }
         wall_force = wall_force + curr_contrib;
-        wall_torque = wall_torque + make_float3(curr_contrib.y, -curr_contrib.x, 0);
     }
 
     // Do top Z wall
@@ -585,16 +594,20 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         // damping always has this minus sign
         curr_contrib.z += -1 * normal_damping_force.z;
 
-        // add tangential forces
-        curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.y));
-        curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.x));
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // add tangential forces
+            curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.y));
+            curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.x));
+            wall_torque = wall_torque + make_float3(-curr_contrib.y, curr_contrib.x, 0);
+        }
         wall_force = wall_force + curr_contrib;
-        wall_torque = wall_torque + make_float3(-curr_contrib.y, curr_contrib.x, 0);
     }
 
     // write back to "return" values
     force_from_wall = force_from_wall + wall_force;
-    torque_from_wall = torque_from_wall + wall_torque;
+    if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+        torque_from_wall = torque_from_wall + wall_torque;
+    }
 }
 
 /**
@@ -633,6 +646,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
     __shared__ int sphere_X[MAX_NSPHERES_PER_SD];
     __shared__ int sphere_Y[MAX_NSPHERES_PER_SD];
     __shared__ int sphere_Z[MAX_NSPHERES_PER_SD];
+    // TODO figure out how we can do this better with no friction
     __shared__ float omega_X[MAX_NSPHERES_PER_SD];
     __shared__ float omega_Y[MAX_NSPHERES_PER_SD];
     __shared__ float omega_Z[MAX_NSPHERES_PER_SD];
@@ -664,9 +678,11 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         sphere_X[threadIdx.x] = sphere_data.pos_X[mySphereID];
         sphere_Y[threadIdx.x] = sphere_data.pos_Y[mySphereID];
         sphere_Z[threadIdx.x] = sphere_data.pos_Z[mySphereID];
-        omega_X[threadIdx.x] = sphere_data.omega_X[mySphereID];
-        omega_Y[threadIdx.x] = sphere_data.omega_Y[mySphereID];
-        omega_Z[threadIdx.x] = sphere_data.omega_Z[mySphereID];
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            omega_X[threadIdx.x] = sphere_data.omega_X[mySphereID];
+            omega_Y[threadIdx.x] = sphere_data.omega_Y[mySphereID];
+            omega_Z[threadIdx.x] = sphere_data.omega_Z[mySphereID];
+        }
         sphere_X_DOT[threadIdx.x] = sphere_data.pos_X_dt[mySphereID];
         sphere_Y_DOT[threadIdx.x] = sphere_data.pos_Y_dt[mySphereID];
         sphere_Z_DOT[threadIdx.x] = sphere_data.pos_Z_dt[mySphereID];
@@ -768,6 +784,13 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             v_rel.y = sphere_Y_DOT[bodyA] - sphere_Y_DOT[bodyB];
             v_rel.z = sphere_Z_DOT[bodyA] - sphere_Z_DOT[bodyB];
 
+            // add tangential components if they exist
+            if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                v_rel =
+                    v_rel + Cross(delta_r, make_float3(omega_X[bodyA] - omega_X[bodyB], omega_Y[bodyA] - omega_Y[bodyB],
+                                                       omega_Z[bodyA] - omega_Z[bodyB]));
+            }
+
             // Compute force updates for damping term
             // Project relative velocity to the normal
             // n = delta_r * reciplength
@@ -777,10 +800,8 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // delta_dot = proj * n
             float3 vrel_n = projection * delta_r * reciplength;
 
-            // remove normal component, add back rotational components
-            v_rel = v_rel - vrel_n +
-                    Cross(delta_r, make_float3(omega_X[bodyA] - omega_X[bodyB], omega_Y[bodyA] - omega_Y[bodyB],
-                                               omega_Z[bodyA] - omega_Z[bodyB]));
+            // remove normal component, now this is just tangential
+            v_rel = v_rel - vrel_n;
 
             constexpr float sphere_mass_SU = 1.f;
             constexpr float m_eff = sphere_mass_SU / 2.f;
@@ -791,11 +812,14 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             float3 springTerm = scalingFactor * delta_r * sphdiameter * penetration;
             float3 dampingTerm = -gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;
             float3 cohesionTerm = -cohesionConstant * delta_r * reciplength;
+            float3 friction_term = {0, 0, 0};
 
             // TODO improve this
             // one-step tangential displacement
-            float3 ut = v_rel * gran_params->alpha_h_bar;
-            float3 friction_term = -gran_params->K_t_s2s_SU * ut - gran_params->Gamma_t_s2s_SU * m_eff * v_rel;
+            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+                float3 ut = v_rel * gran_params->alpha_h_bar;
+                friction_term = -gran_params->K_t_s2s_SU * ut - gran_params->Gamma_t_s2s_SU * m_eff * v_rel;
+            }
 
             // Add damping term to spring term, write back to counter
             bodyA_force.x += springTerm.x + dampingTerm.x + cohesionTerm.x;
@@ -805,12 +829,12 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // compute torque on body
             // multiply by diameter, but normalize by radius to keep numbers sane
             constexpr float diameter_over_radius = 2;
-            // note these don't have a += operator rn
-            bodyA_torque =
-                bodyA_torque + diameter_over_radius * Cross(make_float3(delta_r.x, delta_r.y, delta_r.z), bodyA_force);
-
-            // Now add friction, the cross should have removed it, but there's no need to add it in yet
-            bodyA_force = bodyA_force + friction_term;
+            if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                // Now add friction, the cross should remove it anyways maybe
+                bodyA_force = bodyA_force + friction_term;
+                // note these don't have a += operator rn
+                bodyA_torque = bodyA_torque + diameter_over_radius * Cross(delta_r, bodyA_force);
+            }
         }
 
         // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
@@ -839,10 +863,12 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         atomicAdd(sphere_data.sphere_force_Y + mySphereID, bodyA_force.y);
         atomicAdd(sphere_data.sphere_force_Z + mySphereID, bodyA_force.z);
 
-        // write back torques for later
-        atomicAdd(sphere_data.sphere_torque_X + mySphereID, bodyA_torque.x);
-        atomicAdd(sphere_data.sphere_torque_Y + mySphereID, bodyA_torque.y);
-        atomicAdd(sphere_data.sphere_torque_Z + mySphereID, bodyA_torque.z);
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // write back torques for later
+            atomicAdd(sphere_data.sphere_torque_X + mySphereID, bodyA_torque.x);
+            atomicAdd(sphere_data.sphere_torque_Y + mySphereID, bodyA_torque.y);
+            atomicAdd(sphere_data.sphere_torque_Z + mySphereID, bodyA_torque.z);
+        }
     }
     __syncthreads();
 }
@@ -855,8 +881,7 @@ template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block
 __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical integration time step
                                 sphereDataStruct sphere_data,
                                 unsigned int nSpheres,
-                                ParamsPtr gran_params,
-                                chrono::granular::GRAN_TIME_INTEGRATOR integrator) {
+                                ParamsPtr gran_params) {
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
@@ -910,16 +935,18 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         old_vel_y = sphere_data.pos_Y_dt[mySphereID];
         old_vel_z = sphere_data.pos_Z_dt[mySphereID];
         // no divergence, same for every thread in block
-        switch (integrator) {
+        switch (gran_params->integrator_type) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 v_update_x = alpha_h_bar * sphere_data.sphere_force_X[mySphereID];
                 v_update_y = alpha_h_bar * sphere_data.sphere_force_Y[mySphereID];
                 v_update_z = alpha_h_bar * sphere_data.sphere_force_Z[mySphereID];
 
-                // tau = I alpha => alpha = tau / I
-                omega_update_x = alpha_h_bar * sphere_data.sphere_torque_X[mySphereID] / sphere_inertia;
-                omega_update_y = alpha_h_bar * sphere_data.sphere_torque_Y[mySphereID] / sphere_inertia;
-                omega_update_z = alpha_h_bar * sphere_data.sphere_torque_Z[mySphereID] / sphere_inertia;
+                if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                    // tau = I alpha => alpha = tau / I
+                    omega_update_x = alpha_h_bar * sphere_data.sphere_torque_X[mySphereID] / sphere_inertia;
+                    omega_update_y = alpha_h_bar * sphere_data.sphere_torque_Y[mySphereID] / sphere_inertia;
+                    omega_update_z = alpha_h_bar * sphere_data.sphere_torque_Z[mySphereID] / sphere_inertia;
+                }
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
@@ -931,6 +958,10 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
                                             sphere_data.sphere_force_Y_old[mySphereID] * gamma_hat);
                 v_update_z = alpha_h_bar * (sphere_data.sphere_force_Z[mySphereID] * gamma +
                                             sphere_data.sphere_force_Z_old[mySphereID] * gamma_hat);
+
+                if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                    ABORTABORTABORT("friction chung not yet implemented\n!");
+                }
                 break;
             }
         }
@@ -940,13 +971,11 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         atomicAdd(sphere_data.pos_Y_dt + mySphereID, v_update_y);
         atomicAdd(sphere_data.pos_Z_dt + mySphereID, v_update_z);
 
-        // printf("tau is (%f, %f, %f), domega is (%f, %f, %f)\n", sphere_data.sphere_torque_X[mySphereID],
-        //        sphere_data.sphere_torque_Y[mySphereID], sphere_data.sphere_torque_Z[mySphereID], omega_update_x,
-        //        omega_update_y, omega_update_z);
-
-        atomicAdd(sphere_data.omega_X + mySphereID, omega_update_x);
-        atomicAdd(sphere_data.omega_Y + mySphereID, omega_update_y);
-        atomicAdd(sphere_data.omega_Z + mySphereID, omega_update_z);
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            atomicAdd(sphere_data.omega_X + mySphereID, omega_update_x);
+            atomicAdd(sphere_data.omega_Y + mySphereID, omega_update_y);
+            atomicAdd(sphere_data.omega_Z + mySphereID, omega_update_z);
+        }
     }
     // wait for everyone to finish
     __syncthreads();
@@ -955,7 +984,7 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         float position_update_y = 0;
         float position_update_z = 0;
         // no divergence, same for every thread in block
-        switch (integrator) {
+        switch (gran_params->integrator_type) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 position_update_x = alpha_h_bar * sphere_data.pos_X_dt[mySphereID];
                 position_update_y = alpha_h_bar * sphere_data.pos_Y_dt[mySphereID];
@@ -983,12 +1012,11 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         zSphCenter = position_update_z;
 
         xSphCenter += sphere_data.pos_X[mySphereID];
-        sphere_data.pos_X[mySphereID] = xSphCenter;
-
         ySphCenter += sphere_data.pos_Y[mySphereID];
-        sphere_data.pos_Y[mySphereID] = ySphCenter;
-
         zSphCenter += sphere_data.pos_Z[mySphereID];
+
+        sphere_data.pos_X[mySphereID] = xSphCenter;
+        sphere_data.pos_Y[mySphereID] = ySphCenter;
         sphere_data.pos_Z[mySphereID] = zSphCenter;
 
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched, gran_params);
