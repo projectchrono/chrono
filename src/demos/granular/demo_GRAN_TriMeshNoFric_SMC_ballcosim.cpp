@@ -19,6 +19,7 @@
 /*! \file */
 
 #include <iostream>
+#include <vector>
 #include <string>
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
@@ -178,8 +179,8 @@ int main(int argc, char* argv[]) {
 
         m_sys_gran.advance_simulation(iteration_step);
         if (currframe >= 30) {
-            float ball_force[6 * num_mesh_balls];
-            m_sys_gran.collectGeneralizedForcesOnMeshSoup(ball_force);
+            std::vector<float> ball_force(6 * num_mesh_balls);
+            m_sys_gran.collectGeneralizedForcesOnMeshSoup(ball_force.data());
             // Apply forces to the ball for the duration of the iteration
             for (unsigned int i = 0; i < num_mesh_balls; i++) {
                 std::shared_ptr<ChBody> ball = chrono_bodies[i];
