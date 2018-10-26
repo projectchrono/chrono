@@ -60,6 +60,9 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/geometry/ChTriangleMesh.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -274,6 +277,9 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChLoadBodyBodyBushingPlastic)
 %shared_ptr(chrono::ChLoadBodyBodyBushingGeneric)
 
+%shared_ptr(chrono::geometry::ChTriangleMesh)
+%shared_ptr(chrono::geometry::ChTriangleMeshConnected)
+%shared_ptr(chrono::geometry::ChTriangleMeshSoup)
 
 //
 // B- INCLUDE HEADERS
@@ -402,7 +408,9 @@ using namespace chrono::geometry;
 %include "../chrono/physics/ChLoadContainer.h"
 
 
-
+%include "../chrono/geometry/ChTriangleMesh.h"
+%include "../chrono/geometry/ChTriangleMeshConnected.h"
+%include "../chrono/geometry/ChTriangleMeshSoup.h"
 
 
 //
@@ -566,6 +574,9 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingPlastic)
 %DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingMate)
 %DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingGeneric)
+
+%DefChSharedPtrDynamicDowncast(ChTriangleMesh, ChTriangleMeshConnected)
+%DefChSharedPtrDynamicDowncast(ChTriangleMesh, ChTriangleMeshSoup)
 
 // .. to complete
 
