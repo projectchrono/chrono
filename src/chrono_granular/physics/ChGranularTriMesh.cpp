@@ -113,12 +113,12 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::st
 
     // Write all vertices
     for (unsigned int tri_i = 0; tri_i < meshSoup_DEVICE->nTrianglesInSoup; tri_i++) {
-        ChVector<float> p1(meshSoup_DEVICE->node1_X[tri_i], meshSoup_DEVICE->node1_Y[tri_i],
-                           meshSoup_DEVICE->node1_Z[tri_i]);
-        ChVector<float> p2(meshSoup_DEVICE->node2_X[tri_i], meshSoup_DEVICE->node2_Y[tri_i],
-                           meshSoup_DEVICE->node2_Z[tri_i]);
-        ChVector<float> p3(meshSoup_DEVICE->node3_X[tri_i], meshSoup_DEVICE->node3_Y[tri_i],
-                           meshSoup_DEVICE->node3_Z[tri_i]);
+        ChVector<float> p1(meshSoup_DEVICE->node1[tri_i].x, meshSoup_DEVICE->node1[tri_i].y,
+                           meshSoup_DEVICE->node1[tri_i].z);
+        ChVector<float> p2(meshSoup_DEVICE->node2[tri_i].x, meshSoup_DEVICE->node2[tri_i].y,
+                           meshSoup_DEVICE->node2[tri_i].z);
+        ChVector<float> p3(meshSoup_DEVICE->node3[tri_i].x, meshSoup_DEVICE->node3[tri_i].y,
+                           meshSoup_DEVICE->node3[tri_i].z);
 
         unsigned int fam = meshSoup_DEVICE->triangleFamily_ID[tri_i];
         p1 = ApplyFrameTransform<float>(p1, tri_params->fam_frame_broad[fam].pos,
@@ -151,17 +151,9 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::write_meshes(std::st
 void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::cleanupTriMesh_DEVICE() {
     cudaFree(meshSoup_DEVICE->triangleFamily_ID);
 
-    cudaFree(meshSoup_DEVICE->node1_X);
-    cudaFree(meshSoup_DEVICE->node1_Y);
-    cudaFree(meshSoup_DEVICE->node1_Z);
-
-    cudaFree(meshSoup_DEVICE->node2_X);
-    cudaFree(meshSoup_DEVICE->node2_Y);
-    cudaFree(meshSoup_DEVICE->node2_Z);
-
-    cudaFree(meshSoup_DEVICE->node3_X);
-    cudaFree(meshSoup_DEVICE->node3_Y);
-    cudaFree(meshSoup_DEVICE->node3_Z);
+    cudaFree(meshSoup_DEVICE->node1);
+    cudaFree(meshSoup_DEVICE->node2);
+    cudaFree(meshSoup_DEVICE->node3);
 
     cudaFree(meshSoup_DEVICE->node1_XDOT);
     cudaFree(meshSoup_DEVICE->node1_YDOT);
@@ -182,7 +174,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
     const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
     unsigned int nTriangles) {
     // Allocate the device soup storage
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(ChTriangleSoup<float>), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(ChTriangleSoup<float3>), cudaMemAttachGlobal));
 
     meshSoup_DEVICE->nTrianglesInSoup = nTriangles;
 
@@ -191,17 +183,9 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->triangleFamily_ID, nTriangles * sizeof(unsigned int),
                                     cudaMemAttachGlobal));
 
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
-
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
-
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_X, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_Y, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_Z, nTriangles * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1, nTriangles * sizeof(float3), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2, nTriangles * sizeof(float3), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3, nTriangles * sizeof(float3), cudaMemAttachGlobal));
 
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
@@ -227,17 +211,9 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
         for (int i = 0; i < n_triangles_mesh; i++) {
             geometry::ChTriangle tri = mesh.getTriangle(i);
 
-            meshSoup_DEVICE->node1_X[tri_i] = tri.p1.x();
-            meshSoup_DEVICE->node1_Y[tri_i] = tri.p1.y();
-            meshSoup_DEVICE->node1_Z[tri_i] = tri.p1.z();
-
-            meshSoup_DEVICE->node2_X[tri_i] = tri.p2.x();
-            meshSoup_DEVICE->node2_Y[tri_i] = tri.p2.y();
-            meshSoup_DEVICE->node2_Z[tri_i] = tri.p2.z();
-
-            meshSoup_DEVICE->node3_X[tri_i] = tri.p3.x();
-            meshSoup_DEVICE->node3_Y[tri_i] = tri.p3.y();
-            meshSoup_DEVICE->node3_Z[tri_i] = tri.p3.z();
+            meshSoup_DEVICE->node1[tri_i] = make_float3(tri.p1.x(), tri.p1.y(), tri.p1.z());
+            meshSoup_DEVICE->node2[tri_i] = make_float3(tri.p2.x(), tri.p2.y(), tri.p2.z());
+            meshSoup_DEVICE->node3[tri_i] = make_float3(tri.p3.x(), tri.p3.y(), tri.p3.z());
 
             meshSoup_DEVICE->triangleFamily_ID[tri_i] = family;
 
@@ -253,9 +229,7 @@ void ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::setupTriMesh_DEVICE(
 
             // If the normal created by a RHR traversal is not correct, switch two vertices
             if (cross.Dot(normal) < 0) {
-                std::swap(meshSoup_DEVICE->node2_X[tri_i], meshSoup_DEVICE->node3_X[tri_i]);
-                std::swap(meshSoup_DEVICE->node2_Y[tri_i], meshSoup_DEVICE->node3_Y[tri_i]);
-                std::swap(meshSoup_DEVICE->node2_Z[tri_i], meshSoup_DEVICE->node3_Z[tri_i]);
+                std::swap(meshSoup_DEVICE->node2[tri_i], meshSoup_DEVICE->node3[tri_i]);
             }
             tri_i++;
         }

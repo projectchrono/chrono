@@ -31,7 +31,7 @@
 namespace chrono {
 namespace granular {
 typedef const ChSystemGranularMonodisperse_SMC_Frictionless_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
-typedef ChTriangleSoup<float>* TriangleSoupPtr;
+typedef ChTriangleSoup<float3>* TriangleSoupPtr;
 
 /// Takes in a triangle's position in UU and finds out what SDs it touches
 /// Triangle broadphase is done in float by applying the frame transform
@@ -41,29 +41,15 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                              unsigned int* touchedSDs,
                                              ParamsPtr gran_params,
                                              MeshParamsPtr tri_params) {
-    float3 vA, vB, vC;  // vertices of the triangle
-
-    // Read LRF UU vertices of the triangle
-    // Coalesced memory accesses; we have an int to float conversion here
-    vA.x = triangleSoup->node1_X[triangleID];
-    vA.y = triangleSoup->node1_Y[triangleID];
-    vA.z = triangleSoup->node1_Z[triangleID];
-
-    vB.x = triangleSoup->node2_X[triangleID];
-    vB.y = triangleSoup->node2_Y[triangleID];
-    vB.z = triangleSoup->node2_Z[triangleID];
-
-    vC.x = triangleSoup->node3_X[triangleID];
-    vC.y = triangleSoup->node3_Y[triangleID];
-    vC.z = triangleSoup->node3_Z[triangleID];
+    float3 vA, vB, vC;
 
     // Transform LRF to GRF
     unsigned int fam = triangleSoup->triangleFamily_ID[triangleID];
-    vA = apply_frame_transform<float, float3>(vA, tri_params->fam_frame_broad[fam].pos,
+    vA = apply_frame_transform<float, float3>(triangleSoup->node1[triangleID], tri_params->fam_frame_broad[fam].pos,
                                               tri_params->fam_frame_broad[fam].rot_mat);
-    vB = apply_frame_transform<float, float3>(vB, tri_params->fam_frame_broad[fam].pos,
+    vB = apply_frame_transform<float, float3>(triangleSoup->node2[triangleID], tri_params->fam_frame_broad[fam].pos,
                                               tri_params->fam_frame_broad[fam].rot_mat);
-    vC = apply_frame_transform<float, float3>(vC, tri_params->fam_frame_broad[fam].pos,
+    vC = apply_frame_transform<float, float3>(triangleSoup->node3[triangleID], tri_params->fam_frame_broad[fam].pos,
                                               tri_params->fam_frame_broad[fam].rot_mat);
 
     // Convert UU to SU
@@ -411,19 +397,9 @@ __global__ void interactionTerrain_TriangleSoup(
     __shared__ float sphere_Y_DOT[MAX_COUNT_OF_DEs_PER_SD];
     __shared__ float sphere_Z_DOT[MAX_COUNT_OF_DEs_PER_SD];
 
-    __shared__ double node1_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 1st node of the triangle
-    __shared__ double node1_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 1st node of the triangle
-    __shared__ double node1_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 1st node of the triangle
-
-    __shared__ double node2_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 2nd node of the triangle
-    __shared__ double node2_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 2nd node of the triangle
-    __shared__ double node2_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 2nd node of the triangle
-
-    __shared__ double node3_X[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< X coordinate of the 3rd node of the triangle
-    __shared__ double node3_Y[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Y coordinate of the 3rd node of the triangle
-    __shared__ double node3_Z[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Z coordinate of the 3rd node of the triangle
-
-    volatile __shared__ float tempShMem[6 * (N_CUDATHREADS / warp_size)];  // used to do a block-level reduce
+    __shared__ double3 node1[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Coordinates of the 1st node of the triangle
+    __shared__ double3 node2[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Coordinates of the 2nd node of the triangle
+    __shared__ double3 node3[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Coordinates of the 3rd node of the triangle
 
     float forceActingOnSphere[3];  //!< 3 registers will hold the value of the force on the sphere
     float genForceActingOnMeshes[MAX_TRIANGLE_FAMILIES * 6];  //!< 6 components per family: 3 forces and 3 torques
@@ -476,17 +452,22 @@ __global__ void interactionTerrain_TriangleSoup(
 
             // Read node positions from global memory into shared memory
             // NOTE implicit cast from float to double here
-            node1_X[local_ID] = d_triangleSoup->node1_X[globalID];
-            node1_Y[local_ID] = d_triangleSoup->node1_Y[globalID];
-            node1_Z[local_ID] = d_triangleSoup->node1_Z[globalID];
+            unsigned int fam = d_triangleSoup->triangleFamily_ID[globalID];
+            node1[local_ID] = apply_frame_transform<double, float3, double3>(
+                d_triangleSoup->node1[globalID], mesh_params->fam_frame_narrow[fam].pos,
+                mesh_params->fam_frame_narrow[fam].rot_mat);
 
-            node2_X[local_ID] = d_triangleSoup->node2_X[globalID];
-            node2_Y[local_ID] = d_triangleSoup->node2_Y[globalID];
-            node2_Z[local_ID] = d_triangleSoup->node2_Z[globalID];
+            node2[local_ID] = apply_frame_transform<double, float3, double3>(
+                d_triangleSoup->node2[globalID], mesh_params->fam_frame_narrow[fam].pos,
+                mesh_params->fam_frame_narrow[fam].rot_mat);
 
-            node3_X[local_ID] = d_triangleSoup->node3_X[globalID];
-            node3_Y[local_ID] = d_triangleSoup->node3_Y[globalID];
-            node3_Z[local_ID] = d_triangleSoup->node3_Z[globalID];
+            node3[local_ID] = apply_frame_transform<double, float3, double3>(
+                d_triangleSoup->node3[globalID], mesh_params->fam_frame_narrow[fam].pos,
+                mesh_params->fam_frame_narrow[fam].rot_mat);
+
+            convert_pos_UU2SU<double3>(node1[local_ID], gran_params);
+            convert_pos_UU2SU<double3>(node2[local_ID], gran_params);
+            convert_pos_UU2SU<double3>(node3[local_ID], gran_params);
         }
         local_ID += blockDim.x;
     }
@@ -494,16 +475,16 @@ __global__ void interactionTerrain_TriangleSoup(
     __syncthreads();  // this call ensures data is in its place in shared memory
 
     // Zero out the force and torque at the onset of the computation
-    for (local_ID = 0; local_ID < MAX_TRIANGLE_FAMILIES; local_ID++) {
-        unsigned int dummyOffset = 6 * local_ID;
+    for (unsigned int fam = 0; fam < d_triangleSoup->nFamiliesInSoup; fam++) {
+        const unsigned int offset = 6 * fam;
         /// forces acting on the triangle, in global reference frame
-        genForceActingOnMeshes[dummyOffset++] = 0.f;
-        genForceActingOnMeshes[dummyOffset++] = 0.f;
-        genForceActingOnMeshes[dummyOffset++] = 0.f;
+        genForceActingOnMeshes[offset + 0] = 0.f;
+        genForceActingOnMeshes[offset + 1] = 0.f;
+        genForceActingOnMeshes[offset + 2] = 0.f;
         /// torques with respect to global reference frame, expressed in global reference frame
-        genForceActingOnMeshes[dummyOffset++] = 0.f;
-        genForceActingOnMeshes[dummyOffset++] = 0.f;
-        genForceActingOnMeshes[dummyOffset] = 0.f;
+        genForceActingOnMeshes[offset + 3] = 0.f;
+        genForceActingOnMeshes[offset + 4] = 0.f;
+        genForceActingOnMeshes[offset + 5] = 0.f;
     }
 
     // Each sphere has one warp of threads dedicated to identifying all triangles that this sphere
@@ -534,44 +515,16 @@ __global__ void interactionTerrain_TriangleSoup(
                     double3 pt1;
                     float depth;
 
-                    // Transform vertices into GRF SU
-                    double3 A, B, C;  // vertices of the triangle
-
-                    // Read LRF UU vertices of the triangle
-                    // We have an int to double conversion here
-                    // NOTE: uncoalesced
-                    A.x = node1_X[targetTriangle];
-                    A.y = node1_Y[targetTriangle];
-                    A.z = node1_Z[targetTriangle];
-
-                    B.x = node2_X[targetTriangle];
-                    B.y = node2_Y[targetTriangle];
-                    B.z = node2_Z[targetTriangle];
-
-                    C.x = node3_X[targetTriangle];
-                    C.y = node3_Y[targetTriangle];
-                    C.z = node3_Z[targetTriangle];
-
                     // Transform LRF to GRF
                     unsigned int fam = d_triangleSoup->triangleFamily_ID[triangID[targetTriangle]];
-                    A = apply_frame_transform<double, double3>(A, mesh_params->fam_frame_narrow[fam].pos,
-                                                               mesh_params->fam_frame_narrow[fam].rot_mat);
-                    B = apply_frame_transform<double, double3>(B, mesh_params->fam_frame_narrow[fam].pos,
-                                                               mesh_params->fam_frame_narrow[fam].rot_mat);
-                    C = apply_frame_transform<double, double3>(C, mesh_params->fam_frame_narrow[fam].pos,
-                                                               mesh_params->fam_frame_narrow[fam].rot_mat);
-
-                    // Convert UU to SU
-                    convert_pos_UU2SU<double3>(A, gran_params);
-                    convert_pos_UU2SU<double3>(B, gran_params);
-                    convert_pos_UU2SU<double3>(C, gran_params);
 
                     // NOTE implicit cast from int to double
                     double3 sphCntr = make_double3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]);
 
                     // TODO Conlain, check this force computation
                     // If there is a collision, add an impulse to the sphere
-                    if (face_sphere_cd(A, B, C, sphCntr, gran_params->sphereRadius_SU, norm, depth, pt1) &&
+                    if (face_sphere_cd(node1[targetTriangle], node2[targetTriangle], node3[targetTriangle], sphCntr,
+                                       gran_params->sphereRadius_SU, norm, depth, pt1) &&
                         SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD) {
                         float scalingFactor = mesh_params->Kn_s2m_SU;
 
