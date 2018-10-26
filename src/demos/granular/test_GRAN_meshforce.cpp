@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC_Frictionless_trimesh m_sys(params.sphere_radius, params.sphere_density);
+    ChSystemGranularMonodisperse_SMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
 
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -76,23 +76,22 @@ int main(int argc, char* argv[]) {
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
-    m_sys.setOutputMode(GRN_OUTPUT_MODE::CSV);
+    m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
     m_sys.setOutputDirectory(params.output_dir);
     ChFileutils::MakeDirectory(output_dir.c_str());
 
-    m_sys.set_timeStepping(GRN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRN_TIME_INTEGRATOR::FORWARD_EULER);
+    m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys.set_fixed_stepSize(params.step_size);
 
     m_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     m_sys.set_BD_Fixed(true);
 
     utils::HCPSampler<float> sampler(2.1 * params.sphere_radius);
-    auto pos = sampler.SampleBox(ChVector<>(0, 0, 26), ChVector<>(38,38,10));
-
+    auto pos = sampler.SampleBox(ChVector<>(0, 0, 26), ChVector<>(38, 38, 10));
 
     unsigned int n_spheres = pos.size();
-	cout << "Created " << n_spheres << " spheres" << endl;
+    cout << "Created " << n_spheres << " spheres" << endl;
     double sphere_mass = params.sphere_density * 4.0 * CH_C_PI * params.sphere_radius * params.sphere_radius *
                          params.sphere_radius / 3.0;
 

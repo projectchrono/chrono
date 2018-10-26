@@ -1,5 +1,5 @@
 {
-	"sphere_radius": 0.5,
+	"sphere_radius": 1,
 	"sphere_density": 6,
 	"box_X": 400,
 	"box_Y": 200,
