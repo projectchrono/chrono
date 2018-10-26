@@ -31,35 +31,27 @@ namespace granular {
  *\attention Some other agent needs to allocate/deallocate memory pointed to by variables in this class
  *
  */
-template <class T>
+template <class T3>
 struct ChTriangleSoup {
     unsigned int nTrianglesInSoup;    //!< total number of triangles in the soup
     unsigned int nFamiliesInSoup;     //!< indicates how many meshes are squashed together in this soup
     unsigned int* triangleFamily_ID;  //!< each entry says what family that triagnle belongs to; size: nTrianglesInSoup
 
-    T* node1_X;  //!< X position in global reference frame of node 1
-    T* node1_Y;  //!< Y position in global reference frame of node 1
-    T* node1_Z;  //!< Z position in global reference frame of node 1
+    T3* node1;  //!< Position in local reference frame of node 1
+    T3* node2;  //!< Position in local reference frame of node 2
+    T3* node3;  //!< Position in local reference frame of node 3
 
-    T* node2_X;  //!< X position in global reference frame of node 2
-    T* node2_Y;  //!< Y position in global reference frame of node 2
-    T* node2_Z;  //!< Z position in global reference frame of node 2
+    float* node1_XDOT;  //!< X velocity in local reference frame of node 1
+    float* node1_YDOT;  //!< Y velocity in local reference frame of node 1
+    float* node1_ZDOT;  //!< Z velocity in local reference frame of node 1
 
-    T* node3_X;  //!< X position in global reference frame of node 3
-    T* node3_Y;  //!< Y position in global reference frame of node 3
-    T* node3_Z;  //!< Z position in global reference frame of node 3
+    float* node2_XDOT;  //!< X velocity in local reference frame of node 2
+    float* node2_YDOT;  //!< Y velocity in local reference frame of node 2
+    float* node2_ZDOT;  //!< Z velocity in local reference frame of node 2
 
-    float* node1_XDOT;  //!< X velocity in global reference frame of node 1
-    float* node1_YDOT;  //!< Y velocity in global reference frame of node 1
-    float* node1_ZDOT;  //!< Z velocity in global reference frame of node 1
-
-    float* node2_XDOT;  //!< X velocity in global reference frame of node 2
-    float* node2_YDOT;  //!< Y velocity in global reference frame of node 2
-    float* node2_ZDOT;  //!< Z velocity in global reference frame of node 2
-
-    float* node3_XDOT;  //!< X velocity in global reference frame of node 3
-    float* node3_YDOT;  //!< Y velocity in global reference frame of node 3
-    float* node3_ZDOT;  //!< Z velocity in global reference frame of node 3
+    float* node3_XDOT;  //!< X velocity in local reference frame of node 3
+    float* node3_YDOT;  //!< Y velocity in local reference frame of node 3
+    float* node3_ZDOT;  //!< Z velocity in local reference frame of node 3
 
     float* generalizedForcesPerFamily;  //!< Generalized forces acting on each family. Expressed
                                         //!< in the global reference frame. Size: 6 * MAX_TRIANGLE_FAMILIES.
@@ -134,7 +126,7 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC_trimesh : public ChSystem
     /// clean copy of mesh soup interacting with granular material
     // store a pointer since we use unified memory for this
     // Stored in UU
-    ChTriangleSoup<float>* meshSoup_DEVICE;
+    ChTriangleSoup<float3>* meshSoup_DEVICE;
 
     double K_n_s2m_UU;  //!< the stiffness associated w/ contact between a mesh element and gran material
     double K_n_s2m_SU;  //!< size of the normal stiffness (SU) for sphere-to-mesh contact

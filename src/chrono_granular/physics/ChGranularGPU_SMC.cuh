@@ -42,9 +42,9 @@ using chrono::granular::sphereDataStruct;
 #define MAX_Z_POS_UNSIGNED (gran_params->SD_size_Z_SU * gran_params->nSDs_Z)
 
 /// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
-template <class T, class T3>
-__device__ T3 apply_frame_transform(const T3& point, const T* pos, const T* rot_mat) {
-    T3 result;
+template <class IN_T, class IN_T3, class OUT_T3 = IN_T3>
+__device__ OUT_T3 apply_frame_transform(const IN_T3& point, const IN_T* pos, const IN_T* rot_mat) {
+    OUT_T3 result;
 
     // Apply rotation matrix to point
     result.x = rot_mat[0] * point.x + rot_mat[1] * point.y + rot_mat[2] * point.z;
