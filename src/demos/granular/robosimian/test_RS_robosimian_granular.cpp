@@ -221,6 +221,7 @@ int main(int argc, char* argv[]) {
                 GetChronoDataFile("robosimian/actuation/inchworming_cycle.txt"),  // cycle input file
                 GetChronoDataFile("robosimian/actuation/inchworming_stop.txt"),   // stop input file
                 true);
+				break;
         case RUN_MODE::SLED:
             driver = std::make_shared<robosimian::Driver>(
                 GetChronoDataFile("robosimian/actuation/sculling_start.txt"),   // start input file
