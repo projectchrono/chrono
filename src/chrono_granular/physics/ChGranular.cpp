@@ -28,7 +28,11 @@ namespace chrono {
 namespace granular {
 
 ChSystemGranular::ChSystemGranular()
-    : time_stepping(GRAN_TIME_STEPPING::AUTO), nDEs(0), elapsedSimTime(0), fric_mode(FRICTIONLESS) {
+    : time_stepping(GRAN_TIME_STEPPING::AUTO),
+      nDEs(0),
+      elapsedSimTime(0),
+      contact_model(HOOKE),
+      fric_mode(FRICTIONLESS) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
     gran_params->psi_T = PSI_T_DEFAULT;
     gran_params->psi_h = PSI_h_DEFAULT;

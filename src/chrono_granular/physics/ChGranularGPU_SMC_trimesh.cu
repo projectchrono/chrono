@@ -402,7 +402,6 @@ __global__ void interactionTerrain_TriangleSoup(
     __shared__ double3 node3[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Coordinates of the 3rd node of the triangle
 
     float forceActingOnSphere[3];  //!< 3 registers will hold the value of the force on the sphere
-    float genForceActingOnMeshes[MAX_TRIANGLE_FAMILIES * 6];  //!< 6 components per family: 3 forces and 3 torques
 
     // define an alias first
     unsigned int thisSD = blockIdx.x;
@@ -473,19 +472,6 @@ __global__ void interactionTerrain_TriangleSoup(
     }
 
     __syncthreads();  // this call ensures data is in its place in shared memory
-
-    // Zero out the force and torque at the onset of the computation
-    for (unsigned int fam = 0; fam < d_triangleSoup->nFamiliesInSoup; fam++) {
-        const unsigned int offset = 6 * fam;
-        /// forces acting on the triangle, in global reference frame
-        genForceActingOnMeshes[offset + 0] = 0.f;
-        genForceActingOnMeshes[offset + 1] = 0.f;
-        genForceActingOnMeshes[offset + 2] = 0.f;
-        /// torques with respect to global reference frame, expressed in global reference frame
-        genForceActingOnMeshes[offset + 3] = 0.f;
-        genForceActingOnMeshes[offset + 4] = 0.f;
-        genForceActingOnMeshes[offset + 5] = 0.f;
-    }
 
     // Each sphere has one warp of threads dedicated to identifying all triangles that this sphere
     // touches. Upon a contact event, we'll compute the normal force on the sphere; and, the force and torque

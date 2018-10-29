@@ -84,6 +84,8 @@ enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG };
 
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
+enum GRAN_CONTACT_MODEL { HOOKE, HERTZ };
+
 /// Parameters needed for sphere-based granular dynamics
 struct GranParamsHolder {
     // Timestep in SU
@@ -91,6 +93,7 @@ struct GranParamsHolder {
 
     GRAN_FRICTION_MODE friction_mode;
     GRAN_TIME_INTEGRATOR integrator_type;
+    GRAN_CONTACT_MODEL contact_model;
 
     // Use user-defined quantities for coefficients
     float Gamma_n_s2s_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
@@ -169,6 +172,7 @@ class CH_GRANULAR_API ChSystemGranular {
     void set_fixed_stepSize(float size_UU) { fixed_step_UU = size_UU; }
     void set_timeStepping(GRAN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
     void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) { time_integrator = new_integrator; }
+    void set_contactModel(GRAN_CONTACT_MODEL new_contact_model) { contact_model = new_contact_model; }
 
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
@@ -245,6 +249,8 @@ class CH_GRANULAR_API ChSystemGranular {
 
     GRAN_TIME_STEPPING time_stepping;      //!< Indicates what type of time stepping the simulation employs.
     GRAN_TIME_INTEGRATOR time_integrator;  //!< Indicates what type of time integrator the simulation employs.
+
+    GRAN_CONTACT_MODEL contact_model;  //!< DEM local contact force model
 
     bool primed = false;  //!< Indicates that the priming step has occurred
 

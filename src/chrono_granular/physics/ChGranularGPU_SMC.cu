@@ -75,6 +75,7 @@ __host__ void ChSystemGranularMonodisperse_SMC::copy_const_data_to_device() {
     gran_params->cohesion_ratio = cohesion_over_gravity;
 
     gran_params->integrator_type = time_integrator;
+    gran_params->contact_model = contact_model;
     gran_params->friction_mode = fric_mode;
 }
 

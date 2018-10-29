@@ -700,7 +700,6 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         float3 bodyA_force = {0.f, 0.f, 0.f};
         float3 bodyA_torque = {0.f, 0.f, 0.f};
 
-        float scalingFactor = gran_params->Kn_s2s_SU;
         float sphdiameter = 2. * sphereRadius_SU;
         double invSphDiameter = 1. / (2. * sphereRadius_SU);
         unsigned int ownerSD =
@@ -805,36 +804,56 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
             constexpr float sphere_mass_SU = 1.f;
             constexpr float m_eff = sphere_mass_SU / 2.f;
+            float model_term = 0.f;
+            switch (gran_params->contact_model) {
+                case chrono::granular::GRAN_CONTACT_MODEL::HOOKE:
+                    model_term = 1.f;
+                    break;
+
+                case chrono::granular::GRAN_CONTACT_MODEL::HERTZ: {
+                    const float r_eff = (sphereRadius_SU) / 2;  // r_eff = (r_i * r_j) / (r_i + r_j)
+                    const float delta_n = 2 * sphereRadius_SU * (1 - (1.f / reciplength));  // d_n = 2R(1-||dr||)
+                    model_term = sqrt(r_eff * delta_n);
+                    break;
+                }
+
+                default:
+                    ABORTABORTABORT("Invalid contact model\n");
+            }
 
             const float cohesionConstant = sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
 
-            // Compute each force term
-            float3 springTerm = scalingFactor * delta_r * sphdiameter * penetration;
-            float3 dampingTerm = -gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;
-            float3 cohesionTerm = -cohesionConstant * delta_r * reciplength;
-            float3 friction_term = {0, 0, 0};
+            // Force accumulator
+            // Add spring term
+            float3 force_acc = gran_params->Kn_s2s_SU * delta_r * sphdiameter * penetration;
+
+            // Add damping term
+            force_acc = force_acc - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;
 
             // TODO improve this
             // one-step tangential displacement
             if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-                float3 ut = v_rel * gran_params->alpha_h_bar;
-                friction_term = -gran_params->K_t_s2s_SU * ut - gran_params->Gamma_t_s2s_SU * m_eff * v_rel;
+                // both tangential terms combine for single step
+                const float combined_tangent_coeff =
+                    gran_params->K_t_s2s_SU * gran_params->alpha_h_bar + gran_params->Gamma_t_s2s_SU * m_eff;
+                force_acc = force_acc - combined_tangent_coeff * v_rel;
             }
 
-            // Add damping term to spring term, write back to counter
-            bodyA_force.x += springTerm.x + dampingTerm.x + cohesionTerm.x;
-            bodyA_force.y += springTerm.y + dampingTerm.y + cohesionTerm.y;
-            bodyA_force.z += springTerm.z + dampingTerm.z + cohesionTerm.z;
+            // Multiply sping and damping terms by model multiplier
+            force_acc = force_acc * model_term;
+
+            // Add cohesion term
+            force_acc = force_acc - cohesionConstant * delta_r * reciplength;
 
             // compute torque on body
             // multiply by diameter, but normalize by radius to keep numbers sane
             constexpr float diameter_over_radius = 2;
             if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                 // Now add friction, the cross should remove it anyways maybe
-                bodyA_force = bodyA_force + friction_term;
-                // note these don't have a += operator rn
-                bodyA_torque = bodyA_torque + diameter_over_radius * Cross(delta_r, bodyA_force);
+                bodyA_torque = bodyA_torque + diameter_over_radius * Cross(delta_r, force_acc);
             }
+
+            bodyA_force = bodyA_force + force_acc;
         }
 
         // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
