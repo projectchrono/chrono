@@ -33,7 +33,6 @@ ChVehicleOutputASCII::ChVehicleOutputASCII(const std::string& filename) {
 
 ChVehicleOutputASCII::~ChVehicleOutputASCII() {
     m_stream.close();
-    GetLog() << "Closing output stream.\n";
 }
 
 void ChVehicleOutputASCII::WriteTime(int frame, double time) {

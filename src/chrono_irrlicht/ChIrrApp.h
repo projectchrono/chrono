@@ -35,7 +35,8 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
              bool do_fullscreen = false,
              bool do_shadows = false,
              bool do_antialias = true,
-             irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9);
+             irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
+             irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
     /// Safely delete every Irrlicht item (including the Irrlicht scene nodes).
     virtual ~ChIrrApp();

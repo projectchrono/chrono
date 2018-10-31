@@ -367,7 +367,8 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
                                      bool do_fullscreen,
                                      bool do_shadows,
                                      bool do_antialias,
-                                     irr::video::E_DRIVER_TYPE mydriver)
+                                     irr::video::E_DRIVER_TYPE mydriver,
+                                     irr::ELOG_LEVEL log_level)
     : step_manage(true),
       try_realtime(false),
       pause_step(false),
@@ -388,6 +389,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     params.DriverType = mydriver;
     params.WindowSize = dimens;
     params.Stencilbuffer = do_shadows;
+    params.LoggingLevel = log_level;
 
     device = irr::createDeviceEx(params);
 
