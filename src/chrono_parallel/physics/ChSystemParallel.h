@@ -105,6 +105,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     /// Calculate cummulative contact forces for all bodies in the system.
     virtual void CalculateContactForces() {}
 
+    /// Calculate current body AABBs.
+    void CalculateBodyAABB();
+
     /// Get the contact force on the body with specified id.
     virtual real3 GetBodyContactForce(uint body_id) const = 0;
     /// Get the contact torque on the body with specified id.

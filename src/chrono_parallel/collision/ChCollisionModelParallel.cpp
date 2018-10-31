@@ -25,7 +25,7 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionModelParallel::ChCollisionModelParallel() : nObjects(0) {
+ChCollisionModelParallel::ChCollisionModelParallel() : nObjects(0), aabb_min(C_LARGE_REAL), aabb_max(-C_LARGE_REAL) {
     model_safe_margin = 0;
 }
 
@@ -40,6 +40,8 @@ int ChCollisionModelParallel::ClearModel() {
 
     local_convex_data.clear();
     mData.clear();
+    aabb_min = real3(C_LARGE_REAL);
+    aabb_max = real3(-C_LARGE_REAL);
     nObjects = 0;
     family_group = 1;
     family_mask = 0x7FFF;
@@ -346,7 +348,10 @@ bool ChCollisionModelParallel::AddCopyOfAnotherModel(ChCollisionModel* another) 
     return false;
 }
 
-void ChCollisionModelParallel::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {}
+void ChCollisionModelParallel::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
+    bbmin.x() = aabb_min.x; bbmin.y() = aabb_min.y; bbmin.z() = aabb_min.z;
+    bbmax.x() = aabb_max.x; bbmax.y() = aabb_max.y; bbmax.z() = aabb_max.z;
+}
 
 void ChCollisionModelParallel::SyncPosition() {
     ChBody* bpointer = GetBody();

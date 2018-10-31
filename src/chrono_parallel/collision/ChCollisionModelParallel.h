@@ -199,6 +199,9 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
     std::vector<ConvexModel> mData;
     std::vector<real3> local_convex_data;
 
+    real3 aabb_min;
+    real3 aabb_max;
+
   protected:
     ChBody* mbody;
     unsigned int nObjects;
