@@ -185,20 +185,23 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontac
                     icontact.reaction_cache = pt.reactions_cache;
 
                     // Execute some user custom callback, if any
+                    bool add_contact = true;
                     if (this->narrow_callback)
-                        this->narrow_callback->OnNarrowphase(icontact);
+                        add_contact = this->narrow_callback->OnNarrowphase(icontact);
 
-                    data_manager->host_data.norm_rigid_rigid.push_back(
-                        real3(icontact.vN.x(), icontact.vN.y(), icontact.vN.z()));
-                    data_manager->host_data.cpta_rigid_rigid.push_back(
-                        real3(icontact.vpA.x(), icontact.vpA.y(), icontact.vpA.z()));
-                    data_manager->host_data.cptb_rigid_rigid.push_back(
-                        real3(icontact.vpB.x(), icontact.vpB.y(), icontact.vpB.z()));
-                    data_manager->host_data.dpth_rigid_rigid.push_back(icontact.distance);
-                    data_manager->host_data.erad_rigid_rigid.push_back(icontact.eff_radius);
-                    data_manager->host_data.bids_rigid_rigid.push_back(
-                        I2(obA->getCompanionId(), obB->getCompanionId()));
-                    data_manager->num_rigid_contacts++;
+                    if (add_contact) {
+                        data_manager->host_data.norm_rigid_rigid.push_back(
+                            real3(icontact.vN.x(), icontact.vN.y(), icontact.vN.z()));
+                        data_manager->host_data.cpta_rigid_rigid.push_back(
+                            real3(icontact.vpA.x(), icontact.vpA.y(), icontact.vpA.z()));
+                        data_manager->host_data.cptb_rigid_rigid.push_back(
+                            real3(icontact.vpB.x(), icontact.vpB.y(), icontact.vpB.z()));
+                        data_manager->host_data.dpth_rigid_rigid.push_back(icontact.distance);
+                        data_manager->host_data.erad_rigid_rigid.push_back(icontact.eff_radius);
+                        data_manager->host_data.bids_rigid_rigid.push_back(
+                            I2(obA->getCompanionId(), obB->getCompanionId()));
+                        data_manager->num_rigid_contacts++;
+                    }
                 }
             }
         }

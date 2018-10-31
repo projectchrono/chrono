@@ -119,7 +119,8 @@ class ChApi ChCollisionSystem {
         virtual ~NarrowphaseCallback() {}
 
         /// Callback used to process collision pairs found by the narrow-phase collision step.
-        virtual void OnNarrowphase(ChCollisionInfo& contactinfo) = 0;
+        /// Return true to generate a contact for this pair of overlapping bodies.
+        virtual bool OnNarrowphase(ChCollisionInfo& contactinfo) = 0;
     };
 
     /// Specify a callback object to be used each time a collision pair is found during

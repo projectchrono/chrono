@@ -1322,11 +1322,13 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     icontact.reaction_cache = pt.reactions_cache;
 
                     // Execute some user custom callback, if any
+                    bool add_contact = true;
                     if (this->narrow_callback)
-                        this->narrow_callback->OnNarrowphase(icontact);
+                        add_contact = this->narrow_callback->OnNarrowphase(icontact);
 
                     // Add to contact container
-                    mcontactcontainer->AddContact(icontact);
+                    if (add_contact)
+                        mcontactcontainer->AddContact(icontact);
                 }
             }
         }
