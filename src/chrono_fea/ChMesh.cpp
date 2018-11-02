@@ -116,18 +116,17 @@ void ChMesh::AddMeshSurface(std::shared_ptr<ChMeshSurface> m_surf) {
     vmeshsurfaces.push_back(m_surf);
 }
 
-/// This recomputes the number of DOFs, constraints,
-/// as well as state offsets of contained items
+/// This recomputes the number of DOFs, constraints, as well as state offsets of contained items
 void ChMesh::Setup() {
     n_dofs = 0;
     n_dofs_w = 0;
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
+        // Set node offsets in state vectors (based on the offsets of the containing mesh)
+        vnodes[i]->NodeSetOffset_x(GetOffset_x() + n_dofs);
+        vnodes[i]->NodeSetOffset_w(GetOffset_w() + n_dofs_w);
+        // Count the degrees of freedom (consider only nodes that are not fixed)
         if (!vnodes[i]->GetFixed()) {
-            vnodes[i]->NodeSetOffset_x(GetOffset_x() + n_dofs);
-            vnodes[i]->NodeSetOffset_w(GetOffset_w() + n_dofs_w);
-
-            //    - count the degrees of freedom
             n_dofs += vnodes[i]->Get_ndof_x();
             n_dofs_w += vnodes[i]->Get_ndof_w();
         }
@@ -419,8 +418,6 @@ void ChMesh::VariablesQbIncrementPosition(double step) {
 void ChMesh::InjectVariables(ChSystemDescriptor& mdescriptor) {
     for (unsigned int ie = 0; ie < vnodes.size(); ie++)
         vnodes[ie]->InjectVariables(mdescriptor);
-
-    // mdescriptor.InsertVariables(&vnodes[ie]->Variables());
 }
 
 }  // end namespace fea
