@@ -30,7 +30,7 @@
 
 namespace chrono {
 namespace granular {
-typedef const ChSystemGranularMonodisperse_SMC_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
+typedef const ChSystemGranular_MonodisperseSMC_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
 typedef ChTriangleSoup<float3>* TriangleSoupPtr;
 
 /// Takes in a triangle's position in UU and finds out what SDs it touches
@@ -160,11 +160,11 @@ __device__ void block_sum_shfl(T var, unsigned int blocksize, T* dest) {
     }
 }
 
-void ChSystemGranularMonodisperse_SMC_trimesh::resetTriangleForces() {
+void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleForces() {
     gpuErrchk(cudaMemset(meshSoup_DEVICE->generalizedForcesPerFamily, 0, 6 * MAX_TRIANGLE_FAMILIES * sizeof(float)));
 }
 // Reset triangle broadphase data structures
-void ChSystemGranularMonodisperse_SMC_trimesh::resetTriangleBroadphaseInformation() {
+void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleBroadphaseInformation() {
     gpuErrchk(cudaMemset(SD_isTouchingTriangle.data(), 0, SD_isTouchingTriangle.size() * sizeof(unsigned int)));
     gpuErrchk(cudaMemset(BUCKET_countsOfTrianglesTouching.data(), 0,
                          BUCKET_countsOfTrianglesTouching.size() * sizeof(unsigned int)));
@@ -622,7 +622,7 @@ __global__ void interactionTerrain_TriangleSoup(
 }
 
 /// Copy const triangle data to device
-void ChSystemGranularMonodisperse_SMC_trimesh::copy_triangle_data_to_device() {
+void ChSystemGranular_MonodisperseSMC_trimesh::copy_triangle_data_to_device() {
     // unified memory does some copying for us, cool
     tri_params->Kn_s2m_SU = K_n_s2m_SU;
     tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
@@ -630,7 +630,7 @@ void ChSystemGranularMonodisperse_SMC_trimesh::copy_triangle_data_to_device() {
     SD_isTouchingTriangle.resize(nSDs);
 }
 
-__host__ double ChSystemGranularMonodisperse_SMC_trimesh::advance_simulation(float duration) {
+__host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(float duration) {
     auto sphere_data = packSphereDataPointers();
 
     // Figure our the number of blocks that need to be launched to cover the box

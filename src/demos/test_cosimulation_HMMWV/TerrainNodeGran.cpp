@@ -84,7 +84,7 @@ TerrainNodeGran::TerrainNodeGran(int num_tires)
     // ------------------------------------
 
     // Create system and set default method-specific solver settings
-    m_system = new chrono::granular::ChSystemGranularMonodisperse_SMC(m_radius_g, m_rho_g);
+    m_system = new chrono::granular::ChSystemGranular_MonodisperseSMC(m_radius_g, m_rho_g);
     m_system->set_gravitational_acceleration(0.f, 0.f, m_gacc.z());
     m_system->setVerbose(true);
 

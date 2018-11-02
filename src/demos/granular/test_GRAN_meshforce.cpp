@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
 
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);

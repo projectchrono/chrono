@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup granular simulation
-    ChSystemGranularMonodisperse_SMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density);
     m_sys_gran.setBOXdims(params.box_X, params.box_Y, params.box_Z);
 
     // Fill box with bodies

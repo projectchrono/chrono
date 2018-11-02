@@ -17,7 +17,7 @@
 namespace chrono {
 namespace granular {
 
-__host__ double ChSystemGranular::get_max_z() const {
+__host__ double ChSystemGranular_MonodisperseSMC::get_max_z() const {
     int* max_z_d;
     int max_z_h;
     void* d_temp_storage = NULL;
@@ -44,7 +44,7 @@ __host__ double ChSystemGranular::get_max_z() const {
 }
 
 /// Copy constant sphere data to device, this should run at start
-__host__ void ChSystemGranularMonodisperse_SMC::copy_const_data_to_device() {
+__host__ void ChSystemGranular_MonodisperseSMC::copy_const_data_to_device() {
     // Copy quantities expressed in SU units for the SD dimensions to device
     gran_params->SD_size_X_SU = SD_size_X_SU;
     gran_params->SD_size_Y_SU = SD_size_Y_SU;
@@ -81,7 +81,7 @@ __host__ void ChSystemGranularMonodisperse_SMC::copy_const_data_to_device() {
 
 /// Similar to the copy_const_data_to_device, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
-__host__ void ChSystemGranularMonodisperse_SMC::copyBD_Frame_to_device() {
+__host__ void ChSystemGranular_MonodisperseSMC::copyBD_Frame_to_device() {
     // Unified memory does all the work here
     gran_params->BD_frame_X = BD_frame_X;
     gran_params->BD_frame_Y = BD_frame_Y;
@@ -92,7 +92,7 @@ __host__ void ChSystemGranularMonodisperse_SMC::copyBD_Frame_to_device() {
 }
 
 // Check number of spheres in each SD and dump relevant info to file
-void ChSystemGranularMonodisperse_SMC::checkSDCounts(std::string ofile, bool write_out = false, bool verbose = false) {
+void ChSystemGranular_MonodisperseSMC::checkSDCounts(std::string ofile, bool write_out = false, bool verbose = false) {
     // Count of DEs in each SD
     unsigned int* sdvals = SD_NumOf_DEs_Touching.data();
     // DEs that are in each SD
@@ -138,7 +138,7 @@ void ChSystemGranularMonodisperse_SMC::checkSDCounts(std::string ofile, bool wri
     delete[] deCounts;
 }
 // This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
-void ChSystemGranularMonodisperse_SMC::writeFile(std::string ofile, unsigned int* deCounts) {
+void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile, unsigned int* deCounts) {
     // unnecessary if called by checkSDCounts()
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
@@ -181,7 +181,7 @@ void ChSystemGranularMonodisperse_SMC::writeFile(std::string ofile, unsigned int
 }
 
 // This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
-void ChSystemGranularMonodisperse_SMC::writeFileUU(std::string ofile) {
+void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
         // TODO implement this
@@ -231,7 +231,7 @@ void ChSystemGranularMonodisperse_SMC::writeFileUU(std::string ofile) {
 }
 
 // Reset broadphase data structures
-void ChSystemGranularMonodisperse_SMC::resetBroadphaseInformation() {
+void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
@@ -239,7 +239,7 @@ void ChSystemGranularMonodisperse_SMC::resetBroadphaseInformation() {
                          MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
 }
 // Reset sphere-sphere force data structures
-void ChSystemGranularMonodisperse_SMC::resetSphereForces() {
+void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
     // cache past force data
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         gpuErrchk(cudaMemcpy(sphere_force_X_old.data(), sphere_force_X.data(), nDEs * sizeof(float),
@@ -263,7 +263,7 @@ void ChSystemGranularMonodisperse_SMC::resetSphereForces() {
     }
 }
 
-void ChSystemGranularMonodisperse_SMC::updateBDPosition(const float stepSize_SU) {
+void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU) {
     // Frequency of oscillation
     float frame_X_old = BD_frame_X;
     float frame_Y_old = BD_frame_Y;
@@ -354,7 +354,7 @@ __global__ void owner_unpack(int* d_sphere_pos_X,
 
 // Sorts data by owner SD, makes nicer memory accesses
 // Uses a boatload of memory
-__host__ void ChSystemGranularMonodisperse_SMC::defragment_data() {
+__host__ void ChSystemGranular_MonodisperseSMC::defragment_data() {
     VERBOSE_PRINTF("Starting defrag run!\n");
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -416,7 +416,7 @@ __global__ void generate_absv(const unsigned int nDEs,
     }
 }
 
-__host__ float ChSystemGranular::get_max_vel() {
+__host__ float ChSystemGranular_MonodisperseSMC::get_max_vel() {
     float* d_absv;
     float* d_max_vel;
     float h_max_vel;
@@ -438,7 +438,7 @@ __host__ float ChSystemGranular::get_max_vel() {
     return h_max_vel;
 }
 
-__host__ void ChSystemGranularMonodisperse_SMC::runInitialSpherePriming() {
+__host__ void ChSystemGranular_MonodisperseSMC::runInitialSpherePriming() {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     printf("doing priming!\n");
@@ -452,7 +452,7 @@ __host__ void ChSystemGranularMonodisperse_SMC::runInitialSpherePriming() {
     printf("priming finished!\n");
 }
 
-__host__ double ChSystemGranularMonodisperse_SMC::advance_simulation(float duration) {
+__host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float duration) {
     auto sphere_data = packSphereDataPointers();
 
     // Figure our the number of blocks that need to be launched to cover the box

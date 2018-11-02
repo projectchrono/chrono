@@ -27,23 +27,33 @@
 namespace chrono {
 namespace granular {
 
-ChSystemGranular::ChSystemGranular()
-    : time_stepping(GRAN_TIME_STEPPING::AUTO),
+ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusSPH, float density)
+    : sphere_radius(radiusSPH),
+      sphere_density(density),
+      time_stepping(GRAN_TIME_STEPPING::AUTO),
       nDEs(0),
       elapsedSimTime(0),
       contact_model(HOOKE),
-      fric_mode(FRICTIONLESS) {
+      fric_mode(FRICTIONLESS),
+      K_n_s2s_UU(0),
+      K_n_s2w_UU(0),
+      K_t_s2s_UU(0),
+      K_t_s2w_UU(0),
+      Gamma_n_s2s_UU(0),
+      Gamma_n_s2w_UU(0),
+      Gamma_t_s2s_UU(0),
+      Gamma_t_s2w_UU(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
     gran_params->psi_T = PSI_T_DEFAULT;
     gran_params->psi_h = PSI_h_DEFAULT;
     gran_params->psi_L = PSI_L_DEFAULT;
 }
 
-ChSystemGranular::~ChSystemGranular() {
+ChSystemGranular_MonodisperseSMC::~ChSystemGranular_MonodisperseSMC() {
     gpuErrchk(cudaFree(gran_params));
 }
 
-sphereDataStruct ChSystemGranular::packSphereDataPointers() {
+sphereDataStruct ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
     sphereDataStruct packed;
 
     // Set data from system
@@ -75,7 +85,7 @@ sphereDataStruct ChSystemGranular::packSphereDataPointers() {
     return packed;
 }
 
-void ChSystemGranularMonodisperse::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
+void ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
     BC_params_t<float, float3> p;
     printf("UU bounds are %f,%f,%f,%f,%f,%f", center[0] + hdims[0], center[1] + hdims[1], center[2] + hdims[2],
            center[0] - hdims[0], center[1] - hdims[1], center[2] - hdims[2]);
@@ -102,7 +112,7 @@ void ChSystemGranularMonodisperse::Create_BC_AABox(float hdims[3], float center[
     BC_params_list_UU.push_back(p);
 }
 
-void ChSystemGranularMonodisperse::Create_BC_Sphere(float center[3], float radius, bool outward_normal) {
+void ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.sphere_params.sphere_center.x = center[0];
@@ -121,12 +131,11 @@ void ChSystemGranularMonodisperse::Create_BC_Sphere(float center[3], float radiu
     BC_params_list_UU.push_back(p);
 }
 
-void ChSystemGranularMonodisperse::Create_BC_Cone(float cone_tip[3],
-                                                  float slope,
-                                                  float hmax,
-                                                  float hmin,
-                                                  bool outward_normal) {
-    printf("adding cone UU\n");
+void ChSystemGranular_MonodisperseSMC::Create_BC_Cone(float cone_tip[3],
+                                                      float slope,
+                                                      float hmax,
+                                                      float hmin,
+                                                      bool outward_normal) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.cone_params.cone_tip.x = cone_tip[0];
@@ -147,7 +156,7 @@ void ChSystemGranularMonodisperse::Create_BC_Cone(float cone_tip[3],
     BC_params_list_UU.push_back(p);
 }
 
-void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
+void ChSystemGranular_MonodisperseSMC::determine_new_stepSize_SU() {
     // std::cerr << "determining new step!\n";
     if (time_stepping == GRAN_TIME_STEPPING::AUTO) {
         static float new_step_stop = 0;
@@ -188,11 +197,11 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
     }
 }
 
-double ChSystemGranularMonodisperse_SMC::get_max_K() {
+double ChSystemGranular_MonodisperseSMC::get_max_K() {
     return std::max(K_n_s2s_UU, K_n_s2w_UU);
 }
 
-void ChSystemGranularMonodisperse_SMC::convertBCUnits() {
+void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
     for (int i = 0; i < BC_type_list.size(); i++) {
         auto bc_type = BC_type_list.at(i);
         BC_params_t<float, float3> params_UU = BC_params_list_UU.at(i);
@@ -248,7 +257,7 @@ void ChSystemGranularMonodisperse_SMC::convertBCUnits() {
     }
 }
 
-void ChSystemGranularMonodisperse_SMC::initialize() {
+void ChSystemGranular_MonodisperseSMC::initialize() {
     switch_to_SimUnits();
     generate_DEs();
 
@@ -272,7 +281,7 @@ void ChSystemGranularMonodisperse_SMC::initialize() {
 /** This method sets up the data structures used to perform a simulation.
  *
  */
-void ChSystemGranularMonodisperse_SMC::setup_simulation() {
+void ChSystemGranular_MonodisperseSMC::setup_simulation() {
     partition_BD();
 
     // allocate mem for array saying for each SD how many spheres touch it
@@ -284,12 +293,12 @@ void ChSystemGranularMonodisperse_SMC::setup_simulation() {
 }
 
 // Set the bounds to fill in our box
-void ChSystemGranularMonodisperse::setFillBounds(float xmin,
-                                                 float ymin,
-                                                 float zmin,
-                                                 float xmax,
-                                                 float ymax,
-                                                 float zmax) {
+void ChSystemGranular_MonodisperseSMC::setFillBounds(float xmin,
+                                                     float ymin,
+                                                     float zmin,
+                                                     float xmax,
+                                                     float ymax,
+                                                     float zmax) {
     boxFillXmin = xmin;
     boxFillYmin = ymin;
     boxFillZmin = zmin;
@@ -299,11 +308,11 @@ void ChSystemGranularMonodisperse::setFillBounds(float xmin,
 }
 
 // Set particle positions in UU
-void ChSystemGranularMonodisperse::setParticlePositions(std::vector<ChVector<float>>& points) {
+void ChSystemGranular_MonodisperseSMC::setParticlePositions(std::vector<ChVector<float>>& points) {
     h_points = points;  // Copy points to class vector
 }
 
-void ChSystemGranularMonodisperse::generate_DEs() {
+void ChSystemGranular_MonodisperseSMC::generate_DEs() {
     // Each fills h_points with positions to be copied
     if (h_points.size() == 0) {
         generate_DEs_FillBounds();
@@ -352,7 +361,7 @@ void ChSystemGranularMonodisperse::generate_DEs() {
     }
 }
 
-void ChSystemGranularMonodisperse::generate_DEs_FillBounds() {
+void ChSystemGranular_MonodisperseSMC::generate_DEs_FillBounds() {
     // Create the falling balls
     float ball_epsilon = sphereRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
     printf("eps is %f, rad is %5f\n", ball_epsilon, sphereRadius_SU * 1.0f);
@@ -381,7 +390,7 @@ void ChSystemGranularMonodisperse::generate_DEs_FillBounds() {
     h_points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
 }
 
-void ChSystemGranularMonodisperse::generate_DEs_positions() {
+void ChSystemGranular_MonodisperseSMC::generate_DEs_positions() {
     for (auto& point : h_points) {
         point /= gran_params->LENGTH_UNIT;
     }
@@ -393,7 +402,7 @@ in order to cover the entire BD.
 BD: Big domain.
 SD: Sub-domain.
 */
-void ChSystemGranularMonodisperse::partition_BD() {
+void ChSystemGranular_MonodisperseSMC::partition_BD() {
     double tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_X_DIR;
     unsigned int howMany = (unsigned int)(std::ceil(box_size_X / tempDIM));
     // work with an even kFac to hit the CM of the box.
@@ -439,7 +448,7 @@ void ChSystemGranularMonodisperse::partition_BD() {
 This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
 of various physical quantities set by the user.
 */
-void ChSystemGranularMonodisperse_SMC::switch_to_SimUnits() {
+void ChSystemGranular_MonodisperseSMC::switch_to_SimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     gran_params->MASS_UNIT = massSphere;
     double K_stiffness = get_max_K();

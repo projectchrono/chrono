@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC settlingExperiment(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density);
     settlingExperiment.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
     settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);

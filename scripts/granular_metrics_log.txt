@@ -714,3 +714,15 @@ Running settling test!
 50 thousand bodies took 1.50367 seconds!
 500 thousand bodies took 12.6945 seconds!
 1 million bodies took 27.1803 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 02 Nov 2018 17:09:25 -0500
+commit 7c4384efbc445874b2859e4e61cd5af962b4e13a Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Nov 2 17:09:25 2018 -0500 restructure class API
+Results:
+Running wavetank test!
+50 thousand bodies took 1.82599 seconds!
+500 thousand bodies took 15.3024 seconds!
+1 million bodies took 32.613 seconds!
+Running settling test!
+50 thousand bodies took 1.75779 seconds!
+500 thousand bodies took 14.6743 seconds!
+1 million bodies took 30.204 seconds!

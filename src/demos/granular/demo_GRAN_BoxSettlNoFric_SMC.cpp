@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC settlingExperiment(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density);
     settlingExperiment.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
     settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     first_points.push_back(body_points.at(0));
     first_points.push_back(body_points.at(1));
 
-    settlingExperiment.setParticlePositions(first_points);
+    settlingExperiment.setParticlePositions(body_points);
 
     settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);

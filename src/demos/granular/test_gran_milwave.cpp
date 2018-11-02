@@ -59,7 +59,7 @@ float cohesion_ratio = 2;
 // -----------------------------------------------------------------------------
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
-    ChSystemGranularMonodisperse_SMC settlingExperiment(ballRadius, ballDensity);
+    ChSystemGranular_MonodisperseSMC settlingExperiment(ballRadius, ballDensity);
     settlingExperiment.setBOXdims(box_size_X, box_size_Y, box_size_Z);
     settlingExperiment.set_K_n_SPH2SPH(normStiffness_S2S);
     settlingExperiment.set_K_n_SPH2WALL(normStiffness_S2W);
