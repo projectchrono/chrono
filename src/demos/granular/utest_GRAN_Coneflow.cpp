@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 
     chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
 
-    float center_pt[3] = {0.f, 0.f, -2.05f * params.sphere_radius - params.box_Z / 4};
+    float center_pt[3] = {0.f, 0.f, -2.05f * params.sphere_radius};
 
     // width we want to fill to
     double fill_width = params.box_Z / 4;
@@ -119,11 +119,13 @@ int main(int argc, char* argv[]) {
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
 
+    float cone_slope = 1.0;
     // float hdims[3] = {2.f, 2.f, 2.f};
-    settlingExperiment.Create_BC_Cone(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true);
 
     settlingExperiment.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
+    settlingExperiment.Create_BC_Cone(center_pt, cone_slope, params.box_Z, center_pt[2] + 10 * params.sphere_radius,
+                                      true);
     settlingExperiment.initialize();
 
     int fps = 100;

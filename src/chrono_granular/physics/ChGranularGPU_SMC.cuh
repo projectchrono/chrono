@@ -390,7 +390,7 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
                                      float& Z_force,       //!< Force in Zdir
                                      ParamsPtr gran_params,
                                      BC_type* bc_type_list,
-                                     BC_params_t* bc_params_list,
+                                     BC_params_t<int, int3>* bc_params_list,
                                      unsigned int nBCs) {
     // store forces on body
     float xforce = 0;
@@ -637,7 +637,7 @@ template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged 
 __global__ void computeSphereForces(sphereDataStruct sphere_data,
                                     ParamsPtr gran_params,
                                     BC_type* bc_type_list,
-                                    BC_params_t* bc_params_list,
+                                    BC_params_t<int, int3>* bc_params_list,
                                     unsigned int nBCs) {
     // still moar radius grab
     const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;

@@ -75,24 +75,18 @@ sphereDataStruct ChSystemGranular::packSphereDataPointers() {
     return packed;
 }
 
-// just a handy helper function
-template <typename T1, typename T2>
-inline T1 convertToPosSU(T2 val, ParamsPtr gran_params) {
-    return val / gran_params->LENGTH_UNIT;
-}
-
 void ChSystemGranularMonodisperse::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
-    BC_params_t p;
+    BC_params_t<float, float3> p;
     printf("UU bounds are %f,%f,%f,%f,%f,%f", center[0] + hdims[0], center[1] + hdims[1], center[2] + hdims[2],
            center[0] - hdims[0], center[1] - hdims[1], center[2] - hdims[2]);
 
     // Find two corners to describe box
-    p.AABox_params.max_corner.x = convertToPosSU<int, float>(center[0] + hdims[0], gran_params);
-    p.AABox_params.max_corner.y = convertToPosSU<int, float>(center[1] + hdims[1], gran_params);
-    p.AABox_params.max_corner.z = convertToPosSU<int, float>(center[2] + hdims[2], gran_params);
-    p.AABox_params.min_corner.x = convertToPosSU<int, float>(center[0] - hdims[0], gran_params);
-    p.AABox_params.min_corner.y = convertToPosSU<int, float>(center[1] - hdims[1], gran_params);
-    p.AABox_params.min_corner.z = convertToPosSU<int, float>(center[2] - hdims[2], gran_params);
+    p.AABox_params.max_corner.x = center[0] + hdims[0];
+    p.AABox_params.max_corner.y = center[1] + hdims[1];
+    p.AABox_params.max_corner.z = center[2] + hdims[2];
+    p.AABox_params.min_corner.x = center[0] - hdims[0];
+    p.AABox_params.min_corner.y = center[1] - hdims[1];
+    p.AABox_params.min_corner.z = center[2] - hdims[2];
 
     printf("SU bounds are %d, %d, %d, %d, %d, %d", p.AABox_params.max_corner.x, p.AABox_params.max_corner.y,
            p.AABox_params.max_corner.z, p.AABox_params.min_corner.x, p.AABox_params.min_corner.y,
@@ -105,16 +99,16 @@ void ChSystemGranularMonodisperse::Create_BC_AABox(float hdims[3], float center[
         p.AABox_params.normal_sign = -1;
     }
     BC_type_list.push_back(BC_type::AA_BOX);
-    BC_params_list.push_back(p);
+    BC_params_list_UU.push_back(p);
 }
 
 void ChSystemGranularMonodisperse::Create_BC_Sphere(float center[3], float radius, bool outward_normal) {
-    BC_params_t p;
+    BC_params_t<float, float3> p;
     // set center, radius, norm
-    p.sphere_params.sphere_center.x = convertToPosSU<int, float>(center[0], gran_params);
-    p.sphere_params.sphere_center.y = convertToPosSU<int, float>(center[1], gran_params);
-    p.sphere_params.sphere_center.z = convertToPosSU<int, float>(center[2], gran_params);
-    p.sphere_params.radius = convertToPosSU<int, float>(radius, gran_params);
+    p.sphere_params.sphere_center.x = center[0];
+    p.sphere_params.sphere_center.y = center[1];
+    p.sphere_params.sphere_center.z = center[2];
+    p.sphere_params.radius = radius;
 
     if (outward_normal) {
         p.sphere_params.normal_sign = 1;
@@ -124,7 +118,7 @@ void ChSystemGranularMonodisperse::Create_BC_Sphere(float center[3], float radiu
     }
 
     BC_type_list.push_back(BC_type::SPHERE);
-    BC_params_list.push_back(p);
+    BC_params_list_UU.push_back(p);
 }
 
 void ChSystemGranularMonodisperse::Create_BC_Cone(float cone_tip[3],
@@ -132,13 +126,14 @@ void ChSystemGranularMonodisperse::Create_BC_Cone(float cone_tip[3],
                                                   float hmax,
                                                   float hmin,
                                                   bool outward_normal) {
-    BC_params_t p;
+    printf("adding cone UU\n");
+    BC_params_t<float, float3> p;
     // set center, radius, norm
-    p.cone_params.cone_tip.x = convertToPosSU<int, float>(cone_tip[0], gran_params);
-    p.cone_params.cone_tip.y = convertToPosSU<int, float>(cone_tip[1], gran_params);
-    p.cone_params.cone_tip.z = convertToPosSU<int, float>(cone_tip[2], gran_params);
-    p.cone_params.hmax = convertToPosSU<int, float>(hmax, gran_params);
-    p.cone_params.hmin = convertToPosSU<int, float>(hmin, gran_params);
+    p.cone_params.cone_tip.x = cone_tip[0];
+    p.cone_params.cone_tip.y = cone_tip[1];
+    p.cone_params.cone_tip.z = cone_tip[2];
+    p.cone_params.hmax = hmax;
+    p.cone_params.hmin = hmin;
     p.cone_params.slope = slope;
 
     if (outward_normal) {
@@ -149,7 +144,7 @@ void ChSystemGranularMonodisperse::Create_BC_Cone(float cone_tip[3],
     }
 
     BC_type_list.push_back(BC_type::CONE);
-    BC_params_list.push_back(p);
+    BC_params_list_UU.push_back(p);
 }
 
 void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
@@ -195,6 +190,83 @@ void ChSystemGranularMonodisperse::determine_new_stepSize_SU() {
 
 double ChSystemGranularMonodisperse_SMC::get_max_K() {
     return std::max(K_n_s2s_UU, K_n_s2w_UU);
+}
+
+void ChSystemGranularMonodisperse_SMC::convertBCUnits() {
+    for (int i = 0; i < BC_type_list.size(); i++) {
+        auto bc_type = BC_type_list.at(i);
+        BC_params_t<float, float3> params_UU = BC_params_list_UU.at(i);
+        BC_params_t<int, int3> params_SU;
+        switch (bc_type) {
+            case BC_type::SPHERE:
+                printf("adding sphere!\n");
+                // set center, radius, norm
+                params_SU.sphere_params.sphere_center.x =
+                    convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.x);
+                params_SU.sphere_params.sphere_center.y =
+                    convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.y);
+                params_SU.sphere_params.sphere_center.z =
+                    convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.z);
+                params_SU.sphere_params.radius = convertToPosSU<int, float>(params_UU.sphere_params.radius);
+                params_SU.sphere_params.normal_sign = params_UU.sphere_params.normal_sign;
+
+                BC_params_list_SU.push_back(params_SU);
+                break;
+
+            case BC_type::AA_BOX:
+                printf("adding box!\n");
+
+                // note that these are correct but the BC formulation is not complete
+                // TODO fix AABox formulation
+                // Find two corners to describe box
+                params_SU.AABox_params.max_corner.x = convertToPosSU<int, float>(params_UU.AABox_params.max_corner.x);
+                params_SU.AABox_params.max_corner.y = convertToPosSU<int, float>(params_UU.AABox_params.max_corner.y);
+                params_SU.AABox_params.max_corner.z = convertToPosSU<int, float>(params_UU.AABox_params.max_corner.z);
+                params_SU.AABox_params.min_corner.x = convertToPosSU<int, float>(params_UU.AABox_params.min_corner.x);
+                params_SU.AABox_params.min_corner.y = convertToPosSU<int, float>(params_UU.AABox_params.min_corner.y);
+                params_SU.AABox_params.min_corner.z = convertToPosSU<int, float>(params_UU.AABox_params.min_corner.z);
+
+                params_SU.AABox_params.normal_sign = params_UU.AABox_params.normal_sign;
+
+                BC_params_list_SU.push_back(params_SU);
+                break;
+
+            case BC_type::CONE:
+                printf("adding cone!\n");
+
+                params_SU.cone_params.cone_tip.x = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.x);
+                params_SU.cone_params.cone_tip.y = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.y);
+                params_SU.cone_params.cone_tip.z = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.z);
+                params_SU.cone_params.hmax = convertToPosSU<int, float>(params_UU.cone_params.hmax);
+                params_SU.cone_params.hmin = convertToPosSU<int, float>(params_UU.cone_params.hmin);
+                params_SU.cone_params.slope = params_UU.cone_params.slope;
+                params_SU.cone_params.normal_sign = params_UU.cone_params.normal_sign;
+
+                BC_params_list_SU.push_back(params_SU);
+                break;
+        }
+    }
+}
+
+void ChSystemGranularMonodisperse_SMC::initialize() {
+    switch_to_SimUnits();
+    generate_DEs();
+
+    // Set aside memory for holding data structures worked with. Get some initializations going
+    setup_simulation();
+    copy_const_data_to_device();
+    copyBD_Frame_to_device();
+    gpuErrchk(cudaDeviceSynchronize());
+
+    determine_new_stepSize_SU();
+    convertBCUnits();
+
+    // Seed arrays that are populated by the kernel call
+    resetBroadphaseInformation();
+    runInitialSpherePriming();
+
+    printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+    printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT);
 }
 
 /** This method sets up the data structures used to perform a simulation.

@@ -5,7 +5,7 @@
 	"box_Y": 200,
 	"box_Z": 200,
 	"step_size": 1e-4,
-	"time_end": 4,
+	"time_end": 10,
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
@@ -16,7 +16,7 @@
 	"normalDampS2W": 5e3,
 	"normalDampS2M": 1e3,
 	"tangentStiffS2S" : 0,
-	"tangentStiffS2W" : 1e4,
+	/* "tangentStiffS2W" : 1e4, */
 	"tangentStiffS2M" : 0,
 	"tangentDampS2S": 0,
 	"tangentDampS2W": 0,
@@ -26,6 +26,6 @@
 	"psi_h": 4,
 	"psi_T": 16,
 	"psi_L": 16,
-	"output_dir": "cone_flow2",
+	"output_dir": "cone_flow",
 	"write_mode": "csv"
 }
