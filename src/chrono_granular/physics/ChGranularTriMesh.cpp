@@ -37,6 +37,38 @@ double ChSystemGranularMonodisperse_SMC_trimesh::get_max_K() {
     return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
 }
 
+__host__ void ChSystemGranularMonodisperse_SMC_trimesh::initialize() {
+    switch_to_SimUnits();
+
+    double K_stiffness = get_max_K();
+    float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
+    K_n_s2m_SU = K_scalingFactor * (K_n_s2m_UU / K_stiffness);
+
+    float massSphere = 4.f / 3.f * M_PI * sphere_radius * sphere_radius * sphere_radius;
+    float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
+    Gamma_n_s2m_SU = Gamma_scalingFactor * Gamma_n_s2m_UU;
+
+    generate_DEs();
+
+    // Set aside memory for holding data structures worked with. Get some initializations going
+    printf("setup_simulation\n");
+    setup_simulation();
+    copy_const_data_to_device();
+    copy_triangle_data_to_device();
+    copyBD_Frame_to_device();
+    gpuErrchk(cudaDeviceSynchronize());
+
+    determine_new_stepSize_SU();
+    convertBCUnits();
+
+    // Seed arrays that are populated by the kernel call
+    resetBroadphaseInformation();
+
+    runInitialSpherePriming();
+
+    printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
+}
+
 ChSystemGranularMonodisperse_SMC_trimesh::~ChSystemGranularMonodisperse_SMC_trimesh() {
     // work to do here
     cleanupTriMesh_DEVICE();

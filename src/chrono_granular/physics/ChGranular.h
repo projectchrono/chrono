@@ -331,7 +331,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse : public ChSystemGranular {
   protected:
     /// List of generalized BCs that constrain sphere motion
     std::vector<BC_type, cudallocator<BC_type>> BC_type_list;
-    std::vector<BC_params_t, cudallocator<BC_params_t>> BC_params_list;
+    std::vector<BC_params_t<int, int3>, cudallocator<BC_params_t<int, int3>>> BC_params_list_SU;
+    std::vector<BC_params_t<float, float3>, cudallocator<BC_params_t<float, float3>>> BC_params_list_UU;
 
     const float new_step_freq = .01;
     virtual void determine_new_stepSize_SU();
@@ -419,6 +420,8 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranular
     inline void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
     virtual void setup_simulation();  ///!< set up data structures and carry out pre-processing tasks
+    void runInitialSpherePriming();
+
     /// advance simulation by duration seconds in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double advance_simulation(float duration);
@@ -432,6 +435,14 @@ class CH_GRANULAR_API ChSystemGranularMonodisperse_SMC : public ChSystemGranular
     virtual void updateBDPosition(const float stepSize_SU);
 
   protected:
+    // just a handy helper function
+    template <typename T1, typename T2>
+    T1 convertToPosSU(T2 val) {
+        return val / gran_params->LENGTH_UNIT;
+    }
+
+    // convert bcs from UU to SU
+    void convertBCUnits();
     virtual void copy_const_data_to_device();
     virtual void copyBD_Frame_to_device();
     virtual void resetBroadphaseInformation();

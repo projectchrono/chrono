@@ -36,9 +36,9 @@ inline __device__ bool addBCForces_AABox(const int sphXpos,
                                          float& Y_force,
                                          float& Z_force,
                                          ParamsPtr gran_params,
-                                         const BC_params_t& bc_params) {
+                                         const BC_params_t<int, int3>& bc_params) {
     return false;  // TODO implement
-    // AABox_BC_params_t AABox_params = bc_params.AABox_params;
+    // AABox_BC_params_t<int, int3> AABox_params = bc_params.AABox_params;
     // bool contact = false;
     // // classic radius grab, this must be signed to avoid false conversions
     // const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
@@ -115,8 +115,8 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
                                           float& Y_force,
                                           float& Z_force,
                                           ParamsPtr gran_params,
-                                          const BC_params_t& bc_params) {
-    sphere_BC_params_t sphere_params = bc_params.sphere_params;
+                                          const BC_params_t<int, int3>& bc_params) {
+    sphere_BC_params_t<int, int3> sphere_params = bc_params.sphere_params;
     bool contact = false;
     // classic radius grab, this must be signed to avoid false conversions
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
@@ -167,8 +167,8 @@ inline __device__ bool addBCForces_Cone(const int sphXpos,
                                         float& Y_force,
                                         float& Z_force,
                                         ParamsPtr gran_params,
-                                        const BC_params_t& bc_params) {
-    cone_BC_params_t cone_params = bc_params.cone_params;
+                                        const BC_params_t<int, int3>& bc_params) {
+    cone_BC_params_t<int, int3> cone_params = bc_params.cone_params;
     bool contact = false;
     // classic radius grab, this must be signed to avoid false conversions
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;

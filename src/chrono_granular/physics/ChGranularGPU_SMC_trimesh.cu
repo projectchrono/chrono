@@ -644,47 +644,6 @@ void ChSystemGranularMonodisperse_SMC_trimesh::copy_triangle_data_to_device() {
     SD_isTouchingTriangle.resize(nSDs);
 }
 
-__host__ void ChSystemGranularMonodisperse_SMC_trimesh::initialize() {
-    switch_to_SimUnits();
-
-    double K_stiffness = get_max_K();
-    float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
-    K_n_s2m_SU = K_scalingFactor * (K_n_s2m_UU / K_stiffness);
-
-    float massSphere = 4.f / 3.f * M_PI * sphere_radius * sphere_radius * sphere_radius;
-    float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
-    Gamma_n_s2m_SU = Gamma_scalingFactor * Gamma_n_s2m_UU;
-
-    generate_DEs();
-
-    // Set aside memory for holding data structures worked with. Get some initializations going
-    printf("setup_simulation\n");
-    setup_simulation();
-    copy_const_data_to_device();
-    copy_triangle_data_to_device();
-    copyBD_Frame_to_device();
-    gpuErrchk(cudaDeviceSynchronize());
-
-    determine_new_stepSize_SU();
-
-    // Seed arrays that are populated by the kernel call
-    resetBroadphaseInformation();
-
-    // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    printf("doing priming!\n");
-    printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
-
-    auto sphere_data = packSphereDataPointers();
-
-    primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
-        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nDEs, gran_params);
-    gpuErrchk(cudaDeviceSynchronize());
-    printf("priming finished!\n");
-
-    printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
-}
-
 __host__ double ChSystemGranularMonodisperse_SMC_trimesh::advance_simulation(float duration) {
     auto sphere_data = packSphereDataPointers();
 
@@ -717,7 +676,7 @@ __host__ double ChSystemGranularMonodisperse_SMC_trimesh::advance_simulation(flo
 
         // Compute sphere-sphere forces
         computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            sphere_data, gran_params, BC_type_list.data(), BC_params_list.data(), BC_params_list.size());
+            sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
