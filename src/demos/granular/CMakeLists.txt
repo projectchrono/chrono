@@ -26,6 +26,7 @@ SET(DEMOS
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
 		utest_GRAN_Coneflow
 		test_GRAN_meshforce
+		test_GRAN_hopperflow
 )
 
 # ------------------------------------------------------------------------------
