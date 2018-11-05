@@ -103,10 +103,11 @@ void ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float cen
            p.AABox_params.min_corner.z);
 
     if (outward_normal) {
-        p.AABox_params.normal_sign = 1;
+        // negate forces to push particles outward
+        p.AABox_params.normal_sign = -1;
     } else {
         // normal is inward, flip force sign
-        p.AABox_params.normal_sign = -1;
+        p.AABox_params.normal_sign = 1;
     }
     BC_type_list.push_back(BC_type::AA_BOX);
     BC_params_list_UU.push_back(p);
@@ -121,10 +122,10 @@ void ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3], float r
     p.sphere_params.radius = radius;
 
     if (outward_normal) {
-        p.sphere_params.normal_sign = 1;
-    } else {
-        // normal is inward, flip force sign
+        // negate forces to push particles outward
         p.sphere_params.normal_sign = -1;
+    } else {
+        p.sphere_params.normal_sign = 1;
     }
 
     BC_type_list.push_back(BC_type::SPHERE);
@@ -146,10 +147,10 @@ void ChSystemGranular_MonodisperseSMC::Create_BC_Cone(float cone_tip[3],
     p.cone_params.slope = slope;
 
     if (outward_normal) {
-        p.cone_params.normal_sign = 1;
-    } else {
-        // normal is inward, flip force sign
+        // negate forces to push particles outward
         p.cone_params.normal_sign = -1;
+    } else {
+        p.cone_params.normal_sign = 1;
     }
 
     BC_type_list.push_back(BC_type::CONE);
