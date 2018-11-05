@@ -101,8 +101,8 @@ struct GranParamsHolder {
     float Gamma_t_s2s_SU;
     float Gamma_t_s2w_SU;
 
-    float Kn_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
-    float Kn_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
+    float K_n_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
+    float K_n_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
     float K_t_s2s_SU;
     float K_t_s2w_SU;
 
@@ -199,13 +199,38 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     size_t nSpheres() { return nDEs; }
 
     /// Create an axis-aligned box BC
-    void Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
+    size_t Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
 
     /// Create an axis-aligned sphere BC
-    void Create_BC_Sphere(float center[3], float radius, bool outward_normal);
+    size_t Create_BC_Sphere(float center[3], float radius, bool outward_normal);
 
     /// Create an z-axis aligned cone
-    void Create_BC_Cone(float cone_tip[3], float slope, float hmax, float hmin, bool outward_normal);
+    size_t Create_BC_Cone_Z(float cone_tip[3], float slope, float hmax, float hmin, bool outward_normal);
+
+    /// Create an z-axis aligned cone
+    size_t Create_BC_Plane(float plane_pos[3], float plane_normal[3]);
+
+    bool disable_BC_by_ID(size_t BC_id) {
+        size_t max_id = BC_params_list_UU.size();
+        if (BC_id >= max_id) {
+            printf("ERROR: Trying to disable invalid BC ID %d\n", BC_id);
+            return false;
+        }
+        BC_params_list_UU.at(BC_id).active = false;
+        BC_params_list_SU.at(BC_id).active = false;
+        return true;
+    }
+
+    bool enable_BC_by_ID(size_t BC_id) {
+        size_t max_id = BC_params_list_UU.size();
+        if (BC_id >= max_id) {
+            printf("ERROR: Trying to disable invalid BC ID %d\n", BC_id);
+            return false;
+        }
+        BC_params_list_UU.at(BC_id).active = true;
+        BC_params_list_SU.at(BC_id).active = true;
+        return true;
+    }
 
     /// Set the output mode of the simulation
     void setOutputMode(GRAN_OUTPUT_MODE mode) { file_write_mode = mode; }

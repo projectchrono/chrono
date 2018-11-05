@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     float top_z = params.box_Z / 2.f;               // No harm in extending the cone to the top
     constexpr bool outward_normal = true;          // Inward-colliding cone
 
-    m_sys.Create_BC_Cone(cone_tip, cone_slope, top_z, opening_z, outward_normal);
+    m_sys.Create_BC_Cone_Z(cone_tip, cone_slope, top_z, opening_z, outward_normal);
 
     double particle_mass = 4.0 * CH_C_PI * params.sphere_radius * params.sphere_radius * params.sphere_radius *
                            params.sphere_density / 3.0;

@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     settlingExperiment.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
-    settlingExperiment.Create_BC_Cone(center_pt, cone_slope, params.box_Z, center_pt[2] + 10 * params.sphere_radius,
+    settlingExperiment.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + 10 * params.sphere_radius,
                                       true);
     settlingExperiment.initialize();
 

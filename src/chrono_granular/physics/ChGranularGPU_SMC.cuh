@@ -395,6 +395,10 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
     float yforce = 0;
     float zforce = 0;
     for (unsigned int i = 0; i < nBCs; i++) {
+        // skip inactive BCs
+        if (!bc_params_list[i].active) {
+            continue;
+        }
         switch (bc_type_list[i]) {
             case BC_type::AA_BOX: {
                 addBCForces_AABox(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
@@ -407,6 +411,10 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
             case BC_type::CONE: {
                 addBCForces_Cone(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
                                  gran_params, bc_params_list[i]);
+            }
+            case BC_type::PLANE: {
+                addBCForces_Plane(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
+                                  gran_params, bc_params_list[i]);
             }
         }
     }
@@ -483,7 +491,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
         // positive (upwards) restorative force
-        curr_contrib.x += gran_params->Kn_s2w_SU * abs(penetration);
+        curr_contrib.x += gran_params->K_n_s2w_SU * abs(penetration);
         // damping always has this minus sign
         curr_contrib.x += -1 * normal_damping_force.x;
 
@@ -504,7 +512,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         float3 curr_contrib = {0, 0, 0};
 
         // negative (downwards) restorative force
-        curr_contrib.x += -1 * gran_params->Kn_s2w_SU * abs(penetration);
+        curr_contrib.x += -1 * gran_params->K_n_s2w_SU * abs(penetration);
         // damping always has this minus sign
         curr_contrib.x += -1 * normal_damping_force.x;
 
@@ -525,7 +533,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         float3 curr_contrib = {0, 0, 0};
 
         // positive (upwards) restorative force
-        curr_contrib.y += gran_params->Kn_s2w_SU * abs(penetration);
+        curr_contrib.y += gran_params->K_n_s2w_SU * abs(penetration);
         // damping always has this minus sign
         curr_contrib.y += -1 * normal_damping_force.y;
 
@@ -545,7 +553,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         float3 curr_contrib = {0, 0, 0};
 
         // negative (downwards) restorative force
-        curr_contrib.y += -1 * gran_params->Kn_s2w_SU * abs(penetration);
+        curr_contrib.y += -1 * gran_params->K_n_s2w_SU * abs(penetration);
         // damping always has this minus sign
         curr_contrib.y += -1 * normal_damping_force.y;
 
@@ -566,7 +574,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         float3 curr_contrib = {0, 0, 0};
 
         // positive (upwards) restorative force
-        curr_contrib.z += gran_params->Kn_s2w_SU * abs(penetration);
+        curr_contrib.z += gran_params->K_n_s2w_SU * abs(penetration);
         // damping always has this minus sign
         curr_contrib.z += -1 * normal_damping_force.z;
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
@@ -585,7 +593,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
         float3 curr_contrib = {0, 0, 0};
 
         // negative (downwards) restorative force
-        curr_contrib.z += -1 * gran_params->Kn_s2w_SU * abs(penetration);
+        curr_contrib.z += -1 * gran_params->K_n_s2w_SU * abs(penetration);
         // damping always has this minus sign
         curr_contrib.z += -1 * normal_damping_force.z;
 
@@ -820,7 +828,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
             // Force accumulator
             // Add spring term
-            float3 force_acc = gran_params->Kn_s2s_SU * delta_r * sphdiameter * penetration;
+            float3 force_acc = gran_params->K_n_s2s_SU * delta_r * sphdiameter * penetration;
 
             // Add damping term
             force_acc = force_acc - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;

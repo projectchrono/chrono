@@ -85,7 +85,7 @@ sphereDataStruct ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
     return packed;
 }
 
-void ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
+size_t ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
     BC_params_t<float, float3> p;
     printf("UU bounds are %f,%f,%f,%f,%f,%f", center[0] + hdims[0], center[1] + hdims[1], center[2] + hdims[2],
            center[0] - hdims[0], center[1] - hdims[1], center[2] - hdims[2]);
@@ -111,9 +111,11 @@ void ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float cen
     }
     BC_type_list.push_back(BC_type::AA_BOX);
     BC_params_list_UU.push_back(p);
+    // get my index in the new array
+    return BC_type_list.size() - 1;
 }
 
-void ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal) {
+size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.sphere_params.sphere_center.x = center[0];
@@ -130,13 +132,15 @@ void ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3], float r
 
     BC_type_list.push_back(BC_type::SPHERE);
     BC_params_list_UU.push_back(p);
+    // get my index in the new array
+    return BC_type_list.size() - 1;
 }
 
-void ChSystemGranular_MonodisperseSMC::Create_BC_Cone(float cone_tip[3],
-                                                      float slope,
-                                                      float hmax,
-                                                      float hmin,
-                                                      bool outward_normal) {
+size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cone_Z(float cone_tip[3],
+                                                          float slope,
+                                                          float hmax,
+                                                          float hmin,
+                                                          bool outward_normal) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.cone_params.cone_tip.x = cone_tip[0];
@@ -155,6 +159,24 @@ void ChSystemGranular_MonodisperseSMC::Create_BC_Cone(float cone_tip[3],
 
     BC_type_list.push_back(BC_type::CONE);
     BC_params_list_UU.push_back(p);
+    // get my index in the new array
+    return BC_type_list.size() - 1;
+}
+
+size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], float plane_normal[3]) {
+    BC_params_t<float, float3> p;
+    p.plane_params.position.x = plane_pos[0];
+    p.plane_params.position.y = plane_pos[1];
+    p.plane_params.position.z = plane_pos[2];
+
+    p.plane_params.normal.x = plane_normal[0];
+    p.plane_params.normal.y = plane_normal[1];
+    p.plane_params.normal.z = plane_normal[2];
+
+    BC_type_list.push_back(BC_type::PLANE);
+    BC_params_list_UU.push_back(p);
+    // get my index in the new array
+    return BC_type_list.size() - 1;
 }
 
 void ChSystemGranular_MonodisperseSMC::determine_new_stepSize_SU() {
@@ -219,6 +241,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                     convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.z);
                 params_SU.sphere_params.radius = convertToPosSU<int, float>(params_UU.sphere_params.radius);
                 params_SU.sphere_params.normal_sign = params_UU.sphere_params.normal_sign;
+                params_SU.active = true;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -237,6 +260,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.AABox_params.min_corner.z = convertToPosSU<int, float>(params_UU.AABox_params.min_corner.z);
 
                 params_SU.AABox_params.normal_sign = params_UU.AABox_params.normal_sign;
+                params_SU.active = true;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -247,10 +271,28 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.cone_params.cone_tip.x = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.x);
                 params_SU.cone_params.cone_tip.y = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.y);
                 params_SU.cone_params.cone_tip.z = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.z);
+
                 params_SU.cone_params.hmax = convertToPosSU<int, float>(params_UU.cone_params.hmax);
                 params_SU.cone_params.hmin = convertToPosSU<int, float>(params_UU.cone_params.hmin);
                 params_SU.cone_params.slope = params_UU.cone_params.slope;
                 params_SU.cone_params.normal_sign = params_UU.cone_params.normal_sign;
+                params_SU.active = true;
+
+                BC_params_list_SU.push_back(params_SU);
+                break;
+            case BC_type::PLANE:
+                printf("adding plane!\n");
+                params_SU.plane_params.position.x = convertToPosSU<int, float>(params_UU.plane_params.position.x);
+                params_SU.plane_params.position.y = convertToPosSU<int, float>(params_UU.plane_params.position.y);
+                params_SU.plane_params.position.z = convertToPosSU<int, float>(params_UU.plane_params.position.z);
+
+                // normal is unitless
+                // TODO normalize this just in case
+                // float abs = Length(params_UU);
+                params_SU.plane_params.normal.x = params_UU.plane_params.normal.x;
+                params_SU.plane_params.normal.y = params_UU.plane_params.normal.y;
+                params_SU.plane_params.normal.z = params_UU.plane_params.normal.z;
+                params_SU.active = true;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
