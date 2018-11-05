@@ -1,0 +1,22 @@
+{
+	"sphere_radius": 0.2,
+	"sphere_density": 1.5,
+	"box_X": 100, /*TODO*/
+	"box_Y": 100, /*TODO*/
+	"box_Z": 100, /*TODO*/
+	"step_size": 1e-5,
+	"time_end": 4, /*TODO*/
+	"grav_X": 0,
+	"grav_Y": 0,
+	"grav_Z": -980,
+	"normalStiffS2S": 1e7,
+	"normalStiffS2W": 1e7,
+	"normalDampS2S": 6e3, /*TODO*/
+	"cohesion_ratio": 0,
+	"verbose": false,
+	"psi_h": 4,
+	"psi_T": 16,
+	"psi_L": 16,
+	"write_mode": "csv",
+	"output_dir": "output"
+}
