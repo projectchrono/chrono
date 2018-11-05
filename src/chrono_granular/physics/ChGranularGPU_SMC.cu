@@ -208,8 +208,12 @@ void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
 
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
-        outstrstream << "x,y,z,USU,wx,wy,wz\n";
+        outstrstream << "x,y,z,USU";
 
+        if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            outstrstream << ",wx,wy,wz";
+        }
+        outstrstream << "\n";
         for (unsigned int n = 0; n < nDEs; n++) {
             // TODO convert absv into UU
             float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +

@@ -37,9 +37,9 @@
 using chrono::granular::sphereDataStruct;
 
 // These are the max X, Y, Z dimensions in the BD frame
-#define MAX_X_POS_UNSIGNED (gran_params->SD_size_X_SU * gran_params->nSDs_X)
-#define MAX_Y_POS_UNSIGNED (gran_params->SD_size_Y_SU * gran_params->nSDs_Y)
-#define MAX_Z_POS_UNSIGNED (gran_params->SD_size_Z_SU * gran_params->nSDs_Z)
+#define MAX_X_POS_UNSIGNED ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X)
+#define MAX_Y_POS_UNSIGNED ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y)
+#define MAX_Z_POS_UNSIGNED ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z)
 
 /// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
 template <class IN_T, class IN_T3, class OUT_T3 = IN_T3>
@@ -122,8 +122,8 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
                                           int sphCenter_Z,
                                           unsigned int SDs[MAX_SDs_TOUCHED_BY_SPHERE],
                                           ParamsPtr gran_params) {
-    // grab radius
-    const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
+    // grab radius as signed so we can use it intelligently
+    const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
     // We need to offset so that the bottom-left corner is at the origin
     int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
@@ -134,40 +134,38 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
     // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
     // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
     // nx = (xCenter - radius) / wx .
-    n[0] = (sphCenter_X_modified - sphereRadius_SU) / gran_params->SD_size_X_SU;
+    n[0] = (unsigned int)(sphCenter_X_modified - sphereRadius_SU) / gran_params->SD_size_X_SU;
     // Same for D and H
-    n[1] = (sphCenter_Y_modified - sphereRadius_SU) / gran_params->SD_size_Y_SU;
-    n[2] = (sphCenter_Z_modified - sphereRadius_SU) / gran_params->SD_size_Z_SU;
+    n[1] = (unsigned int)(sphCenter_Y_modified - sphereRadius_SU) / gran_params->SD_size_Y_SU;
+    n[2] = (unsigned int)(sphCenter_Z_modified - sphereRadius_SU) / gran_params->SD_size_Z_SU;
     // This is kind of gross and hacky, if we're at the bottom boundary, the bottom SD is 0
     // If we're at the top boundary, the top SD is the max
-    if (sphCenter_X_modified - (signed int)sphereRadius_SU <= 0) {
+    if (sphCenter_X_modified - sphereRadius_SU <= 0) {
         n[0] = 0;
-    } else if (sphCenter_X_modified + (signed int)sphereRadius_SU >= MAX_X_POS_UNSIGNED) {
+    } else if (sphCenter_X_modified + sphereRadius_SU >= MAX_X_POS_UNSIGNED) {
         n[0] = gran_params->nSDs_X - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    if (sphCenter_Y_modified - (signed int)sphereRadius_SU <= 0) {
+    if (sphCenter_Y_modified - sphereRadius_SU <= 0) {
         n[1] = 0;
-    } else if (sphCenter_Y_modified + (signed int)sphereRadius_SU >= MAX_Y_POS_UNSIGNED) {
+    } else if (sphCenter_Y_modified + sphereRadius_SU >= MAX_Y_POS_UNSIGNED) {
         n[1] = gran_params->nSDs_Y - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    if (sphCenter_Z_modified - (signed int)sphereRadius_SU <= 0) {
+    if (sphCenter_Z_modified - sphereRadius_SU <= 0) {
         n[2] = 0;
-    } else if (sphCenter_Z_modified + (signed int)sphereRadius_SU >= MAX_Z_POS_UNSIGNED) {
+    } else if (sphCenter_Z_modified + sphereRadius_SU >= MAX_Z_POS_UNSIGNED) {
         n[2] = gran_params->nSDs_Z - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
-    // n[0] += (sphCenter_X_modified - (signed int)sphereRadius_SU <= 0) -
-    //         (sphCenter_X_modified + (signed int)sphereRadius_SU >= MAX_X_POS);
-    // n[1] += (sphCenter_Y_modified - (signed int)sphereRadius_SU <= 0) -
-    //         (sphCenter_Y_modified + (signed int)sphereRadius_SU >= MAX_X_POS);
-    // n[2] += (sphCenter_Z_modified - (signed int)sphereRadius_SU <= 0) -
-    //         (sphCenter_Z_modified + (signed int)sphereRadius_SU >= MAX_X_POS);
+    // n[0] += (sphCenter_X_modified - sphereRadius_SU <= 0) -
+    //         (sphCenter_X_modified + sphereRadius_SU >= MAX_X_POS);
+    // n[1] += (sphCenter_Y_modified - sphereRadius_SU <= 0) -
+    //         (sphCenter_Y_modified + sphereRadius_SU >= MAX_X_POS);
+    // n[2] += (sphCenter_Z_modified - sphereRadius_SU <= 0) -
+    //         (sphCenter_Z_modified + sphereRadius_SU >= MAX_X_POS);
     // This conditional says if we're at the boundary
-    unsigned int boundary = sphCenter_X_modified - (signed int)sphereRadius_SU <= 0 ||
-                            sphCenter_X_modified + (signed int)sphereRadius_SU >= MAX_X_POS_UNSIGNED ||
-                            sphCenter_Y_modified - (signed int)sphereRadius_SU <= 0 ||
-                            sphCenter_Y_modified + (signed int)sphereRadius_SU >= MAX_Y_POS_UNSIGNED ||
-                            sphCenter_Z_modified - (signed int)sphereRadius_SU <= 0 ||
-                            sphCenter_Z_modified + (signed int)sphereRadius_SU >= MAX_Z_POS_UNSIGNED;
+    unsigned int boundary =
+        sphCenter_X_modified - sphereRadius_SU <= 0 || sphCenter_X_modified + sphereRadius_SU >= MAX_X_POS_UNSIGNED ||
+        sphCenter_Y_modified - sphereRadius_SU <= 0 || sphCenter_Y_modified + sphereRadius_SU >= MAX_Y_POS_UNSIGNED ||
+        sphCenter_Z_modified - sphereRadius_SU <= 0 || sphCenter_Z_modified + sphereRadius_SU >= MAX_Z_POS_UNSIGNED;
     if (n[0] >= gran_params->nSDs_X) {
         ABORTABORTABORT(
             "x is too large, boundary is %u, n is %u, nmax is %u, pos is %d, mod is %d, max is %d, dim is %d\n",
@@ -470,9 +468,6 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
 
     // TODO how does multistep work here?
 
-    // float3 tangent_spring_force_irrot = gran_params->K_t_s2w_SU * delta_V * gran_params->alpha_h_bar;
-    // float3 tangent_damping_force_irrot = gran_params->Gamma_t_s2w_SU * m_eff * delta_V;
-
     // scaling factors for tangential spring/damping forces
     float composite_t_fac = gran_params->K_t_s2w_SU * gran_params->alpha_h_bar +
                             gran_params->Gamma_t_s2w_SU * m_eff;  // include time integration for now
@@ -483,7 +478,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
 
     // Do X direction
     // penetration of sphere into bottom X wall
-    penetration = sphXpos_modified - (signed int)sphereRadius_SU;
+    penetration = sphXpos_modified - sphereRadius_SU;
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
@@ -503,7 +498,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     }
 
     // Do top X wall
-    penetration = MAX_X_POS_UNSIGNED - (sphXpos_modified + (signed int)sphereRadius_SU);
+    penetration = MAX_X_POS_UNSIGNED - (sphXpos_modified + sphereRadius_SU);
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
@@ -524,7 +519,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
 
     // Do Y direction
     // penetration of sphere into bottom Y wall
-    penetration = sphYpos_modified - (signed int)sphereRadius_SU;
+    penetration = sphYpos_modified - sphereRadius_SU;
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
@@ -544,7 +539,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     }
 
     // Do top Y wall
-    penetration = MAX_Y_POS_UNSIGNED - (sphYpos_modified + (signed int)sphereRadius_SU);
+    penetration = MAX_Y_POS_UNSIGNED - (sphYpos_modified + sphereRadius_SU);
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
@@ -565,7 +560,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
 
     // Do Z direction
     // penetration of sphere into bottom Z wall
-    penetration = sphZpos_modified - (signed int)sphereRadius_SU;
+    penetration = sphZpos_modified - sphereRadius_SU;
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
@@ -584,7 +579,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     }
 
     // Do top Z wall
-    penetration = MAX_Z_POS_UNSIGNED - (sphZpos_modified + (signed int)sphereRadius_SU);
+    penetration = MAX_Z_POS_UNSIGNED - (sphZpos_modified + sphereRadius_SU);
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
