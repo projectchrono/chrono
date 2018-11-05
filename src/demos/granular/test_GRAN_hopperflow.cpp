@@ -50,6 +50,25 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    params.box_Z = 100;
+    float void_fraction = 0.15;  // Fraction of the height left empty for flow out of cone
+
+    float cone_tip[3] = {0.f, 0.f,
+                         -params.box_Z / 2 + void_fraction * params.box_Z};  // Hypothetical location of cone tip
+    float radius_opening = 2;                                                // Opening at bottom of cone // TODO vary
+    float cone_slope = 1.f;                                                  // TODO vary
+
+    float opening_z = cone_slope * radius_opening + cone_tip[2];  // z coord of the cone opening
+    float top_z = params.box_Z / 2.f;                             // No harm in extending the cone to the top
+    constexpr bool outward_normal = true;                         // Inward-colliding cone
+
+    params.box_X = (params.box_Z - 2 * cone_tip[2]) / cone_slope;
+    params.box_Y = params.box_X;
+
+    cout << "params.box_X: " << params.box_X << endl;
+    cout << "params.box_Y: " << params.box_Y << endl;
+    cout << "params.box_Z: " << params.box_Z << endl;
+
     // Setup simulation parameters
     ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density);
     m_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
@@ -70,13 +89,6 @@ int main(int argc, char* argv[]) {
 
     m_sys.set_BD_Fixed(true);
 
-    float cone_tip[3] = {0.f, 0.f, 0.f};            // Hypothetical location of cone tip
-    float radius_opening = 10;                      // Opening at bottom of cone // TODO vary
-    float cone_slope = 1.f;                         // TODO vary
-    float opening_z = cone_slope * radius_opening;  // z coord of the cone opening
-    float top_z = params.box_Z / 2.f;               // No harm in extending the cone to the top
-    constexpr bool outward_normal = true;          // Inward-colliding cone
-
     m_sys.Create_BC_Cone(cone_tip, cone_slope, top_z, opening_z, outward_normal);
 
     double particle_mass = 4.0 * CH_C_PI * params.sphere_radius * params.sphere_radius * params.sphere_radius *
@@ -84,9 +96,9 @@ int main(int argc, char* argv[]) {
 
     // Generate constant total mass of particles
     std::vector<ChVector<float>> body_points;
-    chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
+    chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
 
-    double fill_bottom = opening_z + 2.05 * params.sphere_radius;
+    double fill_bottom = opening_z;
     double fill_top = params.box_Z / 2.0 - 2.05 * params.sphere_radius;
     ChVector<> center = {cone_tip[0], cone_tip[1], fill_bottom};
     double total_mass = 0;
@@ -126,11 +138,13 @@ int main(int argc, char* argv[]) {
 
     // Run settling experiments
     while (curr_time < params.time_end) {
+        char filename[100];
+        std::sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+        m_sys.writeFileUU(string(filename));
+
         m_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         cout << "Rendering frame " << currframe << endl;
-        char filename[100];
-        std::sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
         m_sys.writeFileUU(string(filename));
 
         // TODO compute mass flow rate
