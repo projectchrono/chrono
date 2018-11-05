@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     m_sys.set_BD_Fixed(true);
 
-    m_sys.Create_BC_Cone(cone_tip, cone_slope, top_z, opening_z, outward_normal);
+    m_sys.Create_BC_Cone_Z(cone_tip, cone_slope, top_z, opening_z, outward_normal);
 
     double particle_mass = 4.0 * CH_C_PI * params.sphere_radius * params.sphere_radius * params.sphere_radius *
                            params.sphere_density / 3.0;
@@ -138,13 +138,11 @@ int main(int argc, char* argv[]) {
 
     // Run settling experiments
     while (curr_time < params.time_end) {
-        char filename[100];
-        std::sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        m_sys.writeFileUU(string(filename));
-
         m_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         cout << "Rendering frame " << currframe << endl;
+        char filename[100];
+        std::sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
         m_sys.writeFileUU(string(filename));
 
         // TODO compute mass flow rate

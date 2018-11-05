@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.initialize();
     // settlingExperiment.Create_BC_AABox(hdims, center_pt, false);
     // settlingExperiment.Create_BC_Sphere(center_pt, 3.f, true);
-    // settlingExperiment.Create_BC_Cone(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true);
+    // settlingExperiment.Create_BC_Cone_Z(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true);
 
     int fps = 100;
     // assume we run for at least one frame

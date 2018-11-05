@@ -24,6 +24,7 @@ using chrono::granular::BC_params_t;
 using chrono::granular::AABox_BC_params_t;
 using chrono::granular::sphere_BC_params_t;
 using chrono::granular::cone_BC_params_t;
+using chrono::granular::Plane_BC_params_t;
 
 //// DO NOT USE, IS BROKEN
 inline __device__ bool addBCForces_AABox(const int sphXpos,
@@ -44,7 +45,7 @@ inline __device__ bool addBCForces_AABox(const int sphXpos,
     // const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
     //
     // // Compute spring factor in force
-    // float scalingFactor = AABox_params.normal_sign * gran_params->Kn_s2w_SU;
+    // float scalingFactor = AABox_params.normal_sign * gran_params->K_n_s2w_SU;
     //
     // // penetration into wall
     // signed int pen = 0;
@@ -136,9 +137,9 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
     if (d2 < 1) {
         contact = true;
         // spring term
-        X_force += sphere_params.normal_sign * gran_params->Kn_s2w_SU * dX * total_diameter * penetration;
-        Y_force += sphere_params.normal_sign * gran_params->Kn_s2w_SU * dY * total_diameter * penetration;
-        Z_force += sphere_params.normal_sign * gran_params->Kn_s2w_SU * dZ * total_diameter * penetration;
+        X_force += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dX * total_diameter * penetration;
+        Y_force += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dY * total_diameter * penetration;
+        Z_force += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dZ * total_diameter * penetration;
 
         // damping term
         // Compute force updates for damping term
@@ -204,9 +205,9 @@ inline __device__ bool addBCForces_Cone(const int sphXpos,
     if (pen > 0 && contact_height >= cone_params.hmin - cone_params.cone_tip.z &&
         contact_height <= cone_params.hmax - cone_params.cone_tip.z) {
         // add spring term
-        X_force += cone_params.normal_sign * gran_params->Kn_s2s_SU * pen * contact_vector.x;
-        Y_force += cone_params.normal_sign * gran_params->Kn_s2s_SU * pen * contact_vector.y;
-        Z_force += cone_params.normal_sign * gran_params->Kn_s2s_SU * pen * contact_vector.z;
+        X_force += cone_params.normal_sign * gran_params->K_n_s2w_SU * pen * contact_vector.x;
+        Y_force += cone_params.normal_sign * gran_params->K_n_s2w_SU * pen * contact_vector.y;
+        Z_force += cone_params.normal_sign * gran_params->K_n_s2w_SU * pen * contact_vector.z;
 
         // damping term
         // Compute force updates for damping term
@@ -221,5 +222,54 @@ inline __device__ bool addBCForces_Cone(const int sphXpos,
         Z_force += -gran_params->Gamma_n_s2w_SU * projection * contact_vector.z * m_eff;
         contact = true;
     }
+    return contact;
+}
+
+/// TODO check damping, adhesion
+inline __device__ bool addBCForces_Plane(const int sphXpos,
+                                         const int sphYpos,
+                                         const int sphZpos,
+                                         const float sphXvel,
+                                         const float sphYvel,
+                                         const float sphZvel,
+                                         float& X_force,
+                                         float& Y_force,
+                                         float& Z_force,
+                                         ParamsPtr gran_params,
+                                         const BC_params_t<int, int3>& bc_params) {
+    Plane_BC_params_t<int3> plane_params = bc_params.plane_params;
+    bool contact = false;
+    // classic radius grab, this must be signed to avoid false conversions
+    const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
+
+    // Vector from point on plane to sphere center
+    float3 delta_r = make_float3(sphXpos - plane_params.position.x, sphYpos - plane_params.position.y,
+                                 sphZpos - plane_params.position.z);
+
+    // projection displacement onto plane normal
+    float proj = Dot(plane_params.normal, delta_r);
+    // positive implies radius is bigger than distance, so there is penetration
+    float penetration = sphereRadius_SU - proj;
+
+    if (penetration > 0) {
+        contact = true;
+        X_force += gran_params->K_n_s2w_SU * penetration * plane_params.normal.x;
+        Y_force += gran_params->K_n_s2w_SU * penetration * plane_params.normal.y;
+        Z_force += gran_params->K_n_s2w_SU * penetration * plane_params.normal.z;
+
+        // damping term
+        // Compute force updates for damping term
+        // Project relative velocity to the normal
+        // assume static BC
+        float projection =
+            (sphXvel * plane_params.normal.x + sphYvel * plane_params.normal.y + sphZvel * plane_params.normal.z);
+
+        constexpr float m_eff = 0.5;
+
+        X_force += -gran_params->Gamma_n_s2w_SU * projection * plane_params.normal.x * m_eff;
+        Y_force += -gran_params->Gamma_n_s2w_SU * projection * plane_params.normal.y * m_eff;
+        Z_force += -gran_params->Gamma_n_s2w_SU * projection * plane_params.normal.z * m_eff;
+    }
+
     return contact;
 }

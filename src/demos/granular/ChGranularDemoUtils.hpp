@@ -3,8 +3,8 @@
 
 template <typename T>
 std::vector<ChVector<T>> PDLayerSampler_BOX(ChVector<T> center, ChVector<T> hdims, T diam, T padding_factor = 1.02) {
-    T fill_bottom = center.z() - hdims.z() + diam;
-    T fill_top = center.z() + hdims.z() - diam;
+    T fill_bottom = center.z() - hdims.z();
+    T fill_top = center.z() + hdims.z();
 
     // set center to bottom
     center.z() = fill_bottom;

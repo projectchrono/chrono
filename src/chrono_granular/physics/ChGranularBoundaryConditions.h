@@ -47,13 +47,24 @@ struct AABox_BC_params_t {
     T normal_sign;
 };
 
-template <typename T, typename T3>
-union BC_params_t {
-    AABox_BC_params_t<T, T3> AABox_params;
-    sphere_BC_params_t<T, T3> sphere_params;
-    cone_BC_params_t<T, T3> cone_params;
+/// Infinite Plane
+template <typename T3>
+struct Plane_BC_params_t {
+    float3 normal;
+    T3 position;
 };
 
-enum BC_type { SPHERE, AA_BOX, CONE };
+template <typename T, typename T3>
+struct BC_params_t {
+    bool active;
+    union {
+        AABox_BC_params_t<T, T3> AABox_params;
+        sphere_BC_params_t<T, T3> sphere_params;
+        cone_BC_params_t<T, T3> cone_params;
+        Plane_BC_params_t<T3> plane_params;  // plane only needs one arg
+    };
+};
+
+enum BC_type { SPHERE, AA_BOX, CONE, PLANE };
 }  // namespace granular
 }  // namespace chrono
