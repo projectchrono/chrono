@@ -227,6 +227,7 @@ class ChBodyEasyConvexHull : public ChBody {
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, *vshape->GetMesh());
         if (visual_asset) {
+            vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
             this->AddAsset(vshape);
         }
 
@@ -289,6 +290,7 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, *vshape->GetMesh());
         if (visual_asset) {
+            vshape->SetName("chull_mesh_" + std::to_string(GetIdentifier()));
             this->AddAsset(vshape);  // assets are respect to REF c.sys
         }
 
@@ -355,12 +357,11 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
         auto trimesh = std::make_shared< geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(filename, true, true);
 
-        auto vshape = std::make_shared<ChTriangleMeshShape>();
-        vshape->SetMesh(trimesh);
-        AddAsset(vshape);  // assets are respect to REF c.sys
-
-        if (!visual_asset) {
-            vshape->SetVisible(false);
+        if (visual_asset) {
+            auto vshape = std::make_shared<ChTriangleMeshShape>();
+            vshape->SetMesh(trimesh);
+            vshape->SetName(filename);
+            AddAsset(vshape);  // assets are respect to REF c.sys
         }
 
         this->SetDensity((float)mdensity);
