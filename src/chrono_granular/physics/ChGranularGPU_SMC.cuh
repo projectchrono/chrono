@@ -495,7 +495,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.x += -1 * normal_damping_force.x;
 
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
             // w cross r = -r w_z e_y + r w_y e_z
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.z));
@@ -516,7 +516,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.x += -1 * normal_damping_force.x;
 
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.z));
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.y));
@@ -537,7 +537,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.y += -1 * normal_damping_force.y;
 
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.x));
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.z));
@@ -557,7 +557,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.y += -1 * normal_damping_force.y;
 
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.x));
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.z));
@@ -577,7 +577,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         curr_contrib.z += gran_params->K_n_s2w_SU * abs(penetration);
         // damping always has this minus sign
         curr_contrib.z += -1 * normal_damping_force.z;
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.y));
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.x));
@@ -597,7 +597,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.z += -1 * normal_damping_force.z;
 
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.y));
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.x));

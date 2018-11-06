@@ -228,7 +228,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Requires initialize() to have been called
     virtual double advance_simulation(float duration);
 
-    /// Get the maximum damping term in the system
+    /// Get the maximum stiffness term in the system
     virtual double get_max_K();
 
     /// Initialize simulation so that it can be advanced
@@ -455,28 +455,28 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// User defined density of the sphere
     float sphere_density;
 
-    /// length of physical box; defines the global X axis located at the CM of the box (left to right)
+    /// length of physical box; defines the global X axis located at the CM of the box
     float box_size_X;
-    /// depth of physical box; defines the global Y axis located at the CM of the box (into screen)
+    /// depth of physical box; defines the global Y axis located at the CM of the box
     float box_size_Y;
-    /// height of physical box; defines the global Z axis located at the CM of the box (pointing up)
+    /// height of physical box; defines the global Z axis located at the CM of the box
     float box_size_Z;
 
     /// Size of the sphere radius in Simulation Units
     unsigned int sphereRadius_SU;
 
-    /// Size of the SD in the L direction (expressed in Simulation Units)
+    /// Size of the SD in the X direction (expressed in Simulation Units)
     unsigned int SD_size_X_SU;
-    /// Size of the SD in the D direction (expressed in Simulation Units)
+    /// Size of the SD in the Y direction (expressed in Simulation Units)
     unsigned int SD_size_Y_SU;
-    /// Size of the SD in the H direction (expressed in Simulation Units)
+    /// Size of the SD in the Z direction (expressed in Simulation Units)
     unsigned int SD_size_Z_SU;
 
-    /// Number of SDs along the L dimension of the box
+    /// Number of SDs along the X dimension of the box
     unsigned int nSDs_X;
-    /// Number of SDs along the D dimension of the box
+    /// Number of SDs along the Y dimension of the box
     unsigned int nSDs_Y;
-    /// Number of SDs along the H dimension of the box
+    /// Number of SDs along the Z dimension of the box
     unsigned int nSDs_Z;
 
     /// User-provided sphere positions in UU
