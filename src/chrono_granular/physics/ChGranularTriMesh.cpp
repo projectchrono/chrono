@@ -53,9 +53,9 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
     // Set aside memory for holding data structures worked with. Get some initializations going
     printf("setup_simulation\n");
     setup_simulation();
-    copy_const_data_to_device();
+    copyConstSphereDataToDevice();
     copy_triangle_data_to_device();
-    copyBD_Frame_to_device();
+    copyBDFrameToDevice();
     gpuErrchk(cudaDeviceSynchronize());
 
     determine_new_stepSize_SU();

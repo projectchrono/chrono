@@ -439,17 +439,17 @@ Output:
   - Y_Vel_corr: the Y component of the force, as represented in the box reference system
   - Z_Vel_corr: the Z component of the force, as represented in the box reference system
 */
-inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X position of DE
-                                       const int sphYpos,    //!< Global Y position of DE
-                                       const int sphZpos,    //!< Global Z position of DE
-                                       const float sphXvel,  //!< Global X velocity of DE
-                                       const float sphYvel,  //!< Global Y velocity of DE
-                                       const float sphZvel,  //!< Global Z velocity of DE
-                                       const float omegaX,   //!< Global X velocity of DE
-                                       const float omegaY,   //!< Global Y velocity of DE
-                                       const float omegaZ,   //!< Global Z velocity of DE
+inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X position of DE
+                                       const int sphYpos,      //!< Global Y position of DE
+                                       const int sphZpos,      //!< Global Z position of DE
+                                       const float sphXvel,    //!< Global X velocity of DE
+                                       const float sphYvel,    //!< Global Y velocity of DE
+                                       const float sphZvel,    //!< Global Z velocity of DE
+                                       const float sphOmegaX,  //!< Global X velocity of DE
+                                       const float sphOmegaY,  //!< Global Y velocity of DE
+                                       const float sphOmegaZ,  //!< Global Z velocity of DE
                                        float3& force_from_wall,
-                                       float3& torque_from_wall,
+                                       float3& ang_acc_from_wall,
                                        ParamsPtr gran_params) {
     // classic radius grab, but signed so we can negate it easier
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
@@ -464,13 +464,13 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     // cache force
     float3 wall_force = {0, 0, 0};
     // cache force divided by radius
-    float3 wall_torque = {0, 0, 0};
+    float3 wall_torque_by_r = {0, 0, 0};
 
     // velocity difference of COMs
     float3 delta_V_com = make_float3(sphXvel - gran_params->BD_frame_X_dot, sphYvel - gran_params->BD_frame_Y_dot,
                                      sphZvel - gran_params->BD_frame_Z_dot);
     // r times Omega, these are components of r cross omega
-    float3 r_Omega = {sphereRadius_SU * omegaX, sphereRadius_SU * omegaY, sphereRadius_SU * omegaZ};
+    float3 r_Omega = {sphereRadius_SU * sphOmegaX, sphereRadius_SU * sphOmegaY, sphereRadius_SU * sphOmegaZ};
 
     float3 normal_damping_force = delta_V_com * gran_params->Gamma_n_s2w_SU * m_eff;
 
@@ -500,7 +500,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
             // w cross r = -r w_z e_y + r w_y e_z
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.z));
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.y));
-            wall_torque = wall_torque + make_float3(0, curr_contrib.z, -curr_contrib.y);
+            wall_torque_by_r = wall_torque_by_r + make_float3(0, curr_contrib.z, -curr_contrib.y);
         }
         wall_force = wall_force + curr_contrib;
     }
@@ -520,7 +520,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
             // add tangential forces
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.z));
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.y));
-            wall_torque = wall_torque + make_float3(0, -curr_contrib.z, curr_contrib.y);
+            wall_torque_by_r = wall_torque_by_r + make_float3(0, -curr_contrib.z, curr_contrib.y);
         }
         wall_force = wall_force + curr_contrib;
     }
@@ -541,7 +541,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
             // add tangential forces
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.x));
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.z));
-            wall_torque = wall_torque + make_float3(curr_contrib.z, 0, -curr_contrib.x);
+            wall_torque_by_r = wall_torque_by_r + make_float3(-curr_contrib.z, 0, curr_contrib.x);
         }
         wall_force = wall_force + curr_contrib;
     }
@@ -561,7 +561,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
             // add tangential forces
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.x));
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.z));
-            wall_torque = wall_torque + make_float3(-curr_contrib.z, 0, curr_contrib.x);
+            wall_torque_by_r = wall_torque_by_r + make_float3(curr_contrib.z, 0, -curr_contrib.x);
         }
         wall_force = wall_force + curr_contrib;
     }
@@ -581,7 +581,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
             // add tangential forces
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.y));
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.x));
-            wall_torque = wall_torque + make_float3(curr_contrib.y, -curr_contrib.x, 0);
+            wall_torque_by_r = wall_torque_by_r + make_float3(curr_contrib.y, -curr_contrib.x, 0);
         }
         wall_force = wall_force + curr_contrib;
     }
@@ -601,7 +601,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
             // add tangential forces
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.y));
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.x));
-            wall_torque = wall_torque + make_float3(-curr_contrib.y, curr_contrib.x, 0);
+            wall_torque_by_r = wall_torque_by_r + make_float3(-curr_contrib.y, curr_contrib.x, 0);
         }
         wall_force = wall_force + curr_contrib;
     }
@@ -609,7 +609,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,    //!< Global X posit
     // write back to "return" values
     force_from_wall = force_from_wall + wall_force;
     if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-        torque_from_wall = torque_from_wall + wall_torque;
+        ang_acc_from_wall = ang_acc_from_wall + (wall_torque_by_r / gran_params->sphereInertia_by_r);
     }
 }
 
@@ -682,9 +682,9 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         sphere_Y[threadIdx.x] = sphere_data.pos_Y[mySphereID];
         sphere_Z[threadIdx.x] = sphere_data.pos_Z[mySphereID];
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-            omega_X[threadIdx.x] = sphere_data.omega_X[mySphereID];
-            omega_Y[threadIdx.x] = sphere_data.omega_Y[mySphereID];
-            omega_Z[threadIdx.x] = sphere_data.omega_Z[mySphereID];
+            omega_X[threadIdx.x] = sphere_data.sphere_Omega_X[mySphereID];
+            omega_Y[threadIdx.x] = sphere_data.sphere_Omega_Y[mySphereID];
+            omega_Z[threadIdx.x] = sphere_data.sphere_Omega_Z[mySphereID];
         }
         sphere_X_DOT[threadIdx.x] = sphere_data.pos_X_dt[mySphereID];
         sphere_Y_DOT[threadIdx.x] = sphere_data.pos_Y_dt[mySphereID];
@@ -701,7 +701,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
     if (bodyA < spheresTouchingThisSD) {
         // Force generated by this contact
         float3 bodyA_force = {0.f, 0.f, 0.f};
-        float3 bodyA_torque = {0.f, 0.f, 0.f};
+        float3 bodyA_AngAcc = {0.f, 0.f, 0.f};
 
         float sphdiameter = 2. * sphereRadius_SU;
         double invSphDiameter = 1. / (2. * sphereRadius_SU);
@@ -807,16 +807,17 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
             constexpr float sphere_mass_SU = 1.f;
             constexpr float m_eff = sphere_mass_SU / 2.f;
-            float model_term = 0.f;
+            // multiplier caused by Hooke vs Hertz force model
+            float force_model_multiplier = 0.f;
             switch (gran_params->contact_model) {
                 case chrono::granular::GRAN_CONTACT_MODEL::HOOKE:
-                    model_term = 1.f;
+                    force_model_multiplier = 1.f;
                     break;
 
                 case chrono::granular::GRAN_CONTACT_MODEL::HERTZ: {
                     const float r_eff = (sphereRadius_SU) / 2;  // r_eff = (r_i * r_j) / (r_i + r_j)
                     const float delta_n = 2 * sphereRadius_SU * (1 - (1.f / reciplength));  // d_n = 2R(1-||dr||)
-                    model_term = sqrt(r_eff * delta_n);
+                    force_model_multiplier = sqrt(r_eff * delta_n);
                     break;
                 }
 
@@ -828,10 +829,10 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
             // Force accumulator
             // Add spring term
-            float3 force_acc = gran_params->K_n_s2s_SU * delta_r * sphdiameter * penetration;
+            float3 force_accum = gran_params->K_n_s2s_SU * delta_r * sphdiameter * penetration;
 
             // Add damping term
-            force_acc = force_acc - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;
+            force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;
 
             // TODO improve this
             // one-step tangential displacement
@@ -839,24 +840,25 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
                 // both tangential terms combine for single step
                 const float combined_tangent_coeff =
                     gran_params->K_t_s2s_SU * gran_params->alpha_h_bar + gran_params->Gamma_t_s2s_SU * m_eff;
-                force_acc = force_acc - combined_tangent_coeff * v_rel;
+                force_accum = force_accum - combined_tangent_coeff * v_rel;
             }
 
             // Multiply sping and damping terms by model multiplier
-            force_acc = force_acc * model_term;
+            force_accum = force_accum * force_model_multiplier;
 
             // Add cohesion term
-            force_acc = force_acc - cohesionConstant * delta_r * reciplength;
+            force_accum = force_accum - cohesionConstant * delta_r * reciplength;
 
-            // compute torque on body
+            // compute accelerations caused by torques on body
             // multiply by diameter, but normalize by radius to keep numbers sane
             constexpr float diameter_over_radius = 2;
             if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                 // Now add friction, the cross should remove it anyways maybe
-                bodyA_torque = bodyA_torque + diameter_over_radius * Cross(delta_r, force_acc);
+                bodyA_AngAcc = bodyA_AngAcc +
+                               (diameter_over_radius * Cross(delta_r, force_accum) / gran_params->sphereInertia_by_r);
             }
 
-            bodyA_force = bodyA_force + force_acc;
+            bodyA_force = bodyA_force + force_accum;
         }
 
         // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
@@ -867,7 +869,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // Perhaps this sphere is hitting the wall[s]
             boxWallsEffects(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
                             sphere_Z_DOT[bodyA], omega_X[bodyA], omega_Y[bodyA], omega_Z[bodyA], bodyA_force,
-                            bodyA_torque, gran_params);
+                            bodyA_AngAcc, gran_params);
 
             applyBCForces(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
                           sphere_Z_DOT[bodyA], bodyA_force.x, bodyA_force.y, bodyA_force.z, gran_params, bc_type_list,
@@ -887,9 +889,9 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
             // write back torques for later
-            atomicAdd(sphere_data.sphere_torque_X + mySphereID, bodyA_torque.x);
-            atomicAdd(sphere_data.sphere_torque_Y + mySphereID, bodyA_torque.y);
-            atomicAdd(sphere_data.sphere_torque_Z + mySphereID, bodyA_torque.z);
+            atomicAdd(sphere_data.sphere_ang_acc_X + mySphereID, bodyA_AngAcc.x);
+            atomicAdd(sphere_data.sphere_ang_acc_Y + mySphereID, bodyA_AngAcc.y);
+            atomicAdd(sphere_data.sphere_ang_acc_Z + mySphereID, bodyA_AngAcc.z);
         }
     }
     __syncthreads();
@@ -943,7 +945,7 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         }
 
         // inertia normalized by radius
-        float sphere_inertia = 2.f / 5.f * gran_params->sphereRadius_SU;
+        const float sphere_inertia = gran_params->sphereInertia_by_r;
 
         float v_update_x = 0;
         float v_update_y = 0;
@@ -964,10 +966,10 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
                 v_update_z = alpha_h_bar * sphere_data.sphere_force_Z[mySphereID];
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                    // tau = I alpha => alpha = tau / I
-                    omega_update_x = alpha_h_bar * sphere_data.sphere_torque_X[mySphereID] / sphere_inertia;
-                    omega_update_y = alpha_h_bar * sphere_data.sphere_torque_Y[mySphereID] / sphere_inertia;
-                    omega_update_z = alpha_h_bar * sphere_data.sphere_torque_Z[mySphereID] / sphere_inertia;
+                    // tau = I alpha => alpha = tau / I, we already computed these alphas
+                    omega_update_x = alpha_h_bar * sphere_data.sphere_ang_acc_X[mySphereID] / sphere_inertia;
+                    omega_update_y = alpha_h_bar * sphere_data.sphere_ang_acc_Y[mySphereID] / sphere_inertia;
+                    omega_update_z = alpha_h_bar * sphere_data.sphere_ang_acc_Z[mySphereID] / sphere_inertia;
                 }
                 break;
             }
@@ -994,9 +996,9 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         atomicAdd(sphere_data.pos_Z_dt + mySphereID, v_update_z);
 
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-            atomicAdd(sphere_data.omega_X + mySphereID, omega_update_x);
-            atomicAdd(sphere_data.omega_Y + mySphereID, omega_update_y);
-            atomicAdd(sphere_data.omega_Z + mySphereID, omega_update_z);
+            atomicAdd(sphere_data.sphere_Omega_X + mySphereID, omega_update_x);
+            atomicAdd(sphere_data.sphere_Omega_Y + mySphereID, omega_update_y);
+            atomicAdd(sphere_data.sphere_Omega_Z + mySphereID, omega_update_z);
         }
     }
     // wait for everyone to finish

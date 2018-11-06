@@ -30,7 +30,7 @@ namespace granular {
 ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusSPH, float density)
     : sphere_radius(radiusSPH),
       sphere_density(density),
-      time_stepping(GRAN_TIME_STEPPING::AUTO),
+      time_stepping(GRAN_TIME_STEPPING::ADAPTIVE),
       nDEs(0),
       elapsedSimTime(0),
       contact_model(HOOKE),
@@ -53,9 +53,7 @@ ChSystemGranular_MonodisperseSMC::~ChSystemGranular_MonodisperseSMC() {
     gpuErrchk(cudaFree(gran_params));
 }
 
-sphereDataStruct ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
-    sphereDataStruct packed;
-
+void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& packed) {
     // Set data from system
     packed.pos_X = pos_X.data();
     packed.pos_Y = pos_Y.data();
@@ -65,24 +63,29 @@ sphereDataStruct ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
     packed.pos_Z_dt = pos_Z_dt.data();
 
     if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-        packed.omega_X = omega_X.data();
-        packed.omega_Y = omega_Y.data();
-        packed.omega_Z = omega_Z.data();
-        packed.sphere_torque_X = sphere_torque_X.data();
-        packed.sphere_torque_Y = sphere_torque_Y.data();
-        packed.sphere_torque_Z = sphere_torque_Z.data();
+        packed.sphere_Omega_X = sphere_Omega_X.data();
+        packed.sphere_Omega_Y = sphere_Omega_Y.data();
+        packed.sphere_Omega_Z = sphere_Omega_Z.data();
+        packed.sphere_ang_acc_X = sphere_ang_acc_X.data();
+        packed.sphere_ang_acc_Y = sphere_ang_acc_Y.data();
+        packed.sphere_ang_acc_Z = sphere_ang_acc_Z.data();
     }
 
     packed.sphere_force_X = sphere_force_X.data();
     packed.sphere_force_Y = sphere_force_Y.data();
     packed.sphere_force_Z = sphere_force_Z.data();
-    packed.sphere_force_X_old = sphere_force_X_old.data();
-    packed.sphere_force_Y_old = sphere_force_Y_old.data();
-    packed.sphere_force_Z_old = sphere_force_Z_old.data();
+
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
+        packed.sphere_force_X_old = sphere_force_X_old.data();
+        packed.sphere_force_Y_old = sphere_force_Y_old.data();
+        packed.sphere_force_Z_old = sphere_force_Z_old.data();
+        packed.sphere_ang_acc_X_old = sphere_ang_acc_X_old.data();
+        packed.sphere_ang_acc_Y_old = sphere_ang_acc_Y_old.data();
+        packed.sphere_ang_acc_Z_old = sphere_ang_acc_Z_old.data();
+    }
 
     packed.SD_NumOf_DEs_Touching = SD_NumOf_DEs_Touching.data();
     packed.DEs_in_SD_composite = DEs_in_SD_composite.data();
-    return packed;
 }
 
 size_t ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
@@ -181,7 +184,7 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], flo
 
 void ChSystemGranular_MonodisperseSMC::determine_new_stepSize_SU() {
     // std::cerr << "determining new step!\n";
-    if (time_stepping == GRAN_TIME_STEPPING::AUTO) {
+    if (time_stepping == GRAN_TIME_STEPPING::ADAPTIVE) {
         static float new_step_stop = 0;
         if (elapsedSimTime >= new_step_stop) {
             // printf("-------------------------\n");
@@ -306,9 +309,8 @@ void ChSystemGranular_MonodisperseSMC::initialize() {
 
     // Set aside memory for holding data structures worked with. Get some initializations going
     setup_simulation();
-    copy_const_data_to_device();
-    copyBD_Frame_to_device();
-    gpuErrchk(cudaDeviceSynchronize());
+    copyConstSphereDataToDevice();
+    copyBDFrameToDevice();
 
     determine_new_stepSize_SU();
     convertBCUnits();
@@ -321,9 +323,7 @@ void ChSystemGranular_MonodisperseSMC::initialize() {
     printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT);
 }
 
-/** This method sets up the data structures used to perform a simulation.
- *
- */
+// set up sphere-sphere data structures
 void ChSystemGranular_MonodisperseSMC::setup_simulation() {
     partition_BD();
 
@@ -335,35 +335,24 @@ void ChSystemGranular_MonodisperseSMC::setup_simulation() {
     DEs_in_SD_composite.resize(MAX_COUNT_OF_DEs_PER_SD * nSDs);
 }
 
-// Set the bounds to fill in our box
-void ChSystemGranular_MonodisperseSMC::setFillBounds(float xmin,
-                                                     float ymin,
-                                                     float zmin,
-                                                     float xmax,
-                                                     float ymax,
-                                                     float zmax) {
-    boxFillXmin = xmin;
-    boxFillYmin = ymin;
-    boxFillZmin = zmin;
-    boxFillXmax = xmax;
-    boxFillYmax = ymax;
-    boxFillZmax = zmax;
-}
-
 // Set particle positions in UU
 void ChSystemGranular_MonodisperseSMC::setParticlePositions(std::vector<ChVector<float>>& points) {
-    h_points = points;  // Copy points to class vector
+    user_sphere_positions = points;  // Copy points to class vector
 }
 
 void ChSystemGranular_MonodisperseSMC::generate_DEs() {
-    // Each fills h_points with positions to be copied
-    if (h_points.size() == 0) {
-        generate_DEs_FillBounds();
-    } else {
-        generate_DEs_positions();
+    // Each fills user_sphere_positions with positions to be copied
+    if (user_sphere_positions.size() == 0) {
+        printf("ERROR: no sphere positions given!\n");
+        exit(1);
     }
 
-    nDEs = (unsigned int)h_points.size();
+    // dump these into SU, we no longer need their UU componenets
+    for (auto& point : user_sphere_positions) {
+        point /= gran_params->LENGTH_UNIT;
+    }
+
+    nDEs = (unsigned int)user_sphere_positions.size();
     std::cout << nDEs << " balls added!" << std::endl;
 
     // Allocate space for new bodies
@@ -379,14 +368,14 @@ void ChSystemGranular_MonodisperseSMC::generate_DEs() {
 
     if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
         // add rotational DOFs
-        omega_X.resize(nDEs, 0);
-        omega_Y.resize(nDEs, 0);
-        omega_Z.resize(nDEs, 0);
+        sphere_Omega_X.resize(nDEs, 0);
+        sphere_Omega_Y.resize(nDEs, 0);
+        sphere_Omega_Z.resize(nDEs, 0);
 
         // add torques
-        sphere_torque_X.resize(nDEs, 0);
-        sphere_torque_Y.resize(nDEs, 0);
-        sphere_torque_Z.resize(nDEs, 0);
+        sphere_ang_acc_X.resize(nDEs, 0);
+        sphere_ang_acc_Y.resize(nDEs, 0);
+        sphere_ang_acc_Z.resize(nDEs, 0);
     }
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
@@ -397,45 +386,10 @@ void ChSystemGranular_MonodisperseSMC::generate_DEs() {
 
     // Copy from array of structs to 3 arrays
     for (unsigned int i = 0; i < nDEs; i++) {
-        auto vec = h_points.at(i);
+        auto vec = user_sphere_positions.at(i);
         pos_X.at(i) = (int)(vec.x());
         pos_Y.at(i) = (int)(vec.y());
         pos_Z.at(i) = (int)(vec.z());
-    }
-}
-
-void ChSystemGranular_MonodisperseSMC::generate_DEs_FillBounds() {
-    // Create the falling balls
-    float ball_epsilon = sphereRadius_SU / 200.f;  // Margin between balls to ensure no overlap / DEM-splosion
-    printf("eps is %f, rad is %5f\n", ball_epsilon, sphereRadius_SU * 1.0f);
-
-    chrono::utils::HCPSampler<float> sampler(2.4 * sphereRadius_SU);  // Add epsilon
-
-    // We need to pass in half-length box here
-
-    // generate from bottom to twice the generateDepth
-    // average high and low to get midpoint of generation
-    float xmid = box_size_X * (boxFillXmax + boxFillXmin) / (4. * gran_params->LENGTH_UNIT);
-    float ymid = box_size_Y * (boxFillYmax + boxFillYmin) / (4. * gran_params->LENGTH_UNIT);
-    float zmid = box_size_Z * (boxFillZmax + boxFillZmin) / (4. * gran_params->LENGTH_UNIT);
-    // half-spans in each dimension, the difference
-    float xlen = abs(box_size_X * (boxFillXmax - boxFillXmin) / (4. * gran_params->LENGTH_UNIT));
-    float ylen = abs(box_size_Y * (boxFillYmax - boxFillYmin) / (4. * gran_params->LENGTH_UNIT));
-    float zlen = abs(box_size_Z * (boxFillZmax - boxFillZmin) / (4. * gran_params->LENGTH_UNIT));
-    float generateHalfDepth = box_size_Z / (3. * gran_params->LENGTH_UNIT);
-
-    // float generateX = -box_size_Y / (2. * gran_params->LENGTH_UNIT) + generateHalfDepth;
-    // float generateY = -box_size_Y / (2. * gran_params->LENGTH_UNIT) + generateHalfDepth;
-    // float generateZ = -box_size_Z / (2. * gran_params->LENGTH_UNIT) + generateHalfHeight;
-    ChVector<float> boxCenter(xmid, ymid, zmid);
-    // We need to subtract off a sphere radius to ensure we don't get put at the edge
-    ChVector<float> hdims(xlen - sphereRadius_SU, ylen - sphereRadius_SU, zlen - sphereRadius_SU);
-    h_points = sampler.SampleBox(boxCenter, hdims);  // Vector of points
-}
-
-void ChSystemGranular_MonodisperseSMC::generate_DEs_positions() {
-    for (auto& point : h_points) {
-        point /= gran_params->LENGTH_UNIT;
     }
 }
 

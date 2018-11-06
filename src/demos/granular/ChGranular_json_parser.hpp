@@ -218,7 +218,7 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
             params.step_mode = GRAN_TIME_STEPPING::FIXED;
             cout << "params.step_mode " << params.step_mode << endl;
         } else if (doc["step_mode"].GetString() == string("auto")) {
-            params.step_mode = GRAN_TIME_STEPPING::AUTO;
+            params.step_mode = GRAN_TIME_STEPPING::ADAPTIVE;
             cout << "params.step_mode " << params.step_mode << endl;
         } else {
             InvalidArg("step_mode");

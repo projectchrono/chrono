@@ -25,7 +25,6 @@
 // simulation is carried out for a pre-defined duration and output files are
 // generated for post-processing with POV-Ray.
 // =============================================================================
-
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -33,6 +32,7 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
+#include "chrono/utils/ChUtilsSamplers.h"
 
 using namespace chrono;
 using namespace chrono::granular;
@@ -56,16 +56,21 @@ float cohesion_ratio = 2;
 // -----------------------------------------------------------------------------
 double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC settlingExperiment(ballRadius, ballDensity);
-    settlingExperiment.setBOXdims(box_size_X, box_size_Y, box_size_Z);
-    settlingExperiment.set_K_n_SPH2SPH(normStiffness_S2S);
-    settlingExperiment.set_K_n_SPH2WALL(normStiffness_S2W);
-    settlingExperiment.set_Cohesion_ratio(cohesion_ratio);
-    settlingExperiment.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
-    settlingExperiment.setOutputDirectory(output_prefix);
-    settlingExperiment.setOutputMode(write_mode);
-    // Make a dam break style sim
-    settlingExperiment.setFillBounds(-1.f, 1.f, -1.f, 1.f, -1.f, 0.f);
+    ChSystemGranular_MonodisperseSMC gran_system(ballRadius, ballDensity);
+    gran_system.setBOXdims(box_size_X, box_size_Y, box_size_Z);
+    gran_system.set_K_n_SPH2SPH(normStiffness_S2S);
+    gran_system.set_K_n_SPH2WALL(normStiffness_S2W);
+    gran_system.set_Cohesion_ratio(cohesion_ratio);
+    gran_system.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
+    gran_system.setOutputDirectory(output_prefix);
+    gran_system.setOutputMode(write_mode);
+
+    // Fill the bottom half with material
+    chrono::utils::HCPSampler<float> sampler(2.4 * ballRadius);  // Add epsilon
+    ChVector<float> center(0, 0, -.25 * box_size_Z);
+    ChVector<float> hdims(box_size_X / 2, box_size_X / 2, box_size_Z / 4);
+    std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
+    gran_system.setParticlePositions(body_points);
 
     ChFileutils::MakeDirectory(output_prefix.c_str());
 
@@ -73,17 +78,17 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     std::function<double(double)> posFunStill = [](double t) { return -.5; };
 
     // Set the position of the BD
-    settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunStill);
+    gran_system.setBDPositionFunction(posFunStill, posFunStill, posFunStill);
     // Tell the sim to unlock the bd so it can follow that position function
-    settlingExperiment.set_BD_Fixed(false);
-    settlingExperiment.setVerbose(verbose);
-    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_fixed_stepSize(2.5e-4);
+    gran_system.set_BD_Fixed(false);
+    gran_system.setVerbose(verbose);
+    gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    gran_system.set_fixed_stepSize(2.5e-4);
     ChTimer<double> timer;
 
     // Run wavetank experiment and time it
     timer.start();
-    settlingExperiment.initialize();
+    gran_system.initialize();
     int fps = 50;
     // assume we run for at least one frame
     float frame_step = 1.0f / fps;
@@ -92,12 +97,12 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
     // Run settling experiments
     while (curr_time < timeEnd) {
-        settlingExperiment.advance_simulation(frame_step);
+        gran_system.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
-        settlingExperiment.checkSDCounts(std::string(filename), true, false);
+        gran_system.checkSDCounts(std::string(filename), true, false);
     }
     timer.stop();
     return timer.GetTimeSeconds();
@@ -108,10 +113,10 @@ int main(int argc, char* argv[]) {
         std::cout << "USAGE: ./test_gran_milsettle <results_log_file>" << std::endl;
     }
 
-    // one million bodies
-    double time50k = run_test(110, 100, 100);
-    double time500k = run_test(222, 220, 220);
-    double time1mil = run_test(300, 300, 250);
+    // up to one million bodies
+    double time50k = run_test(100, 100, 100);
+    double time500k = run_test(220, 220, 220);
+    double time1mil = run_test(280, 280, 280);
 
     std::cout << "Running settling test!" << std::endl;
     std::cout << "50 thousand bodies took " << time50k << " seconds!" << std::endl;

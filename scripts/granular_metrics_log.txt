@@ -774,3 +774,15 @@ Running settling test!
 50 thousand bodies took 1.72925 seconds!
 500 thousand bodies took 14.1922 seconds!
 1 million bodies took 29.8572 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 05 Nov 2018 19:13:37 -0600
+commit d757d3fc13ed435edb48d1ce9d25c38cd242f926 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 5 19:12:43 2018 -0600 Massive cleanup, large renamings, clarify torque/alpha, fix bugs Fixes the Y-wall sphere friction Fixes a copy bug remove old cosim stuff
+Results:
+Running wavetank test!
+50 thousand bodies took 1.56587 seconds!
+500 thousand bodies took 13.1677 seconds!
+1 million bodies took 26.2409 seconds!
+Running settling test!
+50 thousand bodies took 1.47352 seconds!
+500 thousand bodies took 12.6821 seconds!
+1 million bodies took 25.7882 seconds!

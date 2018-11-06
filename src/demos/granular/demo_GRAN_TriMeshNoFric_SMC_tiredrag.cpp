@@ -25,7 +25,7 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
-
+#include "chrono/utils/ChUtilsSamplers.h"
 #include "ChGranular_json_parser.hpp"
 
 using namespace chrono;
@@ -104,7 +104,6 @@ int main(int argc, char* argv[]) {
     ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
     m_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     m_sys.set_BD_Fixed(true);
-    m_sys.setFillBounds(-1.f, -1.f, -1.f, 1.f, 1.f, 0.4f);
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
@@ -114,6 +113,14 @@ int main(int argc, char* argv[]) {
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_fixed_stepSize(params.step_size);
+
+    // Fill the bottom half with material
+    chrono::utils::HCPSampler<float> sampler(2.4 * params.sphere_radius);  // Add epsilon
+    // fill from bottom to 20% up the box
+    ChVector<float> center(0, 0, -.15 * params.box_Z);
+    ChVector<float> hdims(params.box_X / 2, params.box_X / 2, params.box_Z * .35);
+    std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
+    m_sys.setParticlePositions(body_points);
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings);
 

@@ -44,7 +44,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::get_max_z() const {
 }
 
 /// Copy constant sphere data to device, this should run at start
-__host__ void ChSystemGranular_MonodisperseSMC::copy_const_data_to_device() {
+__host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
     // Copy quantities expressed in SU units for the SD dimensions to device
     gran_params->SD_size_X_SU = SD_size_X_SU;
     gran_params->SD_size_Y_SU = SD_size_Y_SU;
@@ -61,6 +61,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::copy_const_data_to_device() {
         std::sqrt(gravity_X_SU * gravity_X_SU + gravity_Y_SU * gravity_Y_SU + gravity_Z_SU * gravity_Z_SU);
 
     gran_params->sphereRadius_SU = sphereRadius_SU;
+    gran_params->sphereInertia_by_r = 2.f / 5.f * sphereRadius_SU;
 
     gran_params->K_n_s2s_SU = K_n_s2s_SU;
     gran_params->K_n_s2w_SU = K_n_s2w_SU;
@@ -79,9 +80,9 @@ __host__ void ChSystemGranular_MonodisperseSMC::copy_const_data_to_device() {
     gran_params->friction_mode = fric_mode;
 }
 
-/// Similar to the copy_const_data_to_device, but saves us a big copy
+/// Similar to the copyConstSphereDataToDevice, but saves us a big copy
 /// This can run at every timestep to allow a moving BD
-__host__ void ChSystemGranular_MonodisperseSMC::copyBD_Frame_to_device() {
+__host__ void ChSystemGranular_MonodisperseSMC::copyBDFrameToDevice() {
     // Unified memory does all the work here
     gran_params->BD_frame_X = BD_frame_X;
     gran_params->BD_frame_Y = BD_frame_Y;
@@ -89,6 +90,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyBD_Frame_to_device() {
     gran_params->BD_frame_X_dot = BD_frame_X_dot;
     gran_params->BD_frame_Y_dot = BD_frame_Y_dot;
     gran_params->BD_frame_Z_dot = BD_frame_Z_dot;
+    gpuErrchk(cudaDeviceSynchronize());
 }
 
 // Check number of spheres in each SD and dump relevant info to file
@@ -223,7 +225,8 @@ void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
                          << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "," << absv;
 
             if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-                outstrstream << "," << omega_X.at(n) << "," << omega_Y.at(n) << "," << omega_Z.at(n);
+                outstrstream << "," << sphere_Omega_X.at(n) << "," << sphere_Omega_Y.at(n) << ","
+                             << sphere_Omega_Z.at(n);
             }
             outstrstream << "\n";
         }
@@ -261,9 +264,9 @@ void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
 
     // reset torques to zero, if applicable
     if (fric_mode != FRICTIONLESS) {
-        gpuErrchk(cudaMemset(sphere_torque_X.data(), 0, nDEs * sizeof(float)));
-        gpuErrchk(cudaMemset(sphere_torque_Y.data(), 0, nDEs * sizeof(float)));
-        gpuErrchk(cudaMemset(sphere_torque_Z.data(), 0, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(sphere_ang_acc_X.data(), 0, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(sphere_ang_acc_Y.data(), 0, nDEs * sizeof(float)));
+        gpuErrchk(cudaMemset(sphere_ang_acc_Z.data(), 0, nDEs * sizeof(float)));
     }
 }
 
@@ -281,7 +284,7 @@ void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU)
     BD_frame_Y_dot = (BD_frame_Y - frame_Y_old) / stepSize_SU;
     BD_frame_Z_dot = (BD_frame_Z - frame_Z_old) / stepSize_SU;
 
-    copyBD_Frame_to_device();
+    copyBDFrameToDevice();
 }
 
 // All the information a moving sphere needs
@@ -447,8 +450,9 @@ __host__ void ChSystemGranular_MonodisperseSMC::runInitialSpherePriming() {
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     printf("doing priming!\n");
     printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
+    sphereDataStruct sphere_data;
 
-    auto sphere_data = packSphereDataPointers();
+    packSphereDataPointers(sphere_data);
 
     primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
         <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nDEs, gran_params);
@@ -457,7 +461,8 @@ __host__ void ChSystemGranular_MonodisperseSMC::runInitialSpherePriming() {
 }
 
 __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float duration) {
-    auto sphere_data = packSphereDataPointers();
+    sphereDataStruct sphere_data;
+    packSphereDataPointers(sphere_data);
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;

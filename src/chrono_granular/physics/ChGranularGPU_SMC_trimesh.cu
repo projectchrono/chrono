@@ -631,7 +631,9 @@ void ChSystemGranular_MonodisperseSMC_trimesh::copy_triangle_data_to_device() {
 }
 
 __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(float duration) {
-    auto sphere_data = packSphereDataPointers();
+    sphereDataStruct sphere_data;
+
+    packSphereDataPointers(sphere_data);
 
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
