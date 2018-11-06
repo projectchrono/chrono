@@ -944,9 +944,6 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
                             sphere_data.sphere_force_X[mySphereID]);
         }
 
-        // inertia normalized by radius
-        const float sphere_inertia = gran_params->sphereInertia_by_r;
-
         float v_update_x = 0;
         float v_update_y = 0;
         float v_update_z = 0;
@@ -967,9 +964,9 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                     // tau = I alpha => alpha = tau / I, we already computed these alphas
-                    omega_update_x = alpha_h_bar * sphere_data.sphere_ang_acc_X[mySphereID] / sphere_inertia;
-                    omega_update_y = alpha_h_bar * sphere_data.sphere_ang_acc_Y[mySphereID] / sphere_inertia;
-                    omega_update_z = alpha_h_bar * sphere_data.sphere_ang_acc_Z[mySphereID] / sphere_inertia;
+                    omega_update_x = alpha_h_bar * sphere_data.sphere_ang_acc_X[mySphereID];
+                    omega_update_y = alpha_h_bar * sphere_data.sphere_ang_acc_Y[mySphereID];
+                    omega_update_z = alpha_h_bar * sphere_data.sphere_ang_acc_Z[mySphereID];
                 }
                 break;
             }
