@@ -74,11 +74,28 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// Perform a ray-hit test with all collision models.
     virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override;
 
+    /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
+    /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
+    bool RayHit(const ChVector<>& from,
+                const ChVector<>& to,
+                ChRayhitResult& mresult,
+                short int filter_group,
+                short int filter_mask) const;
+
     /// Perform a ray-hit test with the specified collision model.
     virtual bool RayHit(const ChVector<>& from,
                         const ChVector<>& to,
                         ChCollisionModel* model,
                         ChRayhitResult& mresult) const override;
+
+    /// Perform a ray-hit test with the specified collision model. This version allows specifying the Bullet
+    /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
+    bool RayHit(const ChVector<>& from,
+                const ChVector<>& to,
+                ChCollisionModel* model,
+                ChRayhitResult& mresult,
+                short int filter_group,
+                short int filter_mask) const;
 
     // For Bullet related stuff
     btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
