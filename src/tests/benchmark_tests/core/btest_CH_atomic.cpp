@@ -10,7 +10,7 @@
 //
 // =============================================================================
 
-#include "../ChTestConfig.h"
+#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChGlobal.h"
 
 #if defined(__APPLE__) && !defined(__GNUC__)

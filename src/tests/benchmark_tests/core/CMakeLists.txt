@@ -2,11 +2,10 @@ SET(LIBRARIES ChronoEngine)
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
-    utest_CH_benchmark_atomic
-    utest_CH_benchmark_ChBody
+    btest_CH_atomic
 )
 
-MESSAGE(STATUS "Unit test programs for BENCHMARK module...")
+MESSAGE(STATUS "Benchmark test programs for CORE module...")
 
 FOREACH(PROGRAM ${TESTS})
     MESSAGE(STATUS "...add ${PROGRAM}")
@@ -24,5 +23,4 @@ FOREACH(PROGRAM ${TESTS})
     ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-    #ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 ENDFOREACH(PROGRAM)

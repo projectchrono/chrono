@@ -5,10 +5,11 @@
 #=============================================================================
 
 #-----------------------------------------------------------------------------
-# Optionally enable building the demo programs
+# Optionally enable building the various programs
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
+option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -343,12 +344,15 @@ add_subdirectory(chrono_fsi)
 # Add directories for model libraries
 add_subdirectory(chrono_models)
 
-# Add directories for demo programs, unit test programs, and additional test programs.
+# Add directories for demo programs, unit test programs, and benchmark test programs.
 if(BUILD_DEMOS)
   add_subdirectory(demos)
 endif()
 if(BUILD_TESTING)
-  add_subdirectory(unit_tests)
+  add_subdirectory(tests/unit_tests)
+endif()
+if(BUILD_BENCHMARKING)
+  add_subdirectory(tests/benchmark_tests)
 endif()
 
 #------------------------------------------------------------

@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-#include "../ChTestConfig.h"
+#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 using namespace chrono;

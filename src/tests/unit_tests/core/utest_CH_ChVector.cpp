@@ -10,7 +10,6 @@
 //
 // =============================================================================
 
-#include "../ChTestConfig.h"
 #include "chrono/core/ChVector.h"
 
 using namespace chrono;
