@@ -5,7 +5,7 @@ if(NOT ENABLE_MODULE_VEHICLE)
   return()
 endif()
 
-if(NOT ENABLE_MODULE_IRRLICHT)
+if(NOT ENABLE_MODULE_GRANULAR)
   return()
 endif()
 
@@ -23,22 +23,23 @@ endif()
 # ------------------------------------------------------------------------------
 
 set(PROGRAMS
-  demo_GRAN_TriMeshNoFric_SMC_robosimian
   test_RS_robosimian_granular
+)
+
+set(IRR_PROGRAMS
   test_RS_robosimian
 )
+
+
 
 set(MODEL_FILES
     robosimian.h
     robosimian.cpp
-    # granular.h
-    # granular.cpp
 )
 
 SET(LIBRARIES
     ChronoEngine
     ChronoEngine_vehicle
-    ChronoEngine_irrlicht
     ChronoEngine_granular
 )
 
@@ -56,13 +57,28 @@ foreach(PROGRAM ${PROGRAMS})
 
     set_target_properties(${PROGRAM} PROPERTIES
         FOLDER tests
-        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}"
+        COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}"
     )
-
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
 		ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-                          
-
 endforeach(PROGRAM)
+
+if(ENABLE_MODULE_IRRLICHT)
+  SET(IRR_LIBRARIES ${LIBRARIES} ChronoEngine_irrlicht)
+  foreach(PROGRAM ${IRR_PROGRAMS})
+      message(STATUS "...add ${PROGRAM}")
+
+      add_executable(${PROGRAM}  "${PROGRAM}.cpp" ${MODEL_FILES})
+      source_group(""  FILES "${PROGRAM}.cpp" ${MODEL_FILES})
+
+      set_target_properties(${PROGRAM} PROPERTIES
+          FOLDER tests
+          COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CH_GRANULAR_CXX_FLAGS}"
+          LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+      )
+      TARGET_LINK_LIBRARIES(${PROGRAM} ${IRR_LIBRARIES})
+  		ADD_DEPENDENCIES(${PROGRAM} ${IRR_LIBRARIES})
+  endforeach(PROGRAM)
+endif()
 

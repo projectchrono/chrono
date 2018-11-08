@@ -197,6 +197,11 @@ int main(int argc, char* argv[]) {
 
     std::vector<std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>> gran_collision_bodies;
     std::shared_ptr<robosimian::Driver> driver;
+
+    std::vector<string> mesh_filenames;
+    std::vector<float3> mesh_scalings;
+    std::vector<float> mesh_masses;
+
     // -----------------------------------
     // Create a driver and attach to robot
     // -----------------------------------
@@ -230,6 +235,8 @@ int main(int argc, char* argv[]) {
                 true);
             gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
                 "robosimian/obj/robosim_sled_collision_clean.obj", robot.GetSledBody()));
+            float sled_mass = 2.768775 * 1000;  // 2.7 kg in grams
+            mesh_masses.push_back(sled_mass);
             break;
     }
 
@@ -271,10 +278,13 @@ int main(int argc, char* argv[]) {
     gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBodyAuxRef>>(
         wheel_mesh_filename, limbs[robosimian::RL]->GetWheelBody()));
 
-    unsigned int num_mesh_bodies = gran_collision_bodies.size();
+    float wheel_mass = 1.499326 * 1000;
+    // add wheel masses
+    for (unsigned int i = 0; i < 4; i++) {
+        mesh_masses.push_back(wheel_mass);
+    }
 
-    std::vector<string> mesh_filenames;
-    std::vector<float3> mesh_scalings;
+    unsigned int num_mesh_bodies = gran_collision_bodies.size();
 
     // add mesh to granular system
     for (unsigned int i = 0; i < num_mesh_bodies; i++) {
@@ -325,7 +335,7 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     m_sys_gran.set_fixed_stepSize(params.step_size);
 
-    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings);
+    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
 
     m_sys_gran.disableMeshCollision();  // disable meshes for settling
 
