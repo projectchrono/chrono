@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
     gran_system.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
     gran_system.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_system.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     gran_system.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     gran_system.setOutputDirectory(params.output_dir);
     gran_system.setOutputMode(params.write_mode);

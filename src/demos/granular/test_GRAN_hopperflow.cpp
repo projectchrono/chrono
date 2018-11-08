@@ -83,6 +83,7 @@ int main(int argc, char* argv[]) {
     m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     m_sys.setOutputDirectory(params.output_dir);
     m_sys.setOutputMode(params.write_mode);

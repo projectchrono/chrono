@@ -70,6 +70,10 @@ int main(int argc, char* argv[]) {
     scaling.z = 8;
     mesh_scalings.push_back(scaling);
 
+    std::vector<float> mesh_masses;
+    float mass = 50;
+    mesh_masses.push_back(mass);
+
     // Some of the default values might be overwritten by user via command line
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
@@ -88,6 +92,8 @@ int main(int argc, char* argv[]) {
     m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
     m_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_fixed_stepSize(params.step_size);
@@ -99,7 +105,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
     m_sys.setParticlePositions(body_points);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings);
+    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
 
     /// output preferences
     m_sys.setOutputDirectory(params.output_dir);

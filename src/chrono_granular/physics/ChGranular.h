@@ -90,7 +90,7 @@ enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 enum GRAN_CONTACT_MODEL { HOOKE, HERTZ };
 
 /// Parameters needed for sphere-based granular dynamics
-struct GranParamsHolder {
+struct ChGranParams {
     // Timestep in SU
     float alpha_h_bar;
 
@@ -137,8 +137,11 @@ struct GranParamsHolder {
     unsigned int psi_h;
     unsigned int psi_L;
 
-    /// Ratio of cohesion force to gravity
+    /// Ratio of cohesion acceleration to gravity
     float cohesion_ratio;
+
+    /// Ratio of adhesion acceleration to gravity
+    float adhesion_ratio_s2w;
 
     double LENGTH_UNIT;  //!< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
     double TIME_UNIT;    //!< 1 / C_T. Any time quanity in SU is measured as a positive multiple of TIME_UNIT
@@ -148,7 +151,7 @@ struct GranParamsHolder {
 }  // namespace chrono
 
 // Do two things: make the naming nicer and require a const pointer everywhere
-typedef const chrono::granular::GranParamsHolder* ParamsPtr;
+typedef const chrono::granular::ChGranParams* ParamsPtr;
 namespace chrono {
 namespace granular {
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
@@ -251,6 +254,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Set the ratio of cohesion to gravity for monodisperse spheres
     void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
+	/// Set the ratio of adhesion to gravity for sphere to wall
+	void set_Adhesion_ratio_S2W(float someValue) { adhesion_s2w_over_gravity = someValue; }
+
     /// Set the BD to be fixed or not, if fixed it will ignore any given position functions
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
 
@@ -288,7 +294,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Holds the friction mode for the system
     GRAN_FRICTION_MODE fric_mode;
     /// holds the sphere and BD-related params in unified memory
-    GranParamsHolder* gran_params;
+    ChGranParams* gran_params;
 
     /// Allows the code to be very verbose for debug
     bool verbose_runtime = false;
@@ -444,6 +450,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
+	
+	/// Store the ratio of the acceleration due to adhesion vs the acceleration due to gravity
+    float adhesion_s2w_over_gravity;
 
     /// List of generalized BCs that constrain sphere motion
     std::vector<BC_type, cudallocator<BC_type>> BC_type_list;

@@ -74,6 +74,8 @@ int main(int argc, char* argv[]) {
     m_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
     m_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
@@ -110,7 +112,11 @@ int main(int argc, char* argv[]) {
     float3 scaling = make_float3(40, 40, 40);
     mesh_scalings.push_back(scaling);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings);
+    std::vector<float> mesh_masses;
+    float mass = 1;
+    mesh_masses.push_back(mass);
+
+    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
 
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
     cout << nSoupFamilies << " soup families" << endl;

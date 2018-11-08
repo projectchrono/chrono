@@ -37,6 +37,8 @@ struct ChTriangleSoup {
     unsigned int nFamiliesInSoup;     //!< indicates how many meshes are squashed together in this soup
     unsigned int* triangleFamily_ID;  //!< each entry says what family that triagnle belongs to; size: nTrianglesInSoup
 
+    float* familyMass_SU;  //!< entry i is the SU mass of family i
+
     T3* node1;  //!< Position in local reference frame of node 1
     T3* node2;  //!< Position in local reference frame of node 2
     T3* node3;  //!< Position in local reference frame of node 3
@@ -103,17 +105,23 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
 
     virtual double advance_simulation(float duration) override;
     /// Extra parameters needed for triangle-sphere contact
-    struct GranParamsHolder_trimesh {
+    struct ChGranParams_trimesh {
         float Gamma_n_s2m_SU;                //!< sphere-to-mesh contact damping coefficient, expressed in SU
         float Kn_s2m_SU;                     //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+        float adhesion_ratio_s2m;            //!< Ratio of adhesion force to sphere weight
         unsigned int num_triangle_families;  /// Number of triangle families
         ChFamilyFrame<float>* fam_frame_broad;
         ChFamilyFrame<double>* fam_frame_narrow;
     };
 
     virtual void initialize() override;
-    void load_meshes(std::vector<std::string> objfilenames, std::vector<float3> scalefactors);
+    void load_meshes(std::vector<std::string> objfilenames,
+                     std::vector<float3> scalefactors,
+                     std::vector<float> masses);
     void write_meshes(std::string outfilename);
+
+    /// Set the ratio of adhesion force to sphere weight for sphere to mesh
+    void set_Adhesion_ratio_S2M(float someValue) { adhesion_s2m_over_gravity = someValue; }
 
     /// Enable mesh contact
     void enableMeshCollision() { mesh_collision_enabled = true; }
@@ -121,7 +129,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     void disableMeshCollision() { mesh_collision_enabled = false; }
 
   private:
-    GranParamsHolder_trimesh* tri_params;
+    ChGranParams_trimesh* tri_params;
 
     /// clean copy of mesh soup interacting with granular material
     // store a pointer since we use unified memory for this
@@ -140,6 +148,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     double Gamma_t_s2m_UU;
     double Gamma_t_s2m_SU;
 
+    float adhesion_s2m_over_gravity;
+
     bool mesh_collision_enabled = true;
 
     /// Number of triangles touching each bucket
@@ -153,7 +163,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     void resetTriangleForces();
 
     void setupTriMesh_DEVICE(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
-                             unsigned int nTriangles);
+                             unsigned int nTriangles,
+                             std::vector<float> masses);
     void cleanupTriMesh_DEVICE();
 
     // void initialize();

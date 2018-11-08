@@ -810,3 +810,15 @@ Running settling test!
 50 thousand bodies took 1.74765 seconds!
 500 thousand bodies took 13.9649 seconds!
 1 million bodies took 27.9511 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 08 Nov 2018 16:54:06 -0600
+commit e2fc5a80b83dbfe627078544b122395f3d05e15c Merge: dba4c0961 0a0dfb862 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Nov 8 16:54:02 2018 -0600 Merge branch 'sandbox/chrono_granular' of https://github.com/uwsbel/chrono-dev into sandbox/chrono_granular
+Results:
+Running wavetank test!
+50 thousand bodies took 1.65476 seconds!
+500 thousand bodies took 13.3213 seconds!
+1 million bodies took 27.5668 seconds!
+Running settling test!
+50 thousand bodies took 1.73923 seconds!
+500 thousand bodies took 13.9156 seconds!
+1 million bodies took 28.0709 seconds!
