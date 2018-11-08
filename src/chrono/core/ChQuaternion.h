@@ -896,10 +896,14 @@ inline void ChQuaternion<Real>::Sub(const ChQuaternion<Real>& A, const ChQuatern
 
 template <class Real>
 inline void ChQuaternion<Real>::Cross(const ChQuaternion<Real>& qa, const ChQuaternion<Real>& qb) {
-    data[0] = qa.data[0] * qb.data[0] - qa.data[1] * qb.data[1] - qa.data[2] * qb.data[2] - qa.data[3] * qb.data[3];
-    data[1] = qa.data[0] * qb.data[1] + qa.data[1] * qb.data[0] - qa.data[3] * qb.data[2] + qa.data[2] * qb.data[3];
-    data[2] = qa.data[0] * qb.data[2] + qa.data[2] * qb.data[0] + qa.data[3] * qb.data[1] - qa.data[1] * qb.data[3];
-    data[3] = qa.data[0] * qb.data[3] + qa.data[3] * qb.data[0] - qa.data[2] * qb.data[1] + qa.data[1] * qb.data[2];
+    Real w = qa.data[0] * qb.data[0] - qa.data[1] * qb.data[1] - qa.data[2] * qb.data[2] - qa.data[3] * qb.data[3];
+    Real x = qa.data[0] * qb.data[1] + qa.data[1] * qb.data[0] - qa.data[3] * qb.data[2] + qa.data[2] * qb.data[3];
+    Real y = qa.data[0] * qb.data[2] + qa.data[2] * qb.data[0] + qa.data[3] * qb.data[1] - qa.data[1] * qb.data[3];
+    Real z = qa.data[0] * qb.data[3] + qa.data[3] * qb.data[0] - qa.data[2] * qb.data[1] + qa.data[1] * qb.data[2];
+    data[0] = w;
+    data[1] = x;
+    data[2] = y;
+    data[3] = z;
 }
 
 template <class Real>
