@@ -76,6 +76,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
     gran_params->Gamma_t_s2w_SU = Gamma_t_s2w_SU;
 
     gran_params->cohesion_ratio = cohesion_over_gravity;
+    gran_params->adhesion_ratio_s2w = adhesion_s2w_over_gravity;
 
     gran_params->integrator_type = time_integrator;
     gran_params->contact_model = contact_model;

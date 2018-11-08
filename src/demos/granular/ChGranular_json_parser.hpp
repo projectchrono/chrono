@@ -37,6 +37,8 @@ typedef struct sim_param_holder {
     double tangentStiffS2W;
     double tangentStiffS2M;
     float cohesion_ratio;
+    float adhesion_ratio_s2w;
+    float adhesion_ratio_s2m;
     bool verbose;
     int run_mode;
     unsigned int psi_h;
@@ -68,6 +70,8 @@ void ShowJSONUsage() {
     cout << "tangentDampS2S" << endl;
     cout << "tangentStiffS2S" << endl;
     cout << "cohesion_ratio" << endl;
+    cout << "adhesion_ratio_s2w" << endl;
+    cout << "adhesion_ratio_s2m" << endl;
     cout << "verbose" << endl;
     cout << "psi_h" << endl;
     cout << "psi_T" << endl;
@@ -191,6 +195,14 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     if (doc.HasMember("cohesion_ratio") && doc["cohesion_ratio"].IsNumber()) {
         params.cohesion_ratio = doc["cohesion_ratio"].GetDouble();
         cout << "params.cohesion_ratio " << params.cohesion_ratio << endl;
+    }
+    if (doc.HasMember("adhesion_ratio_s2w") && doc["adhesion_ratio_s2w"].IsNumber()) {
+        params.adhesion_ratio_s2w = doc["adhesion_ratio_s2w"].GetDouble();
+        cout << "params.adhesion_ratio_s2w " << params.adhesion_ratio_s2w << endl;
+    }
+    if (doc.HasMember("adhesion_ratio_s2m") && doc["adhesion_ratio_s2m"].IsNumber()) {
+        params.adhesion_ratio_s2m = doc["adhesion_ratio_s2m"].GetDouble();
+        cout << "params.adhesion_ratio_s2m " << params.adhesion_ratio_s2m << endl;
     }
     if (doc.HasMember("verbose") && doc["verbose"].IsBool()) {
         params.verbose = doc["verbose"].GetBool();

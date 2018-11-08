@@ -61,6 +61,10 @@ int main(int argc, char* argv[]) {
     scaling.y = 25;
     scaling.z = 25;
 
+    std::vector<float> mesh_masses;
+    float mass = 100;
+    mesh_masses.push_back(mass);
+
     // starting positions of mesh-based balls
     std::vector<ChVector<double>> ball_positions;
     ball_positions.push_back({0, 0, scaling.z});
@@ -113,11 +117,13 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_Gamma_n_SPH2SPH(params.normalDampS2S);
     m_sys_gran.set_Gamma_n_SPH2MESH(params.normalDampS2M);
     m_sys_gran.set_Cohesion_ratio(params.cohesion_ratio);
+    m_sys_gran.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    m_sys_gran.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     m_sys_gran.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     m_sys_gran.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys_gran.set_fixed_stepSize(params.step_size);
 
-    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings);
+    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
 
     /// output preferences
     m_sys_gran.setOutputDirectory(params.output_dir);

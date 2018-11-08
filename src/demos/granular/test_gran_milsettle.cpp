@@ -46,6 +46,7 @@ float timeEnd = .25f;
 float grav_acceleration = -980.f;
 float normStiffness_S2S = 1e7f;
 float normStiffness_S2W = 1e7f;
+float adhesion_ratio_s2w = 0.f;
 GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::BINARY;
 bool verbose = false;
 float cohesion_ratio = 2;
@@ -61,6 +62,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     gran_system.set_K_n_SPH2SPH(normStiffness_S2S);
     gran_system.set_K_n_SPH2WALL(normStiffness_S2W);
     gran_system.set_Cohesion_ratio(cohesion_ratio);
+    gran_system.set_Adhesion_ratio_S2W(adhesion_ratio_s2w);
     gran_system.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
     gran_system.setOutputDirectory(output_prefix);
     gran_system.setOutputMode(write_mode);

@@ -79,6 +79,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
     settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
+    settlingExperiment.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     settlingExperiment.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     settlingExperiment.setOutputDirectory(params.output_dir);
     settlingExperiment.setOutputMode(params.write_mode);

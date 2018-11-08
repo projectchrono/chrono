@@ -87,6 +87,8 @@ int main(int argc, char* argv[]) {
     m_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
     m_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
@@ -160,6 +162,9 @@ int main(int argc, char* argv[]) {
     vector<float3> mesh_scalings;
     float3 scaling;
 
+    std::vector<float> mesh_masses;
+    float mass;
+
     switch (params.run_mode) {
         case SINGLE_ON_VERTEX:
         case SINGLE_TO_CORNER:
@@ -168,6 +173,7 @@ int main(int argc, char* argv[]) {
             scaling.y = 15;
             scaling.z = 10;
             mesh_filename = string("square_box.obj");
+            mass = 10;
             break;
 
         case BOX_FILL:
@@ -175,6 +181,7 @@ int main(int argc, char* argv[]) {
             scaling.y = 10;
             scaling.z = 10;
             mesh_filename = string("square_box.obj");
+            mass = 10;
             break;
 
         case SINGLE_TO_INV_CORNER:
@@ -182,12 +189,14 @@ int main(int argc, char* argv[]) {
             scaling.y = 15;
             scaling.z = 10;
             mesh_filename = string("inverted_corner.obj");
+            mass = 10;
             break;
     }
 
     mesh_scalings.push_back(scaling);
     mesh_filenames.push_back(mesh_filename);
-    m_sys.load_meshes(mesh_filenames, mesh_scalings);
+    mesh_masses.push_back(mass);
+    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
 
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
     cout << nSoupFamilies << " soup families" << endl;

@@ -538,35 +538,33 @@ __global__ void interactionTerrain_TriangleSoup(
                         float springTermZ = scalingFactor * deltaZ;
 
                         // Compute force updates for damping term
-                        // TODO effective mass based on mesh mass
-                        const float m_eff = 0.5;
+                        // NOTE assumes sphere mass of 1
+                        const float fam_mass_SU = d_triangleSoup->familyMass_SU[fam];
+                        const float m_eff = fam_mass_SU / (1.f + fam_mass_SU);
 
                         float dampingTermX = -mesh_params->Gamma_n_s2m_SU * deltaX_dot_n * m_eff;
                         float dampingTermY = -mesh_params->Gamma_n_s2m_SU * deltaY_dot_n * m_eff;
                         float dampingTermZ = -mesh_params->Gamma_n_s2m_SU * deltaZ_dot_n * m_eff;
 
-                        // Compute force updates for cohesion term, is opposite the spring term
-                        // TODO What to use for the mass being affected by gravity??
-                        float cohesionConstant = 1.0 * gran_params->gravMag_SU * gran_params->cohesion_ratio;
+                        // Compute force updates for adhesion term, opposite the spring term
+                        // NOTE ratio is wrt the weight of a sphere of mass 1
+                        const float adhesionConstant = gran_params->gravMag_SU * mesh_params->adhesion_ratio_s2m;
 
                         // NOTE the cancelation of two negatives
-                        float cohesionTermX = cohesionConstant * deltaX / depth;
-                        float cohesionTermY = cohesionConstant * deltaY / depth;
-                        float cohesionTermZ = cohesionConstant * deltaZ / depth;
+                        float adhesionTermX = adhesionConstant * deltaX / depth;
+                        float adhesionTermY = adhesionConstant * deltaY / depth;
+                        float adhesionTermZ = adhesionConstant * deltaZ / depth;
 
                         // Sum contributing forces
-                        float bodyA_X_force = springTermX + dampingTermX + cohesionTermX;
-                        float bodyA_Y_force = springTermY + dampingTermY + cohesionTermY;
-                        float bodyA_Z_force = springTermZ + dampingTermZ + cohesionTermZ;
+                        float bodyA_X_force = springTermX + dampingTermX + adhesionTermX;
+                        float bodyA_Y_force = springTermY + dampingTermY + adhesionTermY;
+                        float bodyA_Z_force = springTermZ + dampingTermZ + adhesionTermZ;
 
                         // Use the CD information to compute the force and torque on the family of this triangle
                         forceActingOnSphere[0] += bodyA_X_force;
                         forceActingOnSphere[1] += bodyA_Y_force;
                         forceActingOnSphere[2] += bodyA_Z_force;
 
-                        // total force is opposite the triangle normal
-                        // force on mesh is total force projected from the contact point on the triangle to mesh center
-                        // torque
                         // TODO assumes pos is the center of mass of the mesh
                         // TODO precision?
                         double3 meshCenter = make_double3(mesh_params->fam_frame_narrow[fam].pos[0],
@@ -574,6 +572,7 @@ __global__ void interactionTerrain_TriangleSoup(
                                                           mesh_params->fam_frame_narrow[fam].pos[2]);
                         convert_pos_UU2SU<double3>(meshCenter, gran_params);
 
+                        // Force on the mesh is opposite the force on the sphere
                         double3 force_total = make_double3(-bodyA_X_force, -bodyA_Y_force, -bodyA_Z_force);
 
                         // point from center of body to contact point
@@ -626,6 +625,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::copy_triangle_data_to_device() {
     // unified memory does some copying for us, cool
     tri_params->Kn_s2m_SU = K_n_s2m_SU;
     tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
+    tri_params->adhesion_ratio_s2m = adhesion_s2m_over_gravity;
 
     SD_isTouchingTriangle.resize(nSDs);
 }

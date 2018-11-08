@@ -75,9 +75,10 @@ ChSystemGranular_MonodisperseSMC_trimesh::~ChSystemGranular_MonodisperseSMC_trim
 }
 
 void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::string> objfilenames,
-                                                           std::vector<float3> scalings) {
-    if (objfilenames.size() != scalings.size()) {
-        GRANULAR_ERROR("Vectors of obj files and scalings must have same size\n");
+                                                           std::vector<float3> scalings,
+                                                           std::vector<float> masses) {
+    if (objfilenames.size() != scalings.size() || objfilenames.size() != masses.size()) {
+        GRANULAR_ERROR("Vectors of obj files, scalings, and masses must have same size\n");
     }
 
     unsigned int nTriangles = 0;
@@ -99,11 +100,11 @@ void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::stri
     printf("nTriangleFamiliesInSoup is %u\n", nFamiliesInSoup);
 
     // Allocate triangle collision parameters
-    gpuErrchk(cudaMallocManaged(&tri_params, sizeof(GranParamsHolder_trimesh), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&tri_params, sizeof(ChGranParams_trimesh), cudaMemAttachGlobal));
 
     // Allocate memory to store mesh soup in unified memory
     printf("Allocating mesh unified memory\n");
-    setupTriMesh_DEVICE(all_meshes, nTriangles);
+    setupTriMesh_DEVICE(all_meshes, nTriangles, masses);
     printf("Done allocating mesh unified memory\n");
 
     // Allocate triangle collision memory
@@ -180,6 +181,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::write_meshes(std::string filename
 
 void ChSystemGranular_MonodisperseSMC_trimesh::cleanupTriMesh_DEVICE() {
     cudaFree(meshSoup_DEVICE->triangleFamily_ID);
+    cudaFree(meshSoup_DEVICE->familyMass_SU);
 
     cudaFree(meshSoup_DEVICE->node1);
     cudaFree(meshSoup_DEVICE->node2);
@@ -202,7 +204,8 @@ void ChSystemGranular_MonodisperseSMC_trimesh::cleanupTriMesh_DEVICE() {
 
 void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
     const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
-    unsigned int nTriangles) {
+    unsigned int nTriangles,
+    std::vector<float> masses) {
     // Allocate the device soup storage
     gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(ChTriangleSoup<float3>), cudaMemAttachGlobal));
 
@@ -270,6 +273,12 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
     meshSoup_DEVICE->nFamiliesInSoup = family;
 
     if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->familyMass_SU, family * sizeof(float), cudaMemAttachGlobal));
+
+        for (unsigned int i = 0; i < family; i++) {
+            meshSoup_DEVICE->familyMass_SU[i] = masses[i] / gran_params->MASS_UNIT;
+        }
+
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->generalizedForcesPerFamily,
                                     6 * MAX_TRIANGLE_FAMILIES * sizeof(float), cudaMemAttachGlobal));
         // Allocate memory for the float and double frames
