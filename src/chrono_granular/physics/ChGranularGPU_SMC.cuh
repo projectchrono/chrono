@@ -604,6 +604,9 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
             wall_torque_by_r = wall_torque_by_r + make_float3(-curr_contrib.y, curr_contrib.x, 0);
         }
         wall_force = wall_force + curr_contrib;
+        // printf("at top wall, spring is %f, damping is %f, total is (%f, %f, %f)\n",
+        //        -1 * gran_params->K_n_s2w_SU * abs(penetration), -1 * normal_damping_force.z, wall_force.x,
+        //        wall_force.y, wall_force.z);
     }
 
     // write back to "return" values
@@ -788,9 +791,10 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
             // add tangential components if they exist
             if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                v_rel =
-                    v_rel + Cross(delta_r, make_float3(omega_X[bodyA] - omega_X[bodyB], omega_Y[bodyA] - omega_Y[bodyB],
-                                                       omega_Z[bodyA] - omega_Z[bodyB]));
+                // (omega_b cross r_b - omega_a cross r_a), r_b  = -r_a = delta_r * radius
+                v_rel = v_rel + Cross(make_float3(omega_X[bodyA] + omega_X[bodyB], omega_Y[bodyA] + omega_Y[bodyB],
+                                                  omega_Z[bodyA] + omega_Z[bodyB]),
+                                      -1.f * delta_r * sphereRadius_SU);
             }
 
             // Compute force updates for damping term
@@ -834,30 +838,33 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // Add damping term
             force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;
 
-            // TODO improve this
-            // one-step tangential displacement
-            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-                // both tangential terms combine for single step
-                const float combined_tangent_coeff =
-                    gran_params->K_t_s2s_SU * gran_params->alpha_h_bar + gran_params->Gamma_t_s2s_SU * m_eff;
-                force_accum = force_accum - combined_tangent_coeff * v_rel;
-            }
-
-            // Multiply sping and damping terms by model multiplier
+            // Multiply spring and damping terms by model multiplier
             force_accum = force_accum * force_model_multiplier;
+
+            // TODO improve this
+            // calculate tangential forces -- NOTE that these only come into play with friction enabled
+            if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+                    // both tangential terms combine for single step
+                    const float combined_tangent_coeff =
+                        gran_params->K_t_s2s_SU * gran_params->alpha_h_bar + gran_params->Gamma_t_s2s_SU * m_eff;
+
+                    // we dotted out normal component of v, so v_rel is the tangential component
+                    float3 tangent_force = -combined_tangent_coeff * v_rel * force_model_multiplier;
+                    // tau = r cross f = radius * n cross F
+                    // 2 * radius * n = -1 * delta_r * sphdiameter
+                    // assume abs(r) ~ radius, so n = delta_r
+                    // compute accelerations caused by torques on body
+                    bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
+                    // add to total forces
+                    force_accum = force_accum + tangent_force;
+                }
+            }
 
             // Add cohesion term
             force_accum = force_accum - cohesionConstant * delta_r * reciplength;
 
-            // compute accelerations caused by torques on body
-            // multiply by diameter, but normalize by radius to keep numbers sane
-            constexpr float diameter_over_radius = 2;
-            if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                // Now add friction, the cross should remove it anyways maybe
-                bodyA_AngAcc = bodyA_AngAcc +
-                               (diameter_over_radius * Cross(delta_r, force_accum) / gran_params->sphereInertia_by_r);
-            }
-
+            // finally, we add this per-contact accumulator to
             bodyA_force = bodyA_force + force_accum;
         }
 
@@ -878,8 +885,6 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             bodyA_force.x += gran_params->gravAcc_X_SU;
             bodyA_force.y += gran_params->gravAcc_Y_SU;
             bodyA_force.z += gran_params->gravAcc_Z_SU;
-
-            // gravity exerts no force
         }
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes
