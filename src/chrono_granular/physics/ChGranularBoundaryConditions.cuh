@@ -21,90 +21,10 @@
 
 using chrono::granular::BC_type;
 using chrono::granular::BC_params_t;
-using chrono::granular::AABox_BC_params_t;
+using chrono::granular::AABox_BC_params_t;  // todo implement
 using chrono::granular::sphere_BC_params_t;
 using chrono::granular::cone_BC_params_t;
 using chrono::granular::Plane_BC_params_t;
-
-//// DO NOT USE, IS BROKEN
-inline __device__ bool addBCForces_AABox(const int sphXpos,
-                                         const int sphYpos,
-                                         const int sphZpos,
-                                         const float sphXvel,
-                                         const float sphYvel,
-                                         const float sphZvel,
-                                         float& X_force,
-                                         float& Y_force,
-                                         float& Z_force,
-                                         ParamsPtr gran_params,
-                                         const BC_params_t<int, int3>& bc_params) {
-    return false;  // TODO implement
-    // AABox_BC_params_t<int, int3> AABox_params = bc_params.AABox_params;
-    // bool contact = false;
-    // // classic radius grab, this must be signed to avoid false conversions
-    // const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
-    //
-    // // Compute spring factor in force
-    // float scalingFactor = AABox_params.normal_sign * gran_params->K_n_s2w_SU;
-    //
-    // // penetration into wall
-    // signed int pen = 0;
-    // // Are we touching wall?
-    // int touchingWall = 0;
-    //
-    // // Do x direction
-    // // penetration of sphere into bottom x wall
-    // pen = sphXpos - sphereRadius_SU - AABox_params.min_corner.x;
-    // // true if sphere touching wall
-    // touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // contact &= touchingWall;
-    // // in this case, pen is negative and we want a positive restorative force
-    // // Need to get relative velocity
-    // X_force += touchingWall * (scalingFactor * abs(pen));
-    //
-    // // Do top X wall
-    // pen = AABox_params.max_corner.x - (sphXpos + (signed int)sphereRadius_SU);
-    // touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // contact &= touchingWall;
-    //
-    // // in this case, pen is positive and we want a negative restorative force
-    // X_force += touchingWall * (-1 * scalingFactor * abs(pen));
-    //
-    // // penetration of sphere into relevant wall
-    // pen = sphYpos - (signed int)sphereRadius_SU - AABox_params.min_corner.y;
-    // // true if sphere touching wall
-    // touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // contact &= touchingWall;
-    //
-    // // in this case, pen is negative and we want a positive restorative force
-    // Y_force += touchingWall * (scalingFactor * abs(pen));
-    //
-    // // Do top y wall
-    // pen = AABox_params.max_corner.y - (sphYpos + (signed int)sphereRadius_SU);
-    // touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // contact &= touchingWall;
-    //
-    // // in this case, pen is positive and we want a negative restorative force
-    // Y_force += touchingWall * (-1 * scalingFactor * abs(pen));
-    //
-    // // penetration of sphere into relevant wall
-    // pen = sphZpos - (signed int)sphereRadius_SU - AABox_params.min_corner.z;
-    // // true if sphere touching wall
-    // touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // contact &= touchingWall;
-    //
-    // // in this case, pen is negative and we want a positive restorative force
-    // Z_force += touchingWall * (scalingFactor * abs(pen));
-    //
-    // // Do top z wall
-    // pen = AABox_params.max_corner.z - (sphZpos + (signed int)sphereRadius_SU);
-    // touchingWall = (pen < 0) && abs(pen) < sphereRadius_SU;
-    // contact &= touchingWall;
-    //
-    // // in this case, pen is positive and we want a negative restorative force
-    // Z_force += touchingWall * (-1 * scalingFactor * abs(pen));
-    // return contact;
-}
 
 inline __device__ bool addBCForces_Sphere(const int sphXpos,
                                           const int sphYpos,
@@ -112,9 +32,11 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
                                           const float sphXvel,
                                           const float sphYvel,
                                           const float sphZvel,
-                                          float& X_force,
-                                          float& Y_force,
-                                          float& Z_force,
+                                          const float sphOmegaX,
+                                          const float sphOmegaY,
+                                          const float sphOmegaZ,
+                                          float3 force_from_BCs,
+                                          float3 ang_acc_from_BCs,
                                           ParamsPtr gran_params,
                                           const BC_params_t<int, int3>& bc_params) {
     sphere_BC_params_t<int, int3> sphere_params = bc_params.sphere_params;
@@ -125,21 +47,29 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
     float total_diameter = (sphere_params.radius + sphereRadius_SU);
     float inv_diameter = 1.f / (total_diameter);
 
-    double dX = (sphXpos - sphere_params.sphere_center.x) * inv_diameter;
-    double dY = (sphYpos - sphere_params.sphere_center.y) * inv_diameter;
-    double dZ = (sphZpos - sphere_params.sphere_center.z) * inv_diameter;
+    float reciplength = 0;
 
-    double d2 = dX * dX + dY * dY + dZ * dZ;
-    float reciplength = rsqrt(d2);
+    {
+        double dX = (sphXpos - sphere_params.sphere_center.x) * inv_diameter;
+        double dY = (sphYpos - sphere_params.sphere_center.y) * inv_diameter;
+        double dZ = (sphZpos - sphere_params.sphere_center.z) * inv_diameter;
+        double d2 = dX * dX + dY * dY + dZ * dZ;
+        // this needs to be computed in double, then cast to float
+        reciplength = (float)rsqrt(d2);
+    }
+    // recompute in float to be cheaper
+    float dX = (sphXpos - sphere_params.sphere_center.x) * inv_diameter;
+    float dY = (sphYpos - sphere_params.sphere_center.y) * inv_diameter;
+    float dZ = (sphZpos - sphere_params.sphere_center.z) * inv_diameter;
 
     float penetration = reciplength - 1.;
-    // contact
-    if (d2 < 1) {
+    // contact means d2 <1, so 1/d2 > 1, reciplength > 1, penetration > 0
+    if (penetration > 0) {
         contact = true;
         // spring term
-        X_force += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dX * total_diameter * penetration;
-        Y_force += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dY * total_diameter * penetration;
-        Z_force += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dZ * total_diameter * penetration;
+        force_from_BCs.x += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dX * total_diameter * penetration;
+        force_from_BCs.y += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dY * total_diameter * penetration;
+        force_from_BCs.z += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dZ * total_diameter * penetration;
 
         // damping term
         // Compute force updates for damping term
@@ -151,9 +81,9 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
 
         constexpr float m_eff = 0.5;
 
-        X_force += -gran_params->Gamma_n_s2w_SU * projection * dX * reciplength * m_eff;
-        X_force += -gran_params->Gamma_n_s2w_SU * projection * dY * reciplength * m_eff;
-        X_force += -gran_params->Gamma_n_s2w_SU * projection * dZ * reciplength * m_eff;
+        force_from_BCs.x += -gran_params->Gamma_n_s2w_SU * projection * dX * reciplength * m_eff;
+        force_from_BCs.y += -gran_params->Gamma_n_s2w_SU * projection * dY * reciplength * m_eff;
+        force_from_BCs.z += -gran_params->Gamma_n_s2w_SU * projection * dZ * reciplength * m_eff;
     }
     return contact;
 }
@@ -164,9 +94,11 @@ inline __device__ bool addBCForces_Cone(const int sphXpos,
                                         const float sphXvel,
                                         const float sphYvel,
                                         const float sphZvel,
-                                        float& X_force,
-                                        float& Y_force,
-                                        float& Z_force,
+                                        const float sphOmegaX,
+                                        const float sphOmegaY,
+                                        const float sphOmegaZ,
+                                        float3 force_from_BCs,
+                                        float3 ang_acc_from_BCs,
                                         ParamsPtr gran_params,
                                         const BC_params_t<int, int3>& bc_params) {
     cone_BC_params_t<int, int3> cone_params = bc_params.cone_params;
@@ -205,9 +137,7 @@ inline __device__ bool addBCForces_Cone(const int sphXpos,
     if (pen > 0 && contact_height >= cone_params.hmin - cone_params.cone_tip.z &&
         contact_height <= cone_params.hmax - cone_params.cone_tip.z) {
         // add spring term
-        X_force += cone_params.normal_sign * gran_params->K_n_s2w_SU * pen * contact_vector.x;
-        Y_force += cone_params.normal_sign * gran_params->K_n_s2w_SU * pen * contact_vector.y;
-        Z_force += cone_params.normal_sign * gran_params->K_n_s2w_SU * pen * contact_vector.z;
+        force_from_BCs = force_from_BCs + cone_params.normal_sign * gran_params->K_n_s2w_SU * pen * contact_vector;
 
         // damping term
         // Compute force updates for damping term
@@ -217,9 +147,7 @@ inline __device__ bool addBCForces_Cone(const int sphXpos,
 
         constexpr float m_eff = 0.5;
 
-        X_force += -gran_params->Gamma_n_s2w_SU * projection * contact_vector.x * m_eff;
-        Y_force += -gran_params->Gamma_n_s2w_SU * projection * contact_vector.y * m_eff;
-        Z_force += -gran_params->Gamma_n_s2w_SU * projection * contact_vector.z * m_eff;
+        force_from_BCs = force_from_BCs + -gran_params->Gamma_n_s2w_SU * projection * contact_vector * m_eff;
         contact = true;
     }
     return contact;
@@ -232,9 +160,11 @@ inline __device__ bool addBCForces_Plane(const int sphXpos,
                                          const float sphXvel,
                                          const float sphYvel,
                                          const float sphZvel,
-                                         float& X_force,
-                                         float& Y_force,
-                                         float& Z_force,
+                                         const float sphOmegaX,
+                                         const float sphOmegaY,
+                                         const float sphOmegaZ,
+                                         float3 force_from_BCs,
+                                         float3 ang_acc_from_BCs,
                                          ParamsPtr gran_params,
                                          const BC_params_t<int, int3>& bc_params) {
     Plane_BC_params_t<int3> plane_params = bc_params.plane_params;
@@ -253,22 +183,40 @@ inline __device__ bool addBCForces_Plane(const int sphXpos,
 
     if (penetration > 0) {
         contact = true;
-        X_force += gran_params->K_n_s2w_SU * penetration * plane_params.normal.x;
-        Y_force += gran_params->K_n_s2w_SU * penetration * plane_params.normal.y;
-        Z_force += gran_params->K_n_s2w_SU * penetration * plane_params.normal.z;
+        force_from_BCs = force_from_BCs + gran_params->K_n_s2w_SU * penetration * plane_params.normal;
+
+        float3 sphere_vel = make_float3(sphXvel, sphYvel, sphZvel);
+
+        // add sphere rotation
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // v = v_COM + omega cross r
+            sphere_vel = sphere_vel + Cross(make_float3(sphOmegaX, sphOmegaY, sphOmegaZ), -1 * delta_r);
+        }
 
         // damping term
         // Compute force updates for damping term
         // Project relative velocity to the normal
         // assume static BC
-        float projection =
-            (sphXvel * plane_params.normal.x + sphYvel * plane_params.normal.y + sphZvel * plane_params.normal.z);
+        float projection = Dot(sphere_vel, plane_params.normal);
+
+        // now this is just the tangential component
+        sphere_vel = sphere_vel - projection * plane_params.normal;
 
         constexpr float m_eff = 0.5;
 
-        X_force += -gran_params->Gamma_n_s2w_SU * projection * plane_params.normal.x * m_eff;
-        Y_force += -gran_params->Gamma_n_s2w_SU * projection * plane_params.normal.y * m_eff;
-        Z_force += -gran_params->Gamma_n_s2w_SU * projection * plane_params.normal.z * m_eff;
+        // add tangent forces
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+            const float combined_tangent_coeff =
+                gran_params->K_t_s2s_SU * gran_params->alpha_h_bar + gran_params->Gamma_t_s2s_SU * m_eff;
+
+            // float3 tangent_force = -combined_tangent_coeff * sphere_vel * force_model_multiplier;
+            // TODO ADD hertz!
+
+            // v = v_COM + omega cross r
+            sphere_vel = sphere_vel + Cross(make_float3(sphOmegaX, sphOmegaY, sphOmegaZ), -1 * delta_r);
+        }
+
+        force_from_BCs = force_from_BCs + -1 * gran_params->Gamma_n_s2w_SU * projection * plane_params.normal * m_eff;
     }
 
     return contact;

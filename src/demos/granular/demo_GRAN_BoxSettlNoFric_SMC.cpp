@@ -16,7 +16,6 @@
 //
 // Basic simulation of a settling scenario;
 //  - box is rectangular
-//  - there is no friction
 //
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
@@ -51,7 +50,7 @@ void ShowUsage() {
 
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
-// There is no friction. The units are always cm/s/g[L/T/M].
+// The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     GRAN_TIME_STEPPING step_mode = GRAN_TIME_STEPPING::FIXED;
@@ -67,6 +66,8 @@ int main(int argc, char* argv[]) {
 
     // Setup simulation
     ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density);
+    settlingExperiment.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
+
     settlingExperiment.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
     settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -84,12 +85,13 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setOutputMode(params.write_mode);
 
     // fill box, layer by layer
-    ChVector<> hdims(params.box_X / 4.f, params.box_Y / 4.f, params.box_Z / 2);
+    ChVector<> hdims(params.box_X / 4.f - 1.05 * params.sphere_radius, params.box_Y / 4.f - 1.05 * params.sphere_radius,
+                     params.box_Z / 2.f - 1.05 * params.sphere_radius);
     ChVector<> center(0, 0, 0);
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points =
-        PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.02);
+        PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.05);
     std::vector<ChVector<float>> first_points;
     first_points.push_back(body_points.at(0));
     first_points.push_back(body_points.at(1));
@@ -97,7 +99,9 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setParticlePositions(body_points);
 
     settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    // settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
     settlingExperiment.set_fixed_stepSize(params.step_size);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
@@ -132,20 +136,20 @@ int main(int argc, char* argv[]) {
         }
     };
 
-    switch (params.run_mode) {
-        case SETTLING:
-            settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunStill);
-            settlingExperiment.set_BD_Fixed(true);
-            break;
-        case WAVETANK:
-            settlingExperiment.setBDPositionFunction(posFunStill, posFunWave, posFunStill);
-            settlingExperiment.set_BD_Fixed(false);
-            break;
-        case BOUNCING_PLATE:
-            settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunZBouncing);
-            settlingExperiment.set_BD_Fixed(false);
-            break;
-    }
+    settlingExperiment.set_BD_Fixed(true);
+    // switch (params.run_mode) {
+    //     case SETTLING:
+    //         settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunStill);
+    //         break;
+    //     case WAVETANK:
+    //         settlingExperiment.setBDPositionFunction(posFunStill, posFunWave, posFunStill);
+    //         settlingExperiment.set_BD_Fixed(false);
+    //         break;
+    //     case BOUNCING_PLATE:
+    //         settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunZBouncing);
+    //         settlingExperiment.set_BD_Fixed(false);
+    //         break;
+    // }
 
     // float hdims[3] = {2.f, 2.f, 2.f};
 

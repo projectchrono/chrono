@@ -62,25 +62,24 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density);
-    settlingExperiment.setBOXdims(params.box_X, params.box_Y, params.box_Z);
-    settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
-    settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
-    settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
-    settlingExperiment.set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    settlingExperiment.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+    ChSystemGranular_MonodisperseSMC gran_sys(params.sphere_radius, params.sphere_density);
+    gran_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
 
-    settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);
-    settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
-    settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
-    settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
-    settlingExperiment.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    settlingExperiment.setOutputDirectory(params.output_dir);
-    settlingExperiment.setOutputMode(params.write_mode);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.setOutputDirectory(params.output_dir);
+    gran_sys.setOutputMode(params.write_mode);
 
-    settlingExperiment.set_BD_Fixed(true);
+    gran_sys.set_BD_Fixed(true);
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points;
@@ -112,22 +111,24 @@ int main(int argc, char* argv[]) {
         center.z() += 2.05 * params.sphere_radius;
     }
 
-    settlingExperiment.setParticlePositions(body_points);
+    gran_sys.setParticlePositions(body_points);
 
-    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    settlingExperiment.set_fixed_stepSize(params.step_size);
+    gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+    gran_sys.set_fixed_stepSize(params.step_size);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
 
     float cone_slope = 1.0;
     // float hdims[3] = {2.f, 2.f, 2.f};
 
-    settlingExperiment.setVerbose(params.verbose);
+    gran_sys.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
-    settlingExperiment.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + 10 * params.sphere_radius,
-                                      true);
-    settlingExperiment.initialize();
+    gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + 10 * params.sphere_radius, false);
+    gran_sys.initialize();
 
     int fps = 100;
     // assume we run for at least one frame
@@ -139,12 +140,12 @@ int main(int argc, char* argv[]) {
 
     // Run settling experiments
     while (curr_time < params.time_end) {
-        settlingExperiment.advance_simulation(frame_step);
+        gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        settlingExperiment.writeFileUU(std::string(filename));
+        gran_sys.writeFileUU(std::string(filename));
     }
 
     return 0;

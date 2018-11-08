@@ -383,17 +383,15 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
                                      const float sphXvel,  //!< Global X velocity of DE
                                      const float sphYvel,  //!< Global Y velocity of DE
                                      const float sphZvel,  //!< Global Z velocity of DE
-                                     float& X_force,       //!< Force in Xdir
-                                     float& Y_force,       //!< Force in Ydir
-                                     float& Z_force,       //!< Force in Zdir
+                                     const float sphOmegaX,
+                                     const float sphOmegaY,
+                                     const float sphOmegaZ,
+                                     float3& force_from_BCs,
+                                     float3& ang_acc_from_BCs,
                                      ParamsPtr gran_params,
                                      BC_type* bc_type_list,
                                      BC_params_t<int, int3>* bc_params_list,
                                      unsigned int nBCs) {
-    // store forces on body
-    float xforce = 0;
-    float yforce = 0;
-    float zforce = 0;
     for (unsigned int i = 0; i < nBCs; i++) {
         // skip inactive BCs
         if (!bc_params_list[i].active) {
@@ -401,27 +399,22 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
         }
         switch (bc_type_list[i]) {
             case BC_type::AA_BOX: {
-                addBCForces_AABox(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
-                                  gran_params, bc_params_list[i]);
+                ABORTABORTABORT("ERROR: AA_BOX is currently unsupported!\n");
             }
             case BC_type::SPHERE: {
-                addBCForces_Sphere(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
-                                   gran_params, bc_params_list[i]);
+                addBCForces_Sphere(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY,
+                                   sphOmegaZ, force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
             }
             case BC_type::CONE: {
-                addBCForces_Cone(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
-                                 gran_params, bc_params_list[i]);
+                addBCForces_Cone(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
+                                 force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
             }
             case BC_type::PLANE: {
-                addBCForces_Plane(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, xforce, yforce, zforce,
-                                  gran_params, bc_params_list[i]);
+                addBCForces_Plane(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
+                                  force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
             }
         }
     }
-    // perform on-the-fly integration for the moment
-    X_force += xforce;
-    Y_force += yforce;
-    Z_force += zforce;
 }
 
 /**
@@ -879,8 +872,8 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
                             bodyA_AngAcc, gran_params);
 
             applyBCForces(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
-                          sphere_Z_DOT[bodyA], bodyA_force.x, bodyA_force.y, bodyA_force.z, gran_params, bc_type_list,
-                          bc_params_list, nBCs);
+                          sphere_Z_DOT[bodyA], omega_X[bodyA], omega_Y[bodyA], omega_Z[bodyA], bodyA_force,
+                          bodyA_AngAcc, gran_params, bc_type_list, bc_params_list, nBCs);
             // If the sphere belongs to this SD, add up the gravitational force component.
             bodyA_force.x += gran_params->gravAcc_X_SU;
             bodyA_force.y += gran_params->gravAcc_Y_SU;
