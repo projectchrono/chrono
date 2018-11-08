@@ -103,7 +103,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
 
     virtual double advance_simulation(float duration) override;
     /// Extra parameters needed for triangle-sphere contact
-    struct GranParamsHolder_trimesh {
+    struct ChGranParams_trimesh {
         float Gamma_n_s2m_SU;                //!< sphere-to-mesh contact damping coefficient, expressed in SU
         float Kn_s2m_SU;                     //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
         unsigned int num_triangle_families;  /// Number of triangle families
@@ -121,7 +121,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     void disableMeshCollision() { mesh_collision_enabled = false; }
 
   private:
-    GranParamsHolder_trimesh* tri_params;
+    ChGranParams_trimesh* tri_params;
 
     /// clean copy of mesh soup interacting with granular material
     // store a pointer since we use unified memory for this

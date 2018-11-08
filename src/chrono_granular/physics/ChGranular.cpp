@@ -43,7 +43,7 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
       Gamma_n_s2w_UU(0),
       Gamma_t_s2s_UU(0),
       Gamma_t_s2w_UU(0) {
-    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(GranParamsHolder), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
     gran_params->psi_T = PSI_T_DEFAULT;
     gran_params->psi_h = PSI_h_DEFAULT;
     gran_params->psi_L = PSI_L_DEFAULT;

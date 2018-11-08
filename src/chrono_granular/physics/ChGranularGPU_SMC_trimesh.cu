@@ -30,7 +30,7 @@
 
 namespace chrono {
 namespace granular {
-typedef const ChSystemGranular_MonodisperseSMC_trimesh::GranParamsHolder_trimesh* MeshParamsPtr;
+typedef const ChSystemGranular_MonodisperseSMC_trimesh::ChGranParams_trimesh* MeshParamsPtr;
 typedef ChTriangleSoup<float3>* TriangleSoupPtr;
 
 /// Takes in a triangle's position in UU and finds out what SDs it touches

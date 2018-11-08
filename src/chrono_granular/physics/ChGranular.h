@@ -90,7 +90,7 @@ enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 enum GRAN_CONTACT_MODEL { HOOKE, HERTZ };
 
 /// Parameters needed for sphere-based granular dynamics
-struct GranParamsHolder {
+struct ChChGranParams {
     // Timestep in SU
     float alpha_h_bar;
 
@@ -148,7 +148,7 @@ struct GranParamsHolder {
 }  // namespace chrono
 
 // Do two things: make the naming nicer and require a const pointer everywhere
-typedef const chrono::granular::GranParamsHolder* ParamsPtr;
+typedef const chrono::granular::ChGranParams* ParamsPtr;
 namespace chrono {
 namespace granular {
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
@@ -288,7 +288,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Holds the friction mode for the system
     GRAN_FRICTION_MODE fric_mode;
     /// holds the sphere and BD-related params in unified memory
-    GranParamsHolder* gran_params;
+    ChGranParams* gran_params;
 
     /// Allows the code to be very verbose for debug
     bool verbose_runtime = false;
