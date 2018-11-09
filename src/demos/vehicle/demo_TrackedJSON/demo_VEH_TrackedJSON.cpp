@@ -53,9 +53,10 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // JSON file for vehicle model
-std::string vehicle_file("M113/vehicle/M113_Vehicle.json");
-////std::string vehicle_file("M113/vehicle/M113_Vehicle_box.json");
-////std::string vehicle_file("M113/vehicle/M113_Vehicle_mesh.json");
+std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin.json");
+////std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin_box.json");
+////std::string vehicle_file("M113/vehicle/M113_Vehicle_SinglePin_mesh.json");
+////std::string vehicle_file("M113/vehicle/M113_Vehicle_DoublePin.json");
 
 // JSON file for powertrain
 std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
@@ -66,28 +67,12 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
-// Initial vehicle position
-ChVector<> initLoc(0, 0, 2.0);
-
-// Initial vehicle orientation
-ChQuaternion<> initRot(1, 0, 0, 0);
-
-// Point on chassis tracked by the camera (Irrlicht only)
-ChVector<> trackPoint(0.0, 0.0, 0.0);
-
-// Rigid terrain dimensions
-double terrainHeight = 0;
-double terrainLength = 100.0;  // size in X direction
-double terrainWidth = 100.0;   // size in Y direction
-
 // Simulation step size
-double step_size = 1e-2;
-
-// Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
+double step_size = 2e-3;
 
 // Simulation length (Povray only)
 double tend = 10.0;
+double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Output directories (Povray only)
 const std::string out_dir = GetChronoOutputPath() + "M113_JSON";
@@ -102,16 +87,27 @@ int main(int argc, char* argv[]) {
     // Create the various modules
     // --------------------------
 
+    // Contact formulation
+    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+
+    //// NOTE
+    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.  
+    //// However, there appear to still be redundant constraints in the double-pin assembly
+    //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
+    ////
+    //// For now, use ChMaterialSurface::NSC for a double-pin track model
+
     // Create the vehicle system
-    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
+    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), contact_method);
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
     // Initialize the vehicle at the specified position.
-    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    vehicle.Initialize(ChCoordsys<>(ChVector<>(0, 0, 1.2), QUNIT));
+    vehicle.SetStepsize(step_size);
 
-    // Set visualization type for vehicle components.
+    // Set visualization type for vehicle components
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
@@ -126,8 +122,14 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetChassisVehicleCollide(false);
 
     // Solver settings.
+    vehicle.GetSystem()->SetSolverType(ChSolver::Type::SOR);
     vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
     vehicle.GetSystem()->SetMaxItersSolverStab(50);
+    vehicle.GetSystem()->SetTol(0);
+    vehicle.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+    vehicle.GetSystem()->SetMinBounceSpeed(2.0);
+    vehicle.GetSystem()->SetSolverOverrelaxationParam(0.8);
+    vehicle.GetSystem()->SetSolverSharpnessParam(1.0);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
@@ -142,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+    app.SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
 
     app.SetTimestep(step_size);
 
@@ -190,8 +192,6 @@ int main(int argc, char* argv[]) {
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
-    int step_number = 0;
-    double time = 0;
 
 #ifdef USE_IRRLICHT
 
@@ -199,11 +199,9 @@ int main(int argc, char* argv[]) {
 
     while (app.GetDevice()->run()) {
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
-        }
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
 
         // Collect output data from modules (for inter-module communication)
         throttle_input = driver.GetThrottle();
@@ -215,7 +213,7 @@ int main(int argc, char* argv[]) {
         vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
-        time = vehicle.GetSystem()->GetChTime();
+        double time = vehicle.GetSystem()->GetChTime();
         driver.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
         vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
@@ -228,13 +226,12 @@ int main(int argc, char* argv[]) {
         vehicle.Advance(step);
         terrain.Advance(step);
         app.Advance(step);
-
-        // Increment frame number
-        step_number++;
     }
 
 #else
 
+    double time = 0;
+    int step_number = 0;
     int render_frame = 0;
 
     if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {

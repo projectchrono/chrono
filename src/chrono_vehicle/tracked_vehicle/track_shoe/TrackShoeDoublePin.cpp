@@ -74,7 +74,6 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     // Read contact geometry data
     assert(d.HasMember("Contact Geometry"));
     assert(d["Contact Geometry"].HasMember("Shoe"));
-    assert(d["Contact Geometry"].HasMember("Cylinder"));
 
     m_pad_box_dims = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
     m_pad_box_loc = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Location"]);
