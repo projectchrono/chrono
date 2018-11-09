@@ -123,6 +123,7 @@ int main(int argc, char* argv[]) {
     // Run settling experiments
     while (curr_time < params.time_end) {
         if (plane_active && curr_time > 1) {
+            printf("disabling plane!\n");
             plane_active = false;
             gran_system.disable_BC_by_ID(plane_bc_id);
         }

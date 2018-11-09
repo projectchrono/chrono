@@ -35,8 +35,8 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
                                           const float sphOmegaX,
                                           const float sphOmegaY,
                                           const float sphOmegaZ,
-                                          float3 force_from_BCs,
-                                          float3 ang_acc_from_BCs,
+                                          float3& force_from_BCs,
+                                          float3& ang_acc_from_BCs,
                                           ParamsPtr gran_params,
                                           const BC_params_t<int, int3>& bc_params) {
     sphere_BC_params_t<int, int3> sphere_params = bc_params.sphere_params;
@@ -97,8 +97,8 @@ inline __device__ bool addBCForces_Cone(const int sphXpos,
                                         const float sphOmegaX,
                                         const float sphOmegaY,
                                         const float sphOmegaZ,
-                                        float3 force_from_BCs,
-                                        float3 ang_acc_from_BCs,
+                                        float3& force_from_BCs,
+                                        float3& ang_acc_from_BCs,
                                         ParamsPtr gran_params,
                                         const BC_params_t<int, int3>& bc_params) {
     cone_BC_params_t<int, int3> cone_params = bc_params.cone_params;
@@ -163,8 +163,8 @@ inline __device__ bool addBCForces_Plane(const int sphXpos,
                                          const float sphOmegaX,
                                          const float sphOmegaY,
                                          const float sphOmegaZ,
-                                         float3 force_from_BCs,
-                                         float3 ang_acc_from_BCs,
+                                         float3& force_from_BCs,
+                                         float3& ang_acc_from_BCs,
                                          ParamsPtr gran_params,
                                          const BC_params_t<int, int3>& bc_params) {
     Plane_BC_params_t<int3> plane_params = bc_params.plane_params;
@@ -183,7 +183,7 @@ inline __device__ bool addBCForces_Plane(const int sphXpos,
 
     if (penetration > 0) {
         contact = true;
-        force_from_BCs = force_from_BCs + gran_params->K_n_s2w_SU * penetration * plane_params.normal;
+        float3 plane_force = gran_params->K_n_s2w_SU * penetration * plane_params.normal;
 
         float3 sphere_vel = make_float3(sphXvel, sphYvel, sphZvel);
 
@@ -216,7 +216,8 @@ inline __device__ bool addBCForces_Plane(const int sphXpos,
             sphere_vel = sphere_vel + Cross(make_float3(sphOmegaX, sphOmegaY, sphOmegaZ), -1 * delta_r);
         }
 
-        force_from_BCs = force_from_BCs + -1 * gran_params->Gamma_n_s2w_SU * projection * plane_params.normal * m_eff;
+        plane_force = plane_force + -1 * gran_params->Gamma_n_s2w_SU * projection * plane_params.normal * m_eff;
+        force_from_BCs = force_from_BCs + plane_force;
     }
 
     return contact;
