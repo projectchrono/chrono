@@ -93,7 +93,7 @@ __device__ bool snap_to_face(const double3& A, const double3& B, const double3& 
 }
 
 /**
-/brif TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
+/brief TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
 
 The triangular face is defined by points A, B, C. The sequence is important as it defines the positive face via a
 right-hand rule.
@@ -112,7 +112,7 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
                                const double3& C,           //!< Third vertex of the triangle
                                const double3& sphere_pos,  //!< Location of the center of the sphere
                                const int radius,           //!< Sphere radius
-                               double3& norm,
+                               float3& normal,
                                float& depth,
                                double3& pt1) {
     // Calculate face normal.
@@ -136,7 +136,7 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
     }
 
     // Closest point on face is inside the face.
-    norm = nrm1;
+    normal = make_float3(nrm1.x, nrm1.y, nrm1.z);
     depth = h - radius;
     pt1 = faceLoc;
 

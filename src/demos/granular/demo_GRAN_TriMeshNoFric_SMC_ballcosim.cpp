@@ -134,6 +134,7 @@ int main(int argc, char* argv[]) {
     unsigned int nSoupFamilies = m_sys_gran.nMeshesInSoup();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
+    float* meshVel = new float[6 * nSoupFamilies]();
 
     m_sys_gran.initialize();
     int currframe = 0;
@@ -181,7 +182,8 @@ int main(int argc, char* argv[]) {
             meshSoupLocOri[body_family_offset + 5] = ball_rot[2];
             meshSoupLocOri[body_family_offset + 6] = ball_rot[3];
         }
-        m_sys_gran.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
+        // Apply the mesh orientation data to the mesh
+        m_sys_gran.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
 
         m_sys_gran.advance_simulation(iteration_step);
         if (currframe >= 30) {

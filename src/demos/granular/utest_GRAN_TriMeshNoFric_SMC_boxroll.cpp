@@ -202,6 +202,7 @@ int main(int argc, char* argv[]) {
     cout << nSoupFamilies << " soup families" << endl;
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
+    float* meshVel = new float[6 * nSoupFamilies]();
 
     m_sys.initialize();
     unsigned int currframe = 0;
@@ -230,7 +231,7 @@ int main(int argc, char* argv[]) {
         meshSoupLocOri[5] = 0;
         meshSoupLocOri[6] = 0;
 
-        m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);  // Apply the mesh orientation data to the mesh
+        m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);  // Apply the mesh orientation data to the mesh
         cout << "Rendering frame " << currframe << endl;
         char filename[100];
         sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe++);

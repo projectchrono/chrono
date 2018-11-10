@@ -52,7 +52,7 @@ struct sphereDataStruct {
     float* pos_Z_dt;
 
     /// store angular velocity (axis and magnitude in one vector)
-    float* sphere_Omega_X;
+    float* sphere_Omega_X;  // Could these just be a single float3 array?
     float* sphere_Omega_Y;
     float* sphere_Omega_Z;
 
@@ -254,8 +254,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Set the ratio of cohesion to gravity for monodisperse spheres
     void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
-	/// Set the ratio of adhesion to gravity for sphere to wall
-	void set_Adhesion_ratio_S2W(float someValue) { adhesion_s2w_over_gravity = someValue; }
+    /// Set the ratio of adhesion to gravity for sphere to wall
+    void set_Adhesion_ratio_S2W(float someValue) { adhesion_s2w_over_gravity = someValue; }
 
     /// Set the BD to be fixed or not, if fixed it will ignore any given position functions
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
@@ -450,8 +450,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
-	
-	/// Store the ratio of the acceleration due to adhesion vs the acceleration due to gravity
+
+    /// Store the ratio of the acceleration due to adhesion vs the acceleration due to gravity
     float adhesion_s2w_over_gravity;
 
     /// List of generalized BCs that constrain sphere motion

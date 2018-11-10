@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 
     // Setup simulation
     ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density);
+    m_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
     m_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -63,6 +64,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<ChVector<float>> points;
     points.push_back(ChVector<float>(0, 0, -params.box_Z / 2 + params.sphere_radius));
+    points.push_back(ChVector<float>(params.sphere_radius * 1.99, 0, -params.box_Z / 2 + 4 * params.sphere_radius));
     m_sys.setParticlePositions(points);
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);

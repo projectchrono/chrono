@@ -43,17 +43,8 @@ struct ChTriangleSoup {
     T3* node2;  //!< Position in local reference frame of node 2
     T3* node3;  //!< Position in local reference frame of node 3
 
-    float* node1_XDOT;  //!< X velocity in local reference frame of node 1
-    float* node1_YDOT;  //!< Y velocity in local reference frame of node 1
-    float* node1_ZDOT;  //!< Z velocity in local reference frame of node 1
-
-    float* node2_XDOT;  //!< X velocity in local reference frame of node 2
-    float* node2_YDOT;  //!< Y velocity in local reference frame of node 2
-    float* node2_ZDOT;  //!< Z velocity in local reference frame of node 2
-
-    float* node3_XDOT;  //!< X velocity in local reference frame of node 3
-    float* node3_YDOT;  //!< Y velocity in local reference frame of node 3
-    float* node3_ZDOT;  //!< Z velocity in local reference frame of node 3
+    T3* vel;    //!< entry i is the linear velocity of family i (rigid body motion)
+    T3* omega;  //!< entry i is the angular velocity of family i (rigid body motion)
 
     float* generalizedForcesPerFamily;  //!< Generalized forces acting on each family. Expressed
                                         //!< in the global reference frame. Size: 6 * MAX_TRIANGLE_FAMILIES.
@@ -101,13 +92,18 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     * \attention The size of genForcesOnSoup should be 6 * nFamiliesInSoup
     */
     void collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup);
-    void meshSoup_applyRigidBodyMotion(double* position_orientation_data);
+
+    /// position_orientation_data should have 7 entries for each family: 3 pos, 4 orientation
+    /// vel should have 6 entries for each family: 3 linear velocity, 3 angular velocity
+    void meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel);
 
     virtual double advance_simulation(float duration) override;
     /// Extra parameters needed for triangle-sphere contact
     struct ChGranParams_trimesh {
-        float Gamma_n_s2m_SU;                //!< sphere-to-mesh contact damping coefficient, expressed in SU
-        float Kn_s2m_SU;                     //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+        float Gamma_n_s2m_SU;  //!< sphere-to-mesh contact damping coefficient, expressed in SU
+        float Gamma_t_s2m_SU;
+        float Kn_s2m_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+        float Kt_s2m_SU;
         float adhesion_ratio_s2m;            //!< Ratio of adhesion force to sphere weight
         unsigned int num_triangle_families;  /// Number of triangle families
         ChFamilyFrame<float>* fam_frame_broad;

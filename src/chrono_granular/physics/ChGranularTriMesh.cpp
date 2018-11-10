@@ -43,10 +43,16 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
     double K_stiffness = get_max_K();
     float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
     K_n_s2m_SU = K_scalingFactor * (K_n_s2m_UU / K_stiffness);
+    K_t_s2m_SU = K_scalingFactor * (K_t_s2m_UU / K_stiffness);
 
     float massSphere = 4.f / 3.f * M_PI * sphere_radius * sphere_radius * sphere_radius;
     float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
     Gamma_n_s2m_SU = Gamma_scalingFactor * Gamma_n_s2m_UU;
+    Gamma_t_s2m_SU = Gamma_scalingFactor * Gamma_t_s2m_UU;
+
+    for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
+        meshSoup_DEVICE->familyMass_SU[fam] = meshSoup_DEVICE->familyMass_SU[fam] / gran_params->MASS_UNIT;
+    }
 
     generate_DEs();
 
@@ -187,17 +193,8 @@ void ChSystemGranular_MonodisperseSMC_trimesh::cleanupTriMesh_DEVICE() {
     cudaFree(meshSoup_DEVICE->node2);
     cudaFree(meshSoup_DEVICE->node3);
 
-    cudaFree(meshSoup_DEVICE->node1_XDOT);
-    cudaFree(meshSoup_DEVICE->node1_YDOT);
-    cudaFree(meshSoup_DEVICE->node1_ZDOT);
-
-    cudaFree(meshSoup_DEVICE->node2_XDOT);
-    cudaFree(meshSoup_DEVICE->node2_YDOT);
-    cudaFree(meshSoup_DEVICE->node2_ZDOT);
-
-    cudaFree(meshSoup_DEVICE->node3_XDOT);
-    cudaFree(meshSoup_DEVICE->node3_YDOT);
-    cudaFree(meshSoup_DEVICE->node3_ZDOT);
+    cudaFree(meshSoup_DEVICE->vel);
+    cudaFree(meshSoup_DEVICE->omega);
 
     cudaFree(meshSoup_DEVICE->generalizedForcesPerFamily);
 }
@@ -219,18 +216,6 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1, nTriangles * sizeof(float3), cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2, nTriangles * sizeof(float3), cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3, nTriangles * sizeof(float3), cudaMemAttachGlobal));
-
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node1_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node2_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_XDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_YDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
-        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->node3_ZDOT, nTriangles * sizeof(float), cudaMemAttachGlobal));
     }
 
     printf("Done allocating nodes for %d triangles\n", nTriangles);
@@ -274,9 +259,9 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
 
     if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->familyMass_SU, family * sizeof(float), cudaMemAttachGlobal));
-
         for (unsigned int i = 0; i < family; i++) {
-            meshSoup_DEVICE->familyMass_SU[i] = masses[i] / gran_params->MASS_UNIT;
+            // NOTE The SU conversion is done in initialize after the scaling is determined
+            meshSoup_DEVICE->familyMass_SU[i] = masses[i];
         }
 
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->generalizedForcesPerFamily,
@@ -286,6 +271,17 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
                                     cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_narrow,
                                     MAX_TRIANGLE_FAMILIES * sizeof(ChFamilyFrame<double>), cudaMemAttachGlobal));
+
+        // Allocate memory for linear and angular velocity
+        gpuErrchk(
+            cudaMallocManaged(&meshSoup_DEVICE->vel, MAX_TRIANGLE_FAMILIES * sizeof(float3), cudaMemAttachGlobal));
+        gpuErrchk(
+            cudaMallocManaged(&meshSoup_DEVICE->omega, MAX_TRIANGLE_FAMILIES * sizeof(float3), cudaMemAttachGlobal));
+
+        for (unsigned int i = 0; i < family; i++) {
+            meshSoup_DEVICE->vel[i] = make_float3(0, 0, 0);
+            meshSoup_DEVICE->omega[i] = make_float3(0, 0, 0);
+        }
     }
 }
 
@@ -293,7 +289,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::collectGeneralizedForcesOnMeshSou
     float alpha_k_star = get_max_K();
     float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
     float sphere_mass =
-        4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;  // UU sphere mass
+        4.f / 3.f * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;  // UU sphere mass
     float C_F =
         gran_params->psi_L / (alpha_g * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
 
@@ -315,7 +311,8 @@ void ChSystemGranular_MonodisperseSMC_trimesh::collectGeneralizedForcesOnMeshSou
     }
 }
 
-void ChSystemGranular_MonodisperseSMC_trimesh::meshSoup_applyRigidBodyMotion(double* position_orientation_data) {
+void ChSystemGranular_MonodisperseSMC_trimesh::meshSoup_applyRigidBodyMotion(double* position_orientation_data,
+                                                                             float* vel) {
     // Set both broadphase and narrowphase frames for each family
     for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
         generate_rot_matrix<float>(position_orientation_data + 7 * fam + 3, tri_params->fam_frame_broad[fam].rot_mat);
@@ -327,6 +324,10 @@ void ChSystemGranular_MonodisperseSMC_trimesh::meshSoup_applyRigidBodyMotion(dou
         tri_params->fam_frame_narrow[fam].pos[0] = position_orientation_data[7 * fam + 0];
         tri_params->fam_frame_narrow[fam].pos[1] = position_orientation_data[7 * fam + 1];
         tri_params->fam_frame_narrow[fam].pos[2] = position_orientation_data[7 * fam + 2];
+
+        // Set linear and angular velocity
+        meshSoup_DEVICE->vel[fam] = make_float3(vel[6 * fam + 0], vel[6 * fam + 1], vel[6 * fam + 2]);
+        meshSoup_DEVICE->omega[fam] = make_float3(vel[6 * fam + 3], vel[6 * fam + 4], vel[6 * fam + 5]);
     }
 }
 

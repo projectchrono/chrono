@@ -128,38 +128,6 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     }
 }
 
-// Sums all values of var parameter within a block and writes the final result to dest
-template <typename T>
-__device__ void block_sum_shfl(T var, unsigned int blocksize, T* dest) {
-    __shared__ T shMem[warp_size];  // Enough entries for each warp to write its reduction
-
-    // Each warp sums all copies of var from its lanes into var on lane 0
-    for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
-        var += __shfl_down_sync(0xffffffff, var, offset);
-    }
-
-    // Sum all lane 0 vars
-    // Each lane 0 writes its var into shared mem
-    if ((threadIdx.x & (warp_size - 1)) == 0) {
-        unsigned int offsetShMem = threadIdx.x / warp_size;
-        shMem[offsetShMem] = var;
-    }
-
-    __syncthreads();  // Wait for all warps to finish writing to shared mem
-
-    // Warp 0 sums vars from shared mem written by all warps in the block
-    if (threadIdx.x / warp_size == 0) {
-        var = shMem[threadIdx.x];
-        for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
-            var += __shfl_down_sync(0xffffffff, var, offset);
-        }
-    }
-
-    if (threadIdx.x == 0) {
-        *dest = var;
-    }
-}
-
 void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleForces() {
     gpuErrchk(cudaMemset(meshSoup_DEVICE->generalizedForcesPerFamily, 0, 6 * MAX_TRIANGLE_FAMILIES * sizeof(float)));
 }
@@ -366,15 +334,7 @@ be produced to account for the interaction between the said triangle and sphere 
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
     TriangleSoupPtr d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
-    int* d_sphere_pos_X,
-    int* d_sphere_pos_Y,
-    int* d_sphere_pos_Z,
-    float* d_sphere_pos_X_dt,
-    float* d_sphere_pos_Y_dt,
-    float* d_sphere_pos_Z_dt,
-    float* d_sphere_force_X,
-    float* d_sphere_force_Y,
-    float* d_sphere_force_Z,
+    sphereDataStruct sphere_data,
     unsigned int* BKT_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int* triangles_in_BKT_composite,     //!< Big array that works in conjunction with SD_isTouchingTriangle.
     unsigned int*
@@ -397,11 +357,12 @@ __global__ void interactionTerrain_TriangleSoup(
     __shared__ float sphere_Y_DOT[MAX_COUNT_OF_DEs_PER_SD];
     __shared__ float sphere_Z_DOT[MAX_COUNT_OF_DEs_PER_SD];
 
+    // TODO figure out how we can do this better with no friction
+    __shared__ float3 omega[MAX_COUNT_OF_DEs_PER_SD];
+
     __shared__ double3 node1[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Coordinates of the 1st node of the triangle
     __shared__ double3 node2[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Coordinates of the 2nd node of the triangle
     __shared__ double3 node3[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< Coordinates of the 3rd node of the triangle
-
-    float forceActingOnSphere[3];  //!< 3 registers will hold the value of the force on the sphere
 
     // define an alias first
     unsigned int thisSD = blockIdx.x;
@@ -431,13 +392,20 @@ __global__ void interactionTerrain_TriangleSoup(
         if (local_ID < nSD_spheres) {
             unsigned int globalID = grElems_in_SD_composite[local_ID + thisSD * MAX_COUNT_OF_DEs_PER_SD];
             grElemID[local_ID] = globalID;
-            sphX[local_ID] = d_sphere_pos_X[globalID];
-            sphY[local_ID] = d_sphere_pos_Y[globalID];
-            sphZ[local_ID] = d_sphere_pos_Z[globalID];
+            sphX[local_ID] = sphere_data.pos_X[globalID];
+            sphY[local_ID] = sphere_data.pos_Y[globalID];
+            sphZ[local_ID] = sphere_data.pos_Z[globalID];
 
-            sphere_X_DOT[local_ID] = d_sphere_pos_X_dt[globalID];
-            sphere_Y_DOT[local_ID] = d_sphere_pos_Y_dt[globalID];
-            sphere_Z_DOT[local_ID] = d_sphere_pos_Z_dt[globalID];
+            sphere_X_DOT[local_ID] = sphere_data.pos_X_dt[globalID];
+            sphere_Y_DOT[local_ID] = sphere_data.pos_Y_dt[globalID];
+            sphere_Z_DOT[local_ID] = sphere_data.pos_Z_dt[globalID];
+
+            // Sphere angular velocities
+            if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                omega[local_ID] =
+                    make_float3(sphere_data.sphere_Omega_X[globalID], sphere_data.sphere_Omega_Y[globalID],
+                                sphere_data.sphere_Omega_Z[globalID]);
+            }
         }
         local_ID += blockDim.x;
     }
@@ -485,9 +453,8 @@ __global__ void interactionTerrain_TriangleSoup(
     for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
         /// before starting dealing with a sphere, zero out the forces acting on it; all threads in the block are
         /// doing this
-        forceActingOnSphere[0] = 0.f;
-        forceActingOnSphere[1] = 0.f;
-        forceActingOnSphere[2] = 0.f;
+        float3 sphere_force = {0.f, 0.f, 0.f};
+        float3 sphere_AngAcc = {0.f, 0.f, 0.f};
         if (sphere_Local_ID < nSD_spheres) {
             // Figure out which triangles this sphere collides with; each thread in a warp slaving for this sphere
             // looks at one triangle at a time. The collection of threads in the warp sweeps through all the
@@ -497,89 +464,121 @@ __global__ void interactionTerrain_TriangleSoup(
             for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
                 if (targetTriangle < nBKT_triangles) {
                     /// we have a valid sphere and a valid triganle; check if in contact
-                    double3 norm;
-                    double3 pt1;
-                    float depth;
+                    float3 normal;  // Unit normal from pt2 to pt1 (triangle contact point to sphere contact point)
+                    double3 pt1;    // Contact point on triangle
+                    float depth;    // Negative in overlap
 
                     // Transform LRF to GRF
-                    unsigned int fam = d_triangleSoup->triangleFamily_ID[triangID[targetTriangle]];
+                    const unsigned int fam = d_triangleSoup->triangleFamily_ID[triangID[targetTriangle]];
 
                     // NOTE implicit cast from int to double
                     double3 sphCntr = make_double3(sphX[sphere_Local_ID], sphY[sphere_Local_ID], sphZ[sphere_Local_ID]);
 
-                    // TODO Conlain, check this force computation
                     // If there is a collision, add an impulse to the sphere
                     if (face_sphere_cd(node1[targetTriangle], node2[targetTriangle], node3[targetTriangle], sphCntr,
-                                       gran_params->sphereRadius_SU, norm, depth, pt1) &&
+                                       gran_params->sphereRadius_SU, normal, depth, pt1) &&
                         SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD) {
-                        float scalingFactor = mesh_params->Kn_s2m_SU;
-
+                        // TODO contact models
                         // Use the CD information to compute the force on the grElement
-                        double deltaX = -depth * norm.x;
-                        double deltaY = -depth * norm.y;
-                        double deltaZ = -depth * norm.z;
+                        const float3 delta = -depth * normal;
 
                         // Velocity difference, it's better to do a coalesced access here than a fragmented access
                         // inside
-                        // TODO: Assumes stationary mesh
-                        float deltaX_dot_n = sphere_X_DOT[sphere_Local_ID];
-                        float deltaY_dot_n = sphere_Y_DOT[sphere_Local_ID];
-                        float deltaZ_dot_n = sphere_Z_DOT[sphere_Local_ID];
+                        float3 v_rel = make_float3(
+                            sphere_X_DOT[sphere_Local_ID] - d_triangleSoup->vel[fam].x,
+                            sphere_Y_DOT[sphere_Local_ID] - d_triangleSoup->vel[fam].y,
+                            sphere_Z_DOT[sphere_Local_ID] -
+                                d_triangleSoup->vel[fam].z);  // TODO use shared memory if there is any left...
+                        const float3 pt1_float = make_float3(pt1.x, pt1.y, pt1.z);
 
-                        float projection = deltaX_dot_n * norm.x + deltaY_dot_n * norm.y + deltaZ_dot_n * norm.z;
+                        // TODO assumes pos is the center of mass of the mesh
+                        // TODO can this be float?
+                        float3 meshCenter = make_float3(mesh_params->fam_frame_broad[fam].pos[0],
+                                                        mesh_params->fam_frame_broad[fam].pos[1],
+                                                        mesh_params->fam_frame_broad[fam].pos[2]);
+                        convert_pos_UU2SU<float3>(meshCenter, gran_params);
 
-                        deltaX_dot_n = projection * norm.x;
-                        deltaY_dot_n = projection * norm.y;
-                        deltaZ_dot_n = projection * norm.z;
+                        // NOTE depth is negative and normal points from triangle to sphere center
+                        const float3 r = pt1_float + normal * (depth / 2) - meshCenter;
 
-                        // Compute force updates for spring term
-                        float springTermX = scalingFactor * deltaX;
-                        float springTermY = scalingFactor * deltaY;
-                        float springTermZ = scalingFactor * deltaZ;
+                        // Add angular velocity contribution from mesh
+                        v_rel = v_rel + Cross(d_triangleSoup->omega[fam], r);
+
+                        // add tangential components if they exist
+                        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                            // Vector from the center of sphere to center of contact volume
+                            const float3 r_A = -(gran_params->sphereRadius_SU + depth / 2.f) * normal;
+                            v_rel = v_rel + Cross(omega[sphere_Local_ID], r_A);
+                        }
+
+                        // Forace accumulator on sphere for this sphere-triangle collision
+                        // Compute force updates for normal spring term
+                        float3 force_accum = mesh_params->Kn_s2m_SU * delta;
 
                         // Compute force updates for damping term
                         // NOTE assumes sphere mass of 1
                         const float fam_mass_SU = d_triangleSoup->familyMass_SU[fam];
                         const float m_eff = fam_mass_SU / (1.f + fam_mass_SU);
+                        const float3 vrel_n = Dot(v_rel, normal) * normal;
+                        v_rel = v_rel - vrel_n;  // v_rel is now tangential relative velocity
 
-                        float dampingTermX = -mesh_params->Gamma_n_s2m_SU * deltaX_dot_n * m_eff;
-                        float dampingTermY = -mesh_params->Gamma_n_s2m_SU * deltaY_dot_n * m_eff;
-                        float dampingTermZ = -mesh_params->Gamma_n_s2m_SU * deltaZ_dot_n * m_eff;
+                        // Add normal damping term
+                        force_accum = force_accum + -mesh_params->Gamma_n_s2m_SU * m_eff * vrel_n;
+
+                        // TODO apply model multiplier here
+
+                        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+                                // both tangential terms combine for single step
+                                const float combined_tangent_coeff = mesh_params->Kt_s2m_SU * gran_params->alpha_h_bar +
+                                                                     mesh_params->Gamma_t_s2m_SU * m_eff;
+
+                                // we dotted out normal component of v, so v_rel is the tangential component
+                                // TODO apply model multiplier
+                                const float3 tangent_force = -combined_tangent_coeff * v_rel;
+
+                                // Vector from sphere center to center of contact volume
+                                // NOTE depth is negative
+                                const float3 r = -(gran_params->sphereRadius_SU + depth / 2.f) * normal;
+
+                                // TODO could do scaling to eliminate a factor of radius?
+                                sphere_AngAcc = sphere_AngAcc +
+                                                Cross(r, tangent_force) /
+                                                    (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU);
+
+                                // add to total forces
+                                force_accum = force_accum + tangent_force;
+                            }
+                        }
 
                         // Compute force updates for adhesion term, opposite the spring term
                         // NOTE ratio is wrt the weight of a sphere of mass 1
                         const float adhesionConstant = gran_params->gravMag_SU * mesh_params->adhesion_ratio_s2m;
 
+                        // Add adhesion term
                         // NOTE the cancelation of two negatives
-                        float adhesionTermX = adhesionConstant * deltaX / depth;
-                        float adhesionTermY = adhesionConstant * deltaY / depth;
-                        float adhesionTermZ = adhesionConstant * deltaZ / depth;
-
-                        // Sum contributing forces
-                        float bodyA_X_force = springTermX + dampingTermX + adhesionTermX;
-                        float bodyA_Y_force = springTermY + dampingTermY + adhesionTermY;
-                        float bodyA_Z_force = springTermZ + dampingTermZ + adhesionTermZ;
+                        force_accum = force_accum + adhesionConstant / depth * delta;
 
                         // Use the CD information to compute the force and torque on the family of this triangle
-                        forceActingOnSphere[0] += bodyA_X_force;
-                        forceActingOnSphere[1] += bodyA_Y_force;
-                        forceActingOnSphere[2] += bodyA_Z_force;
-
-                        // TODO assumes pos is the center of mass of the mesh
-                        // TODO precision?
-                        double3 meshCenter = make_double3(mesh_params->fam_frame_narrow[fam].pos[0],
-                                                          mesh_params->fam_frame_narrow[fam].pos[1],
-                                                          mesh_params->fam_frame_narrow[fam].pos[2]);
-                        convert_pos_UU2SU<double3>(meshCenter, gran_params);
+                        sphere_force = sphere_force + force_accum;
 
                         // Force on the mesh is opposite the force on the sphere
-                        double3 force_total = make_double3(-bodyA_X_force, -bodyA_Y_force, -bodyA_Z_force);
+                        const float3 force_total = -1.f * force_accum;
 
                         // point from center of body to contact point
-                        double3 fromCenter = pt1 - meshCenter;
-                        double3 torque = Cross(fromCenter, force_total);
+                        float3 fromCenter;
+                        {
+                            double3 meshCenter_double = make_double3(mesh_params->fam_frame_narrow[fam].pos[0],
+                                                                     mesh_params->fam_frame_narrow[fam].pos[1],
+                                                                     mesh_params->fam_frame_narrow[fam].pos[2]);
+                            convert_pos_UU2SU<double3>(meshCenter_double, gran_params);
 
-                        unsigned int fam = d_triangleSoup->triangleFamily_ID[triangID[targetTriangle]];
+                            const double3 fromCenter_double = pt1 - meshCenter_double;
+                            fromCenter = make_float3(fromCenter_double.x, fromCenter_double.y, fromCenter_double.z);
+                        }
+                        const float3 torque = Cross(fromCenter, force_total);
+
+                        const unsigned int fam = d_triangleSoup->triangleFamily_ID[triangID[targetTriangle]];
                         atomicAdd(d_triangleSoup->generalizedForcesPerFamily + fam * 6 + 0, force_total.x);
                         atomicAdd(d_triangleSoup->generalizedForcesPerFamily + fam * 6 + 1, force_total.y);
                         atomicAdd(d_triangleSoup->generalizedForcesPerFamily + fam * 6 + 2, force_total.z);
@@ -597,13 +596,13 @@ __global__ void interactionTerrain_TriangleSoup(
             // the warp. NOTE: In this warp-level operations participate only the warps that are slaving for a
             // sphere; i.e., some warps see no action
             for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
-                forceActingOnSphere[0] += __shfl_down_sync(0xffffffff, forceActingOnSphere[0], offset);
-            }
-            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
-                forceActingOnSphere[1] += __shfl_down_sync(0xffffffff, forceActingOnSphere[1], offset);
-            }
-            for (unsigned int offset = warp_size / 2; offset > 0; offset /= 2) {
-                forceActingOnSphere[2] += __shfl_down_sync(0xffffffff, forceActingOnSphere[2], offset);
+                sphere_force.x += __shfl_down_sync(0xffffffff, sphere_force.x, offset);
+                sphere_force.y += __shfl_down_sync(0xffffffff, sphere_force.y, offset);
+                sphere_force.z += __shfl_down_sync(0xffffffff, sphere_force.z, offset);
+
+                sphere_AngAcc.x += __shfl_down_sync(0xffffffff, sphere_AngAcc.x, offset);
+                sphere_AngAcc.y += __shfl_down_sync(0xffffffff, sphere_AngAcc.y, offset);
+                sphere_AngAcc.z += __shfl_down_sync(0xffffffff, sphere_AngAcc.z, offset);
             }
 
             // done with the computation of all the contacts that the triangles impress on this sphere. Update the
@@ -611,20 +610,29 @@ __global__ void interactionTerrain_TriangleSoup(
 
             // Write velocity update for this sphere back to global memory from each lane 0
             if ((threadIdx.x & (warp_size - 1)) == 0) {
-                atomicAdd(d_sphere_force_X + grElemID[sphere_Local_ID], forceActingOnSphere[0]);
-                atomicAdd(d_sphere_force_Y + grElemID[sphere_Local_ID], forceActingOnSphere[1]);
-                atomicAdd(d_sphere_force_Z + grElemID[sphere_Local_ID], forceActingOnSphere[2]);
+                atomicAdd(sphere_data.sphere_force_X + grElemID[sphere_Local_ID], sphere_force.x);
+                atomicAdd(sphere_data.sphere_force_Y + grElemID[sphere_Local_ID], sphere_force.y);
+                atomicAdd(sphere_data.sphere_force_Z + grElemID[sphere_Local_ID], sphere_force.z);
+
+                if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                    // write back torques for later
+                    atomicAdd(sphere_data.sphere_ang_acc_X + grElemID[sphere_Local_ID], sphere_AngAcc.x);
+                    atomicAdd(sphere_data.sphere_ang_acc_Y + grElemID[sphere_Local_ID], sphere_AngAcc.y);
+                    atomicAdd(sphere_data.sphere_ang_acc_Z + grElemID[sphere_Local_ID], sphere_AngAcc.z);
+                }
             }
         }                                               // end of valid sphere if
         sphere_Local_ID += nSpheresProcessedAtOneTime;  // go to next set of spheress
     }                                                   // end of per-sphere loop
-}
+}  // namespace granular
 
 /// Copy const triangle data to device
 void ChSystemGranular_MonodisperseSMC_trimesh::copy_triangle_data_to_device() {
     // unified memory does some copying for us, cool
     tri_params->Kn_s2m_SU = K_n_s2m_SU;
+    tri_params->Kt_s2m_SU = K_t_s2m_SU;
     tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
+    tri_params->Gamma_t_s2m_SU = Gamma_t_s2m_SU;
     tri_params->adhesion_ratio_s2m = adhesion_s2m_over_gravity;
 
     SD_isTouchingTriangle.resize(nSDs);
@@ -685,11 +693,9 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
             // TODO please do not use a template here
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-                meshSoup_DEVICE, pos_X.data(), pos_Y.data(), pos_Z.data(), pos_X_dt.data(), pos_Y_dt.data(),
-                pos_Z_dt.data(), sphere_force_X.data(), sphere_force_Y.data(), sphere_force_Z.data(),
-                BUCKET_countsOfTrianglesTouching.data(), triangles_in_BUCKET_composite.data(),
-                SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(), SD_isTouchingTriangle.data(), gran_params,
-                tri_params);
+                meshSoup_DEVICE, sphere_data, BUCKET_countsOfTrianglesTouching.data(),
+                triangles_in_BUCKET_composite.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(),
+                SD_isTouchingTriangle.data(), gran_params, tri_params);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

@@ -9,14 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Nic Olsen, Dan Negrut
-// =============================================================================
-//
-// Chrono::Granular demo using SMC method. A body who's geometry is described
-// by a trinagle mesh is initialized under settling granular material. No friction present.
-//
-// The global reference frame has X to the right, Y into the screen, Z up.
-// The global reference frame located in the left lower corner, close to the viewer.
+// Authors: Nic Olsen
 // =============================================================================
 /*! \file */
 
@@ -77,6 +70,7 @@ int main(int argc, char* argv[]) {
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
     m_sys.setOutputDirectory(params.output_dir);
@@ -122,6 +116,7 @@ int main(int argc, char* argv[]) {
     cout << nSoupFamilies << " soup families" << endl;
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
+    float* meshVel = new float[6 * nSoupFamilies]();
 
     m_sys.initialize();
     unsigned int currframe = 0;
@@ -138,7 +133,7 @@ int main(int argc, char* argv[]) {
         meshSoupLocOri[5] = 0;
         meshSoupLocOri[6] = 0;
 
-        m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);
+        m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
         cout << "Rendering frame " << currframe << endl;
         char filename[100];
         sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe++);
