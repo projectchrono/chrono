@@ -95,4 +95,4 @@ test_script:
 
 artifacts:
   - path: dist\*
-name: packages
+    name: packages
