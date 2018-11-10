@@ -14,10 +14,10 @@ build:
 
   number: {{ GIT_DESCRIBE_NUMBER }}
   binary_relocation: false [osx]
-  features:
-    - vc9               [win and py27]
-    - vc14              [win and py35]
-    - vc14              [win and py36]
+  #features:
+  #  - vc9               [win and py27]
+  #  - vc14              [win and py35]
+  #  - vc14              [win and py36]
 
 requirements:
   build:

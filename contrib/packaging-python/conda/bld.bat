@@ -1,5 +1,5 @@
-mkdir build
-cd build
+REM    mkdir build
+REM    cd build
 
 REM Remove dot from PY_VER for use in library name
 set MY_PY_VER=%PY_VER:.=%
