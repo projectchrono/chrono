@@ -72,7 +72,7 @@ install:
     - cmd: conda update conda
     - cmd: conda install conda-build anaconda-client
     - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
-	- cmd: conda config --add channels https://conda.anaconda.org/intel
+    - cmd: conda config --add channels https://conda.anaconda.org/intel
 
 build: off
 
