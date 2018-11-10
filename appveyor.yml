@@ -24,7 +24,7 @@ environment:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
     # /E:ON and /V:ON options are not enabled in the batch script intepreter
     # See: http://stackoverflow.com/a/13751649/163740
-    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\packaging-python\\appveyor\\obvci_appveyor_python_build_env.cmd"
+    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\contrib\\packaging-python\\appveyor\\obvci_appveyor_python_build_env.cmd"
   
     # Workaround for https://github.com/conda/conda-build/issues/636
     PYTHONIOENCODING: "UTF-8"
@@ -62,11 +62,11 @@ install:
     # on the path. So, we temporarily put conda on the path
     # so that we can update it. Then we remove it so that
     # we can do a proper activation.
-    - cmd: set "OLDPATH=%PATH%"
-    - cmd: set "PATH=%CONDA_INSTALL_LOCN%\\Scripts;%CONDA_INSTALL_LOCN%\\Library\\bin;%PATH%"
-    - cmd: conda config --set always_yes yes --set changeps1 no
-    - cmd: conda update conda
-    - cmd: set "PATH=%OLDPATH%"
+    #- cmd: set "OLDPATH=%PATH%"
+    #- cmd: set "PATH=%CONDA_INSTALL_LOCN%\\Scripts;%CONDA_INSTALL_LOCN%\\Library\\bin;%PATH%"
+    #- cmd: conda config --set always_yes yes --set changeps1 no
+    #- cmd: conda update conda
+    #- cmd: set "PATH=%OLDPATH%"
     - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
     - cmd: conda config --set show_channel_urls true
     - cmd: conda update conda
