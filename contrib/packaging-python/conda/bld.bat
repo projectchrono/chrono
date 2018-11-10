@@ -11,7 +11,6 @@ cmake -G "%CMAKE_GENERATOR%" ^
  -DPYTHON_LIBRARY:FILEPATH="%PREFIX%"/libs/python%MY_PY_VER%.lib ^
  --config "%CONFIGURATION%" ^
  -H"C:\projects\chrono" ^
- -B"C:\projects\build" ^
  -DENABLE_MODULE_IRRLICHT=ON ^
  -DENABLE_MODULE_FEA=OFF ^
  -DENABLE_MODULE_POSTPROCESS=OFF ^
