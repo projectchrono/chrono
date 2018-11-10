@@ -24,7 +24,7 @@ requirements:
     - python
     - cmake >=3.9.3
     - swig >=3.0.12
-	- mkl
+    - mkl
 
   run:
     - python
