@@ -314,6 +314,26 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 
 #------------------------------------------------------------
+# Build submodules
+#------------------------------------------------------------
+
+message(STATUS "==== Submodules ====")
+
+# Build google test and google mock (targets: gtest_main, gtest, gmock_main, gmock).
+# Disable installation of googletest.
+# Force using shared libraries.
+option(INSTALL_GTEST "" OFF)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+add_subdirectory(chrono_thirdparty/googletest)
+
+# Build google benchmark (target: benchmark).
+# Disable installation of benchmark
+# Do not build tests of benchmarking lib.
+option(BENCHMARK_ENABLE_INSTALL "" OFF)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
+add_subdirectory(chrono_thirdparty/googlebenchmark)
+
+#------------------------------------------------------------
 # Propagates the CMake build to other directories
 #------------------------------------------------------------
 

@@ -11,6 +11,7 @@
 // =============================================================================
 
 #include <iostream>
+#include <benchmark/benchmark.h>
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -18,64 +19,95 @@
 using namespace chrono;
 using namespace std;
 
-#define TIME(X, Y)                                \
-    timer.start();                                \
-    for (auto body : body_list) {                 \
-        X;                                        \
-    }                                             \
-    timer.stop();                                 \
-    cout << Y << timer() << endl;
-
-#define TIMEBODY(X, Y) TIME(body->X, Y)
-
-int main() {
-    ChTimer<double> timer, full;
-    const int num_bodies = 1000000;
-    const double current_time = 1;
-    const double time_step = .1;
-    ChSystemNSC dynamics_system;
-
-    for (int i = 0; i < num_bodies; i++) {
-        auto body = std::make_shared<ChBody>();
-        body->SetPos(ChVector<>(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
-        dynamics_system.AddBody(body);
+// Benchmarking fixture: create system and add bodies
+class SystemFixture : public ::benchmark::Fixture {
+public:
+    void SetUp(const ::benchmark::State& st) override {
+        const int num_bodies = 100000;
+        current_time = 1;
+        time_step = 0.1;
+        sys = new ChSystemNSC();
+        for (int i = 0; i < num_bodies; i++) {
+            auto body = std::make_shared<ChBody>();
+            body->SetPos(ChVector<>(rand() % 1000 / 1000.0, rand() % 1000 / 1000.0, rand() % 1000 / 1000.0));
+            sys->AddBody(body);
+        }
     }
 
-    auto& body_list = dynamics_system.Get_bodylist();
-
-    full.start();
-
-    TIMEBODY(UpdateTime(current_time), "UpdateTime ");
-    TIMEBODY(UpdateForces(current_time), "UpdateForces ");
-    TIMEBODY(UpdateMarkers(current_time), "UpdateMarkers ");
-
-    TIMEBODY(ClampSpeed(), "ClampSpeed ");
-    TIMEBODY(ComputeGyro(), "ComputeGyro ");
-
-    TIMEBODY(VariablesFbReset(), "VariablesFbReset ");
-    TIMEBODY(VariablesFbLoadForces(time_step), "VariablesFbLoadForces ");
-    TIMEBODY(VariablesQbLoadSpeed(), "VariablesQbLoadSpeed ");
-    TIMEBODY(VariablesQbIncrementPosition(time_step), "VariablesQbIncrementPosition ");
-    TIMEBODY(VariablesQbSetSpeed(time_step), "VariablesQbSetSpeed ");
-    // TIMEBODY(VariablesBody().GetBodyInvInertia(), "GetBodyInvInertia ");
-
-    full.stop();
-    cout << "Total: " << full() << endl;
-    timer.start();
-    for (auto body : body_list) {
-        body->UpdateTime(current_time);
-        body->UpdateForces(current_time);
-        body->UpdateMarkers(current_time);
-        body->ClampSpeed();
-        body->ComputeGyro();
-        body->VariablesFbReset();
-        body->VariablesFbLoadForces(time_step);
-        body->VariablesQbLoadSpeed();
-        body->VariablesQbIncrementPosition(time_step);
-        body->VariablesQbSetSpeed(time_step);
+    void TearDown(const ::benchmark::State&) override {
+        delete sys;
     }
-    timer.stop();
-    cout << "SIngle Loop " << timer() << endl;
 
-    return 0;
+    ChSystemNSC* sys;
+    double current_time;
+    double time_step;
+};
+
+// Utility macros for benchmarking body operations with different signatures
+#define BM_BODY_OP_TIME(OP)                                                 \
+    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {          \
+        for (auto _ : st) {                                                 \
+            for (auto body : sys->Get_bodylist()) {                         \
+                body->OP(current_time);                                     \
+            }                                                               \
+        }                                                                   \
+        st.SetItemsProcessed(st.iterations() * sys->Get_bodylist().size()); \
+    }                                                                       \
+    BENCHMARK_REGISTER_F(SystemFixture, OP)->Unit(benchmark::kMicrosecond);
+
+#define BM_BODY_OP_VOID(OP)                                                 \
+    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {          \
+        for (auto _ : st) {                                                 \
+            for (auto body : sys->Get_bodylist()) {                         \
+                body->OP();                                                 \
+            }                                                               \
+        }                                                                   \
+        st.SetItemsProcessed(st.iterations() * sys->Get_bodylist().size()); \
+    }                                                                       \
+    BENCHMARK_REGISTER_F(SystemFixture, OP)->Unit(benchmark::kMicrosecond);
+
+#define BM_BODY_OP_STEP(OP)                                                 \
+    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {          \
+        for (auto _ : st) {                                                 \
+            for (auto body : sys->Get_bodylist()) {                         \
+                body->OP(time_step);                                        \
+            }                                                               \
+        }                                                                   \
+        st.SetItemsProcessed(st.iterations() * sys->Get_bodylist().size()); \
+    }                                                                       \
+    BENCHMARK_REGISTER_F(SystemFixture, OP)->Unit(benchmark::kMicrosecond);
+
+// Benchmark individual operations
+BM_BODY_OP_TIME(UpdateTime)
+BM_BODY_OP_TIME(UpdateForces)
+BM_BODY_OP_TIME(UpdateMarkers)
+BM_BODY_OP_VOID(ClampSpeed)
+BM_BODY_OP_VOID(ComputeGyro)
+BM_BODY_OP_VOID(VariablesFbReset)
+BM_BODY_OP_STEP(VariablesFbLoadForces)
+BM_BODY_OP_VOID(VariablesQbLoadSpeed)
+BM_BODY_OP_STEP(VariablesQbIncrementPosition)
+BM_BODY_OP_STEP(VariablesQbSetSpeed)
+
+// Benchmark all operations in a single loop
+BENCHMARK_DEFINE_F(SystemFixture, SingleLoop)(benchmark::State& st) {
+    for (auto _ : st) {
+        for (auto body : sys->Get_bodylist()) {
+            body->UpdateTime(current_time);
+            body->UpdateForces(current_time);
+            body->UpdateMarkers(current_time);
+            body->ClampSpeed();
+            body->ComputeGyro();
+            body->VariablesFbReset();
+            body->VariablesFbLoadForces(time_step);
+            body->VariablesQbLoadSpeed();
+            body->VariablesQbIncrementPosition(time_step);
+            body->VariablesQbSetSpeed(time_step);
+        }
+    }
+    st.SetItemsProcessed(st.iterations() * sys->Get_bodylist().size());
 }
+BENCHMARK_REGISTER_F(SystemFixture, SingleLoop)->Unit(benchmark::kMicrosecond);
+////BENCHMARK_REGISTER_F(SystemFixture, SingleLoop)->Unit(benchmark::kMicrosecond)->Iterations(1);
+
+////BENCHMARK_MAIN();

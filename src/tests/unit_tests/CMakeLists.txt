@@ -25,6 +25,11 @@ IF("${isSystemDir}" STREQUAL "-1")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
+# Add path to googletest
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include)
+
+#--------------------------------------------------------------
 # Propagate to subdirectories
 
 option(BUILD_TESTING_BASE "Build unit tests for base Chrono module" TRUE)

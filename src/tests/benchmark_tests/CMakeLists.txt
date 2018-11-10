@@ -25,6 +25,11 @@ IF("${isSystemDir}" STREQUAL "-1")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
+# Add path to google benchmark
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/include)
+
+#--------------------------------------------------------------
 # Propagate to subdirectories
 
 option(BUILD_BENCHMARKING_BASE "Build benchmark tests for base Chrono module" TRUE)
