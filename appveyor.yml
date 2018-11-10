@@ -86,7 +86,7 @@ test_script:
   # is set dynamically. This unfortunately mean that conda build --output
   # doesn't really work.
   #
-  - "%CMD_IN_ENV% conda build .\\ci\\conda --quiet --no-remove-work-dir --dirty"
+  - "%CMD_IN_ENV% conda build .\\contrib\\packaging-python\\conda --quiet --no-remove-work-dir --dirty"
   # move conda package to /dist
   - cmd: 'mkdir dist'
   - cmd: 'copy /Y %CONDA_INSTALL_LOCN%\conda-bld\win-%PYTHON_ARCH%\pythonocc*.bz2 dist || cmd /c "exit /b 0"'
