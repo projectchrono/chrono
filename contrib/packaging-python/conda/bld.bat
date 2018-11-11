@@ -1,5 +1,6 @@
-REM    mkdir build
-REM    cd build
+REM To avoid building in work/ alongside the source. Rather build in work/build/
+mkdir build
+cd build
 
 REM Remove dot from PY_VER for use in library name
 set MY_PY_VER=%PY_VER:.=%
@@ -10,7 +11,6 @@ cmake -G "%CMAKE_GENERATOR%" ^
  -DPYTHON_INCLUDE_DIR:PATH="%PREFIX%"/include ^
  -DPYTHON_LIBRARY:FILEPATH="%PREFIX%"/libs/python%MY_PY_VER%.lib ^
  --config "%CONFIGURATION%" ^
- -H"C:\projects\chrono" ^
  -DENABLE_MODULE_IRRLICHT=ON ^
  -DENABLE_MODULE_FEA=OFF ^
  -DENABLE_MODULE_POSTPROCESS=OFF ^
@@ -23,7 +23,7 @@ cmake -G "%CMAKE_GENERATOR%" ^
 if errorlevel 1 exit 1
  
 REM Build step 
-cmake --build "C:\projects\build" --config "%CONFIGURATION%"
+cmake --build . --config "%CONFIGURATION%"
 if errorlevel 1 exit 1
 
 REM Install step
