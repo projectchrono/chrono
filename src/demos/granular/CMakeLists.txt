@@ -29,6 +29,7 @@ SET(DEMOS
 		demo_GRAN_DamBreak
 		test_GRAN_meshforce
 		test_GRAN_hopperflow
+		test_GRAN_mixer
 )
 
 # ------------------------------------------------------------------------------
