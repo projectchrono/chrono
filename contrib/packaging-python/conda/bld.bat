@@ -26,6 +26,10 @@ REM Build step
 cmake --build . --config "%CONFIGURATION%"
 if errorlevel 1 exit 1
 
+REM Install step 
+cmake --build . --target install
+if errorlevel 1 exit 1
+
 REM Install step
 REM ninja install
 REM if errorlevel 1 exit 1
