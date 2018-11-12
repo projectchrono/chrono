@@ -27,7 +27,7 @@ cmake --build . --config "%CONFIGURATION%"
 if errorlevel 1 exit 1
 
 REM Install step 
-cmake --build . --target install
+cmake --build . --config "%CONFIGURATION%" --target install
 if errorlevel 1 exit 1
 
 REM Install step
