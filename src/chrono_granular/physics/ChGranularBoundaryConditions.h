@@ -15,7 +15,7 @@
 
 #pragma once
 
-#include "../ChApiGranular.h"
+#include "chrono_granular/ChApiGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "cuda_runtime.h"
 

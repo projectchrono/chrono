@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../../chrono_thirdparty/cub/cub.cuh"
+#include "chrono_thirdparty/cub/cub.cuh"
 
 #include <cuda.h>
 #include <cassert>
@@ -27,44 +27,14 @@
 #include <sstream>
 #include <string>
 #include <cstdint>
-#include "../ChGranularDefines.h"
-#include "../chrono_granular/physics/ChGranular.h"
 #include "chrono/core/ChVector.h"
+#include "chrono_granular/ChGranularDefines.h"
+#include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
 
 using chrono::granular::sphereDataStruct;
-
-// These are the max X, Y, Z dimensions in the BD frame
-#define MAX_X_POS_UNSIGNED ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X)
-#define MAX_Y_POS_UNSIGNED ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y)
-#define MAX_Z_POS_UNSIGNED ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z)
-
-/// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
-template <class IN_T, class IN_T3, class OUT_T3 = IN_T3>
-__device__ OUT_T3 apply_frame_transform(const IN_T3& point, const IN_T* pos, const IN_T* rot_mat) {
-    OUT_T3 result;
-
-    // Apply rotation matrix to point
-    result.x = rot_mat[0] * point.x + rot_mat[1] * point.y + rot_mat[2] * point.z;
-    result.y = rot_mat[3] * point.x + rot_mat[4] * point.y + rot_mat[5] * point.z;
-    result.z = rot_mat[6] * point.x + rot_mat[7] * point.y + rot_mat[8] * point.z;
-
-    // Apply translation
-    result.x += pos[0];
-    result.y += pos[1];
-    result.z += pos[2];
-
-    return result;
-}
-
-template <class T3>
-__device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
-    pos.x /= gran_params->LENGTH_UNIT;
-    pos.y /= gran_params->LENGTH_UNIT;
-    pos.z /= gran_params->LENGTH_UNIT;
-}
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
@@ -142,17 +112,17 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
     // If we're at the top boundary, the top SD is the max
     if (sphCenter_X_modified - sphereRadius_SU <= 0) {
         n[0] = 0;
-    } else if (sphCenter_X_modified + sphereRadius_SU >= MAX_X_POS_UNSIGNED) {
+    } else if (sphCenter_X_modified + sphereRadius_SU >= gran_params->max_x_pos_unsigned) {
         n[0] = gran_params->nSDs_X - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     if (sphCenter_Y_modified - sphereRadius_SU <= 0) {
         n[1] = 0;
-    } else if (sphCenter_Y_modified + sphereRadius_SU >= MAX_Y_POS_UNSIGNED) {
+    } else if (sphCenter_Y_modified + sphereRadius_SU >= gran_params->max_y_pos_unsigned) {
         n[1] = gran_params->nSDs_Y - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     if (sphCenter_Z_modified - sphereRadius_SU <= 0) {
         n[2] = 0;
-    } else if (sphCenter_Z_modified + sphereRadius_SU >= MAX_Z_POS_UNSIGNED) {
+    } else if (sphCenter_Z_modified + sphereRadius_SU >= gran_params->max_z_pos_unsigned) {
         n[2] = gran_params->nSDs_Z - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
     }
     // n[0] += (sphCenter_X_modified - sphereRadius_SU <= 0) -
@@ -162,10 +132,12 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
     // n[2] += (sphCenter_Z_modified - sphereRadius_SU <= 0) -
     //         (sphCenter_Z_modified + sphereRadius_SU >= MAX_X_POS);
     // This conditional says if we're at the boundary
-    unsigned int boundary =
-        sphCenter_X_modified - sphereRadius_SU <= 0 || sphCenter_X_modified + sphereRadius_SU >= MAX_X_POS_UNSIGNED ||
-        sphCenter_Y_modified - sphereRadius_SU <= 0 || sphCenter_Y_modified + sphereRadius_SU >= MAX_Y_POS_UNSIGNED ||
-        sphCenter_Z_modified - sphereRadius_SU <= 0 || sphCenter_Z_modified + sphereRadius_SU >= MAX_Z_POS_UNSIGNED;
+    unsigned int boundary = sphCenter_X_modified - sphereRadius_SU <= 0 ||
+                            sphCenter_X_modified + sphereRadius_SU >= gran_params->max_x_pos_unsigned ||
+                            sphCenter_Y_modified - sphereRadius_SU <= 0 ||
+                            sphCenter_Y_modified + sphereRadius_SU >= gran_params->max_y_pos_unsigned ||
+                            sphCenter_Z_modified - sphereRadius_SU <= 0 ||
+                            sphCenter_Z_modified + sphereRadius_SU >= gran_params->max_z_pos_unsigned;
     if (n[0] >= gran_params->nSDs_X) {
         ABORTABORTABORT(
             "x is too large, boundary is %u, n is %u, nmax is %u, pos is %d, mod is %d, max is %d, dim is %d\n",
@@ -501,7 +473,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     }
 
     // Do top X wall
-    penetration = MAX_X_POS_UNSIGNED - (sphXpos_modified + sphereRadius_SU);
+    penetration = gran_params->max_x_pos_unsigned - (sphXpos_modified + sphereRadius_SU);
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
@@ -546,7 +518,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     }
 
     // Do top Y wall
-    penetration = MAX_Y_POS_UNSIGNED - (sphYpos_modified + sphereRadius_SU);
+    penetration = gran_params->max_y_pos_unsigned - (sphYpos_modified + sphereRadius_SU);
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
@@ -591,7 +563,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     }
 
     // Do top Z wall
-    penetration = MAX_Z_POS_UNSIGNED - (sphZpos_modified + sphereRadius_SU);
+    penetration = gran_params->max_z_pos_unsigned - (sphZpos_modified + sphereRadius_SU);
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
         float3 curr_contrib = {0, 0, 0};
@@ -814,22 +786,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             constexpr float sphere_mass_SU = 1.f;
             constexpr float m_eff = sphere_mass_SU / 2.f;
             // multiplier caused by Hooke vs Hertz force model
-            float force_model_multiplier = 0.f;
-            switch (gran_params->contact_model) {
-                case chrono::granular::GRAN_CONTACT_MODEL::HOOKE:
-                    force_model_multiplier = 1.f;
-                    break;
-
-                case chrono::granular::GRAN_CONTACT_MODEL::HERTZ: {
-                    const float r_eff = (sphereRadius_SU) / 2;  // r_eff = (r_i * r_j) / (r_i + r_j)
-                    const float delta_n = 2 * sphereRadius_SU * (1 - (1.f / reciplength));  // d_n = 2R(1-||dr||)
-                    force_model_multiplier = sqrt(r_eff * delta_n);
-                    break;
-                }
-
-                default:
-                    ABORTABORTABORT("Invalid contact model\n");
-            }
+            float force_model_multiplier = get_force_multiplier(penetration, gran_params);
 
             const float cohesionConstant = sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
 

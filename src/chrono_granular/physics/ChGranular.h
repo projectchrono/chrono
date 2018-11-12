@@ -22,7 +22,7 @@
 #include <algorithm>
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "../ChApiGranular.h"
+#include "chrono_granular/ChApiGranular.h"
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
@@ -120,9 +120,15 @@ struct ChGranParams {
     unsigned int nSDs_X;        //!< X-dimension of the BD box in multiples of subdomains, expressed in SU
     unsigned int nSDs_Y;        //!< Y-dimension of the BD box in multiples of subdomains, expressed in SU
     unsigned int nSDs_Z;        //!< Z-dimension of the BD box in multiples of subdomains, expressed in SU
-    float gravAcc_X_SU;         //!< Device counterpart of the constant gravity_X_SU
-    float gravAcc_Y_SU;         //!< Device counterpart of the constant gravity_Y_SU
-    float gravAcc_Z_SU;         //!< Device counterpart of the constant gravity_Z_SU
+
+    // These are the max X, Y, Z dimensions in the BD frame
+    int64_t max_x_pos_unsigned;  // ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X)
+    int64_t max_y_pos_unsigned;  // ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y)
+    int64_t max_z_pos_unsigned;  //((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z)
+
+    float gravAcc_X_SU;  //!< Device counterpart of the constant gravity_X_SU
+    float gravAcc_Y_SU;  //!< Device counterpart of the constant gravity_Y_SU
+    float gravAcc_Z_SU;  //!< Device counterpart of the constant gravity_Z_SU
     float gravMag_SU;
 
     // Changed by updateBDPosition() at every timestep
@@ -168,7 +174,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         Z_accGrav = zVal;
     }
 
-    virtual void generate_DEs();
+    virtual void generateDEs();
 
     size_t getNumSpheres() { return nDEs; }
 
@@ -225,7 +231,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     double get_max_z() const;
 
     /// set up data structures and carry out pre-processing tasks
-    virtual void setup_simulation();
+    virtual void setupSimulation();
 
     /// advance simulation by duration seconds in user units, return actual duration elapsed
     /// Requires initialize() to have been called
@@ -254,8 +260,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Set the ratio of cohesion to gravity for monodisperse spheres
     void set_Cohesion_ratio(float someValue) { cohesion_over_gravity = someValue; }
 
-	/// Set the ratio of adhesion to gravity for sphere to wall
-	void set_Adhesion_ratio_S2W(float someValue) { adhesion_s2w_over_gravity = someValue; }
+    /// Set the ratio of adhesion to gravity for sphere to wall
+    void set_Adhesion_ratio_S2W(float someValue) { adhesion_s2w_over_gravity = someValue; }
 
     /// Set the BD to be fixed or not, if fixed it will ignore any given position functions
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
@@ -371,7 +377,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     GRAN_CONTACT_MODEL contact_model;  //!< DEM local contact force model
 
     /// Partitions the big domain (BD) and sets the number of SDs that BD is split in.
-    void partition_BD();
+    void partitionBD();
 
     /// Copy constant parameter data to device
     void copyConstSphereDataToDevice();
@@ -397,13 +403,13 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void convertBCUnits();
 
     /// Convert unit parameters from UU to SU
-    virtual void switch_to_SimUnits();
+    virtual void switchToSimUnits();
 
     /// sort data based on owner SD
     virtual void defragment_data();
 
     const float new_step_freq = .01;
-    virtual void determine_new_stepSize_SU();
+    virtual void determineNewStepSize_SU();
 
     /// Store the prescribed position function for the BD, used for moving frames
     // Default is at rest
@@ -450,8 +456,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
-	
-	/// Store the ratio of the acceleration due to adhesion vs the acceleration due to gravity
+
+    /// Store the ratio of the acceleration due to adhesion vs the acceleration due to gravity
     float adhesion_s2w_over_gravity;
 
     /// List of generalized BCs that constrain sphere motion

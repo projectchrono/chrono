@@ -13,30 +13,9 @@
 // =============================================================================
 #pragma once
 
-#include <cuda_runtime.h>
-#include <cstdio>
-#include <cstdlib>
+#include "chrono_granular/physics/ChGranular.h"
 
-/** Set up some error checking mechanism to ensure CUDA didn't complain about things.
- *   This approach suggested <a
- * href="https://stackoverflow.com/questions/14038589/what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api">elsewhere</a>.
- *   Some nice suggestions for how to use the mechanism are provided at the above link.
- */
-#define gpuErrchk(ans) \
-    { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true) {
-    if (code != cudaSuccess) {
-        fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-        if (abort)
-            exit(code);
-    }
-}
-
-// Add verbose checks easily
-#define VERBOSE_PRINTF(...)  \
-    if (verbose_runtime) {   \
-        printf(__VA_ARGS__); \
-    }
+#include "chrono_thirdparty/cub/cub.cuh"
 
 // Print a user-given error message and crash
 #define ABORTABORTABORT(...) \
@@ -45,3 +24,21 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
         __threadfence();     \
         cub::ThreadTrap();   \
     }
+
+/// Get the force multiplier for a contact given the penetration
+/// delta_n is penetration normalized by diameter
+inline __device__ float get_force_multiplier(float delta_n, ParamsPtr gran_params) {
+    switch (gran_params->contact_model) {
+        case chrono::granular::GRAN_CONTACT_MODEL::HOOKE: {
+            return 1.f;
+            break;
+        }
+        case chrono::granular::GRAN_CONTACT_MODEL::HERTZ: {
+            return sqrt(delta_n);
+            break;
+        }
+    }
+    // if we get here, something is wrong
+    ABORTABORTABORT("Invalid contact model\n");
+    return 0;  // this should never happen
+}

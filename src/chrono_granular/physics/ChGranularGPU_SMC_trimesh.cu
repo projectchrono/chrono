@@ -33,6 +33,31 @@ namespace granular {
 typedef const ChSystemGranular_MonodisperseSMC_trimesh::ChGranParams_trimesh* MeshParamsPtr;
 typedef ChTriangleSoup<float3>* TriangleSoupPtr;
 
+/// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
+template <class IN_T, class IN_T3, class OUT_T3 = IN_T3>
+__device__ OUT_T3 apply_frame_transform(const IN_T3& point, const IN_T* pos, const IN_T* rot_mat) {
+    OUT_T3 result;
+
+    // Apply rotation matrix to point
+    result.x = rot_mat[0] * point.x + rot_mat[1] * point.y + rot_mat[2] * point.z;
+    result.y = rot_mat[3] * point.x + rot_mat[4] * point.y + rot_mat[5] * point.z;
+    result.z = rot_mat[6] * point.x + rot_mat[7] * point.y + rot_mat[8] * point.z;
+
+    // Apply translation
+    result.x += pos[0];
+    result.y += pos[1];
+    result.z += pos[2];
+
+    return result;
+}
+
+template <class T3>
+__device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
+    pos.x /= gran_params->LENGTH_UNIT;
+    pos.y /= gran_params->LENGTH_UNIT;
+    pos.z /= gran_params->LENGTH_UNIT;
+}
+
 /// Takes in a triangle's position in UU and finds out what SDs it touches
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
@@ -650,7 +675,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
     float time_elapsed_SU = 0;  // time elapsed in this call (SU)
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
-        determine_new_stepSize_SU();  // doesn't always change the timestep
+        determineNewStepSize_SU();  // doesn't always change the timestep
 
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {

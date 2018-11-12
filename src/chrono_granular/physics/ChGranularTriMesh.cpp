@@ -28,7 +28,6 @@
 #include "chrono/geometry/ChTriangle.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "ChGranularTriMesh.h"
-#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 
 namespace chrono {
 namespace granular {
@@ -37,8 +36,8 @@ double ChSystemGranular_MonodisperseSMC_trimesh::get_max_K() {
     return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
 }
 
-__host__ void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
-    switch_to_SimUnits();
+void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
+    switchToSimUnits();
 
     double K_stiffness = get_max_K();
     float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
@@ -48,17 +47,17 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
     float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
     Gamma_n_s2m_SU = Gamma_scalingFactor * Gamma_n_s2m_UU;
 
-    generate_DEs();
+    generateDEs();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
-    printf("setup_simulation\n");
-    setup_simulation();
+    printf("setupSimulation\n");
+    setupSimulation();
     copyConstSphereDataToDevice();
     copy_triangle_data_to_device();
     copyBDFrameToDevice();
     gpuErrchk(cudaDeviceSynchronize());
 
-    determine_new_stepSize_SU();
+    determineNewStepSize_SU();
     convertBCUnits();
 
     // Seed arrays that are populated by the kernel call

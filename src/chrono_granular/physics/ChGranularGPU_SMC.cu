@@ -12,7 +12,7 @@
 // Authors: Dan Negrut, Conlain Kelly, Nic Olsen
 // =============================================================================
 
-#include "../chrono_granular/physics/ChGranularGPU_SMC.cuh"
+#include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 
 namespace chrono {
 namespace granular {
@@ -53,6 +53,10 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
     gran_params->nSDs_X = nSDs_X;
     gran_params->nSDs_Y = nSDs_Y;
     gran_params->nSDs_Z = nSDs_Z;
+
+    gran_params->max_x_pos_unsigned = ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X);
+    gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
+    gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
 
     gran_params->gravAcc_X_SU = gravity_X_SU;
     gran_params->gravAcc_Y_SU = gravity_Y_SU;
@@ -479,7 +483,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
     float time_elapsed_SU = 0;  // time elapsed in this advance call
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
-        determine_new_stepSize_SU();  // doesn't always change the timestep
+        determineNewStepSize_SU();  // doesn't always change the timestep
 
         gran_params->alpha_h_bar = stepSize_SU;
         // Update the position and velocity of the BD, if relevant

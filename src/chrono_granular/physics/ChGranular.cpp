@@ -21,7 +21,6 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
-#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
 
 namespace chrono {
@@ -182,7 +181,7 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], flo
     return BC_type_list.size() - 1;
 }
 
-void ChSystemGranular_MonodisperseSMC::determine_new_stepSize_SU() {
+void ChSystemGranular_MonodisperseSMC::determineNewStepSize_SU() {
     // std::cerr << "determining new step!\n";
     if (time_stepping == GRAN_TIME_STEPPING::ADAPTIVE) {
         static float new_step_stop = 0;
@@ -304,15 +303,15 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
 }
 
 void ChSystemGranular_MonodisperseSMC::initialize() {
-    switch_to_SimUnits();
-    generate_DEs();
+    switchToSimUnits();
+    generateDEs();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
-    setup_simulation();
+    setupSimulation();
     copyConstSphereDataToDevice();
     copyBDFrameToDevice();
 
-    determine_new_stepSize_SU();
+    determineNewStepSize_SU();
     convertBCUnits();
 
     // Seed arrays that are populated by the kernel call
@@ -324,8 +323,8 @@ void ChSystemGranular_MonodisperseSMC::initialize() {
 }
 
 // set up sphere-sphere data structures
-void ChSystemGranular_MonodisperseSMC::setup_simulation() {
-    partition_BD();
+void ChSystemGranular_MonodisperseSMC::setupSimulation() {
+    partitionBD();
 
     // allocate mem for array saying for each SD how many spheres touch it
     // gpuErrchk(cudaMalloc(&SD_NumOf_DEs_Touching, nSDs * sizeof(unsigned int)));
@@ -340,7 +339,7 @@ void ChSystemGranular_MonodisperseSMC::setParticlePositions(std::vector<ChVector
     user_sphere_positions = points;  // Copy points to class vector
 }
 
-void ChSystemGranular_MonodisperseSMC::generate_DEs() {
+void ChSystemGranular_MonodisperseSMC::generateDEs() {
     // Each fills user_sphere_positions with positions to be copied
     if (user_sphere_positions.size() == 0) {
         printf("ERROR: no sphere positions given!\n");
@@ -399,7 +398,7 @@ in order to cover the entire BD.
 BD: Big domain.
 SD: Sub-domain.
 */
-void ChSystemGranular_MonodisperseSMC::partition_BD() {
+void ChSystemGranular_MonodisperseSMC::partitionBD() {
     double tempDIM = 2. * sphere_radius * AVERAGE_SPHERES_PER_SD_X_DIR;
     unsigned int howMany = (unsigned int)(std::ceil(box_size_X / tempDIM));
     // work with an even kFac to hit the CM of the box.
@@ -445,7 +444,7 @@ void ChSystemGranular_MonodisperseSMC::partition_BD() {
 This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
 of various physical quantities set by the user.
 */
-void ChSystemGranular_MonodisperseSMC::switch_to_SimUnits() {
+void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;
     gran_params->MASS_UNIT = massSphere;
     double K_stiffness = get_max_K();
