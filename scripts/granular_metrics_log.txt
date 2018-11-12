@@ -858,3 +858,15 @@ Running settling test!
 50 thousand bodies took 1.56077 seconds!
 500 thousand bodies took 13.3688 seconds!
 1 million bodies took 26.371 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 12 Nov 2018 14:05:27 -0600
+commit 59c4ef6689135e42571bac40ea171ab6fbbb842a Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 12 14:05:17 2018 -0600 rename paramsptr, some API cleanup
+Results:
+Running wavetank test!
+50 thousand bodies took 1.51084 seconds!
+500 thousand bodies took 12.7752 seconds!
+1 million bodies took 25.5187 seconds!
+Running settling test!
+50 thousand bodies took 1.51493 seconds!
+500 thousand bodies took 12.6784 seconds!
+1 million bodies took 26.5789 seconds!

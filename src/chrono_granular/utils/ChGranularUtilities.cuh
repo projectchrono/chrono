@@ -27,15 +27,13 @@
 
 /// Get the force multiplier for a contact given the penetration
 /// delta_n is penetration normalized by diameter
-inline __device__ float get_force_multiplier(float delta_n, ParamsPtr gran_params) {
+inline __device__ float get_force_multiplier(float delta_n, GranParamsPtr gran_params) {
     switch (gran_params->contact_model) {
         case chrono::granular::GRAN_CONTACT_MODEL::HOOKE: {
             return 1.f;
-            break;
         }
         case chrono::granular::GRAN_CONTACT_MODEL::HERTZ: {
             return sqrt(delta_n);
-            break;
         }
     }
     // if we get here, something is wrong

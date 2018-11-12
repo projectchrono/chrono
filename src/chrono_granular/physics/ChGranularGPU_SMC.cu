@@ -314,7 +314,7 @@ __global__ void owner_prepack(int* d_sphere_pos_X,
                               unsigned int nSpheres,
                               unsigned int* owners,
                               sphere_data_struct* sphere_info,
-                              ParamsPtr gran_params) {
+                              GranParamsPtr gran_params) {
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // Only do this for valid spheres
@@ -348,7 +348,7 @@ __global__ void owner_unpack(int* d_sphere_pos_X,
                              float* d_sphere_pos_Z_dt,
                              unsigned int nSpheres,
                              sphere_data_struct* sphere_info,
-                             ParamsPtr gran_params) {
+                             GranParamsPtr gran_params) {
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // Only do this for valid spheres

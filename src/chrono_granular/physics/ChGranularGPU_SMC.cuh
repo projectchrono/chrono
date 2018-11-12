@@ -30,7 +30,7 @@
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranular.h"
-#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
+#include "chrono_granular/utils/ChGranularUtilities.cuh"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
 
@@ -38,7 +38,7 @@ using chrono::granular::sphereDataStruct;
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
-inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {
+inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, GranParamsPtr gran_params) {
     // Note that this offset allows us to have moving walls and the like very easily
 
     int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
@@ -53,10 +53,10 @@ inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphC
     return n;
 }
 
-// inline __device__ pointSDID(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, ParamsPtr gran_params) {}
+// inline __device__ pointSDID(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, GranParamsPtr gran_params) {}
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const int i, const int j, const int k, ParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int i, const int j, const int k, GranParamsPtr gran_params) {
     // if we're outside the BD in any direction, this is an invalid SD
     if (i < 0 || i >= gran_params->nSDs_X) {
         return NULL_GRANULAR_ID;
@@ -71,12 +71,12 @@ inline __device__ unsigned int SDTripletID(const int i, const int j, const int k
 }
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const int3& trip, ParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int3& trip, GranParamsPtr gran_params) {
     return SDTripletID(trip.x, trip.y, trip.z, gran_params);
 }
 
 // Convert triplet to single int SD ID
-inline __device__ unsigned int SDTripletID(const int trip[3], ParamsPtr gran_params) {
+inline __device__ unsigned int SDTripletID(const int trip[3], GranParamsPtr gran_params) {
     return SDTripletID(trip[0], trip[1], trip[2], gran_params);
 }
 
@@ -91,7 +91,7 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X,
                                           int sphCenter_Y,
                                           int sphCenter_Z,
                                           unsigned int SDs[MAX_SDs_TOUCHED_BY_SPHERE],
-                                          ParamsPtr gran_params) {
+                                          GranParamsPtr gran_params) {
     // grab radius as signed so we can use it intelligently
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
@@ -230,7 +230,7 @@ template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block
                                      //!< multiple of 32
 __global__ void primingOperationsRectangularBox(sphereDataStruct sphere_data,
                                                 unsigned int nSpheres,  //!< Number of spheres in the box
-                                                ParamsPtr gran_params) {
+                                                GranParamsPtr gran_params) {
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
@@ -360,7 +360,7 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
                                      const float sphOmegaZ,
                                      float3& force_from_BCs,
                                      float3& ang_acc_from_BCs,
-                                     ParamsPtr gran_params,
+                                     GranParamsPtr gran_params,
                                      BC_type* bc_type_list,
                                      BC_params_t<int, int3>* bc_params_list,
                                      unsigned int nBCs) {
@@ -419,7 +419,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
                                        const float sphOmegaZ,  //!< Global Z velocity of DE
                                        float3& force_from_wall,
                                        float3& ang_acc_from_wall,
-                                       ParamsPtr gran_params) {
+                                       GranParamsPtr gran_params) {
     // classic radius grab, but signed so we can negate it easier
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
 
@@ -619,7 +619,7 @@ NOTE:
 template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                              //!< Should be a multiple of 32
 __global__ void computeSphereForces(sphereDataStruct sphere_data,
-                                    ParamsPtr gran_params,
+                                    GranParamsPtr gran_params,
                                     BC_type* bc_type_list,
                                     BC_params_t<int, int3>* bc_params_list,
                                     unsigned int nBCs) {
@@ -734,12 +734,8 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         // amount of doubles will certainly speed this up
         // Run through and do actual force computations, for these we know each one is a legit collision
         for (unsigned int idx = 0; idx < ncontacts; idx++) {
-            // Don't check for collision with self
+            // who am I colliding with?
             unsigned char bodyB = bodyB_list[idx];
-
-            // NOTE below here, it seems faster to do coalesced shared mem accesses than caching sphere_X[bodyA] and the
-            // like in a register
-            // This avoids computing a square to figure our if collision or not
 
             float reciplength = 0;
             // compute penetrations in double
@@ -873,7 +869,7 @@ template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block
 __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical integration time step
                                 sphereDataStruct sphere_data,
                                 unsigned int nSpheres,
-                                ParamsPtr gran_params) {
+                                GranParamsPtr gran_params) {
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;

@@ -157,7 +157,7 @@ struct ChGranParams {
 }  // namespace chrono
 
 // Do two things: make the naming nicer and require a const pointer everywhere
-typedef const chrono::granular::ChGranParams* ParamsPtr;
+typedef const chrono::granular::ChGranParams* GranParamsPtr;
 namespace chrono {
 namespace granular {
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {

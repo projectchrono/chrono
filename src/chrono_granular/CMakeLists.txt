@@ -129,7 +129,7 @@ set(ChronoEngine_Granular_CUDA
 		physics/ChGranularCollision.cuh
 		physics/ChGranularBoundaryConditions.cuh
 		physics/ChGranularBoxTriangle.cuh
-		utils/ChGranularUtilities_CUDA.cuh
+		utils/ChGranularUtilities.cuh
 		utils/ChCudaMathUtils.cuh
 		)
 

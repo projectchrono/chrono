@@ -19,7 +19,7 @@
 #undef CHRONO_HAS_SSE
 #undef CHRONO_HAS_AVX
 
-#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
+#include "chrono_granular/utils/ChGranularUtilities.cuh"
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
 
@@ -52,7 +52,7 @@ __device__ OUT_T3 apply_frame_transform(const IN_T3& point, const IN_T* pos, con
 }
 
 template <class T3>
-__device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
+__device__ void convert_pos_UU2SU(T3& pos, GranParamsPtr gran_params) {
     pos.x /= gran_params->LENGTH_UNIT;
     pos.y /= gran_params->LENGTH_UNIT;
     pos.z /= gran_params->LENGTH_UNIT;
@@ -64,7 +64,7 @@ __device__ void convert_pos_UU2SU(T3& pos, ParamsPtr gran_params) {
 __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                              const TriangleSoupPtr triangleSoup,
                                              unsigned int* touchedSDs,
-                                             ParamsPtr gran_params,
+                                             GranParamsPtr gran_params,
                                              MeshParamsPtr tri_params) {
     float3 vA, vB, vC;
 
@@ -198,7 +198,7 @@ __global__ void triangleSoupBroadPhase(
                                         //!< "triangles_in_BUCKET_composite" says which BKT contains what triangles.
     unsigned int* SD_isTouchingTriangle,  //!< If SD 629 has any triangle touching it, then
                                           //!< SD_isTouchingTriangle[629]>0.
-    ParamsPtr gran_params,
+    GranParamsPtr gran_params,
     MeshParamsPtr mesh_params) {
     /// Set aside shared memory
     volatile __shared__ unsigned int offsetInComposite_TriangleInBKT_Array[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
@@ -369,7 +369,7 @@ __global__ void interactionTerrain_TriangleSoup(
     unsigned int* SD_isTouchingTriangle,    //!< The length of this array is equal to number of SDs. If SD 423 is
                                             //!< touched by any triangle, then SD_isTouchingTriangle[423]>0.
 
-    ParamsPtr gran_params,
+    GranParamsPtr gran_params,
     MeshParamsPtr mesh_params) {
     __shared__ unsigned int grElemID[MAX_COUNT_OF_DEs_PER_SD];        //!< global ID of the grElements touching this SD
     __shared__ unsigned int triangID[MAX_TRIANGLE_COUNT_PER_BUCKET];  //!< global ID of the triangles touching this SD

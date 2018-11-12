@@ -18,7 +18,7 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
-#include "chrono_granular/utils/ChGranularUtilities_CUDA.cuh"
+#include "chrono_granular/utils/ChGranularUtilities.cuh"
 
 using chrono::granular::BC_type;
 using chrono::granular::BC_params_t;
@@ -38,7 +38,7 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
                                           const float sphOmegaZ,
                                           float3& force_from_BCs,
                                           float3& ang_acc_from_BCs,
-                                          ParamsPtr gran_params,
+                                          GranParamsPtr gran_params,
                                           const BC_params_t<int, int3>& bc_params) {
     sphere_BC_params_t<int, int3> sphere_params = bc_params.sphere_params;
     bool contact = false;
@@ -100,7 +100,7 @@ inline __device__ bool addBCForces_Cone(const int sphXpos,
                                         const float sphOmegaZ,
                                         float3& force_from_BCs,
                                         float3& ang_acc_from_BCs,
-                                        ParamsPtr gran_params,
+                                        GranParamsPtr gran_params,
                                         const BC_params_t<int, int3>& bc_params) {
     cone_BC_params_t<int, int3> cone_params = bc_params.cone_params;
     bool contact = false;
@@ -166,7 +166,7 @@ inline __device__ bool addBCForces_Plane(const int sphXpos,
                                          const float sphOmegaZ,
                                          float3& force_from_BCs,
                                          float3& ang_acc_from_BCs,
-                                         ParamsPtr gran_params,
+                                         GranParamsPtr gran_params,
                                          const BC_params_t<int, int3>& bc_params) {
     Plane_BC_params_t<int3> plane_params = bc_params.plane_params;
     bool contact = false;
