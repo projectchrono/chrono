@@ -52,7 +52,7 @@ struct sphereDataStruct {
     float* pos_Z_dt;
 
     /// store angular velocity (axis and magnitude in one vector)
-    float* sphere_Omega_X;
+    float* sphere_Omega_X;  // Could these just be a single float3 array?
     float* sphere_Omega_Y;
     float* sphere_Omega_Z;
 
