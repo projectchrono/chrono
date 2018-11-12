@@ -326,8 +326,11 @@ void ChSystemGranular_MonodisperseSMC_trimesh::meshSoup_applyRigidBodyMotion(dou
         tri_params->fam_frame_narrow[fam].pos[2] = position_orientation_data[7 * fam + 2];
 
         // Set linear and angular velocity
-        meshSoup_DEVICE->vel[fam] = make_float3(vel[6 * fam + 0], vel[6 * fam + 1], vel[6 * fam + 2]);
-        meshSoup_DEVICE->omega[fam] = make_float3(vel[6 * fam + 3], vel[6 * fam + 4], vel[6 * fam + 5]);
+        const float C_V = gran_params->TIME_UNIT / gran_params->LENGTH_UNIT;
+        meshSoup_DEVICE->vel[fam] = make_float3(C_V * vel[6 * fam + 0], C_V * vel[6 * fam + 1], C_V * vel[6 * fam + 2]);
+        const float C_O = gran_params->TIME_UNIT;
+        meshSoup_DEVICE->omega[fam] =
+            make_float3(C_O * vel[6 * fam + 3], C_O * vel[6 * fam + 4], C_O * vel[6 * fam + 5]);
     }
 }
 
