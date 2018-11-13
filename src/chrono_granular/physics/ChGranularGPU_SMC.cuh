@@ -921,9 +921,9 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         // no divergence, same for every thread in block
         switch (gran_params->integrator_type) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
-                v_update_x = alpha_h_bar * sphere_data.sphere_force_X[mySphereID];
-                v_update_y = alpha_h_bar * sphere_data.sphere_force_Y[mySphereID];
-                v_update_z = alpha_h_bar * sphere_data.sphere_force_Z[mySphereID];
+                v_update_x = alpha_h_bar * sphere_data.sphere_force_X[mySphereID] / gran_params->sphere_mass_SU;
+                v_update_y = alpha_h_bar * sphere_data.sphere_force_Y[mySphereID] / gran_params->sphere_mass_SU;
+                v_update_z = alpha_h_bar * sphere_data.sphere_force_Z[mySphereID] / gran_params->sphere_mass_SU;
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                     // tau = I alpha => alpha = tau / I, we already computed these alphas
@@ -936,12 +936,18 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
                 float gamma_hat = -.5f;
                 float gamma = 3.f / 2.f;
-                v_update_x = alpha_h_bar * (sphere_data.sphere_force_X[mySphereID] * gamma +
-                                            sphere_data.sphere_force_X_old[mySphereID] * gamma_hat);
-                v_update_y = alpha_h_bar * (sphere_data.sphere_force_Y[mySphereID] * gamma +
-                                            sphere_data.sphere_force_Y_old[mySphereID] * gamma_hat);
-                v_update_z = alpha_h_bar * (sphere_data.sphere_force_Z[mySphereID] * gamma +
-                                            sphere_data.sphere_force_Z_old[mySphereID] * gamma_hat);
+                v_update_x = alpha_h_bar *
+                             (sphere_data.sphere_force_X[mySphereID] * gamma +
+                              sphere_data.sphere_force_X_old[mySphereID] * gamma_hat) /
+                             gran_params->sphere_mass_SU;
+                v_update_y = alpha_h_bar *
+                             (sphere_data.sphere_force_Y[mySphereID] * gamma +
+                              sphere_data.sphere_force_Y_old[mySphereID] * gamma_hat) /
+                             gran_params->sphere_mass_SU;
+                v_update_z = alpha_h_bar *
+                             (sphere_data.sphere_force_Z[mySphereID] * gamma +
+                              sphere_data.sphere_force_Z_old[mySphereID] * gamma_hat) /
+                             gran_params->sphere_mass_SU;
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                     ABORTABORTABORT("friction chung not yet implemented\n!");

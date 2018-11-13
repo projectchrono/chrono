@@ -66,8 +66,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
 
     gran_params->sphereRadius_SU = sphereRadius_SU;
     // NOTE: Assumes mass = 1
-    constexpr float sphere_mass_SU = 1.f;
-    gran_params->sphereInertia_by_r = 2.f / 5.f * sphere_mass_SU * sphereRadius_SU;
+    gran_params->sphereInertia_by_r = 2.f / 5.f * gran_params->sphere_mass_SU * sphereRadius_SU;
 
     gran_params->K_n_s2s_SU = K_n_s2s_SU;
     gran_params->K_n_s2w_SU = K_n_s2w_SU;
