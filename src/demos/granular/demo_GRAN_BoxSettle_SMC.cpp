@@ -87,8 +87,8 @@ int main(int argc, char* argv[]) {
 
     // fill box, layer by layer
     ChVector<> hdims(params.box_X / 4.f - 1.05 * params.sphere_radius, params.box_Y / 4.f - 1.05 * params.sphere_radius,
-                     params.box_Z / 2.f - 1.05 * params.sphere_radius);
-    ChVector<> center(0, 0, 0);
+                     params.box_Z / 6.f - 1.05 * params.sphere_radius);
+    ChVector<> center(0, 0, params.box_Z * 2. / 6.);
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points =
@@ -107,55 +107,13 @@ int main(int argc, char* argv[]) {
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
 
-    // TODO clean up this API
-    // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
-    // will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means
-    // that the box will be centered at x = box_size_X
-    std::function<double(double)> posFunWave = [](double t) {
-        // Start oscillating at t = .5s
-        double t0 = .5;
-        double freq = .1 * M_PI;
-
-        if (t < t0) {
-            return -.5;
-        } else {
-            return (-.5 + .5 * std::sin((t - t0) * freq));
-        }
-    };
-    // Stay centered at origin
-    std::function<double(double)> posFunStill = [](double t) { return -.5; };
-
-    std::function<double(double)> posFunZBouncing = [](double t) {
-        // Start oscillating at t = .5s
-        double t0 = .5;
-        double freq = 20 * M_PI;
-
-        if (t < t0) {
-            return -.5;
-        } else {
-            return (-.5 + .01 * std::sin((t - t0) * freq));
-        }
-    };
-
     settlingExperiment.set_BD_Fixed(true);
-    // switch (params.run_mode) {
-    //     case SETTLING:
-    //         settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunStill);
-    //         break;
-    //     case WAVETANK:
-    //         settlingExperiment.setBDPositionFunction(posFunStill, posFunWave, posFunStill);
-    //         settlingExperiment.set_BD_Fixed(false);
-    //         break;
-    //     case BOUNCING_PLATE:
-    //         settlingExperiment.setBDPositionFunction(posFunStill, posFunStill, posFunZBouncing);
-    //         settlingExperiment.set_BD_Fixed(false);
-    //         break;
-    // }
-
-    // float hdims[3] = {2.f, 2.f, 2.f};
 
     settlingExperiment.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
+    float point[3] = {0, 0, -params.box_Z * 2.f / 6.f};
+    float normal[3] = {0, 0, 1};
+    settlingExperiment.Create_BC_Plane(point, normal);
     settlingExperiment.initialize();
     // settlingExperiment.Create_BC_AABox(hdims, center_pt, false);
     // settlingExperiment.Create_BC_Sphere(center_pt, 3.f, true);

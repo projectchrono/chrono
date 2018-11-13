@@ -80,22 +80,28 @@ int main(int argc, char* argv[]) {
 
     gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+    gran_system.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_system.set_contactModel(GRAN_CONTACT_MODEL::HOOKE);
     gran_system.set_fixed_stepSize(params.step_size);
     gran_system.setVerbose(params.verbose);
 
     gran_system.set_BD_Fixed(true);
 
-    float sphere_diam = 2. * params.sphere_radius;
-    ChVector<float> hdims(params.box_Y / 2.f - sphere_diam, params.box_Y / 2.f - sphere_diam,
-                          params.box_Z / 2.f - sphere_diam);
+    // offset of radius from walls
+    ChVector<float> rad_offset = 1.02f * params.sphere_radius * ChVector<float>(1, 1, 1);
+    // (2 x 1 x 1) box (x,y,z)
+    float sphere_diam = 2.f * params.sphere_radius;
+    ChVector<float> hdims = .5f * ChVector<float>(2. * 100., 1. * 100., 1. * 100.) - rad_offset;
 
-    ChVector<float> center(-params.box_X / 2. + params.box_Y / 2.f, 0, 0);
+    ChVector<float> center =
+        ChVector<float>(-params.box_X / 2., -params.box_Y / 2., -params.box_Z / 2.) + hdims + rad_offset;
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points =
         PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.02);
 
+    std::vector<ChVector<float>> first_points;
+    // first_points.push_back(body_points.at(10000));
     gran_system.setParticlePositions(body_points);
     // just at end of material
     float plane_center[3] = {center.x() + hdims.x() + sphere_diam, 0, 0};
@@ -110,6 +116,7 @@ int main(int argc, char* argv[]) {
 
     // Finalize settings and initialize for runtime
     gran_system.initialize();
+    // gran_system.disable_BC_by_ID(plane_bc_id);
 
     int fps = 100;
     // assume we run for at least one frame

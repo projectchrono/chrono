@@ -152,6 +152,9 @@ struct ChGranParams {
     double LENGTH_UNIT;  //!< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
     double TIME_UNIT;    //!< 1 / C_T. Any time quanity in SU is measured as a positive multiple of TIME_UNIT
     double MASS_UNIT;    //!< 1 / C_M. Any mass quanity is measured as a positive multiple of MASS_UNIT.
+
+    const float sphere_mass_SU = 1.f;
+
 };
 }  // namespace granular
 }  // namespace chrono

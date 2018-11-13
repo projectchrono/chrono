@@ -1,8 +1,8 @@
 {
-	"sphere_radius": 2,
+	"sphere_radius": 1,
 	"sphere_density": 1,
 	"box_X": 536,
-	"box_Y": 200,
+	"box_Y": 100,
 	"box_Z": 200,
 	"step_size": 1e-4,
 	"time_end": 5,

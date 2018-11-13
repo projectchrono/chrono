@@ -22,6 +22,6 @@
 	"psi_h": 4,
 	"psi_T": 16,
 	"psi_L": 16,
-	"output_dir": "size_test",
+	"output_dir": "box_settle",
 	"write_mode": "csv"
 }

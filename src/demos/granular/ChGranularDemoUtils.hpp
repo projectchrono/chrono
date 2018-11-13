@@ -17,7 +17,7 @@ std::vector<ChVector<T>> PDLayerSampler_BOX(ChVector<T> center, ChVector<T> hdim
         std::cout << "Create layer at " << center.z() << std::endl;
         auto points = sampler.SampleBox(center, hdims);
         points_full.insert(points_full.end(), points.begin(), points.end());
-        center.z() += diam;
+        center.z() += diam * padding_factor;
     }
     return points_full;
 }

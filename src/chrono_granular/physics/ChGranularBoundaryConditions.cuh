@@ -183,16 +183,11 @@ inline __device__ bool addBCForces_Plane(const int sphXpos,
     float penetration = sphereRadius_SU - proj;
 
     if (penetration > 0) {
+        float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
         contact = true;
         float3 plane_force = gran_params->K_n_s2w_SU * penetration * plane_params.normal;
 
         float3 sphere_vel = make_float3(sphXvel, sphYvel, sphZvel);
-
-        // add sphere rotation
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-            // v = v_COM + omega cross r
-            sphere_vel = sphere_vel + Cross(make_float3(sphOmegaX, sphOmegaY, sphOmegaZ), -1 * delta_r);
-        }
 
         // damping term
         // Compute force updates for damping term
@@ -205,19 +200,25 @@ inline __device__ bool addBCForces_Plane(const int sphXpos,
 
         constexpr float m_eff = 0.5;
 
+        plane_force = plane_force + -1 * gran_params->Gamma_n_s2w_SU * projection * plane_params.normal * m_eff;
+        plane_force = plane_force * force_model_multiplier;
+
         // add tangent forces
         if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+            // single step collapses into one parameter
             const float combined_tangent_coeff =
-                gran_params->K_t_s2s_SU * gran_params->alpha_h_bar + gran_params->Gamma_t_s2s_SU * m_eff;
-
-            // float3 tangent_force = -combined_tangent_coeff * sphere_vel * force_model_multiplier;
-            // TODO ADD hertz!
+                gran_params->K_t_s2w_SU * gran_params->alpha_h_bar + gran_params->Gamma_t_s2w_SU * m_eff;
 
             // v = v_COM + omega cross r
-            sphere_vel = sphere_vel + Cross(make_float3(sphOmegaX, sphOmegaY, sphOmegaZ), -1 * delta_r);
+            sphere_vel =
+                sphere_vel + Cross(make_float3(sphOmegaX, sphOmegaY, sphOmegaZ), proj * -1. * plane_params.normal);
+
+            float3 tangent_force = -combined_tangent_coeff * sphere_vel * force_model_multiplier;
+            ang_acc_from_BCs =
+                ang_acc_from_BCs + (Cross(-1 * plane_params.normal, tangent_force) / gran_params->sphereInertia_by_r);
+            plane_force = plane_force + tangent_force;
         }
 
-        plane_force = plane_force + -1 * gran_params->Gamma_n_s2w_SU * projection * plane_params.normal * m_eff;
         force_from_BCs = force_from_BCs + plane_force;
     }
 

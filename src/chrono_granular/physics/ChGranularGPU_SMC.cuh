@@ -428,8 +428,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     int sphYpos_modified = -gran_params->BD_frame_Y + sphYpos;
     int sphZpos_modified = -gran_params->BD_frame_Z + sphZpos;
 
-    constexpr float sphere_mass_SU = 1.f;
-    constexpr float m_eff = sphere_mass_SU / 2.f;
+    constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
     // cache force
     float3 wall_force = {0, 0, 0};
     // cache force divided by radius
@@ -783,12 +782,12 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // remove normal component, now this is just tangential
             v_rel = v_rel - vrel_n;
 
-            constexpr float sphere_mass_SU = 1.f;
-            constexpr float m_eff = sphere_mass_SU / 2.f;
+            constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
             // multiplier caused by Hooke vs Hertz force model
             float force_model_multiplier = get_force_multiplier(penetration, gran_params);
 
-            const float cohesionConstant = sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
+            const float cohesionConstant =
+                gran_params->sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
 
             // Force accumulator
             // Add spring term
