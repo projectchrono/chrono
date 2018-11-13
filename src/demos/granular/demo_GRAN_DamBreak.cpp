@@ -36,12 +36,15 @@ using std::string;
 
 enum { SETTLING = 0, WAVETANK = 1, BOUNCING_PLATE = 2 };
 
+// expected number of args for param sweep
+constexpr int num_args_full = 6;
+
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_DamBreak <json_file> [<radius> <dt> <length_Y>]" << endl;
-    cout << "must have either 1 or 4 arguments" << endl;
+    cout << "usage: ./demo_GRAN_DamBreak <json_file> [<radius> <dt> <length_Y> <output_dir>]" << endl;
+    cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -55,16 +58,18 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc < 2 || argc > 2 && argc != 5 || ParseJSON(argv[1], params) == false) {
+    if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
 
-    if (argc == 5) {
+    if (argc == num_args_full) {
         params.sphere_radius = std::atof(argv[2]);
         params.step_size = std::atof(argv[3]);
         params.box_Y = std::atof(argv[4]);
-        printf("new parameters: r is %f, dt is %f, y is %f\n", params.sphere_radius, params.step_size, params.box_Y);
+        params.output_dir = std::string(argv[5]);
+        printf("new parameters: r is %f, dt is %f, y is %f, %s\n", params.sphere_radius, params.step_size, params.box_Y,
+               params.output_dir.c_str());
     }
 
     // Setup simulation
