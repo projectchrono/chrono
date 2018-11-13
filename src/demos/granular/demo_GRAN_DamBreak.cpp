@@ -40,7 +40,8 @@ enum { SETTLING = 0, WAVETANK = 1, BOUNCING_PLATE = 2 };
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_DamBreak <json_file>" << endl;
+    cout << "usage: ./demo_GRAN_DamBreak <json_file> [<radius> <dt> <length_Y>]" << endl;
+    cout << "must have either 1 or 4 arguments" << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -54,9 +55,16 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc < 2 || argc > 2 && argc != 5 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
+    }
+
+    if (argc == 5) {
+        params.sphere_radius = std::atof(argv[2]);
+        params.step_size = std::atof(argv[3]);
+        params.box_Y = std::atof(argv[4]);
+        printf("new parameters: r is %f, dt is %f, y is %f\n", params.sphere_radius, params.step_size, params.box_Y);
     }
 
     // Setup simulation
@@ -91,7 +99,7 @@ int main(int argc, char* argv[]) {
     ChVector<float> rad_offset = 1.02f * params.sphere_radius * ChVector<float>(1, 1, 1);
     // (2 x 1 x 1) box (x,y,z)
     float sphere_diam = 2.f * params.sphere_radius;
-    ChVector<float> hdims = .5f * ChVector<float>(2. * 100., 1. * 100., 1. * 100.) - rad_offset;
+    ChVector<float> hdims = .5f * ChVector<float>(2. * 100., params.box_Y, 1. * 100.) - rad_offset;
 
     ChVector<float> center =
         ChVector<float>(-params.box_X / 2., -params.box_Y / 2., -params.box_Z / 2.) + hdims + rad_offset;
