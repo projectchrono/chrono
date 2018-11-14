@@ -269,13 +269,13 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Set the BD to be fixed or not, if fixed it will ignore any given position functions
     void set_BD_Fixed(bool fixed) { BD_is_fixed = fixed; }
 
-    void setParticlePositions(std::vector<ChVector<float>>& points);
+    void setParticlePositions(const std::vector<ChVector<float>>& points);
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
-    void setBDPositionFunction(std::function<double(double)> fx,
-                               std::function<double(double)> fy,
-                               std::function<double(double)> fz) {
+    void setBDPositionFunction(const std::function<double(double)>& fx,
+                               const std::function<double(double)>& fy,
+                               const std::function<double(double)>& fz) {
         BDPositionFunctionX = fx;
         BDPositionFunctionY = fy;
         BDPositionFunctionZ = fz;
@@ -297,7 +297,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void checkSDCounts(std::string ofile, bool write_out, bool verbose);
     void writeFile(std::string ofile, unsigned int* deCounts);
     void writeFileUU(std::string ofile);
-    void updateBDPosition(const float stepSize_SU);
+    void updateBDPosition(float stepSize_SU);
 
   protected:
     /// Holds the friction mode for the system

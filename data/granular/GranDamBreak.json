@@ -14,7 +14,7 @@
 	"normalDampS2S": 5e3,
 	"normalDampS2W": 5e3,
 	"tangentStiffS2S": 0,
-	/* "tangentStiffS2W" : 1e4, */
+	"tangentStiffS2W" : 0,
 	"tangentDampS2S": 0,
 	"tangentDampS2W": 0,
 	"cohesion_ratio": 0,

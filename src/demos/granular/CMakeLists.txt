@@ -17,7 +17,7 @@ SET(LIBRARIES
 # Programs that can work with or without OpenGL
 SET(DEMOS
 		demo_GRAN_BoxSettle_SMC
-		demo_GRAN_PoiseuilleCylSMC
+		demo_GRAN_terrainBox_SMC
 		demo_GRAN_TriMeshNoFric_SMC
 		demo_GRAN_TriMeshNoFric_SMC_tiredrag
 		demo_GRAN_TriMeshNoFric_SMC_ballcosim

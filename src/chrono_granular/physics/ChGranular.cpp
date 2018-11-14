@@ -335,7 +335,7 @@ void ChSystemGranular_MonodisperseSMC::setupSimulation() {
 }
 
 // Set particle positions in UU
-void ChSystemGranular_MonodisperseSMC::setParticlePositions(std::vector<ChVector<float>>& points) {
+void ChSystemGranular_MonodisperseSMC::setParticlePositions(const std::vector<ChVector<float>>& points) {
     user_sphere_positions = points;  // Copy points to class vector
 }
 

@@ -195,40 +195,48 @@ void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
         // TODO implement this
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
         // much faster write due to no formatting
-        // std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
-        //
-        // for (unsigned int n = 0; n < nDEs; n++) {
-        //     float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-        //                       pos_Z_dt.at(n) * pos_Z_dt.at(n));
-        //
-        //     ptFile.write((const char*)&pos_X.at(n), sizeof(int));
-        //     ptFile.write((const char*)&pos_Y.at(n), sizeof(int));
-        //     ptFile.write((const char*)&pos_Z.at(n), sizeof(int));
-        //     ptFile.write((const char*)&pos_X_dt.at(n), sizeof(float));
-        //     ptFile.write((const char*)&pos_Y_dt.at(n), sizeof(float));
-        //     ptFile.write((const char*)&pos_Z_dt.at(n), sizeof(float));
-        //     ptFile.write((const char*)&absv, sizeof(float));
-        //     ptFile.write((const char*)&deCounts[n], sizeof(int));
-        // }
+        std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
+
+        for (unsigned int n = 0; n < nDEs; n++) {
+            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                              pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                         (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
+            float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
+            float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
+            float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
+
+            ptFile.write((const char*)&x_UU, sizeof(float));
+            ptFile.write((const char*)&y_UU, sizeof(float));
+            ptFile.write((const char*)&z_UU, sizeof(float));
+            ptFile.write((const char*)&absv, sizeof(float));
+
+            if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+                ptFile.write((const char*)&sphere_Omega_X.at(n), sizeof(float));
+                ptFile.write((const char*)&sphere_Omega_Y.at(n), sizeof(float));
+                ptFile.write((const char*)&sphere_Omega_Z.at(n), sizeof(float));
+            }
+        }
     } else if (file_write_mode == GRAN_OUTPUT_MODE::CSV) {
         // CSV is much slower but requires less postprocessing
         std::ofstream ptFile(ofile + ".csv", std::ios::out);
 
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
-        outstrstream << "x,y,z,USU";
+        outstrstream << "x,y,z,absv";
 
         if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             outstrstream << ",wx,wy,wz";
         }
         outstrstream << "\n";
         for (unsigned int n = 0; n < nDEs; n++) {
-            // TODO convert absv into UU
             float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                              pos_Z_dt.at(n) * pos_Z_dt.at(n));
+                              pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                         (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
+            float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
+            float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
+            float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
 
-            outstrstream << pos_X.at(n) * gran_params->LENGTH_UNIT << "," << pos_Y.at(n) * gran_params->LENGTH_UNIT
-                         << "," << pos_Z.at(n) * gran_params->LENGTH_UNIT << "," << absv;
+            outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv;
 
             if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                 outstrstream << "," << sphere_Omega_X.at(n) << "," << sphere_Omega_Y.at(n) << ","

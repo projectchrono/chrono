@@ -9,12 +9,11 @@ int main(int argc, char** argv) {
     }
     ifstream raw_data_file(argv[1], ifstream::in | ifstream::binary);
     ofstream csv_data_file(argv[2], ofstream::out);
-    csv_data_file << "x,y,z,vx,vy,vz,absv,nTouched\n";
+    csv_data_file << "x,y,z,absv\n";
     while (raw_data_file.good()) {
-        int vals[8];
-        raw_data_file.read((char*)vals, 8 * sizeof(int));
-        csv_data_file << vals[0] << "," << vals[1] << "," << vals[2] << "," << *((float*)&vals[3]) << ","
-                      << *((float*)&vals[4]) << "," << *((float*)&vals[5]) << "," << *((float*)&vals[6]) << ","
-                      << (unsigned int)vals[7] << "\n";
+        int vals[4];
+        raw_data_file.read((char*)vals, 4 * sizeof(float));
+        csv_data_file << *((float*)&vals[0]) << "," << *((float*)&vals[1]) << "," << *((float*)&vals[2]) << ","
+                      << *((float*)&vals[3]) << "\n";
     }
 }

@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 
     gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    gran_system.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_system.set_contactModel(GRAN_CONTACT_MODEL::HOOKE);
     gran_system.set_fixed_stepSize(params.step_size);
     gran_system.setVerbose(params.verbose);
@@ -104,7 +104,9 @@ int main(int argc, char* argv[]) {
     ChVector<float> rad_offset = 1.02f * params.sphere_radius * ChVector<float>(1, 1, 1);
     // (2 x 1 x 1) box (x,y,z)
     float sphere_diam = 2.f * params.sphere_radius;
-    ChVector<float> hdims = .5f * ChVector<float>(2. * 100., params.box_Y, 1. * 100.) - rad_offset;
+
+    float max_z_fill = 2. * 100.;
+    ChVector<float> hdims = .5f * ChVector<float>(2. * 100., params.box_Y, max_z_fill) - rad_offset;
 
     ChVector<float> center =
         ChVector<float>(-params.box_X / 2., -params.box_Y / 2., -params.box_Z / 2.) + hdims + rad_offset;
