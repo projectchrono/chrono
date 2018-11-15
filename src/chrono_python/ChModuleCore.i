@@ -14,7 +14,7 @@
 //  'import ChronoEngine_python_core as chrono'
 
 
-%module(directors="1") ChronoEngine_python_core
+%module(directors="1") core
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

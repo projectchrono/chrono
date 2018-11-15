@@ -14,7 +14,7 @@
 //  'import ChronoEngine_python_irrlicht as ceirrlicht'
 
 
-%module(directors="1") ChronoEngine_python_irrlicht
+%module(directors="1") irrlicht
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

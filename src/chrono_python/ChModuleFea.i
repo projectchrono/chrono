@@ -14,7 +14,7 @@
 //  'import ChronoEngine_python_fea as fea'
 
 
-%module(directors="1") ChronoEngine_python_fea
+%module(directors="1") fea
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
