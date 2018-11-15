@@ -14,6 +14,8 @@ fi
 
 # Configure step
 cmake -G "%CMAKE_GENERATOR%" \
+ -DCMAKE_INSTALL_PREFIX="%PREFIX%" \
+ -DCH_INSTALL_PYTHON_PACKAGE="." \
  -DPYTHON_EXECUTABLE:FILEPATH="%PYTHON%" \
  -DPYTHON_INCLUDE_DIR:PATH="%PREFIX%"/include \
  -DPYTHON_LIBRARY:FILEPATH="%PREFIX%"/libs/python%MY_PY_VER%.lib \
@@ -26,6 +28,8 @@ cmake -G "%CMAKE_GENERATOR%" \
  -DENABLE_MODULE_PYTHON=ON \
  -DBUILD_DEMOS=OFF \
  -DBUILD_TESTING=OFF \
+ -DBUILD_BENCHMARKING=OFF \
+ -DBUILD_GMOCK=OFF \
  .
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
