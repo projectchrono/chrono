@@ -16,6 +16,15 @@ message(STATUS "==== Chrono Python module ====")
 
 mark_as_advanced(CLEAR SWIG_EXECUTABLE)
 
+# Python package name
+set(CHPY_PACKAGENAME pychrono)
+
+set (CH_INSTALL_PYTHON_PACKAGE ".") # test
+if(DEFINED CH_INSTALL_PYTHON_PACKAGE)
+  message(STATUS "Override the CH_INSTALL_PYTHON with CH_INSTALL_PYTHON_PACKAGE")
+  set (CH_INSTALL_PYTHON "${CH_INSTALL_PYTHON_PACKAGE}")
+endif()
+
 #-----------------------------------------------------------------------------
 # Enable debugging CMake output
 #-----------------------------------------------------------------------------
@@ -122,7 +131,7 @@ endif()
 message(STATUS "...add Chrono::Python CORE module")
 
 # Python module name
-set(CHPY_CORE ChronoEngine_python_core)
+set(CHPY_CORE core)
 
 # Interface files
 set(CHPY_CORE_MODULE_FILE
@@ -152,28 +161,37 @@ SWIG_LINK_LIBRARIES(${CHPY_CORE} ${PYTHON_LIBRARY} ChronoEngine)
 
 # Ensure that the PYD library file is generated in the bin/ directory.
 set_target_properties(${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} PROPERTIES 
-                      PROJECT_LABEL "${CHPY_CORE}"
+                      PROJECT_LABEL "ChronoEngine_python_${CHPY_CORE}"
                       OUTPUT_NAME   "${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}"
                       LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                       )
 
 ADD_DEPENDENCIES (${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} ChronoEngine)
 
-# Copy PY file next to PYD file 
+# Copy PY file in a package dir
 set(CHPY_CORE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_CORE}.py")
 get_target_property(CHPY_CORE_PYD_FILE ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} LOCATION)
 get_filename_component(CHPY_CORE_PYD_PATH "${CHPY_CORE_PYD_FILE}" PATH)
-
 add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_CORE_PYD_PATH})
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
+add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
+
+# Copy the __init__.py file in the package
+add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py" ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
 
 # Install module
 install(TARGETS ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
-        RUNTIME DESTINATION ${CH_INSTALL_PYTHON}
-        LIBRARY DESTINATION ${CH_INSTALL_PYTHON}
-        ARCHIVE DESTINATION ${CH_INSTALL_PYTHON})
-install(FILES ${CHPY_CORE_PY_FILE} DESTINATION ${CH_INSTALL_PYTHON})
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}")
+install(FILES "${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py" DESTINATION "${CH_INSTALL_PYTHON}")
+
 
 if (DBG_SCRIPT)
   message("Module name:     ${CHPY_CORE}")
@@ -182,6 +200,7 @@ if (DBG_SCRIPT)
   message("PYD file:        ${CHPY_CORE_PYD_FILE}")
   message("PYD path:        ${CHPY_CORE_PYD_PATH}")
 endif()
+
 
 #-----------------------------------------------------------------------------
 # MODULE for the ChronoEngine_python_postprocess python wrapper.
@@ -192,7 +211,7 @@ if(ENABLE_MODULE_POSTPROCESS)
   message(STATUS "...add Chrono::Python POSTPROCESS module")
   
   # Python module name
-  set(CHPY_POSTPROCESS ChronoEngine_python_postprocess)
+  set(CHPY_POSTPROCESS postprocess)
 
   # Interface files
   set(CHPY_POSTPROCESS_MODULE_FILE 
@@ -214,29 +233,32 @@ if(ENABLE_MODULE_POSTPROCESS)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} PROPERTIES 
-                        PROJECT_LABEL "${CHPY_POSTPROCESS}"
+                        PROJECT_LABEL "ChronoEngine_python_${CHPY_POSTPROCESS}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} ChronoEngine_postprocess)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file next to PYD file 
+  # Copy PY file in a package dir 
   set(CHPY_POSTPROCESS_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_POSTPROCESS}.py")
   get_target_property(CHPY_POSTPROCESS_PYD_FILE ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_POSTPROCESS_PYD_PATH "${CHPY_POSTPROCESS_PYD_FILE}" PATH)
-
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_POSTPROCESS_PYD_PATH}/${CHPY_PACKAGENAME})
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_POSTPROCESS_PY_FILE} ${CHPY_POSTPROCESS_PYD_PATH})
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_POSTPROCESS_PY_FILE} ${CHPY_POSTPROCESS_PYD_PATH}/${CHPY_PACKAGENAME})
 
   # Install module
   install(TARGETS ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}
-          RUNTIME DESTINATION ${CH_INSTALL_PYTHON}
-          LIBRARY DESTINATION ${CH_INSTALL_PYTHON}
-          ARCHIVE DESTINATION ${CH_INSTALL_PYTHON})
-  install(FILES ${CHPY_POSTPROCESS_PY_FILE} DESTINATION ${CH_INSTALL_PYTHON})
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+		  LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+  install(FILES "${CHPY_POSTPROCESS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}")
 
   if (DBG_SCRIPT)
     message("Module name:     ${CHPY_POSTPROCESS}")
@@ -257,7 +279,7 @@ if(ENABLE_MODULE_FEA)
   message(STATUS "...add Chrono::Python FEA module")
   
   # Python module name
-  set(CHPY_FEA ChronoEngine_python_fea)
+  set(CHPY_FEA fea)
 
   # Interface files
   set(CHPY_FEA_MODULE_FILE 
@@ -279,29 +301,32 @@ if(ENABLE_MODULE_FEA)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} PROPERTIES 
-                        PROJECT_LABEL "${CHPY_FEA}"
+                        PROJECT_LABEL "ChronoEngine_python_${CHPY_FEA}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine_fea)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file next to PYD file 
+  # Copy PY file in a package dir 
   set(CHPY_FEA_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FEA}.py")
   get_target_property(CHPY_FEA_PYD_FILE ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_FEA_PYD_PATH "${CHPY_FEA_PYD_FILE}" PATH)
-
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_FEA_PYD_PATH}/${CHPY_PACKAGENAME})
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_FEA_PYD_PATH})
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_FEA_PYD_PATH}/${CHPY_PACKAGENAME})
 
   # Install module
   install(TARGETS ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
-          RUNTIME DESTINATION ${CH_INSTALL_PYTHON}
-          LIBRARY DESTINATION ${CH_INSTALL_PYTHON}
-          ARCHIVE DESTINATION ${CH_INSTALL_PYTHON})
-  install(FILES ${CHPY_FEA_PY_FILE} DESTINATION ${CH_INSTALL_PYTHON})
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+  install(FILES "${CHPY_FEA_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}")
 
   if (DBG_SCRIPT)
     message("Module name:     ${CHPY_FEA}")
@@ -322,7 +347,7 @@ if(ENABLE_MODULE_IRRLICHT)
   message(STATUS "...add Chrono::Python IRRLICHT module")
   
   # Python module name
-  set(CHPY_IRRLICHT ChronoEngine_python_irrlicht)
+  set(CHPY_IRRLICHT irrlicht)
 
   # Interface files
   set(CHPY_IRRLICHT_MODULE_FILE 
@@ -346,29 +371,32 @@ if(ENABLE_MODULE_IRRLICHT)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} PROPERTIES 
-                        PROJECT_LABEL "${CHPY_IRRLICHT}"
+                        PROJECT_LABEL "ChronoEngine_python_${CHPY_IRRLICHT}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
                         )
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ChronoEngine_irrlicht)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file next to PYD file 
+  # Copy PY file in a package dir 
   set(CHPY_IRRLICHT_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_IRRLICHT}.py")
   get_target_property(CHPY_IRRLICHT_PYD_FILE ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_IRRLICHT_PYD_PATH "${CHPY_IRRLICHT_PYD_FILE}" PATH)
-
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_IRRLICHT_PYD_PATH}/${CHPY_PACKAGENAME})
   add_custom_command(TARGET ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}
                      POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_IRRLICHT_PY_FILE} ${CHPY_IRRLICHT_PYD_PATH})
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_IRRLICHT_PY_FILE} ${CHPY_IRRLICHT_PYD_PATH}/${CHPY_PACKAGENAME})
 
   # Install module
   install(TARGETS ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}
-          RUNTIME DESTINATION ${CH_INSTALL_PYTHON}
-          LIBRARY DESTINATION ${CH_INSTALL_PYTHON}
-          ARCHIVE DESTINATION ${CH_INSTALL_PYTHON})
-  install(FILES ${CHPY_IRRLICHT_PY_FILE} DESTINATION ${CH_INSTALL_PYTHON})
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
+  install(FILES "${CHPY_IRRLICHT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}")
 
   if (DBG_SCRIPT)
     message("Module name:     ${CHPY_IRRLICHT}")
