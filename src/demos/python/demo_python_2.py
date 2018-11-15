@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
 
 # Load the Chrono::Engine unit!!!
-import ChronoEngine_python_core as chrono
+import pychrono.core as chrono
 
 
 # Create a physical system,
