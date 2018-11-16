@@ -77,12 +77,11 @@ int main(int argc, char* argv[]) {
 
     const float Bx = params.box_X;
     const float By = Bx;
-    float fill_height = 10;     // height above top of cone that will be filled with particles
-    float radius_opening = 4;   // Opening at bottom of cone      // TODO vary
-    float cone_slope = 1.f;     // TODO vary
-    float z_cone_opening = 20;  // z coord of the cone opening
+    float fill_height = 30;      // height above top of cone that will be filled with particles
+    float radius_opening = 4.f;  // Opening at bottom of cone      // TODO vary
+    float cone_slope = 1.f;      // TODO vary
+    float z_cone_opening = 40;   // z coord of the cone opening
 
-    // TODO add boundary condition cone and cylinder
     float z_cone_tip = z_cone_opening - cone_slope * radius_opening;
     float z_cone_top = z_cone_tip + cone_slope * Bx / std::sqrt(2);
 
@@ -121,8 +120,8 @@ int main(int argc, char* argv[]) {
     mesh_filenames.push_back(mesh_filename);
 
     vector<float3> mesh_scalings;
-    float3 scaling = make_float3(Bx / 3.f - 4 * params.sphere_radius, Bx / 3.f - 4 * params.sphere_radius,
-                                 10);  // TODO rethink this
+    float scale_xy = Bx / (2 * 3.f) - 4 * params.sphere_radius;
+    float3 scaling = make_float3(scale_xy, scale_xy, 10);  // TODO rethink this
     mesh_scalings.push_back(scaling);
 
     std::vector<float> mesh_masses;
@@ -133,7 +132,6 @@ int main(int argc, char* argv[]) {
 
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
     cout << nSoupFamilies << " soup families" << endl;
-    float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
@@ -169,16 +167,14 @@ int main(int argc, char* argv[]) {
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
             m_sys.writeFileUU(string(filename));
             m_sys.write_meshes(string(filename));
-            // cout << "torque: " << forces[3] << ", " << forces[4] << ", " << forces[5] << endl;
+            float forces[6];
+            m_sys.collectGeneralizedForcesOnMeshSoup(forces);
+            cout << "torque: " << forces[3] << ", " << forces[4] << ", " << forces[5] << endl;
         }
-
-        float forces[6];
-        m_sys.collectGeneralizedForcesOnMeshSoup(forces);
 
         m_sys.advance_simulation(iteration_step);
     }
 
-    delete[] genForcesOnMeshSoup;
     delete[] meshSoupLocOri;
 
     return 0;
