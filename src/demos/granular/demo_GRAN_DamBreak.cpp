@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
     float max_z_fill = 2. * 100.;
     ChVector<float> hdims = .5f * ChVector<float>(2. * 100., params.box_Y, max_z_fill) - rad_offset;
 
+    // start at bottom left corner
     ChVector<float> center =
         ChVector<float>(-params.box_X / 2., -params.box_Y / 2., -params.box_Z / 2.) + hdims + rad_offset;
 

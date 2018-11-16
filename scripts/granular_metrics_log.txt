@@ -918,3 +918,15 @@ Running settling test!
 50 thousand bodies took 1.46725 seconds!
 500 thousand bodies took 12.9453 seconds!
 1 million bodies took 26.33 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 16 Nov 2018 09:41:08 -0600
+commit c73d02a8ae96d42f9cbb13d723791c78ec96e761 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Nov 16 09:41:08 2018 -0600 fix cuda warpsize, biggify dam break
+Results:
+Running wavetank test!
+50 thousand bodies took 1.62853 seconds!
+500 thousand bodies took 13.1356 seconds!
+1 million bodies took 27.372 seconds!
+Running settling test!
+50 thousand bodies took 1.58167 seconds!
+500 thousand bodies took 13.8103 seconds!
+1 million bodies took 26.4594 seconds!

@@ -58,13 +58,8 @@
 /// Number of threads in a block when that number is allowed to vary.
 #define CUDA_THREADS_PER_BLOCK 128
 
-// NOTE warpSize is a cuda environment value, but it is cc-dependent
-#if __CUDA_ARCH__ <= 600
-// all devices of compute capability <= 6.0
+// NOTE this may change in the future, but until then this is sufficient
 static const int warp_size = 32;
-#else
-static const int warp_size = warpSize;
-#endif
 
 /** Set up some error checking mechanism to ensure CUDA didn't complain about things.
  *   This approach suggested <a
