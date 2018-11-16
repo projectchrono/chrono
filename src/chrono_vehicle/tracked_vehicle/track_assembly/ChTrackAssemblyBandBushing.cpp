@@ -85,7 +85,7 @@ bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis)
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }
 
-    GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
+    ////GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
 
     return ccw;
 }

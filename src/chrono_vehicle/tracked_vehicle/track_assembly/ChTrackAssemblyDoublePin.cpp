@@ -260,7 +260,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         ++index;
     }
 
-    GetLog() << "Track assembly done.  Number of track shoes: " << index << "\n";
+    ////GetLog() << "Track assembly done.  Number of track shoes: " << index << "\n";
     return ccw;
 }
 
