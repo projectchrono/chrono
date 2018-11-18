@@ -57,11 +57,18 @@ class ChApi ChCollisionSystem {
     /// engine (custom data may be deallocated).
     // virtual void RemoveAll() = 0;
 
-    /// RUN THE ALGORITHM and finds the contacts.
-    /// This is the most important function - it will be called
-    /// at each simulation step.
-    /// Children classes _must_ implement this.
+    /// Run the collision detection and finds the contacts.
+    /// This function will be called at each simulation step.
     virtual void Run() = 0;
+
+    /// Return the time (in seconds) for broadphase collision detection.
+    virtual double GetTimerCollisionBroad() const = 0;
+
+    /// Return the time (in seconds) for narrowphase collision detection.
+    virtual double GetTimerCollisionNarrow() const = 0;
+
+    /// Reset any timers associated with collision detection.
+    virtual void ResetTimers() {}
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class

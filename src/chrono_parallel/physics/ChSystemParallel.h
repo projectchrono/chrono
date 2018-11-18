@@ -89,18 +89,13 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     unsigned int GetNumBilaterals();
 
     /// Gets the time (in seconds) spent for computing the time step.
-    virtual double GetTimerStep() override;
+    virtual double GetTimerStep() const override;
     /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step.
-    virtual double GetTimerSolver() override;
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step.
-    virtual double GetTimerCollisionBroad() override;
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step.
-    virtual double GetTimerCollisionNarrow() override;
+    virtual double GetTimerSolver() const override;
+    /// Gets the total time (in seconds) for collision detection, within the time step.
+    virtual double GetTimerCollision() const override;
     /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step.
-    virtual double GetTimerUpdate() override;
-
-    /// Gets the total time for the collision detection step.
-    double GetTimerCollision();
+    virtual double GetTimerUpdate() const override;
 
     /// Calculate cummulative contact forces for all bodies in the system.
     virtual void CalculateContactForces() {}

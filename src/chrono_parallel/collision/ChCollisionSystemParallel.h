@@ -65,6 +65,12 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     /// (Contacts will be managed by the Bullet persistent contact cache).
     virtual void Run() override;
 
+    /// Return the time (in seconds) for broadphase collision detection.
+    virtual double GetTimerCollisionBroad() const override;
+
+    /// Return the time (in seconds) for narrowphase collision detection.
+    virtual double GetTimerCollisionNarrow() const override;
+
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
     /// ChContactContainer. For instance ChSystem, after each Run()

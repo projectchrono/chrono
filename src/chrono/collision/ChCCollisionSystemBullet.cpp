@@ -1266,6 +1266,19 @@ void ChCollisionSystemBullet::Run() {
     }
 }
 
+void ChCollisionSystemBullet::ResetTimers() {
+    bt_collision_world->timer_collision_broad.reset();
+    bt_collision_world->timer_collision_narrow.reset();
+}
+
+double ChCollisionSystemBullet::GetTimerCollisionBroad() const {
+    return bt_collision_world->timer_collision_broad();
+}
+
+double ChCollisionSystemBullet::GetTimerCollisionNarrow() const {
+    return bt_collision_world->timer_collision_narrow();
+}
+
 void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontainer) {
     // This should remove all old contacts (or at least rewind the index)
     mcontactcontainer->BeginAddContact();

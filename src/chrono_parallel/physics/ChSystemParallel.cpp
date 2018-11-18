@@ -796,29 +796,22 @@ unsigned int ChSystemParallel::GetNumBilaterals() {
 }
 
 /// Gets the time (in seconds) spent for computing the time step
-double ChSystemParallel::GetTimerStep() {
+double ChSystemParallel::GetTimerStep() const {
     return data_manager->system_timer.GetTime("step");
 }
 
 /// Gets the fraction of time (in seconds) for the solution of the problem, within the time step
-double ChSystemParallel::GetTimerSolver() {
+double ChSystemParallel::GetTimerSolver() const {
     return data_manager->system_timer.GetTime("solver");
 }
-/// Gets the fraction of time (in seconds) for finding collisions, within the time step
-double ChSystemParallel::GetTimerCollisionBroad() {
-    return data_manager->system_timer.GetTime("collision_broad");
-}
-/// Gets the fraction of time (in seconds) for finding collisions, within the time step
-double ChSystemParallel::GetTimerCollisionNarrow() {
-    return data_manager->system_timer.GetTime("collision_narrow");
-}
+
 /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-double ChSystemParallel::GetTimerUpdate() {
+double ChSystemParallel::GetTimerUpdate() const {
     return data_manager->system_timer.GetTime("update");
 }
 
 /// Gets the total time for the collision detection step
-double ChSystemParallel::GetTimerCollision() {
+double ChSystemParallel::GetTimerCollision() const {
     return data_manager->system_timer.GetTime("collision");
 }
 
