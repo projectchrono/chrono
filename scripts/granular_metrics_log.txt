@@ -942,3 +942,15 @@ Running settling test!
 50 thousand bodies took 2.2062 seconds!
 500 thousand bodies took 13.4295 seconds!
 1 million bodies took 28.1419 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 19 Nov 2018 11:39:50 -0600
+commit b9fc6a49be161e706d14d2e4b56e906286cbc2e0 Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Nov 19 11:39:22 2018 -0600 fix mesh pointers in robosim granular demo
+Results:
+Running wavetank test!
+50 thousand bodies took 1.72577 seconds!
+500 thousand bodies took 13.8867 seconds!
+1 million bodies took 27.8252 seconds!
+Running settling test!
+50 thousand bodies took 1.65066 seconds!
+500 thousand bodies took 13.5991 seconds!
+1 million bodies took 27.4327 seconds!
