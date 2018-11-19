@@ -58,24 +58,24 @@ class CH_PARALLEL_API ChTimerParallel {
     ChTimerParallel() : total_timers(0) {}
     ~ChTimerParallel() {}
 
-    void AddTimer(std::string name) {
+    void AddTimer(const std::string& name) {
         TimerData temp;
         timer_list[name] = temp;
         total_timers++;
     }
 
     void Reset() {
-        for (auto timer : timer_list) {
+        for (auto& timer : timer_list) {
             timer.second.Reset();
         }
     }
 
-    void start(std::string name) { timer_list[name].start(); }
+    void start(const std::string& name) { timer_list.at(name).start(); }
 
-    void stop(std::string name) { timer_list[name].stop(); }
+    void stop(const std::string& name) { timer_list.at(name).stop(); }
 
     // Returns the time associated with a specific timer
-    double GetTime(std::string name) const {
+    double GetTime(const std::string& name) const {
         if (timer_list.count(name) == 0) {
             return 0;
         }
@@ -83,7 +83,7 @@ class CH_PARALLEL_API ChTimerParallel {
     }
 
     // Returns the number of times a specific timer was called
-    int GetRuns(std::string name) const {
+    int GetRuns(const std::string& name) const {
         if (timer_list.count(name) == 0) {
             return 0;
         }
@@ -93,8 +93,8 @@ class CH_PARALLEL_API ChTimerParallel {
     void PrintReport() const {
         std::cout << "Timer Report:" << std::endl;
         std::cout << "------------" << std::endl;
-        for (auto timer : timer_list) {
-            std::cout << "Name:\t" << it->first << "\t" << timer.second.timer() << "\n";
+        for (auto& timer : timer_list) {
+            std::cout << "Name:\t" << timer.first << "\t" << timer.second.timer() << "\n";
         }
         std::cout << "------------" << std::endl;
     }
