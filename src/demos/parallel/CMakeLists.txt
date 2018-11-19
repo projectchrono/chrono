@@ -32,12 +32,7 @@ SET(DEMOS
     demo_PAR_snowMPM
     demo_PAR_particlesNSC
     demo_PAR_friction
-    demo_PAR_cylCouetteFlowSMC
-    DST_main
-    DST_set
-    #CPT
-    #STT
-    #STT_Settling
+    # demo_PAR_cylCouetteFlowSMC
 )
 
 # ------------------------------------------------------------------------------
