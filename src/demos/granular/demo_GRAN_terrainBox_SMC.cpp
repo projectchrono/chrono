@@ -36,8 +36,6 @@ using std::cout;
 using std::endl;
 using std::string;
 
-enum { SETTLING = 0, WAVETANK = 1, BOUNCING_PLATE = 2 };
-
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
@@ -45,20 +43,29 @@ void ShowUsage() {
     cout << "usage: ./demo_GRAN_terrainBox_SMC <json_file>" << endl;
 }
 
+// expected number of args for param sweep
+constexpr int num_args_full = 6;
+
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
 // The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    GRAN_TIME_STEPPING step_mode = GRAN_TIME_STEPPING::FIXED;
-    int run_mode = SETTLING;
-
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
+    }
+
+    if (argc == num_args_full) {
+        params.sphere_radius = std::atof(argv[2]);
+        params.step_size = std::atof(argv[3]);
+        params.box_Y = std::atof(argv[4]);
+        params.output_dir = std::string(argv[5]);
+        printf("new parameters: r is %f, dt is %f, y is %f, %s\n", params.sphere_radius, params.step_size, params.box_Y,
+               params.output_dir.c_str());
     }
 
     // Setup simulation
