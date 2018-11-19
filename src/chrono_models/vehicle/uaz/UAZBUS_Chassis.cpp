@@ -70,6 +70,8 @@ UAZBUS_Chassis::UAZBUS_Chassis(const std::string& name, bool fixed, ChassisColli
         case ChassisCollisionType::MESH:
             m_coll_mesh_names.push_back("uaz/uazbus_chassis_simple.obj");
             break;
+        default:
+            break;
     }
 }
 

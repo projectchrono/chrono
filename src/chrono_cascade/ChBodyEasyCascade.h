@@ -94,18 +94,21 @@ class ChBodyEasyCascade : public ChBodyAuxRef {
         this->SetFrame_COG_to_REF(frame_cog_to_ref);
 
         // Add a visualization asset if needed
-        auto mtrimesh = std::make_shared<ChTriangleMeshShape>();
         if (visual_asset) {
-            ChCascadeMeshTools::fillTriangleMeshFromCascade(mtrimesh->GetMesh(), objshape);
-            this->AddAsset(mtrimesh);
-        }
+            auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+            ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, objshape);
 
-        // Add a collision shape if needed
-        if (collide && visual_asset) {
-            GetCollisionModel()->ClearModel();
-            GetCollisionModel()->AddTriangleMesh(mtrimesh->GetMesh(),false,false);
-            GetCollisionModel()->BuildModel();
-            SetCollide(true);
+            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+            trimesh_shape->SetMesh(trimesh);
+            this->AddAsset(trimesh_shape);
+
+            // Add a collision shape if needed
+            if (collide) {
+                GetCollisionModel()->ClearModel();
+                GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
+                GetCollisionModel()->BuildModel();
+                SetCollide(true);
+            }
         }
     }
 };

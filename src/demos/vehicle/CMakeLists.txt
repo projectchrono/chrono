@@ -22,6 +22,8 @@ ADD_SUBDIRECTORY(demo_SteeringController)
 ADD_SUBDIRECTORY(demo_TwoCars)
 ADD_SUBDIRECTORY(demo_Sedan)
 
+ADD_SUBDIRECTORY(demo_ISO2631)
+
 ADD_SUBDIRECTORY(demo_UAZ)
 
 ADD_SUBDIRECTORY(demo_DeformableSoil)

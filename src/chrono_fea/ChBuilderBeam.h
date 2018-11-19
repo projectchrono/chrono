@@ -19,6 +19,7 @@
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChElementBeamIGA.h"
 #include "chrono_fea/ChElementCableANCF.h"
+#include "chrono_fea/ChElementBeamANCF.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -118,6 +119,41 @@ class ChApiFea ChBuilderBeamANCF {
     /// It can be useful for adding constraints or changing properties afterwards.
     /// This list is reset all times a 'Build...' function is called.
     std::vector<std::shared_ptr<ChNodeFEAxyzD> >& GetLastBeamNodes() { return beam_nodes; }
+};
+
+class ChApiFea ChBuilderBeamANCFFullyPar {
+  protected:
+    std::vector<std::shared_ptr<ChElementBeamANCF> > beam_elems;
+    std::vector<std::shared_ptr<ChNodeFEAxyzDD> > beam_nodes;
+
+  public:
+    /// Helper function.
+    /// Adds beam FEM elements to the mesh to create a segment beam
+    /// from point A to point B, using ChElementCableANCF type elements.
+    /// Before running, each time resets lists of beam_elems and beam_nodes.
+    void BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
+                   std::shared_ptr<ChMaterialBeamANCF> mat,  ///<  material for beam elements
+                   const int N,                               ///< number of elements in the segment
+                   const ChVector<> A,                        ///< starting point
+                   const ChVector<> B,                         ///< ending point
+				   const double h,								///< height
+                   const double w,								///< width
+                   const ChVector<> DIR,						///< initial nodal direction
+                   const ChVector<> CUR,				///< initial nodal curvature
+				   const bool Poisson_effect = false,			///< set true to evaluate poisson effects
+				   const bool grav = false,						///< set true to apply gravity force
+				   const double damp = 0);						///< damping
+ 
+
+    /// Access the list of elements used by the last built beam.
+    /// It can be useful for changing properties afterwards.
+    /// This list is reset all times a 'Build...' function is called.
+    std::vector<std::shared_ptr<ChElementBeamANCF> >& GetLastBeamElements() { return beam_elems; }
+
+    /// Access the list of nodes used by the last built beam.
+    /// It can be useful for adding constraints or changing properties afterwards.
+    /// This list is reset all times a 'Build...' function is called.
+    std::vector<std::shared_ptr<ChNodeFEAxyzDD> >& GetLastBeamNodes() { return beam_nodes; }
 };
 
 

@@ -74,7 +74,6 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     // Read contact geometry data
     assert(d.HasMember("Contact Geometry"));
     assert(d["Contact Geometry"].HasMember("Shoe"));
-    assert(d["Contact Geometry"].HasMember("Cylinder"));
 
     m_pad_box_dims = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
     m_pad_box_loc = LoadVectorJSON(d["Contact Geometry"]["Shoe"]["Pad Location"]);
@@ -117,8 +116,8 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void TrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_meshName);

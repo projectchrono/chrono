@@ -25,7 +25,7 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionModelParallel::ChCollisionModelParallel() : nObjects(0) {
+ChCollisionModelParallel::ChCollisionModelParallel() : nObjects(0), aabb_min(C_LARGE_REAL), aabb_max(-C_LARGE_REAL) {
     model_safe_margin = 0;
 }
 
@@ -40,6 +40,8 @@ int ChCollisionModelParallel::ClearModel() {
 
     local_convex_data.clear();
     mData.clear();
+    aabb_min = real3(C_LARGE_REAL);
+    aabb_max = real3(-C_LARGE_REAL);
     nObjects = 0;
     family_group = 1;
     family_mask = 0x7FFF;
@@ -277,7 +279,7 @@ bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVe
     return true;
 }
 
-bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> >& pointlist,
+bool ChCollisionModelParallel::AddConvexHull(const std::vector<ChVector<double> >& pointlist,
                                              const ChVector<>& pos,
                                              const ChMatrix33<>& rot) {
     ChFrame<> frame;
@@ -314,7 +316,7 @@ bool ChCollisionModelParallel::AddBarrel(double Y_low,
 }
 
 /// Add a triangle mesh to this model
-bool ChCollisionModelParallel::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
+bool ChCollisionModelParallel::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> trimesh,
                                                bool is_static,
                                                bool is_convex,
                                                const ChVector<>& pos,
@@ -325,10 +327,10 @@ bool ChCollisionModelParallel::AddTriangleMesh(const geometry::ChTriangleMesh& t
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    nObjects += trimesh.getNumTriangles();
+    nObjects += trimesh->getNumTriangles();
     ConvexModel tData;
-    for (int i = 0; i < trimesh.getNumTriangles(); i++) {
-        geometry::ChTriangle temptri = trimesh.getTriangle(i);
+    for (int i = 0; i < trimesh->getNumTriangles(); i++) {
+        geometry::ChTriangle temptri = trimesh->getTriangle(i);
         tData.A = real3(temptri.p1.x() + position.x(), temptri.p1.y() + position.y(), temptri.p1.z() + position.z());
         tData.B = real3(temptri.p2.x() + position.x(), temptri.p2.y() + position.y(), temptri.p2.z() + position.z());
         tData.C = real3(temptri.p3.x() + position.x(), temptri.p3.y() + position.y(), temptri.p3.z() + position.z());
@@ -345,7 +347,11 @@ bool ChCollisionModelParallel::AddCopyOfAnotherModel(ChCollisionModel* another) 
     // NOT SUPPORTED
     return false;
 }
-void ChCollisionModelParallel::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {}
+
+void ChCollisionModelParallel::GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const {
+    bbmin.x() = aabb_min.x; bbmin.y() = aabb_min.y; bbmin.z() = aabb_min.z;
+    bbmax.x() = aabb_max.x; bbmax.y() = aabb_max.y; bbmax.z() = aabb_max.z;
+}
 
 void ChCollisionModelParallel::SyncPosition() {
     ChBody* bpointer = GetBody();

@@ -170,7 +170,7 @@ class ChApi ChIterativeSolver : public ChSolver {
         marchive << CHNVP(shlambda);
     }
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead<ChIterativeSolver>();

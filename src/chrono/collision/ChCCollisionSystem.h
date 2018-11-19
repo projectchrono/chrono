@@ -16,8 +16,8 @@
 #define CHC_COLLISIONSYSTEM_H
 
 #include "chrono/collision/ChCCollisionInfo.h"
-#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
 
@@ -33,7 +33,6 @@ namespace collision {
 /// Base class for generic collision engine.
 /// Most methods are 'pure virtual': they need to be implemented by derived classes.
 class ChApi ChCollisionSystem {
-
   public:
     ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {
         narrow_callback = 0;
@@ -58,11 +57,18 @@ class ChApi ChCollisionSystem {
     /// engine (custom data may be deallocated).
     // virtual void RemoveAll() = 0;
 
-    /// RUN THE ALGORITHM and finds the contacts.
-    /// This is the most important function - it will be called
-    /// at each simulation step.
-    /// Children classes _must_ implement this.
+    /// Run the collision detection and finds the contacts.
+    /// This function will be called at each simulation step.
     virtual void Run() = 0;
+
+    /// Return the time (in seconds) for broadphase collision detection.
+    virtual double GetTimerCollisionBroad() const = 0;
+
+    /// Return the time (in seconds) for narrowphase collision detection.
+    virtual double GetTimerCollisionNarrow() const = 0;
+
+    /// Reset any timers associated with collision detection.
+    virtual void ResetTimers() {}
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
@@ -120,7 +126,8 @@ class ChApi ChCollisionSystem {
         virtual ~NarrowphaseCallback() {}
 
         /// Callback used to process collision pairs found by the narrow-phase collision step.
-        virtual void OnNarrowphase(ChCollisionInfo& contactinfo) = 0;
+        /// Return true to generate a contact for this pair of overlapping bodies.
+        virtual bool OnNarrowphase(ChCollisionInfo& contactinfo) = 0;
     };
 
     /// Specify a callback object to be used each time a collision pair is found during
@@ -141,14 +148,18 @@ class ChApi ChCollisionSystem {
     virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const = 0;
 
     /// Perform a ray-hit test with the specified collision model.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChCollisionModel* model, ChRayhitResult& mresult) const = 0;
+    virtual bool RayHit(const ChVector<>& from,
+                        const ChVector<>& to,
+                        ChCollisionModel* model,
+                        ChRayhitResult& mresult) const = 0;
 
-    // SERIALIZATION
-
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite<ChCollisionSystem>();
     }
+
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead<ChCollisionSystem>();

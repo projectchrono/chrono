@@ -177,8 +177,8 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
     coll_model->BuildModel();
 
     // Visualization
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);

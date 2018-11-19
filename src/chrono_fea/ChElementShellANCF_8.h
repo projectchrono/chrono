@@ -342,16 +342,16 @@ class ChApiFea ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() { return 9; }
+    virtual int Get_field_ncoords() override { return 9; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 8; }
+    virtual int GetSubBlocks() override { return 8; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) { return 9; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 9; }
 
     virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
 

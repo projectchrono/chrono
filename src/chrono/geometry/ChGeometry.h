@@ -30,7 +30,6 @@ namespace geometry {
 
 /// Base class for geometric objects used for collisions and visualization.
 class ChApi ChGeometry {
-
   public:
     /// Enumeration of geometric objects
     enum GeometryType {
@@ -97,8 +96,6 @@ class ChApi ChGeometry {
     /// Returns the radius of the sphere which can enclose the geometry
     virtual double Size() const;
 
-
-
     /// Compute center of mass
     /// It should be overridden by inherited classes
     virtual ChVector<> Baricenter() const { return VNULL; }
@@ -118,23 +115,18 @@ class ChApi ChGeometry {
     /// external data. etc.).
     virtual void Update() {}
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite<ChGeometry>();
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead<ChGeometry>();
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 /// @} chrono_geometry
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChGeometry,0)
+CH_CLASS_VERSION(geometry::ChGeometry, 0)
 
 }  // end namespace chrono
 

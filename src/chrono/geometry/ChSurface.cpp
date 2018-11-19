@@ -12,9 +12,9 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <memory.h>
 #include <cfloat>
 #include <cmath>
-#include <memory.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -50,13 +50,30 @@ void ChSurface::Normal(ChVector<>& dir, const double parU, const double parV) co
         vB = parV + bdf;
         vA = parV;
     }
-    ChVector<> V0,Vu,Vv;
-    Evaluate(V0, uA,vA);
-    Evaluate(Vu, uB,vA);
-    Evaluate(Vv, uA,vB);
-    dir = Vnorm(Vcross( (Vu - V0), (Vv - V0) ));
+    ChVector<> V0, Vu, Vv;
+    Evaluate(V0, uA, vA);
+    Evaluate(Vu, uB, vA);
+    Evaluate(Vv, uA, vB);
+    dir = Vnorm(Vcross((Vu - V0), (Vv - V0)));
 }
 
+void ChSurface::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChSurface>();
+    // serialize parent class
+    ChGeometry::ArchiveOUT(marchive);
+    // serialize all member data:
+    // marchive << CHNVP(closed);
+}
+
+void ChSurface::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChSurface>();
+    // deserialize parent class
+    ChGeometry::ArchiveIN(marchive);
+    // stream in all member data:
+    // marchive >> CHNVP(closed);
+}
 
 }  // end namespace geometry
 }  // end namespace chrono

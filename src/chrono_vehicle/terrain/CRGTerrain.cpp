@@ -281,6 +281,8 @@ void CRGTerrain::SetupLineGraphics() {
 
 void CRGTerrain::SetupMeshGraphics() {
     auto mmesh = std::make_shared<ChTriangleMeshShape>();
+    auto& coords = mmesh->GetMesh()->getCoordsVertices();
+    auto& indices = mmesh->GetMesh()->getIndicesVertexes();
 
     size_t nu = static_cast<size_t>((m_uend - m_ubeg) / m_uinc) + 1;
     size_t nv;
@@ -311,9 +313,9 @@ void CRGTerrain::SetupMeshGraphics() {
                     z0.push_back(z);
                 }
                 if (i == nu - 1 && m_isClosed) {
-                    mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(x0[j], y0[j], z0[j]));
+                    coords.push_back(ChVector<>(x0[j], y0[j], z0[j]));
                 } else {
-                    mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(x, y, z));
+                    coords.push_back(ChVector<>(x, y, z));
                 }
             }
         }
@@ -341,9 +343,9 @@ void CRGTerrain::SetupMeshGraphics() {
                     z0.push_back(z);
                 }
                 if (i == nu - 1 && m_isClosed) {
-                    mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(x0[j], y0[j], z0[j]));
+                    coords.push_back(ChVector<>(x0[j], y0[j], z0[j]));
                 } else {
-                    mmesh->GetMesh().getCoordsVertices().push_back(ChVector<>(x, y, z));
+                    coords.push_back(ChVector<>(x, y, z));
                 }
             }
         }
@@ -359,8 +361,8 @@ void CRGTerrain::SetupMeshGraphics() {
             size_t jdx1 = j + 1 + ofs;
             size_t jdx2 = j + nv + ofs;
             size_t jdx3 = j + 1 + nv + ofs;
-            mmesh->GetMesh().getIndicesVertexes().push_back(ChVector<int>(idx1, idx2, idx3));
-            mmesh->GetMesh().getIndicesVertexes().push_back(ChVector<int>(jdx1, jdx2, jdx3));
+            indices.push_back(ChVector<int>(idx1, idx2, idx3));
+            indices.push_back(ChVector<int>(jdx1, jdx2, jdx3));
         }
     }
 

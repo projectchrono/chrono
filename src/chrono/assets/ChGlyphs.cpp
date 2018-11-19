@@ -16,9 +16,14 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChGlyphs)
+
+ChGlyphs::ChGlyphs() {
+    draw_mode = GLYPH_POINT;
+    size = 0.002;
+    zbuffer_hide = true;
+}
 
 void ChGlyphs::Reserve(unsigned int n_glyphs) {
     colors.resize(n_glyphs);
@@ -43,7 +48,7 @@ void ChGlyphs::Reserve(unsigned int n_glyphs) {
     }
 }
 
-/// Fast method to set a glyph for GLYPH_POINT draw mode:
+// Fast method to set a glyph for GLYPH_POINT draw mode:
 void ChGlyphs::SetGlyphPoint(unsigned int id, ChVector<> mpoint, ChColor mcolor) {
     if (points.size() <= id)
         points.resize(id + 1);
@@ -54,7 +59,7 @@ void ChGlyphs::SetGlyphPoint(unsigned int id, ChVector<> mpoint, ChColor mcolor)
     colors[id] = mcolor;
 }
 
-/// Fast method to set a glyph for GLYPH_VECTOR draw mode:
+// Fast method to set a glyph for GLYPH_VECTOR draw mode:
 void ChGlyphs::SetGlyphVector(unsigned int id, ChVector<> mpoint, ChVector<> mvector, ChColor mcolor) {
     if (points.size() <= id)
         points.resize(id + 1);
@@ -69,8 +74,8 @@ void ChGlyphs::SetGlyphVector(unsigned int id, ChVector<> mpoint, ChVector<> mve
     colors[id] = mcolor;
 }
 
-/// Fast method to set a glyph for GLYPH_COORDSYS draw mode.
-/// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
+// Fast method to set a glyph for GLYPH_COORDSYS draw mode.
+// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
 void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
     if (points.size() <= id)
         points.resize(id + 1);
@@ -79,6 +84,38 @@ void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
     if (rotations.size() <= id)
         rotations.resize(id + 1);
     rotations[id] = mcoord.rot;
+}
+
+void ChGlyphs::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChGlyphs>();
+    // serialize parent class
+    ChVisualization::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(points);
+    marchive << CHNVP(colors);
+    marchive << CHNVP(vectors);
+    marchive << CHNVP(rotations);
+    eCh_GlyphType_mapper mmapper;
+    marchive << CHNVP(mmapper(draw_mode), "draw_mode");
+    marchive << CHNVP(size);
+    marchive << CHNVP(zbuffer_hide);
+}
+
+void ChGlyphs::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChGlyphs>();
+    // deserialize parent class
+    ChVisualization::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(points);
+    marchive >> CHNVP(colors);
+    marchive >> CHNVP(vectors);
+    marchive >> CHNVP(rotations);
+    eCh_GlyphType_mapper mmapper;
+    marchive >> CHNVP(mmapper(draw_mode), "draw_mode");
+    marchive >> CHNVP(size);
+    marchive >> CHNVP(zbuffer_hide);
 }
 
 }  // end namespace chrono

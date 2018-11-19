@@ -33,9 +33,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChRigidTire::ChRigidTire(const std::string& name) : ChTire(name), m_use_contact_mesh(false), m_trimesh(nullptr) {}
 
-ChRigidTire::~ChRigidTire() {
-    delete m_trimesh;
-}
+ChRigidTire::~ChRigidTire() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -58,10 +56,10 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     if (m_use_contact_mesh) {
         // Mesh contact
-        m_trimesh = new geometry::ChTriangleMeshConnected;
+        m_trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
         m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
 
-        wheel->GetCollisionModel()->AddTriangleMesh(*m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+        wheel->GetCollisionModel()->AddTriangleMesh(m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
                                                     m_sweep_sphere_radius);
     } else {
         // Cylinder contact

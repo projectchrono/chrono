@@ -22,27 +22,22 @@
 
 namespace chrono {
 
-enum ChMaterialType { 
-    CH_MATERIAL_DIFFUSE, 
-    CH_MATERIAL_PHONG, 
-    CH_MATERIAL_CONDUCTOR, 
-    CH_MATERIAL_PLASTIC };
+enum ChMaterialType { CH_MATERIAL_DIFFUSE, CH_MATERIAL_PHONG, CH_MATERIAL_CONDUCTOR, CH_MATERIAL_PLASTIC };
 
 CH_ENUM_MAPPER_BEGIN(ChMaterialType);
-  CH_ENUM_VAL(CH_MATERIAL_DIFFUSE);
-  CH_ENUM_VAL(CH_MATERIAL_PHONG);
-  CH_ENUM_VAL(CH_MATERIAL_CONDUCTOR);
-  CH_ENUM_VAL(CH_MATERIAL_PLASTIC);
+CH_ENUM_VAL(CH_MATERIAL_DIFFUSE);
+CH_ENUM_VAL(CH_MATERIAL_PHONG);
+CH_ENUM_VAL(CH_MATERIAL_CONDUCTOR);
+CH_ENUM_VAL(CH_MATERIAL_PLASTIC);
 CH_ENUM_MAPPER_END(ChMaterialType);
-
 
 struct material_option {
     std::string type, parameter, value;
 
     // SERIALIZATION
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         marchive.VersionWrite<material_option>();
         // serialize all member data:
         marchive << CHNVP(type);
@@ -50,9 +45,8 @@ struct material_option {
         marchive << CHNVP(value);
     }
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         int version = marchive.VersionRead<material_option>();
         // deserialize all member data:
         marchive >> CHNVP(type);
@@ -61,9 +55,7 @@ struct material_option {
     }
 };
 
-CH_CLASS_VERSION(ChMaterialOption,0)
-
-
+CH_CLASS_VERSION(ChMaterialOption, 0)
 
 class ChApi ChMaterial {
   public:
@@ -105,13 +97,8 @@ class ChApi ChMaterial {
     std::vector<material_option> options;
     bool visible;
 
-
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite<ChMaterial>();
 
@@ -119,14 +106,13 @@ class ChApi ChMaterial {
         marchive << CHNVP(color);
         marchive << CHNVP(fading);
         ChMaterialType_mapper mmapper;
-        marchive << CHNVP(mmapper(material_type),"material_type");
+        marchive << CHNVP(mmapper(material_type), "material_type");
         marchive << CHNVP(options);
         marchive << CHNVP(visible);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead<ChMaterial>();
 
@@ -134,14 +120,13 @@ class ChApi ChMaterial {
         marchive >> CHNVP(color);
         marchive >> CHNVP(fading);
         ChMaterialType_mapper mmapper;
-        marchive >> CHNVP(mmapper(material_type),"material_type");
+        marchive >> CHNVP(mmapper(material_type), "material_type");
         marchive >> CHNVP(options);
         marchive >> CHNVP(visible);
     }
-
 };
 
-CH_CLASS_VERSION(ChMaterial,0)
+CH_CLASS_VERSION(ChMaterial, 0)
 
 }  // end namespace chrono
 

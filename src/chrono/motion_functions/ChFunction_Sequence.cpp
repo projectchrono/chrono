@@ -12,9 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include "chrono/motion_functions/ChFunction_Sequence.h"
 #include "chrono/motion_functions/ChFunction_Const.h"
 #include "chrono/motion_functions/ChFunction_Fillet3.h"
-#include "chrono/motion_functions/ChFunction_Sequence.h"
 
 namespace chrono {
 
@@ -57,6 +57,42 @@ void ChFseqNode::SetDuration(double mdur) {
     if (duration < 0)
         duration = 0;
     t_end = t_start + duration;
+}
+
+void ChFseqNode::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFseqNode>();
+
+    // serialize all member data:
+    marchive << CHNVP(fx);
+    marchive << CHNVP(duration);
+    marchive << CHNVP(weight);
+    marchive << CHNVP(t_start);
+    marchive << CHNVP(t_end);
+    marchive << CHNVP(Iy);
+    marchive << CHNVP(Iydt);
+    marchive << CHNVP(Iydtdt);
+    marchive << CHNVP(y_cont);
+    marchive << CHNVP(ydt_cont);
+    marchive << CHNVP(ydtdt_cont);
+}
+
+void ChFseqNode::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFseqNode>();
+
+    // stream in all member data:
+    marchive >> CHNVP(fx);
+    marchive >> CHNVP(duration);
+    marchive >> CHNVP(weight);
+    marchive >> CHNVP(t_start);
+    marchive >> CHNVP(t_end);
+    marchive >> CHNVP(Iy);
+    marchive >> CHNVP(Iydt);
+    marchive >> CHNVP(Iydtdt);
+    marchive >> CHNVP(y_cont);
+    marchive >> CHNVP(ydt_cont);
+    marchive >> CHNVP(ydtdt_cont);
 }
 
 // -------------------------------------------------------------------------------------
@@ -295,6 +331,26 @@ bool ChFunction_Sequence::HandleAccess(int handle_id, double mx, double my, bool
     }
 
     return false;
+}
+
+void ChFunction_Sequence::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Sequence>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(start);
+    marchive << CHNVP(functions);
+}
+
+void ChFunction_Sequence::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Sequence>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(start);
+    marchive >> CHNVP(functions);
 }
 
 }  // end namespace chrono

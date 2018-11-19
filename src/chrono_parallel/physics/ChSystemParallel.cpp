@@ -724,10 +724,41 @@ void ChSystemParallel::SetLoggingLevel(LoggingLevel level, bool state) {
 #endif
 }
 
-//
+// Calculate the current body AABB (union of the AABB of their collision shapes).
+void ChSystemParallel::CalculateBodyAABB() {
+    if (collision_system_type != CollisionSystemType::COLLSYS_PARALLEL)
+        return;
+
+    // Readability replacements
+    auto& s_min = data_manager->host_data.aabb_min;
+    auto& s_max = data_manager->host_data.aabb_max;
+    auto& id_rigid = data_manager->shape_data.id_rigid;
+    auto& offset = data_manager->measures.collision.global_origin;
+
+    // Initialize body AABB to inverted boxes
+    custom_vector<real3> b_min(data_manager->num_rigid_bodies, real3(C_LARGE_REAL));
+    custom_vector<real3> b_max(data_manager->num_rigid_bodies, real3(-C_LARGE_REAL));
+
+    // Loop over all shapes and update the AABB of the associated body
+    //// TODO: can be done in parallel using Thrust
+    for (uint is = 0; is < data_manager->num_rigid_shapes; is++) {
+        uint ib = id_rigid[is];
+        b_min[ib] = real3(Min(b_min[ib].x, s_min[ib].x + offset.x), Min(b_min[ib].y, s_min[ib].y + offset.y),
+                          Min(b_min[ib].z, s_min[ib].z + offset.z));
+        b_max[ib] = real3(Max(b_max[ib].x, s_max[ib].x + offset.x), Max(b_max[ib].y, s_max[ib].y + offset.y),
+                          Max(b_max[ib].z, s_max[ib].z + offset.z));
+    }
+
+    // Loop over all bodies and set the AABB of its collision model
+    for (auto b : Get_bodylist()) {
+        uint ib = b->GetId();
+        std::static_pointer_cast<ChCollisionModelParallel>(b->GetCollisionModel())->aabb_min = b_min[ib];
+        std::static_pointer_cast<ChCollisionModelParallel>(b->GetCollisionModel())->aabb_max = b_max[ib];
+    }
+}
+
 // Calculate the (linearized) bilateral constraint violations and store them in
 // the provided vector. Return the maximum constraint violation.
-//
 double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec) {
     std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
     cvec.resize(data_manager->num_bilaterals);
@@ -765,29 +796,22 @@ unsigned int ChSystemParallel::GetNumBilaterals() {
 }
 
 /// Gets the time (in seconds) spent for computing the time step
-double ChSystemParallel::GetTimerStep() {
+double ChSystemParallel::GetTimerStep() const {
     return data_manager->system_timer.GetTime("step");
 }
 
 /// Gets the fraction of time (in seconds) for the solution of the problem, within the time step
-double ChSystemParallel::GetTimerSolver() {
+double ChSystemParallel::GetTimerSolver() const {
     return data_manager->system_timer.GetTime("solver");
 }
-/// Gets the fraction of time (in seconds) for finding collisions, within the time step
-double ChSystemParallel::GetTimerCollisionBroad() {
-    return data_manager->system_timer.GetTime("collision_broad");
-}
-/// Gets the fraction of time (in seconds) for finding collisions, within the time step
-double ChSystemParallel::GetTimerCollisionNarrow() {
-    return data_manager->system_timer.GetTime("collision_narrow");
-}
+
 /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-double ChSystemParallel::GetTimerUpdate() {
+double ChSystemParallel::GetTimerUpdate() const {
     return data_manager->system_timer.GetTime("update");
 }
 
 /// Gets the total time for the collision detection step
-double ChSystemParallel::GetTimerCollision() {
+double ChSystemParallel::GetTimerCollision() const {
     return data_manager->system_timer.GetTime("collision");
 }
 

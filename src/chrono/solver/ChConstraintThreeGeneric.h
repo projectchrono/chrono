@@ -32,7 +32,6 @@ namespace chrono {
 /// must set at least the c_i and b_i values, and jacobians.
 
 class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
-
   protected:
     ChMatrixDynamic<double>* Cq_a;  ///< The [Cq_a] jacobian of the constraint
     ChMatrixDynamic<double>* Cq_b;  ///< The [Cq_b] jacobian of the constraint
@@ -123,10 +122,10 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

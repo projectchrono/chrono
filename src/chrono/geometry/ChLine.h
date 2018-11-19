@@ -17,18 +17,16 @@
 
 #include <cmath>
 
-#include "chrono/geometry/ChGeometry.h"
 #include "chrono/core/ChFilePS.h"
+#include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
 namespace geometry {
 
 /// Base class for all geometric objects representing lines in 3D space.
-/// This is the base for all U-parametric object, implementing Evaluate() 
-/// that returns a point as a function of the U parameter. 
-
+/// This is the base for all U-parametric object, implementing Evaluate()
+/// that returns a point as a function of the U parameter.
 class ChApi ChLine : public ChGeometry {
-
   protected:
     bool closed;
     int complexityU;
@@ -39,7 +37,7 @@ class ChApi ChLine : public ChGeometry {
     virtual ~ChLine() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    //virtual ChLine* Clone() const override { };
+    // virtual ChLine* Clone() const override { };
 
     /// Get the class type as unique numerical ID (faster
     /// than using ChronoRTTI mechanism).
@@ -59,7 +57,6 @@ class ChApi ChLine : public ChGeometry {
     /// known (otherwise it defaults to numerical BDF using the Evaluate()
     /// function).
     virtual void Derive(ChVector<>& dir, const double parU) const;
-
 
     /// Tell if the curve is closed
     virtual bool Get_closed() const { return closed; }
@@ -115,31 +112,16 @@ class ChApi ChLine : public ChGeometry {
     /// Draw into the current graph viewport of a ChFile_ps file
     virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChLine>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(closed);
-        marchive << CHNVP(complexityU);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChLine>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(closed);
-        marchive >> CHNVP(complexityU);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChLine,0)
+CH_CLASS_VERSION(geometry::ChLine, 0)
 
 }  // end namespace chrono
 

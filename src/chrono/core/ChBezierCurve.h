@@ -149,36 +149,11 @@ class ChApi ChBezierCurve {
     // SERIALIZATION
     //
 
-    void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChBezierCurve>();
+    /// Method to allow serialization of transient data to archives.
+    void ArchiveOUT(ChArchiveOut& marchive);
 
-        // serialize all member data:
-        marchive << CHNVP(m_points);
-        marchive << CHNVP(m_inCV);
-        marchive << CHNVP(m_outCV);
-        marchive << CHNVP(m_maxNumIters);
-        marchive << CHNVP(m_sqrDistTol);
-        marchive << CHNVP(m_cosAngleTol);
-        marchive << CHNVP(m_paramTol);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChBezierCurve>();
-
-        // stream in all member data:
-        marchive >> CHNVP(m_points);
-        marchive >> CHNVP(m_inCV);
-        marchive >> CHNVP(m_outCV);
-        marchive >> CHNVP(m_maxNumIters);
-        marchive >> CHNVP(m_sqrDistTol);
-        marchive >> CHNVP(m_cosAngleTol);
-        marchive >> CHNVP(m_paramTol);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    void ArchiveIN(ChArchiveIn& marchive);
 
   private:
     /// Utility function to solve for the outCV control points.

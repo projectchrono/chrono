@@ -81,12 +81,15 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
     mrigidbody->SetPos(tire_center + ChVector<>(0, 0.3, 0));
 
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
+
     std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
-    mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
+    mrigidmesh->SetMesh(trimesh);
     mrigidbody->AddAsset(mrigidmesh);
 
     mrigidbody->GetCollisionModel()->ClearModel();
-    mrigidbody->GetCollisionModel()->AddTriangleMesh(mrigidmesh->GetMesh(), false, false, VNULL, ChMatrix33<>(1), 0.01);
+    mrigidbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 

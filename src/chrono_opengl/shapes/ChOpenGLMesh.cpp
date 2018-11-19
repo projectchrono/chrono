@@ -64,10 +64,10 @@ bool ChOpenGLMesh::Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMat
     if (!super::Initialize()) {
         return false;
     }
-    int num_triangles = tri_mesh->GetMesh().getNumTriangles();
+    int num_triangles = tri_mesh->GetMesh()->getNumTriangles();
 
     for (unsigned int i = 0; i < (unsigned)num_triangles; i++) {
-        chrono::geometry::ChTriangle tri = tri_mesh->GetMesh().getTriangle(i);
+        chrono::geometry::ChTriangle tri = tri_mesh->GetMesh()->getTriangle(i);
         ChVector<> norm = tri.GetNormal();
         ChVector<> v1 = tri.p1;
         ChVector<> v2 = tri.p2;

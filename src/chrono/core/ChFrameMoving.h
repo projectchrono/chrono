@@ -497,10 +497,6 @@ class ChFrameMoving : public ChFrame<Real> {
         return tmp;
     }
 
-    //
-    // STREAMING
-    //
-
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite<ChFrameMoving>();
@@ -527,8 +523,8 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 };
 
-CH_CLASS_VERSION(ChFrameMoving<double>,0)
-CH_CLASS_VERSION(ChFrameMoving<float>,0)
+CH_CLASS_VERSION(ChFrameMoving<double>, 0)
+CH_CLASS_VERSION(ChFrameMoving<float>, 0)
 
 //
 // MIXED ARGUMENT OPERATORS

@@ -20,14 +20,10 @@
 
 namespace chrono {
 
-/// Class for a node, that has some degrees of
-/// freedom and that contain a proxy to the solver.
-/// It is like a lightweight version of a ChPhysicsItem,
-/// often a ChPhysicsItem is used as a container for a cluster
-/// of these ChNodeBase.
-
+/// Class for a node, that has some degrees of freedom and that contain a proxy to the solver.
+/// It is like a lightweight version of a ChPhysicsItem; often a ChPhysicsItem is used as a
+/// container for a cluster of these ChNodeBase.
 class ChApi ChNodeBase {
-
   protected:
     unsigned int offset_x;  ///< offset in vector of state (position part)
     unsigned int offset_w;  ///< offset in vector of state (speed part)
@@ -128,14 +124,14 @@ class ChApi ChNodeBase {
     /// numerical integration (Eulero integration).
     virtual void VariablesQbIncrementPosition(double step) {}
 
-    // SERIALIZATION
-
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
+
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-CH_CLASS_VERSION(ChNodeBase,0)
-
+CH_CLASS_VERSION(ChNodeBase, 0)
 
 }  // end namespace chrono
 

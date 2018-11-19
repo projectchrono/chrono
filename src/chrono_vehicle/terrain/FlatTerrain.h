@@ -42,11 +42,11 @@ class CH_VEHICLE_API FlatTerrain : public ChTerrain {
 
     /// Get the terrain height at the specified (x,y) location.
     /// Returns the constant value passed at construction.
-    virtual double GetHeight(double x, double y) const { return m_height; }
+    virtual double GetHeight(double x, double y) const override { return m_height; }
 
     /// Get the terrain normal at the specified (x,y) location.
     /// Returns a constant unit vector along the Z axis.
-    virtual ChVector<> GetNormal(double x, double y) const { return ChVector<>(0, 0, 1); }
+    virtual ChVector<> GetNormal(double x, double y) const override { return ChVector<>(0, 0, 1); }
 
     /// Get the terrain coefficient of friction at the specified (x,y) location.
     /// This coefficient of friction value may be used by certain tire models to modify

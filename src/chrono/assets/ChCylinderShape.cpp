@@ -12,7 +12,6 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-
 #include "chrono/assets/ChCylinderShape.h"
 
 namespace chrono {
@@ -20,5 +19,23 @@ namespace chrono {
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCylinderShape)
+
+void ChCylinderShape::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChCylinderShape>();
+    // serialize parent class
+    ChVisualization::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(gcylinder);
+}
+
+void ChCylinderShape::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChCylinderShape>();
+    // deserialize parent class
+    ChVisualization::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(gcylinder);
+}
 
 }  // end namespace chrono

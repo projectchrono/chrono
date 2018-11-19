@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/motion_functions/ChFunction_Fillet3.h"
+#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 
@@ -94,6 +94,33 @@ void ChFunction_Fillet3::SetupCoefficients() {
     c2 = mx(1, 0);
     c3 = mx(2, 0);
     c4 = mx(3, 0);
+}
+
+void ChFunction_Fillet3::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Fillet3>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(end);
+    marchive << CHNVP(y1);
+    marchive << CHNVP(y2);
+    marchive << CHNVP(dy1);
+    marchive << CHNVP(dy2);
+}
+
+void ChFunction_Fillet3::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Fillet3>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(end);
+    marchive >> CHNVP(y1);
+    marchive >> CHNVP(y2);
+    marchive >> CHNVP(dy1);
+    marchive >> CHNVP(dy2);
+    SetupCoefficients();
 }
 
 }  // end namespace chrono

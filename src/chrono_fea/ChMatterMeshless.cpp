@@ -318,7 +318,7 @@ void ChMatterMeshless::IntLoadResidual_F(
 
     std::shared_ptr<ChProximityContainerMeshless> edges;
     for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(otherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(otherphysics)))
             break;
     }
     assert(edges);  // If using a ChMatterMeshless, you must add also a ChProximityContainerMeshless.
@@ -476,7 +476,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
 
     std::shared_ptr<ChProximityContainerMeshless> edges;
     for (auto otherphysics : GetSystem()->Get_otherphysicslist()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(otherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(otherphysics)))
             break;
     }
     assert(edges);  // If using a ChMatterMeshless, you must add also a ChProximityContainerMeshless.

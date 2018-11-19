@@ -19,19 +19,16 @@
 
 namespace chrono {
 
-
-/// Function that returns Y from an externally-provided value, 
+/// Function that returns Y from an externally-provided value,
 /// as a ZOH (zero order hold) block. This means that the Y value
 /// does NOT change if you call Get_y(double x) with different values
 /// of x, unless you keep the setpoint Y updated via multiple
-/// calls to SetSetpoint(), for example calling SetSetpoint() 
-/// at each timestep in the simulation loop. 
-/// Also first two derivatives (speed, accel.) will persist until 
-/// next SetSetpoint() call. 
+/// calls to SetSetpoint(), for example calling SetSetpoint()
+/// at each timestep in the simulation loop.
+/// Also first two derivatives (speed, accel.) will persist until
+/// next SetSetpoint() call.
 /// Function of this class are most often functions of time.
-
 class ChApi ChFunction_Setpoint : public ChFunction {
-
   private:
     double Y;
     double Y_dx;
@@ -41,7 +38,7 @@ class ChApi ChFunction_Setpoint : public ChFunction {
     double last_Y_dx;
 
   public:
-    ChFunction_Setpoint() { 
+    ChFunction_Setpoint() {
         Y = 0;
         Y_dx = 0;
         Y_dxdx = 0;
@@ -74,65 +71,42 @@ class ChApi ChFunction_Setpoint : public ChFunction {
 
     /// Set the setpoint, and also its derivatives.
     /// All values will persist indefinitely until next call.
-    virtual void SetSetpointAndDerivatives(double setpoint, double setpoint_dx, double setpoint_dxdx) { 
-        Y = setpoint; 
-        Y_dx = setpoint_dx; 
-        Y_dxdx = setpoint_dxdx; 
+    virtual void SetSetpointAndDerivatives(double setpoint, double setpoint_dx, double setpoint_dxdx) {
+        Y = setpoint;
+        Y_dx = setpoint_dx;
+        Y_dxdx = setpoint_dxdx;
     }
 
     /// Get the last set setpoint
     double GetSetpoint() { return Y; }
 
     /// Update could be implemented by children classes, ex. to launch callbacks
-    virtual void Update(const double x) {};
+    virtual void Update(const double x) override {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Setpoint>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(Y);
-        marchive << CHNVP(Y_dx);
-        marchive << CHNVP(Y_dxdx);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Setpoint>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(Y);
-        marchive >> CHNVP(Y_dx);
-        marchive >> CHNVP(Y_dxdx);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Setpoint,0)
+CH_CLASS_VERSION(ChFunction_Setpoint, 0)
 
-
-
-
-
-/// Interface for functions that uses a callback to return a Y value, 
+/// Interface for functions that uses a callback to return a Y value,
 /// as a ZOH (zero order hold) block. This means that the Y value
 /// does NOT change if you call Get_y(double x) with different values
 /// of x, unless you keep the setpoint Y updated via multiple
-/// callback calls. 
-/// Also first two derivatives (speed, accel.) will persist until 
+/// callback calls.
+/// Also first two derivatives (speed, accel.) will persist until
 /// next SetSetpoint() call.
 /// To use this: you must inherit from this class and you must implement
 /// the SetpointCallback() function.
 
 class ChApi ChFunction_SetpointCallback : public ChFunction_Setpoint {
-
   public:
     ChFunction_SetpointCallback() {}
 
-    ChFunction_SetpointCallback(const ChFunction_SetpointCallback& other) { }
+    ChFunction_SetpointCallback(const ChFunction_SetpointCallback& other) {}
 
     virtual ~ChFunction_SetpointCallback() {}
 
@@ -151,10 +125,7 @@ class ChApi ChFunction_SetpointCallback : public ChFunction_Setpoint {
     };
 };
 
-CH_CLASS_VERSION(ChFunction_SetpointCallback,0)
-
-
-
+CH_CLASS_VERSION(ChFunction_SetpointCallback, 0)
 
 }  // end namespace chrono
 

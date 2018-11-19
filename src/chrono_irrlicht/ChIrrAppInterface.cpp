@@ -367,7 +367,8 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
                                      bool do_fullscreen,
                                      bool do_shadows,
                                      bool do_antialias,
-                                     irr::video::E_DRIVER_TYPE mydriver)
+                                     irr::video::E_DRIVER_TYPE mydriver,
+                                     irr::ELOG_LEVEL log_level)
     : step_manage(true),
       try_realtime(false),
       pause_step(false),
@@ -388,6 +389,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     params.DriverType = mydriver;
     params.WindowSize = dimens;
     params.Stencilbuffer = do_shadows;
+    params.LoggingLevel = log_level;
 
     device = irr::createDeviceEx(params);
 
@@ -425,7 +427,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     skin->setColor(irr::gui::EGDC_FOCUSED_EDITABLE, irr::video::SColor(255, 0, 255, 255));
     skin->setColor(irr::gui::EGDC_3D_HIGH_LIGHT, irr::video::SColor(200, 210, 210, 210));
 
-    gad_tabbed = GetIGUIEnvironment()->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 496), 0, true, true);
+    gad_tabbed = GetIGUIEnvironment()->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 510), 0, true, true);
     gad_tab1 = gad_tabbed->addTab(L"Stats");
     gad_tab2 = gad_tabbed->addTab(L"System");
     gad_tab3 = gad_tabbed->addTab(L"Help");
@@ -484,14 +486,16 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15),
                                                             gad_tab1, 9920, L"Draw link frames");
 
-    gad_symbolscale =
-        GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(170, 330, 200, 330 + 15), true, gad_tab1, 9921);
-    gad_symbolscale_info = GetIGUIEnvironment()->addStaticText(
-        L"Symbols scale", irr::core::rect<irr::s32>(110, 330, 170, 330 + 15), false, false, gad_tab1);
-    SetSymbolscale(symbolscale);
+    gad_plot_collisionshapes = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15),
+                                                             gad_tab1, 9902, L"Draw collision shapes");
 
-    gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15),
-                                                             gad_tab1, 9902, L"Plot convergence");
+	gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15),
+														gad_tab1, 9902, L"Plot convergence");
+
+	gad_symbolscale = GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(170, 330, 200, 330 + 15), true, gad_tab1, 9921);
+	gad_symbolscale_info = GetIGUIEnvironment()->addStaticText(
+		L"Symbols scale", irr::core::rect<irr::s32>(110, 330, 170, 330 + 15), false, false, gad_tab1);
+	SetSymbolscale(symbolscale);
 
     // --
 
@@ -602,8 +606,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     hstr += " 'F2-F3-F4' key: auto rotate camera.\n";
     gad_textHelp->setText(hstr.c_str());
 
-    ///
-    this->device->getVideoDriver()->getScreenSize().Height;
     gad_treeview = GetIGUIEnvironment()->addTreeView(
                                       irr::core::rect<irr::s32>(2, 80, 
                                       300, // this->device->getVideoDriver()->getScreenSize().Width
@@ -803,7 +805,7 @@ void ChIrrAppInterface::DrawAll() {
     str += " ms  \n\nCPU step (total)      =";
     str += (int)(1000 * system->GetTimerStep());
     str += " ms \n  CPU Collision time =";
-    str += (int)(1000 * system->GetTimerCollisionBroad());
+    str += (int)(1000 * system->GetTimerCollision());
     str += " ms \n  CPU Solver time         =";
     str += (int)(1000 * system->GetTimerSolver());
     str += " ms \n  CPU Update time      =";
@@ -832,10 +834,10 @@ void ChIrrAppInterface::DrawAll() {
         GetSceneManager()->drawAll();  // DRAW 3D SCENE the usual way, if no shadow maps
 
     int dmode = gad_drawcontacts->getSelected();
-    ChIrrTools::drawAllContactPoints(*system, GetVideoDriver(), symbolscale, (ChIrrTools::eCh_ContactsDrawMode)dmode);
+    ChIrrTools::drawAllContactPoints(system->GetContactContainer(), GetVideoDriver(), symbolscale, (ChIrrTools::eCh_ContactsDrawMode)dmode);
 
     int lmode = gad_labelcontacts->getSelected();
-    ChIrrTools::drawAllContactLabels(*system, GetDevice(), (ChIrrTools::eCh_ContactsLabelMode)lmode);
+    ChIrrTools::drawAllContactLabels(system->GetContactContainer(), GetDevice(), (ChIrrTools::eCh_ContactsLabelMode)lmode);
 
     int dmodeli = gad_drawlinks->getSelected();
     ChIrrTools::drawAllLinks(*system, GetVideoDriver(), symbolscale, (ChIrrTools::eCh_LinkDrawMode)dmodeli);
@@ -851,6 +853,9 @@ void ChIrrAppInterface::DrawAll() {
 
     if (gad_plot_linkframes->isChecked())
         ChIrrTools::drawAllLinkframes(*system, GetVideoDriver(), symbolscale);
+
+	if (gad_plot_collisionshapes->isChecked())
+		ChIrrTools::drawCollisionShapes(*system, GetDevice());
 
     if (gad_plot_convergence->isChecked())
         ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0, 500.0);

@@ -33,8 +33,9 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
@@ -116,6 +117,8 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     // Create the track assembly from the specified JSON file.
     if (subtype.compare("TrackAssemblySinglePin") == 0) {
         m_track = std::make_shared<TrackAssemblySinglePin>(d);
+    } else if (subtype.compare("TrackAssemblyDoublePin") == 0) {
+        m_track = std::make_shared<TrackAssemblyDoublePin>(d);
     }
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }

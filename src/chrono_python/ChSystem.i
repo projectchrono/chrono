@@ -17,6 +17,7 @@ using namespace chrono;
 class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallback {
 	public: 
 		ChCustomCollisionCallbackP() {}
+		virtual ~ChCustomCollisionCallbackP() {}
 		virtual void OnCustomCollision(chrono::ChSystem* msys) {
 		    GetLog() << "You must implement OnCustomCollision()!\n";
 		}

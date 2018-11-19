@@ -1241,7 +1241,7 @@ double ChSystem::ComputeCollisions() {
 
     double mretC = 0.0;
 
-    timer_collision_broad.start();
+    timer_collision.start();
 
     // Update all positions of collision models: delegate this to the ChAssembly
     SyncCollisionModels();
@@ -1277,7 +1277,7 @@ double ChSystem::ComputeCollisions() {
     // Count the contacts of body-body type.
     ncontacts = contact_container->GetNcontacts();
 
-    timer_collision_broad.stop();
+    timer_collision.stop();
 
     return mretC;
 }

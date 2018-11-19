@@ -42,9 +42,7 @@ CH_ENUM_MAPPER_END(eChCamType);
 
 /// Geometric object describing the profile of a cam.
 /// The shape of a cam is specified through a ChFunction which defines the motion law of the follower.
-
 class ChApi ChLineCam : public ChLine {
-
   private:
     eChCamType type;                  ///< type of cam
     std::shared_ptr<ChFunction> law;  ///< follower motion law
@@ -135,8 +133,7 @@ class ChApi ChLineCam : public ChLine {
     /// Curve evaluation.
     /// Given a parameter "u", finds position on line of the
     /// kind p=p(u); note that u is in the range 0...1, to make a complete cycle along the cam
-    virtual void Evaluate(ChVector<>& pos,
-                          const double parU) const override;
+    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
 
     /// Weight evaluation.
     /// Given that the shape is defined by a Ch_function, the
@@ -144,56 +141,16 @@ class ChApi ChLineCam : public ChLine {
     /// have different 'weight' values depending on the function segment)
     double Get_weight(double par) const { return law->Get_weight(par * 2 * CH_C_PI); }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChLineCam>();
-        // serialize parent class
-        ChLine::ArchiveOUT(marchive);
-        // serialize all member data:
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-        eChCamType_mapper mmapper;
-        marchive << CHNVP(mmapper(type), "type");
-        marchive << CHNVP(law);
-        marchive << CHNVP(phase);
-        marchive << CHNVP(Rb);
-        marchive << CHNVP(Rr);
-        marchive << CHNVP(p);
-        marchive << CHNVP(d);
-        marchive << CHNVP(b0);
-        marchive << CHNVP(e);
-        marchive << CHNVP(s);
-        marchive << CHNVP(negative);
-        marchive << CHNVP(internal);
-        marchive << CHNVP(center);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChLineCam>();
-        // deserialize parent class
-        ChLine::ArchiveIN(marchive);
-        // stream in all member data:
-        eChCamType_mapper mmapper;
-        marchive >> CHNVP(mmapper(type), "type");
-        marchive >> CHNVP(law);
-        marchive >> CHNVP(phase);
-        marchive >> CHNVP(Rb);
-        marchive >> CHNVP(Rr);
-        marchive >> CHNVP(p);
-        marchive >> CHNVP(d);
-        marchive >> CHNVP(b0);
-        marchive >> CHNVP(e);
-        marchive >> CHNVP(s);
-        marchive >> CHNVP(negative);
-        marchive >> CHNVP(internal);
-        marchive >> CHNVP(center);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChLineCam,0)
+CH_CLASS_VERSION(geometry::ChLineCam, 0)
 
 }  // end namespace chrono
 
