@@ -36,15 +36,16 @@ using std::cout;
 using std::endl;
 using std::string;
 
+// expected number of args for param sweep
+constexpr int num_args_full = 6;
+
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_terrainBox_SMC <json_file>" << endl;
+    cout << "usage: ./demo_GRAN_DamBreak <json_file> [<radius> <run_mode> <length_Y> <output_dir>]" << endl;
+    cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
-
-// expected number of args for param sweep
-constexpr int num_args_full = 6;
 
 enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1 };
 
@@ -66,7 +67,7 @@ int main(int argc, char* argv[]) {
         params.run_mode = std::atoi(argv[3]);
         params.box_Y = std::atof(argv[4]);
         params.output_dir = std::string(argv[5]);
-        printf("new parameters: r is %f, dt is %f, y is %f, %s\n", params.sphere_radius, params.run_mode, params.box_Y,
+        printf("new parameters: r is %f, dt is %d, y is %f, %s\n", params.sphere_radius, params.run_mode, params.box_Y,
                params.output_dir.c_str());
     }
 
