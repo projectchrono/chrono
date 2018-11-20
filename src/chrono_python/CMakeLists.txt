@@ -19,7 +19,6 @@ mark_as_advanced(CLEAR SWIG_EXECUTABLE)
 # Python package name
 set(CHPY_PACKAGENAME pychrono)
 
-set (CH_INSTALL_PYTHON_PACKAGE ".") # test
 if(DEFINED CH_INSTALL_PYTHON_PACKAGE)
   message(STATUS "Override the CH_INSTALL_PYTHON with CH_INSTALL_PYTHON_PACKAGE")
   set (CH_INSTALL_PYTHON "${CH_INSTALL_PYTHON_PACKAGE}")
@@ -121,7 +120,7 @@ SET(CMAKE_SWIG_FLAGS "-c++")
 if(DBG_SCRIPT)
   message("SWIG_USE_FILE:      ${SWIG_USE_FILE}")
   message("CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
-  message("Installation path:  ${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_PYTHON}")
+  message("Installation prefix path:  ${CMAKE_INSTALL_PREFIX}")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -184,13 +183,17 @@ add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py" ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
 
-# Install module
+# Install .pyd binary module (.so on linux)
 install(TARGETS ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
-        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
-install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}")
-install(FILES "${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py" DESTINATION "${CH_INSTALL_PYTHON}")
+        RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+        LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+        ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+# Install .py module wrapper 
+install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+# Install __init__.py to signal the directory is a python package
+install(FILES "${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+# Install demos
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/src/demos/python/" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}/demos")
 
 
 if (DBG_SCRIPT)
@@ -253,12 +256,13 @@ if(ENABLE_MODULE_POSTPROCESS)
                      POST_BUILD
                      COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_POSTPROCESS_PY_FILE} ${CHPY_POSTPROCESS_PYD_PATH}/${CHPY_PACKAGENAME})
 
-  # Install module
+  # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-		  LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
-  install(FILES "${CHPY_POSTPROCESS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+		  LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+  # Install .py module wrapper
+  install(FILES "${CHPY_POSTPROCESS_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
   if (DBG_SCRIPT)
     message("Module name:     ${CHPY_POSTPROCESS}")
@@ -321,12 +325,13 @@ if(ENABLE_MODULE_FEA)
                      POST_BUILD
                      COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_FEA_PYD_PATH}/${CHPY_PACKAGENAME})
 
-  # Install module
+  # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
-  install(FILES "${CHPY_FEA_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+  # Install .py module wrapper
+  install(FILES "${CHPY_FEA_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
   if (DBG_SCRIPT)
     message("Module name:     ${CHPY_FEA}")
@@ -391,12 +396,13 @@ if(ENABLE_MODULE_IRRLICHT)
                      POST_BUILD
                      COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_IRRLICHT_PY_FILE} ${CHPY_IRRLICHT_PYD_PATH}/${CHPY_PACKAGENAME})
 
-  # Install module
+  # Install .pyd binary module (.so on linux)
   install(TARGETS ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}
-          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}"
-          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}"
-          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}")
-  install(FILES "${CHPY_IRRLICHT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}")
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+  # Install .py module wrapper
+  install(FILES "${CHPY_IRRLICHT_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
   if (DBG_SCRIPT)
     message("Module name:     ${CHPY_IRRLICHT}")
