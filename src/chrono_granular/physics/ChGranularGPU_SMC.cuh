@@ -96,24 +96,28 @@ inline __device__ void figureOutTouchedSD(signed int sphCenter_X,
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
     // We need to offset so that the bottom-left corner is at the origin
-    int64_t sphere_pos_modified[3] = {-gran_params->BD_frame_X + sphCenter_X, -gran_params->BD_frame_Y + sphCenter_Y,
-                                      -gran_params->BD_frame_Z + sphCenter_Z};
 
     // TODO this should never be over 2 billion anyways
     signed int nx[2], ny[2], nz[2];
 
-    // get the bottom-left-most SD that the particle touches
-    // nx = (xCenter - radius) / wx
-    nx[0] = (signed int)((sphere_pos_modified[0] - sphereRadius_SU) / gran_params->SD_size_X_SU);
-    // Same for Y and Z
-    ny[0] = (signed int)((sphere_pos_modified[1] - sphereRadius_SU) / gran_params->SD_size_Y_SU);
-    nz[0] = (signed int)((sphere_pos_modified[2] - sphereRadius_SU) / gran_params->SD_size_Z_SU);
+    {
+        // TODO this should probably involve more casting
+        int64_t sphere_pos_modified_X = -gran_params->BD_frame_X + sphCenter_X;
+        int64_t sphere_pos_modified_Y = -gran_params->BD_frame_Y + sphCenter_Y;
+        int64_t sphere_pos_modified_Z = -gran_params->BD_frame_Z + sphCenter_Z;
 
-    // get the top-right-most SD that the particle touches
-    nx[1] = (signed int)((sphere_pos_modified[0] + sphereRadius_SU) / gran_params->SD_size_X_SU);
-    ny[1] = (signed int)((sphere_pos_modified[1] + sphereRadius_SU) / gran_params->SD_size_Y_SU);
-    nz[1] = (signed int)((sphere_pos_modified[2] + sphereRadius_SU) / gran_params->SD_size_Z_SU);
+        // get the bottom-left-most SD that the particle touches
+        // nx = (xCenter - radius) / wx
+        nx[0] = (signed int)((sphere_pos_modified_X - sphereRadius_SU) / gran_params->SD_size_X_SU);
+        // Same for Y and Z
+        ny[0] = (signed int)((sphere_pos_modified_Y - sphereRadius_SU) / gran_params->SD_size_Y_SU);
+        nz[0] = (signed int)((sphere_pos_modified_Z - sphereRadius_SU) / gran_params->SD_size_Z_SU);
 
+        // get the top-right-most SD that the particle touches
+        nx[1] = (signed int)((sphere_pos_modified_X + sphereRadius_SU) / gran_params->SD_size_X_SU);
+        ny[1] = (signed int)((sphere_pos_modified_Y + sphereRadius_SU) / gran_params->SD_size_Y_SU);
+        nz[1] = (signed int)((sphere_pos_modified_Z + sphereRadius_SU) / gran_params->SD_size_Z_SU);
+    }
     // figure out what
     // number of iterations in each direction
     int num_x = (nx[0] == nx[1]) ? 1 : 2;
