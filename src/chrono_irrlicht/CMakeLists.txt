@@ -164,6 +164,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMENT "Copying Irrlicht DLL..."
   )
 
+  # copy the Irrlicht dll into the installed package to be on the safe side 
+  install(FILES "${CH_IRRLICHT_DLL}" DESTINATION bin)
+
   # Make variable visible from outside this directory
   SET(CH_IRRLICHT_DLL "${CH_IRRLICHT_DLL}" PARENT_SCOPE)
 
