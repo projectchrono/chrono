@@ -1,6 +1,6 @@
 # change the version number in case of a release build
 package:
-  name: chrono-pyengine
+  name: pychrono
   version: 3.0.0
 
 source:
