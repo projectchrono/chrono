@@ -108,7 +108,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     unsigned int n_axes_diff = 0;  // Count axes that have different SD bounds
     unsigned int axes_diff;        // axis of variation (if only one)
 
-    for (unsigned int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         if (L[i] != U[i]) {
             axes_diff = i;  // If there are more than one, this won't be used anyway
             n_axes_diff++;
@@ -131,9 +131,9 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     // Case 3: Triangle spans more than one dimension of nSD_spheres
     float SDcenter[3];
     float SDhalfSizes[3];
-    for (unsigned int i = L[0]; i <= U[0]; i++) {
-        for (unsigned int j = L[1]; j <= U[1]; j++) {
-            for (unsigned int k = L[2]; k <= U[2]; k++) {
+    for (int i = L[0]; i <= U[0]; i++) {
+        for (int j = L[1]; j <= U[1]; j++) {
+            for (int k = L[2]; k <= U[2]; k++) {
                 SDhalfSizes[0] = gran_params->SD_size_X_SU / 2;
                 SDhalfSizes[1] = gran_params->SD_size_Y_SU / 2;
                 SDhalfSizes[2] = gran_params->SD_size_Z_SU / 2;
