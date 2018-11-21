@@ -70,15 +70,16 @@ ChSystemParallel::ChSystemParallel() : ChSystem() {
 
     data_manager->system_timer.AddTimer("step");
     data_manager->system_timer.AddTimer("update");
+    data_manager->system_timer.AddTimer("advance");
+
     data_manager->system_timer.AddTimer("collision");
     data_manager->system_timer.AddTimer("collision_broad");
     data_manager->system_timer.AddTimer("collision_narrow");
-    data_manager->system_timer.AddTimer("solver");
 
     data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Solve");
     data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Setup");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Matrices");
     data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Stab");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_M");
 
 #ifdef LOGGINGENABLED
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
@@ -115,16 +116,14 @@ bool ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.start("collision");
     collision_system->Run();
     collision_system->ReportContacts(this->contact_container.get());
-
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++) {
         collision_callbacks[ic]->OnCustomCollision(this);
     }
-
     data_manager->system_timer.stop("collision");
 
-    data_manager->system_timer.start("solver");
+    data_manager->system_timer.start("advance");
     std::static_pointer_cast<ChIterativeSolverParallel>(solver_speed)->RunTimeStep();
-    data_manager->system_timer.stop("solver");
+    data_manager->system_timer.stop("advance");
 
     data_manager->system_timer.start("update");
 
@@ -795,22 +794,32 @@ unsigned int ChSystemParallel::GetNumBilaterals() {
     return data_manager->num_bilaterals;
 }
 
-/// Gets the time (in seconds) spent for computing the time step
+// -------------------------------------------------------------
+
 double ChSystemParallel::GetTimerStep() const {
     return data_manager->system_timer.GetTime("step");
 }
 
-/// Gets the fraction of time (in seconds) for the solution of the problem, within the time step
-double ChSystemParallel::GetTimerSolver() const {
-    return data_manager->system_timer.GetTime("solver");
+double ChSystemParallel::GetTimerAdvance() const {
+    return data_manager->system_timer.GetTime("advance");
 }
 
-/// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
 double ChSystemParallel::GetTimerUpdate() const {
     return data_manager->system_timer.GetTime("update");
 }
 
-/// Gets the total time for the collision detection step
+double ChSystemParallel::GetTimerSolver() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Solve");
+}
+
+double ChSystemParallel::GetTimerSetup() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Setup");
+}
+
+double ChSystemParallel::GetTimerJacobian() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Matrices");
+}
+
 double ChSystemParallel::GetTimerCollision() const {
     return data_manager->system_timer.GetTime("collision");
 }

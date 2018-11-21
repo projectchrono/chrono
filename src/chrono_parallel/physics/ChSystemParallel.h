@@ -88,13 +88,26 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     unsigned int GetNumContacts();
     unsigned int GetNumBilaterals();
 
-    /// Gets the time (in seconds) spent for computing the time step.
+    /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const override;
-    /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step.
+
+    /// Return the time (in seconds) for time integration, within the time step.
+    virtual double GetTimerAdvance() const override;
+
+    /// Return the time (in seconds) for the solver, within the time step.
+    /// Note that this time excludes any calls to the solver's Setup function.
     virtual double GetTimerSolver() const override;
-    /// Gets the total time (in seconds) for collision detection, within the time step.
+
+    /// Return the time (in seconds) for the solver Setup phase, within the time step.
+    virtual double GetTimerSetup() const override;
+
+    /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
+    virtual double GetTimerJacobian() const override;
+
+    /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const override;
-    /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step.
+
+    /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const override;
 
     /// Calculate cummulative contact forces for all bodies in the system.
