@@ -2,6 +2,7 @@
 # Additional include paths and libraries
 # ------------------------------------------------------------------------------
 ADD_SUBDIRECTORY(robosimian)
+ADD_SUBDIRECTORY(HMMWV)
 
 INCLUDE_DIRECTORIES(${CH_GRANULAR_INCLUDES})
 
