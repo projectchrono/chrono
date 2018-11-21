@@ -1101,6 +1101,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
     if (force_setup || GetSolver()->SolveRequiresMatrix()) {
+        timer_jacobian.start();
+
         // Cq  matrix
         ConstraintsLoadJacobians();
 
@@ -1110,6 +1112,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
         // For ChVariable objects without a ChKblock, just use the 'a' coefficient
         descriptor->SetMassFactor(c_a);
+
+        timer_jacobian.stop();
     }
 
     // Diagnostics:
@@ -1437,7 +1441,9 @@ bool ChSystem::Integrate_Y() {
     // PERFORM TIME STEP HERE!
     {
         CH_PROFILE( "Advance");
+        timer_advance.start();
         timestepper->Advance(step);
+        timer_advance.stop();
     }
 
     // Executes custom processing at the end of step
