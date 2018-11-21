@@ -19,13 +19,13 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_fea/ChElementSpring.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChElementTetra_10.h"
-#include "chrono_fea/ChElementHexa_8.h"
-#include "chrono_fea/ChElementHexa_20.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChElementSpring.h"
+#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementTetra_10.h"
+#include "chrono/fea/ChElementHexa_8.h"
+#include "chrono/fea/ChElementHexa_20.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChLinkPointFrame.h"
 
 using namespace chrono;
 using namespace fea;

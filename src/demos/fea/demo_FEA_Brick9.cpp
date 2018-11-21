@@ -33,12 +33,12 @@
 
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
 
