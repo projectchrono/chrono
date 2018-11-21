@@ -15,8 +15,8 @@
 #ifndef CHELEMENTTETRAHEDRON_H
 #define CHELEMENTTETRAHEDRON_H
 
-#include "chrono_fea/ChElement3D.h"
-#include "chrono_fea/ChElementCorotational.h"
+#include "chrono/fea/ChElement3D.h"
+#include "chrono/fea/ChElementCorotational.h"
 
 namespace chrono {
 namespace fea {
@@ -25,7 +25,7 @@ namespace fea {
 /// @{
 
 /// Class for tetrahedral elements.
-class ChApiFea ChElementTetrahedron : public ChElement3D,
+class ChApi ChElementTetrahedron : public ChElement3D,
                                       public ChElementCorotational
 //		  /|\						//
 {             //		 / |  \						//

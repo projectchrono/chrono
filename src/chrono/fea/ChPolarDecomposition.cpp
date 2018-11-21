@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono_fea/ChPolarDecomposition.h"
+#include "chrono/fea/ChPolarDecomposition.h"
 
 namespace chrono {
 namespace fea {

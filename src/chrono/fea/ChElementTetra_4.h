@@ -18,10 +18,10 @@
 #include <cmath>
 
 #include "chrono/physics/ChTensors.h"
-#include "chrono_fea/ChElementTetrahedron.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
-#include "chrono_fea/ChNodeFEAxyzP.h"
-#include "chrono_fea/ChContinuumPoisson3D.h"
+#include "chrono/fea/ChElementTetrahedron.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzP.h"
+#include "chrono/fea/ChContinuumPoisson3D.h"
 
 namespace chrono {
 namespace fea {
@@ -32,7 +32,7 @@ namespace fea {
 /// Tetrahedron FEA element with 4 nodes.
 /// This is a classical element with linear displacement, hence with constant stress
 /// and constant strain. It can be easily used for 3D FEA problems.
-class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW {
+class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     std::shared_ptr<ChContinuumElastic> Material;
@@ -509,7 +509,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
 /// Tetrahedron FEM element with 4 nodes for scalar fields (for Poisson-like problems).
 /// This is a classical element with linear displacement.
 /// ***EXPERIMENTAL***
-class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableUVW {
+class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableUVW {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyzP> > nodes;
     std::shared_ptr<ChContinuumPoisson3D> Material;

@@ -19,7 +19,7 @@
 #define CHNODEFEACURV_H
 
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
-#include "chrono_fea/ChNodeFEAbase.h"
+#include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
 namespace fea {
@@ -28,7 +28,7 @@ namespace fea {
 /// @{
 
 /// Generic finite element node with 9 degrees of freedom representing curvature.
-class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
+class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
   public:
     ChNodeFEAcurv(const ChVector<>& rxx = VNULL,  ///< initial value of xx 2nd derivative of position vector
                   const ChVector<>& ryy = VNULL,  ///< initial value of yy 2nd derivative of position vector

@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono_fea/ChElementSpring.h"
+#include "chrono/fea/ChElementSpring.h"
 
 namespace chrono {
 namespace fea {

@@ -18,9 +18,9 @@
 #include <array>
 
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
-#include "chrono_fea/ChNodeFEAxyzrot.h"
-#include "chrono_fea/ChLinkInterface.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChLinkInterface.h"
 
 namespace chrono {
 
@@ -32,7 +32,7 @@ namespace fea {
 /// @{
 
 /// Utility class for using the ChLinkPointTriface constraint
-class ChApiFea ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> {
+class ChApi ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> {
   public:
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB1;
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB2;
@@ -48,7 +48,7 @@ class ChApiFea ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
 
-class ChApiFea ChLinkPointTriface : public ChLinkInterface {
+class ChApi ChLinkPointTriface : public ChLinkInterface {
 
   private:
     ChVector<> react;
@@ -192,7 +192,7 @@ class ChApiFea ChLinkPointTriface : public ChLinkInterface {
 // Planned for future
 
 /// Utility class for using the ChLinkPointTriface constraint
-class ChApiFea ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 6> {
+class ChApi ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 6> {
   public:
     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB1;
     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB2;
@@ -207,7 +207,7 @@ class ChApiFea ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 
 /// and a triangular face given by three xyzrot FEA nodes, with linear
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
-class ChApiFea ChLinkPointTrifaceRot : public ChLinkInterface {
+class ChApi ChLinkPointTrifaceRot : public ChLinkInterface {
 
   private:
     ChVector<> react;

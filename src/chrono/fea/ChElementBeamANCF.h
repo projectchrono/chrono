@@ -24,10 +24,9 @@
 #include <vector>
 
 #include "chrono/core/ChQuadrature.h"
-#include "chrono_fea/ChApiFEA.h"
-#include "chrono_fea/ChElementBeam.h"
-#include "chrono_fea/ChNodeFEAxyzDD.h"
-#include "chrono_fea/ChUtilsFEA.h"
+#include "chrono/fea/ChElementBeam.h"
+#include "chrono/fea/ChNodeFEAxyzDD.h"
+#include "chrono/fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -37,7 +36,7 @@ namespace fea {
 // ----------------------------------------------------------------------------
 /// Material definition.
 /// This class implements material properties for a layer.
-class ChApiFea ChMaterialBeamANCF {
+class ChApi ChMaterialBeamANCF {
   public:
     /// Construct an isotropic material.
     ChMaterialBeamANCF(double rho,        ///< material density
@@ -90,7 +89,7 @@ class ChApiFea ChMaterialBeamANCF {
 ///             w
 /// where C is the third and central node.
 
-class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
+class ChApi ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   public:
     ChElementBeamANCF();
     ~ChElementBeamANCF() {}

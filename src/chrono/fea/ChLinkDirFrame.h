@@ -18,7 +18,7 @@
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
-#include "chrono_fea/ChNodeFEAxyzD.h"
+#include "chrono/fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 
@@ -34,7 +34,7 @@ namespace fea {
 /// The D direction of the ChNodeFEAxyzD is enforced to stay parallel
 /// to a given direction associated to the ChBodyFrame.
 
-class ChApiFea ChLinkDirFrame : public ChLinkBase {
+class ChApi ChLinkDirFrame : public ChLinkBase {
 
   private:
     ChVector<> m_react;

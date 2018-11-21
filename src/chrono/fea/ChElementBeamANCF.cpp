@@ -16,7 +16,7 @@
 
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF.h"
 #include <cmath>
 
 namespace chrono {

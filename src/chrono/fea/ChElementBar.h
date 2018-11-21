@@ -15,8 +15,8 @@
 #ifndef CHELEMENTBAR_H
 #define CHELEMENTBAR_H
 
-#include "chrono_fea/ChElementGeneric.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChElementGeneric.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
@@ -29,7 +29,7 @@ namespace fea {
 /// In practical terms, this element works a bit like the class ChElementSpring,
 /// but also adds mass along the element, hence point-like mass in the two nodes
 /// is not needed.
-class ChApiFea ChElementBar : public ChElementGeneric {
+class ChApi ChElementBar : public ChElementGeneric {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     double area;

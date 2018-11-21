@@ -19,7 +19,7 @@
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono_fea/ChNodeFEAbase.h"
+#include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
 namespace fea {
@@ -28,7 +28,7 @@ namespace fea {
 /// @{
 
 /// Base class for all finite elements, that can be used in the ChMesh physics item.
-class ChApiFea ChElementBase {
+class ChApi ChElementBase {
   protected:
   public:
     ChElementBase(){};

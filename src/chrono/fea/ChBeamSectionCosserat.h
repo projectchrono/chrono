@@ -15,7 +15,7 @@
 #ifndef CHBEAMSECTIONCOSSERAT_H
 #define CHBEAMSECTIONCOSSERAT_H
 
-#include "chrono_fea/ChBeamSection.h"
+#include "chrono/fea/ChBeamSection.h"
 #include "chrono/motion_functions/ChFunction.h"
 
 namespace chrono {
@@ -34,7 +34,7 @@ class ChBeamSectionCosserat;
 /// different ways. 
 /// Note that the Timoshenko beam theory can be a sub-case of this.
 
-class ChApiFea ChElasticityCosserat {
+class ChApi ChElasticityCosserat {
 public:
 	
 
@@ -110,7 +110,7 @@ public:
 /// can be interpreted as a 3D extension of the Timoshenko beam theory.
 /// This can be shared between multiple beams.
 
-class ChApiFea ChElasticityCosseratSimple : public ChElasticityCosserat {
+class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 public:
 	double Iyy;
 	double Izz;
@@ -209,7 +209,7 @@ public:
 /// {m,n}=[E]{e,k}.
 /// This can be shared between multiple beams.
 
-class ChApiFea ChElasticityCosseratGeneric : public ChElasticityCosserat {
+class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 public:
 
 	ChElasticityCosseratGeneric() {
@@ -274,7 +274,7 @@ private:
 ///  m_z   [A       A A ]   k_z
 ///
 
-class ChApiFea ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
+class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 public:
 	double alpha;  // Rotation of Izz Iyy respect to reference section, centered on line x
 	double Cy;     // Centroid, respect to reference section (elastic center, tension center)
@@ -369,7 +369,7 @@ public:
 /// This material can be shared between multiple beams.
 ///
 
-class ChApiFea ChElasticityCosseratMesh : public ChElasticityCosserat {
+class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
 public:
 
 	class ChSectionMaterial {
@@ -443,7 +443,7 @@ protected:
 /// Base class for plasticity of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
 
-class ChApiFea ChPlasticityCosserat {
+class ChApi ChPlasticityCosserat {
 public:
 
 	ChPlasticityCosserat() {
@@ -519,7 +519,7 @@ public:
 
 
 /// Internal variables for basic lumped plasticity in Cosserat beams
-class ChApiFea ChInternalDataLumpedCosserat : public ChBeamMaterialInternalData {
+class ChApi ChInternalDataLumpedCosserat : public ChBeamMaterialInternalData {
 public:
 	ChInternalDataLumpedCosserat()
 	{};
@@ -555,7 +555,7 @@ public:
 /// or pure compression/extension, or pure torsion.
 /// This can be shared between multiple beams.
 
-class ChApiFea ChPlasticityCosseratLumped : public ChPlasticityCosserat {
+class ChApi ChPlasticityCosseratLumped : public ChPlasticityCosserat {
 public:
 
 	ChPlasticityCosseratLumped() {
@@ -644,7 +644,7 @@ public:
 ///   {n,m}=f({e',k'}) 
 /// Children classes implement this function in different ways. 
 
-class ChApiFea ChDampingCosserat {
+class ChApi ChDampingCosserat {
 public:
 
 
@@ -720,7 +720,7 @@ public:
 ///   n = R_e * e'
 ///   m = R_k * k'
 
-class ChApiFea ChDampingCosseratLinear : public ChDampingCosserat {
+class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
 public:
 
 	ChDampingCosseratLinear() {
@@ -792,7 +792,7 @@ private:
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
 
-class ChApiFea ChBeamSectionCosserat : public ChBeamSectionProperties {
+class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
   public:
 
 	  ChBeamSectionCosserat(

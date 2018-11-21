@@ -15,7 +15,6 @@
 #ifndef CHMATRIXCOROTATION_H
 #define CHMATRIXCOROTATION_H
 
-#include "chrono_fea/ChApiFEA.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrix33.h"
 

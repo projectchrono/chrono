@@ -17,7 +17,7 @@
 #ifndef CHFACEBRICK9_H
 #define CHFACEBRICK9_H
 
-#include "chrono_fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementBrick_9.h"
 
 namespace chrono {
 namespace fea {
@@ -26,7 +26,7 @@ namespace fea {
 /// This is a proxy to the tetrahedron. It can be used to apply pressure loads.
 /// Note, face_id is the number of the vertex to whom it is opposed: 0,1,2,3.
 /// Corner nodes, obtainable with GetNodeN(), are in counterclockwise order seen from the outside.
-class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
+class ChApi ChFaceBrick_9 : public ChLoadableUV {
   protected:
     char face_id;
     std::shared_ptr<ChElementBrick_9> melement;

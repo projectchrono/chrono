@@ -15,8 +15,7 @@
 #ifndef CHELEMENTSHELL_H
 #define CHELEMENTSHELL_H
 
-#include "chrono_fea/ChApiFEA.h"
-#include "chrono_fea/ChElementGeneric.h"
+#include "chrono/fea/ChElementGeneric.h"
 
 namespace chrono {
 namespace fea {
@@ -25,7 +24,7 @@ namespace fea {
 /// @{
 
 /// Base class for most structural elements of 'shell' type.
-class ChApiFea ChElementShell : public ChElementGeneric {
+class ChApi ChElementShell : public ChElementGeneric {
   protected:
     double mass;
 

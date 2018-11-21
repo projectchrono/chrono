@@ -12,7 +12,7 @@
 // Authors: Antonio Recuero
 // =============================================================================
 
-#include "chrono_fea/ChNodeFEAxyzDD.h"
+#include "chrono/fea/ChNodeFEAxyzDD.h"
 
 namespace chrono {
 namespace fea {

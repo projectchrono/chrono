@@ -16,14 +16,14 @@
 #define CHNODEFEAXYZD_H
 
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
 
 /// Class for a generic 3D finite element node, with x,y,z displacement and a direction.
 /// The direction D represents a gradient vector to be used in ANCF elements.
-class ChApiFea ChNodeFEAxyzD : public ChNodeFEAxyz {
+class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
   public:
     ChNodeFEAxyzD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X);
     ChNodeFEAxyzD(const ChNodeFEAxyzD& other);

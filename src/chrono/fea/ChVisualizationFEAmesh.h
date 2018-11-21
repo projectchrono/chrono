@@ -19,10 +19,10 @@
 #include "chrono/assets/ChColor.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
-#include "chrono_fea/ChNodeFEAxyzP.h"
-#include "chrono_fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzP.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
 namespace fea {
@@ -32,7 +32,7 @@ namespace fea {
 /// of class ChTriangleMeshShape that is contained in its sublevel,
 /// so that it can be rendered or postprocessed.
 
-class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
+class ChApi ChVisualizationFEAmesh : public ChAssetLevel {
   public:
     enum eChFemDataType {
         E_PLOT_NONE,

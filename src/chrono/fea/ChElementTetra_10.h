@@ -17,8 +17,8 @@
 
 #include <cmath>
 
-#include "chrono_fea/ChElementTetrahedron.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChElementTetrahedron.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
@@ -29,7 +29,7 @@ namespace fea {
 /// Tetrahedron FEA element with 10 nodes.
 /// This is a quadratic element for displacements; stress and strain
 /// are interpolated depending on Gauss points.
-class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUVW {
+class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUVW {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     std::shared_ptr<ChContinuumElastic> Material;

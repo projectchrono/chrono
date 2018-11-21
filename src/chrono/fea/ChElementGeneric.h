@@ -17,7 +17,7 @@
 
 #include "chrono/solver/ChKblockGeneric.h"
 #include "chrono/solver/ChVariablesNode.h"
-#include "chrono_fea/ChElementBase.h"
+#include "chrono/fea/ChElementBase.h"
 
 namespace chrono {
 namespace fea {
@@ -32,7 +32,7 @@ namespace fea {
 /// This means that most FEA elements inherited from ChElementGeneric
 /// need to implement at most the following two fundamental methods:
 ///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
-class ChApiFea ChElementGeneric : public ChElementBase {
+class ChApi ChElementGeneric : public ChElementBase {
   protected:
     ChKblockGeneric Kmatr;
 

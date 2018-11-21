@@ -16,8 +16,8 @@
 
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
-#include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChUtilsFEA.h"
+#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {

@@ -27,8 +27,8 @@
 
 #include <vector>
 
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChNodeFEAxyzDD.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChNodeFEAxyzDD.h"
 
 namespace chrono {
 namespace fea {
@@ -49,7 +49,7 @@ namespace fea {
 ///   |     |     |
 /// A o-----E-----o B
 ///
-class ChApiFea ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
+class ChApi ChElementShellANCF_8 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellANCF_8();
     ~ChElementShellANCF_8() {}

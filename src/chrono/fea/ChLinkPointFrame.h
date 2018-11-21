@@ -18,7 +18,7 @@
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 
@@ -34,7 +34,7 @@ namespace fea {
 /// The node position is enforced to coincide to a given position associated
 /// with the ChBodyFrame.
 
-class ChApiFea ChLinkPointFrame : public ChLinkBase {
+class ChApi ChLinkPointFrame : public ChLinkBase {
 
   private:
     ChVector<> m_react;

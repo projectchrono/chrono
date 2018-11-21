@@ -20,8 +20,7 @@
 #include <array>
 #include <vector>
 
-#include "chrono_fea/ChApiFEA.h"
-#include "chrono_fea/ChElementShell.h"
+#include "chrono/fea/ChElementShell.h"
 
 namespace chrono {
 namespace fea {
@@ -36,7 +35,7 @@ namespace fea {
 /// as in Witkowski et al.
 /// Inherited materials do not define any thickness, which should be
 /// a property of the element or its layer(s) using this material.
-class ChApiFea ChMaterialShellReissner {
+class ChApi ChMaterialShellReissner {
   public:
     /// Construct an isotropic material.
     ChMaterialShellReissner(){};
@@ -83,7 +82,7 @@ class ChApiFea ChMaterialShellReissner {
 /// This class implements material properties for a layer from the Reissner theory,
 /// for the case of isotropic linear linear elastic material.
 /// This is probably the material that you need most often when using 6-field shells.
-class ChApiFea ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
+class ChApi ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
   public:
     /// Construct an isotropic material.
     ChMaterialShellReissnerIsothropic(double rho,          ///< material density
@@ -144,7 +143,7 @@ class ChApiFea ChMaterialShellReissnerIsothropic : public ChMaterialShellReissne
 /// This is useful for laminated shells. One direction can be made softer than the other.
 /// Note that the angle and the thickness are defined when adding this material to
 /// a finite element as a layer.
-class ChApiFea ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner {
+class ChApi ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner {
   public:
     /// Construct an orthotropic material
     ChMaterialShellReissnerOrthotropic(double m_rho,    ///< material density

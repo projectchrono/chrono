@@ -16,7 +16,7 @@
 #define CHNODEFEAXYZDD_H
 
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
-#include "chrono_fea/ChNodeFEAxyzD.h"
+#include "chrono/fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 namespace fea {
@@ -26,7 +26,7 @@ namespace fea {
 /// The variable DD represents the derivative of a gradient vector or an additional gradient, to be used in ANCF
 /// elements.
 
-class ChApiFea ChNodeFEAxyzDD : public ChNodeFEAxyzD {
+class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
   public:
     ChNodeFEAxyzDD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X, ChVector<> initial_curv = VNULL);
     ChNodeFEAxyzDD(const ChNodeFEAxyzDD& other);

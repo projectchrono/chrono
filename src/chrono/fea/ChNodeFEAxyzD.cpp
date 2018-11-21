@@ -12,7 +12,7 @@
 // Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono_fea/ChNodeFEAxyzD.h"
+#include "chrono/fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 namespace fea {

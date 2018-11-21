@@ -16,7 +16,7 @@
 #define CHMESHSURFACE_H
 
 #include "chrono/physics/ChLoadable.h"
-#include "chrono_fea/ChElementBase.h"
+#include "chrono/fea/ChElementBase.h"
 
 namespace chrono {
 namespace fea {
@@ -27,7 +27,7 @@ class ChMesh;
 /// Class which defines a surface for a mesh FEA elements.
 /// The contact surface is a collection of pointers to  ChLoadableUV objects, those can
 /// be shells in the mesh, or proxies to faces of solid elements such as ChFaceTetra_4.
-class ChApiFea ChMeshSurface {
+class ChApi ChMeshSurface {
 
   public:
     ChMeshSurface(ChMesh* parentmesh = 0) { mmesh = parentmesh; }

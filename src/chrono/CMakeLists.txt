@@ -380,7 +380,6 @@ set(ChronoEngine_fea_SOURCES
     )
 
 set(ChronoEngine_fea_HEADERS
-    fea/ChApiFEA.h
     fea/ChBeamSection.h
     fea/ChBeamSectionCosserat.h
     fea/ChBuilderBeam.h

@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/solver/ChVariablesNode.h"
-#include "chrono_fea/ChNodeFEAbase.h"
+#include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
 namespace fea {
@@ -27,7 +27,7 @@ class ChMesh;
 
 /// Class for a generic 3D finite element node, with x,y,z displacement.
 /// This is the typical node that can be used for tetrahedrons, etc.
-class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
+class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
 
   public:
     ChNodeFEAxyz(ChVector<> initial_pos = VNULL);

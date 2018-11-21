@@ -18,14 +18,14 @@
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
-#include "chrono_fea/ChNodeFEAbase.h"
+#include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
 namespace fea {
 
 /// Class for a generic ED finite element node, with x,y,z displacement and a 3D rotation.
 /// This is the typical node that can be used for beams, etc.
-class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6> {
+class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6> {
   public:
     ChNodeFEAxyzrot(ChFrame<> initialf = ChFrame<>());
     ChNodeFEAxyzrot(const ChNodeFEAxyzrot& other);

@@ -22,10 +22,10 @@
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono_fea/ChContactSurface.h"
-#include "chrono_fea/ChElementBase.h"
-#include "chrono_fea/ChMeshSurface.h"
-#include "chrono_fea/ChNodeFEAbase.h"
+#include "chrono/fea/ChContactSurface.h"
+#include "chrono/fea/ChElementBase.h"
+#include "chrono/fea/ChMeshSurface.h"
+#include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
 
@@ -36,7 +36,7 @@ namespace fea {
 
 /// Class which defines a mesh of finite elements of class ChElementBase,
 /// between nodes of class ChNodeFEAbase.
-class ChApiFea ChMesh : public ChIndexedNodes {
+class ChApi ChMesh : public ChIndexedNodes {
 
   private:
     std::vector<std::shared_ptr<ChNodeFEAbase>> vnodes;     ///<  nodes

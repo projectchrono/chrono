@@ -15,9 +15,9 @@
 #ifndef CHCONTACTSURFACEMESH_H
 #define CHCONTACTSURFACEMESH_H
 
-#include "chrono_fea/ChContactSurface.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
-#include "chrono_fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChContactSurface.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/collision/ChCCollisionUtils.h"
 #include "chrono/physics/ChLoaderUV.h"
@@ -28,7 +28,7 @@ namespace fea {
 /// Contact element of triangular type.
 /// This can be used to 'tessellate' a generic surface like the
 /// outer of tetrahedral meshes
-class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public ChLoadableUV {
+class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public ChLoadableUV {
 
   public:
     ChContactTriangleXYZ();
@@ -349,7 +349,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
 /// probably this class would be unnecessary! (Now, it is a bit redundant with ChContactTriangleXYZ)
 /// This can be used to 'tessellate' a generic surface like the
 /// outer of tetrahedral meshes
-class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
+class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
 
   public:
     ChContactTriangleXYZROT();
@@ -672,7 +672,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
 /// Class which defines a contact surface for FEA elements, using a mesh of triangles.
 /// Differently from ChContactSurfaceNodeCloud, this also captures the FEAnodes-vs-FEAfaces
 /// and FEAedge-vs-FEAedges cases, but it has a higher computational overhead
-class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
+class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
   public:
     ChContactSurfaceMesh(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh) {}

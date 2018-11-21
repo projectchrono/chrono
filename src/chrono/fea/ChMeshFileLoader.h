@@ -19,8 +19,8 @@
 
 #include <map>
 
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChMesh.h"
 
 namespace chrono {
 namespace fea {
@@ -29,7 +29,7 @@ namespace fea {
 /// @{
 
 /// Collection of mesh file loader utilities.
-class ChApiFea ChMeshFileLoader {
+class ChApi ChMeshFileLoader {
   public:
     /// Load tetrahedrons from .node and .ele files as saved by TetGen.
     /// The file format for .node (with point# starting from 1) is:

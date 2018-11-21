@@ -18,8 +18,8 @@
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChMatterMeshless.h"
-#include "chrono_fea/ChProximityContainerMeshless.h"
+#include "chrono/fea/ChMatterMeshless.h"
+#include "chrono/fea/ChProximityContainerMeshless.h"
 
 namespace chrono {
 namespace fea {

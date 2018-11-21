@@ -12,12 +12,12 @@
 // Authors: Andrea Favali, Alessandro Tasora
 // =============================================================================
 
-#include "chrono_fea/ChMeshSurface.h"
-#include "chrono_fea/ChMesh.h"
+#include "chrono/fea/ChMeshSurface.h"
+#include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChFaceTetra_4.h"
+#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChFaceTetra_4.h"
 
 #include <unordered_set>
 #include <map>

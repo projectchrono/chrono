@@ -15,7 +15,7 @@
 #ifndef CHFACETETRA4_H
 #define CHFACETETRA4_H
 
-#include "chrono_fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementTetra_4.h"
 
 namespace chrono {
 namespace fea {
@@ -24,7 +24,7 @@ namespace fea {
 /// This is a proxy to the tetrahedron. It can be used to apply pressure loads.
 /// Note, face_id is the number of the vertex to whom it is opposed: 0,1,2,3.
 /// Corner nodes, obtainable with GetNodeN(), are in counterclockwise order seen from the outside.
-class ChApiFea ChFaceTetra_4 : public ChLoadableUV {
+class ChApi ChFaceTetra_4 : public ChLoadableUV {
   protected:
     char face_id;
     std::shared_ptr<ChElementTetra_4> melement;

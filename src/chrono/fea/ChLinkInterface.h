@@ -27,7 +27,7 @@ namespace fea {
 /// of different types.
 /// Concrete classes will be inherited from this class.
 
-class ChApiFea ChLinkInterface : public ChLinkBase {
+class ChApi ChLinkInterface : public ChLinkBase {
 
   private:
   public:

@@ -17,9 +17,9 @@
 #include "chrono/core/ChException.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/timestepper/ChState.h"
-#include "chrono_fea/ChElementShellReissner4.h"
-#include "chrono_fea/ChUtilsFEA.h"
-#include "chrono_fea/ChRotUtils.h"
+#include "chrono/fea/ChElementShellReissner4.h"
+#include "chrono/fea/ChUtilsFEA.h"
+#include "chrono/fea/ChRotUtils.h"
 #include <cmath>
 
 #define CHUSE_ANS

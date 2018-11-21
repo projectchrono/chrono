@@ -19,9 +19,8 @@
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChLoadable.h"
-#include "chrono_fea/ChApiFEA.h"
-#include "chrono_fea/ChElementGeneric.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChElementGeneric.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
@@ -30,7 +29,7 @@ namespace fea {
 /// @{
 
 /// Brick element with 8 nodes (with EAS).
-class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
   public:
     ChElementBrick();
     ~ChElementBrick() {}

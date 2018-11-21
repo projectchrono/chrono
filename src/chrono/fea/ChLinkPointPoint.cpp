@@ -14,7 +14,7 @@
 
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChLinkPointPoint.h"
+#include "chrono/fea/ChLinkPointPoint.h"
 
 namespace chrono {
 namespace fea {

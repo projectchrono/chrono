@@ -15,8 +15,8 @@
 #ifndef CHELEMENTHEXA8_H
 #define CHELEMENTHEXA8_H
 
-#include "chrono_fea/ChElementHexahedron.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChElementHexahedron.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
@@ -26,7 +26,7 @@ namespace fea {
 
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 8 nodes.
 /// This element has a linear displacement field.
-class ChApiFea ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUVW {
+class ChApi ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUVW {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     std::shared_ptr<ChContinuumElastic> Material;

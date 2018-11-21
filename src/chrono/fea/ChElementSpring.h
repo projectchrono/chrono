@@ -15,8 +15,8 @@
 #ifndef CHELEMENTSPRING_H
 #define CHELEMENTSPRING_H
 
-#include "chrono_fea/ChElementGeneric.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChElementGeneric.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
@@ -27,7 +27,7 @@ namespace fea {
 /// Simple finite element with two nodes and a spring/damper between the two nodes.
 /// This element is mass-less, so if used in dynamic analysis, the two nodes must
 /// be set with non-zero point mass.
-class ChApiFea ChElementSpring : public ChElementGeneric {
+class ChApi ChElementSpring : public ChElementGeneric {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     double spring_k;

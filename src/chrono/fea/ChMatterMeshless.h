@@ -22,7 +22,6 @@
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/solver/ChVariablesNode.h"
-#include "chrono_fea/ChApiFEA.h"
 
 namespace chrono {
 
@@ -35,7 +34,7 @@ namespace fea {
 class ChMatterMeshless;
 
 /// Class for a single node in the meshless FEA  cluster
-class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
+class ChApi ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
   public:
     ChNodeMeshless();
     ChNodeMeshless(const ChNodeMeshless& other);
@@ -195,7 +194,7 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
 /// Class for clusters of nodes that can simulate a visco-elasto-plastic deformable
 /// solid using the approach in Mueller ("Point based.." 2004 paper), that is with
 /// a 'meshless' FEA approach.
-class ChApiFea ChMatterMeshless : public ChIndexedNodes {
+class ChApi ChMatterMeshless : public ChIndexedNodes {
 
   private:
     std::vector<std::shared_ptr<ChNodeMeshless> > nodes;  ///< nodes

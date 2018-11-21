@@ -20,11 +20,10 @@
 #include <vector>
 #include <array>
 
-#include "chrono_fea/ChApiFEA.h"
-#include "chrono_fea/ChElementShell.h"
-#include "chrono_fea/ChNodeFEAxyzrot.h"
-#include "chrono_fea/ChUtilsFEA.h"
-#include "chrono_fea/ChMaterialShellReissner.h"
+#include "chrono/fea/ChElementShell.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChUtilsFEA.h"
+#include "chrono/fea/ChMaterialShellReissner.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 
 namespace chrono {
@@ -48,7 +47,7 @@ namespace fea {
 ///   |     |     |
 /// A o-----+-----o B
 ///
-class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
+class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellReissner4();
     virtual ~ChElementShellReissner4();

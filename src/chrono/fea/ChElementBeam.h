@@ -15,7 +15,7 @@
 #ifndef CHELEMENTBEAM_H
 #define CHELEMENTBEAM_H
 
-#include "chrono_fea/ChElementGeneric.h"
+#include "chrono/fea/ChElementGeneric.h"
 
 namespace chrono {
 namespace fea {
@@ -24,7 +24,7 @@ namespace fea {
 /// @{
 
 /// Base class for most structural elements of 'beam' type.
-class ChApiFea ChElementBeam : public ChElementGeneric {
+class ChApi ChElementBeam : public ChElementGeneric {
   protected:
     double mass;
     double length;

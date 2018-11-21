@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono_fea/ChElementTetra_10.h"
+#include "chrono/fea/ChElementTetra_10.h"
 
 namespace chrono {
 namespace fea {

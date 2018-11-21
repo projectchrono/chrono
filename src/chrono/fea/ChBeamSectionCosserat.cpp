@@ -13,7 +13,7 @@
 // =============================================================================
 
 
-#include "chrono_fea/ChBeamSectionCosserat.h"
+#include "chrono/fea/ChBeamSectionCosserat.h"
 
 
 namespace chrono {

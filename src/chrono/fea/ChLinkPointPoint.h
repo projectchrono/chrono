@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 
@@ -33,7 +33,7 @@ namespace fea {
 /// Nodes are 3-DOF points that are used in point-based
 /// primitives, such as ChMatterSPH or finite elements.
 
-class ChApiFea ChLinkPointPoint : public ChLinkBase {
+class ChApi ChLinkPointPoint : public ChLinkBase {
 
   private:
     ChVector<> react;

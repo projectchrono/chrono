@@ -14,10 +14,10 @@
 
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChMesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChMesh.h"
 
 using namespace std;
 

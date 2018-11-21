@@ -15,8 +15,8 @@
 #ifndef CHCOROTATIONAL_H
 #define CHCOROTATIONAL_H
 
-#include "chrono_fea/ChPolarDecomposition.h"
-#include "chrono_fea/ChMatrixCorotation.h"
+#include "chrono/fea/ChPolarDecomposition.h"
+#include "chrono/fea/ChMatrixCorotation.h"
 
 namespace chrono {
 namespace fea {
@@ -26,7 +26,7 @@ namespace fea {
 
 /// Class for corotational elements (elements with rotation
 /// matrices that follow the global motion of the element)
-class ChApiFea ChElementCorotational {
+class ChApi ChElementCorotational {
   protected:
     ChMatrix33<> A;  // rotation matrix
 

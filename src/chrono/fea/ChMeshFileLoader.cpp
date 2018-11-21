@@ -25,10 +25,10 @@
 #include "chrono/physics/ChSystem.h"
 
 #include <array>
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChMeshFileLoader.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 using namespace std;
 

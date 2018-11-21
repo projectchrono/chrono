@@ -16,7 +16,7 @@
 #define CHLOADCONTACTSURFACEMESH_H
 
 #include "chrono/physics/ChLoadsXYZnode.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
 
 namespace chrono {
 namespace fea {
@@ -30,7 +30,7 @@ namespace fea {
 /// the class itself could bypass all methods of ChLoadXYZnode and directly implement
 /// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
 
-class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
+class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
   public:
     ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> cmesh);
 

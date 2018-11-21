@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoaderU.h"
-#include "chrono_fea/ChElementBeam.h"
+#include "chrono/fea/ChElementBeam.h"
 
 namespace chrono {
 namespace fea {

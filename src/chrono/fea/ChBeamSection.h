@@ -15,7 +15,6 @@
 #ifndef CHBEAMSECTION_H
 #define CHBEAMSECTION_H
 
-#include "chrono_fea/ChApiFEA.h"
 #include "chrono/core/ChMathematics.h"
 
 
@@ -29,7 +28,7 @@ namespace fea {
 /// Especially useful for plasticity, where internal variables are used 
 /// to carry information on plastic flow, accumulated flow, etc.
 
-class ChApiFea ChBeamMaterialInternalData {
+class ChApi ChBeamMaterialInternalData {
 public:
 	ChBeamMaterialInternalData() :
 		p_strain_acc(0)
@@ -50,7 +49,7 @@ public:
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
 
-class ChApiFea ChBeamSectionProperties {
+class ChApi ChBeamSectionProperties {
 public:
 	double y_drawsize;
 	double z_drawsize;
@@ -132,7 +131,7 @@ public:
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
 
-class ChApiFea ChBeamSection {
+class ChApi ChBeamSection {
 public:
 	double y_drawsize;
 	double z_drawsize;
@@ -179,7 +178,7 @@ public:
 /// Basic geometry for a beam section in 3D, along with basic material
 /// properties (zz and yy moments of inertia, area, Young modulus, etc.)
 /// This material can be shared between multiple beams.
-class ChApiFea ChBeamSectionBasic : public ChBeamSection {
+class ChApi ChBeamSectionBasic : public ChBeamSection {
   public:
     double Area;
     double Iyy;
@@ -301,7 +300,7 @@ class ChApiFea ChBeamSectionBasic : public ChBeamSection {
 /// Iyy and Izz axes rotated respect reference, centroid with offset
 /// from reference, and shear center with offset from reference.
 /// This material can be shared between multiple beams.
-class ChApiFea ChBeamSectionAdvanced : public ChBeamSectionBasic {
+class ChApi ChBeamSectionAdvanced : public ChBeamSectionBasic {
   public:
     double alpha;  // Rotation of Izz Iyy respect to reference line x
     double Cy;     // Centroid (elastic center, tension center)
@@ -349,7 +348,7 @@ class ChApiFea ChBeamSectionAdvanced : public ChBeamSectionBasic {
 /// Simplified geometry for a 'cable' beam section in 3D, that is a beam
 /// without torsional stiffness and with circular section (i.e.same Ixx and Iyy properties).
 /// This material can be shared between multiple beams.
-class ChApiFea ChBeamSectionCable : public ChBeamSection {
+class ChApi ChBeamSectionCable : public ChBeamSection {
   public:
     double Area;
     double I;

@@ -19,9 +19,8 @@
 
 #include <vector>
 
-#include "chrono_fea/ChApiFEA.h"
-#include "chrono_fea/ChElementShell.h"
-#include "chrono_fea/ChNodeFEAxyzD.h"
+#include "chrono/fea/ChElementShell.h"
+#include "chrono/fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 namespace fea {
@@ -32,7 +31,7 @@ namespace fea {
 // ----------------------------------------------------------------------------
 /// Material definition.
 /// This class implements material properties for a layer.
-class ChApiFea ChMaterialShellANCF {
+class ChApi ChMaterialShellANCF {
   public:
     /// Construct an isotropic material.
     ChMaterialShellANCF(double rho,  ///< material density
@@ -74,7 +73,7 @@ class ChApiFea ChMaterialShellANCF {
 ///   |     |     |
 /// A o-----+-----o B
 ///
-class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
+class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     ChElementShellANCF();
     ~ChElementShellANCF() {}

@@ -15,7 +15,7 @@
 #ifndef CHCONTACTSURFACE_H
 #define CHCONTACTSURFACE_H
 
-#include "chrono_fea/ChElementBase.h"
+#include "chrono/fea/ChElementBase.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurface.h"
@@ -28,7 +28,7 @@ namespace fea {
 /// that implement practical functionalities.
 /// The contact surface has a material of ChMaterialSurface type (non-smooth contact material
 /// by default, but it can be also switched to a smooth (penalty) contact material, using Set).
-class ChApiFea ChContactSurface {
+class ChApi ChContactSurface {
 
   public:
     ChContactSurface(ChMesh* parentmesh = 0) {

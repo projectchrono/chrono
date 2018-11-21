@@ -12,7 +12,7 @@
 // Authors: Andrea Favali
 // =============================================================================
 
-#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono/fea/ChElementHexa_8.h"
 
 namespace chrono {
 namespace fea {

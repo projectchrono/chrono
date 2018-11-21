@@ -15,11 +15,11 @@
 #ifndef CHBUILDERBEAM_H
 #define CHBUILDERBEAM_H
 
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChElementBeamEuler.h"
-#include "chrono_fea/ChElementBeamIGA.h"
-#include "chrono_fea/ChElementCableANCF.h"
-#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChElementBeamEuler.h"
+#include "chrono/fea/ChElementBeamIGA.h"
+#include "chrono/fea/ChElementCableANCF.h"
+#include "chrono/fea/ChElementBeamANCF.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -36,7 +36,7 @@ class ChContactSurfaceNodeCloud;
 /// Class for an helper object that provides easy functions to create
 /// complex beams, for example subdivides a segment in multiple finite
 /// elements.
-class ChApiFea ChBuilderBeam {
+class ChApi ChBuilderBeam {
   protected:
     std::vector<std::shared_ptr<ChElementBeamEuler> > beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > beam_nodes;
@@ -93,7 +93,7 @@ class ChApiFea ChBuilderBeam {
 /// complex beams of ChElementCableANCF class, for example subdivides a segment
 /// in multiple finite elements.
 
-class ChApiFea ChBuilderBeamANCF {
+class ChApi ChBuilderBeamANCF {
   protected:
     std::vector<std::shared_ptr<ChElementCableANCF> > beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > beam_nodes;
@@ -121,7 +121,7 @@ class ChApiFea ChBuilderBeamANCF {
     std::vector<std::shared_ptr<ChNodeFEAxyzD> >& GetLastBeamNodes() { return beam_nodes; }
 };
 
-class ChApiFea ChBuilderBeamANCFFullyPar {
+class ChApi ChBuilderBeamANCFFullyPar {
   protected:
     std::vector<std::shared_ptr<ChElementBeamANCF> > beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzDD> > beam_nodes;
@@ -161,7 +161,7 @@ class ChApiFea ChBuilderBeamANCFFullyPar {
 /// complex beams of ChElementBeamIGA class, for example subdivides a segment
 /// in multiple finite elements.
 
-class ChApiFea ChBuilderBeamIGA {
+class ChApi ChBuilderBeamIGA {
   protected:
     std::vector<std::shared_ptr<ChElementBeamIGA> > beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > beam_nodes;
@@ -207,7 +207,7 @@ class ChApiFea ChBuilderBeamIGA {
 /// Class for object that continuously extrude a beam
 /// with prescribed velocity
 
-class ChApiFea ChExtruderBeamEuler {
+class ChApi ChExtruderBeamEuler {
   protected:
     std::vector<std::shared_ptr<ChElementBeamEuler> > beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > beam_nodes;
@@ -266,7 +266,7 @@ class ChApiFea ChExtruderBeamEuler {
 /// Class for object that continuously extrude a beam
 /// with prescribed velocity
 
-class ChApiFea ChExtruderBeamIGA {
+class ChApi ChExtruderBeamIGA {
   protected:
     std::vector<std::shared_ptr<ChElementBeamIGA> > beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > beam_nodes;

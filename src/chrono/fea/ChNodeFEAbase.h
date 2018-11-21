@@ -16,7 +16,6 @@
 #define CHNODEFEABASE_H
 
 #include "chrono/physics/ChNodeBase.h"
-#include "chrono_fea/ChApiFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -29,7 +28,7 @@ class ChMesh;
 
 /// Base class for a generic finite element node that can be stored in ChMesh containers.
 /// Derived classes must implement specialized versions.
-class ChApiFea ChNodeFEAbase : public virtual ChNodeBase {
+class ChApi ChNodeFEAbase : public virtual ChNodeBase {
   public:
     ChNodeFEAbase() {}
 

@@ -17,7 +17,7 @@
 #ifndef CHFACEHEXA8_H
 #define CHFACEHEXA8_H
 
-#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono/fea/ChElementHexa_8.h"
 
 namespace chrono {
 namespace fea {
@@ -34,7 +34,7 @@ namespace fea {
 ///   |     |     |
 /// 0 o-----+-----o 1
 ///
-class ChApiFea ChFaceHexa_8 : public ChLoadableUV {
+class ChApi ChFaceHexa_8 : public ChLoadableUV {
   protected:
     char face_id;
     std::shared_ptr<ChElementHexa_8> melement;

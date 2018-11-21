@@ -16,7 +16,6 @@
 #define CHCONTINUUMPOISSON3D_H
 
 #include "chrono/physics/ChContinuumMaterial.h"
-#include "chrono_fea/ChApiFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -25,7 +24,7 @@ namespace fea {
 /// that can be described by Laplace PDEs of type
 ///    rho dP/dt + div [C] grad P = 0
 
-class ChApiFea ChContinuumPoisson3D : public ChContinuumMaterial {
+class ChApi ChContinuumPoisson3D : public ChContinuumMaterial {
   protected:
     ChMatrixDynamic<> ConstitutiveMatrix;  // constitutive matrix
 

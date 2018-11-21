@@ -26,7 +26,7 @@ namespace chrono {
 /// made with a cluster of particles - that is, an 'edge' topological connectivity in
 /// in a meshless FEA approach, similar to the Smoothed Particle Hydrodynamics.
 
-class ChApiFea ChProximityMeshless {
+class ChApi ChProximityMeshless {
   public:
     ChProximityMeshless(collision::ChCollisionModel* mmodA,  ///< model A
                         collision::ChCollisionModel* mmodB   ///< model B
@@ -63,7 +63,7 @@ class ChApiFea ChProximityMeshless {
 /// Such an item must be addd to the physical system if you added
 /// an object of class ChMatterMeshless.
 
-class ChApiFea ChProximityContainerMeshless : public ChProximityContainer {
+class ChApi ChProximityContainerMeshless : public ChProximityContainer {
 
   protected:
     std::list<ChProximityMeshless*> proximitylist;

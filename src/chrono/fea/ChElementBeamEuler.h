@@ -17,10 +17,10 @@
 
 //#define BEAM_VERBOSE
 
-#include "chrono_fea/ChElementBeam.h"
-#include "chrono_fea/ChBeamSection.h"
-#include "chrono_fea/ChNodeFEAxyzrot.h"
-#include "chrono_fea/ChElementCorotational.h"
+#include "chrono/fea/ChElementBeam.h"
+#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChElementCorotational.h"
 
 namespace chrono {
 namespace fea {
@@ -38,7 +38,7 @@ namespace fea {
 /// Note that there are also ChElementCableANCF if no torsional effects
 /// are needed, as in cables.
 
-class ChApiFea ChElementBeamEuler : public ChElementBeam,
+class ChApi ChElementBeamEuler : public ChElementBeam,
                                     public ChLoadableU,
                                     public ChLoadableUVW,
                                     public ChElementCorotational {

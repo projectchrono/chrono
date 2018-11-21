@@ -21,11 +21,11 @@
 
 #include <cmath>
 
-#include "chrono_fea/ChElementShellANCF_8.h"
+#include "chrono/fea/ChElementShellANCF_8.h"
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChUtilsFEA.h"
+#include "chrono/fea/ChUtilsFEA.h"
 
 namespace chrono {
 namespace fea {

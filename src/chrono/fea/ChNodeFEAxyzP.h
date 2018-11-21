@@ -16,7 +16,7 @@
 #define CHNODEFEAXYZP_H
 
 #include "chrono/solver/ChVariablesGeneric.h"
-#include "chrono_fea/ChNodeFEAbase.h"
+#include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
 namespace fea {
@@ -25,7 +25,7 @@ namespace fea {
 /// This can be used for typical Poisson-type problems (ex. thermal, if the
 /// scalar field is temperature T, or electrostatics if the scalar field is
 /// electric potential V)
-class ChApiFea ChNodeFEAxyzP : public ChNodeFEAbase {
+class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
   public:
     ChNodeFEAxyzP(ChVector<> initial_pos = VNULL);
     ChNodeFEAxyzP(const ChNodeFEAxyzP& other);

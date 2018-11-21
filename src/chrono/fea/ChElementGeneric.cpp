@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono_fea/ChElementGeneric.h"
+#include "chrono/fea/ChElementGeneric.h"
 
 namespace chrono {
 namespace fea {

@@ -20,9 +20,9 @@
 //#define BEAM_VERBOSE
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuadrature.h"
-#include "chrono_fea/ChElementBeam.h"
-#include "chrono_fea/ChBeamSection.h"
-#include "chrono_fea/ChNodeFEAxyzD.h"
+#include "chrono/fea/ChElementBeam.h"
+#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChNodeFEAxyzD.h"
 #include <cmath>
 
 namespace chrono {

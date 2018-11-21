@@ -16,9 +16,9 @@
 #define CHCONTACTSURFACENODECLOUD_H
 
 #include "chrono/collision/ChCCollisionModel.h"
-#include "chrono_fea/ChContactSurface.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
-#include "chrono_fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChContactSurface.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
 
@@ -26,7 +26,7 @@ namespace fea {
 
 /// Proxy to FEA nodes, to grant them the features
 /// needed for collision detection.
-class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
+class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
 
   public:
     ChContactNodeXYZ(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0) {
@@ -146,7 +146,7 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
 
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud
 /// type of collisions.
-class ChApiFea ChContactNodeXYZsphere : public ChContactNodeXYZ {
+class ChApi ChContactNodeXYZsphere : public ChContactNodeXYZ {
 
   public:
     ChContactNodeXYZsphere(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0);
@@ -164,7 +164,7 @@ class ChApiFea ChContactNodeXYZsphere : public ChContactNodeXYZ {
 /// **Note: the ChContactNodeXYZ would be sufficient if ChNodeFEAxyz were inherited
 /// from ChNodeFEAxyzrot, but this does not happen -hopefully it will be, in future API-, so we need
 /// to implement also this ChContactNodeXYZROT as a proxy to ChNodeFEAxyzrot, sorry for code redundancy.
-class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
+class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
 
   public:
     ChContactNodeXYZROT(ChNodeFEAxyzrot* anode = 0, ChContactSurface* acontainer = 0) {
@@ -284,7 +284,7 @@ class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
 
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud
 /// type of collisions.
-class ChApiFea ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
+class ChApi ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 
   public:
     ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode = 0, ChContactSurface* acontainer = 0);
@@ -301,7 +301,7 @@ class ChApiFea ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 /// in the FEA model are used as contact items for the collision detection.
 /// Might be an efficient option in case of dense tessellations (but misses the FEAnodes-vs-FEAfaces
 /// cases, and misses FEAedge-vs-edges)
-class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
+class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
 
   public:
     ChContactSurfaceNodeCloud(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh){};

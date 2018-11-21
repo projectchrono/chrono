@@ -25,7 +25,6 @@
 #define CHPOLARDECOMPOSITION_H
 
 #include "chrono/core/ChMatrix33.h"
-#include "chrono_fea/ChApiFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -90,7 +89,7 @@ class PolarDecomposition {
 ///
 
 template <class Real = double>
-class ChApiFea ChPolarDecomposition {
+class ChApi ChPolarDecomposition {
   public:
     // Computes the polar decomposition of a generic 3x3 matrix M, as M = Q * S
     // Input:

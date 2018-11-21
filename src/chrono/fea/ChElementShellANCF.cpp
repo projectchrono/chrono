@@ -17,8 +17,8 @@
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChUtilsFEA.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChUtilsFEA.h"
 #include <cmath>
 
 namespace chrono {

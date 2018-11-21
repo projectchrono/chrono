@@ -15,10 +15,10 @@
 #ifndef CHELEMENT3D_H
 #define CHELEMENT3D_H
 
-#include "chrono_fea/ChElementGeneric.h"
-#include "chrono_fea/ChGaussIntegrationRule.h"
-#include "chrono_fea/ChPolarDecomposition.h"
-#include "chrono_fea/ChMatrixCorotation.h"
+#include "chrono/fea/ChElementGeneric.h"
+#include "chrono/fea/ChGaussIntegrationRule.h"
+#include "chrono/fea/ChPolarDecomposition.h"
+#include "chrono/fea/ChMatrixCorotation.h"
 
 namespace chrono {
 namespace fea {
@@ -27,7 +27,7 @@ namespace fea {
 /// @{
 
 /// Class for all 3-Dimensional elements.
-class ChApiFea ChElement3D : public ChElementGeneric {
+class ChApi ChElement3D : public ChElementGeneric {
   protected:
     double Volume;
 

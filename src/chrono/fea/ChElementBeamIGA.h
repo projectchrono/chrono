@@ -17,9 +17,9 @@
 
 //#define BEAM_VERBOSE
 
-#include "chrono_fea/ChElementBeam.h"
-#include "chrono_fea/ChBeamSectionCosserat.h"
-#include "chrono_fea/ChNodeFEAxyzrot.h"
+#include "chrono/fea/ChElementBeam.h"
+#include "chrono/fea/ChBeamSectionCosserat.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 #include "chrono/geometry/ChBasisToolsBspline.h"
 #include "chrono/core/ChQuadrature.h"
 

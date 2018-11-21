@@ -15,8 +15,8 @@
 #ifndef CHELEMENTHEXAHEDRON_H
 #define CHELEMENTHEXAHEDRON_H
 
-#include "chrono_fea/ChElement3D.h"
-#include "chrono_fea/ChElementCorotational.h"
+#include "chrono/fea/ChElement3D.h"
+#include "chrono/fea/ChElementCorotational.h"
 
 namespace chrono {
 namespace fea {
@@ -24,7 +24,7 @@ namespace fea {
 ///
 /// Class for hexahedral elements.
 ///
-class ChApiFea ChElementHexahedron : public ChElement3D,
+class ChApi ChElementHexahedron : public ChElement3D,
                                      public ChElementCorotational
 //		    __ __ __ __				//
 {                                         //		  /			  /|			//
