@@ -31,6 +31,8 @@
 #include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChGlobal.h"
 
+#include "chrono/fea/ChMesh.h"
+
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -38,10 +40,6 @@
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
-
-#if defined(CHRONO_FEA)
-#include "chrono_fea/ChMesh.h"
-#endif
 
 namespace chrono {
 
@@ -152,9 +150,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   private:
     void AddShaft(std::shared_ptr<ChShaft> shaft);
-#ifdef CHRONO_FEA
     void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
-#endif
 
     std::vector<ChShaft*> shaftlist;
 };

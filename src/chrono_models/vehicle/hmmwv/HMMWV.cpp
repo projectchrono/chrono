@@ -119,12 +119,6 @@ void HMMWV::Initialize() {
 
     m_powertrain->Initialize(GetChassisBody(), m_vehicle->GetDriveshaft());
 
-#ifndef CHRONO_FEA
-    // If ANCF tire selected but not available, fall back on rigid tire.
-    if (m_tireType == TireModelType::ANCF)
-        m_tireType = TireModelType::RIGID;
-#endif
-
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
         case TireModelType::RIGID:
@@ -213,7 +207,6 @@ void HMMWV::Initialize() {
             break;
         }
         case TireModelType::ANCF: {
-#ifdef CHRONO_FEA
             HMMWV_ANCFTire* tire_FL = new HMMWV_ANCFTire("FL");
             HMMWV_ANCFTire* tire_FR = new HMMWV_ANCFTire("FR");
             HMMWV_ANCFTire* tire_RL = new HMMWV_ANCFTire("RL");
@@ -223,11 +216,9 @@ void HMMWV::Initialize() {
             m_tires[1] = tire_FR;
             m_tires[2] = tire_RL;
             m_tires[3] = tire_RR;
-#endif
             break;
         }
         case TireModelType::REISSNER: {
-#ifdef CHRONO_FEA
             HMMWV_ReissnerTire* tire_FL = new HMMWV_ReissnerTire("FL");
             HMMWV_ReissnerTire* tire_FR = new HMMWV_ReissnerTire("FR");
             HMMWV_ReissnerTire* tire_RL = new HMMWV_ReissnerTire("RL");
@@ -237,7 +228,6 @@ void HMMWV::Initialize() {
             m_tires[1] = tire_FR;
             m_tires[2] = tire_RL;
             m_tires[3] = tire_RR;
-#endif
             break;
         }
         default:
