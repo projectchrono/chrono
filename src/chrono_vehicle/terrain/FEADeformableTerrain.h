@@ -22,7 +22,7 @@
 #define FEADEFORMABLE_TERRAIN_H
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChMesh.h"
+#include "chrono/fea/ChMesh.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
 

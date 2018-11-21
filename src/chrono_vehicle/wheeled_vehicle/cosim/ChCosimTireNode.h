@@ -22,7 +22,7 @@
 #include "mpi.h"
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChLoadContactSurfaceMesh.h"
+#include "chrono/fea/ChLoadContactSurfaceMesh.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimNode.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"

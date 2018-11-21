@@ -252,65 +252,60 @@ endif()
 # MODULE for the ChronoEngine_python_fea python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_FEA)
+message(STATUS "...add Chrono::Python FEA module")
 
-  message(STATUS "...add Chrono::Python FEA module")
-  
-  # Python module name
-  set(CHPY_FEA ChronoEngine_python_fea)
+# Python module name
+set(CHPY_FEA ChronoEngine_python_fea)
 
-  # Interface files
-  set(CHPY_FEA_MODULE_FILE 
-      ChModuleFea.i
-      )
+# Interface files
+set(CHPY_FEA_MODULE_FILE 
+    ChModuleFea.i
+    )
 
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
-  endif()
-  set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+endif()
+set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
-  # Create the SWIG module.
-  if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
-    SWIG_ADD_MODULE(${CHPY_FEA} python ${CHPY_FEA_MODULE_FILE})
-  else()
-    SWIG_ADD_LIBRARY(${CHPY_FEA} LANGUAGE python SOURCES ${CHPY_FEA_MODULE_FILE})
-  endif()
-  SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_fea)
+# Create the SWIG module.
+if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+  SWIG_ADD_MODULE(${CHPY_FEA} python ${CHPY_FEA_MODULE_FILE})
+else()
+  SWIG_ADD_LIBRARY(${CHPY_FEA} LANGUAGE python SOURCES ${CHPY_FEA_MODULE_FILE})
+endif()
+SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
 
-  # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} PROPERTIES 
-                        PROJECT_LABEL "${CHPY_FEA}"
-                        OUTPUT_NAME   "${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}"
-                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
-                        )
+# Ensure that the PYD library file is generated in the bin/ directory.
+set_target_properties(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} PROPERTIES 
+                      PROJECT_LABEL "${CHPY_FEA}"
+                      OUTPUT_NAME   "${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}"
+                      LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                      )
 
-  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine)
-  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine_fea)
+ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine)
 
-  # Copy PY file next to PYD file 
-  set(CHPY_FEA_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FEA}.py")
-  get_target_property(CHPY_FEA_PYD_FILE ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} LOCATION)
-  get_filename_component(CHPY_FEA_PYD_PATH "${CHPY_FEA_PYD_FILE}" PATH)
+# Copy PY file next to PYD file 
+set(CHPY_FEA_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FEA}.py")
+get_target_property(CHPY_FEA_PYD_FILE ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} LOCATION)
+get_filename_component(CHPY_FEA_PYD_PATH "${CHPY_FEA_PYD_FILE}" PATH)
 
-  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_FEA_PYD_PATH})
+add_custom_command(TARGET ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_FEA_PY_FILE} ${CHPY_FEA_PYD_PATH})
 
-  # Install module
-  install(TARGETS ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
-          RUNTIME DESTINATION ${CH_INSTALL_PYTHON}
-          LIBRARY DESTINATION ${CH_INSTALL_PYTHON}
-          ARCHIVE DESTINATION ${CH_INSTALL_PYTHON})
-  install(FILES ${CHPY_FEA_PY_FILE} DESTINATION ${CH_INSTALL_PYTHON})
+# Install module
+install(TARGETS ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}
+        RUNTIME DESTINATION ${CH_INSTALL_PYTHON}
+        LIBRARY DESTINATION ${CH_INSTALL_PYTHON}
+        ARCHIVE DESTINATION ${CH_INSTALL_PYTHON})
+install(FILES ${CHPY_FEA_PY_FILE} DESTINATION ${CH_INSTALL_PYTHON})
 
-  if (DBG_SCRIPT)
-    message("Module name:     ${CHPY_FEA}")
-    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}")
-    message("PY file:         ${CHPY_FEA_PY_FILE}")
-    message("PYD file:        ${CHPY_FEA_PYD_FILE}")
-    message("PYD path:        ${CHPY_FEA_PYD_PATH}")
-  endif()
-
+if (DBG_SCRIPT)
+  message("Module name:     ${CHPY_FEA}")
+  message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}")
+  message("PY file:         ${CHPY_FEA_PY_FILE}")
+  message("PYD file:        ${CHPY_FEA_PYD_FILE}")
+  message("PYD path:        ${CHPY_FEA_PYD_PATH}")
 endif()
 
 #-----------------------------------------------------------------------------

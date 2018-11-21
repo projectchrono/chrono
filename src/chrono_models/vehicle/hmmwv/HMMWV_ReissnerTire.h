@@ -19,9 +19,9 @@
 #ifndef HMMWV_REISSNER_TIRE_H
 #define HMMWV_REISSNER_TIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
-#include "chrono_fea/ChElementShellReissner4.h"
+#include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono_models/ChApiModels.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 
 namespace chrono {
 namespace vehicle {

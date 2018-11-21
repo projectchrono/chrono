@@ -29,15 +29,15 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h"
 
-#include "chrono_fea/ChContactSurfaceMesh.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChElementShellANCF_8.h"
-#include "chrono_fea/ChLinkDirFrame.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChNodeFEAbase.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_8.h"
+#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChNodeFEAbase.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
 
 using namespace chrono::fea;
 
