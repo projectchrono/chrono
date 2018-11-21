@@ -25,9 +25,7 @@ namespace chrono {
 ///   end = duration of motion,
 ///   av  = fraction of 1st acceleration end  (0..1)
 ///   aw  = fraction of 2nd acceleration start (0..1) , with aw>av;
-
 class ChApi ChFunction_ConstAcc : public ChFunction {
-
   private:
     double h;
     double av;
@@ -96,33 +94,13 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_ConstAcc>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(h);
-        marchive << CHNVP(end);
-        marchive << CHNVP(aw);
-        marchive << CHNVP(av);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_ConstAcc>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(h);
-        marchive >> CHNVP(end);
-        marchive >> CHNVP(aw);
-        marchive >> CHNVP(av);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_ConstAcc,0)
+CH_CLASS_VERSION(ChFunction_ConstAcc, 0)
 
 }  // end namespace chrono
 

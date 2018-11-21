@@ -96,6 +96,8 @@ M113a_Chassis::M113a_Chassis(const std::string& name, bool fixed, ChassisCollisi
     case ChassisCollisionType::MESH:
         m_coll_mesh_names.push_back("M113/Chassis_Hulls.obj");
         break;
+    default:
+        break;
     }
 }
 

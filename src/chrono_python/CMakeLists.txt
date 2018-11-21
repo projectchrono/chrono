@@ -143,7 +143,11 @@ set_source_files_properties(${CHPY_CORE_WRAPPER_FILES} PROPERTIES HEADER_FILE_ON
 source_group("wrappers" FILES  ${CHPY_CORE_WRAPPER_FILES})
 
 # Create the SWIG module.
-SWIG_ADD_MODULE(${CHPY_CORE} python ${CHPY_CORE_MODULE_FILE}) 
+if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+  SWIG_ADD_MODULE(${CHPY_CORE} python ${CHPY_CORE_MODULE_FILE}) 
+else()
+  SWIG_ADD_LIBRARY(${CHPY_CORE} LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
+endif()
 SWIG_LINK_LIBRARIES(${CHPY_CORE} ${PYTHON_LIBRARY} ChronoEngine)
 
 # Ensure that the PYD library file is generated in the bin/ directory.
@@ -201,7 +205,11 @@ if(ENABLE_MODULE_POSTPROCESS)
   set_source_files_properties(${CHPY_POSTPROCESS_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
   # Create the SWIG module.
-  SWIG_ADD_MODULE(${CHPY_POSTPROCESS} python ${CHPY_POSTPROCESS_MODULE_FILE}) 
+  if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    SWIG_ADD_MODULE(${CHPY_POSTPROCESS} python ${CHPY_POSTPROCESS_MODULE_FILE})
+  else()
+    SWIG_ADD_LIBRARY(${CHPY_POSTPROCESS} LANGUAGE python SOURCES ${CHPY_POSTPROCESS_MODULE_FILE})
+  endif()
   SWIG_LINK_LIBRARIES(${CHPY_POSTPROCESS} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_postprocess)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -262,7 +270,11 @@ if(ENABLE_MODULE_FEA)
   set_source_files_properties(${CHPY_FEA_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
   # Create the SWIG module.
-  SWIG_ADD_MODULE(${CHPY_FEA} python ${CHPY_FEA_MODULE_FILE}) 
+  if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    SWIG_ADD_MODULE(${CHPY_FEA} python ${CHPY_FEA_MODULE_FILE})
+  else()
+    SWIG_ADD_LIBRARY(${CHPY_FEA} LANGUAGE python SOURCES ${CHPY_FEA_MODULE_FILE})
+  endif()
   SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_fea)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
@@ -325,7 +337,11 @@ if(ENABLE_MODULE_IRRLICHT)
   set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
   # Create the SWIG module.
-  SWIG_ADD_MODULE(${CHPY_IRRLICHT} python ${CHPY_IRRLICHT_MODULE_FILE}) 
+  if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    SWIG_ADD_MODULE(${CHPY_IRRLICHT} python ${CHPY_IRRLICHT_MODULE_FILE})
+  else()
+    SWIG_ADD_LIBRARY(${CHPY_IRRLICHT} LANGUAGE python SOURCES ${CHPY_IRRLICHT_MODULE_FILE})
+  endif()
   SWIG_LINK_LIBRARIES(${CHPY_IRRLICHT} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_irrlicht ${CH_IRRLICHTLIB})
 
   # Ensure that the PYD library file is generated in the bin/ directory.

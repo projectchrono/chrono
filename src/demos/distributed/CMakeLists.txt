@@ -14,7 +14,7 @@ set(LIBRARIES
 
 include_directories(${CH_DISTRIBUTED_INCLUDES} ${CH_PARALLEL_INCLUDES})
 
-message(STATUS "Additional test programs for DISTRIBUTED module...")
+message(STATUS "Demo programs for DISTRIBUTED module...")
 
 #--------------------------------------------------------------
 

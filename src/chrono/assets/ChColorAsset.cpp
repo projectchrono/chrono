@@ -20,4 +20,25 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChColorAsset)
 
+void ChColorAsset::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChColorAsset>();
+    // serialize parent class
+    ChAsset::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(color);
+    marchive << CHNVP(fading);
+}
+
+/// Method to allow de-serialization of transient data from archives.
+void ChColorAsset::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChColorAsset>();
+    // deserialize parent class
+    ChAsset::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(color);
+    marchive >> CHNVP(fading);
+}
+
 }  // end namespace chrono

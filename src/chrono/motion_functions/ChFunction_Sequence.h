@@ -49,42 +49,10 @@ class ChApi ChFseqNode {
     ~ChFseqNode() {}
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite<ChFseqNode>();
+    void ArchiveOUT(ChArchiveOut& marchive);
 
-        // serialize all member data:
-        marchive << CHNVP(fx);
-        marchive << CHNVP(duration);
-        marchive << CHNVP(weight);
-        marchive << CHNVP(t_start);
-        marchive << CHNVP(t_end);
-        marchive << CHNVP(Iy);
-        marchive << CHNVP(Iydt);
-        marchive << CHNVP(Iydtdt);
-        marchive << CHNVP(y_cont);
-        marchive << CHNVP(ydt_cont);
-        marchive << CHNVP(ydtdt_cont);
-    }
-
-    /// Method to allow deserialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead<ChFseqNode>();
-
-        // stream in all member data:
-        marchive >> CHNVP(fx);
-        marchive >> CHNVP(duration);
-        marchive >> CHNVP(weight);
-        marchive >> CHNVP(t_start);
-        marchive >> CHNVP(t_end);
-        marchive >> CHNVP(Iy);
-        marchive >> CHNVP(Iydt);
-        marchive >> CHNVP(Iydtdt);
-        marchive >> CHNVP(y_cont);
-        marchive >> CHNVP(ydt_cont);
-        marchive >> CHNVP(ydtdt_cont);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    void ArchiveIN(ChArchiveIn& marchive);
 };
 
 CH_CLASS_VERSION(ChFseqNode, 0)
@@ -94,9 +62,7 @@ CH_CLASS_VERSION(ChFseqNode, 0)
 /// All other function types can be inserted into this.
 /// This function is very important because very complex motion
 /// laws can be created by sequencing many basic ChFunctions.
-
 class ChApi ChFunction_Sequence : public ChFunction {
-
   private:
     std::list<ChFseqNode> functions;  ///< the list of sub functions
     double start;                     ///< start time for sequence
@@ -177,26 +143,10 @@ class ChApi ChFunction_Sequence : public ChFunction {
     virtual bool HandleAccess(int handle_id, double mx, double my, bool set_mode) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Sequence>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(start);
-        marchive << CHNVP(functions);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Sequence>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(start);
-        marchive >> CHNVP(functions);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

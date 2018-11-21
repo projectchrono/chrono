@@ -21,9 +21,7 @@ namespace chrono {
 
 /// Sigma function:
 ///   y = polynomial smooth ramp
-
 class ChApi ChFunction_Sigma : public ChFunction {
-
   private:
     double amp;
     double start;
@@ -58,31 +56,13 @@ class ChApi ChFunction_Sigma : public ChFunction {
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Sigma>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(amp);
-        marchive << CHNVP(start);
-        marchive << CHNVP(end);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Sigma>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(amp);
-        marchive >> CHNVP(start);
-        marchive >> CHNVP(end);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Sigma,0)
+CH_CLASS_VERSION(ChFunction_Sigma, 0)
 
 }  // end namespace chrono
 

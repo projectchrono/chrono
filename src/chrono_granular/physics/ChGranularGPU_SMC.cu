@@ -58,6 +58,9 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
     gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
 
+    printf("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
+           gran_params->max_z_pos_unsigned);
+
     gran_params->gravAcc_X_SU = gravity_X_SU;
     gran_params->gravAcc_Y_SU = gravity_Y_SU;
     gran_params->gravAcc_Z_SU = gravity_Z_SU;
@@ -471,6 +474,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::runInitialSpherePriming() {
     primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
         <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nDEs, gran_params);
     gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
     printf("priming finished!\n");
 }
 

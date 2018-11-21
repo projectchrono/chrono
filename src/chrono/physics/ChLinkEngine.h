@@ -26,11 +26,10 @@ namespace chrono {
 /// Note that the engine can be in 'impose relative rotation' mode,
 /// as well as in 'impose speed' etc. It can also be used to represent
 /// an engine with a torque/speed custom curve. etc.
-/// **NOTE! THIS IS OBSOLETE**. Prefer using the new classes 
+/// **NOTE! THIS IS OBSOLETE**. Prefer using the new classes
 /// inherited from chrono::ChLinkMotor.
 
 class ChApi ChLinkEngine : public ChLinkLock {
-
   public:
     enum eCh_eng_mode {
         ENG_MODE_ROTATION = 0,
@@ -249,18 +248,14 @@ class ChApi ChLinkEngine : public ChLinkLock {
     virtual void VariablesQbSetSpeed(double step = 0) override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChLinkEngine,0)
+CH_CLASS_VERSION(ChLinkEngine, 0)
 
 }  // end namespace chrono
 

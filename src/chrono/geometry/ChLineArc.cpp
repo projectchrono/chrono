@@ -50,5 +50,31 @@ void ChLineArc::Evaluate(ChVector<>& pos, const double parU) const {
     pos = localP >> origin;  // transform to absolute coordinates
 }
 
+void ChLineArc::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChLineArc>();
+    // serialize parent class
+    ChLine::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(origin);
+    marchive << CHNVP(radius);
+    marchive << CHNVP(angle1);
+    marchive << CHNVP(angle2);
+    marchive << CHNVP(counterclockwise);
+}
+
+void ChLineArc::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChLineArc>();
+    // deserialize parent class
+    ChLine::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(origin);
+    marchive >> CHNVP(radius);
+    marchive >> CHNVP(angle1);
+    marchive >> CHNVP(angle2);
+    marchive >> CHNVP(counterclockwise);
+}
+
 }  // end namespace geometry
 }  // end namespace chrono

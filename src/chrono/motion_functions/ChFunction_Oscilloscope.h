@@ -29,9 +29,7 @@ namespace chrono {
 /// Note: differently from ChFunction_Recorder, this function does not allow
 /// not-uniform dx spacing between points, but may be faster and simpler to
 /// use in many cases.
-
 class ChApi ChFunction_Oscilloscope : public ChFunction {
-
   private:
     std::list<double> values;
     double end_x;
@@ -90,35 +88,13 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Oscilloscope>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(values);
-        marchive << CHNVP(end_x);
-        marchive << CHNVP(dx);
-        marchive << CHNVP(max_amount);
-        marchive << CHNVP(amount);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Oscilloscope>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(values);
-        marchive >> CHNVP(end_x);
-        marchive >> CHNVP(dx);
-        marchive >> CHNVP(max_amount);
-        marchive >> CHNVP(amount);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Oscilloscope,0)
+CH_CLASS_VERSION(ChFunction_Oscilloscope, 0)
 
 }  // end namespace chrono
 

@@ -23,9 +23,7 @@ namespace chrono {
 namespace geometry {
 
 /// Geometric object representing a polygonal line in 3D space, controlled by control points.
-
 class ChApi ChLinePoly : public ChLine {
-
   private:
     std::vector<ChVector<> > points;  ///< control points
     int degree;                       ///< polynomial degree
@@ -41,11 +39,10 @@ class ChApi ChLinePoly : public ChLine {
     virtual GeometryType GetClassType() const override { return LINE_POLY; }
 
     virtual int Get_complexity() const override { return (int)points.size(); }
-    virtual void Set_complexity(int mc) override {};
+    virtual void Set_complexity(int mc) override{};
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(ChVector<>& pos,
-                          const double parU) const override;
+    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
 
     /// Returns curve length. sampling does not matter
     virtual double Length(int sampling) const override;
@@ -67,31 +64,15 @@ class ChApi ChLinePoly : public ChLine {
     bool Set_point(int mnum, ChVector<> mpoint);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChLinePoly>();
-        // serialize parent class
-        ChLine::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(points);
-        marchive << CHNVP(degree);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChLinePoly>();
-        // deserialize parent class
-        ChLine::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(points);
-        marchive >> CHNVP(degree);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChLinePoly,0)
+CH_CLASS_VERSION(geometry::ChLinePoly, 0)
 
 }  // end namespace chrono
 

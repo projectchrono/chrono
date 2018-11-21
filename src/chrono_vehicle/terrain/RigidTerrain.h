@@ -96,7 +96,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
       private:
         Type m_type;
         std::shared_ptr<ChBody> m_body;
-        geometry::ChTriangleMeshConnected m_trimesh;
+        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;
         std::string m_mesh_name;
         float m_friction;
 

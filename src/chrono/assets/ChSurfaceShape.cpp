@@ -14,8 +14,31 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSurfaceShape)
+
+void ChSurfaceShape::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChSurfaceShape>();
+    // serialize parent class
+    ChVisualization::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(gsurface);
+    marchive << CHNVP(wireframe);
+    marchive << CHNVP(resolution_U);
+    marchive << CHNVP(resolution_V);
+}
+
+void ChSurfaceShape::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChSurfaceShape>();
+    // deserialize parent class
+    ChVisualization::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(gsurface);
+    marchive >> CHNVP(wireframe);
+    marchive >> CHNVP(resolution_U);
+    marchive >> CHNVP(resolution_V);
+}
 
 }  // end namespace chrono

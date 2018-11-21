@@ -24,7 +24,6 @@ namespace chrono {
 /// associate variables (a 3 element vector, ex.speed)
 
 class ChApi ChVariablesNode : public ChVariables {
-
   private:
     void* user_data;  ///< user-specified data
     double mass;      ///< mass value
@@ -83,25 +82,11 @@ class ChApi ChVariablesNode : public ChVariables {
     /// Optimized: doesn't fill unneeded elements except mass.
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChVariablesNode>();
-        // serialize parent class
-        ChVariables::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(mass);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChVariablesNode>();
-        // deserialize parent class
-        ChVariables::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(mass);
-        SetNodeMass(mass);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

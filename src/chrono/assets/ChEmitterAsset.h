@@ -13,77 +13,39 @@
 #ifndef CHEMITTERASSET_H
 #define CHEMITTERASSET_H
 
-
 #include "chrono/assets/ChAsset.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 
 namespace chrono {
 
-/// Class that attaches a ChParticleEmitter to a physics item (most
-/// often that item is a ChBody).
-/// The emitter can move together with the body, then.
-
+/// Class that attaches a ChParticleEmitter to a physics item (most often that item is a ChBody).
+/// The emitter can then move together with the body.
 class ChApi ChEmitterAsset : public ChAsset {
-
   protected:
-    //
-    // DATA
-    //
     particlefactory::ChParticleEmitter memitter;
-
     double last_t;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChEmitterAsset() { last_t = 0; }
 
-    ChEmitterAsset() { last_t =0; };
-
-    virtual ~ChEmitterAsset(){};
-
-    //
-    // FUNCTIONS
-    //
-
+    virtual ~ChEmitterAsset() {}
 
     /// Access to the emitter.
     particlefactory::ChParticleEmitter& Emitter() { return this->memitter; }
 
-
     /// Updates the embedded emitter. If a dt is passed, it creates the particles.
     /// No need to call this by the user, it is called automatically by the asset owner (ie. the body).
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) override;
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChEmitterAsset>();
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-       // marchive << CHNVP(memitter); //***TODO***
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChEmitterAsset>();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-       // marchive >> CHNVP(memitter); //***TODO***
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChEmitterAsset,0)
+CH_CLASS_VERSION(ChEmitterAsset, 0)
 
 }  // end namespace chrono
 

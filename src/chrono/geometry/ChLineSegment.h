@@ -23,9 +23,7 @@ namespace chrono {
 namespace geometry {
 
 /// Geometric object representing a segment in 3D space with two end points.
-
 class ChApi ChLineSegment : public ChLine {
-
   public:
     ChVector<> pA;  ///< first segment endpoint
     ChVector<> pB;  ///< second segment endpoint
@@ -43,37 +41,21 @@ class ChApi ChLineSegment : public ChLine {
     virtual int Get_complexity() const override { return 2; }
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(ChVector<>& pos,
-                          const double parU) const override;
+    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
 
     /// Returns curve length. sampling does not matter
     virtual double Length(int sampling) const override { return (pA - pB).Length(); }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChLineSegment>();
-        // serialize parent class
-        ChLine::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(pA);
-        marchive << CHNVP(pB);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChLineSegment>();
-        // deserialize parent class
-        ChLine::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(pA);
-        marchive >> CHNVP(pB);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChLineSegment,0)
+CH_CLASS_VERSION(geometry::ChLineSegment, 0)
 
 }  // end namespace chrono
 

@@ -248,6 +248,14 @@ void ChCollisionSystemParallel::Run() {
     data_manager->system_timer.stop("collision_narrow");
 }
 
+double ChCollisionSystemParallel::GetTimerCollisionBroad() const {
+    return data_manager->system_timer.GetTime("collision_broad");
+}
+
+double ChCollisionSystemParallel::GetTimerCollisionNarrow() const {
+    return data_manager->system_timer.GetTime("collision_narrow");
+}
+
 void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
     data_manager->aabb_generator->GenerateAABB();
 #pragma omp parallel for

@@ -792,10 +792,10 @@ void Part::AddVisualizationAssets(VisualizationType vis) {
 
     if (vis == VisualizationType::MESH) {
         std::string vis_mesh_file = "robosimian/obj/" + m_mesh_name + ".obj";
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
+        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+        trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
         //// HACK: a trimesh visual asset ignores transforms! Explicitly offset vertices.
-        trimesh.Transform(m_offset, ChMatrix33<>(1));
+        trimesh->Transform(m_offset, ChMatrix33<>(1));
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(m_mesh_name);
@@ -837,10 +837,10 @@ void Part::AddVisualizationAssets(VisualizationType vis) {
 
     for (auto mesh : m_meshes) {
         std::string vis_mesh_file = "robosimian/obj/" + mesh.m_name + ".obj";
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
+        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+        trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
         //// HACK: a trimesh visual asset ignores transforms! Explicitly offset vertices.
-        trimesh.Transform(mesh.m_pos, ChMatrix33<>(mesh.m_rot));
+        trimesh->Transform(mesh.m_pos, ChMatrix33<>(mesh.m_rot));
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(mesh.m_name);
@@ -865,17 +865,17 @@ void Part::AddCollisionShapes() {
     }
     for (auto mesh : m_meshes) {
         std::string vis_mesh_file = "robosimian/obj/" + mesh.m_name + ".obj";
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+        trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
         switch (mesh.m_type) {
             case MeshShape::CONVEX_HULL:
-                m_body->GetCollisionModel()->AddConvexHull(trimesh.getCoordsVertices(), mesh.m_pos, mesh.m_rot);
+                m_body->GetCollisionModel()->AddConvexHull(trimesh->getCoordsVertices(), mesh.m_pos, mesh.m_rot);
                 break;
             case MeshShape::TRIANGLE_SOUP:
                 m_body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, mesh.m_pos, mesh.m_rot, 0.002);
                 break;
             case MeshShape::NODE_CLOUD:
-                for (auto v : trimesh.getCoordsVertices()) {
+                for (auto v : trimesh->getCoordsVertices()) {
                     m_body->GetCollisionModel()->AddSphere(0.002, v);
                 }
                 break;

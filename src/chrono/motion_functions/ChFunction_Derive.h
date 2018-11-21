@@ -24,9 +24,7 @@ namespace chrono {
 ///
 /// Uses a numerical differentiation method to compute the derivative
 /// of a generic function.
-
 class ChApi ChFunction_Derive : public ChFunction {
-
   private:
     std::shared_ptr<ChFunction> fa;
     int order;  ///< 1= derive one time, 2= two times, etc.
@@ -52,31 +50,14 @@ class ChApi ChFunction_Derive : public ChFunction {
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Derive>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(fa);
-        marchive << CHNVP(order);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Derive>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(fa);
-        marchive >> CHNVP(order);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Derive,0)
+CH_CLASS_VERSION(ChFunction_Derive, 0)
 
-
-}  // END_OF_NAMESPACE____
+}  // namespace chrono
 
 #endif

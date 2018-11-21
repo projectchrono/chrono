@@ -57,6 +57,7 @@ class ChApi ChSharedMassBody {
     /// Get the mass associated with translation of body
     double GetBodyMass() const { return mass; }
 
+    /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite<ChSharedMassBody>();
@@ -66,6 +67,7 @@ class ChApi ChSharedMassBody {
         marchive << CHNVP(inertia);
     }
 
+    /// Method to allow de-serialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead<ChSharedMassBody>();
@@ -89,7 +91,6 @@ class ChApi ChSharedMassBody {
 ///  problems with thousands of equally-shaped objects.
 
 class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
-
   private:
     ChSharedMassBody* sharedmass;  ///< shared inertia properties
 
@@ -152,24 +153,11 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     /// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChVariablesBodySharedMass>();
-        // serialize parent class
-        ChVariablesBody::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(sharedmass);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChVariablesBodySharedMass>();
-        // deserialize parent class
-        ChVariablesBody::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(sharedmass);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

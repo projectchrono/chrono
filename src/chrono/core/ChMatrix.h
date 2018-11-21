@@ -16,9 +16,9 @@
 #define CHMATRIX_H
 
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChException.h"
-#include "chrono/ChConfig.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 
@@ -347,10 +347,7 @@ class ChMatrix {
         }
     }
 
-    //
-    // STREAMING
-    //
-    /// Method to allow serialization of transient data in archives.
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
         marchive.VersionWrite(1);
@@ -373,25 +370,24 @@ class ChMatrix {
                 mascii->GetStream()->operator<<("\n");
             }
         } else {
-      
             marchive << make_ChNameValue("rows", rows);
             marchive << make_ChNameValue("columns", columns);
 
             // NORMAL array-based serialization:
             int tot_elements = GetRows() * GetColumns();
-            ChValueSpecific< Real* > specVal(this->address, "data", 0);
+            ChValueSpecific<Real*> specVal(this->address, "data", 0);
             marchive.out_array_pre(specVal, tot_elements);
-			char idname[20];
+            char idname[20];
             for (int i = 0; i < tot_elements; i++) {
-				sprintf(idname, "%lu", (unsigned long)i);
+                sprintf(idname, "%lu", (unsigned long)i);
                 marchive << CHNVP(ElementN(i), idname);
-                marchive.out_array_between(specVal,tot_elements);
+                marchive.out_array_between(specVal, tot_elements);
             }
-            marchive.out_array_end(specVal,tot_elements);
+            marchive.out_array_end(specVal, tot_elements);
         }
     }
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
         int version = marchive.VersionRead();
@@ -406,9 +402,9 @@ class ChMatrix {
         // custom input of matrix data as array
         size_t tot_elements = GetRows() * GetColumns();
         marchive.in_array_pre("data", tot_elements);
-		char idname[20];
+        char idname[20];
         for (int i = 0; i < tot_elements; i++) {
-			sprintf(idname, "%lu", (unsigned long)i);
+            sprintf(idname, "%lu", (unsigned long)i);
             marchive >> CHNVP(ElementN(i), idname);
             marchive.in_array_between("data");
         }

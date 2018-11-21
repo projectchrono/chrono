@@ -258,28 +258,6 @@ static ChMatrix33<> DRot_I(const ChVector<>& phi) {
     return GaI;
 }
 
-/// Compute inverse transpose ot rotation matrix Phi and Ga matrix
-/// given Euler Rogriguez's parameters Phi
-static void RotAndDRot_IT(const ChVector<>& phi, ChMatrix33<>& PhiIT, ChMatrix33<>& GaIT) {
-    double coeff[COEFF_D], coeffs[COEFF_C_STAR];
-
-    CoeffCStar(phi, phi, coeff, coeffs);
-
-    ChMatrix33<> Eye(1);
-    ChMatrix33<> Phix;
-    Phix.Set_X_matrix(phi * coeff[0]);
-    PhiIT = Eye + Phix;
-    ChMatrix33<> pxpx;
-    pxpx.Set_XY_matrix(phi, phi * coeffs[1]);
-    PhiIT += pxpx;
-
-    Phix.Set_X_matrix(phi * 0.5);
-    GaIT = Eye + Phix;
-    pxpx.Set_XY_matrix(phi, phi * coeffs[0]);
-    GaIT += pxpx;
-
-    return;
-}
 
 /// Compute Euler Rogriguez's parameters phi from rotation matrix Phi
 static ChVector<> VecRot(const ChMatrix33<>& Phi) {

@@ -87,112 +87,60 @@ inline __device__ unsigned int SDTripletID(const int trip[3], GranParamsPtr gran
 /// which subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts
 /// these indices to indices into the global SD list via the (currently local) conv[3] data structure Should be
 /// mostly bug-free, especially away from boundaries
-inline __device__ void figureOutTouchedSD(int sphCenter_X,
-                                          int sphCenter_Y,
-                                          int sphCenter_Z,
+inline __device__ void figureOutTouchedSD(signed int sphCenter_X,
+                                          signed int sphCenter_Y,
+                                          signed int sphCenter_Z,
                                           unsigned int SDs[MAX_SDs_TOUCHED_BY_SPHERE],
                                           GranParamsPtr gran_params) {
     // grab radius as signed so we can use it intelligently
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
     // I added these to fix a bug, we can inline them if/when needed but they ARE necessary
     // We need to offset so that the bottom-left corner is at the origin
-    int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
-    int64_t sphCenter_Y_modified = -gran_params->BD_frame_Y + sphCenter_Y;
-    int64_t sphCenter_Z_modified = -gran_params->BD_frame_Z + sphCenter_Z;
-    unsigned int n[3];
-    // TODO this doesn't handle if the ball is slightly penetrating the boundary, could result in negative values or end
-    // GIDs beyond bounds. We might want to do a check to see if it's outside and set 'valid' accordingly
-    // NOTE: This is integer arithmetic to compute the floor. We want to get the first SD below the sphere
-    // nx = (xCenter - radius) / wx .
-    n[0] = (unsigned int)(sphCenter_X_modified - sphereRadius_SU) / gran_params->SD_size_X_SU;
-    // Same for D and H
-    n[1] = (unsigned int)(sphCenter_Y_modified - sphereRadius_SU) / gran_params->SD_size_Y_SU;
-    n[2] = (unsigned int)(sphCenter_Z_modified - sphereRadius_SU) / gran_params->SD_size_Z_SU;
-    // This is kind of gross and hacky, if we're at the bottom boundary, the bottom SD is 0
-    // If we're at the top boundary, the top SD is the max
-    if (sphCenter_X_modified - sphereRadius_SU <= 0) {
-        n[0] = 0;
-    } else if (sphCenter_X_modified + sphereRadius_SU >= gran_params->max_x_pos_unsigned) {
-        n[0] = gran_params->nSDs_X - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
+
+    // TODO this should never be over 2 billion anyways
+    signed int nx[2], ny[2], nz[2];
+
+    {
+        // TODO this should probably involve more casting
+        int64_t sphere_pos_modified_X = -gran_params->BD_frame_X + sphCenter_X;
+        int64_t sphere_pos_modified_Y = -gran_params->BD_frame_Y + sphCenter_Y;
+        int64_t sphere_pos_modified_Z = -gran_params->BD_frame_Z + sphCenter_Z;
+
+        // get the bottom-left-most SD that the particle touches
+        // nx = (xCenter - radius) / wx
+        nx[0] = (signed int)((sphere_pos_modified_X - sphereRadius_SU) / gran_params->SD_size_X_SU);
+        // Same for Y and Z
+        ny[0] = (signed int)((sphere_pos_modified_Y - sphereRadius_SU) / gran_params->SD_size_Y_SU);
+        nz[0] = (signed int)((sphere_pos_modified_Z - sphereRadius_SU) / gran_params->SD_size_Z_SU);
+
+        // get the top-right-most SD that the particle touches
+        nx[1] = (signed int)((sphere_pos_modified_X + sphereRadius_SU) / gran_params->SD_size_X_SU);
+        ny[1] = (signed int)((sphere_pos_modified_Y + sphereRadius_SU) / gran_params->SD_size_Y_SU);
+        nz[1] = (signed int)((sphere_pos_modified_Z + sphereRadius_SU) / gran_params->SD_size_Z_SU);
     }
-    if (sphCenter_Y_modified - sphereRadius_SU <= 0) {
-        n[1] = 0;
-    } else if (sphCenter_Y_modified + sphereRadius_SU >= gran_params->max_y_pos_unsigned) {
-        n[1] = gran_params->nSDs_Y - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
-    }
-    if (sphCenter_Z_modified - sphereRadius_SU <= 0) {
-        n[2] = 0;
-    } else if (sphCenter_Z_modified + sphereRadius_SU >= gran_params->max_z_pos_unsigned) {
-        n[2] = gran_params->nSDs_Z - 1 - 1;  // Subtract one for last SD, subtract one more for bottom SD
-    }
-    // n[0] += (sphCenter_X_modified - sphereRadius_SU <= 0) -
-    //         (sphCenter_X_modified + sphereRadius_SU >= MAX_X_POS);
-    // n[1] += (sphCenter_Y_modified - sphereRadius_SU <= 0) -
-    //         (sphCenter_Y_modified + sphereRadius_SU >= MAX_X_POS);
-    // n[2] += (sphCenter_Z_modified - sphereRadius_SU <= 0) -
-    //         (sphCenter_Z_modified + sphereRadius_SU >= MAX_X_POS);
-    // This conditional says if we're at the boundary
-    unsigned int boundary = sphCenter_X_modified - sphereRadius_SU <= 0 ||
-                            sphCenter_X_modified + sphereRadius_SU >= gran_params->max_x_pos_unsigned ||
-                            sphCenter_Y_modified - sphereRadius_SU <= 0 ||
-                            sphCenter_Y_modified + sphereRadius_SU >= gran_params->max_y_pos_unsigned ||
-                            sphCenter_Z_modified - sphereRadius_SU <= 0 ||
-                            sphCenter_Z_modified + sphereRadius_SU >= gran_params->max_z_pos_unsigned;
-    if (n[0] >= gran_params->nSDs_X) {
-        ABORTABORTABORT(
-            "x is too large, boundary is %u, n is %u, nmax is %u, pos is %d, mod is %d, max is %d, dim is %d\n",
-            boundary, n[0], gran_params->nSDs_X, sphCenter_X, sphCenter_X_modified,
-            gran_params->SD_size_X_SU * gran_params->nSDs_X, gran_params->SD_size_X_SU, sphereRadius_SU);
-    }
-    // Find distance from next box in relevant dir to center, we may be straddling the two
-    int d[3];                                                              // Store penetrations
-    d[0] = (n[0] + 1) * gran_params->SD_size_X_SU - sphCenter_X_modified;  // dx = (nx + 1)* wx - x
-    d[1] = (n[1] + 1) * gran_params->SD_size_Y_SU - sphCenter_Y_modified;
-    d[2] = (n[2] + 1) * gran_params->SD_size_Z_SU - sphCenter_Z_modified;
+    // figure out what
+    // number of iterations in each direction
+    int num_x = (nx[0] == nx[1]) ? 1 : 2;
+    int num_y = (ny[0] == ny[1]) ? 1 : 2;
+    int num_z = (nz[0] == nz[1]) ? 1 : 2;
 
-    // Calculate global indices from locals
-    // ones bit is x, twos bit is y, threes bit is z
-    // do some cute bit shifting and snag bit at correct place
-    // For each index in SDs
-    for (int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        SDs[i] = 0;                // Init to 0
-        unsigned int valid = 0x1;  // Assume this SD is touched at start
+    // TODO unroll me
+    for (int i = 0; i < num_x; i++) {
+        for (int j = 0; j < num_y; j++) {
+            for (int k = 0; k < num_z; k++) {
+                // composite index to write to
+                int id = i * 4 + j * 2 + k;
+                // if I ran out of the box, give up and set this to NULL
+                if ((nx[i] < 0 || nx[i] >= gran_params->nSDs_X) || (ny[j] < 0 || ny[j] >= gran_params->nSDs_Y) ||
+                    (nz[k] < 0 || nz[k] >= gran_params->nSDs_Z)) {
+                    SDs[id] = NULL_GRANULAR_ID;
+                    continue;  // skip this SD
+                }
 
-        // s adds an offset to directional index for SDs
-        // High/low in x-dir
-        // unsigned int s = i & 0x1; // Inlined now
-        // Scale to global index and add to total
-        SDs[i] += (n[0] + (i & 0x1)) * gran_params->nSDs_Y * gran_params->nSDs_Z;
-        // s == own[e] evals true if the current SD is owner
-        // If both touch it or we own it, the result is valid
-        valid &= (abs(d[0]) < sphereRadius_SU) || ((i & 0x1) == (d[0] < 0));
-
-        // High/low in y-dir
-        // s = i & 0x2; // Inlined now
-        // Scale to global index and add to total
-        SDs[i] += (n[1] + ((i >> 1) & 0x1)) * gran_params->nSDs_Z;
-        // If both touch it or we own it, the result is valid
-        valid &= (abs(d[1]) < sphereRadius_SU) || (((i >> 1) & 0x1) == (d[1] < 0));
-
-        // High/low in z-dir
-        // s = i & 0x4; // Inlined now
-        // Scale to global index and add to total
-        SDs[i] += (n[2] + ((i >> 2) & 0x1));
-        // If both touch it or we own it, the result is valid
-        valid &= (abs(d[2]) < sphereRadius_SU) || (((i >> 2) & 0x1) == (d[2] < 0));
-
-        // This is nasty but it checks if we're actually touching a bounary, in which case
-
-        // This ternary is hopefully better than a conditional
-        // If valid is false, then the SD is actually NULL_GRANULAR_ID
-        if (valid && SDs[i] >= gran_params->nSDs_Y * gran_params->nSDs_X * gran_params->nSDs_Z) {
-            ABORTABORTABORT(
-                "UH OH!, sd overrun %u, boundary is %u, position is %d, %d, %d on thread %u, block %u, n is %u, %u, "
-                "%u\n",
-                SDs[i], boundary, sphCenter_X_modified, sphCenter_Y_modified, sphCenter_Z_modified, threadIdx.x,
-                blockIdx.x, n[0], n[1], n[2]);
+                // ok so now this SD id is ok, carry on
+                SDs[id] = nx[i] * gran_params->nSDs_Y * gran_params->nSDs_Z + ny[j] * gran_params->nSDs_Z + nz[k];
+            }
         }
-        SDs[i] = (valid ? SDs[i] : NULL_GRANULAR_ID);
     }
 }
 /**
@@ -231,9 +179,9 @@ template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block
 __global__ void primingOperationsRectangularBox(sphereDataStruct sphere_data,
                                                 unsigned int nSpheres,  //!< Number of spheres in the box
                                                 GranParamsPtr gran_params) {
-    int xSphCenter;
-    int ySphCenter;
-    int zSphCenter;
+    signed int xSphCenter;
+    signed int ySphCenter;
+    signed int zSphCenter;
 
     /// Set aside shared memory
     // SD component of offset into composite array
@@ -262,7 +210,6 @@ __global__ void primingOperationsRectangularBox(sphereDataStruct sphere_data,
         xSphCenter = sphere_data.pos_X[mySphereID];
         ySphCenter = sphere_data.pos_Y[mySphereID];
         zSphCenter = sphere_data.pos_Z[mySphereID];
-
         figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched, gran_params);
     }
 

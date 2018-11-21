@@ -46,10 +46,10 @@ void create_items(ChIrrAppInterface& application) {
 
     auto material = std::make_shared<ChMaterialSurfaceNSC>();
     material->SetFriction(0.4f);
-    material->SetCompliance(0.001/1200);                // as 1/K, in m/N. es: 1mm/1200N
+    material->SetCompliance(0.001f / 1200);               // as 1/K, in m/N. es: 1mm/1200N
     material->SetComplianceT(material->GetCompliance());  // use tangential compliance as normal compliance
     material->SetDampingF(0.1f);                          // damping factor, 0...1
-    material->SetRestitution(0.0);
+    material->SetRestitution(0.0f);
 
     bool do_wall = false;
     bool do_stack = true;

@@ -182,14 +182,12 @@ void ChShaftsPowertrain::Synchronize(double time, double throttle, double shaft_
     if (gearshaft_speed > 2500 * CH_C_2PI / 60.0) {
         // upshift if possible
         if (m_current_gear + 1 < m_gear_ratios.size()) {
-            GetLog() << "SHIFT UP " << m_current_gear << " -> " << m_current_gear + 1 << "\n";
             SetSelectedGear(m_current_gear + 1);
             m_last_time_gearshift = time;
         }
     } else if (gearshaft_speed < 1500 * CH_C_2PI / 60.0) {
         // downshift if possible
         if (m_current_gear - 1 > 0) {
-            GetLog() << "SHIFT DOWN " << m_current_gear << " -> " << m_current_gear - 1 << "\n";
             SetSelectedGear(m_current_gear - 1);
             m_last_time_gearshift = time;
         }

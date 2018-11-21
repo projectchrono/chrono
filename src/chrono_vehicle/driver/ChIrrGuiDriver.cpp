@@ -83,8 +83,6 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleIrrApp& app)
                     break;
             }
         }
-    } else {
-        GetLog() << "Joystick support is not enabled.\n";
     }
 }
 

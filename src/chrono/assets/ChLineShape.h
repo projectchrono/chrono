@@ -21,9 +21,7 @@
 
 namespace chrono {
 
-/// Class for referencing a ChLine that can be
-/// visualized in some way.
-
+/// Class for referencing a ChLine that can be visualized in some way.
 class ChApi ChLineShape : public ChVisualization {
   public:
     ChLineShape();
@@ -42,7 +40,10 @@ class ChApi ChLineShape : public ChVisualization {
     unsigned int GetNumRenderPoints() const { return npoints; }
     void SetNumRenderPoints(unsigned int n) { npoints = n; }
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:

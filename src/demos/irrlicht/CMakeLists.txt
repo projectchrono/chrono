@@ -46,6 +46,7 @@ SET(DEMOS
   demo_IRR_OpenSim_parser
   demo_IRR_report_collisions
   demo_IRR_Adams_parser
+  demo_IRR_debugDrawer_collisionModels
 )
 
 #--------------------------------------------------------------

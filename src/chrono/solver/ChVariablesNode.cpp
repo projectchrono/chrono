@@ -105,4 +105,23 @@ void ChVariablesNode::Build_M(ChSparseMatrix& storage, int insrow, int inscol, c
     storage.SetElement(insrow + 2, inscol + 2, scaledmass);
 }
 
+void ChVariablesNode::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChVariablesNode>();
+    // serialize parent class
+    ChVariables::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(mass);
+}
+
+void ChVariablesNode::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChVariablesNode>();
+    // deserialize parent class
+    ChVariables::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(mass);
+    SetNodeMass(mass);
+}
+
 }  // end namespace chrono

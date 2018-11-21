@@ -99,16 +99,25 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
+    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
     ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
-    M113_Vehicle vehicle(false, shoe_type, ChMaterialSurface::NSC, chassis_collision_type);
+
+    //// TODO
+    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.  
+    //// However, there appear to still be redundant constraints in the double-pin assembly
+    //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
+    if (shoe_type == TrackShoeType::DOUBLE_PIN)
+        contact_method = ChMaterialSurface::NSC;
+
+    M113_Vehicle vehicle(false, shoe_type, contact_method, chassis_collision_type);
 
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
 
     // Cannot use HHT + MKL with NSC contact
-    if (vehicle.GetSystem()->GetContactMethod() == ChMaterialSurface::NSC) {
+    if (contact_method == ChMaterialSurface::NSC) {
         use_mkl = false;
     }
 

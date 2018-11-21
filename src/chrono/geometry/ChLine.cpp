@@ -12,9 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <memory.h>
 #include <cfloat>
 #include <cmath>
-#include <memory.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -25,7 +25,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChLine)  // NO! Abstract class!
+// CH_FACTORY_REGISTER(ChLine)  // NO! Abstract class!
 
 ChLine::ChLine(const ChLine& source) {
     closed = source.closed;
@@ -48,7 +48,6 @@ void ChLine::Derive(ChVector<>& dir, const double parU) const {
     Evaluate(vB, uB);
     dir = (vB - vA) * (1 / bdf);
 }
-
 
 bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const {
     double mu;
@@ -304,6 +303,26 @@ bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpol
     mfle->GrRestore();    // restore old modes, with old clipping
 
     return true;
+}
+
+void ChLine::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChLine>();
+    // serialize parent class
+    ChGeometry::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(closed);
+    marchive << CHNVP(complexityU);
+}
+
+void ChLine::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChLine>();
+    // deserialize parent class
+    ChGeometry::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(closed);
+    marchive >> CHNVP(complexityU);
 }
 
 }  // end namespace geometry

@@ -177,5 +177,50 @@ void ChLineCam::Evaluate(ChVector<>& pos, const double parU) const {
     EvaluateCamPoint(parU, pos, gtmp, qtmp);
 }
 
+void ChLineCam::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChLineCam>();
+    // serialize parent class
+    ChLine::ArchiveOUT(marchive);
+    // serialize all member data:
+
+    eChCamType_mapper mmapper;
+    marchive << CHNVP(mmapper(type), "type");
+    marchive << CHNVP(law);
+    marchive << CHNVP(phase);
+    marchive << CHNVP(Rb);
+    marchive << CHNVP(Rr);
+    marchive << CHNVP(p);
+    marchive << CHNVP(d);
+    marchive << CHNVP(b0);
+    marchive << CHNVP(e);
+    marchive << CHNVP(s);
+    marchive << CHNVP(negative);
+    marchive << CHNVP(internal);
+    marchive << CHNVP(center);
+}
+
+void ChLineCam::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChLineCam>();
+    // deserialize parent class
+    ChLine::ArchiveIN(marchive);
+    // stream in all member data:
+    eChCamType_mapper mmapper;
+    marchive >> CHNVP(mmapper(type), "type");
+    marchive >> CHNVP(law);
+    marchive >> CHNVP(phase);
+    marchive >> CHNVP(Rb);
+    marchive >> CHNVP(Rr);
+    marchive >> CHNVP(p);
+    marchive >> CHNVP(d);
+    marchive >> CHNVP(b0);
+    marchive >> CHNVP(e);
+    marchive >> CHNVP(s);
+    marchive >> CHNVP(negative);
+    marchive >> CHNVP(internal);
+    marchive >> CHNVP(center);
+}
+
 }  // end namespace geometry
 }  // end namespace chrono

@@ -16,11 +16,11 @@
 #define CHVECTOR_H
 
 #include <cmath>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChClassFactory.h"
+#include "chrono/core/ChMathematics.h"
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
@@ -201,14 +201,10 @@ class ChVector {
     /// Return a unit vector orthogonal to this vector
     ChVector<Real> GetOrthogonalVector() const;
 
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data in archives.
+    /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive);
 
   private:
@@ -896,9 +892,9 @@ inline void ChVector<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // suggested: use versioning
     marchive.VersionWrite<ChVector<double>>();  // must use specialized template (any)
     // stream out all member data
-    marchive << CHNVP(data[0],"x");
-    marchive << CHNVP(data[1],"y");
-    marchive << CHNVP(data[2],"z");
+    marchive << CHNVP(data[0], "x");
+    marchive << CHNVP(data[1], "y");
+    marchive << CHNVP(data[2], "z");
 }
 
 template <class Real>
@@ -906,9 +902,9 @@ inline void ChVector<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // suggested: use versioning
     int version = marchive.VersionRead<ChVector<double>>();  // must use specialized template (any)
     // stream in all member data
-    marchive >> CHNVP(data[0],"x");
-    marchive >> CHNVP(data[1],"y");
-    marchive >> CHNVP(data[2],"z");
+    marchive >> CHNVP(data[0], "x");
+    marchive >> CHNVP(data[1], "y");
+    marchive >> CHNVP(data[2], "z");
 }
 
 // -----------------------------------------------------------------------------

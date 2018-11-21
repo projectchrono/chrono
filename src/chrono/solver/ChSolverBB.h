@@ -19,14 +19,13 @@
 
 namespace chrono {
 
-///An iterative solver based on modified
-///Krylov iteration of spectral projected gradients
-///with Barzilai-Borwein.\n
+/// An iterative solver based on modified
+/// Krylov iteration of spectral projected gradients
+/// with Barzilai-Borwein.\n
 /// See ChSystemDescriptor for more information about the problem formulation and the data structures
 /// passed to the solver.
 
 class ChApi ChSolverBB : public ChIterativeSolver {
-
   protected:
     int n_armijo;
     int max_armijo_backtrace;
@@ -61,7 +60,7 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     //***DEPRECATED***
     virtual double Solve_SupportingStiffness(
         ChSystemDescriptor& sysd  ///< system description with constraints and variables
-        );
+    );
 
     /// Number of max tolerated steps in non-monotone Armijo
     /// line search; usually good values are in 1..10 range.
@@ -79,28 +78,10 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     bool GetDiagonalPreconditioning() { return this->diag_preconditioning; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChSolverBB>();
-        // serialize parent class
-        ChIterativeSolver::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(n_armijo);
-        marchive << CHNVP(max_armijo_backtrace);
-        marchive << CHNVP(diag_preconditioning);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChSolverBB>();
-        // deserialize parent class
-        ChIterativeSolver::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(n_armijo);
-        marchive >> CHNVP(max_armijo_backtrace);
-        marchive >> CHNVP(diag_preconditioning);
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

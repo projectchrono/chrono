@@ -11,19 +11,25 @@ if(NOT ENABLE_MODULE_DISTRIBUTED)
   return()
 endif()
 
+message(STATUS "==== Chrono Distributed module ====")
+
 # Return now if MPI is not available
 if(NOT MPI_CXX_FOUND)
 	message("Chrono::Distributed requires MPI")
+	set(ENABLE_MODULE_DISTRIBUTED OFF CACHE BOOL "Enable the Chrono Distributed module" FORCE)
+	message(STATUS "Chrono::Distributed disabled")
 	return()
 endif()
+
 # Return now if Chrono::Parallel is not enabled
 if(NOT ENABLE_MODULE_PARALLEL)
-
     message("Chrono::Distributed depends on Chrono::Parallel")
+    set(ENABLE_MODULE_DISTRIBUTED OFF CACHE BOOL "Enable the Chrono Distributed module" FORCE)
+    message(STATUS "Chrono::Distributed disabled")
     return()
 endif()
 
-message(STATUS "==== Chrono Distributed module ====")
+
 
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module

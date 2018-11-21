@@ -182,7 +182,7 @@ bool DegenerateTriangle(Vector Dx, Vector Dy) {
 ChConvexHullLibraryWrapper::ChConvexHullLibraryWrapper() {
 }
 
-void ChConvexHullLibraryWrapper::ComputeHull(std::vector<ChVector<> >& points,
+void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector<> >& points,
                                              geometry::ChTriangleMeshConnected& vshape) {
     HullLibrary hl;
     HullResult hresult;

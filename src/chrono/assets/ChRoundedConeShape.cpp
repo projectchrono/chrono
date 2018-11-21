@@ -12,13 +12,29 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-
 #include "chrono/assets/ChRoundedConeShape.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChRoundedConeShape)
+
+void ChRoundedConeShape::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChRoundedConeShape>();
+    // serialize parent class
+    ChVisualization::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(groundedcone);
+}
+
+void ChRoundedConeShape::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChRoundedConeShape>();
+    // deserialize parent class
+    ChVisualization::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(groundedcone);
+}
 
 }  // end namespace chrono

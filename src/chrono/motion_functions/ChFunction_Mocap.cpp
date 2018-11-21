@@ -174,4 +174,32 @@ double ChFunction_Mocap::Get_y_dxdx(double x) const {
     return LinInterp(array_y_dtdt, x, timetot);
 }
 
+void ChFunction_Mocap::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Mocap>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(array_y);
+    marchive << CHNVP(array_y_dt);
+    marchive << CHNVP(array_y_dtdt);
+    marchive << CHNVP(samp_freq);
+    marchive << CHNVP(samples);
+    marchive << CHNVP(timetot);
+}
+
+void ChFunction_Mocap::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Mocap>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(array_y);
+    marchive >> CHNVP(array_y_dt);
+    marchive >> CHNVP(array_y_dtdt);
+    marchive >> CHNVP(samp_freq);
+    marchive >> CHNVP(samples);
+    marchive >> CHNVP(timetot);
+}
+
 }  // end namespace chrono

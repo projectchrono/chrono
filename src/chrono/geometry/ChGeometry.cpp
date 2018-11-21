@@ -20,7 +20,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChGeometry)  // NO! Abstract class!
+// CH_FACTORY_REGISTER(ChGeometry)  // NO! Abstract class!
 
 void ChGeometry::InflateBoundingBox(double& xmin,
                                     double& xmax,
@@ -51,7 +51,15 @@ double ChGeometry::Size() const {
     return sqrt(pow((0.5 * (bxmax - bxmin)), 2) + pow((0.5 * (bymax - bymin)), 2) + pow((0.5 * (bzmax - bzmin)), 2));
 }
 
+void ChGeometry::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChGeometry>();
+}
 
+void ChGeometry::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChGeometry>();
+}
 
 }  // end namespace geometry
 }  // end namespace chrono

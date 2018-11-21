@@ -8,7 +8,7 @@
 # Check backward compatibility
 #-----------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 #-----------------------------------------------------------------------------
 # Prevent in-source builds.
@@ -39,6 +39,7 @@ endif()
 # Be sure to avoid troubles with library paths when using old policy
 if(COMMAND cmake_policy)
     cmake_policy(SET CMP0003 NEW)
+    cmake_policy(SET CMP0048 NEW)
 endif(COMMAND cmake_policy)
 
 # Get rid of cmake RPATH warning on OSX
@@ -56,11 +57,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS Off)
 # Define project name and specify version information
 #-----------------------------------------------------------------------------
 
-project(Chrono)
-
 set(CHRONO_VERSION_MAJOR 3)
 set(CHRONO_VERSION_MINOR 0)
 set(CHRONO_VERSION_PATCH 0)
+
+project(Chrono VERSION ${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH})
 
 set(CHRONO_VERSION "${CHRONO_VERSION_MAJOR}.${CHRONO_VERSION_MINOR}.${CHRONO_VERSION_PATCH}")
 

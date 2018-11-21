@@ -97,7 +97,7 @@ class ChApi ChTimestepper {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
   protected:
@@ -253,7 +253,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
         marchive << CHNVP(abstolL);
     }
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
@@ -567,7 +567,7 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 

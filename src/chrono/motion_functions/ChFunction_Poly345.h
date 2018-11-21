@@ -23,9 +23,7 @@ namespace chrono {
 ///
 ///   - h   = height, amount of displacement
 ///   - end = duration of motion,
-
 class ChApi ChFunction_Poly345 : public ChFunction {
-
   private:
     double h;
     double end;
@@ -34,7 +32,7 @@ class ChApi ChFunction_Poly345 : public ChFunction {
     ChFunction_Poly345() : h(1), end(1) {}
     ChFunction_Poly345(double m_h, double m_end);
     ChFunction_Poly345(const ChFunction_Poly345& other);
-    ~ChFunction_Poly345(){}
+    ~ChFunction_Poly345() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChFunction_Poly345* Clone() const override { return new ChFunction_Poly345(*this); }
@@ -65,29 +63,13 @@ class ChApi ChFunction_Poly345 : public ChFunction {
     }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Poly345>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(h);
-        marchive << CHNVP(end);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Poly345>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(h);
-        marchive >> CHNVP(end);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Poly345,0)
+CH_CLASS_VERSION(ChFunction_Poly345, 0)
 
 }  // end namespace chrono
 

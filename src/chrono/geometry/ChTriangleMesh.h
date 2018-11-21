@@ -23,9 +23,7 @@ namespace chrono {
 namespace geometry {
 
 /// Base class for triangle meshes.
-
 class ChApi ChTriangleMesh : public ChGeometry {
-
   public:
     ChTriangleMesh() {}
     virtual ~ChTriangleMesh() {}
@@ -75,6 +73,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
     /// This is a surface
     virtual int GetManifoldDimension() const override { return 2; }
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite<ChTriangleMesh>();
@@ -83,7 +82,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
         // serialize all member data:
     }
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead<ChTriangleMesh>();
@@ -95,7 +94,7 @@ class ChApi ChTriangleMesh : public ChGeometry {
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChTriangleMesh,0)
+CH_CLASS_VERSION(geometry::ChTriangleMesh, 0)
 
 }  // end namespace chrono
 

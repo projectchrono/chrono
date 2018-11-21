@@ -76,13 +76,13 @@ class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 4 * 3; }
+    virtual int LoadableGet_ndof_x() override { return 4 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 4 * 3; }
+    virtual int LoadableGet_ndof_w() override { return 4 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
         mD.PasteVector(this->GetNodeN(0)->GetPos(), block_offset, 0);
         mD.PasteVector(this->GetNodeN(1)->GetPos(), block_offset + 3, 0);
         mD.PasteVector(this->GetNodeN(2)->GetPos(), block_offset + 6, 0);
@@ -90,7 +90,7 @@ class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         mD.PasteVector(this->GetNodeN(0)->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->GetNodeN(1)->GetPos_dt(), block_offset + 3, 0);
         mD.PasteVector(this->GetNodeN(2)->GetPos_dt(), block_offset + 6, 0);
@@ -105,19 +105,19 @@ class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
     }
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() { return 3; }
+    virtual int Get_field_ncoords() override { return 3; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 4; }
+    virtual int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return this->GetNodeN(nblock)->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetNodeN(nblock)->NodeGetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         for (int i = 0; i < 4; ++i)
             mvars.push_back(&this->GetNodeN(i)->Variables());
     };
@@ -133,7 +133,7 @@ class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
+                           ) override {
         ChMatrixNM<double, 1, 11> N;
         ShapeFunctions(N, U, V);
 
@@ -154,11 +154,11 @@ class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
 
     /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords
     /// Regular quadrature used for this element
-    virtual bool IsTriangleIntegrationNeeded() { return false; }
+    virtual bool IsTriangleIntegrationNeeded() override { return false; }
 
     /// Gets the normal to the surface at the parametric coordinate u,v.
     /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
-    virtual ChVector<> ComputeNormal(const double U, const double V) {
+    virtual ChVector<> ComputeNormal(const double U, const double V) override {
         ChVector<> p0 = GetNodeN(0)->GetPos();
         ChVector<> p1 = GetNodeN(1)->GetPos();
         ChVector<> p2 = GetNodeN(2)->GetPos();

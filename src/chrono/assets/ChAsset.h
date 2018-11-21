@@ -34,7 +34,7 @@ class ChApi ChAsset {
     /// This is called by the owner, i.e. a ChPhysicsItem. Note that
     /// the ChAssets can be shared between owners, so an asset might receive
     /// different updates from different 'updater's each with different 'coords'.
-    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords){};
+    virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {}
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);

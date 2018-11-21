@@ -5,10 +5,11 @@
 #=============================================================================
 
 #-----------------------------------------------------------------------------
-# Optionally enable building the demo programs
+# Optionally enable building the various programs
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
+option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -30,6 +31,11 @@ set(CH_CXX14 FALSE)
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION}")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
+    set(CH_CXX14 TRUE)
+  endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  message(STATUS "Clang version:  ${CMAKE_CXX_COMPILER_VERSION}")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
     set(CH_CXX14 TRUE)
   endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
@@ -308,6 +314,26 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 
 #------------------------------------------------------------
+# Build submodules
+#------------------------------------------------------------
+
+message(STATUS "==== Submodules ====")
+
+# Build google test and google mock (targets: gtest_main, gtest, gmock_main, gmock).
+# Disable installation of googletest.
+# Force using shared libraries.
+option(INSTALL_GTEST "" OFF)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+add_subdirectory(chrono_thirdparty/googletest)
+
+# Build google benchmark (target: benchmark).
+# Disable installation of benchmark
+# Do not build tests of benchmarking lib.
+option(BENCHMARK_ENABLE_INSTALL "" OFF)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
+add_subdirectory(chrono_thirdparty/googlebenchmark)
+
+#------------------------------------------------------------
 # Propagates the CMake build to other directories
 #------------------------------------------------------------
 
@@ -339,12 +365,15 @@ add_subdirectory(chrono_fsi)
 # Add directories for model libraries
 add_subdirectory(chrono_models)
 
-# Add directories for demo programs, unit test programs, and additional test programs.
+# Add directories for demo programs, unit test programs, and benchmark test programs.
 if(BUILD_DEMOS)
   add_subdirectory(demos)
 endif()
 if(BUILD_TESTING)
-  add_subdirectory(unit_tests)
+  add_subdirectory(tests/unit_tests)
+endif()
+if(BUILD_BENCHMARKING)
+  add_subdirectory(tests/benchmark_tests)
 endif()
 
 #------------------------------------------------------------

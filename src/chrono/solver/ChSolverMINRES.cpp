@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSolverMINRES)
 
 double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                             ) {
+) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 
@@ -219,7 +219,7 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
             mr.MatrDec((Np * alpha));  // r = r - alpha * N*p;
 
             sysd.ShurComplementProduct(Nr, &mr, &en_l);  // Nr  =  N * r
-            double rNr_ = mr.MatrDot(mr, Nr);          // rNr = r' * N * r
+            double rNr_ = mr.MatrDot(mr, Nr);            // rNr = r' * N * r
 
             double beta = rNr_ / rNr;  // beta = r'*(N*r)/ rjNrj;
 
@@ -349,7 +349,7 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
 
 double ChSolverMINRES::Solve_SupportingStiffness(
     ChSystemDescriptor& sysd  ///< system description with constraints and variables
-    ) {
+) {
     bool do_preconditioning = this->diag_preconditioning;
 
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
@@ -520,6 +520,30 @@ double ChSolverMINRES::Solve_SupportingStiffness(
         GetLog() << "MINRES residual: " << r.NormTwo() << " ---\n";
 
     return maxviolation;
+}
+
+void ChSolverMINRES::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChSolverMINRES>();
+    // serialize parent class
+    ChIterativeSolver::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(feas_tolerance);
+    marchive << CHNVP(max_fixedpoint_steps);
+    marchive << CHNVP(diag_preconditioning);
+    marchive << CHNVP(rel_tolerance);
+}
+
+void ChSolverMINRES::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChSolverMINRES>();
+    // deserialize parent class
+    ChIterativeSolver::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(feas_tolerance);
+    marchive >> CHNVP(max_fixedpoint_steps);
+    marchive >> CHNVP(diag_preconditioning);
+    marchive >> CHNVP(rel_tolerance);
 }
 
 }  // end namespace chrono

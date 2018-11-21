@@ -57,7 +57,7 @@ class ChApi ChLinkMotorLinearPosition : public ChLinkMotorLinear {
     double GetMotionOffset() { return pos_offset; }
 
     /// Get the current actuator reaction force [N], as applied to slider
-    virtual double GetMotorForce() const { return -this->react_force.x(); }
+    virtual double GetMotorForce() const override { return -this->react_force.x(); }
 
     void Update(double mytime, bool update_assets) override;
 

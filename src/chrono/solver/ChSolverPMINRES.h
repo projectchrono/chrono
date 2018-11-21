@@ -25,7 +25,6 @@ namespace chrono {
 /// passed to the solver.
 
 class ChApi ChSolverPMINRES : public ChIterativeSolver {
-
   protected:
     double grad_diffstep;
     double rel_tolerance;
@@ -58,7 +57,7 @@ class ChApi ChSolverPMINRES : public ChIterativeSolver {
     /// entire system KKT matrix with duals l and primals q is used.
     virtual double Solve_SupportingStiffness(
         ChSystemDescriptor& sysd  ///< system description with constraints and variables
-        );
+    );
 
     /// For the case where inequalities are introduced, the
     /// gradient is projected. A numerical differentiation is used, this is the delta.
@@ -81,31 +80,10 @@ class ChApi ChSolverPMINRES : public ChIterativeSolver {
     bool GetDiagonalPreconditioning() { return this->diag_preconditioning; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override
-    {
-        // version number
-        marchive.VersionWrite<ChSolverPMINRES>();
-        // serialize parent class
-        ChIterativeSolver::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(grad_diffstep);
-        marchive << CHNVP(rel_tolerance);
-        marchive << CHNVP(diag_preconditioning);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override
-    {
-        // version number
-        int version = marchive.VersionRead<ChSolverPMINRES>();
-        // deserialize parent class
-        ChIterativeSolver::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(grad_diffstep);
-        marchive >> CHNVP(rel_tolerance);
-        marchive >> CHNVP(diag_preconditioning);
-    }
-
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

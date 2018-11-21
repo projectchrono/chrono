@@ -138,4 +138,22 @@ void ChVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, int
     storage.PasteMatrix(scaledJ, insrow + 3, inscol + 3);
 }
 
+void ChVariablesBodySharedMass::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChVariablesBodySharedMass>();
+    // serialize parent class
+    ChVariablesBody::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(sharedmass);
+}
+
+void ChVariablesBodySharedMass::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChVariablesBodySharedMass>();
+    // deserialize parent class
+    ChVariablesBody::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(sharedmass);
+}
+
 }  // end namespace chrono

@@ -304,8 +304,6 @@ ChVehicleOutputHDF5::~ChVehicleOutputHDF5() {
     delete m_couple_type;
     delete m_linspring_type;
     delete m_rotspring_type;
-
-    GetLog() << "Closing output HDF5 file.\n";
 }
 
 // -----------------------------------------------------------------------------

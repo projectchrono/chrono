@@ -66,4 +66,26 @@ double ChFunction_Sigma::Get_y_dxdx(double x) const {
     return ret;
 }
 
+void ChFunction_Sigma::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Sigma>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(amp);
+    marchive << CHNVP(start);
+    marchive << CHNVP(end);
+}
+
+void ChFunction_Sigma::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Sigma>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(amp);
+    marchive >> CHNVP(start);
+    marchive >> CHNVP(end);
+}
+
 }  // end namespace chrono

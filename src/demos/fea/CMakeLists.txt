@@ -7,6 +7,7 @@ SET(FEA_DEMOS
 )
 
 SET(FEA_DEMOS_MKL
+	demo_FEA_beamsANCF
 )
 
 # List all FEA demos that use Irrlicht
@@ -46,7 +47,7 @@ SET(FEA_DEMOS_IRR_MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
 )
 
-INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 MESSAGE(STATUS "Demo programs for FEA module...")
 
@@ -74,28 +75,31 @@ ENDFOREACH()
 #--------------------------------------------------------------
 # Add executables for demos that depend only on MKL
 
-FOREACH(PROGRAM ${FEA_DEMOS_MKL})
-    MESSAGE(STATUS "...add ${PROGRAM}")
+IF(ENABLE_MODULE_MKL)
 
-    ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-    SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
-    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
-        FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
-    TARGET_LINK_LIBRARIES(${PROGRAM}
-        ChronoEngine
-		ChronoEngine_mkl
-        ChronoEngine_fea)
-	TARGET_INCLUDE_DIRECTORIES(${PROGRAM} PUBLIC
-		${CH_MKL_INCLUDES}
-	)
-    ADD_DEPENDENCIES(${PROGRAM}
-        ChronoEngine
-		ChronoEngine_mkl
-        ChronoEngine_fea)
-    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-ENDFOREACH()
+    FOREACH(PROGRAM ${FEA_DEMOS_MKL})
+        MESSAGE(STATUS "...add ${PROGRAM}")
+
+        ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+        SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
+        SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
+            FOLDER demos
+            COMPILE_FLAGS "${CH_CXX_FLAGS}"
+            LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
+        TARGET_LINK_LIBRARIES(${PROGRAM}
+            ChronoEngine
+		    ChronoEngine_mkl
+            ChronoEngine_fea)
+	    TARGET_INCLUDE_DIRECTORIES(${PROGRAM} PUBLIC
+		    ${CH_MKL_INCLUDES})
+        ADD_DEPENDENCIES(${PROGRAM}
+            ChronoEngine
+		    ChronoEngine_mkl
+            ChronoEngine_fea)
+        INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+    ENDFOREACH()
+
+ENDIF()
 
 #--------------------------------------------------------------
 # For demo executables that use Irrlicht

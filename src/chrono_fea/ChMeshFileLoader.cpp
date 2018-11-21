@@ -437,7 +437,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     node_found.second = true;
 
                 } else
-                    throw ChException("ERROR in .inp file, negative node ID: " + tokenvals[node_sel]);
+                    throw ChException("ERROR in .inp file, negative node ID: " + std::to_string(tokenvals[node_sel])); 
             }
         }
 

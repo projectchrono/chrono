@@ -21,9 +21,7 @@ namespace chrono {
 
 /// Linear function (like a straight ramp):
 /// y = y0 + x * speed
-
 class ChApi ChFunction_Ramp : public ChFunction {
-
   private:
     double y0;
     double ang;
@@ -52,29 +50,13 @@ class ChApi ChFunction_Ramp : public ChFunction {
     double Get_ang() { return ang; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Ramp>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(y0);
-        marchive << CHNVP(ang);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Ramp>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(y0);
-        marchive >> CHNVP(ang);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Ramp,0)
+CH_CLASS_VERSION(ChFunction_Ramp, 0)
 
 }  // end namespace chrono
 

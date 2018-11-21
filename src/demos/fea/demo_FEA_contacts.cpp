@@ -90,8 +90,8 @@ int main(int argc, char* argv[]) {
 
     bool do_mesh_collision_floor = false;
 
-    ChTriangleMeshConnected mmeshbox;
-    mmeshbox.LoadWavefrontMesh(GetChronoDataFile("cube.obj"), true, true);
+    auto mmeshbox = std::make_shared<ChTriangleMeshConnected>();
+    mmeshbox->LoadWavefrontMesh(GetChronoDataFile("cube.obj"), true, true);
 
     if (do_mesh_collision_floor) {
         // floor as a triangle mesh surface:
