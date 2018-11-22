@@ -38,6 +38,14 @@ environment:
       CONDA_INSTALL_LOCN: "C:\\Miniconda35-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       CONFIGURATION: Release
+    - PYTHON: "C:\\Python36_64"
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "36"
+      CONDA_NPY: "18"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
+      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
+      CONFIGURATION: Release
 
 
     
