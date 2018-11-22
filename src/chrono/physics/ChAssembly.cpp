@@ -1111,7 +1111,7 @@ void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) {
     m_file << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links: \n";
     for (auto& link : linklist) {
         m_file << mtabs << "  LINK:  " << link->GetName() << " [" << typeid(link.get()).name() << "]\n";
-        if (auto& malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
+        if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
             if (malink->GetMarker1())
                 m_file << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << "\n";
             if (malink->GetMarker2())

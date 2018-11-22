@@ -278,7 +278,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// </pre>
     virtual void SetupInitial() override;
 
-    friend class ChSystem;
+    friend class chrono::ChSystem;
 };
 
 /// @} fea_module
