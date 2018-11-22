@@ -59,6 +59,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     virtual bool Integrate_Y() override;
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
     void ClearForceVariables();
@@ -150,7 +151,6 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   private:
     void AddShaft(std::shared_ptr<ChShaft> shaft);
-    void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     std::vector<ChShaft*> shaftlist;
 };

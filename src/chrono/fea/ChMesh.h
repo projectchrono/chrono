@@ -277,6 +277,8 @@ class ChApi ChMesh : public ChIndexedNodes {
     ///   - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
     /// </pre>
     virtual void SetupInitial() override;
+
+    friend class ChSystem;
 };
 
 /// @} fea_module

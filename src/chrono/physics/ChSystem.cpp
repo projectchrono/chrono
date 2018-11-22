@@ -318,6 +318,9 @@ void ChSystem::SetupInitial() {
     for (int ip = 0; ip < linklist.size(); ++ip) {
         linklist[ip]->SetupInitial();
     }
+    for (int ip = 0; ip < meshlist.size(); ++ip) {
+        meshlist[ip]->SetupInitial();
+    }
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SetupInitial();
     }
@@ -1596,6 +1599,9 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
                 // Set no body speed and no body accel.
                 bodylist[ip]->SetNoSpeedNoAcceleration();
             }
+            for (auto& mesh : meshlist) {
+                mesh->SetNoSpeedNoAcceleration();
+            }
             for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
                 otherphysicslist[ip]->SetNoSpeedNoAcceleration();
             }
@@ -1609,7 +1615,9 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
             // Set no body speed and no body accel.
             bodylist[ip]->SetNoSpeedNoAcceleration();
         }
-
+        for (auto& mesh : meshlist) {
+            mesh->SetNoSpeedNoAcceleration();
+        }
         for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
             otherphysicslist[ip]->SetNoSpeedNoAcceleration();
         }

@@ -65,6 +65,9 @@ void ChIrrApp::AddShadowAll() {
     for (auto link : GetSystem()->Get_linklist()) {
         AddShadow(link);
     }
+    for (auto mesh : GetSystem()->Get_meshlist()) {
+        AddShadow(mesh);
+    }
     for (auto ph : GetSystem()->Get_otherphysicslist()) {
         AddShadow(ph);
     }

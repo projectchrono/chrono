@@ -246,8 +246,6 @@ void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
 void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) {
     if (auto shaft = std::dynamic_pointer_cast<ChShaft>(newitem)) {
         AddShaft(shaft);
-    } else if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(newitem)) {
-        AddMesh(mesh);
     } else {
         newitem->SetSystem(this);
         otherphysicslist.push_back(newitem);
