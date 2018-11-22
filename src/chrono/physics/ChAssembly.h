@@ -16,9 +16,9 @@
 #define CHASSEMBLY_H
 
 #include <cmath>
+#include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChLinksAll.h"
 #include "chrono/physics/ChPhysicsItem.h"
-#include "chrono/fea/ChMesh.h"
 
 namespace chrono {
 
@@ -27,7 +27,6 @@ namespace chrono {
 /// All positions of rigid bodies, FEA nodes, etc. are assumed with respect to the absolute frame.
 
 class ChApi ChAssembly : public ChPhysicsItem {
-
   public:
     ChAssembly();
     ChAssembly(const ChAssembly& other);
@@ -48,16 +47,16 @@ class ChApi ChAssembly : public ChPhysicsItem {
     // Note. adding/removing items to the assembly doesn't call Update() automatically.
 
     /// Attach a body to this assembly.
-    virtual void AddBody(std::shared_ptr<ChBody> newbody);
+    virtual void AddBody(std::shared_ptr<ChBody> body);
 
     /// Attach a link to this assembly.
-    virtual void AddLink(std::shared_ptr<ChLink> newlink);
+    virtual void AddLink(std::shared_ptr<ChLink> link);
 
     /// Attach a mesh to this assembly.
     virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     /// Attach a ChPhysicsItem object that is not a body, link, or mesh.
-    virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem);
+    virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Attach an arbitrary ChPhysicsItem (e.g. ChBody, ChParticles, ChLink, etc.) to the assembly.
     /// It will take care of adding it to the proper list of bodies, links, meshes, or generic
@@ -65,27 +64,27 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Note, you cannot call Add() during an Update (i.e. items like particle generators that
     /// are already inserted in the assembly cannot call this) because not thread safe; instead,
     /// use AddBatch().
-    void Add(std::shared_ptr<ChPhysicsItem> newitem);
+    void Add(std::shared_ptr<ChPhysicsItem> item);
 
     /// Items added in this way are added like in the Add() method, but not instantly,
     /// they are simply queued in a batch of 'to add' items, that are added automatically
     /// at the first Setup() call. This is thread safe.
-    void AddBatch(std::shared_ptr<ChPhysicsItem> newitem);
+    void AddBatch(std::shared_ptr<ChPhysicsItem> item);
 
     /// If some items are queued for addition in the assembly, using AddBatch(), this will
     /// effectively add them and clean the batch. Called automatically at each Setup().
     void FlushBatch();
 
     /// Remove a body from this assembly.
-    virtual void RemoveBody(std::shared_ptr<ChBody> mbody);
+    virtual void RemoveBody(std::shared_ptr<ChBody> body);
     /// Remove a link from this assembly.
-    virtual void RemoveLink(std::shared_ptr<ChLink> mlink);
+    virtual void RemoveLink(std::shared_ptr<ChLink> link);
     /// Remove a mesh from the assembly.
     virtual void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh);
     /// Remove a ChPhysicsItem object that is not a body or a link
-    virtual void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> mitem);
+    virtual void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
     /// Remove arbitrary ChPhysicsItem that was added to the assembly.
-    void Remove(std::shared_ptr<ChPhysicsItem> newitem);
+    void Remove(std::shared_ptr<ChPhysicsItem> item);
 
     /// Remove all bodies from this assembly.
     void RemoveAllBodies();
@@ -106,18 +105,18 @@ class ChApi ChAssembly : public ChPhysicsItem {
     const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_otherphysicslist() const { return otherphysicslist; }
 
     /// Search a body by its name.
-    std::shared_ptr<ChBody> SearchBody(const char* m_name);
+    std::shared_ptr<ChBody> SearchBody(const char* name);
     /// Search a link by its name.
-    std::shared_ptr<ChLink> SearchLink(const char* m_name);
+    std::shared_ptr<ChLink> SearchLink(const char* name);
     /// Search a mesh by its name.
     std::shared_ptr<fea::ChMesh> SearchMesh(const char* name);
     /// Search from other ChPhysics items (not bodies, links, or meshes) by name.
-    std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* m_name);
+    std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* name);
     /// Search an item (body, link or other ChPhysics items) by name.
-    std::shared_ptr<ChPhysicsItem> Search(const char* m_name);
+    std::shared_ptr<ChPhysicsItem> Search(const char* name);
 
     /// Search a marker by its name.
-    std::shared_ptr<ChMarker> SearchMarker(const char* m_name);
+    std::shared_ptr<ChMarker> SearchMarker(const char* name);
     /// Search a marker by its unique ID.
     std::shared_ptr<ChMarker> SearchMarker(int markID);
 
@@ -283,13 +282,11 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
-    std::vector<std::shared_ptr<ChBody>> bodylist;       ///< list of rigid bodies
-    std::vector<std::shared_ptr<ChLink>> linklist;       ///< list of joints (links)
-    std::vector<std::shared_ptr<fea::ChMesh>> meshlist;  ///< list of meshes
-    std::vector<std::shared_ptr<ChPhysicsItem>>
-        otherphysicslist;  ///< list of other physic objects that are not bodies or links
-    std::vector<std::shared_ptr<ChPhysicsItem>>
-        batch_to_insert;  ///< list of items to insert when doing Setup() or Flush.
+    std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies
+    std::vector<std::shared_ptr<ChLink>> linklist;                 ///< list of joints (links)
+    std::vector<std::shared_ptr<fea::ChMesh>> meshlist;            ///< list of meshes
+    std::vector<std::shared_ptr<ChPhysicsItem>> otherphysicslist;  ///< list of other physics objects
+    std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 
     // Statistics:
     int nbodies;        ///< number of bodies (currently active)
@@ -309,9 +306,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int nbodies_fixed;  ///< number of bodies that are fixed
 };
 
-
-CH_CLASS_VERSION(ChAssembly,0)
-
+CH_CLASS_VERSION(ChAssembly, 0)
 
 }  // end namespace chrono
 
