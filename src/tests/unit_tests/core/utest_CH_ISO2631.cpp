@@ -408,11 +408,11 @@ TEST(ShockWxyFilter, StandardSignal)
     ASSERT_NEAR(wxy.Test1(), wxy_res_1, wxy_res_1_err);
 
     const double wxy_res_2 = -4.048;
-    const double wxy_res_2_err = abs(0.1 * wxy_res_2);
+    const double wxy_res_2_err = std::abs(0.1 * wxy_res_2);
     ASSERT_NEAR(wxy.Test2(), wxy_res_2, wxy_res_2_err);
 
     const double wxy_res_3 = 2.065;
-    const double wxy_res_3_err = abs(0.1 * wxy_res_3);
+    const double wxy_res_3_err = std::abs(0.1 * wxy_res_3);
     ASSERT_NEAR(wxy.Test3(), wxy_res_3, wxy_res_3_err);
 }
 
@@ -425,10 +425,10 @@ TEST(ShockWzFilter, StandardSignal)
     ASSERT_NEAR(wz.Test1(), wz_res_1, wz_res_1_err);
 
     const double wz_res_2 = -1.512;
-    const double wz_res_2_err = abs(0.1 * wz_res_2);
+    const double wz_res_2_err = std::abs(0.1 * wz_res_2);
     ASSERT_NEAR(wz.Test2(), wz_res_2, wz_res_2_err);
 
     const double wz_res_3 = 0.308;
-    const double wz_res_3_err = abs(0.1 * wz_res_3);
+    const double wz_res_3_err = std::abs(0.1 * wz_res_3);
     ASSERT_NEAR(wz.Test3(), wz_res_3, wz_res_3_err);
 }
