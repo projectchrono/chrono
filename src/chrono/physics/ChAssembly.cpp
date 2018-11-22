@@ -18,7 +18,6 @@
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChAssembly.h"
-#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -290,14 +289,6 @@ std::shared_ptr<ChMarker> ChAssembly::SearchMarker(const char* name) {
             return mmark;
     }
 
-    // Iterate over all physics items and search in the marker lists of ChBodyAuxRef
-    for (auto& item : otherphysicslist) {
-        if (auto bodyauxref = std::dynamic_pointer_cast<ChBodyAuxRef>(item)) {
-            if (auto mark = bodyauxref->SearchMarker(name))
-                return mark;
-        }
-    }
-
     return (std::shared_ptr<ChMarker>());  // not found; return an empty shared_ptr
 }
 
@@ -308,16 +299,6 @@ std::shared_ptr<ChMarker> ChAssembly::SearchMarker(int markID) {
                                                std::vector<std::shared_ptr<ChMarker>>::const_iterator>(
                 markID, body->GetMarkerList().begin(), body->GetMarkerList().end()))
             return res;
-    }
-
-    // Iterate over all physics items and search in the marker lists of ChBodyAuxRef
-    for (auto& item : otherphysicslist) {
-        if (auto bodyauxref = std::dynamic_pointer_cast<ChBodyAuxRef>(item)) {
-            if (auto res = ChContainerSearchFromID<std::shared_ptr<ChMarker>,
-                                                   std::vector<std::shared_ptr<ChMarker>>::const_iterator>(
-                    markID, bodyauxref->GetMarkerList().begin(), bodyauxref->GetMarkerList().end()))
-                return res;
-        }
     }
 
     return (std::shared_ptr<ChMarker>());  // not found; return an empty shared_ptr
