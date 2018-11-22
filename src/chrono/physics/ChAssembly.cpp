@@ -104,7 +104,7 @@ void ChAssembly::Clear() {
 
 void ChAssembly::AddBody(std::shared_ptr<ChBody> body) {
     assert(std::find(std::begin(bodylist), std::end(bodylist), body) == bodylist.end());
-    assert(newbody->GetSystem() == nullptr);  // should remove from other system before adding here
+    assert(body->GetSystem() == nullptr);  // should remove from other system before adding here
 
     // set system and also add collision models to system
     body->SetSystem(system);
