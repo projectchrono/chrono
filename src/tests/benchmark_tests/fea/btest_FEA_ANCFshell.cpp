@@ -31,7 +31,7 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
-template <typename int N>
+template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
   public:
     ANCFshell();
@@ -46,7 +46,7 @@ class ANCFshell : public utils::ChBenchmarkTest {
     ChSystemSMC* m_system;
 };
 
-template <typename int N>
+template <int N>
 ANCFshell<N>::ANCFshell() {
     m_system = new ChSystemSMC();
     m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
@@ -127,7 +127,7 @@ ANCFshell<N>::ANCFshell() {
     m_system->SetupInitial();
 }
 
-template <typename int N>
+template <int N>
 void ANCFshell<N>::SimulateVis() {
     ChIrrApp application(m_system, L"ANCF shells", irr::core::dimension2d<irr::u32>(800, 600), false, true);
     application.AddTypicalLogo();

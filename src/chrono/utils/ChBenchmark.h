@@ -21,7 +21,7 @@
 #define CH_BENCHMARK_H
 
 #include "benchmark/benchmark.h"
-#include "chrono/physics/Chsystem.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace utils {
@@ -140,7 +140,7 @@ inline void ChBenchmarkTest::ResetTimers() {
 /// Generic benchmark fixture for Chrono tests.
 /// The first template parameter is a ChBenchmarkTest.
 /// The second template parameter is the initial number of simulation steps (hot start).
-template <typename TEST, typename int SKIP>
+template <typename TEST, int SKIP>
 class ChBenchmarkFixture : public ::benchmark::Fixture {
   public:
     ChBenchmarkFixture() : m_test(nullptr) {
