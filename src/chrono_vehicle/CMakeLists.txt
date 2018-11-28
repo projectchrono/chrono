@@ -307,6 +307,8 @@ source_group("wheeled_vehicle\\brake" FILES ${CV_WV_BRAKE_FILES})
 set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ChShaftsDriveline2WD.h
     wheeled_vehicle/driveline/ChShaftsDriveline2WD.cpp
+    wheeled_vehicle/driveline/ChShaftsDriveline2WDL.h
+    wheeled_vehicle/driveline/ChShaftsDriveline2WDL.cpp
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.h
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.cpp
     wheeled_vehicle/driveline/ChSimpleDriveline.h
