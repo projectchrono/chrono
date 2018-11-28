@@ -117,9 +117,10 @@ int main(int argc, char* argv[])
     bool lock_the_diffbox = false;
 
     if(argc != 2) {
-        GetLog() << ::getprogname() << " 0  (unlocked diffbox)\n";
-        GetLog() << ::getprogname() << " 1  (unlocked diffbox)\n";
-        return -99;
+        GetLog() << "Usage:\n";
+        GetLog() << "  demo_VEH_Sedan_Lockable_Diff 0  (unlocked diffbox)\n";
+        GetLog() << "  demo_VEH_Sedan_Lockable_Diff 1  (unlocked diffbox)\n";
+        return 1;
     } else {
         if(atoi(argv[1]) == 1) {
             lock_the_diffbox = true;
