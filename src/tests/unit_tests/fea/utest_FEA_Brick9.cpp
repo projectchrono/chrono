@@ -19,8 +19,8 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
-#include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChMesh.h"
+#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChMesh.h"
 
 using namespace chrono;
 using namespace chrono::fea;

@@ -13,8 +13,8 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChRealtimeStep.h"
 
-#include "chrono_fea/ChMatterMeshless.h"
-#include "chrono_fea/ChProximityContainerMeshless.h"
+#include "chrono/fea/ChMatterMeshless.h"
+#include "chrono/fea/ChProximityContainerMeshless.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"

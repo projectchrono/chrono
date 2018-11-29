@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // 2WD driveline model template based on ChShaft objects. This template can be
@@ -23,11 +23,12 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
 
+#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
-#include "chrono/physics/ChShaftsPlanetary.h"
-#include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsMotor.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsTorque.h"
 
 namespace chrono {
@@ -59,6 +60,11 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
     /// system, this is typically [0, 1, 0]).
     void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
+    /// Enable or disable differential locking.
+    /// Differential locking is implemented through a friction torque between the output shafts
+    /// of the differential. The locking effect is limited by a maximum locking torque.
+    virtual void LockDifferential(bool lock) override;
+
     /// Return the number of driven axles.
     /// A ChShaftsDriveline2WD driveline connects to a single axle.
     virtual int GetNumDrivenAxles() const final override { return 1; }
@@ -86,10 +92,14 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
     /// Return the gear ratio for the differential.
     virtual double GetDifferentialRatio() const = 0;
 
+    /// Return the limit differential locking torque.
+    virtual double GetDifferentialLockingLimit() const = 0;
+
   private:
     std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;
     std::shared_ptr<ChShaft> m_differentialbox;
     std::shared_ptr<ChShaftsPlanetary> m_differential;
+    std::shared_ptr<ChShaftsClutch> m_clutch;
 
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;

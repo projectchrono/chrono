@@ -214,15 +214,9 @@ set(CV_TERRAIN_FILES
     terrain/SCMDeformableTerrain.cpp
     terrain/GranularTerrain.h
     terrain/GranularTerrain.cpp
+    terrain/FEADeformableTerrain.h
+    terrain/FEADeformableTerrain.cpp
 )
-if(ENABLE_MODULE_FEA)
-    set(CV_FEATERRAIN_FILES
-        terrain/FEADeformableTerrain.h
-        terrain/FEADeformableTerrain.cpp
-    )
-else()
-    set(CV_FEATERRAIN_FILES "")
-endif()
 if(HAVE_OPENCRG)
     set(CV_OPENCRG_FILES
         terrain/CRGTerrain.h
@@ -231,7 +225,7 @@ if(HAVE_OPENCRG)
 else()
     set(CV_OPENCRG_FILES "")
 endif()
-source_group("terrain" FILES ${CV_TERRAIN_FILES} ${CV_FEATERRAIN_FILES} ${CV_OPENCRG_FILES})
+source_group("terrain" FILES ${CV_TERRAIN_FILES} ${CV_OPENCRG_FILES})
 
 set(CV_UTILS_FILES
     utils/ChSteeringController.h
@@ -426,6 +420,14 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/ChFialaTire.cpp
     wheeled_vehicle/tire/ChTMeasyTire.h
     wheeled_vehicle/tire/ChTMeasyTire.cpp
+    wheeled_vehicle/tire/ChDeformableTire.h
+    wheeled_vehicle/tire/ChDeformableTire.cpp
+    wheeled_vehicle/tire/ChANCFTire.h
+    wheeled_vehicle/tire/ChANCFTire.cpp
+    wheeled_vehicle/tire/ChReissnerTire.h
+    wheeled_vehicle/tire/ChReissnerTire.cpp
+    wheeled_vehicle/tire/ChFEATire.h
+    wheeled_vehicle/tire/ChFEATire.cpp
 
     wheeled_vehicle/tire/RigidTire.h
     wheeled_vehicle/tire/RigidTire.cpp
@@ -435,32 +437,18 @@ set(CV_WV_TIRE_FILES
     wheeled_vehicle/tire/FialaTire.cpp
     wheeled_vehicle/tire/TMeasyTire.h
     wheeled_vehicle/tire/TMeasyTire.cpp
+    wheeled_vehicle/tire/ReissnerTire.h
+    wheeled_vehicle/tire/ReissnerTire.cpp
+    wheeled_vehicle/tire/ANCFTire.h
+    wheeled_vehicle/tire/ANCFTire.cpp
+    wheeled_vehicle/tire/FEATire.h
+    wheeled_vehicle/tire/FEATire.cpp
+    wheeled_vehicle/tire/ANCFToroidalTire.h
+    wheeled_vehicle/tire/ANCFToroidalTire.cpp
+    wheeled_vehicle/tire/ReissnerToroidalTire.h
+    wheeled_vehicle/tire/ReissnerToroidalTire.cpp
 )
-if(ENABLE_MODULE_FEA)
-    set(CV_WV_FEATIRE_FILES
-        wheeled_vehicle/tire/ChDeformableTire.h
-        wheeled_vehicle/tire/ChDeformableTire.cpp
-        wheeled_vehicle/tire/ChANCFTire.h
-        wheeled_vehicle/tire/ChANCFTire.cpp
-        wheeled_vehicle/tire/ChReissnerTire.h
-        wheeled_vehicle/tire/ChReissnerTire.cpp
-        wheeled_vehicle/tire/ChFEATire.h
-        wheeled_vehicle/tire/ChFEATire.cpp
-        wheeled_vehicle/tire/ReissnerTire.h
-        wheeled_vehicle/tire/ReissnerTire.cpp
-        wheeled_vehicle/tire/ANCFTire.h
-        wheeled_vehicle/tire/ANCFTire.cpp
-        wheeled_vehicle/tire/FEATire.h
-        wheeled_vehicle/tire/FEATire.cpp
-        wheeled_vehicle/tire/ANCFToroidalTire.h
-        wheeled_vehicle/tire/ANCFToroidalTire.cpp
-        wheeled_vehicle/tire/ReissnerToroidalTire.h
-        wheeled_vehicle/tire/ReissnerToroidalTire.cpp
-    )
-else()
-    set(CV_WV_FEATIRE_FILES "")
-endif()
-source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES} ${CV_WV_FEATIRE_FILES})
+source_group("wheeled_vehicle\\tire" FILES ${CV_WV_TIRE_FILES})
 
 set(CV_WV_UTILS_FILES
     wheeled_vehicle/utils/ChWheeledVehicleAssembly.h
@@ -488,7 +476,7 @@ set(CV_WV_WHEEL_FILES
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 
-#if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
+#if(MPI_CXX_FOUND)
 #    set(CV_WV_COSIM_FILES
 #        wheeled_vehicle/cosim/ChCosimManager.h
 #        wheeled_vehicle/cosim/ChCosimManager.cpp
@@ -627,6 +615,8 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChTrackShoeBand.cpp
     tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h
     tracked_vehicle/track_shoe/ChTrackShoeBandBushing.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h
+    tracked_vehicle/track_shoe/ChTrackShoeBandANCF.cpp
 
     tracked_vehicle/track_shoe/TrackShoeSinglePin.h
     tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
@@ -634,19 +624,10 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/TrackShoeDoublePin.cpp
     tracked_vehicle/track_shoe/TrackShoeBandBushing.h
     tracked_vehicle/track_shoe/TrackShoeBandBushing.cpp
+    tracked_vehicle/track_shoe/TrackShoeBandANCF.h
+    tracked_vehicle/track_shoe/TrackShoeBandANCF.cpp
 )
-if(ENABLE_MODULE_FEA)
-    set(CV_TV_FEATRACKSHOE_FILES
-        tracked_vehicle/track_shoe/ChTrackShoeBandANCF.h
-        tracked_vehicle/track_shoe/ChTrackShoeBandANCF.cpp
-
-        tracked_vehicle/track_shoe/TrackShoeBandANCF.h
-        tracked_vehicle/track_shoe/TrackShoeBandANCF.cpp
-    )
-else()
-    set(CV_TV_FEATRACKSHOE_FILES "")
-endif()
-source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES} ${CV_TV_FEATRACKSHOE_FILES})
+source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
 set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h
@@ -657,6 +638,8 @@ set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblyBand.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h
     tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.cpp
+    tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h
+    tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.cpp
 
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
@@ -664,19 +647,10 @@ set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/TrackAssemblyDoublePin.cpp
     tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h
     tracked_vehicle/track_assembly/TrackAssemblyBandBushing.cpp
+    tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h
+    tracked_vehicle/track_assembly/TrackAssemblyBandANCF.cpp
 )
-if(ENABLE_MODULE_FEA)
-    set(CV_TV_FEATRACKASSEMBLY_FILES
-        tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.h
-        tracked_vehicle/track_assembly/ChTrackAssemblyBandANCF.cpp
-
-        tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h
-        tracked_vehicle/track_assembly/TrackAssemblyBandANCF.cpp
-    )
-else()
-    set(CV_TV_FEATRACKASSEMBLY_FILES "")
-endif()
-source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES} ${CV_TV_FEATRACKASSEMBLY_FILES})
+source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
 
 set(CV_TV_UTILS_FILES
     tracked_vehicle/utils/ChTrackTestRig.h
@@ -726,10 +700,6 @@ if(ENABLE_MODULE_IRRLICHT)
     include_directories(${CH_IRRLICHTINC})
 endif()
 
-if(ENABLE_MODULE_FEA)
-    list(APPEND LIBRARIES ChronoEngine_fea)
-endif()
-
 if(MPI_CXX_FOUND)
     set(CXX_FLAGS "${CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
     set(LINK_FLAGS "${LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
@@ -761,7 +731,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CVIRR_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
     ${CV_TERRAIN_FILES}
-    ${CV_FEATERRAIN_FILES}
     ${CV_OPENCRG_FILES}
     ${CV_UTILS_FILES}
     ${CVIRR_UTILS_FILES}
@@ -777,7 +746,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_TEST_RIG_FILES}
     ${CVIRR_WV_TEST_RIG_FILES}
     ${CV_WV_TIRE_FILES}
-    ${CV_WV_FEATIRE_FILES}
     ${CV_WV_UTILS_FILES}
     ${CVIRR_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
@@ -793,9 +761,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_SPROCKET_FILES}
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
-    ${CV_TV_FEATRACKSHOE_FILES}
     ${CV_TV_TRACKASSEMBLY_FILES}
-    ${CV_TV_FEATRACKASSEMBLY_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}

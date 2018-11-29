@@ -26,5 +26,7 @@
     "Central Differential":     -1.0,
     "Front Differential":       -1.0,
     "Rear Differential":        -1.0
-  }
+  },
+
+  "Differential Locking Limit":  100
 }

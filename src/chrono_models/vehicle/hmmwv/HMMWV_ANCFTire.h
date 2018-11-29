@@ -19,9 +19,9 @@
 #ifndef HMMWV_ANCF_TIRE_H
 #define HMMWV_ANCF_TIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
-#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF.h"
 #include "chrono_models/ChApiModels.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 
 namespace chrono {
 namespace vehicle {
