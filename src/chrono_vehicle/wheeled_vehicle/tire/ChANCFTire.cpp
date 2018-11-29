@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 

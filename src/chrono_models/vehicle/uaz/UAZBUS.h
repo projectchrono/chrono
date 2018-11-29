@@ -70,6 +70,8 @@ class CH_MODELS_API UAZBUS {
 
     void Initialize();
 
+    void LockDifferential(bool lock) { m_vehicle->LockDifferential(lock); }
+
     void SetAerodynamicDrag(double Cd, double area, double air_density);
 
     void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }

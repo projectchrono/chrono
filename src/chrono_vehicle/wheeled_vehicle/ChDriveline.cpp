@@ -23,5 +23,9 @@ namespace vehicle {
 
 ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
 
+void ChDriveline::LockDifferential(bool lock) {
+    std::cout << "Differential locking not yet implemented for " << GetTemplateName() << std::endl;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -33,10 +33,8 @@
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-#include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
-#ifdef CHRONO_FEA
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandANCF.h"
-#endif
+#include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -111,12 +109,7 @@ void TrackedVehicle::LoadTrackAssembly(const std::string& filename, VehicleSide 
     } else if (subtype.compare("TrackAssemblyBandBushing") == 0) {
         m_tracks[side] = std::make_shared<TrackAssemblyBandBushing>(d);
     } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
-#ifdef CHRONO_FEA
         m_tracks[side] = std::make_shared<TrackAssemblyBandANCF>(d);
-#else
-        std::cout << "ERROR: Attempting to load an ANCF-based continuous-band track, but FEA support is disabled."
-                  << std::endl;
-#endif
     }
 
     // A non-zero value of 'output' indicates overwriting the subsystem's flag

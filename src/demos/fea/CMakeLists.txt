@@ -7,7 +7,7 @@ SET(FEA_DEMOS
 )
 
 SET(FEA_DEMOS_MKL
-	demo_FEA_beamsANCF
+    demo_FEA_beamsANCF
 )
 
 # List all FEA demos that use Irrlicht
@@ -21,7 +21,7 @@ SET(FEA_DEMOS_IRR
     demo_FEA_ancfShell_8
     demo_FEA_brick
     demo_FEA_cosimulate_load
-	# demo_FEA_beamsIGA
+# demo_FEA_beamsIGA
 )
 
 # List all FEA demos that use both Irrlicht and Matlab
@@ -34,13 +34,13 @@ SET(FEA_DEMOS_IRR_MKL
     demo_FEA_beams
     demo_FEA_beams_static
     demo_FEA_beams_constr
-	demo_FEA_beams_extrude
+    demo_FEA_beams_extrude
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
     demo_FEA_shells
     demo_FEA_ContactANCF
     demo_FEA_Brick9
-	demo_FEA_beamsIGA
+    demo_FEA_beamsIGA
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL
@@ -63,12 +63,8 @@ FOREACH(PROGRAM ${FEA_DEMOS})
         FOLDER demos
         COMPILE_FLAGS "${CH_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-    TARGET_LINK_LIBRARIES(${PROGRAM}
-        ChronoEngine
-        ChronoEngine_fea)
-    ADD_DEPENDENCIES(${PROGRAM}
-        ChronoEngine
-        ChronoEngine_fea)
+    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine)
+    ADD_DEPENDENCIES(${PROGRAM} ChronoEngine)
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH()
 
@@ -86,16 +82,9 @@ IF(ENABLE_MODULE_MKL)
             FOLDER demos
             COMPILE_FLAGS "${CH_CXX_FLAGS}"
             LINK_FLAGS "${CH_LINKERFLAG_EXE} ${CH_MKL_LINK_FLAGS}")
-        TARGET_LINK_LIBRARIES(${PROGRAM}
-            ChronoEngine
-		    ChronoEngine_mkl
-            ChronoEngine_fea)
-	    TARGET_INCLUDE_DIRECTORIES(${PROGRAM} PUBLIC
-		    ${CH_MKL_INCLUDES})
-        ADD_DEPENDENCIES(${PROGRAM}
-            ChronoEngine
-		    ChronoEngine_mkl
-            ChronoEngine_fea)
+        TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_mkl)
+        TARGET_INCLUDE_DIRECTORIES(${PROGRAM} PUBLIC ${CH_MKL_INCLUDES})
+        ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_mkl)
         INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     ENDFOREACH()
 
@@ -118,13 +107,8 @@ IF(ENABLE_MODULE_IRRLICHT)
             FOLDER demos
             COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
             LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-        TARGET_LINK_LIBRARIES(${PROGRAM}
-            ${CH_IRRLICHTLIB}
-            ChronoEngine
-            ChronoEngine_fea
-            ChronoEngine_irrlicht)
-        ADD_DEPENDENCIES(${PROGRAM}
-            ChronoEngine ChronoEngine_fea ChronoEngine_irrlicht)
+        TARGET_LINK_LIBRARIES(${PROGRAM} ${CH_IRRLICHTLIB} ChronoEngine ChronoEngine_irrlicht)
+        ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_irrlicht)
         INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     
     ENDFOREACH()
@@ -145,12 +129,10 @@ IF(ENABLE_MODULE_IRRLICHT)
                 ${CH_IRRLICHTLIB}
                 ${CH_MATLABLIB}
                 ChronoEngine
-                ChronoEngine_fea
                 ChronoEngine_irrlicht
                 ChronoEngine_matlab)
             ADD_DEPENDENCIES(${PROGRAM}
                 ChronoEngine
-                ChronoEngine_fea
                 ChronoEngine_irrlicht
                 ChronoEngine_matlab)
             INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
@@ -173,12 +155,10 @@ IF(ENABLE_MODULE_IRRLICHT)
             TARGET_LINK_LIBRARIES(${PROGRAM}
                 ${CH_IRRLICHTLIB}
                 ChronoEngine
-                ChronoEngine_fea
                 ChronoEngine_mkl
                 ChronoEngine_irrlicht)
             ADD_DEPENDENCIES(${PROGRAM}
                 ChronoEngine
-                ChronoEngine_fea
                 ChronoEngine_mkl
                 ChronoEngine_irrlicht)
             INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
@@ -206,13 +186,11 @@ IF(ENABLE_MODULE_IRRLICHT)
                 ${CH_IRRLICHTLIB}
                 ${CH_MATLABLIB}
                 ChronoEngine
-                ChronoEngine_fea
                 ChronoEngine_mkl
                 ChronoEngine_irrlicht
                 ChronoEngine_matlab)
             ADD_DEPENDENCIES(${PROGRAM}
                 ChronoEngine
-                ChronoEngine_fea
                 ChronoEngine_mkl
                 ChronoEngine_irrlicht
                 ChronoEngine_matlab)

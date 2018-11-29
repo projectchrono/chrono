@@ -15,11 +15,6 @@ IF(NOT ENABLE_MODULE_VEHICLE)
     RETURN()
 ENDIF()
 
-IF(NOT ENABLE_MODULE_FEA)
-    RETURN()
-ENDIF()
-
-
 #--------------------------------------------------------------
 # List all model files for this demo
 

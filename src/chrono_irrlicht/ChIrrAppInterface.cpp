@@ -21,6 +21,10 @@
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
 
+#ifdef __APPLE__
+#include "TargetConditionals.h"
+#endif
+
 namespace chrono {
 namespace irrlicht {
 
@@ -626,6 +630,30 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     // the event receiver, taking care of user interaction
     ChIrrAppEventReceiver* receiver = new ChIrrAppEventReceiver(this);
     device->setEventReceiver(receiver);
+
+#ifdef TARGET_OS_MAC
+    // MacOS 10.14 Hack to work around OpenGL mess up
+    // We enforce the irrlicht application to minimize its window and then restore it
+    // Thanks to Zachary Ferguson for publishing this hint in the forum
+    // It isn't necessary on older MacOS versions, but should do no harm there
+
+    // Script file generation
+    std::string scriptFileName = "/tmp/";
+    scriptFileName.append(getprogname());
+    scriptFileName.append(".scpt");
+    std::ofstream script(scriptFileName);
+    script << "set progName to \"" << getprogname() << "\"" << std::endl;
+    script << "tell application \"Finder\"" << std::endl;
+    script << "set visible of process progName to false" << std::endl;
+    script << "set visible of process progName to true" << std::endl;
+    script << "end tell" << std::endl;
+    script.close();
+
+    // Script execution
+    std::string scriptExec = "osascript ";
+    scriptExec.append(scriptFileName);
+    std::system(scriptExec.c_str());
+#endif
 }
 
 // ChIrrAppInterface destructor. This safely delete every Irrlicht item

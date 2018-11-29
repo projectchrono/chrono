@@ -79,6 +79,14 @@ void ChWheeledVehicle::Synchronize(double time,
 }
 
 // -----------------------------------------------------------------------------
+// Enable/disable differential locking.
+// TODO: change API to lock/unlock a specific differential in the driveline.
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::LockDifferential(bool lock) {
+    m_driveline->LockDifferential(lock);
+}
+
+// -----------------------------------------------------------------------------
 // Set visualization type for the various subsystems
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::SetSuspensionVisualizationType(VisualizationType vis) {

@@ -16,6 +16,7 @@
 #define CHASSEMBLY_H
 
 #include <cmath>
+#include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChLinksAll.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
@@ -23,10 +24,9 @@ namespace chrono {
 
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
 /// Note that an assembly can be added to another assembly, to create a tree-like hierarchy.
-/// All positions of rigid bodies, FEA nodes, etc. are assumed respect to the absolute position.
+/// All positions of rigid bodies, FEA nodes, etc. are assumed with respect to the absolute frame.
 
 class ChApi ChAssembly : public ChPhysicsItem {
-
   public:
     ChAssembly();
     ChAssembly(const ChAssembly& other);
@@ -42,76 +42,81 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Removes all inserted items: bodies, links, etc.
     void Clear();
 
-    // To attach/remove items (rigid bodies, links, etc.) you must use
-    // shared pointer, so that you don't need to care about item deletion,
-    // which will be automatic when needed.
-    // Please don't add the same item multiple times; also, don't remove
-    // items which haven't ever been added! This will most often cause an assert() failure
-    // in debug mode.
-    // Note. adding/removing items to the system doesn't call Update() automatically.
+    // Do not add the same item multiple times; also, do not remove items which haven't ever been added!
+    // This will most often cause an assert() failure in debug mode.
+    // Note. adding/removing items to the assembly doesn't call Update() automatically.
 
-    /// Attach a body to this system. Must be an object of exactly ChBody class.
-    virtual void AddBody(std::shared_ptr<ChBody> newbody);
+    /// Attach a body to this assembly.
+    virtual void AddBody(std::shared_ptr<ChBody> body);
 
-    /// Attach a link to this system. Must be an object of ChLink or derived classes.
-    virtual void AddLink(std::shared_ptr<ChLink> newlink);
+    /// Attach a link to this assembly.
+    virtual void AddLink(std::shared_ptr<ChLink> link);
 
-    /// Attach a ChPhysicsItem object that is not a body or link
-    virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem);
+    /// Attach a mesh to this assembly.
+    virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
 
-    /// Attach whatever type of ChPhysicsItem (ex a ChBody, or a
-    /// ChParticles, or a ChLink, etc.) to the system. It will take care
-    /// of adding it to the proper list: of bodies, of links, or of other generic
-    /// physic item. (i.e. it calls AddBody(), AddLink() or AddOtherPhysicsItem() ).
-    /// Note, you cannot call Add() during an Update (ie. items like particle generators that
-    /// are already inserted in the system cannot call this) because not thread safe: rather
+    /// Attach a ChPhysicsItem object that is not a body, link, or mesh.
+    virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
+
+    /// Attach an arbitrary ChPhysicsItem (e.g. ChBody, ChParticles, ChLink, etc.) to the assembly.
+    /// It will take care of adding it to the proper list of bodies, links, meshes, or generic
+    /// physic item. (i.e. it calls AddBody(), AddLink(), AddMesh(), or AddOtherPhysicsItem()).
+    /// Note, you cannot call Add() during an Update (i.e. items like particle generators that
+    /// are already inserted in the assembly cannot call this) because not thread safe; instead,
     /// use AddBatch().
-    void Add(std::shared_ptr<ChPhysicsItem> newitem);
+    void Add(std::shared_ptr<ChPhysicsItem> item);
 
     /// Items added in this way are added like in the Add() method, but not instantly,
     /// they are simply queued in a batch of 'to add' items, that are added automatically
     /// at the first Setup() call. This is thread safe.
-    void AddBatch(std::shared_ptr<ChPhysicsItem> newitem);
+    void AddBatch(std::shared_ptr<ChPhysicsItem> item);
 
-    /// If some items are queued for addition in system, using AddBatch(), this will
+    /// If some items are queued for addition in the assembly, using AddBatch(), this will
     /// effectively add them and clean the batch. Called automatically at each Setup().
     void FlushBatch();
 
-    /// Remove a body from this system.
-    virtual void RemoveBody(std::shared_ptr<ChBody> mbody);
-    /// Remove a link from this system.
-    virtual void RemoveLink(std::shared_ptr<ChLink> mlink);
+    /// Remove a body from this assembly.
+    virtual void RemoveBody(std::shared_ptr<ChBody> body);
+    /// Remove a link from this assembly.
+    virtual void RemoveLink(std::shared_ptr<ChLink> link);
+    /// Remove a mesh from the assembly.
+    virtual void RemoveMesh(std::shared_ptr<fea::ChMesh> mesh);
     /// Remove a ChPhysicsItem object that is not a body or a link
-    virtual void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> mitem);
-    /// Remove whatever type of ChPhysicsItem that was added to the system.
-    /// (suggestion: use this instead of old RemoveBody(), RemoveLink, etc.)
-    void Remove(std::shared_ptr<ChPhysicsItem> newitem);
+    virtual void RemoveOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
+    /// Remove arbitrary ChPhysicsItem that was added to the assembly.
+    void Remove(std::shared_ptr<ChPhysicsItem> item);
 
-    /// Remove all bodies from this system.
+    /// Remove all bodies from this assembly.
     void RemoveAllBodies();
-    /// Remove all links from this system.
+    /// Remove all links from this assembly.
     void RemoveAllLinks();
-    /// Remove all physics items that were not added to body or link lists.
+    /// Remove all meshes from this assembly.
+    void RemoveAllMeshes();
+    /// Remove all physics items  not in the body, link, or mesh lists.
     void RemoveAllOtherPhysicsItems();
 
     /// Get the list of bodies.
     const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return bodylist; }
     /// Get the list of links.
     const std::vector<std::shared_ptr<ChLink>>& Get_linklist() const { return linklist; }
+    /// Get the list of meshes.
+    const std::vector<std::shared_ptr<fea::ChMesh>>& Get_meshlist() const { return meshlist; }
     /// Get the list of physics items that are not in the body or link lists.
     const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_otherphysicslist() const { return otherphysicslist; }
 
     /// Search a body by its name.
-    std::shared_ptr<ChBody> SearchBody(const char* m_name);
+    std::shared_ptr<ChBody> SearchBody(const char* name);
     /// Search a link by its name.
-    std::shared_ptr<ChLink> SearchLink(const char* m_name);
-    /// Search from other ChPhysics items (not bodies or links) by name.
-    std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* m_name);
+    std::shared_ptr<ChLink> SearchLink(const char* name);
+    /// Search a mesh by its name.
+    std::shared_ptr<fea::ChMesh> SearchMesh(const char* name);
+    /// Search from other ChPhysics items (not bodies, links, or meshes) by name.
+    std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* name);
     /// Search an item (body, link or other ChPhysics items) by name.
-    std::shared_ptr<ChPhysicsItem> Search(const char* m_name);
+    std::shared_ptr<ChPhysicsItem> Search(const char* name);
 
     /// Search a marker by its name.
-    std::shared_ptr<ChMarker> SearchMarker(const char* m_name);
+    std::shared_ptr<ChMarker> SearchMarker(const char* name);
     /// Search a marker by its unique ID.
     std::shared_ptr<ChMarker> SearchMarker(int markID);
 
@@ -125,28 +130,33 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int GetNbodiesSleeping() const { return nbodies_sleep; }
     /// Get the number of bodies that are fixed to ground.
     int GetNbodiesFixed() const { return nbodies_fixed; }
-    /// Get the total number of bodies added to the system, including the grounded and sleeping bodies.
+    /// Get the total number of bodies added to the assembly, including the grounded and sleeping bodies.
     int GetNbodiesTotal() const { return nbodies + nbodies_fixed + nbodies_sleep; }
 
     /// Get the number of links.
     int GetNlinks() const { return nlinks; }
-    /// Get the number of other physics items (not ChLinks or ChBodies).
+
+    /// Get the number of meshes.
+    int GetNmeshes() const { return nmeshes; }
+
+    /// Get the number of other physics items (other than bodies, links, or meshes).
     int GetNphysicsItems() const { return nphysicsitems; }
+
     /// Get the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
     int GetNcoords() const { return ncoords; }
-    /// Get the number of degrees of freedom of the system.
+    /// Get the number of degrees of freedom of the assembly.
     int GetNdof() const { return ndof; }
-    /// Get the number of scalar constraints added to the system, including constraints on quaternion norms.
+    /// Get the number of scalar constraints added to the assembly, including constraints on quaternion norms.
     int GetNdoc() const { return ndoc; }
     /// Get the number of system variables (coordinates plus the constraint multipliers, in case of quaternions).
     int GetNsysvars() const { return nsysvars; }
     /// Get the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
     int GetNcoords_w() const { return ncoords_w; }
-    /// Get the number of scalar constraints added to the system.
+    /// Get the number of scalar constraints added to the assembly.
     int GetNdoc_w() const { return ndoc_w; }
-    /// Get the number of scalar constraints added to the system (only bilaterals).
+    /// Get the number of scalar constraints added to the assembly (only bilaterals).
     int GetNdoc_w_C() const { return ndoc_w_C; }
-    /// Get the number of scalar constraints added to the system (only unilaterals).
+    /// Get the number of scalar constraints added to the assembly (only unilaterals).
     int GetNdoc_w_D() const { return ndoc_w_D; }
     /// Get the number of system variables (coordinates plus the constraint multipliers).
     int GetNsysvars_w() const { return nsysvars_w; }
@@ -161,7 +171,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     virtual void SyncCollisionModels() override;
 
-    /// Counts the number of bodies and links.
+    /// Counts the number of bodies, links, and meshes.
     /// Computes the offsets of object states in the global state.
     /// Assumes that this->offset_x this->offset_w this->offset_L are already set
     /// as starting point for offsetting all the contained sub objects.
@@ -272,16 +282,16 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   protected:
-    std::vector<std::shared_ptr<ChBody>> bodylist;  ///< list of rigid bodies
-    std::vector<std::shared_ptr<ChLink>> linklist;  ///< list of joints (links)
-    std::vector<std::shared_ptr<ChPhysicsItem>>
-        otherphysicslist;  ///< list of other physic objects that are not bodies or links
-    std::vector<std::shared_ptr<ChPhysicsItem>>
-        batch_to_insert;  ///< list of items to insert when doing Setup() or Flush.
+    std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies
+    std::vector<std::shared_ptr<ChLink>> linklist;                 ///< list of joints (links)
+    std::vector<std::shared_ptr<fea::ChMesh>> meshlist;            ///< list of meshes
+    std::vector<std::shared_ptr<ChPhysicsItem>> otherphysicslist;  ///< list of other physics objects
+    std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 
     // Statistics:
     int nbodies;        ///< number of bodies (currently active)
     int nlinks;         ///< number of links
+    int nmeshes;        ///< number of meshes
     int nphysicsitems;  ///< number of other physics items
     int ncoords;        ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
     int ndoc;           ///< number of scalar constraints (including constr. on quaternions)
@@ -296,9 +306,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int nbodies_fixed;  ///< number of bodies that are fixed
 };
 
-
-CH_CLASS_VERSION(ChAssembly,0)
-
+CH_CLASS_VERSION(ChAssembly, 0)
 
 }  // end namespace chrono
 

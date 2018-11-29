@@ -9,640 +9,426 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Rainer Gericke
-// =============================================================================
-//
-// =============================================================================
 
-#include <chrono/core/ChChrono.h>
-#include <chrono/core/ChMath.h>
-#include <chrono/core/ChMatrixDynamic.h>
-#include <chrono/motion_functions/ChFunction_Recorder.h>
-#include <chrono/utils/ChFilters.h>
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <vector>
+#include "gtest/gtest.h"
+#include "chrono/utils/ChFilters.h"
 
 using namespace chrono;
-using namespace chrono::utils;
 
-double mean(std::vector<double>& v) {
-    double s = 0;
-    for (size_t i = 0; i < v.size(); i++) {
-        s += v[i];
-    }
-    return s / double(v.size());
-}
+// Test classes for shock signal weighting filters ISO 2631-5, error limits from ISO 8041
 
-double rms(std::vector<double>& v) {
-    double avg = mean(v);
-    double s = 0;
-    for (size_t i = 0; i < v.size(); i++) {
-        s += (v[i] - avg) * (v[i] - avg);
-    }
-    return sqrt(s / double(v.size()));
-}
+class ShockTestbed
+{
+public:
+    ShockTestbed();
+    double Test1();
+    double Test2();
+    double Test3();
 
-double rms(ChMatrixDynamic<>& m, size_t iRow) {
-    size_t nCol = m.GetColumns();
-    double avg = 0.0;
-    for (size_t i = 0; i < nCol; i++) {
-        avg += m(iRow, i);
-    }
-    avg /= double(nCol);
-    double s = 0;
-    for (size_t i = 0; i < nCol; i++) {
-        s += (m(iRow, i) - avg) * (m(iRow, i) - avg);
-    }
-    return sqrt(s / double(nCol));
-}
+protected:
+    double m_tDuration; // duration of the complete testsignal
+    double m_fSample;   // sample rate of input
+    std::vector<double> input_signal;
+    std::vector<double> output_signal;
+};
 
-int test_iso2631_1_wk() {
-    int rcode_wk = 0;
-    // transtion frequencies for frequency weighting tolerances (ISO 8041)
-    const double ftol_wk1 = pow(10.0, -6.0 / 10.0);
-    const double ftol_wk2 = pow(10.0, -2.0 / 10.0);
-    const double ftol_wk3 = pow(10.0, 18.0 / 10.0);
-    const double ftol_wk4 = pow(10.0, 22.0 / 10.0);
-
-    // expected frequncy weightings for filter Wk (ISO 2631-1)
-    double expect_wk_data[] = {31.2e-3, 48.6e-3, 79e-3,   121e-3,  182e-3, 263e-3,  352e-3, 418e-3,  459e-3,  477e-3,
-                               482e-3,  484e-3,  494e-3,  531e-3,  631e-3, 804e-3,  967e-3, 1039e-3, 1054e-3, 1036e-3,
-                               988e-3,  902e-3,  768e-3,  636e-3,  513e-3, 405e-3,  314e-3, 246e-3,  186e-3,  132e-3,
-                               88.7e-3, 54e-3,   28.5e-3, 15.2e-3, 7.9e-3, 3.98e-3, 1.95e-3};
-
-    std::vector<double> expect_wk(expect_wk_data, expect_wk_data + sizeof(expect_wk_data) / sizeof(double));
-    std::vector<double> expect_wk_upper;
-    std::vector<double> expect_wk_lower;
-
-    // test frequencies in one-third octaves
-    std::vector<double> tst_freq_wk;
-    for (int i = -17; i <= 26; i++) {
-        double f = pow(10.0, double(i) / 10.0);
-        if (i >= -10) {
-            tst_freq_wk.push_back(f);
+ShockTestbed::ShockTestbed()
+    : m_tDuration(2)
+    , m_fSample(160)
+{
+    size_t nPoints = m_tDuration * m_fSample + 1;
+    input_signal.resize(nPoints, 0.0);
+    output_signal.resize(nPoints, 0.0);
+    for(size_t i = 0; i < input_signal.size(); i++) {
+        double t = double(i) / m_fSample;
+        if(t <= 0.05) {
+            input_signal[i] = 40.0 * t + 0.0;
+        } else if(t > 0.05 && t <= 0.2) {
+            input_signal[i] = 0.0 * t + 2.0;
+        } else if(t > 0.2 && t <= 0.4) {
+            input_signal[i] = -20.0 * t + 6.0;
+        } else if(t > 0.4 && t <= 0.5) {
+            input_signal[i] = 0.0 * t - 2.0;
+        } else if(t > 0.5 && t <= 0.55) {
+            input_signal[i] = 40.0 * t - 22.0;
+        } else if(t > 0.55 && t <= 2.0) {
+            input_signal[i] = 0.0 * t + 0.0;
         }
     }
+}
 
-    // calculate tolerance limits
-    for (int i = 0; i < tst_freq_wk.size(); i++) {
-        if (tst_freq_wk[i] <= ftol_wk1) {
-            expect_wk_upper.push_back(1.26 * expect_wk[i]);
-            expect_wk_lower.push_back(0.0002);
-        } else if (tst_freq_wk[i] > ftol_wk1 && tst_freq_wk[i] < ftol_wk2) {
-            expect_wk_upper.push_back(1.26 * expect_wk[i]);
-            expect_wk_lower.push_back(0.79 * expect_wk[i]);
-        } else if (tst_freq_wk[i] >= ftol_wk2 && tst_freq_wk[i] <= ftol_wk3) {
-            expect_wk_upper.push_back(1.12 * expect_wk[i]);
-            expect_wk_lower.push_back(0.89 * expect_wk[i]);
-        } else if (tst_freq_wk[i] > ftol_wk3 && tst_freq_wk[i] < ftol_wk4) {
-            expect_wk_upper.push_back(1.26 * expect_wk[i]);
-            expect_wk_lower.push_back(0.79 * expect_wk[i]);
+double ShockTestbed::Test1()
+{
+    // Search the global maximum
+    double r = output_signal[0];
+    for(size_t i = 1; i < output_signal.size(); i++) {
+        if(output_signal[i] > r) {
+            r = output_signal[i];
+        }
+    }
+    return r;
+}
+
+double ShockTestbed::Test2()
+{
+    // Search the global minimum
+    double r = output_signal[0];
+    for(size_t i = 1; i < output_signal.size(); i++) {
+        if(output_signal[i] < r) {
+            r = output_signal[i];
+        }
+    }
+    return r;
+}
+
+double ShockTestbed::Test3()
+{
+    // Search the second maximum
+    size_t istart = 0.5 * m_fSample;
+    double r = output_signal[istart];
+    for(size_t i = istart + 1; i < output_signal.size(); i++) {
+        if(output_signal[i] > r) {
+            r = output_signal[i];
+        }
+    }
+    return r;
+}
+
+class ShockTestWxy : public ShockTestbed
+{
+public:
+    ShockTestWxy();
+
+private:
+    chrono::utils::ChISO2631_5_Wxy filter;
+};
+
+ShockTestWxy::ShockTestWxy()
+{
+    std::ofstream shock("shock.txt");
+    for(size_t i = 0; i < input_signal.size(); i++) {
+        double t = double(i) / m_fSample;
+        output_signal[i] = filter.Filter(input_signal[i]);
+        shock << t << "\t" << input_signal[i] << "\t" << output_signal[i] << std::endl;
+    }
+    shock.close();
+}
+
+class ShockTestWz : public ShockTestbed
+{
+public:
+    ShockTestWz();
+
+private:
+    chrono::utils::ChISO2631_5_Wz filter;
+};
+
+ShockTestWz::ShockTestWz()
+{
+    filter.Filter(input_signal, output_signal);
+}
+
+// Test classes for vibration weighting filters ISO 2631-1
+// Actually considered: Whole Body Vibration (Bandfilter 0.4 ... 100 Hz, Wk, Wd)
+// Sawtooth Burst input signals and error limits taken from ISO 8041
+
+class SawtoothTestbed
+{
+public:
+    SawtoothTestbed(size_t nSawTeeth);
+    virtual double Test()
+    {
+        return 0;
+    };
+
+protected:
+    unsigned int m_Nsaw; // # of periods of sawtooth
+    double m_wSaw;       // angular frequency of the sawtooth
+    double m_aSaw;       // period length of sawtooth
+    double m_tDuration;  // duration of the complete testsignal
+    double m_fSample;    // sample rate of input
+    std::vector<double> input_signal;
+    std::vector<double> output_signal;
+    double rms();
+
+private:
+    double sawtooth(double t_ofs, double t);
+};
+
+SawtoothTestbed::SawtoothTestbed(size_t nSawTeeth)
+    : m_wSaw(100)
+    , m_tDuration(60)
+    , m_fSample(1000)
+{
+    switch(nSawTeeth) {
+    case 1:
+        m_Nsaw = 1;
+        break;
+    case 2:
+        m_Nsaw = 2;
+        break;
+    case 4:
+        m_Nsaw = 4;
+        break;
+    case 8:
+        m_Nsaw = 8;
+        break;
+    case 16:
+        m_Nsaw = 16;
+        break;
+    default:
+        m_Nsaw = 0; // continous sawtooth signal
+    }
+    m_aSaw = CH_C_2PI / m_wSaw;
+    size_t nPoints = m_tDuration * m_fSample + 1;
+    input_signal.resize(nPoints, 0.0);
+    output_signal.resize(nPoints, 0.0);
+    const double t_ofs1 = 1.0;
+    const double t_ofs_rep = 10.0;
+    for(size_t i = 0; i < input_signal.size(); i++) {
+        double t = double(i) / m_fSample;
+        if(m_Nsaw > 0) {
+            input_signal[i] = sawtooth(t_ofs1, t) + sawtooth(t_ofs1 + t_ofs_rep, t) +
+                sawtooth(t_ofs1 + 2.0 * t_ofs_rep, t) + sawtooth(t_ofs1 + 3.0 * t_ofs_rep, t) +
+                sawtooth(t_ofs1 + 4.0 * t_ofs_rep, t) + sawtooth(t_ofs1 + 5.0 * t_ofs_rep, t);
         } else {
-            expect_wk_upper.push_back(1.26 * expect_wk[i]);
-            expect_wk_lower.push_back(0.0002);
+            input_signal[i] = sawtooth(t_ofs1, t);
         }
     }
-    int rcode = 0;
-    double dT = 0.001;
-    size_t nFreqWk = tst_freq_wk.size();
-    size_t nTvals = 1 + (1.0 / tst_freq_wk[0] * 10 / dT);
-
-    ChMatrixDynamic<> sig_in_wk(nFreqWk, nTvals);
-
-    std::vector<double> rms_in(nFreqWk);
-    std::vector<double> rms_wk(nFreqWk);
-
-    std::vector<double> t(nTvals);
-    for (size_t j = 0; j < nTvals; j++) {
-        t[j] = dT * double(j);
-    }
-    for (size_t i = 0; i < nFreqWk; i++) {
-        for (size_t j = 0; j < nTvals; j++) {
-            sig_in_wk(i, j) = sin(CH_C_2PI * tst_freq_wk[i] * t[j]);
-        }
-        rms_in[i] = rms(sig_in_wk, i);
-    }
-
-    ChISO2631_1_Wk wk(dT);
-    for (size_t i = 0; i < nFreqWk; i++) {
-        std::vector<double> sig_out;
-        for (size_t j = 0; j < nTvals; j++) {
-            sig_out.push_back(wk.Filter(sig_in_wk[i][j]));
-        }
-        rms_wk[i] = rms(sig_out) / rms_in[i];
-        wk.Reset();
-    }
-
-    std::ofstream plt("filtertest_wk.plt");
-    plt << "$FILTERWK << EOD" << std::endl;
-    for (size_t i = 0; i < nFreqWk; i++) {
-        plt << tst_freq_wk[i] << "\t" << expect_wk_upper[i] << "\t" << rms_wk[i] << "\t" << expect_wk_lower[i]
-            << std::endl;
-    }
-    plt << "EOD" << std::endl;
-    plt << "set title 'Test ISO2631 Wk Filter in Chrono'" << std::endl;
-    plt << "set xlabel 'Frequency [Hz]'" << std::endl;
-    plt << "set ylabel 'Weighting []'" << std::endl;
-    plt << "set logscale xy" << std::endl;
-    plt << "plot $FILTERWK t 'ISO2631 Wk Upper Limit' with lines, \\" << std::endl;
-    plt << "     $FILTERWK u 1:3 t 'ISO2631 Wk Filtertest' with lines, \\" << std::endl;
-    plt << "     $FILTERWK u 1:4 t 'ISO2631 Wk Lower Limits' with lines" << std::endl;
-    plt.close();
-
-    // Correction of the first and the last values of expect_wk_lower to zero (it could not be plotted in logscale!)
-    expect_wk_lower.front() = 0.0;
-    expect_wk_lower.back() = 0.0;
-    int n_wk_errors = 0;
-    for (size_t i = 0; i < nFreqWk; i++) {
-        if (rms_wk[i] < expect_wk_lower[i] || rms_wk[i] > expect_wk_upper[i]) {
-            n_wk_errors++;
-        }
-    }
-    std::cout << "Errors Wk = " << n_wk_errors << std::endl;
-    if (n_wk_errors > 0) {
-        rcode_wk = 1;
-    }
-    return rcode_wk;
 }
 
-int test_iso2631_1_wd() {
-    int rcode_wd = 0;
-    // transtion frequencies for frequency weighting tolerances (ISO 8041)
-    const double ftol_wd1 = pow(10.0, -6.0 / 10.0);
-    const double ftol_wd2 = pow(10.0, -2.0 / 10.0);
-    const double ftol_wd3 = pow(10.0, 18.0 / 10.0);
-    const double ftol_wd4 = pow(10.0, 22.0 / 10.0);
-
-    // expected frequncy weightings for filter Wd (ISO 2631-1)
-    double expect_wd_data[] = {62.4e-3, 97.3e-3, 158e-3,  243e-3,  365e-3,  530e-3,  713e-3,  853e-3,  944e-3,  992e-3,
-                               1011e-3, 1008e-3, 968e-3,  890e-3,  776e-3,  642e-3,  512e-3,  409e-3,  323e-3,  253e-3,
-                               202e-3,  161e-3,  125e-3,  100e-3,  80e-3,   63.2e-3, 49.4e-3, 38.8e-3, 29.5e-3, 21.1e-3,
-                               14.1e-3, 8.63e-3, 4.55e-3, 2.43e-3, 1.26e-3, 0.64e-3, 0.31e-3};
-
-    std::vector<double> expect_wd(expect_wd_data, expect_wd_data + sizeof(expect_wd_data) / sizeof(double));
-    std::vector<double> expect_wd_upper;
-    std::vector<double> expect_wd_lower;
-
-    // test frequencies in one-third octaves
-    std::vector<double> tst_freq_wd;
-    for (int i = -17; i <= 26; i++) {
-        double f = pow(10.0, double(i) / 10.0);
-        if (i >= -10) {
-            tst_freq_wd.push_back(f);
-        }
+double SawtoothTestbed::rms()
+{
+    double r = 0.0;
+    for(size_t i = 0; i < output_signal.size(); i++) {
+        double e = output_signal[i];
+        r += e * e;
     }
-
-    // calculate tolerance limits
-    for (int i = 0; i < tst_freq_wd.size(); i++) {
-        if (tst_freq_wd[i] <= ftol_wd1) {
-            expect_wd_upper.push_back(1.26 * expect_wd[i]);
-            expect_wd_lower.push_back(0.00002);
-        } else if (tst_freq_wd[i] > ftol_wd1 && tst_freq_wd[i] < ftol_wd2) {
-            expect_wd_upper.push_back(1.26 * expect_wd[i]);
-            expect_wd_lower.push_back(0.79 * expect_wd[i]);
-        } else if (tst_freq_wd[i] >= ftol_wd2 && tst_freq_wd[i] <= ftol_wd3) {
-            expect_wd_upper.push_back(1.12 * expect_wd[i]);
-            expect_wd_lower.push_back(0.89 * expect_wd[i]);
-        } else if (tst_freq_wd[i] > ftol_wd3 && tst_freq_wd[i] < ftol_wd4) {
-            expect_wd_upper.push_back(1.26 * expect_wd[i]);
-            expect_wd_lower.push_back(0.79 * expect_wd[i]);
-        } else {
-            expect_wd_upper.push_back(1.26 * expect_wd[i]);
-            expect_wd_lower.push_back(0.00002);
-        }
-    }
-    int rcode = 0;
-    double dT = 0.001;
-
-    size_t nFreqWd = tst_freq_wd.size();
-    size_t nTvals = 1 + (1.0 / tst_freq_wd[0] * 10 / dT);
-
-    ChMatrixDynamic<> sig_in_wd(nFreqWd, nTvals);
-
-    std::vector<double> rms_in(nFreqWd);
-    std::vector<double> rms_wd(nFreqWd);
-
-    std::vector<double> t(nTvals);
-    for (size_t j = 0; j < nTvals; j++) {
-        t[j] = dT * double(j);
-    }
-
-    for (size_t i = 0; i < nFreqWd; i++) {
-        for (size_t j = 0; j < nTvals; j++) {
-            sig_in_wd(i, j) = sin(CH_C_2PI * tst_freq_wd[i] * t[j]);
-        }
-        rms_in[i] = rms(sig_in_wd, i);
-    }
-
-    ChISO2631_1_Wd wd(dT);
-    for (size_t i = 0; i < nFreqWd; i++) {
-        std::vector<double> sig_out;
-        for (size_t j = 0; j < nTvals; j++) {
-            sig_out.push_back(wd.Filter(sig_in_wd[i][j]));
-        }
-        rms_wd[i] = rms(sig_out) / rms_in[i];
-        wd.Reset();
-    }
-
-    std::ofstream plt("filtertest_wd.plt");
-    plt << "$FILTERWD << EOD" << std::endl;
-    for (size_t i = 0; i < nFreqWd; i++) {
-        plt << tst_freq_wd[i] << "\t" << expect_wd_upper[i] << "\t" << rms_wd[i] << "\t" << expect_wd_lower[i]
-            << std::endl;
-    }
-    plt << "EOD" << std::endl;
-    plt << "set title 'Test ISO2631 Wd Filter in Chrono'" << std::endl;
-    plt << "set xlabel 'Frequency [Hz]'" << std::endl;
-    plt << "set ylabel 'Weighting []'" << std::endl;
-    plt << "set logscale xy" << std::endl;
-    plt << "plot $FILTERWD t 'ISO2631 Wd Upper Limit' with lines, \\" << std::endl;
-    plt << "     $FILTERWD u 1:3 t 'ISO2631 Wd Filtertest' with lines, \\" << std::endl;
-    plt << "     $FILTERWD u 1:4 t 'ISO2631 Wd Lower Limits' with lines" << std::endl;
-    plt.close();
-
-    // Correction of the first and the last values of expect_wd_lower to zero (it could not be plotted in logscale!)
-    expect_wd_lower.front() = 0.0;
-    expect_wd_lower.back() = 0.0;
-    int n_wd_errors = 0;
-    for (size_t i = 0; i < nFreqWd; i++) {
-        if (rms_wd[i] < expect_wd_lower[i] || rms_wd[i] > expect_wd_upper[i]) {
-            n_wd_errors++;
-        }
-    }
-    std::cout << "Errors Wd = " << n_wd_errors << std::endl;
-    if (n_wd_errors > 0) {
-        rcode_wd = 1;
-    }
-
-    return rcode_wd;
+    return sqrt(r / double(output_signal.size()));
 }
 
-int test_iso2631_1_wf() {
-    int rcode_wf = 0;
-
-    // transtion frequencies for frequency weighting tolerances (ISO 8041)
-    const double ftol_wf1 = pow(10.0, -13.0 / 10.0);
-    const double ftol_wf2 = pow(10.0, -8.0 / 10.0);
-    const double ftol_wf3 = pow(10.0, -4.0 / 10.0);
-    const double ftol_wf4 = pow(10.0, 0.0 / 10.0);
-
-    // expected frequncy weightings for filter Wf (ISO 2631-1)
-    double expect_wf_data[] = {24.2e-3, 37.7e-3, 57.7e-3, 97.1e-3, 157e-3,  267e-3,  461e-3,  695e-3,
-                               895e-3,  1006e-3, 992e-3,  854e-3,  619e-3,  384e-3,  224e-3,  116e-3,
-                               53e-3,   23.5e-3, 9.98e-3, 3.77e-3, 1.55e-3, 0.64e-3, 0.25e-3, 0.097e-3};
-
-    std::vector<double> expect_wf(expect_wf_data, expect_wf_data + sizeof(expect_wf_data) / sizeof(double));
-    std::vector<double> expect_wf_upper;
-    std::vector<double> expect_wf_lower;
-
-    // test frequencies in one-third octaves
-    std::vector<double> tst_freq_wf;
-    for (int i = -17; i <= 6; i++) {
-        double f = pow(10.0, double(i) / 10.0);
-        tst_freq_wf.push_back(f);
-    }
-    if (tst_freq_wf.size() != expect_wf.size()) {
-        std::cout << "ill configured Wf tables!" << std::endl;
-    }
-
-    // calculate tolerance limits
-    for (int i = 0; i < tst_freq_wf.size(); i++) {
-        if (tst_freq_wf[i] <= ftol_wf1) {
-            expect_wf_upper.push_back(1.26 * expect_wf[i]);
-            expect_wf_lower.push_back(0.00002);
-        } else if (tst_freq_wf[i] > ftol_wf1 && tst_freq_wf[i] < ftol_wf2) {
-            expect_wf_upper.push_back(1.26 * expect_wf[i]);
-            expect_wf_lower.push_back(0.79 * expect_wf[i]);
-        } else if (tst_freq_wf[i] >= ftol_wf2 && tst_freq_wf[i] <= ftol_wf3) {
-            expect_wf_upper.push_back(1.12 * expect_wf[i]);
-            expect_wf_lower.push_back(0.89 * expect_wf[i]);
-        } else if (tst_freq_wf[i] > ftol_wf3 && tst_freq_wf[i] < ftol_wf4) {
-            expect_wf_upper.push_back(1.26 * expect_wf[i]);
-            expect_wf_lower.push_back(0.79 * expect_wf[i]);
-        } else {
-            expect_wf_upper.push_back(1.26 * expect_wf[i]);
-            expect_wf_lower.push_back(0.00002);
+double SawtoothTestbed::sawtooth(double t_ofs, double t)
+{
+    double y = 0;
+    if(m_Nsaw > 0) {
+        if((t >= t_ofs) && (t <= t_ofs + m_Nsaw * m_aSaw)) {
+            y = 2.0 * ((t - t_ofs) / m_aSaw - floor(0.5 + (t - t_ofs) / m_aSaw));
         }
+    } else {
+        y = 2.0 * ((t - t_ofs) / m_aSaw - floor(0.5 + (t - t_ofs) / m_aSaw));
     }
-
-    double dT = 0.1;
-
-    size_t nFreqWf = tst_freq_wf.size();
-    size_t nTvals = 1 + (1.0 / tst_freq_wf[0] * 10 / dT);
-
-    ChMatrixDynamic<> sig_in_wf(nFreqWf, nTvals);
-
-    std::vector<double> rms_in(nFreqWf);
-    std::vector<double> rms_wf(nFreqWf);
-
-    std::vector<double> t(nTvals);
-    for (size_t j = 0; j < nTvals; j++) {
-        t[j] = dT * double(j);
-    }
-
-    for (size_t i = 0; i < nFreqWf; i++) {
-        for (size_t j = 0; j < nTvals; j++) {
-            sig_in_wf(i, j) = sin(CH_C_2PI * tst_freq_wf[i] * t[j]);
-        }
-        rms_in[i] = rms(sig_in_wf, i);
-    }
-
-    ChISO2631_1_Wf wf(dT);
-    for (size_t i = 0; i < nFreqWf; i++) {
-        std::vector<double> sig_out;
-        for (size_t j = 0; j < nTvals; j++) {
-            sig_out.push_back(wf.Filter(sig_in_wf[i][j]));
-        }
-        rms_wf[i] = rms(sig_out) / rms_in[i];
-        wf.Reset();
-    }
-
-    std::ofstream plt("filtertest_wf.plt");
-    plt << "$FILTERWF << EOD" << std::endl;
-    for (size_t i = 0; i < nFreqWf; i++) {
-        plt << tst_freq_wf[i] << "\t" << expect_wf_upper[i] << "\t" << rms_wf[i] << "\t" << expect_wf_lower[i]
-            << std::endl;
-    }
-    plt << "EOD" << std::endl;
-    plt << "set title 'Test ISO2631 Wf Filter in Chrono'" << std::endl;
-    plt << "set xlabel 'Frequency [Hz]'" << std::endl;
-    plt << "set ylabel 'Weighting []'" << std::endl;
-    plt << "set logscale xy" << std::endl;
-    plt << "plot $FILTERWF t 'ISO2631 Wf Upper Limit' with lines, \\" << std::endl;
-    plt << "     $FILTERWF u 1:3 t 'ISO2631 Wf Filtertest' with lines, \\" << std::endl;
-    plt << "     $FILTERWF u 1:4 t 'ISO2631 Wf Lower Limits' with lines" << std::endl;
-    plt.close();
-
-    int n_wf_errors = 0;
-    // Correction of the first and the last values of expect_wd_lower to zero (it could not be plotted in logscale!)
-    expect_wf_lower.front() = 0.0;
-    expect_wf_lower.back() = 0.0;
-    for (size_t i = 0; i < nFreqWf; i++) {
-        if (rms_wf[i] < expect_wf_lower[i] || rms_wf[i] > expect_wf_upper[i]) {
-            if (rms_wf[i] > 0.01) {
-                n_wf_errors++;
-                std::cout << "Wf: Out of range at f = " << tst_freq_wf[i] << " Hz, Weighting = " << rms_wf[i]
-                          << std::endl;
-            } else {
-                std::cout << "Wf: Acceptable deviation at f = " << tst_freq_wf[i] << " Hz, Weighting = " << rms_wf[i]
-                          << std::endl;
-            }
-        }
-    }
-
-    std::cout << "Errors Wf = " << n_wf_errors << std::endl;
-    if (n_wf_errors > 0) {
-        rcode_wf = 1;
-    }
-
-    return rcode_wf;
+    return y;
 }
 
-int test_iso2631_5_wxy() {
-    int rcode_wxy = 0;
-    int n_wxy_errors = 0;
-    const double fs = 160.0;
-    const double ts = 1.0 / fs;
-    const double Tlen = 2.0;
+class SawtoothTestBandfilter : public SawtoothTestbed
+{
+public:
+    SawtoothTestBandfilter(size_t nSawTeeth);
+    double Test();
 
-    std::vector<double> t;
-    std::vector<double> sig_in_wxy;
-    size_t nTvals = Tlen / ts + 1;
-    t.resize(nTvals);
-    sig_in_wxy.resize(nTvals);
-    for (size_t i = 0; i < nTvals; i++) {
-        t[i] = ts * double(i);
-        if (t[i] <= 0.05) {
-            sig_in_wxy[i] = 40.0 * t[i] + 0.0;
-        } else if (t[i] > 0.05 && t[i] <= 0.2) {
-            sig_in_wxy[i] = 0.0 * t[i] + 2.0;
-        } else if (t[i] > 0.2 && t[i] <= 0.4) {
-            sig_in_wxy[i] = -20.0 * t[i] + 6.0;
-        } else if (t[i] > 0.4 && t[i] <= 0.5) {
-            sig_in_wxy[i] = 0.0 * t[i] - 2.0;
-        } else if (t[i] > 0.5 && t[i] <= 0.55) {
-            sig_in_wxy[i] = 40.0 * t[i] - 22.0;
-        } else if (t[i] > 0.55 && t[i] <= 2.0) {
-            sig_in_wxy[i] = 0.0 * t[i] + 0.0;
-        }
-    }
+private:
+    chrono::utils::ChButterworth_Highpass hp;
+    chrono::utils::ChButterworth_Lowpass lp;
+};
 
-    ChISO2631_5_Wxy filter_wxy;
-    std::vector<double> resp_wxy;
-    for (size_t i = 0; i < nTvals; i++) {
-        resp_wxy.push_back(filter_wxy.Filter(sig_in_wxy[i]));
-    }
-
-    // tolerances from ISO 8041 +12%/-11%
-
-    const double rMax1_exp = 3.025;
-    const double rMax1_high = 1.12 * rMax1_exp;
-    const double rMax1_low = 0.89 * rMax1_exp;
-    size_t iMax1 = 0;
-    double rMax1 = 0.0;
-
-    const double rMin1_exp = -4.048;
-    const double rMin1_high = rMin1_exp + 0.12 * fabs(rMin1_exp);
-    const double rMin1_low = rMin1_exp - 0.11 * fabs(rMin1_exp);
-    size_t iMin1 = 0;
-    double rMin1 = 0.0;
-
-    const double rMax2_exp = 2.065;
-    const double rMax2_high = 1.12 * rMax2_exp;
-    const double rMax2_low = 0.89 * rMax2_exp;
-    size_t iMax2 = 0;
-    double rMax2 = 0.0;
-
-    for (size_t i = 0; i < nTvals - 1; i++) {
-        if (resp_wxy[i] > rMax1) {
-            rMax1 = resp_wxy[i];
-        }
-        if (resp_wxy[i + 1] < rMax1) {
-            iMax1 = i;
-            break;
-        }
-    }
-    if (rMax1 > rMax1_high || rMax1 < rMax1_low) {
-        n_wxy_errors++;
-        std::cout << "Wxy: Out of Range Maximum 1 = " << rMax1 << std::endl;
-    }
-
-    rMin1 = rMax1;
-    for (size_t i = iMax1; i < nTvals - 1; i++) {
-        if (resp_wxy[i] < rMin1) {
-            rMin1 = resp_wxy[i];
-        }
-        if (resp_wxy[i + 1] > rMin1) {
-            iMin1 = i;
-            break;
-        }
-    }
-    if (rMin1 > rMin1_high || rMin1 < rMin1_low) {
-        n_wxy_errors++;
-        std::cout << "Wxy: Out of Range Minimum 1 = " << rMin1 << std::endl;
-    }
-
-    rMax2 = rMin1;
-    for (size_t i = iMin1; i < nTvals - 1; i++) {
-        if (resp_wxy[i] > rMax2) {
-            rMax2 = resp_wxy[i];
-        }
-        if (resp_wxy[i + 1] < rMax2) {
-            iMax2 = i;
-            break;
-        }
-    }
-    if (rMax2 > rMax2_high || rMax2 < rMax2_low) {
-        n_wxy_errors++;
-        std::cout << "Wxy: Out of Range Maximum 1 = " << rMax1 << std::endl;
-    }
-
-    std::ofstream plt("filtertest_wxy.plt");
-    plt << "$FILTERWXY << EOD" << std::endl;
-    for (size_t i = 0; i < nTvals; i++) {
-        plt << t[i] << "\t" << sig_in_wxy[i] << "\t" << resp_wxy[i] << std::endl;
-    }
-    plt << "EOD" << std::endl;
-    plt << "set title 'Test ISO2631-5 Wxy Filter in Chrono'" << std::endl;
-    plt << "set xlabel 'Time [s]'" << std::endl;
-    plt << "set ylabel 'Amplitude []'" << std::endl;
-    plt << "plot $FILTERWXY t 'ISO2631-5 Wxy Test Signal' with lines, \\" << std::endl;
-    plt << "     $FILTERWXY u 1:3 t 'ISO2631-5 Wxy Filter Response' with lines" << std::endl;
-    plt.close();
-
-    std::cout << "Errors Wxy = " << n_wxy_errors << std::endl;
-    if (n_wxy_errors > 0) {
-        rcode_wxy = 1;
-    }
-    return rcode_wxy;
+SawtoothTestBandfilter::SawtoothTestBandfilter(size_t nSawTeeth)
+    : SawtoothTestbed(nSawTeeth)
+{
+    hp.Config(2, 1.0 / m_fSample, 0.4);
+    lp.Config(2, 1.0 / m_fSample, 100.0);
 }
 
-int test_iso2631_5_wz() {
-    int rcode_wz = 0;
-    int n_wz_errors = 0;
-
-    const double fs = 160.0;
-    const double ts = 1.0 / fs;
-    const double Tlen = 2.0;
-
-    std::vector<double> t;
-    std::vector<double> sig_in_wz;
-    size_t nTvals = Tlen / ts + 1;
-    t.resize(nTvals);
-    sig_in_wz.resize(nTvals);
-    for (size_t i = 0; i < nTvals; i++) {
-        t[i] = ts * double(i);
-        if (t[i] <= 0.05) {
-            sig_in_wz[i] = 40.0 * t[i] + 0.0;
-        } else if (t[i] > 0.05 && t[i] <= 0.2) {
-            sig_in_wz[i] = 0.0 * t[i] + 2.0;
-        } else if (t[i] > 0.2 && t[i] <= 0.4) {
-            sig_in_wz[i] = -20.0 * t[i] + 6.0;
-        } else if (t[i] > 0.4 && t[i] <= 0.5) {
-            sig_in_wz[i] = 0.0 * t[i] - 2.0;
-        } else if (t[i] > 0.5 && t[i] <= 0.55) {
-            sig_in_wz[i] = 40.0 * t[i] - 22.0;
-        } else if (t[i] > 0.55 && t[i] <= 2.0) {
-            sig_in_wz[i] = 0.0 * t[i] + 0.0;
-        }
+double SawtoothTestBandfilter::Test()
+{
+    for(size_t i = 0; i < input_signal.size(); i++) {
+        double t = double(i) / m_fSample;
+        double y = hp.Filter(input_signal[i]);
+        output_signal[i] = lp.Filter(y);
     }
-
-    std::vector<double> resp_wz;
-
-    ChISO2631_5_Wz filter_wz;
-    filter_wz.Filter(sig_in_wz, resp_wz);
-
-    const double rMax1_exp = 1.661;
-    const double rMax1_high = rMax1_exp + 0.11 * rMax1_exp;
-    const double rMax1_low = rMax1_exp - 0.11 * rMax1_exp;
-    size_t iMax1 = 0;
-    double rMax1 = 0.0;
-
-    const double rMin1_exp = -1.512;
-    const double rMin1_high = rMin1_exp + 0.11 * fabs(rMin1_exp);
-    const double rMin1_low = rMin1_exp - 0.11 * fabs(rMin1_exp);
-    size_t iMin1 = 0;
-    double rMin1 = 0.0;
-
-    const double rMax2_exp = 0.308;
-    const double rMax2_high = rMax2_exp + 0.11 * rMax2_exp;
-    const double rMax2_low = rMax2_exp - 0.11 * rMax2_exp;
-    size_t iMax2 = 0;
-    double rMax2 = 0.0;
-
-    for (size_t i = 0; i < nTvals - 1; i++) {
-        if (resp_wz[i] > rMax1 && resp_wz[i] > 0.0) {
-            rMax1 = resp_wz[i];
-        }
-        if (resp_wz[i + 1] < rMax1 && resp_wz[i] > 0.0) {
-            iMax1 = i;
-            break;
-        }
-    }
-    if (rMax1 > rMax1_high || rMax1 < rMax1_low) {
-        n_wz_errors++;
-        std::cout << "Wz: Out of Range Maximum 1 = " << rMax1 << std::endl;
-    }
-
-    rMin1 = rMax1;
-    for (size_t i = iMax1; i < nTvals - 1; i++) {
-        if (resp_wz[i] < rMin1) {
-            rMin1 = resp_wz[i];
-        }
-        if (resp_wz[i + 1] > rMin1 && resp_wz[i] < 0.0) {
-            iMin1 = i;
-            break;
-        }
-    }
-    if (rMin1 > rMin1_high || rMin1 < rMin1_low) {
-        n_wz_errors++;
-        std::cout << "Wz: Out of Range Minimum 1 = " << rMin1 << std::endl;
-    }
-
-    rMax2 = rMin1;
-    for (size_t i = iMin1; i < nTvals - 1; i++) {
-        if (resp_wz[i] > rMax2) {
-            rMax2 = resp_wz[i];
-        }
-        if (resp_wz[i + 1] < rMax2) {
-            iMax2 = i;
-            break;
-        }
-    }
-    if (rMax2 > rMax2_high || rMax2 < rMax2_low) {
-        n_wz_errors++;
-        std::cout << "Wz: Out of Range Maximum 2 = " << rMax2 << std::endl;
-    }
-
-    std::ofstream plt("filtertest_wz.plt");
-    plt << "$FILTERWZ << EOD" << std::endl;
-    for (size_t i = 0; i < nTvals; i++) {
-        plt << t[i] << "\t" << sig_in_wz[i] << "\t" << resp_wz[i] << std::endl;
-    }
-    plt << "EOD" << std::endl;
-    plt << "set title 'Test ISO2631-5 Wz Filter in Chrono'" << std::endl;
-    plt << "set xlabel 'Time [s]'" << std::endl;
-    plt << "set ylabel 'Amplitude []'" << std::endl;
-    plt << "plot $FILTERWZ t 'ISO2631-5 Wz Test Signal' with lines, \\" << std::endl;
-    plt << "     $FILTERWZ u 1:3 t 'ISO2631-5 Wz Filter Response' with lines" << std::endl;
-    plt.close();
-
-    std::cout << "Errors Wz = " << n_wz_errors << std::endl;
-    return rcode_wz;
+    return rms();
 }
 
-int main(int argc, char* argv[]) {
-    int rcode = 0;
-    int res_wk = test_iso2631_1_wk();
-    int res_wd = test_iso2631_1_wd();
-    int res_wf = test_iso2631_1_wf();
-    int res_wxy = test_iso2631_5_wxy();
-    int res_wz = test_iso2631_5_wz();
+class SawtoothTestWkfilter : public SawtoothTestbed
+{
+public:
+    SawtoothTestWkfilter(size_t nSawTeeth);
+    void GenerateOutput();
+    double Test();
 
-    if (res_wk > 0 || res_wd > 0 || res_wf > 0 || res_wxy > 0 || res_wz > 0) {
-        rcode = 1;
+private:
+    chrono::utils::ChISO2631_1_Wk wk;
+};
+
+SawtoothTestWkfilter::SawtoothTestWkfilter(size_t nSawTeeth)
+    : SawtoothTestbed(nSawTeeth)
+{
+    wk.Config(1.0 / m_fSample);
+}
+
+double SawtoothTestWkfilter::Test()
+{
+    for(size_t i = 0; i < input_signal.size(); i++) {
+        double t = double(i) / m_fSample;
+        output_signal[i] = wk.Filter(input_signal[i]);
     }
-    return rcode;
+    return rms();
+    ;
+}
+
+class SawtoothTestWdfilter : public SawtoothTestbed
+{
+public:
+    SawtoothTestWdfilter(size_t nSawTeeth);
+    double Test();
+
+private:
+    chrono::utils::ChISO2631_1_Wd wd;
+};
+
+SawtoothTestWdfilter::SawtoothTestWdfilter(size_t nSawTeeth)
+    : SawtoothTestbed(nSawTeeth)
+{
+    wd.Config(1.0 / m_fSample);
+}
+
+double SawtoothTestWdfilter::Test()
+{
+    for(size_t i = 0; i < input_signal.size(); i++) {
+        double t = double(i) / m_fSample;
+        output_signal[i] = wd.Filter(input_signal[i]);
+    }
+    return rms();
+}
+
+TEST(WholeBodyBandfilter, SawtoothBurstRMS)
+{
+    const double band_res_1 = 0.0433;
+    const double band_res_1_err = 0.1 * band_res_1;
+    SawtoothTestBandfilter bf_1(1);
+    ASSERT_NEAR(bf_1.Test(), band_res_1, band_res_1_err);
+
+    const double band_res_2 = 0.0612;
+    const double band_res_2_err = 0.1 * band_res_2;
+    SawtoothTestBandfilter bf_2(2);
+    ASSERT_NEAR(bf_2.Test(), band_res_2, band_res_2_err);
+
+    const double band_res_4 = 0.0865;
+    const double band_res_4_err = 0.1 * band_res_4;
+    SawtoothTestBandfilter bf_4(4);
+    ASSERT_NEAR(bf_4.Test(), band_res_4, band_res_4_err);
+
+    const double band_res_8 = 0.122;
+    const double band_res_8_err = 0.1 * band_res_8;
+    SawtoothTestBandfilter bf_8(8);
+    ASSERT_NEAR(bf_8.Test(), band_res_8, band_res_8_err);
+
+    const double band_res_16 = 0.173;
+    const double band_res_16_err = 0.1 * band_res_16;
+    SawtoothTestBandfilter bf_16(16);
+    ASSERT_NEAR(bf_16.Test(), band_res_16, band_res_16_err);
+
+    const double band_res_c = 0.546;
+    const double band_res_c_err = 0.1 * band_res_c;
+    SawtoothTestBandfilter bf_c(0);
+    ASSERT_NEAR(bf_c.Test(), band_res_c, band_res_c_err);
+}
+
+TEST(WholeBodyWkFilter, SawtoothBurstRMS)
+{
+    const double wk_res_1 = 0.0299;
+    const double wk_res_1_err = 0.1 * wk_res_1;
+    SawtoothTestWkfilter wk_1(1);
+    ASSERT_NEAR(wk_1.Test(), wk_res_1, wk_res_1_err);
+
+    const double wk_res_2 = 0.0411;
+    const double wk_res_2_err = 0.1 * wk_res_2;
+    SawtoothTestWkfilter wk_2(2);
+    ASSERT_NEAR(wk_2.Test(), wk_res_2, wk_res_2_err);
+
+    const double wk_res_4 = 0.0577;
+    const double wk_res_4_err = 0.1 * wk_res_4;
+    SawtoothTestWkfilter wk_4(4);
+    ASSERT_NEAR(wk_4.Test(), wk_res_4, wk_res_4_err);
+
+    const double wk_res_8 = 0.0814;
+    const double wk_res_8_err = 0.1 * wk_res_8;
+    SawtoothTestWkfilter wk_8(8);
+    ASSERT_NEAR(wk_8.Test(), wk_res_8, wk_res_8_err);
+
+    const double wk_res_16 = 0.115;
+    const double wk_res_16_err = 0.1 * wk_res_16;
+    SawtoothTestWkfilter wk_16(16);
+    ASSERT_NEAR(wk_16.Test(), wk_res_16, wk_res_16_err);
+
+    const double wk_res_c = 0.362;
+    const double wk_res_c_err = 0.1 * wk_res_c;
+    SawtoothTestWkfilter wk_c(0);
+    ASSERT_NEAR(wk_c.Test(), wk_res_c, wk_res_c_err);
+}
+
+TEST(WholeBodyWdFilter, SawtoothBurstRMS)
+{
+    const double wd_res_1 = 0.00669;
+    const double wd_res_1_err = 0.1 * wd_res_1;
+    SawtoothTestWdfilter wd_1(1);
+    ASSERT_NEAR(wd_1.Test(), wd_res_1, wd_res_1_err);
+
+    const double wd_res_2 = 0.00906;
+    const double wd_res_2_err = 0.1 * wd_res_2;
+    SawtoothTestWdfilter wd_2(2);
+    ASSERT_NEAR(wd_2.Test(), wd_res_2, wd_res_2_err);
+
+    const double wd_res_4 = 0.0116;
+    const double wd_res_4_err = 0.1 * wd_res_4;
+    SawtoothTestWdfilter wd_4(4);
+    ASSERT_NEAR(wd_4.Test(), wd_res_4, wd_res_4_err);
+
+    const double wd_res_8 = 0.0148;
+    const double wd_res_8_err = 0.1 * wd_res_8;
+    SawtoothTestWdfilter wd_8(8);
+    ASSERT_NEAR(wd_8.Test(), wd_res_8, wd_res_8_err);
+
+    const double wd_res_16 = 0.0197;
+    const double wd_res_16_err = 0.1 * wd_res_16;
+    SawtoothTestWdfilter wd_16(16);
+    ASSERT_NEAR(wd_16.Test(), wd_res_16, wd_res_16_err);
+
+    const double wd_res_c = 0.059;
+    const double wd_res_c_err = 0.1 * wd_res_c;
+    SawtoothTestWdfilter wd_c(0);
+    ASSERT_NEAR(wd_c.Test(), wd_res_c, wd_res_c_err);
+}
+
+TEST(ShockWxyFilter, StandardSignal)
+{
+    ShockTestWxy wxy;
+
+    const double wxy_res_1 = 3.025;
+    const double wxy_res_1_err = 0.1 * wxy_res_1;
+    ASSERT_NEAR(wxy.Test1(), wxy_res_1, wxy_res_1_err);
+
+    const double wxy_res_2 = -4.048;
+    const double wxy_res_2_err = std::abs(0.1 * wxy_res_2);
+    ASSERT_NEAR(wxy.Test2(), wxy_res_2, wxy_res_2_err);
+
+    const double wxy_res_3 = 2.065;
+    const double wxy_res_3_err = std::abs(0.1 * wxy_res_3);
+    ASSERT_NEAR(wxy.Test3(), wxy_res_3, wxy_res_3_err);
+}
+
+TEST(ShockWzFilter, StandardSignal)
+{
+    ShockTestWz wz;
+
+    const double wz_res_1 = 1.661;
+    const double wz_res_1_err = 0.1 * wz_res_1;
+    ASSERT_NEAR(wz.Test1(), wz_res_1, wz_res_1_err);
+
+    const double wz_res_2 = -1.512;
+    const double wz_res_2_err = std::abs(0.1 * wz_res_2);
+    ASSERT_NEAR(wz.Test2(), wz_res_2, wz_res_2_err);
+
+    const double wz_res_3 = 0.308;
+    const double wz_res_3_err = std::abs(0.1 * wz_res_3);
+    ASSERT_NEAR(wz.Test3(), wz_res_3, wz_res_3_err);
 }
