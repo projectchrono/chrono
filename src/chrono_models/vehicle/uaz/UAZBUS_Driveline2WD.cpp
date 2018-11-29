@@ -28,8 +28,10 @@ namespace uaz {
 const double UAZBUS_Driveline2WD::m_driveshaft_inertia = 0.5;
 const double UAZBUS_Driveline2WD::m_differentialbox_inertia = 0.6;
 
-const double UAZBUS_Driveline2WD::m_conicalgear_ratio = -1.0/4.625;
+const double UAZBUS_Driveline2WD::m_conicalgear_ratio = -1.0 / 4.625;
 const double UAZBUS_Driveline2WD::m_differential_ratio = -1;
+
+const double UAZBUS_Driveline2WD::m_differential_locking_limit = 100;
 
 // -----------------------------------------------------------------------------
 // Constructor of the UAZBUS_Driveline2WD.

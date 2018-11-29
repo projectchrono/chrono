@@ -147,8 +147,6 @@ source_group("generic" FILES ${CVM_GENERIC_FILES})
 set(CVM_SEDAN_FILES
     sedan/Sedan.cpp
     sedan/Sedan.h
-    sedan/SedanL.cpp
-    sedan/SedanL.h
     sedan/Sedan_BrakeSimple.cpp
     sedan/Sedan_BrakeSimple.h
     sedan/Sedan_Chassis.h
@@ -157,8 +155,6 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_DoubleWishbone.h
     sedan/Sedan_Driveline2WD.cpp
     sedan/Sedan_Driveline2WD.h
-    sedan/Sedan_Driveline2WDL.cpp
-    sedan/Sedan_Driveline2WDL.h
     sedan/Sedan_MultiLink.cpp
     sedan/Sedan_MultiLink.h
     sedan/Sedan_RigidTire.cpp
@@ -171,8 +167,6 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_SimpleMapPowertrain.h
     sedan/Sedan_Vehicle.h
     sedan/Sedan_Vehicle.cpp
-    sedan/SedanL_Vehicle.h
-    sedan/SedanL_Vehicle.cpp
     sedan/Sedan_Wheel.cpp
     sedan/Sedan_Wheel.h
 )
