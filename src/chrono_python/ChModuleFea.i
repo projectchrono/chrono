@@ -118,6 +118,8 @@ using namespace chrono::fea;
 %pointer_class(float,float_ptr);
 
 
+%template(vector_ChNodeFEAxyzrot) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> >;
+%template(vector_ChNodeFEAxyz)    std::vector< std::shared_ptr<chrono::fea::ChNodeFEAxyz> >;
 
 //
 // For each class, keep updated the  A, B, C sections: 
