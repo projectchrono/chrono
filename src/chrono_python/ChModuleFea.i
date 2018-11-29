@@ -50,15 +50,27 @@
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChNodeFEAxyzP.h"
 #include "chrono_fea/ChNodeFEAxyzrot.h"
+#include "chrono_fea/ChNodeFEAxyzD.h"
+#include "chrono_fea/ChNodeFEAxyzDD.h"
 #include "chrono_fea/ChElementBase.h"
 #include "chrono_fea/ChElementGeneric.h"
+#include "chrono_fea/ChElementSpring.h"
+#include "chrono_fea/ChElementBar.h"
 #include "chrono_fea/ChElementBeam.h"
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementBeamIGA.h"
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChElementTetra_10.h"
 #include "chrono_fea/ChElementHexa_8.h"
 #include "chrono_fea/ChElementHexa_20.h"
+#include "chrono_fea/ChElementBrick.h"
+#include "chrono_fea/ChElementBrick_9.h"
+#include "chrono_fea/ChMaterialShellReissner.h"
+#include "chrono_fea/ChElementShellReissner4.h"
+#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChElementShellANCF_8.h"
+#include "chrono_fea/ChElementCableANCF.h"
 #include "chrono_fea/ChBuilderBeam.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono/physics/ChContinuumMaterial.h"
@@ -69,9 +81,11 @@
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChMeshSurface.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono_fea/ChLoadsBeam.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLinkPointPoint.h"
+#include "chrono_fea/ChMeshFileLoader.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -117,21 +131,47 @@ using namespace chrono::fea;
 // handled by shered pointers in C++, but all their chidren and parent classes. It
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
-%shared_ptr(chrono::ChFrame<double>)
+
+//from core module:
+%shared_ptr(chrono::ChFunction)
+%shared_ptr(chrono::ChFrame<double>) 
 %shared_ptr(chrono::ChFrameMoving<double>)
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::ChBodyFrame)
 %shared_ptr(chrono::ChPhysicsItem)
+%shared_ptr(chrono::ChIndexedNodes)
 %shared_ptr(chrono::ChLinkBase)
-%shared_ptr(chrono::fea::ChElementBase)
-%shared_ptr(chrono::fea::ChElementGeneric)
+%shared_ptr(chrono::ChLoadBase)
+%shared_ptr(chrono::ChLoadCustom)
+%shared_ptr(chrono::ChLoadCustomMultiple)
+%shared_ptr(chrono::ChLoadable) 
+%shared_ptr(chrono::ChLoadableU) 
+%shared_ptr(chrono::ChLoadableUV) 
+%shared_ptr(chrono::ChLoadableUVW)
+%shared_ptr(chrono::ChNodeBase) 
+%shared_ptr(chrono::ChNodeXYZ) 
+%shared_ptr(chrono::ChAsset)
+%shared_ptr(chrono::ChAssetLevel)
+//from this module:
 %shared_ptr(chrono::fea::ChBeamSection)
 %shared_ptr(chrono::fea::ChBeamSectionBasic)
 %shared_ptr(chrono::fea::ChBeamSectionCable)
 %shared_ptr(chrono::fea::ChBeamSectionAdvanced)
+%shared_ptr(chrono::fea::ChBeamSectionProperties)
+%shared_ptr(chrono::fea::ChBeamSectionCosserat)
+%shared_ptr(chrono::fea::ChElasticityCosserat)
+%shared_ptr(chrono::fea::ChElasticityCosseratSimple)
+%shared_ptr(chrono::fea::ChElasticityCosseratGeneric)
+%shared_ptr(chrono::fea::ChElasticityCosseratAdvanced)
+%shared_ptr(chrono::fea::ChElasticityCosseratMesh)
+%shared_ptr(chrono::fea::ChPlasticityCosserat)
+%shared_ptr(chrono::fea::ChPlasticityCosseratLumped)
+%shared_ptr(chrono::fea::ChDampingCosserat)
+%shared_ptr(chrono::fea::ChDampingCosseratLinear)
 %shared_ptr(chrono::fea::ChElementBeam)
 %shared_ptr(chrono::fea::ChElementBeamEuler)
 %shared_ptr(chrono::fea::ChElementBeamANCF)
+%shared_ptr(chrono::fea::ChElementBeamIGA)
 %shared_ptr(chrono::fea::ChContinuumMaterial)
 %shared_ptr(chrono::fea::ChContinuumElastic)
 //%shared_ptr(chrono::fea::ChContinuumElastoplastic)
@@ -144,18 +184,30 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChContinuumPoisson3D)
 %shared_ptr(chrono::fea::ChContinuumElectrostatics)
 %shared_ptr(chrono::fea::ChContinuumThermal)
+%shared_ptr(chrono::fea::ChElementBase)
+%shared_ptr(chrono::fea::ChElementGeneric)
+%shared_ptr(chrono::fea::ChElementSpring)
+%shared_ptr(chrono::fea::ChElementBar)
+%shared_ptr(chrono::fea::ChElement3D)
+%shared_ptr(chrono::fea::ChElementCorotational)
 %shared_ptr(chrono::fea::ChElementTetrahedron)
 %shared_ptr(chrono::fea::ChElementTetra_4)
+%shared_ptr(chrono::fea::ChElementTetra_4_P)
 %shared_ptr(chrono::fea::ChElementTetra_10)
 %shared_ptr(chrono::fea::ChElementHexahedron)
 %shared_ptr(chrono::fea::ChElementHexa_8)
 %shared_ptr(chrono::fea::ChElementHexa_20)
+%shared_ptr(chrono::fea::ChElementBrick)
+%shared_ptr(chrono::fea::ChElementBrick_9)
 %shared_ptr(chrono::fea::ChNodeFEAbase)
 %shared_ptr(chrono::fea::ChNodeFEAxyz)
 %shared_ptr(chrono::fea::ChNodeFEAxyzP)
 %shared_ptr(chrono::fea::ChNodeFEAxyzD)
+%shared_ptr(chrono::fea::ChNodeFEAxyzDD)
 %shared_ptr(chrono::fea::ChNodeFEAxyzrot)
 %shared_ptr(chrono::fea::ChMesh)
+%shared_ptr(chrono::fea::ChContactTriangleXYZ)
+%shared_ptr(chrono::fea::ChContactTriangleXYZROT)
 %shared_ptr(chrono::fea::ChContactSurface)
 %shared_ptr(chrono::fea::ChContactSurfaceMesh)
 %shared_ptr(chrono::fea::ChContactSurfaceNodeCloud)
@@ -164,6 +216,24 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChLinkDirFrame)
 %shared_ptr(chrono::fea::ChLinkPointFrame)
 %shared_ptr(chrono::fea::ChLinkPointPoint)
+%shared_ptr(chrono::fea::ChMaterialShellReissner)
+%shared_ptr(chrono::fea::ChMaterialShellReissnerIsothropic)
+%shared_ptr(chrono::fea::ChMaterialShellReissnerOrthotropic)
+%shared_ptr(chrono::fea::ChElementShell)
+%shared_ptr(chrono::fea::ChElementShellReissner4)
+%shared_ptr(chrono::fea::ChElementShellANCF)
+%shared_ptr(chrono::fea::ChElementShellANCF_8)
+%shared_ptr(chrono::fea::ChElementCableANCF)
+%shared_ptr(chrono::fea::ChBuilderBeam)
+%shared_ptr(chrono::fea::ChBuilderBeamIGA)
+%shared_ptr(chrono::fea::ChBuilderBeamANCF)
+%shared_ptr(chrono::fea::ChLoaderBeamWrench)
+%shared_ptr(chrono::fea::ChLoadBeamWrench)
+%shared_ptr(chrono::fea::ChLoaderBeamWrenchDistributed)
+%shared_ptr(chrono::fea::ChLoadBeamWrenchDistributed)
+%shared_ptr(chrono::fea::ChExtruderBeamEuler)
+%shared_ptr(chrono::fea::ChExtruderBeamIGA)
+%shared_ptr(chrono::fea::ChVisualizationFEAmesh)
 
 //
 // B- INCLUDE HEADERS
@@ -183,40 +253,67 @@ using namespace chrono::fea;
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
-%import  "ChClassFactory.i"
-%import  "ChObject.i"
-%import  "ChFrame.i"
-%import  "ChFrameMoving.i"
-%import  "ChPhysicsItem.i"
-%import  "ChBodyFrame.i"
-%import  "ChAsset.i"
-%import  "ChLinkBase.i"
+%import(module = "pychrono.core")  "ChClassFactory.i"
+%import(module = "pychrono.core")  "ChObject.i"
+%import(module = "pychrono.core")  "ChVector.i"
+%import(module = "pychrono.core")  "ChQuaternion.i"
+%import(module = "pychrono.core")  "ChCoordsys.i"
+%import(module = "pychrono.core")  "ChFrame.i"
+%import(module = "pychrono.core")  "ChFrameMoving.i"
+// Put this 'director' feature _before_ class wrapping declaration.
+%feature("director") chrono::ChFunction;
+/* Parse the header file to generate wrappers */
+%import(module = "pychrono.core") "../chrono/motion_functions/ChFunction_Base.h"
+%import(module = "pychrono.core") "../chrono/assets/ChAsset.h"
+%import(module = "pychrono.core") "../chrono/assets/ChAssetLevel.h"
+%import(module = "pychrono.core") "../chrono/physics/ChContinuumMaterial.h"
+%import(module = "pychrono.core") "../chrono/physics/ChPhysicsItem.h"
+%import(module = "pychrono.core") "../chrono/physics/ChIndexedNodes.h"
+//%import(module = "pychrono.core") "../chrono/physics/ChLoadable.h" // disable because strange error in cxx
+%import(module = "pychrono.core") "../chrono/physics/ChLoad.h"
+%import(module = "pychrono.core") "../chrono/physics/ChNodeBase.h"
+%import(module = "pychrono.core") "../chrono/physics/ChNodeXYZ.h"
+%import(module = "pychrono.core") "../chrono/physics/ChBodyFrame.h"
+%import(module = "pychrono.core") "../chrono/physics/ChLinkBase.h"
+
 
 //  core/  classes
-
-%include "../chrono_fea/ChElementBase.h"
-%include "../chrono_fea/ChElementGeneric.h"
-%include "../chrono_fea/ChBeamSection.h"
-%include "../chrono_fea/ChElementBeam.h"
-%include "../chrono_fea/ChElementBeamEuler.h"
-%include "../chrono_fea/ChElementBeamANCF.h"
-%import "../chrono/physics/ChContinuumMaterial.h"
-%include "../chrono_fea/ChContinuumPoisson3D.h"
-%include "../chrono_fea/ChContinuumElectrostatics.h"
-%include "../chrono_fea/ChContinuumThermal.h"
-//%include "../chrono_fea/ChElementTetrahedron.h"  	// pure virtual: do not create Python obj
-%include "../chrono_fea/ChElementTetra_4.h"
-%include "../chrono_fea/ChElementTetra_10.h"
-//%include "../chrono_fea/ChElementHexahedron.h"		// pure virtual: do not create Python obj
-%include "../chrono_fea/ChElementHexa_8.h"
-%include "../chrono_fea/ChElementHexa_20.h"
+%include "../chrono/physics/ChPhysicsItem.h"
 %include "../chrono_fea/ChNodeFEAbase.h"
 %include "../chrono_fea/ChNodeFEAxyz.h"
 %include "../chrono_fea/ChNodeFEAxyzP.h"
 %include "../chrono_fea/ChNodeFEAxyzD.h"
+%include "../chrono_fea/ChNodeFEAxyzDD.h"
 %include "../chrono_fea/ChNodeFEAxyzrot.h"
-//%shared_ptr(chrono::fea::ChBuilderBeam)
-%include "../chrono_fea/ChBuilderBeam.h"
+%include "../chrono_fea/ChElementBase.h"
+%include "../chrono_fea/ChElementGeneric.h"
+%include "../chrono_fea/ChElementBar.h"
+%include "../chrono_fea/ChElementSpring.h"
+%include "../chrono_fea/ChElement3D.h"
+%include "../chrono_fea/ChElementCorotational.h"
+%include "../chrono_fea/ChBeamSection.h"
+%include "../chrono_fea/ChBeamSectionCosserat.h"
+%include "../chrono_fea/ChElementBeam.h"
+%include "../chrono_fea/ChElementBeamEuler.h"
+%include "../chrono_fea/ChElementBeamANCF.h"
+%include "../chrono_fea/ChElementBeamIGA.h"
+%include "../chrono_fea/ChContinuumPoisson3D.h"
+%include "../chrono_fea/ChContinuumElectrostatics.h"
+%include "../chrono_fea/ChContinuumThermal.h"
+%include "../chrono_fea/ChElementTetrahedron.h"  	
+%include "../chrono_fea/ChElementTetra_4.h"
+%include "../chrono_fea/ChElementTetra_10.h"
+%include "../chrono_fea/ChElementHexahedron.h"		
+%include "../chrono_fea/ChElementHexa_8.h"
+%include "../chrono_fea/ChElementHexa_20.h"
+%include "../chrono_fea/ChElementBrick.h"
+%include "../chrono_fea/ChElementBrick_9.h"
+%include "../chrono_fea/ChMaterialShellReissner.h"
+%include "../chrono_fea/ChElementShell.h"
+%include "../chrono_fea/ChElementShellReissner4.h"
+%include "../chrono_fea/ChElementShellANCF.h"
+%include "../chrono_fea/ChElementShellANCF_8.h"
+%include "../chrono_fea/ChElementCableANCF.h"
 %include "../chrono_fea/ChMesh.h"
 %include "../chrono_fea/ChContactSurface.h"
 %include "../chrono_fea/ChContactSurfaceMesh.h"
@@ -226,6 +323,9 @@ using namespace chrono::fea;
 %include "../chrono_fea/ChLinkDirFrame.h"
 %include "../chrono_fea/ChLinkPointFrame.h"
 %include "../chrono_fea/ChLinkPointPoint.h"
+%include "../chrono_fea/ChLoadsBeam.h"
+%include "../chrono_fea/ChBuilderBeam.h"
+%include "../chrono_fea/ChMeshFileLoader.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
