@@ -15,6 +15,7 @@
 #ifndef CHLINESHAPE_H
 #define CHLINESHAPE_H
 
+#include "chrono_cascade/ChApiCASCADE.h"
 #include "chrono/assets/ChAsset.h"
 
 #include <TopoDS_Shape.hxx>
@@ -44,12 +45,11 @@ class ChApiCASCADE ChCascadeShapeAsset : public chrono::ChAsset {
     // CONSTRUCTORS
     //
 
-    ChCascadeShapeAsset() {
-        
-    };
-    ChCascadeShapeAsset(const TopoDS_Shape& ms) : mshape(ms){};
+    ChCascadeShapeAsset();
 
-    virtual ~ChCascadeShapeAsset(){};
+    ChCascadeShapeAsset(const TopoDS_Shape& ms);
+
+    virtual ~ChCascadeShapeAsset();
 
     //
     // FUNCTIONS
@@ -63,26 +63,10 @@ class ChApiCASCADE ChCascadeShapeAsset : public chrono::ChAsset {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChCascadeShapeAsset>();
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-        //marchive << ...; //***TODO*** serialize shape chunk using Cascade xml or STEP formats
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChCascadeShapeAsset>();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-        //marchive >> ...; //***TODO*** deserialize shape chunk using Cascade xml or STEP formats
-    }
+	virtual void ArchiveOUT(ChArchiveOut& marchive);
+    
+	virtual void ArchiveIN(ChArchiveIn& marchive);
+    
 };
 
 
