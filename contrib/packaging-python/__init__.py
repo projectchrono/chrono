@@ -1,8 +1,8 @@
-import sys
-import os
+# The following allows the package "pychrono" to be directly
+# used as C++ namespace chrono:: ie. you just need to type
+#   import pychrono
+# instead of 
+#   import pychrono.core
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
-# for Windows: assume all .pyd, .dll binaries are in these dir, so:
-sys.path.append(dir_path) 
-sys.path.append(dir_path + '/bin') 
+from .core import *
+ 
