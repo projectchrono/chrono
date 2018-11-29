@@ -60,6 +60,11 @@ if(POLICY CMP0026)
     cmake_policy(SET CMP0026 OLD)
 endif()
 
+# this to fix warnings about the use of SWIG_MODULE_${mymodulename}_REAL_NAME with CMake version >= 3.13
+if(POLICY CMP0078)
+    cmake_policy(SET CMP0078 OLD)
+endif()
+
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_pyparser library
 #-----------------------------------------------------------------------------
