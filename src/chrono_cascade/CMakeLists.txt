@@ -29,6 +29,7 @@ ENDIF()
 SET(ChronoEngine_CASCADE_SOURCES 
     ChCascadeMeshTools.cpp
     ChCascadeDoc.cpp
+	ChCascadeShapeAsset.cpp
 )
 
 SET(ChronoEngine_CASCADE_HEADERS
@@ -40,14 +41,20 @@ SET(ChronoEngine_CASCADE_HEADERS
     ChBodyEasyCascade.h
 )
 
+SOURCE_GROUP("" FILES 
+    ${ChronoEngine_CASCADE_SOURCES} 
+    ${ChronoEngine_CASCADE_HEADERS})
+
 #-----------------------------------------------------------------------------	
 
 SET(CH_CASCADE_DIR "" CACHE PATH  "Where is your OpenCASCADE SDK installed?")
 SET(CH_CASCADE_LIBDIR "" CACHE PATH "Path to the OpenCASCADE library directory.")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    FILE(GLOB CH_CASCADE_LIBS "${CH_CASCADE_LIBDIR}/*.lib")
-    SET (CH_CASCADE_INCLUDES "${CH_CASCADE_DIR}/inc")
+    FIND_PATH(CH_CASCADE_INCLUDES Standard_Version.hxx
+      HINTS ${CH_CASCADE_INCLUDES} "${CH_CASCADE_DIR}/inc" "${CH_CASCADE_DIR}/include" "${CH_CASCADE_DIR}/include/oce"
+    )
+	FILE(GLOB CH_CASCADE_LIBS "${CH_CASCADE_LIBDIR}/*.lib")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     FIND_PATH(CH_CASCADE_INCLUDES Standard_Version.hxx
       HINTS ${CH_CASCADE_INCLUDES} "${CH_CASCADE_DIR}/inc" "${CH_CASCADE_DIR}/include"
