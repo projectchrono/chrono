@@ -14,7 +14,7 @@ print ("First tutorial about Chrono::Engine in Python");
 
 
 # Load the Chrono::Engine module!!!
-import pychrono.core as chrono
+import pychrono as chrono
 
 # Test logging
 chrono.GetLog().Bar()

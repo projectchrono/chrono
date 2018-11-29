@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
 
 # Load the Chrono::Engine unit and the postprocessing unit!!!
-import pychrono.core as chrono
+import pychrono as chrono
 import pychrono.postprocess
 
 # We will create two directories for saving some files, we need this:

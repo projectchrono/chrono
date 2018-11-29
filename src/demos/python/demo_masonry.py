@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
 # Load the Chrono::Engine unit and the postprocessing unit!!!
 import pychrono.core as chrono
-import pychrono.postprocess
+#import pychrono.postprocess
 import pychrono.irrlicht as chronoirr
 
 

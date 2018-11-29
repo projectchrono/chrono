@@ -20,11 +20,9 @@ if __name__ == '__main__':
 import os
 import math
 import pychrono.core as chrono
-import pychrono.postprocess as postprocess
 import pychrono.irrlicht as chronoirr
 
 print ("Example: create a system and visualize it in realtime 3D");
-
 
 # ---------------------------------------------------------------------
 #
