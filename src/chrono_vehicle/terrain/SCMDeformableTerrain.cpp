@@ -392,7 +392,6 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     // Note that pixels in a BMP start at top-left corner.
     // We order the vertices starting at the bottom-left corner, row after row.
     // The bottom-left corner corresponds to the point (-sizeX/2, -sizeY/2).
-    GetLog() << "Load vertices...\n";
     unsigned int iv = 0;
     for (int iy = nv_y - 1; iy >= 0; --iy) {
         double y = 0.5 * sizeY - iy * dy;
@@ -420,7 +419,6 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
     // Specify triangular faces (two at a time).
     // Specify the face vertices counter-clockwise.
     // Set the normal indices same as the vertex indices.
-    GetLog() << "Load faces...\n";
     unsigned int it = 0;
     for (int iy = nv_y - 2; iy >= 0; --iy) {
         for (int ix = 0; ix < nv_x - 1; ++ix) {
@@ -956,7 +954,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 // advance to next front
                 fill_front= fill_front_2;
             }
-            //GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" << tot_Nforce_island << "\n"; 
+            ////GetLog() << " island " << id_island << " flow volume =" << tot_step_flow_island << " N force=" << tot_Nforce_island << "\n"; 
 
             // Raise the boundary because of material flow (it gives a sharp spike around the
             // island boundary, but later we'll use the erosion algorithm to smooth it out)

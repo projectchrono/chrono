@@ -182,7 +182,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }
 
-    GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
+    ////GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
 
     // Create the contact material for the web mesh
     auto contact_mat = std::make_shared<ChMaterialSurfaceSMC>();
@@ -204,7 +204,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             m_track_mesh->AddContactSurface(contact_surf);
             contact_surf->AddAllNodes(thickness / 2);
             contact_surf->SetMaterialSurface(contact_mat);
-            GetLog() << "Node cloud web contact. Number of nodes: " << contact_surf->GetNnodes() << "\n";
+            ////GetLog() << "Node cloud web contact. Number of nodes: " << contact_surf->GetNnodes() << "\n";
             break;
         }
         case TRIANGLE_MESH: {
@@ -212,11 +212,11 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
             m_track_mesh->AddContactSurface(contact_surf);
             contact_surf->AddFacesFromBoundary(thickness / 2, false);
             contact_surf->SetMaterialSurface(contact_mat);
-            GetLog() << "Triangle mesh web contact. Number of faces: " << contact_surf->GetNumTriangles() << "\n";
+            ////GetLog() << "Triangle mesh web contact. Number of faces: " << contact_surf->GetNumTriangles() << "\n";
             break;
         }
         case NONE: {
-            GetLog() << "No web contact.\n";
+            ////GetLog() << "No web contact.\n";
             break;
         }
     }

@@ -207,7 +207,9 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 	{
 		BT_PROFILE("calculateOverlappingPairs");
         CH_PROFILE("Broad-phase"); //***ALEX***
+        timer_collision_broad.start(); //***RADU***
 		m_broadphasePairCache->calculateOverlappingPairs(m_dispatcher1);
+        timer_collision_broad.stop(); //***RADU***
 	}
 
 
@@ -215,9 +217,11 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 	{
 		BT_PROFILE("dispatchAllCollisionPairs");
         CH_PROFILE("Narrow-phase"); //***ALEX***
-		if (dispatcher)
+        timer_collision_narrow.start(); //***RADU***
+        if (dispatcher)
 			dispatcher->dispatchAllCollisionPairs(m_broadphasePairCache->getOverlappingPairCache(),dispatchInfo,m_dispatcher1);
-	}
+        timer_collision_narrow.stop(); //***RADU***
+    }
 
 }
 

@@ -26,15 +26,14 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 
-#include "chrono_fea/ChElementBeamEuler.h"
-#include "chrono_fea/ChBuilderBeam.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkDirFrame.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChLinkBeamIGAslider.h"
+#include "chrono/fea/ChElementBeamEuler.h"
+#include "chrono/fea/ChBuilderBeam.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
@@ -132,17 +131,15 @@ int main(int argc, char* argv[]) {
 	melasticity->SetGshearModulus(0.5e9 * 0.7);
 
 	auto mdamping = std::make_shared<ChDampingCosseratLinear>();
-	mdamping->SetDampingCoefficientsRe((1e-4)*ChVector<>(1, 1, 1)); 
-	mdamping->SetDampingCoefficientsRk((1e-3)*ChVector<>(1, 1, 1)); //***??? -/+
+	mdamping->SetDampingCoefficientsRe((1e-3)*ChVector<>(1, 1, 1)); 
+	mdamping->SetDampingCoefficientsRk((1e-4)*ChVector<>(1, 1, 1)); //***??? -/+
 
 	auto mplasticity = std::make_shared<ChPlasticityCosseratLumped>();
 	mplasticity->n_yeld_Mx = std::make_shared<ChFunction_Ramp>(1, 0.01);
-	mplasticity->n_yeld_My = std::make_shared<ChFunction_Ramp>(0.4, 0.004);
-	mplasticity->n_yeld_Mz = std::make_shared<ChFunction_Ramp>(0.4, 0.004);
-	mplasticity->n_beta_My = std::make_shared<ChFunction_Ramp>(0., 0.000);
-	mplasticity->n_beta_Mz = std::make_shared<ChFunction_Ramp>(0., 0.000);
+	mplasticity->n_yeld_My = std::make_shared<ChFunction_Ramp>(0.2, 0.001);
+	mplasticity->n_yeld_Mz = std::make_shared<ChFunction_Ramp>(0.2, 0.001);
 
-	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity, nullptr, mdamping);
+	auto msection = std::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity, mdamping);
 	msection->SetDensity(1000);
 	msection->SetAsCircularSection(wire_diameter);
 
@@ -229,7 +226,7 @@ int main(int argc, char* argv[]) {
     double lobe_thickness = 0.08;
     ChVector<> gear_centerLOW(0.3,-lobe_primitive_rad+0.01,0);
     ChVector<> gear_centerHI (0.3, lobe_primitive_rad-0.01,0);
-/*
+
     auto gearLOW =  CreateLobedGear (gear_centerLOW, lobe_copies, lobe_width, lobe_primitive_rad, 
                     lobe_inner_rad, lobe_outer_rad, lobe_thickness, my_system, mysurfmaterial); 
 
@@ -250,15 +247,8 @@ int main(int argc, char* argv[]) {
 
     auto mgear_speedHI = std::make_shared<ChFunction_Const>( 0.2); // [rad/s]
     mgear_motorHI->SetSpeedFunction(mgear_speedHI);
-*/
-	auto moutlet = std::make_shared<ChBody>();
-	//moutlet->SetPos(ChVector<>(0.02,0.001,0));
-	moutlet->SetBodyFixed(true);
-	my_system.Add(moutlet);
 
-	auto mslot = std::make_shared<ChLinkBeamIGAslider>();
-	//mslot->Initialize(extruder->GetLastBeamElements(), moutlet);
-	//my_system.Add(mslot);
+
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -304,36 +294,17 @@ int main(int argc, char* argv[]) {
     auto mkl_solver = std::make_shared<ChSolverMKL<>>();
     my_system.SetSolver(mkl_solver);
             
-    application.SetTimestep(0.005);
+    application.SetTimestep(0.0002);
     application.SetVideoframeSaveInterval(20);
-	while (application.GetDevice()->run()) {
-		application.BeginScene();
+    while (application.GetDevice()->run()) {
+        application.BeginScene();
 
-		application.DrawAll();
-		ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20, CSYSNORM, irr::video::SColor(255, 100, 100, 100), true);
+        application.DrawAll();
+        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1,20,20,CSYSNORM, irr::video::SColor(255,100,100,100),true);
 
-		application.DoStep();
+        application.DoStep();
 
-		//if (extruder->GetLastBeamNodes().size() <= 12)
-		if (!application.GetPaused())
-			extruder->Update();    //***REMEMBER*** to do this to update the extrusion
-/*
-		if (extruder->GetLastBeamNodes().size() > 12) {
-			double yforce = 0.5;
-			if (fmod(my_system.GetChTime(), 1.0) > 0.5)
-				yforce *= 0;
-			extruder->GetLastBeamNodes()[6]->SetTorque(ChVector<>(0, 0, yforce));
-			//extruder->GetLastBeamNodes()[6]->SetForce(ChVector<>(0, yforce, 0));
-		}
-*/
-		if (extruder->GetLastBeamNodes().size() == 6) {
-			my_system.Add(mslot);
-		}
-		if (!application.GetPaused())
-		if (extruder->GetLastBeamNodes().size() >= 6) {
-			mslot->Initialize(extruder->GetLastBeamElements(), moutlet);
-			mslot->SetAttachReferenceInAbsoluteCoords(ChCoordsys<>(ChVector<>(0.02, 0.001, 0), Q_from_AngAxis(CH_C_DEG_TO_RAD * 2, VECT_Z)));
-		}
+        extruder->Update();    //***REMEMBER*** to do this to update the extrusion
 
         application.EndScene();
     }

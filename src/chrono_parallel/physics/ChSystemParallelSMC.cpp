@@ -134,7 +134,6 @@ real3 ChSystemParallelSMC::GetBodyContactTorque(uint body_id) const {
 }
 
 void ChSystemParallelSMC::PrintStepStats() {
-    double timer_solver_setup = data_manager->system_timer.GetTime("ChIterativeSolverParallel_Setup");
     double timer_solver_stab = data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
 
     std::cout << std::endl;
@@ -147,13 +146,14 @@ void ChSystemParallelSMC::PrintStepStats() {
     std::cout << "Timing Information" << std::endl;
     std::cout << "------------------" << std::endl;
     std::cout << "Simulation time        " << GetTimerStep() << std::endl;
-    std::cout << "  Collision detection    " << GetTimerCollision() << std::endl;
-    std::cout << "    broad phase            " << GetTimerCollisionBroad() << std::endl;
-    std::cout << "    narrow phase           " << GetTimerCollisionNarrow() << std::endl;
-    std::cout << "  Update                 " << GetTimerUpdate() << std::endl;
-    std::cout << "  Solver                 " << GetTimerSolver() << std::endl;
-    std::cout << "    contact force calc     " << GetTimerProcessContact() << std::endl;
-    std::cout << "    setup                  " << timer_solver_setup << std::endl;
-    std::cout << "    stabilization          " << timer_solver_stab << std::endl;
+    std::cout << "  Collision detection  " << GetTimerCollision() << std::endl;
+    std::cout << "    broad phase        " << GetTimerCollisionBroad() << std::endl;
+    std::cout << "    narrow phase       " << GetTimerCollisionNarrow() << std::endl;
+    std::cout << "  Update               " << GetTimerUpdate() << std::endl;
+    std::cout << "  Advance              " << GetTimerAdvance() << std::endl;
+    std::cout << "    contact force calc " << GetTimerProcessContact() << std::endl;
+    std::cout << "    setup              " << GetTimerSetup() << std::endl;
+    std::cout << "    solve              " << GetTimerSolver() << std::endl;
+    std::cout << "    stabilization      " << timer_solver_stab << std::endl;
     std::cout << std::endl;
 }

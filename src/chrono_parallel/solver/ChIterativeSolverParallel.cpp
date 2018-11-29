@@ -209,11 +209,11 @@ void ChIterativeSolverParallel::PerformStabilization() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
+    data_manager->system_timer.start("ChIterativeSolverParallel_Stab");
+
     if (data_manager->settings.solver.max_iteration_bilateral > 0 && num_bilaterals > 0) {
         const DynamicVector<real> R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
         DynamicVector<real> gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-
-        data_manager->system_timer.start("ChIterativeSolverParallel_Stab");
 
         data_manager->measures.solver.total_iteration +=
             bilateral_solver->Solve(ShurProductBilateral,                                   //
@@ -224,6 +224,7 @@ void ChIterativeSolverParallel::PerformStabilization() {
                                     gamma_b);                                               //
         blaze::subvector(gamma, num_unilaterals, num_bilaterals) = gamma_b;
     }
+
     if (data_manager->settings.solver.max_iteration_fem > 0 && data_manager->num_fea_tets > 0) {
         uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
         uint start_tet = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
@@ -243,6 +244,7 @@ void ChIterativeSolverParallel::PerformStabilization() {
                                     gamma_fem);                                       //
         blaze::subvector(gamma, start_tet, num_constraints) = gamma_fem;
     }
+
     data_manager->system_timer.stop("ChIterativeSolverParallel_Stab");
 }
 

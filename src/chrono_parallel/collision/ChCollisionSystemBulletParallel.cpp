@@ -108,12 +108,24 @@ void ChCollisionSystemBulletParallel::Remove(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemBulletParallel::Run() {
-    data_manager->system_timer.start("collision_broad");
     if (bt_collision_world) {
         bt_collision_world->performDiscreteCollisionDetection();
     }
-    data_manager->system_timer.stop("collision_broad");
 }
+
+void ChCollisionSystemBulletParallel::ResetTimers() {
+    bt_collision_world->timer_collision_broad.reset();
+    bt_collision_world->timer_collision_narrow.reset();
+}
+
+double ChCollisionSystemBulletParallel::GetTimerCollisionBroad() const {
+    return bt_collision_world->timer_collision_broad();
+}
+
+double ChCollisionSystemBulletParallel::GetTimerCollisionNarrow() const {
+    return bt_collision_world->timer_collision_narrow();
+}
+
 void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontactcontainer) {
     data_manager->system_timer.start("collision_narrow");
     data_manager->host_data.norm_rigid_rigid.clear();

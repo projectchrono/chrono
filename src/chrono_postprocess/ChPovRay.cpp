@@ -99,6 +99,9 @@ void ChPovRay::AddAll() {
     for (auto body : mSystem->Get_bodylist()) {
         Add(body);
     }
+    for (auto& mesh : mSystem->Get_meshlist()) {
+        Add(mesh);
+    }
     for (auto ph : mSystem->Get_otherphysicslist()) {
         Add(ph);
     }
@@ -110,6 +113,9 @@ void ChPovRay::AddAll() {
 void ChPovRay::RemoveAll() {
     for (auto body : mSystem->Get_bodylist()) {
         Remove(body);
+    }
+    for (auto& mesh : mSystem->Get_meshlist()) {
+        Remove(mesh);
     }
     for (auto ph : mSystem->Get_otherphysicslist()) {
         Remove(ph);
@@ -152,6 +158,10 @@ void ChPovRay::SetupLists() {
     for (auto body : mSystem->Get_bodylist()) {
         if (IsAdded(body))
             mdata.push_back(body);
+    }
+    for (auto& mesh : mSystem->Get_meshlist()) {
+        if (IsAdded(mesh))
+            mdata.push_back(mesh);
     }
     for (auto ph : mSystem->Get_otherphysicslist()) {
         if (IsAdded(ph))

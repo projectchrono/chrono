@@ -36,11 +36,11 @@
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
-#include "chrono_fea/ChElementCableANCF.h"
-#include "chrono_fea/ChLinkDirFrame.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLoadsBeam.h"
-#include "chrono_fea/ChMesh.h"
+#include "chrono/fea/ChElementCableANCF.h"
+#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLoadsBeam.h"
+#include "chrono/fea/ChMesh.h"
 
 using namespace chrono;
 using namespace chrono::fea;

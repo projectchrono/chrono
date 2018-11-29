@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
-#include "chrono_fea/ChElementShellReissner4.h"
+#include "chrono/fea/ChElementShellReissner4.h"
 
 namespace chrono {
 namespace vehicle {

@@ -24,6 +24,9 @@
 #include "chrono/physics/ChShaftsGearboxAngled.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
 
+#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
+
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
@@ -32,11 +35,6 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
-
-#if defined(CHRONO_FEA)
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChNodeFEAxyz.h"
-#endif
 
 #include <numeric>
 
@@ -70,15 +68,16 @@ ChSystemParallel::ChSystemParallel() : ChSystem() {
 
     data_manager->system_timer.AddTimer("step");
     data_manager->system_timer.AddTimer("update");
+    data_manager->system_timer.AddTimer("advance");
+
     data_manager->system_timer.AddTimer("collision");
     data_manager->system_timer.AddTimer("collision_broad");
     data_manager->system_timer.AddTimer("collision_narrow");
-    data_manager->system_timer.AddTimer("solver");
 
     data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Solve");
     data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Setup");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Matrices");
     data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Stab");
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_M");
 
 #ifdef LOGGINGENABLED
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
@@ -115,16 +114,14 @@ bool ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.start("collision");
     collision_system->Run();
     collision_system->ReportContacts(this->contact_container.get());
-
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++) {
         collision_callbacks[ic]->OnCustomCollision(this);
     }
-
     data_manager->system_timer.stop("collision");
 
-    data_manager->system_timer.start("solver");
+    data_manager->system_timer.start("advance");
     std::static_pointer_cast<ChIterativeSolverParallel>(solver_speed)->RunTimeStep();
-    data_manager->system_timer.stop("solver");
+    data_manager->system_timer.stop("advance");
 
     data_manager->system_timer.start("update");
 
@@ -249,10 +246,6 @@ void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
 void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) {
     if (auto shaft = std::dynamic_pointer_cast<ChShaft>(newitem)) {
         AddShaft(shaft);
-#ifdef CHRONO_FEA
-    } else if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(newitem)) {
-        AddMesh(mesh);
-#endif
     } else {
         newitem->SetSystem(this);
         otherphysicslist.push_back(newitem);
@@ -293,7 +286,6 @@ void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
 // The mesh is passed to the FEM container where it gets added to the system
 // Mesh gets blown up into different data structures, connectivity and nodes are preserved
 // Adding multiple meshes isn't a problem
-#if defined(CHRONO_FEA)
 void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     uint num_nodes = mesh->GetNnodes();
     uint num_elements = mesh->GetNelements();
@@ -352,7 +344,6 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     container->AddNodes(positions, velocities);
     container->AddElements(elements);
 }
-#endif
 
 //
 // Reset forces for all variables
@@ -795,30 +786,33 @@ unsigned int ChSystemParallel::GetNumBilaterals() {
     return data_manager->num_bilaterals;
 }
 
-/// Gets the time (in seconds) spent for computing the time step
-double ChSystemParallel::GetTimerStep() {
+// -------------------------------------------------------------
+
+double ChSystemParallel::GetTimerStep() const {
     return data_manager->system_timer.GetTime("step");
 }
 
-/// Gets the fraction of time (in seconds) for the solution of the problem, within the time step
-double ChSystemParallel::GetTimerSolver() {
-    return data_manager->system_timer.GetTime("solver");
+double ChSystemParallel::GetTimerAdvance() const {
+    return data_manager->system_timer.GetTime("advance");
 }
-/// Gets the fraction of time (in seconds) for finding collisions, within the time step
-double ChSystemParallel::GetTimerCollisionBroad() {
-    return data_manager->system_timer.GetTime("collision_broad");
-}
-/// Gets the fraction of time (in seconds) for finding collisions, within the time step
-double ChSystemParallel::GetTimerCollisionNarrow() {
-    return data_manager->system_timer.GetTime("collision_narrow");
-}
-/// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-double ChSystemParallel::GetTimerUpdate() {
+
+double ChSystemParallel::GetTimerUpdate() const {
     return data_manager->system_timer.GetTime("update");
 }
 
-/// Gets the total time for the collision detection step
-double ChSystemParallel::GetTimerCollision() {
+double ChSystemParallel::GetTimerSolver() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Solve");
+}
+
+double ChSystemParallel::GetTimerSetup() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Setup");
+}
+
+double ChSystemParallel::GetTimerJacobian() const {
+    return data_manager->system_timer.GetTime("ChIterativeSolverParallel_Matrices");
+}
+
+double ChSystemParallel::GetTimerCollision() const {
     return data_manager->system_timer.GetTime("collision");
 }
 
