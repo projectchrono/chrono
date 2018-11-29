@@ -37,5 +37,6 @@ test:
 
 about:
   home: https://github.com/projectchrono/chrono
-  license: LGPL
-summary: A physics engine for constrained multi-flexible-body dynamics
+  license: BSD 3-Clause
+  license_family: BSD
+  summary: A physics engine for constrained multi-flexible-body dynamics
