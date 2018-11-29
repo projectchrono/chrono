@@ -438,8 +438,6 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     /// constant material are assumed
     void ComputeMassMatrix();
 
-    /// Compute the gravitational forces.
-    void ComputeGravityForce(const ChVector<>& g_acc);
 
     // Functions for ChLoadable interface
     // ----------------------------------

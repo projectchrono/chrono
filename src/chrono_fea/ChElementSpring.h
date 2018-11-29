@@ -27,6 +27,9 @@ namespace fea {
 /// Simple finite element with two nodes and a spring/damper between the two nodes.
 /// This element is mass-less, so if used in dynamic analysis, the two nodes must
 /// be set with non-zero point mass.
+/// Note: this is not considering the geometric stiffness contribution in the 
+/// tangent stiffness matrix computation (i.e. caused by changing direction), because
+/// this is meant as a simple tutorial on how to implement an element.
 class ChApiFea ChElementSpring : public ChElementGeneric {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
@@ -68,6 +71,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     /// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
+	/// Note: this is not considering the geometric stiffness contribution (caused by changing dir), enough for a simple demo. 
     virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override {
         assert((H.GetRows() == 6) && (H.GetColumns() == 6));
 

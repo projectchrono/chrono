@@ -80,6 +80,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
     virtual int GetNodeNdofs(int n) override { return 6; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+	virtual std::vector< std::shared_ptr<ChNodeFEAxyzrot> >& GetNodes() { return  nodes; }
 
 	virtual void SetNodesCubic(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB, std::shared_ptr<ChNodeFEAxyzrot> nodeC, std::shared_ptr<ChNodeFEAxyzrot> nodeD, double knotA1, double knotA2, double knotB1, double knotB2, double knotB3, double knotB4, double knotB5, double knotB6) {
         nodes.resize(4);
@@ -179,6 +180,10 @@ class  ChElementBeamIGA :   public ChElementBeam,
     /// Access the local knot sequence of this element (ex.for diagnostics)
     ChVectorDynamic<>& GetKnotSequence() {return this->knots;}
 
+	/// Get the parametric coordinate at the beginning of the span
+	double GetU1() { return knots(order); }
+	/// Get the parametric coordinate at the end of the span
+	double GetU2() { return knots(knots.GetRows() - order - 1); }
 
     virtual void Update() override {
         // parent class update:
@@ -707,11 +712,35 @@ class  ChElementBeamIGA :   public ChElementBeam,
         
     }
 
+	/// Gets the absolute xyz position of a point on the beam line, at abscissa 'eta'.
+	/// Note, eta=-1 at node1, eta=+1 at node2.
+	virtual void EvaluateSectionPoint(const double eta,
+		ChVector<>& point)   {
+
+		// compute parameter in knot space from eta-1..+1
+		double u1 = knots(order); // extreme of span
+		double u2 = knots(knots.GetRows() - order - 1);
+		double u = u1 + ((eta + 1) / 2.0)*(u2 - u1);
+		int nspan = order;
+
+		ChVectorDynamic<> N((int)nodes.size());
+
+		geometry::ChBasisToolsBspline::BasisEvaluate(
+			this->order,
+			nspan,
+			u,
+			knots,
+			N);           ///< here return  in N
+
+		point = VNULL;
+		for (int i = 0; i< nodes.size(); ++i) {
+			point += N(i) * nodes[i]->coord.pos;
+		}
+	}
+
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
-    /// Results are corotated (expressed in world reference)
     virtual void EvaluateSectionFrame(const double eta,
                                       ChVector<>& point,
                                       ChQuaternion<>& rot) override {
@@ -721,12 +750,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
 		double u2 = knots(knots.GetRows() - order - 1);
 		double u = u1 + ((eta + 1) / 2.0)*(u2 - u1);
 		int nspan = order;
-        /*
-		ChVectorDynamic<> knotU((int)knots.size());
-		for (int i = 0; i< knots.size(); ++i) {
-			knotU(i) = knots[i];
-        }
-        */
+
         ChVectorDynamic<> N((int)nodes.size());
         
         geometry::ChBasisToolsBspline::BasisEvaluate(
@@ -755,8 +779,6 @@ class  ChElementBeamIGA :   public ChElementBeam,
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
-    /// Results are not corotated, and are expressed in the reference system of beam.
     virtual void EvaluateSectionForceTorque(const double eta,
                                             ChVector<>& Fforce,
                                             ChVector<>& Mtorque) override {
