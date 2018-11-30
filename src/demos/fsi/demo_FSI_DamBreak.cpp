@@ -34,8 +34,6 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono/core/ChFileutils.h"
-
 // Chrono fsi includes
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChFsiTypeConvert.h"
@@ -45,6 +43,8 @@
 
 // FSI Interface Includes
 #include "demos/fsi/demo_FSI_DamBreak.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #define haveFluid 1
 
@@ -124,12 +124,12 @@ int main(int argc, char* argv[]) {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
-    if (ChFileutils::MakeDirectory(demo_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
         cout << "Error creating directory " << demo_dir << endl;
         return 1;
     }

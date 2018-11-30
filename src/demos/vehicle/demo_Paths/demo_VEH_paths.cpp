@@ -19,7 +19,8 @@
 #include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_postprocess/ChGnuPlot.h"
 #include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace vehicle;
@@ -52,8 +53,10 @@ void plot(std::shared_ptr<ChBezierCurve> path, int n, const char* title, bool eq
 }
 
 int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    
     // Create (if needed) output directory
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

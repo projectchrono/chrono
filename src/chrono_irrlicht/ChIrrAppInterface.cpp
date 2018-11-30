@@ -16,10 +16,12 @@
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
 #include "chrono/serialization/ChArchiveExplorer.h"
-#include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChProfiler.h"
+
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrCamera.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
@@ -733,7 +735,7 @@ void ChIrrAppInterface::DoStep() {
 
     if (videoframe_save) {
         if (videoframe_num % videoframe_each == 0) {
-            ChFileutils::MakeDirectory("video_capture");
+            filesystem::create_directory(filesystem::path("video_capture"));
             irr::video::IImage* image = GetVideoDriver()->createScreenShot();
             char filename[100];
             sprintf(filename, "video_capture/screenshot%05d.bmp", (videoframe_num + 1) / videoframe_each);

@@ -38,7 +38,6 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 // Chrono general utils
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTransform.h"  //transform acc from GF to LF for post process
 
 // Chrono fsi includes
@@ -50,6 +49,8 @@
 
 // FSI Interface Includes
 #include "demos/fsi/params_demo_FSI_cylinderDrop.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #define haveFluid 1
 
@@ -370,19 +371,19 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Create output directories.
     // --------------------------
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         cout << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     if (povray_output) {
-        if (ChFileutils::MakeDirectory(pov_dir_mbd.c_str()) < 0) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir_mbd))) {
             cout << "Error creating directory " << pov_dir_mbd << endl;
             return 1;
         }
     }
 
-    if (ChFileutils::MakeDirectory(pov_dir_fluid.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(pov_dir_fluid))) {
         cout << "Error creating directory " << pov_dir_fluid << endl;
         return 1;
     }
