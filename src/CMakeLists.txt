@@ -111,7 +111,7 @@ if(ENABLE_OPENMP)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
-  
+
 else()
 	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
 	find_package("TBB")
@@ -135,7 +135,7 @@ if(SSE_FOUND)
 else()
   message("  No SSE support")
 endif()
-  
+
 # Figure out AVX level support
 message(STATUS "Searching for AVX...")
 find_package(AVX)
@@ -178,7 +178,7 @@ if(FMA_FOUND)
 	set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
 else()
   message(STATUS "  No FMA support")
-endif()  
+endif()
 
 # Pass -mfma flag to configuration file if fma is found
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -246,34 +246,34 @@ option(ENABLE_HDF5 "Enable HDF5 support" OFF)
 if(ENABLE_HDF5)
 
     message(STATUS "Searching for HDF5...")
-    
+
     # First look for a FindHDF5.cmake module
     # If found, this will define the following relevant variables:
     #    HDF5_INCLUDE_DIRS
     #    HDF5_C_LIBRARIES
     #    HDF5_CXX_LIBRARIES
     find_package(HDF5 COMPONENTS CXX)
-    
-    if(NOT HDF5_FOUND) 
+
+    if(NOT HDF5_FOUND)
         # Look for a package configuration file
         # LIB_TYPE can be one of STATIC or SHARED.
         set(LIB_TYPE SHARED) # STATIC or SHARED
         string(TOLOWER ${LIB_TYPE} SEARCH_TYPE)
         find_package(HDF5 NAMES hdf5 COMPONENTS CXX ${SEARCH_TYPE})
-    
+
         if (HDF5_FOUND)
             set(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
             set(HDF5_C_LIBRARIES ${HDF5_C_${LIB_TYPE{_LIBRARY})
             set(HDF5_CXX_LIBRARIES ${HDF5_CXX_${LIB_TYPE}_LIBRARY)
         endif()
     endif()
-    
+
     if (HDF5_FOUND)
         message(STATUS "  HDF5 found         (HDF5_FOUND)         ${HDF5_FOUND}")
         message(STATUS "  HDF5 include dirs  (HDF5_INCLUDE_DIR)   ${HDF5_INCLUDE_DIRS}")
         message(STATUS "  HDF5 C libraries   (HDF5_C_LIBRARIES)   ${HDF5_C_LIBRARIES}")
         message(STATUS "  HDF5 C++ libraries (HDF5_CXX_LIBRARIES) ${HDF5_CXX_LIBRARIES}")
-    
+
         # If using shared libraries on Windows, MUST define H5_BUILT_AS_DYNAMIC_LIB to have
         # the symbols imported from the DLL.  Note also that the path to the HDF5 DLLs must
         # be in the search path (or else copied in the working directory).
@@ -281,7 +281,7 @@ if(ENABLE_HDF5)
             set(HDF5_COMPILE_DEFS "H5_BUILT_AS_DYNAMIC_LIB")
             message(STATUS "  HDF5 compile defs  (HDF5_COMPILE_DEFS)  ${HDF5_COMPILE_DEFS}")
         endif()
-    
+
         set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
     else()
         message(STATUS "  Could not find HDF5")
@@ -337,7 +337,7 @@ add_subdirectory(chrono_thirdparty/googlebenchmark)
 # Propagates the CMake build to other directories
 #------------------------------------------------------------
 
-# Add directory for main ChronoEngine library 
+# Add directory for main ChronoEngine library
 add_subdirectory(chrono)
 
 # Let all modules have access to the headers of the main library
@@ -359,6 +359,7 @@ add_subdirectory(chrono_distributed)
 #add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
+add_subdirectory(chrono_godot)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
@@ -413,6 +414,12 @@ if(ENABLE_MODULE_IRRLICHT)
   set(CHRONO_IRRLICHT "#define CHRONO_IRRLICHT")
 else()
   set(CHRONO_IRRLICHT "#undef CHRONO_IRRLICHT")
+endif()
+
+if(ENABLE_MODULE_GODOT)
+  set(CHRONO_GODOT "#define CHRONO_GODOT")
+else()
+  set(CHRONO_GODOT "#undef CHRONO_GODOT")
 endif()
 
 if(ENABLE_MODULE_MATLAB)
@@ -496,7 +503,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
         DESTINATION include/chrono)
 
 #-----------------------------------------------------------------------------
-# Generate and install the versioning header file 
+# Generate and install the versioning header file
 #-----------------------------------------------------------------------------
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChVersion.h.in"

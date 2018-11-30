@@ -1,0 +1,5 @@
+[gd_scene format=2]
+
+[node name="base" type="Spatial" index="0"]
+
+
