@@ -343,6 +343,11 @@ protected:
 };
 
 inline bool create_directory(const path& p) {
+    //// Radu: Do nothing if directory already exists.
+    ////       This is consistent with std::experimental::filesystem::create_directory in C++17
+    if (p.is_directory())
+        return true;
+
 #if defined(_WIN32)
     return CreateDirectoryW(p.wstr().c_str(), NULL) != 0;
 #else
