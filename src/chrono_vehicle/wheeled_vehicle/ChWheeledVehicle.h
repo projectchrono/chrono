@@ -188,8 +188,14 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
                              const TerrainForces& tire_forces  ///< [in] vector of tire force structures
     );
 
-    /// Enable or disable differential locking.
-    void LockDifferential(bool lock);
+    /// Lock/unlock the differential on the specified axle.
+    /// By convention, axles are counted front to back, starting with index 0.
+    void LockAxleDifferential(int axle, bool lock);
+
+    /// Lock/unlock the specified central differential.
+    /// By convention, central differentials are counted from front to back, starting with index 0 for
+    /// the central differential between the two front-most axles.
+    void LockCentralDifferential(int which, bool lock);
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;

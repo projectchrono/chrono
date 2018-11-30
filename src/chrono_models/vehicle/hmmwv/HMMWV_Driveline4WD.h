@@ -49,7 +49,8 @@ class CH_MODELS_API HMMWV_Driveline4WD : public ChShaftsDriveline4WD {
     virtual double GetFrontConicalGearRatio() const override { return m_front_conicalgear_ratio; }
     virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
 
-    virtual double GetDifferentialLockingLimit() const override { return m_differential_locking_limit; }
+    virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
+    virtual double GetCentralDifferentialLockingLimit() const override { return m_central_differential_locking_limit; }
 
   private:
     // Shaft inertias.
@@ -67,8 +68,9 @@ class CH_MODELS_API HMMWV_Driveline4WD : public ChShaftsDriveline4WD {
     static const double m_front_conicalgear_ratio;
     static const double m_rear_conicalgear_ratio;
 
-    // Differential locking torque limit.
-    static const double m_differential_locking_limit;
+    // Differential locking torque limits.
+    static const double m_axle_differential_locking_limit;
+    static const double m_central_differential_locking_limit;
 };
 
 /// @} vehicle_models_hmmwv

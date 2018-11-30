@@ -58,12 +58,17 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
     /// system, this is typically [0, 1, 0]).
     void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
-    /// Enable or disable differential locking.
+    /// Lock/unlock the differential on the specified axle.
+    /// By convention, axles are counted front to back, starting with index 0 for the front-most axle.
+    /// Pass axle=-1 to simultaneously lock/unlock both axle differentials.
     /// Differential locking is implemented through a friction torque between the output shafts
     /// of the differential. The locking effect is limited by a maximum locking torque.
-    /// Note: currently locks/unlocks both front and rear differential simultaneously;
-    ///       no locking/unlocking of the central differential.
-    virtual void LockDifferential(bool lock) override;
+    virtual void LockAxleDifferential(int axle, bool lock) override;
+
+    /// Lock/unlock the central differential.
+    /// Differential locking is implemented through a friction torque between the output shafts
+    /// of the differential. The locking effect is limited by a maximum locking torque.
+    virtual void LockCentralDifferential(int which, bool lock) override;
 
     /// Return the number of driven axles.
     /// A ChShaftsDriveline4WD driveline connects to two axles.
@@ -105,11 +110,15 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
     /// Return the gear ratio for the central differential.
     virtual double GetCentralDifferentialRatio() const = 0;
 
-    /// Return the limit differential locking torque.
-    virtual double GetDifferentialLockingLimit() const = 0;
+    /// Return the limit for the axle differential locking torque.
+    virtual double GetAxleDifferentialLockingLimit() const = 0;
+
+    /// Return the limit for the central differential locking torque.
+    virtual double GetCentralDifferentialLockingLimit() const = 0;
 
   private:
-    std::shared_ptr<ChShaftsPlanetary> m_central_differential;  ///< central transfer case
+    std::shared_ptr<ChShaftsPlanetary> m_central_differential;  ///< central differential
+    std::shared_ptr<ChShaftsClutch> m_central_clutch;           ///< clutch for locking central differential
 
     std::shared_ptr<ChShaft> m_front_shaft;  ///< shaft to front axle
     std::shared_ptr<ChShaft> m_rear_shaft;   ///< shaft to rear axle

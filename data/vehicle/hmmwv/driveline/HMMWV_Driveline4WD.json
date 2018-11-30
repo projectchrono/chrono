@@ -28,5 +28,6 @@
     "Rear Differential":        -1.0
   },
 
-  "Differential Locking Limit":  100
+  "Axle Differential Locking Limit":    100,
+  "Central Differential Locking Limit": 100
 }

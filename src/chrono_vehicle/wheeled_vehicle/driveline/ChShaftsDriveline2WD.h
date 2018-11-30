@@ -60,10 +60,13 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
     /// system, this is typically [0, 1, 0]).
     void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
-    /// Enable or disable differential locking.
+    /// Lock/unlock the differential on the specified axle.
     /// Differential locking is implemented through a friction torque between the output shafts
     /// of the differential. The locking effect is limited by a maximum locking torque.
-    virtual void LockDifferential(bool lock) override;
+    /// This function ignores the argument 'axle' and locks/unlocks its one and only differential.
+    virtual void LockAxleDifferential(int axle, bool lock) override;
+
+    virtual void LockCentralDifferential(int which, bool lock) override;
 
     /// Return the number of driven axles.
     /// A ChShaftsDriveline2WD driveline connects to a single axle.
@@ -92,8 +95,8 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
     /// Return the gear ratio for the differential.
     virtual double GetDifferentialRatio() const = 0;
 
-    /// Return the limit differential locking torque.
-    virtual double GetDifferentialLockingLimit() const = 0;
+    /// Return the limit for the axle differential locking torque.
+    virtual double GetAxleDifferentialLockingLimit() const = 0;
 
   private:
     std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;

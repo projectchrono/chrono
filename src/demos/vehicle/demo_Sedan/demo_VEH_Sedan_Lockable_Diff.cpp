@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     my_sedan.SetWheelVisualizationType(VisualizationType::MESH);
     my_sedan.SetTireVisualizationType(VisualizationType::MESH);
 
-    my_sedan.LockDifferential(lock_diff);
+    my_sedan.LockAxleDifferential(0, lock_diff);
 
     // Create the terrain
     RigidTerrain terrain(my_sedan.GetSystem());
