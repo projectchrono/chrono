@@ -46,7 +46,7 @@ using namespace chrono::fea;
 
 int ID_current_example = 1;
 
-const double beam_tip_init_load = -2;
+const float beam_tip_init_load = -2.0f;
 const double beamL = 0.4;
 const double rho = 1000.0;     // Beam material density
 const double E_mod = 0.02e10;  // Beam modulus of elasticity
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
 
     // Run the sub-demos:
 
-    for (unsigned int i = 1; i <= test_number; i++) {
+    for (int i = 1; i <= test_number; i++) {
         std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
         double ancfres = ANCF_test(my_system, i * beam_tip_init_load, i + 2);
