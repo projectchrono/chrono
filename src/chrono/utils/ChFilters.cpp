@@ -236,11 +236,11 @@ void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc) 
     m_Q.resize(m_n_biquad);
     if (m_n_single == 1) {
         for (unsigned int k = 1; k <= (nPoles - 1) / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos((2.0 * double(k) + nPoles - 1) * CH_C_PI / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     } else {
         for (unsigned int k = 1; k <= nPoles / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * double(k) + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     }
 
@@ -351,11 +351,11 @@ void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc)
     m_Q.resize(m_n_biquad);
     if (m_n_single == 1) {
         for (unsigned int k = 1; k <= (nPoles - 1) / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos((2.0 * double(k) + nPoles - 1) * CH_C_PI / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     } else {
         for (unsigned int k = 1; k <= nPoles / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * double(k) + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     }
 
@@ -381,9 +381,7 @@ void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc)
     for (size_t i = 0; i < m_n_biquad; i++) {
         m_biq_b0[i] = 4.0;
         m_biq_b1[i] = -8.0;
-        ;
         m_biq_b2[i] = 4.0;
-        ;
 
         m_biq_a0[i] = m_Ts * m_Ts * wc * wc + 2.0 * m_Q[i] * m_Ts * wc + 4.0;
         m_biq_a1[i] = 2.0 * m_Ts * m_Ts * wc * wc - 8.0;
@@ -728,31 +726,27 @@ ChISO2631_5_Wz::ChISO2631_5_Wz() {}
 
 void ChISO2631_5_Wz::Filter(std::vector<double>& u, std::vector<double>& y) {
     std::vector<double> asz(8);
-    for (size_t i = 0; i < u.size(); i++) {
-        asz.push_back(u[i]);
-    }
-    y.resize(asz.size());
-    for (size_t i = 0; i < y.size(); i++) {
-        y[i] = 0.0;
-    }
-    ChMatrixDynamic<> x(asz.size(), 7);
+    asz.insert(asz.end(), u.begin(), u.end());
+    int asz_size = static_cast<int>(asz.size());
+    y.resize(asz.size(), 0.0);
+    ChMatrixDynamic<> x(asz_size, 7);
     // indices run from 1 to N to make it compatible to Matlab
-    for (size_t t = 9; t <= asz.size(); t++) {
-        for (size_t j = 1; j <= 7; j++) {
+    for (int t = 9; t <= asz.size(); t++) {
+        for (int j = 1; j <= 7; j++) {
             double S1 = 0.0;
-            for (size_t k = 1; k <= 4; k++) {
+            for (int k = 1; k <= 4; k++) {
                 S1 += y[t - k - 1] * m_w[k - 1][j - 1];
             }
             double S2 = 0.0;
-            size_t kk = 1;
-            for (size_t k = 5; k <= 12; k++) {
+            int kk = 1;
+            for (int k = 5; k <= 12; k++) {
                 S2 += asz[t - kk - 1] * m_w[k - 1][j - 1];
                 kk++;
             }
             x(t - 1, j - 1) = tanh(S1 + S2 + m_w[12][j - 1]);
         }
         y[t - 1] = 0.0;
-        for (size_t k = 1; k <= 7; k++) {
+        for (int k = 1; k <= 7; k++) {
             y[t - 1] += m_W[k - 1] * x(t - 1, k - 1);
         }
         y[t - 1] += m_W[7];
@@ -913,7 +907,7 @@ double ChISO2631_Vibration_SeatCushionLogger::GetAbsorbedPowerVertical() {
         ap_buf_int.push_back(m_filter_int_abspow.Filter(ap_buf[i] * ap_buf[i]));
     }
     for (size_t i = 0; i < m_data_acc_ap_z.size(); i++) {
-        double time = m_step * double(i);
+        double time = m_step * i;
         if (i == 0) {
             ap_buf_avg.push_back(0.0);
         } else {
@@ -978,7 +972,7 @@ double ChISO2631_Vibration_SeatCushionLogger::mean(std::vector<double>& v) {
     for (size_t i = 0; i < v.size(); i++) {
         s += v[i];
     }
-    return s / double(v.size());
+    return s / v.size();
 }
 
 double ChISO2631_Vibration_SeatCushionLogger::rms(std::vector<double>& v) {
@@ -987,7 +981,7 @@ double ChISO2631_Vibration_SeatCushionLogger::rms(std::vector<double>& v) {
     for (size_t i = 0; i < v.size(); i++) {
         s += (v[i] - m) * (v[i] - m);
     }
-    return sqrt(s / double(v.size()));
+    return sqrt(s / v.size());
 }
 
 double ChISO2631_Vibration_SeatCushionLogger::GetAW_V() {
@@ -1016,7 +1010,7 @@ void ChISO2631_Vibration_SeatCushionLogger::GeneratePlotFile(std::string fName, 
     }
     plt << "$ALLDATA << EOD" << std::endl;
     for (size_t i = 0; i < m_data_acc_x.size(); i++) {
-        double t = m_step * double(i);
+        double t = m_step * i;
         plt << t << "\t" << m_data_acc_x[i] << "\t" << m_data_acc_y[i] << "\t" << m_data_acc_z[i] << "\t"
             << m_data_acc_x_wd[i] << "\t" << m_data_acc_y_wd[i] << "\t" << m_data_acc_z_wk[i] << "\t"
             << m_data_aw_x_i[i] << "\t" << m_data_aw_y_i[i] << "\t" << m_data_aw_z_i[i] << "\t" << m_data_aw_x_avg[i]
@@ -1087,14 +1081,14 @@ void ChISO2631_Shock_SeatCushionLogger::Config(double step) {
 
 double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     // generate filter input with fs = 160 Hz
-    size_t nInDat = m_logging_time / m_step;
+    size_t nInDat = static_cast<size_t>(std::floor(m_logging_time / m_step));
 
     m_inp_x.resize(nInDat);
     m_inp_y.resize(nInDat);
     m_inp_z.resize(nInDat);
 
     for (size_t i = 0; i < nInDat; i++) {
-        double t = m_step * double(i);
+        double t = m_step * i;
         m_inp_x[i] = m_raw_inp_x.Get_y(t);
         m_inp_y[i] = m_raw_inp_y.Get_y(t);
         m_inp_z[i] = m_raw_inp_z.Get_y(t);
@@ -1105,7 +1099,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     m_out_z.resize(nInDat);
 
     for (size_t i = 0; i < nInDat; i++) {
-        double t = m_step * double(i);
+        double t = m_step * i;
         m_out_x[i] = m_weighting_x.Filter(m_inp_x[i]);
         m_out_y[i] = m_weighting_y.Filter(m_inp_y[i]);
     }
@@ -1122,11 +1116,11 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
 double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
     const double to_g = 0.1019716213;
     double az_max = 0;
-    size_t nInDat = m_logging_time / m_step_inp;
+    int nInDat = static_cast<int>(std::floor(m_logging_time / m_step_inp));
 
     std::vector<double> legacy_az;
     for (int i = 0; i < nInDat; i++) {
-        double t = m_step_inp * double(i);
+        double t = m_step_inp * i;
         legacy_az.push_back(m_legacy_lpz.Filter(m_raw_inp_z.Get_y(t) * to_g));
         if (legacy_az[i] > az_max) {
             az_max = legacy_az[i];
