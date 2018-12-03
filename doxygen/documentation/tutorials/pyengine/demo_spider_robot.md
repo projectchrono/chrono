@@ -35,9 +35,9 @@ if __name__ == '__main__':
 
 import os
 import math
-import ChronoEngine_python_core as chrono
-import ChronoEngine_python_postprocess as postprocess
-import ChronoEngine_python_irrlicht as chronoirr
+import pychrono as chrono
+import pychrono.postprocess as postprocess
+import pychrono.irrlicht as chronoirr
 
 print ("Load a model exported by SolidWorks");
 

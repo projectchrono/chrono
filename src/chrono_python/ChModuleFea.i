@@ -11,7 +11,7 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_python_fea as fea'
+//  'import pychrono.fea'
 
 
 %module(directors="1") fea

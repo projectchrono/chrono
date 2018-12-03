@@ -130,7 +130,7 @@ if(DBG_SCRIPT)
 endif()
 
 #-----------------------------------------------------------------------------
-# MODULE for the ChronoEngine_python_core wrapper, including most of the C::E
+# MODULE for the core wrapper, including most of the C::E
 #-----------------------------------------------------------------------------
 
 message(STATUS "...add Chrono::Python CORE module")
@@ -212,7 +212,7 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# MODULE for the ChronoEngine_python_postprocess python wrapper.
+# MODULE for the postprocess python wrapper.
 #-----------------------------------------------------------------------------
 
 if(ENABLE_MODULE_POSTPROCESS)
@@ -281,7 +281,7 @@ if(ENABLE_MODULE_POSTPROCESS)
 endif()
 
 #-----------------------------------------------------------------------------
-# MODULE for the ChronoEngine_python_fea python wrapper.
+# MODULE for the fea python wrapper.
 #-----------------------------------------------------------------------------
 
   message(STATUS "...add Chrono::Python FEA module")
@@ -345,7 +345,7 @@ SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
   endif()
 
 #-----------------------------------------------------------------------------
-# MODULE for the ChronoEngine_python_irrlicht python wrapper.
+# MODULE for the irrlicht python wrapper.
 #-----------------------------------------------------------------------------
 
 if(ENABLE_MODULE_IRRLICHT)
@@ -417,7 +417,7 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# MODULE for the ChronoEngine_python_mkl python wrapper.
+# MODULE for the mkl python wrapper.
 #-----------------------------------------------------------------------------
 
 if(ENABLE_MODULE_MKL)
@@ -481,7 +481,7 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# MODULE for the ChronoEngine_python_cascade python wrapper.
+# MODULE for the cascade python wrapper.
 #-----------------------------------------------------------------------------
 
 if(ENABLE_MODULE_CASCADE)

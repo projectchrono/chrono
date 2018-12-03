@@ -11,7 +11,7 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_python_core as chrono'
+//  'import pychrono'
 
 
 %module(directors="1") core
