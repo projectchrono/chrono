@@ -101,7 +101,7 @@ void ChCommDistributed::ProcessExchanges(int num_recv, BodyExchange* buf, int up
         // Find the next empty slot in the data manager.
         if (ddm->first_empty != data_manager->num_rigid_bodies &&
             ddm->comm_status[ddm->first_empty] != distributed::EMPTY) {
-            while (ddm->first_empty < data_manager->num_rigid_bodies &&
+            while (ddm->first_empty < static_cast<int>(data_manager->num_rigid_bodies) &&
                    ddm->comm_status[ddm->first_empty] != distributed::EMPTY) {
                 ddm->first_empty++;
             }
@@ -272,7 +272,7 @@ void ChCommDistributed::Exchange() {
 // Exchange Loop
 #pragma omp section
         {
-            for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+            for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
                 // Skip empty bodies or those that this rank isn't responsible for
                 int curr_status = ddm->curr_status[i];
                 if (curr_status != distributed::OWNED)
@@ -312,7 +312,7 @@ void ChCommDistributed::Exchange() {
 #pragma omp section
         {
             // PACKING and UPDATING comm_status of existing bodies
-            for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+            for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
                 // Skip empty bodies or those that this rank isn't responsible for
                 int curr_status = ddm->curr_status[i];
                 int location = my_sys->domain->GetBodyRegion(i);
@@ -386,7 +386,7 @@ void ChCommDistributed::Exchange() {
 #pragma omp section
         {
             // PACKING and UPDATING comm_status of existing bodies
-            for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+            for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
                 // Skip empty bodies or those that this rank isn't responsible for
                 int curr_status = ddm->curr_status[i];
                 if (curr_status != distributed::SHARED_DOWN && curr_status != distributed::SHARED_UP)
@@ -415,14 +415,14 @@ void ChCommDistributed::Exchange() {
         }      // End of update take loop
     }          // End of parallel sections
 
-    MPI_Status status_exchange_up;
-    MPI_Status status_exchange_down;
-    MPI_Status status_update_up;
-    MPI_Status status_update_down;
-    MPI_Status status_take_up;
-    MPI_Status status_take_down;
-    MPI_Status status_shapes_up;
-    MPI_Status status_shapes_down;
+    //MPI_Status status_exchange_up;
+    //MPI_Status status_exchange_down;
+    //MPI_Status status_update_up;
+    //MPI_Status status_update_down;
+    //MPI_Status status_take_up;
+    //MPI_Status status_take_down;
+    //MPI_Status status_shapes_up;
+    //MPI_Status status_shapes_down;
 
     MPI_Request rq_exchange_up;
     MPI_Request rq_exchange_down;
@@ -731,27 +731,30 @@ void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     buf->inertiaXY[2] = inertiaXY.z();
 
     // Material SMC
-    buf->mu = data_manager->host_data.mu[index];  // Static Friction
+    buf->mu = static_cast<float>(data_manager->host_data.mu[index]);  // Static Friction
 
     switch (data_manager->settings.solver.adhesion_force_model) {
         case ChSystemSMC::Constant:
-            buf->cohesion = data_manager->host_data.cohesion_data[index];  // constant adhesion/cohesion
+            // constant adhesion/cohesion
+            buf->cohesion = static_cast<float>(data_manager->host_data.cohesion_data[index]);
             break;
         case ChSystemSMC::DMT:
-            buf->cohesion = data_manager->host_data.adhesionMultDMT_data[index];  // Derjagin-Muller-Toropov coefficient
+            // Derjagin-Muller-Toropov coefficient
+            buf->cohesion = static_cast<float>(data_manager->host_data.adhesionMultDMT_data[index]);  
             break;
     }
 
     if (data_manager->settings.solver.use_material_properties) {
-        buf->ym_kn = data_manager->host_data.elastic_moduli[index].x;  // Young's Modulus
-        buf->pr_kt = data_manager->host_data.elastic_moduli[index].y;  // Poisson Ratio
-        buf->restit_gn = data_manager->host_data.cr[index];            // Coefficient of Restitution
+        // Young's modulus, Poisson ratio, and coefficient of restitution
+        buf->ym_kn = static_cast<float>(data_manager->host_data.elastic_moduli[index].x);
+        buf->pr_kt = static_cast<float>(data_manager->host_data.elastic_moduli[index].y);
+        buf->restit_gn = static_cast<float>(data_manager->host_data.cr[index]);
 
     } else {
-        buf->ym_kn = data_manager->host_data.smc_coeffs[index].x;
-        buf->pr_kt = data_manager->host_data.smc_coeffs[index].y;
-        buf->restit_gn = data_manager->host_data.smc_coeffs[index].z;
-        buf->gt = data_manager->host_data.smc_coeffs[index].w;
+        buf->ym_kn = static_cast<float>(data_manager->host_data.smc_coeffs[index].x);
+        buf->pr_kt = static_cast<float>(data_manager->host_data.smc_coeffs[index].y);
+        buf->restit_gn = static_cast<float>(data_manager->host_data.smc_coeffs[index].z);
+        buf->gt = static_cast<float>(data_manager->host_data.smc_coeffs[index].w);
     }
 
     // Collision

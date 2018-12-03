@@ -15,7 +15,6 @@
 // Include some headers used by this tutorial...
 
 #include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/core/ChLinkedListMatrix.h"
 
@@ -28,6 +27,8 @@
 #include "chrono/solver/ChSolverSOR.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverBB.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -446,7 +447,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_SOLVER";
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

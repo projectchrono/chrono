@@ -107,7 +107,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             if (prev->free == false) {
                 prev->size += needed_count;
                 // This portion will begin right after the end of the current vector
-                begin_shapes = ddm->body_shapes.size();
+                begin_shapes = static_cast<int>(ddm->body_shapes.size());
             }
             // If the previous chunk is free, add new node at end
             else {
@@ -115,8 +115,8 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
                 prev->next = new_end;
                 new_end->size = needed_count;
                 new_end->free = false;
-                new_end->body_shapes_index = ddm->body_shapes.size();  // This portion will begin right
-                                                                       // after the end of the current body_shapes
+                // This portion will begin right after the end of the current body_shapes
+                new_end->body_shapes_index = static_cast<int>(ddm->body_shapes.size());  
                 new_end->next = NULL;
                 begin_shapes = new_end->body_shapes_index;
             }
@@ -128,14 +128,14 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             new_end = ddm->local_free_shapes;
             new_end->size = needed_count;
             new_end->free = false;
-            new_end->body_shapes_index =
-                ddm->body_shapes.size();  // This portion will begin right
-                                          // after the end of the current vector TODO should be 0
+            // This portion will begin right after the end of the current vector
+            // TODO should be 0
+            new_end->body_shapes_index = static_cast<int>(ddm->body_shapes.size());
             new_end->next = NULL;
             begin_shapes = new_end->body_shapes_index;  // TODO should be 0
         }
 
-        ddm->body_shape_start[body_index] = ddm->body_shapes.size();
+        ddm->body_shape_start[body_index] = static_cast<int>(ddm->body_shapes.size());
 
         // Create the space in body_shapes
         for (int i = 0; i < needed_count; i++) {
@@ -238,7 +238,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
         this->ChCollisionSystemParallel::Add(model);
         for (int i = 0; i < needed_count; i++) {
             ddm->dm_free_shapes.push_back(false);
-            ddm->body_shapes[begin_shapes] = dm->shape_data.id_rigid.size() - needed_count + i;  // TODO ?
+            ddm->body_shapes[begin_shapes] = static_cast<int>(dm->shape_data.id_rigid.size()) - needed_count + i;  // TODO ?
             begin_shapes++;
         }
     }

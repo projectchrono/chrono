@@ -14,7 +14,6 @@
 //     - using the SCM semi-empirical model for deformable soil
 // =============================================================================
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -24,6 +23,8 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output
     if (output) {
-        if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }

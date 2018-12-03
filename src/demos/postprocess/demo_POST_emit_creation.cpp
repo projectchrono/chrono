@@ -17,28 +17,25 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChTexture.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/particlefactory/ChParticleRemover.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/core/ChFileutils.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#define USE_POSTPROCESS_MODULE
-
-#if defined USE_POSTPROCESS_MODULE
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAsset.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
-using namespace chrono::postprocess;
-#endif
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // Use the main namespace of Chrono, and other chrono namespaces
 using namespace chrono;
 using namespace chrono::particlefactory;
 using namespace chrono::irrlicht;
+using namespace chrono::postprocess;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
@@ -56,8 +53,8 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Particle emitter: creation from various distributions", core::dimension2d<u32>(800, 600),
-                         false);
+    ChIrrApp application(&mphysicalSystem, L"Particle emitter: creation from various distributions",
+                         core::dimension2d<u32>(800, 600), false);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
@@ -75,21 +72,21 @@ int main(int argc, char* argv[]) {
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
     floorBody->GetCollisionModel()->ClearModel();
-    floorBody->GetCollisionModel()->AddBox(10,0.5,10);
-    floorBody->GetCollisionModel()->AddBox(1,12,20,ChVector<>(-5,0,0));
-    floorBody->GetCollisionModel()->AddBox(1,12,20,ChVector<>( 5,0,0));
-    floorBody->GetCollisionModel()->AddBox(10,12,1,ChVector<>(0,0,-5));
-    floorBody->GetCollisionModel()->AddBox(10,12,1,ChVector<>( 0,0,5));
+    floorBody->GetCollisionModel()->AddBox(10, 0.5, 10);
+    floorBody->GetCollisionModel()->AddBox(1, 12, 20, ChVector<>(-5, 0, 0));
+    floorBody->GetCollisionModel()->AddBox(1, 12, 20, ChVector<>(5, 0, 0));
+    floorBody->GetCollisionModel()->AddBox(10, 12, 1, ChVector<>(0, 0, -5));
+    floorBody->GetCollisionModel()->AddBox(10, 12, 1, ChVector<>(0, 0, 5));
     floorBody->GetCollisionModel()->BuildModel();
 
     auto mvisual = std::make_shared<ChColorAsset>();
     mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
     floorBody->AddAsset(mvisual);
 
-    #if defined USE_POSTPROCESS_MODULE
     // Custom rendering in POVray:
     auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
-    mPOVcustom->SetCommands("texture{ pigment{ color rgb<1,1,1>}} \n\
+    mPOVcustom->SetCommands(
+        "texture{ pigment{ color rgb<1,1,1>}} \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) } \n\
                              texture{ Raster(4, 0.02, rgb<0.8,0.8,0.8>) rotate<0,90,0> } \n\
                              texture{ Raster(4*0.2, 0.04, rgb<0.8,0.8,0.8>) } \n\
@@ -97,10 +94,9 @@ int main(int argc, char* argv[]) {
                               ");
     floorBody->AddAsset(mPOVcustom);
 
-     // Attach asset for marking it as renderable in PovRay
+    // Attach asset for marking it as renderable in PovRay
     auto mpov_asset = std::make_shared<ChPovRayAsset>();
     floorBody->AddAsset(mpov_asset);
-    #endif
 
     mphysicalSystem.Add(floorBody);
 
@@ -149,12 +145,12 @@ int main(int argc, char* argv[]) {
     //    We can also mix some families of particles of different types, using different
     //    ChRandomShapeCreator  creators.
 
-
-    // A)  
+    // A)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     auto mcreator_spheres = std::make_shared<ChRandomShapeCreatorSpheres>();
-    mcreator_spheres->SetDiameterDistribution(std::make_shared<ChZhangDistribution>(0.15, 0.03));  // Zhang parameters: average val, min val.
+    mcreator_spheres->SetDiameterDistribution(
+        std::make_shared<ChZhangDistribution>(0.15, 0.03));  // Zhang parameters: average val, min val.
     mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
@@ -177,12 +173,12 @@ int main(int argc, char* argv[]) {
     MyCreator_spheres* callback_spheres = new MyCreator_spheres;
     mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
-
     // B)
     // Create a ChRandomShapeCreator object (ex. here for box particles)
 
     auto mcreator_boxes = std::make_shared<ChRandomShapeCreatorBoxes>();
-    mcreator_boxes->SetXsizeDistribution(std::make_shared<ChZhangDistribution>(0.20, 0.09));  // Zhang parameters: average val, min val.
+    mcreator_boxes->SetXsizeDistribution(
+        std::make_shared<ChZhangDistribution>(0.20, 0.09));  // Zhang parameters: average val, min val.
     mcreator_boxes->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.8, 1.0));
     mcreator_boxes->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 0.3));
     mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
@@ -199,7 +195,7 @@ int main(int argc, char* argv[]) {
             auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
             mbody->AddAsset(mPOVcustom);
 
-            double icol= ChRandom();
+            double icol = ChRandom();
             if (icol < 0.3)
                 mPOVcustom->SetCommands(" texture {pigment{ color rgb<0.8,0.3,0.3>} }  \n");
             else if (icol < 0.8)
@@ -211,12 +207,12 @@ int main(int argc, char* argv[]) {
     MyCreator_plastic* callback_boxes = new MyCreator_plastic;
     mcreator_boxes->RegisterAddBodyCallback(callback_boxes);
 
-
-    // C)  
+    // C)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     auto mcreator_hulls = std::make_shared<ChRandomShapeCreatorConvexHulls>();
-    mcreator_hulls->SetChordDistribution(std::make_shared<ChZhangDistribution>(0.3, 0.14));  // Zhang parameters: average val, min val.
+    mcreator_hulls->SetChordDistribution(
+        std::make_shared<ChZhangDistribution>(0.3, 0.14));  // Zhang parameters: average val, min val.
     mcreator_hulls->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
@@ -239,8 +235,7 @@ int main(int argc, char* argv[]) {
     MyCreator_hulls* callback_hulls = new MyCreator_hulls;
     mcreator_hulls->RegisterAddBodyCallback(callback_hulls);
 
-
-    // D)  
+    // D)
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
 
     auto mcreator_shavings = std::make_shared<ChRandomShapeCreatorShavings>();
@@ -260,27 +255,25 @@ int main(int argc, char* argv[]) {
             // Ex.: attach some optional assets, ex for visualization
             float acolscale = (float)ChRandom();
             auto mvisual = std::make_shared<ChColorAsset>();
-            mvisual->SetColor(ChColor(0.3f+acolscale*0.6f, 0.2f+acolscale*0.7f, 0.2f+acolscale*0.7f));
+            mvisual->SetColor(ChColor(0.3f + acolscale * 0.6f, 0.2f + acolscale * 0.7f, 0.2f + acolscale * 0.7f));
             mbody->AddAsset(mvisual);
         }
     };
     MyCreator_shavings* callback_shavings = new MyCreator_shavings;
     mcreator_shavings->RegisterAddBodyCallback(callback_shavings);
 
-
     // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
     // mixing them with a given percentual:
 
     auto mcreatorTot = std::make_shared<ChRandomShapeCreatorFromFamilies>();
-//    mcreatorTot->AddFamily(mcreator_metal, 1.0);    // 1st creator family, with percentual
-//    mcreatorTot->AddFamily(mcreator_boxes, 1.0);    // nth creator family, with percentual
-//    mcreatorTot->AddFamily(mcreator_hulls, 1.0);    // nth creator family, with percentual
-      mcreatorTot->AddFamily(mcreator_shavings, 1.0); // nth creator family, with percentual
+    //    mcreatorTot->AddFamily(mcreator_metal, 1.0);    // 1st creator family, with percentual
+    //    mcreatorTot->AddFamily(mcreator_boxes, 1.0);    // nth creator family, with percentual
+    //    mcreatorTot->AddFamily(mcreator_hulls, 1.0);    // nth creator family, with percentual
+    mcreatorTot->AddFamily(mcreator_shavings, 1.0);  // nth creator family, with percentual
     mcreatorTot->Setup();
     // By default, percentuals are in terms of number of generated particles,
     // but you can optionally enforce percentuals in terms of masses:
     mcreatorTot->SetProbabilityMode(ChRandomShapeCreatorFromFamilies::MASS_PROBABILITY);
-
 
     // Finally, tell to the emitter that it must use the 'mixer' above:
     emitter.SetParticleCreator(mcreatorTot);
@@ -300,10 +293,8 @@ int main(int argc, char* argv[]) {
             airrlicht_application->AssetUpdate(mbody);
 
             // Enable PovRay rendering
-            #if defined USE_POSTPROCESS_MODULE
             auto mpov_asset = std::make_shared<ChPovRayAsset>();
             mbody->AddAsset(mpov_asset);
-            #endif
 
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
             mbody->SetNoGyroTorque(true);
@@ -317,7 +308,6 @@ int main(int argc, char* argv[]) {
     // d- attach the callback to the emitter!
     emitter.RegisterAddBodyCallback(mcreation_callback);
 
-
     // Use this function for adding a ChIrrNodeAsset to all already created items (ex. the floor, etc.)
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
     application.AssetBindAll();
@@ -325,12 +315,9 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-
-    #if defined USE_POSTPROCESS_MODULE
-
     // Create (if needed) the output directory
     const std::string demo_dir = GetChronoOutputPath() + "EMIT_CREATION";
-    if (ChFileutils::MakeDirectory(demo_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
         std::cout << "Error creating directory " << demo_dir << std::endl;
         return 1;
     }
@@ -348,13 +335,13 @@ int main(int argc, char* argv[]) {
     // to avoid cluttering the current directory.
     const std::string out_dir = demo_dir + "/output";
     const std::string anim_dir = demo_dir + "/anim";
-    ChFileutils::MakeDirectory(out_dir.c_str());
-    ChFileutils::MakeDirectory(anim_dir.c_str());
+    filesystem::create_directory(filesystem::path(out_dir));
+    filesystem::create_directory(filesystem::path(anim_dir));
 
     pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
     pov_exporter.SetPictureFilebase(anim_dir + "/picture");
 
-    pov_exporter.SetLight(VNULL,ChColor(0,0,0),false);
+    pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
     pov_exporter.SetCustomPOVcommandsScript(
         " \
          camera { \
@@ -387,9 +374,6 @@ int main(int argc, char* argv[]) {
     //    only once at the beginning of the simulation).
     pov_exporter.ExportScript();
 
-    #endif
-
-
     // Modify some setting of the physical system for the simulation, if you want
     mphysicalSystem.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     mphysicalSystem.SetMaxItersSolverSpeed(30);
@@ -415,9 +399,7 @@ int main(int argc, char* argv[]) {
 
         // Create the incremental nnnn.dat and nnnn.pov files that will be load
         // by the pov .ini script in POV-Ray (do this at each simulation timestep)
-        #if defined USE_POSTPROCESS_MODULE
-          pov_exporter.ExportData();
-        #endif
+        pov_exporter.ExportData();
     }
 
     return 0;

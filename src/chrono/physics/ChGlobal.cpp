@@ -13,7 +13,8 @@
 #include <cstring>
 
 #include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include "Windows.h"
@@ -103,7 +104,9 @@ static std::string chrono_out_path("DEMO_OUTPUT/");
 
 const std::string& GetChronoOutputPath() {
     // If the directory does not yet exists, create it.
-    ChFileutils::MakeDirectory(chrono_out_path.c_str());
+    auto out_path = filesystem::path(chrono_out_path);
+    if (!out_path.exists())
+        filesystem::create_directory(out_path);
 
     return chrono_out_path;
 }

@@ -17,8 +17,9 @@
 // =============================================================================
 
 #include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
 #include "chrono/motion_functions/ChFunction.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // Use the namespace of Chrono
 
@@ -29,7 +30,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_FUNCTIONS";
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

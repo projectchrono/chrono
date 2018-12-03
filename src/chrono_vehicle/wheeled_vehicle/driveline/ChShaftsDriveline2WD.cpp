@@ -86,14 +86,18 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
     // Create the clutch for differential locking. By default, unlocked.
     m_clutch = std::make_shared<ChShaftsClutch>();
     m_clutch->Initialize(suspensions[m_driven_axles[0]]->GetAxle(LEFT), suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
-    m_clutch->SetTorqueLimit(GetDifferentialLockingLimit());
+    m_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_clutch->SetModulation(0);
     my_system->Add(m_clutch);
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsDriveline2WD::LockDifferential(bool lock) {
+void ChShaftsDriveline2WD::LockAxleDifferential(int axle, bool lock) {
     m_clutch->SetModulation(lock ? 1 : 0);
+}
+
+void ChShaftsDriveline2WD::LockCentralDifferential(int which, bool lock) {
+    GetLog() << "WARNINIG: " << GetTemplateName() << " does not contain a central differential.\n";
 }
 
 // -----------------------------------------------------------------------------
