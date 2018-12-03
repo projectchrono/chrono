@@ -63,7 +63,7 @@ my_shbodyB.SetMaterialSurface(my_shmaterial)
 class MyReportContactCallback(chrono.ChReportContactCallbackP):
     def __init__(self):
          chrono.ChReportContactCallbackP.__init__(self)
-    def OnReportContact(self,vA,vB,cA,dist,force,torque,modA,modB):
+    def OnReportContact(self,vA,vB,cA,dist,rad,force,torque,modA,modB):
          print ('  contact: point A=' , vA,  '  dist=',dist)
          return True        # return False to stop reporting contacts
 
@@ -87,11 +87,6 @@ print ('Positions of all bodies in the system:')
 for abody in my_system.Get_bodylist():
     print ('  body pos=', abody.GetPos() )
 
-# Iterate over list of links (Python style)
-print ('List of links in the system:')
-print ('TODO:  Check why this triggers error!!!')
-#for alink in my_system.Get_linklist():
-#    print ('  link: ', alink)
 
 # Move a body, using a ChFrame
 my_displacement = chrono.ChFrameMovingD(chrono.ChVectorD(5,1,0));
