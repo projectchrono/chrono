@@ -21,6 +21,8 @@ cmake -G "%CMAKE_GENERATOR%" ^
  -DENABLE_MODULE_PYTHON=ON ^
  -DBUILD_DEMOS=OFF ^
  -DBUILD_TESTING=OFF ^
+ -DBUILD_GMOCK=OFF ^
+ -DBUILD_BENCHMARKING=OFF ^
  -DCH_IRRLICHTDIR="C:\irrlicht-1.8.2" ^
  -DCH_IRRLICHTLIB="C:\irrlicht-1.8.2\lib\Win64-visualStudio\Irrlicht.lib" ^
  ..
