@@ -18,7 +18,7 @@ environment:
     # and copy paste to
     # https://ci.appveyor.com/tools/encrypt
     # then copy/paste the result below
-    #secure: yaM9tAVoGSlLnqMDUz996EX5y8Z7eb5Jz+DHKyk0SHfp3kD4YZqHFn7VOrhehJIS
+    secure: auTxsdgmryoi8ZyyBOQN89pXkw9jeOLkmP47nuNEPLKgA++B5OgbLSJ2+sULeNIt
   
   global:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
@@ -99,7 +99,7 @@ test_script:
   - cmd: 'mkdir dist'
   - cmd: 'copy /Y %CONDA_INSTALL_LOCN%\conda-bld\win-%PYTHON_ARCH%\pychrono*.bz2 dist || cmd /c "exit /b 0"'
   # upload package to anaconda$
-  #- ps: cmd /C anaconda --token $env:BINSTAR_TOKEN upload  dist\*.bz2 -l cd-$env:APPVEYOR_REPO_BRANCH #--force "2>&1"
+  - ps: cmd /C anaconda --token $env:BINSTAR_TOKEN upload  dist\*.bz2 -l cd-$env:APPVEYOR_REPO_BRANCH #--force "2>&1"
 
 artifacts:
   - path: dist\*
