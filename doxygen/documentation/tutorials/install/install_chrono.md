@@ -95,17 +95,12 @@ The library <tt>libIrrlicht.a</tt> should be found in <tt>irrlicht-1.8.4/source/
 to copy it to <tt>irrlicht-1.8.4/lib/MacOS</tt>. After copying type:<br>
 <tt>cd irrlicht-1.8.4/lib/MacOSX</tt><br>
 <tt>ranlib libIrrlicht.a</tt><br>
-If you use Mac OS 10.13 (High Sierra) and Xcode 10, please apply the patch from the contribution directory before building.
+If you use Mac OS >= 10.13 (High Sierra) and Xcode 10, please apply the patch from the contribution directory before building.
 Unlike the Windows version we get a static library, that will be part of <tt>libChrono_irrlicht.dylib</tt>, so we don't have to copy it around 
 anymore after building chrono.
+For chrono_opengl users:
+Beginning with Mac OS 10.14 GLFW 3.2.1 doesn't work any more, use the latest version from github.
 </div> 
-
-<div class="ce-danger">
-NEW ISSUE WITH XCODE 10 AND MACOSX MOJAVE: Irrlicht can be built with the new patch but it does not work any more (empty 3D window). Actually there is no solution. 
-The GLFW based OpenGL module has the same problem, the work around is to build the GLFW library with the actual version from github. It looks, they have recognized
-the problem and with the upcoming version 3.3 it does not exist any more until Apple pulls the plug for OpenGL in MacOS 10.15.
-Actually you should avoid to install Mojave!
-</div>
 
 
 ## 6) Run CMake

@@ -672,20 +672,23 @@ void ChIterativeSolverParallelSMC::RunTimeStep() {
 
         solver->Setup(data_manager);
 
+        data_manager->system_timer.stop("ChIterativeSolverParallel_Setup");
+
         // Set the initial guess for the iterative solver to zero.
         data_manager->host_data.gamma.resize(data_manager->num_constraints);
         data_manager->host_data.gamma.reset();
 
         // Compute the jacobian matrix, the compliance matrix and the right hand side
+        data_manager->system_timer.start("ChIterativeSolverParallel_Matrices");
         ComputeD();
         ComputeE();
         ComputeR();
-
-        data_manager->system_timer.stop("ChIterativeSolverParallel_Setup");
+        data_manager->system_timer.stop("ChIterativeSolverParallel_Matrices");
 
         ShurProductBilateral.Setup(data_manager);
 
         bilateral_solver->Setup(data_manager);
+
         // Solve for the Lagrange multipliers associated with bilateral constraints.
         PerformStabilization();
     }

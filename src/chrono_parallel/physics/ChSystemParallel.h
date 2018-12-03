@@ -31,6 +31,8 @@
 #include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChGlobal.h"
 
+#include "chrono/fea/ChMesh.h"
+
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -38,10 +40,6 @@
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
-
-#if defined(CHRONO_FEA)
-#include "chrono_fea/ChMesh.h"
-#endif
 
 namespace chrono {
 
@@ -61,6 +59,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     virtual bool Integrate_Y() override;
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
     void ClearForceVariables();
@@ -88,19 +87,27 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     unsigned int GetNumContacts();
     unsigned int GetNumBilaterals();
 
-    /// Gets the time (in seconds) spent for computing the time step.
-    virtual double GetTimerStep() override;
-    /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step.
-    virtual double GetTimerSolver() override;
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step.
-    virtual double GetTimerCollisionBroad() override;
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step.
-    virtual double GetTimerCollisionNarrow() override;
-    /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step.
-    virtual double GetTimerUpdate() override;
+    /// Return the time (in seconds) spent for computing the time step.
+    virtual double GetTimerStep() const override;
 
-    /// Gets the total time for the collision detection step.
-    double GetTimerCollision();
+    /// Return the time (in seconds) for time integration, within the time step.
+    virtual double GetTimerAdvance() const override;
+
+    /// Return the time (in seconds) for the solver, within the time step.
+    /// Note that this time excludes any calls to the solver's Setup function.
+    virtual double GetTimerSolver() const override;
+
+    /// Return the time (in seconds) for the solver Setup phase, within the time step.
+    virtual double GetTimerSetup() const override;
+
+    /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
+    virtual double GetTimerJacobian() const override;
+
+    /// Return the time (in seconds) for runnning the collision detection step, within the time step.
+    virtual double GetTimerCollision() const override;
+
+    /// Return the time (in seconds) for updating auxiliary data, within the time step.
+    virtual double GetTimerUpdate() const override;
 
     /// Calculate cummulative contact forces for all bodies in the system.
     virtual void CalculateContactForces() {}
@@ -144,9 +151,6 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   private:
     void AddShaft(std::shared_ptr<ChShaft> shaft);
-#ifdef CHRONO_FEA
-    void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
-#endif
 
     std::vector<ChShaft*> shaftlist;
 };

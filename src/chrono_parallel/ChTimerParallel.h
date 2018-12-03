@@ -55,53 +55,50 @@ struct TimerData {
 
 class CH_PARALLEL_API ChTimerParallel {
   public:
-    ChTimerParallel() : total_timers(0), total_time(0) {}
+    ChTimerParallel() : total_timers(0) {}
     ~ChTimerParallel() {}
 
-    void AddTimer(std::string name) {
+    void AddTimer(const std::string& name) {
         TimerData temp;
         timer_list[name] = temp;
         total_timers++;
     }
 
     void Reset() {
-        for (std::map<std::string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
-            it->second.Reset();
+        for (auto& timer : timer_list) {
+            timer.second.Reset();
         }
     }
 
-    void start(std::string name) { timer_list[name].start(); }
+    void start(const std::string& name) { timer_list.at(name).start(); }
 
-    void stop(std::string name) { timer_list[name].stop(); }
+    void stop(const std::string& name) { timer_list.at(name).stop(); }
 
     // Returns the time associated with a specific timer
-    double GetTime(std::string name) {
+    double GetTime(const std::string& name) const {
         if (timer_list.count(name) == 0) {
             return 0;
         }
-        return timer_list[name].timer();
+        return timer_list.at(name).timer();
     }
 
     // Returns the number of times a specific timer was called
-    int GetRuns(std::string name) {
+    int GetRuns(const std::string& name) const {
         if (timer_list.count(name) == 0) {
             return 0;
         }
-        return timer_list[name].runs;
+        return timer_list.at(name).runs;
     }
-    void PrintReport() {
-        total_time = 0;
+
+    void PrintReport() const {
         std::cout << "Timer Report:" << std::endl;
         std::cout << "------------" << std::endl;
-        for (std::map<std::string, TimerData>::iterator it = timer_list.begin(); it != timer_list.end(); it++) {
-            std::cout << "Name:\t" << it->first << "\t" << it->second.timer();
-            std::cout << std::endl;
-            total_time += it->second.timer();
+        for (auto& timer : timer_list) {
+            std::cout << "Name:\t" << timer.first << "\t" << timer.second.timer() << "\n";
         }
         std::cout << "------------" << std::endl;
     }
 
-    double total_time;
     int total_timers;
     std::map<std::string, TimerData> timer_list;
     std::map<std::string, TimerData>::iterator it;

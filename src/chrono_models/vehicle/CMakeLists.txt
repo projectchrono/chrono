@@ -43,6 +43,10 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_Pac89Tire.h
     hmmwv/HMMWV_TMeasyTire.cpp
     hmmwv/HMMWV_TMeasyTire.h
+    hmmwv/HMMWV_ANCFTire.cpp
+    hmmwv/HMMWV_ANCFTire.h
+    hmmwv/HMMWV_ReissnerTire.cpp
+    hmmwv/HMMWV_ReissnerTire.h
     hmmwv/HMMWV_PitmanArm.cpp
     hmmwv/HMMWV_PitmanArm.h
     hmmwv/HMMWV_PitmanArmShafts.cpp
@@ -65,17 +69,7 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_Wheel.cpp
     hmmwv/HMMWV_Wheel.h
 )
-if(ENABLE_MODULE_FEA)
-  set(CVM_HMMWV_FEA_FILES
-      hmmwv/HMMWV_ANCFTire.cpp
-      hmmwv/HMMWV_ANCFTire.h
-      hmmwv/HMMWV_ReissnerTire.cpp
-      hmmwv/HMMWV_ReissnerTire.h
-  )
-else()
-  set(CVM_HMMWV_FEA_FILES "")
-endif()
-source_group("hmmwv" FILES ${CVM_HMMWV_FILES} ${CVM_HMMWV_FEA_FILES})
+source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
 
 set(CVM_UAZ_FILES
     uaz/UAZBUS.cpp
@@ -206,28 +200,22 @@ set(CVM_M113_FILES
     m113/M113_TrackAssemblySinglePin.h
     m113/M113_TrackAssemblyDoublePin.cpp
     m113/M113_TrackAssemblyDoublePin.h
-	m113/M113_TrackAssemblyBandBushing.cpp
-	m113/M113_TrackAssemblyBandBushing.h
+    m113/M113_TrackAssemblyBandBushing.cpp
+    m113/M113_TrackAssemblyBandBushing.h
+    m113/M113_TrackAssemblyBandANCF.cpp
+    m113/M113_TrackAssemblyBandANCF.h
     m113/M113_TrackShoeSinglePin.cpp
     m113/M113_TrackShoeSinglePin.h
     m113/M113_TrackShoeDoublePin.cpp
     m113/M113_TrackShoeDoublePin.h
     m113/M113_TrackShoeBandBushing.cpp
     m113/M113_TrackShoeBandBushing.h
+    m113/M113_TrackShoeBandANCF.cpp
+    m113/M113_TrackShoeBandANCF.h
     m113/M113_Vehicle.cpp
     m113/M113_Vehicle.h
 )
-if(ENABLE_MODULE_FEA)
-    set(CVM_M113_FEA_FILES
-        m113/M113_TrackShoeBandANCF.cpp
-        m113/M113_TrackShoeBandANCF.h
-	    m113/M113_TrackAssemblyBandANCF.cpp
-	    m113/M113_TrackAssemblyBandANCF.h
-    )
-else()
-    set(CVM_M113_FEA_FILES "")
-endif()
-source_group("m113" FILES ${CVM_M113_FILES} ${CVM_M113_FEA_FILES})
+source_group("m113" FILES ${CVM_M113_FILES})
 
 set(CVM_M113_A_FILES
     m113a/M113a_BrakeSimple.h
@@ -271,20 +259,14 @@ if(ENABLE_MODULE_IRRLICHT)
     include_directories(${CH_IRRLICHTINC})
 endif()
 
-if(ENABLE_MODULE_FEA)
-    list(APPEND LIBRARIES ChronoEngine_fea)
-endif()
-
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
-    ${CVM_HMMWV_FEA_FILES}
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
-    ${CVM_M113_FEA_FILES}
  )
 
 set_target_properties(ChronoModels_vehicle PROPERTIES

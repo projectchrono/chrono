@@ -188,6 +188,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
                              const TerrainForces& tire_forces  ///< [in] vector of tire force structures
     );
 
+    /// Enable or disable differential locking.
+    void LockDifferential(bool lock);
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 

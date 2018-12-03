@@ -318,6 +318,9 @@ void ChSystem::SetupInitial() {
     for (int ip = 0; ip < linklist.size(); ++ip) {
         linklist[ip]->SetupInitial();
     }
+    for (int ip = 0; ip < meshlist.size(); ++ip) {
+        meshlist[ip]->SetupInitial();
+    }
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SetupInitial();
     }
@@ -1101,6 +1104,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
     if (force_setup || GetSolver()->SolveRequiresMatrix()) {
+        timer_jacobian.start();
+
         // Cq  matrix
         ConstraintsLoadJacobians();
 
@@ -1110,6 +1115,8 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
         // For ChVariable objects without a ChKblock, just use the 'a' coefficient
         descriptor->SetMassFactor(c_a);
+
+        timer_jacobian.stop();
     }
 
     // Diagnostics:
@@ -1241,7 +1248,7 @@ double ChSystem::ComputeCollisions() {
 
     double mretC = 0.0;
 
-    timer_collision_broad.start();
+    timer_collision.start();
 
     // Update all positions of collision models: delegate this to the ChAssembly
     SyncCollisionModels();
@@ -1260,7 +1267,7 @@ double ChSystem::ComputeCollisions() {
 
         for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
             if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
-                collision_system->ReportContacts(mcontactcontainer.get());
+                //collision_system->ReportContacts(mcontactcontainer.get()); ***TEST*** if one wants to populate a ChContactContainer this would clear it anyway...
             }
 
             if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
@@ -1277,7 +1284,7 @@ double ChSystem::ComputeCollisions() {
     // Count the contacts of body-body type.
     ncontacts = contact_container->GetNcontacts();
 
-    timer_collision_broad.stop();
+    timer_collision.stop();
 
     return mretC;
 }
@@ -1437,7 +1444,9 @@ bool ChSystem::Integrate_Y() {
     // PERFORM TIME STEP HERE!
     {
         CH_PROFILE( "Advance");
+        timer_advance.start();
         timestepper->Advance(step);
+        timer_advance.stop();
     }
 
     // Executes custom processing at the end of step
@@ -1590,6 +1599,9 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
                 // Set no body speed and no body accel.
                 bodylist[ip]->SetNoSpeedNoAcceleration();
             }
+            for (auto& mesh : meshlist) {
+                mesh->SetNoSpeedNoAcceleration();
+            }
             for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
                 otherphysicslist[ip]->SetNoSpeedNoAcceleration();
             }
@@ -1603,7 +1615,9 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
             // Set no body speed and no body accel.
             bodylist[ip]->SetNoSpeedNoAcceleration();
         }
-
+        for (auto& mesh : meshlist) {
+            mesh->SetNoSpeedNoAcceleration();
+        }
         for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
             otherphysicslist[ip]->SetNoSpeedNoAcceleration();
         }

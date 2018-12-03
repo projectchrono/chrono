@@ -125,6 +125,7 @@ SET(CMAKE_SWIG_FLAGS "-c++")
 if(DBG_SCRIPT)
   message("SWIG_USE_FILE:      ${SWIG_USE_FILE}")
   message("CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
+  message("Installation path:  ${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_PYTHON}")
   message("Installation prefix path:  ${CMAKE_INSTALL_PREFIX}")
 endif()
 
@@ -283,8 +284,6 @@ endif()
 # MODULE for the ChronoEngine_python_fea python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_FEA)
-
   message(STATUS "...add Chrono::Python FEA module")
   
   # Python module name
@@ -306,7 +305,7 @@ if(ENABLE_MODULE_FEA)
   else()
     SWIG_ADD_LIBRARY(${CHPY_FEA} LANGUAGE python SOURCES ${CHPY_FEA_MODULE_FILE})
   endif()
-  SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_fea)
+SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
   set_target_properties(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} PROPERTIES 
@@ -316,7 +315,6 @@ if(ENABLE_MODULE_FEA)
                         )
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine)
-  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine_fea)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
   # Copy PY file in a package dir 
@@ -345,8 +343,6 @@ if(ENABLE_MODULE_FEA)
     message("PYD file:        ${CHPY_FEA_PYD_FILE}")
     message("PYD path:        ${CHPY_FEA_PYD_PATH}")
   endif()
-
-endif()
 
 #-----------------------------------------------------------------------------
 # MODULE for the ChronoEngine_python_irrlicht python wrapper.

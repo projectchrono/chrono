@@ -87,6 +87,9 @@ int main(int argc, char* argv[]) {
     for (auto link : mphysicalSystem.Get_linklist()) {
         GetLog() << "item:" << typeid(link).name() << "\n";
     }
+    for (auto& mesh : mphysicalSystem.Get_meshlist()) {
+        GetLog() << "item:" << typeid(mesh).name() << "\n";
+    }
     for (auto ph : mphysicalSystem.Get_otherphysicslist()) {
         GetLog() << "item:" << typeid(ph).name() << "\n";
     }

@@ -17,8 +17,8 @@
 // =============================================================================
 
 #include "chrono/core/ChCubicSpline.h"
-#include "chrono_fea/ChElementHexa_8.h"
-#include "chrono_fea/ChLinkPointTriface.h"
+#include "chrono/fea/ChElementHexa_8.h"
+#include "chrono/fea/ChLinkPointTriface.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"

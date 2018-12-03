@@ -3,11 +3,11 @@
 # a tracked vehicle model with continuous-band track, specified entirely
 # through JSON specification files.
 # These example programs requires Irrlicht run-time visualization and the
-# FEA and MKL or MUMPS Chrono modules.
+# MKL or MUMPS Chrono modules.
 #=============================================================================
 
-# Irrlicht and FEA required
-if(NOT ENABLE_MODULE_IRRLICHT OR NOT ENABLE_MODULE_FEA)
+# Irrlicht required
+if(NOT ENABLE_MODULE_IRRLICHT)
     return()
 endif()
 
@@ -35,7 +35,6 @@ set(LIBRARIES
     ChronoEngine_irrlicht
     ChronoEngine_vehicle
     ChronoModels_vehicle
-    ChronoEngine_fea
     )
 
 if (ENABLE_MODULE_MKL)

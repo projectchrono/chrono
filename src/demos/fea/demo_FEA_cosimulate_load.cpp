@@ -27,11 +27,11 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChLoadContactSurfaceMesh.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChMeshFileLoader.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChLoadContactSurfaceMesh.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
