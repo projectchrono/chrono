@@ -44,7 +44,6 @@ static const double CH_LOWTOL = 0.0001;
 static const double CH_LOWLOWTOL = 0.00001;
 
 static const double CH_MICROTOL = 1.e-10;
-static const double CH_NANOTOL = 1.e-20;
 
 static const double BDF_STEP_HIGH = 0.0001;
 static const double BDF_STEP_LOW = 0.0000001;

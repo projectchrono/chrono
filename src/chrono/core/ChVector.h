@@ -15,12 +15,11 @@
 #ifndef CHVECTOR_H
 #define CHVECTOR_H
 
+#include <algorithm>
 #include <cmath>
-#include <iomanip>
-#include <iostream>
+#include <limits>
 
 #include "chrono/core/ChClassFactory.h"
-#include "chrono/core/ChMathematics.h"
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
@@ -789,13 +788,13 @@ inline Real ChVector<Real>::Length2() const {
 
 template <class Real>
 inline Real ChVector<Real>::LengthInf() const {
-    return ChMax(ChMax(fabs(data[0]), fabs(data[1])), fabs(data[2]));
+    return std::max(std::max(fabs(data[0]), fabs(data[1])), fabs(data[2]));
 }
 
 template <class Real>
 inline bool ChVector<Real>::Normalize() {
     Real length = this->Length();
-    if (length < CH_NANOTOL) {
+    if (length < std::numeric_limits<Real>::min()) {
         data[0] = 1;
         data[1] = 0;
         data[2] = 0;
@@ -848,7 +847,7 @@ inline void ChVector<Real>::DirToDxDyDz(ChVector<Real>& Vx,
     }
 
     // normalize Vz.
-    Vz.Scale(1.0 / zlen);
+    Vz.Scale(1 / zlen);
 
     // compute Vy.
     Vy.Cross(Vz, Vx);

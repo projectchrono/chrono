@@ -17,6 +17,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChMatrixDynamic.h"

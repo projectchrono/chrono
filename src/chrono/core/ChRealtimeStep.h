@@ -15,6 +15,8 @@
 #ifndef CHREALTIMESTEP_H
 #define CHREALTIMESTEP_H
 
+#include <limits>
+
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChMath.h"
 
@@ -50,8 +52,8 @@ class ChRealtimeStepTimer : public ChTimer<double> {
     /// There is also an optional 'min_step' value, which avoids too small
     /// integration steps.
 
-    double SuggestSimulationStep(double max_step = 0.02,        ///< upper limit for step
-                                 double min_step = CH_NANOTOL)  ///< lower limit for step
+    double SuggestSimulationStep(double max_step = 0.02,                                    ///< upper limit for step
+                                 double min_step = std::numeric_limits<double>::epsilon())  ///< lower limit for step
     {
         this->stop();
         double mstep = this->GetTimeSeconds();

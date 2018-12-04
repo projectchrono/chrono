@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <ctime>
+
 #include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChLog.h"
 

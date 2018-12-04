@@ -213,8 +213,8 @@ void ChMapMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
 
 void ChMapMatrix::StreamOUT(ChStreamOutAscii& mstream) {
     mstream << "\nMatrix  nrows=" << m_num_rows << " ncols=" << m_num_cols << " nnz=" << m_nnz << "\n";
-    for (int i = 0; i < ChMin(m_num_rows, 8); i++) {
-        for (int j = 0; j < ChMin(m_num_cols, 8); j++)
+    for (int i = 0; i < std::min<int>(m_num_rows, 8); i++) {
+        for (int j = 0; j < std::min<int>(m_num_cols, 8); j++)
             mstream << GetElement(i, j) << "  ";
         if (m_num_cols > 8)
             mstream << "...";
