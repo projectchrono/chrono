@@ -284,14 +284,14 @@ void CRGTerrain::SetupMeshGraphics() {
     auto& coords = mmesh->GetMesh()->getCoordsVertices();
     auto& indices = mmesh->GetMesh()->getIndicesVertexes();
 
-    size_t nu = static_cast<size_t>((m_uend - m_ubeg) / m_uinc) + 1;
-    size_t nv;
+    int nu = static_cast<int>((m_uend - m_ubeg) / m_uinc) + 1;
+    int nv;
 
     std::vector<double> x0, y0, z0;
     // Define the vertices
     if (m_v.size() == 5) {
         // v is nonequidistant, we use m_v[]
-        nv = m_v.size();
+        nv = static_cast<int>(m_v.size());
         for (auto i = 0; i < nu; i++) {
             double u = m_ubeg + m_uinc * double(i);
             for (auto j = 0; j < nv; j++) {
@@ -321,7 +321,7 @@ void CRGTerrain::SetupMeshGraphics() {
         }
     } else {
         // v is equidistant, we use m_vinc
-        nv = static_cast<size_t>((m_vend - m_vbeg) / m_vinc) + 1;
+        nv = static_cast<int>((m_vend - m_vbeg) / m_vinc) + 1;
         for (auto i = 0; i < nu; i++) {
             double u = m_ubeg + m_uinc * double(i);
             for (auto j = 0; j < nv; j++) {
@@ -352,17 +352,11 @@ void CRGTerrain::SetupMeshGraphics() {
     }
 
     // Define the faces
-    for (size_t i = 0; i < nu - 1; i++) {
-        size_t ofs = nv * i;
-        for (size_t j = 0; j < nv - 1; j++) {
-            size_t idx1 = j + ofs;
-            size_t idx2 = j + nv + ofs;
-            size_t idx3 = j + 1 + ofs;
-            size_t jdx1 = j + 1 + ofs;
-            size_t jdx2 = j + nv + ofs;
-            size_t jdx3 = j + 1 + nv + ofs;
-            indices.push_back(ChVector<int>(idx1, idx2, idx3));
-            indices.push_back(ChVector<int>(jdx1, jdx2, jdx3));
+    for (int i = 0; i < nu - 1; i++) {
+        int ofs = nv * i;
+        for (int j = 0; j < nv - 1; j++) {
+            indices.push_back(ChVector<int>(j + ofs, j + nv + ofs, j + 1 + ofs));
+            indices.push_back(ChVector<int>(j + 1 + ofs, j + nv + ofs, j + 1 + nv + ofs));
         }
     }
 
