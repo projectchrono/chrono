@@ -21,6 +21,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <limits>
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChFrame.h"
@@ -160,13 +161,15 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         double gn;
         double gt;
 
+        double eps = std::numeric_limits<double>::epsilon();
+
         switch (contact_model) {
             case ChSystemSMC::Hooke:
                 if (use_mat_props) {
                     double tmp_k = (16.0 / 15) * std::sqrt(this->eff_radius) * mat.E_eff;
                     double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
-                    double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
-                    loge = (mat.cr_eff > 1 - CH_MICROTOL) ? std::log(1 - CH_MICROTOL) : loge;
+                    double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
+                    loge = (mat.cr_eff > 1 - eps) ? std::log(1 - eps) : loge;
                     double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
                     kn = tmp_k * std::pow(eff_mass * v2 / tmp_k, 1.0 / 5);
                     kt = kn;
@@ -186,7 +189,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                     double sqrt_Rd = std::sqrt(this->eff_radius * delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
-                    double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
+                    double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;
                     kt = St;
@@ -207,7 +210,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                     double sqrt_Rd = std::sqrt(delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
-                    double loge = (mat.cr_eff < CH_MICROTOL) ? std::log(CH_MICROTOL) : std::log(mat.cr_eff);
+                    double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
@@ -234,7 +237,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                             break;
                     }
                     ChVector<> force = forceN * normal_dir;
-                    if (relvel_t_mag >= sys->GetSlipVelocitythreshold())
+                    if (relvel_t_mag >= sys->GetSlipVelocityThreshold())
                         force -= (forceT / relvel_t_mag) * relvel_t;
 
                     return force;
@@ -281,7 +284,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
         // Accumulate normal and tangential forces
         ChVector<> force = forceN * normal_dir;
-        if (relvel_t_mag >= sys->GetSlipVelocitythreshold())
+        if (relvel_t_mag >= sys->GetSlipVelocityThreshold())
             force -= (forceT / relvel_t_mag) * relvel_t;
 
         return force;

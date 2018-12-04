@@ -416,11 +416,12 @@ ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset,
     ChQuaternion<double> res;
     ChQuaternion<double> q2;
     ChVector<double> ang1, ang2;
+    double eps = std::numeric_limits<double>::epsilon();
 
     ang1 = Quat_to_Angle(angset, q);
-    ang2 = Vadd(ang1, Vmul(mangles, CH_LOWTOL));
+    ang2 = Vadd(ang1, Vmul(mangles, eps));
     q2 = Angle_to_Quat(angset, ang2);
-    res = Qscale(Qsub(q2, q), (1 / CH_LOWTOL));
+    res = Qscale(Qsub(q2, q), 1 / eps);
 
     return res;
 }
@@ -431,14 +432,14 @@ ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
     ChQuaternion<double> res;
     ChQuaternion<double> qa, qb;
     ChVector<double> ang0, angA, angB;
-    double hsquared = CH_LOWTOL;
+    double eps = std::numeric_limits<double>::epsilon();
 
     ang0 = Quat_to_Angle(angset, q);
-    angA = Vsub(ang0, Vmul(mangles, hsquared));
-    angB = Vadd(ang0, Vmul(mangles, hsquared));
+    angA = Vsub(ang0, Vmul(mangles, eps));
+    angB = Vadd(ang0, Vmul(mangles, eps));
     qa = Angle_to_Quat(angset, angA);
     qb = Angle_to_Quat(angset, angB);
-    res = Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / hsquared);
+    res = Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / eps);
 
     return res;
 }
