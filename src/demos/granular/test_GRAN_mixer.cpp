@@ -77,10 +77,10 @@ int main(int argc, char* argv[]) {
 
     const float Bx = params.box_X;
     const float By = Bx;
-    float fill_height = 30;      // height above top of cone that will be filled with particles
+    float fill_height = 60.f / 4.f;      // height above top of cone that will be filled with particles
     float radius_opening = 4.f;  // Opening at bottom of cone      // TODO vary
     float cone_slope = 1.f;      // TODO vary
-    float z_cone_opening = 40;   // z coord of the cone opening
+    float z_cone_opening = 70.f / 4.f;   // z coord of the cone opening
 
     float z_cone_tip = z_cone_opening - cone_slope * radius_opening;
     float z_cone_top = z_cone_tip + cone_slope * Bx / std::sqrt(2);
