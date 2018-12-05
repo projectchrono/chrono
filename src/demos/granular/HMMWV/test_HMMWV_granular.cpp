@@ -56,6 +56,7 @@ using namespace chrono::vehicle::hmmwv;
 using std::cout;
 using std::endl;
 
+enum RUN_MODE { SETTLING = 0, TESTING = 1 };
 enum WHEEL_ID { FL = 0, FR = 1, RL = 2, RR = 3 };
 
 const double L_cgs_to_mks = 1.0 / 100.0;
@@ -65,7 +66,7 @@ const double M_mks_to_cgs = 1000.0;
 const double F_cgs_to_mks = 1e-5;
 const double Acc_cgs_to_mks = F_cgs_to_mks / M_cgs_to_mks;
 
-const double time_settling = 0.2;
+const double time_settling = 1;
 const double hmmwv_step_size = 1e-4;
 
 int main(int argc, char* argv[]) {
@@ -82,7 +83,6 @@ int main(int argc, char* argv[]) {
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
-    my_hmmwv.SetChassisFixed(false);  // Fixed during terrain settling
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineType::AWD);
     my_hmmwv.SetTireType(TireModelType::RIGID);
@@ -117,12 +117,13 @@ int main(int argc, char* argv[]) {
     // Tire obj has radius 1
     cout << "Wheel Radius: " << wheel_radius << " cm" << endl;
     float3 scaling;
-    scaling.x = wheel_radius;
-    scaling.y = wheel_radius;
-    scaling.z = wheel_radius;
+    scaling.x = 8 * wheel_radius;
+    scaling.y = 8 * wheel_radius;
+    scaling.z = 8 * wheel_radius;
 
-    // std::string wheel_mesh_filename = "granular/hmmwv_tire_reduced_new.obj";
-    std::string wheel_mesh_filename = "granular/hmmwv_cyl.obj";
+    // string wheel_mesh_filename = "granular/hmmwv_tire_reduced_new.obj";
+    // string wheel_mesh_filename = "granular/hmmwv_cyl.obj";
+    string wheel_mesh_filename = "robosimian/obj/grousery_wheel.obj";
 
     std::vector<std::pair<std::string, std::shared_ptr<ChBody>>> gran_collision_bodies;
     gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBody>>(
@@ -148,21 +149,47 @@ int main(int argc, char* argv[]) {
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points;
+    if (params.run_mode == RUN_MODE::SETTLING) {
+        chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
+        // chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
 
-    // chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
-    chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
+        // Fill box, layer by layer
+        ChVector<> hdims(params.box_X / 2 - params.sphere_radius, params.box_Y / 2 - params.sphere_radius, 0);
+        ChVector<> center(0, 0, fill_bottom);
 
-    // Fill box, layer by layer
-    ChVector<> hdims(params.box_X / 2 - params.sphere_radius, params.box_Y / 2 - params.sphere_radius, 0);
-    ChVector<> center(0, 0, fill_bottom);
+        // Shift up for bottom of box
+        center.z() += 3 * params.sphere_radius;
+        while (center.z() < fill_top) {
+            cout << "Create layer at " << center.z() << endl;
+            auto points = sampler.SampleBox(center, hdims);
+            body_points.insert(body_points.end(), points.begin(), points.end());
+            center.z() += 2.05 * params.sphere_radius;
+        }
+    } else if (params.run_mode == RUN_MODE::TESTING) {
+        // Read in checkpoint file
+        string line;
+        std::ifstream cp_file(params.checkpoint_file + ".csv");
+        if (!cp_file.is_open()) {
+            cout << "ERROR reading checkpoint file" << endl;
+            return 1;
+        }
 
-    // Shift up for bottom of box
-    center.z() += 3 * params.sphere_radius;
-    while (center.z() < fill_top) {
-        cout << "Create layer at " << center.z() << endl;
-        auto points = sampler.SampleBox(center, hdims);
-        body_points.insert(body_points.end(), points.begin(), points.end());
-        center.z() += 2.05 * params.sphere_radius;
+        string d = ",";
+        std::getline(cp_file, line);  // Skip the header
+        while (std::getline(cp_file, line)) {
+            size_t pos = line.find(d);
+            string tok;
+            string d = ",";
+            ChVector<float> point;
+            for (size_t i = 0; i < 3; i++) {
+                pos = line.find(d);
+                tok = line.substr(0, pos);
+                point[i] = std::stof(tok);
+                line.erase(0, pos + 1);
+            }
+            body_points.push_back(point);
+        }
+        cp_file.close();
     }
 
     m_sys_gran.setParticlePositions(body_points);
@@ -233,118 +260,134 @@ int main(int argc, char* argv[]) {
 
     int sim_frame = 0;
     int render_frame = 0;
-    bool terrain_created = false;
     double curr_time = 0;
-
-    while (curr_time < params.time_end) {
+    if (params.run_mode == RUN_MODE::TESTING) {
         // After a settling period, move the vehicle just above the terrain
-        if (!terrain_created && curr_time > time_settling) {
-            // Set terrain height to be _just_ below wheel
-            double wheel_z =
-                my_hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)->GetPos().z() * L_mks_to_cgs - 1.1 * wheel_radius;
-            double max_gran_z = m_sys_gran.get_max_z();
+        // Set terrain height to be _just_ below wheel
+        double wheel_z =
+            my_hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)->GetPos().z() * L_mks_to_cgs - 1.1 * wheel_radius;
+        double max_gran_z = m_sys_gran.get_max_z();
 
-            gran_offset.z() = max_gran_z - wheel_z;
-            cout << "gran_offset.z() = " << gran_offset.z() << endl;
+        gran_offset.z() = max_gran_z - wheel_z;
+        cout << "gran_offset.z() = " << gran_offset.z() << endl;
 
-            m_sys_gran.enableMeshCollision();
-            // my_hmmwv.SetChassisFixed(false);  // BUG this fails
+        m_sys_gran.enableMeshCollision();
+        my_hmmwv.SetChassisFixed(false);
 
-            terrain_created = true;
+        while (curr_time < params.time_end) {
+            // double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
+
+            // Update each mesh in gpu code
+            for (unsigned int i = 0; i < num_mesh_bodies; i++) {
+                auto mesh = gran_collision_bodies[i].second;
+                auto mesh_pos = mesh->GetPos();
+                auto mesh_rot = mesh->GetRot();
+				mesh_rot = mesh_rot * Q_from_AngX(CH_C_PI / 2);
+                auto mesh_vel = mesh->GetPos_dt();
+                auto mesh_ang_vel = mesh->GetWvel_par();  // TODO is this relative to GRF???
+                // cout << "Wvel_par: (" << mesh_ang_vel.x() << " " << mesh_ang_vel.y() << " " << mesh_ang_vel.z() <<
+                // ")" << endl;
+
+                unsigned int body_family_offset = i * 7;
+                unsigned int body_vel_offset = i * 6;
+
+                meshSoupLocOri[body_family_offset + 0] = mesh_pos.x() * L_mks_to_cgs + gran_offset.x();
+                meshSoupLocOri[body_family_offset + 1] = mesh_pos.y() * L_mks_to_cgs + gran_offset.y();
+                meshSoupLocOri[body_family_offset + 2] = mesh_pos.z() * L_mks_to_cgs + gran_offset.z();
+                meshSoupLocOri[body_family_offset + 3] = mesh_rot[0];
+                meshSoupLocOri[body_family_offset + 4] = mesh_rot[1];
+                meshSoupLocOri[body_family_offset + 5] = mesh_rot[2];
+                meshSoupLocOri[body_family_offset + 6] = mesh_rot[3];
+
+                meshVel[body_vel_offset + 0] = mesh_vel.x() * L_mks_to_cgs;
+                meshVel[body_vel_offset + 1] = mesh_vel.y() * L_mks_to_cgs;
+                meshVel[body_vel_offset + 2] = mesh_vel.z() * L_mks_to_cgs;
+                meshVel[body_vel_offset + 3] = 0;//mesh_ang_vel.x();
+                meshVel[body_vel_offset + 4] = 0;//mesh_ang_vel.y();
+                meshVel[body_vel_offset + 5] = 0;//mesh_ang_vel.z();
+            }
+
+            // Collect output data from modules (for inter-module communication)
+            double throttle_input = driver.GetThrottle();
+            double steering_input = driver.GetSteering();
+            double braking_input = driver.GetBraking();
+            // Update modules (process inputs from other modules)
+            driver.Synchronize(curr_time);
+            my_hmmwv.Synchronize(curr_time, steering_input, braking_input, throttle_input, terrain);
+
+            // Apply the mesh orientation data to the mesh
+            m_sys_gran.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
+
+            float mesh_forces[6 * num_mesh_bodies];
+            m_sys_gran.collectGeneralizedForcesOnMeshSoup(mesh_forces);
+
+            // Apply forces to the mesh for the duration of the iteration
+            for (unsigned int i = 0; i < num_mesh_bodies; i++) {
+                auto mesh = gran_collision_bodies[i].second;
+
+                auto mesh_pos = mesh->GetPos();
+
+                unsigned int body_family_offset = i * 6;
+
+                // Apply co-simulation forces
+                mesh->Empty_forces_accumulators();
+                mesh->Accumulate_force(
+                    F_cgs_to_mks * ChVector<>(mesh_forces[body_family_offset + 0], mesh_forces[body_family_offset + 1],
+                                              mesh_forces[body_family_offset + 2]),
+                    mesh_pos, false);
+
+                mesh->Accumulate_torque(
+                    L_cgs_to_mks * F_cgs_to_mks *
+                        ChVector<>(mesh_forces[body_family_offset + 3], mesh_forces[body_family_offset + 4],
+                                   mesh_forces[body_family_offset + 5]),
+                    false);
+
+                auto f = mesh->Get_accumulated_force();
+                // cout << "Accumulated force: " << f.x() << " " << f.y() << " " << f.z() << endl;
+            }
+
+            // Output particles and meshes from chrono_granular
+            if (sim_frame % render_steps == 0) {
+                cout << "Rendering frame " << render_frame << endl;
+                char filename[100];
+                std::sprintf(filename, "%s/step%06d", params.output_dir.c_str(), render_frame);
+                m_sys_gran.writeFileUU(std::string(filename));
+                m_sys_gran.write_meshes(std::string(filename));
+
+                render_frame++;
+            }
+
+            m_sys_gran.advance_simulation(hmmwv_step_size);
+
+            // Advance simulation for one timestep for all modules
+            driver.Advance(hmmwv_step_size);
+            my_hmmwv.Advance(hmmwv_step_size);
+
+            curr_time += hmmwv_step_size;
+            sim_frame++;
         }
+    }
+    // Settling phase
+    else if (params.run_mode == RUN_MODE::SETTLING) {
+        my_hmmwv.SetChassisFixed(true);
 
-        // TODO
-        // double speed = speed_filter.Add(my_hmmwv.GetVehicle().GetVehicleSpeed());
+        while (curr_time < time_settling) {
+            // Output particles and meshes from chrono_granular
+            if (sim_frame % render_steps == 0) {
+                cout << "Rendering frame " << render_frame << endl;
+                char filename[100];
+                std::sprintf(filename, "%s/settling-step%06d", params.output_dir.c_str(), render_frame);
+                m_sys_gran.writeFileUU(std::string(filename));
 
-        // Update each mesh in gpu code
-        for (unsigned int i = 0; i < num_mesh_bodies; i++) {
-            auto mesh = gran_collision_bodies[i].second;
-            auto mesh_pos = mesh->GetPos();
-            auto mesh_rot = mesh->GetRot();
-            auto mesh_vel = mesh->GetPos_dt();
-            // auto mesh_ang_vel = mesh->GetWvel_par();  // TODO is this relative to GRF???
+                render_frame++;
+            }
 
-            unsigned int body_family_offset = i * 7;
-            unsigned int body_vel_offset = i * 6;
+            m_sys_gran.advance_simulation(hmmwv_step_size);
 
-            meshSoupLocOri[body_family_offset + 0] = mesh_pos.x() * L_mks_to_cgs + gran_offset.x();
-            meshSoupLocOri[body_family_offset + 1] = mesh_pos.y() * L_mks_to_cgs + gran_offset.y();
-            meshSoupLocOri[body_family_offset + 2] = mesh_pos.z() * L_mks_to_cgs + gran_offset.z();
-            meshSoupLocOri[body_family_offset + 3] = mesh_rot[0];
-            meshSoupLocOri[body_family_offset + 4] = mesh_rot[1];
-            meshSoupLocOri[body_family_offset + 5] = mesh_rot[2];
-            meshSoupLocOri[body_family_offset + 6] = mesh_rot[3];
-
-            meshVel[body_vel_offset + 0] = mesh_vel.x() * L_mks_to_cgs;
-            meshVel[body_vel_offset + 1] = mesh_vel.y() * L_mks_to_cgs;
-            meshVel[body_vel_offset + 2] = mesh_vel.z() * L_mks_to_cgs;
-            meshVel[body_vel_offset + 3] = 0;  // mesh_ang_vel.x();
-            meshVel[body_vel_offset + 4] = 0;  // mesh_ang_vel.y();
-            meshVel[body_vel_offset + 5] = 0;  // mesh_ang_vel.z();
+            curr_time += hmmwv_step_size;
+            sim_frame++;
         }
-
-        // Apply the mesh orientation data to the mesh
-        m_sys_gran.meshSoup_applyRigidBodyMotion(meshSoupLocOri, meshVel);
-
-        float mesh_forces[6 * num_mesh_bodies];
-        m_sys_gran.collectGeneralizedForcesOnMeshSoup(mesh_forces);
-
-        // Apply forces to the mesh for the duration of the iteration
-        for (unsigned int i = 0; i < num_mesh_bodies; i++) {
-            auto mesh = gran_collision_bodies[i].second;
-
-            auto mesh_pos = mesh->GetPos();
-
-            unsigned int body_family_offset = i * 6;
-
-            // Apply co-simulation forces
-            mesh->Empty_forces_accumulators();
-            mesh->Accumulate_force(
-                F_cgs_to_mks * ChVector<>(mesh_forces[body_family_offset + 0], mesh_forces[body_family_offset + 1],
-                                          mesh_forces[body_family_offset + 2]),
-                mesh_pos, false);  // BUG Not convinced this is working
-
-            // cout << "Force " << F_cgs_to_mks * mesh_forces[body_family_offset + 0] << " "
-            //      << F_cgs_to_mks * mesh_forces[body_family_offset + 1] << " "
-            //      << F_cgs_to_mks * mesh_forces[body_family_offset + 2] << endl;
-            mesh->Accumulate_torque(
-                L_cgs_to_mks * F_cgs_to_mks *
-                    ChVector<>(mesh_forces[body_family_offset + 3], mesh_forces[body_family_offset + 4],
-                               mesh_forces[body_family_offset + 5]),
-                false);
-
-            auto f = mesh->Get_accumulated_force();
-            // cout << "Accumulated force: " << f.x() << " " << f.y() << " " << f.z() << endl;
-        }
-
-        // Output particles and meshes from chrono_granular
-        if (sim_frame % render_steps == 0) {
-            cout << "Rendering frame " << render_frame << endl;
-            char filename[100];
-            std::sprintf(filename, "%s/step%06d", params.output_dir.c_str(), render_frame);
-            m_sys_gran.writeFileUU(std::string(filename));
-            m_sys_gran.write_meshes(std::string(filename));
-
-            render_frame++;
-        }
-
-        // Collect output data from modules (for inter-module communication)
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
-
-        m_sys_gran.advance_simulation(hmmwv_step_size);
-
-        // Update modules (process inputs from other modules)
-        driver.Synchronize(curr_time);
-        my_hmmwv.Synchronize(curr_time, steering_input, braking_input, throttle_input, terrain);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(hmmwv_step_size);
-        my_hmmwv.Advance(hmmwv_step_size);
-
-        curr_time += hmmwv_step_size;
-        sim_frame++;
+        m_sys_gran.writeFileUU(params.checkpoint_file);
     }
 
     delete[] meshSoupLocOri;

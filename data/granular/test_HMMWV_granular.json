@@ -1,12 +1,12 @@
 {
-	"sphere_radius": 2,
-	"sphere_density": 6,
+	"sphere_radius": 1,
+	"sphere_density": 8,
 
 	"box_X": 800,
 	"box_Y": 400,
 	"box_Z": 200,
 
-	"step_size": 2e-5,
+	"step_size": 1e-4,
 	"time_end": 60,
 
 	"grav_X": 0,
@@ -27,7 +27,7 @@
 	"tangentDampS2W": 0,
 	"tangentDampS2M": 0,
 
-	"cohesion_ratio": 100,
+	"cohesion_ratio": 10,
 	"adhesion_ratio_s2w": 0,
 	"adhesion_ratio_s2m": 0,
 
@@ -37,5 +37,7 @@
 
 	"verbose": false,
 	"output_dir": "hmmwv_out",
-	"write_mode": "csv"
+	"write_mode": "csv",
+	"run_mode": 1,
+	"checkpoint_file": "hmmwv_out/checkpoint.csv"
 }
