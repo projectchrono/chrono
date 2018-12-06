@@ -39,10 +39,8 @@ static const double CH_C_LOG10E = 0.43429448190325182765;
 static const double CH_C_LN2 = 0.69314718055994530941;
 static const double CH_C_LN10 = 2.30258509299404568402;
 
-static const double BDF_STEP_HIGH = 0.0001;
-static const double BDF_STEP_LOW = 0.0000001;
-static const double BDF_STEP_VERYLOW = 1.e-10;
-static const double BDF_STEP_TOOLOW = 1.e-20;
+static const double BDF_STEP_HIGH = 1e-4;
+static const double BDF_STEP_LOW = 1e-7;
 
 // ANGLE CONVERSIONS
 
