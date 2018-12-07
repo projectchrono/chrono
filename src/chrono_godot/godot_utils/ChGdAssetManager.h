@@ -28,11 +28,12 @@
 // chrono includes
 
 // ChGodotIncludes
+#include "chrono_godot/ChApiGodot.h"
 
 namespace chrono {
 namespace gd {
 
-class ChGdAssetManager {
+class CH_GODOT_API ChGdAssetManager {
   public:
     ChGdAssetManager();
     ~ChGdAssetManager();

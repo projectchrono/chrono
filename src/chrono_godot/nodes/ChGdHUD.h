@@ -29,11 +29,12 @@
 #include "chrono/physics/ChSystem.h"
 
 // ChGodotIncludes
+#include "chrono_godot/ChApiGodot.h"
 
 namespace chrono {
 namespace gd {
 
-class ChGdHUD {
+class CH_GODOT_API ChGdHUD {
   public:
     ChGdHUD();
     ~ChGdHUD();

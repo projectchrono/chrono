@@ -28,6 +28,8 @@
 #include <scene/gui/texture_rect.h>
 #include <scene/gui/viewport_container.h>
 
+#include <scene/resources/packed_scene.h>
+
 //#include <scene/2d/canvas_item.h>
 
 #include "chrono_godot/nodes/ChGdCameraSensor.h"

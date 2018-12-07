@@ -21,10 +21,13 @@
 #include <scene/3d/sprite_3d.h>
 #include <scene/main/viewport.h>
 // #include <scene/gui/control.h>
+
+#include "chrono_godot/ChApiGodot.h"
+
 namespace chrono {
 namespace gd {
 
-class ChGdCameraSensor : public Viewport {
+class CH_GODOT_API ChGdCameraSensor : public Viewport {
     GDCLASS(ChGdCameraSensor, Viewport);
 
   public:

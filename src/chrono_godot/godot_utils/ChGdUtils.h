@@ -32,13 +32,14 @@
 #include "chrono/core/ChVector.h"
 
 // ChGodotIncludes
+#include "chrono_godot/ChApiGodot.h"
 
 namespace chrono {
 namespace gd {
 
-Vector3 GDVector(ChVector<> vec);
-Quat GDQuat(ChQuaternion<> quat);
-Transform GDTransform(ChQuaternion<> q);
+CH_GODOT_API Vector3 GDVector(ChVector<> vec);
+CH_GODOT_API Quat GDQuat(ChQuaternion<> quat);
+CH_GODOT_API Transform GDTransform(ChQuaternion<> q);
 
 }  // namespace gd
 }  // end namespace chrono

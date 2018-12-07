@@ -47,13 +47,14 @@
 #include "chrono/physics/ChBody.h"
 
 // ChGodotIncludes
+#include "chrono_godot/ChApiGodot.h"
 #include "chrono_godot/godot_utils/ChGdAssetManager.h"
 #include "chrono_godot/godot_utils/ChGdUtils.h"
 
 namespace chrono {
 namespace gd {
 
-class ChGdBody {
+class CH_GODOT_API ChGdBody {
   public:
     ChGdBody(std::shared_ptr<ChGdAssetManager> assetManager);
     ~ChGdBody();

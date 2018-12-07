@@ -31,10 +31,11 @@ const ChVector<double> VNULL(0., 0., 0.);
 
 #include "chrono_godot/ChGodotApp.h"
 
-#ifdef WINDOWS_ENABLED
-extern HINSTANCE godot_hinstance =
-    NULL;  // this is horrible, but Asher does not understand the external symbol error caused by not having this
-#endif
+////#ifdef WINDOWS_ENABLED
+////extern HINSTANCE godot_hinstance =
+////    NULL;  // this is horrible, but Asher does not understand the external symbol error caused by not having this
+////#endif
+
 // Use the namespaces of Chrono
 // using namespace chrono;
 // using namespace chrono::godot;

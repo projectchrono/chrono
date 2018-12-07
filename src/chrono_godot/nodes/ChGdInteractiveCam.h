@@ -20,10 +20,13 @@
 
 #include <scene/3d/camera.h>
 // #include <scene/gui/control.h>
+
+#include "chrono_godot/ChApiGodot.h"
+
 namespace chrono {
 namespace gd {
 
-class ChGdInteractiveCam : public Camera {
+class CH_GODOT_API ChGdInteractiveCam : public Camera {
     GDCLASS(ChGdInteractiveCam, Camera);
 
   public:

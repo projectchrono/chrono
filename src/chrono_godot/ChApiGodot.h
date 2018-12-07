@@ -16,35 +16,35 @@
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"
 
-// When compiling this library, remember to define CH_API_COMPILE_IRRLICHT
-// (so that the symbols with 'ChApiIrr' in front of them will be
+// When compiling this library, remember to define CH_API_COMPILE_GODOT
+// (so that the symbols with 'ChApiGodot' in front of them will be
 // marked as exported). Otherwise, just do not define it if you
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_GODOT)
-#define ChApiGodot ChApiEXPORT
+#define CH_GODOT_API ChApiEXPORT
 #else
-#define ChApiGodot ChApiIMPORT
+#define CH_GODOT_API ChApiIMPORT
 #endif
 
 /**
-    @defgroup irrlicht_module IRRLICHT module
-    @brief Runtime visualization with Irrlicht
+    @defgroup godot_module GODOT module
+    @brief Runtime visualization with Godot
 
     This module can be used to provide 3D realtime rendering
     in Chrono::Engine.
 
     For additional information, see:
-    - the [installation guide](@ref module_irrlicht_installation)
+    - the [installation guide](@ref module_godot_installation)
     - the [tutorials](@ref tutorial_root)
 */
 
 namespace chrono {
 
-/// @addtogroup irrlicht_module
+/// @addtogroup godot_module
 /// @{
 
-/// Namespace with classes for the Irrlicht module.
+/// Namespace with classes for the Godot module.
 namespace gd {}
 
 /// @}

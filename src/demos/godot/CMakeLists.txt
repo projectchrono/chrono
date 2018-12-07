@@ -1,60 +1,43 @@
 #--------------------------------------------------------------
-# List of all Irrlicht demos
+# List of all Godot demos
 
-SET(DEMOS
-  demo_GD_collisionNSC
-)
+set(DEMOS
+    demo_GD_collisionNSC
+    )
 
 #--------------------------------------------------------------
 # Additional include paths
 
-INCLUDE_DIRECTORIES( ${CH_GODOTINC})
-# INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC})
+include_directories(${CH_GODOT_INCLUDES})
 
 #--------------------------------------------------------------
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
-ENDIF()
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  set(CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
+endif()
 
 #--------------------------------------------------------------
-
 # Add executables
 
-MESSAGE(STATUS "Demo programs for GODOT module...")
+message(STATUS "Demo programs for GODOT module...")
 
-FOREACH(PROGRAM ${DEMOS})
-  MESSAGE(STATUS "...add ${PROGRAM}")
+foreach(PROGRAM ${DEMOS})
+  message(STATUS "...add ${PROGRAM}")
 
-   MESSAGE(STATUS "CH_CXX FLAGS ${CH_CXX_FLAGS}")
-   # MESSAGE(STATUS "IRR_CXX FLAGS ${CH_IRRLICHT_CXX_FLAGS}")
-   MESSAGE(STATUS "GD_CXX FLAGS ${CH_GODOT_CXX_FLAGS}")
+  add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+  source_group(""  FILES  "${PROGRAM}.cpp")
 
-   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-   SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MT")
-   ENDIF()
-
-  ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-  SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
-
-  SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
+  set_target_properties(${PROGRAM}  PROPERTIES
     FOLDER demos
-    COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_GODOT_CXX_FLAGS}"
-    # COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
+    COMPILE_FLAGS "${CH_CXX_FLAGS}"
     LINK_FLAGS "${CH_LINKERFLAG_EXE}"
     )
 
-  TARGET_LINK_LIBRARIES(${PROGRAM}
-    ChronoEngine
-    # ChronoEngine_irrlicht
-    ChronoEngine_godot
-    # ${CH_IRRLICHTLIB}
-    ${CH_GODOTLIB}
-    )
+# Comment this line if using a shared ChronoEngine_godot library 
+  target_compile_options(${PROGRAM} PUBLIC ${CH_GODOT_COMPILE_OPTIONS})
 
-  ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_godot)
+  target_link_libraries(${PROGRAM} ChronoEngine ChronoEngine_godot)
 
-  INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+  install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
-ENDFOREACH()
+endforeach()

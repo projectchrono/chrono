@@ -26,12 +26,13 @@
 #include "chrono/core/ChVector.h"
 
 // ChGodotIncludes
+#include "chrono_godot/ChApiGodot.h"
 #include "chrono_godot/godot_utils/ChGdUtils.h"
 
 namespace chrono {
 namespace gd {
 
-class ChGdMainCamera {
+class CH_GODOT_API ChGdMainCamera {
   public:
     ChGdMainCamera(Viewport* viewport, ChVector<> location, ChVector<> target_location, ChVector<> up, float FOV);
     ~ChGdMainCamera();

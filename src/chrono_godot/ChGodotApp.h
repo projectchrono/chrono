@@ -33,12 +33,13 @@ class OS_X11;
 #endif
 
 // Chrono Godot includes
+#include "chrono_godot/ChApiGodot.h"
 #include "chrono_godot/ChGdScene.h"
 
 namespace chrono {
 namespace gd {
 
-class ChGodotApp {
+class CH_GODOT_API ChGodotApp {
   public:
     ChGodotApp(ChSystem* system, int width = 1280, int height = 720, bool displayWindow = true);
     ~ChGodotApp();

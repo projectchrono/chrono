@@ -29,6 +29,10 @@
 
 #include "chrono_godot/ChGodotApp.h"
 
+#ifdef WINDOWS_ENABLED
+extern HINSTANCE godot_hinstance = NULL;
+#endif
+
 namespace chrono {
 namespace gd {
 

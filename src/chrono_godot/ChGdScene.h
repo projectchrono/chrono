@@ -30,6 +30,7 @@
 #include "chrono/physics/ChSystem.h"
 
 // ChGdIncludes
+#include "chrono_godot/ChApiGodot.h"
 #include "chrono_godot/godot_utils/ChGdAssetManager.h"
 #include "chrono_godot/nodes/ChGdBody.h"
 #include "chrono_godot/nodes/ChGdHUD.h"
@@ -38,7 +39,7 @@
 namespace chrono {
 namespace gd {
 
-class ChGdScene {
+class CH_GODOT_API ChGdScene {
   public:
     ChGdScene();
     ~ChGdScene();

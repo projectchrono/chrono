@@ -22,6 +22,7 @@
 
 #include <core/os/input.h>
 #include <core/os/input_event.h>
+#include <scene/resources/packed_scene.h>
 
 namespace chrono {
 namespace gd {

@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <scene/resources/packed_scene.h>
+
 #include "chrono_godot/nodes/ChGdCameraSensor.h"
 
 #include <iostream>
