@@ -87,35 +87,35 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
     packed.DEs_in_SD_composite = DEs_in_SD_composite.data();
 }
 
-size_t ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
-    BC_params_t<float, float3> p;
-    printf("UU bounds are %f,%f,%f,%f,%f,%f", center[0] + hdims[0], center[1] + hdims[1], center[2] + hdims[2],
-           center[0] - hdims[0], center[1] - hdims[1], center[2] - hdims[2]);
-
-    // Find two corners to describe box
-    p.AABox_params.max_corner.x = center[0] + hdims[0];
-    p.AABox_params.max_corner.y = center[1] + hdims[1];
-    p.AABox_params.max_corner.z = center[2] + hdims[2];
-    p.AABox_params.min_corner.x = center[0] - hdims[0];
-    p.AABox_params.min_corner.y = center[1] - hdims[1];
-    p.AABox_params.min_corner.z = center[2] - hdims[2];
-
-    printf("SU bounds are %d, %d, %d, %d, %d, %d", p.AABox_params.max_corner.x, p.AABox_params.max_corner.y,
-           p.AABox_params.max_corner.z, p.AABox_params.min_corner.x, p.AABox_params.min_corner.y,
-           p.AABox_params.min_corner.z);
-
-    if (outward_normal) {
-        // negate forces to push particles outward
-        p.AABox_params.normal_sign = -1;
-    } else {
-        // normal is inward, flip force sign
-        p.AABox_params.normal_sign = 1;
-    }
-    BC_type_list.push_back(BC_type::AA_BOX);
-    BC_params_list_UU.push_back(p);
-    // get my index in the new array
-    return BC_type_list.size() - 1;
-}
+// size_t ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
+//     BC_params_t<float, float3> p;
+//     printf("UU bounds are %f,%f,%f,%f,%f,%f", center[0] + hdims[0], center[1] + hdims[1], center[2] + hdims[2],
+//            center[0] - hdims[0], center[1] - hdims[1], center[2] - hdims[2]);
+//
+//     // Find two corners to describe box
+//     p.AABox_params.max_corner.x = center[0] + hdims[0];
+//     p.AABox_params.max_corner.y = center[1] + hdims[1];
+//     p.AABox_params.max_corner.z = center[2] + hdims[2];
+//     p.AABox_params.min_corner.x = center[0] - hdims[0];
+//     p.AABox_params.min_corner.y = center[1] - hdims[1];
+//     p.AABox_params.min_corner.z = center[2] - hdims[2];
+//
+//     printf("SU bounds are %d, %d, %d, %d, %d, %d", p.AABox_params.max_corner.x, p.AABox_params.max_corner.y,
+//            p.AABox_params.max_corner.z, p.AABox_params.min_corner.x, p.AABox_params.min_corner.y,
+//            p.AABox_params.min_corner.z);
+//
+//     if (outward_normal) {
+//         // negate forces to push particles outward
+//         p.AABox_params.normal_sign = -1;
+//     } else {
+//         // normal is inward, flip force sign
+//         p.AABox_params.normal_sign = 1;
+//     }
+//     BC_type_list.push_back(BC_type::AA_BOX);
+//     BC_params_list_UU.push_back(p);
+//     // get my index in the new array
+//     return BC_type_list.size() - 1;
+// }
 
 size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal) {
     BC_params_t<float, float3> p;
@@ -248,24 +248,27 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 BC_params_list_SU.push_back(params_SU);
                 break;
 
-            case BC_type::AA_BOX:
-                printf("adding box!\n");
-
-                // note that these are correct but the BC formulation is not complete
-                // TODO fix AABox formulation
-                // Find two corners to describe box
-                params_SU.AABox_params.max_corner.x = convertToPosSU<int, float>(params_UU.AABox_params.max_corner.x);
-                params_SU.AABox_params.max_corner.y = convertToPosSU<int, float>(params_UU.AABox_params.max_corner.y);
-                params_SU.AABox_params.max_corner.z = convertToPosSU<int, float>(params_UU.AABox_params.max_corner.z);
-                params_SU.AABox_params.min_corner.x = convertToPosSU<int, float>(params_UU.AABox_params.min_corner.x);
-                params_SU.AABox_params.min_corner.y = convertToPosSU<int, float>(params_UU.AABox_params.min_corner.y);
-                params_SU.AABox_params.min_corner.z = convertToPosSU<int, float>(params_UU.AABox_params.min_corner.z);
-
-                params_SU.AABox_params.normal_sign = params_UU.AABox_params.normal_sign;
-                params_SU.active = true;
-
-                BC_params_list_SU.push_back(params_SU);
-                break;
+                // case BC_type::AA_BOX:
+                //     printf("adding box!\n");
+                //
+                //     // note that these are correct but the BC formulation is not complete
+                //     // TODO fix AABox formulation
+                //     // Find two corners to describe box
+                //     params_SU.AABox_params.max_corner.x = convertToPosSU<int,
+                //     float>(params_UU.AABox_params.max_corner.x); params_SU.AABox_params.max_corner.y =
+                //     convertToPosSU<int, float>(params_UU.AABox_params.max_corner.y);
+                //     params_SU.AABox_params.max_corner.z = convertToPosSU<int,
+                //     float>(params_UU.AABox_params.max_corner.z); params_SU.AABox_params.min_corner.x =
+                //     convertToPosSU<int, float>(params_UU.AABox_params.min_corner.x);
+                //     params_SU.AABox_params.min_corner.y = convertToPosSU<int,
+                //     float>(params_UU.AABox_params.min_corner.y); params_SU.AABox_params.min_corner.z =
+                //     convertToPosSU<int, float>(params_UU.AABox_params.min_corner.z);
+                //
+                //     params_SU.AABox_params.normal_sign = params_UU.AABox_params.normal_sign;
+                //     params_SU.active = true;
+                //
+                //     BC_params_list_SU.push_back(params_SU);
+                //     break;
 
             case BC_type::CONE:
                 printf("adding cone!\n");

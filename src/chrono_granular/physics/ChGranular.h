@@ -182,7 +182,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     size_t getNumSpheres() { return nDEs; }
 
     /// Create an axis-aligned box BC
-    size_t Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
+    // size_t Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
 
     /// Create an axis-aligned sphere BC
     size_t Create_BC_Sphere(float center[3], float radius, bool outward_normal);

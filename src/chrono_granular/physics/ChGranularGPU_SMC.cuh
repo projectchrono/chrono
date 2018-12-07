@@ -317,18 +317,18 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
             continue;
         }
         switch (bc_type_list[i]) {
-            case BC_type::AA_BOX: {
-                ABORTABORTABORT("ERROR: AA_BOX is currently unsupported!\n");
-                break;
-            }
+            // case BC_type::AA_BOX: {
+            //     ABORTABORTABORT("ERROR: AA_BOX is currently unsupported!\n");
+            //     break;
+            // }
             case BC_type::SPHERE: {
                 addBCForces_Sphere(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY,
                                    sphOmegaZ, force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
                 break;
             }
             case BC_type::CONE: {
-                addBCForces_Cone(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
-                                 force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
+                addBCForces_ZCone(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
+                                  force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
                 break;
             }
             case BC_type::PLANE: {
