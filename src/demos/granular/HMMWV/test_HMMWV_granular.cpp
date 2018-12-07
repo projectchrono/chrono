@@ -67,6 +67,7 @@ const double F_cgs_to_mks = 1e-5;
 const double Acc_cgs_to_mks = F_cgs_to_mks / M_cgs_to_mks;
 
 const double time_settling = 1;
+const double time_drop = 0.0;
 const double hmmwv_step_size = 1e-4;
 
 int main(int argc, char* argv[]) {
@@ -82,6 +83,17 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
     HMMWV_Full my_hmmwv;
+    // my_hmmwv->SetTimestepperType(ChTimestepper::Type::HHT);
+    // auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_hmmwv->GetTimestepper());
+    // integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
+    // integrator->SetAlpha(-0.2);
+    // integrator->SetMaxiters(50);
+    // integrator->SetAbsTolerances(5e-05, 1.8e00);
+    // integrator->SetMode(ChTimestepperHHT::POSITION);
+    // integrator->SetScaling(true);
+    // integrator->SetVerbose(m_verbose_solver);
+    // integrator->SetMaxItersSuccess(5);
+
     my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineType::AWD);
@@ -95,8 +107,8 @@ int main(int argc, char* argv[]) {
     // Terrain is unused but is required by chrono::vehicle
     RigidTerrain terrain(my_hmmwv.GetSystem());
     std::shared_ptr<RigidTerrain::Patch> patch;
-    patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -params.box_Z * L_cgs_to_mks), QUNIT),
-                             ChVector<>(params.box_X * L_cgs_to_mks, params.box_Y * L_cgs_to_mks, 0.1 * L_cgs_to_mks));
+    patch = terrain.AddPatch(ChCoordsys<>(L_cgs_to_mks * ChVector<>(0, 0, -params.box_Z / 2), QUNIT),
+                             L_cgs_to_mks * ChVector<>(params.box_X, params.box_Y, 0.1));
 
     patch->SetContactFrictionCoefficient(0.9f);
     patch->SetContactRestitutionCoefficient(0.01f);
@@ -117,13 +129,13 @@ int main(int argc, char* argv[]) {
     // Tire obj has radius 1
     cout << "Wheel Radius: " << wheel_radius << " cm" << endl;
     float3 scaling;
-    scaling.x = 8 * wheel_radius;
-    scaling.y = 8 * wheel_radius;
-    scaling.z = 8 * wheel_radius;
+    scaling.x = wheel_radius;
+    scaling.y = wheel_radius;
+    scaling.z = wheel_radius;
 
     // string wheel_mesh_filename = "granular/hmmwv_tire_reduced_new.obj";
     // string wheel_mesh_filename = "granular/hmmwv_cyl.obj";
-    string wheel_mesh_filename = "robosimian/obj/grousery_wheel.obj";
+    string wheel_mesh_filename = "granular/grouser_wheel.obj";
 
     std::vector<std::pair<std::string, std::shared_ptr<ChBody>>> gran_collision_bodies;
     gran_collision_bodies.push_back(std::pair<std::string, std::shared_ptr<ChBody>>(
@@ -204,7 +216,8 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_Gamma_n_SPH2WALL(params.normalDampS2S);
     m_sys_gran.set_Gamma_n_SPH2MESH(params.normalDampS2M);
 
-    m_sys_gran.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    // TODO
+    m_sys_gran.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
 
     m_sys_gran.set_K_t_SPH2SPH(params.tangentStiffS2S);
     m_sys_gran.set_K_t_SPH2WALL(params.tangentStiffS2W);
@@ -225,8 +238,6 @@ int main(int argc, char* argv[]) {
 
     m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
 
-    m_sys_gran.disableMeshCollision();  // Disable meshes for settling
-
     // Output preferences
     m_sys_gran.setOutputDirectory(params.output_dir);
     m_sys_gran.setOutputMode(params.write_mode);
@@ -242,7 +253,8 @@ int main(int argc, char* argv[]) {
 
     // Create the straight path and the driver system
     // TODO path
-    auto path = StraightLinePath(ChVector<>(-params.box_X / 2, 0, 0.5), ChVector<>(params.box_X / 2, 0, 0.5), 1);
+    auto path = StraightLinePath(L_cgs_to_mks * ChVector<>(-params.box_X / 2, 0, params.box_Z / 2),
+                                 L_cgs_to_mks * ChVector<>(params.box_X / 2, 0, params.box_Z / 2), 1);
     ChPathFollowerDriver driver(my_hmmwv.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -250,10 +262,10 @@ int main(int argc, char* argv[]) {
     driver.Initialize();
 
     // Running average of vehicle speed
-    utils::ChRunningAverage speed_filter(500);
+    // utils::ChRunningAverage speed_filter(500);
 
-    // Account for the frame difference between robot and terrain
-    ChVector<> gran_offset(0, 0, 0);  // TODO x component
+    // Account for the frame difference between vehicle and terrain
+    ChVector<> gran_offset(0, 0, 0);
 
     double render_fps = 100;
     int render_steps = (int)std::ceil((1.0 / render_fps) / hmmwv_step_size);
@@ -267,10 +279,12 @@ int main(int argc, char* argv[]) {
         double wheel_z =
             my_hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)->GetPos().z() * L_mks_to_cgs - 1.1 * wheel_radius;
         double max_gran_z = m_sys_gran.get_max_z();
+        double rear_wheel_x =
+            my_hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)->GetPos().x() * L_mks_to_cgs - 1.1 * wheel_radius;
 
+        gran_offset.x() = -params.box_X / 2 - rear_wheel_x;
         gran_offset.z() = max_gran_z - wheel_z;
         cout << "gran_offset.z() = " << gran_offset.z() << endl;
-
         m_sys_gran.enableMeshCollision();
         my_hmmwv.SetChassisFixed(false);
 
@@ -280,39 +294,44 @@ int main(int argc, char* argv[]) {
             // Update each mesh in gpu code
             for (unsigned int i = 0; i < num_mesh_bodies; i++) {
                 auto mesh = gran_collision_bodies[i].second;
-                auto mesh_pos = mesh->GetPos();
+                auto mesh_pos = L_mks_to_cgs * mesh->GetPos() + gran_offset;
                 auto mesh_rot = mesh->GetRot();
-				mesh_rot = mesh_rot * Q_from_AngX(CH_C_PI / 2);
-                auto mesh_vel = mesh->GetPos_dt();
-                auto mesh_ang_vel = mesh->GetWvel_par();  // TODO is this relative to GRF???
-                // cout << "Wvel_par: (" << mesh_ang_vel.x() << " " << mesh_ang_vel.y() << " " << mesh_ang_vel.z() <<
-                // ")" << endl;
+
+                auto mesh_vel = L_mks_to_cgs * mesh->GetPos_dt();
+                auto mesh_ang_vel = mesh->GetWvel_loc();
+                mesh_ang_vel = mesh->GetRot().GetInverse().Rotate(mesh_ang_vel);
 
                 unsigned int body_family_offset = i * 7;
                 unsigned int body_vel_offset = i * 6;
 
-                meshSoupLocOri[body_family_offset + 0] = mesh_pos.x() * L_mks_to_cgs + gran_offset.x();
-                meshSoupLocOri[body_family_offset + 1] = mesh_pos.y() * L_mks_to_cgs + gran_offset.y();
-                meshSoupLocOri[body_family_offset + 2] = mesh_pos.z() * L_mks_to_cgs + gran_offset.z();
+                meshSoupLocOri[body_family_offset + 0] = mesh_pos.x();
+                meshSoupLocOri[body_family_offset + 1] = mesh_pos.y();
+                meshSoupLocOri[body_family_offset + 2] = mesh_pos.z();
                 meshSoupLocOri[body_family_offset + 3] = mesh_rot[0];
                 meshSoupLocOri[body_family_offset + 4] = mesh_rot[1];
                 meshSoupLocOri[body_family_offset + 5] = mesh_rot[2];
                 meshSoupLocOri[body_family_offset + 6] = mesh_rot[3];
 
-                meshVel[body_vel_offset + 0] = mesh_vel.x() * L_mks_to_cgs;
-                meshVel[body_vel_offset + 1] = mesh_vel.y() * L_mks_to_cgs;
-                meshVel[body_vel_offset + 2] = mesh_vel.z() * L_mks_to_cgs;
-                meshVel[body_vel_offset + 3] = 0;//mesh_ang_vel.x();
-                meshVel[body_vel_offset + 4] = 0;//mesh_ang_vel.y();
-                meshVel[body_vel_offset + 5] = 0;//mesh_ang_vel.z();
+                meshVel[body_vel_offset + 0] = mesh_vel.x();
+                meshVel[body_vel_offset + 1] = mesh_vel.y();
+                meshVel[body_vel_offset + 2] = mesh_vel.z();
+                meshVel[body_vel_offset + 3] = mesh_ang_vel.x();
+                meshVel[body_vel_offset + 4] = mesh_ang_vel.y();
+                meshVel[body_vel_offset + 5] = mesh_ang_vel.z();
             }
 
             // Collect output data from modules (for inter-module communication)
-            double throttle_input = driver.GetThrottle();
-            double steering_input = driver.GetSteering();
-            double braking_input = driver.GetBraking();
+            // double throttle_input = driver.GetThrottle();
+            // double steering_input = driver.GetSteering();
+            // double braking_input = driver.GetBraking();
+
+            double throttle_input = (curr_time >= time_drop) ? 0.2 : 0;
+            double steering_input = 0;
+            double braking_input = 0;
+
             // Update modules (process inputs from other modules)
             driver.Synchronize(curr_time);
+            terrain.Synchronize(curr_time);
             my_hmmwv.Synchronize(curr_time, steering_input, braking_input, throttle_input, terrain);
 
             // Apply the mesh orientation data to the mesh
@@ -336,14 +355,13 @@ int main(int argc, char* argv[]) {
                                               mesh_forces[body_family_offset + 2]),
                     mesh_pos, false);
 
-                mesh->Accumulate_torque(
-                    L_cgs_to_mks * F_cgs_to_mks *
-                        ChVector<>(mesh_forces[body_family_offset + 3], mesh_forces[body_family_offset + 4],
-                                   mesh_forces[body_family_offset + 5]),
-                    false);
-
-                auto f = mesh->Get_accumulated_force();
-                // cout << "Accumulated force: " << f.x() << " " << f.y() << " " << f.z() << endl;
+                // BUG: vehicle moves backwards...
+                // TODO figure out torque
+                // mesh->Accumulate_torque(
+                //     L_cgs_to_mks * F_cgs_to_mks *
+                //         ChVector<>(mesh_forces[body_family_offset + 3], mesh_forces[body_family_offset + 4],
+                //                    mesh_forces[body_family_offset + 5]),
+                //     false);
             }
 
             // Output particles and meshes from chrono_granular
@@ -361,6 +379,7 @@ int main(int argc, char* argv[]) {
 
             // Advance simulation for one timestep for all modules
             driver.Advance(hmmwv_step_size);
+            terrain.Advance(hmmwv_step_size);
             my_hmmwv.Advance(hmmwv_step_size);
 
             curr_time += hmmwv_step_size;
@@ -370,6 +389,7 @@ int main(int argc, char* argv[]) {
     // Settling phase
     else if (params.run_mode == RUN_MODE::SETTLING) {
         my_hmmwv.SetChassisFixed(true);
+        m_sys_gran.disableMeshCollision();
 
         while (curr_time < time_settling) {
             // Output particles and meshes from chrono_granular

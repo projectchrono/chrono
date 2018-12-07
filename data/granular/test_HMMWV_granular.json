@@ -1,12 +1,12 @@
 {
-	"sphere_radius": 1,
-	"sphere_density": 8,
+	"sphere_radius": 2,
+	"sphere_density": 4,
 
 	"box_X": 800,
 	"box_Y": 400,
-	"box_Z": 200,
+	"box_Z": 400,
 
-	"step_size": 1e-4,
+	"step_size": 5e-5,
 	"time_end": 60,
 
 	"grav_X": 0,
@@ -39,5 +39,5 @@
 	"output_dir": "hmmwv_out",
 	"write_mode": "csv",
 	"run_mode": 1,
-	"checkpoint_file": "hmmwv_out/checkpoint.csv"
+	"checkpoint_file": "hmmwv_out/checkpoint"
 }
