@@ -69,7 +69,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
 
     gran_params->sphereRadius_SU = sphereRadius_SU;
     // NOTE: Assumes mass = 1
-    gran_params->sphereInertia_by_r = 2.f / 5.f * gran_params->sphere_mass_SU * sphereRadius_SU;
+    gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * sphereRadius_SU;
 
     gran_params->K_n_s2s_SU = K_n_s2s_SU;
     gran_params->K_n_s2w_SU = K_n_s2w_SU;
@@ -487,6 +487,8 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
 
     // Settling simulation loop.
     float duration_SU = std::ceil(duration / gran_params->TIME_UNIT);
+    determineNewStepSize_SU();  // doesn't always change the timestep
+    gran_params->alpha_h_bar = stepSize_SU;
     unsigned int nsteps = duration_SU / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -495,8 +497,8 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determineNewStepSize_SU();  // doesn't always change the timestep
-
         gran_params->alpha_h_bar = stepSize_SU;
+
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
             updateBDPosition(stepSize_SU);  // TODO current time

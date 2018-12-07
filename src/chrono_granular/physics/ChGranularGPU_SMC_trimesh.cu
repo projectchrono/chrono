@@ -673,6 +673,8 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
 
     // Settling simulation loop.
     float duration_SU = std::ceil(duration / gran_params->TIME_UNIT);
+    determineNewStepSize_SU();  // doesn't always change the timestep
+    gran_params->alpha_h_bar = stepSize_SU;
     unsigned int nsteps = duration_SU / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -684,6 +686,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determineNewStepSize_SU();  // doesn't always change the timestep
+        gran_params->alpha_h_bar = stepSize_SU;
 
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
