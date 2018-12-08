@@ -14,7 +14,7 @@ print ("Tutorial on pychrono with finite elements");
 
 
 # Load the Chrono::Engine module!!!
-import math
+import math as m
 import pychrono as chrono
 import pychrono.fea as fea
 import pychrono.mkl as mkl
@@ -64,7 +64,7 @@ builder.BuildBeam(my_mesh,      # the mesh to put the elements in
 	chrono.VECT_Y,				# suggested Y direction of section
 	1)							# order (3 = cubic, etc)
 
-node_mid = builder.GetLastBeamNodes()[math.floor(builder.GetLastBeamNodes().size()/2.0)]
+node_mid = builder.GetLastBeamNodes()[m.floor(builder.GetLastBeamNodes().size()/2.0)]
 	
 # Create the flywheel and attach it to the center of the beam
 	
@@ -115,16 +115,16 @@ class ChFunction_myf (chrono.ChFunction):
         T3 = 1.25
         w = 60
         if x < T1:
-            return A1 * w * (1. - cos(CH_C_PI*x / T1)) / 2.0
+            return A1 * w * (1. - m.cos(CH_C_PI*x / T1)) / 2.0
         elif (x > T1 and x <= T2):
             return A1 * w
         elif (x > T2 and x <= T3):
-            return A1 * w + (A2 - A1) * w * (1.0 - cos(CH_C_PI*(x - T2) / (T3 - T2))) / 2.0
+            return A1 * w + (A2 - A1) * w * (1.0 - m.cos(CH_C_PI*(x - T2) / (T3 - T2))) / 2.0
         else:
             return A2 * w
 
-#f_ramp = ChFunction_myf()
-f_ramp = chrono.ChFunction_Sine(0,0.2,40)
+f_ramp = ChFunction_myf()
+#f_ramp = chrono.ChFunction_Sine(0,0.2,40)
 rotmotor1.SetMotorFunction(f_ramp)
 
 # Attach a visualization of the FEM mesh.
