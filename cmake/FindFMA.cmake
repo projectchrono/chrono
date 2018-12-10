@@ -69,6 +69,8 @@ endif()
 
 if(FMA_FOUND)
   message(STATUS "Found FMA  extensions, using flags: ${FMA_FLAGS}")
+else()
+  set(FMA_FLAGS "")
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${FMA_FLAGS}")

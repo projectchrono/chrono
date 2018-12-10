@@ -15,13 +15,19 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
-#include <immintrin.h>
-
-#include "chrono/ChConfig.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChException.h"
+#include "chrono/ChConfig.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
+
+#if defined(CHRONO_HAS_SSE) || defined(CHRONO_HAS_AVX)
+#include <immintrin.h>
+#endif
+
+#if defined(CHRONO_HAS_NEON)
+#include <arm_neon.h>
+#endif
 
 namespace chrono {
 
@@ -345,7 +351,10 @@ class ChMatrix {
         }
     }
 
-    /// Method to allow serialization of transient data to archives.
+    //
+    // STREAMING
+    //
+    /// Method to allow serialization of transient data in archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
         marchive.VersionWrite(1);
@@ -368,24 +377,23 @@ class ChMatrix {
                 mascii->GetStream()->operator<<("\n");
             }
         } else {
+      
             marchive << make_ChNameValue("rows", rows);
             marchive << make_ChNameValue("columns", columns);
 
             // NORMAL array-based serialization:
             int tot_elements = GetRows() * GetColumns();
-            ChValueSpecific<Real*> specVal(this->address, "data", 0);
+            ChValueSpecific< Real* > specVal(this->address, "data", 0);
             marchive.out_array_pre(specVal, tot_elements);
-            char idname[20];
             for (int i = 0; i < tot_elements; i++) {
-                sprintf(idname, "%lu", (unsigned long)i);
-                marchive << CHNVP(ElementN(i), idname);
+                marchive << CHNVP(ElementN(i), "");
                 marchive.out_array_between(specVal, tot_elements);
             }
             marchive.out_array_end(specVal, tot_elements);
         }
     }
 
-    /// Method to allow de-serialization of transient data from archives.
+    /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
         int version = marchive.VersionRead();
@@ -400,10 +408,8 @@ class ChMatrix {
         // custom input of matrix data as array
         size_t tot_elements = GetRows() * GetColumns();
         marchive.in_array_pre("data", tot_elements);
-        char idname[20];
         for (int i = 0; i < tot_elements; i++) {
-            sprintf(idname, "%lu", (unsigned long)i);
-            marchive >> CHNVP(ElementN(i), idname);
+            marchive >> CHNVP(ElementN(i));
             marchive.in_array_between("data");
         }
         marchive.in_array_end("data");
@@ -605,6 +611,41 @@ class ChMatrix {
         }
     }
 
+#endif
+
+#ifdef CHRONO_HAS_NEON
+
+	/// Multiplies two matrices, and stores the result in "this" matrix: [this]=[A]*[B].
+	/// NEON implementation: The speed up is marginal if size of the matrices are small.
+	/// Much like AVX, as the matra.GetColumns() increases the method performs better
+	template <class RealB, class RealC>
+	void MatrMultiplyNEON(const ChMatrix<double>& matra, const ChMatrix<double>& matrb) {
+		assert(matra.GetColumns() == matrb.GetRows());
+		assert(this->rows == matra.GetRows());
+		assert(this->columns == matrb.GetColumns());
+		int A_Nrow = matra.GetRows();
+        int B_Nrow = matrb.GetRows();
+        int A_NCol = matra.GetColumns();
+        int B_NCol = matrb.GetColumns();
+        const double* A_add = matra.GetAddress();
+        const double* B_add = matrb.GetAddress();
+        double* this_Add = this->GetAddress();
+		// NEON doesn't provide direct zeroing, so we need to do it ourselves
+		float64_t zero_mem = 0.0;
+		float64x2_t zero_reg = vld1q_dup_f64(&zero_mem);
+        for (int rowA = 0; rowA < A_Nrow; rowA++) {
+            for (int colB = 0; colB < B_NCol; colB += 2) {
+                float64x2_t sum = vmovq_n_f64(zero_reg);
+                for (int elem = 0; elem < A_NCol; elem++) {
+                    float64x2_t V_2DA = vld1q_dup_f64(A_add + A_NCol * rowA + elem);
+                    float64x2_t V_2DB = vld1q_f64(B_add + elem * B_NCol + colB);
+                    sum = vfmaq_f64(sum, V_2DA, V_2DB);
+                }
+                vst1q_f64(this_Add + rowA * B_NCol + colB, sum);
+            }
+        }
+    }
+		
 #endif
 
     /// Multiplies two matrices (the second is considered transposed): [this]=[A]*[B]'

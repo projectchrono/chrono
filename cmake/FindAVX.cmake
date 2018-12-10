@@ -122,6 +122,8 @@ endif()
 
 if(AVX_FOUND)
   message(STATUS "Found AVX ${AVX_VERSION} extensions, using flags: ${AVX_FLAGS}")
+else()
+  set(AVX_FLAGS "")
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${AVX_FLAGS}")
