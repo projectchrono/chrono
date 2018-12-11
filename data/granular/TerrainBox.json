@@ -23,5 +23,5 @@
 	"psi_T": 16,
 	"psi_L": 16,
 	"output_dir": "terrain_box",
-	"write_mode": "csv"
+	"write_mode": "binary"
 }
