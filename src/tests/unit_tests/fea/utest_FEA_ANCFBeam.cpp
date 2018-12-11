@@ -24,8 +24,8 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
-#include "chrono_fea/ChElementBeamANCF.h"
-#include "chrono_fea/ChMesh.h"
+#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChMesh.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"

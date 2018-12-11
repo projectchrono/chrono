@@ -175,7 +175,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     double timer_step = physics_system->GetTimerStep();
     double timer_collision_broad = physics_system->GetTimerCollisionBroad();
     double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
-    double timer_lcp = physics_system->GetTimerSolver();
+    double timer_lcp = physics_system->GetTimerAdvance();
     double timer_update = physics_system->GetTimerUpdate();
 #ifdef CHRONO_PARALLEL
     if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {

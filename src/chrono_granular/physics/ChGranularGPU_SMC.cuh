@@ -317,22 +317,27 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
             continue;
         }
         switch (bc_type_list[i]) {
-            case BC_type::AA_BOX: {
-                ABORTABORTABORT("ERROR: AA_BOX is currently unsupported!\n");
-                break;
-            }
+            // case BC_type::AA_BOX: {
+            //     ABORTABORTABORT("ERROR: AA_BOX is currently unsupported!\n");
+            //     break;
+            // }
             case BC_type::SPHERE: {
                 addBCForces_Sphere(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY,
                                    sphOmegaZ, force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
                 break;
             }
             case BC_type::CONE: {
-                addBCForces_Cone(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
-                                 force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
+                addBCForces_ZCone(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
+                                  force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
                 break;
             }
             case BC_type::PLANE: {
                 addBCForces_Plane(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
+                                  force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
+                break;
+            }
+            case BC_type::CYLINDER: {
+                addBCForces_Zcyl(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
                                   force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
                 break;
             }
@@ -392,7 +397,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     // TODO how does multistep work here?
 
     // scaling factors for tangential spring/damping forces
-    float composite_t_fac = gran_params->K_t_s2w_SU * gran_params->alpha_h_bar +
+    float composite_t_fac = gran_params->K_t_s2w_SU * gran_params->stepSize_SU +
                             gran_params->Gamma_t_s2w_SU * m_eff;  // include time integration for now
 
     signed int penetration;
@@ -752,7 +757,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
                 if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
                     // both tangential terms combine for single step
                     const float combined_tangent_coeff =
-                        gran_params->K_t_s2s_SU * gran_params->alpha_h_bar + gran_params->Gamma_t_s2s_SU * m_eff;
+                        gran_params->K_t_s2s_SU * gran_params->stepSize_SU + gran_params->Gamma_t_s2s_SU * m_eff;
 
                     // we dotted out normal component of v, so v_rel is the tangential component
                     float3 tangent_force = -combined_tangent_coeff * v_rel * force_model_multiplier;
@@ -812,7 +817,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
  */
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                      //!< Should be a multiple of 32
-__global__ void updatePositions(const float alpha_h_bar,  //!< The numerical integration time step
+__global__ void updatePositions(const float stepsize_SU,  //!< The numerical integration time step
                                 sphereDataStruct sphere_data,
                                 unsigned int nSpheres,
                                 GranParamsPtr gran_params) {
@@ -866,32 +871,32 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         old_vel_y = sphere_data.pos_Y_dt[mySphereID];
         old_vel_z = sphere_data.pos_Z_dt[mySphereID];
         // no divergence, same for every thread in block
-        switch (gran_params->integrator_type) {
+        switch (gran_params->time_integrator) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
-                v_update_x = alpha_h_bar * sphere_data.sphere_force_X[mySphereID] / gran_params->sphere_mass_SU;
-                v_update_y = alpha_h_bar * sphere_data.sphere_force_Y[mySphereID] / gran_params->sphere_mass_SU;
-                v_update_z = alpha_h_bar * sphere_data.sphere_force_Z[mySphereID] / gran_params->sphere_mass_SU;
+                v_update_x = stepsize_SU * sphere_data.sphere_force_X[mySphereID] / gran_params->sphere_mass_SU;
+                v_update_y = stepsize_SU * sphere_data.sphere_force_Y[mySphereID] / gran_params->sphere_mass_SU;
+                v_update_z = stepsize_SU * sphere_data.sphere_force_Z[mySphereID] / gran_params->sphere_mass_SU;
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                     // tau = I alpha => alpha = tau / I, we already computed these alphas
-                    omega_update_x = alpha_h_bar * sphere_data.sphere_ang_acc_X[mySphereID];
-                    omega_update_y = alpha_h_bar * sphere_data.sphere_ang_acc_Y[mySphereID];
-                    omega_update_z = alpha_h_bar * sphere_data.sphere_ang_acc_Z[mySphereID];
+                    omega_update_x = stepsize_SU * sphere_data.sphere_ang_acc_X[mySphereID];
+                    omega_update_y = stepsize_SU * sphere_data.sphere_ang_acc_Y[mySphereID];
+                    omega_update_z = stepsize_SU * sphere_data.sphere_ang_acc_Z[mySphereID];
                 }
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
                 float gamma_hat = -.5f;
                 float gamma = 3.f / 2.f;
-                v_update_x = alpha_h_bar *
+                v_update_x = stepsize_SU *
                              (sphere_data.sphere_force_X[mySphereID] * gamma +
                               sphere_data.sphere_force_X_old[mySphereID] * gamma_hat) /
                              gran_params->sphere_mass_SU;
-                v_update_y = alpha_h_bar *
+                v_update_y = stepsize_SU *
                              (sphere_data.sphere_force_Y[mySphereID] * gamma +
                               sphere_data.sphere_force_Y_old[mySphereID] * gamma_hat) /
                              gran_params->sphere_mass_SU;
-                v_update_z = alpha_h_bar *
+                v_update_z = stepsize_SU *
                              (sphere_data.sphere_force_Z[mySphereID] * gamma +
                               sphere_data.sphere_force_Z_old[mySphereID] * gamma_hat) /
                              gran_params->sphere_mass_SU;
@@ -921,24 +926,24 @@ __global__ void updatePositions(const float alpha_h_bar,  //!< The numerical int
         float position_update_y = 0;
         float position_update_z = 0;
         // no divergence, same for every thread in block
-        switch (gran_params->integrator_type) {
+        switch (gran_params->time_integrator) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
-                position_update_x = alpha_h_bar * sphere_data.pos_X_dt[mySphereID];
-                position_update_y = alpha_h_bar * sphere_data.pos_Y_dt[mySphereID];
-                position_update_z = alpha_h_bar * sphere_data.pos_Z_dt[mySphereID];
+                position_update_x = stepsize_SU * sphere_data.pos_X_dt[mySphereID];
+                position_update_y = stepsize_SU * sphere_data.pos_Y_dt[mySphereID];
+                position_update_z = stepsize_SU * sphere_data.pos_Z_dt[mySphereID];
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
                 float beta = 28.f / 27.f;
                 float beta_hat = .5 - beta;
                 position_update_x =
-                    alpha_h_bar * (old_vel_x + alpha_h_bar * (sphere_data.sphere_force_X[mySphereID] * beta +
+                    stepsize_SU * (old_vel_x + stepsize_SU * (sphere_data.sphere_force_X[mySphereID] * beta +
                                                               sphere_data.sphere_force_X_old[mySphereID] * beta_hat));
                 position_update_y =
-                    alpha_h_bar * (old_vel_y + alpha_h_bar * (sphere_data.sphere_force_Y[mySphereID] * beta +
+                    stepsize_SU * (old_vel_y + stepsize_SU * (sphere_data.sphere_force_Y[mySphereID] * beta +
                                                               sphere_data.sphere_force_Y_old[mySphereID] * beta_hat));
                 position_update_z =
-                    alpha_h_bar * (old_vel_z + alpha_h_bar * (sphere_data.sphere_force_Z[mySphereID] * beta +
+                    stepsize_SU * (old_vel_z + stepsize_SU * (sphere_data.sphere_force_Z[mySphereID] * beta +
                                                               sphere_data.sphere_force_Z_old[mySphereID] * beta_hat));
                 break;
             }

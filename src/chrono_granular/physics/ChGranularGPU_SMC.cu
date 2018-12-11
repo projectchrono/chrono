@@ -45,15 +45,6 @@ __host__ double ChSystemGranular_MonodisperseSMC::get_max_z() const {
 
 /// Copy constant sphere data to device, this should run at start
 __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
-    // Copy quantities expressed in SU units for the SD dimensions to device
-    gran_params->SD_size_X_SU = SD_size_X_SU;
-    gran_params->SD_size_Y_SU = SD_size_Y_SU;
-    gran_params->SD_size_Z_SU = SD_size_Z_SU;
-    // Copy global BD size in multiples of SDs to device
-    gran_params->nSDs_X = nSDs_X;
-    gran_params->nSDs_Y = nSDs_Y;
-    gran_params->nSDs_Z = nSDs_Z;
-
     gran_params->max_x_pos_unsigned = ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X);
     gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
     gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
@@ -61,45 +52,12 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
     printf("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
            gran_params->max_z_pos_unsigned);
 
-    gran_params->gravAcc_X_SU = gravity_X_SU;
-    gran_params->gravAcc_Y_SU = gravity_Y_SU;
-    gran_params->gravAcc_Z_SU = gravity_Z_SU;
-    gran_params->gravMag_SU =
-        std::sqrt(gravity_X_SU * gravity_X_SU + gravity_Y_SU * gravity_Y_SU + gravity_Z_SU * gravity_Z_SU);
-
-    gran_params->sphereRadius_SU = sphereRadius_SU;
     // NOTE: Assumes mass = 1
-    gran_params->sphereInertia_by_r = 2.f / 5.f * gran_params->sphere_mass_SU * sphereRadius_SU;
-
-    gran_params->K_n_s2s_SU = K_n_s2s_SU;
-    gran_params->K_n_s2w_SU = K_n_s2w_SU;
-    gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_SU;
-    gran_params->Gamma_n_s2w_SU = Gamma_n_s2w_SU;
-
-    gran_params->K_t_s2s_SU = K_t_s2s_SU;
-    gran_params->K_t_s2w_SU = K_t_s2w_SU;
-    gran_params->Gamma_t_s2s_SU = Gamma_t_s2s_SU;
-    gran_params->Gamma_t_s2w_SU = Gamma_t_s2w_SU;
+    gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
 
     gran_params->cohesion_ratio = cohesion_over_gravity;
     gran_params->adhesion_ratio_s2w = adhesion_s2w_over_gravity;
 
-    gran_params->integrator_type = time_integrator;
-    gran_params->contact_model = contact_model;
-    gran_params->friction_mode = fric_mode;
-}
-
-/// Similar to the copyConstSphereDataToDevice, but saves us a big copy
-/// This can run at every timestep to allow a moving BD
-__host__ void ChSystemGranular_MonodisperseSMC::copyBDFrameToDevice() {
-    // Unified memory does all the work here
-    gran_params->BD_frame_X = BD_frame_X;
-    gran_params->BD_frame_Y = BD_frame_Y;
-    gran_params->BD_frame_Z = BD_frame_Z;
-    gran_params->BD_frame_X_dot = BD_frame_X_dot;
-    gran_params->BD_frame_Y_dot = BD_frame_Y_dot;
-    gran_params->BD_frame_Z_dot = BD_frame_Z_dot;
-    gpuErrchk(cudaDeviceSynchronize());
 }
 
 // Check number of spheres in each SD and dump relevant info to file
@@ -118,22 +76,22 @@ void ChSystemGranular_MonodisperseSMC::checkSDCounts(std::string ofile, bool wri
 
     unsigned int max_count = 0;
     unsigned int sum = 0;
-    for (unsigned int i = 0; i < nSDs; i++) {
+    for (unsigned int i = 0; i < gran_params->nSDs; i++) {
         // printf("count is %u for SD sd %u \n", sdvals[i], i);
         sum += sdvals[i];
         if (sdvals[i] > max_count)
             max_count = sdvals[i];
     }
     // safety checks, if these fail we were probably about to crash
-    assert(sum < MAX_COUNT_OF_DEs_PER_SD * nSDs);
+    assert(sum < MAX_COUNT_OF_DEs_PER_SD * gran_params->nSDs);
     assert(max_count < MAX_COUNT_OF_DEs_PER_SD);
     if (verbose) {
         printf("max DEs per SD is %u\n", max_count);
         printf("total sd/de overlaps is %u\n", sum);
-        printf("theoretical total is %u\n", MAX_COUNT_OF_DEs_PER_SD * nSDs);
+        printf("theoretical total is %u\n", MAX_COUNT_OF_DEs_PER_SD * gran_params->nSDs);
     }
     // Copy over occurences in SDs
-    for (unsigned int i = 0; i < MAX_COUNT_OF_DEs_PER_SD * nSDs; i++) {
+    for (unsigned int i = 0; i < MAX_COUNT_OF_DEs_PER_SD * gran_params->nSDs; i++) {
         // printf("de id is %d, i is %u\n", sdSpheres[i], i);
         // Check if invalid sphere
         if (sdSpheres[i] == NULL_GRANULAR_ID) {
@@ -213,7 +171,7 @@ void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
             ptFile.write((const char*)&z_UU, sizeof(float));
             ptFile.write((const char*)&absv, sizeof(float));
 
-            if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                 ptFile.write((const char*)&sphere_Omega_X.at(n), sizeof(float));
                 ptFile.write((const char*)&sphere_Omega_Y.at(n), sizeof(float));
                 ptFile.write((const char*)&sphere_Omega_Z.at(n), sizeof(float));
@@ -227,7 +185,7 @@ void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
         std::ostringstream outstrstream;
         outstrstream << "x,y,z,absv";
 
-        if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             outstrstream << ",wx,wy,wz";
         }
         outstrstream << "\n";
@@ -241,7 +199,7 @@ void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
 
             outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv;
 
-            if (fric_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                 outstrstream << "," << sphere_Omega_X.at(n) << "," << sphere_Omega_Y.at(n) << ","
                              << sphere_Omega_Z.at(n);
             }
@@ -261,11 +219,13 @@ void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
     gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
                          MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaDeviceSynchronize());
+
 }
 // Reset sphere-sphere force data structures
 void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
     // cache past force data
-    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
+    if (gran_params->time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         gpuErrchk(cudaMemcpy(sphere_force_X_old.data(), sphere_force_X.data(), nDEs * sizeof(float),
                              cudaMemcpyDeviceToDevice));
         gpuErrchk(cudaMemcpy(sphere_force_Y_old.data(), sphere_force_Y.data(), nDEs * sizeof(float),
@@ -280,7 +240,7 @@ void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
     gpuErrchk(cudaMemset(sphere_force_Z.data(), 0, nDEs * sizeof(float)));
 
     // reset torques to zero, if applicable
-    if (fric_mode != FRICTIONLESS) {
+    if (gran_params->friction_mode != FRICTIONLESS) {
         gpuErrchk(cudaMemset(sphere_ang_acc_X.data(), 0, nDEs * sizeof(float)));
         gpuErrchk(cudaMemset(sphere_ang_acc_Y.data(), 0, nDEs * sizeof(float)));
         gpuErrchk(cudaMemset(sphere_ang_acc_Z.data(), 0, nDEs * sizeof(float)));
@@ -288,20 +248,21 @@ void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
 }
 
 void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU) {
+    if (BD_is_fixed) {
+        return; 
+    }
     // Frequency of oscillation
-    float frame_X_old = BD_frame_X;
-    float frame_Y_old = BD_frame_Y;
-    float frame_Z_old = BD_frame_Z;
+    float frame_X_old = gran_params->BD_frame_X;
+    float frame_Y_old = gran_params->BD_frame_Y;
+    float frame_Z_old = gran_params->BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
-    BD_frame_X = (box_size_X * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-    BD_frame_Y = (box_size_Y * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-    BD_frame_Z = (box_size_Z * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    gran_params->BD_frame_X = (box_size_X * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    gran_params->BD_frame_Y = (box_size_Y * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    gran_params->BD_frame_Z = (box_size_Z * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
 
-    BD_frame_X_dot = (BD_frame_X - frame_X_old) / stepSize_SU;
-    BD_frame_Y_dot = (BD_frame_Y - frame_Y_old) / stepSize_SU;
-    BD_frame_Z_dot = (BD_frame_Z - frame_Z_old) / stepSize_SU;
-
-    copyBDFrameToDevice();
+    gran_params->BD_frame_X_dot = (gran_params->BD_frame_X - frame_X_old) / stepSize_SU;
+    gran_params->BD_frame_Y_dot = (gran_params->BD_frame_Y - frame_Y_old) / stepSize_SU;
+    gran_params->BD_frame_Z_dot = (gran_params->BD_frame_Z - frame_Z_old) / stepSize_SU;
 }
 
 // All the information a moving sphere needs
@@ -479,27 +440,28 @@ __host__ void ChSystemGranular_MonodisperseSMC::runInitialSpherePriming() {
 }
 
 __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float duration) {
-    sphereDataStruct sphere_data;
-    packSphereDataPointers(sphere_data);
-
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
     float duration_SU = std::ceil(duration / gran_params->TIME_UNIT);
+    determineNewStepSize_SU();  // doesn't always change the timestep
     unsigned int nsteps = duration_SU / stepSize_SU;
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
     float time_elapsed_SU = 0;  // time elapsed in this advance call
+
+    sphereDataStruct sphere_data;
+    packSphereDataPointers(sphere_data);
+
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determineNewStepSize_SU();  // doesn't always change the timestep
 
-        gran_params->alpha_h_bar = stepSize_SU;
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
-            updateBDPosition(stepSize_SU);  // TODO current time
+            updateBDPosition(stepSize_SU);  
         }
         resetSphereForces();
 

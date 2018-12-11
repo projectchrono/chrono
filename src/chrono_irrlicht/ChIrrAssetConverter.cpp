@@ -435,6 +435,10 @@ void ChIrrAssetConverter::BindAllContentsOfAssembly(ChAssembly* massy, std::unor
         Bind(body);
     }
 
+    for (auto& mesh : massy->Get_meshlist()) {
+        Bind(mesh);
+    }
+
     for (auto ph : massy->Get_otherphysicslist()) {
         Bind(ph);
 
@@ -457,6 +461,10 @@ void ChIrrAssetConverter::UpdateAllContentsOfAssembly(ChAssembly* massy, std::un
 
     for (auto body : massy->Get_bodylist()) {
         Update(body);
+    }
+
+    for (auto& mesh : massy->Get_meshlist()) {
+        Update(mesh);
     }
 
     for (auto ph : massy->Get_otherphysicslist()) {

@@ -51,6 +51,9 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) = 0;
 
+    /// Enable or disable differential locking.
+    virtual void LockDifferential(bool lock);
+
     /// Get a handle to the driveshaft.
     /// Return a shared pointer to the shaft that connects this driveline to a
     /// powertrain system (i.e., right after the transmission box).

@@ -1002,3 +1002,39 @@ Running settling test!
 50 thousand bodies took 1.57613 seconds!
 500 thousand bodies took 14.2936 seconds!
 1 million bodies took 29.021 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 07 Dec 2018 13:15:46 -0600
+commit 489b2fecdb879005705da2a64ab9248bc9a0ba98 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Dec 7 13:15:28 2018 -0600 cleanup BC code, still needs more work, AAB and Cyl implementations
+Results:
+Running wavetank test!
+50 thousand bodies took 1.77853 seconds!
+500 thousand bodies took 15.0047 seconds!
+1 million bodies took 29.7828 seconds!
+Running settling test!
+50 thousand bodies took 1.91675 seconds!
+500 thousand bodies took 15.3284 seconds!
+1 million bodies took 31.3105 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 07 Dec 2018 15:47:01 -0600
+commit 731cb82a4235795b7334fa86c33a45ad133f8fcc Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Dec 7 15:46:56 2018 -0600 fix silly timestep issue
+Results:
+Running wavetank test!
+50 thousand bodies took 2.04854 seconds!
+500 thousand bodies took 15.0747 seconds!
+1 million bodies took 30.4268 seconds!
+Running settling test!
+50 thousand bodies took 2.73863 seconds!
+500 thousand bodies took 14.7019 seconds!
+1 million bodies took 29.1598 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 10 Dec 2018 18:04:15 -0600
+commit e0acde94c09aa31f4ee78c4f63b27814dbabbcae Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Dec 10 18:03:53 2018 -0600 general cleanup, slight slowdown, fix some memory bugs and parameter bugs
+Results:
+Running wavetank test!
+50 thousand bodies took 1.98083 seconds!
+500 thousand bodies took 15.9235 seconds!
+1 million bodies took 32.3977 seconds!
+Running settling test!
+50 thousand bodies took 1.94265 seconds!
+500 thousand bodies took 15.9833 seconds!
+1 million bodies took 32.5584 seconds!

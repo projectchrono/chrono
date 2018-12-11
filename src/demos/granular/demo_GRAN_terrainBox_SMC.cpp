@@ -67,8 +67,8 @@ int main(int argc, char* argv[]) {
         params.run_mode = std::atoi(argv[3]);
         params.box_Y = std::atof(argv[4]);
         params.output_dir = std::string(argv[5]);
-        printf("new parameters: r is %f, dt is %d, y is %f, %s\n", params.sphere_radius, params.run_mode, params.box_Y,
-               params.output_dir.c_str());
+        printf("new parameters: r is %f, run_mode is %d, y is %f, %s\n", params.sphere_radius, params.run_mode,
+               params.box_Y, params.output_dir.c_str());
     }
 
     // Setup simulation

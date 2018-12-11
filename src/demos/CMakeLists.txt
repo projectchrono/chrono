@@ -32,7 +32,9 @@ endif()
 
 #--------------------------------------------------------------
 
+message(STATUS)
 message(STATUS "==== Demo programs ====")
+message(STATUS)
 
 option(BUILD_DEMOS_BASE "Build demo programs for base Chrono module" TRUE)
 mark_as_advanced(FORCE BUILD_DEMOS_BASE)
@@ -40,13 +42,13 @@ if(BUILD_DEMOS_BASE)
 	add_subdirectory(core)
 endif()
 
-if(ENABLE_MODULE_FEA)
-	option(BUILD_DEMOS_FEA "Build demo programs for FEA module" TRUE)
-	mark_as_advanced(FORCE BUILD_DEMOS_FEA)
-	if(BUILD_DEMOS_FEA)
-		add_subdirectory(fea)
-	endif()
+
+option(BUILD_DEMOS_FEA "Build demo programs for FEA" TRUE)
+mark_as_advanced(FORCE BUILD_DEMOS_FEA)
+if(BUILD_DEMOS_FEA)
+	add_subdirectory(fea)
 endif()
+
 
 if(ENABLE_MODULE_COSIMULATION)
 	option(BUILD_DEMOS_COSIMULATION "Build demo programs for Cosimulation module" TRUE)

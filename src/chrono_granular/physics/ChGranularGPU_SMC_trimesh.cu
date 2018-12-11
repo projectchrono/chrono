@@ -108,7 +108,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     unsigned int n_axes_diff = 0;  // Count axes that have different SD bounds
     unsigned int axes_diff;        // axis of variation (if only one)
 
-    for (unsigned int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
         if (L[i] != U[i]) {
             axes_diff = i;  // If there are more than one, this won't be used anyway
             n_axes_diff++;
@@ -131,9 +131,9 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     // Case 3: Triangle spans more than one dimension of nSD_spheres
     float SDcenter[3];
     float SDhalfSizes[3];
-    for (unsigned int i = L[0]; i <= U[0]; i++) {
-        for (unsigned int j = L[1]; j <= U[1]; j++) {
-            for (unsigned int k = L[2]; k <= U[2]; k++) {
+    for (int i = L[0]; i <= U[0]; i++) {
+        for (int j = L[1]; j <= U[1]; j++) {
+            for (int k = L[2]; k <= U[2]; k++) {
                 SDhalfSizes[0] = gran_params->SD_size_X_SU / 2;
                 SDhalfSizes[1] = gran_params->SD_size_Y_SU / 2;
                 SDhalfSizes[2] = gran_params->SD_size_Z_SU / 2;
@@ -555,7 +555,7 @@ __global__ void interactionTerrain_TriangleSoup(
                         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                             if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
                                 // both tangential terms combine for single step
-                                const float combined_tangent_coeff = mesh_params->Kt_s2m_SU * gran_params->alpha_h_bar +
+                                const float combined_tangent_coeff = mesh_params->Kt_s2m_SU * gran_params->stepSize_SU +
                                                                      mesh_params->Gamma_t_s2m_SU * m_eff;
 
                                 // we dotted out normal component of v, so v_rel is the tangential component
@@ -652,7 +652,7 @@ __global__ void interactionTerrain_TriangleSoup(
 }  // namespace granular
 
 /// Copy const triangle data to device
-void ChSystemGranular_MonodisperseSMC_trimesh::copy_triangle_data_to_device() {
+void ChSystemGranular_MonodisperseSMC_trimesh::copyTriangleDataToDevice() {
     // unified memory does some copying for us, cool
     tri_params->Kn_s2m_SU = K_n_s2m_SU;
     tri_params->Kt_s2m_SU = K_t_s2m_SU;
@@ -664,16 +664,17 @@ void ChSystemGranular_MonodisperseSMC_trimesh::copy_triangle_data_to_device() {
 }
 
 __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(float duration) {
-    sphereDataStruct sphere_data;
-
-    packSphereDataPointers(sphere_data);
-
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
     float duration_SU = std::ceil(duration / gran_params->TIME_UNIT);
+    determineNewStepSize_SU();  // doesn't always change the timestep
     unsigned int nsteps = duration_SU / stepSize_SU;
+
+    sphereDataStruct sphere_data;
+    packSphereDataPointers(sphere_data);
+    // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
@@ -737,6 +738,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         gpuErrchk(cudaDeviceSynchronize());
         elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT;  // Advance current time
     }
+
     return time_elapsed_SU * gran_params->TIME_UNIT;  // return elapsed UU time
 }
 }  // namespace granular

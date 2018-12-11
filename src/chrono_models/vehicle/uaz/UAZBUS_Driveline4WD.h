@@ -49,6 +49,8 @@ class CH_MODELS_API UAZBUS_Driveline4WD : public ChShaftsDriveline4WD {
     virtual double GetFrontConicalGearRatio() const override { return m_front_conicalgear_ratio; }
     virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
 
+    virtual double GetDifferentialLockingLimit() const override { return m_differential_locking_limit; }
+
   private:
     // Shaft inertias.
     static const double m_central_differentialbox_inertia;
@@ -64,6 +66,9 @@ class CH_MODELS_API UAZBUS_Driveline4WD : public ChShaftsDriveline4WD {
     static const double m_rear_differential_ratio;
     static const double m_front_conicalgear_ratio;
     static const double m_rear_conicalgear_ratio;
+
+    // Differential locking torque limit.
+    static const double m_differential_locking_limit;
 };
 
 /// @} vehicle_models_uaz

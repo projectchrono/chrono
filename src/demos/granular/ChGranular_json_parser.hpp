@@ -46,6 +46,7 @@ typedef struct sim_param_holder {
     unsigned int psi_L;
     GRAN_TIME_STEPPING step_mode;
     string output_dir;
+    string checkpoint_file;
     GRAN_OUTPUT_MODE write_mode;
 } sim_param_holder;
 
@@ -77,6 +78,7 @@ void ShowJSONUsage() {
     cout << "psi_T" << endl;
     cout << "psi_L" << endl;
     cout << "output_dir" << endl;
+    cout << "checkpoint_file" << endl;
     cout << "write_mode (csv, binary, or none)" << endl;
 }
 
@@ -240,6 +242,10 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     if (doc.HasMember("output_dir") && doc["output_dir"].IsString()) {
         params.output_dir = doc["output_dir"].GetString();
         cout << "params.output_dir " << params.output_dir << endl;
+    }
+    if (doc.HasMember("checkpoint_file") && doc["checkpoint_file"].IsString()) {
+        params.checkpoint_file = doc["checkpoint_file"].GetString();
+        cout << "params.checkpoint_file " << params.checkpoint_file << endl;
     }
     if (doc.HasMember("write_mode") && doc["write_mode"].IsString()) {
         if (doc["write_mode"].GetString() == string("binary")) {

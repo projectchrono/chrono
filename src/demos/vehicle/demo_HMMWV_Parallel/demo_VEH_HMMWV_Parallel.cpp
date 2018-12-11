@@ -629,7 +629,7 @@ void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAsciiFile* ofile) {
     double STEP = mSys->GetTimerStep();
     double BROD = mSys->GetTimerCollisionBroad();
     double NARR = mSys->GetTimerCollisionNarrow();
-    double SOLVER = mSys->GetTimerSolver();
+    double SOLVER = mSys->GetTimerAdvance();
     double UPDT = mSys->GetTimerUpdate();
     double RESID = 0;
     int REQ_ITS = 0;

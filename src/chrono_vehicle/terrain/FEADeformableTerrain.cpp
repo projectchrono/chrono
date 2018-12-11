@@ -22,9 +22,9 @@
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 
-#include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/FEADeformableTerrain.h"

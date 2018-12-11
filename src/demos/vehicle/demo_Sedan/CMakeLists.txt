@@ -11,7 +11,9 @@ ENDIF()
 # List all Sedan demos
 
 SET(DEMOS
-    demo_VEH_Sedan)
+    demo_VEH_Sedan
+    demo_VEH_Sedan_Lockable_Diff
+    )
 
 #--------------------------------------------------------------
 # Additional include directories

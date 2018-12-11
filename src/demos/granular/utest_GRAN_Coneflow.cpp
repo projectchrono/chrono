@@ -117,8 +117,9 @@ int main(int argc, char* argv[]) {
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
-    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_sys.set_ForceModel(GRAN_FORCE_MODEL::HERTZ);
+    // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_sys.set_fixed_stepSize(params.step_size);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
@@ -126,21 +127,45 @@ int main(int argc, char* argv[]) {
     float cone_slope = 1.0;
     // float hdims[3] = {2.f, 2.f, 2.f};
 
-    gran_sys.setVerbose(params.verbose);
+    float cone_offset = 8 * params.sphere_radius;
+
+    gran_sys.setVerbose(params.verbose   );
     // Finalize settings and initialize for runtime
-    gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + 10 * params.sphere_radius, false);
+    gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + cone_offset, false);
+
+    float zvec[3] = {0,0,0};
+
+    gran_sys.Create_BC_Cyl_Z(zvec, fill_width + params.sphere_radius, false);
+
+    printf("fill radius is %f, cyl radius is %f\n", fill_width - params.sphere_radius, fill_width + params.sphere_radius);
+
+
+    float plane_center[3] = {0, 0, center_pt[2]  + params.sphere_radius + cone_slope*cone_offset};
+    // face in upwards
+    float plane_normal[3] = {0, 0, 1};
+    
+    printf("center is %f, %f, %f, plane center is is %f, %f, %f\n", center_pt[0], center_pt[1], center_pt[2], plane_center[0],
+           plane_center[1], plane_center[2]);
+    size_t plane_bc_id = gran_sys.Create_BC_Plane(plane_center, plane_normal);
+
     gran_sys.initialize();
 
-    int fps = 100;
+    int fps =    100;
     // assume we run for at least one frame
-    float frame_step = 1. / fps;
+    float frame_step =          1. / fps;
     float curr_time = 0;
     int currframe = 0;
 
     std::cout << "frame step is " << frame_step << std::endl;
 
+    float t_remove_plane = .5;
+    bool plane_active = false;
+
     // Run settling experiments
     while (curr_time < params.time_end) {
+        if (!plane_active && curr_time > t_remove_plane) {
+            gran_sys.disable_BC_by_ID(plane_bc_id);
+        }
         gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);

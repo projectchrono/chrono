@@ -327,14 +327,18 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }
-    /// Return the fraction of time (in seconds) for the solver, within the time step.
+    /// Return the time (in seconds) for time integration, within the time step.
+    virtual double GetTimerAdvance() const { return timer_advance(); }
+    /// Return the time (in seconds) for the solver, within the time step.
     /// Note that this time excludes any calls to the solver's Setup function.
     virtual double GetTimerSolver() const { return timer_solver(); }
-    /// Return the time (in seconds) for the solver Setup phase.
+    /// Return the time (in seconds) for the solver Setup phase, within the time step.
     virtual double GetTimerSetup() const { return timer_setup(); }
-    /// Return the time (in seconds) for runnning the collision detection step.
+    /// Return the time (in seconds) for calculating/loading Jacobian information, within the time step.
+    virtual double GetTimerJacobian() const { return timer_jacobian(); }
+    /// Return the time (in seconds) for runnning the collision detection step, within the time step.
     virtual double GetTimerCollision() const { return timer_collision(); }
-    /// Return the fraction of time (in seconds) for updating auxiliary data, within the time step.
+    /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const { return timer_update(); }
 
     /// Return the time (in seconds) for broadphase collision detection, within the time step.
@@ -345,8 +349,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Resets the timers.
     void ResetTimers() {
         timer_step.reset();
+        timer_advance.reset();
         timer_solver.reset();
         timer_setup.reset();
+        timer_jacobian.reset();
         timer_collision.reset();
         timer_update.reset();
         collision_system->ResetTimers();
@@ -836,8 +842,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     // timers for profiling execution speed
     ChTimer<double> timer_step;       ///< timer for integration step
+    ChTimer<double> timer_advance;    ///< timer for time integration
     ChTimer<double> timer_solver;     ///< timer for solver (excluding setup phase)
     ChTimer<double> timer_setup;      ///< timer for solver setup
+    ChTimer<double> timer_jacobian;   ///< timer for computing/loading Jacobian information
     ChTimer<double> timer_collision;  ///< timer for collision detection
     ChTimer<double> timer_update;     ///< timer for system update
 

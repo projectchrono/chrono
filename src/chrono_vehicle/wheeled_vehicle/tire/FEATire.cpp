@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono_fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChMeshFileLoader.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"

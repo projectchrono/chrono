@@ -32,9 +32,9 @@
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChMesh.h"
 
 using namespace chrono;
 using namespace chrono::fea;

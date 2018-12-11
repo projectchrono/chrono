@@ -1,9 +1,9 @@
 {
-    "sphere_radius": 0.25,
-    "sphere_density": 1.5,
-    "box_X": 50,
-    "step_size": 2e-5,
-    "time_end": 15,
+    "sphere_radius": 0.2,
+    "sphere_density": 1,
+    "box_X": 100,
+    "step_size": 1e-5,
+    "time_end": 60,
     "grav_X": 0,
     "grav_Y": 0,
     "grav_Z": -980,
@@ -29,6 +29,6 @@
     "psi_h": 4,
     "psi_T": 16,
     "psi_L": 16,
-    "output_dir": "mixer_out",
+    "output_dir": "mixer_out_1",
     "write_mode": "csv"
 }

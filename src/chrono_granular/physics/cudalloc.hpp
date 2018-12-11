@@ -58,7 +58,7 @@ class cudallocator {
         if (err == cudaErrorMemoryAllocation || err == cudaErrorNotSupported) {
             throw std::bad_alloc();
         }
-        return (T*) vptr;
+        return (T*)vptr;
     }
 
     void deallocate(pointer p, size_type n) { cudaFree(p); }
