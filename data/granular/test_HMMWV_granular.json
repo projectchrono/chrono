@@ -1,8 +1,8 @@
 {
-	"sphere_radius": 2,
-	"sphere_density": 4,
+	"sphere_radius": 1,
+	"sphere_density": 6,
 
-	"box_X": 800,
+	"box_X": 4000,
 	"box_Y": 400,
 	"box_Z": 400,
 
@@ -38,6 +38,6 @@
 	"verbose": false,
 	"output_dir": "hmmwv_out",
 	"write_mode": "csv",
-	"run_mode": 1,
+	"run_mode": 0,
 	"checkpoint_file": "hmmwv_out/checkpoint"
 }

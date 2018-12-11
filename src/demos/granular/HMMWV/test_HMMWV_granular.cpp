@@ -325,7 +325,7 @@ int main(int argc, char* argv[]) {
             // double steering_input = driver.GetSteering();
             // double braking_input = driver.GetBraking();
 
-            double throttle_input = (curr_time >= time_drop) ? 0.2 : 0;
+            double throttle_input = (curr_time >= time_drop) ? 0.1 : 0;
             double steering_input = 0;
             double braking_input = 0;
 
