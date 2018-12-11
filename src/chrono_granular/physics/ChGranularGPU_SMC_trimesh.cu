@@ -555,7 +555,7 @@ __global__ void interactionTerrain_TriangleSoup(
                         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                             if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
                                 // both tangential terms combine for single step
-                                const float combined_tangent_coeff = mesh_params->Kt_s2m_SU * gran_params->alpha_h_bar +
+                                const float combined_tangent_coeff = mesh_params->Kt_s2m_SU * gran_params->stepSize_SU +
                                                                      mesh_params->Gamma_t_s2m_SU * m_eff;
 
                                 // we dotted out normal component of v, so v_rel is the tangential component
@@ -652,7 +652,7 @@ __global__ void interactionTerrain_TriangleSoup(
 }  // namespace granular
 
 /// Copy const triangle data to device
-void ChSystemGranular_MonodisperseSMC_trimesh::copy_triangle_data_to_device() {
+void ChSystemGranular_MonodisperseSMC_trimesh::copyTriangleDataToDevice() {
     // unified memory does some copying for us, cool
     tri_params->Kn_s2m_SU = K_n_s2m_SU;
     tri_params->Kt_s2m_SU = K_t_s2m_SU;
@@ -664,18 +664,17 @@ void ChSystemGranular_MonodisperseSMC_trimesh::copy_triangle_data_to_device() {
 }
 
 __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(float duration) {
-    sphereDataStruct sphere_data;
-
-    packSphereDataPointers(sphere_data);
-
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
     float duration_SU = std::ceil(duration / gran_params->TIME_UNIT);
     determineNewStepSize_SU();  // doesn't always change the timestep
-    gran_params->alpha_h_bar = stepSize_SU;
     unsigned int nsteps = duration_SU / stepSize_SU;
+
+    sphereDataStruct sphere_data;
+    packSphereDataPointers(sphere_data);
+    // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
@@ -686,7 +685,6 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determineNewStepSize_SU();  // doesn't always change the timestep
-        gran_params->alpha_h_bar = stepSize_SU;
 
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
@@ -740,6 +738,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         gpuErrchk(cudaDeviceSynchronize());
         elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT;  // Advance current time
     }
+
     return time_elapsed_SU * gran_params->TIME_UNIT;  // return elapsed UU time
 }
 }  // namespace granular

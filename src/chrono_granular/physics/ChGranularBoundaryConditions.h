@@ -80,11 +80,11 @@ struct BC_params_t {
 };
 
 enum BC_type {
-    SPHERE,
     // AA_BOX,
+    SPHERE,
     CONE,
     PLANE,
-    C
+    CYLINDER
 };
 }  // namespace granular
 }  // namespace chrono

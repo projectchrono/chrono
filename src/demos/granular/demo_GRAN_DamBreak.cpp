@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
-    gran_system.set_contactModel(GRAN_CONTACT_MODEL::HOOKE);
+    gran_system.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
     gran_system.set_fixed_stepSize(params.step_size);
     gran_system.setVerbose(params.verbose);
 

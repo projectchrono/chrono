@@ -67,8 +67,7 @@ struct ChFamilyFrame {
  */
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystemGranular_MonodisperseSMC {
   public:
-    ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density)
-        : ChSystemGranular_MonodisperseSMC(radiusSPH, density), K_n_s2m_UU(0), Gamma_n_s2m_UU(0) {}
+    ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density);
     virtual ~ChSystemGranular_MonodisperseSMC_trimesh();
 
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
@@ -124,7 +123,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     /// Disable mesh contact
     void disableMeshCollision() { mesh_collision_enabled = false; }
 
-  private:
+  protected:
+    /// Create a helper to do triangle initialization
+    void initializeTriangles();
     ChGranParams_trimesh* tri_params;
 
     /// clean copy of mesh soup interacting with granular material
@@ -154,7 +155,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     // Number of triangles touching each SD
     std::vector<unsigned int, cudallocator<unsigned int>> SD_isTouchingTriangle;
     // Function members
-    void copy_triangle_data_to_device();
+    void copyTriangleDataToDevice();
     void resetTriangleBroadphaseInformation();
     void resetTriangleForces();
 

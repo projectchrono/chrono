@@ -32,19 +32,27 @@
 namespace chrono {
 namespace granular {
 
+ChSystemGranular_MonodisperseSMC_trimesh::ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density)
+        : ChSystemGranular_MonodisperseSMC(radiusSPH, density), K_n_s2m_UU(0), K_t_s2m_UU(0), Gamma_n_s2m_UU(0), Gamma_t_s2m_UU(0) {
+    // Allocate triangle collision parameters
+    gpuErrchk(cudaMallocManaged(&tri_params, sizeof(ChGranParams_trimesh), cudaMemAttachGlobal));
+}
+
+ChSystemGranular_MonodisperseSMC_trimesh::~ChSystemGranular_MonodisperseSMC_trimesh() {
+    // work to do here
+    cleanupTriMesh_DEVICE();
+}
 double ChSystemGranular_MonodisperseSMC_trimesh::get_max_K() {
     return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
 }
 
-void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
-    switchToSimUnits();
-
+void ChSystemGranular_MonodisperseSMC_trimesh::initializeTriangles() {
     double K_stiffness = get_max_K();
     float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
     K_n_s2m_SU = K_scalingFactor * (K_n_s2m_UU / K_stiffness);
     K_t_s2m_SU = K_scalingFactor * (K_t_s2m_UU / K_stiffness);
 
-    float massSphere = 4.f / 3.f * M_PI * sphere_radius * sphere_radius * sphere_radius;
+    float massSphere = 4.f / 3.f * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU;
     float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
     Gamma_n_s2m_SU = Gamma_scalingFactor * Gamma_n_s2m_UU;
     Gamma_t_s2m_SU = Gamma_scalingFactor * Gamma_t_s2m_UU;
@@ -52,31 +60,12 @@ void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
     for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
         meshSoup_DEVICE->familyMass_SU[fam] = meshSoup_DEVICE->familyMass_SU[fam] / gran_params->MASS_UNIT;
     }
+    copyTriangleDataToDevice();
 
-    generateDEs();
-
-    // Set aside memory for holding data structures worked with. Get some initializations going
-    printf("setupSimulation\n");
-    setupSimulation();
-    copyConstSphereDataToDevice();
-    copy_triangle_data_to_device();
-    copyBDFrameToDevice();
-    gpuErrchk(cudaDeviceSynchronize());
-
-    determineNewStepSize_SU();
-    convertBCUnits();
-
-    // Seed arrays that are populated by the kernel call
-    resetBroadphaseInformation();
-
-    runInitialSpherePriming();
-
-    printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gravity_Z_SU);
 }
-
-ChSystemGranular_MonodisperseSMC_trimesh::~ChSystemGranular_MonodisperseSMC_trimesh() {
-    // work to do here
-    cleanupTriMesh_DEVICE();
+void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
+    initializeSpheres();
+    initializeTriangles();
 }
 
 void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::string> objfilenames,
@@ -103,9 +92,6 @@ void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::stri
 
     printf("nTriangles is %u\n", nTriangles);
     printf("nTriangleFamiliesInSoup is %u\n", nFamiliesInSoup);
-
-    // Allocate triangle collision parameters
-    gpuErrchk(cudaMallocManaged(&tri_params, sizeof(ChGranParams_trimesh), cudaMemAttachGlobal));
 
     // Allocate memory to store mesh soup in unified memory
     printf("Allocating mesh unified memory\n");
@@ -196,6 +182,10 @@ void ChSystemGranular_MonodisperseSMC_trimesh::cleanupTriMesh_DEVICE() {
     cudaFree(meshSoup_DEVICE->omega);
 
     cudaFree(meshSoup_DEVICE->generalizedForcesPerFamily);
+    cudaFree(tri_params->fam_frame_broad);
+    cudaFree(tri_params->fam_frame_narrow);
+    cudaFree(meshSoup_DEVICE);
+    cudaFree(tri_params);
 }
 
 void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
@@ -288,7 +278,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::collectGeneralizedForcesOnMeshSou
     float alpha_k_star = get_max_K();
     float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
     float sphere_mass =
-        4.f / 3.f * M_PI * sphere_radius * sphere_radius * sphere_radius * sphere_density;  // UU sphere mass
+        4.f / 3.f * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;  // UU sphere mass
     float C_F =
         gran_params->psi_L / (alpha_g * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
 

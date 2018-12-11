@@ -118,6 +118,7 @@ int main(int argc, char* argv[]) {
     // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_sys.set_ForceModel(GRAN_FORCE_MODEL::HERTZ);
     // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_sys.set_fixed_stepSize(params.step_size);
 
@@ -131,6 +132,13 @@ int main(int argc, char* argv[]) {
     gran_sys.setVerbose(params.verbose   );
     // Finalize settings and initialize for runtime
     gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + cone_offset, false);
+
+    float zvec[3] = {0,0,0};
+
+    gran_sys.Create_BC_Cyl_Z(zvec, fill_width + params.sphere_radius, false);
+
+    printf("fill radius is %f, cyl radius is %f\n", fill_width - params.sphere_radius, fill_width + params.sphere_radius);
+
 
     float plane_center[3] = {0, 0, center_pt[2]  + params.sphere_radius + cone_slope*cone_offset};
     // face in upwards

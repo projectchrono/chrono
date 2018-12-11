@@ -87,25 +87,30 @@ enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG };
 
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
-enum GRAN_CONTACT_MODEL { HOOKE, HERTZ };
+enum GRAN_FORCE_MODEL { HOOKE, HERTZ };
 
 /// Parameters needed for sphere-based granular dynamics
 struct ChGranParams {
     // Timestep in SU
-    float alpha_h_bar;
+    float stepSize_SU;
 
+    // settings on friction, integrator, and force model 
     GRAN_FRICTION_MODE friction_mode;
-    GRAN_TIME_INTEGRATOR integrator_type;
-    GRAN_CONTACT_MODEL contact_model;
+    GRAN_TIME_INTEGRATOR time_integrator;
+    GRAN_FORCE_MODEL force_model;
 
     // Use user-defined quantities for coefficients
-    float Gamma_n_s2s_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
-    float Gamma_n_s2w_SU;  //!< sphere-to-sphere contact damping coefficient, expressed in SU
+    // sphere-to-sphere contact damping coefficient, expressed in SU    
+    float Gamma_n_s2s_SU;  
+    // sphere-to-wall contact damping coefficient, expressed in SU    
+    float Gamma_n_s2w_SU;  
     float Gamma_t_s2s_SU;
     float Gamma_t_s2w_SU;
 
-    float K_n_s2s_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-sphere
-    float K_n_s2w_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-wall
+    // normal stiffness coefficient, expressed in SU: sphere-to-sphere    
+    float K_n_s2s_SU;  
+    // normal stiffness coefficient, expressed in SU: sphere-to-wall    
+    float K_n_s2w_SU;  
     float K_t_s2s_SU;
     float K_t_s2w_SU;
 
@@ -114,17 +119,26 @@ struct ChGranParams {
     /// Moment of inertia of a sphere, normalized by the radius
     float sphereInertia_by_r;
 
-    unsigned int SD_size_X_SU;  //!< X-dimension of the SD box, expressed in SU
-    unsigned int SD_size_Y_SU;  //!< Y-dimension of the SD box, expressed in SU
-    unsigned int SD_size_Z_SU;  //!< Z-dimension of the SD box, expressed in SU
-    unsigned int nSDs_X;        //!< X-dimension of the BD box in multiples of subdomains, expressed in SU
-    unsigned int nSDs_Y;        //!< Y-dimension of the BD box in multiples of subdomains, expressed in SU
-    unsigned int nSDs_Z;        //!< Z-dimension of the BD box in multiples of subdomains, expressed in SU
+    // X-dimension of the SD box, expressed in SU    
+    unsigned int SD_size_X_SU;  
+    // Y-dimension of the SD box, expressed in SU    
+    unsigned int SD_size_Y_SU;  
+    // Z-dimension of the SD box, expressed in SU    
+    unsigned int SD_size_Z_SU;  
+
+    // Total number of subdomains
+    unsigned int nSDs;
+    // X-dimension of the BD box in multiples of subdomains, expressed in SU    
+    unsigned int nSDs_X;        
+    // Y-dimension of the BD box in multiples of subdomains, expressed in SU    
+    unsigned int nSDs_Y;        
+    // Z-dimension of the BD box in multiples of subdomains, expressed in SU    
+    unsigned int nSDs_Z;        
 
     // These are the max X, Y, Z dimensions in the BD frame
-    int64_t max_x_pos_unsigned;  // ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X)
-    int64_t max_y_pos_unsigned;  // ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y)
-    int64_t max_z_pos_unsigned;  //((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z)
+    int64_t max_x_pos_unsigned;  // ((int64_t)SD_size_X_SU * nSDs_X)
+    int64_t max_y_pos_unsigned;  // ((int64_t)SD_size_Y_SU * nSDs_Y)
+    int64_t max_z_pos_unsigned;  // ((int64_t)SD_size_Z_SU * nSDs_Z)
 
     float gravAcc_X_SU;  //!< Device counterpart of the constant gravity_X_SU
     float gravAcc_Y_SU;  //!< Device counterpart of the constant gravity_Y_SU
@@ -193,6 +207,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Create an z-axis aligned cone
     size_t Create_BC_Plane(float plane_pos[3], float plane_normal[3]);
 
+    /// Create an z-axis aligned cylinder
+    size_t Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal);
+
     bool disable_BC_by_ID(size_t BC_id) {
         size_t max_id = BC_params_list_UU.size();
         if (BC_id >= max_id) {
@@ -227,8 +244,14 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void set_max_adaptive_stepSize(float size_UU) { max_adaptive_step_UU = size_UU; }
     void set_fixed_stepSize(float size_UU) { fixed_step_UU = size_UU; }
     void set_timeStepping(GRAN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
-    void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) { time_integrator = new_integrator; }
-    void set_contactModel(GRAN_CONTACT_MODEL new_contact_model) { contact_model = new_contact_model; }
+    void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) { 
+       gran_params->time_integrator = new_integrator; 
+       time_integrator = new_integrator; 
+    }
+    void set_ForceModel(GRAN_FORCE_MODEL new_contact_model) { 
+        gran_params->force_model = new_contact_model; 
+        force_model = new_contact_model; 
+    }
 
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
@@ -246,7 +269,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Initialize simulation so that it can be advanced
     virtual void initialize();
 
-    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { fric_mode = new_mode; }
+    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { 
+        gran_params->friction_mode = new_mode;     
+        friction_mode = new_mode;
+    }
 
     void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
     void set_K_n_SPH2WALL(double someValue) { K_n_s2w_UU = someValue; }
@@ -281,10 +307,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         BDPositionFunctionZ = fz;
     }
 
-    void setBOXdims(float L_DIM, float D_DIM, float H_DIM) {
-        box_size_X = L_DIM;
-        box_size_Y = D_DIM;
-        box_size_Z = H_DIM;
+    void setBOXdims(float X_DIM, float Y_DIM, float Z_DIM) {
+        box_size_X = X_DIM;
+        box_size_Y = Y_DIM;
+        box_size_Z = Z_DIM;
     }
 
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
@@ -300,8 +326,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void updateBDPosition(float stepSize_SU);
 
   protected:
-    /// Holds the friction mode for the system
-    GRAN_FRICTION_MODE fric_mode;
+    /// Create a helper to do sphere initialization
+    void initializeSpheres();
+
     /// holds the sphere and BD-related params in unified memory
     ChGranParams* gran_params;
 
@@ -314,7 +341,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Number of discrete elements
     unsigned int nDEs;
-    /// Number of subdomains that the BD is split in
+    /// Number of subdomains
     unsigned int nSDs;
 
     // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
@@ -354,11 +381,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     float Y_accGrav;
     float Z_accGrav;
 
-    ///  gravity in sim units
-    float gravity_X_SU;
-    float gravity_Y_SU;
-    float gravity_Z_SU;
-
     /// Entry "i" says how many spheres touch SD i
     std::vector<unsigned int, cudallocator<unsigned int>> SD_NumOf_DEs_Touching;
 
@@ -375,17 +397,16 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// The type of time stepping (fixed or adaptive) used in the simulation
     GRAN_TIME_STEPPING time_stepping;
 
-    /// The type of time integrator used in the simulation
+    GRAN_FRICTION_MODE friction_mode;
     GRAN_TIME_INTEGRATOR time_integrator;
-    GRAN_CONTACT_MODEL contact_model;  //!< DEM local contact force model
+    GRAN_FORCE_MODEL force_model;
+
 
     /// Partitions the big domain (BD) and sets the number of SDs that BD is split in.
     void partitionBD();
 
     /// Copy constant parameter data to device
     void copyConstSphereDataToDevice();
-    /// Copy (potentially updated) BD frame to device
-    void copyBDFrameToDevice();
 
     /// Reset binning and broadphase info
     void resetBroadphaseInformation();
@@ -425,37 +446,29 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Max velocity of all particles in system
     float get_max_vel();
 
-    /// size of the normal stiffness (SU) for sphere-to-sphere contact
+    /// size of the normal stiffness (UU) for sphere-to-sphere contact
     double K_n_s2s_UU;
-    float K_n_s2s_SU;
 
-    /// size of the normal stiffness (SU) for sphere-to-wall contact
+    /// size of the normal stiffness (UU) for sphere-to-wall contact
     double K_n_s2w_UU;
-    float K_n_s2w_SU;
 
     /// normal damping for sphere-to-sphere
     double Gamma_n_s2s_UU;
-    float Gamma_n_s2s_SU;
 
     /// normal damping for sphere-to-wall
     double Gamma_n_s2w_UU;
-    float Gamma_n_s2w_SU;
 
     /// tangential stiffness for sphere-to-sphere
     double K_t_s2s_UU;
-    float K_t_s2s_SU;
 
     /// tangential stiffness for sphere-to-wall
     double K_t_s2w_UU;
-    float K_t_s2w_SU;
 
     /// tangential damping for sphere-to-sphere
     double Gamma_t_s2s_UU;
-    float Gamma_t_s2s_SU;
 
     /// tangential damping for sphere-to-wall
     double Gamma_t_s2w_UU;
-    float Gamma_t_s2w_SU;
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
@@ -469,9 +482,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::vector<BC_params_t<float, float3>, cudallocator<BC_params_t<float, float3>>> BC_params_list_UU;
 
     /// User defined radius of the sphere
-    float sphere_radius;
+    float sphere_radius_UU;
     /// User defined density of the sphere
-    float sphere_density;
+    float sphere_density_UU;
 
     /// length of physical box; defines the global X axis located at the CM of the box
     float box_size_X;
@@ -480,35 +493,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// height of physical box; defines the global Z axis located at the CM of the box
     float box_size_Z;
 
-    /// Size of the sphere radius in Simulation Units
-    unsigned int sphereRadius_SU;
-
-    /// Size of the SD in the X direction (expressed in Simulation Units)
-    unsigned int SD_size_X_SU;
-    /// Size of the SD in the Y direction (expressed in Simulation Units)
-    unsigned int SD_size_Y_SU;
-    /// Size of the SD in the Z direction (expressed in Simulation Units)
-    unsigned int SD_size_Z_SU;
-
-    /// Number of SDs along the X dimension of the box
-    unsigned int nSDs_X;
-    /// Number of SDs along the Y dimension of the box
-    unsigned int nSDs_Y;
-    /// Number of SDs along the Z dimension of the box
-    unsigned int nSDs_Z;
-
     /// User-provided sphere positions in UU
     std::vector<ChVector<float>> user_sphere_positions;
-
-    /// The position of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
-    int BD_frame_X;
-    int BD_frame_Y;
-    int BD_frame_Z;
-
-    /// The velocity of the BD in the global frame, allows us to have a moving BD or BD not at origin, etc.
-    float BD_frame_X_dot;
-    float BD_frame_Y_dot;
-    float BD_frame_Z_dot;
 
     /// Allow the user to set the BD to be fixed, ignoring any given position functions
     bool BD_is_fixed = true;
