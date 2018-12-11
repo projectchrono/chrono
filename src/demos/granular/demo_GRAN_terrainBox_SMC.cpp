@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
         // std::vector<ChVector<float>> body_points =
         //     PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
 
-        utils::HCPSampler<float> sampler(3 * params.sphere_radius);
+        utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
 
         std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setVerbose(params.verbose);
     settlingExperiment.initialize();
 
-    int fps = 100;
+    int fps = 50;
     // assume we run for at least one frame
     // float frame_step = params.step_size * 100.f;
     float frame_step = 1.f / fps;

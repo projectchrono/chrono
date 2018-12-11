@@ -1038,3 +1038,15 @@ Running settling test!
 50 thousand bodies took 1.94265 seconds!
 500 thousand bodies took 15.9833 seconds!
 1 million bodies took 32.5584 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 11 Dec 2018 12:27:52 -0600
+commit f46aa60683cd3440e303d6ae1f34bcafa6f28c6e Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Dec 11 12:27:40 2018 -0600 improve terrain benchmark packing, set up file
+Results:
+Running wavetank test!
+50 thousand bodies took 1.99901 seconds!
+500 thousand bodies took 16.1568 seconds!
+1 million bodies took 32.7177 seconds!
+Running settling test!
+50 thousand bodies took 2.0086 seconds!
+500 thousand bodies took 16.1374 seconds!
+1 million bodies took 33.3265 seconds!
