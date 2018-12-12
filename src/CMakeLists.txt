@@ -46,6 +46,17 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 
+# cmake/FindModernCXX.cmake behaves strangely with PGI compilers, don't trust it
+if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
+  set(CH_CXX_FLAGS "")
+  message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
+    message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
+    set(CH_CXX14 TRUE)
+    set(CH_CXX_FLAGS "-std=c++14")
+  endif()
+endif()
+
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
