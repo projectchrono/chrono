@@ -9,7 +9,15 @@ build on AArch64 and POWER8/9 under Linux.
 ##### Additional Features
 - Some x86 compilers which are not able to build Chrono releases or the develop branch may work with _feature/multiarch_
 - AArch64 experimental support includes some integration of NEON vectorization instructions
-- POWER 8/9 experimental support has been tested for GCC 7 or newer
+- POWER 8/9 experimental support has been tested for GCC 7 or newer and XLC 16.1 and newer
+
+##### Previously Tested Architectures and Compilers
+- x86_64 / GCC 6 and newer
+- x86_64 / Clang 6.0.0 and newer
+- x86_64 / MSVC 14 and newer
+- AArch64 / GCC 7 and newer
+- POWER / GCC 7
+- POWER / XLC 16.1._x_
 
 
 

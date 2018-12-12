@@ -336,14 +336,18 @@ message(STATUS "==== Submodules ====")
 # Force using shared libraries.
 option(INSTALL_GTEST "" OFF)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(chrono_thirdparty/googletest)
+if(BUILD_TESTING)
+  add_subdirectory(chrono_thirdparty/googletest)
+endif()
 
 # Build google benchmark (target: benchmark).
 # Disable installation of benchmark
 # Do not build tests of benchmarking lib.
 option(BENCHMARK_ENABLE_INSTALL "" OFF)
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-add_subdirectory(chrono_thirdparty/googlebenchmark)
+if (BUILD_BENCHMARKING)
+  add_subdirectory(chrono_thirdparty/googlebenchmark)
+endif()
 
 #------------------------------------------------------------
 # Propagates the CMake build to other directories
