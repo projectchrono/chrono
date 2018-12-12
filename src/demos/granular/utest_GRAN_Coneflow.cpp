@@ -85,62 +85,71 @@ int main(int argc, char* argv[]) {
     // Fill box with bodies
     std::vector<ChVector<float>> body_points;
 
-    chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
+    // padding in sampler
+    float fill_epsilon = 2.02f;
+    // padding at top of fill
+    float fill_gap = 1.f;
 
-    float center_pt[3] = {0.f, 0.f, -2.05f * params.sphere_radius};
+    chrono::utils::PDSampler<float> sampler(fill_epsilon * params.sphere_radius);
+
+
+    float center_pt[3] = {0.f, 0.f, -2 - params.box_Z / 6.f};
 
     // width we want to fill to
-    double fill_width = params.box_Z / 4;
+    float fill_width = params.box_Z / 3.f;
     // height that makes this width above the cone
-    double fill_height = fill_width;
+    float fill_height = fill_width;
 
     // fill to top
-    double fill_top = params.box_Z / 2 - 2.05 * params.sphere_radius;
-    double fill_bottom = fill_top + 2.05 * params.sphere_radius - fill_height + center_pt[2];
+    float fill_top = params.box_Z / 2 - fill_gap;
+    float fill_bottom = fill_top - fill_height;
 
     printf("width is %f, bot is %f, top is %f, height is %f\n", fill_width, fill_bottom, fill_top, fill_height);
     // fill box, layer by layer
-    ChVector<> hdims(fill_width - params.sphere_radius, fill_width - params.sphere_radius, 0);
     ChVector<> center(0, 0, fill_bottom);
     // shift up for bottom of box
-    center.z() += 3 * params.sphere_radius;
+    center.z() += fill_gap;
 
     while (center.z() < fill_top) {
         std::cout << "Create layer at " << center.z() << std::endl;
-        auto points = sampler.SampleCylinderZ(center, fill_width - params.sphere_radius, 0);
+        auto points = sampler.SampleCylinderZ(center, fill_width, 0);
         body_points.insert(body_points.end(), points.begin(), points.end());
-        center.z() += 2.05 * params.sphere_radius;
+        center.z() += fill_epsilon * params.sphere_radius;
     }
 
     gran_sys.setParticlePositions(body_points);
 
+    float sphere_mass = (4.f / 3.f) * params.sphere_density *  params.sphere_radius*  params.sphere_radius*  params.sphere_radius;
+    
+    printf("%d spheres with mass %f \n", body_points.size(), body_points.size() * sphere_mass);
+
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
-    gran_sys.set_ForceModel(GRAN_FORCE_MODEL::HERTZ);
-    // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+    // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_sys.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_sys.set_fixed_stepSize(params.step_size);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
 
     float cone_slope = 1.0;
-    // float hdims[3] = {2.f, 2.f, 2.f};
 
-    float cone_offset = 8 * params.sphere_radius;
+    float cone_offset = 5.f;
 
     gran_sys.setVerbose(params.verbose   );
     // Finalize settings and initialize for runtime
     gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + cone_offset, false);
 
     float zvec[3] = {0,0,0};
+    float cyl_rad  = fill_width + 8 * params.sphere_radius;
 
-    gran_sys.Create_BC_Cyl_Z(zvec, fill_width + params.sphere_radius, false);
+    gran_sys.Create_BC_Cyl_Z(zvec, cyl_rad, false);
 
-    printf("fill radius is %f, cyl radius is %f\n", fill_width - params.sphere_radius, fill_width + params.sphere_radius);
+    printf("fill radius is %f, cyl radius is %f\n", fill_width, fill_width);
 
 
-    float plane_center[3] = {0, 0, center_pt[2]  + params.sphere_radius + cone_slope*cone_offset};
+    float plane_center[3] = {0, 0, center_pt[2]  + 2 * cone_slope + cone_slope*cone_offset};
     // face in upwards
     float plane_normal[3] = {0, 0, 1};
     
