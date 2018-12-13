@@ -57,9 +57,19 @@ int main(int argc, char* argv[]) {
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
+
+    m_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    m_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    m_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
+
     m_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
     m_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
     m_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
+
+    m_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    m_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
+
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
