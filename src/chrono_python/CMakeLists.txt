@@ -99,8 +99,8 @@ ADD_DEPENDENCIES(ChronoEngine_pyparser ChronoEngine)
 
 install(TARGETS ChronoEngine_pyparser
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib64
-        ARCHIVE DESTINATION lib64)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 #-----------------------------------------------------------------------------
 # Find SWIG

@@ -56,8 +56,8 @@ ADD_DEPENDENCIES(ChronoEngine_postprocess ChronoEngine)
 	
 INSTALL(TARGETS ChronoEngine_postprocess
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib64
-        ARCHIVE DESTINATION lib64)		
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)		
 
 INSTALL(FILES ${ChronoEngine_POSTPROCESS_HEADERS}
         DESTINATION include/chrono_postprocess)

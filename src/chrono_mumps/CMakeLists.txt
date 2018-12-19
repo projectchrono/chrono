@@ -195,8 +195,8 @@ ENDIF()
 
 INSTALL(TARGETS ChronoEngine_mumps
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib64
-        ARCHIVE DESTINATION lib64)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 INSTALL(FILES ${ChronoEngine_MUMPS_HEADERS} 
         DESTINATION include/chrono_mumps)

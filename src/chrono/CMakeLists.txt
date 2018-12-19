@@ -1160,8 +1160,8 @@ endif()
 # Install the main ChronoEngine library
 install(TARGETS ChronoEngine
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib64
-    ARCHIVE DESTINATION lib64)
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
 
 # Install all header files for the main ChronoEngine library
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
