@@ -1,5 +1,6 @@
-# make an in source build do to some problems with install
 
+mkdir ./build
+cd ./build
 if [ "$PY3K" == "1" ]; then
     MY_PY_VER="${PY_VER}m"
 else
@@ -13,8 +14,7 @@ else
 fi
 
 # Configure step
-cmake -G ninja \
- -DCMAKE_INSTALL_PREFIX=$PREFIX \
+cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCMAKE_PREFIX_PATH=$PREFIX \
  -DCMAKE_SYSTEM_PREFIX_PATH=$PREFIX \
  -DCH_INSTALL_PYTHON_PACKAGE=$SP_DIR \
@@ -30,15 +30,13 @@ cmake -G ninja \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \
  -DBUILD_GMOCK=OFF \
- .
+ ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
 # gcc gets out of memory
-ninja -j 6 install
+cmake --build . --config "%CONFIGURATION%"
 
-# fix rpaths
-#if [ `uname` == Darwin ]; then
-#    for lib in `ls $SP_DIR/OCC/_*.so`; do
-#      install_name_tool -rpath $PREFIX/lib @loader_path/../../../ $lib
-#    done
-#fi
+cmake --build . --config "%CONFIGURATION%" --target install
+
+
+
