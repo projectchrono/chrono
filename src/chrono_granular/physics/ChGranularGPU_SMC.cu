@@ -57,7 +57,6 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
 
     gran_params->cohesion_ratio = cohesion_over_gravity;
     gran_params->adhesion_ratio_s2w = adhesion_s2w_over_gravity;
-
 }
 
 // Check number of spheres in each SD and dump relevant info to file
@@ -220,7 +219,6 @@ void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
     gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
                          MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
     gpuErrchk(cudaDeviceSynchronize());
-
 }
 // Reset sphere-sphere force data structures
 void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
@@ -249,7 +247,7 @@ void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
 
 void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU) {
     if (BD_is_fixed) {
-        return; 
+        return;
     }
     // Frequency of oscillation
     float frame_X_old = gran_params->BD_frame_X;
@@ -461,7 +459,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
 
         // Update the position and velocity of the BD, if relevant
         if (!BD_is_fixed) {
-            updateBDPosition(stepSize_SU);  
+            updateBDPosition(stepSize_SU);
         }
         resetSphereForces();
 
