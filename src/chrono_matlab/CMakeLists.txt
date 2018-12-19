@@ -81,8 +81,8 @@ ADD_DEPENDENCIES(ChronoEngine_matlab ChronoEngine)
 
 INSTALL(TARGETS ChronoEngine_matlab
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib64
-        ARCHIVE DESTINATION lib64)       
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)       
 
 INSTALL(FILES ${ChronoEngine_MATLAB_HEADERS}
         DESTINATION include/chrono/unit_MATLAB)

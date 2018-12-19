@@ -62,7 +62,7 @@ set(CHRONO_C_FLAGS "@CH_C_FLAGS@")
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CHRONO_LINKER_FLAGS "")
 else()
-  set(CHRONO_LINKER_FLAGS "-L@CH_BINARY_DIR@/lib64")
+  set(CHRONO_LINKER_FLAGS "-L@CH_BINARY_DIR@/lib")
 endif()
 
 list(APPEND CHRONO_INCLUDE_DIRS "@CH_INCLUDE_DIRS@")
@@ -242,7 +242,7 @@ endforeach()
 foreach(lib ${CHRONO_LIB_NAMES})
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}
-    PATHS "@CH_BINARY_DIR@/lib64"
+    PATHS "@CH_BINARY_DIR@/lib"
     PATH_SUFFIXES "Release"
     NO_DEFAULT_PATH
   )
@@ -347,9 +347,6 @@ function(add_DLL_copy_command DLL_LIST)
         )
     endforeach()
 
-    message("Attention: the COPY_DLLS routine will first look for Chrono libraries under the /bin and /lib64 subfolders of @CH_BINARY_DIR@")
-    message("           If not found, it will look under /bin/Release and /lib64/Release subfolder, so copying the Release version of Chrono.")
-    message("           Check the few lines above to make sure which dlls are copied!")
-    message("           In both cases please mind that you SHOULD NOT mix libraries and/or executables compiled with different build configurations (e.g. Release and Debug)!")
-
+    message("Attention: Only RELEASE DLLs are copied automatically.")
+    message("           You must manually copy the DLLs for other configurations.")
 endfunction()
