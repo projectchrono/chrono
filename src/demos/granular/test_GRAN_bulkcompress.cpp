@@ -35,8 +35,32 @@ using std::endl;
 using std::string;
 using std::vector;
 
-double block_mass = 1000;  // TODO
+/*
+ * Lommen 2014:
+ * Settle particles then drop box
+ * 18,000 particles
+ * Settled for 1 s
+ * Poisson Ratio = 0.25
+ * Coefficient of Restitution = 0.5
+ * Static friction = 0.5
+ * Rolling Friction = 0.04
+ * Drop height (above material)= 0.2 m
+ * Box mass = 50 kg
+ * Periodic boundary condition in x and y
+ * Time after release = 3 s
+ * Varied Shear modulus
+ *
+ * Assumed:
+ * Particle diameter = 4, 8, or 16 mm
+ * Density 1500 kg/m3
+ * Settled height ~0.25 m
+ */
+
+const double time_settle = 1;
 double fill_top;
+
+const double block_mass = 50000;  // 50kg
+const double drop_height = 20;    // 0.2m
 
 void ShowUsage() {
     cout << "usage: ./test_GRAN_bulkcompress <json_file>" << endl;
@@ -116,6 +140,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
+
     float iteration_step = params.step_size;
 
     ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
@@ -125,8 +150,8 @@ int main(int argc, char* argv[]) {
     ChSystemSMC ch_sys;
     ch_sys.Set_G_acc(ChVector<>(params.grav_X, params.grav_Y, params.grav_Z));
     auto block = std::make_shared<ChBody>();
-    block->SetBodyFixed(false);
-    block->SetPos(ChVector<>(0, 0, fill_top + 2 * params.sphere_radius));
+    block->SetBodyFixed(true);
+    block->SetPos(ChVector<>(0, 0, params.box_Z));
     block->SetMass(block_mass);
     ch_sys.AddBody(block);
 
@@ -143,11 +168,23 @@ int main(int argc, char* argv[]) {
     cout << "out_steps " << out_steps << endl;
 
     unsigned int step = 0;
+    bool box_released = false;
+    m_sys.disableMeshCollision();
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
+        if (t >= time_settle && box_released == false) {
+            m_sys.enableMeshCollision();
+
+            block->SetBodyFixed(false);
+            double max_z = m_sys.get_max_z();
+            block->SetPos(ChVector<>(0, 0, max_z + params.sphere_radius + drop_height));
+
+            box_released = true;
+            cout << "Releasing box" << endl;
+        }
+
         meshSoupLocOri[0] = 0;
         meshSoupLocOri[1] = 0;
         meshSoupLocOri[2] = block->GetPos().z();
-        cout << "Height: " << block->GetPos().z() << endl;
 
         meshSoupLocOri[3] = 1;
         meshSoupLocOri[4] = 0;
