@@ -668,9 +668,9 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = std::ceil(duration / gran_params->TIME_UNIT);
+    float duration_SU = duration / gran_params->TIME_UNIT;
     determineNewStepSize_SU();  // doesn't always change the timestep
-    unsigned int nsteps = duration_SU / stepSize_SU;
+    unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
     sphereDataStruct sphere_data;
     packSphereDataPointers(sphere_data);

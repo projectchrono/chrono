@@ -444,9 +444,9 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = std::ceil(duration / gran_params->TIME_UNIT);
+    float duration_SU = duration / gran_params->TIME_UNIT;
     determineNewStepSize_SU();  // doesn't always change the timestep
-    unsigned int nsteps = duration_SU / stepSize_SU;
+    unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
                    stepSize_SU, nsteps, duration / nsteps);
