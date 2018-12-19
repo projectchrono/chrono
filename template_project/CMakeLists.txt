@@ -59,7 +59,7 @@ project(my_project)
 # In this example, we only request the Irrlicht module (required)
 #--------------------------------------------------------------
 
-LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib64")
+LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
 find_package(Chrono
              COMPONENTS Irrlicht
              CONFIG)
