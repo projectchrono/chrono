@@ -102,7 +102,7 @@ void SetupGranTriSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_par
 
     // Mesh values
     vector<string> mesh_filenames;
-    string mesh_filename("granular/square_plane.obj");
+    string mesh_filename("granular/upward_plane.obj");
     mesh_filenames.push_back(mesh_filename);
 
     vector<float3> mesh_scalings;
