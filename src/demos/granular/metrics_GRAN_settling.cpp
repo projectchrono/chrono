@@ -42,7 +42,7 @@ double fill_top;
 double block_mass = 1;
 
 void ShowUsage() {
-    cout << "usage: ./metrics_GRAN_settling <json_file>" << endl;
+    cout << "usage: ./metrics_GRAN_settling <json_file> <optional: test index for single test>" << endl;
 }
 
 void SetupGranSystem(ChSystemGranular_MonodisperseSMC& m_sys, sim_param_holder& params) {
@@ -102,7 +102,7 @@ void SetupGranTriSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_par
 
     // Mesh values
     vector<string> mesh_filenames;
-    string mesh_filename("granular/upward_plane.obj");
+    string mesh_filename("granular/upward_plane_refined.obj");
     mesh_filenames.push_back(mesh_filename);
 
     vector<float3> mesh_scalings;
