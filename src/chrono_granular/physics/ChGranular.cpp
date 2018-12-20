@@ -45,9 +45,9 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     gran_params->psi_h = PSI_h_DEFAULT;
     gran_params->psi_L = PSI_L_DEFAULT;
     gran_params->friction_mode = FRICTIONLESS;
-    this->friction_mode=FRICTIONLESS;
+    this->friction_mode = FRICTIONLESS;
     gran_params->time_integrator = FORWARD_EULER;
-    this->time_integrator=FORWARD_EULER;
+    this->time_integrator = FORWARD_EULER;
     gran_params->force_model = HOOKE;
     this->force_model = HOOKE;
 }
@@ -89,6 +89,8 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
 
     packed.SD_NumOf_DEs_Touching = SD_NumOf_DEs_Touching.data();
     packed.DEs_in_SD_composite = DEs_in_SD_composite.data();
+
+    packed.sphere_contact_map = sphere_contact_map.data();
 }
 
 // size_t ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
@@ -244,7 +246,7 @@ void ChSystemGranular_MonodisperseSMC::determineNewStepSize_SU() {
     } else {
         stepSize_SU = fixed_step_UU / gran_params->TIME_UNIT;
     }
-    // if step ize changed, update it on device 
+    // if step ize changed, update it on device
     if (gran_params->stepSize_SU != stepSize_SU) {
         gran_params->stepSize_SU = stepSize_SU;
     }
@@ -260,7 +262,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
         BC_params_t<float, float3> params_UU = BC_params_list_UU.at(i);
         BC_params_t<int, int3> params_SU;
         switch (bc_type) {
-            case BC_type::SPHERE:{
+            case BC_type::SPHERE: {
                 printf("adding sphere!\n");
                 // set center, radius, norm
                 params_SU.sphere_params.sphere_center.x =
@@ -274,7 +276,8 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.active = true;
 
                 BC_params_list_SU.push_back(params_SU);
-                break;}
+                break;
+            }
 
                 // case BC_type::AA_BOX:{
                 //     printf("adding box!\n");
@@ -298,7 +301,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 //     BC_params_list_SU.push_back(params_SU);
                 //     break;}
 
-            case BC_type::CONE:{
+            case BC_type::CONE: {
                 printf("adding cone!\n");
 
                 params_SU.cone_params.cone_tip.x = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.x);
@@ -312,8 +315,9 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.active = true;
 
                 BC_params_list_SU.push_back(params_SU);
-                break;}
-            case BC_type::PLANE:{
+                break;
+            }
+            case BC_type::PLANE: {
                 printf("adding plane!\n");
                 params_SU.plane_params.position.x = convertToPosSU<int, float>(params_UU.plane_params.position.x);
                 params_SU.plane_params.position.y = convertToPosSU<int, float>(params_UU.plane_params.position.y);
@@ -328,8 +332,9 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.active = true;
 
                 BC_params_list_SU.push_back(params_SU);
-                break;}
-            case BC_type::CYLINDER:{
+                break;
+            }
+            case BC_type::CYLINDER: {
                 printf("adding plane!\n");
                 params_SU.cyl_params.center.x = convertToPosSU<int, float>(params_UU.cyl_params.center.x);
                 params_SU.cyl_params.center.y = convertToPosSU<int, float>(params_UU.cyl_params.center.y);
@@ -344,7 +349,8 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.active = true;
 
                 BC_params_list_SU.push_back(params_SU);
-                break;}
+                break;
+            }
             default: {
                 printf("ERROR: Unsupported BC Type!\n");
                 exit(1);
@@ -430,6 +436,14 @@ void ChSystemGranular_MonodisperseSMC::generateDEs() {
         sphere_ang_acc_X.resize(nDEs, 0);
         sphere_ang_acc_Y.resize(nDEs, 0);
         sphere_ang_acc_Z.resize(nDEs, 0);
+    }
+
+    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+        contactDataStruct null_data;
+        null_data.tangent_disp = {0, 0, 0};
+        null_data.active = 0;
+        null_data.body_B = NULL_GRANULAR_ID;
+        sphere_contact_map.resize(12 * nDEs, null_data);
     }
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
@@ -535,7 +549,8 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
 
     // Handy debug output
     printf("UU mass is %f\n", gran_params->MASS_UNIT);
-    printf("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU, gran_params->gravAcc_Z_SU);
+    printf("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
+           gran_params->gravAcc_Z_SU);
     printf("SU radius is %u\n", gran_params->sphereRadius_SU);
     float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
     printf("Safe timestep is about %f\n", dt_safe_estimate);

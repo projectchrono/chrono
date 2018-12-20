@@ -35,6 +35,7 @@
 #include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
 
 using chrono::granular::sphereDataStruct;
+using chrono::granular::contactDataStruct;
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
@@ -338,7 +339,7 @@ inline __device__ void applyBCForces(const int sphXpos,    //!< Global X positio
             }
             case BC_type::CYLINDER: {
                 addBCForces_Zcyl(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ,
-                                  force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
+                                 force_from_BCs, ang_acc_from_BCs, gran_params, bc_params_list[i]);
                 break;
             }
         }
@@ -545,6 +546,67 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     }
 }
 
+/// get a pointer for the current contact pair
+inline __device__ contactDataStruct* findContactPairInfo(contactDataStruct* sphere_contact_map,
+                                                         GranParamsPtr gran_params,
+                                                         unsigned int body_A,
+                                                         unsigned int body_B) {
+    size_t body_A_offset = 12 * body_A;
+    // first skim through and see if this contact pair is in the map
+    for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
+        contactDataStruct* ptr_to_contact = sphere_contact_map + body_A_offset + contact_id;
+        if (ptr_to_contact->body_B == body_B) {
+            // make sure this contact is marked active
+            ptr_to_contact->active = true;
+            return ptr_to_contact;
+        }
+    }
+
+    // if we get this far, the contact pair isn't in the map now and we need to find an empty spot
+    for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
+        contactDataStruct* ptr_to_contact = sphere_contact_map + body_A_offset + contact_id;
+        // check whether the slot is free
+        if (ptr_to_contact->body_B == NULL_GRANULAR_ID) {
+            // getting this means the slot is free
+            unsigned int body_B_expected = NULL_GRANULAR_ID;
+            // claim this slot for ourselves, atomically
+            unsigned int body_B_returned = atomicCAS(&(ptr_to_contact->body_B), body_B_expected, body_B);
+            if (body_B_expected == body_B_returned) {
+                // make sure this contact is marked active
+                ptr_to_contact->active = true;
+                return ptr_to_contact;
+            }
+        }
+    }
+    for (int i = 0; i < 12; i++) {
+        contactDataStruct* ptr_to_contact = sphere_contact_map + body_A_offset + i;
+        printf("body %u has no more slots, slot %d is taken by body %u\n", body_A, i, ptr_to_contact->body_B);
+    }
+    // if we got this far, we couldn't find a free contact pair. That is a violation of the 12-contacts theorem, so we
+    // should probably give up now
+    ABORTABORTABORT("No available contact pair slots for body %u", body_A);
+    return nullptr;  // shouldn't get here anyways
+}
+
+// cleanup the contact data for a given body
+inline __device__ void cleanupContactMap(contactDataStruct* sphere_contact_map, unsigned int body_A) {
+    size_t body_A_offset = 12 * body_A;
+    contactDataStruct null_data;  // what to reset the entries to
+    null_data.tangent_disp = {0, 0, 0};
+    null_data.active = 0;
+    null_data.body_B = NULL_GRANULAR_ID;
+    // first skim through and see if this contact pair is in the map
+    for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
+        // if the contact is not active, reset it
+        if (sphere_contact_map[body_A_offset + contact_id].active == false) {
+            sphere_contact_map[body_A_offset + contact_id] = null_data;
+        } else {
+            // otherwise reset the active bit for next time
+            sphere_contact_map[body_A_offset + contact_id].active = false;
+        }
+    }
+}
+
 /**
 This kernel call figures out forces cuased by sphere-sphere interactions
 
@@ -676,6 +738,9 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // We have a collision here, log it for later
             // not very divergent, super quick
             if (contactSD == thisSD && penetration_int < contact_threshold) {
+                if (ncontacts >= MAX_SPHERES_TOUCHED_BY_SPHERE) {
+                    ABORTABORTABORT("TOO MANY CONTACTS FOR SPHERE %u in SD %u\n", bodyA, thisSD);
+                }
                 bodyB_list[ncontacts] = bodyB;  // Save the collision pair
                 ncontacts++;                    // Increment the contact counter
             }
@@ -722,10 +787,12 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
                                       -1.f * delta_r * sphereRadius_SU);
             }
 
-            // Compute force updates for damping term
-            // Project relative velocity to the normal
-            // n = delta_r * reciplength
-            // proj = Dot(delta_dot, n)
+            constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+            const float cohesionConstant =
+                gran_params->sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
+            // multiplier caused by Hooke vs Hertz force model
+            float force_model_multiplier = get_force_multiplier(penetration, gran_params);
+
             float projection = Dot(v_rel, delta_r) * reciplength;
 
             // delta_dot = proj * n
@@ -733,13 +800,6 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
             // remove normal component, now this is just tangential
             v_rel = v_rel - vrel_n;
-
-            constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
-            // multiplier caused by Hooke vs Hertz force model
-            float force_model_multiplier = get_force_multiplier(penetration, gran_params);
-
-            const float cohesionConstant =
-                gran_params->sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
 
             // Force accumulator
             // Add spring term
@@ -761,6 +821,33 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
                     // we dotted out normal component of v, so v_rel is the tangential component
                     float3 tangent_force = -combined_tangent_coeff * v_rel * force_model_multiplier;
+                    // tau = r cross f = radius * n cross F
+                    // 2 * radius * n = -1 * delta_r * sphdiameter
+                    // assume abs(r) ~ radius, so n = delta_r
+                    // compute accelerations caused by torques on body
+                    bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
+                    // add to total forces
+                    force_accum = force_accum + tangent_force;
+                } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                    // tangential displacement
+                    contactDataStruct* contact_ptr = findContactPairInfo(sphere_data.sphere_contact_map, gran_params,
+                                                                         bodyA, sphere_data.DEs_in_SD_composite[bodyB]);
+                    // get the tangential displacement so far
+                    float3 ut = contact_ptr->tangent_disp;
+                    // add on what we have
+                    ut = ut + v_rel * gran_params->stepSize_SU;
+
+                    // project onto contact normal
+                    float projection = Dot(ut, delta_r) * reciplength;
+                    // remove normal projection
+                    ut = ut - projection * delta_r * reciplength;
+
+                    // write back the updated displacement
+                    contact_ptr->tangent_disp = ut;
+
+                    // we dotted out normal component of v, so v_rel is the tangential component
+                    float3 tangent_force = -1. * force_model_multiplier *
+                                           (gran_params->K_t_s2s_SU * ut + gran_params->Gamma_t_s2s_SU * m_eff * v_rel);
                     // tau = r cross f = radius * n cross F
                     // 2 * radius * n = -1 * delta_r * sphdiameter
                     // assume abs(r) ~ radius, so n = delta_r
@@ -850,6 +937,12 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
     float old_vel_x = 0;
     float old_vel_y = 0;
     float old_vel_z = 0;
+
+    // if we're in multistep mode, clean up contact histories
+    if ((mySphereID < nSpheres) && (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP)) {
+        cleanupContactMap(sphere_data.sphere_contact_map, mySphereID);
+    }
+
     // Write back velocity updates
     if (mySphereID < nSpheres) {
         // Check to see if we messed up badly somewhere

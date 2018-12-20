@@ -92,7 +92,6 @@ int main(int argc, char* argv[]) {
 
     chrono::utils::PDSampler<float> sampler(fill_epsilon * params.sphere_radius);
 
-
     float center_pt[3] = {0.f, 0.f, -2 - params.box_Z / 6.f};
 
     // width we want to fill to
@@ -119,8 +118,9 @@ int main(int argc, char* argv[]) {
 
     gran_sys.setParticlePositions(body_points);
 
-    float sphere_mass = (4.f / 3.f) * params.sphere_density *  params.sphere_radius*  params.sphere_radius*  params.sphere_radius;
-    
+    float sphere_mass =
+        (4.f / 3.f) * params.sphere_density * params.sphere_radius * params.sphere_radius * params.sphere_radius;
+
     printf("%d spheres with mass %f \n", body_points.size(), body_points.size() * sphere_mass);
 
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
     gran_sys.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
-    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
     gran_sys.set_fixed_stepSize(params.step_size);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
@@ -137,31 +137,30 @@ int main(int argc, char* argv[]) {
 
     float cone_offset = 5.f;
 
-    gran_sys.setVerbose(params.verbose   );
+    gran_sys.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
     gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + cone_offset, false);
 
-    float zvec[3] = {0,0,0};
-    float cyl_rad  = fill_width + 8 * params.sphere_radius;
+    float zvec[3] = {0, 0, 0};
+    float cyl_rad = fill_width + 8 * params.sphere_radius;
 
     gran_sys.Create_BC_Cyl_Z(zvec, cyl_rad, false);
 
     printf("fill radius is %f, cyl radius is %f\n", fill_width, fill_width);
 
-
-    float plane_center[3] = {0, 0, center_pt[2]  + 2 * cone_slope + cone_slope*cone_offset};
+    float plane_center[3] = {0, 0, center_pt[2] + 2 * cone_slope + cone_slope * cone_offset};
     // face in upwards
     float plane_normal[3] = {0, 0, 1};
-    
-    printf("center is %f, %f, %f, plane center is is %f, %f, %f\n", center_pt[0], center_pt[1], center_pt[2], plane_center[0],
-           plane_center[1], plane_center[2]);
+
+    printf("center is %f, %f, %f, plane center is is %f, %f, %f\n", center_pt[0], center_pt[1], center_pt[2],
+           plane_center[0], plane_center[1], plane_center[2]);
     size_t plane_bc_id = gran_sys.Create_BC_Plane(plane_center, plane_normal);
 
     gran_sys.initialize();
 
-    int fps =    100;
+    int fps = 100;
     // assume we run for at least one frame
-    float frame_step =          1. / fps;
+    float frame_step = 1. / fps;
     float curr_time = 0;
     int currframe = 0;
 

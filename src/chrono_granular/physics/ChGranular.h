@@ -40,6 +40,16 @@
 namespace chrono {
 namespace granular {
 
+/// stores the data for a pair of contacting spheres
+struct contactDataStruct {
+    /// tangential distance traveled so far
+    float3 tangent_disp;
+    /// other body involved in the contact
+    unsigned int body_B;
+    /// whether the contact is still active
+    bool active;
+};
+
 /// hold pointers
 struct sphereDataStruct {
   public:
@@ -73,6 +83,9 @@ struct sphereDataStruct {
     float* sphere_ang_acc_Y_old;
     float* sphere_ang_acc_Z_old;
 
+    /// set of data for sphere contact pairs
+    contactDataStruct* sphere_contact_map;
+
     /// sphere broadphase data
     unsigned int* SD_NumOf_DEs_Touching;
     unsigned int* DEs_in_SD_composite;
@@ -94,23 +107,23 @@ struct ChGranParams {
     // Timestep in SU
     float stepSize_SU;
 
-    // settings on friction, integrator, and force model 
+    // settings on friction, integrator, and force model
     GRAN_FRICTION_MODE friction_mode;
     GRAN_TIME_INTEGRATOR time_integrator;
     GRAN_FORCE_MODEL force_model;
 
     // Use user-defined quantities for coefficients
-    // sphere-to-sphere contact damping coefficient, expressed in SU    
-    float Gamma_n_s2s_SU;  
-    // sphere-to-wall contact damping coefficient, expressed in SU    
-    float Gamma_n_s2w_SU;  
+    // sphere-to-sphere contact damping coefficient, expressed in SU
+    float Gamma_n_s2s_SU;
+    // sphere-to-wall contact damping coefficient, expressed in SU
+    float Gamma_n_s2w_SU;
     float Gamma_t_s2s_SU;
     float Gamma_t_s2w_SU;
 
-    // normal stiffness coefficient, expressed in SU: sphere-to-sphere    
-    float K_n_s2s_SU;  
-    // normal stiffness coefficient, expressed in SU: sphere-to-wall    
-    float K_n_s2w_SU;  
+    // normal stiffness coefficient, expressed in SU: sphere-to-sphere
+    float K_n_s2s_SU;
+    // normal stiffness coefficient, expressed in SU: sphere-to-wall
+    float K_n_s2w_SU;
     float K_t_s2s_SU;
     float K_t_s2w_SU;
 
@@ -119,21 +132,21 @@ struct ChGranParams {
     /// Moment of inertia of a sphere, normalized by the radius
     float sphereInertia_by_r;
 
-    // X-dimension of the SD box, expressed in SU    
-    unsigned int SD_size_X_SU;  
-    // Y-dimension of the SD box, expressed in SU    
-    unsigned int SD_size_Y_SU;  
-    // Z-dimension of the SD box, expressed in SU    
-    unsigned int SD_size_Z_SU;  
+    // X-dimension of the SD box, expressed in SU
+    unsigned int SD_size_X_SU;
+    // Y-dimension of the SD box, expressed in SU
+    unsigned int SD_size_Y_SU;
+    // Z-dimension of the SD box, expressed in SU
+    unsigned int SD_size_Z_SU;
 
     // Total number of subdomains
     unsigned int nSDs;
-    // X-dimension of the BD box in multiples of subdomains, expressed in SU    
-    unsigned int nSDs_X;        
-    // Y-dimension of the BD box in multiples of subdomains, expressed in SU    
-    unsigned int nSDs_Y;        
-    // Z-dimension of the BD box in multiples of subdomains, expressed in SU    
-    unsigned int nSDs_Z;        
+    // X-dimension of the BD box in multiples of subdomains, expressed in SU
+    unsigned int nSDs_X;
+    // Y-dimension of the BD box in multiples of subdomains, expressed in SU
+    unsigned int nSDs_Y;
+    // Z-dimension of the BD box in multiples of subdomains, expressed in SU
+    unsigned int nSDs_Z;
 
     // These are the max X, Y, Z dimensions in the BD frame
     int64_t max_x_pos_unsigned;  // ((int64_t)SD_size_X_SU * nSDs_X)
@@ -244,13 +257,13 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void set_max_adaptive_stepSize(float size_UU) { max_adaptive_step_UU = size_UU; }
     void set_fixed_stepSize(float size_UU) { fixed_step_UU = size_UU; }
     void set_timeStepping(GRAN_TIME_STEPPING new_stepping) { time_stepping = new_stepping; }
-    void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) { 
-       gran_params->time_integrator = new_integrator; 
-       time_integrator = new_integrator; 
+    void set_timeIntegrator(GRAN_TIME_INTEGRATOR new_integrator) {
+        gran_params->time_integrator = new_integrator;
+        time_integrator = new_integrator;
     }
-    void set_ForceModel(GRAN_FORCE_MODEL new_contact_model) { 
-        gran_params->force_model = new_contact_model; 
-        force_model = new_contact_model; 
+    void set_ForceModel(GRAN_FORCE_MODEL new_contact_model) {
+        gran_params->force_model = new_contact_model;
+        force_model = new_contact_model;
     }
 
     /// get the max z position of the spheres, this allows us to do easier cosimulation
@@ -269,8 +282,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Initialize simulation so that it can be advanced
     virtual void initialize();
 
-    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { 
-        gran_params->friction_mode = new_mode;     
+    void set_friction_mode(GRAN_FRICTION_MODE new_mode) {
+        gran_params->friction_mode = new_mode;
         friction_mode = new_mode;
     }
 
@@ -376,6 +389,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::vector<float, cudallocator<float>> sphere_ang_acc_Y_old;
     std::vector<float, cudallocator<float>> sphere_ang_acc_Z_old;
 
+    std::vector<contactDataStruct, cudallocator<contactDataStruct>> sphere_contact_map;
+
     /// gravity in user units
     float X_accGrav;
     float Y_accGrav;
@@ -400,7 +415,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     GRAN_FRICTION_MODE friction_mode;
     GRAN_TIME_INTEGRATOR time_integrator;
     GRAN_FORCE_MODEL force_model;
-
 
     /// Partitions the big domain (BD) and sets the number of SDs that BD is split in.
     void partitionBD();
