@@ -122,6 +122,10 @@ ChVector<T> ChSystemGranular_MonodisperseSMC_trimesh::ApplyFrameTransform(ChVect
 }
 
 void ChSystemGranular_MonodisperseSMC_trimesh::write_meshes(std::string filename) {
+    if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
+        return;
+    }
+
     printf("Writing meshes\n");
     std::ofstream outfile(filename + "_mesh.vtk", std::ios::out);
     std::ostringstream ostream;

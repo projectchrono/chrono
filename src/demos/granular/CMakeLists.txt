@@ -32,6 +32,7 @@ SET(DEMOS
 		test_GRAN_hopperflow
 		test_GRAN_mixer
 		test_GRAN_bulkcompress
+		metrics_GRAN_settling
 )
 
 # ------------------------------------------------------------------------------
