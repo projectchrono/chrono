@@ -198,6 +198,9 @@ int main(int argc, char* argv[]) {
             sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
             m_sys.writeFileUU(string(filename));
             m_sys.write_meshes(string(filename));
+            if (box_released) {
+                cout << block->GetPos().z() << endl;
+            }
         }
 
         float forces[6];
