@@ -648,7 +648,7 @@ public:
 					n=999;
 				strncpy(buffer, data, n);
 				buffer[n]=0;
-				PySys_WriteStdout(buffer);
+				PySys_WriteStdout("%s", buffer);
 		}
 private:
 };

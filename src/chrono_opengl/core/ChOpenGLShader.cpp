@@ -241,14 +241,17 @@ bool ChOpenGLShader::LoadShader(const std::string file_name, GLuint shader_id) {
 
     FILE* file_handle = fopen(file_name.c_str(), "rb");
     if (file_handle == NULL) {
-        std::cerr << "Cannot open shader: " << file_name << std::endl;
+        std::cerr << "ChOpenGLShader::LoadShader -- Cannot open shader: " << file_name << std::endl;
         return false;
     }
     fseek(file_handle, 0, SEEK_END);
     int length = ftell(file_handle);
     fseek(file_handle, 0, SEEK_SET);
     GLubyte* buffer = new GLubyte[length + 1];
-    fread(buffer, sizeof(GLubyte), length, file_handle);
+    if (fread(buffer, sizeof(GLubyte), length, file_handle) != length) {
+        std::cerr << "ChOpenGLShader::LoadShader -- Read error" << std::endl;
+        return false;
+    }
     fclose(file_handle);
     buffer[length] = 0;
     glShaderSource(shader_id, 1, (const char**)&buffer, NULL);

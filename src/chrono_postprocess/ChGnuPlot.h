@@ -389,7 +389,7 @@ class ChGnuPlot {
         syscmd += "\"";
         if (persist)
             syscmd += " -persist";
-        system(syscmd.c_str());
+        int err = system(syscmd.c_str());
 #else
         // Unix like systems:
         // ex. of launched sys command: "gnuplot __tmp_gnuplot.gpl -persist &"
@@ -399,7 +399,7 @@ class ChGnuPlot {
         if (persist)
             syscmd += " -persist";
         syscmd += " &";  // to launch and forget
-        system(syscmd.c_str());
+        int err = system(syscmd.c_str());
 #endif
     }
 
