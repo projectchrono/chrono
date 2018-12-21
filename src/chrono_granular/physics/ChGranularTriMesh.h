@@ -103,8 +103,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
         float Gamma_t_s2m_SU;
         float Kn_s2m_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
         float Kt_s2m_SU;
-        float adhesion_ratio_s2m;            //!< Ratio of adhesion force to sphere weight
-        unsigned int num_triangle_families;  /// Number of triangle families
+        /// acceleration caused by adhesion force
+        float adhesionAcc_s2m;
+        /// Number of triangle families
+        unsigned int num_triangle_families;
         ChFamilyFrame<float>* fam_frame_broad;
         ChFamilyFrame<double>* fam_frame_narrow;
     };

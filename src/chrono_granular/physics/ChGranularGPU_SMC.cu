@@ -54,9 +54,6 @@ __host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
 
     // NOTE: Assumes mass = 1
     gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
-
-    gran_params->cohesion_ratio = cohesion_over_gravity;
-    gran_params->adhesion_ratio_s2w = adhesion_s2w_over_gravity;
 }
 
 // Check number of spheres in each SD and dump relevant info to file

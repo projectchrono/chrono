@@ -71,9 +71,12 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
 
         contact = true;
         // spring term
-        force_from_BCs.x += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dX * total_diameter * penetration * force_model_multiplier;
-        force_from_BCs.y += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dY * total_diameter * penetration * force_model_multiplier;
-        force_from_BCs.z += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dZ * total_diameter * penetration * force_model_multiplier;
+        force_from_BCs.x += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dX * total_diameter * penetration *
+                            force_model_multiplier;
+        force_from_BCs.y += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dY * total_diameter * penetration *
+                            force_model_multiplier;
+        force_from_BCs.z += sphere_params.normal_sign * gran_params->K_n_s2w_SU * dZ * total_diameter * penetration *
+                            force_model_multiplier;
 
         // damping term
         // Compute force updates for damping term
@@ -85,9 +88,12 @@ inline __device__ bool addBCForces_Sphere(const int sphXpos,
 
         constexpr float m_eff = 0.5;
 
-        force_from_BCs.x += -gran_params->Gamma_n_s2w_SU * projection * dX * reciplength * m_eff * force_model_multiplier;
-        force_from_BCs.y += -gran_params->Gamma_n_s2w_SU * projection * dY * reciplength * m_eff * force_model_multiplier;
-        force_from_BCs.z += -gran_params->Gamma_n_s2w_SU * projection * dZ * reciplength * m_eff * force_model_multiplier;
+        force_from_BCs.x +=
+            -gran_params->Gamma_n_s2w_SU * projection * dX * reciplength * m_eff * force_model_multiplier;
+        force_from_BCs.y +=
+            -gran_params->Gamma_n_s2w_SU * projection * dY * reciplength * m_eff * force_model_multiplier;
+        force_from_BCs.z +=
+            -gran_params->Gamma_n_s2w_SU * projection * dZ * reciplength * m_eff * force_model_multiplier;
     }
     return contact;
 }
@@ -142,9 +148,10 @@ inline __device__ bool addBCForces_ZCone(const int sphXpos,
     if (penetration > 0 && contact_height >= cone_params.hmin - cone_params.cone_tip.z &&
         contact_height <= cone_params.hmax - cone_params.cone_tip.z) {
         float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
-       
+
         // add spring term
-        force_from_BCs = force_from_BCs + cone_params.normal_sign * gran_params->K_n_s2w_SU * penetration * contact_vector * force_model_multiplier;
+        force_from_BCs = force_from_BCs + cone_params.normal_sign * gran_params->K_n_s2w_SU * penetration *
+                                              contact_vector * force_model_multiplier;
 
         // damping term
         // Compute force updates for damping term
@@ -154,7 +161,8 @@ inline __device__ bool addBCForces_ZCone(const int sphXpos,
 
         constexpr float m_eff = 0.5;
 
-        force_from_BCs = force_from_BCs + -gran_params->Gamma_n_s2w_SU * projection * contact_vector * m_eff * force_model_multiplier;
+        force_from_BCs = force_from_BCs +
+                         -gran_params->Gamma_n_s2w_SU * projection * contact_vector * m_eff * force_model_multiplier;
         contact = true;
     }
     return contact;
@@ -249,7 +257,7 @@ inline __device__ bool addBCForces_Zcyl(const int sphXpos,
     bool contact = false;
     // classic radius grab, this must be signed to avoid false conversions
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
-    
+
     // Radial vector from cylinder center to sphere center, along inward direction
     float3 delta_r = make_float3(cyl_params.center.x - sphXpos, cyl_params.center.y - sphYpos, 0.f);
     float dist = Length(delta_r);
@@ -275,8 +283,9 @@ inline __device__ bool addBCForces_Zcyl(const int sphXpos,
         float projection = (sphXvel * normal.x + sphYvel * normal.y);
         
         constexpr float m_eff = 0.5;
-        
-        force_from_BCs = force_from_BCs + -gran_params->Gamma_n_s2w_SU * projection * normal * m_eff * force_model_multiplier;
+
+        force_from_BCs =
+            force_from_BCs + -gran_params->Gamma_n_s2w_SU * projection * normal * m_eff * force_model_multiplier;
         contact = true;
     }
     return contact;

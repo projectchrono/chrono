@@ -90,7 +90,9 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
     packed.SD_NumOf_DEs_Touching = SD_NumOf_DEs_Touching.data();
     packed.DEs_in_SD_composite = DEs_in_SD_composite.data();
 
-    packed.sphere_contact_map = sphere_contact_map.data();
+    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+        packed.sphere_contact_map = sphere_contact_map.data();
+    }
 }
 
 // size_t ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
@@ -335,7 +337,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 break;
             }
             case BC_type::CYLINDER: {
-                printf("adding plane!\n");
+                printf("adding cylinder!\n");
                 params_SU.cyl_params.center.x = convertToPosSU<int, float>(params_UU.cyl_params.center.x);
                 params_SU.cyl_params.center.y = convertToPosSU<int, float>(params_UU.cyl_params.center.y);
                 params_SU.cyl_params.center.z = convertToPosSU<int, float>(params_UU.cyl_params.center.z);
@@ -546,6 +548,9 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     gran_params->Gamma_n_s2w_SU = Gamma_scalingFactor * Gamma_n_s2w_UU;
     gran_params->Gamma_t_s2s_SU = Gamma_scalingFactor * Gamma_t_s2s_UU;
     gran_params->Gamma_t_s2w_SU = Gamma_scalingFactor * Gamma_t_s2w_UU;
+
+    gran_params->cohesionAcc_s2s = cohesion_over_gravity * g_scalingFactor;
+    gran_params->adhesionAcc_s2w = adhesion_s2w_over_gravity * g_scalingFactor;
 
     // Handy debug output
     printf("UU mass is %f\n", gran_params->MASS_UNIT);

@@ -416,7 +416,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.x += -1 * normal_damping_force.x;
         // adhesion term
-        curr_contrib.x += -1 * gran_params->adhesion_ratio_s2w * gran_params->gravMag_SU;
+        curr_contrib.x += -1 * gran_params->adhesionAcc_s2w;
 
         if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
@@ -439,7 +439,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.x += -1 * normal_damping_force.x;
         // adhesion term
-        curr_contrib.x += gran_params->adhesion_ratio_s2w * gran_params->gravMag_SU;
+        curr_contrib.x += gran_params->adhesionAcc_s2w;
 
         if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
@@ -462,7 +462,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.y += -1 * normal_damping_force.y;
         // adhesion term
-        curr_contrib.y += -1 * gran_params->adhesion_ratio_s2w * gran_params->gravMag_SU;
+        curr_contrib.y += -1 * gran_params->adhesionAcc_s2w;
 
         if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
@@ -484,7 +484,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.y += -1 * normal_damping_force.y;
         // adhesion term
-        curr_contrib.y += gran_params->adhesion_ratio_s2w * gran_params->gravMag_SU;
+        curr_contrib.y += gran_params->adhesionAcc_s2w;
 
         if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
@@ -507,7 +507,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.z += -1 * normal_damping_force.z;
         // adhesion term
-        curr_contrib.z += -1 * gran_params->adhesion_ratio_s2w * gran_params->gravMag_SU;
+        curr_contrib.z += -1 * gran_params->adhesionAcc_s2w;
 
         if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
@@ -529,7 +529,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // damping always has this minus sign
         curr_contrib.z += -1 * normal_damping_force.z;
         // adhesion term
-        curr_contrib.z += gran_params->adhesion_ratio_s2w * gran_params->gravMag_SU;
+        curr_contrib.z += gran_params->adhesionAcc_s2w;
 
         if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
             // add tangential forces
@@ -582,8 +582,8 @@ inline __device__ contactDataStruct* findContactPairInfo(contactDataStruct* sphe
         contactDataStruct* ptr_to_contact = sphere_contact_map + body_A_offset + i;
         printf("body %u has no more slots, slot %d is taken by body %u\n", body_A, i, ptr_to_contact->body_B);
     }
-    // if we got this far, we couldn't find a free contact pair. That is a violation of the 12-contacts theorem, so we
-    // should probably give up now
+    // if we got this far, we couldn't find a free contact pair. That is a violation of the 12-contacts theorem, so
+    // we should probably give up now
     ABORTABORTABORT("No available contact pair slots for body %u", body_A);
     return nullptr;  // shouldn't get here anyways
 }
@@ -629,8 +629,7 @@ Assumptions:
 NOTE:
   - Upon calling it with more than 256 threads, this kernel is going to make illegal memory accesses
 */
-template <unsigned int MAX_NSPHERES_PER_SD>  //!< Number of CUB threads engaged in block-collective CUB operations.
-                                             //!< Should be a multiple of 32
+template <unsigned int MAX_NSPHERES_PER_SD>
 __global__ void computeSphereForces(sphereDataStruct sphere_data,
                                     GranParamsPtr gran_params,
                                     BC_type* bc_type_list,
@@ -738,9 +737,6 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // We have a collision here, log it for later
             // not very divergent, super quick
             if (contactSD == thisSD && penetration_int < contact_threshold) {
-                if (ncontacts >= MAX_SPHERES_TOUCHED_BY_SPHERE) {
-                    ABORTABORTABORT("TOO MANY CONTACTS FOR SPHERE %u in SD %u\n", bodyA, thisSD);
-                }
                 bodyB_list[ncontacts] = bodyB;  // Save the collision pair
                 ncontacts++;                    // Increment the contact counter
             }
@@ -754,6 +750,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             unsigned char bodyB = bodyB_list[idx];
 
             float reciplength = 0;
+            float3 force_accum = {0, 0, 0};
             // compute penetrations in double
             {
                 double3 delta_r_double;  // points from b to a
@@ -767,11 +764,16 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // Compute penetration term, this becomes the delta as we want it
             float penetration = reciplength - 1.;
 
+            float force_model_multiplier = get_force_multiplier(penetration, gran_params);
+
             // compute these in float now
             float3 delta_r;  // points from b to a
             delta_r.x = (sphere_X[bodyA] - sphere_X[bodyB]) * invSphDiameter;
             delta_r.y = (sphere_Y[bodyA] - sphere_Y[bodyB]) * invSphDiameter;
             delta_r.z = (sphere_Z[bodyA] - sphere_Z[bodyB]) * invSphDiameter;
+
+            force_accum =
+                force_accum + gran_params->K_n_s2s_SU * delta_r * sphdiameter * penetration * force_model_multiplier;
 
             // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
             float3 v_rel;
@@ -787,12 +789,10 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
                                       -1.f * delta_r * sphereRadius_SU);
             }
 
-            constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
-            const float cohesionConstant =
-                gran_params->sphere_mass_SU * gran_params->gravMag_SU * gran_params->cohesion_ratio;
-            // multiplier caused by Hooke vs Hertz force model
-            float force_model_multiplier = get_force_multiplier(penetration, gran_params);
-
+            // Compute force updates for damping term
+            // Project relative velocity to the normal
+            // n = delta_r * reciplength
+            // proj = Dot(delta_dot, n)
             float projection = Dot(v_rel, delta_r) * reciplength;
 
             // delta_dot = proj * n
@@ -801,74 +801,71 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // remove normal component, now this is just tangential
             v_rel = v_rel - vrel_n;
 
+            constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+            // multiplier caused by Hooke vs Hertz force model
+
             // Force accumulator
             // Add spring term
-            float3 force_accum = gran_params->K_n_s2s_SU * delta_r * sphdiameter * penetration;
 
             // Add damping term
-            force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff;
-
-            // Multiply spring and damping terms by model multiplier
-            force_accum = force_accum * force_model_multiplier;
+            force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff * force_model_multiplier;
 
             // TODO improve this
             // calculate tangential forces -- NOTE that these only come into play with friction enabled
-            if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-                    // both tangential terms combine for single step
-                    const float combined_tangent_coeff =
-                        gran_params->K_t_s2s_SU * gran_params->stepSize_SU + gran_params->Gamma_t_s2s_SU * m_eff;
+            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+                // both tangential terms combine for single step
+                const float combined_tangent_coeff =
+                    gran_params->K_t_s2s_SU * gran_params->stepSize_SU + gran_params->Gamma_t_s2s_SU * m_eff;
 
-                    // we dotted out normal component of v, so v_rel is the tangential component
-                    float3 tangent_force = -combined_tangent_coeff * v_rel * force_model_multiplier;
-                    // tau = r cross f = radius * n cross F
-                    // 2 * radius * n = -1 * delta_r * sphdiameter
-                    // assume abs(r) ~ radius, so n = delta_r
-                    // compute accelerations caused by torques on body
-                    bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
-                    // add to total forces
-                    force_accum = force_accum + tangent_force;
-                } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-                    // tangential displacement
-                    contactDataStruct* contact_ptr = findContactPairInfo(sphere_data.sphere_contact_map, gran_params,
-                                                                         bodyA, sphere_data.DEs_in_SD_composite[bodyB]);
-                    // get the tangential displacement so far
-                    float3 ut = contact_ptr->tangent_disp;
-                    // add on what we have
-                    ut = ut + v_rel * gran_params->stepSize_SU;
+                // we dotted out normal component of v, so v_rel is the tangential component
+                float3 tangent_force = -combined_tangent_coeff * v_rel * force_model_multiplier;
+                // tau = r cross f = radius * n cross F
+                // 2 * radius * n = -1 * delta_r * sphdiameter
+                // assume abs(r) ~ radius, so n = delta_r
+                // compute accelerations caused by torques on body
+                bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
+                // add to total forces
+                force_accum = force_accum + tangent_force;
+            } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                // tangential displacement
+                contactDataStruct* contact_ptr = findContactPairInfo(sphere_data.sphere_contact_map, gran_params, bodyA,
+                                                                     sphere_data.DEs_in_SD_composite[bodyB]);
+                // get the tangential displacement so far
+                float3 ut = contact_ptr->tangent_disp;
+                // add on what we have
+                ut = ut + v_rel * gran_params->stepSize_SU;
 
-                    // project onto contact normal
-                    float projection = Dot(ut, delta_r) * reciplength;
-                    // remove normal projection
-                    ut = ut - projection * delta_r * reciplength;
+                // project onto contact normal
+                float projection = Dot(ut, delta_r) * reciplength;
+                // remove normal projection
+                ut = ut - projection * delta_r * reciplength;
 
-                    // write back the updated displacement
-                    contact_ptr->tangent_disp = ut;
+                // write back the updated displacement
+                contact_ptr->tangent_disp = ut;
 
-                    // we dotted out normal component of v, so v_rel is the tangential component
-                    float3 tangent_force = -1. * force_model_multiplier *
-                                           (gran_params->K_t_s2s_SU * ut + gran_params->Gamma_t_s2s_SU * m_eff * v_rel);
-                    // tau = r cross f = radius * n cross F
-                    // 2 * radius * n = -1 * delta_r * sphdiameter
-                    // assume abs(r) ~ radius, so n = delta_r
-                    // compute accelerations caused by torques on body
-                    bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
-                    // add to total forces
-                    force_accum = force_accum + tangent_force;
-                }
+                // we dotted out normal component of v, so v_rel is the tangential component
+                float3 tangent_force = -1. * force_model_multiplier *
+                                       (gran_params->K_t_s2s_SU * ut + gran_params->Gamma_t_s2s_SU * m_eff * v_rel);
+                // tau = r cross f = radius * n cross F
+                // 2 * radius * n = -1 * delta_r * sphdiameter
+                // assume abs(r) ~ radius, so n = delta_r
+                // compute accelerations caused by torques on body
+                bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
+                // add to total forces
+                force_accum = force_accum + tangent_force;
             }
 
             // Add cohesion term
-            force_accum = force_accum - cohesionConstant * delta_r * reciplength;
+            force_accum =
+                force_accum - gran_params->sphere_mass_SU * gran_params->cohesionAcc_s2s * delta_r * reciplength;
 
             // finally, we add this per-contact accumulator to
             bodyA_force = bodyA_force + force_accum;
         }
 
-        // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double counting
-        // this force.
-        // If this SD owns the body, add its wall forces and grav forces. This should be pretty non-divergent since
-        // most spheres won't be on the border
+        // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double
+        // counting this force. If this SD owns the body, add its wall forces and grav forces. This should be
+        // pretty non-divergent since most spheres won't be on the border
         if (ownerSD == thisSD) {
             // Perhaps this sphere is hitting the wall[s]
             boxWallsEffects(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
@@ -900,7 +897,8 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 }
 
 /**
- * Numerically integrates force to velocity and velocity to position, then computes the broadphase on the new positions
+ * Numerically integrates force to velocity and velocity to position, then computes the broadphase on the new
+ * positions
  */
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
                                      //!< Should be a multiple of 32

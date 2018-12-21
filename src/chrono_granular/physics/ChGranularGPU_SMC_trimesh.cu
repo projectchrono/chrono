@@ -578,11 +578,8 @@ __global__ void interactionTerrain_TriangleSoup(
 
                         // Compute force updates for adhesion term, opposite the spring term
                         // NOTE ratio is wrt the weight of a sphere of mass 1
-                        const float adhesionConstant = gran_params->gravMag_SU * mesh_params->adhesion_ratio_s2m;
-
-                        // Add adhesion term
                         // NOTE the cancelation of two negatives
-                        force_accum = force_accum + adhesionConstant / depth * delta;
+                        force_accum = force_accum + gran_params->adhesionAcc_s2w / depth * delta;
 
                         // Use the CD information to compute the force and torque on the family of this triangle
                         sphere_force = sphere_force + force_accum;
@@ -658,7 +655,10 @@ void ChSystemGranular_MonodisperseSMC_trimesh::copyTriangleDataToDevice() {
     tri_params->Kt_s2m_SU = K_t_s2m_SU;
     tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
     tri_params->Gamma_t_s2m_SU = Gamma_t_s2m_SU;
-    tri_params->adhesion_ratio_s2m = adhesion_s2m_over_gravity;
+    tri_params->adhesionAcc_s2m =
+        adhesion_s2m_over_gravity * std::sqrt(gran_params->gravAcc_X_SU * gran_params->gravAcc_X_SU +
+                                              gran_params->gravAcc_Y_SU * gran_params->gravAcc_Y_SU +
+                                              gran_params->gravAcc_Z_SU * gran_params->gravAcc_Z_SU);
 
     SD_isTouchingTriangle.resize(nSDs);
 }

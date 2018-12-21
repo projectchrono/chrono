@@ -156,7 +156,6 @@ struct ChGranParams {
     float gravAcc_X_SU;  //!< Device counterpart of the constant gravity_X_SU
     float gravAcc_Y_SU;  //!< Device counterpart of the constant gravity_Y_SU
     float gravAcc_Z_SU;  //!< Device counterpart of the constant gravity_Z_SU
-    float gravMag_SU;
 
     // Changed by updateBDPosition() at every timestep
     int BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
@@ -170,11 +169,11 @@ struct ChGranParams {
     unsigned int psi_h;
     unsigned int psi_L;
 
-    /// Ratio of cohesion acceleration to gravity
-    float cohesion_ratio;
+    /// Acceleration of cohesion
+    float cohesionAcc_s2s;
 
-    /// Ratio of adhesion acceleration to gravity
-    float adhesion_ratio_s2w;
+    /// Accleration of adhesion
+    float adhesionAcc_s2w;
 
     double LENGTH_UNIT;  //!< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
     double TIME_UNIT;    //!< 1 / C_T. Any time quanity in SU is measured as a positive multiple of TIME_UNIT
