@@ -135,7 +135,6 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_param_
 int main(int argc, char* argv[]) {
     sim_param_holder params;
 
-    // Some of the default values might be overwritten by user via command line
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;

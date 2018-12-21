@@ -33,7 +33,11 @@ namespace chrono {
 namespace granular {
 
 ChSystemGranular_MonodisperseSMC_trimesh::ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density)
-        : ChSystemGranular_MonodisperseSMC(radiusSPH, density), K_n_s2m_UU(0), K_t_s2m_UU(0), Gamma_n_s2m_UU(0), Gamma_t_s2m_UU(0) {
+    : ChSystemGranular_MonodisperseSMC(radiusSPH, density),
+      K_n_s2m_UU(0),
+      K_t_s2m_UU(0),
+      Gamma_n_s2m_UU(0),
+      Gamma_t_s2m_UU(0) {
     // Allocate triangle collision parameters
     gpuErrchk(cudaMallocManaged(&tri_params, sizeof(ChGranParams_trimesh), cudaMemAttachGlobal));
 }
@@ -61,7 +65,6 @@ void ChSystemGranular_MonodisperseSMC_trimesh::initializeTriangles() {
         meshSoup_DEVICE->familyMass_SU[fam] = meshSoup_DEVICE->familyMass_SU[fam] / gran_params->MASS_UNIT;
     }
     copyTriangleDataToDevice();
-
 }
 void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
     initializeSpheres();
@@ -281,8 +284,8 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
 void ChSystemGranular_MonodisperseSMC_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
     float alpha_k_star = get_max_K();
     float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
-    float sphere_mass =
-        4.f / 3.f * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;  // UU sphere mass
+    float sphere_mass = 4.f / 3.f * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU *
+                        sphere_density_UU;  // UU sphere mass
     float C_F =
         gran_params->psi_L / (alpha_g * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
 
