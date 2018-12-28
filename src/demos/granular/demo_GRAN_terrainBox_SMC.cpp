@@ -47,7 +47,7 @@ void ShowUsage() {
     cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
 
-enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1 };
+enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
 
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
@@ -109,6 +109,12 @@ int main(int argc, char* argv[]) {
     }
 
     switch (params.run_mode) {
+        case run_mode::MULTI_STEP:
+            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+            settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);
+            settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
+            settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+            settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
         case run_mode::ONE_STEP:
             settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
             settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);

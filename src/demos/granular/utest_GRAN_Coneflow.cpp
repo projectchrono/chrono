@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
     gran_sys.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
-    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_fixed_stepSize(params.step_size);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());

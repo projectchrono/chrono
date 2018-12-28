@@ -418,7 +418,8 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // adhesion term
         curr_contrib.x += -1 * gran_params->adhesionAcc_s2w;
 
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
+            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
             // add tangential forces
             // w cross r = -r w_z e_y + r w_y e_z
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.z));
@@ -441,7 +442,8 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // adhesion term
         curr_contrib.x += gran_params->adhesionAcc_s2w;
 
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
+            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
             // add tangential forces
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.z));
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.y));
@@ -464,7 +466,8 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // adhesion term
         curr_contrib.y += -1 * gran_params->adhesionAcc_s2w;
 
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
+            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
             // add tangential forces
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.x));
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.z));
@@ -486,7 +489,8 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // adhesion term
         curr_contrib.y += gran_params->adhesionAcc_s2w;
 
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
+            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
             // add tangential forces
             curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.x));
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.z));
@@ -509,7 +513,8 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // adhesion term
         curr_contrib.z += -1 * gran_params->adhesionAcc_s2w;
 
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
+            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
             // add tangential forces
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.y));
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.x));
@@ -531,7 +536,8 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
         // adhesion term
         curr_contrib.z += gran_params->adhesionAcc_s2w;
 
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
+            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
             // add tangential forces
             curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.y));
             curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.x));
@@ -605,6 +611,18 @@ inline __device__ void cleanupContactMap(contactDataStruct* sphere_contact_map, 
             sphere_contact_map[body_A_offset + contact_id].active = false;
         }
     }
+}
+/// enforce the Coulomb condition that Ft <= mu Fn
+/// by enforcing ut <= mu Fn / kt
+inline __device__ bool clampTangentForces(GranParamsPtr gran_params, const float3& normal_force, float3& tangent_disp) {
+    float ut_max = gran_params->static_friction_coeff * Length(normal_force) / gran_params->K_t_s2s_SU;
+    // TODO also consider wall mu and kt clamping
+    float ut = Length(tangent_disp);
+    if (ut > ut_max) {
+        tangent_disp = tangent_disp * ut_max / ut;
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -809,43 +827,43 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
 
             // Add damping term
             force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff * force_model_multiplier;
+            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
+                gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                // accumulator for tangent force
+                float3 tangent_force = {0, 0, 0};
+                bool clamped = false;
+                float3 delta_t = {0, 0, 0};
 
-            // TODO improve this
-            // calculate tangential forces -- NOTE that these only come into play with friction enabled
-            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-                // both tangential terms combine for single step
-                const float combined_tangent_coeff =
-                    gran_params->K_t_s2s_SU * gran_params->stepSize_SU + gran_params->Gamma_t_s2s_SU * m_eff;
+                // TODO improve this
+                // calculate tangential forces -- NOTE that these only come into play with friction enabled
+                if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+                    delta_t = v_rel * gran_params->stepSize_SU;
+                } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                    // tangential displacement
+                    contactDataStruct* contact_ptr = findContactPairInfo(sphere_data.sphere_contact_map, gran_params,
+                                                                         bodyA, sphere_data.DEs_in_SD_composite[bodyB]);
+                    // get the tangential displacement so far
+                    delta_t = contact_ptr->tangent_disp;
+                    // add on what we have
+                    delta_t = delta_t + v_rel * gran_params->stepSize_SU;
 
+                    // project onto contact normal
+                    float projection = Dot(delta_t, delta_r) * reciplength;
+                    // remove normal projection
+                    delta_t = delta_t - projection * delta_r * reciplength;
+
+                    // write back the updated displacement
+                    contact_ptr->tangent_disp = delta_t;
+                }
+
+                clamped = clampTangentForces(gran_params, force_accum, delta_t);
                 // we dotted out normal component of v, so v_rel is the tangential component
-                float3 tangent_force = -combined_tangent_coeff * v_rel * force_model_multiplier;
-                // tau = r cross f = radius * n cross F
-                // 2 * radius * n = -1 * delta_r * sphdiameter
-                // assume abs(r) ~ radius, so n = delta_r
-                // compute accelerations caused by torques on body
-                bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
-                // add to total forces
-                force_accum = force_accum + tangent_force;
-            } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-                // tangential displacement
-                contactDataStruct* contact_ptr = findContactPairInfo(sphere_data.sphere_contact_map, gran_params, bodyA,
-                                                                     sphere_data.DEs_in_SD_composite[bodyB]);
-                // get the tangential displacement so far
-                float3 ut = contact_ptr->tangent_disp;
-                // add on what we have
-                ut = ut + v_rel * gran_params->stepSize_SU;
+                tangent_force = -gran_params->K_t_s2s_SU * delta_t * force_model_multiplier;
 
-                // project onto contact normal
-                float projection = Dot(ut, delta_r) * reciplength;
-                // remove normal projection
-                ut = ut - projection * delta_r * reciplength;
-
-                // write back the updated displacement
-                contact_ptr->tangent_disp = ut;
-
-                // we dotted out normal component of v, so v_rel is the tangential component
-                float3 tangent_force = -1. * force_model_multiplier *
-                                       (gran_params->K_t_s2s_SU * ut + gran_params->Gamma_t_s2s_SU * m_eff * v_rel);
+                // if no-slip, add the tangential damping
+                if (!clamped) {
+                    tangent_force = tangent_force - gran_params->Gamma_t_s2s_SU * m_eff * v_rel;
+                }
                 // tau = r cross f = radius * n cross F
                 // 2 * radius * n = -1 * delta_r * sphdiameter
                 // assume abs(r) ~ radius, so n = delta_r
@@ -1087,8 +1105,8 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
         // SD currently touched, could easily be inlined
         unsigned int touchedSD = SDsTouched[i];
         if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
-            // current index into shared datastructure of length MAX_SDs_TOUCHED_BY_SPHERE*CUB_THREADS, could easily be
-            // inlined
+            // current index into shared datastructure of length MAX_SDs_TOUCHED_BY_SPHERE*CUB_THREADS, could easily
+            // be inlined
             unsigned int idInShared = MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i;
             unsigned int winningStreak = 0;
             // This is the beginning of a sequence of SDs with a new ID

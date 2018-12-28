@@ -112,6 +112,9 @@ struct ChGranParams {
     GRAN_TIME_INTEGRATOR time_integrator;
     GRAN_FORCE_MODEL force_model;
 
+    // ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
+    float static_friction_coeff;
+
     // Use user-defined quantities for coefficients
     // sphere-to-sphere contact damping coefficient, expressed in SU
     float Gamma_n_s2s_SU;
@@ -132,23 +135,23 @@ struct ChGranParams {
     /// Moment of inertia of a sphere, normalized by the radius
     float sphereInertia_by_r;
 
-    // X-dimension of the SD box, expressed in SU
+    /// X-dimension of the SD box, expressed in SU
     unsigned int SD_size_X_SU;
-    // Y-dimension of the SD box, expressed in SU
+    /// Y-dimension of the SD box, expressed in SU
     unsigned int SD_size_Y_SU;
-    // Z-dimension of the SD box, expressed in SU
+    /// Z-dimension of the SD box, expressed in SU
     unsigned int SD_size_Z_SU;
 
-    // Total number of subdomains
+    /// Total number of subdomains
     unsigned int nSDs;
-    // X-dimension of the BD box in multiples of subdomains, expressed in SU
+    /// X-dimension of the BD box in multiples of subdomains, expressed in SU
     unsigned int nSDs_X;
-    // Y-dimension of the BD box in multiples of subdomains, expressed in SU
+    /// Y-dimension of the BD box in multiples of subdomains, expressed in SU
     unsigned int nSDs_Y;
-    // Z-dimension of the BD box in multiples of subdomains, expressed in SU
+    /// Z-dimension of the BD box in multiples of subdomains, expressed in SU
     unsigned int nSDs_Z;
 
-    // These are the max X, Y, Z dimensions in the BD frame
+    /// These are the max X, Y, Z dimensions in the BD frame
     int64_t max_x_pos_unsigned;  // ((int64_t)SD_size_X_SU * nSDs_X)
     int64_t max_y_pos_unsigned;  // ((int64_t)SD_size_Y_SU * nSDs_Y)
     int64_t max_z_pos_unsigned;  // ((int64_t)SD_size_Z_SU * nSDs_Z)
@@ -157,10 +160,13 @@ struct ChGranParams {
     float gravAcc_Y_SU;  //!< Device counterpart of the constant gravity_Y_SU
     float gravAcc_Z_SU;  //!< Device counterpart of the constant gravity_Z_SU
 
-    // Changed by updateBDPosition() at every timestep
-    int BD_frame_X;  //!< The bottom-left corner xPos of the BD, allows boxes not centered at origin
-    int BD_frame_Y;  //!< The bottom-left corner yPos of the BD, allows boxes not centered at origin
-    int BD_frame_Z;  //!< The bottom-left corner zPos of the BD, allows boxes not centered at origin
+    /// Changed by updateBDPosition() at every timestep
+    /// The bottom-left corner xPos of the BD, allows boxes not centered at origin
+    int BD_frame_X;
+    /// The bottom-left corner yPos of the BD, allows boxes not centered at origin
+    int BD_frame_Y;
+    /// The bottom-left corner zPos of the BD, allows boxes not centered at origin
+    int BD_frame_Z;
     float BD_frame_X_dot;
     float BD_frame_Y_dot;
     float BD_frame_Z_dot;
