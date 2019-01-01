@@ -34,11 +34,10 @@ using std::stof;
 using std::stoi;
 using std::vector;
 
-// -----------------------------------------------------------------------------
-// Show command line usage
-// -----------------------------------------------------------------------------
+enum MIXER_TYPE { STANDARD, EXTERNAL };
+
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_meshtorque <json_file>" << endl;
+    cout << "usage: ./test_GRAN_mixer <json_file>" << endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -87,10 +86,10 @@ int main(int argc, char* argv[]) {
 
     const float Bx = params.box_X;
     const float By = Bx;
-    float fill_height = 60.f / 4.f;      // height above top of cone that will be filled with particles
-    float radius_opening = 4.f;  // Opening at bottom of cone      // TODO vary
-    float cone_slope = 1.f;      // TODO vary
-    float z_cone_opening = 70.f / 4.f;   // z coord of the cone opening
+    float fill_height = 30 / 4.f; //60.f / 4.f;     // height above top of cone that will be filled with particles
+    float radius_opening = 4.f;         // Opening at bottom of cone      // TODO vary
+    float cone_slope = 1.f;             // TODO vary
+    float z_cone_opening = 70.f / 4.f;  // z coord of the cone opening
 
     float z_cone_tip = z_cone_opening - cone_slope * radius_opening;
     float z_cone_top = z_cone_tip + cone_slope * Bx / std::sqrt(2);
@@ -110,28 +109,46 @@ int main(int argc, char* argv[]) {
     cout << "z_cone_top " << z_cone_top << endl;
     m_sys.Create_BC_Cone_Z(cone_tip, cone_slope, z_cone_top, z_cone_opening, outward_normal);
 
+    float cyl_center[3] = {0, 0, 0};
+    const float cyl_rad = Bx / 2.f;
+
+    m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false);
+
     m_sys.setBOXdims(Bx, By, Bz);
     cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
     utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
     const float z_fill = z_cone_top + fill_height / 2.f;
 
-    auto pos = sampler.SampleBox(ChVector<>(0, 0, z_fill), ChVector<>(Bx / 2.f - 3.f * params.sphere_radius,
-                                                                      By / 2.f - 3.f * params.sphere_radius,
-                                                                      fill_height / 2.f - 3.f * params.sphere_radius));
+    auto pos = sampler.SampleCylinderZ(ChVector<>(0, 0, z_fill), Bx / 2.f, fill_height / 2 - 4.f * params.sphere_radius);
 
     unsigned int n_spheres = pos.size();
     cout << "Created " << n_spheres << " spheres" << endl;
 
     m_sys.setParticlePositions(pos);
+    MIXER_TYPE mixer_type = MIXER_TYPE::EXTERNAL;
 
     // Mesh values
     vector<string> mesh_filenames;
-    string mesh_filename("granular/Mixer.obj");
+    string mesh_filename;
+    switch (mixer_type) {
+        case MIXER_TYPE::STANDARD:
+            mesh_filename = string("granular/Mixer.obj");
+            break;
+        case MIXER_TYPE::EXTERNAL:
+            mesh_filename = string("granular/external_mixer.obj");
+            break;
+        default:
+            cout << "Invalid mixer type" << endl;
+            return 1;
+            break;
+    }
+
     mesh_filenames.push_back(mesh_filename);
 
     vector<float3> mesh_scalings;
-    float scale_xy = Bx / (2 * 3.f) - 4 * params.sphere_radius;
-    float3 scaling = make_float3(scale_xy, scale_xy, 10);  // TODO rethink this
+    float scale_xy = Bx / 2.f;
+    float scale_z = 30; // TODO fix this / make switch on mixer_type
+    float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_scalings.push_back(scaling);
 
     std::vector<float> mesh_masses;
