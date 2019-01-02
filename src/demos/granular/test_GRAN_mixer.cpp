@@ -86,40 +86,27 @@ int main(int argc, char* argv[]) {
 
     const float Bx = params.box_X;
     const float By = Bx;
-    float fill_height = 30 / 4.f; //60.f / 4.f;     // height above top of cone that will be filled with particles
-    float radius_opening = 4.f;         // Opening at bottom of cone      // TODO vary
-    float cone_slope = 1.f;             // TODO vary
-    float z_cone_opening = 70.f / 4.f;  // z coord of the cone opening
 
-    float z_cone_tip = z_cone_opening - cone_slope * radius_opening;
-    float z_cone_top = z_cone_tip + cone_slope * Bx / std::sqrt(2);
+    const float chamber_height = Bx / 3;  // TODO
+    const float fill_height = chamber_height;
 
-    const float Bz = z_cone_top + fill_height;
+    const float Bz = chamber_height + fill_height;
+    m_sys.setBOXdims(Bx, By, Bz);
+    cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
 
-    // Offset z values
-    z_cone_opening -= Bz / 2.f;
-    z_cone_tip -= Bz / 2.f;
-    z_cone_top -= Bz / 2.f;
-
-    float cone_tip[3] = {0.f, 0.f, z_cone_tip};  // Hypothetical location of cone tip
-    constexpr bool outward_normal = false;       // Inward-colliding cone
-
-    cout << "tip " << cone_tip[0] << " " << cone_tip[1] << " " << cone_tip[2] << endl;
-    cout << "slope " << cone_slope << endl;
-    cout << "z_cone_top " << z_cone_top << endl;
-    m_sys.Create_BC_Cone_Z(cone_tip, cone_slope, z_cone_top, z_cone_opening, outward_normal);
+    const float chamber_bottom = -Bz / 2.f;
+    const float fill_bottom = chamber_bottom + chamber_height;
 
     float cyl_center[3] = {0, 0, 0};
     const float cyl_rad = Bx / 2.f;
-
     m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false);
 
-    m_sys.setBOXdims(Bx, By, Bz);
-    cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
     utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
-    const float z_fill = z_cone_top + fill_height / 2.f;
 
-    auto pos = sampler.SampleCylinderZ(ChVector<>(0, 0, z_fill), Bx / 2.f, fill_height / 2 - 4.f * params.sphere_radius);
+    const ChVector<> fill_center(0, 0, fill_bottom + fill_height / 2.f);
+    const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
+    const float fill_htall = fill_height / 2.f - 2.f * params.sphere_radius;
+    auto pos = sampler.SampleCylinderZ(fill_center, fill_radius, fill_htall);
 
     unsigned int n_spheres = pos.size();
     cout << "Created " << n_spheres << " spheres" << endl;
@@ -147,12 +134,12 @@ int main(int argc, char* argv[]) {
 
     vector<float3> mesh_scalings;
     float scale_xy = Bx / 2.f;
-    float scale_z = 30; // TODO fix this / make switch on mixer_type
+    float scale_z = chamber_height;  // TODO fix this / make switch on mixer_type
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_scalings.push_back(scaling);
 
     std::vector<float> mesh_masses;
-    float mass = 10;  // TODO
+    float mass = 10;
     mesh_masses.push_back(mass);
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
@@ -176,10 +163,11 @@ int main(int argc, char* argv[]) {
     cout << "out_steps " << out_steps << endl;
 
     unsigned int step = 0;
+
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
         meshSoupLocOri[0] = 0;
         meshSoupLocOri[1] = 0;
-        meshSoupLocOri[2] = -Bz / 2.f + scaling.z / 4 + 4.f * params.sphere_radius;
+        meshSoupLocOri[2] = chamber_bottom + chamber_height / 2.0;
 
         auto q = Q_from_AngZ(t * ang_vel_Z);
         meshSoupLocOri[3] = q[0];
