@@ -211,10 +211,11 @@ void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
 // Reset broadphase data structures
 void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
     // Set all the offsets to zero
-    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, nSDs * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, SD_NumOf_DEs_Touching.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(DEs_SD_offsets.data(), 0, DEs_SD_offsets.size() * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID,
-                         MAX_COUNT_OF_DEs_PER_SD * nSDs * sizeof(unsigned int)));
+    gpuErrchk(
+        cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID, DEs_in_SD_composite.size() * sizeof(unsigned int)));
     gpuErrchk(cudaDeviceSynchronize());
 }
 // Reset sphere-sphere force data structures
@@ -418,20 +419,89 @@ __host__ float ChSystemGranular_MonodisperseSMC::get_max_vel() {
     return h_max_vel;
 }
 
-__host__ void ChSystemGranular_MonodisperseSMC::runInitialSpherePriming() {
+__host__ void ChSystemGranular_MonodisperseSMC::runBroadphase() {
+    VERBOSE_PRINTF("Resetting broadphase info!\n");
+
+    resetBroadphaseInformation();
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    printf("doing priming!\n");
-    printf("max possible composite offset is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
+
     sphereDataStruct sphere_data;
 
     packSphereDataPointers(sphere_data);
 
-    primingOperationsRectangularBox<CUDA_THREADS_PER_BLOCK>
+    sphereBroadphase_dryrun<CUDA_THREADS_PER_BLOCK>
         <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nDEs, gran_params);
+
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
-    printf("priming finished!\n");
+
+    void* d_temp_storage = NULL;
+    size_t temp_storage_bytes = 0;
+
+    // num spheres in last SD
+    unsigned int last_SD_num_spheres = SD_NumOf_DEs_Touching.at(nSDs - 1);
+
+    unsigned int* out_ptr = DEs_SD_offsets.data();
+    unsigned int* in_ptr = SD_NumOf_DEs_Touching.data();
+
+    // copy data into the tmp array
+    gpuErrchk(cudaMemcpy(out_ptr, in_ptr, nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, nSDs);
+
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    // Allocate temporary storage
+    gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    // Run exclusive prefix sum
+    cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, nSDs);
+
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    // total number of sphere entries to record
+    unsigned int num_entries = out_ptr[nSDs - 1] + in_ptr[nSDs - 1];
+    DEs_in_SD_composite.resize(num_entries, NULL_GRANULAR_ID);
+
+    // make sure the DEs pointer is updated
+    packSphereDataPointers(sphere_data);
+
+    // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs * MAX_COUNT_OF_DEs_PER_SD);
+
+    // for (unsigned int i = 0; i < nSDs; i++) {
+    //     printf("SD %d has offset %u, N %u \n", i, out_ptr[i], in_ptr[i]);
+    // }
+
+    // back up the offsets
+    // TODO use a cached allocator, CUB provides one
+    std::vector<unsigned int, cudallocator<unsigned int>> DEs_SD_offsets_bak;
+    DEs_SD_offsets_bak.resize(DEs_SD_offsets.size());
+    gpuErrchk(cudaMemcpy(DEs_SD_offsets_bak.data(), DEs_SD_offsets.data(), nSDs * sizeof(unsigned int),
+                         cudaMemcpyDeviceToDevice));
+
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+
+    sphereBroadphase<CUDA_THREADS_PER_BLOCK>
+        <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nDEs, gran_params, num_entries);
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+
+    //
+    // for (unsigned int i = 0; i < nSDs; i++) {
+    //     printf("SD %d has offset %u, N %u \n", i, out_ptr[i], in_ptr[i]);
+    // }
+    //
+    // for (unsigned int i = 0; i < num_entries; i++) {
+    //     printf("entry %u is %u\n", i, DEs_in_SD_composite[i]);
+    // }
+
+    // restore the old offsets
+    gpuErrchk(cudaMemcpy(DEs_SD_offsets.data(), DEs_SD_offsets_bak.data(), nSDs * sizeof(unsigned int),
+                         cudaMemcpyDeviceToDevice));
+    gpuErrchk(cudaFree(d_temp_storage));
 }
 
 __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float duration) {
@@ -463,18 +533,21 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
         VERBOSE_PRINTF("Starting computeSphereForces!\n");
 
         // Compute sphere-sphere forces
-        computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size());
+        computeSphereForces<<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(sphere_data, gran_params, BC_type_list.data(),
+                                                               BC_params_list_SU.data(), BC_params_list_SU.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        VERBOSE_PRINTF("Resetting broadphase info!\n");
-
-        resetBroadphaseInformation();
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS_PER_BLOCK>
             <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        runBroadphase();
+
+        packSphereDataPointers(sphere_data);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

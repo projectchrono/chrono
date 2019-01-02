@@ -88,10 +88,12 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
     }
 
     packed.SD_NumOf_DEs_Touching = SD_NumOf_DEs_Touching.data();
+    packed.DEs_SD_offsets = DEs_SD_offsets.data();
     packed.DEs_in_SD_composite = DEs_in_SD_composite.data();
 
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         packed.sphere_contact_map = sphere_contact_map.data();
+        packed.contact_history_map = contact_history_map.data();
     }
 }
 
@@ -374,7 +376,12 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
 
     // Seed arrays that are populated by the kernel call
     resetBroadphaseInformation();
-    runInitialSpherePriming();
+
+    printf("doing priming!\n");
+    printf("max possible composite offset with 256 limit is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
+    runBroadphase();
+    printf("priming finished!\n");
+
     int dev_ID;
     cudaGetDevice(&dev_ID);
     cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
@@ -393,8 +400,10 @@ void ChSystemGranular_MonodisperseSMC::setupSimulation() {
     partitionBD();
     // allocate mem for array saying for each SD how many spheres touch it
     SD_NumOf_DEs_Touching.resize(nSDs);
-    // allocate mem for array that for each SD has the list of all spheres touching it; big array
-    DEs_in_SD_composite.resize(MAX_COUNT_OF_DEs_PER_SD * nSDs);
+    DEs_SD_offsets.resize(nSDs);
+    // assume each sphere touches 2 SDs on average
+    // NOTE that this will get resized again later, this is just the first estimate
+    DEs_in_SD_composite.resize(2 * nDEs);
 }
 
 // Set particle positions in UU
@@ -442,10 +451,10 @@ void ChSystemGranular_MonodisperseSMC::generateDEs() {
 
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         contactDataStruct null_data;
-        null_data.tangent_disp = {0, 0, 0};
-        null_data.active = 0;
+        null_data.active = false;
         null_data.body_B = NULL_GRANULAR_ID;
         sphere_contact_map.resize(12 * nDEs, null_data);
+        contact_history_map.resize(12 * nDEs, {0., 0., 0.});
     }
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {

@@ -42,12 +42,11 @@ namespace granular {
 
 /// stores the data for a pair of contacting spheres
 struct contactDataStruct {
-    /// tangential distance traveled so far
-    float3 tangent_disp;
     /// other body involved in the contact
     unsigned int body_B;
     /// whether the contact is still active
     bool active;
+    bool active_last;
 };
 
 /// hold pointers
@@ -85,9 +84,13 @@ struct sphereDataStruct {
 
     /// set of data for sphere contact pairs
     contactDataStruct* sphere_contact_map;
+    float3* contact_history_map;
 
-    /// sphere broadphase data
+    /// number of DEs touching each SD
     unsigned int* SD_NumOf_DEs_Touching;
+    /// offset of each SD in the big composite array
+    unsigned int* DEs_SD_offsets;
+    /// big composite array of sphere-SD membership
     unsigned int* DEs_in_SD_composite;
 };
 
@@ -395,6 +398,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::vector<float, cudallocator<float>> sphere_ang_acc_Z_old;
 
     std::vector<contactDataStruct, cudallocator<contactDataStruct>> sphere_contact_map;
+    std::vector<float3, cudallocator<float3>> contact_history_map;
 
     /// gravity in user units
     float X_accGrav;
@@ -403,6 +407,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Entry "i" says how many spheres touch SD i
     std::vector<unsigned int, cudallocator<unsigned int>> SD_NumOf_DEs_Touching;
+    std::vector<unsigned int, cudallocator<unsigned int>> DEs_SD_offsets;
 
     /// Array containing the IDs of the spheres stored in the SDs associated with the box
     std::vector<unsigned int, cudallocator<unsigned int>> DEs_in_SD_composite;
@@ -435,7 +440,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// collect all the sphere data into a given struct
     void packSphereDataPointers(sphereDataStruct& packed);
     /// Run the first sphere broadphase pass to get things started
-    void runInitialSpherePriming();
+    void runBroadphase();
     // just a handy helper function
     template <typename T1, typename T2>
     T1 convertToPosSU(T2 val) {

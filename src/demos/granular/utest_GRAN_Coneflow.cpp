@@ -36,8 +36,6 @@ using std::cout;
 using std::endl;
 using std::string;
 
-enum { SETTLING = 0, WAVETANK = 1, BOUNCING_PLATE = 2 };
-
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
@@ -51,7 +49,6 @@ void ShowUsage() {
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
     GRAN_TIME_STEPPING step_mode = GRAN_TIME_STEPPING::FIXED;
-    int run_mode = SETTLING;
 
     sim_param_holder params;
 

@@ -362,12 +362,8 @@ __global__ void interactionTerrain_TriangleSoup(
     sphereDataStruct sphere_data,
     unsigned int* BKT_countsOfTrianglesTouching,  //!< Array that for each SD indicates how many triangles touch this SD
     unsigned int* triangles_in_BKT_composite,     //!< Big array that works in conjunction with SD_isTouchingTriangle.
-    unsigned int*
-        SD_countsOfGrElemsTouching,         //!< Array that for each SD indicates how many grain elements touch this SD
-    unsigned int* grElems_in_SD_composite,  //!< Big array that works in conjunction with SD_countsOfGrElemsTouching.
-                                            //!< "grElems_in_SD_composite" says which SD contains what grElements.
-    unsigned int* SD_isTouchingTriangle,    //!< The length of this array is equal to number of SDs. If SD 423 is
-                                            //!< touched by any triangle, then SD_isTouchingTriangle[423]>0.
+    unsigned int* SD_isTouchingTriangle,          //!< The length of this array is equal to number of SDs. If SD 423 is
+                                                  //!< touched by any triangle, then SD_isTouchingTriangle[423]>0.
 
     GranParamsPtr gran_params,
     MeshParamsPtr mesh_params) {
@@ -395,7 +391,8 @@ __global__ void interactionTerrain_TriangleSoup(
     if (SD_isTouchingTriangle[thisSD] == 0) {
         return;  // no triangle touches this SD; return right away
     }
-    unsigned int nSD_spheres = SD_countsOfGrElemsTouching[thisSD];
+    unsigned int nSD_spheres = sphere_data.SD_NumOf_DEs_Touching[thisSD];
+    unsigned int SD_composite_offset = sphere_data.DEs_SD_offsets[thisSD];
     if (nSD_spheres == 0) {
         return;  // no sphere to speak of in this SD
     }
@@ -415,7 +412,7 @@ __global__ void interactionTerrain_TriangleSoup(
     unsigned int local_ID = threadIdx.x;
     for (unsigned int sphereTrip = 0; sphereTrip < tripsToCoverSpheres; sphereTrip++) {
         if (local_ID < nSD_spheres) {
-            unsigned int globalID = grElems_in_SD_composite[local_ID + thisSD * MAX_COUNT_OF_DEs_PER_SD];
+            unsigned int globalID = sphere_data.DEs_in_SD_composite[local_ID + SD_composite_offset];
             grElemID[local_ID] = globalID;
             sphX[local_ID] = sphere_data.pos_X[globalID];
             sphY[local_ID] = sphere_data.pos_Y[globalID];
@@ -697,8 +694,8 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         VERBOSE_PRINTF("Starting computeSphereForces!\n");
 
         // Compute sphere-sphere forces
-        computeSphereForces<MAX_COUNT_OF_DEs_PER_SD><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
-            sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size());
+        computeSphereForces<<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(sphere_data, gran_params, BC_type_list.data(),
+                                                               BC_params_list_SU.data(), BC_params_list_SU.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -720,8 +717,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(
                 meshSoup_DEVICE, sphere_data, BUCKET_countsOfTrianglesTouching.data(),
-                triangles_in_BUCKET_composite.data(), SD_NumOf_DEs_Touching.data(), DEs_in_SD_composite.data(),
-                SD_isTouchingTriangle.data(), gran_params, tri_params);
+                triangles_in_BUCKET_composite.data(), SD_isTouchingTriangle.data(), gran_params, tri_params);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -730,9 +726,18 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
 
         resetBroadphaseInformation();
 
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS_PER_BLOCK>
             <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        runBroadphase();
+
+        packSphereDataPointers(sphere_data);
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

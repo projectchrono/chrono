@@ -1086,3 +1086,15 @@ Running settling test!
 50 thousand bodies took 2.46817 seconds!
 500 thousand bodies took 20.5455 seconds!
 1 million bodies took 42.1337 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 02 Jan 2019 17:04:32 -0600
+commit 4262eb094e5d1405bfd4d46ff921ee3e449324ce Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Jan 2 17:00:23 2019 -0600 move to prefix-scan based broadphase, needs more testing multi-step friction has overcompression issues that break the contact map, might be a bigger bug hiding there
+Results:
+Running wavetank test!
+50 thousand bodies took 5.14838 seconds!
+500 thousand bodies took 33.6185 seconds!
+1 million bodies took 67.8574 seconds!
+Running settling test!
+50 thousand bodies took 5.08754 seconds!
+500 thousand bodies took 35.2847 seconds!
+1 million bodies took 68.0894 seconds!

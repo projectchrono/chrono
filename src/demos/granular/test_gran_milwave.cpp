@@ -124,7 +124,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", output_prefix.c_str(), currframe++);
-        gran_system.checkSDCounts(std::string(filename), true, false);
+        gran_system.writeFileUU(filename);
     }
     timer.stop();
     return timer.GetTimeSeconds();

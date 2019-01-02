@@ -177,18 +177,91 @@ inline __device__ void figureOutTouchedSD(signed int sphCenter_X,
  */
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a
                                      //!< multiple of 32
-__global__ void primingOperationsRectangularBox(sphereDataStruct sphere_data,
-                                                unsigned int nSpheres,  //!< Number of spheres in the box
-                                                GranParamsPtr gran_params) {
+__global__ void sphereBroadphase_dryrun(sphereDataStruct sphere_data,
+                                        unsigned int nSpheres,  //!< Number of spheres in the box
+                                        GranParamsPtr gran_params) {
+    signed int xSphCenter;
+    signed int ySphCenter;
+    signed int zSphCenter;
+
+    /// Set aside shared memory
+    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
+
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_SPHERE> BlockRadixSortOP;
+    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
+
+    typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
+    __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
+
+    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    // This uses a lot of registers but is needed
+    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
+                                                          NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
+                                                          NULL_GRANULAR_ID, NULL_GRANULAR_ID};
+    if (mySphereID < nSpheres) {
+        // Coalesced mem access
+        xSphCenter = sphere_data.pos_X[mySphereID];
+        ySphCenter = sphere_data.pos_Y[mySphereID];
+        zSphCenter = sphere_data.pos_Z[mySphereID];
+        figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched, gran_params);
+    }
+
+    __syncthreads();
+
+    // Sort by the ID of the SD touched
+    BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched);
+    __syncthreads();
+
+    // Do a winningStreak search on whole block, might not have high utilization here
+    bool head_flags[MAX_SDs_TOUCHED_BY_SPHERE];
+    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
+    __syncthreads();
+
+    // Write back to shared memory; eight-way bank conflicts here - to revisit later
+    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
+        shMem_head_flags[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i] = head_flags[i];
+    }
+
+    __syncthreads();
+
+    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS spheres. There
+    // will be some thread divergence here.
+    // Loop through each potential SD, after sorting, and see if it is the start of a head
+    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
+        // SD currently touched, could easily be inlined
+        unsigned int touchedSD = SDsTouched[i];
+        if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
+            // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
+            unsigned int idInShared = MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i;
+            unsigned int winningStreak = 0;  // should always be under 256 by simulation constraints
+            // This is the beginning of a sequence of SDs with a new ID
+            do {
+                winningStreak++;
+                // Go until we run out of threads on the warp or until we find a new head
+            } while (idInShared + winningStreak < MAX_SDs_TOUCHED_BY_SPHERE * CUB_THREADS &&
+                     !(shMem_head_flags[idInShared + winningStreak]));
+
+            // Store start of new entries
+            unsigned char sphere_offset = atomicAdd(sphere_data.SD_NumOf_DEs_Touching + touchedSD, winningStreak);
+        }
+    }
+}
+
+template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a
+                                     //!< multiple of 32
+__global__ void sphereBroadphase(sphereDataStruct sphere_data,
+                                 unsigned int nSpheres,  //!< Number of spheres in the box
+                                 GranParamsPtr gran_params,
+                                 unsigned int numentries = 0) {
     signed int xSphCenter;
     signed int ySphCenter;
     signed int zSphCenter;
 
     /// Set aside shared memory
     // SD component of offset into composite array
-    volatile __shared__ unsigned int SD_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
-    // sphere component of offset into composite array
-    volatile __shared__ unsigned char sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
+    volatile __shared__ unsigned int sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
 
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_SPHERE, unsigned int> BlockRadixSortOP;
@@ -233,8 +306,7 @@ __global__ void primingOperationsRectangularBox(sphereDataStruct sphere_data,
     // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
     // No shmem bank coflicts here, good access...
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        SD_composite_offsets[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
-        sphere_composite_offsets[i * CUB_THREADS + threadIdx.x] = 0;
+        sphere_composite_offsets[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
     }
 
     __syncthreads();
@@ -257,15 +329,11 @@ __global__ void primingOperationsRectangularBox(sphereDataStruct sphere_data,
                      !(shMem_head_flags[idInShared + winningStreak]));
 
             // Store start of new entries
-            unsigned char sphere_offset = atomicAdd(sphere_data.SD_NumOf_DEs_Touching + touchedSD, winningStreak);
-
-            // The value sphere_offset now gives a *relative* offset in the composite array; i.e.,
-            // sphere_data.DEs_in_SD_composite. Get the SD component
+            // TODO this assumes that the offset is less than uint
+            unsigned int sphere_offset = atomicAdd(sphere_data.DEs_SD_offsets + touchedSD, winningStreak);
 
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int sphereInStreak = 0; sphereInStreak < winningStreak; sphereInStreak++) {
-                // set the SD offset
-                SD_composite_offsets[idInShared + sphereInStreak] = touchedSD;
                 // add this sphere to that sd, incrementing offset for next guy
                 sphere_composite_offsets[idInShared + sphereInStreak] = sphere_offset++;
             }
@@ -274,24 +342,25 @@ __global__ void primingOperationsRectangularBox(sphereDataStruct sphere_data,
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-    const uint64_t max_composite_index =
-        (uint64_t)gran_params->nSDs_Y * gran_params->nSDs_X * gran_params->nSDs_Z * MAX_COUNT_OF_DEs_PER_SD;
-
-    // Write out the data now; reister with sphere_data.DEs_in_SD_composite each sphere that touches a certain ID
+    // Write out the data now; register with sphere_data.DEs_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
+        unsigned int offset = sphere_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i];
         // Add offsets together
         // bad SD means not a valid offset
-        if (SD_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i] != NULL_GRANULAR_ID) {
-            uint64_t offset =
-                (uint64_t)SD_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i] * MAX_COUNT_OF_DEs_PER_SD +
-                sphere_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i];
-            if (offset >= max_composite_index) {
-                ABORTABORTABORT(
-                    "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
-                    threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
-            } else {
-                sphere_data.DEs_in_SD_composite[offset] = sphIDs[i];
+        if (offset != NULL_GRANULAR_ID) {
+            // printf("thread %d block %d is writing sphere %u to offset %u\n", threadIdx.x, blockIdx.x, sphIDs[i],
+            //        offset);
+            if (offset >= numentries) {
+                ABORTABORTABORT("TOO MANY SPHERE ENTRIES: expected max: %u, current: %u\n", numentries, offset);
             }
+            // if (offset >= max_composite_index) {
+            //     ABORTABORTABORT(
+            //         "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
+            //         threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
+            // } else {
+            // printf("%s\n", );
+            sphere_data.DEs_in_SD_composite[offset] = sphIDs[i];
+            // }
         }
     }
 }
@@ -552,63 +621,74 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     }
 }
 
-/// get a pointer for the current contact pair
-inline __device__ contactDataStruct* findContactPairInfo(contactDataStruct* sphere_contact_map,
-                                                         GranParamsPtr gran_params,
-                                                         unsigned int body_A,
-                                                         unsigned int body_B) {
+/// get an index for the current contact pair
+inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_contact_map,
+                                                   GranParamsPtr gran_params,
+                                                   unsigned int body_A,
+                                                   unsigned int body_B,
+                                                   float3* histmap) {
+    // TODO this should be size_t everywhere
     size_t body_A_offset = 12 * body_A;
     // first skim through and see if this contact pair is in the map
     for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
-        contactDataStruct* ptr_to_contact = sphere_contact_map + body_A_offset + contact_id;
-        if (ptr_to_contact->body_B == body_B) {
+        unsigned int contact_index = body_A_offset + contact_id;
+        if (sphere_contact_map[contact_index].body_B == body_B) {
             // make sure this contact is marked active
-            ptr_to_contact->active = true;
-            return ptr_to_contact;
+            sphere_contact_map[contact_index].active = true;
+            return contact_index;
         }
     }
 
     // if we get this far, the contact pair isn't in the map now and we need to find an empty spot
     for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
-        contactDataStruct* ptr_to_contact = sphere_contact_map + body_A_offset + contact_id;
-        // check whether the slot is free
-        if (ptr_to_contact->body_B == NULL_GRANULAR_ID) {
+        unsigned int contact_index = body_A_offset + contact_id;
+        // check whether the slot is free right now
+        if (sphere_contact_map[contact_index].body_B == NULL_GRANULAR_ID) {
             // getting this means the slot is free
             unsigned int body_B_expected = NULL_GRANULAR_ID;
             // claim this slot for ourselves, atomically
-            unsigned int body_B_returned = atomicCAS(&(ptr_to_contact->body_B), body_B_expected, body_B);
+            unsigned int body_B_returned =
+                atomicCAS(&(sphere_contact_map[contact_index].body_B), body_B_expected, body_B);
+            // did we get the spot? if so, claim it
             if (body_B_expected == body_B_returned) {
                 // make sure this contact is marked active
-                ptr_to_contact->active = true;
-                return ptr_to_contact;
+                sphere_contact_map[contact_index].active = true;
+                return contact_index;
             }
         }
     }
+    // if we get this far, we lost
     for (int i = 0; i < 12; i++) {
-        contactDataStruct* ptr_to_contact = sphere_contact_map + body_A_offset + i;
-        printf("body %u has no more slots, slot %d is taken by body %u\n", body_A, i, ptr_to_contact->body_B);
+        unsigned int contact_index = body_A_offset + i;
+        printf(
+            "body %u has no more slots, slot %d is taken by body %u, active is %u, last active is %u, disp (%f, %f, "
+            "%f)\n",
+            body_A, i, sphere_contact_map[contact_index].body_B, sphere_contact_map[contact_index].active,
+            sphere_contact_map[contact_index].active_last, histmap[contact_index].x, histmap[contact_index].y,
+            histmap[contact_index].z);
     }
     // if we got this far, we couldn't find a free contact pair. That is a violation of the 12-contacts theorem, so
     // we should probably give up now
-    ABORTABORTABORT("No available contact pair slots for body %u", body_A);
-    return nullptr;  // shouldn't get here anyways
+    ABORTABORTABORT("No available contact pair slots for body %u and body %u\n", body_A, body_B);
+    return NULL_GRANULAR_ID;  // shouldn't get here anyways
 }
 
 // cleanup the contact data for a given body
-inline __device__ void cleanupContactMap(contactDataStruct* sphere_contact_map, unsigned int body_A) {
+inline __device__ void cleanupContactMap(sphereDataStruct sphere_data, unsigned int body_A) {
+    // printf("cleaning up body %u contacts\n", body_A);
     size_t body_A_offset = 12 * body_A;
-    contactDataStruct null_data;  // what to reset the entries to
-    null_data.tangent_disp = {0, 0, 0};
-    null_data.active = 0;
-    null_data.body_B = NULL_GRANULAR_ID;
     // first skim through and see if this contact pair is in the map
     for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
         // if the contact is not active, reset it
-        if (sphere_contact_map[body_A_offset + contact_id].active == false) {
-            sphere_contact_map[body_A_offset + contact_id] = null_data;
+        if (sphere_data.sphere_contact_map[body_A_offset + contact_id].active == false) {
+            sphere_data.sphere_contact_map[body_A_offset + contact_id].body_B = NULL_GRANULAR_ID;
+            sphere_data.contact_history_map[body_A_offset + contact_id] = {0., 0., 0.};
+            sphere_data.sphere_contact_map[body_A_offset + contact_id].active_last = false;
+            // printf("body %u slot %u is inactive, resetting\n", body_A, contact_id);
         } else {
             // otherwise reset the active bit for next time
-            sphere_contact_map[body_A_offset + contact_id].active = false;
+            sphere_data.sphere_contact_map[body_A_offset + contact_id].active = false;
+            sphere_data.sphere_contact_map[body_A_offset + contact_id].active_last = true;
         }
     }
 }
@@ -629,13 +709,13 @@ inline __device__ bool clampTangentForces(GranParamsPtr gran_params, const float
 This kernel call figures out forces cuased by sphere-sphere interactions
 
 Template arguments:
-  - MAX_NSPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block
+  - MAX_COUNT_OF_DEs_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block
 collectives.
 
 Assumptions:
     - A sphere cannot touch more than 12 other spheres (this is a proved results, of 1953).
     - A "char" is stored on 8 bits and as such an unsigned char can hold positive numbers up to and including 255
-    - MAX_NSPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
+    - MAX_COUNT_OF_DEs_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
     - Granular material is made up of monodisperse spheres.
     - The function below assumes the spheres are in a box
     - The box has dimensions L x D x H.
@@ -647,38 +727,42 @@ Assumptions:
 NOTE:
   - Upon calling it with more than 256 threads, this kernel is going to make illegal memory accesses
 */
-template <unsigned int MAX_NSPHERES_PER_SD>
-__global__ void computeSphereForces(sphereDataStruct sphere_data,
-                                    GranParamsPtr gran_params,
-                                    BC_type* bc_type_list,
-                                    BC_params_t<int, int3>* bc_params_list,
-                                    unsigned int nBCs) {
+static __global__ void computeSphereForces(sphereDataStruct sphere_data,
+                                           GranParamsPtr gran_params,
+                                           BC_type* bc_type_list,
+                                           BC_params_t<int, int3>* bc_params_list,
+                                           unsigned int nBCs) {
     // still moar radius grab
     const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
     // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
-    __shared__ int sphere_X[MAX_NSPHERES_PER_SD];
-    __shared__ int sphere_Y[MAX_NSPHERES_PER_SD];
-    __shared__ int sphere_Z[MAX_NSPHERES_PER_SD];
+    __shared__ int sphere_X[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ int sphere_Y[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ int sphere_Z[MAX_COUNT_OF_DEs_PER_SD];
     // TODO figure out how we can do this better with no friction
-    __shared__ float omega_X[MAX_NSPHERES_PER_SD];
-    __shared__ float omega_Y[MAX_NSPHERES_PER_SD];
-    __shared__ float omega_Z[MAX_NSPHERES_PER_SD];
-    __shared__ float sphere_X_DOT[MAX_NSPHERES_PER_SD];
-    __shared__ float sphere_Y_DOT[MAX_NSPHERES_PER_SD];
-    __shared__ float sphere_Z_DOT[MAX_NSPHERES_PER_SD];
+    __shared__ float omega_X[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ float omega_Y[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ float omega_Z[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ float sphere_X_DOT[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ float sphere_Y_DOT[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ float sphere_Z_DOT[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ unsigned int sphIDs[MAX_COUNT_OF_DEs_PER_SD];
 
     unsigned int thisSD = blockIdx.x;
     unsigned int spheresTouchingThisSD = sphere_data.SD_NumOf_DEs_Touching[thisSD];
-    unsigned mySphereID;
+    unsigned int SphereSDOffset = sphere_data.DEs_SD_offsets[thisSD];
+    unsigned int mySphereID;
     unsigned char bodyB_list[MAX_SPHERES_TOUCHED_BY_SPHERE];
     unsigned int ncontacts = 0;
+    // if (threadIdx.x == 0) {
+    //     printf("SD %u has %u spheres, offset %u\n", thisSD, spheresTouchingThisSD, SphereSDOffset);
+    // }
     if (spheresTouchingThisSD == 0) {
         return;  // no spheres here, move along
     }
 
     // If we overran, we have a major issue, time to crash before we make illegal memory accesses
-    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_NSPHERES_PER_SD) {
+    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_COUNT_OF_DEs_PER_SD) {
         // Crash now
         ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
     }
@@ -687,7 +771,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (threadIdx.x < spheresTouchingThisSD) {
         // We need int64_ts to index into composite array
-        uint64_t offset_in_composite_Array = ((uint64_t)thisSD) * MAX_NSPHERES_PER_SD + threadIdx.x;
+        size_t offset_in_composite_Array = SphereSDOffset + threadIdx.x;
         mySphereID = sphere_data.DEs_in_SD_composite[offset_in_composite_Array];
         sphere_X[threadIdx.x] = sphere_data.pos_X[mySphereID];
         sphere_Y[threadIdx.x] = sphere_data.pos_Y[mySphereID];
@@ -700,6 +784,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         sphere_X_DOT[threadIdx.x] = sphere_data.pos_X_dt[mySphereID];
         sphere_Y_DOT[threadIdx.x] = sphere_data.pos_Y_dt[mySphereID];
         sphere_Z_DOT[threadIdx.x] = sphere_data.pos_Z_dt[mySphereID];
+        sphIDs[threadIdx.x] = mySphereID;
     }
 
     __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
@@ -719,7 +804,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         unsigned int ownerSD =
             SDTripletID(pointSDTriplet(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], gran_params), gran_params);
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
-            // unsigned int theirSphID = sphere_data.DEs_in_SD_composite[thisSD * MAX_NSPHERES_PER_SD + bodyB];
+            // unsigned int theirSphID = sphere_data.DEs_in_SD_composite[thisSD * MAX_COUNT_OF_DEs_PER_SD + bodyB];
             // Don't check for collision with self
             if (bodyA == bodyB)
                 continue;
@@ -755,6 +840,9 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
             // We have a collision here, log it for later
             // not very divergent, super quick
             if (contactSD == thisSD && penetration_int < contact_threshold) {
+                if (ncontacts >= MAX_SPHERES_TOUCHED_BY_SPHERE) {
+                    ABORTABORTABORT("Sphere %u is touching 12 spheres already and we just found another!!!\n");
+                }
                 bodyB_list[ncontacts] = bodyB;  // Save the collision pair
                 ncontacts++;                    // Increment the contact counter
             }
@@ -766,6 +854,8 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
         for (unsigned int idx = 0; idx < ncontacts; idx++) {
             // who am I colliding with?
             unsigned char bodyB = bodyB_list[idx];
+
+            unsigned int theirSphID = sphIDs[bodyB];
 
             float reciplength = 0;
             float3 force_accum = {0, 0, 0};
@@ -840,10 +930,11 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
                     delta_t = v_rel * gran_params->stepSize_SU;
                 } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
                     // tangential displacement
-                    contactDataStruct* contact_ptr = findContactPairInfo(sphere_data.sphere_contact_map, gran_params,
-                                                                         bodyA, sphere_data.DEs_in_SD_composite[bodyB]);
+                    unsigned int contact_index =
+                        findContactPairInfo(sphere_data.sphere_contact_map, gran_params, mySphereID, theirSphID,
+                                            sphere_data.contact_history_map);
                     // get the tangential displacement so far
-                    delta_t = contact_ptr->tangent_disp;
+                    delta_t = sphere_data.contact_history_map[contact_index];
                     // add on what we have
                     delta_t = delta_t + v_rel * gran_params->stepSize_SU;
 
@@ -853,7 +944,7 @@ __global__ void computeSphereForces(sphereDataStruct sphere_data,
                     delta_t = delta_t - projection * delta_r * reciplength;
 
                     // write back the updated displacement
-                    contact_ptr->tangent_disp = delta_t;
+                    sphere_data.contact_history_map[contact_index] = delta_t;
                 }
 
                 clamped = clampTangentForces(gran_params, force_accum, delta_t);
@@ -927,28 +1018,9 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
-    /// Set aside shared memory
-    // SD component of offset into composite array
-    volatile __shared__ unsigned int SD_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
-    // sphere component of offset into composite array
-    volatile __shared__ unsigned char sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
-    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
-
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_SPHERE, unsigned int> BlockRadixSortOP;
-    __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
-
-    typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
-    __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
 
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int sphIDs[MAX_SDs_TOUCHED_BY_SPHERE] = {mySphereID, mySphereID, mySphereID, mySphereID,
-                                                      mySphereID, mySphereID, mySphereID, mySphereID};
-
-    // This uses a lot of registers but is needed
-    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_SPHERE] = {NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
-                                                          NULL_GRANULAR_ID, NULL_GRANULAR_ID, NULL_GRANULAR_ID,
-                                                          NULL_GRANULAR_ID, NULL_GRANULAR_ID};
 
     float old_vel_x = 0;
     float old_vel_y = 0;
@@ -956,8 +1028,9 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
 
     // if we're in multistep mode, clean up contact histories
     if ((mySphereID < nSpheres) && (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP)) {
-        cleanupContactMap(sphere_data.sphere_contact_map, mySphereID);
+        cleanupContactMap(sphere_data, mySphereID);
     }
+    __syncthreads();  // just in case
 
     // Write back velocity updates
     if (mySphereID < nSpheres) {
@@ -1069,93 +1142,5 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
         sphere_data.pos_X[mySphereID] = xSphCenter;
         sphere_data.pos_Y[mySphereID] = ySphCenter;
         sphere_data.pos_Z[mySphereID] = zSphCenter;
-
-        figureOutTouchedSD(xSphCenter, ySphCenter, zSphCenter, SDsTouched, gran_params);
-    }
-
-    __syncthreads();
-
-    // Sort by the ID of the SD touched
-    BlockRadixSortOP(temp_storage_sort).Sort(SDsTouched, sphIDs);
-    __syncthreads();
-
-    // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[MAX_SDs_TOUCHED_BY_SPHERE];
-    Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
-    __syncthreads();
-
-    // Write back to shared memory; eight-way bank conflicts here - to revisit later
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        shMem_head_flags[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i] = head_flags[i];
-    }
-
-    // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
-    // No shmem bank coflicts here, good access...
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        SD_composite_offsets[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
-        sphere_composite_offsets[i * CUB_THREADS + threadIdx.x] = 0;
-    }
-
-    __syncthreads();
-
-    // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS spheres. There
-    // will be some thread divergence here.
-    // Loop through each potential SD, after sorting, and see if it is the start of a head
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        // SD currently touched, could easily be inlined
-        unsigned int touchedSD = SDsTouched[i];
-        if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
-            // current index into shared datastructure of length MAX_SDs_TOUCHED_BY_SPHERE*CUB_THREADS, could easily
-            // be inlined
-            unsigned int idInShared = MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i;
-            unsigned int winningStreak = 0;
-            // This is the beginning of a sequence of SDs with a new ID
-            do {
-                winningStreak++;
-                // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < MAX_SDs_TOUCHED_BY_SPHERE * CUB_THREADS &&
-                     !(shMem_head_flags[idInShared + winningStreak]));
-
-            if (touchedSD >= gran_params->nSDs_X * gran_params->nSDs_Y * gran_params->nSDs_Z) {
-                printf("invalid SD index %u on thread %u\n", mySphereID, touchedSD);
-            }
-
-            // Store start of new entries
-            unsigned char sphere_offset = atomicAdd(sphere_data.SD_NumOf_DEs_Touching + touchedSD, winningStreak);
-
-            // The value sphere_offset now gives a *relative* offset in the composite array; i.e.,
-            // sphere_data.DEs_in_SD_composite. Get the SD component
-
-            // Produce the offsets for this streak of spheres with identical SD ids
-            for (unsigned int sphereInStreak = 0; sphereInStreak < winningStreak; sphereInStreak++) {
-                // set the SD offset
-                SD_composite_offsets[idInShared + sphereInStreak] = touchedSD;
-                // add this sphere to that sd, incrementing offset for next guy
-                sphere_composite_offsets[idInShared + sphereInStreak] = sphere_offset++;
-            }
-        }
-    }
-
-    __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
-
-    const uint64_t max_composite_index =
-        (uint64_t)gran_params->nSDs_Y * gran_params->nSDs_X * gran_params->nSDs_Z * MAX_COUNT_OF_DEs_PER_SD;
-
-    // Write out the data now; reister with sphere_data.DEs_in_SD_composite each sphere that touches a certain ID
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
-        // Add offsets together
-        // bad SD means not a valid offset
-        if (SD_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i] != NULL_GRANULAR_ID) {
-            uint64_t offset =
-                (uint64_t)SD_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i] * MAX_COUNT_OF_DEs_PER_SD +
-                sphere_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i];
-            if (offset >= max_composite_index) {
-                ABORTABORTABORT(
-                    "overrun during priming on thread %u block %u, offset is %zu, max is %zu,  sphere is %u\n",
-                    threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
-            } else {
-                sphere_data.DEs_in_SD_composite[offset] = sphIDs[i];
-            }
-        }
     }
 }
