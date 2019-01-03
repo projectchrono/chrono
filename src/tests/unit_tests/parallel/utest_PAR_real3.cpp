@@ -9,19 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// ChronoParallel unit test for real class
+// ChronoParallel unit test for real3 class
 // =============================================================================
 
-#include <cstdio>
-#include <vector>
-#include <cmath>
+#include "chrono_parallel/math/real3.h"
 
 #include "unit_testing.h"
-
-#include "chrono_parallel/math/real3.h"
 
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
 const double precision = 1e-10;
@@ -29,345 +25,321 @@ const double precision = 1e-10;
 const float precision = 1e-6f;
 #endif
 
-int main(int argc, char* argv[]) {
-    // =============================================================================
+TEST(real3, constructors) {
     {
-        std::cout << "zero constructor\n";
+        // zero constructor
         real3 zero(0);
-        WeakEqual(zero.x, 0.0, precision);
-        WeakEqual(zero.y, 0.0, precision);
-        WeakEqual(zero.z, 0.0, precision);
+        ASSERT_EQ(zero.x, 0.0);
+        ASSERT_EQ(zero.y, 0.0);
+        ASSERT_EQ(zero.z, 0.0);
     }
-
     {
-        std::cout << "1 float constructor\n";
+        // 1 float constructor
         real3 value(1.5);
-        WeakEqual(value.x, 1.5, precision);
-        WeakEqual(value.y, 1.5, precision);
-        WeakEqual(value.z, 1.5, precision);
+        ASSERT_EQ(value.x, 1.5);
+        ASSERT_EQ(value.y, 1.5);
+        ASSERT_EQ(value.z, 1.5);
     }
-
     {
-        std::cout << "3 float constructor\n";
+        // 3 float constructor
         real3 value(1.5, 2.6, 3.7);
-        WeakEqual(value.x, 1.5, precision);
-        WeakEqual(value.y, 2.6, precision);
-        WeakEqual(value.z, 3.7, precision);
+        ASSERT_EQ(value.x, 1.5);
+        ASSERT_EQ(value.y, 2.6);
+        ASSERT_EQ(value.z, 3.7);
     }
-    // =============================================================================
+}
+
+TEST(real3, operators) {
     {
-        std::cout << "float 3 add\n";
+        // float 3 add
         real3 a(1.0, 2.0, 3.0);
         real3 b(3.0, 2.0, 1.0);
         real3 c = a + b;
-        WeakEqual(c.x, 4.0, precision);
-        WeakEqual(c.y, 4.0, precision);
-        WeakEqual(c.z, 4.0, precision);
+        ASSERT_NEAR(c.x, 4.0, precision);
+        ASSERT_NEAR(c.y, 4.0, precision);
+        ASSERT_NEAR(c.z, 4.0, precision);
     }
-
     {
-        std::cout << "float 3 subtract\n";
+        // float 3 subtract
         real3 a(1.0, 2.0, 3.0);
         real3 b(3.0, 2.0, 1.0);
         real3 c = a - b;
-        WeakEqual(c.x, -2.0, precision);
-        WeakEqual(c.y, 0.0, precision);
-        WeakEqual(c.z, 2.0, precision);
+        ASSERT_NEAR(c.x, -2.0, precision);
+        ASSERT_NEAR(c.y, 0.0, precision);
+        ASSERT_NEAR(c.z, 2.0, precision);
     }
-
     {
-        std::cout << "float 3 multiply\n";
+        // float 3 multiply
         real3 a(1.0, 2.0, 3.0);
         real3 b(3.0, 2.0, 1.0);
         real3 c = a * b;
-        WeakEqual(c.x, 3.0, precision);
-        WeakEqual(c.y, 4.0, precision);
-        WeakEqual(c.z, 3.0, precision);
+        ASSERT_NEAR(c.x, 3.0, precision);
+        ASSERT_NEAR(c.y, 4.0, precision);
+        ASSERT_NEAR(c.z, 3.0, precision);
     }
-
     {
-        std::cout << "float 3 divide\n";
+        // float 3 divide
         real3 a(1.0, 2.0, 3.0);
         real3 b(3.0, 2.0, 1.0);
         real3 c = a / b;
-        WeakEqual(c.x, 1.0 / 3.0, precision);
-        WeakEqual(c.y, 2.0 / 2.0, precision);
-        WeakEqual(c.z, 3.0 / 1.0, precision);
+        ASSERT_NEAR(c.x, 1.0 / 3.0, precision);
+        ASSERT_NEAR(c.y, 2.0 / 2.0, precision);
+        ASSERT_NEAR(c.z, 3.0 / 1.0, precision);
     }
     {
-        std::cout << "float 3 negate\n";
+        // float 3 negate
         real3 a(1.0, 2.0, 3.0);
         real3 c = -a;
-        WeakEqual(c.x, -1.0, precision);
-        WeakEqual(c.y, -2.0, precision);
-        WeakEqual(c.z, -3.0, precision);
+        ASSERT_NEAR(c.x, -1.0, precision);
+        ASSERT_NEAR(c.y, -2.0, precision);
+        ASSERT_NEAR(c.z, -3.0, precision);
     }
     // =============================================================================
     {
-        std::cout << "float 3 add\n";
+        // float 3 add
         real3 a(1.0, 2.0, 3.0);
         real3 b(3.0, 2.0, 1.0);
         a += b;
-        WeakEqual(a.x, 4.0, precision);
-        WeakEqual(a.y, 4.0, precision);
-        WeakEqual(a.z, 4.0, precision);
+        ASSERT_NEAR(a.x, 4.0, precision);
+        ASSERT_NEAR(a.y, 4.0, precision);
+        ASSERT_NEAR(a.z, 4.0, precision);
     }
-
     {
-        std::cout << "float 3 subtract\n";
+        // float 3 subtract
         real3 a(1.0, 2.0, 3.0);
         real3 b(3.0, 2.0, 1.0);
         a -= b;
-        WeakEqual(a.x, -2.0, precision);
-        WeakEqual(a.y, 0.0, precision);
-        WeakEqual(a.z, 2.0, precision);
+        ASSERT_NEAR(a.x, -2.0, precision);
+        ASSERT_NEAR(a.y, 0.0, precision);
+        ASSERT_NEAR(a.z, 2.0, precision);
     }
-
     {
-        std::cout << "float 3 multiply\n";
+        // float 3 multiply
         real3 a(1.0, 2.0, 3.0);
         real3 b(3.0, 2.0, 1.0);
         a *= b;
-        WeakEqual(a.x, 3.0, precision);
-        WeakEqual(a.y, 4.0, precision);
-        WeakEqual(a.z, 3.0, precision);
+        ASSERT_NEAR(a.x, 3.0, precision);
+        ASSERT_NEAR(a.y, 4.0, precision);
+        ASSERT_NEAR(a.z, 3.0, precision);
     }
-
     {
-        std::cout << "float 3 divide\n";
+        // float 3 divide
         real3 a(1.0, 2.0, 3.0);
         real3 b(3.0, 2.0, 1.0);
         a /= b;
-        WeakEqual(a.x, 1.0 / 3.0, precision);
-        WeakEqual(a.y, 2.0 / 2.0, precision);
-        WeakEqual(a.z, 3.0 / 1.0, precision);
+        ASSERT_NEAR(a.x, 1.0 / 3.0, precision);
+        ASSERT_NEAR(a.y, 2.0 / 2.0, precision);
+        ASSERT_NEAR(a.z, 3.0 / 1.0, precision);
     }
     // =============================================================================
-
     {
-        std::cout << "float 3 add\n";
+        // float 3 add
         real3 a(1.0, 2.0, 3.0);
         real b(2.0);
         real3 c = a + b;
-        WeakEqual(c.x, 3.0, precision);
-        WeakEqual(c.y, 4.0, precision);
-        WeakEqual(c.z, 5.0, precision);
+        ASSERT_NEAR(c.x, 3.0, precision);
+        ASSERT_NEAR(c.y, 4.0, precision);
+        ASSERT_NEAR(c.z, 5.0, precision);
     }
-
     {
-        std::cout << "float 3 subtract\n";
+        // float 3 subtract
         real3 a(1.0, 2.0, 3.0);
         real b(2.0);
         real3 c = a - b;
-        WeakEqual(c.x, -1.0, precision);
-        WeakEqual(c.y, 0.0, precision);
-        WeakEqual(c.z, 1.0, precision);
+        ASSERT_NEAR(c.x, -1.0, precision);
+        ASSERT_NEAR(c.y, 0.0, precision);
+        ASSERT_NEAR(c.z, 1.0, precision);
     }
-
     {
-        std::cout << "float 3 multiply\n";
+        // float 3 multiply
         real3 a(1.0, 2.0, 3.0);
         real b(2.0);
         real3 c = a * b;
-        WeakEqual(c.x, 2.0, precision);
-        WeakEqual(c.y, 4.0, precision);
-        WeakEqual(c.z, 6.0, precision);
+        ASSERT_NEAR(c.x, 2.0, precision);
+        ASSERT_NEAR(c.y, 4.0, precision);
+        ASSERT_NEAR(c.z, 6.0, precision);
     }
-
     {
-        std::cout << "float 3 divide\n";
+        // float 3 divide
         real3 a(1.0, 2.0, 3.0);
         real b(2.0);
         real3 c = a / b;
-        WeakEqual(c.x, 1.0 / 2.0, precision);
-        WeakEqual(c.y, 2.0 / 2.0, precision);
-        WeakEqual(c.z, 3.0 / 2.0, precision);
+        ASSERT_NEAR(c.x, 1.0 / 2.0, precision);
+        ASSERT_NEAR(c.y, 2.0 / 2.0, precision);
+        ASSERT_NEAR(c.z, 3.0 / 2.0, precision);
     }
     // =============================================================================
-
     {
-        std::cout << "float 3 add\n";
+        // float 3 add
         real3 a(1.0, 2.0, 3.0);
         real b(2.0);
         a += b;
-        WeakEqual(a.x, 3.0, precision);
-        WeakEqual(a.y, 4.0, precision);
-        WeakEqual(a.z, 5.0, precision);
+        ASSERT_NEAR(a.x, 3.0, precision);
+        ASSERT_NEAR(a.y, 4.0, precision);
+        ASSERT_NEAR(a.z, 5.0, precision);
     }
-
     {
-        std::cout << "float 3 subtract\n";
+        // float 3 subtract
         real3 a(1.0, 2.0, 3.0);
         real b(2.0);
         a -= b;
-        WeakEqual(a.x, -1.0, precision);
-        WeakEqual(a.y, 0.0, precision);
-        WeakEqual(a.z, 1.0, precision);
+        ASSERT_NEAR(a.x, -1.0, precision);
+        ASSERT_NEAR(a.y, 0.0, precision);
+        ASSERT_NEAR(a.z, 1.0, precision);
     }
-
     {
-        std::cout << "float 3 multiply\n";
+        // float 3 multiply
         real3 a(1.0, 2.0, 3.0);
         real b(2.0);
         a *= b;
-        WeakEqual(a.x, 2.0, precision);
-        WeakEqual(a.y, 4.0, precision);
-        WeakEqual(a.z, 6.0, precision);
+        ASSERT_NEAR(a.x, 2.0, precision);
+        ASSERT_NEAR(a.y, 4.0, precision);
+        ASSERT_NEAR(a.z, 6.0, precision);
     }
-
     {
-        std::cout << "float 3 divide\n";
+        // float 3 divide
         real3 a(1.0, 2.0, 3.0);
         real b(2.0);
         a /= b;
-        WeakEqual(a.x, 1.0 / 2.0, precision);
-        WeakEqual(a.y, 2.0 / 2.0, precision);
-        WeakEqual(a.z, 3.0 / 2.0, precision);
+        ASSERT_NEAR(a.x, 1.0 / 2.0, precision);
+        ASSERT_NEAR(a.y, 2.0 / 2.0, precision);
+        ASSERT_NEAR(a.z, 3.0 / 2.0, precision);
     }
-    // =============================================================================
+}
 
+TEST(real3, functions) {
     {
-        std::cout << "float 3 dot\n";
+        // float 3 dot
         real3 a(1.0, 2.0, 3.0);
         real3 b(2.0, 1.0, 3.0);
         real c = Dot(a, b);
-        WeakEqual(c, 13.0, precision);
+        ASSERT_NEAR(c, 13.0, precision);
     }
     {
-        std::cout << "float 3 dot\n";
+        // float 3 dot
         real3 a(0, -2.0, 0);
         real3 b(0, -2.0, 0);
         real c = Dot(a, b);
-        WeakEqual(c, 4.0, precision);
+        ASSERT_NEAR(c, 4.0, precision);
     }
     {
-        std::cout << "float 3 dot\n";
+        // float 3 dot
         real3 a(0, -2, 0);
         real c = Dot(a);
-        WeakEqual(c, 4.0, precision);
+        ASSERT_NEAR(c, 4.0, precision);
     }
     {
-        std::cout << "float 3 cross\n";
+        // float 3 cross
         real3 a(1.0, 2.0, 3.0);
         real3 b(2.0, 1.0, 3.0);
         real3 c = Cross(a, b);
-        WeakEqual(c.x, 3.0, precision);
-        WeakEqual(c.y, 3.0, precision);
-        WeakEqual(c.z, -3.0, precision);
+        ASSERT_NEAR(c.x, 3.0, precision);
+        ASSERT_NEAR(c.y, 3.0, precision);
+        ASSERT_NEAR(c.z, -3.0, precision);
     }
     {
-        std::cout << "float 3 cross\n";
+        // float 3 cross
         real3 a = Normalize(real3(rand(), rand(), rand()));
         real3 b = Normalize(real3(rand(), rand(), rand()));
         real3 ans1 = Cross(a, b);
         ChVector<real> ans2;
         ans2.Cross(ToChVector(a), ToChVector(b));
-        WeakEqual(ans1, ToReal3(ans2), precision);
+        Assert_near(ans1, ToReal3(ans2), precision);
     }
-
     {
-        std::cout << "float 3 length\n";
+        // float 3 length
         real3 a(1.0, 2.0, -3.0);
         real c = Length(a);
-        WeakEqual(c, sqrt(14.0), precision);
+        ASSERT_NEAR(c, sqrt(14.0), precision);
     }
     {
-        std::cout << "float 3 normalize\n";
+        // float 3 normalize
         real3 a(1.0, 2.0, -3.0);
         real3 c = Normalize(a);
-        WeakEqual(c.x, 1.0 / sqrt(14.0), precision);
-        WeakEqual(c.y, 2.0 / sqrt(14.0), precision);
-        WeakEqual(c.z, -3.0 / sqrt(14.0), precision);
+        ASSERT_NEAR(c.x, 1.0 / sqrt(14.0), precision);
+        ASSERT_NEAR(c.y, 2.0 / sqrt(14.0), precision);
+        ASSERT_NEAR(c.z, -3.0 / sqrt(14.0), precision);
     }
-
     {
-        std::cout << "float 3 ==\n";
+        // float 3 ==
         real3 a(1.0, 2.0, -3.0);
         real3 c = Normalize(a);
-        bool res = (a == c);
-        StrictEqual(res, 0);
-        res = (a == a);
-        StrictEqual(res, 1);
+        ASSERT_FALSE(a == c);
+        ASSERT_TRUE(a == a);
     }
-
     {
-        std::cout << "float 3 abs\n";
+        // float 3 abs
         real3 a(-1.0, 2.0, -3.0);
         real3 c = Abs(a);
-        WeakEqual(c[0], 1.0, precision);
-        WeakEqual(c[1], 2.0, precision);
-        WeakEqual(c[2], 3.0, precision);
+        ASSERT_NEAR(c[0], 1.0, precision);
+        ASSERT_NEAR(c[1], 2.0, precision);
+        ASSERT_NEAR(c[2], 3.0, precision);
     }
     {
-        std::cout << "float 3 Sign\n";
+        // float 3 Sign
         real3 a(-1.0, 2.0, 0);
         real3 c = Sign(a);
-        WeakEqual(c[0], -1, precision);
-        WeakEqual(c[1], 1, precision);
-        WeakEqual(c[2], 0, precision);
+        ASSERT_NEAR(c[0], -1, precision);
+        ASSERT_NEAR(c[1], 1, precision);
+        ASSERT_NEAR(c[2], 0, precision);
     }
     {
-        std::cout << "float 3 Clamp\n";
+        // float 3 Clamp
         real3 a(-10.0, 3.0, 5);
         real3 mi(-1.0, -1.0, -1.0);
         real3 ma(2.0, 2.0, 4.0);
         real3 c = Clamp(a, mi, ma);
-        WeakEqual(c[0], -1.0, precision);
-        WeakEqual(c[1], 2.0, precision);
-        WeakEqual(c[2], 4.0, precision);
+        ASSERT_NEAR(c[0], -1.0, precision);
+        ASSERT_NEAR(c[1], 2.0, precision);
+        ASSERT_NEAR(c[2], 4.0, precision);
     }
     {
-        std::cout << "float 3 Min\n";
+        // float 3 Min
         real3 a(10.0, -10.0, 5.0);
         real res = Min(a);
-        WeakEqual(res, -10.0, precision);
+        ASSERT_NEAR(res, -10.0, precision);
     }
-	{
-		std::cout << "float 3 Min\n";
-		real3 a(3.0, 1.0, 5);
-		real res = Min(a);
-		WeakEqual(res, 1.0, precision);
-	}
     {
-        std::cout << "float 3 Max\n";
+        // float 3 Min
+        real3 a(3.0, 1.0, 5);
+        real res = Min(a);
+        ASSERT_NEAR(res, 1.0, precision);
+    }
+    {
+        // float 3 Max
         real3 a(-10.0, 3.0, 5);
         real res = Max(a);
-        WeakEqual(res, 5.0, precision);
+        ASSERT_NEAR(res, 5.0, precision);
     }
-	{
-		std::cout << "float 3 Max\n";
-		real3 a(-10.0, -3.0, -5);
-		real res = Max(a);
-		WeakEqual(res, -3.0, precision);
-	}
     {
-        std::cout << "float 3 Round\n";
+        // float 3 Max
+        real3 a(-10.0, -3.0, -5);
+        real res = Max(a);
+        ASSERT_NEAR(res, -3.0, precision);
+    }
+    {
+        // float 3 Round
         real3 a(-3.2, 3.6, 5.4);
         real3 c = Round(a);
-        WeakEqual(c[0], -3, precision);
-        WeakEqual(c[1], 4, precision);
-        WeakEqual(c[2], 5, precision);
+        ASSERT_NEAR(c[0], -3, precision);
+        ASSERT_NEAR(c[1], 4, precision);
+        ASSERT_NEAR(c[2], 5, precision);
     }
     {
-        std::cout << "float 3 IsZero\n";
+        // float 3 IsZero
         real3 a(-3.2, 0, 5.4);
-        bool c = IsZero(a);
-        StrictEqual(c, false);
+        ASSERT_FALSE(IsZero(a));
         a = real3(0, 0, 0);
-        c = IsZero(a);
-        StrictEqual(c, true);
+        ASSERT_TRUE(IsZero(a));
     }
+    {
+        // float 3 add, divite, dot product
+        real3 a(1.0, 2.0, 3.0);
+        real3 b(3.0, 2.0, 1.0);
+        real3 c(4.0, 5.0, 8.0);
+        a = (a + b) / c;
+        real d = Dot(a, b);
 
-	{
-		std::cout << "float 3 add, divite, dot product\n";
-		real3 a(1.0, 2.0, 3.0);
-		real3 b(3.0, 2.0, 1.0);
-		real3 c(4.0, 5.0, 8.0);
-		a = (a+b)/c;
-		real d = Dot(a,b);
-
-		WeakEqual(d, 5.1, precision);
-
-	}
-    return 0;
+        ASSERT_NEAR(d, 5.1, precision);
+    }
 }
