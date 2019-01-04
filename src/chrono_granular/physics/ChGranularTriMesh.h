@@ -152,10 +152,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     bool mesh_collision_enabled = true;
 
     /// Number of triangles touching each bucket
-    std::vector<unsigned int, cudallocator<unsigned int>> BUCKET_countsOfTrianglesTouching;
-    std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_BUCKET_composite;
+    std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_SD_composite;
     // Number of triangles touching each SD
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_isTouchingTriangle;
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching;
     // Function members
     void copyTriangleDataToDevice();
     void resetTriangleBroadphaseInformation();

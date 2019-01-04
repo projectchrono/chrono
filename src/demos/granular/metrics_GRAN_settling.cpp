@@ -116,7 +116,7 @@ void SetupGranTriSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_par
 }
 
 double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
-    double out_fps = 100;
+    double out_fps = 50;
     float frame_step = 1.0 / out_fps;
 
     clock_t start = std::clock();

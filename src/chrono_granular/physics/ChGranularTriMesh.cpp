@@ -102,8 +102,6 @@ void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::stri
     printf("Done allocating mesh unified memory\n");
 
     // Allocate triangle collision memory
-    BUCKET_countsOfTrianglesTouching.resize(TRIANGLEBUCKET_COUNT);
-    triangles_in_BUCKET_composite.resize(TRIANGLEBUCKET_COUNT * MAX_TRIANGLE_COUNT_PER_BUCKET);
 }
 
 // result = rot_mat * p + pos

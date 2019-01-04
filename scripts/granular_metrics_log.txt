@@ -1098,3 +1098,15 @@ Running settling test!
 50 thousand bodies took 5.08754 seconds!
 500 thousand bodies took 35.2847 seconds!
 1 million bodies took 68.0894 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 04 Jan 2019 15:04:11 -0600
+commit 909a727d5081df07bba77d0c505ddbf3ac73b2ab Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Jan 4 15:02:24 2019 -0600 rewrite much of sphere-triangle code, needs more testing, optimization
+Results:
+Running wavetank test!
+50 thousand bodies took 5.06192 seconds!
+500 thousand bodies took 33.2977 seconds!
+1 million bodies took 67.3913 seconds!
+Running settling test!
+50 thousand bodies took 5.23894 seconds!
+500 thousand bodies took 33.9055 seconds!
+1 million bodies took 67.871 seconds!
