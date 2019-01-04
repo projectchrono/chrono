@@ -34,7 +34,7 @@ using std::stof;
 using std::stoi;
 using std::vector;
 
-enum MIXER_TYPE { STANDARD, EXTERNAL, EXTERNAL_DRUM };
+enum MIXER_TYPE { STANDARD, EXTERNAL, EXTERNAL_DRUM, ANGLED_DRUM };
 
 void ShowUsage() {
     cout << "usage: ./test_GRAN_mixer <json_file>" << endl;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     cout << "Created " << n_spheres << " spheres" << endl;
 
     m_sys.setParticlePositions(pos);
-    MIXER_TYPE mixer_type = MIXER_TYPE::EXTERNAL_DRUM;
+    MIXER_TYPE mixer_type = MIXER_TYPE::ANGLED_DRUM;
 
     // Mesh values
     vector<string> mesh_filenames;
@@ -127,10 +127,12 @@ int main(int argc, char* argv[]) {
         case MIXER_TYPE::EXTERNAL_DRUM:
             mesh_filename = string("granular/external_mixer_drum.obj");
             break;
+        case MIXER_TYPE::ANGLED_DRUM:
+            mesh_filename = string("granular/external_mixer_tilted_drum.obj");
+            break;
         default:
             cout << "Invalid mixer type" << endl;
             return 1;
-            break;
     }
 
     mesh_filenames.push_back(mesh_filename);
