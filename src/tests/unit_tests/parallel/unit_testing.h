@@ -72,6 +72,19 @@ Mat33 ToMat33(const ChMatrix33<real>& a) {
 
 // -----------------------------------------------------------------------------
 
+void Assert_eq(const ChVector<>& a, const ChVector<>& b) {
+    ASSERT_EQ(a.x(), b.x());
+    ASSERT_EQ(a.y(), b.y());
+    ASSERT_EQ(a.z(), b.z());
+}
+
+void Assert_eq(const ChQuaternion<>& a, const ChQuaternion<>& b) {
+    ASSERT_EQ(a.e0(), b.e0());
+    ASSERT_EQ(a.e1(), b.e1());
+    ASSERT_EQ(a.e2(), b.e2());
+    ASSERT_EQ(a.e3(), b.e3());
+}
+
 void Assert_eq(const real3& a, const real3& b) {
     ASSERT_EQ(a.x, b.x);
     ASSERT_EQ(a.y, b.y);
@@ -99,6 +112,19 @@ void Assert_eq(const Mat33& a, const Mat33& b) {
 }
 
 // -----------------------------------------------------------------------------
+
+void Assert_near(const ChVector<>& a, const ChVector<>& b, real COMPARE_EPS = C_EPSILON) {
+    ASSERT_NEAR(a.x(), b.x(), COMPARE_EPS);
+    ASSERT_NEAR(a.y(), b.y(), COMPARE_EPS);
+    ASSERT_NEAR(a.z(), b.z(), COMPARE_EPS);
+}
+
+void Assert_near(const ChQuaternion<>& a, const ChQuaternion<>& b, real COMPARE_EPS = C_EPSILON) {
+    ASSERT_NEAR(a.e0(), b.e0(), COMPARE_EPS);
+    ASSERT_NEAR(a.e1(), b.e1(), COMPARE_EPS);
+    ASSERT_NEAR(a.e2(), b.e2(), COMPARE_EPS);
+    ASSERT_NEAR(a.e3(), b.e3(), COMPARE_EPS);
+}
 
 void Assert_near(const real3& a, const real3& b, real COMPARE_EPS = C_EPSILON) {
     ASSERT_NEAR(a.x, b.x, COMPARE_EPS);
@@ -145,107 +171,6 @@ void Assert_near(const SymMat22& a, const SymMat22& b, real COMPARE_EPS = C_EPSI
     ASSERT_NEAR(a.x11, b.x11, COMPARE_EPS);
     ASSERT_NEAR(a.x21, b.x21, COMPARE_EPS);
     ASSERT_NEAR(a.x22, b.x22, COMPARE_EPS);
-}
-
-// -----------------------------------------------------------------------------
-
-void StrictEqual(const int& x, const int& y) {
-    if (x != y) {
-        std::cout << x << " does not equal " << y << std::endl;
-        exit(1);
-    }
-}
-
-void StrictEqual(const uint& x, const uint& y) {
-    if (x != y) {
-        std::cout << x << " does not equal " << y << std::endl;
-        exit(1);
-    }
-}
-
-void StrictEqual(const real& x, const real& y) {
-    if (x != y) {
-        std::cout << x << " does not equal " << y << std::endl;
-        exit(1);
-    }
-}
-
-void StrictEqual(const real3& a, const real3& b) {
-    StrictEqual(a.x, b.x);
-    StrictEqual(a.y, b.y);
-    StrictEqual(a.z, b.z);
-}
-
-void StrictEqual(const real4& a, const real4& b) {
-    StrictEqual(a.w, b.w);
-    StrictEqual(a.x, b.x);
-    StrictEqual(a.y, b.y);
-    StrictEqual(a.z, b.z);
-}
-
-void StrictEqual(const Mat33& a, const Mat33& b) {
-    StrictEqual(a.col(0), b.col(0));
-    StrictEqual(a.col(1), b.col(1));
-    StrictEqual(a.col(2), b.col(2));
-}
-
-void StrictEqual(const uvec4& a, const uvec4& b) {
-    StrictEqual(a.x, b.x);
-    StrictEqual(a.y, b.y);
-    StrictEqual(a.z, b.z);
-    StrictEqual(a.w, b.w);
-}
-
-void WeakEqual(const real& x, const real& y, real COMPARE_EPS = C_EPSILON) {
-    if (Abs(x - y) > COMPARE_EPS) {
-        printf("%f does not equal %f %.20e\n", x, y, Abs(x - y));
-        exit(1);
-    }
-}
-
-void WeakEqual(const real3& a, const real3& b, real COMPARE_EPS = C_EPSILON) {
-    WeakEqual(a.x, b.x, COMPARE_EPS);
-    WeakEqual(a.y, b.y, COMPARE_EPS);
-    WeakEqual(a.z, b.z, COMPARE_EPS);
-}
-
-void WeakEqual(const real4& a, const real4& b, real COMPARE_EPS = C_EPSILON) {
-    WeakEqual(a.x, b.x, COMPARE_EPS);
-    WeakEqual(a.y, b.y, COMPARE_EPS);
-    WeakEqual(a.z, b.z, COMPARE_EPS);
-    WeakEqual(a.w, b.w, COMPARE_EPS);
-}
-
-void WeakEqual(const quaternion& a, const quaternion& b, real COMPARE_EPS = C_EPSILON) {
-    WeakEqual(a.w, b.w, COMPARE_EPS);
-    WeakEqual(a.x, b.x, COMPARE_EPS);
-    WeakEqual(a.y, b.y, COMPARE_EPS);
-    WeakEqual(a.z, b.z, COMPARE_EPS);
-}
-
-void WeakEqual(const Mat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
-    WeakEqual(a[0], b[0], COMPARE_EPS);
-    WeakEqual(a[1], b[1], COMPARE_EPS);
-    WeakEqual(a[2], b[2], COMPARE_EPS);
-    WeakEqual(a[4], b[4], COMPARE_EPS);
-    WeakEqual(a[5], b[5], COMPARE_EPS);
-    WeakEqual(a[6], b[6], COMPARE_EPS);
-    WeakEqual(a[8], b[8], COMPARE_EPS);
-    WeakEqual(a[9], b[9], COMPARE_EPS);
-    WeakEqual(a[10], b[10], COMPARE_EPS);
-}
-void WeakEqual(const SymMat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
-    WeakEqual(a[0], b[0], COMPARE_EPS);   // x11
-    WeakEqual(a[1], b[1], COMPARE_EPS);   // x21
-    WeakEqual(a[2], b[2], COMPARE_EPS);   // x31
-    WeakEqual(a[3], b[5], COMPARE_EPS);   // x22
-    WeakEqual(a[4], b[6], COMPARE_EPS);   // x32
-    WeakEqual(a[5], b[10], COMPARE_EPS);  // x33
-}
-void WeakEqual(const SymMat22& a, const SymMat22& b, real COMPARE_EPS = C_EPSILON) {
-    WeakEqual(a.x11, b.x11, COMPARE_EPS);
-    WeakEqual(a.x21, b.x21, COMPARE_EPS);
-    WeakEqual(a.x22, b.x22, COMPARE_EPS);
 }
 
 // -----------------------------------------------------------------------------

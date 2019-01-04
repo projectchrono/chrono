@@ -56,8 +56,7 @@ SET(TESTS_B
     utest_PAR_mpr
 )
 
-# Because Bullet classes are not DLL exported, the sources must be explicitly
-# included.
+# Because Bullet classes are not DLL exported, the sources must be explicitly included.
 IF (MSVC)
   SET(BULLET_FILES
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionShape.h
