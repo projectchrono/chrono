@@ -18,8 +18,9 @@
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChLinkBase.h"
 #include "chrono/solver/ChConstraintNgeneric.h"
-#include "chrono_fea/ChElementBeamIGA.h"
-#include "chrono_fea/ChNodeFEAxyzrot.h"
+
+#include "chrono/fea/ChElementBeamIGA.h"
+#include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
 
@@ -35,46 +36,44 @@ namespace fea {
 /// The parameteric coordinate of the point of the spline that correspond
 /// to the outlet is automatically updated during the sliding motion.
 
-class ChApiFea ChLinkBeamIGAslider : public ChLinkBase {
-
+class ChApi ChLinkBeamIGAslider : public ChLinkBase {
   private:
     ChVector<> m_react;
 
     // used as an interface to the solver.
-    //ChConstraintNgeneric constraint1;
-	ChConstraintNgeneric constraint2;
-	ChConstraintNgeneric constraint3;
+    // ChConstraintNgeneric constraint1;
+    ChConstraintNgeneric constraint2;
+    ChConstraintNgeneric constraint3;
 
     std::vector<std::shared_ptr<fea::ChElementBeamIGA>> m_beams;
     std::shared_ptr<ChBodyFrame> m_body;
 
-	std::vector<std::shared_ptr<ChNodeFEAxyzrot>> m_nodes;
-	
-	int order;
-	size_t active_element;
-	double tau;
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> m_nodes;
+
+    int order;
+    size_t active_element;
+    double tau;
 
     // Coordinate system, attached to the body, whose origin is
     // constrained to coincide with the node's position.
     ChCoordsys<> m_csys;
 
   public:
-	ChLinkBeamIGAslider();
-	ChLinkBeamIGAslider(const ChLinkBeamIGAslider& other);
+    ChLinkBeamIGAslider();
+    ChLinkBeamIGAslider(const ChLinkBeamIGAslider& other);
     ~ChLinkBeamIGAslider() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkBeamIGAslider* Clone() const override { return new ChLinkBeamIGAslider(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return this->m_nodes.size()*3 + 7; }
+    virtual int GetNumCoords() override { return (int)m_nodes.size() * 3 + 7; }
 
     /// Number of scalar constraints.
     virtual int GetDOC_c() override { return 2; }
 
     /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
     virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
-
 
     //
     // STATE FUNCTIONS
@@ -117,18 +116,18 @@ class ChApiFea ChLinkBeamIGAslider : public ChLinkBase {
 
     virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
 
-
     /// Initialize this constraint, given the node and element(s).
     /// The attachment position is the actual position of the node (unless
     /// otherwise defined, using the optional 'pos' parameter).
     /// Note: the node and body must belong to the same ChSystem.
-    virtual int Initialize(std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,  ///< elements that must slide
-                           std::shared_ptr<ChBodyFrame> body,   ///< body (frame) representing the slider outlet
-                           ChVector<>* pos = 0                  ///< attachment position in absolute coordinates (X axis is outlet dir)
-                           );
+    virtual int Initialize(
+        std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,  ///< elements that must slide
+        std::shared_ptr<ChBodyFrame> body,  ///< body (frame) representing the slider outlet
+        ChVector<>* pos = 0                 ///< attachment position in absolute coordinates (X axis is outlet dir)
+    );
 
-	/// Get the connected elements
-	std::vector<std::shared_ptr<ChElementBeamIGA>>& GetConstrainedElements() { return m_beams; }
+    /// Get the connected elements
+    std::vector<std::shared_ptr<ChElementBeamIGA>>& GetConstrainedElements() { return m_beams; }
 
     /// Get the connected body (frame).
     std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
@@ -182,9 +181,8 @@ class ChApiFea ChLinkBeamIGAslider : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-private: 
-	virtual void UpdateNodes();
-
+  private:
+    virtual void UpdateNodes();
 };
 
 /// @} fea_constraints

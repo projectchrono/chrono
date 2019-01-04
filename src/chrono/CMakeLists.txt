@@ -369,6 +369,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChLinkDirFrame.cpp
     fea/ChLinkPointPoint.cpp
     fea/ChLinkPointTriface.cpp
+    fea/ChLinkBeamIGAslider.cpp
     fea/ChContactSurface.cpp
     fea/ChContactSurfaceNodeCloud.cpp
     fea/ChContactSurfaceMesh.cpp
@@ -432,6 +433,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChLinkDirFrame.h
     fea/ChLinkPointPoint.h
     fea/ChLinkPointTriface.h
+    fea/ChLinkBeamIGAslider.h
     fea/ChContactSurface.h
     fea/ChContactSurfaceNodeCloud.h
     fea/ChContactSurfaceMesh.h
