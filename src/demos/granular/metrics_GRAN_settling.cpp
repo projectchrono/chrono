@@ -58,7 +58,7 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC& m_sys, sim_param_holder& 
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);
+    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
 
     m_sys.setOutputMode(params.write_mode);
     m_sys.setOutputDirectory(params.output_dir);

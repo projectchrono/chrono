@@ -369,7 +369,7 @@ __global__ void interactionTerrain_TriangleSoup(
     if (SD_numTrianglesTouching[thisSD] == 0) {
         return;  // no triangle touches this SD; return right away
     }
-    unsigned int spheresTouchingThisSD = sphere_data.SD_NumOf_DEs_Touching[thisSD];
+    unsigned int spheresTouchingThisSD = sphere_data.SD_NumSpheresTouching[thisSD];
     if (spheresTouchingThisSD == 0) {
         return;  // no sphere to speak of in this SD
     }
@@ -682,7 +682,7 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() 
 }
 __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
-    unsigned int nBlocks = (nDEs + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
     float duration_SU = duration / gran_params->TIME_UNIT;
@@ -716,12 +716,24 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
 
         VERBOSE_PRINTF("Starting computeSphereForces!\n");
 
-        // Compute sphere-sphere forces
-        computeSphereForces<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params, BC_type_list.data(),
-                                                                   BC_params_list_SU.data(), BC_params_list_SU.size());
+        if (gran_params->friction_mode == FRICTIONLESS) {
+            // Compute sphere-sphere forces
+            computeSphereForces_frictionless<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
+                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size());
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        } else if (gran_params->friction_mode == SINGLE_STEP || gran_params->friction_mode == MULTI_STEP) {
+            // figure out who is contacting
+            determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
 
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
+            computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(), BC_params_list_SU.size(),
+                nSpheres);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        }
 
         if (meshSoup_DEVICE->nTrianglesInSoup != 0 && mesh_collision_enabled) {
             runTriangleBroadphase();
@@ -748,7 +760,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<CUDA_THREADS_PER_BLOCK>
-            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nDEs, gran_params);
+            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 

@@ -27,6 +27,7 @@
 
 /// Get the force multiplier for a contact given the penetration
 /// delta_n is penetration normalized by diameter
+// NOTE that this is here because the BC code also needs it
 inline __device__ float get_force_multiplier(float delta_n, GranParamsPtr gran_params) {
     switch (gran_params->force_model) {
         case chrono::granular::GRAN_FORCE_MODEL::HOOKE: {

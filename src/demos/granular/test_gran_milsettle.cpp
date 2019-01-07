@@ -70,7 +70,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Fill the bottom half with material
     chrono::utils::HCPSampler<float> sampler(2.4 * ballRadius);  // Add epsilon
     ChVector<float> center(0, 0, -.25 * box_size_Z);
-    ChVector<float> hdims(box_size_X / 2, box_size_X / 2, box_size_Z / 4);
+    ChVector<float> hdims(box_size_X / 2 - ballRadius, box_size_X / 2 - ballRadius, box_size_Z / 4 - ballRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
     gran_system.setParticlePositions(body_points);
 

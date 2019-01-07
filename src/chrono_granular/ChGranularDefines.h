@@ -75,3 +75,35 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
     if (verbose_runtime) {   \
         printf(__VA_ARGS__); \
     }
+
+// Add verbose checks easily
+#define TRACK_VECTOR_RESIZE(vec, newsize, name, val)                                                        \
+    {                                                                                                       \
+        size_t item_size = sizeof(decltype(vec)::value_type);                                               \
+        size_t old_size = vec.size();                                                                       \
+        vec.resize(newsize, val);                                                                           \
+        size_t new_size = vec.size();                                                                       \
+        printf("Resizing vector %s, old size %lu, new size %lu, byte delta %s\n", name, old_size, new_size, \
+               pretty_format_bytes(item_size*(new_size - old_size)).c_str());                               \
+    }
+
+inline std::string pretty_format_bytes(size_t bytes) {
+    // set up byte prefixes
+    constexpr size_t KIBI = 1024;
+    constexpr size_t MEBI = KIBI * KIBI;
+    constexpr size_t GIBI = KIBI * KIBI * KIBI;
+    float gibival = float(bytes) / GIBI;
+    float mebival = float(bytes) / MEBI;
+    float kibival = float(bytes) / KIBI;
+    std::stringstream ret;
+    if (gibival > 1) {
+        ret << gibival << " GiB";
+    } else if (mebival > 1) {
+        ret << mebival << " MiB";
+    } else if (kibival > 1) {
+        ret << kibival << " KiB";
+    } else {
+        ret << bytes << " B";
+    }
+    return ret.str();
+}

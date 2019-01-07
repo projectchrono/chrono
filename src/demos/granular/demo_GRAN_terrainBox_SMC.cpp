@@ -92,21 +92,32 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setOutputDirectory(params.output_dir);
     settlingExperiment.setOutputMode(params.write_mode);
 
-    {  // fill box, layer by layer
+    std::vector<ChVector<float>> body_points;
+    body_points.push_back(ChVector<float>(0., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
+    body_points.push_back(ChVector<float>(2., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
+    body_points.push_back(ChVector<float>(1., 1.732, 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
+    body_points.push_back(ChVector<float>(1., .5774, 2.05 - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
+    body_points.push_back(ChVector<float>(params.box_X / 2.f - 2 * params.sphere_radius,
+                                          params.box_Y / 2.f - 2 * params.sphere_radius, 3));
+    body_points.push_back(ChVector<float>(-(params.box_X / 2.f - 2 * params.sphere_radius),
+
+                                          -(params.box_Y / 2.f - 2 * params.sphere_radius), 3));
+
+    {
+        // fill box, layer by layer
         ChVector<> hdims(params.box_X / 2.f - 2 * params.sphere_radius, params.box_Y / 2.f - 2 * params.sphere_radius,
                          params.box_Z / 2.f - 2 * params.sphere_radius);
         ChVector<> center(0, 0, 0);
 
         // Fill box with bodies
-        // std::vector<ChVector<float>> body_points =
+        //  body_points =
         //     PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
 
         utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
 
-        std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
-
-        settlingExperiment.setParticlePositions(body_points);
+        // body_points = sampler.SampleBox(center, hdims);
     }
+    settlingExperiment.setParticlePositions(body_points);
 
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
@@ -129,6 +140,7 @@ int main(int argc, char* argv[]) {
     }
 
     settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    settlingExperiment.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
     settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     settlingExperiment.set_fixed_stepSize(params.step_size);
 
@@ -146,6 +158,11 @@ int main(int argc, char* argv[]) {
     float curr_time = 0;
     int currframe = 0;
 
+    // write an initial frame
+    char filename[100];
+    sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+    settlingExperiment.writeFileUU(std::string(filename));
+
     std::cout << "frame step is " << frame_step << std::endl;
 
     // Run settling experiments
@@ -153,7 +170,6 @@ int main(int argc, char* argv[]) {
         settlingExperiment.advance_simulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
-        char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
         settlingExperiment.writeFileUU(std::string(filename));
     }

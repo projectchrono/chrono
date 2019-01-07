@@ -30,7 +30,7 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     : sphere_radius_UU(radiusSPH),
       sphere_density_UU(density),
       time_stepping(GRAN_TIME_STEPPING::ADAPTIVE),
-      nDEs(0),
+      nSpheres(0),
       elapsedSimTime(0),
       K_n_s2s_UU(0),
       K_n_s2w_UU(0),
@@ -87,12 +87,15 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
         packed.sphere_ang_acc_Z_old = sphere_ang_acc_Z_old.data();
     }
 
-    packed.SD_NumOf_DEs_Touching = SD_NumOf_DEs_Touching.data();
+    packed.SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     packed.SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
     packed.spheres_in_SD_composite = spheres_in_SD_composite.data();
 
-    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP || friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
         packed.sphere_contact_map = sphere_contact_map.data();
+    }
+
+    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         packed.contact_history_map = contact_history_map.data();
     }
 }
@@ -399,11 +402,11 @@ void ChSystemGranular_MonodisperseSMC::initialize() {
 void ChSystemGranular_MonodisperseSMC::setupSimulation() {
     partitionBD();
     // allocate mem for array saying for each SD how many spheres touch it
-    SD_NumOf_DEs_Touching.resize(nSDs);
-    SD_SphereCompositeOffsets.resize(nSDs);
+    TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
+    TRACK_VECTOR_RESIZE(SD_SphereCompositeOffsets, nSDs, "SD_SphereCompositeOffsets", 0);
     // assume each sphere touches 2 SDs on average
     // NOTE that this will get resized again later, this is just the first estimate
-    spheres_in_SD_composite.resize(2 * nDEs);
+    TRACK_VECTOR_RESIZE(spheres_in_SD_composite, 2 * nSpheres, "spheres_in_SD_composite", NULL_GRANULAR_ID);
 }
 
 // Set particle positions in UU
@@ -423,48 +426,51 @@ void ChSystemGranular_MonodisperseSMC::generateDEs() {
         point /= gran_params->LENGTH_UNIT;
     }
 
-    nDEs = (unsigned int)user_sphere_positions.size();
-    std::cout << nDEs << " balls added!" << std::endl;
+    nSpheres = (unsigned int)user_sphere_positions.size();
+    std::cout << nSpheres << " balls added!" << std::endl;
 
     // Allocate space for new bodies
-    pos_X.resize(nDEs);
-    pos_Y.resize(nDEs);
-    pos_Z.resize(nDEs);
-    pos_X_dt.resize(nDEs, 0);
-    pos_Y_dt.resize(nDEs, 0);
-    pos_Z_dt.resize(nDEs, 0);
-    sphere_force_X.resize(nDEs, 0);
-    sphere_force_Y.resize(nDEs, 0);
-    sphere_force_Z.resize(nDEs, 0);
+    TRACK_VECTOR_RESIZE(pos_X, nSpheres, "pos_X", 0);
+    TRACK_VECTOR_RESIZE(pos_Y, nSpheres, "pos_Y", 0);
+    TRACK_VECTOR_RESIZE(pos_Z, nSpheres, "pos_Z", 0);
+    TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
+    TRACK_VECTOR_RESIZE(pos_Y_dt, nSpheres, "pos_Y_dt", 0);
+    TRACK_VECTOR_RESIZE(pos_Z_dt, nSpheres, "pos_Z_dt", 0);
+    TRACK_VECTOR_RESIZE(sphere_force_X, nSpheres, "sphere_force_X", 0);
+    TRACK_VECTOR_RESIZE(sphere_force_Y, nSpheres, "sphere_force_Y", 0);
+    TRACK_VECTOR_RESIZE(sphere_force_Z, nSpheres, "sphere_force_Z", 0);
 
     if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
         // add rotational DOFs
-        sphere_Omega_X.resize(nDEs, 0);
-        sphere_Omega_Y.resize(nDEs, 0);
-        sphere_Omega_Z.resize(nDEs, 0);
+        TRACK_VECTOR_RESIZE(sphere_Omega_X, nSpheres, "sphere_Omega_X", 0);
+        TRACK_VECTOR_RESIZE(sphere_Omega_Y, nSpheres, "sphere_Omega_Y", 0);
+        TRACK_VECTOR_RESIZE(sphere_Omega_Z, nSpheres, "sphere_Omega_Z", 0);
 
         // add torques
-        sphere_ang_acc_X.resize(nDEs, 0);
-        sphere_ang_acc_Y.resize(nDEs, 0);
-        sphere_ang_acc_Z.resize(nDEs, 0);
+        TRACK_VECTOR_RESIZE(sphere_ang_acc_X, nSpheres, "sphere_ang_acc_X", 0);
+        TRACK_VECTOR_RESIZE(sphere_ang_acc_Y, nSpheres, "sphere_ang_acc_Y", 0);
+        TRACK_VECTOR_RESIZE(sphere_ang_acc_Z, nSpheres, "sphere_ang_acc_Z", 0);
     }
 
-    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP || friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
         contactDataStruct null_data;
         null_data.active = false;
         null_data.body_B = NULL_GRANULAR_ID;
-        sphere_contact_map.resize(12 * nDEs, null_data);
-        contact_history_map.resize(12 * nDEs, {0., 0., 0.});
+        TRACK_VECTOR_RESIZE(sphere_contact_map, 12 * nSpheres, "sphere_contact_map", null_data);
+    }
+    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+        float3 null_history = {0., 0., 0.};
+        TRACK_VECTOR_RESIZE(contact_history_map, 12 * nSpheres, "contact_history_map", null_history);
     }
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
-        sphere_force_X_old.resize(nDEs, 0);
-        sphere_force_Y_old.resize(nDEs, 0);
-        sphere_force_Z_old.resize(nDEs, 0);
+        TRACK_VECTOR_RESIZE(sphere_force_X_old, nSpheres, "sphere_force_X_old", 0);
+        TRACK_VECTOR_RESIZE(sphere_force_Y_old, nSpheres, "sphere_force_Y_old", 0);
+        TRACK_VECTOR_RESIZE(sphere_force_Z_old, nSpheres, "sphere_force_Z_old", 0);
     }
 
     // Copy from array of structs to 3 arrays
-    for (unsigned int i = 0; i < nDEs; i++) {
+    for (unsigned int i = 0; i < nSpheres; i++) {
         auto vec = user_sphere_positions.at(i);
         pos_X.at(i) = (int)(vec.x());
         pos_Y.at(i) = (int)(vec.y());

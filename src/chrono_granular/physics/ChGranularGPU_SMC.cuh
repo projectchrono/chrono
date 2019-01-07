@@ -244,7 +244,7 @@ __global__ void sphereBroadphase_dryrun(sphereDataStruct sphere_data,
                      !(shMem_head_flags[idInShared + winningStreak]));
 
             // Store start of new entries
-            unsigned char sphere_offset = atomicAdd(sphere_data.SD_NumOf_DEs_Touching + touchedSD, winningStreak);
+            unsigned char sphere_offset = atomicAdd(sphere_data.SD_NumSpheresTouching + touchedSD, winningStreak);
         }
     }
 }
@@ -621,16 +621,47 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     }
 }
 
+/// Compute forces on a sphere from walls, BCs, and gravity
+inline __device__ void applyExternalForces(const int sphXpos,    //!< Global X position of DE
+                                           const int sphYpos,    //!< Global Y position of DE
+                                           const int sphZpos,    //!< Global Z position of DE
+                                           const float sphXvel,  //!< Global X velocity of DE
+                                           const float sphYvel,  //!< Global Y velocity of DE
+                                           const float sphZvel,  //!< Global Z velocity of DE
+                                           const float sphOmegaX,
+                                           const float sphOmegaY,
+                                           const float sphOmegaZ,
+                                           float3& sphere_force,
+                                           float3& sphere_ang_acc,
+                                           GranParamsPtr gran_params,
+                                           BC_type* bc_type_list,
+                                           BC_params_t<int, int3>* bc_params_list,
+                                           unsigned int nBCs) {
+    // apply wall and BC effects
+    // Perhaps this sphere is hitting the wall[s]
+    boxWallsEffects(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ, sphere_force,
+                    sphere_ang_acc, gran_params);
+
+    applyBCForces(sphXpos, sphYpos, sphZpos, sphXvel, sphYvel, sphZvel, sphOmegaX, sphOmegaY, sphOmegaZ, sphere_force,
+                  sphere_ang_acc, gran_params, bc_type_list, bc_params_list, nBCs);
+    // If the sphere belongs to this SD, add up the gravitational force component.
+    sphere_force.x += gran_params->gravAcc_X_SU;
+    sphere_force.y += gran_params->gravAcc_Y_SU;
+    sphere_force.z += gran_params->gravAcc_Z_SU;
+}
+
 /// get an index for the current contact pair
 inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_contact_map,
                                                    GranParamsPtr gran_params,
                                                    unsigned int body_A,
-                                                   unsigned int body_B,
-                                                   float3* histmap) {
+                                                   unsigned int body_B) {
+    // if (body_A >= nSpheres) {
+    //     ABORTABORTABORT("ERROR: trying to find contacts for invalid sphere %u, nspheres is %u", body_A, nSpheres);
+    // }
     // TODO this should be size_t everywhere
-    size_t body_A_offset = 12 * body_A;
+    size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
     // first skim through and see if this contact pair is in the map
-    for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
+    for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         unsigned int contact_index = body_A_offset + contact_id;
         if (sphere_contact_map[contact_index].body_B == body_B) {
             // make sure this contact is marked active
@@ -640,7 +671,7 @@ inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_con
     }
 
     // if we get this far, the contact pair isn't in the map now and we need to find an empty spot
-    for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
+    for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         unsigned int contact_index = body_A_offset + contact_id;
         // check whether the slot is free right now
         if (sphere_contact_map[contact_index].body_B == NULL_GRANULAR_ID) {
@@ -658,15 +689,13 @@ inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_con
         }
     }
     // if we get this far, we lost
-    for (int i = 0; i < 12; i++) {
-        unsigned int contact_index = body_A_offset + i;
-        printf(
-            "body %u has no more slots, slot %d is taken by body %u, active is %u, last active is %u, disp (%f, %f, "
-            "%f)\n",
-            body_A, i, sphere_contact_map[contact_index].body_B, sphere_contact_map[contact_index].active,
-            sphere_contact_map[contact_index].active_last, histmap[contact_index].x, histmap[contact_index].y,
-            histmap[contact_index].z);
-    }
+    // for (int i = 0; i < MAX_SPHERES_TOUCHED_BY_SPHERE; i++) {
+    //     unsigned int contact_index = body_A_offset + i;
+    //     printf("body %u has no more slots, slot %d is taken by body %u, active is %u, last active is %u \n", body_A,
+    //     i,
+    //            sphere_contact_map[contact_index].body_B, sphere_contact_map[contact_index].active,
+    //            sphere_contact_map[contact_index].active_last);
+    // }
     // if we got this far, we couldn't find a free contact pair. That is a violation of the 12-contacts theorem, so
     // we should probably give up now
     ABORTABORTABORT("No available contact pair slots for body %u and body %u\n", body_A, body_B);
@@ -674,27 +703,29 @@ inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_con
 }
 
 // cleanup the contact data for a given body
-inline __device__ void cleanupContactMap(sphereDataStruct sphere_data, unsigned int body_A) {
+inline __device__ void cleanupContactMap(sphereDataStruct sphere_data, unsigned int body_A, GranParamsPtr gran_params) {
     // printf("cleaning up body %u contacts\n", body_A);
-    size_t body_A_offset = 12 * body_A;
+    size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
     // first skim through and see if this contact pair is in the map
-    for (unsigned int contact_id = 0; contact_id < 12; contact_id++) {
+    for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         // if the contact is not active, reset it
         if (sphere_data.sphere_contact_map[body_A_offset + contact_id].active == false) {
+            // printf("contact %u for body %u is inactive now, removing\n", );
             sphere_data.sphere_contact_map[body_A_offset + contact_id].body_B = NULL_GRANULAR_ID;
-            sphere_data.contact_history_map[body_A_offset + contact_id] = {0., 0., 0.};
-            sphere_data.sphere_contact_map[body_A_offset + contact_id].active_last = false;
-            // printf("body %u slot %u is inactive, resetting\n", body_A, contact_id);
+            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                sphere_data.contact_history_map[body_A_offset + contact_id] = {0., 0., 0.};
+            }
         } else {
             // otherwise reset the active bit for next time
             sphere_data.sphere_contact_map[body_A_offset + contact_id].active = false;
-            sphere_data.sphere_contact_map[body_A_offset + contact_id].active_last = true;
         }
     }
 }
 /// enforce the Coulomb condition that Ft <= mu Fn
 /// by enforcing ut <= mu Fn / kt
-inline __device__ bool clampTangentForces(GranParamsPtr gran_params, const float3& normal_force, float3& tangent_disp) {
+inline __device__ bool clampTangentDisplacement(GranParamsPtr gran_params,
+                                                const float3& normal_force,
+                                                float3& tangent_disp) {
     float ut_max = gran_params->static_friction_coeff * Length(normal_force) / gran_params->K_t_s2s_SU;
     // TODO also consider wall mu and kt clamping
     float ut = Length(tangent_disp);
@@ -704,59 +735,58 @@ inline __device__ bool clampTangentForces(GranParamsPtr gran_params, const float
     }
     return false;
 }
+/// in integer, check whether a pair of spheres is in contact
+inline __device__ bool checkSpheresContacting_int(int sphereA_X,
+                                                  int sphereA_Y,
+                                                  int sphereA_Z,
+                                                  int sphereB_X,
+                                                  int sphereB_Y,
+                                                  int sphereB_Z,
+                                                  unsigned int thisSD,
+                                                  GranParamsPtr gran_params) {
+    // Compute penetration to check for collision, we can use ints provided the diameter is small enough
+    int64_t penetration_int = 0;
 
-/**
-This kernel call figures out forces cuased by sphere-sphere interactions
+    // This avoids computing a square to figure our if collision or not
+    int64_t deltaX = (sphereA_X - sphereB_X);
+    int64_t deltaY = (sphereA_Y - sphereB_Y);
+    int64_t deltaZ = (sphereA_Z - sphereB_Z);
 
-Template arguments:
-  - MAX_COUNT_OF_SPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block
-collectives.
+    penetration_int = deltaX * deltaX;
+    penetration_int += deltaY * deltaY;
+    penetration_int += deltaZ * deltaZ;
 
-Assumptions:
-    - A sphere cannot touch more than 12 other spheres (this is a proved results, of 1953).
-    - A "char" is stored on 8 bits and as such an unsigned char can hold positive numbers up to and including 255
-    - MAX_COUNT_OF_SPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
-    - Granular material is made up of monodisperse spheres.
-    - The function below assumes the spheres are in a box
-    - The box has dimensions L x D x H.
-    - The reference frame associated with the box:
-      - The x-axis is along the length L of the box
-      - The y-axis is along the width D of the box
-      - The z-axis is along the height H of the box
+    // Here we need to check if the contact point is in this SD.
 
-NOTE:
-  - Upon calling it with more than 256 threads, this kernel is going to make illegal memory accesses
-*/
-static __global__ void computeSphereForces(sphereDataStruct sphere_data,
-                                           GranParamsPtr gran_params,
-                                           BC_type* bc_type_list,
-                                           BC_params_t<int, int3>* bc_params_list,
-                                           unsigned int nBCs) {
-    // still moar radius grab
-    const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
+    // Take spatial average of positions to get position of contact point
+    // NOTE that we *do* want integer division since the SD-checking code uses ints anyways. Computing
+    // this as an int is *much* faster than float, much less double, on Conlain's machine
+    int contactX = (sphereB_X + sphereA_X) / 2;
+    int contactY = (sphereB_Y + sphereA_Y) / 2;
+    int contactZ = (sphereB_Z + sphereA_Z) / 2;
 
+    // We need to make sure we don't count a collision twice -- if a contact pair is in multiple SDs,
+    // count it only in the one that holds the contact point
+    unsigned int contactSD = SDTripletID(pointSDTriplet(contactX, contactY, contactZ, gran_params), gran_params);
+
+    const int64_t contact_threshold = (4l * gran_params->sphereRadius_SU) * gran_params->sphereRadius_SU;
+
+    return contactSD == thisSD && penetration_int < contact_threshold;
+}
+
+static __global__ void determineContactPairs(sphereDataStruct sphere_data, GranParamsPtr gran_params) {
     // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
     __shared__ int sphere_X[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ int sphere_Y[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ int sphere_Z[MAX_COUNT_OF_SPHERES_PER_SD];
-    // TODO figure out how we can do this better with no friction
-    __shared__ float omega_X[MAX_COUNT_OF_SPHERES_PER_SD];
-    __shared__ float omega_Y[MAX_COUNT_OF_SPHERES_PER_SD];
-    __shared__ float omega_Z[MAX_COUNT_OF_SPHERES_PER_SD];
-    __shared__ float sphere_X_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
-    __shared__ float sphere_Y_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
-    __shared__ float sphere_Z_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ unsigned int sphIDs[MAX_COUNT_OF_SPHERES_PER_SD];
 
     unsigned int thisSD = blockIdx.x;
-    unsigned int spheresTouchingThisSD = sphere_data.SD_NumOf_DEs_Touching[thisSD];
-    unsigned int SphereSDOffset = sphere_data.SD_SphereCompositeOffsets[thisSD];
-    unsigned int mySphereID;
+    unsigned int spheresTouchingThisSD = sphere_data.SD_NumSpheresTouching[thisSD];
+
     unsigned char bodyB_list[MAX_SPHERES_TOUCHED_BY_SPHERE];
     unsigned int ncontacts = 0;
-    // if (threadIdx.x == 0) {
-    //     printf("SD %u has %u spheres, offset %u\n", thisSD, spheresTouchingThisSD, SphereSDOffset);
-    // }
+
     if (spheresTouchingThisSD == 0) {
         return;  // no spheres here, move along
     }
@@ -771,20 +801,312 @@ static __global__ void computeSphereForces(sphereDataStruct sphere_data,
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (threadIdx.x < spheresTouchingThisSD) {
         // We need int64_ts to index into composite array
-        size_t offset_in_composite_Array = SphereSDOffset + threadIdx.x;
+        size_t offset_in_composite_Array = sphere_data.SD_SphereCompositeOffsets[thisSD] + threadIdx.x;
+        unsigned int mySphereID = sphere_data.spheres_in_SD_composite[offset_in_composite_Array];
+        sphere_X[threadIdx.x] = sphere_data.pos_X[mySphereID];
+        sphere_Y[threadIdx.x] = sphere_data.pos_Y[mySphereID];
+        sphere_Z[threadIdx.x] = sphere_data.pos_Z[mySphereID];
+        sphIDs[threadIdx.x] = mySphereID;
+    }
+
+    __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
+
+    // Assumes each thread is a body, not the greatest assumption but we can fix that later
+    // Note that if we have more threads than bodies, some effort gets wasted.
+    unsigned int bodyA = threadIdx.x;
+
+    // Each body looks at each other body and determines whether that body is touching it
+    if (bodyA < spheresTouchingThisSD) {
+        for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
+            if (bodyA == bodyB)
+                continue;
+
+            bool active_contact =
+                checkSpheresContacting_int(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X[bodyB],
+                                           sphere_Y[bodyB], sphere_Z[bodyB], thisSD, gran_params);
+
+            // We have a collision here, log it for later
+            // not very divergent, super quick
+            if (active_contact) {
+                if (ncontacts >= MAX_SPHERES_TOUCHED_BY_SPHERE) {
+                    ABORTABORTABORT("Sphere %u is touching 12 spheres already and we just found another!!!\n");
+                }
+                bodyB_list[ncontacts] = bodyB;  // Save the collision pair
+                ncontacts++;                    // Increment the contact counter
+            }
+        }
+        // for each contact we just found, mark it in the global map
+        for (unsigned char contact_id = 0; contact_id < ncontacts; contact_id++) {
+            // find and mark a spot in the contact map
+            findContactPairInfo(sphere_data.sphere_contact_map, gran_params, sphIDs[bodyA],
+                                sphIDs[bodyB_list[contact_id]]);
+        }
+    }
+}
+
+/// Compute normal forces for a contacting pair
+// returns the normal force and sets the reciplength, tangent velocity, and delta_r
+inline __device__ float3 computeSphereNormalForces(float& reciplength,
+                                                   float3& vrel_t,
+                                                   float3& delta_r,
+                                                   const int sphereA_X,
+                                                   const int sphereA_Y,
+                                                   const int sphereA_Z,
+                                                   const int sphereB_X,
+                                                   const int sphereB_Y,
+                                                   const int sphereB_Z,
+                                                   const int sphereA_X_dot,
+                                                   const int sphereA_Y_dot,
+                                                   const int sphereA_Z_dot,
+                                                   const int sphereB_X_dot,
+                                                   const int sphereB_Y_dot,
+                                                   const int sphereB_Z_dot,
+                                                   GranParamsPtr gran_params) {
+    double invSphDiameter = 1. / (2. * gran_params->sphereRadius_SU);
+    float sphdiameter = 2. * gran_params->sphereRadius_SU;
+
+    // compute penetrations in double
+    {
+        double3 delta_r_double;  // points from b to a
+        delta_r_double.x = (sphereA_X - sphereB_X) * invSphDiameter;
+        delta_r_double.y = (sphereA_Y - sphereB_Y) * invSphDiameter;
+        delta_r_double.z = (sphereA_Z - sphereB_Z) * invSphDiameter;
+        // compute in double then convert to float
+        reciplength = rsqrt(Dot(delta_r_double, delta_r_double));
+    }
+
+    // Compute penetration term, this becomes the delta as we want it
+    float penetration = reciplength - 1.;
+
+    float force_model_multiplier = get_force_multiplier(penetration, gran_params);
+
+    // compute these in float now
+    delta_r.x = (sphereA_X - sphereB_X) * invSphDiameter;
+    delta_r.y = (sphereA_Y - sphereB_Y) * invSphDiameter;
+    delta_r.z = (sphereA_Z - sphereB_Z) * invSphDiameter;
+
+    // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
+    float3 v_rel;
+    v_rel.x = sphereA_X_dot - sphereB_X_dot;
+    v_rel.y = sphereA_Y_dot - sphereB_Y_dot;
+    v_rel.z = sphereA_Z_dot - sphereB_Z_dot;
+
+    // Compute force updates for damping term
+    // Project relative velocity to the normal
+    // n = delta_r * reciplength
+    // proj = Dot(delta_dot, n)
+    float projection = Dot(v_rel, delta_r) * reciplength;
+
+    // delta_dot = proj * n
+    float3 vrel_n = projection * delta_r * reciplength;
+    vrel_t = v_rel - vrel_n;
+
+    constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+    // multiplier caused by Hooke vs Hertz force model
+
+    // Add damping term
+    // add spring term
+    float3 force_accum = gran_params->K_n_s2s_SU * delta_r * sphdiameter * penetration * force_model_multiplier;
+    force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff * force_model_multiplier;
+    return force_accum;
+}
+
+/// each thread is a sphere, computing the forces its contact partners exert on it
+static __global__ void computeSphereContactForces(sphereDataStruct sphere_data,
+                                                  GranParamsPtr gran_params,
+                                                  BC_type* bc_type_list,
+                                                  BC_params_t<int, int3>* bc_params_list,
+                                                  unsigned int nBCs,
+                                                  unsigned int nSpheres) {
+    // grab the sphere radius
+    const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
+
+    // this sphere's coordinates
+    int my_sphere_X;
+    int my_sphere_Y;
+    int my_sphere_Z;
+    // TODO figure out how we can do this better with no friction
+    float3 my_omega;
+
+    float my_sphere_X_DOT;
+    float my_sphere_Y_DOT;
+    float my_sphere_Z_DOT;
+
+    // my sphere ID, we're using a 1D thread->sphere map
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    // my offset in the contact map
+    size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
+
+    // don't overrun the array
+    if (mySphereID < nSpheres) {
+        // printf("sphere %u is active\n", mySphereID);
+        // Bring in data from global
+        my_sphere_X = sphere_data.pos_X[mySphereID];
+        my_sphere_Y = sphere_data.pos_Y[mySphereID];
+        my_sphere_Z = sphere_data.pos_Z[mySphereID];
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            my_omega = make_float3(sphere_data.sphere_Omega_X[mySphereID], sphere_data.sphere_Omega_Y[mySphereID],
+                                   sphere_data.sphere_Omega_Z[mySphereID]);
+        }
+        my_sphere_X_DOT = sphere_data.pos_X_dt[mySphereID];
+        my_sphere_Y_DOT = sphere_data.pos_Y_dt[mySphereID];
+        my_sphere_Z_DOT = sphere_data.pos_Z_dt[mySphereID];
+
+        // Now compute the force each contact partner exerts
+        // Force applied to this sphere
+        float3 bodyA_force = {0.f, 0.f, 0.f};
+        float3 bodyA_AngAcc = {0.f, 0.f, 0.f};
+
+        // for each sphere contacting me, compute the forces
+        for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
+            // who am I colliding with?
+            bool active_contact = sphere_data.sphere_contact_map[body_A_offset + contact_id].active;
+
+            if (active_contact) {
+                unsigned int theirSphereID = sphere_data.sphere_contact_map[body_A_offset + contact_id].body_B;
+
+                if (theirSphereID >= nSpheres) {
+                    ABORTABORTABORT("Invalid other sphere id found for sphere %u at slot %u, other is %u\n", mySphereID,
+                                    contact_id, theirSphereID);
+                }
+
+                float3 vrel_t;      // tangent relative velocity
+                float reciplength;  // used to compute contact normal
+                float3 delta_r;     // used for contact normal
+                float3 force_accum = computeSphereNormalForces(
+                    reciplength, vrel_t, delta_r, my_sphere_X, my_sphere_Y, my_sphere_Z,
+                    sphere_data.pos_X[theirSphereID], sphere_data.pos_Y[theirSphereID],
+                    sphere_data.pos_Z[theirSphereID], my_sphere_X_DOT, my_sphere_Y_DOT, my_sphere_Z_DOT,
+                    sphere_data.pos_X_dt[theirSphereID], sphere_data.pos_Y_dt[theirSphereID],
+                    sphere_data.pos_Z_dt[theirSphereID], gran_params);
+
+                // TODO fix this
+                constexpr float force_model_multiplier = 1;
+                constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+
+                // add frictional terms, if needed
+                if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                    float3 their_omega = make_float3(sphere_data.sphere_Omega_X[theirSphereID],
+                                                     sphere_data.sphere_Omega_Y[theirSphereID],
+                                                     sphere_data.sphere_Omega_Z[theirSphereID]);
+                    // (omega_b cross r_b - omega_a cross r_a), where r_b  = -r_a = delta_r * radius
+                    // add tangential components if they exist, these are automatically tangential from the cross
+                    // product
+                    vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
+
+                    // accumulator for tangent force
+                    bool clamped = false;
+                    float3 delta_t = {0, 0, 0};
+
+                    // TODO improve this
+                    // calculate tangential forces -- NOTE that these only come into play with friction enabled
+                    if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+                        // assume the contact is just this timestep
+                        delta_t = vrel_t * gran_params->stepSize_SU;
+                        // just in case this gets too big
+                        clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
+                    } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                        // get the tangential displacement so far
+                        delta_t = sphere_data.contact_history_map[contact_id];
+                        // add on what we have
+                        delta_t = delta_t + vrel_t * gran_params->stepSize_SU;
+
+                        // project onto contact normal
+                        float projection = Dot(delta_t, delta_r) * reciplength;
+                        // remove normal projection
+                        delta_t = delta_t - projection * delta_r * reciplength;
+                        // clamp tangent displacement
+                        clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
+
+                        // write back the updated displacement
+                        sphere_data.contact_history_map[contact_id] = delta_t;
+                    }
+
+                    float3 tangent_force = -gran_params->K_t_s2s_SU * delta_t * force_model_multiplier;
+
+                    // if no-slip, add the tangential damping
+                    if (!clamped) {
+                        tangent_force = tangent_force - gran_params->Gamma_t_s2s_SU * m_eff * vrel_t;
+                    }
+                    // tau = r cross f = radius * n cross F
+                    // 2 * radius * n = -1 * delta_r * sphdiameter
+                    // assume abs(r) ~ radius, so n = delta_r
+                    // compute accelerations caused by torques on body
+                    bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
+                    // add to total forces
+                    force_accum = force_accum + tangent_force;
+                }
+
+                // Add cohesion term
+                force_accum =
+                    force_accum - gran_params->sphere_mass_SU * gran_params->cohesionAcc_s2s * delta_r * reciplength;
+
+                // finally, we add this per-contact accumulator to the total force
+                bodyA_force = bodyA_force + force_accum;
+            }
+        }
+
+        // add in gravity and wall forces
+        applyExternalForces(my_sphere_X, my_sphere_Y, my_sphere_Z, my_sphere_X_DOT, my_sphere_Y_DOT, my_sphere_Z_DOT,
+                            my_omega.x, my_omega.y, my_omega.z, bodyA_force, bodyA_AngAcc, gran_params, bc_type_list,
+                            bc_params_list, nBCs);
+
+        // Write the force back to global memory so that we can apply them AFTER this kernel finishes
+        atomicAdd(sphere_data.sphere_force_X + mySphereID, bodyA_force.x);
+        atomicAdd(sphere_data.sphere_force_Y + mySphereID, bodyA_force.y);
+        atomicAdd(sphere_data.sphere_force_Z + mySphereID, bodyA_force.z);
+
+        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
+            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+            atomicAdd(sphere_data.sphere_ang_acc_X + mySphereID, bodyA_AngAcc.x);
+            atomicAdd(sphere_data.sphere_ang_acc_Y + mySphereID, bodyA_AngAcc.y);
+            atomicAdd(sphere_data.sphere_ang_acc_Z + mySphereID, bodyA_AngAcc.z);
+        }
+    }
+}
+
+static __global__ void computeSphereForces_frictionless(sphereDataStruct sphere_data,
+                                                        GranParamsPtr gran_params,
+                                                        BC_type* bc_type_list,
+                                                        BC_params_t<int, int3>* bc_params_list,
+                                                        unsigned int nBCs) {
+    // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
+    __shared__ int sphere_X[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ int sphere_Y[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ int sphere_Z[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float sphere_X_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float sphere_Y_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float sphere_Z_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
+
+    unsigned int thisSD = blockIdx.x;
+    unsigned int spheresTouchingThisSD = sphere_data.SD_NumSpheresTouching[thisSD];
+    unsigned int mySphereID;
+    unsigned char bodyB_list[MAX_SPHERES_TOUCHED_BY_SPHERE];
+    unsigned int ncontacts = 0;
+
+    if (spheresTouchingThisSD == 0) {
+        return;  // no spheres here, move along
+    }
+
+    // If we overran, we have a major issue, time to crash before we make illegal memory accesses
+    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_COUNT_OF_SPHERES_PER_SD) {
+        // Crash now
+        ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
+    }
+
+    // Bring in data from global into shmem. Only a subset of threads get to do this.
+    // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
+    if (threadIdx.x < spheresTouchingThisSD) {
+        // We need int64_ts to index into composite array
+        size_t offset_in_composite_Array = sphere_data.SD_SphereCompositeOffsets[thisSD] + threadIdx.x;
         mySphereID = sphere_data.spheres_in_SD_composite[offset_in_composite_Array];
         sphere_X[threadIdx.x] = sphere_data.pos_X[mySphereID];
         sphere_Y[threadIdx.x] = sphere_data.pos_Y[mySphereID];
         sphere_Z[threadIdx.x] = sphere_data.pos_Z[mySphereID];
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-            omega_X[threadIdx.x] = sphere_data.sphere_Omega_X[mySphereID];
-            omega_Y[threadIdx.x] = sphere_data.sphere_Omega_Y[mySphereID];
-            omega_Z[threadIdx.x] = sphere_data.sphere_Omega_Z[mySphereID];
-        }
         sphere_X_DOT[threadIdx.x] = sphere_data.pos_X_dt[mySphereID];
         sphere_Y_DOT[threadIdx.x] = sphere_data.pos_Y_dt[mySphereID];
         sphere_Z_DOT[threadIdx.x] = sphere_data.pos_Z_dt[mySphereID];
-        sphIDs[threadIdx.x] = mySphereID;
     }
 
     __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
@@ -797,49 +1119,20 @@ static __global__ void computeSphereForces(sphereDataStruct sphere_data,
     if (bodyA < spheresTouchingThisSD) {
         // Force generated by this contact
         float3 bodyA_force = {0.f, 0.f, 0.f};
-        float3 bodyA_AngAcc = {0.f, 0.f, 0.f};
 
-        float sphdiameter = 2. * sphereRadius_SU;
-        double invSphDiameter = 1. / (2. * sphereRadius_SU);
         unsigned int ownerSD =
             SDTripletID(pointSDTriplet(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], gran_params), gran_params);
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
-            // unsigned int theirSphID = sphere_data.spheres_in_SD_composite[thisSD * MAX_COUNT_OF_SPHERES_PER_SD +
-            // bodyB]; Don't check for collision with self
             if (bodyA == bodyB)
                 continue;
 
-            // Compute penetration to check for collision, we can use ints provided the diameter is small enough
-            int64_t penetration_int = 0;
-
-            // This avoids computing a square to figure our if collision or not
-            int64_t deltaX = (sphere_X[bodyA] - sphere_X[bodyB]);
-            int64_t deltaY = (sphere_Y[bodyA] - sphere_Y[bodyB]);
-            int64_t deltaZ = (sphere_Z[bodyA] - sphere_Z[bodyB]);
-
-            penetration_int = deltaX * deltaX;
-            penetration_int += deltaY * deltaY;
-            penetration_int += deltaZ * deltaZ;
-
-            // Here we need to check if the contact point is in this SD.
-
-            // Take spatial average of positions to get position of contact point
-            // NOTE that we *do* want integer division since the SD-checking code uses ints anyways. Computing this as
-            // an int is *much* faster than float, much less double, on Conlain's machine
-            int contactX = (sphere_X[bodyB] + sphere_X[bodyA]) / 2;
-            int contactY = (sphere_Y[bodyB] + sphere_Y[bodyA]) / 2;
-            int contactZ = (sphere_Z[bodyB] + sphere_Z[bodyA]) / 2;
-
-            // We need to make sure we don't count a collision twice -- if a contact pair is in multiple SDs, count it
-            // only in the one that holds the contact point
-            unsigned int contactSD =
-                SDTripletID(pointSDTriplet(contactX, contactY, contactZ, gran_params), gran_params);
-
-            const int64_t contact_threshold = 4l * sphereRadius_SU * sphereRadius_SU;
+            bool active_contact =
+                checkSpheresContacting_int(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X[bodyB],
+                                           sphere_Y[bodyB], sphere_Z[bodyB], thisSD, gran_params);
 
             // We have a collision here, log it for later
             // not very divergent, super quick
-            if (contactSD == thisSD && penetration_int < contact_threshold) {
+            if (active_contact) {
                 if (ncontacts >= MAX_SPHERES_TOUCHED_BY_SPHERE) {
                     ABORTABORTABORT("Sphere %u is touching 12 spheres already and we just found another!!!\n");
                 }
@@ -848,159 +1141,44 @@ static __global__ void computeSphereForces(sphereDataStruct sphere_data,
             }
         }
 
-        // NOTE that below here I used double precision because I didn't know how much precision I needed. Reducing the
-        // amount of doubles will certainly speed this up
-        // Run through and do actual force computations, for these we know each one is a legit collision
+        // NOTE that below here I used double precision because I didn't know how much precision I needed.
+        // Reducing the amount of doubles will certainly speed this up Run through and do actual force
+        // computations, for these we know each one is a legit collision
         for (unsigned int idx = 0; idx < ncontacts; idx++) {
             // who am I colliding with?
             unsigned char bodyB = bodyB_list[idx];
 
-            unsigned int theirSphID = sphIDs[bodyB];
-
-            float reciplength = 0;
-            float3 force_accum = {0, 0, 0};
-            // compute penetrations in double
-            {
-                double3 delta_r_double;  // points from b to a
-                delta_r_double.x = (sphere_X[bodyA] - sphere_X[bodyB]) * invSphDiameter;
-                delta_r_double.y = (sphere_Y[bodyA] - sphere_Y[bodyB]) * invSphDiameter;
-                delta_r_double.z = (sphere_Z[bodyA] - sphere_Z[bodyB]) * invSphDiameter;
-                // compute in double then convert to float
-                reciplength = rsqrt(Dot(delta_r_double, delta_r_double));
-            }
-
-            // Compute penetration term, this becomes the delta as we want it
-            float penetration = reciplength - 1.;
-
-            float force_model_multiplier = get_force_multiplier(penetration, gran_params);
-
-            // compute these in float now
-            float3 delta_r;  // points from b to a
-            delta_r.x = (sphere_X[bodyA] - sphere_X[bodyB]) * invSphDiameter;
-            delta_r.y = (sphere_Y[bodyA] - sphere_Y[bodyB]) * invSphDiameter;
-            delta_r.z = (sphere_Z[bodyA] - sphere_Z[bodyB]) * invSphDiameter;
-
-            force_accum =
-                force_accum + gran_params->K_n_s2s_SU * delta_r * sphdiameter * penetration * force_model_multiplier;
-
-            // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
-            float3 v_rel;
-            v_rel.x = sphere_X_DOT[bodyA] - sphere_X_DOT[bodyB];
-            v_rel.y = sphere_Y_DOT[bodyA] - sphere_Y_DOT[bodyB];
-            v_rel.z = sphere_Z_DOT[bodyA] - sphere_Z_DOT[bodyB];
-
-            // add tangential components if they exist
-            if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                // (omega_b cross r_b - omega_a cross r_a), r_b  = -r_a = delta_r * radius
-                v_rel = v_rel + Cross(make_float3(omega_X[bodyA] + omega_X[bodyB], omega_Y[bodyA] + omega_Y[bodyB],
-                                                  omega_Z[bodyA] + omega_Z[bodyB]),
-                                      -1.f * delta_r * sphereRadius_SU);
-            }
-
-            // Compute force updates for damping term
-            // Project relative velocity to the normal
-            // n = delta_r * reciplength
-            // proj = Dot(delta_dot, n)
-            float projection = Dot(v_rel, delta_r) * reciplength;
-
-            // delta_dot = proj * n
-            float3 vrel_n = projection * delta_r * reciplength;
-
-            // remove normal component, now this is just tangential
-            v_rel = v_rel - vrel_n;
-
-            constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
-            // multiplier caused by Hooke vs Hertz force model
-
-            // Force accumulator
-            // Add spring term
-
-            // Add damping term
-            force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff * force_model_multiplier;
-            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
-                gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-                // accumulator for tangent force
-                float3 tangent_force = {0, 0, 0};
-                bool clamped = false;
-                float3 delta_t = {0, 0, 0};
-
-                // TODO improve this
-                // calculate tangential forces -- NOTE that these only come into play with friction enabled
-                if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-                    delta_t = v_rel * gran_params->stepSize_SU;
-                } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-                    // tangential displacement
-                    unsigned int contact_index =
-                        findContactPairInfo(sphere_data.sphere_contact_map, gran_params, mySphereID, theirSphID,
-                                            sphere_data.contact_history_map);
-                    // get the tangential displacement so far
-                    delta_t = sphere_data.contact_history_map[contact_index];
-                    // add on what we have
-                    delta_t = delta_t + v_rel * gran_params->stepSize_SU;
-
-                    // project onto contact normal
-                    float projection = Dot(delta_t, delta_r) * reciplength;
-                    // remove normal projection
-                    delta_t = delta_t - projection * delta_r * reciplength;
-
-                    // write back the updated displacement
-                    sphere_data.contact_history_map[contact_index] = delta_t;
-                }
-
-                clamped = clampTangentForces(gran_params, force_accum, delta_t);
-                // we dotted out normal component of v, so v_rel is the tangential component
-                tangent_force = -gran_params->K_t_s2s_SU * delta_t * force_model_multiplier;
-
-                // if no-slip, add the tangential damping
-                if (!clamped) {
-                    tangent_force = tangent_force - gran_params->Gamma_t_s2s_SU * m_eff * v_rel;
-                }
-                // tau = r cross f = radius * n cross F
-                // 2 * radius * n = -1 * delta_r * sphdiameter
-                // assume abs(r) ~ radius, so n = delta_r
-                // compute accelerations caused by torques on body
-                bodyA_AngAcc = bodyA_AngAcc + Cross(-1 * delta_r, tangent_force) / gran_params->sphereInertia_by_r;
-                // add to total forces
-                force_accum = force_accum + tangent_force;
-            }
+            float3 vrel_t;      // unused but needed for function signature
+            float reciplength;  // used to compute contact normal
+            float3 delta_r;     // used for contact normal
+            float3 force_accum = computeSphereNormalForces(
+                reciplength, vrel_t, delta_r, sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X[bodyB],
+                sphere_Y[bodyB], sphere_Z[bodyB], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA], sphere_Z_DOT[bodyA],
+                sphere_X_DOT[bodyB], sphere_Y_DOT[bodyB], sphere_Z_DOT[bodyB], gran_params);
 
             // Add cohesion term
             force_accum =
                 force_accum - gran_params->sphere_mass_SU * gran_params->cohesionAcc_s2s * delta_r * reciplength;
-
-            // finally, we add this per-contact accumulator to
             bodyA_force = bodyA_force + force_accum;
         }
 
         // IMPORTANT: Make sure that the sphere belongs to *this* SD, otherwise we'll end up with double
-        // counting this force. If this SD owns the body, add its wall forces and grav forces. This should be
-        // pretty non-divergent since most spheres won't be on the border
+        // counting this force. If this SD owns the body, add its wall, BC, and grav forces
         if (ownerSD == thisSD) {
-            // Perhaps this sphere is hitting the wall[s]
-            boxWallsEffects(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
-                            sphere_Z_DOT[bodyA], omega_X[bodyA], omega_Y[bodyA], omega_Z[bodyA], bodyA_force,
-                            bodyA_AngAcc, gran_params);
+            // NOTE these are unused but the device function wants them
+            float3 bodyA_AngAcc;
+            constexpr float3 sphere_omega = {0, 0, 0};
 
-            applyBCForces(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA], sphere_Y_DOT[bodyA],
-                          sphere_Z_DOT[bodyA], omega_X[bodyA], omega_Y[bodyA], omega_Z[bodyA], bodyA_force,
-                          bodyA_AngAcc, gran_params, bc_type_list, bc_params_list, nBCs);
-            // If the sphere belongs to this SD, add up the gravitational force component.
-            bodyA_force.x += gran_params->gravAcc_X_SU;
-            bodyA_force.y += gran_params->gravAcc_Y_SU;
-            bodyA_force.z += gran_params->gravAcc_Z_SU;
+            applyExternalForces(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], sphere_X_DOT[bodyA],
+                                sphere_Y_DOT[bodyA], sphere_Z_DOT[bodyA], sphere_omega.x, sphere_omega.y,
+                                sphere_omega.z, bodyA_force, bodyA_AngAcc, gran_params, bc_type_list, bc_params_list,
+                                nBCs);
         }
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes
         atomicAdd(sphere_data.sphere_force_X + mySphereID, bodyA_force.x);
         atomicAdd(sphere_data.sphere_force_Y + mySphereID, bodyA_force.y);
         atomicAdd(sphere_data.sphere_force_Z + mySphereID, bodyA_force.z);
-
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-            // write back torques for later
-            atomicAdd(sphere_data.sphere_ang_acc_X + mySphereID, bodyA_AngAcc.x);
-            atomicAdd(sphere_data.sphere_ang_acc_Y + mySphereID, bodyA_AngAcc.y);
-            atomicAdd(sphere_data.sphere_ang_acc_Z + mySphereID, bodyA_AngAcc.z);
-        }
     }
     __syncthreads();
 }
@@ -1015,20 +1193,21 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
                                 sphereDataStruct sphere_data,
                                 unsigned int nSpheres,
                                 GranParamsPtr gran_params) {
+    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid
+    // structure
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
     int xSphCenter;
     int ySphCenter;
     int zSphCenter;
-
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
     float old_vel_x = 0;
     float old_vel_y = 0;
     float old_vel_z = 0;
 
     // if we're in multistep mode, clean up contact histories
-    if ((mySphereID < nSpheres) && (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP)) {
-        cleanupContactMap(sphere_data, mySphereID);
+    if (mySphereID < nSpheres) {
+        cleanupContactMap(sphere_data, mySphereID, gran_params);
     }
     __syncthreads();  // just in case
 

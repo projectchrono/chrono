@@ -46,7 +46,6 @@ struct contactDataStruct {
     unsigned int body_B;
     /// whether the contact is still active
     bool active;
-    bool active_last;
 };
 
 /// hold pointers
@@ -87,7 +86,7 @@ struct sphereDataStruct {
     float3* contact_history_map;
 
     /// number of DEs touching each SD
-    unsigned int* SD_NumOf_DEs_Touching;
+    unsigned int* SD_NumSpheresTouching;
     /// offset of each SD in the big composite array
     unsigned int* SD_SphereCompositeOffsets;
     /// big composite array of sphere-SD membership
@@ -204,7 +203,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     ChSystemGranular_MonodisperseSMC(float radiusSPH, float density);
     virtual ~ChSystemGranular_MonodisperseSMC();
 
-    unsigned int elementCount() const { return nDEs; }
+    unsigned int elementCount() const { return nSpheres; }
     unsigned int get_SD_count() const { return nSDs; }
     void set_gravitational_acceleration(float xVal, float yVal, float zVal) {
         X_accGrav = xVal;
@@ -214,7 +213,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     virtual void generateDEs();
 
-    size_t getNumSpheres() { return nDEs; }
+    size_t getNumSpheres() { return nSpheres; }
 
     /// Create an axis-aligned box BC
     // size_t Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
@@ -361,7 +360,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::string output_directory;
 
     /// Number of discrete elements
-    unsigned int nDEs;
+    unsigned int nSpheres;
     /// Number of subdomains
     unsigned int nSDs;
 
@@ -406,7 +405,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     float Z_accGrav;
 
     /// Entry "i" says how many spheres touch SD i
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_NumOf_DEs_Touching;
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_NumSpheresTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets;
 
     /// Array containing the IDs of the spheres stored in the SDs associated with the box
