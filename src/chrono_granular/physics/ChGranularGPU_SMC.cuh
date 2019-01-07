@@ -1206,7 +1206,7 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
     float old_vel_z = 0;
 
     // if we're in multistep mode, clean up contact histories
-    if (mySphereID < nSpheres) {
+    if (mySphereID < nSpheres && gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
         cleanupContactMap(sphere_data, mySphereID, gran_params);
     }
     __syncthreads();  // just in case
