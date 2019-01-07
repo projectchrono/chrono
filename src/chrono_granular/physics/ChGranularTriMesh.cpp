@@ -65,6 +65,13 @@ void ChSystemGranular_MonodisperseSMC_trimesh::initializeTriangles() {
         meshSoup_DEVICE->familyMass_SU[fam] = meshSoup_DEVICE->familyMass_SU[fam] / gran_params->MASS_UNIT;
     }
     copyTriangleDataToDevice();
+
+    SD_numTrianglesTouching.resize(nSDs, 0);
+    SD_TriangleCompositeOffsets.resize(nSDs, 0);
+
+    // TODO do we have a good heuristic???
+    // this gets resized on-the-fly every timestep
+    triangles_in_SD_composite.resize(0);
 }
 void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
     initializeSpheres();

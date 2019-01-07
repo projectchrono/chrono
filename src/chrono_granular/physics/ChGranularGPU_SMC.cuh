@@ -330,7 +330,7 @@ __global__ void sphereBroadphase(sphereDataStruct sphere_data,
 
             // Store start of new entries
             // TODO this assumes that the offset is less than uint
-            unsigned int sphere_offset = atomicAdd(sphere_data.DEs_SD_offsets + touchedSD, winningStreak);
+            unsigned int sphere_offset = atomicAdd(sphere_data.SD_SphereCompositeOffsets + touchedSD, winningStreak);
 
             // Produce the offsets for this streak of spheres with identical SD ids
             for (unsigned int sphereInStreak = 0; sphereInStreak < winningStreak; sphereInStreak++) {
@@ -342,7 +342,7 @@ __global__ void sphereBroadphase(sphereDataStruct sphere_data,
 
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
-    // Write out the data now; register with sphere_data.DEs_in_SD_composite each sphere that touches a certain ID
+    // Write out the data now; register with sphere_data.spheres_in_SD_composite each sphere that touches a certain ID
     for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_SPHERE; i++) {
         unsigned int offset = sphere_composite_offsets[MAX_SDs_TOUCHED_BY_SPHERE * threadIdx.x + i];
         // Add offsets together
@@ -359,7 +359,7 @@ __global__ void sphereBroadphase(sphereDataStruct sphere_data,
             //         threadIdx.x, blockIdx.x, offset, max_composite_index, sphIDs[i]);
             // } else {
             // printf("%s\n", );
-            sphere_data.DEs_in_SD_composite[offset] = sphIDs[i];
+            sphere_data.spheres_in_SD_composite[offset] = sphIDs[i];
             // }
         }
     }
@@ -709,13 +709,13 @@ inline __device__ bool clampTangentForces(GranParamsPtr gran_params, const float
 This kernel call figures out forces cuased by sphere-sphere interactions
 
 Template arguments:
-  - MAX_COUNT_OF_DEs_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block
+  - MAX_COUNT_OF_SPHERES_PER_SD: the number of threads used in this kernel, comes into play when invoking CUB block
 collectives.
 
 Assumptions:
     - A sphere cannot touch more than 12 other spheres (this is a proved results, of 1953).
     - A "char" is stored on 8 bits and as such an unsigned char can hold positive numbers up to and including 255
-    - MAX_COUNT_OF_DEs_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
+    - MAX_COUNT_OF_SPHERES_PER_SD<256 (we are using in this kernel unsigned char to store IDs)
     - Granular material is made up of monodisperse spheres.
     - The function below assumes the spheres are in a box
     - The box has dimensions L x D x H.
@@ -736,21 +736,21 @@ static __global__ void computeSphereForces(sphereDataStruct sphere_data,
     const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
     // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
-    __shared__ int sphere_X[MAX_COUNT_OF_DEs_PER_SD];
-    __shared__ int sphere_Y[MAX_COUNT_OF_DEs_PER_SD];
-    __shared__ int sphere_Z[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ int sphere_X[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ int sphere_Y[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ int sphere_Z[MAX_COUNT_OF_SPHERES_PER_SD];
     // TODO figure out how we can do this better with no friction
-    __shared__ float omega_X[MAX_COUNT_OF_DEs_PER_SD];
-    __shared__ float omega_Y[MAX_COUNT_OF_DEs_PER_SD];
-    __shared__ float omega_Z[MAX_COUNT_OF_DEs_PER_SD];
-    __shared__ float sphere_X_DOT[MAX_COUNT_OF_DEs_PER_SD];
-    __shared__ float sphere_Y_DOT[MAX_COUNT_OF_DEs_PER_SD];
-    __shared__ float sphere_Z_DOT[MAX_COUNT_OF_DEs_PER_SD];
-    __shared__ unsigned int sphIDs[MAX_COUNT_OF_DEs_PER_SD];
+    __shared__ float omega_X[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float omega_Y[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float omega_Z[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float sphere_X_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float sphere_Y_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float sphere_Z_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ unsigned int sphIDs[MAX_COUNT_OF_SPHERES_PER_SD];
 
     unsigned int thisSD = blockIdx.x;
     unsigned int spheresTouchingThisSD = sphere_data.SD_NumOf_DEs_Touching[thisSD];
-    unsigned int SphereSDOffset = sphere_data.DEs_SD_offsets[thisSD];
+    unsigned int SphereSDOffset = sphere_data.SD_SphereCompositeOffsets[thisSD];
     unsigned int mySphereID;
     unsigned char bodyB_list[MAX_SPHERES_TOUCHED_BY_SPHERE];
     unsigned int ncontacts = 0;
@@ -762,7 +762,7 @@ static __global__ void computeSphereForces(sphereDataStruct sphere_data,
     }
 
     // If we overran, we have a major issue, time to crash before we make illegal memory accesses
-    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_COUNT_OF_DEs_PER_SD) {
+    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_COUNT_OF_SPHERES_PER_SD) {
         // Crash now
         ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
     }
@@ -772,7 +772,7 @@ static __global__ void computeSphereForces(sphereDataStruct sphere_data,
     if (threadIdx.x < spheresTouchingThisSD) {
         // We need int64_ts to index into composite array
         size_t offset_in_composite_Array = SphereSDOffset + threadIdx.x;
-        mySphereID = sphere_data.DEs_in_SD_composite[offset_in_composite_Array];
+        mySphereID = sphere_data.spheres_in_SD_composite[offset_in_composite_Array];
         sphere_X[threadIdx.x] = sphere_data.pos_X[mySphereID];
         sphere_Y[threadIdx.x] = sphere_data.pos_Y[mySphereID];
         sphere_Z[threadIdx.x] = sphere_data.pos_Z[mySphereID];
@@ -804,8 +804,8 @@ static __global__ void computeSphereForces(sphereDataStruct sphere_data,
         unsigned int ownerSD =
             SDTripletID(pointSDTriplet(sphere_X[bodyA], sphere_Y[bodyA], sphere_Z[bodyA], gran_params), gran_params);
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
-            // unsigned int theirSphID = sphere_data.DEs_in_SD_composite[thisSD * MAX_COUNT_OF_DEs_PER_SD + bodyB];
-            // Don't check for collision with self
+            // unsigned int theirSphID = sphere_data.spheres_in_SD_composite[thisSD * MAX_COUNT_OF_SPHERES_PER_SD +
+            // bodyB]; Don't check for collision with self
             if (bodyA == bodyB)
                 continue;
 

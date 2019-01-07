@@ -155,6 +155,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_SD_composite;
     // Number of triangles touching each SD
     std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching;
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
+
     // Function members
     void copyTriangleDataToDevice();
     void resetTriangleBroadphaseInformation();
@@ -164,6 +166,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
                              unsigned int nTriangles,
                              std::vector<float> masses);
     void cleanupTriMesh_DEVICE();
+
+    /// run prefix-scan based broadphase
+    void runTriangleBroadphase();
 
     // void initialize();
 

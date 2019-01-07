@@ -30,7 +30,7 @@
 /// The H-size of an SD should contain, on average, about these many spheres
 #define AVERAGE_SPHERES_PER_SD_Z_DIR 3.5
 /// Anticipated max number of DEs in an SD; used for setting aside memory ahead of time
-#define MAX_COUNT_OF_DEs_PER_SD 256
+#define MAX_COUNT_OF_SPHERES_PER_SD 256
 /// Value that indicates non-valid ID. The assumption is that an ID is always a positive integer
 #define NULL_GRANULAR_ID UINT_MAX
 /// Value that controls the length unit. It is this many simulation length units that a sphere deforms under its own

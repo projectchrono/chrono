@@ -61,7 +61,7 @@ void ChSystemGranular_MonodisperseSMC::checkSDCounts(std::string ofile, bool wri
     // Count of DEs in each SD
     unsigned int* sdvals = SD_NumOf_DEs_Touching.data();
     // DEs that are in each SD
-    unsigned int* sdSpheres = DEs_in_SD_composite.data();
+    unsigned int* sdSpheres = spheres_in_SD_composite.data();
     // # times each DE appears in some SD
     unsigned int* deCounts = new unsigned int[nDEs];
 
@@ -79,15 +79,15 @@ void ChSystemGranular_MonodisperseSMC::checkSDCounts(std::string ofile, bool wri
             max_count = sdvals[i];
     }
     // safety checks, if these fail we were probably about to crash
-    assert(sum < MAX_COUNT_OF_DEs_PER_SD * gran_params->nSDs);
-    assert(max_count < MAX_COUNT_OF_DEs_PER_SD);
+    assert(sum < MAX_COUNT_OF_SPHERES_PER_SD * gran_params->nSDs);
+    assert(max_count < MAX_COUNT_OF_SPHERES_PER_SD);
     if (verbose) {
         printf("max DEs per SD is %u\n", max_count);
         printf("total sd/de overlaps is %u\n", sum);
-        printf("theoretical total is %u\n", MAX_COUNT_OF_DEs_PER_SD * gran_params->nSDs);
+        printf("theoretical total is %u\n", MAX_COUNT_OF_SPHERES_PER_SD * gran_params->nSDs);
     }
     // Copy over occurences in SDs
-    for (unsigned int i = 0; i < MAX_COUNT_OF_DEs_PER_SD * gran_params->nSDs; i++) {
+    for (unsigned int i = 0; i < MAX_COUNT_OF_SPHERES_PER_SD * gran_params->nSDs; i++) {
         // printf("de id is %d, i is %u\n", sdSpheres[i], i);
         // Check if invalid sphere
         if (sdSpheres[i] == NULL_GRANULAR_ID) {
@@ -212,10 +212,10 @@ void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
 void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
     // Set all the offsets to zero
     gpuErrchk(cudaMemset(SD_NumOf_DEs_Touching.data(), 0, SD_NumOf_DEs_Touching.size() * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(DEs_SD_offsets.data(), 0, DEs_SD_offsets.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(SD_SphereCompositeOffsets.data(), 0, SD_SphereCompositeOffsets.size() * sizeof(unsigned int)));
     // For each SD, all the spheres touching that SD should have their ID be NULL_GRANULAR_ID
-    gpuErrchk(
-        cudaMemset(DEs_in_SD_composite.data(), NULL_GRANULAR_ID, DEs_in_SD_composite.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(spheres_in_SD_composite.data(), NULL_GRANULAR_ID,
+                         spheres_in_SD_composite.size() * sizeof(unsigned int)));
     gpuErrchk(cudaDeviceSynchronize());
 }
 // Reset sphere-sphere force data structures
@@ -419,7 +419,7 @@ __host__ float ChSystemGranular_MonodisperseSMC::get_max_vel() {
     return h_max_vel;
 }
 
-__host__ void ChSystemGranular_MonodisperseSMC::runBroadphase() {
+__host__ void ChSystemGranular_MonodisperseSMC::runSphereBroadphase() {
     VERBOSE_PRINTF("Resetting broadphase info!\n");
 
     resetBroadphaseInformation();
@@ -442,7 +442,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::runBroadphase() {
     // num spheres in last SD
     unsigned int last_SD_num_spheres = SD_NumOf_DEs_Touching.at(nSDs - 1);
 
-    unsigned int* out_ptr = DEs_SD_offsets.data();
+    unsigned int* out_ptr = SD_SphereCompositeOffsets.data();
     unsigned int* in_ptr = SD_NumOf_DEs_Touching.data();
 
     // copy data into the tmp array
@@ -463,12 +463,12 @@ __host__ void ChSystemGranular_MonodisperseSMC::runBroadphase() {
     gpuErrchk(cudaPeekAtLastError());
     // total number of sphere entries to record
     unsigned int num_entries = out_ptr[nSDs - 1] + in_ptr[nSDs - 1];
-    DEs_in_SD_composite.resize(num_entries, NULL_GRANULAR_ID);
+    spheres_in_SD_composite.resize(num_entries, NULL_GRANULAR_ID);
 
     // make sure the DEs pointer is updated
     packSphereDataPointers(sphere_data);
 
-    // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs * MAX_COUNT_OF_DEs_PER_SD);
+    // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs * MAX_COUNT_OF_SPHERES_PER_SD);
 
     // for (unsigned int i = 0; i < nSDs; i++) {
     //     printf("SD %d has offset %u, N %u \n", i, out_ptr[i], in_ptr[i]);
@@ -476,10 +476,10 @@ __host__ void ChSystemGranular_MonodisperseSMC::runBroadphase() {
 
     // back up the offsets
     // TODO use a cached allocator, CUB provides one
-    std::vector<unsigned int, cudallocator<unsigned int>> DEs_SD_offsets_bak;
-    DEs_SD_offsets_bak.resize(DEs_SD_offsets.size());
-    gpuErrchk(cudaMemcpy(DEs_SD_offsets_bak.data(), DEs_SD_offsets.data(), nSDs * sizeof(unsigned int),
-                         cudaMemcpyDeviceToDevice));
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets_bak;
+    SD_SphereCompositeOffsets_bak.resize(SD_SphereCompositeOffsets.size());
+    gpuErrchk(cudaMemcpy(SD_SphereCompositeOffsets_bak.data(), SD_SphereCompositeOffsets.data(),
+                         nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
 
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
@@ -495,12 +495,12 @@ __host__ void ChSystemGranular_MonodisperseSMC::runBroadphase() {
     // }
     //
     // for (unsigned int i = 0; i < num_entries; i++) {
-    //     printf("entry %u is %u\n", i, DEs_in_SD_composite[i]);
+    //     printf("entry %u is %u\n", i, spheres_in_SD_composite[i]);
     // }
 
     // restore the old offsets
-    gpuErrchk(cudaMemcpy(DEs_SD_offsets.data(), DEs_SD_offsets_bak.data(), nSDs * sizeof(unsigned int),
-                         cudaMemcpyDeviceToDevice));
+    gpuErrchk(cudaMemcpy(SD_SphereCompositeOffsets.data(), SD_SphereCompositeOffsets_bak.data(),
+                         nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
     gpuErrchk(cudaFree(d_temp_storage));
 }
 
@@ -533,8 +533,8 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
         VERBOSE_PRINTF("Starting computeSphereForces!\n");
 
         // Compute sphere-sphere forces
-        computeSphereForces<<<nSDs, MAX_COUNT_OF_DEs_PER_SD>>>(sphere_data, gran_params, BC_type_list.data(),
-                                                               BC_params_list_SU.data(), BC_params_list_SU.size());
+        computeSphereForces<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params, BC_type_list.data(),
+                                                                   BC_params_list_SU.data(), BC_params_list_SU.size());
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -545,7 +545,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        runBroadphase();
+        runSphereBroadphase();
 
         packSphereDataPointers(sphere_data);
 

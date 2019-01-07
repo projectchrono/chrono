@@ -88,8 +88,8 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
     }
 
     packed.SD_NumOf_DEs_Touching = SD_NumOf_DEs_Touching.data();
-    packed.DEs_SD_offsets = DEs_SD_offsets.data();
-    packed.DEs_in_SD_composite = DEs_in_SD_composite.data();
+    packed.SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
+    packed.spheres_in_SD_composite = spheres_in_SD_composite.data();
 
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         packed.sphere_contact_map = sphere_contact_map.data();
@@ -378,8 +378,8 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
     resetBroadphaseInformation();
 
     printf("doing priming!\n");
-    printf("max possible composite offset with 256 limit is %zu\n", (size_t)nSDs * MAX_COUNT_OF_DEs_PER_SD);
-    runBroadphase();
+    printf("max possible composite offset with 256 limit is %zu\n", (size_t)nSDs * MAX_COUNT_OF_SPHERES_PER_SD);
+    runSphereBroadphase();
     printf("priming finished!\n");
 
     int dev_ID;
@@ -400,10 +400,10 @@ void ChSystemGranular_MonodisperseSMC::setupSimulation() {
     partitionBD();
     // allocate mem for array saying for each SD how many spheres touch it
     SD_NumOf_DEs_Touching.resize(nSDs);
-    DEs_SD_offsets.resize(nSDs);
+    SD_SphereCompositeOffsets.resize(nSDs);
     // assume each sphere touches 2 SDs on average
     // NOTE that this will get resized again later, this is just the first estimate
-    DEs_in_SD_composite.resize(2 * nDEs);
+    spheres_in_SD_composite.resize(2 * nDEs);
 }
 
 // Set particle positions in UU

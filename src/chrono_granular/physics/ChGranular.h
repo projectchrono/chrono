@@ -89,9 +89,9 @@ struct sphereDataStruct {
     /// number of DEs touching each SD
     unsigned int* SD_NumOf_DEs_Touching;
     /// offset of each SD in the big composite array
-    unsigned int* DEs_SD_offsets;
+    unsigned int* SD_SphereCompositeOffsets;
     /// big composite array of sphere-SD membership
-    unsigned int* DEs_in_SD_composite;
+    unsigned int* spheres_in_SD_composite;
 };
 
 // How are we writing?
@@ -407,10 +407,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Entry "i" says how many spheres touch SD i
     std::vector<unsigned int, cudallocator<unsigned int>> SD_NumOf_DEs_Touching;
-    std::vector<unsigned int, cudallocator<unsigned int>> DEs_SD_offsets;
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_SphereCompositeOffsets;
 
     /// Array containing the IDs of the spheres stored in the SDs associated with the box
-    std::vector<unsigned int, cudallocator<unsigned int>> DEs_in_SD_composite;
+    std::vector<unsigned int, cudallocator<unsigned int>> spheres_in_SD_composite;
 
     /// User provided maximum timestep in UU, used in adaptive timestepping
     float max_adaptive_step_UU = 1e-3;
@@ -440,7 +440,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// collect all the sphere data into a given struct
     void packSphereDataPointers(sphereDataStruct& packed);
     /// Run the first sphere broadphase pass to get things started
-    void runBroadphase();
+    void runSphereBroadphase();
     // just a handy helper function
     template <typename T1, typename T2>
     T1 convertToPosSU(T2 val) {

@@ -157,7 +157,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             for (float t = 0; t < params.time_end; t += frame_step) {
                 meshSoupLocOri[0] = 0;
                 meshSoupLocOri[1] = 0;
-                meshSoupLocOri[2] = -params.box_Z / 2 + params.sphere_radius;
+                meshSoupLocOri[2] = -params.box_Z / 2 + 2 * params.sphere_radius;
 
                 meshSoupLocOri[3] = 1;
                 meshSoupLocOri[4] = 0;
@@ -195,7 +195,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             for (float t = 0; t < params.time_end; t += frame_step) {
                 meshSoupLocOri[0] = 0;
                 meshSoupLocOri[1] = 0;
-                meshSoupLocOri[2] = -params.box_Z / 2 + params.sphere_radius;
+                meshSoupLocOri[2] = -params.box_Z / 2 + 2 * params.sphere_radius;
 
                 meshSoupLocOri[3] = 1;
                 meshSoupLocOri[4] = 0;
