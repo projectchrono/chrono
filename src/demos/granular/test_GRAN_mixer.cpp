@@ -34,7 +34,13 @@ using std::stof;
 using std::stoi;
 using std::vector;
 
-enum MIXER_TYPE { STANDARD, EXTERNAL, EXTERNAL_DRUM, ANGLED_DRUM };
+enum MIXER_TYPE {
+    INTERNAL = 0,                // Central 4-bladed mixer with cylinder boundary condition
+    EXTERNAL_VERTICAL = 1,       // 4 vertical blades on a rotating drum
+    EXTERNAL_VERTICAL_GRAV = 2,  // 4 vertical blades on a rotating drum. Drum at 45 deg angle.
+    EXTERNAL_ANGLED = 3,         // 4 blades at a 30 deg angle on a rotating drum.
+    EXTERNAL_ANGLED_GRAV = 4     // 4 blades at a 30 deg angle on a rotating drum. Drum at 45 deg angle.
+};
 
 void ShowUsage() {
     cout << "usage: ./test_GRAN_mixer <json_file>" << endl;
@@ -72,7 +78,6 @@ int main(int argc, char* argv[]) {
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
@@ -112,28 +117,48 @@ int main(int argc, char* argv[]) {
     cout << "Created " << n_spheres << " spheres" << endl;
 
     m_sys.setParticlePositions(pos);
-    MIXER_TYPE mixer_type = MIXER_TYPE::ANGLED_DRUM;
+    MIXER_TYPE mixer_type = static_cast<MIXER_TYPE>(params.run_mode);
+    float g[3];
 
-    // Mesh values
     vector<string> mesh_filenames;
     string mesh_filename;
     switch (mixer_type) {
-        case MIXER_TYPE::STANDARD:
-            mesh_filename = string("granular/Mixer.obj");
+        case MIXER_TYPE::INTERNAL:
+            mesh_filename = string("granular/mixer/internal_mixer.obj");
+            g[0] = 0;
+            g[1] = 0;
+            g[2] = -980;
             break;
-        case MIXER_TYPE::EXTERNAL:
-            mesh_filename = string("granular/external_mixer.obj");
+        case MIXER_TYPE::EXTERNAL_VERTICAL:
+            mesh_filename = string("granular/mixer/external_mixer_vertical.obj");
+            g[0] = 0;
+            g[1] = 0;
+            g[2] = -980;
             break;
-        case MIXER_TYPE::EXTERNAL_DRUM:
-            mesh_filename = string("granular/external_mixer_drum.obj");
+        case MIXER_TYPE::EXTERNAL_VERTICAL_GRAV:
+            mesh_filename = string("granular/mixer/external_mixer_vertical.obj");
+            g[0] = -692.9646;
+            g[1] = 0;
+            g[2] = -692.9646;
             break;
-        case MIXER_TYPE::ANGLED_DRUM:
-            mesh_filename = string("granular/external_mixer_tilted_drum.obj");
+        case MIXER_TYPE::EXTERNAL_ANGLED:
+            mesh_filename = string("granular/external_mixer_angled.obj");
+            g[0] = 0;
+            g[1] = 0;
+            g[2] = -980;
+            break;
+        case MIXER_TYPE::EXTERNAL_ANGLED_GRAV:
+            g[0] = -692.9646;
+            g[1] = 0;
+            g[2] = -692.9646;
+            mesh_filename = string("granular/external_mixer_angled.obj");
             break;
         default:
             cout << "Invalid mixer type" << endl;
             return 1;
     }
+
+    m_sys.set_gravitational_acceleration(g[0], g[1], g[2]);
 
     mesh_filenames.push_back(mesh_filename);
 
@@ -156,11 +181,10 @@ int main(int argc, char* argv[]) {
 
     float rev_per_sec = 0.5f;
     float ang_vel_Z = rev_per_sec * 2 * CH_C_PI;
-
-    // BUG with omegas for mesh
-    meshVel[5] = ang_vel_Z;
+    meshVel[5] = ang_vel_Z;  // BUG with omegas for mesh
 
     m_sys.initialize();
+
     unsigned int currframe = 0;
     double out_fps = 60;
     float frame_step = 1.f / out_fps;  // Duration of a frame

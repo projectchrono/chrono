@@ -4,9 +4,6 @@
     "box_X": 100,
     "step_size": 1e-5,
     "time_end": 10,
-    "grav_X": 0,
-    "grav_Y": -692.9646,
-    "grav_Z": -692.9646,
 
     "normalStiffS2S": 1e7,
     "normalStiffS2W": 1e7,
@@ -29,6 +26,8 @@
     "psi_h": 4,
     "psi_T": 16,
     "psi_L": 16,
+
+    "run_mode": 0,
     "output_dir": "mixer",
     "write_mode": "csv"
 }
