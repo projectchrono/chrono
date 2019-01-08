@@ -37,14 +37,14 @@ class ChApi ChMaterialShellANCF {
     ChMaterialShellANCF(double rho,  ///< material density
                         double E,    ///< Young's modulus
                         double nu    ///< Poisson ratio
-                        );
+    );
 
     /// Construct a (possibly) orthotropic material.
     ChMaterialShellANCF(double rho,            ///< material density
                         const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
                         const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
                         const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
-                        );
+    );
 
     /// Return the material density.
     double Get_rho() const { return m_rho; }
@@ -96,7 +96,7 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
               double thickness,                              ///< layer thickness
               double theta,                                  ///< fiber angle
               std::shared_ptr<ChMaterialShellANCF> material  ///< layer material
-              );
+        );
 
         double Get_detJ0C() const { return m_detJ0C; }
         const ChMatrixNM<double, 6, 6>& Get_T0() const { return m_T0; }
@@ -157,7 +157,7 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     void AddLayer(double thickness,                              ///< layer thickness
                   double theta,                                  ///< fiber angle (radians)
                   std::shared_ptr<ChMaterialShellANCF> material  ///< layer material
-                  );
+    );
 
     /// Get the number of layers.
     size_t GetNumLayers() const { return m_numLayers; }
@@ -204,6 +204,7 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
     /// Return a vector with three strain components
     ChVector<> EvaluateSectionStrains();
+    void EvaluateDeflection(double& defVec);
 
   private:
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
@@ -228,9 +229,8 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     ChMatrixNM<double, 8, 24> m_strainANS_D;               ///< ANS strain derivatives
     std::vector<ChMatrixNM<double, 5, 1> > m_alphaEAS;     ///< EAS parameters (5 per layer)
     std::vector<ChMatrixNM<double, 5, 5> > m_KalphaEAS;    ///< EAS Jacobians (a 5x5 matrix per layer)
-
-    static const double m_toleranceEAS;   ///< tolerance for nonlinear EAS solver (on residual)
-    static const int m_maxIterationsEAS;  ///< maximum number of nonlinear EAS iterations
+    static const double m_toleranceEAS;                    ///< tolerance for nonlinear EAS solver (on residual)
+    static const int m_maxIterationsEAS;                   ///< maximum number of nonlinear EAS iterations
 
   public:
     // Interface to ChElementBase base class
@@ -277,14 +277,9 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
                                              ChVector<>& u_displ,
                                              ChVector<>& u_rotaz) override;
 
-    virtual void EvaluateSectionFrame(const double u,
-                                      const double v,
-                                      ChVector<>& point,
-                                      ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double u, const double v, ChVector<>& point, ChQuaternion<>& rot) override;
 
-    virtual void EvaluateSectionPoint(const double u,
-                                      const double v,
-                                      ChVector<>& point) override;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector<>& point) override;
 
     // Internal computations
     // ---------------------
@@ -360,7 +355,11 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
