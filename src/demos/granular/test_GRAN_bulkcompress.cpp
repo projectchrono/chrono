@@ -16,7 +16,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
     SetupGranSystem(m_sys, params);
-    ChFileutils::MakeDirectory(params.output_dir.c_str());
+    filesystem::create_directory(filesystem::path(params.output_dir));
 
     ChSystemSMC ch_sys;
     ch_sys.Set_G_acc(ChVector<>(params.grav_X, params.grav_Y, params.grav_Z));

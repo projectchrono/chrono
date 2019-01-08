@@ -20,7 +20,7 @@
 #include <string>
 #include <cmath>
 #include <ctime>
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
@@ -125,7 +125,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             cout << "Running Granular system test..." << endl;
             ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density);
             SetupGranSystem(m_sys, params);
-            ChFileutils::MakeDirectory(params.output_dir.c_str());
+            filesystem::create_directory(filesystem::path(params.output_dir));
             m_sys.initialize();
 
             unsigned int currframe = 0;
@@ -144,7 +144,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
             SetupGranTriSystem(m_sys, params);
             m_sys.disableMeshCollision();
-            ChFileutils::MakeDirectory(params.output_dir.c_str());
+            filesystem::create_directory(filesystem::path(params.output_dir));
 
             unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
             cout << nSoupFamilies << " soup families" << endl;
@@ -182,7 +182,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
             SetupGranTriSystem(m_sys, params);
             m_sys.enableMeshCollision();
-            ChFileutils::MakeDirectory(params.output_dir.c_str());
+            filesystem::create_directory(filesystem::path(params.output_dir));
 
             unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
             cout << nSoupFamilies << " soup families" << endl;

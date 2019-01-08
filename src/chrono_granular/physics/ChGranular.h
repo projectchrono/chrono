@@ -27,6 +27,7 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
 #include "chrono_granular/utils/ChGranularUtilities.h"
+#include "chrono/core/ChMathematics.h"
 #include "cudalloc.hpp"
 
 /**

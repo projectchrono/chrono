@@ -24,7 +24,7 @@
 
 #include <iostream>
 #include <string>
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "ChGranular_json_parser.hpp"
 #include "ChGranularDemoUtils.hpp"
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_fixed_stepSize(params.step_size);
 
-    ChFileutils::MakeDirectory(params.output_dir.c_str());
+    filesystem::create_directory(filesystem::path(params.output_dir));
 
     float cone_slope = 1.0;
 

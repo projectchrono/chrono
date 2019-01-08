@@ -28,7 +28,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
@@ -74,7 +74,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
     gran_system.setParticlePositions(body_points);
 
-    ChFileutils::MakeDirectory(output_prefix.c_str());
+    filesystem::create_directory(filesystem::path(output_prefix));
 
     // Stay centered at origin
     std::function<double(double)> posFunStill = [](double t) { return -.5; };

@@ -15,7 +15,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "ChGranular_json_parser.hpp"
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys.set_fixed_stepSize(params.step_size);
-    ChFileutils::MakeDirectory(params.output_dir.c_str());
+    filesystem::create_directory(filesystem::path(params.output_dir));
     m_sys.set_BD_Fixed(true);
 
     m_sys.setVerbose(params.verbose);

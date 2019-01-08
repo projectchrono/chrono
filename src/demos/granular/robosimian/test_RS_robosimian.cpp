@@ -20,7 +20,7 @@
 #include <cstdio>
 #include <vector>
 
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/physics/ChSystemNSC.h"

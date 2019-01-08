@@ -21,7 +21,7 @@
 
 #include <iostream>
 #include <string>
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "ChGranular_json_parser.hpp"
 #include "ChGranularDemoUtils.hpp"
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
 
     size_t cyl_bc_id = gran_system.Create_BC_Cyl_Z(cyl_center, cyl_rad, true, true);
 
-    ChFileutils::MakeDirectory(params.output_dir.c_str());
+    filesystem::create_directory(filesystem::path(params.output_dir));
 
     // Finalize settings and initialize for runtime
     gran_system.initialize();

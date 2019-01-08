@@ -36,7 +36,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono/utils/ChUtilsInputOutput.h"

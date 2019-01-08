@@ -16,7 +16,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
     m_sys.setOutputDirectory(params.output_dir);
-    ChFileutils::MakeDirectory(output_dir.c_str());
+    filesystem::create_directory(filesystem::path(output_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
