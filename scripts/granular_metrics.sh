@@ -24,8 +24,8 @@ echo "Current date is " $CURR_DATE >> $LOG_FILE
 echo $LAST_COMMIT >> $LOG_FILE
 echo "Results:" >> $LOG_FILE
 
-$CHRONO_BUILD/bin/test_gran_milwave $LOG_FILE 
-$CHRONO_BUILD/bin/test_gran_milsettle $LOG_FILE 
+$CHRONO_BUILD/bin/test_GRAN_milwave $LOG_FILE 
+$CHRONO_BUILD/bin/test_GRAN_milsettle $LOG_FILE 
 
 # amend last commit to include new results
 git add $LOG_FILE
