@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Base class for changing device arrays in non-cuda files

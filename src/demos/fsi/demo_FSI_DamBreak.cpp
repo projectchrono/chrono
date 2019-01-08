@@ -36,7 +36,7 @@
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
+#include "chrono_fsi/utils/ChUtilsJsonInput.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 // Chrono namespaces

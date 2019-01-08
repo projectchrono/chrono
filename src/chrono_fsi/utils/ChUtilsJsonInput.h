@@ -9,25 +9,29 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha
+// Authors: Milad Rakhsha
 // =============================================================================
-//
-// Utility class for generating fluid markers.//
-// =============================================================================
-
-#ifndef CH_UTILSGENERATORFLUID_H
-#define CH_UTILSGENERATORFLUID_H
-
-#include "chrono_fsi/ChFsiDataManager.cuh"
+#ifndef CHUTILSJSONINPUT_H_
+#define CHUTILSJSONINPUT_H_
+#include "chrono/ChConfig.h"
+#include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/custom_math.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+
+using namespace rapidjson;
+struct SimParams;
 
 namespace chrono {
 namespace fsi {
 namespace utils {
-int2 CreateFluidMarkers(SphMarkerDataH& sphMarkersH, FsiGeneralData& fsiGeneralData, SimParams& paramsH);
 
-}  // end namespace utils
-}  // end namespace fsi
-}  // end namespace chrono
+CH_FSI_API bool ParseJSON(const char* json_file, SimParams* paramsH, Real3 Domain);
+CH_FSI_API Real3 LoadVectorJSON(const Value& a);
+CH_FSI_API void InvalidArg(std::string arg);
 
-#endif
+}  // namespace utils
+}  // namespace fsi
+}  // namespace chrono
+
+#endif /* CHUTILSJSON_H_ */

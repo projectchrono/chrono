@@ -1,15 +1,22 @@
-/*
- * ChUtilsJSON.cpp
- *
- *  Created on: Oct 24, 2018
- *      Author: Milad Rakhsha
- */
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Milad Rakhsha
+// =============================================================================
 
+#include "chrono_fsi/utils/ChUtilsJsonInput.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChFsiLinearSolver.h"
 #include "chrono_fsi/ChParams.cuh"
 #include "chrono_fsi/utils/ChUtilsPrintStruct.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
 
 namespace chrono {
 namespace fsi {
@@ -27,7 +34,7 @@ void InvalidArg(string arg) {
 
 // Returns true on successful parameter load.
 // Returns false and prints error on invalid argument.
- bool ParseJSON (const char* json_file, SimParams* paramsH, Real3 Domain) {
+bool ParseJSON(const char* json_file, SimParams* paramsH, Real3 Domain) {
     cout << "Reading parameters: " << json_file << endl;
     FILE* fp = fopen(json_file, "r");
     if (!fp) {

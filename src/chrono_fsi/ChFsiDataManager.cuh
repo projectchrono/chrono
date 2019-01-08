@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Base class for managing data in chrono_fsi, aka fluid system.//
@@ -175,9 +175,9 @@ class FsiBodiesDataD {
 
 class FsiMeshDataH {
   public:
-    thrust::host_vector<Real3> pos_fsi_fea_H;
-    thrust::host_vector<Real3> vel_fsi_fea_H;
-    thrust::host_vector<Real3> acc_fsi_fea_H;
+    thrust::host_vector<Real3> pos_fsi_fea_H;  ///< Host vector of FEA nodal positions
+    thrust::host_vector<Real3> vel_fsi_fea_H;  ///< Host vector of FEA nodal velocities
+    thrust::host_vector<Real3> acc_fsi_fea_H;  ///< Host vector of FEA nodal accelerations
 
     //  zipIterFlexH iterator();
     // resize
@@ -189,9 +189,9 @@ class FsiMeshDataH {
 
 class FsiMeshDataD {
   public:
-    thrust::device_vector<Real3> pos_fsi_fea_D;
-    thrust::device_vector<Real3> vel_fsi_fea_D;
-    thrust::device_vector<Real3> acc_fsi_fea_D;
+    thrust::device_vector<Real3> pos_fsi_fea_D;  ///< Device vector of FEA nodal positions
+    thrust::device_vector<Real3> vel_fsi_fea_D;  ///< Device vector of FEA nodal velocities
+    thrust::device_vector<Real3> acc_fsi_fea_D;  ///< Device vector of FEA nodal accelerations
 
     //  zipIterFlexD iterator();
     void CopyFromH(const FsiMeshDataH& other);
@@ -204,20 +204,20 @@ class FsiMeshDataD {
 
 class FsiShellsDataH {
   public:
-    thrust::host_vector<Real3> posFlex_fsiBodies_nA_H;
-    thrust::host_vector<Real3> posFlex_fsiBodies_nB_H;
-    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;
-    thrust::host_vector<Real3> posFlex_fsiBodies_nD_H;
+    thrust::host_vector<Real3> posFlex_fsiBodies_nA_H;  ///< nodal position of the first node of 4-node shells
+    thrust::host_vector<Real3> posFlex_fsiBodies_nB_H;  ///< nodal position of the second node of 4-node shells
+    thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;  ///< nodal position of the third node of 4-node shells
+    thrust::host_vector<Real3> posFlex_fsiBodies_nD_H;  ///< nodal position of the forth node of 4-node shells
 
-    thrust::host_vector<Real3> velFlex_fsiBodies_nA_H;
-    thrust::host_vector<Real3> velFlex_fsiBodies_nB_H;
-    thrust::host_vector<Real3> velFlex_fsiBodies_nC_H;
-    thrust::host_vector<Real3> velFlex_fsiBodies_nD_H;
+    thrust::host_vector<Real3> velFlex_fsiBodies_nA_H;  ///< nodal velcoties of the first node of 4-node shells
+    thrust::host_vector<Real3> velFlex_fsiBodies_nB_H;  ///< nodal velcoties of the second node of 4-node shells
+    thrust::host_vector<Real3> velFlex_fsiBodies_nC_H;  ///< nodal velcoties of the third node of 4-node shells
+    thrust::host_vector<Real3> velFlex_fsiBodies_nD_H;  ///< nodal velcoties of the forth node of 4-node shells
 
-    thrust::host_vector<Real3> accFlex_fsiBodies_nA_H;
-    thrust::host_vector<Real3> accFlex_fsiBodies_nB_H;
-    thrust::host_vector<Real3> accFlex_fsiBodies_nC_H;
-    thrust::host_vector<Real3> accFlex_fsiBodies_nD_H;
+    thrust::host_vector<Real3> accFlex_fsiBodies_nA_H;  ///< nodal acceleration of the first node of 4-node shells
+    thrust::host_vector<Real3> accFlex_fsiBodies_nB_H;  ///< nodal acceleration of the second node of 4-node shells
+    thrust::host_vector<Real3> accFlex_fsiBodies_nC_H;  ///< nodal acceleration of the third node of 4-node shells
+    thrust::host_vector<Real3> accFlex_fsiBodies_nD_H;  ///< nodal acceleration of the forth node of 4-node shells
 
     //  zipIterFlexH iterator();
     // resize
@@ -228,20 +228,20 @@ class FsiShellsDataH {
 
 class FsiShellsDataD {
   public:
-    thrust::device_vector<Real3> posFlex_fsiBodies_nA_D;
-    thrust::device_vector<Real3> posFlex_fsiBodies_nB_D;
-    thrust::device_vector<Real3> posFlex_fsiBodies_nC_D;
-    thrust::device_vector<Real3> posFlex_fsiBodies_nD_D;
+    thrust::device_vector<Real3> posFlex_fsiBodies_nA_D;  ///< nodal position of the first node of 4-node shells
+    thrust::device_vector<Real3> posFlex_fsiBodies_nB_D;  ///< nodal position of the second node of 4-node shells
+    thrust::device_vector<Real3> posFlex_fsiBodies_nC_D;  ///< nodal position of the third node of 4-node shells
+    thrust::device_vector<Real3> posFlex_fsiBodies_nD_D;  ///< nodal position of the forth node of 4-node shells
 
-    thrust::device_vector<Real3> velFlex_fsiBodies_nA_D;
-    thrust::device_vector<Real3> velFlex_fsiBodies_nB_D;
-    thrust::device_vector<Real3> velFlex_fsiBodies_nC_D;
-    thrust::device_vector<Real3> velFlex_fsiBodies_nD_D;
+    thrust::device_vector<Real3> velFlex_fsiBodies_nA_D;  ///< nodal velcoties of the first node of 4-node shells
+    thrust::device_vector<Real3> velFlex_fsiBodies_nB_D;  ///< nodal velcoties of the second node of 4-node shells
+    thrust::device_vector<Real3> velFlex_fsiBodies_nC_D;  ///< nodal velcoties of the third node of 4-node shells
+    thrust::device_vector<Real3> velFlex_fsiBodies_nD_D;  ///< nodal velcoties of the forth node of 4-node shells
 
-    thrust::device_vector<Real3> accFlex_fsiBodies_nA_D;
-    thrust::device_vector<Real3> accFlex_fsiBodies_nB_D;
-    thrust::device_vector<Real3> accFlex_fsiBodies_nC_D;
-    thrust::device_vector<Real3> accFlex_fsiBodies_nD_D;
+    thrust::device_vector<Real3> accFlex_fsiBodies_nA_D;  ///< nodal acceleration of the first node of 4-node shells
+    thrust::device_vector<Real3> accFlex_fsiBodies_nB_D;  ///< nodal acceleration of the second node of 4-node shells
+    thrust::device_vector<Real3> accFlex_fsiBodies_nC_D;  ///< nodal acceleration of the third node of 4-node shells
+    thrust::device_vector<Real3> accFlex_fsiBodies_nD_D;  ///< nodal acceleration of the forth node of 4-node shells
 
     //  zipIterFlexD iterator();
     void CopyFromH(const FsiShellsDataH& other);
@@ -348,8 +348,9 @@ class FsiGeneralData {
 
     // BCE
     thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a marker attached to a rigid body in a local
-    thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;
-    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;
+    thrust::device_vector<Real3>
+        FlexSPH_MeshPos_LRF_D;                         ///< Position of a marker attached to a flexible body in a local
+    thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;  ///< Position of a marker attached to a flexible body in a local
 
     thrust::device_vector<uint> rigidIdentifierD;  ///< Identifies which rigid body a marker belongs to
     thrust::device_vector<uint> FlexIdentifierD;
@@ -359,11 +360,11 @@ class FsiGeneralData {
     thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
     thrust::device_vector<Real3> Flex_FSI_ForcesD;    ///< Vector of the surface-integrated force on FEA nodes
 
-    thrust::host_vector<int2> CableElementsNodesH;
-    thrust::device_vector<int2> CableElementsNodes;
+    thrust::host_vector<int2> CableElementsNodesH;   ///< The index of nodes of each cable element
+    thrust::device_vector<int2> CableElementsNodes;  ///< The index of nodes of each cable element
 
-    thrust::host_vector<int4> ShellElementsNodesH;
-    thrust::device_vector<int4> ShellElementsNodes;
+    thrust::host_vector<int4> ShellElementsNodesH;   ///< The index of nodes of each shell element
+    thrust::device_vector<int4> ShellElementsNodes;  ///< The index of nodes of each shell element
 
   private:
 };
@@ -384,11 +385,11 @@ class CH_FSI_API ChFsiDataManager {
     SphMarkerDataD sortedSphMarkersD;  ///< Sorted information of SPH markers at state 1 on device
     SphMarkerDataH sphMarkersH;        ///< Information of SPH markers on host
 
-    FsiBodiesDataD fsiBodiesD1;  ///< Information of rigid bodies at state 1 on device
-    FsiBodiesDataD fsiBodiesD2;  ///< Information of rigid bodies at state 2 on device
-    FsiBodiesDataH fsiBodiesH;   ///< Information of rigid bodies at state 1 on host
-    FsiMeshDataD fsiMeshD;
-    FsiMeshDataH fsiMeshH;
+    FsiBodiesDataD fsiBodiesD1;  ///< Device information of rigid bodies at state 1 on device
+    FsiBodiesDataD fsiBodiesD2;  ///< Device information of rigid bodies at state 2 on device
+    FsiBodiesDataH fsiBodiesH;   ///< Host information of rigid bodies at state 1 on host
+    FsiMeshDataD fsiMeshD;       ///< Device information of a ChMesh present in the FSI simulation
+    FsiMeshDataH fsiMeshH;       ///< Host information of a ChMesh present in the FSI simulation
 
     FsiGeneralData fsiGeneralData;
 

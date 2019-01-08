@@ -1,15 +1,21 @@
-/*
- * SPHCudaUtils.h
- *
- *  Created on: Mar 2, 2015
- *      Author: Arman Pazouki
- */
-// ****************************************************************************
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Author:Arman Pazouki, Milad Rakhsha
+// =============================================================================
 // This file contains miscellaneous macros and utilities used in the SPH code.
-// ****************************************************************************
+// =============================================================================
+
 #ifndef CH_SPH_GENERAL_CUH
 #define CH_SPH_GENERAL_CUH
-
 // ----------------------------------------------------------------------------
 // CUDA headers
 // ----------------------------------------------------------------------------
@@ -29,8 +35,8 @@
 
 namespace chrono {
 namespace fsi {
- __constant__ fsi::SimParams paramsD;
- __constant__ fsi::NumberOfObjects numObjectsD;
+__constant__ fsi::SimParams paramsD;
+__constant__ fsi::NumberOfObjects numObjectsD;
 
 void CopyParams_NumberOfObjects(SimParams* paramsH, NumberOfObjects* numObjectsH);
 #define W3 W3_Spline

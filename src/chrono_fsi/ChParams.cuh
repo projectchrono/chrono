@@ -1,19 +1,28 @@
-/*
- * MyStruncts.cuh
- *
- *  Created on: Sep 24, 2018
- *      Author: Arman Pazouki, Milad Rakhsha
- *      For more informaiton about these parameters see the following:
- *      - Using a half-implicit integration scheme for the SPH-based solution of fluid-solid interaction problems,
- *      Milad Rakhsha, Arman Pazouki, Radu Serban, Dan Negrut, Computer Methods in Applied Mechanics and Engineering
- *
- *      - A Consistent Multi-Resolution Smoothed Particle Hydrodynamics Method,
- *       Wei Hua, Wenxiao Panb, Milad Rakhsha, Qiang Tiana, Haiyan Hua, Dan Negrut,
- *       Computer Methods in Applied Mechanics and Engineering, 2018
- *
- *
- *
- */
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Author:Arman Pazouki, Milad Rakhsha
+// =============================================================================
+//
+// An Structure to hold the simulation parameters.
+//       Author: Arman Pazouki, Milad Rakhsha
+//       For more informaiton about these parameters see the following:
+//
+//     - Using a half-implicit integration scheme for the SPH-based solution of fluid-solid interaction problems,
+//       Milad Rakhsha, Arman Pazouki, Radu Serban, Dan Negrut, Computer Methods in Applied Mechanics and Engineering
+//
+//      - A Consistent Multi-Resolution Smoothed Particle Hydrodynamics Method,
+//        Wei Hua, Wenxiao Panb, Milad Rakhsha, Qiang Tiana, Haiyan Hua, Dan Negrut,
+//        Computer Methods in Applied Mechanics and Engineering, 2018
+// =============================================================================
 
 #ifndef CHPARAMS_CUH_
 #define CHPARAMS_CUH_

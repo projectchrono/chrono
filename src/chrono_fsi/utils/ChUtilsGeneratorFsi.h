@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Utility class for generating BCE markers.//
@@ -75,20 +75,20 @@ CH_FSI_API void AddCylinderBce(ChFsiDataManager* fsiData,
                                Real kernel_h,
                                bool cartesian = true);
 CH_FSI_API void AddCylinderSurfaceBce(ChFsiDataManager* fsiData,
-                           SimParams* paramsH,
-                           std::shared_ptr<ChBody> body,
-                           ChVector<> relPos,
-                           ChQuaternion<> relRot,
-                           Real radius,
-                           Real height,
-                           Real kernel_h);
+                                      SimParams* paramsH,
+                                      std::shared_ptr<ChBody> body,
+                                      ChVector<> relPos,
+                                      ChQuaternion<> relRot,
+                                      Real radius,
+                                      Real height,
+                                      Real kernel_h);
 CH_FSI_API void AddSphereSurfaceBce(ChFsiDataManager* fsiData,
-                         SimParams* paramsH,
-                         std::shared_ptr<ChBody> body,
-                         ChVector<> relPos,
-                         ChQuaternion<> relRot,
-                         Real radius,
-                         Real kernel_h);
+                                    SimParams* paramsH,
+                                    std::shared_ptr<ChBody> body,
+                                    ChVector<> relPos,
+                                    ChQuaternion<> relRot,
+                                    Real radius,
+                                    Real kernel_h);
 CH_FSI_API void AddBoxBce(ChFsiDataManager* fsiData,
                           SimParams* paramsH,
                           std::shared_ptr<chrono::ChBody> body,
@@ -137,40 +137,40 @@ CH_FSI_API void CreateBoxFSI(ChFsiDataManager* fsiData,
                              const chrono::ChVector<>& hsize);
 
 CH_FSI_API void AddBCE_ShellANCF(ChFsiDataManager* fsiData,
-                      SimParams* paramsH,
-                      std::vector<std::shared_ptr<chrono::fea::ChElementShellANCF>>* fsiShellsPtr,
-                      std::shared_ptr<chrono::fea::ChMesh> my_mesh,
-                      bool multiLayer = true,
-                      bool removeMiddleLayer = false,
-                      int SIDE = -2);
+                                 SimParams* paramsH,
+                                 std::vector<std::shared_ptr<chrono::fea::ChElementShellANCF>>* fsiShellsPtr,
+                                 std::shared_ptr<chrono::fea::ChMesh> my_mesh,
+                                 bool multiLayer = true,
+                                 bool removeMiddleLayer = false,
+                                 int SIDE = -2);
 
 CH_FSI_API void AddBCE_ShellFromMesh(ChFsiDataManager* fsiData,
-                          SimParams* paramsH,
-                          std::vector<std::shared_ptr<chrono::fea::ChElementShellANCF>>* fsiShellsPtr,
-                          std::vector<std::shared_ptr<chrono::fea::ChNodeFEAxyzD>>* fsiNodesPtr,
-                          std::shared_ptr<chrono::fea::ChMesh> my_mesh,
-                          std::vector<std::vector<int>> elementsNodes,
-                          std::vector<std::vector<int>> NodeNeighborElement,
-                          bool multiLayer = true,
-                          bool removeMiddleLayer = false,
-                          int SIDE = -2);
+                                     SimParams* paramsH,
+                                     std::vector<std::shared_ptr<chrono::fea::ChElementShellANCF>>* fsiShellsPtr,
+                                     std::vector<std::shared_ptr<chrono::fea::ChNodeFEAxyzD>>* fsiNodesPtr,
+                                     std::shared_ptr<chrono::fea::ChMesh> my_mesh,
+                                     std::vector<std::vector<int>> elementsNodes,
+                                     std::vector<std::vector<int>> NodeNeighborElement,
+                                     bool multiLayer = true,
+                                     bool removeMiddleLayer = false,
+                                     int SIDE = -2);
 
 CH_FSI_API void AddBCE_FromMesh(ChFsiDataManager* fsiData,
-                     SimParams* paramsH,
-                     std::shared_ptr<chrono::fea::ChMesh> my_mesh,
-                     std::vector<std::shared_ptr<chrono::fea::ChNodeFEAxyzD>>* fsiNodesPtr,
-                     std::vector<std::shared_ptr<chrono::fea::ChElementCableANCF>>* fsiCablesPtr,
-                     std::vector<std::shared_ptr<chrono::fea::ChElementShellANCF>>* fsiShellsPtr,
-                     std::vector<std::vector<int>> NodeNeighborElement,
-                     std::vector<std::vector<int>> _1D_elementsNodes,
-                     std::vector<std::vector<int>> _2D_elementsNodes,
-                     bool add1DElem,
-                     bool add2DElem,
-                     bool multiLayer,
-                     bool removeMiddleLayer,
-                     int SIDE,
-                     int SIDE2D = 2,
-                     double kernel_h = 0);
+                                SimParams* paramsH,
+                                std::shared_ptr<chrono::fea::ChMesh> my_mesh,
+                                std::vector<std::shared_ptr<chrono::fea::ChNodeFEAxyzD>>* fsiNodesPtr,
+                                std::vector<std::shared_ptr<chrono::fea::ChElementCableANCF>>* fsiCablesPtr,
+                                std::vector<std::shared_ptr<chrono::fea::ChElementShellANCF>>* fsiShellsPtr,
+                                std::vector<std::vector<int>> NodeNeighborElement,
+                                std::vector<std::vector<int>> _1D_elementsNodes,
+                                std::vector<std::vector<int>> _2D_elementsNodes,
+                                bool add1DElem,
+                                bool add2DElem,
+                                bool multiLayer,
+                                bool removeMiddleLayer,
+                                int SIDE,
+                                int SIDE2D = 2,
+                                double kernel_h = 0);
 
 }  // end namespace utils
 }  // end namespace fsi

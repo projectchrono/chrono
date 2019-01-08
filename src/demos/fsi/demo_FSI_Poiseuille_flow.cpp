@@ -35,7 +35,7 @@
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
+#include "chrono_fsi/utils/ChUtilsJsonInput.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 // Chrono namespaces
@@ -174,16 +174,15 @@ int main(int argc, char* argv[]) {
     // ******************************* Create Fluid region ****************************************
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     utils::GridSampler<> sampler(initSpace0);
-    fsi::Real3 boxCenter =
-        fsi::mR3(-bxDim / 2 + fxDim / 2, 0 * paramsH->HSML, fzDim / 2 + 1 * paramsH->HSML);
+    fsi::Real3 boxCenter = fsi::mR3(-bxDim / 2 + fxDim / 2, 0 * paramsH->HSML, fzDim / 2 + 1 * paramsH->HSML);
     fsi::Real3 boxHalfDim = fsi::mR3(fxDim / 2, fyDim / 2, fzDim / 2);
     utils::Generator::PointVector points = sampler.SampleBox(fsi::ChFsiTypeConvert::Real3ToChVector(boxCenter),
                                                              fsi::ChFsiTypeConvert::Real3ToChVector(boxHalfDim));
     int numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.GetDataManager()->AddSphMarker(
-            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML), fsi::mR3(1e-10),
-            fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
+        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
+                                                   fsi::mR3(1e-10),
+                                                   fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
     }
 
     int numPhases = myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.size();

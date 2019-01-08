@@ -38,7 +38,7 @@
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
+#include "chrono_fsi/utils/ChUtilsJsonInput.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 #define AddBoundaries
@@ -183,8 +183,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSyste
     myFsiSystem.AddFsiBody(cylinder);
     /// Fluid-Solid Coupling of the cylinder via Condition Enforcement (BCE) Markers
     fsi::utils::AddCylinderBce(myFsiSystem.GetDataManager(), paramsH, cylinder, ChVector<>(0, 0, 0),
-                                       ChQuaternion<>(1, 0, 0, 0), cyl_radius, cyl_length + initSpace0, paramsH->HSML,
-                                       false);
+                               ChQuaternion<>(1, 0, 0, 0), cyl_radius, cyl_length + initSpace0, paramsH->HSML, false);
 }
 
 // =============================================================================
@@ -327,11 +326,11 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
     static int out_frame = 0;
 
     if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-7) {
-        fsi::utils::PrintToFile(
-            myFsiSystem.GetDataManager()->sphMarkersD2.posRadD, myFsiSystem.GetDataManager()->sphMarkersD2.velMasD,
-            myFsiSystem.GetDataManager()->sphMarkersD2.rhoPresMuD,
-            myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
-            myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray_FEA, demo_dir, true);
+        fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD2.posRadD,
+                                myFsiSystem.GetDataManager()->sphMarkersD2.velMasD,
+                                myFsiSystem.GetDataManager()->sphMarkersD2.rhoPresMuD,
+                                myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
+                                myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray_FEA, demo_dir, true);
         cout << "-------------------------------------\n" << endl;
         cout << "             Output frame:   " << next_frame << endl;
         cout << "             Time:           " << mTime << endl;

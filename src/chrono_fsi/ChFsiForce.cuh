@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha
+// Author: Milad Rakhsha, Arman Pazouki
 // =============================================================================
 //
 // Base class for processing SPH force in a FSI system.
@@ -143,10 +143,11 @@ class CH_FSI_API ChFsiForce : public ChFsiGeneral {
                                                     thrust::device_vector<Real4>& sorted,
                                                     const thrust::device_vector<uint>& gridMarkerIndex);
 
+    /// Set the linear solver used in the simulation
     void SetLinearSolver(ChFsiLinearSolver::SolverType other_solverType);
 
   public:
-    ChFsiLinearSolver* myLinearSolver;
+    ChFsiLinearSolver* myLinearSolver;  ///< A pointer to the linear solver class used for ChFsiForce.
 
     ChBce* bceWorker;                          ///< pointer to Boundary Condition Enforcing markers class.
     ChCollisionSystemFsi* fsiCollisionSystem;  ///< collision system; takes care of  constructing neighbors list

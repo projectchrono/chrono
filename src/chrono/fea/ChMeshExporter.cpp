@@ -1,16 +1,25 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Milad Rakhsha
+// =============================================================================
 #include "chrono/fea/ChMeshExporter.h"
-
 namespace chrono {
 namespace fea {
 
-void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh,
-                               std::string SaveAs,
-                               std::vector<std::vector<int>>& NodeNeighborElement) {
+void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh, std::string SaveAs) {
     std::ofstream MESH;  // output file stream
     MESH.open(SaveAs, std::ios::out);
     MESH.precision(7);
     MESH << std::scientific;
-    NodeNeighborElement.resize(my_mesh->GetNnodes());
     std::vector<std::vector<int>> CableElemNodes;
     std::vector<std::vector<int>> ShellElemNodes;
     std::vector<std::vector<int>> BrickElemNodes;
@@ -55,7 +64,6 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh,
                 } else {
                     auto index = std::distance(myvector.begin(), it);
                     MESH << (unsigned int)index << " ";
-                    NodeNeighborElement[index].push_back(iele);
                 }
             }
             MESH << "\n";
@@ -77,7 +85,6 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh,
                 } else {
                     auto index = std::distance(myvector.begin(), it);
                     MESH << (unsigned int)index << " ";
-                    NodeNeighborElement[index].push_back(iele);
                 }
             }
             MESH << "\n";
@@ -103,7 +110,6 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh,
                 } else {
                     auto index = std::distance(myvector.begin(), it);
                     MESH << (unsigned int)index << " ";
-                    NodeNeighborElement[index].push_back(iele);
                 }
             }
             MESH << "\n";
@@ -121,14 +127,11 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh,
             MESH << "12\n";
     }
 
-    // MESH.close();
+    MESH.close();
     // MESH.write_to_file(SaveAs);
 }
 
-void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh,
-                                char SaveAsBuffer[256],
-                                std::string MeshFileBuffer,
-                                std::vector<std::vector<int>> NodeNeighborElement) {
+void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh, char SaveAsBuffer[256], std::string MeshFileBuffer) {
     std::ofstream output;
     std::string SaveAsBuffer_string(SaveAsBuffer);
     SaveAsBuffer_string.erase(SaveAsBuffer_string.length() - 4, 4);
@@ -199,64 +202,6 @@ void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh,
         acc += ChVector<>(1e-20);
         output << (double)acc.x() << " " << (double)acc.y() << " " << (double)acc.z() << "\n";
     }
-
-    //    output << "VECTORS Strain float\n";
-    //    for (int i = 0; i < my_mesh->GetNnodes(); i++) {
-    //        ChVector<> StrainV;
-    //        ChVector<> areaAve(0, 0, 0);
-    //        double myarea = 0;
-    //        for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
-    //            int iele = NodeNeighborElement[i][j];
-    //            /// ChElementCableANCF
-    //            if (auto element = std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele))) {
-    //                element->EvaluateSectionStrain(0.0, StrainV);
-    //                double dx =
-    //                std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele))->GetCurrLength(); areaAve
-    //                += StrainV * dx; myarea += dx;
-    //                /// ChElementShellANCF
-    //            } else if (auto element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele))) {
-    //                StrainV = element->EvaluateSectionStrains();
-    //                double dx =
-    //                std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(iele))->GetLengthX();
-    //                double dy =
-    //                std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(iele))->GetLengthY();
-    //                areaAve += StrainV * dx * dy;
-    //                myarea += dx * dy;
-    //            }
-    //        }
-    //        StrainV /= myarea;
-    //        areaAve += ChVector<>(1e-20);
-    //        output << (double)areaAve.x() << " " << (double)areaAve.y() << " " << (double)areaAve.z() << "\n";
-    //    }
-    //
-    //    output << "SCALARS Point_Deflection float 1\n";
-    //    for (int i = 0; i < my_mesh->GetNnodes(); i++) {
-    //        double areaAve = 0;
-    //        double scalar = 0;
-    //        double myarea = 0;
-    //        for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
-    //            int jele = NodeNeighborElement[i][j];
-    //            /// ChElementCableANCF
-    //            if (auto element = std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(jele))) {
-    //                scalar = element->GetCurrLength() - element->GetRestLength();
-    //                double dx = element->GetCurrLength();
-    //                myarea += dx;
-    //                areaAve += scalar * dx;
-    //
-    //                /// ChElementShellANCF
-    //            } else if (auto element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(jele))) {
-    //                element->EvaluateDeflection(scalar);
-    //                double dx = element->GetLengthX();
-    //                double dy = element->GetLengthY();
-    //                myarea += dx * dy;
-    //                areaAve += scalar * dx * dy;
-    //            }
-    //        }
-    //
-    //        areaAve /= myarea;
-    //        areaAve += 1e-20;
-    //        output << (double)areaAve << "\n";
-    //    }
 
     output.close();
 }  // namespace fea

@@ -33,16 +33,14 @@
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
+#include "chrono_fsi/utils/ChUtilsJsonInput.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 // Chrono namespaces
 using namespace chrono;
 using namespace collision;
 using namespace filesystem;
-
 typedef fsi::Real Real;
-
 using std::cout;
 using std::endl;
 std::ofstream simParams;
@@ -56,16 +54,12 @@ std::string demo_dir;
 // Save data as csv files, turn it on to be able to see the results off-line using paraview
 bool save_output = true;
 
-Real hdimX = 14;
-Real hdimY = 0.0;
-
-Real hthick = 1;
-Real basinDepth = 2.5;
-
+// Dimension of the domain
 Real bxDim = 1.1;
 Real byDim = 1.1;
 Real bzDim = 1.4;
 
+// Dimension of the fluid domain
 Real fxDim = bxDim;
 Real fyDim = byDim;
 Real fzDim = 1.2;
@@ -189,9 +183,9 @@ int main(int argc, char* argv[]) {
     int numPart = points.size();
 
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.GetDataManager()->AddSphMarker(
-            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
-            fsi::mR3(0.0, 0.0, 0.0), fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
+        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
+                                                   fsi::mR3(0.0, 0.0, 0.0),
+                                                   fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
     }
 
     int numPhases = myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.size();

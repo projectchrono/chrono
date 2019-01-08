@@ -43,7 +43,7 @@
 #include "chrono_fsi/ChFsiTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
+#include "chrono_fsi/utils/ChUtilsJsonInput.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 // Chrono fea includes
@@ -151,9 +151,9 @@ int main(int argc, char* argv[]) {
     utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     int numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.GetDataManager()->AddSphMarker(
-            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML), fsi::mR3(1e-10),
-            fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1.0));
+        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
+                                                   fsi::mR3(1e-10),
+                                                   fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1.0));
     }
 
     int numPhases = myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray.size();
@@ -405,13 +405,13 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem, fsi::ChSystemFsi& myFsiSystem, f
     bool add1DElem = false;
     bool add2DElem = true;
     fsi::utils::AddBCE_FromMesh(myFsiSystem.GetDataManager(), paramsH, my_mesh, myFsiSystem.GetFsiNodesPtr(),
-                                        myFsiSystem.GetFsiCablesPtr(), myFsiSystem.GetFsiShellsPtr(),
-                                        NodeNeighborElement_mesh, _1D_elementsNodes_mesh, _2D_elementsNodes_mesh,
-                                        add1DElem, add2DElem, multilayer, removeMiddleLayer, 0, 0);
+                                myFsiSystem.GetFsiCablesPtr(), myFsiSystem.GetFsiShellsPtr(), NodeNeighborElement_mesh,
+                                _1D_elementsNodes_mesh, _2D_elementsNodes_mesh, add1DElem, add2DElem, multilayer,
+                                removeMiddleLayer, 0, 0);
 
     myFsiSystem.SetShellElementsNodes(_2D_elementsNodes_mesh);
     myFsiSystem.SetFsiMesh(my_mesh);
-    fea::ChMeshExporter::writeMesh(my_mesh, MESH_CONNECTIVITY, NodeNeighborElement_mesh);
+    fea::ChMeshExporter::writeMesh(my_mesh, MESH_CONNECTIVITY);
 }
 
 //------------------------------------------------------------------
@@ -433,11 +433,10 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
 
     if (std::abs(mTime - (next_frame)*frame_time) < 1e-7) {
         fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD2.posRadD,
-                                        myFsiSystem.GetDataManager()->fsiGeneralData.vis_vel_SPH_D,
-                                        myFsiSystem.GetDataManager()->sphMarkersD2.rhoPresMuD,
-                                        myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
-                                        myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray_FEA, demo_dir,
-                                        true);
+                                myFsiSystem.GetDataManager()->fsiGeneralData.vis_vel_SPH_D,
+                                myFsiSystem.GetDataManager()->sphMarkersD2.rhoPresMuD,
+                                myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
+                                myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray_FEA, demo_dir, true);
 
         cout << "-------------------------------------\n" << endl;
         cout << "             Output frame:   " << next_frame << endl;
@@ -448,7 +447,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         snprintf(SaveAsBuffer, sizeof(char) * 256, (demo_dir + "/flex_body.%d.vtk").c_str(), next_frame);
         char MeshFileBuffer[256];  // The filename buffer.
         snprintf(MeshFileBuffer, sizeof(char) * 256, ("%s"), MESH_CONNECTIVITY.c_str());
-        fea::ChMeshExporter::writeFrame(my_mesh, SaveAsBuffer, MESH_CONNECTIVITY, NodeNeighborElementMesh);
+        fea::ChMeshExporter::writeFrame(my_mesh, SaveAsBuffer, MESH_CONNECTIVITY);
 
         out_frame++;
     }

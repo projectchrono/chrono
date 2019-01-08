@@ -146,7 +146,7 @@ SOURCE_GROUP("" FILES
     ${ChronoEngine_FSI_HEADERS})
 
 set(ChronoEngine_FSI_UTILS_SOURCES
-	utils/ChUtilsJSON.cpp
+	utils/ChUtilsJsonInput.cpp
     utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsGeneratorFsi.cpp
@@ -154,7 +154,7 @@ set(ChronoEngine_FSI_UTILS_SOURCES
 )
 
 set(ChronoEngine_FSI_UTILS_HEADERS
-	utils/ChUtilsJSON.h
+	utils/ChUtilsJsonInput.h
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsGeneratorFsi.h

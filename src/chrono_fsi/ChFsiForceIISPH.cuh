@@ -41,18 +41,22 @@ class CH_FSI_API ChFsiForceIISPH : public ChFsiForce {
     void Finalize() override;
 
   private:
+    /// override the ForceSPH via IISPH method
     void ForceSPH(SphMarkerDataD* otherSphMarkersD, FsiBodiesDataD* otherFsiBodiesD, FsiMeshDataD* fsiMeshD) override;
-    void calcPressureIISPH(thrust::device_vector<Real4> velMassRigid_fsiBodies_D,
-                           thrust::device_vector<Real3> accRigid_fsiBodies_D,
-                           thrust::device_vector<Real3> pos_fsi_fea_D,
-                           thrust::device_vector<Real3> vel_fsi_fea_D,
-                           thrust::device_vector<Real3> acc_fsi_fea_D,
-                           thrust::device_vector<Real> sumWij_inv,
-                           thrust::device_vector<Real>& p_old,
-                           thrust::device_vector<Real3> Normals,
-                           thrust::device_vector<Real> G_i,
-                           thrust::device_vector<Real> L_i,
-                           thrust::device_vector<Real>& Color);
+    /// a class internal method to compute the pressure using a Poisson equation
+    void calcPressureIISPH(
+        thrust::device_vector<Real4> velMassRigid_fsiBodies_D,  ///< velocity of each rigid body in the system
+        thrust::device_vector<Real3> accRigid_fsiBodies_D,      ///< acceleration of each rigid body in the system
+        thrust::device_vector<Real3> pos_fsi_fea_D,  ///< position of fea nodes that are seen by the FSI system
+        thrust::device_vector<Real3> vel_fsi_fea_D,  ///< velocity of fea nodes that are seen by the FSI system
+        thrust::device_vector<Real3> acc_fsi_fea_D,  ///< acceleration of fea nodes that are seen by the FSI system
+        thrust::device_vector<Real> sumWij_inv,      ///< Volume occupied by each SPH marker (Sum(W_{ij}))^-1
+        thrust::device_vector<Real>& p_old,          ///< old pressure values in the iterative pressure update
+        thrust::device_vector<Real3> Normals,        ///< Normal vector defined at each SPH marker
+        thrust::device_vector<Real> G_i,  ///< G_i is a 3x3 correction matrix for each marker used in gradient operator.
+        thrust::device_vector<Real>
+            L_i,  ///< L_i is a 3x3 correction matrix for each marker used in laplacian operator.
+        thrust::device_vector<Real>& Color);
 };
 
 /// @} fsi_physics
