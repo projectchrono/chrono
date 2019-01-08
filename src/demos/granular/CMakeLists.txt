@@ -15,15 +15,14 @@ SET(LIBRARIES
 # List of all executables
 # ------------------------------------------------------------------------------
 
-# Programs that can work with or without OpenGL
 SET(DEMOS
 		demo_GRAN_BoxSettle_SMC
 		demo_GRAN_terrainBox_SMC
 		demo_GRAN_TriMeshNoFric_SMC
 		demo_GRAN_TriMeshNoFric_SMC_tiredrag
 		demo_GRAN_TriMeshNoFric_SMC_ballcosim
-		test_gran_milwave
-		test_gran_milsettle
+		test_GRAN_milwave
+		test_GRAN_milsettle
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
 		utest_GRAN_Coneflow
 		utest_GRAN_spherefric
