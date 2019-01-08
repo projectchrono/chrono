@@ -1143,3 +1143,15 @@ Running settling test!
 50 thousand bodies took 3.00012 seconds!
 500 thousand bodies took 21.0314 seconds!
 1 million bodies took 41.5225 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 16:11:32 -0600
+commit 65a122a642841327e310ac5383b3165f52f6dd0e Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 16:11:08 2019 -0600 implement semi-host side triangle broadphase, better occupancy and more robust
+Results:
+Running wavetank test!
+50 thousand bodies took 3.25539 seconds!
+500 thousand bodies took 21.6618 seconds!
+1 million bodies took 43.6828 seconds!
+Running settling test!
+50 thousand bodies took 3.05032 seconds!
+500 thousand bodies took 21.0293 seconds!
+1 million bodies took 41.4406 seconds!
