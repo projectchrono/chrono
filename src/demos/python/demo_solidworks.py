@@ -19,8 +19,8 @@ if __name__ == '__main__':
 
 import os
 import math
-import ChronoEngine_python_core as chrono
-import ChronoEngine_python_postprocess as postprocess
+import pychrono as chrono
+import pychrono.postprocess as postprocess
 
 
 # ---------------------------------------------------------------------

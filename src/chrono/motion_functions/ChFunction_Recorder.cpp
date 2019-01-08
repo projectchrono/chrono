@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <limits>
 
 #include "chrono/motion_functions/ChFunction_Recorder.h"
 
@@ -42,7 +43,7 @@ void ChFunction_Recorder::Estimate_x_range(double& xmin, double& xmax) const {
 void ChFunction_Recorder::AddPoint(double mx, double my, double mw) {
     for (auto iter = m_points.rbegin(); iter != m_points.rend(); ++iter) {
         double dist = mx - iter->x;
-        if (std::abs(dist) < CH_MICROTOL) {
+        if (std::abs(dist) < std::numeric_limits<double>::epsilon()) {
             // Overwrite current iterator
             iter->x = mx;
             iter->y = my;

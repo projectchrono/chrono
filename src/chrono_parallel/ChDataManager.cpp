@@ -23,7 +23,6 @@
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/collision/ChCollision.h"
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/physics/ChMaterialSurface.h"
 

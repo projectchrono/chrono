@@ -13,6 +13,8 @@
 #ifndef CHLINEARALGEBRA_H
 #define CHLINEARALGEBRA_H
 
+#include <limits>
+
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 
@@ -531,16 +533,13 @@ class ChLinearAlgebra {
     /// [A] is 'this' matrix. so that [A]=[U][W][V]'
     /// Also computes condition number (near 1= well cond, if ->infinite, A tend to singularity)
     static int SVD(ChMatrix<>& mA, ChMatrix<>& U, ChMatrix<>& W, ChMatrix<>& V, double& cond_num) {
-        const double MACHEP = 1.4e-17;  // measure of machine precision for SVD
-        const double MAXCN = 1.0e+12;
-
         ChMatrix<double>* A = &mA;
         int i, j, k, l, mn, its, n, m;
-        double c, f, g, h, s, x, y, z, eps, scale, machep;
+        double c, f, g, h, s, x, y, z, eps, scale;
         double* rv1;
         double u, v, w;  // cond_num;
 
-        machep = MACHEP;
+        double machep = std::numeric_limits<double>::epsilon();
 
         // get dimension of input matrix
         n = A->GetRows();

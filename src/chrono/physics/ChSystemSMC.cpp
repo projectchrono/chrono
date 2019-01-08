@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <limits>
+
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 
@@ -61,6 +63,10 @@ ChSystemSMC::ChSystemSMC(const ChSystemSMC& other) : ChSystem(other) {}
 void ChSystemSMC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
     if (std::dynamic_pointer_cast<ChContactContainerSMC>(container))
         ChSystem::SetContactContainer(container);
+}
+
+void ChSystemSMC::SetSlipVelocityThreshold(double vel) {
+    m_minSlipVelocity = std::max(vel, std::numeric_limits<double>::epsilon());
 }
 
 // STREAMING - FILE HANDLING

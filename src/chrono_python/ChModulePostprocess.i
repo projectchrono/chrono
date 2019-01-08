@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_python_postprocess as postprocess'
+//  'import postprocess'
 
 
-%module(directors="1") ChronoEngine_python_postprocess
+%module(directors="1") postprocess
 
 
 // Turn on the documentation of members, for more intuitive IDE typing

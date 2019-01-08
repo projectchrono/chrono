@@ -2,7 +2,7 @@
 # Assembly: C:\tasora\lavori\orologio_audemar\CAD_swiss_escapement\escapement.SLDASM
 
 
-import ChronoEngine_python_core as chrono
+import pychrono as chrono
 import builtins
 
 shapes_dir = 'swiss_escapement_shapes/'

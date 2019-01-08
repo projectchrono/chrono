@@ -11,10 +11,10 @@
 
 
 // Define the module to be used in Python when typing 
-//  'import ChronoEngine_python_core as chrono'
+//  'import pychrono'
 
 
-%module(directors="1") ChronoEngine_python_core
+%module(directors="1") core
 
 
 // Turn on the documentation of members, for more intuitive IDE typing
@@ -53,6 +53,11 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChNodeBase.h"
+#include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/physics/ChTensors.h"
+#include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/assets/ChLineShape.h"
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/assets/ChPointPointDrawing.h"
@@ -67,11 +72,16 @@
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::geometry;
+using namespace chrono::fea;
 %}
 
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define ChApi 
+
+%ignore CH_ENUM_MAPPER_BEGIN;
+%ignore CH_ENUM_VAL;
+%ignore CH_ENUM_MAPPER_END;
 
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
@@ -151,9 +161,15 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::collision::ChCollisionModel)
 %shared_ptr(chrono::ChPhysicsItem)
+%shared_ptr(chrono::ChIndexedNodes)
 %shared_ptr(chrono::ChMaterialSurfaceNSC)
 %shared_ptr(chrono::ChMaterialSurfaceSMC)
 %shared_ptr(chrono::ChMaterialSurface)
+%shared_ptr(chrono::ChContinuumMaterial)
+%shared_ptr(chrono::ChContinuumElastic)
+%shared_ptr(chrono::ChContinuumElastoplastic)
+%shared_ptr(chrono::ChContinuumPlasticVonMises)
+%shared_ptr(chrono::ChContinuumDruckerPrager)
 %shared_ptr(chrono::ChBodyFrame)
 %shared_ptr(chrono::ChMarker)
 %shared_ptr(chrono::ChForce)
@@ -277,6 +293,26 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChLoadBodyBodyBushingPlastic)
 %shared_ptr(chrono::ChLoadBodyBodyBushingGeneric)
 
+%shared_ptr(chrono::geometry::ChGeometry)
+%shared_ptr(chrono::geometry::ChLine)
+%shared_ptr(chrono::geometry::ChVolume)
+%shared_ptr(chrono::geometry::ChSurface)
+%shared_ptr(chrono::geometry::ChBox)
+%shared_ptr(chrono::geometry::ChSphere)
+%shared_ptr(chrono::geometry::ChCylinder)
+%shared_ptr(chrono::geometry::ChCapsule)
+%shared_ptr(chrono::geometry::ChCone)
+%shared_ptr(chrono::geometry::ChEllipsoid)
+%shared_ptr(chrono::geometry::ChLineArc)
+%shared_ptr(chrono::geometry::ChLineSegment)
+%shared_ptr(chrono::geometry::ChLineNurbs)
+%shared_ptr(chrono::geometry::ChLinePath)
+%shared_ptr(chrono::geometry::ChLinePoly)
+%shared_ptr(chrono::geometry::ChLineBezier)
+%shared_ptr(chrono::geometry::ChLineCam)
+%shared_ptr(chrono::geometry::ChLineBspline)
+%shared_ptr(chrono::geometry::ChTriangle)
+%shared_ptr(chrono::geometry::ChSurfaceNurbs)
 %shared_ptr(chrono::geometry::ChTriangleMesh)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::geometry::ChTriangleMeshSoup)
@@ -302,14 +338,15 @@ using namespace chrono::geometry;
 //  core/  classes
 %include "ChException.i"
 %include "ChClassFactory.i"
+%include "../chrono/physics/ChGlobal.h"
 //%include "ChArchive.i"
-%include "ChVector.i" 
+%include "ChVector.i"
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
 #define Quaternion ChQuaternion<double>
-%include "ChCoordsys.i" 
+%include "ChCoordsys.i"
 #define Coordsys ChCoordsys<double>
-%include "ChFrame.i" 
+%include "ChFrame.i"
 %include "ChFrameMoving.i"
 %include "ChLinearAlgebra.i"
 %include "ChStream.i"
@@ -350,11 +387,19 @@ using namespace chrono::geometry;
 %include "../chrono/assets/ChEllipsoidShape.h"
 
 // physics/  classes
+//%include "../chrono/physics/ChTensors.h"
+//%template(ChVoightTensorD) chrono::fea::ChVoightTensor<double>;
+//%template(ChStressTensorD) chrono::fea::ChStressTensor<double>;
+//%template(ChStrainTensorD) chrono::fea::ChStrainTensor<double>;
+%include "../chrono/physics/ChContinuumMaterial.h"
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
+%include "../chrono/physics/ChIndexedNodes.h"
 %include "ChMaterialSurface.i"
 %include "ChMaterialSurfaceNSC.i"
 %include "ChMaterialSurfaceSMC.i"
+%include "../chrono/physics/ChNodeBase.h"
+%include "../chrono/physics/ChNodeXYZ.h"
 %include "ChBodyFrame.i"
 %include "ChMarker.i"
 %include "ChForce.i"
@@ -408,9 +453,7 @@ using namespace chrono::geometry;
 %include "../chrono/physics/ChLoadContainer.h"
 
 
-%include "../chrono/geometry/ChTriangleMesh.h"
-%include "../chrono/geometry/ChTriangleMeshConnected.h"
-%include "../chrono/geometry/ChTriangleMeshSoup.h"
+
 
 
 //
@@ -575,8 +618,8 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingMate)
 %DefChSharedPtrDynamicDowncast(ChLoadBase, ChLoadBodyBodyBushingGeneric)
 
-%DefChSharedPtrDynamicDowncast(ChTriangleMesh, ChTriangleMeshConnected)
-%DefChSharedPtrDynamicDowncast(ChTriangleMesh, ChTriangleMeshSoup)
+%DefChSharedPtrDynamicDowncast(ChGeometry, ChTriangleMeshConnected)
+%DefChSharedPtrDynamicDowncast(ChGeometry, ChTriangleMeshSoup)
 
 // .. to complete
 
@@ -605,7 +648,7 @@ public:
 					n=999;
 				strncpy(buffer, data, n);
 				buffer[n]=0;
-				PySys_WriteStdout(buffer);
+				PySys_WriteStdout("%s", buffer);
 		}
 private:
 };

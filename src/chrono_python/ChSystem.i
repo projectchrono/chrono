@@ -38,10 +38,10 @@ class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallb
 // STEP 2: Now the nested classes  MyOutClass::MyNestedClass are declared  
 // as ::MyNestedClass (as non-nested), for SWIG interpreter _only_:
 
-class ChCustomCollisionCallbackP
-{
-	public: 
-		virtual void OnCustomCollision(chrono::ChSystem* msys) {}
+class ChCustomCollisionCallbackP {
+  public:
+    virtual ~ChCustomCollisionCallbackP() {}
+    virtual void OnCustomCollision(chrono::ChSystem* msys) {}
 };
 
 // NESTED CLASSES - trick - step 3

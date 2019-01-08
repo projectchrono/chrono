@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 
 #include "chrono/physics/ChGlobal.h"
 

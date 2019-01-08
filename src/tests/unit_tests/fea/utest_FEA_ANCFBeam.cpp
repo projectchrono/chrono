@@ -19,8 +19,10 @@
 // Application to static and linearized dynamic examples", Journal of Computational
 // and Nonlinear Dynamics, April 2013, Vol. 8/021004. Table 1 therein.
 // =============================================================================
+
 #include <cstdio>
 #include <cmath>
+#include <iomanip>
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"

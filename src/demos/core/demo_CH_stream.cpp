@@ -20,13 +20,14 @@
 #include <sstream>
 
 #include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/core/ChException.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 
@@ -45,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_STREAM";
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

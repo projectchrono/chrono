@@ -80,6 +80,13 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
     m_central_differential->SetTransmissionRatioOrdinary(GetCentralDifferentialRatio());
     my_system->Add(m_central_differential);
 
+    // Create the clutch for central differential locking. By default, unlocked.
+    m_central_clutch = std::make_shared<ChShaftsClutch>();
+    m_central_clutch->Initialize(m_rear_shaft, m_front_shaft);
+    m_central_clutch->SetTorqueLimit(GetCentralDifferentialLockingLimit());
+    m_central_clutch->SetModulation(0);
+    my_system->Add(m_central_clutch);
+
     // ---Rear differential and axles:
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
@@ -113,7 +120,7 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
     m_rear_clutch = std::make_shared<ChShaftsClutch>();
     m_rear_clutch->Initialize(suspensions[m_driven_axles[1]]->GetAxle(LEFT),
                               suspensions[m_driven_axles[1]]->GetAxle(RIGHT));
-    m_rear_clutch->SetTorqueLimit(GetDifferentialLockingLimit());
+    m_rear_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_rear_clutch->SetModulation(0);
     my_system->Add(m_rear_clutch);
 
@@ -150,7 +157,7 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
     m_front_clutch = std::make_shared<ChShaftsClutch>();
     m_front_clutch->Initialize(suspensions[m_driven_axles[0]]->GetAxle(LEFT),
                                suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
-    m_front_clutch->SetTorqueLimit(GetDifferentialLockingLimit());
+    m_front_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
     m_front_clutch->SetModulation(0);
     my_system->Add(m_front_clutch);
 
@@ -186,9 +193,25 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsDriveline4WD::LockDifferential(bool lock) {
-    m_front_clutch->SetModulation(lock ? 1 : 0);
-    m_rear_clutch->SetModulation(lock ? 1 : 0);
+void ChShaftsDriveline4WD::LockAxleDifferential(int axle, bool lock) {
+    if (axle == m_driven_axles[0]) {
+        m_front_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    } else if (axle == m_driven_axles[1]) {
+        m_rear_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    } else if (axle == -1) {
+        m_front_clutch->SetModulation(lock ? 1 : 0);
+        m_rear_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    }
+
+    GetLog() << "WARNING: Incorrect axle specification in ChShaftsDriveline4WD::LockAxleDifferential.\n";
+    GetLog() << "         Driven axles are: " << m_driven_axles[0] << " and " << m_driven_axles[1] << "\n";
+}
+
+void ChShaftsDriveline4WD::LockCentralDifferential(int which, bool lock) {
+    m_central_clutch->SetModulation(lock ? 1 : 0);
 }
 
 // -----------------------------------------------------------------------------

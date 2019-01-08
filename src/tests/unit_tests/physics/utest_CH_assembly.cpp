@@ -19,15 +19,29 @@
 ////#include <cfloat>
 ////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
 
-#include <iostream>
 #include <cmath>
+
+#include "gtest/gtest.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 using namespace chrono;
 
-int main(int argc, char* argv[]) {
+static void TestVector(const ChVector<>& v1, const ChVector<>& v2, double tol) {
+    ASSERT_NEAR(v1.x(), v2.x(), tol);
+    ASSERT_NEAR(v1.y(), v2.y(), tol);
+    ASSERT_NEAR(v1.z(), v2.z(), tol);
+}
+
+static void TestQuaternion(const ChQuaternion<double>& q1, const ChQuaternion<double>& q2, double tol) {
+    ASSERT_NEAR(q1.e0(), q2.e0(), tol);
+    ASSERT_NEAR(q1.e1(), q2.e1(), tol);
+    ASSERT_NEAR(q1.e2(), q2.e2(), tol);
+    ASSERT_NEAR(q1.e3(), q2.e3(), tol);
+}
+
+TEST(FullAssembly, Assemble) {
     double mass = 1.0;                     // mass of pendulum
     double length = 4.0;                   // length of pendulum
     ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
@@ -53,7 +67,6 @@ int main(int argc, char* argv[]) {
     auto ground = std::make_shared<ChBody>();
     my_system.AddBody(ground);
     ground->SetIdentifier(0);
-    ground->SetName("ground");
     ground->SetBodyFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
@@ -63,7 +76,6 @@ int main(int argc, char* argv[]) {
     auto pendulum = std::make_shared<ChBody>();
     my_system.AddBody(pendulum);
     pendulum->SetIdentifier(1);
-    pendulum->SetName("pendulum");
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
     pendulum->SetMass(mass);
@@ -101,19 +113,6 @@ int main(int argc, char* argv[]) {
     rfrc = linkCoordsys.TransformDirectionLocalToParent(rfrc);
     rtrq = linkCoordsys.TransformDirectionLocalToParent(rtrq);
 
-    // Output results
-    std::cout.setf(std::ios::scientific | std::ios::showpos);
-    std::cout.precision(6);
-
-    std::cout << "Position:      " << pos.x() << "  " << pos.y() << "  " << pos.z() << std::endl;
-    std::cout << "Orientation:   " << rot.e0() << "  " << rot.e1() << "  " << rot.e2() << "  " << rot.e3() << std::endl;
-    std::cout << "Lin. vel.:     " << lin_vel.x() << "  " << lin_vel.y() << "  " << lin_vel.z() << std::endl;
-    std::cout << "Ang. vel.:     " << ang_vel.x() << "  " << ang_vel.y() << "  " << ang_vel.z() << std::endl;
-    std::cout << "Lin. acc.:     " << lin_acc.x() << "  " << lin_acc.y() << "  " << lin_acc.z() << std::endl;
-    std::cout << "Ang. acc.:     " << ang_acc.x() << "  " << ang_acc.y() << "  " << ang_acc.z() << std::endl;
-    std::cout << "React. force:  " << rfrc.x() << "  " << rfrc.y() << "  " << rfrc.z() << std::endl;
-    std::cout << "React. torque: " << rtrq.x() << "  " << rtrq.y() << "  " << rtrq.z() << std::endl;
-
     // Analytical solution
 
     // Position and orientation
@@ -144,21 +143,6 @@ int main(int argc, char* argv[]) {
     ChVector<> rfrc_ref(lambda_1, lambda_2, lambda_3);
     ChVector<> rtrq_ref(lambda_5, -std::cos(jointAngle) * lambda_4, -std::sin(jointAngle) * lambda_4);
 
-    std::cout << std::endl << "Analytical solution" << std::endl;
-    std::cout << "Position:      " << pos_ref.x() << "  " << pos_ref.y() << "  " << pos_ref.z() << std::endl;
-    std::cout << "Orientation:   " << rot_ref.e0() << "  " << rot_ref.e1() << "  " << rot_ref.e2() << "  "
-              << rot_ref.e3() << std::endl;
-    std::cout << "Lin. vel.:     " << lin_vel_ref.x() << "  " << lin_vel_ref.y() << "  " << lin_vel_ref.z()
-              << std::endl;
-    std::cout << "Ang. vel.:     " << ang_vel_ref.x() << "  " << ang_vel_ref.y() << "  " << ang_vel_ref.z()
-              << std::endl;
-    std::cout << "Lin. acc.:     " << lin_acc_ref.x() << "  " << lin_acc_ref.y() << "  " << lin_acc_ref.z()
-              << std::endl;
-    std::cout << "Ang. acc.:     " << ang_acc_ref.x() << "  " << ang_acc_ref.y() << "  " << ang_acc_ref.z()
-              << std::endl;
-    std::cout << "React. force:  " << rfrc_ref.x() << "  " << rfrc_ref.y() << "  " << rfrc_ref.z() << std::endl;
-    std::cout << "React. torque: " << rtrq_ref.x() << "  " << rtrq_ref.y() << "  " << rtrq_ref.z() << std::endl;
-
     // Compare simulation and analytical solution
     bool passed = true;
     passed &= pos.Equals(pos_ref, 1e-3);
@@ -170,8 +154,13 @@ int main(int argc, char* argv[]) {
     passed &= rfrc.Equals(rfrc_ref, 1e-2);
     passed &= rtrq.Equals(rtrq_ref, 1e-2);
 
-    std::cout << std::endl << "Test " << (passed ? "PASSED" : "FAILED") << std::endl;
 
-    // Return 0 if test passed
-    return !passed;
+    TestVector(pos, pos_ref, 1e-3);
+    TestQuaternion(rot, rot_ref, 1e-4);
+    TestVector(lin_vel, lin_vel_ref, 1e-4);
+    TestVector(ang_vel, ang_vel_ref, 1e-4);
+    TestVector(lin_acc, lin_acc_ref, 1e-2);
+    TestVector(ang_acc, ang_acc_ref, 1e-2);
+    TestVector(rfrc, rfrc_ref, 1e-2);
+    TestVector(rtrq, rtrq_ref, 1e-2);
 }

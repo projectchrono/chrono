@@ -51,8 +51,13 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) = 0;
 
-    /// Enable or disable differential locking.
-    virtual void LockDifferential(bool lock);
+    /// Lock/unlock the differential on the specified axle.
+    /// By convention, axles are counted front to back, starting with index 0 for the front-most axle.
+    virtual void LockAxleDifferential(int axle, bool lock);
+
+    /// Lock/unlock the specified central differential.
+    /// By convention, central differentials are counted from front to back, starting with index 0.
+    virtual void LockCentralDifferential(int which, bool lock);
 
     /// Get a handle to the driveshaft.
     /// Return a shared pointer to the shaft that connects this driveline to a

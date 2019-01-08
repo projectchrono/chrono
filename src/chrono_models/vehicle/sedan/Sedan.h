@@ -66,7 +66,7 @@ class CH_MODELS_API Sedan {
 
     void Initialize();
 
-    void LockDifferential(bool lock) { m_vehicle->LockDifferential(lock); }
+    void LockAxleDifferential(int axle, bool lock) { m_vehicle->LockAxleDifferential(axle, lock); }
 
     void SetAerodynamicDrag(double Cd, double area, double air_density);
 
