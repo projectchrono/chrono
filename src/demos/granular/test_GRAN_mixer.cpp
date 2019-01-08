@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
     float cyl_center[3] = {0, 0, 0};
     const float cyl_rad = Bx / 2.f;
-    m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false);
+    m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
 
     utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
 

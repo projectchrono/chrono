@@ -108,11 +108,12 @@ int main(int argc, char* argv[]) {
     // Finalize settings and initialize for runtime
     float point[3] = {0, 0, -params.box_Z * 2.f / 6.f};
     float normal[3] = {0, 0, 1};
-    settlingExperiment.Create_BC_Plane(point, normal);
+    settlingExperiment.Create_BC_Plane(point, normal, false);
     settlingExperiment.initialize();
-    // settlingExperiment.Create_BC_AABox(hdims, center_pt, false);
-    // settlingExperiment.Create_BC_Sphere(center_pt, 3.f, true);
-    // settlingExperiment.Create_BC_Cone_Z(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true);
+    // settlingExperiment.Create_BC_AABox(hdims, center_pt, false, false);
+    // settlingExperiment.Create_BC_Sphere(center_pt, 3.f, true, false);
+    // settlingExperiment.Create_BC_Cone_Z(center_pt, 1, params.box_Z, center_pt[2] + 10 * params.sphere_radius, true,
+    // false);
 
     int fps = 100;
     // assume we run for at least one frame

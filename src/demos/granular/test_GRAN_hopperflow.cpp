@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     m_sys.set_BD_Fixed(true);
 
-    m_sys.Create_BC_Cone_Z(cone_tip, cone_slope, top_z, opening_z, outward_normal);
+    m_sys.Create_BC_Cone_Z(cone_tip, cone_slope, top_z, opening_z, outward_normal, false);
 
     double particle_mass = 4.0 * CH_C_PI * params.sphere_radius * params.sphere_radius * params.sphere_radius *
                            params.sphere_density / 3.0;

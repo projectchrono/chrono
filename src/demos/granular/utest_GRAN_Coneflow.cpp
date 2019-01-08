@@ -136,12 +136,12 @@ int main(int argc, char* argv[]) {
 
     gran_sys.setVerbose(params.verbose);
     // Finalize settings and initialize for runtime
-    gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + cone_offset, false);
+    gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + cone_offset, false, false);
 
     float zvec[3] = {0, 0, 0};
     float cyl_rad = fill_width + 8 * params.sphere_radius;
 
-    gran_sys.Create_BC_Cyl_Z(zvec, cyl_rad, false);
+    gran_sys.Create_BC_Cyl_Z(zvec, cyl_rad, false, false);
 
     printf("fill radius is %f, cyl radius is %f\n", fill_width, fill_width);
 
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     printf("center is %f, %f, %f, plane center is is %f, %f, %f\n", center_pt[0], center_pt[1], center_pt[2],
            plane_center[0], plane_center[1], plane_center[2]);
-    size_t plane_bc_id = gran_sys.Create_BC_Plane(plane_center, plane_normal);
+    size_t plane_bc_id = gran_sys.Create_BC_Plane(plane_center, plane_normal, false);
 
     gran_sys.initialize();
 

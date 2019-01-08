@@ -169,6 +169,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
 
     /// run prefix-scan based broadphase
     void runTriangleBroadphase();
+    void runTriangleBroadphase_rewrite();
 
     // void initialize();
 

@@ -62,11 +62,11 @@ int main(int argc, char* argv[]) {
 
     if (argc == num_args_full) {
         params.sphere_radius = std::atof(argv[2]);
-        params.psi_L = std::atof(argv[3]);
+        params.cohesion_ratio = std::atof(argv[3]);
         params.box_Y = std::atof(argv[4]);
         params.output_dir = std::string(argv[5]);
-        printf("new parameters: r is %f, dt is %f, y is %f, %s\n", params.sphere_radius, params.step_size, params.box_Y,
-               params.output_dir.c_str());
+        printf("new parameters: r is %f, cohes is %f, y is %f, %s\n", params.sphere_radius, params.cohesion_ratio,
+               params.box_Y, params.output_dir.c_str());
     }
 
     // Setup simulation
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     // (2 x 1 x 1) box (x,y,z)
     float sphere_diam = 2.f * params.sphere_radius;
 
-    float max_z_fill = 2. * 100.;
+    float max_z_fill = 2. * 200.;
     ChVector<float> hdims = .5f * ChVector<float>(2. * 100., params.box_Y, max_z_fill) - rad_offset;
 
     // start at bottom left corner
@@ -123,7 +123,13 @@ int main(int argc, char* argv[]) {
 
     printf("center is %f, %f, %f, plane center is is %f, %f, %f\n", center[0], center[1], center[2], plane_center[0],
            plane_center[1], plane_center[2]);
-    size_t plane_bc_id = gran_system.Create_BC_Plane(plane_center, plane_normal);
+    size_t plane_bc_id = gran_system.Create_BC_Plane(plane_center, plane_normal, true);
+
+    float cyl_center[3] = {params.box_X / 2.f - 200.f, 0, 0};
+
+    float cyl_rad = 30;
+
+    size_t cyl_bc_id = gran_system.Create_BC_Cyl_Z(cyl_center, cyl_rad, true, true);
 
     ChFileutils::MakeDirectory(params.output_dir.c_str());
 
@@ -139,6 +145,13 @@ int main(int argc, char* argv[]) {
 
     std::cout << "frame step is " << frame_step << std::endl;
     bool plane_active = true;
+    float reaction_forces[3] = {0, 0, 0};
+
+    constexpr float F_CGS_TO_SI = 1e-5;
+    constexpr float M_CGS_TO_SI = 1e-3;
+    float total_system_mass = 4. / 3. * CH_C_PI * params.sphere_density * params.sphere_radius * params.sphere_radius *
+                              params.sphere_radius * body_points.size();
+    printf("total system mass is %f kg \n", total_system_mass * M_CGS_TO_SI);
 
     // Run settling experiments
     while (curr_time < params.time_end) {
@@ -146,6 +159,26 @@ int main(int argc, char* argv[]) {
             printf("disabling plane!\n");
             plane_active = false;
             gran_system.disable_BC_by_ID(plane_bc_id);
+        }
+
+        if (plane_active) {
+            bool success = gran_system.getBCReactionForces(plane_bc_id, reaction_forces);
+            if (!success) {
+                printf("ERROR! Get contact forces for plane failed\n");
+            } else {
+                printf("curr time is %f, plane force is (%f, %f, %f) Newtons\n", curr_time,
+                       F_CGS_TO_SI * reaction_forces[0], F_CGS_TO_SI * reaction_forces[1],
+                       F_CGS_TO_SI * reaction_forces[2]);
+            }
+        } else {
+            bool success = gran_system.getBCReactionForces(cyl_bc_id, reaction_forces);
+            if (!success) {
+                printf("ERROR! Get contact forces for cyl failed\n");
+            } else {
+                printf("curr time is %f, cyl force is (%f, %f, %f) Newtons\n", curr_time,
+                       F_CGS_TO_SI * reaction_forces[0], F_CGS_TO_SI * reaction_forces[1],
+                       F_CGS_TO_SI * reaction_forces[2]);
+            }
         }
         gran_system.advance_simulation(frame_step);
         curr_time += frame_step;

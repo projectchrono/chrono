@@ -219,19 +219,25 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     // size_t Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
 
     /// Create an axis-aligned sphere BC
-    size_t Create_BC_Sphere(float center[3], float radius, bool outward_normal);
+    size_t Create_BC_Sphere(float center[3], float radius, bool outward_normal, bool track_forces);
 
     /// Create an z-axis aligned cone
-    size_t Create_BC_Cone_Z(float cone_tip[3], float slope, float hmax, float hmin, bool outward_normal);
+    size_t Create_BC_Cone_Z(float cone_tip[3],
+                            float slope,
+                            float hmax,
+                            float hmin,
+                            bool outward_normal,
+                            bool track_forces);
 
     /// Create an z-axis aligned cone
-    size_t Create_BC_Plane(float plane_pos[3], float plane_normal[3]);
+    size_t Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces);
 
     /// Create an z-axis aligned cylinder
-    size_t Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal);
+    size_t Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal, bool track_forces);
 
+    /// disable a BC by its ID, returns false if the BC does not exist
     bool disable_BC_by_ID(size_t BC_id) {
-        size_t max_id = BC_params_list_UU.size();
+        size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
             printf("ERROR: Trying to disable invalid BC ID %lu\n", BC_id);
             return false;
@@ -241,14 +247,45 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         return true;
     }
 
+    /// enable a BC by its ID, returns false if the BC does not exist
     bool enable_BC_by_ID(size_t BC_id) {
-        size_t max_id = BC_params_list_UU.size();
+        size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
-            printf("ERROR: Trying to disable invalid BC ID %lu\n", BC_id);
+            printf("ERROR: Trying to enable invalid BC ID %lu\n", BC_id);
             return false;
         }
         BC_params_list_UU.at(BC_id).active = true;
         BC_params_list_SU.at(BC_id).active = true;
+        return true;
+    }
+
+    /// get the reaction forces on a BC by ID, returns false if the forces are invalid (bad BC ID)
+    bool getBCReactionForces(size_t BC_id, float forces[3]) {
+        size_t max_id = BC_params_list_SU.size();
+        if (BC_id >= max_id) {
+            printf("ERROR: Trying to get forces for invalid BC ID %lu\n", BC_id);
+            return false;
+        }
+        if (BC_params_list_SU.at(BC_id).track_forces == false) {
+            printf("ERROR: Trying to get forces for non-force-tracking BC ID %lu\n", BC_id);
+            return false;
+        }
+        if (BC_params_list_SU.at(BC_id).active == false) {
+            printf("ERROR: Trying to get forces for inactive BC ID %lu\n", BC_id);
+            return false;
+        }
+        float3 reaction_forces = BC_params_list_SU.at(BC_id).reaction_forces;
+
+        float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
+        float sphere_mass = 4.f / 3.f * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU *
+                            sphere_density_UU;  // UU sphere mass
+
+        // conversion from SU to UU force
+        float C_F =
+            gran_params->psi_L / (alpha_g * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
+        forces[0] = reaction_forces.x / C_F;
+        forces[1] = reaction_forces.y / C_F;
+        forces[2] = reaction_forces.z / C_F;
         return true;
     }
 
@@ -435,6 +472,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void resetBroadphaseInformation();
     /// Reset sphere-sphere forces
     void resetSphereForces();
+    /// Reset sphere-sphere forces
+    void resetBCForces();
 
     /// collect all the sphere data into a given struct
     void packSphereDataPointers(sphereDataStruct& packed);
