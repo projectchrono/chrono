@@ -32,6 +32,7 @@ SET(DEMOS
 		test_GRAN_mixer
 		test_GRAN_bulkcompress
 		test_GRAN_directshear
+		test_GRAN_repose
 		metrics_GRAN_settling
 )
 
