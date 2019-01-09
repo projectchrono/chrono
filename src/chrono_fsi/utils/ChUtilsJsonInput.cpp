@@ -12,11 +12,16 @@
 // Authors: Milad Rakhsha
 // =============================================================================
 
-#include "chrono_fsi/utils/ChUtilsJsonInput.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChFsiLinearSolver.h"
-#include "chrono_fsi/ChParams.cuh"
+
+#include "chrono_fsi/utils/ChUtilsJsonInput.h"
 #include "chrono_fsi/utils/ChUtilsPrintStruct.h"
+
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+
+using namespace rapidjson;
 
 namespace chrono {
 namespace fsi {
@@ -26,10 +31,6 @@ Real3 LoadVectorJSON(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 3);
     return mR3(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-void InvalidArg(string arg) {
-    cout << "Invalid arg: " << arg << endl;
 }
 
 // Returns true on successful parameter load.
