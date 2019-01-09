@@ -43,7 +43,7 @@ constexpr int num_args_full = 6;
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_DamBreak <json_file> [<radius> <run_mode> <length_Y> <output_dir>]" << endl;
+    cout << "usage: ./demo_GRAN_DamBreak <json_file> [<radius> <run_mode> <box_width> <output_dir>]" << endl;
     cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
 
@@ -66,8 +66,9 @@ int main(int argc, char* argv[]) {
         params.sphere_radius = std::atof(argv[2]);
         params.run_mode = std::atoi(argv[3]);
         params.box_Y = std::atof(argv[4]);
+        params.box_X = params.box_Y;
         params.output_dir = std::string(argv[5]);
-        printf("new parameters: r is %f, run_mode is %d, y is %f, %s\n", params.sphere_radius, params.run_mode,
+        printf("new parameters: r is %f, run_mode is %d, width is %f, %s\n", params.sphere_radius, params.run_mode,
                params.box_Y, params.output_dir.c_str());
     }
 
@@ -93,15 +94,15 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setOutputMode(params.write_mode);
 
     std::vector<ChVector<float>> body_points;
-    body_points.push_back(ChVector<float>(0., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    body_points.push_back(ChVector<float>(2., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    body_points.push_back(ChVector<float>(1., 1.732, 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    body_points.push_back(ChVector<float>(1., .5774, 2.05 - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
-    body_points.push_back(ChVector<float>(params.box_X / 2.f - 2 * params.sphere_radius,
-                                          params.box_Y / 2.f - 2 * params.sphere_radius, 3));
-    body_points.push_back(ChVector<float>(-(params.box_X / 2.f - 2 * params.sphere_radius),
-
-                                          -(params.box_Y / 2.f - 2 * params.sphere_radius), 3));
+    // body_points.push_back(ChVector<float>(0., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
+    // body_points.push_back(ChVector<float>(2., 0., 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
+    // body_points.push_back(ChVector<float>(1., 1.732, 0. - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
+    // body_points.push_back(ChVector<float>(1., .5774, 2.05 - (params.box_Z / 2.f - 1.01 * params.sphere_radius)));
+    // body_points.push_back(ChVector<float>(params.box_X / 2.f - 2 * params.sphere_radius,
+    //                                       params.box_Y / 2.f - 2 * params.sphere_radius, 3));
+    // body_points.push_back(ChVector<float>(-(params.box_X / 2.f - 2 * params.sphere_radius),
+    //
+    //                                       -(params.box_Y / 2.f - 2 * params.sphere_radius), 3));
 
     {
         // fill box, layer by layer
@@ -110,12 +111,11 @@ int main(int argc, char* argv[]) {
         ChVector<> center(0, 0, 0);
 
         // Fill box with bodies
-        //  body_points =
-        //     PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
+        // body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
 
         utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
 
-        // body_points = sampler.SampleBox(center, hdims);
+        body_points = sampler.SampleBox(center, hdims);
     }
     settlingExperiment.setParticlePositions(body_points);
 

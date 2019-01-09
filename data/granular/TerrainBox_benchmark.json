@@ -1,7 +1,7 @@
 {
 	"sphere_radius": 0.5,
 	"sphere_density": 2.5,
-	"box_X": 2000,
+	"box_X": 500,
 	"box_Y": 500,
 	"box_Z": 100,
 	"step_size": 2e-5,
@@ -23,5 +23,5 @@
 	"psi_T": 16,
 	"psi_L": 16,
 	"output_dir": "terrain_box",
-	"write_mode": "none"
+	"write_mode": "binary"
 }
