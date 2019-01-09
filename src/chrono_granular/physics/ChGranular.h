@@ -331,6 +331,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         gran_params->friction_mode = new_mode;
         friction_mode = new_mode;
     }
+    void set_static_friction_coeff(float mu) { gran_params->static_friction_coeff = mu; }
 
     void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
     void set_K_n_SPH2WALL(double someValue) { K_n_s2w_UU = someValue; }
