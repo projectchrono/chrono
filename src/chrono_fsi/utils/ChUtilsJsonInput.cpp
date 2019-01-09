@@ -23,6 +23,9 @@
 
 using namespace rapidjson;
 
+using std::cout;
+using std::endl;
+
 namespace chrono {
 namespace fsi {
 namespace utils {
