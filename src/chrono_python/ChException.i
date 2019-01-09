@@ -1,4 +1,4 @@
-/* %module ChronoEngine_python_mod */
+/*  */
 
 %include "std_string.i"
 

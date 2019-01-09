@@ -25,7 +25,7 @@
 #include <iostream>
 #include <string>
 
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "ChGranular_json_parser.hpp"
 #include "ChGranularDemoUtils.hpp"
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
     m_sys.set_BD_Fixed(true);
 
-    m_sys.Create_BC_Cone_Z(cone_tip, cone_slope, top_z, opening_z, outward_normal);
+    m_sys.Create_BC_Cone_Z(cone_tip, cone_slope, top_z, opening_z, outward_normal, false);
 
     double particle_mass = 4.0 * CH_C_PI * params.sphere_radius * params.sphere_radius * params.sphere_radius *
                            params.sphere_density / 3.0;
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys.set_fixed_stepSize(params.step_size);
 
-    ChFileutils::MakeDirectory(params.output_dir.c_str());
+    filesystem::create_directory(filesystem::path(params.output_dir));
 
     m_sys.setVerbose(params.verbose);
 

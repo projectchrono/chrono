@@ -15,7 +15,6 @@
 #include <cmath>
 
 // Chrono::Engine header files
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 
 // Chrono::Parallel header files

@@ -24,7 +24,7 @@
 // that builds up with time using a smooth cosine function. The user may increase
 // the number of brick elements to achieve convergence.
 // =============================================================================
-#include "chrono/core/ChFileutils.h"
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -35,6 +35,8 @@
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace fea;
@@ -248,7 +250,7 @@ int main(int argc, char* argv[]) {
     double t_sim = 0;
     if (output) {
         // Create output directory (if it does not already exist).
-        if (ChFileutils::MakeDirectory("../TEST_Brick") < 0) {
+        if (!filesystem::create_directory(filesystem::path("../TEST_Brick"))) {
             GetLog() << "Error creating directory ../TEST_Brick\n";
             return 1;
         }

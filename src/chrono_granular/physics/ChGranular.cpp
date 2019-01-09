@@ -130,13 +130,18 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
 //     return BC_type_list.size() - 1;
 // }
 
-size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3], float radius, bool outward_normal) {
+size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
+                                                          float radius,
+                                                          bool outward_normal,
+                                                          bool track_forces) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.sphere_params.sphere_center.x = center[0];
     p.sphere_params.sphere_center.y = center[1];
     p.sphere_params.sphere_center.z = center[2];
     p.sphere_params.radius = radius;
+    p.active = true;
+    p.track_forces = track_forces;
 
     if (outward_normal) {
         // negate forces to push particles outward
@@ -155,7 +160,8 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cone_Z(float cone_tip[3],
                                                           float slope,
                                                           float hmax,
                                                           float hmin,
-                                                          bool outward_normal) {
+                                                          bool outward_normal,
+                                                          bool track_forces) {
     BC_params_t<float, float3> p;
     // set center, radius, norm
     p.cone_params.cone_tip.x = cone_tip[0];
@@ -164,6 +170,8 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cone_Z(float cone_tip[3],
     p.cone_params.hmax = hmax;
     p.cone_params.hmin = hmin;
     p.cone_params.slope = slope;
+    p.active = true;
+    p.track_forces = track_forces;
 
     if (outward_normal) {
         // negate forces to push particles outward
@@ -178,7 +186,7 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cone_Z(float cone_tip[3],
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], float plane_normal[3]) {
+size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], float plane_normal[3], bool track_forces) {
     BC_params_t<float, float3> p;
     p.plane_params.position.x = plane_pos[0];
     p.plane_params.position.y = plane_pos[1];
@@ -187,6 +195,8 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], flo
     p.plane_params.normal.x = plane_normal[0];
     p.plane_params.normal.y = plane_normal[1];
     p.plane_params.normal.z = plane_normal[2];
+    p.active = true;
+    p.track_forces = track_forces;
 
     BC_type_list.push_back(BC_type::PLANE);
     BC_params_list_UU.push_back(p);
@@ -194,13 +204,18 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], flo
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal) {
+size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cyl_Z(float center[3],
+                                                         float radius,
+                                                         bool outward_normal,
+                                                         bool track_forces) {
     BC_params_t<float, float3> p;
     p.cyl_params.center.x = center[0];
     p.cyl_params.center.y = center[1];
     p.cyl_params.center.z = center[2];
 
     p.cyl_params.radius = radius;
+    p.active = true;
+    p.track_forces = track_forces;
 
     if (outward_normal) {
         // negate forces to push particles outward
@@ -281,6 +296,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.sphere_params.radius = convertToPosSU<int, float>(params_UU.sphere_params.radius);
                 params_SU.sphere_params.normal_sign = params_UU.sphere_params.normal_sign;
                 params_SU.active = true;
+                params_SU.track_forces = params_UU.track_forces;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -304,6 +320,8 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 //
                 //     params_SU.AABox_params.normal_sign = params_UU.AABox_params.normal_sign;
                 //     params_SU.active = true;
+                // params_SU.track_forces = params_UU.track_forces;
+
                 //
                 //     BC_params_list_SU.push_back(params_SU);
                 //     break;}
@@ -320,6 +338,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.cone_params.slope = params_UU.cone_params.slope;
                 params_SU.cone_params.normal_sign = params_UU.cone_params.normal_sign;
                 params_SU.active = true;
+                params_SU.track_forces = params_UU.track_forces;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -337,6 +356,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.plane_params.normal.y = params_UU.plane_params.normal.y;
                 params_SU.plane_params.normal.z = params_UU.plane_params.normal.z;
                 params_SU.active = true;
+                params_SU.track_forces = params_UU.track_forces;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -354,6 +374,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.cyl_params.normal_sign = params_UU.cyl_params.normal_sign;
 
                 params_SU.active = true;
+                params_SU.track_forces = params_UU.track_forces;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
@@ -379,6 +400,7 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
 
     // Seed arrays that are populated by the kernel call
     resetBroadphaseInformation();
+    resetBCForces();
 
     printf("doing priming!\n");
     printf("max possible composite offset with 256 limit is %zu\n", (size_t)nSDs * MAX_COUNT_OF_SPHERES_PER_SD);

@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -35,6 +34,8 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #define USE_MKL
 
@@ -630,8 +631,8 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
 	
 	// Prepare file for output data
 	const std::string out_dir = GetChronoOutputPath() + "JEFFCOTT_ROTOR";
-	if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-		std::cout << "Error creating directory " << out_dir << std::endl;
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
 		return;
 	}
 	std::string filename = out_dir + "/rotor_displ.dat";

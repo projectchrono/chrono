@@ -16,11 +16,8 @@
 //
 // =============================================================================
 
-#include <iostream>
-#include <string>
-#include <cmath>
+#include "gtest/gtest.h"
 
-#include "chrono/core/ChLog.h"
 #include "chrono/utils/ChCompositeInertia.h"
 
 using namespace chrono;
@@ -29,9 +26,15 @@ double tol = 1e-4;
 
 // ====================================================================================
 
-bool test_hemispheres() {
-    GetLog() << "\nHemispheres test\n\n";
+static void TestVector(const ChVector<>& v1, const ChVector<>& v2, double tol) {
+    ASSERT_NEAR(v1.x(), v2.x(), tol);
+    ASSERT_NEAR(v1.y(), v2.y(), tol);
+    ASSERT_NEAR(v1.z(), v2.z(), tol);
+}
 
+// ====================================================================================
+
+TEST(CompositeInertia, hemispheres) {
     // Add top and bottom hemispheres (z direction, with center at specified height)
     double height = 2;
 
@@ -55,37 +58,21 @@ bool test_hemispheres() {
     ChVector<> c_com = comp.GetCOM();
     ChMatrix33<> c_inertia = comp.GetInertia();
 
-    GetLog() << "composite mass: " << c_mass << "\n";
-    GetLog() << "composite COM: " << c_com << "\n";
-    GetLog() << "composite inertia: " << c_inertia << "\n";
-
     // Inertia properties of equivalent sphere
     double s_mass = 2 * mass;
     ChVector<> s_com(0, 0, height);
     double s_J = (2.0 / 5.0) * s_mass * r * r;
     ChMatrix33<> s_inertia(ChVector<>(s_J, s_J, s_J));
 
-    GetLog() << "sphere mass: " << s_mass << "\n";
-    GetLog() << "sphere COM: " << s_com << "\n";
-    GetLog() << "sphere inertia: " << s_inertia << "\n";
-
-    // Compare results
-    double err_mass = c_mass - s_mass;
-    double err_com = (c_com - s_com).Length();
-    double err_inertia = (c_inertia - s_inertia).NormTwo();
-
-    GetLog() << "error mass:    " << err_mass << "\n";
-    GetLog() << "error com:     " << err_com << "\n";
-    GetLog() << "error inertia: " << err_inertia << "\n";
-
-    return (err_mass <= tol && err_com <= tol && err_inertia <= tol);
+    // Check
+    ASSERT_NEAR(c_mass, s_mass, tol);
+    TestVector(c_com, s_com, tol);
+    ASSERT_NEAR((c_inertia - s_inertia).NormTwo(), 0.0, tol);
 }
 
 // ====================================================================================
 
-bool test_boxes() {
-    GetLog() << "\nBoxes test\n\n";
-
+TEST(CompositeInertia, boxes) {
     ChVector<> center(1, 2, 3);
     double hx = 2;
     double hy = 4;
@@ -122,37 +109,21 @@ bool test_boxes() {
     ChVector<> c_com = comp.GetCOM();
     ChMatrix33<> c_inertia = comp.GetInertia();
 
-    GetLog() << "composite mass: " << c_mass << "\n";
-    GetLog() << "composite COM: " << c_com << "\n";
-    GetLog() << "composite inertia: " << c_inertia << "\n";
-
     // Inertia properties of single box
     double b_mass = 8 * hx * hy * hz * rho;
     ChVector<> b_com = center;
     ChMatrix33<> b_inertia(ChVector<>(b_mass * (hy * hy + hz * hz) / 3, b_mass * (hx * hx + hz * hz) / 3,
                                       b_mass * (hx * hx + hy * hy) / 3));
 
-    GetLog() << "box mass: " << b_mass << "\n";
-    GetLog() << "box COM: " << b_com << "\n";
-    GetLog() << "box inertia: " << b_inertia << "\n";
-
-    // Compare results
-    double err_mass = c_mass - b_mass;
-    double err_com = (c_com - b_com).Length();
-    double err_inertia = (c_inertia - b_inertia).NormTwo();
-
-    GetLog() << "error mass:    " << err_mass << "\n";
-    GetLog() << "error com:     " << err_com << "\n";
-    GetLog() << "error inertia: " << err_inertia << "\n";
-
-    return (err_mass <= tol && err_com <= tol && err_inertia <= tol);
+    // Check
+    ASSERT_NEAR(c_mass, b_mass, tol);
+    TestVector(c_com, b_com, tol);
+    ASSERT_NEAR((c_inertia - b_inertia).NormTwo(), 0.0, tol);
 }
 
 // ====================================================================================
 
-bool test_hollow_sphere() {
-    GetLog() << "\nHollow sphere test\n\n";
-
+TEST(CompositeInertia, hollow_sphere) {
     double r_out = 2.3;
     double r_in = 2.1;
     double rho = 50;
@@ -173,40 +144,14 @@ bool test_hollow_sphere() {
     ChVector<> c_com = comp.GetCOM();
     ChMatrix33<> c_inertia = comp.GetInertia();
 
-    GetLog() << "composite mass: " << c_mass << "\n";
-    GetLog() << "composite COM: " << c_com << "\n";
-    GetLog() << "composite inertia: " << c_inertia << "\n";
-
     // Inertia properties of hollow sphere
     double s_mass = (4.0 / 3.0) * CH_C_PI * rho * (std::pow(r_out, 3) - std::pow(r_in, 3));
     double s_J =
         (2.0 / 5.0) * s_mass * (std::pow(r_out, 5) - std::pow(r_in, 5)) / (std::pow(r_out, 3) - std::pow(r_in, 3));
     ChMatrix33<> s_inertia(s_J);
 
-    GetLog() << "sphere mass: " << s_mass << "\n";
-    GetLog() << "sphere inertia: " << s_inertia << "\n";
-
-    // Compare results
-    double err_mass = c_mass - s_mass;
-    double err_com = (c_com).Length();
-    double err_inertia = (c_inertia - s_inertia).NormTwo();
-
-    GetLog() << "error mass:    " << err_mass << "\n";
-    GetLog() << "error com:     " << err_com << "\n";
-    GetLog() << "error inertia: " << err_inertia << "\n";
-
-    return (err_mass <= tol && err_com <= tol && err_inertia <= tol);
-}
-
-// ====================================================================================
-
-int main(int argc, char* argv[]) {
-    bool passed = true;
-    passed &= test_hemispheres();
-    passed &= test_boxes();
-    passed &= test_hollow_sphere();
-
-    // Return 0 if all tests passed.
-    std::cout << "\n\n" << (passed ? "PASSED" : "FAILED") << std::endl;
-    return !passed;
+    // Check
+    ASSERT_NEAR(c_mass, s_mass, tol);
+    ASSERT_NEAR(c_com.Length(), 0.0, tol);
+    ASSERT_NEAR((c_inertia - s_inertia).NormTwo(), 0.0, tol);
 }

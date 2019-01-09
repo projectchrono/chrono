@@ -15,10 +15,12 @@ This module consists of *two* main sets of build targets:
 
 - The Python modules for [Chrono::PyEngine](@ref introduction_chrono_pyengine). 
   Currently, the PyChrono Python modules that are built are:
-    - *ChronoEngine_PYTHON_core*, that wraps all the core Chrono,
-    - *ChronoEngine_PYTHON_postprocess*, that wraps the POSTPROCESS module.
-    - *ChronoEngine_PYTHON_irrlicht*, that wraps the IRRLICHT module.
-    - *ChronoEngine_PYTHON_fea*, that wraps the FEA module.
+    - *pychrono*, that wraps most Chrono classes, equivalent to the chrono:: namespace
+	- *pychrono.fea*, that wraps FEA classes, equivalent to the chrono::fea:: namespace.
+    - *pychrono.postprocess*, that wraps the POSTPROCESS module.
+    - *pychrono.irrlicht*, that wraps the IRRLICHT module.
+    - *pychrono.mkl*, that wraps the MKL module.
+	- *pychrono.cascade*, that wraps the CASCADE module.
 
 - A *PYPARSER module* is built, that is a C++ module for parsing / executing / interpreting 
   Python instructions from C++ programs.

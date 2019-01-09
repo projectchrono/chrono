@@ -32,9 +32,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #endif
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono_granular/physics/ChGranular.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 using namespace chrono;
@@ -79,7 +79,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
     gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
 
-    ChFileutils::MakeDirectory(output_prefix.c_str());
+    filesystem::create_directory(filesystem::path(output_prefix));
 
     // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
     // will not be stable. The value is in multiples of box half-lengths in that direction, so an x-value of 1 means

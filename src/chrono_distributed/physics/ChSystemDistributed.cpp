@@ -332,7 +332,7 @@ void ChSystemDistributed::PrintBodyStatus() {
     }
 
     GetLog() << "\tData Manager:\n";
-    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+    for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
         int status = ddm->comm_status[i];
         unsigned int gid = ddm->global_id[i];
 
@@ -387,7 +387,7 @@ void ChSystemDistributed::PrintShapeData() {
         }
     }
 
-    printf("%d | NumShapes: %d NumBodies: %d\n", my_rank, ddm->data_manager->shape_data.id_rigid.size(), i);
+    printf("%d | NumShapes: %lu NumBodies: %d\n", my_rank, (unsigned long)ddm->data_manager->shape_data.id_rigid.size(), i);
     printf("%d | num_rigid_shapes: %d, num_rigid_bodies: %d\n", my_rank, ddm->data_manager->num_rigid_shapes,
            ddm->data_manager->num_rigid_bodies);
 }
@@ -421,7 +421,7 @@ void ChSystemDistributed::PrintEfficiency() {
 
 double ChSystemDistributed::GetLowestZ(uint* local_id) {
     double min = 0;
-    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+    for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
         if (ddm->comm_status[i] != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] < min) {
             min = data_manager->host_data.pos_rigid[i][2];
             *local_id = i;
@@ -432,7 +432,7 @@ double ChSystemDistributed::GetLowestZ(uint* local_id) {
 
 double ChSystemDistributed::GetHighestZ() {
     double max = DBL_MIN;
-    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+    for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
         if (ddm->comm_status[i] != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] > max) {
             max = data_manager->host_data.pos_rigid[i][2];
         }
@@ -443,7 +443,7 @@ double ChSystemDistributed::GetHighestZ() {
 }
 
 void ChSystemDistributed::CheckIds() {
-    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+    for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
         if (bodylist[i]->GetId() != i) {
             GetLog() << "Mismatched ID " << i << " Ranks " << my_rank << "\n";
         }
@@ -496,7 +496,7 @@ void ChSystemDistributed::SanityCheck() {
 
 int ChSystemDistributed::RemoveBodiesBelow(double z) {
     int count = 0;
-    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+    for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
         auto status = ddm->comm_status[i];
         if (status != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] < z) {
             RemoveBody(bodylist[i]);
@@ -671,13 +671,15 @@ std::vector<std::pair<uint, ChVector<>>> ChSystemDistributed::GetBodyContactForc
         }
     }
 
+    int num_send = static_cast<int>(send.size());
+
     // Send all forces to the master rank
     // Buffer to collect forces on the master rank
     internal_force* buffer = new internal_force[gids.size()];
     int index = 0;  // Working index into buffer
     if (my_rank == master_rank) {
         std::memcpy(buffer, send.data(), sizeof(internal_force) * send.size());
-        index += send.size();
+        index += num_send;
 
         // Recv from all other ranks
         for (int i = 1; i < num_ranks; i++) {
@@ -689,7 +691,7 @@ std::vector<std::pair<uint, ChVector<>>> ChSystemDistributed::GetBodyContactForc
             index += count;
         }
     } else {
-        MPI_Send(send.data(), send.size(), InternalForceType, master_rank, 0, world);
+        MPI_Send(send.data(), num_send, InternalForceType, master_rank, 0, world);
     }
 
     // At this point, buf holds all forces on master_rank. All other ranks have index=0.

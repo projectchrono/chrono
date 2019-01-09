@@ -22,7 +22,7 @@
 #include <iostream>
 #include <string>
 
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
     m_sys_gran.setOutputDirectory(params.output_dir);
     m_sys_gran.setOutputMode(params.write_mode);
     m_sys_gran.setVerbose(params.verbose);
-    ChFileutils::MakeDirectory(params.output_dir.c_str());
+    filesystem::create_directory(filesystem::path(params.output_dir));
 
     unsigned int nSoupFamilies = m_sys_gran.nMeshesInSoup();
     cout << nSoupFamilies << " soup families" << endl;

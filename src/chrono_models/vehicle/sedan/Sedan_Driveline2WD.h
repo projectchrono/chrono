@@ -43,7 +43,7 @@ class CH_MODELS_API Sedan_Driveline2WD : public ChShaftsDriveline2WD {
     virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
     virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
 
-    virtual double GetDifferentialLockingLimit() const override { return m_differential_locking_limit; }
+    virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
 
   private:
     // Shaft inertias.
@@ -55,7 +55,7 @@ class CH_MODELS_API Sedan_Driveline2WD : public ChShaftsDriveline2WD {
     static const double m_differential_ratio;
 
     // Differential locking torque limit.
-    static const double m_differential_locking_limit;
+    static const double m_axle_differential_locking_limit;
 };
 
 /// @} vehicle_models_sedan

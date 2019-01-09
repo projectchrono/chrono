@@ -19,9 +19,9 @@
 #ifndef CHVECTOR2_H
 #define CHVECTOR2_H
 
+#include <algorithm>
 #include <cmath>
-#include <iomanip>
-#include <iostream>
+#include <limits>
 
 #include "chrono/core/ChMathematics.h"
 #include "chrono/serialization/ChArchive.h"
@@ -574,13 +574,13 @@ inline Real ChVector2<Real>::Length2() const {
 
 template <class Real>
 inline Real ChVector2<Real>::LengthInf() const {
-    return ChMax(fabs(data[0]), fabs(data[1]));
+    return std::max(fabs(data[0]), fabs(data[1]));
 }
 
 template <class Real>
 inline bool ChVector2<Real>::Normalize() {
     Real length = this->Length();
-    if (length < CH_NANOTOL) {
+    if (length < std::numeric_limits<Real>::min()) {
         data[0] = 1;
         data[1] = 0;
         return false;

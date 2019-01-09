@@ -218,6 +218,16 @@ void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
                          spheres_in_SD_composite.size() * sizeof(unsigned int)));
     gpuErrchk(cudaDeviceSynchronize());
 }
+
+// Reset broadphase data structures
+void ChSystemGranular_MonodisperseSMC::resetBCForces() {
+    // zero out reaction forces on each BC
+    for (int i = 0; i < BC_params_list_SU.size(); i++) {
+        if (BC_params_list_SU.at(i).track_forces) {
+            BC_params_list_SU.at(i).reaction_forces = {0, 0, 0};
+        }
+    }
+}
 // Reset sphere-sphere force data structures
 void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
     // cache past force data
@@ -529,6 +539,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
             updateBDPosition(stepSize_SU);
         }
         resetSphereForces();
+        resetBCForces();
 
         VERBOSE_PRINTF("Starting computeSphereForces!\n");
 

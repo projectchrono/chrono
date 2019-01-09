@@ -34,7 +34,6 @@ include_directories(${CH_INCLUDES})
 set(ChronoEngine_core_SOURCES
     core/ChLog.cpp
     core/ChClassFactory.cpp
-    core/ChFileutils.cpp
     core/ChFilePS.cpp
     core/ChStream.cpp
     core/ChMathematics.cpp
@@ -71,7 +70,6 @@ set(ChronoEngine_core_HEADERS
     core/ChVectorDynamic.h
     core/ChPlatform.h
     core/ChQuaternion.h
-    core/ChFileutils.h
     core/ChRealtimeStep.h
     core/ChStream.h
     core/ChTimer.h
@@ -371,6 +369,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChLinkDirFrame.cpp
     fea/ChLinkPointPoint.cpp
     fea/ChLinkPointTriface.cpp
+    fea/ChLinkBeamIGAslider.cpp
     fea/ChContactSurface.cpp
     fea/ChContactSurfaceNodeCloud.cpp
     fea/ChContactSurfaceMesh.cpp
@@ -434,6 +433,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChLinkDirFrame.h
     fea/ChLinkPointPoint.h
     fea/ChLinkPointTriface.h
+    fea/ChLinkBeamIGAslider.h
     fea/ChContactSurface.h
     fea/ChContactSurfaceNodeCloud.h
     fea/ChContactSurfaceMesh.h
@@ -786,6 +786,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChConstraintThree.cpp
     solver/ChConstraintThreeGeneric.cpp
     solver/ChConstraintThreeBBShaft.cpp
+	solver/ChConstraintNgeneric.cpp
     solver/ChVariables.cpp
     solver/ChVariablesGeneric.cpp
     solver/ChVariablesGenericDiagonalMass.cpp
@@ -813,6 +814,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChConstraintTwoTuplesFrictionT.h
     solver/ChConstraintTwoTuplesRollingN.h
     solver/ChConstraintTwoTuplesRollingT.h
+	solver/ChConstraintNgeneric.h
     solver/ChSolver.h
     solver/ChIterativeSolver.h
     solver/ChSolverJacobi.h
@@ -837,7 +839,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChKblockGeneric.h
     solver/ChSolverSMC.h
     )
-
+	 
 source_group(solver FILES
     ${ChronoEngine_solver_SOURCES}
     ${ChronoEngine_solver_HEADERS})
@@ -1160,8 +1162,8 @@ endif()
 # Install the main ChronoEngine library
 install(TARGETS ChronoEngine
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib64
-    ARCHIVE DESTINATION lib64)
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
 
 # Install all header files for the main ChronoEngine library
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/

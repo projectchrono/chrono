@@ -28,7 +28,6 @@
 #include "chrono/serialization/ChArchiveExplorer.h"
 
 #include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChVector.h"
@@ -37,6 +36,7 @@
 #include "chrono/core/ChException.h"
 #include "chrono/solver/ChConstraintTuple.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 
@@ -605,12 +605,11 @@ void my_reflection_example()
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    GetLog() << "\n"
-             << "CHRONO foundation classes demo: archives (serialization)\n\n";
+    GetLog() << "CHRONO foundation classes demo: archives (serialization)\n\n";
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_ARCHIVE";
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

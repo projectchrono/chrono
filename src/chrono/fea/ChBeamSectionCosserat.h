@@ -796,9 +796,23 @@ class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
   public:
 
 	  ChBeamSectionCosserat(
+		  std::shared_ptr<ChElasticityCosserat> melasticity  /// the elasticity model for this section, ex.ChElasticityCosseratSimple 
+	  ) {
+		  this->SetElasticity(melasticity);
+	  }
+
+	  ChBeamSectionCosserat(
+		  std::shared_ptr<ChElasticityCosserat> melasticity,  /// the elasticity model for this section, ex.ChElasticityCosseratSimple 
+		  std::shared_ptr<ChPlasticityCosserat> mplasticity /// the plasticity model for this section, if any
+	  ) {
+		  this->SetElasticity(melasticity);
+		  this->SetPlasticity(mplasticity);
+	  }
+
+	  ChBeamSectionCosserat(
 					std::shared_ptr<ChElasticityCosserat> melasticity,  /// the elasticity model for this section, ex.ChElasticityCosseratSimple 
-					std::shared_ptr<ChPlasticityCosserat> mplasticity = nullptr, /// the plasticity model for this section, if any
-					std::shared_ptr<ChDampingCosserat> mdamping  = nullptr /// the damping model for this section, if any
+					std::shared_ptr<ChPlasticityCosserat> mplasticity, /// the plasticity model for this section, if any
+					std::shared_ptr<ChDampingCosserat> mdamping /// the damping model for this section, if any
 	  ) {
 		this->SetElasticity(melasticity);
 		

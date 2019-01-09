@@ -15,8 +15,8 @@
 #include "chrono_cascade/ChCascadeDoc.h"
 
 #include "chrono/core/ChMatrixDynamic.h"
-
-//#include "chrono_cascade/ChIrrCascadeMeshTools.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono_cascade/ChCascadeMeshTools.h"
 
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
@@ -75,6 +75,7 @@
 
 using namespace chrono;
 using namespace cascade;
+using namespace geometry;
 
 ChCascadeDoc::ChCascadeDoc() {
     doc = new Handle(TDocStd_Document);
@@ -431,10 +432,16 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
     gp_Vec mtr(mpos.x(), mpos.y(), mpos.z());
 
     const ChMatrix33<>& from_mat = from_coord.GetA();
+	
+	gp_Trsf castrasf;
+	castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
+		from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z());
 
-    ((gp_Trsf)(to_coord.Transformation()))
-        .SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
-                   from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z()); //0, 0);
+	to_coord = TopLoc_Location(castrasf);
+
+    //((gp_Trsf)(to_coord.Transformation()))
+    //    .SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
+    //               from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z()); //0, 0);
 }
 
 
@@ -442,7 +449,9 @@ void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Locat
 /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
 std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
                 const TopoDS_Shape& mshape,   ///< pass the shape here
-                const double density          ///< pass the density here
+                const double density,         ///< pass the density here
+				const bool collide,	
+				const bool visual_asset
                 )
 {
     std::shared_ptr<ChBodyAuxRef> mbody(new ChBodyAuxRef);
@@ -462,13 +471,35 @@ std::shared_ptr<ChBodyAuxRef> ChCascadeDoc::CreateBodyFromShape(
     double mmass;
     chrono::cascade::ChCascadeDoc::GetVolumeProperties(objshape, density, mcog, minertiaXX, minertiaXY, mvol, mmass);
 
-    mbody->SetFrame_REF_to_abs(frame_ref_to_abs);
+	// Set mass and COG and REF references
+	mbody->SetDensity((float)density);
+	mbody->SetMass(mmass);
+	mbody->SetInertiaXX(minertiaXX);
+	mbody->SetInertiaXY(minertiaXY);
+	mbody->SetFrame_REF_to_abs(frame_ref_to_abs);
 
-    //mbody->SetFrame_COG_to_REF(frame_ref_to_abs.Invert() * mcog );
+	chrono::ChFrame<> frame_cog_to_ref;
+	frame_cog_to_ref.SetPos(mcog);
+	frame_cog_to_ref.SetRot(chrono::QUNIT);
+	mbody->SetFrame_COG_to_REF(frame_cog_to_ref);
 
-    chrono::ChFrame<>* frame_cog_to_ref = (chrono::ChFrame<>*)mbody.get();
-    frame_cog_to_ref->SetPos(mcog);
-    frame_cog_to_ref->SetRot(chrono::QUNIT);
+	// Add a visualization asset if needed
+	if (visual_asset) {
+		auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+		ChCascadeMeshTools::fillTriangleMeshFromCascade(*trimesh, objshape);
+
+		auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+		trimesh_shape->SetMesh(trimesh);
+		mbody->AddAsset(trimesh_shape);
+
+		// Add a collision shape if needed
+		if (collide) {
+			mbody->GetCollisionModel()->ClearModel();
+			mbody->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
+			mbody->GetCollisionModel()->BuildModel();
+			mbody->SetCollide(true);
+		}
+	}
 
     return mbody;
 }

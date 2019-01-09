@@ -1267,7 +1267,7 @@ double ChSystem::ComputeCollisions() {
 
         for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
             if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
-                collision_system->ReportContacts(mcontactcontainer.get());
+                //collision_system->ReportContacts(mcontactcontainer.get()); ***TEST*** if one wants to populate a ChContactContainer this would clear it anyway...
             }
 
             if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {

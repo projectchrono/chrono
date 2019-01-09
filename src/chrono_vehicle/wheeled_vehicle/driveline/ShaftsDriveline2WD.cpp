@@ -68,9 +68,9 @@ void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
     m_conicalgear_ratio = d["Gear Ratio"]["Conical Gear"].GetDouble();
     m_differential_ratio = d["Gear Ratio"]["Differential"].GetDouble();
 
-    m_differential_locking_limit = 100;
-    if (d.HasMember("Differential Locking Limit")) {
-        m_differential_locking_limit = d["Differential Locking Limit"].GetDouble();
+    m_axle_differential_locking_limit = 100;
+    if (d.HasMember("Axle Differential Locking Limit")) {
+        m_axle_differential_locking_limit = d["Axle Differential Locking Limit"].GetDouble();
     }
 }
 

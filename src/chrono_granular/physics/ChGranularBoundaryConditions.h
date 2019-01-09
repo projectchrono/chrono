@@ -68,8 +68,8 @@ struct BC_params_t {
     /// Am I active?
     bool active;
     /// Whether or not to track reaction forces
-    // bool track_forces;
-    // float3 reaction_forces;
+    bool track_forces;
+    float3 reaction_forces;
     union {
         // AABox_BC_params_t<T, T3> AABox_params;
         Sphere_BC_params_t<T, T3> sphere_params;

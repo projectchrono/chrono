@@ -33,7 +33,7 @@ The idea is that, once installed, you can open your Python IDE, import the Chron
 Python module(s) and start creating Chrono objects as in the following:
 
 ~~~~~~~~~~~~~~~{.py}
-import ChronoEngine_python_core as chrono
+import pychrono as chrono
 
 my_systemA = chrono.ChSystem()
 my_vect1   = chrono.ChVectorD()

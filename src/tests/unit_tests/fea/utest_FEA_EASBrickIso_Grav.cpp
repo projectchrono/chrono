@@ -27,7 +27,6 @@
 #include <cmath>
 #include <algorithm>
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -38,6 +37,8 @@
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
@@ -263,7 +264,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     if (output) {
         // Create output directory (if it does not already exist).
-        if (ChFileutils::MakeDirectory("../TEST_Brick") < 0) {
+        if (!filesystem::create_directory(filesystem::path("../TEST_Brick"))) {
             GetLog() << "Error creating directory ../TEST_Brick\n";
             return 1;
         }

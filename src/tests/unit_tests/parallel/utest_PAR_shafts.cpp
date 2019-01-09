@@ -16,73 +16,73 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChShaftsGear.h"
-#include "chrono/physics/ChShaftsTorsionSpring.h"
 #include "chrono/physics/ChShaftsBody.h"
-#include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsClutch.h"
-#include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/physics/ChShaftsGear.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChShaftsTorsionSpring.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
+
+#include "unit_testing.h"
 
 using namespace chrono;
 using namespace chrono::collision;
 
-// -----------------------------------------------------------------------------
-// Create a parallel system of specified type and set solver options
-// -----------------------------------------------------------------------------
-ChSystemParallel* CreateSystem(ChMaterialSurface::ContactMethod cm) {
-  // Settings
-  int threads = 1;
-  bool thread_tuning = false;
+class ChShaftTest : public ::testing::TestWithParam<int> {
+  protected:
+    ChShaftTest() {
+        // Settings
+        int threads = 1;
+        bool thread_tuning = false;
 
-  double tolerance = 1e-5;
+        double tolerance = 1e-5;
 
-  int max_iteration_bilateral = 100;
-  int max_iteration_normal = 0;
-  int max_iteration_sliding = 100;
-  int max_iteration_spinning = 0;
+        int max_iteration_bilateral = 100;
+        int max_iteration_normal = 0;
+        int max_iteration_sliding = 100;
+        int max_iteration_spinning = 0;
 
-  bool clamp_bilaterals = false;
-  double bilateral_clamp_speed = 1000;
+        bool clamp_bilaterals = false;
+        double bilateral_clamp_speed = 1000;
 
-  double contact_recovery_speed = 1;
+        double contact_recovery_speed = 1;
 
-  // Create the mechanical system
-  ChSystemParallel* system;
+        // Create the mechanical system
+        switch (GetParam()) {
+            case ChMaterialSurface::SMC:
+                system = new ChSystemParallelSMC();
+                break;
+            case ChMaterialSurface::NSC:
+                system = new ChSystemParallelNSC();
+                break;
+        }
 
-  switch (cm) {
-      case ChMaterialSurface::SMC:
-          system = new ChSystemParallelSMC();
-          break;
-      case ChMaterialSurface::NSC:
-          system = new ChSystemParallelNSC();
-          break;
-  }
+        // Set number of threads.
+        CHOMPfunctions::SetNumThreads(threads);
+        system->GetSettings()->max_threads = threads;
+        system->GetSettings()->perform_thread_tuning = thread_tuning;
 
-  // Set number of threads.
-  CHOMPfunctions::SetNumThreads(threads);
-  system->GetSettings()->max_threads = threads;
-  system->GetSettings()->perform_thread_tuning = thread_tuning;
+        // Edit system settings
+        system->GetSettings()->solver.tolerance = tolerance;
+        system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
+        system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
+        system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  // Edit system settings
-  system->GetSettings()->solver.tolerance = tolerance;
-  system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
-  system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
-  system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
+        if (GetParam() == ChMaterialSurface::NSC) {
+            ChSystemParallelNSC* systemNSC = static_cast<ChSystemParallelNSC*>(system);
+            systemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+            systemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+            systemNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+            systemNSC->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+            systemNSC->ChangeSolverType(SolverType::APGD);
+        }
+    }
 
-  if (cm == ChMaterialSurface::NSC) {
-    ChSystemParallelNSC* systemNSC = static_cast<ChSystemParallelNSC*>(system);
-    systemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    systemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    systemNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    systemNSC->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    systemNSC->ChangeSolverType(SolverType::APGD);
-  }
+    ~ChShaftTest() { delete system; }
 
-  return system;
-}
+    ChSystemParallel* system;
+};
 
 // -----------------------------------------------------------------------------
 // Two shafts (inertias J1 and J2, respectively) connected through a gear with
@@ -102,108 +102,88 @@ ChSystemParallel* CreateSystem(ChMaterialSurface::ContactMethod cm) {
 //    Tr2 = J2 * acc2
 //    Tr1 = -r * Tr2
 // -----------------------------------------------------------------------------
-bool TestShaftShaft(const char* test_name, ChMaterialSurface::ContactMethod cm) {
-  std::cout << test_name << std::endl;
+TEST_P(ChShaftTest, shaft_shaft) {
+    // Parameters
+    double J1 = 10;   // inertia of first shaft
+    double J2 = 100;  // inertia of second shaft
+    double r = -0.1;  // gear transmission ratio
+    double T = 6;     // torque applied to first shaft
 
-  // Parameters
-  double J1 = 10;   // inertia of first shaft
-  double J2 = 100;  // inertia of second shaft
-  double r = -0.1;  // gear transmission ratio
-  double T = 6;     // torque applied to first shaft
+    // Create two 1-D shaft objects, with a constant torque applied to the first shaft.
+    // By default, a ChShaft is free to rotate.
+    auto shaftA = std::make_shared<ChShaft>();
+    shaftA->SetInertia(J1);
+    shaftA->SetAppliedTorque(T);
+    system->Add(shaftA);
 
-  // Create the system
-  ChSystemParallel* system = CreateSystem(cm);
+    auto shaftB = std::make_shared<ChShaft>();
+    shaftB->SetInertia(J2);
+    system->Add(shaftB);
 
-  // Create two 1-D shaft objects, with a constant torque applied to the first
-  // shaft. By default, a ChShaft is free to rotate.
-  auto shaftA = std::make_shared<ChShaft>();
-  shaftA->SetInertia(J1);
-  shaftA->SetAppliedTorque(T);
-  system->Add(shaftA);
+    // Create a connection between the two shafts with a given trnsmission ratio.
+    auto gearAB = std::make_shared<ChShaftsGear>();
+    gearAB->Initialize(shaftA, shaftB);
+    gearAB->SetTransmissionRatio(r);
+    system->Add(gearAB);
 
-  auto shaftB = std::make_shared<ChShaft>();
-  shaftB->SetInertia(J2);
-  system->Add(shaftB);
+    // Perform the simulation and verify results.
+    double tol_pos = 1e-3;
+    double tol_vel = 1e-4;
+    double tol_acc = 1e-4;
+    double tol_trq = 1e-4;
 
-  // Create a connection between the two shafts with a given trnsmission ratio.
-  auto gearAB = std::make_shared<ChShaftsGear>();
-  gearAB->Initialize(shaftA, shaftB);
-  gearAB->SetTransmissionRatio(r);
-  system->Add(gearAB);
+    double time_end = 0.5;
+    double time_step = 1e-3;
+    double time = 0;
 
-  // Perform the simulation and verify results.
-  double tol_pos = 1e-3;
-  double tol_vel = 1e-4;
-  double tol_acc = 1e-4;
-  double tol_trq = 1e-4;
+    while (time < time_end) {
+        system->DoStepDynamics(time_step);
+        time += time_step;
 
-  bool passed = true;
-  double time_end = 0.5;
-  double time_step = 1e-3;
-  double time = 0;
+        // Verify solution
+        double acc1_an = T / (J1 + J2 * r * r);
+        double acc2_an = r * acc1_an;
 
-  while (time < time_end) {
-    system->DoStepDynamics(time_step);
-    time += time_step;
+        double Tr2_an = J2 * acc2_an;
+        double Tr1_an = -r * Tr2_an;
 
-    // Verify solution
-    double acc1_an = T / (J1 + J2 * r * r);
-    double acc2_an = r * acc1_an;
+        double vel1_an = acc1_an * time;
+        double vel2_an = acc2_an * time;
 
-    double Tr2_an = J2 * acc2_an;
-    double Tr1_an = -r * Tr2_an;
+        double pos1_an = acc1_an * time * time / 2;
+        double pos2_an = acc2_an * time * time / 2;
 
-    double vel1_an = acc1_an * time;
-    double vel2_an = acc2_an * time;
+        double pos1 = shaftA->GetPos();
+        double vel1 = shaftA->GetPos_dt();
+        double acc1 = shaftA->GetPos_dtdt();
 
-    double pos1_an = acc1_an * time * time / 2;
-    double pos2_an = acc2_an * time * time / 2;
+        double pos2 = shaftB->GetPos();
+        double vel2 = shaftB->GetPos_dt();
+        double acc2 = shaftB->GetPos_dtdt();
 
-    double pos1 = shaftA->GetPos();
-    double vel1 = shaftA->GetPos_dt();
-    double acc1 = shaftA->GetPos_dtdt();
+        double Tr1 = gearAB->GetTorqueReactionOn1();
+        double Tr2 = gearAB->GetTorqueReactionOn2();
 
-    double pos2 = shaftB->GetPos();
-    double vel2 = shaftB->GetPos_dt();
-    double acc2 = shaftB->GetPos_dtdt();
+        ASSERT_NEAR(pos1, pos1_an, tol_pos);
+        ASSERT_NEAR(pos2, pos2_an, tol_pos);
 
-    double Tr1 = gearAB->GetTorqueReactionOn1();
-    double Tr2 = gearAB->GetTorqueReactionOn2();
+        ASSERT_NEAR(vel1, vel1_an, tol_vel);
+        ASSERT_NEAR(vel2, vel2_an, tol_vel);
 
-    if (std::abs(pos1 - pos1_an) > tol_pos || std::abs(pos2 - pos2_an) > tol_pos) {
-      passed = false;
+        ASSERT_NEAR(acc1, acc1_an, tol_acc);
+        ASSERT_NEAR(acc2, acc2_an, tol_acc);
+
+        ASSERT_NEAR(Tr1, Tr1_an, tol_trq);
+        ASSERT_NEAR(Tr2, Tr2_an, tol_trq);
     }
 
-    if (std::abs(vel1 - vel1_an) > tol_vel || std::abs(vel2 - vel2_an) > tol_vel) {
-      passed = false;
-    }
-
-    if (std::abs(acc1 - acc1_an) > tol_acc || std::abs(acc2 - acc2_an) > tol_acc) {
-      passed = false;
-    }
-
-    if (std::abs(Tr1 - Tr1_an) > tol_trq || std::abs(Tr2 - Tr2_an) > tol_trq) {
-      passed = false;
-    }
-
-    if (!passed)
-        break;
-  }
-
-  std::cout << (passed ? "PASSED" : "FAILED") << std::endl;
-
-  std::cout << "Time: " << time << "\n"
-            << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
-            << "  accel: " << shaftA->GetPos_dtdt() << "\n"
-            << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
-            << "  accel: " << shaftB->GetPos_dtdt() << "\n"
-            << "  torque on A side: " << gearAB->GetTorqueReactionOn1()
-            << "  torque on B side: " << gearAB->GetTorqueReactionOn2() << "\n\n\n";
-
-  // Delete the system
-  delete system;
-
-  return passed;
+    ////std::cout << "Time: " << time << "\n"
+    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
+    ////          << "  accel: " << shaftA->GetPos_dtdt() << "\n"
+    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
+    ////          << "  accel: " << shaftB->GetPos_dtdt() << "\n"
+    ////          << "  torque on A side: " << gearAB->GetTorqueReactionOn1()
+    ////          << "  torque on B side: " << gearAB->GetTorqueReactionOn2() << "\n\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -216,300 +196,243 @@ bool TestShaftShaft(const char* test_name, ChMaterialSurface::ContactMethod cm) 
 //         Ta   <>---[ bs ]---||---[ t ]---*
 //
 // -----------------------------------------------------------------------------
-bool TestShaftBody(const char* test_name, ChMaterialSurface::ContactMethod cm) {
-  std::cout << test_name << std::endl;
+TEST_P(ChShaftTest, shaft_body) {
+    // Create 'A', a 1D shaft
+    auto shaftA = std::make_shared<ChShaft>();
+    shaftA->SetInertia(9);
+    system->Add(shaftA);
 
-  // Create the system
-  ChSystemParallel* system = CreateSystem(cm);
+    // Create 'C', a 1D shaft, fixed
+    auto shaftC = std::make_shared<ChShaft>();
+    shaftC->SetShaftFixed(true);
+    system->Add(shaftC);
 
-  // Create 'A', a 1D shaft
-  auto shaftA = std::make_shared<ChShaft>();
-  shaftA->SetInertia(9);
-  system->Add(shaftA);
+    // Create 'B', a 3D rigid body
+    std::shared_ptr<ChBody> bodyB(system->NewBody());
 
-  // Create 'C', a 1D shaft, fixed
-  auto shaftC = std::make_shared<ChShaft>();
-  shaftC->SetShaftFixed(true);
-  system->Add(shaftC);
+    bodyB->Accumulate_torque(ChVector<>(0, 0, 3), true);  // set some constant torque to body
+    system->Add(bodyB);
 
-  // Create 'B', a 3D rigid body
-  std::shared_ptr<ChBody> bodyB(system->NewBody());
+    // Make the torsional spring-damper between shafts A and C.
+    auto shaft_torsionAC = std::make_shared<ChShaftsTorsionSpring>();
+    shaft_torsionAC->Initialize(shaftA, shaftC);
+    shaft_torsionAC->SetTorsionalStiffness(40);
+    shaft_torsionAC->SetTorsionalDamping(0);
+    system->Add(shaft_torsionAC);
 
-  bodyB->Accumulate_torque(ChVector<>(0, 0, 3), true);  // set some constant torque to body
-  system->Add(bodyB);
+    // Make the shaft 'A' connected to the rotation of the 3D body 'B'.
+    // We must specify the direction (in body coordinates) along which the
+    // shaft will affect the body.
+    auto shaftbody_connection = std::make_shared<ChShaftsBody>();
+    ChVector<> shaftdir(VECT_Z);
+    shaftbody_connection->Initialize(shaftA, bodyB, shaftdir);
+    system->Add(shaftbody_connection);
 
-  // Make the torsional spring-damper between shafts A and C.
-  auto shaft_torsionAC = std::make_shared<ChShaftsTorsionSpring>();
-  shaft_torsionAC->Initialize(shaftA, shaftC);
-  shaft_torsionAC->SetTorsionalStiffness(40);
-  shaft_torsionAC->SetTorsionalDamping(0);
-  system->Add(shaft_torsionAC);
+    // Perform the simulation and verify results.
+    double tol_pos = 1e-3;
+    double tol_vel = 1e-4;
+    double tol_acc = 1e-4;
+    double tol_trq = 1e-4;
 
-  // Make the shaft 'A' connected to the rotation of the 3D body 'B'.
-  // We must specify the direction (in body coordinates) along which the
-  // shaft will affect the body.
-  auto shaftbody_connection = std::make_shared<ChShaftsBody>();
-  ChVector<> shaftdir(VECT_Z);
-  shaftbody_connection->Initialize(shaftA, bodyB, shaftdir);
-  system->Add(shaftbody_connection);
+    double time_end = 0.5;
+    double time_step = 1e-3;
+    double time = 0;
 
-  // Perform the simulation and verify results.
-  double tol_pos = 1e-3;
-  double tol_vel = 1e-4;
-  double tol_acc = 1e-4;
-  double tol_trq = 1e-4;
+    while (time < time_end) {
+        system->DoStepDynamics(time_step);
+        time += time_step;
+    }
 
-  double time_end = 0.5;
-  double time_step = 1e-3;
-  double time = 0;
+    // Validate solution at t = 0.5, using the Chrono reference solution (h = 1e-3)
 
-  while (time < time_end) {
-    system->DoStepDynamics(time_step);
-    time += time_step;
-  }
+    double posA = 0.0345404;  // shaftA angle
+    double velA = 0.126221;   // shaftA angular velocity
+    double accA = 0.162343;   // shaftA angular acceleration
 
-  // Validate solution at t = 0.5, using the Chrono reference solution (h = 1e-3)
-  bool passed = true;
+    double avelB = 0.126221;  // z component of bodyB angular velocity
+    double aaccB = 0.162343;  // z component of bodyB angular acceleration
 
-  double posA = 0.0345404;  // shaftA angle
-  double velA = 0.126221;   // shaftA angular velocity
-  double accA = 0.162343;   // shaftA angular acceleration
+    double spring_trqA = -1.38162;  // spring torque on shaftA
+    double spring_trqC = 1.38162;   // spring torque on shaftC
 
-  double avelB = 0.126221;  // z component of bodyB angular velocity
-  double aaccB = 0.162343;  // z component of bodyB angular acceleration
+    double trqA = -2.83766;  // reaction on shaftA
+    double trqB = 2.83766;   // reaction on bodyB (z component)
 
-  double spring_trqA = -1.38162;  // spring torque on shaftA
-  double spring_trqC = 1.38162;   // spring torque on shaftC
+    ASSERT_NEAR(shaftA->GetPos(), posA, tol_pos);
+    ASSERT_NEAR(shaftA->GetPos_dt(), velA, tol_vel);
+    ASSERT_NEAR(shaftA->GetPos_dtdt(), accA, tol_acc);
 
-  double trqA = -2.83766;   // reaction on shaftA
-  double trqB = 2.83766;  // reaction on bodyB (z component)
+    ASSERT_NEAR(bodyB->GetWvel_loc().z(), avelB, tol_acc);
+    ASSERT_NEAR(bodyB->GetWacc_loc().z(), aaccB, tol_acc);
 
-  if (std::abs(shaftA->GetPos() - posA) > tol_pos || std::abs(shaftA->GetPos_dt() - velA) > tol_vel ||
-      std::abs(shaftA->GetPos_dtdt() - accA) > tol_acc)
-    passed = false;
+    ASSERT_NEAR(shaft_torsionAC->GetTorqueReactionOn1(), spring_trqA, tol_trq);
+    ASSERT_NEAR(shaft_torsionAC->GetTorqueReactionOn2(), spring_trqC, tol_trq);
 
-  if (std::abs(bodyB->GetWvel_loc().z() - avelB) > tol_acc || std::abs(bodyB->GetWacc_loc().z() - aaccB) > tol_acc)
-    passed = false;
+    ASSERT_NEAR(shaftbody_connection->GetTorqueReactionOnShaft(), trqA, tol_trq);
+    ASSERT_NEAR(shaftbody_connection->GetTorqueReactionOnBody().z(), trqB, tol_trq);
 
-  if (std::abs(shaft_torsionAC->GetTorqueReactionOn1() - spring_trqA) > tol_trq ||
-      std::abs(shaft_torsionAC->GetTorqueReactionOn2() - spring_trqC) > tol_trq)
-    passed = false;
-
-  if (std::abs(shaftbody_connection->GetTorqueReactionOnShaft() - trqA) > tol_trq ||
-      std::abs(shaftbody_connection->GetTorqueReactionOnBody().z() - trqB) > tol_trq)
-    passed = false;
-
-  std::cout << (passed ? "PASSED" : "FAILED") << std::endl;
-
-  std::cout << "Time: " << time << "\n"
-            << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
-            << "  accel: " << shaftA->GetPos_dtdt() << "\n"
-            << "  body B angular speed on z: " << bodyB->GetWvel_loc().z() << "  accel on z: " << bodyB->GetWacc_loc().z()
-            << "\n"
-            << "  AC spring, torque on A side: " << shaft_torsionAC->GetTorqueReactionOn1()
-            << "  torque on C side: " << shaft_torsionAC->GetTorqueReactionOn2() << "\n"
-            << "  torque on shaft A: " << shaftbody_connection->GetTorqueReactionOnShaft() << "\n"
-            << "  torque on body B: " << shaftbody_connection->GetTorqueReactionOnBody().x() << " "
-            << shaftbody_connection->GetTorqueReactionOnBody().y() << " "
-            << shaftbody_connection->GetTorqueReactionOnBody().z() << " "
-            << "\n\n\n";
-
-  // Delete the system
-  delete system;
-
-  return passed;
+    ////std::cout << "Time: " << time << "\n"
+    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
+    ////          << "  accel: " << shaftA->GetPos_dtdt() << "\n"
+    ////          << "  body B angular speed on z: " << bodyB->GetWvel_loc().z() << "  accel on z: " <<
+    ///bodyB->GetWacc_loc().z() /          << "\n" /          << "  AC spring, torque on A side: " <<
+    ///shaft_torsionAC->GetTorqueReactionOn1() /          << "  torque on C side: " <<
+    ///shaft_torsionAC->GetTorqueReactionOn2() << "\n" /          << "  torque on shaft A: " <<
+    ///shaftbody_connection->GetTorqueReactionOnShaft() << "\n" /          << "  torque on body B: " <<
+    ///shaftbody_connection->GetTorqueReactionOnBody().x() << " " /          <<
+    ///shaftbody_connection->GetTorqueReactionOnBody().y() << " " /          <<
+    ///shaftbody_connection->GetTorqueReactionOnBody().z() << " " /          << "\n\n\n";
 }
 
 // -----------------------------------------------------------------------------
 // Two shafts A and B, connected by a clutch [ c ]. Shafts starts with nonzero
 // speed, and are free to rotate independently until the clutch is activated.
-// After activation, the shafts decelerateuntil they have the same speed.
+// After activation, the shafts decelerate until they have the same speed.
 //
 //       A           B
 //  Ta  ||---[ c ]---||
 //
+// TODO: validate results
 // -----------------------------------------------------------------------------
-bool TestClutch(const char* test_name, ChMaterialSurface::ContactMethod cm) {
-  std::cout << test_name << std::endl;
+TEST_P(ChShaftTest, clutch) {
+    // Create a ChShaft that starts with nonzero angular velocity
+    auto shaftA = std::make_shared<ChShaft>();
+    shaftA->SetInertia(0.5);
+    shaftA->SetPos_dt(30);
+    system->Add(shaftA);
 
-  // Create the system
-  ChSystemParallel* system = CreateSystem(cm);
+    // Create another ChShaft, with opposite initial angular velocity
+    auto shaftB = std::make_shared<ChShaft>();
+    shaftB->SetInertia(0.6);
+    shaftB->SetPos_dt(-10);
+    system->Add(shaftB);
 
-  // Create a ChShaft that starts with nonzero angular velocity
-  auto shaftA = std::make_shared<ChShaft>();
-  shaftA->SetInertia(0.5);
-  shaftA->SetPos_dt(30);
-  system->Add(shaftA);
+    // Create a ChShaftsClutch, that represents a simplified model
+    // of a clutch between two ChShaft objects (something that limits
+    // the max transmitted torque, up to slippage).
+    auto clutchAB = std::make_shared<ChShaftsClutch>();
+    clutchAB->Initialize(shaftA, shaftB);
+    clutchAB->SetTorqueLimit(60);
+    clutchAB->SetModulation(0);
+    system->Add(clutchAB);
 
-  // Create another ChShaft, with opposite initial angular velocity
-  auto shaftB = std::make_shared<ChShaft>();
-  shaftB->SetInertia(0.6);
-  shaftB->SetPos_dt(-10);
-  system->Add(shaftB);
+    // Perform the simulation and verify results.
+    double tol_pos = 1e-3;
+    double tol_vel = 1e-4;
+    double tol_acc = 1e-4;
+    double tol_trq = 1e-4;
 
-  // Create a ChShaftsClutch, that represents a simplified model
-  // of a clutch between two ChShaft objects (something that limits
-  // the max transmitted torque, up to slippage).
-  auto clutchAB = std::make_shared<ChShaftsClutch>();
-  clutchAB->Initialize(shaftA, shaftB);
-  clutchAB->SetTorqueLimit(60);
-  clutchAB->SetModulation(0);
-  system->Add(clutchAB);
+    double time_end = 1.5;
+    double time_step = 1e-3;
+    double time = 0;
 
-  // Perform the simulation and verify results.
-  bool passed = true;
-  double tol_pos = 1e-3;
-  double tol_vel = 1e-4;
-  double tol_acc = 1e-4;
-  double tol_trq = 1e-4;
+    while (time < time_end) {
+        system->DoStepDynamics(time_step);
+        time += time_step;
 
-  double time_end = 1.5;
-  double time_step = 1e-3;
-  double time = 0;
+        if (time > 0.8)
+            clutchAB->SetModulation(1);
 
-  while (time < time_end) {
-    system->DoStepDynamics(time_step);
-    time += time_step;
+        ////std::cout << "Time: " << time << "\n"
+        ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
+        ////          << "  accel: " << shaftA->GetPos_dtdt() << "\n"
+        ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
+        ////          << "  accel: " << shaftB->GetPos_dtdt() << "\n"
+        ////          << "  torque on A side: " << clutchAB->GetTorqueReactionOn1()
+        ////          << "  torque on B side: " << clutchAB->GetTorqueReactionOn2() << "\n";
+    }
 
-    if (time > 0.8)
-      clutchAB->SetModulation(1);
-
-    std::cout << "Time: " << time << "\n"
-              << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
-              << "  accel: " << shaftA->GetPos_dtdt() << "\n"
-              << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
-              << "  accel: " << shaftB->GetPos_dtdt() << "\n"
-              << "  torque on A side: " << clutchAB->GetTorqueReactionOn1()
-              << "  torque on B side: " << clutchAB->GetTorqueReactionOn2() << "\n";
-  }
-
-  std::cout << "Time: " << time << "\n"
-            << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
-            << "  accel: " << shaftA->GetPos_dtdt() << "\n"
-            << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
-            << "  accel: " << shaftB->GetPos_dtdt() << "\n"
-            << "  torque on A side: " << clutchAB->GetTorqueReactionOn1()
-            << "  torque on B side: " << clutchAB->GetTorqueReactionOn2() << "\n\n\n";
-
-  // Delete the system
-  delete system;
-
-  return passed;
+    ////std::cout << "Time: " << time << "\n"
+    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
+    ////          << "  accel: " << shaftA->GetPos_dtdt() << "\n"
+    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
+    ////          << "  accel: " << shaftB->GetPos_dtdt() << "\n"
+    ////          << "  torque on A side: " << clutchAB->GetTorqueReactionOn1()
+    ////          << "  torque on B side: " << clutchAB->GetTorqueReactionOn2() << "\n\n\n";
 }
 
 // -----------------------------------------------------------------------------
+// TODO: validate results
 // -----------------------------------------------------------------------------
-bool TestShaftShaftShaft(const char* test_name, ChMaterialSurface::ContactMethod cm) {
-  std::cout << test_name << std::endl;
+TEST_P(ChShaftTest, shaft_shaft_shaft) {
+    // Create shaft A, with applied torque
+    auto shaftA = std::make_shared<ChShaft>();
+    shaftA->SetInertia(0.5);
+    shaftA->SetAppliedTorque(10);
+    system->Add(shaftA);
 
-  // Create the system
-  ChSystemParallel* system = CreateSystem(cm);
+    // Create shaft B
+    auto shaftB = std::make_shared<ChShaft>();
+    shaftB->SetInertia(0.5);
+    system->Add(shaftB);
 
-  // Create shaft A, with applied torque
-  auto shaftA = std::make_shared<ChShaft>();
-  shaftA->SetInertia(0.5);
-  shaftA->SetAppliedTorque(10);
-  system->Add(shaftA);
+    // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
+    auto shaftC = std::make_shared<ChShaft>();
+    shaftC->SetShaftFixed(true);
+    system->Add(shaftC);
 
-  // Create shaft B
-  auto shaftB = std::make_shared<ChShaft>();
-  shaftB->SetInertia(0.5);
-  system->Add(shaftB);
+    // Create a ChShaftsPlanetary, that represents a simplified model
+    // of a planetary gear between THREE ChShaft objects (ex.: a car differential)
+    // An epicycloidal reducer is a special type of planetary gear.
+    auto planetaryBAC = std::make_shared<ChShaftsPlanetary>();
+    planetaryBAC->Initialize(shaftB, shaftA, shaftC);  // output, carrier, fixed
 
-  // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
-  auto shaftC = std::make_shared<ChShaft>();
-  shaftC->SetShaftFixed(true);
-  system->Add(shaftC);
+    // We can set the ratios of the planetary using a simplified formula, for the
+    // so called 'Willis' case. Imagine we hold fixed the carrier (shaft B in epic. reducers),
+    // and leave free the truss C (the outer gear with inner teeth in our reducer); which is
+    // the transmission ratio t0 that we get? It is simply t0=-Za/Zc, with Z = num of teeth of gears.
+    // So just use the following to set all the three ratios automatically:
+    double t0 = -50.0 / 100.0;  // suppose, in the reducer, that pinion A has 50 teeth and truss has 100 inner teeth.
+    planetaryBAC->SetTransmissionRatioOrdinary(t0);
+    system->Add(planetaryBAC);
 
-  // Create a ChShaftsPlanetary, that represents a simplified model
-  // of a planetary gear between THREE ChShaft objects (ex.: a car differential)
-  // An epicycloidal reducer is a special type of planetary gear.
-  auto planetaryBAC = std::make_shared<ChShaftsPlanetary>();
-  planetaryBAC->Initialize(shaftB, shaftA, shaftC);  // output, carrier, fixed
+    // Now, let's make a shaft D, that is fixed, and used for the right side
+    // of a clutch (so the clutch will act as a brake).
+    auto shaftD = std::make_shared<ChShaft>();
+    shaftD->SetShaftFixed(true);
+    system->Add(shaftD);
 
-  // We can set the ratios of the planetary using a simplified formula, for the
-  // so called 'Willis' case. Imagine we hold fixed the carrier (shaft B in epic. reducers),
-  // and leave free the truss C (the outer gear with inner teeth in our reducer); which is
-  // the transmission ratio t0 that we get? It is simply t0=-Za/Zc, with Z = num of teeth of gears.
-  // So just use the following to set all the three ratios automatically:
-  double t0 = -50.0 / 100.0;  // suppose, in the reducer, that pinion A has 50 teeth and truss has 100 inner teeth.
-  planetaryBAC->SetTransmissionRatioOrdinary(t0);
-  system->Add(planetaryBAC);
+    // Make the brake. It is, in fact a clutch between shafts B and D, where
+    // D is fixed as a truss, so the clutch will operate as a brake.
+    auto clutchBD = std::make_shared<ChShaftsClutch>();
+    clutchBD->Initialize(shaftB, shaftD);
+    clutchBD->SetTorqueLimit(60);
+    system->Add(clutchBD);
 
-  // Now, let's make a shaft D, that is fixed, and used for the right side
-  // of a clutch (so the clutch will act as a brake).
-  auto shaftD = std::make_shared<ChShaft>();
-  shaftD->SetShaftFixed(true);
-  system->Add(shaftD);
+    // Perform the simulation and verify results.
+    double tol_pos = 1e-3;
+    double tol_vel = 1e-4;
+    double tol_acc = 1e-4;
+    double tol_trq = 1e-4;
 
-  // Make the brake. It is, in fact a clutch between shafts B and D, where
-  // D is fixed as a truss, so the clutch will operate as a brake.
-  auto clutchBD = std::make_shared<ChShaftsClutch>();
-  clutchBD->Initialize(shaftB, shaftD);
-  clutchBD->SetTorqueLimit(60);
-  system->Add(clutchBD);
+    double time_end = 0.5;
+    double time_step = 1e-3;
+    double time = 0;
 
-  // Perform the simulation and verify results.
-  bool passed = true;
-  double tol_pos = 1e-3;
-  double tol_vel = 1e-4;
-  double tol_acc = 1e-4;
-  double tol_trq = 1e-4;
+    while (time < time_end) {
+        system->DoStepDynamics(time_step);
+        time += time_step;
 
-  double time_end = 0.5;
-  double time_step = 1e-3;
-  double time = 0;
+        ////std::cout << "Time: " << time << "\n"
+        ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
+        ////          << "  accel: " << shaftA->GetPos_dtdt() << "\n"
+        ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
+        ////          << "  accel: " << shaftB->GetPos_dtdt() << "\n"
+        ////          << "  planetary react torques on shafts:\n"
+        ////          << "     on A: " << planetaryBAC->GetTorqueReactionOn2()
+        ////          << "     on B: " << planetaryBAC->GetTorqueReactionOn1()
+        ////          << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n";
+    }
 
-  while (time < time_end) {
-    system->DoStepDynamics(time_step);
-    time += time_step;
-
-    std::cout << "Time: " << time << "\n"
-              << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
-              << "  accel: " << shaftA->GetPos_dtdt() << "\n"
-              << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
-              << "  accel: " << shaftB->GetPos_dtdt() << "\n"
-              << "  planetary react torques on shafts:\n"
-              << "     on A: " << planetaryBAC->GetTorqueReactionOn2()
-              << "     on B: " << planetaryBAC->GetTorqueReactionOn1()
-              << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n";
-  }
-
-  std::cout << "Time: " << time << "\n"
-            << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
-            << "  accel: " << shaftA->GetPos_dtdt() << "\n"
-            << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
-            << "  accel: " << shaftB->GetPos_dtdt() << "\n"
-            << "  planetary react torques on shafts:\n"
-            << "     on A: " << planetaryBAC->GetTorqueReactionOn2()
-            << "     on B: " << planetaryBAC->GetTorqueReactionOn1()
-            << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n\n\n";
-
-  return passed;
+    ////std::cout << "Time: " << time << "\n"
+    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
+    ////          << "  accel: " << shaftA->GetPos_dtdt() << "\n"
+    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPos_dt()
+    ////          << "  accel: " << shaftB->GetPos_dtdt() << "\n"
+    ////          << "  planetary react torques on shafts:\n"
+    ////          << "     on A: " << planetaryBAC->GetTorqueReactionOn2()
+    ////          << "     on B: " << planetaryBAC->GetTorqueReactionOn1()
+    ////          << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n\n\n";
 }
 
-// -----------------------------------------------------------------------------
-// Main driver function for running the simulation and validating the results.
-// -----------------------------------------------------------------------------
-int main(int argc, char* argv[]) {
-  bool test_passed = true;
-
-  // Test shaft - shaft connection
-  test_passed &= TestShaftShaft("shaft-shaft (SMC)", ChMaterialSurface::SMC);
-  test_passed &= TestShaftShaft("shaft-shaft (NSC)", ChMaterialSurface::NSC);
-
-  // Test shaft - body connection
-  test_passed &= TestShaftBody("shaft-body (SMC)", ChMaterialSurface::SMC);
-  test_passed &= TestShaftBody("shaft-body (NSC)", ChMaterialSurface::NSC);
-
-  // Test clutch between shafts
-  ////test_passed &= TestClutch("clutch (SMC)", ChMaterialSurface::SMC);
-  ////test_passed &= TestClutch("clutch (NSC)", ChMaterialSurface::NSC);
-
-  // Test shaft - shaft - shaft connection
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (SMC)", ChMaterialSurface::SMC);
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (NSC)", ChMaterialSurface::NSC);
-
-  // Return 0 if all tests passed and 1 otherwise
-  return !test_passed;
-}
+INSTANTIATE_TEST_CASE_P(ChronoParallel, ChShaftTest, ::testing::Values(ChMaterialSurface::NSC, ChMaterialSurface::SMC));

@@ -9,183 +9,199 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
 // ChronoParallel unit test for MPR collision detection
 // =============================================================================
 
-#include <cstdio>
-#include <vector>
-#include <cmath>
-
-#include "unit_testing.h"
 #include "chrono_parallel/math/matrix.h"
 
+#include "unit_testing.h"
+
 using namespace chrono;
-int main(int argc, char* argv[]) {
-    real3 n = Normalize(real3(rand(), rand(), rand()));
-    quaternion R1 = Normalize(quaternion(rand(), rand(), rand(), rand()));
-    quaternion R2 = Normalize(quaternion(rand(), rand(), rand(), rand()));
-    const Mat33 AOne(1, 1, 1, 1, 1, 1, 1, 1, 1);
-    const Mat33 A1(1, 2, 4, 5, 6, 7, 8, 9, 10);
-    const Mat33 A2(10, 2, 4, 7, 2, 5, 8, 3, 1);
-    const Mat33 A3(1, 0, 5, 2, 1, 6, 3, 4, 0);
-    const Mat33 A4(-24, 20, -5, 18, -15, 4, 5, -4, 1);
-    const Mat33 A4_T(-24, 18, 5, 20, -15, -4, -5, 4, 1);
-    const Mat33 A5(0.0, 6.4, 3.2, 4.0, -0.8, 3.2, 6.4, 3.2, 5.6);
-    ChMatrix33<real> BOne = ChMatrix33<real>(ToChMatrix33(AOne));
-    ChMatrix33<real> B1 = ChMatrix33<real>(ToChMatrix33(A1));
-    ChMatrix33<real> B2 = ChMatrix33<real>(ToChMatrix33(A2));
 
-    real3 a1(1, 2, 3);
-    real3 a2(6, 7, 8);
-    ChVector<> b1(1, 2, 3);
-    ChVector<> b2(6, 7, 8);
-    std::cout << "3x3 Matrix Tests ============\n";
+class Mat33Test : public ::testing::Test {
+  protected:
+    void SetUp() override {
+        n = Normalize(real3(rand(), rand(), rand()));
 
-    std::cout << "0 Matrix\n";
-    WeakEqual(Mat33(0), ToMat33(ChMatrix33<real>(0)));
+        R1 = Normalize(quaternion(rand(), rand(), rand(), rand()));
+        R2 = Normalize(quaternion(rand(), rand(), rand(), rand()));
 
-    std::cout << "Diag Matrix\n";
-    WeakEqual(Mat33(1), Mat33(1, 0, 0, 0, 1, 0, 0, 0, 1));
+        AOne = Mat33(1, 1, 1, 1, 1, 1, 1, 1, 1);
+        A1 = Mat33(1, 2, 4, 5, 6, 7, 8, 9, 10);
+        A2 = Mat33(10, 2, 4, 7, 2, 5, 8, 3, 1);
+        A3 = Mat33(1, 0, 5, 2, 1, 6, 3, 4, 0);
+        A4 = Mat33(-24, 20, -5, 18, -15, 4, 5, -4, 1);
+        A4_T = Mat33(-24, 18, 5, 20, -15, -4, -5, 4, 1);
+        A5 = Mat33(0.0, 6.4, 3.2, 4.0, -0.8, 3.2, 6.4, 3.2, 5.6);
 
-    std::cout << "Diag 3 Matrix\n";
-    WeakEqual(Mat33(real3(1, 2, 3)), Mat33(1, 0, 0, 0, 2, 0, 0, 0, 3));
+        BOne = ToChMatrix33(AOne);
+        B1 = ToChMatrix33(A1);
+        B2 = ToChMatrix33(A2);
 
-    std::cout << "Column Constructor\n";
-    WeakEqual(Mat33(real3(1, 2, 4), real3(5, 6, 7), real3(8, 9, 10)), A1);
+        a1 = real3(1, 2, 3);
+        a2 = real3(6, 7, 8);
 
-    std::cout << "Element Constructor\n";
-    WeakEqual(A4[0], -24);
-    WeakEqual(A4[1], 20);
-    WeakEqual(A4[2], -5);
-    WeakEqual(A4[4], 18);
-    WeakEqual(A4[5], -15);
-    WeakEqual(A4[6], 4);
-    WeakEqual(A4[8], 5);
-    WeakEqual(A4[9], -4);
-    WeakEqual(A4[10], 1);
-
-    std::cout << "Copy Constructor\n";
-    WeakEqual(Mat33(A1), A1);
-
-    std::cout << "Quaternion Constructor \n";
-    WeakEqual(Mat33(R1), ToMat33(ToChQuaternion(R1)), C_EPSILON * 3);
-
-    std::cout << "() Operator \n";
-    WeakEqual(A4(0, 0), -24);
-    WeakEqual(A4(1, 2), -4);
-
-    std::cout << "col Operator \n";
-    WeakEqual(A4.col(0), real3(-24, 20, -5));
-    WeakEqual(A4.col(1), real3(18, -15, 4));
-    WeakEqual(A4.col(2), real3(5, -4, 1));
-
-    std::cout << "row Operator \n";
-    WeakEqual(A4.row(0), real3(-24, 18, 5));
-    WeakEqual(A4.row(1), real3(20, -15, -4));
-    WeakEqual(A4.row(2), real3(-5, 4, 1));
-
-    {
-        std::cout << "= Operator\n";
-        Mat33 T = A1;
-        WeakEqual(T, A1);
+        b1 = ChVector<>(1, 2, 3);
+        b2 = ChVector<>(6, 7, 8);
     }
 
-    std::cout << "Multiply Matrix\n";
-    WeakEqual(AOne * AOne, ToMat33(BOne * BOne));
+    real3 n;
+    quaternion R1, R2;
+    Mat33 AOne, A1, A2, A3, A4, A4_T, A5;
+    ChMatrix33<real> BOne, B1, B2;
+    real3 a1, a2;
+    ChVector<> b1, b2;
+};
 
-    std::cout << "Multiply Matrix\n";
-    WeakEqual(A1 * A2, ToMat33(B1 * B2));
+TEST_F(Mat33Test, constructors) {
+    // 0 Matrix
+    Assert_eq(Mat33(0), ToMat33(ChMatrix33<real>(0)));
 
-    std::cout << "Multiply Matrix Vector\n";
-    WeakEqual(A1 * a1, ToReal3(B1 * b1));
+    // Diag Matrix
+    Assert_eq(Mat33(1), Mat33(1, 0, 0, 0, 1, 0, 0, 0, 1));
 
-    std::cout << "Add Matrix\n";
-    WeakEqual(A1 + A2, ToMat33(B1 + B2));
+    // Diag 3 Matrix
+    Assert_eq(Mat33(real3(1, 2, 3)), Mat33(1, 0, 0, 0, 2, 0, 0, 0, 3));
 
-    std::cout << "Subtract Matrix\n";
-    WeakEqual(A1 - A2, ToMat33(B1 - B2));
+    // Column Constructor
+    Assert_eq(Mat33(real3(1, 2, 4), real3(5, 6, 7), real3(8, 9, 10)), A1);
 
-    std::cout << "Abs Matrix\n";
-    WeakEqual(Abs(A4), Mat33(24, 20, 5, 18, 15, 4, 5, 4, 1));
+    // Element Constructor
+    ASSERT_EQ(A4[0], -24);
+    ASSERT_EQ(A4[1], 20);
+    ASSERT_EQ(A4[2], -5);
+    ASSERT_EQ(A4[4], 18);
+    ASSERT_EQ(A4[5], -15);
+    ASSERT_EQ(A4[6], 4);
+    ASSERT_EQ(A4[8], 5);
+    ASSERT_EQ(A4[9], -4);
+    ASSERT_EQ(A4[10], 1);
 
-    std::cout << "Post Scale Matrix\n";
-    WeakEqual(A1 * 3.1, ToMat33(B1 * 3.1));
+    // Copy Constructor
+    Assert_eq(Mat33(A1), A1);
 
-    std::cout << "Pre Scale Matrix\n";
-    WeakEqual(3.1 * A1, ToMat33(B1 * 3.1));
+    // Quaternion Constructor
+    Assert_near(Mat33(R1), ToMat33(ToChQuaternion(R1)), C_EPSILON * 3);
+}
+
+TEST_F(Mat33Test, operators) {
+    const Mat33 A4(-24, 20, -5, 18, -15, 4, 5, -4, 1);
+
+    // () Operator
+    ASSERT_EQ(A4(0, 0), -24);
+    ASSERT_EQ(A4(1, 2), -4);
+
+    // col Operator
+    Assert_eq(A4.col(0), real3(-24, 20, -5));
+    Assert_eq(A4.col(1), real3(18, -15, 4));
+    Assert_eq(A4.col(2), real3(5, -4, 1));
+
+    // row Operator
+    Assert_eq(A4.row(0), real3(-24, 18, 5));
+    Assert_eq(A4.row(1), real3(20, -15, -4));
+    Assert_eq(A4.row(2), real3(-5, 4, 1));
+
     {
-        std::cout << "Cross Matrix\n";
+        // = Operator
+        Mat33 T = A1;
+        Assert_eq(T, A1);
+    }
+
+    // Multiply Matrix
+    Assert_near(AOne * AOne, ToMat33(BOne * BOne));
+
+    // Multiply Matrix
+    Assert_near(A1 * A2, ToMat33(B1 * B2));
+
+    // Multiply Matrix Vector
+    Assert_near(A1 * a1, ToReal3(B1 * b1));
+
+    // Add Matrix
+    Assert_near(A1 + A2, ToMat33(B1 + B2));
+
+    // Subtract Matrix
+    Assert_near(A1 - A2, ToMat33(B1 - B2));
+
+    // Abs Matrix
+    Assert_near(Abs(A4), Mat33(24, 20, 5, 18, 15, 4, 5, 4, 1));
+
+    // Post Scale Matrix
+    Assert_near(A1 * 3.1, ToMat33(B1 * 3.1));
+
+    // Pre Scale Matrix
+    Assert_near(3.1 * A1, ToMat33(B1 * 3.1));
+}
+
+TEST_F(Mat33Test, functions) {
+    {
+        // Cross Matrix
         Mat33 cross_m1 = SkewSymmetric(n);
         ChMatrix33<real> cross_m2;
         cross_m2.Set_X_matrix(ToChVector(n));
-        WeakEqual(cross_m1, ToMat33(cross_m2));
+        Assert_near(cross_m1, ToMat33(cross_m2));
     }
     {
-        std::cout << "Multiply T Matrix \n";
+        // Multiply T Matrix
         Mat33 Res1 = TransposeMult(A1, A2);
         ChMatrix33<real> Res2;
         Res2.MatrTMultiply(B1, B2);
-        WeakEqual(Res1, ToMat33(Res2), C_EPSILON * 2);
+        Assert_near(Res1, ToMat33(Res2), C_EPSILON * 2);
     }
-
     {
-        std::cout << "Multiply Matrix T\n";
+        // Multiply Matrix T
         ChMatrix33<real> Res2;
         Res2.MatrMultiplyT(B1, B2);
-        WeakEqual(MultTranspose(A1, A2), ToMat33(Res2), C_EPSILON * 2);
+        Assert_near(MultTranspose(A1, A2), ToMat33(Res2), C_EPSILON * 2);
     }
-
     {
-        std::cout << "Outer Product\n";
+        // Outer Product
         Mat33 Res1 = OuterProduct(a1, a2);
         Mat33 Res2(6, 12, 18, 7, 14, 21, 8, 16, 24);
-        WeakEqual(Res1, Res2, C_EPSILON);
+        Assert_near(Res1, Res2, C_EPSILON);
     }
-    std::cout << "Transpose\n";
-    WeakEqual(Transpose(A4), A4_T, C_EPSILON);
+    // Transpose
+    Assert_near(Transpose(A4), A4_T, C_EPSILON);
 
-    std::cout << "Determinant\n";
-    WeakEqual(Determinant(A5), 45.056, C_EPSILON * 400);
+    // Determinant
+    ASSERT_NEAR(Determinant(A5), 45.056, C_EPSILON * 400);
 
-    std::cout << "Trace\n";
-    WeakEqual(Trace(A5), 4.8, C_EPSILON);
+    // Trace
+    ASSERT_NEAR(Trace(A5), 4.8, C_EPSILON);
 
-    std::cout << "Adjoint\n";
-    WeakEqual(Adjoint(A3), A4, C_EPSILON);
+    // Adjoint
+    Assert_near(Adjoint(A3), A4, C_EPSILON);
 
-    std::cout << "Adjoint Transpose\n";
-    WeakEqual(AdjointTranspose(A4), Transpose(A3), C_EPSILON);
+    // Adjoint Transpose
+    Assert_near(AdjointTranspose(A4), Transpose(A3), C_EPSILON);
 
-    std::cout << "Inverse\n";
-    WeakEqual(Inverse(A3), A4, C_EPSILON);
+    // Inverse
+    Assert_near(Inverse(A3), A4, C_EPSILON);
 
-    std::cout << "Inverse Transpose\n";
-    WeakEqual(InverseTranspose(A3), Transpose(Inverse(A3)), C_EPSILON);
+    // Inverse Transpose
+    Assert_near(InverseTranspose(A3), Transpose(Inverse(A3)), C_EPSILON);
 
-    std::cout << "Frobenius Norm\n";
-    WeakEqual(Norm(A5), 12.674383614203887588, C_EPSILON);
+    // Frobenius Norm
+    ASSERT_NEAR(Norm(A5), 12.674383614203887588, C_EPSILON);
 
-    std::cout << "Largest Column Normalized\n";
-    WeakEqual(LargestColumnNormalized(A4),
-              real3(-.75856744948921676267, 0.63213954124101396889, -.15803488531025349222), C_EPSILON);
+    // Largest Column Normalized
+    Assert_near(LargestColumnNormalized(A4),
+                real3(-.75856744948921676267, 0.63213954124101396889, -.15803488531025349222), C_EPSILON);
 
-    std::cout << "Normal Equations Matrix\n";
-    WeakEqual(NormalEquationsMatrix(A3), Transpose(A3) * A3, C_EPSILON);
-    WeakEqual(NormalEquationsMatrix(A3), Mat33(26, 32, 3, 32, 41, 10, 3, 10, 25), C_EPSILON);
+    // Normal Equations Matrix
+    Assert_near(NormalEquationsMatrix(A3), Transpose(A3) * A3, C_EPSILON);
+    Assert_near(NormalEquationsMatrix(A3), Mat33(26, 32, 3, 32, 41, 10, 3, 10, 25), C_EPSILON);
 
-    std::cout << "Symm2x2 Matrix Tests ============\n";
+    // Symm2x2 Matrix Tests ============
     {
-        std::cout << "A^T*B With Symmetric Result\n";
+        // A^T*B With Symmetric Result
 
         Mat32 C1(real3(1, 2, 3), real3(3, 2, 6));
         Mat32 C2(real3(2, 3, 1), real3(2, 2, 4));
 
         SymMat22 RES = TransposeTimesWithSymmetricResult(C1, C2);
-        WeakEqual(RES, SymMat22(11, 18, 34));
+        Assert_near(RES, SymMat22(11, 18, 34));
     }
-
-    return 0;
 }

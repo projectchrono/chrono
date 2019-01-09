@@ -15,8 +15,12 @@
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 
+#include <algorithm>
+#include <limits>
+
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
@@ -873,9 +877,9 @@ inline Real ChQuaternion<Real>::Length2() const {
 
 template <class Real>
 inline Real ChQuaternion<Real>::LengthInf() const {
-    Real e0e1 = ChMax(fabs(data[0]), fabs(data[1]));
-    Real e0e1e2 = ChMax(e0e1, fabs(data[2]));
-    return ChMax(e0e1e2, fabs(data[3]));
+    Real e0e1 = std::max(fabs(data[0]), fabs(data[1]));
+    Real e0e1e2 = std::max(e0e1, fabs(data[2]));
+    return std::max(e0e1e2, fabs(data[3]));
 }
 
 template <class Real>
@@ -930,7 +934,7 @@ inline void ChQuaternion<Real>::Scale(Real s) {
 template <class Real>
 inline bool ChQuaternion<Real>::Normalize() {
     Real length = this->Length();
-    if (length < CH_NANOTOL) {
+    if (length < std::numeric_limits<Real>::min()) {
         data[0] = 1;
         data[1] = 0;
         data[2] = 0;
@@ -1080,10 +1084,11 @@ inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_ax
         a_axis.z() = 0;  // data[3] * 2.0;
     }
     // Ensure that angle is always in  [-PI...PI] range
-    if (a_angle > CH_C_PI) {
-        a_angle -= CH_C_2PI;
-    } else if (a_angle < -CH_C_PI) {
-        a_angle += CH_C_2PI;
+    auto PI = static_cast<Real>(CH_C_PI);
+    if (a_angle > PI) {
+        a_angle -= 2 * PI;
+    } else if (a_angle < -PI) {
+        a_angle += 2 * PI;
     }
 }
 

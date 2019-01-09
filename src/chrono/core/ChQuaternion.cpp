@@ -418,9 +418,9 @@ ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset,
     ChVector<double> ang1, ang2;
 
     ang1 = Quat_to_Angle(angset, q);
-    ang2 = Vadd(ang1, Vmul(mangles, CH_LOWTOL));
+    ang2 = Vadd(ang1, Vmul(mangles, BDF_STEP_HIGH));
     q2 = Angle_to_Quat(angset, ang2);
-    res = Qscale(Qsub(q2, q), (1 / CH_LOWTOL));
+    res = Qscale(Qsub(q2, q), 1 / BDF_STEP_HIGH);
 
     return res;
 }
@@ -431,14 +431,13 @@ ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
     ChQuaternion<double> res;
     ChQuaternion<double> qa, qb;
     ChVector<double> ang0, angA, angB;
-    double hsquared = CH_LOWTOL;
 
     ang0 = Quat_to_Angle(angset, q);
-    angA = Vsub(ang0, Vmul(mangles, hsquared));
-    angB = Vadd(ang0, Vmul(mangles, hsquared));
+    angA = Vsub(ang0, Vmul(mangles, BDF_STEP_HIGH));
+    angB = Vadd(ang0, Vmul(mangles, BDF_STEP_HIGH));
     qa = Angle_to_Quat(angset, angA);
     qb = Angle_to_Quat(angset, angB);
-    res = Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / hsquared);
+    res = Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / BDF_STEP_HIGH);
 
     return res;
 }

@@ -58,14 +58,33 @@ __device__ void convert_pos_UU2SU(T3& pos, GranParamsPtr gran_params) {
     pos.z /= gran_params->LENGTH_UNIT;
 }
 
-/// Takes in a triangle's position in UU and finds out what SDs it touches
+/// Takes in a triangle ID and figures out an SD AABB for broadphase use
+__device__ void triangle_figureOutSDBox(float3 vA, float3 vB, float3 vC, int* L, int* U, GranParamsPtr gran_params) {
+    // Perform broadphase on UU vertices
+    int3 SDA = pointSDTriplet(vA.x, vA.y, vA.z, gran_params);  // SD indices for point A
+    int3 SDB = pointSDTriplet(vB.x, vB.y, vB.z, gran_params);  // SD indices for point B
+    int3 SDC = pointSDTriplet(vC.x, vC.y, vC.z, gran_params);  // SD indices for point C
+
+    L[0] = MIN(SDA.x, MIN(SDB.x, SDC.x));
+    L[1] = MIN(SDA.y, MIN(SDB.y, SDC.y));
+    L[2] = MIN(SDA.z, MIN(SDB.z, SDC.z));
+
+    U[0] = MAX(SDA.x, MAX(SDB.x, SDC.x));
+    U[1] = MAX(SDA.y, MAX(SDB.y, SDC.y));
+    U[2] = MAX(SDA.z, MAX(SDB.z, SDC.z));
+}
+
+/// Takes in a triangle's position in UU and finds out how many SDs it touches
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
-__device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
-                                             const TriangleSoupPtr triangleSoup,
-                                             unsigned int* touchedSDs,
-                                             GranParamsPtr gran_params,
-                                             MeshParamsPtr tri_params) {
+__device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
+                                                 const TriangleSoupPtr triangleSoup,
+                                                 GranParamsPtr gran_params,
+                                                 MeshParamsPtr tri_params) {
+    // bottom-left and top-right corners
+    int L[3];
+    int U[3];
+
     float3 vA, vB, vC;
 
     // Transform LRF to GRF
@@ -82,22 +101,86 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     convert_pos_UU2SU<float3>(vB, gran_params);
     convert_pos_UU2SU<float3>(vC, gran_params);
 
-    // Perform broadphase on UU vertices
-    int3 SDA = pointSDTriplet(vA.x, vA.y, vA.z, gran_params);  // SD indices for point A
-    int3 SDB = pointSDTriplet(vB.x, vB.y, vB.z, gran_params);  // SD indices for point B
-    int3 SDC = pointSDTriplet(vC.x, vC.y, vC.z, gran_params);  // SD indices for point C
+    // figure out L and U
+    triangle_figureOutSDBox(vA, vB, vC, L, U, gran_params);
 
-    int L[3];  // Min SD index along each axis
-    int U[3];  // Max SD index along each axis
+    // Case 1: All vetices are in the same SD
+    if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
+        return 1;
+    }
 
-    L[0] = MIN(SDA.x, MIN(SDB.x, SDC.x));
-    L[1] = MIN(SDA.y, MIN(SDB.y, SDC.y));
-    L[2] = MIN(SDA.z, MIN(SDB.z, SDC.z));
+    unsigned int n_axes_diff = 0;  // Count axes that have different SD bounds
+    unsigned int axes_diff;        // axis of variation (if only one)
 
-    U[0] = MAX(SDA.x, MAX(SDB.x, SDC.x));
-    U[1] = MAX(SDA.y, MAX(SDB.y, SDC.y));
-    U[2] = MAX(SDA.z, MAX(SDB.z, SDC.z));
+    for (int i = 0; i < 3; i++) {
+        if (L[i] != U[i]) {
+            axes_diff = i;  // If there are more than one, this won't be used anyway
+            n_axes_diff++;
+        }
+    }
 
+    // Case 2: Triangle lies in a Nx1x1, 1xNx1, or 1x1xN block of SDs
+    if (n_axes_diff == 1) {
+        // add one since it's in each of these SDs
+        return U[axes_diff] - L[axes_diff] + 1;
+    }
+
+    unsigned int numSDsTouched = 0;
+
+    // Case 3: Triangle spans more than one dimension of spheresTouchingThisSD
+    float SDcenter[3];
+    float SDhalfSizes[3];
+    for (int i = L[0]; i <= U[0]; i++) {
+        for (int j = L[1]; j <= U[1]; j++) {
+            for (int k = L[2]; k <= U[2]; k++) {
+                SDhalfSizes[0] = gran_params->SD_size_X_SU / 2;
+                SDhalfSizes[1] = gran_params->SD_size_Y_SU / 2;
+                SDhalfSizes[2] = gran_params->SD_size_Z_SU / 2;
+
+                SDcenter[0] = gran_params->BD_frame_X + (i * 2 + 1) * SDhalfSizes[0];
+                SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
+                SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
+
+                if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
+                    numSDsTouched++;
+                }
+            }
+        }
+    }
+    return numSDsTouched;
+}
+
+/// Takes in a triangle's position in UU and finds out what SDs it touches
+/// Triangle broadphase is done in float by applying the frame transform
+/// and then converting the GRF position to SU
+__device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
+                                             const TriangleSoupPtr triangleSoup,
+                                             unsigned int* touchedSDs,
+                                             GranParamsPtr gran_params,
+                                             MeshParamsPtr tri_params) {
+    // bottom-left and top-right corners
+    int L[3];
+    int U[3];
+
+    float3 vA, vB, vC;
+
+    // Transform LRF to GRF
+    unsigned int fam = triangleSoup->triangleFamily_ID[triangleID];
+    vA = apply_frame_transform<float, float3>(triangleSoup->node1[triangleID], tri_params->fam_frame_broad[fam].pos,
+                                              tri_params->fam_frame_broad[fam].rot_mat);
+    vB = apply_frame_transform<float, float3>(triangleSoup->node2[triangleID], tri_params->fam_frame_broad[fam].pos,
+                                              tri_params->fam_frame_broad[fam].rot_mat);
+    vC = apply_frame_transform<float, float3>(triangleSoup->node3[triangleID], tri_params->fam_frame_broad[fam].pos,
+                                              tri_params->fam_frame_broad[fam].rot_mat);
+
+    // Convert UU to SU
+    convert_pos_UU2SU<float3>(vA, gran_params);
+    convert_pos_UU2SU<float3>(vB, gran_params);
+    convert_pos_UU2SU<float3>(vC, gran_params);
+
+    // figure out L and U
+    triangle_figureOutSDBox(vA, vB, vC, L, U, gran_params);
+    // TODO modularize more code
     // Case 1: All vetices are in the same SD
     if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
         touchedSDs[0] = SDTripletID(L, gran_params);
@@ -159,8 +242,8 @@ void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleForces() {
 // Reset triangle broadphase data structures
 void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleBroadphaseInformation() {
     gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, SD_numTrianglesTouching.size() * sizeof(unsigned int)));
-    gpuErrchk(
-        cudaMemset(SD_TriangleCompositeOffsets.data(), 0, SD_TriangleCompositeOffsets.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(SD_TriangleCompositeOffsets.data(), NULL_GRANULAR_ID,
+                         SD_TriangleCompositeOffsets.size() * sizeof(unsigned int)));
     gpuErrchk(cudaMemset(triangles_in_SD_composite.data(), NULL_GRANULAR_ID,
                          triangles_in_SD_composite.size() * sizeof(unsigned int)));
 }
@@ -337,6 +420,43 @@ __global__ void triangleSoupBroadPhase_dryrun(
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 }
 
+__global__ void triangleSoup_CountSDsTouched(
+    const TriangleSoupPtr d_triangleSoup,
+    unsigned int* Triangle_NumSDsTouching,  //!< number of SDs touching this Triangle
+    GranParamsPtr gran_params,
+    MeshParamsPtr mesh_params) {
+    // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
+    unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (myTriangleID < d_triangleSoup->nTrianglesInSoup) {
+        Triangle_NumSDsTouching[myTriangleID] =
+            triangle_countTouchedSDs(myTriangleID, d_triangleSoup, gran_params, mesh_params);
+    }
+}
+
+__global__ void triangleSoup_StoreSDsTouched(
+    const TriangleSoupPtr d_triangleSoup,
+    unsigned int* Triangle_NumSDsTouching,     //!< number of SDs touching this Triangle
+    unsigned int* TriangleSDCompositeOffsets,  //!< number of SDs touching this Triangle
+    unsigned int* Triangle_SDsComposite,       //!< number of SDs touching this Triangle
+    unsigned int* Triangle_TriIDsComposite,    //!< number of SDs touching this Triangle
+    GranParamsPtr gran_params,
+    MeshParamsPtr mesh_params) {
+    // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
+    unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (myTriangleID < d_triangleSoup->nTrianglesInSoup) {
+        triangle_figureOutTouchedSDs(myTriangleID, d_triangleSoup,
+                                     Triangle_SDsComposite + TriangleSDCompositeOffsets[myTriangleID], gran_params,
+                                     mesh_params);
+        // TODO could be faster
+        for (unsigned int i = 0; i < Triangle_NumSDsTouching[myTriangleID]; i++) {
+            // write back this triangle ID to be sorted
+            Triangle_TriIDsComposite[TriangleSDCompositeOffsets[myTriangleID] + i] = myTriangleID;
+        }
+    }
+}
+
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
     TriangleSoupPtr d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
@@ -413,6 +533,10 @@ __global__ void interactionTerrain_TriangleSoup(
     for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
         if (local_ID < numSDTriangles) {
             unsigned int SD_composite_offset = SD_TriangleCompositeOffsets[thisSD];
+            if (SD_composite_offset == NULL_GRANULAR_ID) {
+                ABORTABORTABORT("Invalid composite offset %u for SD %u, touching %u triangles\n", NULL_GRANULAR_ID,
+                                thisSD, numSDTriangles);
+            }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
 
             unsigned int globalID = triangles_in_SD_composite[offset_in_composite_Array];
@@ -623,7 +747,6 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() 
     size_t temp_storage_bytes = 0;
 
     // num spheres in last SD
-    unsigned int last_SD_num_tris = SD_numTrianglesTouching.at(nSDs - 1);
 
     unsigned int* out_ptr = SD_TriangleCompositeOffsets.data();
     unsigned int* in_ptr = SD_numTrianglesTouching.data();
@@ -647,14 +770,16 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() 
     // total number of sphere entries to record
     unsigned int num_entries = out_ptr[nSDs - 1] + in_ptr[nSDs - 1];
     triangles_in_SD_composite.resize(num_entries, NULL_GRANULAR_ID);
+    // printf("FIRST RUN: %u entries total!\n", num_entries);
 
-    // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs * MAX_TRIANGLE_COUNT_PER_SD);
+    // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs *
+    // MAX_TRIANGLE_COUNT_PER_SD);
 
     // back up the offsets
     // TODO use a cached allocator, CUB provides one
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets_bak;
-    SD_TriangleCompositeOffsets_bak.resize(SD_TriangleCompositeOffsets.size());
-    gpuErrchk(cudaMemcpy(SD_TriangleCompositeOffsets_bak.data(), SD_TriangleCompositeOffsets.data(),
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets_tmp;
+    SD_TriangleCompositeOffsets_tmp.resize(SD_TriangleCompositeOffsets.size());
+    gpuErrchk(cudaMemcpy(SD_TriangleCompositeOffsets_tmp.data(), SD_TriangleCompositeOffsets.data(),
                          nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
 
     gpuErrchk(cudaDeviceSynchronize());
@@ -667,7 +792,7 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() 
     gpuErrchk(cudaPeekAtLastError());
 
     // restore the old offsets
-    gpuErrchk(cudaMemcpy(SD_TriangleCompositeOffsets.data(), SD_TriangleCompositeOffsets_bak.data(),
+    gpuErrchk(cudaMemcpy(SD_TriangleCompositeOffsets.data(), SD_TriangleCompositeOffsets_tmp.data(),
                          nSDs * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
 
     // for (unsigned int i = 0; i < nSDs; i++) {
@@ -679,6 +804,187 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() 
     // }
 
     gpuErrchk(cudaFree(d_temp_storage));
+}
+
+__host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase_rewrite() {
+    VERBOSE_PRINTF("Resetting broadphase info!\n");
+
+    sphereDataStruct sphere_data;
+
+    packSphereDataPointers(sphere_data);
+
+    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_NumSDsTouching;
+    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsCompositeOffsets;
+
+    Triangle_NumSDsTouching.resize(meshSoup_DEVICE->nTrianglesInSoup, 0);
+    Triangle_SDsCompositeOffsets.resize(meshSoup_DEVICE->nTrianglesInSoup, 0);
+
+    const int nthreads = CUDA_THREADS_PER_BLOCK;
+    int nblocks = (meshSoup_DEVICE->nTrianglesInSoup + nthreads - 1) / nthreads;
+    triangleSoup_CountSDsTouched<<<nblocks, nthreads>>>(meshSoup_DEVICE, Triangle_NumSDsTouching.data(), gran_params,
+                                                        tri_params);
+
+    unsigned int numTriangles = meshSoup_DEVICE->nTrianglesInSoup;
+
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+
+    unsigned int num_entries = 0;
+
+    // do prefix scan
+    {
+        void* d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        unsigned int* out_ptr = Triangle_SDsCompositeOffsets.data();
+        unsigned int* in_ptr = Triangle_NumSDsTouching.data();
+
+        // copy data into the tmp array
+        gpuErrchk(cudaMemcpy(out_ptr, in_ptr, numTriangles * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
+
+        gpuErrchk(cudaDeviceSynchronize());
+        gpuErrchk(cudaPeekAtLastError());
+        // Allocate temporary storage
+        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+
+        gpuErrchk(cudaDeviceSynchronize());
+        gpuErrchk(cudaPeekAtLastError());
+        // Run exclusive prefix sum
+        cub::DeviceScan::ExclusiveSum(d_temp_storage, temp_storage_bytes, in_ptr, out_ptr, numTriangles);
+
+        gpuErrchk(cudaDeviceSynchronize());
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaFree(d_temp_storage));
+        num_entries = out_ptr[numTriangles - 1] + in_ptr[numTriangles - 1];
+        // printf("%u entries total!\n", num_entries);
+    }
+
+    // for (unsigned int i = 0; i < Triangle_NumSDsTouching.size(); i++) {
+    //     printf("Triangle %u touches %u SDs, offset is %u\n", i, Triangle_NumSDsTouching[i],
+    //            Triangle_SDsCompositeOffsets[i]);
+    // }
+    // total number of sphere entries to record
+    // to be sorted
+    // produced by sort
+    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsComposite_SDs_out;
+    std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsComposite_TriIDs_out;
+
+    Triangle_SDsComposite_SDs_out.resize(num_entries, NULL_GRANULAR_ID);
+    Triangle_SDsComposite_TriIDs_out.resize(num_entries, NULL_GRANULAR_ID);
+
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    // sort key-value where the key is SD id, value is triangle ID in composite array
+    {
+        // tmp values used for sort
+        std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsComposite_SDs;
+        std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsComposite_TriIDs;
+        Triangle_SDsComposite_SDs.resize(num_entries, NULL_GRANULAR_ID);
+        Triangle_SDsComposite_TriIDs.resize(num_entries, NULL_GRANULAR_ID);
+
+        // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs *
+        // MAX_TRIANGLE_COUNT_PER_SD);
+        triangleSoup_StoreSDsTouched<<<nblocks, nthreads>>>(
+            meshSoup_DEVICE, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
+            Triangle_SDsComposite_SDs.data(), Triangle_SDsComposite_TriIDs.data(), gran_params, tri_params);
+        unsigned int num_items = num_entries;
+        unsigned int* d_keys_in = Triangle_SDsComposite_SDs.data();
+        unsigned int* d_keys_out = Triangle_SDsComposite_SDs_out.data();
+        unsigned int* d_values_in = Triangle_SDsComposite_TriIDs.data();
+        unsigned int* d_values_out = Triangle_SDsComposite_TriIDs_out.data();
+
+        gpuErrchk(cudaDeviceSynchronize());
+
+        // Determine temporary device storage requirements
+        void* d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        // Run sorting operation
+        // pass null, cub tells us what it needs
+        cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
+                                        d_values_out, num_items);
+        gpuErrchk(cudaDeviceSynchronize());
+
+        // Allocate temporary storage
+        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+        gpuErrchk(cudaDeviceSynchronize());
+
+        cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys_in, d_keys_out, d_values_in,
+                                        d_values_out, num_items);
+        gpuErrchk(cudaDeviceSynchronize());
+
+        gpuErrchk(cudaFree(d_temp_storage));
+    }
+    // now Triangle_SDsComposite_SDs_out has an ordered list of active SDs, with one entry for each triangle
+    //
+    // for (unsigned int i = 0; i < Triangle_SDsComposite_TriIDs_out.size(); i++) {
+    //     printf("composite entry %u is SD %u, triangle %u\n", i, Triangle_SDsComposite_SDs_out[i],
+    //            Triangle_SDsComposite_TriIDs_out[i]);
+    // }
+
+    // offsets of each SD in composite array
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching_tmp;
+
+    SD_TriangleCompositeOffsets_tmp.resize(nSDs, NULL_GRANULAR_ID);
+    SD_numTrianglesTouching_tmp.resize(nSDs, 0);
+
+    // get first active SD
+    unsigned int prev_SD = Triangle_SDsComposite_SDs_out.at(0);
+    // first SD has offset 0
+    SD_TriangleCompositeOffsets.at(prev_SD) = 0;
+    // number of triangles in current SD
+    unsigned int curr_count = 0;
+    // offset to current SD
+    unsigned int curr_offset = 0;
+
+    // simultaneously do a prefix scan and a store, but on host
+    // TODO optimize and test
+    // TODO can we do this with a weird prefix scan operation?
+    for (unsigned int i = 0; i < Triangle_SDsComposite_SDs_out.size(); i++) {
+        unsigned int curr_SD = Triangle_SDsComposite_SDs_out.at(i);
+        // this is the start of a new SD
+        if (prev_SD != curr_SD) {
+            // printf("change! SD %u has curr count %u, offset %u, prev is %u\n",curr_count, curr_offset,  );
+            // store the count for this SD
+            SD_numTrianglesTouching.at(prev_SD) = curr_count;
+            // reset count
+            curr_count = 0;
+            // set this SD to have offset after the previous one ends
+            SD_TriangleCompositeOffsets.at(curr_SD) = curr_offset;
+        }
+        curr_count++;
+        curr_offset++;
+        // now this is the active SD to check against
+        prev_SD = curr_SD;
+    }
+
+    // right now we only store counts at the end of a streak, so we need to store the last streak
+    // TODO is this always right???
+    SD_numTrianglesTouching.at(prev_SD) = curr_count;
+
+    // for (unsigned int i = 0; i < SD_numTrianglesTouching.size(); i++) {
+    //     printf("tri count index %u is usual %u, other %u\n", i, SD_numTrianglesTouching[i],
+    //            SD_numTrianglesTouching_tmp[i]);
+    // }
+    //
+    // for (unsigned int i = 0; i < SD_TriangleCompositeOffsets.size(); i++) {
+    //     printf("offset index %u is usual %u, other %u\n", i, SD_TriangleCompositeOffsets[i],
+    //            SD_TriangleCompositeOffsets_tmp[i]);
+    // }
+    //
+    // for (unsigned int i = 0; i < triangles_in_SD_composite.size(); i++) {
+    //     printf("composite index %u is usual %u, other %u\n", i, triangles_in_SD_composite[i],
+    //            Triangle_SDsComposite_TriIDs_out[i]);
+    // }
+
+    triangles_in_SD_composite.resize(Triangle_SDsComposite_TriIDs_out.size());
+
+    // copy the composite data to the primary location
+    gpuErrchk(cudaMemcpy(triangles_in_SD_composite.data(), Triangle_SDsComposite_TriIDs_out.data(),
+                         Triangle_SDsComposite_TriIDs_out.size() * sizeof(unsigned int), cudaMemcpyDeviceToDevice));
+
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
 }
 __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
@@ -708,6 +1014,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
             updateBDPosition(stepSize_SU);
         }
         resetSphereForces();
+        resetBCForces();
         resetTriangleForces();
         resetTriangleBroadphaseInformation();
 
@@ -736,7 +1043,13 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         }
 
         if (meshSoup_DEVICE->nTrianglesInSoup != 0 && mesh_collision_enabled) {
-            runTriangleBroadphase();
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+            // NOTE only run one of these!!!
+            // old version has a limitation of number of SDs a triangle can touche
+            // runTriangleBroadphase();
+            // rewrite uses host for some stuff and might be a little slower
+            runTriangleBroadphase_rewrite();
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

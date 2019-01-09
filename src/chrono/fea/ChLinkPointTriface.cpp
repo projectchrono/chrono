@@ -166,8 +166,8 @@ void ChLinkPointTriface::IntFromDescriptor(const unsigned int off_v,
 // SOLVER INTERFACES
 
 void ChLinkPointTriface::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    // if (!IsActive())
-    //	return;
+    if (!IsActive())
+        return;
 
     mdescriptor.InsertConstraint(&constraint1);
     mdescriptor.InsertConstraint(&constraint2);

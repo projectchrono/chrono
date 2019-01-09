@@ -1131,3 +1131,51 @@ Running settling test!
 50 thousand bodies took 3.03003 seconds!
 500 thousand bodies took 20.7747 seconds!
 1 million bodies took 41.1593 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 13:45:45 -0600
+commit 927048218946f360bb1c0f350034ba6a26bcf7dd Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 13:45:26 2019 -0600 add inital outline for triangle prefix broadphase, add BC force support
+Results:
+Running wavetank test!
+50 thousand bodies took 3.28216 seconds!
+500 thousand bodies took 21.8283 seconds!
+1 million bodies took 43.4538 seconds!
+Running settling test!
+50 thousand bodies took 3.00012 seconds!
+500 thousand bodies took 21.0314 seconds!
+1 million bodies took 41.5225 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 16:11:32 -0600
+commit 65a122a642841327e310ac5383b3165f52f6dd0e Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 16:11:08 2019 -0600 implement semi-host side triangle broadphase, better occupancy and more robust
+Results:
+Running wavetank test!
+50 thousand bodies took 3.25539 seconds!
+500 thousand bodies took 21.6618 seconds!
+1 million bodies took 43.6828 seconds!
+Running settling test!
+50 thousand bodies took 3.05032 seconds!
+500 thousand bodies took 21.0293 seconds!
+1 million bodies took 41.4406 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 16:15:23 -0600
+commit 31fe0b4b89ceef85c6173827fb248a85ce657247 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 16:15:14 2019 -0600 update metrics script to match name changes
+Results:
+Running wavetank test!
+50 thousand bodies took 3.25804 seconds!
+500 thousand bodies took 21.8437 seconds!
+1 million bodies took 43.6041 seconds!
+Running settling test!
+50 thousand bodies took 3.03797 seconds!
+500 thousand bodies took 21.1805 seconds!
+1 million bodies took 41.6413 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 08 Jan 2019 16:39:18 -0600
+commit ec0207c3708ff252baf4bdc2f3213ad0e5705741 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 8 16:38:57 2019 -0600 update granular to latest Chrono changes
+Results:
+Running wavetank test!
+50 thousand bodies took 3.37396 seconds!
+500 thousand bodies took 22.0448 seconds!
+1 million bodies took 44.417 seconds!
+Running settling test!
+50 thousand bodies took 2.93973 seconds!
+500 thousand bodies took 21.2749 seconds!
+1 million bodies took 42.1314 seconds!

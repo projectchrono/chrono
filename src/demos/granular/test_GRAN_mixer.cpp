@@ -16,7 +16,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-#include "chrono/core/ChFileutils.h"
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
     m_sys.setOutputDirectory(params.output_dir);
-    ChFileutils::MakeDirectory(params.output_dir.c_str());
+    filesystem::create_directory(filesystem::path(params.output_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
     float cyl_center[3] = {0, 0, 0};
     const float cyl_rad = Bx / 2.f;
-    m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false);
+    m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
 
     utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
 

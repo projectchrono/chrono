@@ -118,8 +118,8 @@ class ChApi ChSystemSMC : public ChSystem {
     /// Slip velocity threshold.
     /// No tangential contact forces are generated if the magnitude of the tangential
     /// relative velocity is below this value.
-    void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = std::max(vel, CH_MICROTOL); }
-    double GetSlipVelocitythreshold() const { return m_minSlipVelocity; }
+    void SetSlipVelocityThreshold(double vel);
+    double GetSlipVelocityThreshold() const { return m_minSlipVelocity; }
 
     /// Characteristic impact velocity (Hooke contact force model).
     void SetCharacteristicImpactVelocity(double vel) { m_characteristicVelocity = vel; }

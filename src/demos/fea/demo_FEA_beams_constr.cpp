@@ -16,8 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChFileutils.h"
-
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
@@ -31,6 +29,8 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -303,7 +303,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Output data
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

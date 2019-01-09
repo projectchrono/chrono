@@ -51,7 +51,8 @@ class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD {
     virtual double GetFrontConicalGearRatio() const override { return m_front_conicalgear_ratio; }
     virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
 
-    virtual double GetDifferentialLockingLimit() const override { return m_differential_locking_limit; }
+    virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
+    virtual double GetCentralDifferentialLockingLimit() const override { return m_central_differential_locking_limit; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
@@ -72,7 +73,8 @@ class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD {
     double m_rear_conicalgear_ratio;
 
     // Differential locking torque limit.
-    double m_differential_locking_limit;
+    double m_axle_differential_locking_limit;
+    double m_central_differential_locking_limit;
 };
 
 /// @} vehicle_wheeled_driveline
