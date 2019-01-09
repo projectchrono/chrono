@@ -142,16 +142,16 @@ int main(int argc, char* argv[]) {
             g[2] = -692.9646;
             break;
         case MIXER_TYPE::EXTERNAL_ANGLED:
-            mesh_filename = string("granular/external_mixer_angled.obj");
+            mesh_filename = string("granular/mixer/external_mixer_angled.obj");
             g[0] = 0;
             g[1] = 0;
             g[2] = -980;
             break;
         case MIXER_TYPE::EXTERNAL_ANGLED_GRAV:
+            mesh_filename = string("granular/mixer/external_mixer_angled.obj");
             g[0] = -692.9646;
             g[1] = 0;
             g[2] = -692.9646;
-            mesh_filename = string("granular/external_mixer_angled.obj");
             break;
         default:
             cout << "Invalid mixer type" << endl;
