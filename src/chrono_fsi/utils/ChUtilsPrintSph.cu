@@ -12,20 +12,20 @@
 // Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
-// Utility function to print the save fluid, bce, and boundary data into file
+// Utility function to print the save fluid, bce, and boundary data to files
 // =============================================================================
-#include <thrust/reduce.h>
+
 #include <cstdio>
-#include <cstring>
 #include <fstream>
 #include <sstream>
+
 #include "chrono_fsi/ChDeviceUtils.cuh"
-#include "chrono_fsi/ChParams.cuh"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 namespace chrono {
 namespace fsi {
 namespace utils {
+
 void PrintToFile(const thrust::device_vector<Real4>& posRadD,
                  const thrust::device_vector<Real3>& velMasD,
                  const thrust::device_vector<Real4>& rhoPresMuD,
