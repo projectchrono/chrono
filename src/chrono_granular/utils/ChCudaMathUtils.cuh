@@ -34,7 +34,7 @@ inline __device__ float Dot(const float3& v1, const float3& v2) {
 
 // Get vector 2-norm
 inline __device__ double Length(const double3& v) {
-    return __dsqrt_ru(Dot(v, v));
+    return sqrt(Dot(v, v));
 }
 // Get vector 2-norm
 inline __device__ float Length(const float3& v) {
@@ -43,7 +43,11 @@ inline __device__ float Length(const float3& v) {
 
 // Multiply a * v
 inline __device__ double3 operator*(const double& a, const double3& v) {
-    return make_double3(__dmul_ru(a, v.x), __dmul_ru(a, v.y), __dmul_ru(a, v.z));
+    return make_double3(a * v.x, a * v.y, a * v.z);
+}
+// Multiply a * v
+inline __device__ double3 operator*(const double3& v, const double& a) {
+    return make_double3(a * v.x, a * v.y, a * v.z);
 }
 // Multiply a * v
 inline __device__ float3 operator*(const float& a, const float3& v) {
@@ -64,6 +68,12 @@ inline __device__ float3 operator/(const float3& v, const float& a) {
     return make_float3(v.x / a, v.y / a, v.z / a);
 }
 
+// Divide v / a
+// NOTE this does integer division, BE CAREFUL
+inline __device__ int3 operator/(const int3& v, const int& a) {
+    return make_int3(v.x / a, v.y / a, v.z / a);
+}
+
 // v1 - v2
 inline __device__ double3 operator-(const double3& v1, const double3& v2) {
     return make_double3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
@@ -71,6 +81,10 @@ inline __device__ double3 operator-(const double3& v1, const double3& v2) {
 // v1 - v2
 inline __device__ float3 operator-(const float3& v1, const float3& v2) {
     return make_float3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+}
+// v1 - v2
+inline __device__ int3 operator-(const int3& v1, const int3& v2) {
+    return make_int3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 }
 
 // v1 + v2
@@ -80,6 +94,18 @@ inline __device__ double3 operator+(const double3& v1, const double3& v2) {
 // v1 + v2
 inline __device__ float3 operator+(const float3& v1, const float3& v2) {
     return make_float3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+}
+// v1 + v2
+inline __device__ int3 operator+(const int3& v1, const int3& v2) {
+    return make_int3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+}
+
+inline __device__ double3 int3_to_double3(const int3& v) {
+    return make_double3(v.x, v.y, v.z);
+}
+
+inline __device__ float3 int3_to_float3(const int3& v) {
+    return make_float3(v.x, v.y, v.z);
 }
 
 /// This utility function returns the normal to the triangular face defined by

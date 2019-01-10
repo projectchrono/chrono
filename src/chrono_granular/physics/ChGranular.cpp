@@ -450,6 +450,7 @@ void ChSystemGranular_MonodisperseSMC::generateDEs() {
 
     nSpheres = (unsigned int)user_sphere_positions.size();
     std::cout << nSpheres << " balls added!" << std::endl;
+    gran_params->nSpheres = nSpheres;
 
     // Allocate space for new bodies
     TRACK_VECTOR_RESIZE(pos_X, nSpheres, "pos_X", 0);

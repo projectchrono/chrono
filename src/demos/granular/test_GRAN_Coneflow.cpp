@@ -113,6 +113,9 @@ int main(int argc, char* argv[]) {
         center.z() += fill_epsilon * params.sphere_radius;
     }
 
+    std::vector<ChVector<float>> body_points_first;
+    body_points_first.push_back(body_points[0]);
+
     gran_sys.setParticlePositions(body_points);
 
     float sphere_mass =
@@ -125,7 +128,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
     gran_sys.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
-    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_sys.set_fixed_stepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
@@ -135,15 +138,17 @@ int main(int argc, char* argv[]) {
     float cone_offset = 5.f;
 
     gran_sys.setVerbose(params.verbose);
+    float hmax = params.box_Z;
+    float hmin = center_pt[2] + cone_offset;
     // Finalize settings and initialize for runtime
-    gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, params.box_Z, center_pt[2] + cone_offset, false, false);
+    gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, hmax, hmin, false, false);
 
     float zvec[3] = {0, 0, 0};
     float cyl_rad = fill_width + 8 * params.sphere_radius;
 
     gran_sys.Create_BC_Cyl_Z(zvec, cyl_rad, false, false);
 
-    printf("fill radius is %f, cyl radius is %f\n", fill_width, fill_width);
+    // printf("fill radius is %f, cyl radius is %f\n", fill_width, fill_width);
 
     float plane_center[3] = {0, 0, center_pt[2] + 2 * cone_slope + cone_slope * cone_offset};
     // face in upwards
@@ -151,7 +156,12 @@ int main(int argc, char* argv[]) {
 
     printf("center is %f, %f, %f, plane center is is %f, %f, %f\n", center_pt[0], center_pt[1], center_pt[2],
            plane_center[0], plane_center[1], plane_center[2]);
-    size_t plane_bc_id = gran_sys.Create_BC_Plane(plane_center, plane_normal, false);
+    size_t cone_plane_bc_id = gran_sys.Create_BC_Plane(plane_center, plane_normal, false);
+
+    // put a plane at the bottom of the box to count forces
+    float box_bottom[3] = {0, 0, -params.box_Z / 2.f + 2.f};
+
+    size_t bottom_plane_bc_id = gran_sys.Create_BC_Plane(box_bottom, plane_normal, true);
 
     gran_sys.initialize();
 
@@ -166,10 +176,27 @@ int main(int argc, char* argv[]) {
     float t_remove_plane = .5;
     bool plane_active = false;
 
+    float reaction_forces[3] = {0, 0, 0};
+
+    constexpr float F_CGS_TO_SI = 1e-5;
+    constexpr float M_CGS_TO_SI = 1e-3;
+    float total_system_mass = 4. / 3. * CH_C_PI * params.sphere_density * params.sphere_radius * params.sphere_radius *
+                              params.sphere_radius * body_points.size();
+    printf("total system mass is %f kg \n", total_system_mass * M_CGS_TO_SI);
+
     // Run settling experiments
     while (curr_time < params.time_end) {
         if (!plane_active && curr_time > t_remove_plane) {
-            gran_sys.disable_BC_by_ID(plane_bc_id);
+            gran_sys.disable_BC_by_ID(cone_plane_bc_id);
+        }
+
+        bool success = gran_sys.getBCReactionForces(bottom_plane_bc_id, reaction_forces);
+        if (!success) {
+            printf("ERROR! Get contact forces for plane failed\n");
+        } else {
+            printf("curr time is %f, plane force is (%f, %f, %f) Newtons\n", curr_time,
+                   F_CGS_TO_SI * reaction_forces[0], F_CGS_TO_SI * reaction_forces[1],
+                   F_CGS_TO_SI * reaction_forces[2]);
         }
         gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;

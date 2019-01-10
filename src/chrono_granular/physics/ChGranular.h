@@ -145,6 +145,9 @@ struct ChGranParams {
     /// Z-dimension of the SD box, expressed in SU
     unsigned int SD_size_Z_SU;
 
+    /// total number of spheres in system, used for BC multistep friction
+    unsigned int nSpheres;
+
     /// Total number of subdomains
     unsigned int nSDs;
     /// X-dimension of the BD box in multiples of subdomains, expressed in SU
