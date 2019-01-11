@@ -32,12 +32,21 @@ namespace fsi {
 
 typedef char MM_typecode[4];
 
-/// This is an abstract class and specific solution methods are implemented in derived
-/// classes
+/// @addtogroup fsi_solver
+/// @{
+
+/// @brief Base class of the FSI GPU-based linear solvers.
+/// This is an abstract class and specific solvers must implement the solve procedure
 class ChFsiLinearSolver {
   public:
     enum class SolverType { BICGSTAB = 0, GMRES, CR, CG, SAP };
-    ChFsiLinearSolver(double mrel_res = 1e-8, double mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false) {
+
+    /// Constructor of the ChFsiLinearSolver
+    ChFsiLinearSolver(double mrel_res = 1e-8,  ///< relative residual of the linear solver
+                      double mabs_res = 1e-4,  ///< absolute residual of the linear solver
+                      int mmax_iter = 1000,    ///< Maximum number of iteration of the linear solver
+                      bool mverbose = false,   ///< Verbosity of solver during each solve stage
+    ) {
         rel_res = mrel_res;
         abs_res = mabs_res;
         max_iter = mmax_iter;
@@ -75,7 +84,14 @@ class ChFsiLinearSolver {
     int GetSolverStatus() { return solver_status; }
 
     /// The child class should override this function and solve for x
-    virtual void Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b) = 0;
+    virtual void Solve(int SIZE,               ///< size of the matrix in Ax=b
+                       int NNZ,                ///< number of nonzeros in A matrix
+                       double* A,              ///< pointer to the matrix A stored in CSR format
+                       unsigned int* ArowIdx,  ///< accumulation of NNZ of each row of matrix A
+                       unsigned int* AcolIdx,  ///< column index of each element of A and hence is of length NNZ
+                       double* x,              ///< pointer to the solution vector x
+                       double* b               ///< pointer to the solution right hand side vector b in Ax=b
+                       ) = 0;
 
   protected:
     double rel_res = 1e-3;
@@ -89,6 +105,7 @@ class ChFsiLinearSolver {
   private:
     SolverType solver;
 };
+/// @} fsi_solver
 
 }  // end namespace fsi
 }  // end namespace chrono

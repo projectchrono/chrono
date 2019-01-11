@@ -100,6 +100,8 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// Finzalize data by calling FinalizeData function and finalize fluid and bce
     /// and also finalizes the fluid and bce objects if the system have fluid.
     virtual void Finalize();
+
+    /// Add the Chbody to the FSI system, note that the BCE for this body must be generated too
     void AddFsiBody(std::shared_ptr<ChBody> mbody) { fsiBodeisPtr.push_back(mbody); }
 
     std::vector<std::shared_ptr<chrono::fea::ChElementCableANCF>>* GetFsiCablesPtr() { return &fsiCablesPtr; }
@@ -112,16 +114,22 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
         int test = fsiData->fsiGeneralData.CableElementsNodes.size();
         std::cout << "numObjects.numFlexNodes" << test << std::endl;
     }
+
+    /// Set the vector of shell elements nodes indices.
     void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
         ShellElementsNodes = elementsNodes;
         int test = fsiData->fsiGeneralData.ShellElementsNodes.size();
 
         std::cout << "numObjects.numFlexNodes" << test << std::endl;
     }
+
+    /// Set the ChMesh participating in the FSI system.
     void SetFsiMesh(std::shared_ptr<chrono::fea::ChMesh> other_fsi_mesh) {
         fsi_mesh = other_fsi_mesh;
         fsiInterface->SetFsiMesh(other_fsi_mesh);
     }
+
+    /// Returns the ChMesh participating in the FSI system.
     std::shared_ptr<chrono::fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
 
   private:

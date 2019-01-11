@@ -56,8 +56,8 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
     /// Destructor of the FSI interface.
     ~ChFsiInterface();
 
-    /// Reads the surface-integrated pressure and viscous forces form the fluid dynamics system, and add these forces as
-    /// external forces to the ChSystem bodies.
+    /// Reads the surface-integrated pressure and viscous forces form the fluid dynamics system, and add these forces
+    /// and torques as external forces to the ChSystem bodies.
     virtual void Add_Rigid_ForceTorques_To_ChSystem();
 
     /// Uses an external configuration to set the generalized coordinates of the ChSystem.
@@ -107,10 +107,12 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
     thrust::device_vector<Real3>*
         rigid_FSI_TorquesD;  ///< Surface-integrated torques from the fluid dynamics system to rigid bodies.
 
-    std::shared_ptr<chrono::fea::ChMesh> fsi_mesh;                  // These are all the nodes available to fsi
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>* fsiNodesPtr;  // These are all the FE nodes available to fsi
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>>* fsiCablesPtr;
-    std::vector<std::shared_ptr<fea::ChElementShellANCF>>* fsiShellsPtr;
+    std::shared_ptr<chrono::fea::ChMesh> fsi_mesh;                  ///< These are all the nodes available to fsi
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>* fsiNodesPtr;  ///<  These are all the FE nodes available to fsi
+    std::vector<std::shared_ptr<fea::ChElementCableANCF>>*
+        fsiCablesPtr;  ///< Pointer to the vector of ChElementCableANCF participating in FSI
+    std::vector<std::shared_ptr<fea::ChElementShellANCF>>*
+        fsiShellsPtr;  ///< Pointer to the vector of ChElementShellANCF participating in FSI
 
     thrust::host_vector<int2>* CableElementsNodesH;   ///< These are the indices of nodes of each Element
     thrust::device_vector<int2>* CableElementsNodes;  ///< These are the indices of nodes of each Element
