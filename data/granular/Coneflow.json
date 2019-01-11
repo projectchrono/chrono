@@ -4,8 +4,8 @@
 	"box_X": 150,
 	"box_Y": 150,
 	"box_Z": 150,
-	"step_size": 5e-5,
-	"time_end": 10,
+	"step_size": 2e-5,
+	"time_end": 30,
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
@@ -25,5 +25,5 @@
 	"psi_T": 16,
 	"psi_L": 16,
 	"output_dir": "cone_flow",
-	"write_mode": "csv"
+	"write_mode": "binary"
 }

@@ -36,11 +36,17 @@ using std::cout;
 using std::endl;
 using std::string;
 
+// expected number of args for param sweep
+constexpr int num_args_full = 7;
+
 // -----------------------------------------------------------------------------
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./demo_GRAN_BoxSettlNoFirc_SMC <json_file>" << endl;
+    cout << "usage: ./test_GRAN_Coneflow <json_file> [<aperture_diameter> <particle_radius> <grac_acc> "
+            "<material_density> <output_dir>]"
+         << endl;
+    cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -53,11 +59,22 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc < 2 || (argc > 2 && argc != num_args_full) || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
 
+    float aperture_diameter = 16.f;
+
+    if (argc == num_args_full) {
+        aperture_diameter = std::atof(argv[2]);
+        params.sphere_radius = std::atof(argv[3]);
+        params.grav_Z = std::atof(argv[4]);
+        params.sphere_density = std::atof(argv[5]);
+        params.output_dir = std::string(argv[6]);
+        printf("new parameters: D_0 is %f, r is %f, grav is %f, density is %f, output dir %s\n", aperture_diameter,
+               params.sphere_radius, params.grav_Z, params.sphere_density, params.output_dir.c_str());
+    }
     // Setup simulation
     ChSystemGranular_MonodisperseSMC gran_sys(params.sphere_radius, params.sphere_density);
     gran_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
@@ -133,9 +150,9 @@ int main(int argc, char* argv[]) {
 
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    float cone_slope = 1.0;
+    constexpr float cone_slope = 1.0;
 
-    float cone_offset = 5.f;
+    float cone_offset = aperture_diameter / 2.f;
 
     gran_sys.setVerbose(params.verbose);
     float hmax = params.box_Z;
@@ -144,7 +161,7 @@ int main(int argc, char* argv[]) {
     gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, hmax, hmin, false, false);
 
     float zvec[3] = {0, 0, 0};
-    float cyl_rad = fill_width + 8 * params.sphere_radius;
+    float cyl_rad = fill_width + 8;
 
     gran_sys.Create_BC_Cyl_Z(zvec, cyl_rad, false, false);
 
@@ -165,13 +182,18 @@ int main(int argc, char* argv[]) {
 
     gran_sys.initialize();
 
-    int fps = 100;
+    // number of times to capture force data per second
+    int captures_per_second = 200;
+    // number of times to capture force before we capture a frame
+    int captures_per_frame = 4;
+
     // assume we run for at least one frame
-    float frame_step = 1. / fps;
+    float frame_step = 1. / captures_per_second;
     float curr_time = 0;
+    int currcapture = 0;
     int currframe = 0;
 
-    std::cout << "frame step is " << frame_step << std::endl;
+    std::cout << "capture step is " << frame_step << std::endl;
 
     float t_remove_plane = .5;
     bool plane_active = false;
@@ -183,6 +205,9 @@ int main(int argc, char* argv[]) {
     float total_system_mass = 4. / 3. * CH_C_PI * params.sphere_density * params.sphere_radius * params.sphere_radius *
                               params.sphere_radius * body_points.size();
     printf("total system mass is %f kg \n", total_system_mass * M_CGS_TO_SI);
+    char filename[100];
+    // sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+    // gran_sys.writeFileUU(std::string(filename));
 
     // Run settling experiments
     while (curr_time < params.time_end) {
@@ -200,10 +225,14 @@ int main(int argc, char* argv[]) {
         }
         gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
-        printf("rendering frame %u\n", currframe);
-        char filename[100];
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        gran_sys.writeFileUU(std::string(filename));
+
+        // if this frame is a render frame
+        if (currcapture % captures_per_frame == 0) {
+            printf("rendering frame %u\n", currframe);
+            sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+            gran_sys.writeFileUU(std::string(filename));
+        }
+        currcapture++;
     }
 
     return 0;

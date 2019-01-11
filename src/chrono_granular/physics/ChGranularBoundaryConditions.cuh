@@ -46,18 +46,20 @@ inline __device__ bool addBCForces_Sphere(unsigned int sphID,
 
     float reciplength = 0;
 
+    int total_diameter = sphere_params.radius + sphereRadius_SU;
+
     // precompute the int offset
     int3 delta_int = sphPos - sphere_params.sphere_center;
 
     {
         // TODO is double even necessary
-        double3 delta = int3_to_double3(delta_int) / (sphere_params.radius + sphereRadius_SU);
+        double3 delta = int3_to_double3(delta_int) / (total_diameter);
         double d2 = Dot(delta, delta);
         // this needs to be computed in double, then cast to float
         reciplength = (float)rsqrt(d2);
     }
     // recompute in float to be cheaper
-    float3 delta = int3_to_float3(delta_int) / (sphere_params.radius + sphereRadius_SU);
+    float3 delta = int3_to_float3(delta_int) / (total_diameter);
 
     float penetration = reciplength - 1.;
     contact = (penetration > 0);
@@ -118,8 +120,7 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
     }
 
     // Get vector from cone tip to sphere center
-    int3 sphere_pos_rel_i = sphPos - cone_params.cone_tip;
-    float3 sphere_pos_rel = make_float3(sphere_pos_rel_i.x, sphere_pos_rel_i.y, sphere_pos_rel_i.z);
+    float3 sphere_pos_rel = int3_to_float3(sphPos - cone_params.cone_tip);
 
     // NOTE that this could get ugly if Px, Py are very small
     // get point P on cone directly below sphere
@@ -350,7 +351,7 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
 
     // Radial vector from cylinder center to sphere center, along inward direction
-    float3 delta_r = make_float3(cyl_params.center.x - sphPos.x, cyl_params.center.y - sphPos.z, 0.f);
+    float3 delta_r = make_float3(cyl_params.center.x - sphPos.x, cyl_params.center.y - sphPos.y, 0.f);
     float dist = Length(delta_r);
 
     // directional normal
