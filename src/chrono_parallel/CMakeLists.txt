@@ -440,8 +440,8 @@ IF(USE_PARALLEL_CUDA)
             ${ChronoEngine_Parallel_CONSTRAINTS}
             ${ChronoEngine_Parallel_SOLVER}
             ${ChronoEngine_Parallel_MATH}
-            )
-    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
+            ) 
+    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${TBB_LIBRARIES})
 ELSE()
     ADD_LIBRARY(ChronoEngine_parallel SHARED
             ${ChronoEngine_Parallel_BASE}
@@ -451,7 +451,7 @@ ELSE()
             ${ChronoEngine_Parallel_SOLVER}
             ${ChronoEngine_Parallel_MATH}
             )
-    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${MPI_LIBRARIES} ${TBB_LIBRARIES})
+    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${TBB_LIBRARIES})
 ENDIF()
 
 SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
