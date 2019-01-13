@@ -64,7 +64,7 @@ class ConvexShape : public ConvexBase {
     int index;
     shape_container* data;  // pointer to convex data;
   private:
-    virtual const inline int start() const { return data->start_rigid[index]; }
+    virtual inline int start() const { return data->start_rigid[index]; }
 };
 
 /// Sphere contact shape.
