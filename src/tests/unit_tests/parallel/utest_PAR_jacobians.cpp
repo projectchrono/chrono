@@ -262,7 +262,7 @@ TEST(ChronoParallel, jacobians) {
 
 #else
         std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
-        return false;
+        return;
 #endif
     } else {
         while (time < time_end) {
