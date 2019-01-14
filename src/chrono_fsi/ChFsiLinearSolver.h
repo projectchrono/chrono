@@ -45,7 +45,7 @@ class ChFsiLinearSolver {
     ChFsiLinearSolver(double mrel_res = 1e-8,  ///< relative residual of the linear solver
                       double mabs_res = 1e-4,  ///< absolute residual of the linear solver
                       int mmax_iter = 1000,    ///< Maximum number of iteration of the linear solver
-                      bool mverbose = false,   ///< Verbosity of solver during each solve stage
+                      bool mverbose = false    ///< Verbosity of solver during each solve stage
     ) {
         rel_res = mrel_res;
         abs_res = mabs_res;
