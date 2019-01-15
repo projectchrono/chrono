@@ -59,19 +59,39 @@ __device__ void convert_pos_UU2SU(T3& pos, GranParamsPtr gran_params) {
 }
 
 /// Takes in a triangle ID and figures out an SD AABB for broadphase use
-__device__ void triangle_figureOutSDBox(float3 vA, float3 vB, float3 vC, int* L, int* U, GranParamsPtr gran_params) {
-    // Perform broadphase on UU vertices
-    int3 SDA = pointSDTriplet(vA.x, vA.y, vA.z, gran_params);  // SD indices for point A
-    int3 SDB = pointSDTriplet(vB.x, vB.y, vB.z, gran_params);  // SD indices for point B
-    int3 SDC = pointSDTriplet(vC.x, vC.y, vC.z, gran_params);  // SD indices for point C
+__device__ void triangle_figureOutSDBox(const float3& vA,
+                                        const float3& vB,
+                                        const float3& vC,
+                                        const bool inflated,
+                                        int* L,
+                                        int* U,
+                                        GranParamsPtr gran_params) {
+    int3 min_pt;
+    min_pt.x = MIN(vA.x, MIN(vB.x, vC.x));
+    min_pt.y = MIN(vA.y, MIN(vB.y, vC.y));
+    min_pt.z = MIN(vA.z, MIN(vB.z, vC.z));
 
-    L[0] = MIN(SDA.x, MIN(SDB.x, SDC.x));
-    L[1] = MIN(SDA.y, MIN(SDB.y, SDC.y));
-    L[2] = MIN(SDA.z, MIN(SDB.z, SDC.z));
+    int3 max_pt;
+    max_pt.x = MAX(vA.x, MAX(vB.x, vC.x));
+    max_pt.y = MAX(vA.y, MAX(vB.y, vC.y));
+    max_pt.z = MAX(vA.z, MAX(vB.z, vC.z));
 
-    U[0] = MAX(SDA.x, MAX(SDB.x, SDC.x));
-    U[1] = MAX(SDA.y, MAX(SDB.y, SDC.y));
-    U[2] = MAX(SDA.z, MAX(SDB.z, SDC.z));
+    if (inflated) {
+        int3 offset =
+            make_int3(gran_params->sphereRadius_SU, gran_params->sphereRadius_SU, gran_params->sphereRadius_SU);
+        min_pt = min_pt - offset;
+        max_pt = max_pt + offset;
+    }
+
+    int3 tmp = pointSDTriplet(min_pt.x, min_pt.y, min_pt.z, gran_params);
+    L[0] = tmp.x;
+    L[1] = tmp.y;
+    L[2] = tmp.z;
+
+    tmp = pointSDTriplet(max_pt.x, max_pt.y, max_pt.z, gran_params);
+    U[0] = tmp.x;
+    U[1] = tmp.y;
+    U[2] = tmp.z;
 }
 
 /// Takes in a triangle's position in UU and finds out how many SDs it touches
@@ -81,10 +101,6 @@ __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
                                                  const TriangleSoupPtr triangleSoup,
                                                  GranParamsPtr gran_params,
                                                  MeshParamsPtr tri_params) {
-    // bottom-left and top-right corners
-    int L[3];
-    int U[3];
-
     float3 vA, vB, vC;
 
     // Transform LRF to GRF
@@ -101,9 +117,11 @@ __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
     convert_pos_UU2SU<float3>(vB, gran_params);
     convert_pos_UU2SU<float3>(vC, gran_params);
 
-    // figure out L and U
-    triangle_figureOutSDBox(vA, vB, vC, L, U, gran_params);
-
+    // bottom-left and top-right corners
+    int L[3];
+    int U[3];
+    const bool inflated = triangleSoup->inflated[fam];
+    triangle_figureOutSDBox(vA, vB, vC, inflated, L, U, gran_params);
     // Case 1: All vetices are in the same SD
     if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
         return 1;
@@ -141,7 +159,7 @@ __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
                 SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
                 SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
 
-                if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
+                if (inflated || check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     numSDsTouched++;
                 }
             }
@@ -158,10 +176,6 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                                              unsigned int* touchedSDs,
                                              GranParamsPtr gran_params,
                                              MeshParamsPtr tri_params) {
-    // bottom-left and top-right corners
-    int L[3];
-    int U[3];
-
     float3 vA, vB, vC;
 
     // Transform LRF to GRF
@@ -178,8 +192,12 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     convert_pos_UU2SU<float3>(vB, gran_params);
     convert_pos_UU2SU<float3>(vC, gran_params);
 
-    // figure out L and U
-    triangle_figureOutSDBox(vA, vB, vC, L, U, gran_params);
+    // bottom-left and top-right corners
+    int L[3];
+    int U[3];
+    const bool inflated = triangleSoup->inflated[fam];
+    triangle_figureOutSDBox(vA, vB, vC, inflated, L, U, gran_params);
+
     // TODO modularize more code
     // Case 1: All vetices are in the same SD
     if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
@@ -225,7 +243,8 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                 SDcenter[1] = gran_params->BD_frame_Y + (j * 2 + 1) * SDhalfSizes[1];
                 SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
 
-                if (check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
+                // If mesh is inflated, we don't have a higher-resultion check yet
+                if (inflated || check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
                     touchedSDs[SD_count++] = SDTripletID(i, j, k, gran_params);
                     if (SD_count == MAX_SDs_TOUCHED_BY_TRIANGLE) {
                         ABORTABORTABORT("SD_count exceeds MAX_SDs_TOUCHED_BY_TRIANGLE\n");
@@ -589,7 +608,8 @@ __global__ void interactionTerrain_TriangleSoup(
                 double3 sphCntr =
                     make_double3(sphere_X[sphereIDLocal], sphere_Y[sphereIDLocal], sphere_Z[sphereIDLocal]);
                 valid_contact = face_sphere_cd(node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
-                                               sphCntr, gran_params->sphereRadius_SU, normal, depth, pt1) &&
+                                               sphCntr, gran_params->sphereRadius_SU, d_triangleSoup->inflated[fam],
+                                               d_triangleSoup->inflation_radii[fam], normal, depth, pt1) &&
                                 SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD;
                 pt1_float = make_float3(pt1.x, pt1.y, pt1.z);
 

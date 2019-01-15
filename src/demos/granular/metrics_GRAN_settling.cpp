@@ -112,7 +112,12 @@ void SetupGranTriSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_par
     vector<float> mesh_masses;
     mesh_masses.push_back(block_mass);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
+    std::vector<bool> mesh_inflated;
+    std::vector<float> mesh_inflation_radii;
+    mesh_inflated.push_back(false);
+    mesh_inflation_radii.push_back(0);
+
+    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 }
 
 double RunTest(sim_param_holder& params, RUN_MODE run_mode) {

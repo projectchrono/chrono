@@ -148,11 +148,15 @@ int main(int argc, char* argv[]) {
         wheel_mesh_filename, my_hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)));
 
     // Add wheel masses
+    std::vector<bool> mesh_inflated;
+    std::vector<float> mesh_inflation_radii;
     const unsigned int num_mesh_bodies = 4;
     for (unsigned int i = 0; i < num_mesh_bodies; i++) {
         mesh_masses.push_back(wheel_mass);
         mesh_scalings.push_back(scaling);
         mesh_filenames.push_back(gran_collision_bodies[i].first);
+        mesh_inflated.push_back(false);
+        mesh_inflation_radii.push_back(0);
     }
 
     // Create the terrain
@@ -236,7 +240,7 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     m_sys_gran.set_fixed_stepSize(params.step_size);
 
-    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
+    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     // Output preferences
     m_sys_gran.setOutputDirectory(params.output_dir);

@@ -63,6 +63,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::initializeTriangles() {
 
     for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
         meshSoup_DEVICE->familyMass_SU[fam] = meshSoup_DEVICE->familyMass_SU[fam] / gran_params->MASS_UNIT;
+        meshSoup_DEVICE->inflation_radii[fam] = meshSoup_DEVICE->inflation_radii[fam] / gran_params->LENGTH_UNIT;
     }
     copyTriangleDataToDevice();
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
@@ -79,8 +80,11 @@ void ChSystemGranular_MonodisperseSMC_trimesh::initialize() {
 
 void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::string> objfilenames,
                                                            std::vector<float3> scalings,
-                                                           std::vector<float> masses) {
-    if (objfilenames.size() != scalings.size() || objfilenames.size() != masses.size()) {
+                                                           std::vector<float> masses,
+                                                           std::vector<bool> inflated,
+                                                           std::vector<float> inflation_radii) {
+    unsigned int size = objfilenames.size();
+    if (size != scalings.size() || size != masses.size() || size != inflated.size() || size != inflation_radii.size()) {
         GRANULAR_ERROR("Vectors of obj files, scalings, and masses must have same size\n");
     }
 
@@ -104,7 +108,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::stri
 
     // Allocate memory to store mesh soup in unified memory
     printf("Allocating mesh unified memory\n");
-    setupTriMesh_DEVICE(all_meshes, nTriangles, masses);
+    setupTriMesh_DEVICE(all_meshes, nTriangles, masses, inflated, inflation_radii);
     printf("Done allocating mesh unified memory\n");
 
     // Allocate triangle collision memory
@@ -184,6 +188,8 @@ void ChSystemGranular_MonodisperseSMC_trimesh::write_meshes(std::string filename
 void ChSystemGranular_MonodisperseSMC_trimesh::cleanupTriMesh_DEVICE() {
     cudaFree(meshSoup_DEVICE->triangleFamily_ID);
     cudaFree(meshSoup_DEVICE->familyMass_SU);
+    cudaFree(meshSoup_DEVICE->inflated);
+    cudaFree(meshSoup_DEVICE->inflation_radii);
 
     cudaFree(meshSoup_DEVICE->node1);
     cudaFree(meshSoup_DEVICE->node2);
@@ -202,7 +208,9 @@ void ChSystemGranular_MonodisperseSMC_trimesh::cleanupTriMesh_DEVICE() {
 void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
     const std::vector<geometry::ChTriangleMeshConnected>& all_meshes,
     unsigned int nTriangles,
-    std::vector<float> masses) {
+    std::vector<float> masses,
+    std::vector<bool> inflated,
+    std::vector<float> inflation_radii) {
     // Allocate the device soup storage
     gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(ChTriangleSoup<float3>), cudaMemAttachGlobal));
 
@@ -259,9 +267,14 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
 
     if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->familyMass_SU, family * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->inflated, family * sizeof(float), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->inflation_radii, family * sizeof(float), cudaMemAttachGlobal));
+
         for (unsigned int i = 0; i < family; i++) {
             // NOTE The SU conversion is done in initialize after the scaling is determined
             meshSoup_DEVICE->familyMass_SU[i] = masses[i];
+            meshSoup_DEVICE->inflated[i] = inflated[i];
+            meshSoup_DEVICE->inflation_radii[i] = inflation_radii[i];
         }
 
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->generalizedForcesPerFamily,

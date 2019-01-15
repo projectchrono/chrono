@@ -39,6 +39,9 @@ struct ChTriangleSoup {
 
     float* familyMass_SU;  //!< entry i is the SU mass of family i
 
+    bool* inflated;          //!< entry i true indicates that family i is inflated
+    float* inflation_radii;  //!< entri i is the SU radius of inflation of family i
+
     T3* node1;  //!< Position in local reference frame of node 1
     T3* node2;  //!< Position in local reference frame of node 2
     T3* node3;  //!< Position in local reference frame of node 3
@@ -114,7 +117,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     virtual void initialize() override;
     void load_meshes(std::vector<std::string> objfilenames,
                      std::vector<float3> scalefactors,
-                     std::vector<float> masses);
+                     std::vector<float> masses,
+                     std::vector<bool> inflated,
+                     std::vector<float> inflation_radii);
     void write_meshes(std::string outfilename);
 
     /// Set the ratio of adhesion force to sphere weight for sphere to mesh
@@ -164,7 +169,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
 
     void setupTriMesh_DEVICE(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
                              unsigned int nTriangles,
-                             std::vector<float> masses);
+                             std::vector<float> masses,
+                             std::vector<bool> inflated,
+                             std::vector<float> inflation_radii);
     void cleanupTriMesh_DEVICE();
 
     /// run prefix-scan based broadphase

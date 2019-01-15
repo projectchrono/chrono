@@ -65,6 +65,11 @@ int main(int argc, char* argv[]) {
     float mass = 100;
     mesh_masses.push_back(mass);
 
+    std::vector<bool> mesh_inflated;
+    std::vector<float> mesh_inflation_radii;
+    mesh_inflated.push_back(false);
+    mesh_inflation_radii.push_back(0);
+
     // starting positions of mesh-based balls
     std::vector<ChVector<double>> ball_positions;
     ball_positions.push_back({0, 0, scaling.z});
@@ -73,8 +78,6 @@ int main(int argc, char* argv[]) {
     // add mesh to granular system
     for (unsigned int i = 0; i < num_mesh_balls; i++) {
         mesh_scalings.push_back(scaling);
-    }
-    for (unsigned int i = 0; i < num_mesh_balls; i++) {
         mesh_filenames.push_back(mesh_filename);
     }
 
@@ -123,7 +126,7 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys_gran.set_fixed_stepSize(params.step_size);
 
-    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
+    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     /// output preferences
     m_sys_gran.setOutputDirectory(params.output_dir);

@@ -287,12 +287,17 @@ int main(int argc, char* argv[]) {
     unsigned int num_mesh_bodies = gran_collision_bodies.size();
 
     // add mesh to granular system
+    std::vector<bool> mesh_inflated;
+    std::vector<float> mesh_inflation_radii;
     for (unsigned int i = 0; i < num_mesh_bodies; i++) {
         mesh_scalings.push_back(scaling);
     }
     for (unsigned int i = 0; i < num_mesh_bodies; i++) {
         mesh_filenames.push_back(gran_collision_bodies[i].first);
+        mesh_inflated.push_back(false);
+        mesh_inflation_radii.push_back(0);
     }
+
 
     // Setup granular simulation
     ChSystemGranular_MonodisperseSMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density);
@@ -335,7 +340,7 @@ int main(int argc, char* argv[]) {
     m_sys_gran.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     m_sys_gran.set_fixed_stepSize(params.step_size);
 
-    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
+    m_sys_gran.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     m_sys_gran.disableMeshCollision();  // disable meshes for settling
 

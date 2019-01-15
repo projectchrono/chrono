@@ -92,6 +92,94 @@ __device__ bool snap_to_face(const double3& A, const double3& B, const double3& 
     return false;
 }
 
+__device__ bool face_sphere_cd_inflated(const double3& A,           //!< First vertex of the triangle
+                                        const double3& B,           //!< Second vertex of the triangle
+                                        const double3& C,           //!< Third vertex of the triangle
+                                        const double3& sphere_pos,  //!< Location of the center of the sphere
+                                        const int radius,           //!< Sphere radius
+                                        const float inflation_radius,
+                                        float3& normal,
+                                        float& depth,
+                                        double3& pt1) {
+    // Calculate face normal
+    double3 face_n = face_normal(A, B, C);
+
+    // Calculate signed height of sphere center above face plane
+    float h = Dot(sphere_pos - A, face_n);
+
+    if (h >= radius || h <= -radius) {
+        return false;
+    }
+
+    // Find the closest point on the face to the sphere center and determine
+    // whether or not this location is inside the face or on an edge.
+    double3 faceLoc;
+
+    // Collision detection between sphere and an sphere at the nearest point on the triangle
+    snap_to_face(A, B, C, sphere_pos, faceLoc);  // Get faceLoc
+    {
+        double3 normal_d = sphere_pos - faceLoc;
+        normal = make_float3(normal_d.x, normal_d.y, normal_d.z);
+    }
+    float dist = Length(normal);
+    depth = dist - radius - inflation_radius;
+    if (depth > 0) {
+        return false;
+    }
+    normal = (1.f / dist) * normal;
+    pt1 = faceLoc;  // TODO
+    return true;
+}
+
+__device__ bool face_sphere_cd_regular(const double3& A,           //!< First vertex of the triangle
+                                       const double3& B,           //!< Second vertex of the triangle
+                                       const double3& C,           //!< Third vertex of the triangle
+                                       const double3& sphere_pos,  //!< Location of the center of the sphere
+                                       const int radius,           //!< Sphere radius
+                                       float3& normal,
+                                       float& depth,
+                                       double3& pt1) {
+    // Calculate face normal using RHR
+    double3 face_n = face_normal(A, B, C);
+
+    // Calculate signed height of sphere center above face plane
+    float h = Dot(sphere_pos - A, face_n);
+
+    if (h >= radius || h <= -radius) {
+        return false;
+    }
+
+    // Find the closest point on the face to the sphere center and determine
+    // whether or not this location is inside the face or on an edge.
+    double3 faceLoc;
+
+    if (!snap_to_face(A, B, C, sphere_pos, faceLoc)) {
+        // Nearest point on the triangle is on its face
+        // printf("FACE CONTACT\n");
+        depth = h - radius;
+        normal = make_float3(face_n.x, face_n.y, face_n.z);
+        pt1 = faceLoc;
+        return true;  // We are guarenteed contact by an earlier check of h
+    } else {
+        // printf("EDGE CONTACT\n");
+        // Nearest point on the triangle is on an edge
+        {
+            double3 normal_d = sphere_pos - faceLoc;
+            normal = make_float3(normal_d.x, normal_d.y, normal_d.z);
+        }
+        // normal = make_float3(face_n.x, face_n.y, face_n.z);
+        // float dist = Length(sphere_pos - faceLoc);
+        float dist = Length(normal);
+        depth = dist - radius;
+        if (depth >= 0) {
+            return false;
+        }
+        normal = (1.f / dist) * normal;
+        pt1 = faceLoc;
+        return true;
+    }
+}
+
 /**
 /brief TRIANGLE FACE - SPHERE NARROW-PHASE COLLISION DETECTION
 
@@ -104,7 +192,7 @@ The coordinates of the face and sphere are assumed to be provided in the same re
 Output:
   - pt1:      contact point on triangle
   - depth:    penetration distance (a negative value means that overlap exists)
-  - norm:     contact normal, from pt2 to pt1
+  - normal:     contact normal, from pt2 to pt1
 A return value of "true" signals collision.
 */
 __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of the triangle
@@ -112,33 +200,14 @@ __device__ bool face_sphere_cd(const double3& A,           //!< First vertex of 
                                const double3& C,           //!< Third vertex of the triangle
                                const double3& sphere_pos,  //!< Location of the center of the sphere
                                const int radius,           //!< Sphere radius
+                               const bool inflated,
+                               const float inflation_radius,
                                float3& normal,
                                float& depth,
                                double3& pt1) {
-    // Calculate face normal.
-    double3 nrm1 = face_normal(A, B, C);
-
-    // Calculate signed height of sphere center above face plane. If the
-    // height is larger than the sphere radius plus the separation value,
-    // there is no contact.
-    float h = Dot(sphere_pos - A, nrm1);
-
-    if (h >= radius || h <= -radius) {
-        return false;
+    if (inflated) {
+        return face_sphere_cd_inflated(A, B, C, sphere_pos, radius, inflation_radius, normal, depth, pt1);
+    } else {
+        return face_sphere_cd_regular(A, B, C, sphere_pos, radius, normal, depth, pt1);
     }
-
-    // Find the closest point on the face to the sphere center and determine
-    // whether or not this location is inside the face or on an edge.
-    double3 faceLoc;
-
-    if (snap_to_face(A, B, C, sphere_pos, faceLoc)) {
-        return false;  // Don't report contact unless the closest point is on the face
-    }
-
-    // Closest point on face is inside the face.
-    normal = make_float3(nrm1.x, nrm1.y, nrm1.z);
-    depth = h - radius;
-    pt1 = faceLoc;
-
-    return true;
 }

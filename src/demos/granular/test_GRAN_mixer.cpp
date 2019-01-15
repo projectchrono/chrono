@@ -172,7 +172,12 @@ int main(int argc, char* argv[]) {
     float mass = 10;
     mesh_masses.push_back(mass);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
+    std::vector<bool> mesh_inflated;
+    std::vector<float> mesh_inflation_radii;
+    mesh_inflated.push_back(false);
+    mesh_inflation_radii.push_back(0);
+
+    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
     cout << nSoupFamilies << " soup families" << endl;

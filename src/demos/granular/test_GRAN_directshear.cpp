@@ -124,7 +124,16 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_param_
     mesh_masses.push_back(1000);
     mesh_masses.push_back(plate_mass);
 
-    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses);
+    std::vector<bool> mesh_inflated;
+    std::vector<float> mesh_inflation_radii;
+    mesh_inflated.push_back(false);
+    mesh_inflated.push_back(false);
+    mesh_inflated.push_back(false);
+    mesh_inflation_radii.push_back(0);
+    mesh_inflation_radii.push_back(0);
+    mesh_inflation_radii.push_back(0);
+
+    m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 }
 
 void SetInitialMeshes(double* meshPosRot, float* meshVel, const std::shared_ptr<ChBody> plate) {
