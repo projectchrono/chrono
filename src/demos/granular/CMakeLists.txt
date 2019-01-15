@@ -24,6 +24,7 @@ SET(DEMOS
 		test_GRAN_milwave
 		test_GRAN_milsettle
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
+		utest_GRAN_meshstep
 		test_GRAN_Coneflow
 		utest_GRAN_spherefric
 		demo_GRAN_DamBreak
