@@ -101,6 +101,26 @@ inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_con
     return NULL_GRANULAR_ID;  // shouldn't get here anyways
 }
 
+// cleanup the contact data for a given body
+inline __device__ void cleanupContactMap(sphereDataStruct sphere_data, unsigned int body_A, GranParamsPtr gran_params) {
+    // printf("cleaning up body %u contacts\n", body_A);
+    size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
+    // first skim through and see if this contact pair is in the map
+    for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
+        // if the contact is not active, reset it
+        if (sphere_data.sphere_contact_map[body_A_offset + contact_id].active == false) {
+            // printf("contact %u for body %u is inactive now, removing\n", );
+            sphere_data.sphere_contact_map[body_A_offset + contact_id].body_B = NULL_GRANULAR_ID;
+            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                sphere_data.contact_history_map[body_A_offset + contact_id] = {0., 0., 0.};
+            }
+        } else {
+            // otherwise reset the active bit for next time
+            sphere_data.sphere_contact_map[body_A_offset + contact_id].active = false;
+        }
+    }
+}
+
 /// enforce the Coulomb condition that Ft <= mu Fn
 /// by enforcing ut <= mu Fn / kt
 inline __device__ bool clampTangentDisplacement(GranParamsPtr gran_params,
@@ -147,4 +167,21 @@ inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
     const int64_t contact_threshold = (4l * gran_params->sphereRadius_SU) * gran_params->sphereRadius_SU;
 
     return contactSD == thisSD && penetration_int < contact_threshold;
+}
+
+/// Get the force multiplier for a contact given the penetration
+/// delta_n is penetration normalized by diameter
+// NOTE that this is here because the BC code also needs it
+inline __device__ float get_force_multiplier(float delta_n, GranParamsPtr gran_params) {
+    switch (gran_params->force_model) {
+        case chrono::granular::GRAN_FORCE_MODEL::HOOKE: {
+            return 1.f;
+        }
+        case chrono::granular::GRAN_FORCE_MODEL::HERTZ: {
+            return sqrt(delta_n);
+        }
+    }
+    // if we get here, something is wrong
+    ABORTABORTABORT("Invalid contact model\n");
+    return 0;  // this should never happen
 }

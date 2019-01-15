@@ -18,6 +18,7 @@ SET(LIBRARIES
 SET(DEMOS
 		demo_GRAN_BoxSettle_SMC
 		demo_GRAN_terrainBox_SMC
+		demo_GRAN_Bucket
 		demo_GRAN_TriMeshNoFric_SMC
 		demo_GRAN_TriMeshNoFric_SMC_tiredrag
 		demo_GRAN_TriMeshNoFric_SMC_ballcosim
@@ -26,6 +27,7 @@ SET(DEMOS
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
 		utest_GRAN_meshstep
 		test_GRAN_Coneflow
+		test_GRAN_HopperReposeAngle
 		utest_GRAN_spherefric
 		demo_GRAN_DamBreak
 		test_GRAN_meshforce

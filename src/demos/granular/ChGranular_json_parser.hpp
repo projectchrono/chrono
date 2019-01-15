@@ -36,6 +36,7 @@ typedef struct sim_param_holder {
     double tangentStiffS2S;
     double tangentStiffS2W;
     double tangentStiffS2M;
+    float static_friction_coeff;
     float cohesion_ratio;
     float adhesion_ratio_s2w;
     float adhesion_ratio_s2m;
@@ -193,6 +194,10 @@ bool ParseJSON(const char* json_file, sim_param_holder& params) {
     if (doc.HasMember("tangentDampS2M") && doc["tangentDampS2M"].IsNumber()) {
         params.tangentDampS2M = doc["tangentDampS2M"].GetDouble();
         cout << "params.tangentDampS2M " << params.tangentDampS2M << endl;
+    }
+    if (doc.HasMember("static_friction_coeff") && doc["static_friction_coeff"].IsNumber()) {
+        params.static_friction_coeff = doc["static_friction_coeff"].GetDouble();
+        cout << "params.static_friction_coeff " << params.static_friction_coeff << endl;
     }
     if (doc.HasMember("cohesion_ratio") && doc["cohesion_ratio"].IsNumber()) {
         params.cohesion_ratio = doc["cohesion_ratio"].GetDouble();

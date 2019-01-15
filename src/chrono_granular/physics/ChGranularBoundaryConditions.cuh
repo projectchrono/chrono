@@ -131,7 +131,7 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
     // line from tip to P
     float3 l = make_float3(Px, Py, Pz);
 
-    // is tangent to cone along line l
+    // component of sphere_pos_rel tangent to cone along line l
     float3 contact_tangent = l * Dot(sphere_pos_rel, l) / Dot(l, l);
 
     // vector from contact point to sphere
@@ -182,13 +182,12 @@ inline __device__ bool addBCForces_Plane_frictionless(unsigned int sphID,
                                                       unsigned int BC_id,
                                                       const int3& sphPos,
                                                       const float3& sphVel,
-                                                      const float3& sphOmega,
                                                       float3& force_from_BCs,
-                                                      float3& ang_acc_from_BCs,
                                                       GranParamsPtr gran_params,
                                                       sphereDataStruct sphere_data,
                                                       BC_params_t<int, int3>& bc_params,
-                                                      bool track_forces) {
+                                                      bool track_forces,
+                                                      float& dist) {
     Plane_BC_params_t<int3> plane_params = bc_params.plane_params;
     bool contact = false;
     // classic radius grab, this must be signed to avoid false conversions
@@ -198,9 +197,9 @@ inline __device__ bool addBCForces_Plane_frictionless(unsigned int sphID,
     float3 delta_r = int3_to_float3(sphPos - plane_params.position);
 
     // projection displacement onto plane normal
-    float proj = Dot(plane_params.normal, delta_r);
+    dist = Dot(plane_params.normal, delta_r);
     // positive implies radius is bigger than distance, so there is penetration
-    float penetration = sphereRadius_SU - proj;
+    float penetration = sphereRadius_SU - dist;
     contact = (penetration > 0);
 
     if (contact) {
@@ -242,85 +241,69 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
                                          sphereDataStruct sphere_data,
                                          BC_params_t<int, int3>& bc_params,
                                          bool track_forces) {
-    Plane_BC_params_t<int3> plane_params = bc_params.plane_params;
-    bool contact = false;
-    // classic radius grab, this must be signed to avoid false conversions
+    float3 force_accum = {0, 0, 0};
+    float3 contact_normal = bc_params.plane_params.normal;
+
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
 
-    // Vector from point on plane to sphere center
-    float3 delta_r = int3_to_float3(sphPos - plane_params.position);
+    float dist = 0;
 
-    // projection displacement onto plane normal
-    float proj = Dot(plane_params.normal, delta_r);
-    // positive implies radius is bigger than distance, so there is penetration
-    float penetration = sphereRadius_SU - proj;
-    contact = (penetration > 0);
+    bool contact = addBCForces_Plane_frictionless(sphID, BC_id, sphPos, sphVel, force_accum, gran_params, sphere_data,
+                                                  bc_params, false, dist);
+
+    float penetration = sphereRadius_SU - dist;
+    float projection = Dot(sphVel, contact_normal);
+    float3 sphere_vel = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
 
     if (contact) {
-        float3 force_accum = {0, 0, 0};
-
-        float3 contact_normal = plane_params.normal;
         float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
-        force_accum = gran_params->K_n_s2w_SU * penetration * contact_normal;
 
-        // damping term
-        // Compute force updates for damping term
-        // Project relative velocity to the normal
-        // assume static BC
-        float projection = Dot(sphVel, contact_normal);
-
-        // now this is just the tangential component
-        float3 sphere_vel = sphVel - projection * contact_normal;
-
-        constexpr float m_eff = 0.5;
-
-        force_accum = force_accum + -1. * gran_params->Gamma_n_s2w_SU * projection * contact_normal * m_eff;
-        force_accum = force_accum * force_model_multiplier;
+        constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
 
         // add tangent forces
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-            // single step collapses into one parameter
-            const float combined_tangent_coeff =
-                gran_params->K_t_s2w_SU * gran_params->stepSize_SU + gran_params->Gamma_t_s2w_SU * m_eff;
+        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+            // project velocity onto the normal
+            bool clamped = false;
+            float3 delta_t = {0, 0, 0};
 
-            // v = v_COM + omega cross r
-            sphere_vel = sphere_vel + Cross(sphOmega, proj * -1. * contact_normal);
+            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+                // single step collapses into one parameter
+                delta_t = sphere_vel * gran_params->stepSize_SU;
+                clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
 
-            float3 tangent_force = -combined_tangent_coeff * sphere_vel * force_model_multiplier;
+            } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                // index for this 'body' in the history map, note that BC 0 is index nSpheres + 1
+                // TODO this might waste an index
+                unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
+
+                unsigned int contact_id =
+                    findContactPairInfo(sphere_data.sphere_contact_map, gran_params, sphID, BC_histmap_label);
+
+                // get the tangential displacement so far
+                delta_t = sphere_data.contact_history_map[contact_id];
+                // add on what we have for this step
+                delta_t = delta_t + sphere_vel * gran_params->stepSize_SU;
+
+                // project onto contact normal
+                float disp_proj = Dot(delta_t, contact_normal);
+                // remove normal projection
+                delta_t = delta_t - disp_proj * contact_normal;
+                // clamp tangent displacement
+                clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
+
+                // write back the updated displacement
+                sphere_data.contact_history_map[contact_id] = delta_t;
+            }
+
+            float3 tangent_force = -gran_params->K_t_s2w_SU * delta_t * force_model_multiplier;
+            // if no-slip, add the tangential damping
+            if (!clamped) {
+                tangent_force = tangent_force - gran_params->Gamma_t_s2w_SU * m_eff * sphere_vel;
+            }
             ang_acc_from_BCs =
                 ang_acc_from_BCs + (Cross(-1 * contact_normal, tangent_force) / gran_params->sphereInertia_by_r);
             force_accum = force_accum + tangent_force;
         }
-        // else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-        //             // index for this 'body' in the history map, note that BC 0 is index nSpheres + 1
-        //             // TODO this might waste an index
-        //             unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
-        //
-        //             unsigned int contact_id =
-        //                 findContactPairInfo(sphere_data.sphere_contact_map, gran_params, sphID, BC_histmap_label);
-        //
-        //             // get the tangential displacement so far
-        //             float3 delta_t = sphere_data.contact_history_map[contact_id];
-        //             // add on what we have for this step
-        //             delta_t = delta_t + sphere_vel * gran_params->stepSize_SU;
-        //
-        //             // project onto contact normal
-        //             float projection = Dot(delta_t, contact_normal);
-        //             // remove normal projection
-        //             delta_t = delta_t - projection * contact_normal;
-        //             // clamp tangent displacement
-        //             bool clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
-        //
-        //             // write back the updated displacement
-        //             sphere_data.contact_history_map[contact_id] = delta_t;
-        //
-        //             float3 tangent_force = -gran_params->K_t_s2s_SU * delta_t * force_model_multiplier;
-        //
-        //             // if no-slip, add the tangential damping
-        //             if (!clamped) {
-        //                 tangent_force = tangent_force - gran_params->Gamma_t_s2s_SU * m_eff * sphere_vel;
-        //             }
-        //         }
 
         force_from_BCs = force_from_BCs + force_accum;
         if (track_forces) {

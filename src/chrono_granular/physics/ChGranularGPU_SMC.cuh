@@ -531,6 +531,63 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
 }
 
 /// Compute forces on a sphere from walls, BCs, and gravity
+inline __device__ void applyExternalForces_frictionless(unsigned int currSphereID,
+                                                        const int3& sphPos,    //!< Global X position of DE
+                                                        const float3& sphVel,  //!< Global X velocity of DE
+                                                        const float3& sphOmega,
+                                                        float3& sphere_force,
+                                                        float3& sphere_ang_acc,
+                                                        GranParamsPtr gran_params,
+                                                        sphereDataStruct sphere_data,
+                                                        BC_type* bc_type_list,
+                                                        BC_params_t<int, int3>* bc_params_list,
+                                                        unsigned int nBCs) {
+    // apply wall and BC effects
+    // Perhaps this sphere is hitting the wall[s]
+    boxWallsEffects(sphPos.x, sphPos.y, sphPos.z, sphVel.x, sphVel.y, sphVel.z, sphOmega.x, sphOmega.y, sphOmega.z,
+                    sphere_force, sphere_ang_acc, gran_params);
+    // add forces from each BC
+    for (unsigned int BC_id = 0; BC_id < nBCs; BC_id++) {
+        // skip inactive BCs
+        if (!bc_params_list[BC_id].active) {
+            continue;
+        }
+        switch (bc_type_list[BC_id]) {
+            // case BC_type::AA_BOX: {
+            //     ABORTABORTABORT("ERROR: AA_BOX is currently unsupported!\n");
+            //     break;
+            // }
+            case BC_type::SPHERE: {
+                addBCForces_Sphere(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                   gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                break;
+            }
+            case BC_type::CONE: {
+                addBCForces_ZCone(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                  gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                break;
+            }
+            case BC_type::PLANE: {
+                float dist = 0;  // tmp used to satisfy function parameters
+                addBCForces_Plane_frictionless(currSphereID, BC_id, sphPos, sphVel, sphere_force, gran_params,
+                                               sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces,
+                                               dist);
+                break;
+            }
+            case BC_type::CYLINDER: {
+                addBCForces_Zcyl(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                 gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                break;
+            }
+        }
+    }
+    // If the sphere belongs to this SD, add up the gravitational force component.
+    sphere_force.x += gran_params->gravAcc_X_SU;
+    sphere_force.y += gran_params->gravAcc_Y_SU;
+    sphere_force.z += gran_params->gravAcc_Z_SU;
+}
+
+/// Compute forces on a sphere from walls, BCs, and gravity
 inline __device__ void applyExternalForces(unsigned int currSphereID,
                                            const int3& sphPos,    //!< Global X position of DE
                                            const float3& sphVel,  //!< Global X velocity of DE
@@ -583,26 +640,6 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
     sphere_force.x += gran_params->gravAcc_X_SU;
     sphere_force.y += gran_params->gravAcc_Y_SU;
     sphere_force.z += gran_params->gravAcc_Z_SU;
-}
-
-// cleanup the contact data for a given body
-inline __device__ void cleanupContactMap(sphereDataStruct sphere_data, unsigned int body_A, GranParamsPtr gran_params) {
-    // printf("cleaning up body %u contacts\n", body_A);
-    size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
-    // first skim through and see if this contact pair is in the map
-    for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
-        // if the contact is not active, reset it
-        if (sphere_data.sphere_contact_map[body_A_offset + contact_id].active == false) {
-            // printf("contact %u for body %u is inactive now, removing\n", );
-            sphere_data.sphere_contact_map[body_A_offset + contact_id].body_B = NULL_GRANULAR_ID;
-            if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-                sphere_data.contact_history_map[body_A_offset + contact_id] = {0., 0., 0.};
-            }
-        } else {
-            // otherwise reset the active bit for next time
-            sphere_data.sphere_contact_map[body_A_offset + contact_id].active = false;
-        }
-    }
 }
 
 static __global__ void determineContactPairs(sphereDataStruct sphere_data, GranParamsPtr gran_params) {
@@ -817,7 +854,7 @@ static __global__ void computeSphereContactForces(sphereDataStruct sphere_data,
                         clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
                     } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
                         // get the tangential displacement so far
-                        delta_t = sphere_data.contact_history_map[contact_id];
+                        delta_t = sphere_data.contact_history_map[body_A_offset + contact_id];
                         // add on what we have
                         delta_t = delta_t + vrel_t * gran_params->stepSize_SU;
 
@@ -829,7 +866,7 @@ static __global__ void computeSphereContactForces(sphereDataStruct sphere_data,
                         clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
 
                         // write back the updated displacement
-                        sphere_data.contact_history_map[contact_id] = delta_t;
+                        sphere_data.contact_history_map[body_A_offset + contact_id] = delta_t;
                     }
 
                     float3 tangent_force = -gran_params->K_t_s2s_SU * delta_t * force_model_multiplier;
@@ -970,8 +1007,9 @@ static __global__ void computeSphereForces_frictionless(sphereDataStruct sphere_
             float3 bodyA_AngAcc;
             constexpr float3 sphere_omega = {0, 0, 0};
 
-            applyExternalForces(mySphereID, sphere_pos[bodyA], sphere_vel[bodyA], sphere_omega, bodyA_force,
-                                bodyA_AngAcc, gran_params, sphere_data, bc_type_list, bc_params_list, nBCs);
+            applyExternalForces_frictionless(mySphereID, sphere_pos[bodyA], sphere_vel[bodyA], sphere_omega,
+                                             bodyA_force, bodyA_AngAcc, gran_params, sphere_data, bc_type_list,
+                                             bc_params_list, nBCs);
         }
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes

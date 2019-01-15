@@ -12,11 +12,8 @@
 // Authors: Dan Negrut, Nic Olsen, Conlain Kelly
 // =============================================================================
 //
-// Chrono::Granular demo program using SMC method for frictional contact.
+// Chrono::Granular test using an hourglass to measure angle of repose
 //
-// Basic simulation of a settling scenario;
-//  - box is rectangular
-//  - there is no friction
 //
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
@@ -43,8 +40,8 @@ constexpr int num_args_full = 7;
 // Show command line usage
 // -----------------------------------------------------------------------------
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_Coneflow <json_file> [<aperture_diameter> <particle_radius> <grac_acc> "
-            "<material_density> <output_dir>]"
+    cout << "usage: ./test_GRAN_HopperReposeAngle <json_file> [<aperture_diameter> <normal_stiffness> <timestep> "
+            "<static_friction_coeff> <output_dir>]"
          << endl;
     cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
@@ -68,12 +65,12 @@ int main(int argc, char* argv[]) {
 
     if (argc == num_args_full) {
         aperture_diameter = std::atof(argv[2]);
-        params.sphere_radius = std::atof(argv[3]);
-        params.grav_Z = -1.f * std::atof(argv[4]);
-        params.sphere_density = std::atof(argv[5]);
+        params.normalStiffS2S = std::atof(argv[3]);
+        params.step_size = std::atof(argv[4]);
+        params.static_friction_coeff = std::atof(argv[5]);
         params.output_dir = std::string(argv[6]);
-        printf("new parameters: D_0 is %f, r is %f, grav is %f, density is %f, output dir %s\n", aperture_diameter,
-               params.sphere_radius, params.grav_Z, params.sphere_density, params.output_dir.c_str());
+        printf("new parameters: D_0 is %f, k_n is %f, dt is %f, mu is %f, output dir %s\n", aperture_diameter,
+               params.normalStiffS2S, params.step_size, params.static_friction_coeff, params.output_dir.c_str());
     }
     // Setup simulation
     ChSystemGranular_MonodisperseSMC gran_sys(params.sphere_radius, params.sphere_density);
@@ -93,7 +90,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     gran_sys.setOutputDirectory(params.output_dir);
     gran_sys.setOutputMode(params.write_mode);
-    gran_sys.set_static_friction_coeff(params.static_friction_coeff);  // TODO
+    gran_sys.set_static_friction_coeff(params.static_friction_coeff);
 
     gran_sys.set_BD_Fixed(true);
 
@@ -105,18 +102,18 @@ int main(int argc, char* argv[]) {
     // padding at top of fill
     float fill_gap = 1.f;
 
-    chrono::utils::PDSampler<float> sampler(fill_epsilon * params.sphere_radius);
-
-    float center_pt[3] = {0.f, 0.f, -2 - params.box_Z / 6.f};
-
     // width we want to fill to
     float fill_width = params.box_Z / 3.f;
     // height that makes this width above the cone
-    float fill_height = fill_width;
+    float fill_height = fill_width / 4;
 
     // fill to top
     float fill_top = params.box_Z / 2 - fill_gap;
     float fill_bottom = fill_top - fill_height;
+
+    chrono::utils::PDSampler<float> sampler(fill_epsilon * params.sphere_radius);
+
+    float center_pt[3] = {0.f, 0.f, -2 - params.box_Z / 6.f};
 
     printf("width is %f, bot is %f, top is %f, height is %f\n", fill_width, fill_bottom, fill_top, fill_height);
     // fill box, layer by layer
@@ -142,11 +139,9 @@ int main(int argc, char* argv[]) {
     printf("%d spheres with mass %f \n", body_points.size(), body_points.size() * sphere_mass);
 
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
-    // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_sys.set_fixed_stepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
@@ -183,13 +178,11 @@ int main(int argc, char* argv[]) {
 
     gran_sys.initialize();
 
-    // number of times to capture force data per second
-    int captures_per_second = 200;
-    // number of times to capture force before we capture a frame
-    int captures_per_frame = 4;
+    // number of times to render per second
+    int fps = 50;
 
     // assume we run for at least one frame
-    float frame_step = 1. / captures_per_second;
+    float frame_step = 1. / fps;
     float curr_time = 0;
     int currcapture = 0;
     int currframe = 0;
@@ -201,14 +194,7 @@ int main(int argc, char* argv[]) {
 
     float reaction_forces[3] = {0, 0, 0};
 
-    constexpr float F_CGS_TO_SI = 1e-5;
-    constexpr float M_CGS_TO_SI = 1e-3;
-    float total_system_mass = 4. / 3. * CH_C_PI * params.sphere_density * params.sphere_radius * params.sphere_radius *
-                              params.sphere_radius * body_points.size();
-    printf("total system mass is %f kg \n", total_system_mass * M_CGS_TO_SI);
     char filename[100];
-    // sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    // gran_sys.writeFileUU(std::string(filename));
 
     // Run settling experiments
     while (curr_time < params.time_end) {
@@ -216,24 +202,12 @@ int main(int argc, char* argv[]) {
             gran_sys.disable_BC_by_ID(cone_plane_bc_id);
         }
 
-        bool success = gran_sys.getBCReactionForces(bottom_plane_bc_id, reaction_forces);
-        if (!success) {
-            printf("ERROR! Get contact forces for plane failed\n");
-        } else {
-            printf("curr time is %f, plane force is (%f, %f, %f) Newtons\n", curr_time,
-                   F_CGS_TO_SI * reaction_forces[0], F_CGS_TO_SI * reaction_forces[1],
-                   F_CGS_TO_SI * reaction_forces[2]);
-        }
         gran_sys.advance_simulation(frame_step);
         curr_time += frame_step;
 
-        // if this frame is a render frame
-        if (currcapture % captures_per_frame == 0) {
-            printf("rendering frame %u\n", currframe);
-            sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            gran_sys.writeFileUU(std::string(filename));
-        }
-        currcapture++;
+        printf("rendering frame %u\n", currframe);
+        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+        gran_sys.writeFileUU(std::string(filename));
     }
 
     return 0;
