@@ -50,6 +50,41 @@ void ShowUsage() {
     cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
 
+sim_param_holder params;
+
+std::string box_filename = "BD_Box.obj";
+
+// Take a ChBody and write its
+void writeBoxMesh(std::ostringstream& outstream) {
+    ChVector<> pos(0, 0, 0);
+    // Get basis vectors
+    ChVector<> vx(1, 0, 0);
+    ChVector<> vy(0, 1, 0);
+    ChVector<> vz(0, 0, 1);
+
+    ChVector<> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z / 2);
+
+    // Write the mesh name to find
+    outstream << box_filename << ",";
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z() << ",";
+    outstream << scaling.x() << ",";
+    outstream << scaling.y() << ",";
+    outstream << scaling.z();
+    outstream << "\n";
+}
+
 enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
 
 std::vector<size_t> bc_ids;
@@ -58,11 +93,9 @@ std::vector<std::string> bc_names;
 constexpr float F_CGS_TO_SI = 1e-5;
 constexpr float M_CGS_TO_SI = 1e-3;
 
-sim_param_holder params;
-
 void writeForcesFile(ChSystemGranular_MonodisperseSMC& settlingExperiment) {
     char forcefile[100];
-    sprintf(forcefile, "%s/force%06d", (params.output_dir + "/forces.csv").c_str(), currcapture++);
+    sprintf(forcefile, "%s/force%06d.csv", (params.output_dir + "/forces").c_str(), currcapture++);
     printf("force file is %s\n", forcefile);
     std::ofstream ofile(forcefile, std::ios::out);
 
@@ -141,7 +174,7 @@ int main(int argc, char* argv[]) {
 
     {
         // fill box, layer by layer
-        ChVector<> hdims(params.box_X / 2.f - 2, params.box_Y / 2.f - 2, params.box_Z / 2.f - 4);
+        ChVector<> hdims(params.box_X / 2.f - 3, params.box_Y / 2.f - 3, params.box_Z / 2.f - 3);
         ChVector<> center(0, 0, 0);
 
         // Fill box with bodies
@@ -238,10 +271,20 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     printf("rendering frame %u\n", currframe);
-    sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+    sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
     settlingExperiment.writeFile(std::string(filename));
 
+    // write mesh transforms for ospray renderer
+    {
+        std::ofstream meshfile{params.output_dir + "/BD_Box_mesh.csv"};
+        std::ostringstream outstream;
+        outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3\n";
+        writeBoxMesh(outstream);
+        meshfile << outstream.str();
+    }
     std::cout << "frame step is " << frame_step << std::endl;
+
+    currframe++;
 
     // Run settling experiments
     while (curr_time < params.time_end) {
@@ -250,7 +293,6 @@ int main(int argc, char* argv[]) {
         settlingExperiment.advance_simulation(frame_step);
         curr_time += frame_step;
 
-        currcapture++;
         // if this frame is a render frame
         if (currcapture % captures_per_frame == 0) {
             printf("rendering frame %u\n", currframe);

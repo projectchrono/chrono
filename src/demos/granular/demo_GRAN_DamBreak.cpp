@@ -47,13 +47,77 @@ void ShowUsage() {
     cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
 
+std::string box_filename = "BD_Box.obj";
+std::string cyl_filename = "Gran_cylinder.obj";
+
+sim_param_holder params;
+
+// Take a ChBody and write its
+void writeBoxMesh(std::ostringstream& outstream) {
+    ChVector<> pos(0, 0, 0);
+    // Get basis vectors
+    ChVector<> vx(1, 0, 0);
+    ChVector<> vy(0, 1, 0);
+    ChVector<> vz(0, 0, 1);
+
+    ChVector<> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z / 2);
+
+    // Write the mesh name to find
+    outstream << box_filename << ",";
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z() << ",";
+    outstream << scaling.x() << ",";
+    outstream << scaling.y() << ",";
+    outstream << scaling.z();
+    outstream << "\n";
+}
+
+// Take a ChBody and write its
+void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad, float height) {
+    // Get basis vectors
+    ChVector<> vx(1, 0, 0);
+    ChVector<> vy(0, 1, 0);
+    ChVector<> vz(0, 0, 1);
+
+    ChVector<> scaling(rad / 2, rad / 2, height / 2);
+
+    // Write the mesh name to find
+    outstream << cyl_filename << ",";
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z() << ",";
+    outstream << scaling.x() << ",";
+    outstream << scaling.y() << ",";
+    outstream << scaling.z();
+    outstream << "\n";
+}
+
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
 // There is no friction. The units are always cm/s/g[L/T/M].
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    sim_param_holder params;
-
     // Some of the default values might be overwritten by user via command line
     if (argc < 2 || argc > 2 && argc != num_args_full || ParseJSON(argv[1], params) == false) {
         ShowUsage();
@@ -152,6 +216,17 @@ int main(int argc, char* argv[]) {
     float total_system_mass = 4. / 3. * CH_C_PI * params.sphere_density * params.sphere_radius * params.sphere_radius *
                               params.sphere_radius * body_points.size();
     printf("total system mass is %f kg \n", total_system_mass * M_CGS_TO_SI);
+
+    // write mesh transforms for ospray renderer
+    {
+        std::ofstream meshfile{params.output_dir + "/BD_Box_mesh.csv"};
+        std::ostringstream outstream;
+        outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3\n";
+        writeBoxMesh(outstream);
+        writeZCylinderMesh(outstream, ChVector<>(cyl_center[0], cyl_center[1], cyl_center[2]), cyl_rad, params.box_Z);
+
+        meshfile << outstream.str();
+    }
 
     // Run settling experiments
     while (curr_time < params.time_end) {

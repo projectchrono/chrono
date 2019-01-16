@@ -103,9 +103,9 @@ int main(int argc, char* argv[]) {
     float fill_gap = 1.f;
 
     // width we want to fill to
-    float fill_width = params.box_Z / 3.f;
+    float fill_width = params.box_X / 3.f;
     // height that makes this width above the cone
-    float fill_height = fill_width / 4;
+    float fill_height = params.box_Z / 3;
 
     // fill to top
     float fill_top = params.box_Z / 2 - fill_gap;

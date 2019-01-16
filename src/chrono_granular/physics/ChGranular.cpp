@@ -22,6 +22,7 @@
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
+#include <climits>
 
 namespace chrono {
 namespace granular {
@@ -181,6 +182,17 @@ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
 
     printf("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
            gran_params->max_z_pos_unsigned);
+
+    int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
+                                    gran_params->max_z_pos_unsigned);
+    if (true_max_pos >= UINT_MAX) {
+        printf("ERROR! Max possible position is greater than UINT_MAX!!!\n");
+        exit(1);
+    }
+
+    if (true_max_pos >= INT_MAX) {
+        printf("WARNING! Max possible position is greater than INT_MAX!!!\n");
+    }
 
     // NOTE: Assumes mass = 1
     gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
@@ -657,8 +669,8 @@ void ChSystemGranular_MonodisperseSMC::partitionBD() {
 }
 
 /**
-This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the scaling
-of various physical quantities set by the user.
+This method defines the mass, time, length Simulation Units. It also sets several other constants that enter the
+scaling of various physical quantities set by the user.
 */
 void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     double massSphere = 4. / 3. * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;

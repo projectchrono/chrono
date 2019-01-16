@@ -217,6 +217,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     // TODO modularize more code
     // Case 1: All vetices are in the same SD
     if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
+        // if we get here and don't have a valid SD, this should be an error
         unsigned int currSD = SDTripletID(L, gran_params);
         if (currSD != NULL_GRANULAR_ID) {
             touchedSDs[0] = currSD;
