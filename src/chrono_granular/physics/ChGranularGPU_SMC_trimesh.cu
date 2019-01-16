@@ -160,7 +160,10 @@ __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
                 SDcenter[2] = gran_params->BD_frame_Z + (k * 2 + 1) * SDhalfSizes[2];
 
                 if (inflated || check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
-                    numSDsTouched++;
+                    unsigned int currSD = SDTripletID(i, j, k, gran_params);
+                    if (currSD != NULL_GRANULAR_ID) {
+                        numSDsTouched++;
+                    }
                 }
             }
         }
