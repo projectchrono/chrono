@@ -5,9 +5,9 @@
     "step_size": 1e-5,
     "time_end": 10,
 
-    "normalStiffS2S": 1e7,
-    "normalStiffS2W": 1e7,
-    "normalStiffS2M": 1e7,
+    "normalStiffS2S": 1e8,
+    "normalStiffS2W": 1e8,
+    "normalStiffS2M": 1e8,
     "normalDampS2S": 6e3,
     "normalDampS2W": 6e3,
     "normalDampS2M": 6e3,

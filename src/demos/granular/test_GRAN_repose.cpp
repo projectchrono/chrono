@@ -145,11 +145,11 @@ int main(int argc, char* argv[]) {
     mesh_masses.push_back(mass);
     mesh_masses.push_back(mass);
 
-    std::vector<bool> mesh_inflated;
+    vector<bool> mesh_inflated;
     mesh_inflated.push_back(false);
     mesh_inflated.push_back(false);
 
-    std::vector<float> mesh_inflation_radii;
+    vector<float> mesh_inflation_radii;
     mesh_inflation_radii.push_back(0);
     mesh_inflation_radii.push_back(0);
 
