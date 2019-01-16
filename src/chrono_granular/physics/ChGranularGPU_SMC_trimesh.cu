@@ -124,7 +124,13 @@ __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
     triangle_figureOutSDBox(vA, vB, vC, inflated, L, U, gran_params);
     // Case 1: All vetices are in the same SD
     if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
-        return 1;
+        unsigned int currSD = SDTripletID(L, gran_params);
+        if (currSD != NULL_GRANULAR_ID) {
+            return 1;
+        } else {
+            // TODO optimize me?
+            return 0;
+        }
     }
 
     unsigned int n_axes_diff = 0;  // Count axes that have different SD bounds
@@ -136,14 +142,21 @@ __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
             n_axes_diff++;
         }
     }
+    unsigned int numSDsTouched = 0;
 
     // Case 2: Triangle lies in a Nx1x1, 1xNx1, or 1x1xN block of SDs
     if (n_axes_diff == 1) {
         // add one since it's in each of these SDs
-        return U[axes_diff] - L[axes_diff] + 1;
+        int SD_i[3] = {L[0], L[1], L[2]};  // start at 'bottom' and move up
+        for (int i = L[axes_diff]; i <= U[axes_diff]; i++) {
+            SD_i[axes_diff] = i;  // current SD index along this direction
+            unsigned int currSD = SDTripletID(SD_i, gran_params);
+            if (currSD != NULL_GRANULAR_ID) {
+                numSDsTouched++;
+            }
+        }
+        return numSDsTouched;
     }
-
-    unsigned int numSDsTouched = 0;
 
     // Case 3: Triangle spans more than one dimension of spheresTouchingThisSD
     float SDcenter[3];
@@ -204,7 +217,10 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     // TODO modularize more code
     // Case 1: All vetices are in the same SD
     if (L[0] == U[0] && L[1] == U[1] && L[2] == U[2]) {
-        touchedSDs[0] = SDTripletID(L, gran_params);
+        unsigned int currSD = SDTripletID(L, gran_params);
+        if (currSD != NULL_GRANULAR_ID) {
+            touchedSDs[0] = currSD;
+        }
         return;
     }
 
@@ -222,12 +238,16 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
     // Case 2: Triangle lies in a Nx1x1, 1xNx1, or 1x1xN block of SDs
     if (n_axes_diff == 1) {
         int SD_i[3] = {L[0], L[1], L[2]};  // start at 'bottom' and move up
-        if (U[axes_diff] - L[axes_diff] >= MAX_SDs_TOUCHED_BY_TRIANGLE) {
-            ABORTABORTABORT("SD_count exceeds MAX_SDs_TOUCHED_BY_TRIANGLE\n");
-        }
         for (int i = L[axes_diff]; i <= U[axes_diff]; i++) {
             SD_i[axes_diff] = i;  // current SD index along this direction
-            touchedSDs[SD_count++] = SDTripletID(SD_i, gran_params);
+
+            unsigned int currSD = SDTripletID(SD_i, gran_params);
+            if (currSD != NULL_GRANULAR_ID) {
+                touchedSDs[SD_count++] = SDTripletID(SD_i, gran_params);
+            }
+        }
+        if (SD_count >= MAX_SDs_TOUCHED_BY_TRIANGLE) {
+            ABORTABORTABORT("SD_count exceeds MAX_SDs_TOUCHED_BY_TRIANGLE\n");
         }
         return;
     }
