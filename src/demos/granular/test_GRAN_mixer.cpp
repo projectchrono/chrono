@@ -78,7 +78,11 @@ int main(int argc, char* argv[]) {
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS);
+    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
+
+    const float static_friction = 0.9;
+    m_sys.set_static_friction_coeff(static_friction);
+    cout << "Static Friction: " << static_friction << endl;
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
     m_sys.setOutputDirectory(params.output_dir);

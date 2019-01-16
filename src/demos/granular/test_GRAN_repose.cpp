@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS);  // TODO
+    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
     m_sys.setOutputDirectory(params.output_dir);
@@ -82,13 +82,15 @@ int main(int argc, char* argv[]) {
     m_sys.set_BD_Fixed(true);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
-    m_sys.set_static_friction_coeff(0.5);  // TODO
+    const float static_friction = 0.5;  // TODO
+    m_sys.set_static_friction_coeff(static_friction);
+    cout << "Static Friction: " << static_friction << endl;
 
     const float Bx = params.box_X;
     const float By = Bx;
 
     const float chamber_height = Bx;  // TODO
-    const float fill_height = 10;
+    const float fill_height = 50;
     const float extra_height = 0;
 
     const float Bz = chamber_height + fill_height + extra_height;
@@ -144,12 +146,12 @@ int main(int argc, char* argv[]) {
     mesh_masses.push_back(mass);
 
     std::vector<bool> mesh_inflated;
-    std::vector<float> mesh_inflation_radii;
     mesh_inflated.push_back(false);
     mesh_inflated.push_back(false);
-    mesh_inflation_radii.push_back(0);
-    mesh_inflation_radii.push_back(0);
 
+    std::vector<float> mesh_inflation_radii;
+    mesh_inflation_radii.push_back(0);
+    mesh_inflation_radii.push_back(0);
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
