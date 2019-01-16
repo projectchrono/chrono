@@ -243,7 +243,7 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
             unsigned int currSD = SDTripletID(SD_i, gran_params);
             if (currSD != NULL_GRANULAR_ID) {
-                touchedSDs[SD_count++] = SDTripletID(SD_i, gran_params);
+                touchedSDs[SD_count++] = currSD;
             }
         }
         if (SD_count >= MAX_SDs_TOUCHED_BY_TRIANGLE) {
