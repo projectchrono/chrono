@@ -43,171 +43,6 @@ __host__ double ChSystemGranular_MonodisperseSMC::get_max_z() const {
     return max_z_UU;
 }
 
-/// Copy constant sphere data to device, this should run at start
-__host__ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
-    gran_params->max_x_pos_unsigned = ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X);
-    gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
-    gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
-
-    printf("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
-           gran_params->max_z_pos_unsigned);
-
-    // NOTE: Assumes mass = 1
-    gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
-}
-
-// Check number of spheres in each SD and dump relevant info to file
-void ChSystemGranular_MonodisperseSMC::checkSDCounts(std::string ofile, bool write_out = false, bool verbose = false) {
-    // Count of DEs in each SD
-    unsigned int* sdvals = SD_NumSpheresTouching.data();
-    // DEs that are in each SD
-    unsigned int* sdSpheres = spheres_in_SD_composite.data();
-    // # times each DE appears in some SD
-    unsigned int* deCounts = new unsigned int[nSpheres];
-
-    // could use memset instead, just need to zero these out
-    for (unsigned int i = 0; i < nSpheres; i++) {
-        deCounts[i] = 0;
-    }
-
-    unsigned int max_count = 0;
-    unsigned int sum = 0;
-    for (unsigned int i = 0; i < gran_params->nSDs; i++) {
-        // printf("count is %u for SD sd %u \n", sdvals[i], i);
-        sum += sdvals[i];
-        if (sdvals[i] > max_count)
-            max_count = sdvals[i];
-    }
-    // safety checks, if these fail we were probably about to crash
-    assert(sum < MAX_COUNT_OF_SPHERES_PER_SD * gran_params->nSDs);
-    assert(max_count < MAX_COUNT_OF_SPHERES_PER_SD);
-    if (verbose) {
-        printf("max DEs per SD is %u\n", max_count);
-        printf("total sd/de overlaps is %u\n", sum);
-        printf("theoretical total is %u\n", MAX_COUNT_OF_SPHERES_PER_SD * gran_params->nSDs);
-    }
-    // Copy over occurences in SDs
-    for (unsigned int i = 0; i < MAX_COUNT_OF_SPHERES_PER_SD * gran_params->nSDs; i++) {
-        // printf("de id is %d, i is %u\n", sdSpheres[i], i);
-        // Check if invalid sphere
-        if (sdSpheres[i] == NULL_GRANULAR_ID) {
-            // printf("invalid sphere in sd");
-        } else {
-            assert(sdSpheres[i] < nSpheres);
-            deCounts[sdSpheres[i]]++;
-        }
-    }
-    if (write_out) {
-        writeFile(ofile, deCounts);
-    }
-    delete[] deCounts;
-}
-// This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
-void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile, unsigned int* deCounts) {
-    // unnecessary if called by checkSDCounts()
-    // The file writes are a pretty big slowdown in CSV mode
-    if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
-        // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
-        // much faster write due to no formatting
-        std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
-
-        for (unsigned int n = 0; n < nSpheres; n++) {
-            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                              pos_Z_dt.at(n) * pos_Z_dt.at(n));
-
-            ptFile.write((const char*)&pos_X.at(n), sizeof(int));
-            ptFile.write((const char*)&pos_Y.at(n), sizeof(int));
-            ptFile.write((const char*)&pos_Z.at(n), sizeof(int));
-            ptFile.write((const char*)&pos_X_dt.at(n), sizeof(float));
-            ptFile.write((const char*)&pos_Y_dt.at(n), sizeof(float));
-            ptFile.write((const char*)&pos_Z_dt.at(n), sizeof(float));
-            ptFile.write((const char*)&absv, sizeof(float));
-            ptFile.write((const char*)&deCounts[n], sizeof(int));
-        }
-    } else if (file_write_mode == GRAN_OUTPUT_MODE::CSV) {
-        // CSV is much slower but requires less postprocessing
-        std::ofstream ptFile(ofile + ".csv", std::ios::out);
-
-        // Dump to a stream, write to file only at end
-        std::ostringstream outstrstream;
-        outstrstream << "x,y,z,vx,vy,vz,absv,nTouched\n";
-
-        for (unsigned int n = 0; n < nSpheres; n++) {
-            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                              pos_Z_dt.at(n) * pos_Z_dt.at(n));
-            outstrstream << pos_X.at(n) << "," << pos_Y.at(n) << "," << pos_Z.at(n) << "," << pos_X_dt.at(n) << ","
-                         << pos_Y_dt.at(n) << "," << pos_Z_dt.at(n) << "," << absv << "," << deCounts[n] << "\n";
-        }
-
-        ptFile << outstrstream.str();
-    } else if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
-        // Do nothing, only here for symmetry
-    }
-}
-
-// This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
-void ChSystemGranular_MonodisperseSMC::writeFileUU(std::string ofile) {
-    // The file writes are a pretty big slowdown in CSV mode
-    if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
-        // TODO implement this
-        // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
-        // much faster write due to no formatting
-        std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
-
-        for (unsigned int n = 0; n < nSpheres; n++) {
-            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                              pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                         (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
-            float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
-            float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
-            float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
-
-            ptFile.write((const char*)&x_UU, sizeof(float));
-            ptFile.write((const char*)&y_UU, sizeof(float));
-            ptFile.write((const char*)&z_UU, sizeof(float));
-            ptFile.write((const char*)&absv, sizeof(float));
-
-            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-                ptFile.write((const char*)&sphere_Omega_X.at(n), sizeof(float));
-                ptFile.write((const char*)&sphere_Omega_Y.at(n), sizeof(float));
-                ptFile.write((const char*)&sphere_Omega_Z.at(n), sizeof(float));
-            }
-        }
-    } else if (file_write_mode == GRAN_OUTPUT_MODE::CSV) {
-        // CSV is much slower but requires less postprocessing
-        std::ofstream ptFile(ofile + ".csv", std::ios::out);
-
-        // Dump to a stream, write to file only at end
-        std::ostringstream outstrstream;
-        outstrstream << "x,y,z,absv";
-
-        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-            outstrstream << ",wx,wy,wz";
-        }
-        outstrstream << "\n";
-        for (unsigned int n = 0; n < nSpheres; n++) {
-            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                              pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                         (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
-            float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
-            float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
-            float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
-
-            outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv;
-
-            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-                outstrstream << "," << sphere_Omega_X.at(n) << "," << sphere_Omega_Y.at(n) << ","
-                             << sphere_Omega_Z.at(n);
-            }
-            outstrstream << "\n";
-        }
-
-        ptFile << outstrstream.str();
-    } else if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
-        // Do nothing, only here for symmetry
-    }
-}
-
 // Reset broadphase data structures
 void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
     // Set all the offsets to zero
@@ -219,15 +54,6 @@ void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
     gpuErrchk(cudaDeviceSynchronize());
 }
 
-// Reset broadphase data structures
-void ChSystemGranular_MonodisperseSMC::resetBCForces() {
-    // zero out reaction forces on each BC
-    for (unsigned int i = 0; i < BC_params_list_SU.size(); i++) {
-        if (BC_params_list_SU.at(i).track_forces) {
-            BC_params_list_SU.at(i).reaction_forces = {0, 0, 0};
-        }
-    }
-}
 // Reset sphere-sphere force data structures
 void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
     // cache past force data
@@ -251,24 +77,6 @@ void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
         gpuErrchk(cudaMemset(sphere_ang_acc_Y.data(), 0, nSpheres * sizeof(float)));
         gpuErrchk(cudaMemset(sphere_ang_acc_Z.data(), 0, nSpheres * sizeof(float)));
     }
-}
-
-void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU) {
-    if (BD_is_fixed) {
-        return;
-    }
-    // Frequency of oscillation
-    float frame_X_old = gran_params->BD_frame_X;
-    float frame_Y_old = gran_params->BD_frame_Y;
-    float frame_Z_old = gran_params->BD_frame_Z;
-    // Put the bottom-left corner of box wherever the user told us to
-    gran_params->BD_frame_X = (box_size_X * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-    gran_params->BD_frame_Y = (box_size_Y * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-    gran_params->BD_frame_Z = (box_size_Z * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-
-    gran_params->BD_frame_X_dot = (gran_params->BD_frame_X - frame_X_old) / stepSize_SU;
-    gran_params->BD_frame_Y_dot = (gran_params->BD_frame_Y - frame_Y_old) / stepSize_SU;
-    gran_params->BD_frame_Z_dot = (gran_params->BD_frame_Z - frame_Z_old) / stepSize_SU;
 }
 
 // All the information a moving sphere needs
@@ -407,7 +215,7 @@ __global__ void generate_absv(const unsigned int nSpheres,
     }
 }
 
-__host__ float ChSystemGranular_MonodisperseSMC::get_max_vel() {
+__host__ float ChSystemGranular_MonodisperseSMC::get_max_vel() const {
     float* d_absv;
     float* d_max_vel;
     float h_max_vel;

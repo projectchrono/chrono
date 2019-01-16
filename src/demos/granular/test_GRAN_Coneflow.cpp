@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
     printf("total system mass is %f kg \n", total_system_mass * M_CGS_TO_SI);
     char filename[100];
     // sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    // gran_sys.writeFileUU(std::string(filename));
+    // gran_sys.writeFile(std::string(filename));
 
     // Run settling experiments
     while (curr_time < params.time_end) {
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
         if (currcapture % captures_per_frame == 0) {
             printf("rendering frame %u\n", currframe);
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            gran_sys.writeFileUU(std::string(filename));
+            gran_sys.writeFile(std::string(filename));
         }
         currcapture++;
     }

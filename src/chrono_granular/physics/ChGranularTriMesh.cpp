@@ -46,8 +46,21 @@ ChSystemGranular_MonodisperseSMC_trimesh::~ChSystemGranular_MonodisperseSMC_trim
     // work to do here
     cleanupTriMesh_DEVICE();
 }
-double ChSystemGranular_MonodisperseSMC_trimesh::get_max_K() {
+double ChSystemGranular_MonodisperseSMC_trimesh::get_max_K() const {
     return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
+}
+
+/// Copy const triangle data to device
+void ChSystemGranular_MonodisperseSMC_trimesh::copyTriangleDataToDevice() {
+    // unified memory does some copying for us, cool
+    tri_params->Kn_s2m_SU = K_n_s2m_SU;
+    tri_params->Kt_s2m_SU = K_t_s2m_SU;
+    tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
+    tri_params->Gamma_t_s2m_SU = Gamma_t_s2m_SU;
+    tri_params->adhesionAcc_s2m =
+        adhesion_s2m_over_gravity * std::sqrt(gran_params->gravAcc_X_SU * gran_params->gravAcc_X_SU +
+                                              gran_params->gravAcc_Y_SU * gran_params->gravAcc_Y_SU +
+                                              gran_params->gravAcc_Z_SU * gran_params->gravAcc_Z_SU);
 }
 
 void ChSystemGranular_MonodisperseSMC_trimesh::initializeTriangles() {

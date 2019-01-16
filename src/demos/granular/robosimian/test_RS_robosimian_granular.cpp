@@ -453,7 +453,7 @@ int main(int argc, char* argv[]) {
             cout << "Rendering frame " << render_frame << endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), render_frame);
-            m_sys_gran.writeFileUU(string(filename));
+            m_sys_gran.writeFile(string(filename));
             // // write some VTKs for debug
             m_sys_gran.write_meshes(string(filename));
 

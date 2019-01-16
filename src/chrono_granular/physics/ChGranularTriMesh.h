@@ -70,6 +70,8 @@ struct ChFamilyFrame {
  */
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystemGranular_MonodisperseSMC {
   public:
+    // we do not want the system to be default-constructible
+    ChSystemGranular_MonodisperseSMC_trimesh() = delete;
     ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density);
     virtual ~ChSystemGranular_MonodisperseSMC_trimesh();
 
@@ -132,7 +134,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
 
   protected:
     /// Create a helper to do triangle initialization
-    void initializeTriangles();
+    virtual void initializeTriangles();
     ChGranParams_trimesh* tri_params;
 
     /// clean copy of mesh soup interacting with granular material
@@ -180,7 +182,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
 
     // void initialize();
 
-    virtual double get_max_K() override;
+    virtual double get_max_K() const override;
 
     template <typename T>
     void generate_rot_matrix(double* ep, T* rot_mat);

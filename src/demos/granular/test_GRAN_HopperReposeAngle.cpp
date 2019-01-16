@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
 
         printf("rendering frame %u\n", currframe);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        gran_sys.writeFileUU(std::string(filename));
+        gran_sys.writeFile(std::string(filename));
     }
 
     return 0;

@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
                 cout << "Rendering frame " << render_frame << endl;
                 char filename[100];
                 std::sprintf(filename, "%s/step%06d", params.output_dir.c_str(), render_frame);
-                m_sys_gran.writeFileUU(std::string(filename));
+                m_sys_gran.writeFile(std::string(filename));
                 m_sys_gran.write_meshes(std::string(filename));
 
                 render_frame++;
@@ -401,7 +401,7 @@ int main(int argc, char* argv[]) {
                 cout << "Rendering frame " << render_frame << endl;
                 char filename[100];
                 std::sprintf(filename, "%s/settling-step%06d", params.output_dir.c_str(), render_frame);
-                m_sys_gran.writeFileUU(std::string(filename));
+                m_sys_gran.writeFile(std::string(filename));
 
                 render_frame++;
             }
@@ -411,7 +411,7 @@ int main(int argc, char* argv[]) {
             curr_time += hmmwv_step_size;
             sim_frame++;
         }
-        m_sys_gran.writeFileUU(params.checkpoint_file);
+        m_sys_gran.writeFile(params.checkpoint_file);
     }
 
     delete[] meshSoupLocOri;

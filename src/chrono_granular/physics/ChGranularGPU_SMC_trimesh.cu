@@ -245,9 +245,12 @@ __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
 
                 // If mesh is inflated, we don't have a higher-resultion check yet
                 if (inflated || check_TriangleBoxOverlap(SDcenter, SDhalfSizes, vA, vB, vC)) {
-                    touchedSDs[SD_count++] = SDTripletID(i, j, k, gran_params);
-                    if (SD_count == MAX_SDs_TOUCHED_BY_TRIANGLE) {
-                        ABORTABORTABORT("SD_count exceeds MAX_SDs_TOUCHED_BY_TRIANGLE\n");
+                    unsigned int currSD = SDTripletID(i, j, k, gran_params);
+                    if (currSD != NULL_GRANULAR_ID) {
+                        touchedSDs[SD_count++] = currSD;
+                        if (SD_count == MAX_SDs_TOUCHED_BY_TRIANGLE) {
+                            ABORTABORTABORT("SD_count exceeds MAX_SDs_TOUCHED_BY_TRIANGLE\n");
+                        }
                     }
                 }
             }
@@ -731,19 +734,6 @@ __global__ void interactionTerrain_TriangleSoup(
         }
     }  // end sphere id check
 }  // end kernel
-
-/// Copy const triangle data to device
-void ChSystemGranular_MonodisperseSMC_trimesh::copyTriangleDataToDevice() {
-    // unified memory does some copying for us, cool
-    tri_params->Kn_s2m_SU = K_n_s2m_SU;
-    tri_params->Kt_s2m_SU = K_t_s2m_SU;
-    tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
-    tri_params->Gamma_t_s2m_SU = Gamma_t_s2m_SU;
-    tri_params->adhesionAcc_s2m =
-        adhesion_s2m_over_gravity * std::sqrt(gran_params->gravAcc_X_SU * gran_params->gravAcc_X_SU +
-                                              gran_params->gravAcc_Y_SU * gran_params->gravAcc_Y_SU +
-                                              gran_params->gravAcc_Z_SU * gran_params->gravAcc_Z_SU);
-}
 
 __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() {
     VERBOSE_PRINTF("Resetting broadphase info!\n");

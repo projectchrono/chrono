@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     // write an initial frame
     char filename[100];
     sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-    settlingExperiment.writeFileUU(std::string(filename));
+    settlingExperiment.writeFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
 
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
         curr_time += frame_step;
         printf("rendering frame %u\n", currframe);
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        settlingExperiment.writeFileUU(std::string(filename));
+        settlingExperiment.writeFile(std::string(filename));
     }
 
     return 0;

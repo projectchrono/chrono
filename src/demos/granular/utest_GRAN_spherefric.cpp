@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        m_sys.writeFileUU(std::string(filename));
+        m_sys.writeFile(std::string(filename));
     }
     return 0;
 }

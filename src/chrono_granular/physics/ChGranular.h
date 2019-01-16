@@ -203,11 +203,11 @@ namespace chrono {
 namespace granular {
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
   public:
-    ChSystemGranular_MonodisperseSMC() = delete;  // TODO do we want this one around?
+    // we do not want the system to be default-constructible
+    ChSystemGranular_MonodisperseSMC() = delete;
     ChSystemGranular_MonodisperseSMC(float radiusSPH, float density);
     virtual ~ChSystemGranular_MonodisperseSMC();
 
-    unsigned int elementCount() const { return nSpheres; }
     unsigned int get_SD_count() const { return nSDs; }
     void set_gravitational_acceleration(float xVal, float yVal, float zVal) {
         X_accGrav = xVal;
@@ -215,9 +215,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         Z_accGrav = zVal;
     }
 
-    virtual void generateDEs();
-
-    size_t getNumSpheres() { return nSpheres; }
+    size_t getNumSpheres() const { return nSpheres; }
 
     /// Create an axis-aligned box BC
     // size_t Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);
@@ -264,7 +262,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     }
 
     /// get the reaction forces on a BC by ID, returns false if the forces are invalid (bad BC ID)
-    bool getBCReactionForces(size_t BC_id, float forces[3]) {
+    bool getBCReactionForces(size_t BC_id, float forces[3]) const {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
             printf("ERROR: Trying to get forces for invalid BC ID %lu\n", BC_id);
@@ -324,9 +322,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Requires initialize() to have been called
     virtual double advance_simulation(float duration);
 
-    /// Get the maximum stiffness term in the system
-    virtual double get_max_K();
-
     /// Initialize simulation so that it can be advanced
     virtual void initialize();
 
@@ -382,14 +377,15 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     }
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
-    void checkSDCounts(std::string ofile, bool write_out, bool verbose);
-    void writeFile(std::string ofile, unsigned int* deCounts);
-    void writeFileUU(std::string ofile);
+    void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
+    void writeFile(std::string ofile) const;
     void updateBDPosition(float stepSize_SU);
 
   protected:
     /// Create a helper to do sphere initialization
     void initializeSpheres();
+
+    virtual void generateSpheres();
 
     /// holds the sphere and BD-related params in unified memory
     ChGranParams* gran_params;
@@ -493,6 +489,12 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// convert all BCs from UU to SU
     void convertBCUnits();
 
+    /// Max velocity of all particles in system
+    float get_max_vel() const;
+
+    /// Get the maximum stiffness term in the system
+    virtual double get_max_K() const;
+
     /// Convert unit parameters from UU to SU
     virtual void switchToSimUnits();
 
@@ -510,8 +512,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Total time elapsed since beginning of simulation
     float elapsedSimTime;
-    /// Max velocity of all particles in system
-    float get_max_vel();
 
     /// size of the normal stiffness (UU) for sphere-to-sphere contact
     double K_n_s2s_UU;

@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
         cout << "Rendering frame " << currframe << endl;
         char filename[100];
         std::sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        m_sys.writeFileUU(string(filename));
+        m_sys.writeFile(string(filename));
 
         // TODO compute mass flow rate
     }

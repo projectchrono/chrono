@@ -153,7 +153,7 @@ double RunTest(sim_param_holder& params) {
         cout << "Rendering frame " << currframe << endl;
         char filename[100];
         sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
-        m_sys.writeFileUU(string(filename));
+        m_sys.writeFile(string(filename));
         m_sys.write_meshes(string(filename));
 
         m_sys.advance_simulation(frame_step);

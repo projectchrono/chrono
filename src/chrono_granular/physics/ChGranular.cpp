@@ -100,6 +100,110 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
     }
 }
 
+// This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
+void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
+    // The file writes are a pretty big slowdown in CSV mode
+    if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
+        // TODO implement this
+        // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
+        // much faster write due to no formatting
+        std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
+
+        for (unsigned int n = 0; n < nSpheres; n++) {
+            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                              pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                         (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
+            float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
+            float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
+            float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
+
+            ptFile.write((const char*)&x_UU, sizeof(float));
+            ptFile.write((const char*)&y_UU, sizeof(float));
+            ptFile.write((const char*)&z_UU, sizeof(float));
+            ptFile.write((const char*)&absv, sizeof(float));
+
+            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+                ptFile.write((const char*)&sphere_Omega_X.at(n), sizeof(float));
+                ptFile.write((const char*)&sphere_Omega_Y.at(n), sizeof(float));
+                ptFile.write((const char*)&sphere_Omega_Z.at(n), sizeof(float));
+            }
+        }
+    } else if (file_write_mode == GRAN_OUTPUT_MODE::CSV) {
+        // CSV is much slower but requires less postprocessing
+        std::ofstream ptFile(ofile + ".csv", std::ios::out);
+
+        // Dump to a stream, write to file only at end
+        std::ostringstream outstrstream;
+        outstrstream << "x,y,z,absv";
+
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            outstrstream << ",wx,wy,wz";
+        }
+        outstrstream << "\n";
+        for (unsigned int n = 0; n < nSpheres; n++) {
+            float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                              pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                         (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
+            float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
+            float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
+            float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
+
+            outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv;
+
+            if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+                outstrstream << "," << sphere_Omega_X.at(n) << "," << sphere_Omega_Y.at(n) << ","
+                             << sphere_Omega_Z.at(n);
+            }
+            outstrstream << "\n";
+        }
+
+        ptFile << outstrstream.str();
+    } else if (file_write_mode == GRAN_OUTPUT_MODE::NONE) {
+        // Do nothing, only here for symmetry
+    }
+}
+
+// Reset broadphase data structures
+void ChSystemGranular_MonodisperseSMC::resetBCForces() {
+    // zero out reaction forces on each BC
+    for (unsigned int i = 0; i < BC_params_list_SU.size(); i++) {
+        if (BC_params_list_SU.at(i).track_forces) {
+            BC_params_list_SU.at(i).reaction_forces = {0, 0, 0};
+        }
+    }
+}
+
+/// Copy constant sphere data to device, this should run at start
+void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
+    gran_params->max_x_pos_unsigned = ((int64_t)gran_params->SD_size_X_SU * gran_params->nSDs_X);
+    gran_params->max_y_pos_unsigned = ((int64_t)gran_params->SD_size_Y_SU * gran_params->nSDs_Y);
+    gran_params->max_z_pos_unsigned = ((int64_t)gran_params->SD_size_Z_SU * gran_params->nSDs_Z);
+
+    printf("max pos is is %lu, %lu, %lu\n", gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned,
+           gran_params->max_z_pos_unsigned);
+
+    // NOTE: Assumes mass = 1
+    gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
+}
+
+void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU) {
+    if (BD_is_fixed) {
+        return;
+    }
+    // Frequency of oscillation
+    float frame_X_old = gran_params->BD_frame_X;
+    float frame_Y_old = gran_params->BD_frame_Y;
+    float frame_Z_old = gran_params->BD_frame_Z;
+    // Put the bottom-left corner of box wherever the user told us to
+    gran_params->BD_frame_X = (box_size_X * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    gran_params->BD_frame_Y = (box_size_Y * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    gran_params->BD_frame_Z = (box_size_Z * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+
+    gran_params->BD_frame_X_dot = (gran_params->BD_frame_X - frame_X_old) / stepSize_SU;
+    gran_params->BD_frame_Y_dot = (gran_params->BD_frame_Y - frame_Y_old) / stepSize_SU;
+    gran_params->BD_frame_Z_dot = (gran_params->BD_frame_Z - frame_Z_old) / stepSize_SU;
+}
+
 // size_t ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
 //     BC_params_t<float, float3> p;
 //     printf("UU bounds are %f,%f,%f,%f,%f,%f", center[0] + hdims[0], center[1] + hdims[1], center[2] + hdims[2],
@@ -274,7 +378,7 @@ void ChSystemGranular_MonodisperseSMC::determineNewStepSize_SU() {
     }
 }
 
-double ChSystemGranular_MonodisperseSMC::get_max_K() {
+double ChSystemGranular_MonodisperseSMC::get_max_K() const {
     return std::max(K_n_s2s_UU, K_n_s2w_UU);
 }
 
@@ -389,7 +493,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
 
 void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
     switchToSimUnits();
-    generateDEs();
+    generateSpheres();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
     setupSimulation();
@@ -436,7 +540,7 @@ void ChSystemGranular_MonodisperseSMC::setParticlePositions(const std::vector<Ch
     user_sphere_positions = points;  // Copy points to class vector
 }
 
-void ChSystemGranular_MonodisperseSMC::generateDEs() {
+void ChSystemGranular_MonodisperseSMC::generateSpheres() {
     // Each fills user_sphere_positions with positions to be copied
     if (user_sphere_positions.size() == 0) {
         printf("ERROR: no sphere positions given!\n");

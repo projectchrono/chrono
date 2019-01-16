@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
         cout << "Rendering frame " << currframe << endl;
         char filename[100];
         sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe++);
-        m_sys.writeFileUU(string(filename));
+        m_sys.writeFile(string(filename));
         m_sys.write_meshes(string(filename));
         // m_sys.checkSDCounts(std::string(filename) + "SU", true, false);
         float forces[6];

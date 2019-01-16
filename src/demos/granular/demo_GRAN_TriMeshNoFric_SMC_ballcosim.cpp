@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            m_sys_gran.writeFileUU(string(filename));
+            m_sys_gran.writeFile(string(filename));
             m_sys_gran.write_meshes(string(filename));
         }
     }

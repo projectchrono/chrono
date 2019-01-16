@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     //     meshSoupLocOri[6] = 0;
     //     m_sys.meshSoup_applyRigidBodyMotion(meshSoupLocOri);
     //     m_sys.write_meshes(string(filename));
-    //     m_sys.writeFileUU(string(filename));
+    //     m_sys.writeFile(string(filename));
     // }
     // return 0;
 
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
         cout << "Rendering frame " << currframe << endl;
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        m_sys.writeFileUU(string(filename));
+        m_sys.writeFile(string(filename));
         m_sys.write_meshes(string(filename));
     }
 

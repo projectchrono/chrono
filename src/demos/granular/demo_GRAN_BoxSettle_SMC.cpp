@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
         printf("rendering frame %u\n", currframe);
         char filename[100];
         sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-        settlingExperiment.writeFileUU(std::string(filename));
+        settlingExperiment.writeFile(std::string(filename));
     }
 
     return 0;
