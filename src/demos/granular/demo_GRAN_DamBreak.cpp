@@ -34,7 +34,7 @@ using std::cout;
 using std::endl;
 using std::string;
 
-enum { SETTLING = 0, WAVETANK = 1, BOUNCING_PLATE = 2 };
+enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
 
 // expected number of args for param sweep
 constexpr int num_args_full = 6;
@@ -145,6 +145,7 @@ int main(int argc, char* argv[]) {
     gran_system.set_K_t_SPH2WALL(params.tangentStiffS2W);
     gran_system.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
     gran_system.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gran_system.set_static_friction_coeff(params.static_friction_coeff);
 
     gran_system.set_Cohesion_ratio(params.cohesion_ratio);
     gran_system.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
@@ -154,12 +155,24 @@ int main(int argc, char* argv[]) {
 
     gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_system.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
     gran_system.set_fixed_stepSize(params.step_size);
     gran_system.setVerbose(params.verbose);
 
     gran_system.set_BD_Fixed(true);
+
+    switch (params.run_mode) {
+        case run_mode::MULTI_STEP:
+            gran_system.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+            break;
+        case run_mode::ONE_STEP:
+            gran_system.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+            break;
+        case run_mode::FRICTIONLESS:
+        default:
+            // fall through to frictionless as default
+            gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+    }
 
     // offset of radius from walls
     ChVector<float> rad_offset = 1.02f * params.sphere_radius * ChVector<float>(1, 1, 1);
@@ -217,9 +230,11 @@ int main(int argc, char* argv[]) {
                               params.sphere_radius * body_points.size();
     printf("total system mass is %f kg \n", total_system_mass * M_CGS_TO_SI);
 
+    std::string meshes_file = "dambreakmeshes.csv";
+
     // write mesh transforms for ospray renderer
     {
-        std::ofstream meshfile{params.output_dir + "/BD_Box_mesh.csv"};
+        std::ofstream meshfile{params.output_dir + "/" + meshes_file};
         std::ostringstream outstream;
         outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3\n";
         writeBoxMesh(outstream);

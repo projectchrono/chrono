@@ -1239,3 +1239,15 @@ Running settling test!
 50 thousand bodies took 2.59187 seconds!
 500 thousand bodies took 18.7841 seconds!
 1 million bodies took 39.1447 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Thu, 17 Jan 2019 12:37:04 -0600
+commit 735b43525565ce940e1444a4a7847d838d9ace18 Author: Conlain Kelly <conlain.k@gmail.com> Date: Thu Jan 17 12:36:35 2019 -0600 cleanup assets, add friction to dam break
+Results:
+Running wavetank test!
+50 thousand bodies took 2.32285 seconds!
+500 thousand bodies took 19.0568 seconds!
+1 million bodies took 38.5645 seconds!
+Running settling test!
+50 thousand bodies took 2.625 seconds!
+500 thousand bodies took 18.2163 seconds!
+1 million bodies took 36.814 seconds!
