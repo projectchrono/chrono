@@ -89,8 +89,8 @@ int main(int argc, char* argv[]) {
     const float Bx = params.box_X;
     const float By = Bx;
 
-    const float chamber_height = Bx;  // TODO
-    const float fill_height = 50;
+    const float fill_height = 70;
+    const float chamber_height = fill_height / 2;  // TODO
     const float extra_height = 0;
 
     const float Bz = chamber_height + fill_height + extra_height;
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
 
     const double time_settling = 1;
     const double lower_vel = 2;
-    const double lower_dist = 10 * params.sphere_radius + 0.1 * scale;  // Assumes height of dish is 0.1 in obj
+    const double lower_dist = 8;  // Assumes height of dish is 0.1 in obj
     const double time_lowering = lower_dist / lower_vel;
 
     cout << "Time settling " << time_settling << endl;
