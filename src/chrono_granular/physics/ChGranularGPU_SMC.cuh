@@ -1147,15 +1147,15 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
             }
         }
 
-        // Probably does not need to be atomic, but no conflicts means it won't be too slow anyways
-        atomicAdd(sphere_data.pos_X_dt + mySphereID, v_update_X);
-        atomicAdd(sphere_data.pos_Y_dt + mySphereID, v_update_Y);
-        atomicAdd(sphere_data.pos_Z_dt + mySphereID, v_update_Z);
+        // write back the updates
+        sphere_data.pos_X_dt[mySphereID] += v_update_X;
+        sphere_data.pos_Y_dt[mySphereID] += v_update_Y;
+        sphere_data.pos_Z_dt[mySphereID] += v_update_Z;
 
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-            atomicAdd(sphere_data.sphere_Omega_X + mySphereID, omega_update_X);
-            atomicAdd(sphere_data.sphere_Omega_Y + mySphereID, omega_update_Y);
-            atomicAdd(sphere_data.sphere_Omega_Z + mySphereID, omega_update_Z);
+            sphere_data.sphere_Omega_X[mySphereID] += omega_update_X;
+            sphere_data.sphere_Omega_Y[mySphereID] += omega_update_Y;
+            sphere_data.sphere_Omega_Z[mySphereID] += omega_update_Z;
         }
 
         float position_update_x = 0;
