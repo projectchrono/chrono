@@ -27,6 +27,7 @@
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/geometry/ChTriangle.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono_granular/utils/ChGranularUtilities.h"
 #include "ChGranularTriMesh.h"
 
 namespace chrono {

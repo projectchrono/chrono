@@ -20,9 +20,12 @@
 #include "ChGranular.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/core/ChVector.h"
-#include "chrono_granular/ChGranularDefines.h"
+#include "chrono_granular/utils/ChGranularUtilities.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
 #include <climits>
+
+// define it here, once and for all
+size_t gran_approx_bytes_used = 0;
 
 namespace chrono {
 namespace granular {
@@ -57,6 +60,10 @@ ChSystemGranular_MonodisperseSMC::~ChSystemGranular_MonodisperseSMC() {
     gpuErrchk(cudaFree(gran_params));
 }
 
+size_t ChSystemGranular_MonodisperseSMC::estimateMemUsage() const {
+    return gran_approx_bytes_used;
+}
+
 void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& packed) {
     // Set data from system
     packed.pos_X = pos_X.data();
@@ -79,13 +86,15 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
     packed.sphere_force_Y = sphere_force_Y.data();
     packed.sphere_force_Z = sphere_force_Z.data();
 
-    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
         packed.sphere_force_X_old = sphere_force_X_old.data();
         packed.sphere_force_Y_old = sphere_force_Y_old.data();
         packed.sphere_force_Z_old = sphere_force_Z_old.data();
-        packed.sphere_ang_acc_X_old = sphere_ang_acc_X_old.data();
-        packed.sphere_ang_acc_Y_old = sphere_ang_acc_Y_old.data();
-        packed.sphere_ang_acc_Z_old = sphere_ang_acc_Z_old.data();
+        if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            packed.sphere_ang_acc_X_old = sphere_ang_acc_X_old.data();
+            packed.sphere_ang_acc_Y_old = sphere_ang_acc_Y_old.data();
+            packed.sphere_ang_acc_Z_old = sphere_ang_acc_Z_old.data();
+        }
     }
 
     packed.SD_NumSpheresTouching = SD_NumSpheresTouching.data();
@@ -534,6 +543,8 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
 // mean to be overriden by children
 void ChSystemGranular_MonodisperseSMC::initialize() {
     initializeSpheres();
+    size_t approx_mem_usage = estimateMemUsage();
+    printf("Approx mem usage is %s\n", pretty_format_bytes(approx_mem_usage).c_str());
 }
 
 // set up sphere-sphere data structures
@@ -602,10 +613,17 @@ void ChSystemGranular_MonodisperseSMC::generateSpheres() {
         TRACK_VECTOR_RESIZE(contact_history_map, 12 * nSpheres, "contact_history_map", null_history);
     }
 
-    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
         TRACK_VECTOR_RESIZE(sphere_force_X_old, nSpheres, "sphere_force_X_old", 0);
         TRACK_VECTOR_RESIZE(sphere_force_Y_old, nSpheres, "sphere_force_Y_old", 0);
         TRACK_VECTOR_RESIZE(sphere_force_Z_old, nSpheres, "sphere_force_Z_old", 0);
+
+        // friction and multistep means keep old ang acc
+        if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            TRACK_VECTOR_RESIZE(sphere_ang_acc_X_old, nSpheres, "sphere_ang_acc_X_old", 0);
+            TRACK_VECTOR_RESIZE(sphere_ang_acc_Y_old, nSpheres, "sphere_ang_acc_Y_old", 0);
+            TRACK_VECTOR_RESIZE(sphere_ang_acc_Z_old, nSpheres, "sphere_ang_acc_Z_old", 0);
+        }
     }
 
     // Copy from array of structs to 3 arrays

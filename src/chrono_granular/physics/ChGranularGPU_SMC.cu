@@ -57,13 +57,22 @@ void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
 // Reset sphere-sphere force data structures
 void ChSystemGranular_MonodisperseSMC::resetSphereForces() {
     // cache past force data
-    if (gran_params->time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
         gpuErrchk(cudaMemcpy(sphere_force_X_old.data(), sphere_force_X.data(), nSpheres * sizeof(float),
                              cudaMemcpyDeviceToDevice));
         gpuErrchk(cudaMemcpy(sphere_force_Y_old.data(), sphere_force_Y.data(), nSpheres * sizeof(float),
                              cudaMemcpyDeviceToDevice));
         gpuErrchk(cudaMemcpy(sphere_force_Z_old.data(), sphere_force_Z.data(), nSpheres * sizeof(float),
                              cudaMemcpyDeviceToDevice));
+        // if we have multistep AND friction, cache old alphas
+        if (gran_params->friction_mode != FRICTIONLESS) {
+            gpuErrchk(cudaMemcpy(sphere_ang_acc_X_old.data(), sphere_ang_acc_X.data(), nSpheres * sizeof(float),
+                                 cudaMemcpyDeviceToDevice));
+            gpuErrchk(cudaMemcpy(sphere_ang_acc_Y_old.data(), sphere_ang_acc_Y.data(), nSpheres * sizeof(float),
+                                 cudaMemcpyDeviceToDevice));
+            gpuErrchk(cudaMemcpy(sphere_ang_acc_Z_old.data(), sphere_ang_acc_Z.data(), nSpheres * sizeof(float),
+                                 cudaMemcpyDeviceToDevice));
+        }
         gpuErrchk(cudaDeviceSynchronize());
     }
     // reset forces to zero

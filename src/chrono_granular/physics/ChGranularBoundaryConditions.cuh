@@ -18,7 +18,6 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
-#include "chrono_granular/utils/ChGranularUtilities.cuh"
 
 using chrono::granular::BC_type;
 using chrono::granular::BC_params_t;

@@ -18,7 +18,6 @@
 //#include "chrono_granular/ChGranularDefines.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono_granular/physics/ChGranular.h"
-#include "chrono_granular/utils/ChGranularUtilities.h"
 
 namespace chrono {
 namespace granular {

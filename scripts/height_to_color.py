@@ -32,17 +32,17 @@ zmax = max(z)
 
 zrange = zmax - zmin
 
-b = (z - zmin) / zrange
-r = 1.0 - ((z - zmin) / zrange)
+r = (z - zmin) / zrange
+g = 1.0 - ((z - zmin) / zrange)
 print(zmin, zmax, zrange)
 
-g = "0.0"
+b = np.array([0.0] * len(g))
 
 ofilename = fname[:-4] + "_colors.csv"
 
 with open(ofilename, 'w') as ofile:
     for i in range(len(b)):
-        ostr = ",".join([str(r[i]), g, str(b[i])]) + "\n"
+        ostr = ",".join([str(r[i]), str(g[i]), str(b[i])]) + "\n"
         ofile.write(ostr)
 
 

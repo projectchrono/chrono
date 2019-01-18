@@ -26,7 +26,6 @@
 #include "chrono/core/ChVector.h"
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
-#include "chrono_granular/utils/ChGranularUtilities.h"
 #include "chrono/core/ChMathematics.h"
 #include "cudalloc.hpp"
 
@@ -74,7 +73,7 @@ struct sphereDataStruct {
     float* sphere_ang_acc_Y;
     float* sphere_ang_acc_Z;
 
-    /// used for chung integrator
+    /// used for multistep integrators
     float* sphere_force_X_old;
     float* sphere_force_Y_old;
     float* sphere_force_Z_old;
@@ -99,7 +98,7 @@ enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
 // How are we stepping through time?
 enum GRAN_TIME_STEPPING { ADAPTIVE, FIXED };
 /// How are we integrating w.r.t. time
-enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG };
+enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, VELOCITY_VERLET };
 
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
@@ -216,6 +215,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     }
 
     size_t getNumSpheres() const { return nSpheres; }
+
+    size_t estimateMemUsage() const;
 
     /// Create an axis-aligned box BC
     // size_t Create_BC_AABox(float hdims[3], float center[3], bool outward_normal);

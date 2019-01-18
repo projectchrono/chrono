@@ -19,9 +19,9 @@
 #undef CHRONO_HAS_SSE
 #undef CHRONO_HAS_AVX
 
-#include "chrono_granular/utils/ChGranularUtilities.cuh"
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
+#include "chrono_granular/utils/ChGranularUtilities.cuh"
 
 // these define things that mess with cub
 #include "chrono_granular/physics/ChGranularCollision.cuh"
