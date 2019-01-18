@@ -6,16 +6,16 @@
 	"box_Y": 100,
 	"box_Z": 200,
 
-	"step_size": 1e-6,
 	"time_end": 4,
+	"step_size": 1e-5,
 
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
 
-	"normalStiffS2S": 1e9,
-	"normalStiffS2W": 1e9,
-	"normalStiffS2M": 1e9,
+	"normalStiffS2S": 1e7,
+	"normalStiffS2W": 1e7,
+	"normalStiffS2M": 1e7,
 	"normalDampS2S": 6e3,
 	"normalDampS2W": 6e3,
 	"normalDampS2M": 6e3,
