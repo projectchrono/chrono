@@ -63,10 +63,10 @@ const double block_mass = 50000;  // 50kg
 const double drop_height = 20;    // 0.2m
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_bulkcompress <json_file>" << endl;
+    cout << "usage: ./test_GRAN_bulkcompress <json_file> <output_dir>" << endl;
 }
 
-void SetupGranSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_param_holder& params) {
+void SetupGranSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_param_holder& params, string out_dir) {
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     m_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
@@ -87,7 +87,8 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_param_
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
-    m_sys.setOutputDirectory(params.output_dir);
+    m_sys.setOutputDirectory(out_dir);
+    filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
@@ -139,7 +140,7 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_param_
 int main(int argc, char* argv[]) {
     sim_param_holder params;
 
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc != 3 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -147,8 +148,8 @@ int main(int argc, char* argv[]) {
     float iteration_step = params.step_size;
 
     ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
-    SetupGranSystem(m_sys, params);
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    string out_dir(argv[2]);
+    SetupGranSystem(m_sys, params, out_dir);
 
     ChSystemSMC ch_sys;
     ch_sys.Set_G_acc(ChVector<>(params.grav_X, params.grav_Y, params.grav_Z));
@@ -198,7 +199,7 @@ int main(int argc, char* argv[]) {
         if (step % out_steps == 0) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
-            sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
             m_sys.writeFile(string(filename));
             m_sys.write_meshes(string(filename));
             if (box_released) {

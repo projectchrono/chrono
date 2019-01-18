@@ -43,14 +43,14 @@ enum MIXER_TYPE {
 };
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_mixer <json_file>" << endl;
+    cout << "usage: ./test_GRAN_mixer <json_file> <output_dir>" << endl;
 }
 
 int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
+    if (argc != 3 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -85,8 +85,10 @@ int main(int argc, char* argv[]) {
     cout << "Static Friction: " << static_friction << endl;
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
-    m_sys.setOutputDirectory(params.output_dir);
-    filesystem::create_directory(filesystem::path(params.output_dir));
+
+    string out_dir(argv[2]);
+    m_sys.setOutputDirectory(out_dir);
+    filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
@@ -217,7 +219,7 @@ int main(int argc, char* argv[]) {
         if (step % out_steps == 0) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
-            sprintf(filename, "%s/step%06u", params.output_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
             m_sys.writeFile(string(filename));
             m_sys.write_meshes(string(filename));
             float forces[6];
