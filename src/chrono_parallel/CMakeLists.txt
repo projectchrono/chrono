@@ -52,7 +52,7 @@ set(CH_PARALLEL_C_FLAGS "")
 
 find_package(CUDA)
 
-cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" ON "CUDA_FOUND" OFF)
+cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" OFF "CUDA_FOUND" OFF)
 
 
 IF(USE_PARALLEL_CUDA)
