@@ -9,17 +9,16 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Base class for processing proximity in fsi system.//
 // =============================================================================
 
+#include <thrust/sort.h>
 #include "chrono_fsi/ChCollisionSystemFsi.cuh"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChSphGeneral.cuh"
-#include <stdexcept>
-#include <thrust/sort.h>
 
 namespace chrono {
 namespace fsi {
@@ -47,15 +46,15 @@ namespace fsi {
 __global__ void calcHashD(
     uint* gridMarkerHashD,   ///< gridMarkerHash Store marker hash here
     uint* gridMarkerIndexD,  ///< gridMarkerIndex Store marker index here
-    Real3* posRad,           ///< posRad Vector containing the positions of all particles, including boundary particles
-    uint numAllMarkers,      ///<Total number of markers (fluid + boundary)
+    Real4* posRad,           ///< posRad Vector containing the positions of all particles, including boundary particles
+    uint numAllMarkers,      ///< Total number of markers (fluid + boundary)
     volatile bool* isErrorD) {
     /* Calculate the index of where the particle is stored in posRad. */
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numAllMarkers)
         return;
 
-    Real3 p = posRad[index];
+    Real3 p = mR3(posRad[index]);
 
     if (!(isfinite(p.x) && isfinite(p.y) && isfinite(p.z))) {
         printf(
@@ -66,7 +65,7 @@ __global__ void calcHashD(
     }
 
     /* Check particle is inside the domain. */
-    Real3 boxCorner = paramsD.worldOrigin;
+    Real3 boxCorner = paramsD.worldOrigin - mR3(40 * paramsD.HSML);
     if (p.x < boxCorner.x || p.y < boxCorner.y || p.z < boxCorner.z) {
         printf(
             "Out of Min Boundary, point %f %f %f, boundary min: %f %f %f. "
@@ -75,7 +74,7 @@ __global__ void calcHashD(
         *isErrorD = true;
         return;
     }
-    boxCorner = paramsD.worldOrigin + paramsD.boxDims;
+    boxCorner = paramsD.worldOrigin + paramsD.boxDims + mR3(40 * paramsD.HSML);
     if (p.x > boxCorner.x || p.y > boxCorner.y || p.z > boxCorner.z) {
         printf(
             "Out of max Boundary, point %f %f %f, boundary max: %f %f %f. "
@@ -102,14 +101,14 @@ __global__ void calcHashD(
  */
 __global__ void reorderDataAndFindCellStartD(uint* cellStartD,      // output: cell start index
                                              uint* cellEndD,        // output: cell end index
-                                             Real3* sortedPosRadD,  // output: sorted positions
+                                             Real4* sortedPosRadD,  // output: sorted positions
                                              Real3* sortedVelMasD,  // output: sorted velocities
                                              Real4* sortedRhoPreMuD,
                                              uint* gridMarkerHashD,      // input: sorted grid hashes
                                              uint* gridMarkerIndexD,     // input: sorted particle indices
                                              uint* mapOriginalToSorted,  // mapOriginalToSorted[originalIndex] =
                                                                          // originalIndex
-                                             Real3* posRadD,             // input: sorted position array
+                                             Real4* posRadD,             // input: sorted position array
                                              Real3* velMasD,             // input: sorted velocity array
                                              Real4* rhoPresMuD,
                                              uint numAllMarkers) {
@@ -158,9 +157,9 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,      // output: c
         // mapOriginalToSorted[originalIndex] = index; without need to sort. But
         // that
         // is not thread safe
-        Real3 posRad = posRadD[originalIndex];  // macro does either global read or
-                                                // texture fetch
-        Real3 velMas = velMasD[originalIndex];  // see particles_kernel.cuh
+        Real3 posRad = mR3(posRadD[originalIndex]);  // macro does either global read or
+                                                     // texture fetch
+        Real3 velMas = velMasD[originalIndex];       // see particles_kernel.cuh
         Real4 rhoPreMu = rhoPresMuD[originalIndex];
 
         if (!(isfinite(posRad.x) && isfinite(posRad.y) && isfinite(posRad.z))) {
@@ -178,7 +177,7 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,      // output: c
                 "Error! particle rhoPreMu is NAN: thrown from "
                 "SDKCollisionSystem.cu, reorderDataAndFindCellStartD !\n");
         }
-        sortedPosRadD[index] = posRad;
+        sortedPosRadD[index] = mR4(posRad, posRadD[originalIndex].w);
         sortedVelMasD[index] = velMas;
         sortedRhoPreMuD[index] = rhoPreMu;
     }
@@ -194,6 +193,7 @@ ChCollisionSystemFsi::ChCollisionSystemFsi(SphMarkerDataD* otherSortedSphMarkers
       markersProximityD(otherMarkersProximityD),
       paramsH(otherParamsH),
       numObjectsH(otherNumObjects) {
+    //    printf("ChCollisionSystemFsi::ChCollisionSystemFsi constructor\n");
     sphMarkersD = NULL;
 }
 
@@ -213,12 +213,14 @@ void ChCollisionSystemFsi::calcHash() {
     if (!(markersProximityD->gridMarkerHashD.size() == numObjectsH->numAllMarkers &&
           markersProximityD->gridMarkerIndexD.size() == numObjectsH->numAllMarkers)) {
         printf(
-            "mError! calcHash!, gridMarkerHashD.size() %d "
-            "gridMarkerIndexD.size() %d numObjectsH->numAllMarkers %d \n",
+            "mError! calcHash!, gridMarkerHashD.size()=%d "
+            "gridMarkerIndexD.size()=%d numObjectsH->numAllMarkers %d \n",
             markersProximityD->gridMarkerHashD.size(), markersProximityD->gridMarkerIndexD.size(),
             numObjectsH->numAllMarkers);
         throw std::runtime_error("Error! size error, calcHash!");
     }
+
+    //    printf("Neighbor search on numObjectsH->numAllMarkers=%d makers\n", numObjectsH->numAllMarkers);
 
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
@@ -232,11 +234,11 @@ void ChCollisionSystemFsi::calcHash() {
     /* Execute Kernel */
 
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(markersProximityD->gridMarkerHashD),
-                                         U1CAST(markersProximityD->gridMarkerIndexD), mR3CAST(sphMarkersD->posRadD),
+                                         U1CAST(markersProximityD->gridMarkerIndexD), mR4CAST(sphMarkersD->posRadD),
                                          numObjectsH->numAllMarkers, isErrorD);
 
     /* Check for errors in kernel execution */
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------------------------------------------------------
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
@@ -267,12 +269,12 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
 
     uint smemSize = sizeof(uint) * (numThreads + 1);
     reorderDataAndFindCellStartD<<<numBlocks, numThreads, smemSize>>>(
-        U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), mR3CAST(sortedSphMarkersD->posRadD),
+        U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), mR4CAST(sortedSphMarkersD->posRadD),
         mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
         U1CAST(markersProximityD->gridMarkerHashD), U1CAST(markersProximityD->gridMarkerIndexD),
-        U1CAST(markersProximityD->mapOriginalToSorted), mR3CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
+        U1CAST(markersProximityD->mapOriginalToSorted), mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
         mR4CAST(sphMarkersD->rhoPresMuD), numObjectsH->numAllMarkers);
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     cudaCheckError();
 
     // unroll sorted index to have the location of original particles in the

@@ -14,12 +14,12 @@
 // ANCF laminated shell element with four nodes.
 // =============================================================================
 
+#include "chrono/fea/ChElementShellANCF.h"
+#include <cmath>
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChUtilsFEA.h"
-#include <cmath>
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace fea {
@@ -214,7 +214,7 @@ void ChElementShellANCF::ComputeMassMatrix() {
                                                                -1, 1,           // y limits
                                                                m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                                2                                // order of integration
-                                                               );
+        );
         TempMassMatrix *= rho;
         m_MassMatrix += TempMassMatrix;
     }
@@ -272,7 +272,7 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
                                                               -1, 1,      // y limits
                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                               2                                // order of integration
-                                                              );
+        );
 
         Fgravity *= rho;
         m_GravForce += Fgravity;
@@ -614,7 +614,7 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                                                                   -1, 1,    // y limits
                                                                   m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                                   2  // order of integration
-                                                                  );
+            );
 
             // Extract vectors and matrices from result of integration
             Finternal.PasteClippedMatrix(result, 0, 0, 24, 1, 0, 0);
@@ -1064,7 +1064,7 @@ void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
                                                                -1, 1,                           // y limits
                                                                m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
                                                                2                                // order of integration
-                                                               );
+        );
 
         // Extract matrices from result of integration
         ChMatrixNM<double, 24, 24> KTE;
@@ -1350,6 +1350,27 @@ void ChElementShellANCF::CalcStrainANSbilinearShell() {
 // -----------------------------------------------------------------------------
 // Interface to ChElementShell base class
 // -----------------------------------------------------------------------------
+void ChElementShellANCF::EvaluateDeflection(double& def) {
+    ChVector<> oldPos;
+    ChVector<> newPos;
+    ChVector<> defVec;
+
+    for (int i = 0; i < 4; i++) {
+        oldPos.x() += this->m_d0(2 * i, 0);
+        oldPos.y() += this->m_d0(2 * i, 1);
+        oldPos.z() += this->m_d0(2 * i, 2);
+    }
+
+    for (int i = 0; i < 4; i++) {
+        newPos.x() += this->m_d(2 * i, 0);
+        newPos.y() += this->m_d(2 * i, 1);
+        newPos.z() += this->m_d(2 * i, 2);
+    }
+
+    defVec = (newPos - oldPos) / 4;
+    def = defVec.Length();
+}
+
 ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
     // Element shape function
     ChMatrixNM<double, 1, 8> N;
@@ -1518,18 +1539,13 @@ void ChElementShellANCF::EvaluateSectionDisplacement(const double u,
     u_rotaz = VNULL;  // no angles.. this is ANCF (or maybe return here the slope derivatives?)
 }
 
-void ChElementShellANCF::EvaluateSectionFrame(const double u,
-                                              const double v,
-                                              ChVector<>& point,
-                                              ChQuaternion<>& rot) {
+void ChElementShellANCF::EvaluateSectionFrame(const double u, const double v, ChVector<>& point, ChQuaternion<>& rot) {
     // this is not a corotational element, so just do:
     EvaluateSectionPoint(u, v, point);
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
 
-void ChElementShellANCF::EvaluateSectionPoint(const double u,
-                                              const double v,
-                                              ChVector<>& point) {
+void ChElementShellANCF::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
     ChVector<> u_displ;
 
     ChMatrixNM<double, 1, 8> N;
@@ -1578,9 +1594,13 @@ void ChElementShellANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta&
     mD.PasteVector(m_nodes[3]->GetD_dt(), block_offset + 21, 0);
 }
 
-void ChElementShellANCF::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+void ChElementShellANCF::LoadableStateIncrement(const unsigned int off_x,
+                                                ChState& x_new,
+                                                const ChState& x,
+                                                const unsigned int off_v,
+                                                const ChStateDelta& Dv) {
     for (int i = 0; i < 4; i++) {
-        this->m_nodes[i]->NodeIntStateIncrement(off_x  + 6 * i  , x_new, x, off_v  + 6 * i  , Dv);
+        this->m_nodes[i]->NodeIntStateIncrement(off_x + 6 * i, x_new, x, off_v + 6 * i, Dv);
     }
 }
 
@@ -1610,7 +1630,7 @@ void ChElementShellANCF::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is =n. field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ChMatrixNM<double, 1, 8> N;
     ShapeFunctions(N, U, V, 0);
 
@@ -1647,7 +1667,7 @@ void ChElementShellANCF::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is = n.field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ChMatrixNM<double, 1, 8> N;
     ShapeFunctions(N, U, V, W);
 
@@ -2057,8 +2077,8 @@ ChMaterialShellANCF::ChMaterialShellANCF(double rho,            // material dens
 // Calculate the matrix of elastic coefficients.
 // Always assume that the material could be orthotropic
 void ChMaterialShellANCF::Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
-    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() - (nu.z() * nu.z()) * E.z() / E.y() -
-                   2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
+    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() -
+                   (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
     double nu_yx = nu.x() * E.y() / E.x();
     double nu_zx = nu.y() * E.z() / E.x();
     double nu_zy = nu.z() * E.z() / E.y();

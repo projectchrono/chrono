@@ -46,8 +46,8 @@ int Orientation(const ChVector2<>& p1, const ChVector2<>& p2, const ChVector2<>&
 
 // Return true if point p2 is between points p1 and p3 (the 3 points are assumed collinear).
 bool InBetween(const ChVector2<>& p1, const ChVector2<>& p2, const ChVector2<>& p3) {
-    bool a = p2.x() >= p1.x() && p2.x() <= p3.x() || p2.x() <= p1.x() && p2.x() >= p3.x();
-    bool b = p2.y() >= p1.y() && p2.y() <= p3.y() || p2.y() <= p1.y() && p2.y() >= p3.y();
+    bool a = (p2.x() >= p1.x() && p2.x() <= p3.x()) || (p2.x() <= p1.x() && p2.x() >= p3.x());
+    bool b = (p2.y() >= p1.y() && p2.y() <= p3.y()) || (p2.y() <= p1.y() && p2.y() >= p3.y());
     return a && b;
 }
 

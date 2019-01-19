@@ -9,42 +9,37 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
 // ChronoParallel unit test for MPR collision detection
 // =============================================================================
 
-#include <cstdio>
-#include <vector>
-#include <cmath>
-
-#include "unit_testing.h"
 #include "chrono_parallel/math/other_types.h"
 
+#include "unit_testing.h"
+
 using namespace chrono;
-int main(int argc, char* argv[]) {
+
+TEST(ChronoParallel, other_math) {
     uvec4 a = _make_uvec4(1, 2, 3, 4);
-
     uvec4 r = Sort(a);
+    Assert_eq(a, r);
 
-    StrictEqual(a, r);
     uvec4 b;
     b = _make_uvec4(4, 3, 2, 1);
     r = Sort(b);
-    StrictEqual(a, r);
+    Assert_eq(a, r);
 
     b = _make_uvec4(4, 2, 3, 1);
     r = Sort(b);
-    StrictEqual(a, r);
+    Assert_eq(a, r);
 
     b = _make_uvec4(3, 4, 2, 1);
     r = Sort(b);
-    StrictEqual(a, r);
+    Assert_eq(a, r);
 
     b = _make_uvec4(1, 3, 2, 4);
     r = Sort(b);
-    StrictEqual(a, r);
-
-    return 0;
+    Assert_eq(a, r);
 }

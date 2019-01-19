@@ -19,9 +19,9 @@
 // =============================================================================
 
 #ifndef CH_CONFIG_FSI_H
-#define CH_CONFIG_FSI_H
+#define CH_CONFIG_FSI_H 
 
-// Include main Chrono configuration header
+// Include main Chrono configuration  header
 #include "chrono/ChConfig.h"
 
 // If using double precision

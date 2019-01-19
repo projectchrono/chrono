@@ -1072,7 +1072,7 @@ struct SShadowLight {
     void setShadowMapResolution(const irr::u32 shadowMapResolution) { mapRes = shadowMapResolution; }
 
     /// Gets the shadow map resolution for this light.
-    const irr::u32 getShadowMapResolution() const { return mapRes; }
+    irr::u32 getShadowMapResolution() const { return mapRes; }
 
     ///***ALEX***
     void setClipBorder(bool mb) { clipborder = mb; }
@@ -1104,7 +1104,7 @@ class IPostProcessingRenderCallback {
     virtual void OnPreRender(EffectHandler* effect) = 0;
     virtual void OnPostRender(EffectHandler* effect) = 0;
 
-    virtual ~IPostProcessingRenderCallback();
+    virtual ~IPostProcessingRenderCallback() {}
 };
 
 // Shader callback prototypes.
@@ -1141,7 +1141,7 @@ class EffectHandler {
     SShadowLight& getShadowLight(irr::u32 index) { return LightList[index]; }
 
     /// Retrieves the current number of shadow lights.
-    const irr::u32 getShadowLightCount() const { return LightList.size(); }
+    irr::u32 getShadowLightCount() const { return LightList.size(); }
 
     /// Retrieves the shadow map texture for the specified square shadow map resolution.
     /// Only one shadow map is kept for each resolution, so if multiple lights are using

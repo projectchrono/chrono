@@ -17,11 +17,12 @@
 
 #ifndef CH_DEVICEUTILS_H_
 #define CH_DEVICEUTILS_H_
+#include <cuda_runtime.h>  // for __host__ __device__ flags
+#include <thrust/device_vector.h>
+#include <thrust/host_vector.h>
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/custom_math.h"
-#include <thrust/device_vector.h>
-#include <thrust/host_vector.h>
 
 namespace chrono {
 namespace fsi {
@@ -50,8 +51,14 @@ typedef unsigned int uint;
 
 #define I1CAST(x) (int*)thrust::raw_pointer_cast(&x[0])
 #define mI2CAST(x) (int2*)thrust::raw_pointer_cast(&x[0])
+#define mI4CAST(x) (int4*)thrust::raw_pointer_cast(&x[0])
 #define U1CAST(x) (uint*)thrust::raw_pointer_cast(&x[0])
+#define U2CAST(x) (uint2*)thrust::raw_pointer_cast(&x[0])
+#define U4CAST(x) (uint4*)thrust::raw_pointer_cast(&x[0])
+
+#define LU1CAST(x) (unsigned long int*)thrust::raw_pointer_cast(&x[0])
 #define R1CAST(x) (Real*)thrust::raw_pointer_cast(&x[0])
+#define mR2CAST(x) (Real2*)thrust::raw_pointer_cast(&x[0])
 #define mR3CAST(x) (Real3*)thrust::raw_pointer_cast(&x[0])
 #define mR4CAST(x) (Real4*)thrust::raw_pointer_cast(&x[0])
 #define TCAST(x) thrust::raw_pointer_cast(x.data())
@@ -80,7 +87,8 @@ typedef unsigned int uint;
 #define INVPI 0.3183098861837906715377675267450287240689192914809128f
 #define EPSILON 1e-8
 
-#define RESOLUTION_LENGTH_MULT 2
+#define RESOLUTION_LENGTH_MULT 2.0
+//#define RESOLUTION_LENGTH_MULT 3.0
 
 // ----------------------------------------------------------------------------
 // cutilSafeCall
@@ -170,6 +178,17 @@ class CH_FSI_API ChDeviceUtils {
 
     /// Resizes a thrust vector of uint on the device to a specific size
     static void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
+
+    static void Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string carshReport);
+
+    //    template <class DATATYPE>
+    //    static void CopyD2H(thrust::device_vector<DATATYPE>& DevVec, thrust::host_vector<DATATYPE>& HostVec) {
+    //        thrust::copy(DevVec.begin(), DevVec.end(), HostVec.begin());
+    //    }
+
+    static void CopyD2H(thrust::device_vector<Real4>& DevVec, thrust::host_vector<Real4>& HostVec);
+    static void CopyD2H(thrust::device_vector<Real3>& DevVec, thrust::host_vector<Real3>& HostVec);
+    static void CopyD2H(thrust::device_vector<Real>& DevVec, thrust::host_vector<Real>& HostVec);
 
   private:
 };

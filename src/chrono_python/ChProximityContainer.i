@@ -45,13 +45,17 @@ class ChAddProximityCallbackP : public chrono::ChProximityContainer::AddProximit
 
 class ChReportProximityCallbackP {
   public:
-	virtual bool OnReportProximity(chrono::collision::ChCollisionModel* modA,
-                                   chrono::collision::ChCollisionModel* modB) {return false;}
+    virtual ~ChReportProximityCallbackP() {}
+    virtual bool OnReportProximity(chrono::collision::ChCollisionModel* modA,
+                                   chrono::collision::ChCollisionModel* modB) {
+        return false;
+    }
 };
 
 class ChAddProximityCallbackP {
   public:
-	virtual void OnAddProximity(const chrono::collision::ChCollisionModel& modA,
+    virtual ~ChAddProximityCallbackP() {}
+    virtual void OnAddProximity(const chrono::collision::ChCollisionModel& modA,
                                 const chrono::collision::ChCollisionModel& modB) {}
 };
 

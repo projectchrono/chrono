@@ -31,17 +31,17 @@ class ConvexBase {
   public:
     ConvexBase() {}
     virtual ~ConvexBase() {}
-    virtual const int Type() const { return 0; }
-    virtual const real3 A() const { return real3(0); }
-    virtual const quaternion R() const { return quaternion(1, 0, 0, 0); }
-    virtual const int Size() const { return 0; }
+    virtual int Type() const { return 0; }
+    virtual real3 A() const { return real3(0); }
+    virtual quaternion R() const { return quaternion(1, 0, 0, 0); }
+    virtual int Size() const { return 0; }
     virtual const real3* Convex() const { return 0; }
     virtual const real3* Triangles() const { return 0; }
-    virtual const real Radius() const { return 0; }
-    virtual const real3 Box() const { return real3(0); }
-    virtual const real4 Rbox() const { return real4(0); }
-    virtual const real2 Capsule() const { return real2(0); }
-    virtual const uvec4 TetIndex() const { return _make_uvec4(0, 0, 0, 0); }
+    virtual real Radius() const { return 0; }
+    virtual real3 Box() const { return real3(0); }
+    virtual real4 Rbox() const { return real4(0); }
+    virtual real2 Capsule() const { return real2(0); }
+    virtual uvec4 TetIndex() const { return _make_uvec4(0, 0, 0, 0); }
     virtual const real3* TetNodes() const { return 0; }
 };
 
@@ -51,20 +51,20 @@ class ConvexShape : public ConvexBase {
     ConvexShape() {}
     ConvexShape(int i, shape_container* d) : index(i), data(d) {}
     virtual ~ConvexShape() {}
-    virtual const int Type() const { return data->typ_rigid[index]; }
-    virtual const real3 A() const { return data->obj_data_A_global[index]; }
-    virtual const quaternion R() const { return data->obj_data_R_global[index]; }
-    virtual const int Size() const { return data->length_rigid[index]; }
-    virtual const real3* Convex() const { return &data->convex_rigid[start()]; }
-    virtual const real3* Triangles() const { return &data->triangle_global[start()]; }
-    virtual const real Radius() const { return data->sphere_rigid[start()]; }
-    virtual const real3 Box() const { return data->box_like_rigid[start()]; }
-    virtual const real4 Rbox() const { return data->rbox_like_rigid[start()]; }
-    virtual const real2 Capsule() const { return data->capsule_rigid[start()]; }
+    virtual int Type() const override { return data->typ_rigid[index]; }
+    virtual real3 A() const override { return data->obj_data_A_global[index]; }
+    virtual quaternion R() const override { return data->obj_data_R_global[index]; }
+    virtual int Size() const override { return data->length_rigid[index]; }
+    virtual const real3* Convex() const override { return &data->convex_rigid[start()]; }
+    virtual const real3* Triangles() const override { return &data->triangle_global[start()]; }
+    virtual real Radius() const override { return data->sphere_rigid[start()]; }
+    virtual real3 Box() const override { return data->box_like_rigid[start()]; }
+    virtual real4 Rbox() const override { return data->rbox_like_rigid[start()]; }
+    virtual real2 Capsule() const override { return data->capsule_rigid[start()]; }
     int index;
     shape_container* data;  // pointer to convex data;
   private:
-    virtual const inline int start() const { return data->start_rigid[index]; }
+    virtual inline int start() const { return data->start_rigid[index]; }
 };
 
 /// Sphere contact shape.
@@ -72,9 +72,9 @@ class ConvexShapeSphere : public ConvexBase {
   public:
     ConvexShapeSphere(real3 p, real r) : position(p), radius(r) {}
     virtual ~ConvexShapeSphere() {}
-    const inline int Type() const { return SPHERE; }
-    const inline real3 A() const { return position; }
-    const inline real Radius() const { return radius; }
+    inline int Type() const override { return SPHERE; }
+    inline real3 A() const override { return position; }
+    inline real Radius() const override { return radius; }
     real3 position;
     real radius;
 };
@@ -86,13 +86,13 @@ class ConvexShapeCustom : public ConvexBase {
     ConvexShapeCustom(const int t, const real3& p, const quaternion& rot, const real3& d, const real r = 0)
         : type(t), position(p), rotation(rot), dimensions(d), radius(r) {}
     virtual ~ConvexShapeCustom() {}
-    const inline int Type() const { return type; }
-    const inline real3 A() const { return position; }
-    const inline quaternion R() const { return rotation; }
-    const inline real Radius() const { return dimensions.x; }
-    const inline real3 Box() const { return dimensions; }
-    const inline real4 Rbox() const { return real4(dimensions, radius); }
-    const inline real2 Capsule() const { return real2(dimensions.x, dimensions.y); }
+    inline int Type() const override { return type; }
+    inline real3 A() const override { return position; }
+    inline quaternion R() const override { return rotation; }
+    inline real Radius() const override { return dimensions.x; }
+    inline real3 Box() const override { return dimensions; }
+    inline real4 Rbox() const override { return real4(dimensions, radius); }
+    inline real2 Capsule() const override { return real2(dimensions.x, dimensions.y); }
     int type;
     real3 position;
     quaternion rotation;
@@ -105,10 +105,10 @@ class ConvexShapeTetrahedron : public ConvexBase {
   public:
     ConvexShapeTetrahedron(uvec4 i, real3* n) : indices(i), nodes(n) {}
     virtual ~ConvexShapeTetrahedron() {}
-    const inline int Type() const { return TETRAHEDRON; }
-    const inline real3 A() const { return real3(0); }
-    const uvec4 TetIndex() const { return indices; }
-    const real3* TetNodes() const { return nodes; }
+    inline int Type() const override { return TETRAHEDRON; }
+    inline real3 A() const override { return real3(0); }
+    uvec4 TetIndex() const override { return indices; }
+    const real3* TetNodes() const override { return nodes; }
     uvec4 indices;
     real3* nodes;
 };
@@ -122,9 +122,9 @@ class ConvexShapeTriangle : public ConvexBase {
         tri[2] = t3;
     }
     virtual ~ConvexShapeTriangle() {}
-    const inline int Type() const { return TRIANGLEMESH; }
-    const inline real3 A() const { return real3(0); }
-    virtual const real3* Triangles() const { return &tri[0]; }
+    inline int Type() const override { return TRIANGLEMESH; }
+    inline real3 A() const override { return real3(0); }
+    const real3* Triangles() const override { return &tri[0]; }
     real3 tri[3];
 };
 

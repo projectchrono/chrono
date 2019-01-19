@@ -19,9 +19,7 @@
 #define CH_FSIGENERAL_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/ChParams.cuh"
-#include "chrono_fsi/custom_math.h"
+#include "chrono_fsi/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -34,14 +32,14 @@ class CH_FSI_API ChFsiGeneral {
 
     /// @brief Compute number of blocks and threads for calculation on GPU
     /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize
-    void computeGridSize(uint n,            ///< Total num elements
+    void computeGridSize(uint n,           ///< Total num elements
                          uint blockSize,   ///< BlockSize Number of threads per block
                          uint& numBlocks,  ///< numBlocks (output)
                          uint& numThreads  ///< numThreads (output)
-                         );
+    );
 
     void setParameters(SimParams* hostParams, NumberOfObjects* hostNumObjects);
-    virtual void Finalize(){};
+    //    virtual void Finalize(){};
 
   protected:
     uint iDivUp(uint a, uint b);

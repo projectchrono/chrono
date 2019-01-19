@@ -144,8 +144,8 @@ TARGET_LINK_LIBRARIES(ChronoEngine_distributed
 
 INSTALL(TARGETS ChronoEngine_distributed
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib64
-        ARCHIVE DESTINATION lib64)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_distributed

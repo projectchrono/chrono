@@ -53,6 +53,7 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
 
 class ChReportContactCallbackP {
   public:
+    virtual ~ChReportContactCallbackP() {}
     virtual bool OnReportContact(const chrono::ChVector<>& pA,
                                  const chrono::ChVector<>& pB,
                                  const chrono::ChMatrix33<>& plane_coord,
@@ -61,12 +62,15 @@ class ChReportContactCallbackP {
                                  const chrono::ChVector<>& react_forces,
                                  const chrono::ChVector<>& react_torques,
                                  chrono::ChContactable* contactobjA,
-                                 chrono::ChContactable* contactobjB) {return false;}	
+                                 chrono::ChContactable* contactobjB) {
+        return false;
+    }
 };
 
 class ChAddContactCallbackP {
   public:
-	virtual void OnAddContact(const chrono::collision::ChCollisionInfo& contactinfo,
+    virtual ~ChAddContactCallbackP() {}
+    virtual void OnAddContact(const chrono::collision::ChCollisionInfo& contactinfo,
                               chrono::ChMaterialComposite* const material) {}
 };
 

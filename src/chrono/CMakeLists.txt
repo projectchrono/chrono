@@ -360,6 +360,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChGaussPoint.cpp
     fea/ChMesh.cpp
     fea/ChMeshFileLoader.cpp
+    fea/ChMeshExporter.cpp
     fea/ChMatterMeshless.cpp
     fea/ChProximityContainerMeshless.cpp
     fea/ChPolarDecomposition.cpp
@@ -369,6 +370,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChLinkDirFrame.cpp
     fea/ChLinkPointPoint.cpp
     fea/ChLinkPointTriface.cpp
+    fea/ChLinkBeamIGAslider.cpp
     fea/ChContactSurface.cpp
     fea/ChContactSurfaceNodeCloud.cpp
     fea/ChContactSurfaceMesh.cpp
@@ -421,6 +423,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChGaussIntegrationRule.h
     fea/ChGaussPoint.h
     fea/ChMesh.h
+    fea/ChMeshExporter.h
     fea/ChMeshFileLoader.h
     fea/ChMatterMeshless.h
     fea/ChProximityContainerMeshless.h
@@ -432,6 +435,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChLinkDirFrame.h
     fea/ChLinkPointPoint.h
     fea/ChLinkPointTriface.h
+    fea/ChLinkBeamIGAslider.h
     fea/ChContactSurface.h
     fea/ChContactSurfaceNodeCloud.h
     fea/ChContactSurfaceMesh.h
@@ -1160,8 +1164,8 @@ endif()
 # Install the main ChronoEngine library
 install(TARGETS ChronoEngine
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib64
-    ARCHIVE DESTINATION lib64)
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib)
 
 # Install all header files for the main ChronoEngine library
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/

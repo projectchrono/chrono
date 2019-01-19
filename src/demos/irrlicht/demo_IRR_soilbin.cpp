@@ -74,12 +74,12 @@ class ParticleGenerator {
     ~ParticleGenerator() {}
 
     // return the total # of particles
-    const int nparticles() { return this->totalParticles; }
+    int nparticles() const { return this->totalParticles; }
 
     // return the total particle mass
-    const double particleMass() { return (this->totalParticleMass); }
+    double particleMass() const { return (this->totalParticleMass); }
 
-    const double getMu() { return this->mu; }
+    double getMu() const { return this->mu; }
 
     void setMu(double newMu) {
         if (newMu < 0.0) {
@@ -93,7 +93,7 @@ class ParticleGenerator {
         this->mu = (float)newMu;
     }
 
-    const double getSphDensity() { return this->sphDens; }
+    double getSphDensity() const { return this->sphDens; }
     void setSphDensity(double newDens) {
         if (newDens < 0.0)
             GetLog() << "can't set density less than 0  \n";
@@ -110,7 +110,7 @@ class ParticleGenerator {
 
     // create some spheres with size = pSize + ChRank()*pDev
     // also, you can create boxes too, with the sides being sized in the same sort of manner as the spheres
-    const bool create_some_falling_items(double pSize, double pDev, int nParticles, int nBoxes = 0) {
+    bool create_some_falling_items(double pSize, double pDev, int nParticles, int nBoxes = 0) {
         double minTime_betweenCreate = 0.05;  // this much simulation time MUST elapse before being allowed to
                                               // create more particles
         if ((msys->GetChTime() - this->simTime_lastPcreated) >= minTime_betweenCreate) {
@@ -835,12 +835,12 @@ class MyEventReceiver : public IEventReceiver {
     }
 
     // helper functions, these are called in the time step loop
-    const double getCurrentPsize() { return currParticleSize; }
-    const double getCurrentPdev() { return currParticleDev; }
-    const bool createParticles() { return makeParticles; }
+    double getCurrentPsize() const { return currParticleSize; }
+    double getCurrentPdev() const { return currParticleDev; }
+    bool createParticles() const { return makeParticles; }
 
     // try to generate some particles. Returne T/F if anything was created
-    const bool genParticles() {
+    bool genParticles() {
         return mgenerator->create_some_falling_items(currParticleSize, currParticleDev, currNparticlesGen, 0);
     }
 

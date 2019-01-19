@@ -387,7 +387,7 @@ void ChSystemDistributed::PrintShapeData() {
         }
     }
 
-    printf("%d | NumShapes: %d NumBodies: %lu\n", my_rank, (unsigned long)ddm->data_manager->shape_data.id_rigid.size(), i);
+    printf("%d | NumShapes: %lu NumBodies: %d\n", my_rank, (unsigned long)ddm->data_manager->shape_data.id_rigid.size(), i);
     printf("%d | num_rigid_shapes: %d, num_rigid_bodies: %d\n", my_rank, ddm->data_manager->num_rigid_shapes,
            ddm->data_manager->num_rigid_bodies);
 }
