@@ -46,5 +46,5 @@ Real4 ChFsiTypeConvert::ChQuaternionToReal4(chrono::ChQuaternion<> q4) {
   return mR4(q4.e0(), q4.e1(), q4.e2(), q4.e3());
 }
 
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono

@@ -19,8 +19,8 @@
 #define CH_COLLISIONSYSTEM_FSI_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChFsiDataManager.cuh"
 #include "chrono_fsi/ChFsiGeneral.cuh"
+#include "chrono_fsi/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -36,7 +36,7 @@ class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
                          ProximityDataD* otherMarkersProximityD,  ///< Proximity information of the system
                          SimParams* otherParamsH,                 ///< Parameters of the simulation
                          NumberOfObjects* otherNumObjects         ///< Size of different objects in the system
-                         );
+    );
 
     /// Destructor of the ChCollisionSystemFsi
     ~ChCollisionSystemFsi();

@@ -9,25 +9,24 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Arman Pazouki
+// Authors: Milad Rakhsha
 // =============================================================================
-//
-// Chrono-fsi configuration header file
-//
-// Automatically created during CMake configuration.
-//
-// =============================================================================
+#ifndef CHUTILSJSONINPUT_H_
+#define CHUTILSJSONINPUT_H_
 
-#ifndef CH_CONFIG_FSI_H
-#define CH_CONFIG_FSI_H 
+#include "chrono_fsi/ChApiFsi.h"
+#include "chrono_fsi/ChParams.cuh"
+#include "chrono_fsi/custom_math.h"
 
-// Include main Chrono configuration  header
-#include "chrono/ChConfig.h"
+namespace chrono {
+namespace fsi {
+namespace utils {
 
-// If using double precision
-//   #define CHRONO_FSI_USE_DOUBLE
-@CHRONO_FSI_USE_DOUBLE@
+/// Read Chrono::FSI simulation parameters from specified JSON file.
+CH_FSI_API bool ParseJSON(const char* json_file, SimParams* paramsH, Real3 Domain);
 
-// -----------------------------------------------------------------------------
+}  // namespace utils
+}  // namespace fsi
+}  // namespace chrono
 
 #endif
