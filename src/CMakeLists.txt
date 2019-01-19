@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
-option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
+option(BUILD_BENCHMARKING "Build benchmark tests" ON)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -284,22 +284,62 @@ include_directories(${PROJECT_BINARY_DIR})
 
 message(STATUS "==== Submodules ====")
 
-# Build google test and google mock (targets: gtest_main, gtest, gmock_main, gmock).
-# Disable installation of googletest.
-# Force using shared libraries.
-option(INSTALL_GTEST "" OFF)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(chrono_thirdparty/googletest)
+if(BUILD_TESTING)
+  message(STATUS "Build Google test framework")
 
-# Build google benchmark (target: benchmark).
-# Disable installation of benchmark
-# Do not build tests of benchmarking lib.
-option(BENCHMARK_ENABLE_INSTALL "" OFF)
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-add_subdirectory(chrono_thirdparty/googlebenchmark)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty/googletest/CMakeLists.txt")
+    # Build google test and google mock (targets: gtest_main, gtest, gmock_main, gmock).
+    # Disable installation of googletest.
+    # Force using shared libraries.
+    option(INSTALL_GTEST "" OFF)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  
+    add_subdirectory(chrono_thirdparty/googletest)
+  
+    # Hide some Google test-related variables
+    mark_as_advanced(FORCE BUILD_GMOCK)
+    mark_as_advanced(FORCE INSTALL_GTEST)
+  else()
+    message("  Google test code not found: update git submodules.")
+    message("  Building of unit tests was disabled.")
+    set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree." FORCE)
+  endif()
+
+endif()
+
+if(BUILD_BENCHMARKING)
+  message(STATUS "Build Google benchmark framework")
+
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty/googletest/CMakeLists.txt")
+    # Build google benchmark (target: benchmark).
+    # Disable installation of benchmark.
+    # Do not build tests of benchmarking lib.
+    option(BENCHMARK_ENABLE_INSTALL "" OFF)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
+  
+    add_subdirectory(chrono_thirdparty/googlebenchmark)
+  
+    # Hide some Google benchmark-related variables
+    mark_as_advanced(FORCE BENCHMARK_BUILD_32_BITS)
+    mark_as_advanced(FORCE BENCHMARK_DOWNLOAD_DEPENDENCIES)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_ASSEMBLY_TESTS)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_EXCEPTIONS)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_GTEST_TESTS)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_INSTALL)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_LTO)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_TESTING)
+    mark_as_advanced(FORCE BENCHMARK_USE_LIBCXX)
+    mark_as_advanced(FORCE LIBRT)
+  else()
+    message("  Google benchmark code not found: update git submodules.")
+    message("  Building of benchmark tests was disabled.")
+    set(BUILD_BENCHMARKING OFF CACHE BOOL "Build benchmark tests" FORCE)
+  endif()
+
+endif()
 
 #------------------------------------------------------------
-# Propagates the CMake build to other directories
+# Propagate the CMake build to other directories
 #------------------------------------------------------------
 
 # Add directory for main ChronoEngine library 
@@ -404,7 +444,6 @@ else()
   set(CHRONO_PARALLEL "#undef CHRONO_PARALLEL")
 endif()
 
-# Note: OPENGL must be configured *after* PARALLEL
 if(ENABLE_MODULE_OPENGL)
   set(CHRONO_OPENGL "#define CHRONO_OPENGL")
 else()
