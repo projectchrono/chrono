@@ -46,17 +46,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 
-# cmake/FindModernCXX.cmake behaves strangely with PGI compilers, don't trust it
-if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
-  set(CH_CXX_FLAGS "")
-  message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
-    message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
-    set(CH_CXX14 TRUE)
-    set(CH_CXX_FLAGS "-std=c++14")
-  endif()
-endif()
-
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
@@ -137,84 +126,37 @@ endif()
 message(STATUS "Seaching for SSE...")
 find_package(SSE)
 
-# Set substitution variables for configuration file.
+# Set substitution variables for configuration file
 if(SSE_FOUND)
-  message(STATUS "  SSE version: ${SSE_VERSION}")
   set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
   set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
   set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_${SSE_STR}")
-else()
-  message("  No SSE support")
 endif()
   
 # Figure out AVX level support
 message(STATUS "Searching for AVX...")
 find_package(AVX)
 
-# Set substitution variables for configuration file.
+# Set substitution variables for configuration file
 if(AVX_FOUND)
-  message(STATUS "  AVX version: ${AVX_VERSION}")
   set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
   set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
   set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_${AVX_STR}")
-else()
-  message("  No AVX support")
 endif()
 
-# Check if the system has NEON support
-message(STATUS "Searching for NEON...")
-find_package(NEON)
-
-# Set substitution variables for configuration file.
-if (NEON_FOUND)
-  message(STATUS "  NEON version: ${NEON_VERSION}")
-  set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
-else()
-  message("  No NEON support")
-endif()
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${NEON_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${NEON_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${NEON_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${NEON_FLAGS}")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${NEON_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${NEON_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${NEON_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${NEON_FLAGS}")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -xsse${SSE_VERSION}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} -xsse${SSE_VERSION}")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  # using Visual Studio C++
-endif()
-
+# Figure out FMA level support
 message(STATUS "Searching for FMA...")
 find_package(FMA)
 
-# Set substitution variables for configuration file.
+# Set substitution variables for configuration file
 if(FMA_FOUND)
-	message(STATUS "  FMA found")
-	set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-else()
-  message(STATUS "  No FMA support")
-endif()  
-
-# Pass -mfma flag to configuration file if fma is found
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FMA_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FMA_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${FMA_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${FMA_FLAGS}")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FMA_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FMA_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${FMA_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${FMA_FLAGS}")
+  set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
 endif()
+
+# Add SSE, AVX, and FMA flags to Chrono compiler flags
+# Note that these flags are already added to CMake compiler flags
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
 
 
 #-----------------------------------------------------------------------------
@@ -347,18 +289,14 @@ message(STATUS "==== Submodules ====")
 # Force using shared libraries.
 option(INSTALL_GTEST "" OFF)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-if(BUILD_TESTING)
-  add_subdirectory(chrono_thirdparty/googletest)
-endif()
+add_subdirectory(chrono_thirdparty/googletest)
 
 # Build google benchmark (target: benchmark).
 # Disable installation of benchmark
 # Do not build tests of benchmarking lib.
 option(BENCHMARK_ENABLE_INSTALL "" OFF)
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-if (BUILD_BENCHMARKING)
-  add_subdirectory(chrono_thirdparty/googlebenchmark)
-endif()
+add_subdirectory(chrono_thirdparty/googlebenchmark)
 
 #------------------------------------------------------------
 # Propagates the CMake build to other directories
@@ -567,7 +505,7 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CH_CONFIG_INSTALL_PATH "cmake")
 else()
-    set(CH_CONFIG_INSTALL_PATH "lib64/cmake")
+    set(CH_CONFIG_INSTALL_PATH "lib/cmake")
 endif()
 
 install(FILES "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
