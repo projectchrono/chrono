@@ -61,18 +61,18 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID 
     else()
       # Setting -ffloat-store to alleviate 32bit vs 64bit discrepancies on non-SIMD platforms.
       set(NEON_FLAGS "-ffloat-store")
-      message(STATUS "No NEON extensions found")
   endif()
 endif()
 
 if(NEON_FOUND)
-  message(STATUS "Found NEON extensions, using flags: ${NEON_FLAGS}")
+  message(STATUS "  Found NEON extensions, using flags: ${NEON_FLAGS}")
+else()
+  message(STATUS "  No NEON support found")
+  set(NEON_FLAGS "")
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${NEON_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${NEON_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${NEON_FLAGS}")
+
 return()
-
-
-

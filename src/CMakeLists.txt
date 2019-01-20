@@ -46,6 +46,17 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 
+# cmake/FindModernCXX.cmake behaves strangely with PGI compilers, don't trust it
+if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
+  set(CH_CXX_FLAGS "")
+  message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
+    message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
+    set(CH_CXX14 TRUE)
+    set(CH_CXX_FLAGS "-std=c++14")
+  endif()
+endif()
+
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
@@ -104,14 +115,12 @@ cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" O
                        "OPENMP_FOUND" OFF)
 
 if(ENABLE_OPENMP)
-
   message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
   message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
-  
 else()
 	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
 	find_package("TBB")
@@ -158,6 +167,23 @@ endif()
 set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
 set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
 
+#-----------------------------------------------------------------------------
+# NEON support
+#-----------------------------------------------------------------------------
+
+# Check if the system has NEON support
+message(STATUS "Searching for NEON...")
+find_package(NEON)
+
+# Set substitution variables for configuration file.
+if (NEON_FOUND)
+  set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
+endif()
+
+# Add NEON flags to Chrono compiler flags
+# Note that these flags are already added to CMake compiler flags
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
+set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
 #-----------------------------------------------------------------------------
 # MPI support
