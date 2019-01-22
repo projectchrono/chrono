@@ -15,7 +15,8 @@ if(NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE BLAZE_DIR)
   mark_as_advanced(FORCE USE_PARALLEL_DOUBLE)
   mark_as_advanced(FORCE USE_PARALLEL_SIMD)
-  
+  mark_as_advanced(FORCE USE_PARALLEL_CUDA)
+
   # GCC > 4.9 does not support CUDA (<= 8.0) by default. 
   # Users may explicitly select CUDA support if they are sure that their compiler
   # does make use of any conflicting features, such as C++14.
@@ -23,7 +24,6 @@ if(NOT ENABLE_MODULE_PARALLEL)
     if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
       message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION} does not support USE_PARALLEL_CUDA by default")
       set(USE_PARALLEL_CUDA OFF CACHE OFF "")
-      mark_as_advanced(FORCE USE_PARALLEL_CUDA)
     endif()
   endif()
 
@@ -50,38 +50,13 @@ set(CH_PARALLEL_C_FLAGS "")
 
 # ----- CUDA support -----
 
-find_package(CUDA)
-
 cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" OFF "CUDA_FOUND" OFF)
 
-
-IF(USE_PARALLEL_CUDA)
-  SET(CUDA_SEPARABLE_COMPILATION ON)
-
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-      IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
-        SET(CUDA_SEPARABLE_COMPILATION OFF)
-        SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++11")
-        SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11")
-      ENDIF()
-    ENDIF()
-    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
-  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
-  ENDIF()
-
-  #SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_30,code=sm_30)
-
-  INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
-  SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
-  LIST(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
-
-  SET(CHRONO_PARALLEL_USE_CUDA "#define CHRONO_PARALLEL_USE_CUDA")
-ELSE()
-  SET(CHRONO_PARALLEL_USE_CUDA "#undef CHRONO_PARALLEL_USE_CUDA")
-ENDIF()
+if(USE_PARALLEL_CUDA)
+  set(CHRONO_PARALLEL_USE_CUDA "#define CHRONO_PARALLEL_USE_CUDA")
+else()
+  set(CHRONO_PARALLEL_USE_CUDA "#undef CHRONO_PARALLEL_USE_CUDA")
+endif()
 
 # ----- SIMD (SSE or AVX) support -----
 
