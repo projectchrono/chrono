@@ -1287,3 +1287,15 @@ Running settling test!
 50 thousand bodies took 2.76234 seconds!
 500 thousand bodies took 19.2262 seconds!
 1 million bodies took 37.8492 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 22 Jan 2019 15:06:30 -0600
+commit 2ba427f3e6db9587acd6261bad538dedb3dd9f63 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 22 15:06:20 2019 -0600 fix granular vehicle irrlicht build
+Results:
+Running wavetank test!
+50 thousand bodies took 2.38886 seconds!
+500 thousand bodies took 19.8176 seconds!
+1 million bodies took 39.3376 seconds!
+Running settling test!
+50 thousand bodies took 2.56142 seconds!
+500 thousand bodies took 18.637 seconds!
+1 million bodies took 37.299 seconds!

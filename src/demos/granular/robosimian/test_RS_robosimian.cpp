@@ -466,18 +466,18 @@ int main(int argc, char* argv[]) {
     // Initialize output directories
     // -----------------------------
 
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(out_dir)) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     if (povray_output) {
-        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+        if (!filesystem::create_directory(pov_dir)) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
     }
     if (image_output) {
-        if (ChFileutils::MakeDirectory(img_dir.c_str()) < 0) {
+        if (!filesystem::create_directory(img_dir)) {
             std::cout << "Error creating directory " << img_dir << std::endl;
             return 1;
         }
