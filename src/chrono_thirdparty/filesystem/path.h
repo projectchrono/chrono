@@ -26,7 +26,7 @@
 #endif
 #include <sys/stat.h>
 
-#if defined(__linux)
+#if (defined(__linux__) || defined(__linux))
 # include <linux/limits.h>
 #endif
 
