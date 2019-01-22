@@ -66,9 +66,9 @@ inline __host__ __device__ float rsqrtf(float x) {
     return 1.0f / sqrtf(x);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// implementations of basic cuda types
-////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    // implementations of basic cuda types
+    ////////////////////////////////////////////////////////////////////////////////
 
 #if defined(__CUDACC_RTC__)
 #define __VECTOR_FUNCTIONS_DECL__ __host__ __device__
@@ -1193,6 +1193,9 @@ __host__ __device__ inline Real3 make_Real3(uint3 a) {
 __host__ __device__ inline int3 make_int3(Real3 a) {
     return make_int3(int(a.x), int(a.y), int(a.z));
 }
+__host__ __device__ inline Real3 make_Real3(Real3 a) {
+    return make_Real3(a.x, a.y, a.z);
+}
 
 __host__ __device__ inline Real4 make_Real4(Real a, Real b, Real c, Real d)  ///
 {
@@ -1211,6 +1214,9 @@ __host__ __device__ inline Real4 make_Real4(Real3 a) {
 }
 __host__ __device__ inline Real4 make_Real4(Real3 a, Real w) {
     return make_Real4(a.x, a.y, a.z, w);
+}
+__host__ __device__ inline Real4 make_Real4(Real4 a) {
+    return make_Real4(a.x, a.y, a.z, a.w);
 }
 __host__ __device__ inline Real4 make_Real4(int4 a) {
     return make_Real4(Real(a.x), Real(a.y), Real(a.z), Real(a.w));
@@ -1519,6 +1525,9 @@ __host__ __device__ inline Real dot(Real4 a, Real4 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
+__host__ __device__ inline Real length(Real v) {
+    return abs(v);
+}
 __host__ __device__ inline Real length(Real2 v) {
     return sqrt(dot(v, v));
 }
@@ -1544,6 +1553,33 @@ __host__ __device__ inline Real4 normalize(Real4 v) {
 
 __host__ __device__ inline Real3 cross(Real3 a, Real3 b) {
     return make_Real3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+}
+
+__host__ __device__ inline Real2 Cables_ShapeFunctions(Real xi) {
+    //	Real NA = 1 - 3 * pow(xi, 2) + 2 * pow(xi, 3);
+    //	Real NB = 3 * pow(xi, 2) - 2 * pow(xi, 3);
+
+    Real NA = 1 - xi;
+    Real NB = xi;
+
+    return make_Real2(NA, NB);
+}
+__host__ __device__ inline Real4 Shells_ShapeFunctions(Real x, Real y) {
+    Real NA = 0.25 * (1.0 - x) * (1.0 - y);
+    Real NB = 0.25 * (1.0 + x) * (1.0 - y);
+    Real NC = 0.25 * (1.0 + x) * (1.0 + y);
+    Real ND = 0.25 * (1.0 - x) * (1.0 + y);
+    return make_Real4(NA, NB, NC, ND);
+}
+
+__host__ __device__ inline Real3 user_BC_U(Real3 Pos) {
+    Real3 vel = make_Real3(0.0, 0.0, 0.0);
+    //   User define fucntion for U goes here
+    if (Pos.z >= 1.025 && Pos.x <= 0.5 && Pos.x >= -0.5) {
+        vel = make_Real3(1, 0, 0);
+    }
+
+    return vel;
 }
 
 /// @} fsi_math

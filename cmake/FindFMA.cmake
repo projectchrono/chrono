@@ -68,13 +68,18 @@ elseif(MSVC)
 endif()
 
 if(FMA_FOUND)
-  message(STATUS "Found FMA  extensions, using flags: ${FMA_FLAGS}")
+  message(STATUS "  Found FMA extensions, using flags: ${FMA_FLAGS}")
+else()
+  message(STATUS "  No FMA support found")
+  set(FMA_FLAGS "")
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${FMA_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${FMA_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${FMA_FLAGS}")
+
 return()
+#-----------------------
 
 # If no FMA support is found, print an error message.
 if(FMA_FIND_REQUIRED)

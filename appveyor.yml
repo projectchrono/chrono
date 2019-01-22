@@ -39,6 +39,7 @@ environment:
       CMAKE_GENERATOR: Unix Makefiles
       CONFIGURATION: Release
       
+      
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017 
       PYTHON: "C:\\Python35_64"
       PYTHON_VERSION: "3.5"
@@ -67,6 +68,23 @@ environment:
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       CONFIGURATION: Release
       
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
+      PYTHON_VERSION: "3.7"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "37"
+      CONDA_NPY: "18"
+      CMAKE_GENERATOR: Unix Makefiles
+      CONFIGURATION: Release
+      
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017 
+      PYTHON: "C:\\Python37_64"
+      PYTHON_VERSION: "3.7"
+      PYTHON_ARCH: "64"
+      CONDA_PY: "37"
+      CONDA_NPY: "18"
+      CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
+      CMAKE_GENERATOR: Visual Studio 15 2017 Win64
+      CONFIGURATION: Release
 init:
    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
    - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -    
@@ -123,8 +141,10 @@ install:
     - sh: wget "http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
     - sh: bash Miniconda3-latest-Linux-x86_64.sh -b
     - sh: export PATH=$HOME/miniconda3/bin:$PATH
-    - sh: conda install python=$PYTHON_VERSION -y
+    # Downgrading Conda leads to issues in Linux. We create specific environment "myenv" instead
+    - sh: conda create -n myenv python=$PYTHON_VERSION -y
     - sh: conda update --yes conda
+    - sh: source activate myenv
     - sh: conda install --yes pip conda-build jinja2 binstar
     - sh: conda config --set show_channel_urls true
     - sh: conda update conda --yes
@@ -141,8 +161,8 @@ test_script:
   # builds conda package following recipe instructions
   - sh: conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty
   - sh: mkdir dist
-  - sh: cp  /home/appveyor/miniconda3/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 ./dist/pychrono.tar.bz
-  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 --force
+  - sh: cp  /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 ./dist/pychrono.tar.bz
+  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 --force
   
   
 ##################################################### WINDOWS ###########################################

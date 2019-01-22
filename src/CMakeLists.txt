@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
-option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
+option(BUILD_BENCHMARKING "Build benchmark tests" ON)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -45,6 +45,17 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   endif()
 endif()
 message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
+
+# cmake/FindModernCXX.cmake behaves strangely with PGI compilers, don't trust it
+if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
+  set(CH_CXX_FLAGS "")
+  message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
+    message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
+    set(CH_CXX14 TRUE)
+    set(CH_CXX_FLAGS "-std=c++14")
+  endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
@@ -104,14 +115,12 @@ cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" O
                        "OPENMP_FOUND" OFF)
 
 if(ENABLE_OPENMP)
-
   message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
   message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
-  
 else()
 	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
 	find_package("TBB")
@@ -126,73 +135,74 @@ endif()
 message(STATUS "Seaching for SSE...")
 find_package(SSE)
 
-# Set substitution variables for configuration file.
+# Set substitution variables for configuration file
 if(SSE_FOUND)
-  message(STATUS "  SSE version: ${SSE_VERSION}")
   set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
   set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
-  set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_${SSE_STR}")
-else()
-  message("  No SSE support")
+  if(DETECTED_SSE_10)
+    set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
+  endif()
+  if(DETECTED_SSE_20)
+    set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
+  endif()
+  if(DETECTED_SSE_30)
+    set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
+  endif()
+  if(DETECTED_SSE_41)
+    set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
+  endif()
+  if(DETECTED_SSE_42)
+    set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
+  endif()
 endif()
   
 # Figure out AVX level support
 message(STATUS "Searching for AVX...")
 find_package(AVX)
 
-# Set substitution variables for configuration file.
+# Set substitution variables for configuration file
 if(AVX_FOUND)
-  message(STATUS "  AVX version: ${AVX_VERSION}")
   set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
   set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
-  set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_${AVX_STR}")
-else()
-  message("  No AVX support")
+  if(DETECTED_AVX_10)
+    set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
+  endif()
+  if(DETECTED_AVX_20)
+    set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
+  endif()
 endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -xsse${SSE_VERSION}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} -xsse${SSE_VERSION}")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  # using Visual Studio C++
-endif()
-
+# Figure out FMA level support
 message(STATUS "Searching for FMA...")
 find_package(FMA)
 
-# Set substitution variables for configuration file.
+# Set substitution variables for configuration file
 if(FMA_FOUND)
-	message(STATUS "  FMA found")
-	set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-else()
-  message(STATUS "  No FMA support")
-endif()  
-
-# Pass -mfma flag to configuration file if fma is found
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FMA_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FMA_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${FMA_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${FMA_FLAGS}")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FMA_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FMA_FLAGS}")
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${FMA_FLAGS}")
-  set(CH_C_FLAGS "${CH_C_FLAGS} ${FMA_FLAGS}")
+  set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
 endif()
 
+# Add SSE, AVX, and FMA flags to Chrono compiler flags
+# Note that these flags are already added to CMake compiler flags
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+
+#-----------------------------------------------------------------------------
+# NEON support
+#-----------------------------------------------------------------------------
+
+# Check if the system has NEON support
+message(STATUS "Searching for NEON...")
+find_package(NEON)
+
+# Set substitution variables for configuration file.
+if (NEON_FOUND)
+  set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
+endif()
+
+# Add NEON flags to Chrono compiler flags
+# Note that these flags are already added to CMake compiler flags
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
+set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
 #-----------------------------------------------------------------------------
 # MPI support
@@ -319,22 +329,62 @@ include_directories(${PROJECT_BINARY_DIR})
 
 message(STATUS "==== Submodules ====")
 
-# Build google test and google mock (targets: gtest_main, gtest, gmock_main, gmock).
-# Disable installation of googletest.
-# Force using shared libraries.
-option(INSTALL_GTEST "" OFF)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(chrono_thirdparty/googletest)
+if(BUILD_TESTING)
+  message(STATUS "Build Google test framework")
 
-# Build google benchmark (target: benchmark).
-# Disable installation of benchmark
-# Do not build tests of benchmarking lib.
-option(BENCHMARK_ENABLE_INSTALL "" OFF)
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-add_subdirectory(chrono_thirdparty/googlebenchmark)
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty/googletest/CMakeLists.txt")
+    # Build google test and google mock (targets: gtest_main, gtest, gmock_main, gmock).
+    # Disable installation of googletest.
+    # Force using shared libraries.
+    option(INSTALL_GTEST "" OFF)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  
+    add_subdirectory(chrono_thirdparty/googletest)
+  
+    # Hide some Google test-related variables
+    mark_as_advanced(FORCE BUILD_GMOCK)
+    mark_as_advanced(FORCE INSTALL_GTEST)
+  else()
+    message("  Google test code not found: update git submodules.")
+    message("  Building of unit tests was disabled.")
+    set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree." FORCE)
+  endif()
+
+endif()
+
+if(BUILD_BENCHMARKING)
+  message(STATUS "Build Google benchmark framework")
+
+  if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty/googletest/CMakeLists.txt")
+    # Build google benchmark (target: benchmark).
+    # Disable installation of benchmark.
+    # Do not build tests of benchmarking lib.
+    option(BENCHMARK_ENABLE_INSTALL "" OFF)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
+  
+    add_subdirectory(chrono_thirdparty/googlebenchmark)
+  
+    # Hide some Google benchmark-related variables
+    mark_as_advanced(FORCE BENCHMARK_BUILD_32_BITS)
+    mark_as_advanced(FORCE BENCHMARK_DOWNLOAD_DEPENDENCIES)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_ASSEMBLY_TESTS)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_EXCEPTIONS)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_GTEST_TESTS)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_INSTALL)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_LTO)
+    mark_as_advanced(FORCE BENCHMARK_ENABLE_TESTING)
+    mark_as_advanced(FORCE BENCHMARK_USE_LIBCXX)
+    mark_as_advanced(FORCE LIBRT)
+  else()
+    message("  Google benchmark code not found: update git submodules.")
+    message("  Building of benchmark tests was disabled.")
+    set(BUILD_BENCHMARKING OFF CACHE BOOL "Build benchmark tests" FORCE)
+  endif()
+
+endif()
 
 #------------------------------------------------------------
-# Propagates the CMake build to other directories
+# Propagate the CMake build to other directories
 #------------------------------------------------------------
 
 # Add directory for main ChronoEngine library 
@@ -440,7 +490,6 @@ else()
   set(CHRONO_PARALLEL "#undef CHRONO_PARALLEL")
 endif()
 
-# Note: OPENGL must be configured *after* PARALLEL
 if(ENABLE_MODULE_OPENGL)
   set(CHRONO_OPENGL "#define CHRONO_OPENGL")
 else()

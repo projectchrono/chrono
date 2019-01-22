@@ -18,12 +18,12 @@
 #define CHELEMENTCABLEANCF_H
 
 //#define BEAM_VERBOSE
-#include "chrono/core/ChVector.h"
-#include "chrono/core/ChQuadrature.h"
-#include "chrono/fea/ChElementBeam.h"
-#include "chrono/fea/ChBeamSection.h"
-#include "chrono/fea/ChNodeFEAxyzD.h"
 #include <cmath>
+#include "chrono/core/ChQuadrature.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChElementBeam.h"
+#include "chrono/fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
 namespace fea {
@@ -37,7 +37,7 @@ namespace fea {
 /// Based on the formulation in:
 ///  "Analysis of Thin Beams and Cables Using the Absolute Nodal Co-ordinate Formulation"
 ///  J.GERSTMAYR, A.SHABANA
-///  Nonlinear Dynamics (2006) 45: 109–130
+///  Nonlinear Dynamics (2006) 45: 109ï¿½130
 ///  DOI: 10.1007/s11071-006-1856-1
 /// and in:
 /// "On the Validation and Applications of a Parallel Flexible Multi-body
@@ -102,6 +102,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
     /// Get the second node (ending)
     std::shared_ptr<ChNodeFEAxyzD> GetNodeB() { return nodes[1]; }
+    double GetCurrLength() { return (nodes[1]->GetPos() - nodes[0]->GetPos()).Length(); }
 
     /// Fills the N shape function matrix with the
     /// values of shape functions at abscissa 'xi'.
@@ -370,7 +371,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                                                                    0,            // start of x
                                                                    1,            // end of x
                                                                    5             // order of integration
-                                                                   );
+            );
             Kaxial *= E * Area * length;
 
             this->m_JacobianMatrix = Kaxial;
@@ -471,7 +472,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                                                                    0,              // start of x
                                                                    1,              // end of x
                                                                    3               // order of integration
-                                                                   );
+            );
             Kcurv *= E * I * length;  // note Iyy should be the same value (circular section assumption)
 
             this->m_JacobianMatrix += Kcurv;
@@ -532,7 +533,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
             0,                   // start of x
             1,                   // end of x
             4                    // order of integration
-            );
+        );
 
         this->m_MassMatrix *= (rho * Area * this->length);
     }
@@ -564,7 +565,10 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override {
+    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+                                          double Kfactor,
+                                          double Rfactor = 0,
+                                          double Mfactor = 0) override {
         assert((H.GetRows() == 12) && (H.GetColumns() == 12));
         assert(section);
 
@@ -696,7 +700,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                                                               0,            // start of x
                                                               1,            // end of x
                                                               5             // order of integration
-                                                              );
+        );
         Faxial *= -E * Area * length;
 
         Fi = Faxial;
@@ -802,7 +806,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                                                               0,              // start of x
                                                               1,              // end of x
                                                               3               // order of integration
-                                                              );
+        );
         Fcurv *= -E * I * length;  // note Iyy should be the same value (circular section assumption)
 
         Fi += Fcurv;
@@ -820,9 +824,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
-    virtual void EvaluateSectionDisplacement(const double eta,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) override {
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override {
         ChMatrixNM<double, 1, 4> N;
 
         double xi = (eta + 1.0) * 0.5;
@@ -838,9 +840,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
-    virtual void EvaluateSectionFrame(const double eta,
-                                      ChVector<>& point,
-                                      ChQuaternion<>& rot) override {
+    virtual void EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) override {
         ChVector<> u_displ;
         ChVector<> u_rotaz;
 
@@ -886,9 +886,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     /// Results are not corotated, and are expressed in the reference system of beam.
     /// This is not mandatory for the element to work, but it can be useful for plotting,
     /// showing results, etc.
-    virtual void EvaluateSectionForceTorque(const double eta,
-                                            ChVector<>& Fforce,
-                                            ChVector<>& Mtorque) override {
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) override {
         assert(section);
 
         ChMatrixNM<double, 1, 4> N;
@@ -997,9 +995,13 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     }
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
-        nodes[0]->NodeIntStateIncrement(off_x   , x_new, x, off_v   , Dv);
-        nodes[1]->NodeIntStateIncrement(off_x+6 , x_new, x, off_v+6 , Dv);
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override {
+        nodes[0]->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+        nodes[1]->NodeIntStateIncrement(off_x + 6, x_new, x, off_v + 6, Dv);
     }
 
     /// Number of coordinates in the interpolated field, ex=3 for a

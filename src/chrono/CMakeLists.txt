@@ -360,6 +360,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChGaussPoint.cpp
     fea/ChMesh.cpp
     fea/ChMeshFileLoader.cpp
+    fea/ChMeshExporter.cpp
     fea/ChMatterMeshless.cpp
     fea/ChProximityContainerMeshless.cpp
     fea/ChPolarDecomposition.cpp
@@ -422,6 +423,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChGaussIntegrationRule.h
     fea/ChGaussPoint.h
     fea/ChMesh.h
+    fea/ChMeshExporter.h
     fea/ChMeshFileLoader.h
     fea/ChMatterMeshless.h
     fea/ChProximityContainerMeshless.h
