@@ -30,7 +30,5 @@
 	"psi_T": 16,
 	"psi_L": 16,
 
-	"run_mode": 0,
-	"output_dir": "repose",
 	"write_mode": "csv"
 }

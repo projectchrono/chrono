@@ -90,8 +90,8 @@ int main(int argc, char* argv[]) {
     const float Bx = params.box_X;
     const float By = Bx;
 
-    const float fill_height = 70;
-    const float chamber_height = fill_height / 2;  // TODO
+    const float fill_height = 80;
+    const float chamber_height = fill_height / 2;
     const float extra_height = 0;
 
     const float Bz = chamber_height + fill_height + extra_height;
@@ -138,6 +138,7 @@ int main(int argc, char* argv[]) {
 
     const float scale = Bx / 2.6;            // Assumes radius of obj ledge is 1.3
     const float dish_inflation = 0.01 * Bx;  // Small inflation of the dish to close gap
+    const float dish_height = scale * 0.1;   // Assumes obj height is 0.1
     float3 scaling_dish = make_float3(scale + dish_inflation, scale + dish_inflation, scale);
     float3 scaling_ledge = make_float3(scale, scale, scale);
     mesh_scalings.push_back(scaling_dish);
@@ -165,7 +166,7 @@ int main(int argc, char* argv[]) {
 
     const double time_settling = 1;
     const double lower_vel = 2;
-    const double lower_dist = 8;  // Assumes height of dish is 0.1 in obj
+    const double lower_dist = 1;
     const double time_lowering = lower_dist / lower_vel;
 
     cout << "Time settling " << time_settling << endl;
@@ -173,9 +174,9 @@ int main(int argc, char* argv[]) {
     cout << "Lower distance " << lower_dist << endl;
     cout << "Time lowering " << time_lowering << endl;
 
-    const double dish_offset = 0.1 * params.sphere_radius;
-    const double dish_z = fill_bottom - 0.05 * scale - dish_offset;  // Assumes height of dish is 0.1 in obj
-    double ledge_z = fill_bottom;
+    const double dish_z = fill_bottom - dish_height / 2.0;  // Assumes height of dish is 0.1 in obj
+    double ledge_z = fill_bottom - dish_height;
+
     const unsigned int pos_per_fam = 7;
     const unsigned int vel_per_fam = 6;
 
