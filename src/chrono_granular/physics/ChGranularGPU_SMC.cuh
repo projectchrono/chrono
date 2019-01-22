@@ -1141,7 +1141,7 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
                                                             sphere_data.sphere_ang_acc_Y_old[mySphereID], gran_params);
                     omega_update_Z = integrateVelVerlet_vel(stepsize_SU, sphere_data.sphere_ang_acc_Z[mySphereID],
                                                             sphere_data.sphere_ang_acc_Z_old[mySphereID], gran_params);
-                    ABORTABORTABORT("friction chung not yet implemented\n!");
+                    // TODO test
                 }
                 break;
             }
