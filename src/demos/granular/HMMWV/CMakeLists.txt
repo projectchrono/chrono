@@ -21,14 +21,14 @@ endif()
 # ------------------------------------------------------------------------------
 
 set(PROGRAMS
-  test_HMMWV_granular
+  test_GRAN_HMMWV
 )
 
 set(LIBRARIES
     ChronoEngine
     ChronoEngine_vehicle
     ChronoModels_vehicle
-	ChronoEngine_granular
+    ChronoEngine_granular
 )
 
 # ------------------------------------------------------------------------------
