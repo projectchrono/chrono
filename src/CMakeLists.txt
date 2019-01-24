@@ -225,6 +225,55 @@ if(MPI_CXX_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------
+# CUDA support
+#-----------------------------------------------------------------------------
+
+message(STATUS "Searching for CUDA...")
+
+find_package(CUDA)
+
+if(CUDA_FOUND)
+  message(STATUS "  CUDA version:          ${CUDA_VERSION_STRING}")
+  message(STATUS "  CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
+  message(STATUS "  CUDA SDK root dir:     ${CUDA_SDK_ROOT_DIR}")
+  mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
+else()
+  message(STATUS "  CUDA not found (consider manually setting CUDA_TOOLKIT_ROOT_DIR)")
+  mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
+  mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
+endif()
+
+# IDentify the CUDA architecture
+if(CUDA_FOUND)
+
+  mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
+
+  set(CUDA_SEPARABLE_COMPILATION OFF)
+  
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+	set(CUDA_SEPARABLE_COMPILATION OFF)
+  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+      if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
+        set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++14")
+        set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++14")
+      endif()
+    endif()
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
+  elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
+  endif()
+
+  include(${CMAKE_SOURCE_DIR}/cmake/FindCudaArch.cmake)
+  SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
+  list(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
+
+  message(STATUS "  CUDA compile flags:    ${CUDA_NVCC_FLAGS}")
+
+endif()
+
+#-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC)

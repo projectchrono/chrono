@@ -7,66 +7,39 @@
 option(ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 
 IF(NOT ENABLE_MODULE_FSI)
+  mark_as_advanced(FORCE USE_FSI_DOUBLE)
   return()
 ENDIF()
 
-
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-
-find_package(CUDA)
-#SET (ENABLE_MODULE_FEA TRUE)
-
 message(STATUS "==== Chrono FSI module ====")
-mark_as_advanced(CLEAR CUDA_USE_STATIC_CUDA_RUNTIME)
+
+# Return now if CUDA is not available
+if(NOT CUDA_FOUND)
+  message("Chrono::FSI requires CUDA")
+  message(STATUS "Chrono::FSI disabled")
+  mark_as_advanced(FORCE USE_FSI_DOUBLE)
+  set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+  return()
+endif()
+
 mark_as_advanced(CLEAR USE_FSI_DOUBLE)
-mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
 
+# ------------------------------------------------------------------------------
+# Additional options for this module
+# ------------------------------------------------------------------------------
 
-SET(CUDA_SEPARABLE_COMPILATION OFF)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	SET(CUDA_SEPARABLE_COMPILATION OFF)
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
-    SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
-    SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++14")
-    SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++14")
-  ENDIF()
-ENDIF()
-SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
-ENDIF()
-
-# SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_30,code=sm_30)
-
-INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
-SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
-LIST(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
-
-
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-
-find_package(CUDA)
-
-message(STATUS "  CUDA toolkit includes:    ${CUDA_TOOLKIT_ROOT_DIR}/include")
-message(STATUS "  CUDA compile flags:       ${CUDA_NVCC_FLAGS}")
-
-option(CUDA_PROPAGATE_HOST_FLAGS "Pass host compiler flags to cuda compiler" OFF)
 option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
-IF(USE_FSI_DOUBLE)
-  SET(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
-ENDIF()
+if(USE_FSI_DOUBLE)
+  set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
+endif()
 
 # ----------------------------------------------------------------------------
 # Collect additional include directories necessary for the FSI module.
 # Make some variables visible from parent directory
 # ----------------------------------------------------------------------------
 
-set(CH_FSI_INCLUDES
-    "${CUDA_TOOLKIT_ROOT_DIR}/include"
-)
-
+set(CH_FSI_INCLUDES "${CUDA_TOOLKIT_ROOT_DIR}/include")
+set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
 
 list(APPEND ${CUDA_cudadevrt_LIBRARY} LIBRARIES)
 list(APPEND LIBRARIES ${CUDA_CUDART_LIBRARY})
@@ -75,16 +48,7 @@ list(APPEND LIBRARIES ${CUDA_cusparse_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_cublas_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_cudart_static_LIBRARY})
 
-message( STATUS "FSI_LIBRARIES: ${LIBRARIES}")
-
-message( STATUS "CUDA_CUDART_LIBRARY: ${CUDA_CUDART_LIBRARY}")
-
-
-set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
-
-
-
-
+message(STATUS "CUDA libraries: ${LIBRARIES}")
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -100,14 +64,15 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE FSI FLUID-SOLID INTERACTION LIBRARY
+#-----------------------------------------------------------------------------
 
-SET(ChronoEngine_FSI_SOURCES
+set(ChronoEngine_FSI_SOURCES
     ChBce.cu
     ChCollisionSystemFsi.cu
     ChDeviceUtils.cu
     ChFluidDynamics.cu
     ChFsiDataManager.cu
-    ChFsiForceExplicitSPH.cu   
+    ChFsiForceExplicitSPH.cu
     ChFsiForceIISPH.cu
     ChFsiForce.cu
     ChFsiGeneral.cu
@@ -116,24 +81,23 @@ SET(ChronoEngine_FSI_SOURCES
     ChFsiInterface.cu
     ChSystemFsi.cpp
     ChFsiTypeConvert.cpp
-
 )
 
-SET(ChronoEngine_FSI_HEADERS
+set(ChronoEngine_FSI_HEADERS
     ChBce.cuh
     ChCollisionSystemFsi.cuh
     ChDeviceUtils.cuh
     ChFluidDynamics.cuh
     ChParams.cuh
     ChFsiDataManager.cuh
-    ChFsiForceExplicitSPH.cuh    
+    ChFsiForceExplicitSPH.cuh
     ChFsiForceIISPH.cuh
     ChFsiForce.cuh
     ChFsiGeneral.cuh
     ChSphGeneral.cuh
     ExactLinearSolvers.cuh
     ChFsiLinearSolver.h
-    ChFsiLinearSolverBiCGStab.h   
+    ChFsiLinearSolverBiCGStab.h
     ChFsiInterface.cuh
     ChSystemFsi.h
     ChApiFsi.h
@@ -141,12 +105,12 @@ SET(ChronoEngine_FSI_HEADERS
     custom_math.h
 )
 
-SOURCE_GROUP("" FILES
+source_group("" FILES
     ${ChronoEngine_FSI_SOURCES}
     ${ChronoEngine_FSI_HEADERS})
 
 set(ChronoEngine_FSI_UTILS_SOURCES
-	utils/ChUtilsJsonInput.cpp
+    utils/ChUtilsJsonInput.cpp
     utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsGeneratorFsi.cpp
@@ -154,7 +118,7 @@ set(ChronoEngine_FSI_UTILS_SOURCES
 )
 
 set(ChronoEngine_FSI_UTILS_HEADERS
-	utils/ChUtilsJsonInput.h
+    utils/ChUtilsJsonInput.h
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsGeneratorFsi.h
@@ -170,51 +134,28 @@ source_group(utils FILES
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
 
-set(CXX_FLAGS ${CH_CXX_FLAGS})
-
 list(APPEND LIBRARIES "ChronoEngine")
-#set(LIBRARIES "ChronoEngine")
 
-if(ENABLE_MODULE_PARALLEL)
-  set(CXX_FLAGS ${CH_PARALLEL_CXX_FLAGS})
-  include_directories(${CH_PARALLEL_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_parallel)
-endif()
-
-if(ENABLE_MODULE_FEA)
-	set(CXX_FLAGS ${CH_FEA_CXX_FLAGS})
-	include_directories(${CH_FEA_INCLUDES})
-	list(APPEND LIBRARIES ChronoEngine_fea)
-endif()
-
-if(ENABLE_MODULE_VEHICLE)
-  include_directories(${CH_VEHICLE_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_vehicle)
-endif()
-
-CUDA_ADD_LIBRARY(ChronoEngine_fsi SHARED
+cuda_add_library(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_SOURCES}
     ${ChronoEngine_FSI_HEADERS}
     ${ChronoEngine_FSI_UTILS_SOURCES}
     ${ChronoEngine_FSI_UTILS_HEADERS}
 )
 
-SET_TARGET_PROPERTIES(ChronoEngine_fsi PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
+set_target_properties(ChronoEngine_fsi PROPERTIES
+                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_FSI")
 
+target_link_libraries(ChronoEngine_fsi ${LIBRARIES})
 
-
-TARGET_LINK_LIBRARIES(ChronoEngine_fsi ${LIBRARIES})
-message(STATUS "  FSI Libraries:    ${LIBRARIES}")
-
-INSTALL(TARGETS ChronoEngine_fsi
+install(TARGETS ChronoEngine_fsi
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-INSTALL(FILES ${ChronoEngine_FSI_HEADERS}
+install(FILES ${ChronoEngine_FSI_HEADERS}
         DESTINATION include/chrono_fsi)
-INSTALL(FILES ${ChronoEngine_FSI_UTILS_HEADERS}
+install(FILES ${ChronoEngine_FSI_UTILS_HEADERS}
         DESTINATION include/chrono_fsi/utils)

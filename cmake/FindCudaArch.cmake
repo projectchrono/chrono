@@ -48,10 +48,13 @@ FUNCTION(DETECT_INSTALLED_GPUS OUT_VARIABLE)
                     RESULT_VARIABLE __nvcc_res OUTPUT_VARIABLE __nvcc_out
                     ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+    # RADU: fix for nvcc on Windows (output includes compilation messages)
+    string(REGEX MATCH "([0-9]+)\\.([0-9]+)$" __nvcc_out "${__nvcc_out}")
+
     IF(__nvcc_res EQUAL 0)
-	  # Catch any pre-CUDA 8.0 GPUs and replace the target SM with a newer one
+      # Catch any pre-CUDA 8.0 GPUs and replace the target SM with a newer one
       STRING(REPLACE "2.0" "3.0" __nvcc_out "${__nvcc_out}")
-	  STRING(REPLACE "2.1(2.0)" "3.0" __nvcc_out "${__nvcc_out}")
+      STRING(REPLACE "2.1(2.0)" "3.0" __nvcc_out "${__nvcc_out}")
       SET(CUDA_GPU_DETECT_OUTPUT ${__nvcc_out} CACHE INTERNAL "Returned GPU architectures from detect_gpus tool" FORCE)
     ENDIF()
   ENDIF()
@@ -105,9 +108,9 @@ FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Maxwell")
     SET(__cuda_arch_bin "5.0")
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Pascal")
-	SET(__cuda_arch_bin "6.0 6.1")
+    SET(__cuda_arch_bin "6.0 6.1")
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Volta")
-	SET(__cuda_arch_bin "7.0")
+    SET(__cuda_arch_bin "7.0")
   elseIF(${CUDA_ARCH_NAME} STREQUAL "All")
     SET(__cuda_arch_bin ${KNOWN_GPU_ARCHITECTURES})
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Auto")
