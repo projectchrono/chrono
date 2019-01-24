@@ -471,7 +471,7 @@ int main(int argc, char* argv[]) {
                 }
 
                 // Write chassis
-                writeMeshFrames(outstream, *hmmwv.GetChassis()->GetBody(), "vehicle/hmmwv/hmmwv_chassis.obj",
+                writeMeshFrames(outstream, *hmmwv.GetChassis()->GetBody(), "granular/HMMWV/hmmwv_chassis.obj",
                                 L_mks_to_cgs, gran_offset);
 
                 meshfile << outstream.str();
