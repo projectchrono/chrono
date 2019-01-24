@@ -72,7 +72,7 @@ set(ChronoEngine_FSI_SOURCES
     ChDeviceUtils.cu
     ChFluidDynamics.cu
     ChFsiDataManager.cu
-    ChFsiForceExplicitSPH.cu   
+    ChFsiForceExplicitSPH.cu
     ChFsiForceIISPH.cu
     ChFsiForce.cu
     ChFsiGeneral.cu
@@ -90,14 +90,14 @@ set(ChronoEngine_FSI_HEADERS
     ChFluidDynamics.cuh
     ChParams.cuh
     ChFsiDataManager.cuh
-    ChFsiForceExplicitSPH.cuh    
+    ChFsiForceExplicitSPH.cuh
     ChFsiForceIISPH.cuh
     ChFsiForce.cuh
     ChFsiGeneral.cuh
     ChSphGeneral.cuh
     ExactLinearSolvers.cuh
     ChFsiLinearSolver.h
-    ChFsiLinearSolverBiCGStab.h   
+    ChFsiLinearSolverBiCGStab.h
     ChFsiInterface.cuh
     ChSystemFsi.h
     ChApiFsi.h
@@ -110,7 +110,7 @@ source_group("" FILES
     ${ChronoEngine_FSI_HEADERS})
 
 set(ChronoEngine_FSI_UTILS_SOURCES
-	utils/ChUtilsJsonInput.cpp
+    utils/ChUtilsJsonInput.cpp
     utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsGeneratorFsi.cpp
@@ -118,7 +118,7 @@ set(ChronoEngine_FSI_UTILS_SOURCES
 )
 
 set(ChronoEngine_FSI_UTILS_HEADERS
-	utils/ChUtilsJsonInput.h
+    utils/ChUtilsJsonInput.h
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsGeneratorFsi.h
@@ -134,21 +134,7 @@ source_group(utils FILES
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
 
-set(CXX_FLAGS ${CH_CXX_FLAGS})
-
 list(APPEND LIBRARIES "ChronoEngine")
-#set(LIBRARIES "ChronoEngine")
-
-if(ENABLE_MODULE_PARALLEL)
-  set(CXX_FLAGS ${CH_PARALLEL_CXX_FLAGS})
-  include_directories(${CH_PARALLEL_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_parallel)
-endif()
-
-if(ENABLE_MODULE_VEHICLE)
-  include_directories(${CH_VEHICLE_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_vehicle)
-endif()
 
 cuda_add_library(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_SOURCES}
@@ -158,7 +144,7 @@ cuda_add_library(ChronoEngine_fsi SHARED
 )
 
 set_target_properties(ChronoEngine_fsi PROPERTIES
-                      COMPILE_FLAGS "${CXX_FLAGS}"
+                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_FSI")
 
