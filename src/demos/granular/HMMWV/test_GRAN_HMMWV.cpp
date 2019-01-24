@@ -83,10 +83,49 @@ void signalHandler(int signum) {
     std::exit(signum);
 }
 
+void writeMeshFrames(std::ostringstream& outstream,
+                     ChBody& body,
+                     string obj_name,
+                     float mesh_scaling,
+                     ChVector<> gran_offset) {
+    outstream << obj_name << ",";
+
+    // Get frame position
+    ChFrame<> body_frame = body.GetFrame_REF_to_abs();
+    ChQuaternion<> rot = body_frame.GetRot();
+    ChVector<> pos = L_mks_to_cgs * body_frame.GetPos() + gran_offset;
+
+    // Get basis vectors
+    ChVector<> vx = rot.GetXaxis();
+    ChVector<> vy = rot.GetYaxis();
+    ChVector<> vz = rot.GetZaxis();
+
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z() << ",";
+    outstream << mesh_scaling << "," << mesh_scaling << "," << mesh_scaling;
+    outstream << "\n";
+}
+
+void ShowUsage() {
+    cout << "usage: test_GRAN_HMMWV <json_file> <out_dir> <run_mode: 0-settling, 1-testing> <checkpoint_file abs path, "
+            "if run_mode == 1>"
+         << endl;
+}
+
 int main(int argc, char* argv[]) {
     sim_param_holder params;
-    if (argc != 4 || ParseJSON(argv[1], params) == false) {
-        cout << "usage: " << argv[0] << " <json_file> <out_dir> <run_mode: 0-settling,1-testing>" << endl;
+    if (!(argc == 4 || argc == 5) || ParseJSON(argv[1], params) == false) {
         return 1;
     }
 
@@ -95,7 +134,16 @@ int main(int argc, char* argv[]) {
         out_dir = out_dir + "/";
     }
     RUN_MODE run_mode = (RUN_MODE)std::atoi(argv[3]);
-    checkpoint_file = out_dir + "checkpoint";
+    if (run_mode == RUN_MODE::SETTLING) {
+        checkpoint_file = out_dir + "checkpoint";
+    } else if (run_mode == RUN_MODE::TESTING) {
+        if (argc != 5) {
+            ShowUsage();
+            return 1;
+        }
+        checkpoint_file = string(argv[4]);
+    }
+
     if (run_mode == RUN_MODE::SETTLING) {
         signal(SIGINT, signalHandler);
     }
@@ -206,7 +254,7 @@ int main(int argc, char* argv[]) {
     } else if (run_mode == RUN_MODE::TESTING) {
         // Read in checkpoint file
         string line;
-        std::ifstream cp_file(checkpoint_file + ".csv");
+        std::ifstream cp_file(checkpoint_file);
         if (!cp_file.is_open()) {
             cout << "ERROR reading checkpoint file" << endl;
             return 1;
@@ -405,7 +453,22 @@ int main(int argc, char* argv[]) {
                 std::sprintf(filename, "%s/step%06d", out_dir.c_str(), render_frame);
                 gran_sys->writeFile(string(filename));
                 gran_sys->write_meshes(string(filename));
+                string mesh_output = string(filename) + "_meshframes.csv";
 
+                std::ofstream meshfile(mesh_output);
+                std::ostringstream outstream;
+                outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3,sx,sy,sz\n";
+
+                // write each mesh to the output file
+                for (auto b : gran_collision_bodies) {
+                    writeMeshFrames(outstream, *(b.second), b.first, wheel_radius, gran_offset);
+                }
+
+                // Write chassis
+                writeMeshFrames(outstream, *hmmwv.GetChassis()->GetBody(), "vehicle/hmmwv/hmmwv_chassis.obj",
+                                L_mks_to_cgs, gran_offset);
+
+                meshfile << outstream.str();
                 render_frame++;
             }
 
