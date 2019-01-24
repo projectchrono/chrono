@@ -74,6 +74,7 @@ const double time_drop = 0.0;
 const double hmmwv_step_size = 1e-4;
 
 string checkpoint_file;
+double throttle_max;
 ChSystemGranular_MonodisperseSMC_trimesh* gran_sys;
 
 void signalHandler(int signum) {
@@ -119,13 +120,14 @@ void writeMeshFrames(std::ostringstream& outstream,
 
 void ShowUsage() {
     cout << "usage: test_GRAN_HMMWV <json_file> <out_dir> <run_mode: 0-settling, 1-testing> <checkpoint_file abs path, "
-            "if run_mode == 1>"
+            "if run_mode == 1> <throttle 0-1 if run_mode == 1>"
          << endl;
 }
 
 int main(int argc, char* argv[]) {
     sim_param_holder params;
-    if (!(argc == 4 || argc == 5) || ParseJSON(argv[1], params) == false) {
+    if (!(argc == 4 || argc == 6) || ParseJSON(argv[1], params) == false) {
+        ShowUsage();
         return 1;
     }
 
@@ -137,11 +139,15 @@ int main(int argc, char* argv[]) {
     if (run_mode == RUN_MODE::SETTLING) {
         checkpoint_file = out_dir + "checkpoint";
     } else if (run_mode == RUN_MODE::TESTING) {
-        if (argc != 5) {
+        if (argc != 6) {
             ShowUsage();
             return 1;
         }
         checkpoint_file = string(argv[4]);
+        cout << "Checkpoint: " << checkpoint_file << endl;
+
+        throttle_max = std::stof(argv[5]);
+        cout << "Throttle: " << throttle_max << endl;
     }
 
     if (run_mode == RUN_MODE::SETTLING) {
@@ -408,7 +414,7 @@ int main(int argc, char* argv[]) {
             // double braking_input = driver.GetBraking();
 
             // throttle_input \in [0,1]
-            double throttle_input = (curr_time >= time_drop) ? 0.1 : 0;
+            double throttle_input = (curr_time >= time_drop) ? throttle_max : 0;
             double steering_input = 0;
             double braking_input = 0;
 
