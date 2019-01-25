@@ -85,7 +85,7 @@ void writeBoxMesh(std::ostringstream& outstream) {
     outstream << "\n";
 }
 
-enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
+enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2, FRICLESS_CHUNG = 3, FRICLESS_VERLET = 4 };
 
 std::vector<size_t> bc_ids;
 std::vector<std::string> bc_names;
@@ -111,7 +111,7 @@ void writeForcesFile(ChSystemGranular_MonodisperseSMC& settlingExperiment) {
         } else {
             outstrstream << i << "," << F_CGS_TO_SI * reaction_forces[0] << "," << F_CGS_TO_SI * reaction_forces[1]
                          << "," << F_CGS_TO_SI * reaction_forces[2] << "\n";
-            printf("force on plane %u is (%f, %f, %f) Newtons\n", F_CGS_TO_SI * reaction_forces[0],
+            printf("force on plane %u is (%f, %f, %f) Newtons\n", i, F_CGS_TO_SI * reaction_forces[0],
                    F_CGS_TO_SI * reaction_forces[1], F_CGS_TO_SI * reaction_forces[2]);
         }
     }
@@ -227,22 +227,39 @@ int main(int argc, char* argv[]) {
     bc_names.push_back("bottom_plane_bc_Z");
     bc_names.push_back("top_plane_bc_Z");
 
+    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    settlingExperiment.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
+
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
             settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
             break;
         case run_mode::ONE_STEP:
             settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
             break;
+        case run_mode::FRICLESS_CHUNG:
+            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
+            break;
+
+        case run_mode::FRICLESS_VERLET:
+            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::VELOCITY_VERLET);
+            break;
+
         case run_mode::FRICTIONLESS:
+            settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+            break;
+
         default:
             // fall through to frictionless as default
             settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     }
 
-    settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
-    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     settlingExperiment.set_fixed_stepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));
@@ -254,9 +271,9 @@ int main(int argc, char* argv[]) {
     settlingExperiment.initialize();
 
     // number of times to capture force data per second
-    int captures_per_second = 100;
+    int captures_per_second = 50;
     // number of times to capture force before we capture a frame
-    int captures_per_frame = 4;
+    int captures_per_frame = 2;
 
     // assume we run for at least one frame
     float frame_step = 1. / captures_per_second;
