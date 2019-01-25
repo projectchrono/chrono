@@ -71,7 +71,7 @@ const double Acc_cgs_to_mks = F_cgs_to_mks / M_cgs_to_mks;
 
 const double time_settling = 1;
 const double time_drop = 0.0;
-const double hmmwv_step_size = 1e-4;
+const double hmmwv_step_size = 1e-5;
 
 string checkpoint_file;
 double throttle_max;
@@ -443,8 +443,7 @@ int main(int argc, char* argv[]) {
                                               mesh_forces[body_family_offset + 2]),
                     mesh_pos, false);
 
-                // BUG: vehicle moves backwards...
-                // TODO figure out torque
+                // potential  BUG: vehicle moves backwards?
                 // mesh->Accumulate_torque(
                 //     L_cgs_to_mks * F_cgs_to_mks *
                 //         ChVector<>(mesh_forces[body_family_offset + 3], mesh_forces[body_family_offset + 4],
@@ -455,10 +454,14 @@ int main(int argc, char* argv[]) {
             // Output particles and meshes from chrono_granular
             if (sim_frame % render_steps == 0) {
                 cout << "Rendering frame " << render_frame << endl;
+                auto omega = gran_collision_bodies[0].second->GetWvel_loc();
+                cout << "Local angular velocity of tire 0: " << omega.x() << " " << omega.y() << " " << omega.z()
+                     << endl;
+
                 char filename[100];
                 std::sprintf(filename, "%s/step%06d", out_dir.c_str(), render_frame);
                 gran_sys->writeFile(string(filename));
-                gran_sys->write_meshes(string(filename));
+                // gran_sys->write_meshes(string(filename));
                 string mesh_output = string(filename) + "_meshframes.csv";
 
                 std::ofstream meshfile(mesh_output);

@@ -6,7 +6,7 @@
 	"box_Y": 400,
 	"box_Z": 400,
 
-	"step_size": 5e-5,
+	"step_size": 1e-5,
 	"time_end": 60,
 
 	"grav_X": 0,
