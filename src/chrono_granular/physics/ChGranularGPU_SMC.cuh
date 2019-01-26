@@ -530,6 +530,13 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     }
 }
 
+// apply gravity to a sphere
+inline __device__ void applyGravity(float3& sphere_force, GranParamsPtr gran_params) {
+    sphere_force.x += gran_params->gravAcc_X_SU * gran_params->sphere_mass_SU;
+    sphere_force.y += gran_params->gravAcc_Y_SU * gran_params->sphere_mass_SU;
+    sphere_force.z += gran_params->gravAcc_Z_SU * gran_params->sphere_mass_SU;
+}
+
 /// Compute forces on a sphere from walls, BCs, and gravity
 inline __device__ void applyExternalForces_frictionless(unsigned int currSphereID,
                                                         const int3& sphPos,    //!< Global X position of DE
@@ -581,10 +588,7 @@ inline __device__ void applyExternalForces_frictionless(unsigned int currSphereI
             }
         }
     }
-    // If the sphere belongs to this SD, add up the gravitational force component.
-    sphere_force.x += gran_params->gravAcc_X_SU;
-    sphere_force.y += gran_params->gravAcc_Y_SU;
-    sphere_force.z += gran_params->gravAcc_Z_SU;
+    applyGravity(sphere_force, gran_params);
 }
 
 /// Compute forces on a sphere from walls, BCs, and gravity
@@ -636,10 +640,7 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
             }
         }
     }
-    // If the sphere belongs to this SD, add up the gravitational force component.
-    sphere_force.x += gran_params->gravAcc_X_SU;
-    sphere_force.y += gran_params->gravAcc_Y_SU;
-    sphere_force.z += gran_params->gravAcc_Z_SU;
+    applyGravity(sphere_force, gran_params);
 }
 
 static __global__ void determineContactPairs(sphereDataStruct sphere_data, GranParamsPtr gran_params) {
@@ -898,9 +899,9 @@ static __global__ void computeSphereContactForces(sphereDataStruct sphere_data,
                             sphere_data, bc_type_list, bc_params_list, nBCs);
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes
-        atomicAdd(sphere_data.sphere_force_X + mySphereID, bodyA_force.x);
-        atomicAdd(sphere_data.sphere_force_Y + mySphereID, bodyA_force.y);
-        atomicAdd(sphere_data.sphere_force_Z + mySphereID, bodyA_force.z);
+        atomicAdd(sphere_data.sphere_acc_X + mySphereID, bodyA_force.x / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data.sphere_acc_Y + mySphereID, bodyA_force.y / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data.sphere_acc_Z + mySphereID, bodyA_force.z / gran_params->sphere_mass_SU);
 
         if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
             gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
@@ -1013,9 +1014,9 @@ static __global__ void computeSphereForces_frictionless(sphereDataStruct sphere_
         }
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes
-        atomicAdd(sphere_data.sphere_force_X + mySphereID, bodyA_force.x);
-        atomicAdd(sphere_data.sphere_force_Y + mySphereID, bodyA_force.y);
-        atomicAdd(sphere_data.sphere_force_Z + mySphereID, bodyA_force.z);
+        atomicAdd(sphere_data.sphere_acc_X + mySphereID, bodyA_force.x / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data.sphere_acc_Y + mySphereID, bodyA_force.y / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data.sphere_acc_Z + mySphereID, bodyA_force.z / gran_params->sphere_mass_SU);
     }
 }
 
@@ -1025,10 +1026,10 @@ inline __device__ float integrateForwardEuler(float stepsize_SU, float val_dt) {
 }
 
 // Compute update for a velocity using Chung
-inline __device__ float integrateChung_vel(float stepsize_SU, float acc, float acc_old, GranParamsPtr gran_params) {
+inline __device__ float integrateChung_vel(float stepsize_SU, float acc, float acc_old) {
     constexpr float gamma_hat = -1.f / 2.f;
     constexpr float gamma = 3.f / 2.f;
-    return stepsize_SU * (acc * gamma + acc_old * gamma_hat) / gran_params->sphere_mass_SU;
+    return stepsize_SU * (acc * gamma + acc_old * gamma_hat);
 }
 
 // Compute update for a position using Chung
@@ -1039,7 +1040,7 @@ inline __device__ float integrateChung_pos(float stepsize_SU, float vel_old, flo
 }
 
 // Compute update for a velocity using Velocity Verlet
-inline __device__ float integrateVelVerlet_vel(float stepsize_SU, float acc, float acc_old, GranParamsPtr gran_params) {
+inline __device__ float integrateVelVerlet_vel(float stepsize_SU, float acc, float acc_old) {
     return 0.5f * stepsize_SU * (acc + acc_old);
 }
 
@@ -1052,12 +1053,10 @@ inline __device__ float integrateVelVerlet_pos(float stepsize_SU, float vel_old,
  * Numerically integrates force to velocity and velocity to position, then computes the broadphase on the new
  * positions
  */
-template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations.
-                                     //!< Should be a multiple of 32
-__global__ void updatePositions(const float stepsize_SU,  //!< The numerical integration time step
-                                sphereDataStruct sphere_data,
-                                unsigned int nSpheres,
-                                GranParamsPtr gran_params) {
+static __global__ void updatePositions(const float stepsize_SU,  //!< The numerical integration time step
+                                       sphereDataStruct sphere_data,
+                                       unsigned int nSpheres,
+                                       GranParamsPtr gran_params) {
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid
     // structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
@@ -1071,10 +1070,10 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
     // Write back velocity updates
     if (mySphereID < nSpheres) {
         // Check to see if we messed up badly somewhere
-        if (sphere_data.sphere_force_X[mySphereID] == NAN || sphere_data.sphere_force_Y[mySphereID] == NAN ||
-            sphere_data.sphere_force_Z[mySphereID] == NAN) {
+        if (sphere_data.sphere_acc_X[mySphereID] == NAN || sphere_data.sphere_acc_Y[mySphereID] == NAN ||
+            sphere_data.sphere_acc_Z[mySphereID] == NAN) {
             ABORTABORTABORT("NAN force computed -- sphere is %u, x force is %f\n", mySphereID,
-                            sphere_data.sphere_force_X[mySphereID]);
+                            sphere_data.sphere_acc_X[mySphereID]);
         }
 
         float v_update_X = 0;
@@ -1092,12 +1091,9 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
-                v_update_X = integrateForwardEuler(
-                    stepsize_SU, sphere_data.sphere_force_X[mySphereID] / gran_params->sphere_mass_SU);
-                v_update_Y = integrateForwardEuler(
-                    stepsize_SU, sphere_data.sphere_force_Y[mySphereID] / gran_params->sphere_mass_SU);
-                v_update_Z = integrateForwardEuler(
-                    stepsize_SU, sphere_data.sphere_force_Z[mySphereID] / gran_params->sphere_mass_SU);
+                v_update_X = integrateForwardEuler(stepsize_SU, sphere_data.sphere_acc_X[mySphereID]);
+                v_update_Y = integrateForwardEuler(stepsize_SU, sphere_data.sphere_acc_Y[mySphereID]);
+                v_update_Z = integrateForwardEuler(stepsize_SU, sphere_data.sphere_acc_Z[mySphereID]);
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                     // tau = I alpha => alpha = tau / I, we already computed these alphas
@@ -1108,21 +1104,20 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
-                v_update_X = integrateChung_vel(stepsize_SU, sphere_data.sphere_force_X[mySphereID],
-                                                sphere_data.sphere_force_X_old[mySphereID], gran_params);
-                v_update_Y = integrateChung_vel(stepsize_SU, sphere_data.sphere_force_Y[mySphereID],
-                                                sphere_data.sphere_force_Y_old[mySphereID], gran_params);
-                v_update_Z = integrateChung_vel(stepsize_SU, sphere_data.sphere_force_Z[mySphereID],
-                                                sphere_data.sphere_force_Z_old[mySphereID], gran_params);
+                v_update_X = integrateChung_vel(stepsize_SU, sphere_data.sphere_acc_X[mySphereID],
+                                                sphere_data.sphere_acc_X_old[mySphereID]);
+                v_update_Y = integrateChung_vel(stepsize_SU, sphere_data.sphere_acc_Y[mySphereID],
+                                                sphere_data.sphere_acc_Y_old[mySphereID]);
+                v_update_Z = integrateChung_vel(stepsize_SU, sphere_data.sphere_acc_Z[mySphereID],
+                                                sphere_data.sphere_acc_Z_old[mySphereID]);
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                     omega_update_X = integrateChung_vel(stepsize_SU, sphere_data.sphere_ang_acc_X[mySphereID],
-                                                        sphere_data.sphere_ang_acc_X_old[mySphereID], gran_params);
+                                                        sphere_data.sphere_ang_acc_X_old[mySphereID]);
                     omega_update_Y = integrateChung_vel(stepsize_SU, sphere_data.sphere_ang_acc_Y[mySphereID],
-                                                        sphere_data.sphere_ang_acc_Y_old[mySphereID], gran_params);
+                                                        sphere_data.sphere_ang_acc_Y_old[mySphereID]);
                     omega_update_Z = integrateChung_vel(stepsize_SU, sphere_data.sphere_ang_acc_Z[mySphereID],
-                                                        sphere_data.sphere_ang_acc_Z_old[mySphereID], gran_params);
-                    ABORTABORTABORT("friction chung not yet implemented\n!");
+                                                        sphere_data.sphere_ang_acc_Z_old[mySphereID]);
                 }
                 break;
             }
@@ -1170,35 +1165,27 @@ __global__ void updatePositions(const float stepsize_SU,  //!< The numerical int
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
-                position_update_x = integrateChung_pos(stepsize_SU, old_vel_X, sphere_data.sphere_force_X[mySphereID],
-                                                       sphere_data.sphere_force_X_old[mySphereID]);
-                position_update_y = integrateChung_pos(stepsize_SU, old_vel_Y, sphere_data.sphere_force_Y[mySphereID],
-                                                       sphere_data.sphere_force_Y_old[mySphereID]);
-                position_update_z = integrateChung_pos(stepsize_SU, old_vel_Z, sphere_data.sphere_force_Z[mySphereID],
-                                                       sphere_data.sphere_force_Z_old[mySphereID]);
+
+
+                position_update_x = integrateChung_pos(stepsize_SU, old_vel_X, sphere_data.sphere_acc_X[mySphereID],
+                                                       sphere_data.sphere_acc_X_old[mySphereID]);
+                position_update_y = integrateChung_pos(stepsize_SU, old_vel_Y, sphere_data.sphere_acc_Y[mySphereID],
+                                                       sphere_data.sphere_acc_Y_old[mySphereID]);
+                position_update_z = integrateChung_pos(stepsize_SU, old_vel_Z, sphere_data.sphere_acc_Z[mySphereID],
+                                                       sphere_data.sphere_acc_Z_old[mySphereID]);
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
-                position_update_x =
-                    integrateVelVerlet_pos(stepsize_SU, old_vel_X, sphere_data.sphere_force_X_old[mySphereID]);
-                position_update_y =
-                    integrateVelVerlet_pos(stepsize_SU, old_vel_Y, sphere_data.sphere_force_Y_old[mySphereID]);
-                position_update_z =
-                    integrateVelVerlet_pos(stepsize_SU, old_vel_Z, sphere_data.sphere_force_Z_old[mySphereID]);
+
+                position_update_x = integrateForwardEuler(stepsize_SU, old_vel_X + v_update_X);
+                position_update_y = integrateForwardEuler(stepsize_SU, old_vel_Y + v_update_Y);
+                position_update_z = integrateForwardEuler(stepsize_SU, old_vel_Z + v_update_Z);
                 break;
             }
         }
-        // Perform numerical integration. For now, use Explicit Euler. Hitting cache, also coalesced.
-        int xSphCenter = position_update_x;
-        int ySphCenter = position_update_y;
-        int zSphCenter = position_update_z;
-
-        xSphCenter += sphere_data.pos_X[mySphereID];
-        ySphCenter += sphere_data.pos_Y[mySphereID];
-        zSphCenter += sphere_data.pos_Z[mySphereID];
-
-        sphere_data.pos_X[mySphereID] = xSphCenter;
-        sphere_data.pos_Y[mySphereID] = ySphCenter;
-        sphere_data.pos_Z[mySphereID] = zSphCenter;
+        // Perform numerical integration. Hitting cache, also coalesced.
+        sphere_data.pos_X[mySphereID] += position_update_x;
+        sphere_data.pos_Y[mySphereID] += position_update_y;
+        sphere_data.pos_Z[mySphereID] += position_update_z;
     }
 }

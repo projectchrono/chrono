@@ -746,9 +746,9 @@ __global__ void interactionTerrain_TriangleSoup(
             }
         }  // end of per-triangle loop
         // write back sphere forces
-        atomicAdd(sphere_data.sphere_force_X + sphereIDGlobal, sphere_force.x);
-        atomicAdd(sphere_data.sphere_force_Y + sphereIDGlobal, sphere_force.y);
-        atomicAdd(sphere_data.sphere_force_Z + sphereIDGlobal, sphere_force.z);
+        atomicAdd(sphere_data.sphere_acc_X + sphereIDGlobal, sphere_force.x / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data.sphere_acc_Y + sphereIDGlobal, sphere_force.y / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data.sphere_acc_Z + sphereIDGlobal, sphere_force.z / gran_params->sphere_mass_SU);
 
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
             // write back torques for later
@@ -1047,7 +1047,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         if (!BD_is_fixed) {
             updateBDPosition(stepSize_SU);
         }
-        resetSphereForces();
+        resetSphereAccelerations();
         resetBCForces();
         resetTriangleForces();
         resetTriangleBroadphaseInformation();
@@ -1106,8 +1106,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         gpuErrchk(cudaDeviceSynchronize());
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
-        updatePositions<CUDA_THREADS_PER_BLOCK>
-            <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+        updatePositions<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 

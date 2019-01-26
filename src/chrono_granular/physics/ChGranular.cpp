@@ -36,6 +36,9 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
       time_stepping(GRAN_TIME_STEPPING::ADAPTIVE),
       nSpheres(0),
       elapsedSimTime(0),
+      verbose_runtime(false),
+      // load_checkpoint(false),
+      file_write_mode(CSV),
       K_n_s2s_UU(0),
       K_n_s2w_UU(0),
       K_t_s2s_UU(0),
@@ -82,14 +85,14 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
         packed.sphere_ang_acc_Z = sphere_ang_acc_Z.data();
     }
 
-    packed.sphere_force_X = sphere_force_X.data();
-    packed.sphere_force_Y = sphere_force_Y.data();
-    packed.sphere_force_Z = sphere_force_Z.data();
+    packed.sphere_acc_X = sphere_acc_X.data();
+    packed.sphere_acc_Y = sphere_acc_Y.data();
+    packed.sphere_acc_Z = sphere_acc_Z.data();
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
-        packed.sphere_force_X_old = sphere_force_X_old.data();
-        packed.sphere_force_Y_old = sphere_force_Y_old.data();
-        packed.sphere_force_Z_old = sphere_force_Z_old.data();
+        packed.sphere_acc_X_old = sphere_acc_X_old.data();
+        packed.sphere_acc_Y_old = sphere_acc_Y_old.data();
+        packed.sphere_acc_Z_old = sphere_acc_Z_old.data();
         if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             packed.sphere_ang_acc_X_old = sphere_ang_acc_X_old.data();
             packed.sphere_ang_acc_Y_old = sphere_ang_acc_Y_old.data();
@@ -109,6 +112,57 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
         packed.contact_history_map = contact_history_map.data();
     }
 }
+
+// // Checkpoint the entire system's data
+// void ChSystemGranular_MonodisperseSMC::writeCheckpoint(std::string ofile) const {
+//     // CSV is much slower but requires less postprocessing
+//     std::ofstream ptFile(ofile + ".dat", std::ios::out);
+//
+//     // Dump to a stream, write to file only at end
+//     std::ostringstream outstrstream;
+//     // no header
+//     outstrstream << "x,y,z";
+//
+//     outstrstream << "\n";
+//     for (unsigned int n = 0; n < nSpheres; n++) {
+//         float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
+//         float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
+//         float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
+//
+//         outstrstream << x_UU << "," << y_UU << "," << z_UU << "\n";
+//     }
+//
+//     ptFile << outstrstream.str();
+//
+// }  // namespace granular
+//
+// void tokenizeCSVLine(std::ifstream& istream, std::vector<float> data) {
+//     std::string line;
+//     std::getline(istream, line);  // load in current line
+//     std::stringstream lineStream(line);
+//     std::string cell;
+//
+//     // iterate over cells
+//     while (std::getline(lineStream, cell, ',')) {
+//         data.push_back(std::stof(cell));
+//     }
+// }
+//
+// // Load froma checkpoint file
+// void ChSystemGranular_MonodisperseSMC::loadCheckpoint(std::string infile) {
+//     // CSV is much slower but requires less postprocessing
+//     std::ifstream ptFile(infile + ".dat");
+//
+//     std::string line;
+//     unsigned int curr_sphere_id = 0;
+//     while (ptFile.good()) {
+//         std::vector<float> line_data;
+//         tokenizeCSVLine(ptFile, line_data);
+//         pos_X[curr_sphere_id] = line_data.at(0);
+//         pos_Y[curr_sphere_id] = line_data.at(1);
+//         pos_Z[curr_sphere_id] = line_data.at(2);
+//     }
+// }  // namespace granular
 
 // This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
 void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
@@ -514,7 +568,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
 
 void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
     switchToSimUnits();
-    generateSpheres();
+    setupSphereDataStructures();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
     setupSimulation();
@@ -563,7 +617,7 @@ void ChSystemGranular_MonodisperseSMC::setParticlePositions(const std::vector<Ch
     user_sphere_positions = points;  // Copy points to class vector
 }
 
-void ChSystemGranular_MonodisperseSMC::generateSpheres() {
+void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
     if (user_sphere_positions.size() == 0) {
         printf("ERROR: no sphere positions given!\n");
@@ -586,9 +640,9 @@ void ChSystemGranular_MonodisperseSMC::generateSpheres() {
     TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
     TRACK_VECTOR_RESIZE(pos_Y_dt, nSpheres, "pos_Y_dt", 0);
     TRACK_VECTOR_RESIZE(pos_Z_dt, nSpheres, "pos_Z_dt", 0);
-    TRACK_VECTOR_RESIZE(sphere_force_X, nSpheres, "sphere_force_X", 0);
-    TRACK_VECTOR_RESIZE(sphere_force_Y, nSpheres, "sphere_force_Y", 0);
-    TRACK_VECTOR_RESIZE(sphere_force_Z, nSpheres, "sphere_force_Z", 0);
+    TRACK_VECTOR_RESIZE(sphere_acc_X, nSpheres, "sphere_acc_X", 0);
+    TRACK_VECTOR_RESIZE(sphere_acc_Y, nSpheres, "sphere_acc_Y", 0);
+    TRACK_VECTOR_RESIZE(sphere_acc_Z, nSpheres, "sphere_acc_Z", 0);
 
     if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
         // add rotational DOFs
@@ -614,9 +668,9 @@ void ChSystemGranular_MonodisperseSMC::generateSpheres() {
     }
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
-        TRACK_VECTOR_RESIZE(sphere_force_X_old, nSpheres, "sphere_force_X_old", 0);
-        TRACK_VECTOR_RESIZE(sphere_force_Y_old, nSpheres, "sphere_force_Y_old", 0);
-        TRACK_VECTOR_RESIZE(sphere_force_Z_old, nSpheres, "sphere_force_Z_old", 0);
+        TRACK_VECTOR_RESIZE(sphere_acc_X_old, nSpheres, "sphere_acc_X_old", 0);
+        TRACK_VECTOR_RESIZE(sphere_acc_Y_old, nSpheres, "sphere_acc_Y_old", 0);
+        TRACK_VECTOR_RESIZE(sphere_acc_Z_old, nSpheres, "sphere_acc_Z_old", 0);
 
         // friction and multistep means keep old ang acc
         if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {

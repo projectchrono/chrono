@@ -64,9 +64,9 @@ struct sphereDataStruct {
     float* sphere_Omega_Y;
     float* sphere_Omega_Z;
 
-    float* sphere_force_X;
-    float* sphere_force_Y;
-    float* sphere_force_Z;
+    float* sphere_acc_X;
+    float* sphere_acc_Y;
+    float* sphere_acc_Z;
 
     /// store angular acceleration (axis and magnitude in one vector)
     float* sphere_ang_acc_X;
@@ -74,9 +74,9 @@ struct sphereDataStruct {
     float* sphere_ang_acc_Z;
 
     /// used for multistep integrators
-    float* sphere_force_X_old;
-    float* sphere_force_Y_old;
-    float* sphere_force_Z_old;
+    float* sphere_acc_X_old;
+    float* sphere_acc_Y_old;
+    float* sphere_acc_Z_old;
     float* sphere_ang_acc_X_old;
     float* sphere_ang_acc_Y_old;
     float* sphere_ang_acc_Z_old;
@@ -103,6 +103,8 @@ enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, VELOCITY_VERLET };
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
 enum GRAN_FORCE_MODEL { HOOKE, HERTZ };
+
+enum GRAN_INPUT_MODE { USER, CHECKPOINT_POSITION, CHECKPOINT_FULL };
 
 /// Parameters needed for sphere-based granular dynamics
 struct ChGranParams {
@@ -213,6 +215,11 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         Y_accGrav = yVal;
         Z_accGrav = zVal;
     }
+    // /// write sphere data to file for later loading
+    // void writeCheckpoint(std::string ofile) const;
+    //
+    // /// load sphere data from a file
+    // void loadCheckpoint(std::string infile);
 
     size_t getNumSpheres() const { return nSpheres; }
 
@@ -386,15 +393,21 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Create a helper to do sphere initialization
     void initializeSpheres();
 
-    virtual void generateSpheres();
+    void setupSphereDataStructures();
+
+    // /// whether we are using user-provided or checkpointed spheres
+    // bool load_checkpoint;
+    //
+    // /// what checkpoint file to use, if any
+    // std::string checkpoint_file;
 
     /// holds the sphere and BD-related params in unified memory
     ChGranParams* gran_params;
 
     /// Allows the code to be very verbose for debug
-    bool verbose_runtime = false;
+    bool verbose_runtime;
     /// How to write the output files? Default is CSV
-    GRAN_OUTPUT_MODE file_write_mode = CSV;
+    GRAN_OUTPUT_MODE file_write_mode;
     /// Directory to write to, this code assumes it already exists
     std::string output_directory;
 
@@ -418,9 +431,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::vector<float, cudallocator<float>> sphere_Omega_Y;
     std::vector<float, cudallocator<float>> sphere_Omega_Z;
 
-    std::vector<float, cudallocator<float>> sphere_force_X;
-    std::vector<float, cudallocator<float>> sphere_force_Y;
-    std::vector<float, cudallocator<float>> sphere_force_Z;
+    std::vector<float, cudallocator<float>> sphere_acc_X;
+    std::vector<float, cudallocator<float>> sphere_acc_Y;
+    std::vector<float, cudallocator<float>> sphere_acc_Z;
 
     /// store angular acceleration (axis and magnitude in one vector)
     std::vector<float, cudallocator<float>> sphere_ang_acc_X;
@@ -428,9 +441,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::vector<float, cudallocator<float>> sphere_ang_acc_Z;
 
     /// used for chung integrator
-    std::vector<float, cudallocator<float>> sphere_force_X_old;
-    std::vector<float, cudallocator<float>> sphere_force_Y_old;
-    std::vector<float, cudallocator<float>> sphere_force_Z_old;
+    std::vector<float, cudallocator<float>> sphere_acc_X_old;
+    std::vector<float, cudallocator<float>> sphere_acc_Y_old;
+    std::vector<float, cudallocator<float>> sphere_acc_Z_old;
     std::vector<float, cudallocator<float>> sphere_ang_acc_X_old;
     std::vector<float, cudallocator<float>> sphere_ang_acc_Y_old;
     std::vector<float, cudallocator<float>> sphere_ang_acc_Z_old;
@@ -472,9 +485,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Reset binning and broadphase info
     void resetBroadphaseInformation();
-    /// Reset sphere-sphere forces
-    void resetSphereForces();
-    /// Reset sphere-sphere forces
+    /// Reset sphere accelerations
+    void resetSphereAccelerations();
+
+    /// Reset sphere-wall forces
     void resetBCForces();
 
     /// collect all the sphere data into a given struct
