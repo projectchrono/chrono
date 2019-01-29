@@ -38,6 +38,8 @@ class ChCollisionSystemDistributed : public ChCollisionSystemParallel {
     /// chrono::parallel and marks the space as free
     virtual void Remove(ChCollisionModel* model) override;
 
+    /// Set each entry of active_id to true if the AABB of the
+    /// shape with that index overlaps the given AABB
     virtual void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) override;
 
   protected:

@@ -240,7 +240,7 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     /// called by the user.
     void AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status);
 
-    // Co-simulation
+    /// Type for internally sending contact forces
     MPI_Datatype InternalForceType;
 
     friend class ChCommDistributed;

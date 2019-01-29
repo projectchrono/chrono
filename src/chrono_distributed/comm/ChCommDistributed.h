@@ -29,6 +29,7 @@ namespace chrono {
 class ChDistributedDataManager;
 class ChSystemDistributed;
 
+/// Structure of data for sending a new body to a rank
 typedef struct BodyExchange {
     uint gid;
     bool collide;
@@ -47,6 +48,7 @@ typedef struct BodyExchange {
     int identifier;
 } BodyExchange;
 
+/// Structure of data for sending an update of an existing body to a rank
 typedef struct BodyUpdate {
     uint gid;
     int update_type;
@@ -55,6 +57,7 @@ typedef struct BodyUpdate {
     double vel[6];
 } BodyUpdate;
 
+/// Structure of data for sending a collision shape to a rank
 typedef struct Shape {
     uint gid;
     int type;
@@ -96,12 +99,15 @@ class CH_DISTR_API ChCommDistributed {
   protected:
     ChSystemDistributed* my_sys;
 
-    // MPI Data Types
+    /// MPI Data Types for sending 1) new body 2) body update 3) new collision shape
     MPI_Datatype BodyExchangeType;
     MPI_Datatype BodyUpdateType;
     MPI_Datatype ShapeType;
 
+    /// Pointer to underlying chrono::parallel data
     ChParallelDataManager* data_manager;
+
+    /// Set of data for scaffolding on top of chrono::parallel
     ChDistributedDataManager* ddm;
 
   private:

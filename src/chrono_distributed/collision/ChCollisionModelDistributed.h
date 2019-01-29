@@ -39,9 +39,9 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     virtual bool AddSphere(double radius, const ChVector<>& pos) override;
 
     /// Adds a triangle collision shape to the model
-    virtual bool AddTriangle(ChVector<> A,
-                             ChVector<> B,
-                             ChVector<> C,
+    virtual bool AddTriangle(ChVector<> A,  ///< Vertex of triangle
+                             ChVector<> B,  ///< Vertex of triangle
+                             ChVector<> C,  ///< Vertex of triangle
                              const ChVector<>& pos,
                              const ChMatrix33<>& rot) override;
 
@@ -49,6 +49,7 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     /// Only valid at beginning of simulation
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const override;
 
+    /// Upper and lower corners of AABB for each shape in the model
     std::vector<real3> shape_aabb_max;
     std::vector<real3> shape_aabb_min;
 
