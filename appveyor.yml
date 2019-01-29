@@ -19,7 +19,7 @@ environment:
     # and copy paste to
     # https://ci.appveyor.com/tools/encrypt
     # then copy/paste the result below
-    secure: 9exa44h7MMyer4KBloBUkO0I8d3M+iFvQlgneEAuL6uA/z/dnQe91upfINxrrLXE
+    secure: GMdyezok6xJOnKB5w7km6dvQvBqGxR6RfYSPODdXhy1rq0lvDPMW4m9O9eeBHU99
   
   global:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
@@ -119,6 +119,7 @@ install:
     - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
     - cmd: conda config --set show_channel_urls true
     - cmd: conda update conda --yes
+    - cmd: conda update -n root conda --yes
     - cmd: conda install conda-build anaconda-client --yes
     - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
     - cmd: conda config --add channels https://conda.anaconda.org/intel
