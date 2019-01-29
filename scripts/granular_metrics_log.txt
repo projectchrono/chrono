@@ -1311,3 +1311,15 @@ Running settling test!
 50 thousand bodies took 3.57117 seconds!
 500 thousand bodies took 18.567 seconds!
 1 million bodies took 37.9996 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 29 Jan 2019 11:11:58 -0600
+commit 120cf0f4cb42128fdf054516855975bb7c0ce591 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Jan 29 11:11:49 2019 -0600 fix verlet integrator build, need more testing
+Results:
+Running wavetank test!
+50 thousand bodies took 2.44738 seconds!
+500 thousand bodies took 18.7148 seconds!
+1 million bodies took 38.7178 seconds!
+Running settling test!
+50 thousand bodies took 2.44901 seconds!
+500 thousand bodies took 17.8566 seconds!
+1 million bodies took 36.2191 seconds!

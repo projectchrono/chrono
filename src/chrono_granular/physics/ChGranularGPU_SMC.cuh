@@ -1122,21 +1122,15 @@ static __global__ void updatePositions(const float stepsize_SU,  //!< The numeri
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
-                v_update_X = integrateVelVerlet_vel(stepsize_SU, sphere_data.sphere_force_X[mySphereID],
-                                                    sphere_data.sphere_force_X_old[mySphereID], gran_params);
-                v_update_Y = integrateVelVerlet_vel(stepsize_SU, sphere_data.sphere_force_Y[mySphereID],
-                                                    sphere_data.sphere_force_Y_old[mySphereID], gran_params);
-                v_update_Z = integrateVelVerlet_vel(stepsize_SU, sphere_data.sphere_force_Z[mySphereID],
-                                                    sphere_data.sphere_force_Z_old[mySphereID], gran_params);
+                v_update_X = integrateForwardEuler(stepsize_SU, sphere_data.sphere_acc_X[mySphereID]);
+                v_update_Y = integrateForwardEuler(stepsize_SU, sphere_data.sphere_acc_Y[mySphereID]);
+                v_update_Z = integrateForwardEuler(stepsize_SU, sphere_data.sphere_acc_Z[mySphereID]);
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                    omega_update_X = integrateVelVerlet_vel(stepsize_SU, sphere_data.sphere_ang_acc_X[mySphereID],
-                                                            sphere_data.sphere_ang_acc_X_old[mySphereID], gran_params);
-                    omega_update_Y = integrateVelVerlet_vel(stepsize_SU, sphere_data.sphere_ang_acc_Y[mySphereID],
-                                                            sphere_data.sphere_ang_acc_Y_old[mySphereID], gran_params);
-                    omega_update_Z = integrateVelVerlet_vel(stepsize_SU, sphere_data.sphere_ang_acc_Z[mySphereID],
-                                                            sphere_data.sphere_ang_acc_Z_old[mySphereID], gran_params);
-                    // TODO test
+                    // tau = I alpha => alpha = tau / I, we already computed these alphas
+                    omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data.sphere_ang_acc_X[mySphereID]);
+                    omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data.sphere_ang_acc_Y[mySphereID]);
+                    omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data.sphere_ang_acc_Z[mySphereID]);
                 }
                 break;
             }
@@ -1165,8 +1159,6 @@ static __global__ void updatePositions(const float stepsize_SU,  //!< The numeri
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
-
-
                 position_update_x = integrateChung_pos(stepsize_SU, old_vel_X, sphere_data.sphere_acc_X[mySphereID],
                                                        sphere_data.sphere_acc_X_old[mySphereID]);
                 position_update_y = integrateChung_pos(stepsize_SU, old_vel_Y, sphere_data.sphere_acc_Y[mySphereID],
@@ -1176,7 +1168,6 @@ static __global__ void updatePositions(const float stepsize_SU,  //!< The numeri
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
-
                 position_update_x = integrateForwardEuler(stepsize_SU, old_vel_X + v_update_X);
                 position_update_y = integrateForwardEuler(stepsize_SU, old_vel_Y + v_update_Y);
                 position_update_z = integrateForwardEuler(stepsize_SU, old_vel_Z + v_update_Z);

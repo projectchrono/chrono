@@ -1,9 +1,14 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import sys
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
 
+PARTICLE_RADIUS=0.5
+PARTICLE_DIAM=2 * PARTICLE_RADIUS
+EARTH_GRAV=9.80
+RHO_CGS_TO_SI = 1000
 
-GRAVITY=9.8
+G_CGS_TO_SI = 1. / 100.
 
 import scipy.signal as signal
 # First, design the Buterworth filter
@@ -19,6 +24,26 @@ rho = []
 slopes = []
 
 aperture_offset = 2
+
+def getIndices(g_=None, rho_=None, D0_ = None, rad_ = None):
+    ret = np.array([1] * len(g))
+    if g_ is not None:   
+        ret = ret & np.isclose(g, g_) 
+
+    if rho_ is not None:   
+        ret = ret & np.isclose(rho, rho_)
+
+    if D0_ is not None:   
+        ret = ret & np.isclose(D_0, D0_)
+
+    if rad_ is not None:   
+        ret = ret & np.isclose(rad, rad_)
+    return ret.nonzero()
+
+def plotInstance(t, t_arr, vals, function, D0):
+
+    plt.plot(t, vals, label="$D_0=" + str(D0) + "$: weight on bottom, smoothed")
+    plt.plot(t_arr, function(t_arr), label='Linear Fit, W(t) = ' + str(function).strip())
 
 def plotFlow(prefix_str, num):
     t = []
@@ -42,14 +67,17 @@ def plotFlow(prefix_str, num):
     global rho
     global slopes
 
+    D0 = 0
+
     with open(data_file) as f:
         l = f.readlines()[0] # get just the first line
         s = l.split("_")
-        print(s)
-        D_0 .append( int(s[1]) - aperture_offset)
+        D0 = float(s[1])
+
+        D_0 .append( D0 )
         r .append( float(s[2]))
-        g .append( int(s[3]))
-        rho .append( int(s[4]))
+        g .append( G_CGS_TO_SI * float(s[3] ) )
+        rho .append( float(s[4]) * RHO_CGS_TO_SI)
 
     t = np.array(t)
     fx = np.array(fx)
@@ -57,38 +85,39 @@ def plotFlow(prefix_str, num):
     fz = np.array(fz)
 
 
-    print()
-
     fx_smooth = signal.filtfilt(B,A, fx)
     fz_smooth = signal.filtfilt(B,A, fz)
 
 
-    force_fit_pts = (t > 1) & (t < 9)
+    fmin, fmax = np.min(fz_smooth), np.max(fz_smooth)
+    force_fit_pts = (fz_smooth > 0.1 * abs(fmin)) & (fz_smooth < 0.9  * fmax)
 
+    t_arr = np.linspace(min(t[force_fit_pts]), max(t[force_fit_pts]))
     fzfit = np.polyfit(t[force_fit_pts], fz_smooth[force_fit_pts], 1)
     fzfitfn = np.poly1d(fzfit)
 
-    t_arr = np.linspace(min(t[force_fit_pts]), max(t[force_fit_pts]))
-    # plt.plot(t, fz_smooth, label="$D_0=" + str(D_0) + "$: weight on bottom, smoothed")
-    # plt.plot(t_arr, fzfitfn(t_arr), label='Linear Fit, W(t) = ' + str(fzfitfn).strip())
+    if (num == 199):
+        plotInstance(t, t_arr, fz_smooth, fzfitfn, D0)
+
 
     slopes.append(fzfitfn[1])
 
     return fzfitfn[1]
 
-skip = [50, 75, 100, 125, 150 ]
+skip = [50, 75, 100, 125, 150, 175, 200 ]
+
+plt.figure(0)
+
 
 for i in range(33, 143):
     if i in skip:
         continue
-    print (i)
     slope = plotFlow("coneflow-233899_", i)
     print("slope is ", slope)
 
-for i in range(143, 167):
+for i in range(143, 223):
     if i in skip:
         continue
-    print (i)
     slope = plotFlow("coneflow-239659_", i)
     print("slope is ", slope)
 # 
@@ -98,59 +127,54 @@ g = np.array(g)
 rho = np.array(rho)
 slopes = np.array(slopes)
 
-g980rho1 = np.where((580 == g) & (1 == rho))
-g980rho2 = np.where((580 == g) & (2 == rho))
-g980rho3 = np.where((580 == g) & (3 == rho))
-g980rho4 = np.where((580 == g) & (4 == rho))
-g980rho5 = np.where((580 == g) & (5 == rho))
 
-D08g180 = np.where((180 == g)  & (8 == D_0))
-D08g380 = np.where((380 == g)  & (8 == D_0))
-D08g580 = np.where((580 == g)  & (8 == D_0))
-D08g780 = np.where((780 == g)  & (8 == D_0))
-D08g980 = np.where((980 == g)  & (8 == D_0))
 
-D010grho1 = np.where((1 == rho)  & (18 == D_0))
-D010grho2 = np.where((2 == rho)  & (18 == D_0))
-D010grho3 = np.where((3 == rho)  & (18 == D_0))
-D010grho4 = np.where((4 == rho)  & (18 == D_0))
-D010grho5 = np.where((5 == rho)  & (18 == D_0))
+massflow = slopes / g
+
+
+
+
 
 
 plt.figure(1)
-plt.plot(g[D010grho1], slopes[D010grho1], "s-", label="rho = 1")
-plt.plot(g[D010grho2], slopes[D010grho2], "x-", label="rho = 2")
-plt.plot(g[D010grho3], slopes[D010grho3], ".-", label="rho = 3")
-plt.plot(g[D010grho4], slopes[D010grho4], "o-", label="rho = 4")
-plt.plot(g[D010grho5], slopes[D010grho5], "^-", label="rho = 5")
-plt.title("Hopper mass flow rate vs material density")
-plt.xlabel("gravity")
-plt.ylabel("flow rate")
+plt.plot(np.sqrt(g[getIndices(rho_=1000, D0_ = 10)] / EARTH_GRAV), massflow[getIndices(rho_=1000, D0_ = 10)], "s-", label="$rho = 1000, D_0 = 10$")
+plt.plot(np.sqrt(g[getIndices(rho_=2000, D0_ = 10)] / EARTH_GRAV), massflow[getIndices(rho_=2000, D0_ = 10)], "x-", label="$rho = 2000, D_0 = 10$")
+plt.plot(np.sqrt(g[getIndices(rho_=3000, D0_ = 10)] / EARTH_GRAV), massflow[getIndices(rho_=3000, D0_ = 10)], ".-", label="$rho = 3000, D_0 = 10$")
+plt.plot(np.sqrt(g[getIndices(rho_=4000, D0_ = 10)] / EARTH_GRAV), massflow[getIndices(rho_=4000, D0_ = 10)], "o-", label="$rho = 4000, D_0 = 10$")
+plt.plot(np.sqrt(g[getIndices(rho_=5000, D0_ = 10)] / EARTH_GRAV), massflow[getIndices(rho_=5000, D0_ = 10)], "^-", label="$rho = 5000, D_0 = 10$")
+plt.title("Hopper mass flow rate vs gravity")
+plt.xlabel("$\\sqrt{\\frac{g}{g_{earth}}}$")
+plt.ylabel("Mass flow rate (kg / s)")
 plt.legend()
 plt.grid()
 
 plt.figure(2)
-plt.plot(rho[D08g180], slopes[D08g180],  "s-", label="g = 180")
-plt.plot(rho[D08g380], slopes[D08g380],  "x-", label="g = 380")
-plt.plot(rho[D08g580], slopes[D08g580],  ".-", label="g = 580")
-plt.plot(rho[D08g780], slopes[D08g780],  "o-", label="g = 780")
-plt.plot(rho[D08g980], slopes[D08g980],  "^-", label="g = 980")
-plt.title("Hopper mass flow rate vs gravity")
-plt.xlabel("density")
-plt.ylabel("flow rate")
+plt.plot(rho[getIndices(g_ = 1.80, D0_ = 10)], massflow[getIndices(g_ = 1.80, D0_ = 10)],  "s-", label="$g = 1.80, D_0 = 10$")
+plt.plot(rho[getIndices(g_ = 3.80, D0_ = 10)], massflow[getIndices(g_ = 3.80, D0_ = 10)],  "x-", label="$g = 3.80, D_0 = 10$")
+plt.plot(rho[getIndices(g_ = 5.80, D0_ = 10)], massflow[getIndices(g_ = 5.80, D0_ = 10)],  ".-", label="$g = 5.80, D_0 = 10$")
+plt.plot(rho[getIndices(g_ = 7.80, D0_ = 10)], massflow[getIndices(g_ = 7.80, D0_ = 10)],  "o-", label="$g = 7.80, D_0 = 10$")
+plt.plot(rho[getIndices(g_ = 9.80, D0_ = 10)], massflow[getIndices(g_ = 9.80, D0_ = 10)],  "^-", label="$g = 9.80, D_0 = 10$")
+
+plt.title("Hopper mass flow rate vs material density")
+plt.xlabel("$\\rho_{mat}$ (kg / m$^3$)")
+plt.ylabel("Mass flow rate (kg / s)")
 plt.legend()
 plt.grid()
 
 plt.figure(3)
-plt.plot(D_0[g980rho1], slopes[g980rho1], "s-",  label="g = 980, $\\rho = 1$")
-plt.plot(D_0[g980rho2], slopes[g980rho2], "x-",  label="g = 980, $\\rho = 2$")
-plt.plot(D_0[g980rho3], slopes[g980rho3], ".-",  label="g = 980, $\\rho = 3$")
-plt.plot(D_0[g980rho4], slopes[g980rho4], "o-",  label="g = 980, $\\rho = 4$")
-plt.plot(D_0[g980rho5], slopes[g980rho5], "^-",  label="g = 980, $\\rho = 5$")
+plt.plot(pow(D_0[ getIndices(g_=1.80, rho_ = 2000)] / PARTICLE_DIAM, 5/2), massflow[ getIndices(g_=1.80, rho_ = 2000)], "s-",  label="g = 1.80, $\\rho = 2000$")
+plt.plot(pow(D_0[ getIndices(g_=3.80, rho_ = 2000)] / PARTICLE_DIAM, 5/2), massflow[ getIndices(g_=3.80, rho_ = 2000)], "x-",  label="g = 3.80, $\\rho = 2000$")
+plt.plot(pow(D_0[ getIndices(g_=5.80, rho_ = 2000)] / PARTICLE_DIAM, 5/2), massflow[ getIndices(g_=5.80, rho_ = 2000)], ".-",  label="g = 5.80, $\\rho = 2000$")
+plt.plot(pow(D_0[ getIndices(g_=7.80, rho_ = 2000)] / PARTICLE_DIAM, 5/2), massflow[ getIndices(g_=7.80, rho_ = 2000)], "o-",  label="g = 7.80, $\\rho = 2000$")
+plt.plot(pow(D_0[ getIndices(g_=9.80, rho_ = 2000)] / PARTICLE_DIAM, 5/2), massflow[ getIndices(g_=9.80, rho_ = 2000)], "^-",  label="g = 9.80, $\\rho = 2000$")
 plt.title("Hopper mass flow rate vs aperture opening")
-plt.xlabel("aperture opening (cm)")
-plt.ylabel("flow rate")
+plt.xlabel("$\\left(\\frac{D_0}{d_p}\\right) ^ \\frac{5}{2}$")
+plt.ylabel("Mass flow rate (kg / s)")
 plt.legend()
 plt.grid()
+
+# 
+# plt.figure(5)
+# plotInstance()
 
 plt.show()
