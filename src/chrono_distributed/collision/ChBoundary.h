@@ -25,6 +25,9 @@
 
 namespace chrono {
 
+/// @addtogroup distributed_collision
+/// @{
+
 /// Utility class for specifying a collision boundary composed of multiple semi-planes.
 class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
   public:
@@ -95,5 +98,6 @@ class CH_DISTR_API ChBoundary : public ChSystem::CustomCollisionCallback {
 
     int m_crt_count;
 };
+/// @} distributed_collision
 
 }  // end namespace chrono

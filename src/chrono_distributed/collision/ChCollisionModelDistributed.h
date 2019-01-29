@@ -22,6 +22,9 @@ namespace chrono {
 
 namespace collision {
 
+/// @addtogroup distributed_collision
+/// @{
+
 /// This class adds the ability to track the axis-aligned bounding box for the entire model
 /// so that an entire body can be classified by which sub-domains it intersects.
 class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel {
@@ -61,5 +64,7 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     /// Indicates that the bounding box has been computed
     bool aabb_valid;
 };
+/// @} distributed_collision
+
 }  // namespace collision
 }  // namespace chrono

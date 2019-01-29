@@ -36,6 +36,9 @@ class ChSystemDistributed;
 //     bool free;
 // } ShapeNode;
 
+/// @addtogroup distributed_module
+/// @{
+
 /// Linked-list node for tracking free shapes
 struct LocalShapeNode {
     struct LocalShapeNode* next;  ///< Next node in the free list
@@ -43,6 +46,11 @@ struct LocalShapeNode {
     int size;                     ///< Number of
     bool free;                    ///< True if this index is free
 };
+/// @} distributed_module
+
+
+/// @addtogroup distributed_module
+/// @{
 
 /// A class for storing data for maintaining a consistent view of a distributed
 /// simulation consisting of multiple wrapped instances of ChSystemParallelSMC.
@@ -108,4 +116,6 @@ class CH_DISTR_API ChDistributedDataManager {
     /// Should not be called by the user.
     void DefragmentFreeList();
 };
+/// @} distributed_module
+
 } /* namespace chrono */

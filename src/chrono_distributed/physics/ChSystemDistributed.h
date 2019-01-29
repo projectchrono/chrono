@@ -37,6 +37,9 @@ class ChDomainDistributed;
 class ChCommDistributed;
 class ChDataManagerDistr;
 
+/// @addtogroup distributed_physics
+/// @{
+
 /// This is the main user interface for Chrono::Distributed
 /// Add bodies and set all settings through the system.
 /// The simulation runs on all ranks given in the world parameter.
@@ -246,5 +249,6 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     friend class ChCommDistributed;
     friend class ChDomainDistributed;
 };
+/// @} distributed_physics
 
 } /* namespace chrono */

@@ -29,6 +29,9 @@ namespace chrono {
 class ChDistributedDataManager;
 class ChSystemDistributed;
 
+/// @addtogroup distributed_comm
+/// @{
+
 /// Structure of data for sending a new body to a rank
 typedef struct BodyExchange {
     uint gid;
@@ -47,6 +50,10 @@ typedef struct BodyExchange {
     float gt;
     int identifier;
 } BodyExchange;
+/// @} distributed_comm
+
+/// @addtogroup distributed_comm
+/// @{
 
 /// Structure of data for sending an update of an existing body to a rank
 typedef struct BodyUpdate {
@@ -56,6 +63,10 @@ typedef struct BodyUpdate {
     double rot[4];
     double vel[6];
 } BodyUpdate;
+/// @} distributed_comm
+
+/// @addtogroup distributed_comm
+/// @{
 
 /// Structure of data for sending a collision shape to a rank
 typedef struct Shape {
@@ -66,6 +77,10 @@ typedef struct Shape {
     double R[4];
     double data[6];  // B C and shape-specific data
 } Shape;
+/// @} distributed_comm
+
+/// @addtogroup distributed_comm
+/// @{
 
 /// This class holds functions for processing the system's bodies to determine
 /// when a body needs to be sent to another rank for either an update or for
@@ -143,4 +158,6 @@ class CH_DISTR_API ChCommDistributed {
     /// the number of shapes that it has packed.
     int PackShapes(std::vector<Shape>* buf, int index);
 };
+/// @} distributed_comm
+
 } /* namespace chrono */

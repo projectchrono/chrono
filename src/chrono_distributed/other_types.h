@@ -17,6 +17,9 @@
 namespace chrono {
 namespace distributed {
 
+/// @addtogroup distributed_module
+/// @{
+
 /// Location and status of a given body with respect to this rank
 typedef enum COMM_STATUS {
     EMPTY = 0,         /// None, empty, disabled
@@ -30,6 +33,10 @@ typedef enum COMM_STATUS {
     GLOBAL = 8,        /// Present on all ranks
     UNDEFINED = 9
 } COMM_STATUS;
+/// @} distributed_module
+
+/// @addtogroup distributed_module
+/// @{
 
 /// Types of internal message that can be sent
 typedef enum MESSAGE_TYPE {
@@ -39,6 +46,7 @@ typedef enum MESSAGE_TYPE {
     FINAL_UPDATE_TAKE,     /// Update which ends in this rank taking exclusive ownership
     UPDATE_TRANSFER_SHARE  /// Update which updates the primary rank for the body
 } MESSAGE_TYPE;
+/// @} distributed_module
 
 }  // End namespace distributed
 }  // End namespace chrono

@@ -22,6 +22,9 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup distributed_collision
+/// @{
+
 /// This class scaffolds on ChCollisionSystemParallel in order to manage
 /// collision data for the system during MPI exchanges.
 /// Maintains a mapping from a body to its shapes.
@@ -45,6 +48,7 @@ class ChCollisionSystemDistributed : public ChCollisionSystemParallel {
   protected:
     ChDistributedDataManager* ddm;
 };
+/// @} distributed_collision
 
 } /* namespace collision */
 } /* namespace chrono */
