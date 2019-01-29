@@ -21,7 +21,7 @@ SET(DEMOS
 		demo_GRAN_Bucket
 		demo_GRAN_TriMeshNoFric_SMC
 		demo_GRAN_TriMeshNoFric_SMC_tiredrag
-		demo_GRAN_TriMeshNoFric_SMC_ballcosim
+		metrics_GRAN_ballcosim
 		test_GRAN_milwave
 		test_GRAN_milsettle
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
