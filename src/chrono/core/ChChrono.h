@@ -29,6 +29,16 @@
         @defgroup chrono_particles Particle factory
         @defgroup chrono_serialization Serialization
         @defgroup chrono_utils Utility classes
+
+        @defgroup chrono_fea Finite Element Analysis
+        @{
+           @defgroup fea_nodes Nodes
+           @defgroup fea_elements Elements
+           @defgroup fea_constraints Constraints
+           @defgroup fea_contact Contact
+           @defgroup fea_math Mathematical support
+           @defgroup fea_utils Utility classes
+        @}
     @}
 */
 

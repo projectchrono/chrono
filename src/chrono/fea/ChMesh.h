@@ -31,7 +31,7 @@ namespace chrono {
 
 namespace fea {
 
-/// @addtogroup fea_module
+/// @addtogroup chrono_fea
 /// @{
 
 /// Class which defines a mesh of finite elements of class ChElementBase,
@@ -281,7 +281,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     friend class chrono::ChSystem;
 };
 
-/// @} fea_module
+/// @} chrono_fea
 
 }  // end namespace fea
 }  // end namespace chrono

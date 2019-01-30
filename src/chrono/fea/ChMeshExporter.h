@@ -13,14 +13,17 @@
 // =============================================================================
 #ifndef CHMESHEXPORTER_H_
 #define CHMESHEXPORTER_H_
+
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
+
 namespace chrono {
 namespace fea {
-/// @addtogroup fea_module
+
+/// @addtogroup fea_utils
 /// @{
 
 /// Collection of mesh file writer utilities.
@@ -48,6 +51,8 @@ class ChApi ChMeshExporter {
                            std::string MeshFileBuffer  ///< name of the mesh file written by ChMeshExporter::writeMesh
     );
 };
+
+/// @} fea_utils
 
 }  // namespace fea
 }  // namespace chrono

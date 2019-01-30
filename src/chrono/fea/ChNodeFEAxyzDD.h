@@ -21,11 +21,13 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_nodes
+/// @{
+
 /// Class for a generic 3D finite element node, with x,y,z displacement, direction, and one curvature vector OR
 /// additional direction.
 /// The variable DD represents the derivative of a gradient vector or an additional gradient, to be used in ANCF
 /// elements.
-
 class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
   public:
     ChNodeFEAxyzDD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X, ChVector<> initial_curv = VNULL);
@@ -183,6 +185,8 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
     ChVector<> DD_dt;
     ChVector<> DD_dtdt;
 };
+
+/// @} fea_nodes
 
 }  // end namespace fea
 }  // end namespace chrono

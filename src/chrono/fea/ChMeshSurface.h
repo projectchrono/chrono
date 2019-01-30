@@ -21,6 +21,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup chrono_fea
+/// @{
+
 // Forward references (for parent hierarchy pointer)
 class ChMesh;
 
@@ -75,6 +78,8 @@ class ChApi ChMeshSurface {
 
     ChMesh* mmesh;
 };
+
+/// @} chrono_fea
 
 }  // end namespace fea
 }  // end namespace chrono

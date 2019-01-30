@@ -30,6 +30,9 @@ class ChSystem;
 
 namespace fea {
 
+/// @addtogroup chrono_fea
+/// @{
+
 // Forward
 class ChMatterMeshless;
 
@@ -352,6 +355,8 @@ class ChApi ChMatterMeshless : public ChIndexedNodes {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_fea
 
 }  // end namespace fea
 }  // end namespace chrono

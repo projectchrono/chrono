@@ -21,7 +21,8 @@
 namespace chrono {
 namespace fea {
 
-
+/// @addtogroup fea_utils
+/// @{
 
 //  forward 
 class ChBeamSectionCosserat;
@@ -33,10 +34,8 @@ class ChBeamSectionCosserat;
 /// There are various children classes that implement this function in
 /// different ways. 
 /// Note that the Timoshenko beam theory can be a sub-case of this.
-
 class ChApi ChElasticityCosserat {
 public:
-	
 
 	ChElasticityCosserat() {
 		section = nullptr;
@@ -109,7 +108,6 @@ public:
 /// The classical Timoshenko beam theory is encompassed in this model, that
 /// can be interpreted as a 3D extension of the Timoshenko beam theory.
 /// This can be shared between multiple beams.
-
 class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 public:
 	double Iyy;
@@ -208,7 +206,6 @@ public:
 /// xyz rotations "k" to the xyz cut-force "n" and xyz cut-torque "m" as in
 /// {m,n}=[E]{e,k}.
 /// This can be shared between multiple beams.
-
 class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 public:
 
@@ -265,15 +262,14 @@ private:
 /// This material can be shared between multiple beams.
 /// The linear elasticity is uncoupled between shear terms S and axial terms A
 /// as to have this stiffness matrix pattern:
-///
+/// <pre>
 ///  n_x   [A       A A ]   e_x
 ///  n_y   [  S S S     ]   e_y
 ///  n_z = [  S S S     ] * e_z
 ///  m_x   [  S S S     ]   k_x
 ///  m_y   [A       A A ]   k_y
 ///  m_z   [A       A A ]   k_z
-///
-
+///  </pre>
 class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 public:
 	double alpha;  // Rotation of Izz Iyy respect to reference section, centered on line x
@@ -368,7 +364,6 @@ public:
 ///   using the Timoshenko correction factors Ks_y and Ks_z, here they are used as well, but if so, shear in material points would have less meaning.
 /// This material can be shared between multiple beams.
 ///
-
 class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
 public:
 
@@ -438,11 +433,8 @@ protected:
 };
 
 
-
-
 /// Base class for plasticity of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
-
 class ChApi ChPlasticityCosserat {
 public:
 
@@ -516,8 +508,6 @@ public:
 };
 
 
-
-
 /// Internal variables for basic lumped plasticity in Cosserat beams
 class ChApi ChInternalDataLumpedCosserat : public ChBeamMaterialInternalData {
 public:
@@ -545,8 +535,7 @@ public:
 
 
 /// Lumped plasticity of Cosserat-type beams.
-/// This defines 6 independent yelds for the six generalized forces/moments in the
-/// beam. 
+/// This defines 6 independent yelds for the six generalized forces/moments in the beam. 
 /// Note that this is a rough approximation of plasticity in beams for at least two
 /// main reasons: it cannot capture how plastic zones are made inside a section (which
 /// is mostly important when cycling with back and forth bending), and it does not
@@ -554,7 +543,6 @@ public:
 /// it if plasticization happens in a scenario of pure bending on a single xy or xz plane,
 /// or pure compression/extension, or pure torsion.
 /// This can be shared between multiple beams.
-
 class ChApi ChPlasticityCosseratLumped : public ChPlasticityCosserat {
 public:
 
@@ -643,7 +631,6 @@ public:
 /// generalized strain speeds, "e'" traction/shear speed and "k'" curvature speed, as:
 ///   {n,m}=f({e',k'}) 
 /// Children classes implement this function in different ways. 
-
 class ChApi ChDampingCosserat {
 public:
 
@@ -717,9 +704,10 @@ public:
 ///   {n,m}=f({e',k'}) 
 /// where damping is proportional to speed of deformation/curvature via 
 /// linear constants:
+///   <pre>
 ///   n = R_e * e'
 ///   m = R_k * k'
-
+///   </pre>
 class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
 public:
 
@@ -785,13 +773,9 @@ private:
 	ChVector<> R_k;
 };
 
-
-
-
 /// Base class for properties of beam sections of Cosserat type (with shear too).
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
-
 class ChApi ChBeamSectionCosserat : public ChBeamSectionProperties {
   public:
 
@@ -950,8 +934,7 @@ private:
 	std::shared_ptr<ChDampingCosserat> damping;
 };
 
-
-
+/// @} fea_utils
 
 }  // end namespace fea
 }  // end namespace chrono

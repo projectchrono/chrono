@@ -25,6 +25,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_contact
+/// @{
+
 /// Contact element of triangular type.
 /// This can be used to 'tessellate' a generic surface like the
 /// outer of tetrahedral meshes
@@ -728,6 +731,8 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     std::vector<std::shared_ptr<ChContactTriangleXYZROT> >
         vfaces_rot;  //  faces that collide (for nodes with rotation too)
 };
+
+/// @} fea_contact
 
 }  // end namespace fea
 }  // end namespace chrono

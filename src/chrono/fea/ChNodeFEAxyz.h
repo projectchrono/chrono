@@ -22,6 +22,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_nodes
+/// @{
+
 // Forward declaration
 class ChMesh;
 
@@ -183,6 +186,8 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     ChVector<> X0;              ///< reference position
     ChVector<> Force;           ///< applied force
 };
+
+/// @} fea_nodes
 
 }  // end namespace fea
 }  // end namespace chrono

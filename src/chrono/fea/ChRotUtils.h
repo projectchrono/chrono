@@ -24,9 +24,11 @@
 namespace chrono {
 namespace fea {
 
-/// Utility functions for rotations in 3D and their derivatives.
-/// Adapted from the MBDyn library
+/// @addtogroup fea_math
+/// @{
 
+/// Utility functions for rotations in 3D and their derivatives.
+/// Adapted from the MBDyn library.
 namespace ChRotUtils {
 
 const int COEFF_A = 1;
@@ -316,6 +318,8 @@ static ChMatrix33<> Elle(const ChVector<>& phi, const ChVector<>& a) {
 }
 
 }  // end of namespace ChRotUtils
+
+/// @} fea_math
 
 }  // end of namespace fea
 }  // end of namespace chrono

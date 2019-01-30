@@ -22,10 +22,12 @@
 
 namespace chrono {
 
+/// @addtogroup chrono_fea
+/// @{
+
 /// Class for a proximity pair information in a meshless deformable continumm,
 /// made with a cluster of particles - that is, an 'edge' topological connectivity in
 /// in a meshless FEA approach, similar to the Smoothed Particle Hydrodynamics.
-
 class ChApi ChProximityMeshless {
   public:
     ChProximityMeshless(collision::ChCollisionModel* mmodA,  ///< model A
@@ -124,6 +126,8 @@ class ChApi ChProximityContainerMeshless : public ChProximityContainer {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+/// @} chrono_fea
 
 }  // end namespace chrono
 

@@ -26,6 +26,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_math
+/// @{
+
 /// In-place LU factorization.
 /// Return false if the matrix is (close to) singular
 template <int N>
@@ -133,6 +136,8 @@ void LU_solve(const ChMatrixNM<double, N, N>& A,  ///< [input] LU factorized mat
         B(I) = SUM / A(I, I);
     }
 }
+
+/// @} fea_math
 
 }  // end of namespace fea
 }  // end of namespace chrono

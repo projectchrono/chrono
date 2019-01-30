@@ -11,6 +11,13 @@
 // =============================================================================
 // Authors: Alessandro Tasora
 // =============================================================================
+// This file contains a number of ready-to-use loads (ChLoad inherited classes and
+// their embedded ChLoader classes) that can be applied to threedimensional beam
+// elements in FEA.
+// These are 'simplified' tools, that save you from inheriting your custom
+// loads from ChLoaderUatomic ChLoaderUdistributed etc. Or just look at these
+// classes and learn how to implement some special type of load.
+// =============================================================================
 
 #ifndef CHLOADSBEAM_H
 #define CHLOADSBEAM_H
@@ -22,12 +29,8 @@
 namespace chrono {
 namespace fea {
 
-// This file contains a number of ready-to-use loads (ChLoad inherited classes and
-// their embedded ChLoader classes) that can be applied to threedimensional beam
-// elements in FEA.
-// These are 'simplified' tools, that save you from inheriting your custom
-// loads from ChLoaderUatomic ChLoaderUdistributed etc. Or just look at these
-// classes and learn how to implement some special type of load.
+/// @addtogroup chrono_fea
+/// @{
 
 /// Atomic wrench.
 /// Loader for a wrench (force+torque) at a specific position of a beam.
@@ -132,6 +135,8 @@ class ChLoadBeamWrenchDistributed : public ChLoad<ChLoaderBeamWrenchDistributed>
     ChLoadBeamWrenchDistributed(std::shared_ptr<ChLoadableU> mloadable)
         : ChLoad<ChLoaderBeamWrenchDistributed>(mloadable) {}
 };
+
+/// @} chrono_fea
 
 }  // end namespace fea
 }  // end namespace chrono

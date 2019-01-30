@@ -23,6 +23,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_contact
+/// @{
+
 /// Base class for contact surfaces in FEA meshes.
 /// Use children classes like ChContactSurfaceNodeCloud or ChContactSurfaceMesh
 /// that implement practical functionalities.
@@ -65,6 +68,8 @@ class ChApi ChContactSurface {
 
     ChMesh* mmesh;
 };
+
+/// @} fea_contact
 
 }  // end namespace fea
 }  // end namespace chrono
