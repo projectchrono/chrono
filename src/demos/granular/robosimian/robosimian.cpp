@@ -792,7 +792,7 @@ void Part::AddVisualizationAssets(VisualizationType vis) {
 
     if (vis == VisualizationType::MESH) {
         std::string vis_mesh_file = "robosimian/obj/" + m_mesh_name + ".obj";
-        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
         //// HACK: a trimesh visual asset ignores transforms! Explicitly offset vertices.
         trimesh->Transform(m_offset, ChMatrix33<>(1));
@@ -837,7 +837,7 @@ void Part::AddVisualizationAssets(VisualizationType vis) {
 
     for (auto mesh : m_meshes) {
         std::string vis_mesh_file = "robosimian/obj/" + mesh.m_name + ".obj";
-        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
         //// HACK: a trimesh visual asset ignores transforms! Explicitly offset vertices.
         trimesh->Transform(mesh.m_pos, ChMatrix33<>(mesh.m_rot));
@@ -865,7 +865,7 @@ void Part::AddCollisionShapes() {
     }
     for (auto mesh : m_meshes) {
         std::string vis_mesh_file = "robosimian/obj/" + mesh.m_name + ".obj";
-        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
         trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
         switch (mesh.m_type) {
             case MeshShape::CONVEX_HULL:
