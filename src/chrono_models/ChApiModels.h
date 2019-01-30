@@ -26,5 +26,16 @@
 #define CH_MODELS_API ChApiIMPORT
 #endif
 
+/**
+    @defgroup vehicle_models Vehicle models
+    @brief Collection of concrete ground vehicle models
+    @{
+      @defgroup vehicle_models_hmmwv HMMWV model
+      @defgroup vehicle_models_sedan Passenger car
+      @defgroup vehicle_models_generic Generic wheeled vehicle
+      @defgroup vehicle_models_m113 M113 tracked vehicle model
+      @defgroup vehicle_models_uaz UAZ model
+    @}
+*/
 
 #endif

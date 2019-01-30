@@ -43,6 +43,9 @@ namespace chrono {
 namespace vehicle {
 namespace uaz {
 
+/// @addtogroup vehicle_models_uaz
+/// @{
+
 class CH_MODELS_API UAZBUS_Vehicle : public ChWheeledVehicle {
   public:
     UAZBUS_Vehicle(const bool fixed = false,
@@ -87,6 +90,8 @@ class CH_MODELS_API UAZBUS_Vehicle : public ChWheeledVehicle {
 
     std::vector<double> m_omega;
 };
+
+/// @} vehicle_models_uaz
 
 }  // end namespace uaz
 }  // end namespace vehicle
