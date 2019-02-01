@@ -1,28 +1,22 @@
-#-------------------------------------------------------------------------------
-# Name:        modulo1
+#------------------------------------------------------------------------------
+# Name:        pychrono example
 # Purpose:
 #
-# Author:      tasora
+# Author:      Alessandro Tasora
 #
-# Created:     14/02/2012
-# Copyright:   (c) tasora 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
 
-import os
-import math
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 
 print ("Example: create a system and visualize it in realtime 3D");
+
+# Change this path to asset path, if running from other working dir. 
+# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
+chrono.SetChronoDataPath("../../../data/")
 
 # ---------------------------------------------------------------------
 #
@@ -76,9 +70,10 @@ mysystem.Add(mlink)
 #  Create an Irrlicht application to visualize the system
 #
 
-myapplication = chronoirr.ChIrrApp(mysystem, 'Test', chronoirr.dimension2du(1024,768))
+myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky('../../../data/skybox/')
+myapplication.AddTypicalSky()
+myapplication.AddTypicalLogo()
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
 myapplication.AddTypicalLights()
 
@@ -101,7 +96,7 @@ myapplication.AssetUpdateAll();
 #
 
 
-myapplication.SetTimestep(0.001)
+myapplication.SetTimestep(0.005)
 
 
 while(myapplication.GetDevice().run()):

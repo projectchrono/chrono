@@ -1,26 +1,32 @@
-#-------------------------------------------------------------------------------
-# Name:        demo_python_1
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
-
-
-print ("Tutorial on pychrono with finite elements");
+#------------------------------------------------------------------------------
+# Name:        pychrono example
+# Purpose:
+#
+# Author:      Alessandro Tasora
+#
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
 
-# Load the Chrono::Engine module!!!
 import math as m
 import pychrono as chrono
 import pychrono.fea as fea
 import pychrono.mkl as mkl
 import pychrono.irrlicht as chronoirr
 
-chrono.SetChronoDataPath("C:/tasora/code/projectchrono/chrono/data/")
+print ("Example: FEA of the Jeffcott rotor passing through resonance.");
+
+# Change this path to asset path, if running from other working dir. 
+# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
+chrono.SetChronoDataPath("../../../data/")
+
+
+# ---------------------------------------------------------------------
+#
+#  Create the simulation system and add items
+#
+
 
 # Create a Chrono::Engine physical system
 my_system = chrono.ChSystemNSC()
@@ -143,12 +149,18 @@ mvisualizebeamC.SetZbufferHide(False)
 my_mesh.AddAsset(mvisualizebeamC)
 
 
+# ---------------------------------------------------------------------
+#
+#  Create an Irrlicht application to visualize the system
+#
+
+
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
 myapplication = chronoirr.ChIrrApp(my_system, 'Test FEA: the Jeffcott rotor with IGA beams', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalLogo()
-myapplication.AddTypicalSky(chrono.GetChronoDataPath() + 'skybox/')
+myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalSky()
 myapplication.AddTypicalCamera(chronoirr.vector3df(0,1,4), chronoirr.vector3df(beam_L/2, 0, 0))
 myapplication.AddTypicalLights()
 
@@ -156,10 +168,15 @@ myapplication.AddTypicalLights()
 myapplication.AssetBindAll()
 myapplication.AssetUpdateAll()
 
+
+# ---------------------------------------------------------------------
+#
+#  Run the simulation
+#
+
+
 my_system.SetupInitial();
 
-
-	
 # Set to a more precise HHT timestepper if needed
 # my_system.SetTimestepperType(chrono.ChTimestepper.Type_HHT)
 

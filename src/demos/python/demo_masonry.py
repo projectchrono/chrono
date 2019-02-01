@@ -1,32 +1,27 @@
-#-------------------------------------------------------------------------------
-# Name:        demo_masonry
+#------------------------------------------------------------------------------
+# Name:        pychrono example
+# Purpose:
+#
+# Author:      Alessandro Tasora
+#
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#
 #
 # This file shows how to
 #   - create a small stack of bricks,
-#   - create a support that shakes like an earthquake, with imposed motion law
+#   - create a support that shakes like an earthquake, with motion function
 #   - simulate the bricks that fall
-#   - output the postprocessing data for rendering the animation with POVray
 #-------------------------------------------------------------------------------
-#!/usr/bin/env python
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
 
 
-# Load the Chrono::Engine unit and the postprocessing unit!!!
 import pychrono.core as chrono
-#import pychrono.postprocess
 import pychrono.irrlicht as chronoirr
 
 
-# We will create two directories for saving some files, we need this:
-import os
-import math
-
-
+# Change this path to asset path, if running from other working dir. 
+# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
+chrono.SetChronoDataPath("../../../data/")
 
 # ---------------------------------------------------------------------
 #
@@ -125,7 +120,7 @@ body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
 body_floor.GetAssets().push_back(body_floor_shape)
 
 body_floor_texture = chrono.ChTexture()
-body_floor_texture.SetTextureFilename('../../../data/concrete.jpg')
+body_floor_texture.SetTextureFilename(chrono.GetChronoDataPath() + 'concrete.jpg')
 body_floor.GetAssets().push_back(body_floor_texture)
 
 my_system.Add(body_floor)
@@ -155,7 +150,7 @@ body_table_shape.SetColor(chrono.ChColor(0.4,0.4,0.5))
 body_table.GetAssets().push_back(body_table_shape)
 
 body_table_texture = chrono.ChTexture()
-body_table_texture.SetTextureFilename('../../../data/concrete.jpg')
+body_table_texture.SetTextureFilename(chrono.GetChronoDataPath() + 'concrete.jpg')
 body_table.GetAssets().push_back(body_table_texture)
 
 my_system.Add(body_table)
@@ -189,9 +184,10 @@ link_shaker.SetMotion_Z(mfunZ)
 #  Create an Irrlicht application to visualize the system
 #
 
-myapplication = chronoirr.ChIrrApp(my_system)
+myapplication = chronoirr.ChIrrApp(my_system, 'PyChrono example', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky('../../../data/skybox/')
+myapplication.AddTypicalSky()
+myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,0.5,1.0))
 myapplication.AddLightWithShadow(chronoirr.vector3df(2,4,2),    # point
                                  chronoirr.vector3df(0,0,0),    # aimpoint
@@ -220,7 +216,6 @@ myapplication.AddShadowAll();
 #  Run the simulation
 #
 
-myapplication.SetStepManage(True)
 myapplication.SetTimestep(0.001)
 myapplication.SetTryRealtime(True)
 
