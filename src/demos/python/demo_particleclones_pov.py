@@ -1,27 +1,35 @@
-#-------------------------------------------------------------------------------
-# Name:        demo_python_3
+#------------------------------------------------------------------------------
+# Name:        pychrono example
+# Purpose:
+#
+# Author:      Alessandro Tasora
+#
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#
 #
 # This file shows how to create and populate the ChParticleClones object.
 # Also, shows how to use POV ray for postprocessing, thanks to the
 # utility functions in the unit_POSTPROCESS of Chrono::Engine.
 #
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+#------------------------------------------------------------------------------
 
 
-# Load the Chrono::Engine unit and the postprocessing unit!!!
 import pychrono as chrono
 import pychrono.postprocess as postprocess
 
 # We will create two directories for saving some files, we need this:
 import os
 
+# Change this path to asset path, if running from other working dir. 
+# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
+chrono.SetChronoDataPath("../../../data/")
+
+
+# ---------------------------------------------------------------------
+#
+#  Create the simulation system and add items
+#
 
 # Create a physical system,
 my_system = chrono.ChSystemNSC()
@@ -122,7 +130,7 @@ for ix in range(0,2):
 pov_exporter = postprocess.ChPovRay(my_system)
 
  # Sets some file names for in-out processes.
-pov_exporter.SetTemplateFile        ("../../../data/_template_POV.pov")
+pov_exporter.SetTemplateFile        (chrono.GetChronoDataPath() + "_template_POV.pov")
 pov_exporter.SetOutputScriptFile    ("rendering_frames.pov")
 if not os.path.exists("output"):
     os.mkdir("output")
