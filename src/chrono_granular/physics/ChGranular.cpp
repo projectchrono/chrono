@@ -57,6 +57,7 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     this->time_integrator = FORWARD_EULER;
     gran_params->force_model = HOOKE;
     this->force_model = HOOKE;
+    setMaxSafeVelocity_SU((float)UINT_MAX);
 }
 
 ChSystemGranular_MonodisperseSMC::~ChSystemGranular_MonodisperseSMC() {
@@ -261,6 +262,16 @@ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
     gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
 }
 
+void ChSystemGranular_MonodisperseSMC::updateBCPositions() {
+    for (unsigned int i = 0; i < BC_params_list_UU.size(); i++) {
+        auto bc_type = BC_type_list.at(i);
+        const BC_params_t<float, float3>& params_UU = BC_params_list_UU.at(i);
+        BC_params_t<int, int3>& params_SU = BC_params_list_SU.at(i);
+        auto offset_function = BC_offset_function_list.at(i);
+        setBCOffset(bc_type, params_UU, params_SU, offset_function(elapsedSimTime));
+    }
+}
+
 void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU) {
     if (BD_is_fixed) {
         return;
@@ -270,44 +281,21 @@ void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU)
     float frame_Y_old = gran_params->BD_frame_Y;
     float frame_Z_old = gran_params->BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
-    gran_params->BD_frame_X = (box_size_X * (BDPositionFunctionX(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-    gran_params->BD_frame_Y = (box_size_Y * (BDPositionFunctionY(elapsedSimTime))) / gran_params->LENGTH_UNIT;
-    gran_params->BD_frame_Z = (box_size_Z * (BDPositionFunctionZ(elapsedSimTime))) / gran_params->LENGTH_UNIT;
+    float3 newpos = BDPositionFunction(elapsedSimTime);
+    gran_params->BD_frame_X =
+        -0.5 * gran_params->nSDs_X * gran_params->SD_size_X_SU + newpos.x / gran_params->LENGTH_UNIT;
+    gran_params->BD_frame_Y =
+        -0.5 * gran_params->nSDs_Y * gran_params->SD_size_Y_SU + newpos.y / gran_params->LENGTH_UNIT;
+    gran_params->BD_frame_Z =
+        -0.5 * gran_params->nSDs_Z * gran_params->SD_size_Z_SU + newpos.z / gran_params->LENGTH_UNIT;
+
+    // printf("new pos is %f, %f, %f\n", newpos.x, newpos.y, newpos.z);
+    // printf("SU is %u, %u, %u\n", gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
 
     gran_params->BD_frame_X_dot = (gran_params->BD_frame_X - frame_X_old) / stepSize_SU;
     gran_params->BD_frame_Y_dot = (gran_params->BD_frame_Y - frame_Y_old) / stepSize_SU;
     gran_params->BD_frame_Z_dot = (gran_params->BD_frame_Z - frame_Z_old) / stepSize_SU;
 }
-
-// size_t ChSystemGranular_MonodisperseSMC::Create_BC_AABox(float hdims[3], float center[3], bool outward_normal) {
-//     BC_params_t<float, float3> p;
-//     printf("UU bounds are %f,%f,%f,%f,%f,%f", center[0] + hdims[0], center[1] + hdims[1], center[2] + hdims[2],
-//            center[0] - hdims[0], center[1] - hdims[1], center[2] - hdims[2]);
-//
-//     // Find two corners to describe box
-//     p.AABox_params.max_corner.x = center[0] + hdims[0];
-//     p.AABox_params.max_corner.y = center[1] + hdims[1];
-//     p.AABox_params.max_corner.z = center[2] + hdims[2];
-//     p.AABox_params.min_corner.x = center[0] - hdims[0];
-//     p.AABox_params.min_corner.y = center[1] - hdims[1];
-//     p.AABox_params.min_corner.z = center[2] - hdims[2];
-//
-//     printf("SU bounds are %d, %d, %d, %d, %d, %d", p.AABox_params.max_corner.x, p.AABox_params.max_corner.y,
-//            p.AABox_params.max_corner.z, p.AABox_params.min_corner.x, p.AABox_params.min_corner.y,
-//            p.AABox_params.min_corner.z);
-//
-//     if (outward_normal) {
-//         // negate forces to push particles outward
-//         p.AABox_params.normal_sign = -1;
-//     } else {
-//         // normal is inward, flip force sign
-//         p.AABox_params.normal_sign = 1;
-//     }
-//     BC_type_list.push_back(BC_type::AA_BOX);
-//     BC_params_list_UU.push_back(p);
-//     // get my index in the new array
-//     return BC_type_list.size() - 1;
-// }
 
 size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
                                                           float radius,
@@ -320,6 +308,7 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
     p.sphere_params.sphere_center.z = center[2];
     p.sphere_params.radius = radius;
     p.active = true;
+    p.fixed = true;
     p.track_forces = track_forces;
 
     if (outward_normal) {
@@ -331,6 +320,7 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
 
     BC_type_list.push_back(BC_type::SPHERE);
     BC_params_list_UU.push_back(p);
+    BC_offset_function_list.push_back(GranPosFunction_default);
     // get my index in the new array
     return BC_type_list.size() - 1;
 }
@@ -350,6 +340,7 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cone_Z(float cone_tip[3],
     p.cone_params.hmin = hmin;
     p.cone_params.slope = slope;
     p.active = true;
+    p.fixed = true;
     p.track_forces = track_forces;
 
     if (outward_normal) {
@@ -361,6 +352,8 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cone_Z(float cone_tip[3],
 
     BC_type_list.push_back(BC_type::CONE);
     BC_params_list_UU.push_back(p);
+    BC_offset_function_list.push_back(GranPosFunction_default);
+
     // get my index in the new array
     return BC_type_list.size() - 1;
 }
@@ -375,10 +368,14 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Plane(float plane_pos[3], flo
     p.plane_params.normal.y = plane_normal[1];
     p.plane_params.normal.z = plane_normal[2];
     p.active = true;
+    p.fixed = true;
+
     p.track_forces = track_forces;
 
     BC_type_list.push_back(BC_type::PLANE);
     BC_params_list_UU.push_back(p);
+    BC_offset_function_list.push_back(GranPosFunction_default);
+
     // get my index in the new array
     return BC_type_list.size() - 1;
 }
@@ -394,6 +391,8 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cyl_Z(float center[3],
 
     p.cyl_params.radius = radius;
     p.active = true;
+    p.fixed = true;
+
     p.track_forces = track_forces;
 
     if (outward_normal) {
@@ -405,6 +404,8 @@ size_t ChSystemGranular_MonodisperseSMC::Create_BC_Cyl_Z(float center[3],
 
     BC_type_list.push_back(BC_type::CYLINDER);
     BC_params_list_UU.push_back(p);
+    BC_offset_function_list.push_back(GranPosFunction_default);
+
     // get my index in the new array
     return BC_type_list.size() - 1;
 }
@@ -457,76 +458,89 @@ double ChSystemGranular_MonodisperseSMC::get_max_K() const {
     return std::max(K_n_s2s_UU, K_n_s2w_UU);
 }
 
+// set the position of a BC and account for the offset
+void ChSystemGranular_MonodisperseSMC::setBCOffset(const BC_type& bc_type,
+                                                   const BC_params_t<float, float3>& params_UU,
+                                                   BC_params_t<int, int3>& params_SU,
+                                                   float3 offset_UU) {
+    switch (bc_type) {
+        case BC_type::SPHERE: {
+            params_SU.sphere_params.sphere_center.x =
+                convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.x + offset_UU.x);
+            params_SU.sphere_params.sphere_center.y =
+                convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.y + offset_UU.y);
+            params_SU.sphere_params.sphere_center.z =
+                convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.z + offset_UU.z);
+            break;
+        }
+
+        case BC_type::CONE: {
+            params_SU.cone_params.cone_tip.x =
+                convertToPosSU<int, float>(params_UU.cone_params.cone_tip.x + offset_UU.x);
+            params_SU.cone_params.cone_tip.y =
+                convertToPosSU<int, float>(params_UU.cone_params.cone_tip.y + offset_UU.y);
+            params_SU.cone_params.cone_tip.z =
+                convertToPosSU<int, float>(params_UU.cone_params.cone_tip.z + offset_UU.z);
+            params_SU.cone_params.hmax = convertToPosSU<int, float>(params_UU.cone_params.hmax + offset_UU.z);
+            params_SU.cone_params.hmin = convertToPosSU<int, float>(params_UU.cone_params.hmin + offset_UU.z);
+            break;
+        }
+        case BC_type::PLANE: {
+            params_SU.plane_params.position.x =
+                convertToPosSU<int, float>(params_UU.plane_params.position.x + offset_UU.x);
+            params_SU.plane_params.position.y =
+                convertToPosSU<int, float>(params_UU.plane_params.position.y + offset_UU.y);
+            params_SU.plane_params.position.z =
+                convertToPosSU<int, float>(params_UU.plane_params.position.z + offset_UU.z);
+
+            break;
+        }
+        case BC_type::CYLINDER: {
+            params_SU.cyl_params.center.x = convertToPosSU<int, float>(params_UU.cyl_params.center.x + offset_UU.x);
+            params_SU.cyl_params.center.y = convertToPosSU<int, float>(params_UU.cyl_params.center.y + offset_UU.y);
+            params_SU.cyl_params.center.z = convertToPosSU<int, float>(params_UU.cyl_params.center.z + offset_UU.z);
+            break;
+        }
+        default: {
+            printf("ERROR: Unsupported BC Type!\n");
+            exit(1);
+        }
+    }
+}
+
 void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
     for (int i = 0; i < BC_type_list.size(); i++) {
         auto bc_type = BC_type_list.at(i);
         BC_params_t<float, float3> params_UU = BC_params_list_UU.at(i);
         BC_params_t<int, int3> params_SU;
+
+        params_SU.active = params_UU.active;
+        params_SU.fixed = params_UU.fixed;
+        params_SU.track_forces = params_UU.track_forces;
         switch (bc_type) {
             case BC_type::SPHERE: {
                 printf("adding sphere!\n");
-                // set center, radius, norm
-                params_SU.sphere_params.sphere_center.x =
-                    convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.x);
-                params_SU.sphere_params.sphere_center.y =
-                    convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.y);
-                params_SU.sphere_params.sphere_center.z =
-                    convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.z);
+                setBCOffset(bc_type, params_UU, params_SU, make_float3(0, 0, 0));
                 params_SU.sphere_params.radius = convertToPosSU<int, float>(params_UU.sphere_params.radius);
                 params_SU.sphere_params.normal_sign = params_UU.sphere_params.normal_sign;
-                params_SU.active = true;
-                params_SU.track_forces = params_UU.track_forces;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
             }
 
-                // case BC_type::AA_BOX:{
-                //     printf("adding box!\n");
-                //
-                //     // note that these are correct but the BC formulation is not complete
-                //     // TODO fix AABox formulation
-                //     // Find two corners to describe box
-                //     params_SU.AABox_params.max_corner.x = convertToPosSU<int,
-                //     float>(params_UU.AABox_params.max_corner.x); params_SU.AABox_params.max_corner.y =
-                //     convertToPosSU<int, float>(params_UU.AABox_params.max_corner.y);
-                //     params_SU.AABox_params.max_corner.z = convertToPosSU<int,
-                //     float>(params_UU.AABox_params.max_corner.z); params_SU.AABox_params.min_corner.x =
-                //     convertToPosSU<int, float>(params_UU.AABox_params.min_corner.x);
-                //     params_SU.AABox_params.min_corner.y = convertToPosSU<int,
-                //     float>(params_UU.AABox_params.min_corner.y); params_SU.AABox_params.min_corner.z =
-                //     convertToPosSU<int, float>(params_UU.AABox_params.min_corner.z);
-                //
-                //     params_SU.AABox_params.normal_sign = params_UU.AABox_params.normal_sign;
-                //     params_SU.active = true;
-                // params_SU.track_forces = params_UU.track_forces;
-
-                //
-                //     BC_params_list_SU.push_back(params_SU);
-                //     break;}
-
             case BC_type::CONE: {
                 printf("adding cone!\n");
+                setBCOffset(bc_type, params_UU, params_SU, make_float3(0, 0, 0));
 
-                params_SU.cone_params.cone_tip.x = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.x);
-                params_SU.cone_params.cone_tip.y = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.y);
-                params_SU.cone_params.cone_tip.z = convertToPosSU<int, float>(params_UU.cone_params.cone_tip.z);
-
-                params_SU.cone_params.hmax = convertToPosSU<int, float>(params_UU.cone_params.hmax);
-                params_SU.cone_params.hmin = convertToPosSU<int, float>(params_UU.cone_params.hmin);
                 params_SU.cone_params.slope = params_UU.cone_params.slope;
                 params_SU.cone_params.normal_sign = params_UU.cone_params.normal_sign;
-                params_SU.active = true;
-                params_SU.track_forces = params_UU.track_forces;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
             }
             case BC_type::PLANE: {
                 printf("adding plane!\n");
-                params_SU.plane_params.position.x = convertToPosSU<int, float>(params_UU.plane_params.position.x);
-                params_SU.plane_params.position.y = convertToPosSU<int, float>(params_UU.plane_params.position.y);
-                params_SU.plane_params.position.z = convertToPosSU<int, float>(params_UU.plane_params.position.z);
+                setBCOffset(bc_type, params_UU, params_SU, make_float3(0, 0, 0));
 
                 // normal is unitless
                 // TODO normalize this just in case
@@ -534,26 +548,19 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 params_SU.plane_params.normal.x = params_UU.plane_params.normal.x;
                 params_SU.plane_params.normal.y = params_UU.plane_params.normal.y;
                 params_SU.plane_params.normal.z = params_UU.plane_params.normal.z;
-                params_SU.active = true;
-                params_SU.track_forces = params_UU.track_forces;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;
             }
             case BC_type::CYLINDER: {
                 printf("adding cylinder!\n");
-                params_SU.cyl_params.center.x = convertToPosSU<int, float>(params_UU.cyl_params.center.x);
-                params_SU.cyl_params.center.y = convertToPosSU<int, float>(params_UU.cyl_params.center.y);
-                params_SU.cyl_params.center.z = convertToPosSU<int, float>(params_UU.cyl_params.center.z);
+                setBCOffset(bc_type, params_UU, params_SU, make_float3(0, 0, 0));
 
                 // normal is unitless
                 // TODO normalize this just in case
                 // float abs = Length(params_UU);
                 params_SU.cyl_params.radius = convertToPosSU<int, float>(params_UU.cyl_params.radius);
                 params_SU.cyl_params.normal_sign = params_UU.cyl_params.normal_sign;
-
-                params_SU.active = true;
-                params_SU.track_forces = params_UU.track_forces;
 
                 BC_params_list_SU.push_back(params_SU);
                 break;

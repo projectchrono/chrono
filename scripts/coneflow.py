@@ -44,6 +44,10 @@ def plotInstance(t, t_arr, vals, function, D0):
 
     plt.plot(t, vals, label="$D_0=" + str(D0) + "$: weight on bottom, smoothed")
     plt.plot(t_arr, function(t_arr), label='Linear Fit, W(t) = ' + str(function).strip())
+    plt.title("Force on bottom vs time")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Force (N)")
+    plt.legend()
 
 def plotFlow(prefix_str, num):
     t = []
@@ -90,7 +94,7 @@ def plotFlow(prefix_str, num):
 
 
     fmin, fmax = np.min(fz_smooth), np.max(fz_smooth)
-    force_fit_pts = (fz_smooth > 0.1 * abs(fmin)) & (fz_smooth < 0.9  * fmax)
+    force_fit_pts = (fz_smooth > 0.1 * abs(fmax)) & (fz_smooth < 0.9  * fmax)
 
     t_arr = np.linspace(min(t[force_fit_pts]), max(t[force_fit_pts]))
     fzfit = np.polyfit(t[force_fit_pts], fz_smooth[force_fit_pts], 1)

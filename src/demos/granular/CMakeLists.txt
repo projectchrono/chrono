@@ -22,14 +22,15 @@ SET(DEMOS
 		demo_GRAN_TriMeshNoFric_SMC
 		demo_GRAN_TriMeshNoFric_SMC_tiredrag
 		metrics_GRAN_ballcosim
-		test_GRAN_milwave
-		test_GRAN_milsettle
+		demo_GRAN_wavetank
+		metrics_GRAN_milsettle
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
 		utest_GRAN_meshstep
 		test_GRAN_Coneflow
 		test_GRAN_HopperReposeAngle
 		utest_GRAN_spherefric
 		demo_GRAN_DamBreak
+		demo_GRAN_ShearBand
 		test_GRAN_meshforce
 		test_GRAN_hopperflow
 		test_GRAN_mixer

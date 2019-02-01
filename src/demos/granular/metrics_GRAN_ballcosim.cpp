@@ -111,19 +111,19 @@ int main(int argc, char* argv[]) {
     gran_sys.setParticlePositions(body_points);
 
     gran_sys.set_BD_Fixed(false);
-    std::function<double(double)> pos_func_still = [](double t) { return -0.5; };
-    std::function<double(double)> pos_func_wave = [](double t) {
+    std::function<float3(float)> pos_func_wave = [&params](float t) {
+        float3 pos = {0, 0, 0};
+
         double t0 = 0.0;
         double freq = M_PI;
 
-        if (t < t0) {
-            return -0.5;
-        } else {
-            return (-0.5 + 0.1 * std::sin((t - t0) * freq));
+        if (t > t0) {
+            pos.x = 0.1 * params.box_X * std::sin((t - t0) * freq);
         }
+        return pos;
     };
 
-    gran_sys.setBDPositionFunction(pos_func_wave, pos_func_still, pos_func_still);
+    gran_sys.setBDPositionFunction(pos_func_wave);
 
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);

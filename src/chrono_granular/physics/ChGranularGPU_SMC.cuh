@@ -1088,6 +1088,12 @@ static __global__ void updatePositions(const float stepsize_SU,  //!< The numeri
         float old_vel_Y = sphere_data.pos_Y_dt[mySphereID];
         float old_vel_Z = sphere_data.pos_Z_dt[mySphereID];
 
+        if (old_vel_X >= gran_params->max_safe_vel || old_vel_X == NAN || old_vel_Y >= gran_params->max_safe_vel ||
+            old_vel_Y == NAN || old_vel_Z >= gran_params->max_safe_vel || old_vel_Z == NAN) {
+            ABORTABORTABORT("Unsafe velocity computed -- sphere is %u, vel is (%f, %f, %f)\n", mySphereID, old_vel_X,
+                            old_vel_Y, old_vel_Z);
+        }
+
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {

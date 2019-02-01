@@ -353,9 +353,8 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
         determineNewStepSize_SU();  // doesn't always change the timestep
 
         // Update the position and velocity of the BD, if relevant
-        if (!BD_is_fixed) {
-            updateBDPosition(stepSize_SU);
-        }
+        updateBDPosition(stepSize_SU);
+        updateBCPositions();
 
         runSphereBroadphase();
         packSphereDataPointers(sphere_data);

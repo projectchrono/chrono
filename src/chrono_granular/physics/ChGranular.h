@@ -40,6 +40,12 @@
 namespace chrono {
 namespace granular {
 
+// use to compute position as a function of time
+typedef std::function<float3(float)> GranPositionFunction;
+
+// position function representing no motion or offset
+const GranPositionFunction GranPosFunction_default = [](float t) { return make_float3(0, 0, 0); };
+
 /// stores the data for a pair of contacting spheres
 struct contactDataStruct {
     /// other body involved in the contact
@@ -194,6 +200,8 @@ struct ChGranParams {
 
     /// this is to make clear that the underlying assumption is unit SU mass
     constexpr static float sphere_mass_SU = 1.f;
+
+    float max_safe_vel = (float)UINT_MAX;
 };
 }  // namespace granular
 }  // namespace chrono
@@ -266,6 +274,19 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         }
         BC_params_list_UU.at(BC_id).active = true;
         BC_params_list_SU.at(BC_id).active = true;
+        return true;
+    }
+
+    /// enable a BC by its ID, returns false if the BC does not exist
+    bool set_BC_offset_function(size_t BC_id, const GranPositionFunction& offset_function) {
+        size_t max_id = BC_params_list_SU.size();
+        if (BC_id >= max_id) {
+            printf("ERROR: Trying to set offset function for invalid BC ID %lu\n", BC_id);
+            return false;
+        }
+        BC_offset_function_list.at(BC_id) = offset_function;
+        BC_params_list_UU.at(BC_id).fixed = false;
+        BC_params_list_SU.at(BC_id).fixed = false;
         return true;
     }
 
@@ -364,13 +385,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
-    void setBDPositionFunction(const std::function<double(double)>& fx,
-                               const std::function<double(double)>& fy,
-                               const std::function<double(double)>& fz) {
-        BDPositionFunctionX = fx;
-        BDPositionFunctionY = fy;
-        BDPositionFunctionZ = fz;
-    }
+    void setBDPositionFunction(const GranPositionFunction& pos_fn) { BDPositionFunction = pos_fn; }
 
     void setBOXdims(float X_DIM, float Y_DIM, float Z_DIM) {
         box_size_X = X_DIM;
@@ -387,7 +402,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
     void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
     void writeFile(std::string ofile) const;
-    void updateBDPosition(float stepSize_SU);
+
+    void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
 
   protected:
     /// Create a helper to do sphere initialization
@@ -521,9 +537,17 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Store the prescribed position function for the BD, used for moving frames
     // Default is at rest
-    std::function<double(double)> BDPositionFunctionX = [](double a) { return 0; };
-    std::function<double(double)> BDPositionFunctionY = [](double a) { return 0; };
-    std::function<double(double)> BDPositionFunctionZ = [](double a) { return 0; };
+    GranPositionFunction BDPositionFunction = GranPosFunction_default;
+
+    void updateBDPosition(float stepSize_SU);
+    /// set the position of a BC and account for the offset
+    void setBCOffset(const BC_type&,
+                     const BC_params_t<float, float3>& params_UU,
+                     BC_params_t<int, int3>& params_SU,
+                     float3 offset_UU);
+
+    /// update positions of each BC using prescribed functions
+    void updateBCPositions();
 
     /// Total time elapsed since beginning of simulation
     float elapsedSimTime;
@@ -562,6 +586,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::vector<BC_type, cudallocator<BC_type>> BC_type_list;
     std::vector<BC_params_t<int, int3>, cudallocator<BC_params_t<int, int3>>> BC_params_list_SU;
     std::vector<BC_params_t<float, float3>, cudallocator<BC_params_t<float, float3>>> BC_params_list_UU;
+    std::vector<GranPositionFunction> BC_offset_function_list;
 
     /// User defined radius of the sphere
     float sphere_radius_UU;

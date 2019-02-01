@@ -67,6 +67,8 @@ template <typename T, typename T3>
 struct BC_params_t {
     /// Am I active?
     bool active;
+    /// Am I fixed?
+    bool fixed;
     /// Whether or not to track reaction forces
     bool track_forces;
     float3 reaction_forces;

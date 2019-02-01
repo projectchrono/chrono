@@ -53,7 +53,7 @@
 #define CUDA_THREADS_PER_BLOCK 128
 
 // NOTE this may change in the future, but until then this is sufficient
-static const int warp_size = 32;
+constexpr int warp_size = 32;
 
 /** Set up some error checking mechanism to ensure CUDA didn't complain about things.
  *   This approach suggested <a

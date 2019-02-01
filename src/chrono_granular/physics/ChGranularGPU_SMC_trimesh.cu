@@ -1044,9 +1044,9 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         determineNewStepSize_SU();  // doesn't always change the timestep
 
         // Update the position and velocity of the BD, if relevant
-        if (!BD_is_fixed) {
-            updateBDPosition(stepSize_SU);
-        }
+        updateBDPosition(stepSize_SU);
+        updateBCPositions();
+
         resetSphereAccelerations();
         resetBCForces();
         resetTriangleForces();
