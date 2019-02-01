@@ -279,6 +279,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkMotorRotationDriveline)
 %shared_ptr(chrono::ChLinkMotorRotationSpeed)
 %shared_ptr(chrono::ChLinkMotorRotationTorque)
+%shared_ptr(chrono::ChLinkTrajectory)
+%shared_ptr(chrono::ChLinkPointSpline)
 %shared_ptr(chrono::ChLoadBase)
 %shared_ptr(chrono::ChLoad)
 %shared_ptr(chrono::ChLoadCustom)
@@ -436,7 +438,9 @@ using namespace chrono::fea;
 %include "ChLinkGear.i"
 %include "ChLinkRevolute.i"
 %include "ChLinkRevoluteSpherical.i"
-%include "ChLinkUniversal.i"
+%include "ChLinkUniversal.i" 
+%include "ChLinkTrajectory.i" 
+%include "ChLinkPointSpline.i"
 
 %include "ChShaft.i"
 %include "ChShaftsCouple.i"
@@ -577,6 +581,8 @@ using namespace chrono::fea;
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkSpring)
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkPointSpline) 
+%DefChSharedPtrDynamicDowncast(ChLink, ChLinkTrajectory)
 
 %DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Const)
 %DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_ConstAcc)
