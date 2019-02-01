@@ -1,137 +1,65 @@
-#-------------------------------------------------------------------------------
-# Name:        modulo1
+#------------------------------------------------------------------------------
+# Name:        pychrono example
 # Purpose:
 #
-# Author:      tasora
+# Author:      Alessandro Tasora
 #
-# Created:     14/02/2012
-# Copyright:   (c) tasora 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+print ("Example: create OpenCascade shapes and use them as rigid bodies");
 
 
-import os
-import math
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 import pychrono.cascade as cascade
-from OCC.Core.TopoDS import TopoDS_Shape
+import OCC.Core.BRepPrimAPI
+import OCC.BRepAlgoAPI
 
-print ("Example: create a system and visualize it in realtime 3D");
+# Change this path to asset path, if running from other working dir. 
+# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
+chrono.SetChronoDataPath("../../../data/")
+
 
 # ---------------------------------------------------------------------
 #
 #  Create the simulation system and add items
 #
 
+    
 mysystem      = chrono.ChSystemNSC()
 
-# Load a STEP file, containing a mechanism. The demo STEP file has been
-# created using a 3D CAD (in this case, SolidEdge v.18).
-#
 
-# Create the ChCascadeDoc, a container that loads the STEP model
-# and manages its subassembles
-mydoc = cascade.ChCascadeDoc()
-
-chrono.SetChronoDataPath("C:/tasora/code/projectchrono/chrono/data/")
-
-# load the STEP model using this command:
-load_ok = mydoc.Load_STEP(chrono.GetChronoDataFile("cascade/assembly.stp"));  # or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
-
-# print the contained shapes
-#mydoc.Dump(chrono.GetLog())
+# Set the global collision margins. This is expecially important for very large or
+# very small objects. Set this before creating shapes. Not before creating mysystem.
+chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001);
+chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 
 
-CH_C_PI = 3.1456
+# create a 3dCAD shape using the OCC OpenCascade API (a torus cut by a cylinder)
+my_torus    = OCC.Core.BRepPrimAPI.BRepPrimAPI_MakeTorus(0.1,0.02).Shape()
+my_cylinder = OCC.Core.BRepPrimAPI.BRepPrimAPI_MakeCylinder(0.09,0.1).Shape()
+my_shape    = OCC.BRepAlgoAPI.BRepAlgoAPI_Cut(my_torus, my_cylinder).Shape()
 
-# In most CADs the Y axis is horizontal, but we want it vertical.
-# So define a root transformation for rotating all the imported objects.
-rotation1 = chrono.ChQuaternionD()
-rotation1.Q_from_AngAxis(-CH_C_PI / 2, chrono.ChVectorD(1, 0, 0));  # 1: rotate 90° on X axis
-rotation2 = chrono.ChQuaternionD()
-rotation2.Q_from_AngAxis(CH_C_PI, chrono.ChVectorD(0, 1, 0));  # 2: rotate 180° on vertical Y axis
-tot_rotation = chrono.ChQuaternionD()
-tot_rotation = rotation2 % rotation1     # rotate on 1 then on 2, using quaternion product
-root_frame = chrono.ChFrameMovingD(chrono.ChVectorD(0, 0, 0), tot_rotation);
+# use it to make a body with proper center of mass and inertia tensor,
+# given the CAD shape. Also visualize it.
+my_body = cascade.ChBodyEasyCascade(my_shape,# the CAD shape
+                                  1000,    # the density
+                                  True,    # must collide using the triangle mesh geometry?
+                                  True)    # must be visualized?
+mysystem.Add(my_body)
 
-# Retrieve some sub shapes from the loaded model, using
-# the GetNamedShape() function, that can use path/subpath/subsubpath/part
-# syntax and * or ? wildcards, etc.
-
-mrigidBody1 = 0
-mrigidBody2 = 0
-
-if load_ok: 
     
-    shape1 = TopoDS_Shape()
-    if (mydoc.GetNamedShape(shape1, "Assem1/body1")):
-        
-        mbody1 = mydoc.CreateBodyFromShape(shape1,1000, False, True)
-        # or: mbody1 = cascade.ChBodyEasyCascade(shape1, 1000, False, True)
-        mysystem.Add(mbody1)
-        
-        mbody1.SetBodyFixed(True) 
-        
-        # Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
-        mbody1.ConcatenatePreTransformation(root_frame);
-        
-        mrigidBody1= mbody1;
-        
-    else:
-        print("Warning. Desired object not found in document \n")
-
-    shape2 = TopoDS_Shape()
-    if (mydoc.GetNamedShape(shape2, "Assem1/body2")): 
-        
-        mbody2 = mydoc.CreateBodyFromShape(shape2,1000, False, True)
-        # or: mbody2 = cascade.ChBodyEasyCascade(shape2, 1000, False, True)
-        mysystem.Add(mbody2)
-        
-        # Move the body as for global displacement/rotation  (also mbody2 %= root_frame; )
-        mbody2.ConcatenatePreTransformation(root_frame);
-
-        mrigidBody2= mbody2;
-        
-    else:
-        print("Warning. Desired object not found in document \n")
-
-else:
-    print("Warning. Desired STEP file could not be opened/parsed \n")
-
-# Create a revolute joint between the two parts
-# as in a pendulum. We assume we already know in advance
-# the aboslute position of the joint (ex. we used measuring tools in the 3D CAD)
-
-measured_joint_pos_mm = chrono.ChVectorD(0, 48, 120);
-
-scale = 1. / 1000.  # because we use meters instead of mm
-
-joint_pos = chrono.ChVectorD(root_frame.TransformPointLocalToParent(measured_joint_pos_mm * scale)) 
-                             # transform because we rotated everything
-
-if (mrigidBody1 and mrigidBody2):
-    my_link = chrono.ChLinkLockRevolute()
-    my_link.Initialize(mrigidBody1, mrigidBody2, chrono.ChCoordsysD(joint_pos));
-    mysystem.Add(my_link);
-
-
 # Create a large cube as a floor.
 
-mfloor = chrono.ChBodyEasyBox(1, 0.2, 1, 1000)
-mfloor.SetPos(chrono.ChVectorD(0,-0.3,0))
-mfloor.SetBodyFixed(True)
-mysystem.Add(mfloor)
+my_floor = chrono.ChBodyEasyBox(1, 0.2, 1, 1000, True)
+my_floor.SetPos(chrono.ChVectorD(0,-0.3,0))
+my_floor.SetBodyFixed(True)
+mysystem.Add(my_floor)
 
-mcolor = chrono.ChColorAsset(0.3, 0.3, 0.8)
-mfloor.AddAsset(mcolor)
+my_color = chrono.ChColorAsset(0.2, 0.2, 0.5)
+my_floor.AddAsset(my_color)
 
 
 
@@ -140,9 +68,10 @@ mfloor.AddAsset(mcolor)
 #  Create an Irrlicht application to visualize the system
 #
 
-myapplication = chronoirr.ChIrrApp(mysystem, 'Test', chronoirr.dimension2du(1024,768))
+myapplication = chronoirr.ChIrrApp(mysystem, 'Use OpenCascade shapes', chronoirr.dimension2du(1024,768))
 
 myapplication.AddTypicalSky(chrono.GetChronoDataPath() + 'skybox/')
+myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.2,0.2,-0.2))
 myapplication.AddTypicalLights()
 
@@ -164,8 +93,9 @@ myapplication.AssetUpdateAll();
 #  Run the simulation
 #
 
+mysystem.SetSolverType(chrono.ChSolver.Type_SOR)
 
-myapplication.SetTimestep(0.01)
+myapplication.SetTimestep(0.005)
 
 
 while(myapplication.GetDevice().run()):
