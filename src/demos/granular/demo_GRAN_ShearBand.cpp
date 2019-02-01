@@ -120,8 +120,8 @@ int main(int argc, char* argv[]) {
 
     size_t plane_bc_id = gran_sys.Create_BC_Plane(plane_pos, plane_normal, false);
 
-    std::function<float3(float)> plane_pos_func = [&params](float t) {
-        float3 pos = {0, 0, 0};
+    std::function<double3(float)> plane_pos_func = [&params](float t) {
+        double3 pos = {0, 0, 0};
 
         // move at 10 cm/s
         constexpr float vel = 10;

@@ -159,6 +159,7 @@ __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
     }
 
     // Case 3: Triangle spans more than one dimension of spheresTouchingThisSD
+    // TODO check that this is safe to do
     float SDcenter[3];
     float SDhalfSizes[3];
     for (int i = L[0]; i <= U[0]; i++) {
@@ -561,9 +562,9 @@ __global__ void interactionTerrain_TriangleSoup(
         // We may need long ints to index into composite array
         size_t offset_in_composite_Array = SD_composite_offset + sphereIDLocal;
         sphereIDGlobal = sphere_data.spheres_in_SD_composite[offset_in_composite_Array];
-        sphere_X[sphereIDLocal] = sphere_data.pos_X[sphereIDGlobal];
-        sphere_Y[sphereIDLocal] = sphere_data.pos_Y[sphereIDGlobal];
-        sphere_Z[sphereIDLocal] = sphere_data.pos_Z[sphereIDGlobal];
+        sphere_X[sphereIDLocal] = sphere_data.sphere_local_pos_X[sphereIDGlobal];
+        sphere_Y[sphereIDLocal] = sphere_data.sphere_local_pos_Y[sphereIDGlobal];
+        sphere_Z[sphereIDLocal] = sphere_data.sphere_local_pos_Z[sphereIDGlobal];
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
             omega[sphereIDLocal] =
                 make_float3(sphere_data.sphere_Omega_X[sphereIDGlobal], sphere_data.sphere_Omega_Y[sphereIDGlobal],

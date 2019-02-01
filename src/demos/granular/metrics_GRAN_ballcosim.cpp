@@ -111,8 +111,8 @@ int main(int argc, char* argv[]) {
     gran_sys.setParticlePositions(body_points);
 
     gran_sys.set_BD_Fixed(false);
-    std::function<float3(float)> pos_func_wave = [&params](float t) {
-        float3 pos = {0, 0, 0};
+    std::function<double3(float)> pos_func_wave = [&params](float t) {
+        double3 pos = {0, 0, 0};
 
         double t0 = 0.0;
         double freq = M_PI;

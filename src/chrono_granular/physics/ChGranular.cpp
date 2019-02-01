@@ -70,12 +70,14 @@ size_t ChSystemGranular_MonodisperseSMC::estimateMemUsage() const {
 
 void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& packed) {
     // Set data from system
-    packed.pos_X = pos_X.data();
-    packed.pos_Y = pos_Y.data();
-    packed.pos_Z = pos_Z.data();
+    packed.sphere_local_pos_X = sphere_local_pos_X.data();
+    packed.sphere_local_pos_Y = sphere_local_pos_Y.data();
+    packed.sphere_local_pos_Z = sphere_local_pos_Z.data();
     packed.pos_X_dt = pos_X_dt.data();
     packed.pos_Y_dt = pos_Y_dt.data();
     packed.pos_Z_dt = pos_Z_dt.data();
+
+    packed.sphere_owner_SDs = sphere_owner_SDs.data();
 
     if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
         packed.sphere_Omega_X = sphere_Omega_X.data();
@@ -126,9 +128,9 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
 //
 //     outstrstream << "\n";
 //     for (unsigned int n = 0; n < nSpheres; n++) {
-//         float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
-//         float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
-//         float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
+//         float x_UU = sphere_local_pos_X[n] * gran_params->LENGTH_UNIT;
+//         float y_UU = sphere_local_pos_Y[n] * gran_params->LENGTH_UNIT;
+//         float z_UU = sphere_local_pos_Z[n] * gran_params->LENGTH_UNIT;
 //
 //         outstrstream << x_UU << "," << y_UU << "," << z_UU << "\n";
 //     }
@@ -159,9 +161,9 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& 
 //     while (ptFile.good()) {
 //         std::vector<float> line_data;
 //         tokenizeCSVLine(ptFile, line_data);
-//         pos_X[curr_sphere_id] = line_data.at(0);
-//         pos_Y[curr_sphere_id] = line_data.at(1);
-//         pos_Z[curr_sphere_id] = line_data.at(2);
+//         sphere_local_pos_X[curr_sphere_id] = line_data.at(0);
+//         sphere_local_pos_Y[curr_sphere_id] = line_data.at(1);
+//         sphere_local_pos_Z[curr_sphere_id] = line_data.at(2);
 //     }
 // }  // namespace granular
 
@@ -178,9 +180,20 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
             float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
                          (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
-            float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
-            float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
-            float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
+
+            unsigned int ownerSD = sphere_owner_SDs.at(n);
+            int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+            float x_UU = sphere_local_pos_X[n] * gran_params->LENGTH_UNIT;
+            float y_UU = sphere_local_pos_Y[n] * gran_params->LENGTH_UNIT;
+            float z_UU = sphere_local_pos_Z[n] * gran_params->LENGTH_UNIT;
+
+            // add on SD offset
+            x_UU = x_UU +
+                   (gran_params->BD_frame_X + ownerSD_trip.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
+            y_UU = y_UU +
+                   (gran_params->BD_frame_Y + ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
+            z_UU = z_UU +
+                   (gran_params->BD_frame_Z + ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
 
             ptFile.write((const char*)&x_UU, sizeof(float));
             ptFile.write((const char*)&y_UU, sizeof(float));
@@ -199,21 +212,31 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
 
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
-        outstrstream << "x,y,z,absv";
+        outstrstream << "x,y,z,absv,ownerSD";
 
         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             outstrstream << ",wx,wy,wz";
         }
         outstrstream << "\n";
         for (unsigned int n = 0; n < nSpheres; n++) {
+            unsigned int ownerSD = sphere_owner_SDs.at(n);
             float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
                          (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
-            float x_UU = pos_X[n] * gran_params->LENGTH_UNIT;
-            float y_UU = pos_Y[n] * gran_params->LENGTH_UNIT;
-            float z_UU = pos_Z[n] * gran_params->LENGTH_UNIT;
+            int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+            float x_UU = sphere_local_pos_X[n] * gran_params->LENGTH_UNIT;
+            float y_UU = sphere_local_pos_Y[n] * gran_params->LENGTH_UNIT;
+            float z_UU = sphere_local_pos_Z[n] * gran_params->LENGTH_UNIT;
 
-            outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv;
+            // add on SD offset
+            x_UU = x_UU +
+                   (gran_params->BD_frame_X + ownerSD_trip.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
+            y_UU = y_UU +
+                   (gran_params->BD_frame_Y + ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
+            z_UU = z_UU +
+                   (gran_params->BD_frame_Z + ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+
+            outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv << "," << ownerSD;
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                 outstrstream << "," << sphere_Omega_X.at(n) << "," << sphere_Omega_Y.at(n) << ","
@@ -281,7 +304,8 @@ void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU)
     float frame_Y_old = gran_params->BD_frame_Y;
     float frame_Z_old = gran_params->BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
-    float3 newpos = BDPositionFunction(elapsedSimTime);
+    double3 newpos = BDPositionFunction(elapsedSimTime);
+    // compute in double and cast to int64_t
     gran_params->BD_frame_X =
         -0.5 * gran_params->nSDs_X * gran_params->SD_size_X_SU + newpos.x / gran_params->LENGTH_UNIT;
     gran_params->BD_frame_Y =
@@ -462,7 +486,7 @@ double ChSystemGranular_MonodisperseSMC::get_max_K() const {
 void ChSystemGranular_MonodisperseSMC::setBCOffset(const BC_type& bc_type,
                                                    const BC_params_t<float, float3>& params_UU,
                                                    BC_params_t<int, int3>& params_SU,
-                                                   float3 offset_UU) {
+                                                   double3 offset_UU) {
     switch (bc_type) {
         case BC_type::SPHERE: {
             params_SU.sphere_params.sphere_center.x =
@@ -520,7 +544,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
         switch (bc_type) {
             case BC_type::SPHERE: {
                 printf("adding sphere!\n");
-                setBCOffset(bc_type, params_UU, params_SU, make_float3(0, 0, 0));
+                setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
                 params_SU.sphere_params.radius = convertToPosSU<int, float>(params_UU.sphere_params.radius);
                 params_SU.sphere_params.normal_sign = params_UU.sphere_params.normal_sign;
 
@@ -530,7 +554,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
 
             case BC_type::CONE: {
                 printf("adding cone!\n");
-                setBCOffset(bc_type, params_UU, params_SU, make_float3(0, 0, 0));
+                setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
                 params_SU.cone_params.slope = params_UU.cone_params.slope;
                 params_SU.cone_params.normal_sign = params_UU.cone_params.normal_sign;
@@ -540,7 +564,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
             }
             case BC_type::PLANE: {
                 printf("adding plane!\n");
-                setBCOffset(bc_type, params_UU, params_SU, make_float3(0, 0, 0));
+                setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
                 // normal is unitless
                 // TODO normalize this just in case
@@ -554,7 +578,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
             }
             case BC_type::CYLINDER: {
                 printf("adding cylinder!\n");
-                setBCOffset(bc_type, params_UU, params_SU, make_float3(0, 0, 0));
+                setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
 
                 // normal is unitless
                 // TODO normalize this just in case
@@ -575,14 +599,15 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
 
 void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
     switchToSimUnits();
-    setupSphereDataStructures();
 
     // Set aside memory for holding data structures worked with. Get some initializations going
-    setupSimulation();
+    partitionBD();
+
     copyConstSphereDataToDevice();
 
     determineNewStepSize_SU();
     convertBCUnits();
+    setupSphereDataStructures();
 
     // Seed arrays that are populated by the kernel call
     resetBroadphaseInformation();
@@ -608,92 +633,9 @@ void ChSystemGranular_MonodisperseSMC::initialize() {
     printf("Approx mem usage is %s\n", pretty_format_bytes(approx_mem_usage).c_str());
 }
 
-// set up sphere-sphere data structures
-void ChSystemGranular_MonodisperseSMC::setupSimulation() {
-    partitionBD();
-    // allocate mem for array saying for each SD how many spheres touch it
-    TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
-    TRACK_VECTOR_RESIZE(SD_SphereCompositeOffsets, nSDs, "SD_SphereCompositeOffsets", 0);
-    // assume each sphere touches 2 SDs on average
-    // NOTE that this will get resized again later, this is just the first estimate
-    TRACK_VECTOR_RESIZE(spheres_in_SD_composite, 2 * nSpheres, "spheres_in_SD_composite", NULL_GRANULAR_ID);
-}
-
 // Set particle positions in UU
 void ChSystemGranular_MonodisperseSMC::setParticlePositions(const std::vector<ChVector<float>>& points) {
     user_sphere_positions = points;  // Copy points to class vector
-}
-
-void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
-    // Each fills user_sphere_positions with positions to be copied
-    if (user_sphere_positions.size() == 0) {
-        printf("ERROR: no sphere positions given!\n");
-        exit(1);
-    }
-
-    // dump these into SU, we no longer need their UU componenets
-    for (auto& point : user_sphere_positions) {
-        point /= gran_params->LENGTH_UNIT;
-    }
-
-    nSpheres = (unsigned int)user_sphere_positions.size();
-    std::cout << nSpheres << " balls added!" << std::endl;
-    gran_params->nSpheres = nSpheres;
-
-    // Allocate space for new bodies
-    TRACK_VECTOR_RESIZE(pos_X, nSpheres, "pos_X", 0);
-    TRACK_VECTOR_RESIZE(pos_Y, nSpheres, "pos_Y", 0);
-    TRACK_VECTOR_RESIZE(pos_Z, nSpheres, "pos_Z", 0);
-    TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
-    TRACK_VECTOR_RESIZE(pos_Y_dt, nSpheres, "pos_Y_dt", 0);
-    TRACK_VECTOR_RESIZE(pos_Z_dt, nSpheres, "pos_Z_dt", 0);
-    TRACK_VECTOR_RESIZE(sphere_acc_X, nSpheres, "sphere_acc_X", 0);
-    TRACK_VECTOR_RESIZE(sphere_acc_Y, nSpheres, "sphere_acc_Y", 0);
-    TRACK_VECTOR_RESIZE(sphere_acc_Z, nSpheres, "sphere_acc_Z", 0);
-
-    if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-        // add rotational DOFs
-        TRACK_VECTOR_RESIZE(sphere_Omega_X, nSpheres, "sphere_Omega_X", 0);
-        TRACK_VECTOR_RESIZE(sphere_Omega_Y, nSpheres, "sphere_Omega_Y", 0);
-        TRACK_VECTOR_RESIZE(sphere_Omega_Z, nSpheres, "sphere_Omega_Z", 0);
-
-        // add torques
-        TRACK_VECTOR_RESIZE(sphere_ang_acc_X, nSpheres, "sphere_ang_acc_X", 0);
-        TRACK_VECTOR_RESIZE(sphere_ang_acc_Y, nSpheres, "sphere_ang_acc_Y", 0);
-        TRACK_VECTOR_RESIZE(sphere_ang_acc_Z, nSpheres, "sphere_ang_acc_Z", 0);
-    }
-
-    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP || friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
-        contactDataStruct null_data;
-        null_data.active = false;
-        null_data.body_B = NULL_GRANULAR_ID;
-        TRACK_VECTOR_RESIZE(sphere_contact_map, 12 * nSpheres, "sphere_contact_map", null_data);
-    }
-    if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
-        float3 null_history = {0., 0., 0.};
-        TRACK_VECTOR_RESIZE(contact_history_map, 12 * nSpheres, "contact_history_map", null_history);
-    }
-
-    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
-        TRACK_VECTOR_RESIZE(sphere_acc_X_old, nSpheres, "sphere_acc_X_old", 0);
-        TRACK_VECTOR_RESIZE(sphere_acc_Y_old, nSpheres, "sphere_acc_Y_old", 0);
-        TRACK_VECTOR_RESIZE(sphere_acc_Z_old, nSpheres, "sphere_acc_Z_old", 0);
-
-        // friction and multistep means keep old ang acc
-        if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-            TRACK_VECTOR_RESIZE(sphere_ang_acc_X_old, nSpheres, "sphere_ang_acc_X_old", 0);
-            TRACK_VECTOR_RESIZE(sphere_ang_acc_Y_old, nSpheres, "sphere_ang_acc_Y_old", 0);
-            TRACK_VECTOR_RESIZE(sphere_ang_acc_Z_old, nSpheres, "sphere_ang_acc_Z_old", 0);
-        }
-    }
-
-    // Copy from array of structs to 3 arrays
-    for (unsigned int i = 0; i < nSpheres; i++) {
-        auto vec = user_sphere_positions.at(i);
-        pos_X.at(i) = (int)(vec.x());
-        pos_Y.at(i) = (int)(vec.y());
-        pos_Z.at(i) = (int)(vec.z());
-    }
 }
 
 /**
@@ -745,6 +687,10 @@ void ChSystemGranular_MonodisperseSMC::partitionBD() {
     gran_params->BD_frame_Y_dot = 0;
     gran_params->BD_frame_Z_dot = 0;
     printf("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y, gran_params->nSDs_Z);
+
+    // allocate mem for array saying for each SD how many spheres touch it
+    TRACK_VECTOR_RESIZE(SD_NumSpheresTouching, nSDs, "SD_numSpheresTouching", 0);
+    TRACK_VECTOR_RESIZE(SD_SphereCompositeOffsets, nSDs, "SD_SphereCompositeOffsets", 0);
 }
 
 /**

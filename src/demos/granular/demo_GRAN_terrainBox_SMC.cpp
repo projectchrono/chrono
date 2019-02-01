@@ -117,6 +117,8 @@ int main(int argc, char* argv[]) {
 
         body_points = sampler.SampleBox(center, hdims);
     }
+    std::vector<ChVector<float>> first_points;
+    first_points.push_back(body_points.at(0));
     settlingExperiment.setParticlePositions(body_points);
 
     switch (params.run_mode) {
@@ -151,7 +153,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setVerbose(params.verbose);
     settlingExperiment.initialize();
 
-    int fps = 50;
+    int fps = 200;
     // assume we run for at least one frame
     // float frame_step = params.step_size * 100.f;
     float frame_step = 1.f / fps;

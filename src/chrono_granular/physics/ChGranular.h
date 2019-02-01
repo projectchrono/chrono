@@ -41,10 +41,10 @@ namespace chrono {
 namespace granular {
 
 // use to compute position as a function of time
-typedef std::function<float3(float)> GranPositionFunction;
+typedef std::function<double3(float)> GranPositionFunction;
 
 // position function representing no motion or offset
-const GranPositionFunction GranPosFunction_default = [](float t) { return make_float3(0, 0, 0); };
+const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
 
 /// stores the data for a pair of contacting spheres
 struct contactDataStruct {
@@ -58,9 +58,9 @@ struct contactDataStruct {
 struct sphereDataStruct {
   public:
     /// Store positions and velocities in unified memory
-    int* pos_X;
-    int* pos_Y;
-    int* pos_Z;
+    int* sphere_local_pos_X;
+    int* sphere_local_pos_Y;
+    int* sphere_local_pos_Z;
     float* pos_X_dt;
     float* pos_Y_dt;
     float* pos_Z_dt;
@@ -97,6 +97,9 @@ struct sphereDataStruct {
     unsigned int* SD_SphereCompositeOffsets;
     /// big composite array of sphere-SD membership
     unsigned int* spheres_in_SD_composite;
+
+    /// list of owner SDs for each sphere
+    unsigned int* sphere_owner_SDs;
 };
 
 // How are we writing?
@@ -175,11 +178,11 @@ struct ChGranParams {
 
     /// Changed by updateBDPosition() at every timestep
     /// The bottom-left corner xPos of the BD, allows boxes not centered at origin
-    int BD_frame_X;
+    int64_t BD_frame_X;
     /// The bottom-left corner yPos of the BD, allows boxes not centered at origin
-    int BD_frame_Y;
+    int64_t BD_frame_Y;
     /// The bottom-left corner zPos of the BD, allows boxes not centered at origin
-    int BD_frame_Z;
+    int64_t BD_frame_Z;
     float BD_frame_X_dot;
     float BD_frame_Y_dot;
     float BD_frame_Z_dot;
@@ -344,9 +347,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
 
-    /// set up data structures and carry out pre-processing tasks
-    virtual void setupSimulation();
-
     /// advance simulation by duration seconds in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double advance_simulation(float duration);
@@ -406,6 +406,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
 
   protected:
+    /// Wrap the device helper function
+    int3 getSDTripletFromID(unsigned int SD_ID) const;
+
     /// Create a helper to do sphere initialization
     void initializeSpheres();
 
@@ -435,9 +438,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
     // Makes somewhat faster memcpys
     /// Store positions and velocities in unified memory
-    std::vector<int, cudallocator<int>> pos_X;
-    std::vector<int, cudallocator<int>> pos_Y;
-    std::vector<int, cudallocator<int>> pos_Z;
+    std::vector<int, cudallocator<int>> sphere_local_pos_X;
+    std::vector<int, cudallocator<int>> sphere_local_pos_Y;
+    std::vector<int, cudallocator<int>> sphere_local_pos_Z;
     std::vector<float, cudallocator<float>> pos_X_dt;
     std::vector<float, cudallocator<float>> pos_Y_dt;
     std::vector<float, cudallocator<float>> pos_Z_dt;
@@ -478,6 +481,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Array containing the IDs of the spheres stored in the SDs associated with the box
     std::vector<unsigned int, cudallocator<unsigned int>> spheres_in_SD_composite;
+
+    /// list of owner SDs for each sphere
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs;
 
     /// User provided maximum timestep in UU, used in adaptive timestepping
     float max_adaptive_step_UU = 1e-3;
@@ -544,7 +550,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void setBCOffset(const BC_type&,
                      const BC_params_t<float, float3>& params_UU,
                      BC_params_t<int, int3>& params_SU,
-                     float3 offset_UU);
+                     double3 offset_UU);
 
     /// update positions of each BC using prescribed functions
     void updateBCPositions();

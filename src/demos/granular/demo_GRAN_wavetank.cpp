@@ -93,8 +93,8 @@ int main(int argc, char* argv[]) {
 
     // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
     // will not be stable.
-    std::function<float3(float)> pos_func_wave = [&params](float t) {
-        float3 pos = {0, 0, 0};
+    std::function<double3(float)> pos_func_wave = [&params](float t) {
+        double3 pos = {0, 0, 0};
 
         float t0 = 0.5;
         float freq = 0.5 * M_PI;

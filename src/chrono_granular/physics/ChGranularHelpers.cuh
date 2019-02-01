@@ -18,12 +18,17 @@
 
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
-inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, GranParamsPtr gran_params) {
+inline __device__ int3 pointSDTriplet(int64_t sphCenter_X,
+                                      int64_t sphCenter_Y,
+                                      int64_t sphCenter_Z,
+                                      GranParamsPtr gran_params) {
     // Note that this offset allows us to have moving walls and the like very easily
 
     int64_t sphCenter_X_modified = -gran_params->BD_frame_X + sphCenter_X;
     int64_t sphCenter_Y_modified = -gran_params->BD_frame_Y + sphCenter_Y;
     int64_t sphCenter_Z_modified = -gran_params->BD_frame_Z + sphCenter_Z;
+    // printf("PST: global is %lld, %lld, %lld, modified is %lld, %lld, %lld\n", sphCenter_X, sphCenter_Y, sphCenter_Z,
+    // sphCenter_X_modified, sphCenter_Y_modified, sphCenter_Z_modified);
     int3 n;
     // Get the SD of the sphere's center in the xdir
     n.x = (sphCenter_X_modified) / gran_params->SD_size_X_SU;
@@ -33,7 +38,39 @@ inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphC
     return n;
 }
 
-// inline __device__ pointSDID(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, GranParamsPtr gran_params) {}
+// Decide which SD owns this point in space
+// Short form overload for regular ints
+inline __device__ int3 pointSDTriplet(int sphCenter_X, int sphCenter_Y, int sphCenter_Z, GranParamsPtr gran_params) {
+    // call the 64-bit overload
+    return pointSDTriplet((int64_t)sphCenter_X, (int64_t)sphCenter_Y, (int64_t)sphCenter_Z, gran_params);
+}
+
+// Decide which SD owns this point in space
+// overload for doubles (used in triangle code)
+inline __device__ int3 pointSDTriplet(double sphCenter_X,
+                                      double sphCenter_Y,
+                                      double sphCenter_Z,
+                                      GranParamsPtr gran_params) {
+    // call the 64-bit overload
+    return pointSDTriplet((int64_t)sphCenter_X, (int64_t)sphCenter_Y, (int64_t)sphCenter_Z, gran_params);
+}
+
+// Conver SD ID to SD triplet
+inline __host__ __device__ int3 SDIDTriplet(unsigned int SD_ID, GranParamsPtr gran_params) {
+    int3 SD_trip = {0, 0, 0};
+    // find X component
+    SD_trip.x = SD_ID / gran_params->nSDs_Y * gran_params->nSDs_Z;
+    // subtract off the x contribution
+    SD_ID -= SD_trip.x * gran_params->nSDs_Y * gran_params->nSDs_Z;
+    // find y component
+    SD_trip.y = SD_ID / gran_params->nSDs_Z;
+    // subtract off the y contribution
+    SD_ID -= SD_trip.y * gran_params->nSDs_Z;
+    // find z component
+    SD_trip.z = SD_ID;
+
+    return SD_trip;
+}
 
 // Convert triplet to single int SD ID
 inline __device__ unsigned int SDTripletID(const int i, const int j, const int k, GranParamsPtr gran_params) {
