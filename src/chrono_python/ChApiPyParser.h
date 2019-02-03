@@ -42,7 +42,7 @@
     @brief Parsing of Python commands 
 
     This module has two functions:
-    - it builds Chrono::PyEngine modules that later can be used in a Python program, 
+    - it builds PyChrono modules that later can be used in a Python program, 
       that wrap the Chrono functions,
     - it builds a PyParser library that can be used from the C++ side to parse and execute Python commands
 
