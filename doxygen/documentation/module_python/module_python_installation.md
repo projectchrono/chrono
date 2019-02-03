@@ -9,11 +9,11 @@ This is an optional module that adds Python support in Chrono.
 
 The **PYTHON module** allows users to use [Python](http://www.python.org)  
 for creating simulations. As with any scripting language, this allows for immediate execution, no compilers involved, simple to use, etc.
-This module is used to build the [Chrono::PyEngine](@ref introduction_chrono_pyengine) wrapper.
+This module is used to build the [PyChrono](@ref pychrono_introduction) wrapper.
 
 This module consists of *two* main sets of build targets:
 
-- The Python modules for [Chrono::PyEngine](@ref introduction_chrono_pyengine). 
+- The Python modules for [PyChrono](@ref pychrono_introduction). 
   Currently, the PyChrono Python modules that are built are:
     - *pychrono*, that wraps most Chrono classes, equivalent to the chrono:: namespace
 	- *pychrono.fea*, that wraps FEA classes, equivalent to the chrono::fea:: namespace.
@@ -66,7 +66,7 @@ If you have multiple Python installations on the same machine, you may need to e
   ../../chrono
 </pre>
 
-After successful compilation, the [Chrono::PyEngine](@ref introduction_chrono_pyengine) modules can be used either from the *BUILD* tree or, after installation, from the *INSTALL* tree.  In order for the generated Python modules to be accessible, you must set/append to the <tt>PYTHONPATH</tt> environment variable.  During configuration, the Chrono CMake script will output the proper paths to be used in setting the PYTHONPATH environment variables; for example:
+After successful compilation, the [PyChrono](@ref pychrono_introduction) modules can be used either from the *BUILD* tree or, after installation, from the *INSTALL* tree.  In order for the generated Python modules to be accessible, you must set/append to the <tt>PYTHONPATH</tt> environment variable.  During configuration, the Chrono CMake script will output the proper paths to be used in setting the PYTHONPATH environment variables; for example:
 
 - Windows:
 <img src="http://www.projectchrono.org/assets/manual/ChronoPython_config.png" width="500">
@@ -85,15 +85,15 @@ Setting/changing environment variables is platform-specific.
 
 
 ## Usage
-For more details on using the [Chrono::PyEngine](@ref introduction_chrono_pyengine) module, see the [introduction to Python scripting](@ref chrono_pyengine_reference) .
+For more details on how to use the resulting modules, look here:
 
 - C++ functions (as Python parser)
     - Look at the [API section](group__python__module.html) of this module for documentation about C++ functions.
     - Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the C++ functions of this module.
 
-- Python functions (as [Chrono::PyEngine](@ref introduction_chrono_pyengine) )
-    - Look at the [reference](@ref chrono_pyengine_reference) of Chrono::PyEngine to learn how to use Python to control Chrono.
-    - Look at the Python source of [demos](@ref tutorial_table_of_content_chrono_pyengine) to learn how to use Chrono::PyEngine.
+- Python functions (as [PyChrono](@ref pychrono_introduction) )
+    - Look at the [reference](@ref pychrono_reference) of PyChrono, about using Chrono from the Python side.
+    - Look at the Python source of [demos](@ref tutorial_table_of_content_pychrono).
 
 ## Notes
 

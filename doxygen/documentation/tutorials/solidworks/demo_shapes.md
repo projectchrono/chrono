@@ -22,7 +22,7 @@ Also groups of them are supported.
 + you must have a [SolidWorks](http://www.solidworks.com) CAD license.
 + the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in must be installed in SolidWorks.
 Optionally, for the last steps of the tutorial (rendering the animation) these tools must be installed: 
-+ the [Chrono::PyEngine](@ref introduction_chrono_pyengine) python module must be installed in your Python environment, 
++ the [PyChrono](@ref pychrono_introduction) python module must be installed in your Python environment, 
 + the [POVray](http://www.povray.org) rendering software must be installed
 + the [VirtualDub](http://www.virtualdub.org) video editing tool must be installed
 

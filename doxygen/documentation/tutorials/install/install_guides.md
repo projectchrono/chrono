@@ -39,8 +39,8 @@ Installation Guides {#tutorial_table_of_content_install}
 	
 ## How to install auxiliary tools
 
-- @subpage chrono_pyengine_installation
-  - [Chrono::PyEngine](@ref introduction_chrono_pyengine), brief overview
+- @subpage installation_pychrono
+  - [PyChrono](@ref pychrono_introduction), brief overview
 
 - @subpage tutorial_install_chrono_solidworks
   - [Chrono::SolidWorks](@ref introduction_chrono_solidworks), brief overview

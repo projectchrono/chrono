@@ -1,4 +1,4 @@
-Make a spider robot in SolidWorks and simulate it {#tutorial_chrono_pyengine_demo_spider_robot}
+Make a spider robot in SolidWorks and simulate it {#tutorial_pychrono_demo_spider_robot}
 ==========================
 
 This demo is about the simulation of a crawling spider robot with six legs,
@@ -9,7 +9,7 @@ where we control the motion of the legs with 18 actuators.
 In deail, one performs the following steps: 
 - Use SolidWorks to make a 3D CAD model of the crawling robot, 
 - export it as a .pyfile using the Chrono::SolidWorks add-in; ex. use the name **spider\_robot.py**
-- create a Python program, ex. use the name **demo\_spider.py**, using the functions of [Chrono::PyEngine](@ref introduction_chrono_pyengine) to load and simulate spider\_robot.py.
+- create a Python program, ex. use the name **demo\_spider.py**, using the functions of [PyChrono](@ref pychrono_introduction) to load and simulate spider\_robot.py.
 
 For your convenience, the CAD model, the converted **spider\_robot.py** model, and the **demo\_spider.py** program are all available in the following archive:
 
@@ -24,13 +24,6 @@ Note how we used  **mybody = mysystem.SearchBody('...')**; and  **mymarker = myb
 Finally, note how we used ChFunction objects to build some basic loop motions for the actuators, in prescribed rotation mode.
 
 ~~~~~~~~~~~~~{.py}
-
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
 
 
 import os

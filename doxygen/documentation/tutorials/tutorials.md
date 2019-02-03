@@ -52,15 +52,18 @@ Tutorials {#tutorial_root}
 
     Examples about the FSI module.	
 	
+
 ## Other tools
+
+
+-   @subpage tutorial_table_of_content_pychrono
+ 
+    Learn how to use [PyChrono](@ref pychrono_introduction)
 
 -   @subpage tutorial_table_of_content_chrono_solidworks
 
     Learn how to use [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
 
--   @subpage tutorial_table_of_content_chrono_pyengine
- 
-    Learn how to use [Chrono::PyEngine](@ref introduction_chrono_pyengine)
 
     
 ## Chrono training materials

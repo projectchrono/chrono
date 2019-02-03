@@ -1,120 +1,12 @@
-Chrono::PyEngine reference {#chrono_pyengine_reference}
+PyChrono technology reference {#pychrono_reference}
 ==========================
 
-Chrono::PyEngine is a Python wrapper for Chrono::Engine. It is a set of
-Python modules that correspond to the main units of Chrono::Engine, as
+PyChrono is a Python wrapper for Chrono::Engine. It is a set of
+Python modules that correspond to units of Chrono::Engine, as
 shown in this scheme:
 
 ![](http://www.projectchrono.org/assets/manual/Units_python.png)
 
-
-First steps with Python
------------------------
-
-After the [installation](@ref chrono_pyengine_installation), you are ready to use Chrono::PyEngine from
-Python. To begin:
-
--   start your editor, for example PyScripter.
--   create a new blank Python script file, for example 'test.py'
-
-Now you can type Python programs in this new Python file, execute it,
-save it on disk, etc.
-
-Let's see a first program.
-
--   First of all, you should use the **import** keyword to specify which
-    Python modules must be load and used in your program. Most of the
-    core functionalities of Chrono::Engine are in a module called
-    **pychrono**, hence write:
-
-~~~~~~~~~~~~~~~{.py}
-import pychrono as chrono
-~~~~~~~~~~~~~~~
-
-Note that the *as chrono* is optional: but if you avoid it you must call
-all Chrono::Engine functions using the syntax
-pychrono.ChClassFoo..., whereas if you use *as chrono*
-you simply rename the namespace just like the C++ equivalent:
-chrono.ChClassFoo...
-
--   Let's create a 3D vector object:
-
-~~~~~~~~~~~~~~~{.py}
-my_vect1 = chrono.ChVectorD()
-~~~~~~~~~~~~~~~
-
-(Note that all PyChrono::Engine classes are prefixed by the *chrono*
-word).
-
--   Modify the properties of that vector object; this is done using the
-    **.** dot operator:
-
-~~~~~~~~~~~~~~~{.py}
-my_vect1.x=5
-my_vect1.y=2
-my_vect1.z=3
-~~~~~~~~~~~~~~~
-
--   Some classes have build parameters, for example anothe vector can be
-    built by passing the 3 coordinates for quick initialization:
-
-~~~~~~~~~~~~~{.py}
-my_vect2 = chrono.ChVectorD(3,4,5)
-~~~~~~~~~~~~~
-
--   Most operator-overloading features that are available in C++ for the
-    Chrono::Engine vectors and matrices are also available in Python,
-    for example:
-
-~~~~~~~~~~~~~~~{.py}
-my_vect4 = my_vect1*10 + my_vect2
-~~~~~~~~~~~~~~~
-
--   Member functions of an object can be called simply using the **.**
-    dot operator, just like in C++:
-
-~~~~~~~~~~~~~~~{.py}
-my_len = my_vect4.Length()
-print ('vector length =', my_len)
-~~~~~~~~~~~~~~~
-
--   You can use most of the classes that you would use in C++, for
-    example let's play with quaternions and matrices:
-
-~~~~~~~~~~~~~{.py}
-my_quat = chrono.ChQuaternionD(1,2,3,4)
-my_qconjugate = ~my_quat
-print ('quat. conjugate  =', my_qconjugate)
-print ('quat. dot product=', my_qconjugate ^ my_quat)
-print ('quat. product=',     my_qconjugate % my_quat)
-ma = chrono.ChMatrixDynamicD(4,4)
-ma.FillDiag(-2)
-mb = chrono.ChMatrixDynamicD(4,4)
-mb.FillElem(10)
-mc = (ma-mb)*0.1;   # operator overloading of +,-,* is supported
-print (mc);
-mr = chrono.ChMatrix33D()
-mr.FillDiag(20)
-print  (mr*my_vect1);
-~~~~~~~~~~~~~
-
--   If you want to know the list of methods and/or properties that are
-    available in a class, you can simply use the code completion feature
-    of PyScripter: for example once you type *chrono.* you will see a
-    pop-up window with a list of available classes, constants, etc.
-
-<div class="ce-info">
-Learn additional lessons by reading the PyChrono::Engine tutorials. 
-</div>
-
-<div class="ce-info">
-Most classes behave like their C++ counterparts, so you are 
-invited to look at the [C++ API documentation](http://api.chrono.projectchrono.org) to understand their features. 
-</div>
-
-<div class="ce-warning">
-There are also few but important differences between C++ and Python that are worth mentioning, so read also the following section! 
-</div>
 
 
 Differences between Python and C++
@@ -245,7 +137,7 @@ pointers are a C++ technology that allows the user to create objects and
 do not worry about deletion, because deletion is managed automatically.
 In the Chrono::Engine C++ API such shared pointers are based on
 templates; as we said previously templates are not supported in Python,
-but this is not an issue, because Chrono::PyEngine **automatically handle objects with shared pointers if necessary**
+but this is not an issue, because PyChrono **automatically handle objects with shared pointers if necessary**
 PyChrono::Engine.
 
 This is an example of **shared pointers in C++** :
@@ -292,7 +184,7 @@ At the time of writing, an automatic downcasting is performed only for
 classes inherited from ChFunction and ChAsset. Otherwise, one has to
 perform manual downcasting using the CastToXXXYYYZZZ() helper functions;
 this is a bit similar to the ```dynamic_cast<derived>(base)``` method in C++.
-Currently such casting functions are provided for almost all shared
+Currently such casting functions are provided for many shared
 pointers. Use this in Python as in the following example:
 
 ~~~~~~~~~~~~~~~{.py}
@@ -334,4 +226,4 @@ Demos and examples
 ------------------
 
 You can find examples of use in 
-[these tutorials](@ref tutorial_table_of_content_chrono_pyengine)
+[these tutorials](@ref tutorial_table_of_content_pychrono)

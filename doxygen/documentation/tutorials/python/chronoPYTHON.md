@@ -10,7 +10,7 @@ the Python module.
 <div class="ce-info">
 If you want to learn about Python syntax to use 
 Chrono **from the Python side** see also 
-[the tutorials for Chrono::PyEngine](@ref tutorial_table_of_content_chrono_pyengine)
+[the tutorials for PyChrono](@ref tutorial_table_of_content_pychrono)
 </div>
 
 

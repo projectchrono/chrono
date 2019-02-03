@@ -1,8 +1,8 @@
-Introduction to Python (2) {#tutorial_chrono_pyengine_demo_python2}
+Introduction to Python (2) {#tutorial_pychrono_demo_python2}
 ==========================
 
 Basic creation of a physical system and rigid bodies,
-using [Chrono::PyEngine](@ref introduction_chrono_pyengine).
+using [PyChrono](@ref pychrono_introduction).
 
 - create a ChSystem
 - create and add rigid bodies

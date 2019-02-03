@@ -1,8 +1,8 @@
-Introduction to Python (3) {#tutorial_chrono_pyengine_demo_python3}
+Introduction to Python (3) {#tutorial_pychrono_demo_python3}
 ==========================
 
 Create a postprocessing system based on POVray,
-using [Chrono::PyEngine](@ref introduction_chrono_pyengine).
+using [PyChrono](@ref pychrono_introduction).
 
 - create a basic system with two bodies
 - create a postprocessor object
