@@ -9,7 +9,7 @@ We suggest you to **study them in the presented order** of increasing difficulty
 These examples show how to use Chrono API **from the Python side**.
 If you want to learn how to parse and execute Python programs
 **from the C++ side** see also 
-[the tutorials for PyChrono](@ref tutorial_table_of_content_chrono_python)
+[the tutorials for the C++ Chrono Python module](@ref tutorial_table_of_content_chrono_python)
 </div>
 
 -   @subpage tutorial_pychrono_demo_python1
@@ -20,7 +20,7 @@ If you want to learn how to parse and execute Python programs
     - use basic classes: vectors, matrices, etc.
     - inherit classes 
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_python2
 
     Basic creation of a physical system and rigid bodies.
@@ -30,7 +30,7 @@ If you want to learn how to parse and execute Python programs
     - iterate on created contacts
     - iterate on added rigid bodies using the Python syntax 
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_python3
 
     Create a postprocessing system based on POVray.
@@ -40,7 +40,7 @@ If you want to learn how to parse and execute Python programs
     - add asset objects to rigid bodies, for visualization
     - generate POVray scripts for rendering 3D animation as post-processing
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_irrlicht
 
     Create a simple pendulum and display it in aan interactive 3D view
@@ -48,7 +48,7 @@ If you want to learn how to parse and execute Python programs
     - use pychrono.irrlicht, the Irrlicht 3D realtime visualization of PyChrono
     - create bodies and constraints
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_masonry
 
     Create a small stack of bricks, move the floor like an earthquake, and see the bricks falling. Learn how:
@@ -56,7 +56,7 @@ If you want to learn how to parse and execute Python programs
     - impose a motion law to an object (the shaking platform)
     - add soft shadows to the Irrlicht realtime simulation  
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_crank_plot
 
     Create a slider-crank. Learn how:
@@ -64,7 +64,7 @@ If you want to learn how to parse and execute Python programs
     - add a motor
     - plot results using python's matplotlib library 
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_paths
 
     Create two pendulums following parametric lines. Learn how:
@@ -74,7 +74,7 @@ If you want to learn how to parse and execute Python programs
     - add a constraint of 'inposed trajectory' type
 
 
-	
+<br>
 -   @subpage tutorial_pychrono_demo_fea_beams
 
     Use the pychrono.fea module to simulate flexible beams
@@ -82,7 +82,7 @@ If you want to learn how to parse and execute Python programs
     - use the python.fea module
     - create beams with constraints
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_fea_beams_dynamics
 
     Use the pychrono.fea module to simulate the Jeffcott rotor
@@ -92,7 +92,7 @@ If you want to learn how to parse and execute Python programs
 	- tweak the integrator and solver settings for higher precision
 	- create an ad-hoc motion function by python-side inheritance from ChFunction
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_cascade
 
     Use the pychrono.cascade module to create a shape with the OpenCascade kernel, then let it fall on the ground.
@@ -101,6 +101,7 @@ If you want to learn how to parse and execute Python programs
     - create collisions with concave meshes
 	- control collision tolerances (envelope, margin)
 
+<br>
 -   @subpage tutorial_pychrono_demo_cascade_step
 
     Use the pychrono.cascade module to load a STEP file saved from a CAD.
@@ -108,7 +109,8 @@ If you want to learn how to parse and execute Python programs
     - load a STEP file, saved from a 3D CAD.
 	- fetch parts from the STEP document and conver into Chrono bodies.
 
--   @subpage tutorial_pychrono_demo_cascade_step_robot
+<br>
+	-   @subpage tutorial_pychrono_demo_cascade_step_robot
 
     Use pychrono.cascade to load a STEP file and create constraints between the bodies.
 
@@ -116,7 +118,7 @@ If you want to learn how to parse and execute Python programs
 	- fetch parts and recerences from the STEP document, and create joints between them.
 	- assign a ChLinkTrajectory to a part
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_solidworks_irrlicht
 
     Import a SolidWorks scene into your PyChrono program, and simulate it.
@@ -125,7 +127,7 @@ If you want to learn how to parse and execute Python programs
     - load the system in PyChrono and simulate it
     - visualize it in Irrlicht
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_solidworks_pov
 
     Import a SolidWorks scene into your PyChrono program, and simulate it.
@@ -135,7 +137,7 @@ If you want to learn how to parse and execute Python programs
     - visualize it with POVray scripts for rendering a 3D animation 
 	
 
-
+<br>
 -   @subpage tutorial_pychrono_demo_spider_robot
 
     Import a SolidWorks model of a crawling robot into your PyChrono program, and simulate it.
