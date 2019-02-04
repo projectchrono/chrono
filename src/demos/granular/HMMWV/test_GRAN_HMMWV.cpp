@@ -204,25 +204,39 @@ int main(int argc, char* argv[]) {
     hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-params.box_X * L_cgs_to_mks / 2, 0, hmmwv_init_height), QUNIT));
 
     // Tire obj has radius 1
+    bool detailed_tires = true;
     cout << "Wheel Radius: " << wheel_radius << " cm" << endl;
     float3 scaling;
-    scaling.x = wheel_radius;
-    scaling.y = wheel_radius;
-    scaling.z = wheel_radius;
+    if (detailed_tires) {
+        scaling.x = L_mks_to_cgs;
+        scaling.y = L_mks_to_cgs;
+        scaling.z = L_mks_to_cgs;
+    } else {
+        scaling.x = wheel_radius;
+        scaling.y = wheel_radius;
+        scaling.z = wheel_radius;
+    }
 
-    // string wheel_mesh_filename = "granular/hmmwv_tire_reduced_new.obj";
-    // string wheel_mesh_filename = "granular/hmmwv_cyl.obj";
-    string wheel_mesh_filename = "granular/grouser_wheel.obj";
+    string wheel_mesh_filename_left;
+    string wheel_mesh_filename_right;
+    if (detailed_tires) {
+        wheel_mesh_filename_left = "granular/HMMWV/left_tire.obj";
+        wheel_mesh_filename_right = "granular/HMMWV/right_tire.obj";
+    } else {
+        string wheel_mesh_filename = "granular/grouser_wheel.obj";
+        wheel_mesh_filename_left = wheel_mesh_filename;
+        wheel_mesh_filename_right = wheel_mesh_filename;
+    }
 
     vector<std::pair<string, std::shared_ptr<ChBody>>> gran_collision_bodies;
-    gran_collision_bodies.push_back(
-        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FL)));
-    gran_collision_bodies.push_back(
-        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)));
-    gran_collision_bodies.push_back(
-        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RL)));
-    gran_collision_bodies.push_back(
-        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)));
+    gran_collision_bodies.push_back(std::pair<string, std::shared_ptr<ChBody>>(
+        wheel_mesh_filename_left, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FL)));
+    gran_collision_bodies.push_back(std::pair<string, std::shared_ptr<ChBody>>(
+        wheel_mesh_filename_right, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)));
+    gran_collision_bodies.push_back(std::pair<string, std::shared_ptr<ChBody>>(
+        wheel_mesh_filename_left, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RL)));
+    gran_collision_bodies.push_back(std::pair<string, std::shared_ptr<ChBody>>(
+        wheel_mesh_filename_right, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)));
 
     // Add wheel masses
     vector<bool> mesh_inflated;
@@ -470,7 +484,13 @@ int main(int argc, char* argv[]) {
 
                 // write each mesh to the output file
                 for (auto b : gran_collision_bodies) {
-                    writeMeshFrames(outstream, *(b.second), b.first, wheel_radius, gran_offset);
+                    float scale;
+                    if (detailed_tires) {
+                        scale = L_mks_to_cgs;
+                    } else {
+                        scale = wheel_radius;
+                    }
+                    writeMeshFrames(outstream, *(b.second), b.first, scale, gran_offset);
                 }
 
                 // Write chassis

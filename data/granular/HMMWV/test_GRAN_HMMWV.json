@@ -18,7 +18,7 @@
 	"normalStiffS2M": 1e7,
 	"normalDampS2S": 1e3,
 	"normalDampS2W": 1e3,
-	"normalDampS2M": 1e3,
+	"normalDampS2M": 0,
 
 	"tangentStiffS2S": 1e7,
 	"tangentStiffS2W": 1e7,
@@ -36,5 +36,5 @@
 	"psi_L": 16,
 
 	"verbose": false,
-	"write_mode": "csv"
+	"write_mode": "binary"
 }
