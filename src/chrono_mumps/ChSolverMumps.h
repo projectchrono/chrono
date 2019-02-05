@@ -24,6 +24,9 @@
 
 namespace chrono {
 
+/// @addtogroup mumps_module
+/// @{
+
 /// \class ChSolverMumps
 /// Class that leverages the MUMPS library in order to solve Chrono problems.
 /// It can solve linear systems. It cannot solve VI and complementarity problems.
@@ -93,6 +96,8 @@ class ChApiMumps ChSolverMumps : public ChSolver {
     ChTimer<> m_timer_solve_assembly;    ///< timer for RHS assembly
     ChTimer<> m_timer_solve_solvercall;  ///< timer for solution
 };
+
+/// @} mumps_module
 
 }  // namespace chrono
 

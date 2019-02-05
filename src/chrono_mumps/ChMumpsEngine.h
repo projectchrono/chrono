@@ -30,6 +30,10 @@
 #define RINFOG(I) rinfog[(I)-1]
 
 namespace chrono {
+
+/// @addtogroup mumps_module
+/// @{
+
 /// \class ChMumpsEngine
 /// Class that wraps the MUMPS direct linear solver.
 /// It can solve linear systems. It cannot solve VI and complementarity problems.
@@ -105,6 +109,8 @@ class ChApiMumps ChMumpsEngine {
   private:
     DMUMPS_STRUC_C mumps_id;
 };
+
+/// @} mumps_module
 
 }  // end of namespace chrono
 
