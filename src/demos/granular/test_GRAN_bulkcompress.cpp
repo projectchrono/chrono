@@ -95,8 +95,6 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC_trimesh& m_sys, sim_param_
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
 
-    m_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
-
     double epsilon = 0.2 * params.sphere_radius;
     double spacing = 2 * params.sphere_radius + epsilon;
 
@@ -147,7 +145,8 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
+                                                   make_float3(params.box_X, params.box_Y, params.box_Z));
     string out_dir(argv[2]);
     SetupGranSystem(m_sys, params, out_dir);
 

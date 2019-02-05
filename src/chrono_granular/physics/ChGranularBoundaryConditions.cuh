@@ -29,36 +29,33 @@ using chrono::granular::Plane_BC_params_t;
 
 inline __device__ bool addBCForces_Sphere(unsigned int sphID,
                                           unsigned int BC_id,
-                                          const int3& sphPos,
+                                          const int64_t3& sphPos,
                                           const float3& sphVel,
                                           const float3& sphOmega,
                                           float3& force_from_BCs,
                                           float3& ang_acc_from_BCs,
                                           GranParamsPtr gran_params,
-                                          sphereDataStruct sphere_data,
-                                          BC_params_t<int, int3>& bc_params,
+                                          BC_params_t<int64_t, int64_t3>& bc_params,
                                           bool track_forces) {
-    Sphere_BC_params_t<int, int3> sphere_params = bc_params.sphere_params;
+    Sphere_BC_params_t<int64_t, int64_t3> sphere_params = bc_params.sphere_params;
     bool contact = false;
     // classic radius grab, this must be signed to avoid false conversions
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
 
     float reciplength = 0;
 
-    int total_diameter = sphere_params.radius + sphereRadius_SU;
-
     // precompute the int offset
-    int3 delta_int = sphPos - sphere_params.sphere_center;
+    int64_t3 delta_int = sphPos - sphere_params.sphere_center;
 
     {
         // TODO is double even necessary
-        double3 delta = int3_to_double3(delta_int) / (total_diameter);
+        double3 delta = int64_t3_to_double3(delta_int) / (sphere_params.radius + sphereRadius_SU);
         double d2 = Dot(delta, delta);
         // this needs to be computed in double, then cast to float
         reciplength = (float)rsqrt(d2);
     }
     // recompute in float to be cheaper
-    float3 delta = int3_to_float3(delta_int) / (total_diameter);
+    float3 delta = int64_t3_to_float3(delta_int) / (sphere_params.radius + sphereRadius_SU);
 
     float penetration = reciplength - 1.;
     contact = (penetration > 0);
@@ -69,8 +66,8 @@ inline __device__ bool addBCForces_Sphere(unsigned int sphID,
         float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
 
         // spring term
-        force_accum = force_accum + sphere_params.normal_sign * gran_params->K_n_s2w_SU * delta * total_diameter *
-                                        penetration * force_model_multiplier;
+        force_accum = force_accum + sphere_params.normal_sign * gran_params->K_n_s2w_SU * delta *
+                                        (sphere_params.radius + sphereRadius_SU) * penetration * force_model_multiplier;
 
         // damping term
         // Compute force updates for damping term
@@ -99,16 +96,15 @@ inline __device__ bool addBCForces_Sphere(unsigned int sphID,
 /// TODO check damping, adhesion
 inline __device__ bool addBCForces_ZCone(unsigned int sphID,
                                          unsigned int BC_id,
-                                         const int3& sphPos,
+                                         const int64_t3& sphPos,
                                          const float3& sphVel,
                                          const float3& sphOmega,
                                          float3& force_from_BCs,
                                          float3& ang_acc_from_BCs,
                                          GranParamsPtr gran_params,
-                                         sphereDataStruct sphere_data,
-                                         BC_params_t<int, int3>& bc_params,
+                                         BC_params_t<int64_t, int64_t3>& bc_params,
                                          bool track_forces) {
-    Z_Cone_BC_params_t<int, int3> cone_params = bc_params.cone_params;
+    Z_Cone_BC_params_t<int64_t, int64_t3> cone_params = bc_params.cone_params;
     bool contact = false;
     // classic radius grab, this must be signed to avoid false conversions
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
@@ -119,7 +115,8 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
     }
 
     // Get vector from cone tip to sphere center
-    float3 sphere_pos_rel = int3_to_float3(sphPos - cone_params.cone_tip);
+    // TODO are we concerned about large floats here???
+    float3 sphere_pos_rel = int64_t3_to_float3(sphPos - cone_params.cone_tip);
 
     // NOTE that this could get ugly if Px, Py are very small
     // get point P on cone directly below sphere
@@ -179,21 +176,20 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
 /// TODO check damping, adhesion
 inline __device__ bool addBCForces_Plane_frictionless(unsigned int sphID,
                                                       unsigned int BC_id,
-                                                      const int3& sphPos,
+                                                      const int64_t3& sphPos,
                                                       const float3& sphVel,
                                                       float3& force_from_BCs,
                                                       GranParamsPtr gran_params,
-                                                      sphereDataStruct sphere_data,
-                                                      BC_params_t<int, int3>& bc_params,
+                                                      BC_params_t<int64_t, int64_t3>& bc_params,
                                                       bool track_forces,
                                                       float& dist) {
-    Plane_BC_params_t<int3> plane_params = bc_params.plane_params;
+    Plane_BC_params_t<int64_t3> plane_params = bc_params.plane_params;
     bool contact = false;
     // classic radius grab, this must be signed to avoid false conversions
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
 
     // Vector from point on plane to sphere center
-    float3 delta_r = int3_to_float3(sphPos - plane_params.position);
+    float3 delta_r = int64_t3_to_float3(sphPos - plane_params.position);
 
     // projection displacement onto plane normal
     dist = Dot(plane_params.normal, delta_r);
@@ -202,6 +198,9 @@ inline __device__ bool addBCForces_Plane_frictionless(unsigned int sphID,
     contact = (penetration > 0);
 
     if (contact) {
+        // printf("plane is at %lld, %lld, %lld\n", plane_params.position.x, plane_params.position.y,
+        //        plane_params.position.z);
+        // printf("sphere %u is at %lld, %lld, %lld\n", sphID, sphPos.x, sphPos.y, sphPos.z);
         float3 force_accum = {0, 0, 0};
 
         float3 contact_normal = plane_params.normal;
@@ -231,14 +230,14 @@ inline __device__ bool addBCForces_Plane_frictionless(unsigned int sphID,
 /// TODO check damping, adhesion
 inline __device__ bool addBCForces_Plane(unsigned int sphID,
                                          unsigned int BC_id,
-                                         const int3& sphPos,
+                                         const int64_t3& sphPos,
                                          const float3& sphVel,
                                          const float3& sphOmega,
                                          float3& force_from_BCs,
                                          float3& ang_acc_from_BCs,
                                          GranParamsPtr gran_params,
                                          sphereDataStruct sphere_data,
-                                         BC_params_t<int, int3>& bc_params,
+                                         BC_params_t<int64_t, int64_t3>& bc_params,
                                          bool track_forces) {
     float3 force_accum = {0, 0, 0};
     float3 contact_normal = bc_params.plane_params.normal;
@@ -247,8 +246,8 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
 
     float dist = 0;
 
-    bool contact = addBCForces_Plane_frictionless(sphID, BC_id, sphPos, sphVel, force_accum, gran_params, sphere_data,
-                                                  bc_params, false, dist);
+    bool contact =
+        addBCForces_Plane_frictionless(sphID, BC_id, sphPos, sphVel, force_accum, gran_params, bc_params, false, dist);
 
     float penetration = sphereRadius_SU - dist;
     float projection = Dot(sphVel, contact_normal);
@@ -318,16 +317,15 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
 /// TODO check damping, adhesion
 inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
                                         unsigned int BC_id,
-                                        const int3& sphPos,
+                                        const int64_t3& sphPos,
                                         const float3& sphVel,
                                         const float3& sphOmega,
                                         float3& force_from_BCs,
                                         float3& ang_acc_from_BCs,
                                         GranParamsPtr gran_params,
-                                        sphereDataStruct sphere_data,
-                                        BC_params_t<int, int3>& bc_params,
+                                        BC_params_t<int64_t, int64_t3>& bc_params,
                                         bool track_forces) {
-    Z_Cylinder_BC_params_t<int, int3> cyl_params = bc_params.cyl_params;
+    Z_Cylinder_BC_params_t<int64_t, int64_t3> cyl_params = bc_params.cyl_params;
     bool contact = false;
     // classic radius grab, this must be signed to avoid false conversions
     const signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;

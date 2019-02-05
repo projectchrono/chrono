@@ -42,9 +42,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density,
+                                           make_float3(params.box_X, params.box_Y, params.box_Z));
     m_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
-    m_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     m_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);

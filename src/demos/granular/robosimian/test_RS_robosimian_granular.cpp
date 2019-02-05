@@ -298,10 +298,9 @@ int main(int argc, char* argv[]) {
         mesh_inflation_radii.push_back(0);
     }
 
-
     // Setup granular simulation
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density);
-    m_sys_gran.setBOXdims(params.box_X, params.box_Y, params.box_Z);
+    ChSystemGranular_MonodisperseSMC_trimesh m_sys_gran(params.sphere_radius, params.sphere_density,
+                                                        make_float3(params.box_X, params.box_Y, params.box_Z));
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points;

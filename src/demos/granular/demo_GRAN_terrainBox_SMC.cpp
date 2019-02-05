@@ -73,10 +73,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density,
+                                                        make_float3(params.box_X, params.box_Y, params.box_Z));
     settlingExperiment.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
 
-    settlingExperiment.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
     settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
     settlingExperiment.set_Gamma_n_SPH2SPH(params.normalDampS2S);
@@ -118,7 +118,11 @@ int main(int argc, char* argv[]) {
         body_points = sampler.SampleBox(center, hdims);
     }
     std::vector<ChVector<float>> first_points;
+    first_points.push_back(body_points.at(body_points.size() / 2));
+    // first_points.push_back(body_points.at(1 + body_points.size() / 2));
     first_points.push_back(body_points.at(0));
+    first_points.push_back(body_points.at(body_points.size() - 1));
+    // printf("particle is at %f, %f, %f\n", first_points[0].x(), first_points[0].y(), first_points[0].z());
     settlingExperiment.setParticlePositions(body_points);
 
     switch (params.run_mode) {
@@ -153,7 +157,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setVerbose(params.verbose);
     settlingExperiment.initialize();
 
-    int fps = 200;
+    int fps = 50;
     // assume we run for at least one frame
     // float frame_step = params.step_size * 100.f;
     float frame_step = 1.f / fps;

@@ -47,11 +47,10 @@ using chrono::granular::contactDataStruct;
 /// which subdomains described in the corresponding 8-SD cube are touched by the sphere. The kernel then converts
 /// these indices to indices into the global SD list via the (currently local) conv[3] data structure Should be
 /// mostly bug-free, especially away from boundaries
-inline __device__ void figureOutTouchedSD(signed int sphCenter_X_local,
-                                          signed int sphCenter_Y_local,
-                                          signed int sphCenter_Z_local,
+inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
+                                          int64_t sphCenter_Y_relative,
+                                          int64_t sphCenter_Z_relative,
                                           unsigned int SDs[MAX_SDs_TOUCHED_BY_SPHERE],
-                                          unsigned int ownerSD,
                                           GranParamsPtr gran_params) {
     // grab radius as signed so we can use it intelligently
     const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
@@ -61,29 +60,17 @@ inline __device__ void figureOutTouchedSD(signed int sphCenter_X_local,
     // TODO this should never be over 2 billion anyways
     signed int nx[2], ny[2], nz[2];
 
-    // TODO we can do this more efficiently
-    {
-        int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
-        // TODO this should probably involve more casting
-        int64_t sphere_pos_modified_X =
-            -gran_params->BD_frame_X + sphCenter_X_local + ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU;
-        int64_t sphere_pos_modified_Y =
-            -gran_params->BD_frame_Y + sphCenter_Y_local + ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU;
-        int64_t sphere_pos_modified_Z =
-            -gran_params->BD_frame_Z + sphCenter_Z_local + ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU;
+    // get the bottom-left-most SD that the particle touches
+    // nx = (xCenter - radius) / wx
+    nx[0] = (signed int)((sphCenter_X_relative - sphereRadius_SU) / gran_params->SD_size_X_SU);
+    // Same for Y and Z
+    ny[0] = (signed int)((sphCenter_Y_relative - sphereRadius_SU) / gran_params->SD_size_Y_SU);
+    nz[0] = (signed int)((sphCenter_Z_relative - sphereRadius_SU) / gran_params->SD_size_Z_SU);
 
-        // get the bottom-left-most SD that the particle touches
-        // nx = (xCenter - radius) / wx
-        nx[0] = (signed int)((sphere_pos_modified_X - sphereRadius_SU) / gran_params->SD_size_X_SU);
-        // Same for Y and Z
-        ny[0] = (signed int)((sphere_pos_modified_Y - sphereRadius_SU) / gran_params->SD_size_Y_SU);
-        nz[0] = (signed int)((sphere_pos_modified_Z - sphereRadius_SU) / gran_params->SD_size_Z_SU);
-
-        // get the top-right-most SD that the particle touches
-        nx[1] = (signed int)((sphere_pos_modified_X + sphereRadius_SU) / gran_params->SD_size_X_SU);
-        ny[1] = (signed int)((sphere_pos_modified_Y + sphereRadius_SU) / gran_params->SD_size_Y_SU);
-        nz[1] = (signed int)((sphere_pos_modified_Z + sphereRadius_SU) / gran_params->SD_size_Z_SU);
-    }
+    // get the top-right-most SD that the particle touches
+    nx[1] = (signed int)((sphCenter_X_relative + sphereRadius_SU) / gran_params->SD_size_X_SU);
+    ny[1] = (signed int)((sphCenter_Y_relative + sphereRadius_SU) / gran_params->SD_size_Y_SU);
+    nz[1] = (signed int)((sphCenter_Z_relative + sphereRadius_SU) / gran_params->SD_size_Z_SU);
     // figure out what
     // number of iterations in each direction
     int num_x = (nx[0] == nx[1]) ? 1 : 2;
@@ -145,10 +132,6 @@ template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block
 __global__ void sphereBroadphase_dryrun(sphereDataStruct sphere_data,
                                         unsigned int nSpheres,  //!< Number of spheres in the box
                                         GranParamsPtr gran_params) {
-    signed int sphere_pos_local_X;
-    signed int sphere_pos_local_Y;
-    signed int sphere_pos_local_Z;
-
     /// Set aside shared memory
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
 
@@ -167,11 +150,19 @@ __global__ void sphereBroadphase_dryrun(sphereDataStruct sphere_data,
                                                           NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     if (mySphereID < nSpheres) {
         // Coalesced mem access
-        sphere_pos_local_X = sphere_data.sphere_local_pos_X[mySphereID];
-        sphere_pos_local_Y = sphere_data.sphere_local_pos_Y[mySphereID];
-        sphere_pos_local_Z = sphere_data.sphere_local_pos_Z[mySphereID];
-        figureOutTouchedSD(sphere_pos_local_X, sphere_pos_local_Y, sphere_pos_local_Z, SDsTouched,
-                           sphere_data.sphere_owner_SDs[mySphereID], gran_params);
+        int3 ownerSD_triplet = SDIDTriplet(sphere_data.sphere_owner_SDs[mySphereID], gran_params);
+        // positions are relative to Big Domain corner
+        int64_t sphere_pos_relative_X =
+            ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + sphere_data.sphere_local_pos_X[mySphereID];
+        int64_t sphere_pos_relative_Y =
+            ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + sphere_data.sphere_local_pos_Y[mySphereID];
+        int64_t sphere_pos_relative_Z =
+            ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + sphere_data.sphere_local_pos_Z[mySphereID];
+
+        // printf("relative pos is %lld, %lld, %lld\n", sphere_pos_relative_X, sphere_pos_relative_Y,
+        //        sphere_pos_relative_Z);
+        figureOutTouchedSD(sphere_pos_relative_X, sphere_pos_relative_Y, sphere_pos_relative_Z, SDsTouched,
+                           gran_params);
     }
 
     __syncthreads();
@@ -215,80 +206,11 @@ __global__ void sphereBroadphase_dryrun(sphereDataStruct sphere_data,
     }
 }
 
-/// Get position offset between two SDs
-inline __device__ int3 getOffsetFromSDs(unsigned int thisSD, unsigned int otherSD, GranParamsPtr gran_params) {
-    int3 thisSDTrip = SDIDTriplet(thisSD, gran_params);
-    int3 otherSDTrip = SDIDTriplet(otherSD, gran_params);
-    int3 dist = {0, 0, 0};
-
-    // points from this SD to the other SD
-    dist.x = (otherSDTrip.x - thisSDTrip.x) * gran_params->SD_size_X_SU;
-    dist.y = (otherSDTrip.y - thisSDTrip.y) * gran_params->SD_size_Y_SU;
-    dist.z = (otherSDTrip.z - thisSDTrip.z) * gran_params->SD_size_Z_SU;
-
-    return dist;
-}
-
-/// update local positions and SD based on global position
-inline __device__ void findNewLocalCoords(sphereDataStruct sphere_data,
-                                          unsigned int mySphereID,
-                                          int64_t global_pos_X,
-                                          int64_t global_pos_Y,
-                                          int64_t global_pos_Z,
-                                          GranParamsPtr gran_params) {
-    int3 ownerSD = pointSDTriplet(global_pos_X, global_pos_Y, global_pos_Z, gran_params);
-
-    // printf("ownerSD is %d, %d, %d\n", ownerSD.x, ownerSD.y, ownerSD.z);
-
-    // now compute positions local to that SD
-    // compute in 64 bit and cast to 32 bit
-    // NOTE this assumes that we can store a local pos in 32 bits
-    // local = global - SD = frame + global - frame_to_SD
-    int sphere_pos_local_X = (int)(-gran_params->BD_frame_X + global_pos_X - ownerSD.x * gran_params->SD_size_X_SU);
-    int sphere_pos_local_Y = (int)(-gran_params->BD_frame_Y + global_pos_Y - ownerSD.y * gran_params->SD_size_Y_SU);
-    int sphere_pos_local_Z = (int)(-gran_params->BD_frame_Z + global_pos_Z - ownerSD.z * gran_params->SD_size_Z_SU);
-
-    // write local pos back to global memory
-    sphere_data.sphere_local_pos_X[mySphereID] = (int)sphere_pos_local_X;
-    sphere_data.sphere_local_pos_Y[mySphereID] = (int)sphere_pos_local_Y;
-    sphere_data.sphere_local_pos_Z[mySphereID] = (int)sphere_pos_local_Z;
-
-    // write back which SD currently owns this sphere
-    sphere_data.sphere_owner_SDs[mySphereID] = SDTripletID(ownerSD, gran_params);
-
-    // ABORTABORTABORT("sphere %u, global coords are %lld, %lld, %lld, local coords are %d, %d, %d in SD %u\n",
-    // mySphereID,
-    //                 global_pos_X, global_pos_Y, global_pos_Z, sphere_pos_local_X, sphere_pos_local_Y,
-    //                 sphere_pos_local_Z, SDTripletID(ownerSD, gran_params));
-}
-
-/// Convert sphere positions from 64-bit global to 32-bit local
-// only need to run once at beginning
-static __global__ void initializeLocalPositions(sphereDataStruct sphere_data,
-                                                int64_t* sphere_pos_global_X,
-                                                int64_t* sphere_pos_global_Y,
-                                                int64_t* sphere_pos_global_Z,
-                                                unsigned int nSpheres,
-                                                GranParamsPtr gran_params) {
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-
-    if (mySphereID < nSpheres) {
-        int64_t global_pos_X = sphere_pos_global_X[mySphereID];
-        int64_t global_pos_Y = sphere_pos_global_Y[mySphereID];
-        int64_t global_pos_Z = sphere_pos_global_Z[mySphereID];
-        findNewLocalCoords(sphere_data, mySphereID, global_pos_X, global_pos_Y, global_pos_Z, gran_params);
-    }
-}
-
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a
                                      //!< multiple of 32
 __global__ void sphereBroadphase(sphereDataStruct sphere_data,
                                  unsigned int nSpheres,  //!< Number of spheres in the box
                                  GranParamsPtr gran_params) {
-    signed int sphere_pos_local_X;
-    signed int sphere_pos_local_Y;
-    signed int sphere_pos_local_Z;
-
     /// Set aside shared memory
     // SD component of offset into composite array
     volatile __shared__ unsigned int sphere_composite_offsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
@@ -311,12 +233,19 @@ __global__ void sphereBroadphase(sphereDataStruct sphere_data,
                                                           NULL_GRANULAR_ID, NULL_GRANULAR_ID};
     if (mySphereID < nSpheres) {
         // Coalesced mem access
-        sphere_pos_local_X = sphere_data.sphere_local_pos_X[mySphereID];
-        sphere_pos_local_Y = sphere_data.sphere_local_pos_Y[mySphereID];
-        sphere_pos_local_Z = sphere_data.sphere_local_pos_Z[mySphereID];
+        int3 ownerSD_triplet = SDIDTriplet(sphere_data.sphere_owner_SDs[mySphereID], gran_params);
+        // positions are relative to Big Domain corner
+        int64_t sphere_pos_relative_X =
+            ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + sphere_data.sphere_local_pos_X[mySphereID];
+        int64_t sphere_pos_relative_Y =
+            ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + sphere_data.sphere_local_pos_Y[mySphereID];
+        int64_t sphere_pos_relative_Z =
+            ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + sphere_data.sphere_local_pos_Z[mySphereID];
 
-        figureOutTouchedSD(sphere_pos_local_X, sphere_pos_local_Y, sphere_pos_local_Z, SDsTouched,
-                           sphere_data.sphere_owner_SDs[mySphereID], gran_params);
+        // printf("relative pos is %lld, %lld, %lld\n", sphere_pos_relative_X, sphere_pos_relative_Y,
+        //        sphere_pos_relative_Z);
+        figureOutTouchedSD(sphere_pos_relative_X, sphere_pos_relative_Y, sphere_pos_relative_Z, SDsTouched,
+                           gran_params);
     }
 
     __syncthreads();
@@ -392,6 +321,86 @@ __global__ void sphereBroadphase(sphereDataStruct sphere_data,
     }
 }
 
+/// Get position offset between two SDs
+// NOTE this assumes they are close together
+inline __device__ int3 getOffsetFromSDs(unsigned int thisSD, unsigned int otherSD, GranParamsPtr gran_params) {
+    int3 thisSDTrip = SDIDTriplet(thisSD, gran_params);
+    int3 otherSDTrip = SDIDTriplet(otherSD, gran_params);
+    int3 dist = {0, 0, 0};
+
+    // points from this SD to the other SD
+    dist.x = (otherSDTrip.x - thisSDTrip.x) * gran_params->SD_size_X_SU;
+    dist.y = (otherSDTrip.y - thisSDTrip.y) * gran_params->SD_size_Y_SU;
+    dist.z = (otherSDTrip.z - thisSDTrip.z) * gran_params->SD_size_Z_SU;
+
+    return dist;
+}
+
+/// update local positions and SD based on global position
+inline __device__ void findNewLocalCoords(sphereDataStruct sphere_data,
+                                          unsigned int mySphereID,
+                                          int64_t global_pos_X,
+                                          int64_t global_pos_Y,
+                                          int64_t global_pos_Z,
+                                          GranParamsPtr gran_params) {
+    int3 ownerSD = pointSDTriplet(global_pos_X, global_pos_Y, global_pos_Z, gran_params);
+
+    // printf("sphere %u, ownerSD is %d, %d, %d\n", mySphereID, ownerSD.x, ownerSD.y, ownerSD.z);
+
+    // now compute positions local to that SD
+    // compute in 64 bit and cast to 32 bit
+    // NOTE this assumes that we can store a local pos in 32 bits
+    // local = global - SD = frame + global - frame_to_SD
+    int sphere_pos_local_X =
+        (int)(-gran_params->BD_frame_X + global_pos_X - (int64_t)ownerSD.x * gran_params->SD_size_X_SU);
+    int sphere_pos_local_Y =
+        (int)(-gran_params->BD_frame_Y + global_pos_Y - (int64_t)ownerSD.y * gran_params->SD_size_Y_SU);
+    int sphere_pos_local_Z =
+        (int)(-gran_params->BD_frame_Z + global_pos_Z - (int64_t)ownerSD.z * gran_params->SD_size_Z_SU);
+
+    if (sphere_pos_local_X < 0 || sphere_pos_local_Y < 0 || sphere_pos_local_Z < 0) {
+        ABORTABORTABORT("ERROR! negative local coordinate computed! local pos is %d, %d, %d", sphere_pos_local_X,
+                        sphere_pos_local_Y, sphere_pos_local_Z);
+    }
+
+    // write local pos back to global memory
+    sphere_data.sphere_local_pos_X[mySphereID] = sphere_pos_local_X;
+    sphere_data.sphere_local_pos_Y[mySphereID] = sphere_pos_local_Y;
+    sphere_data.sphere_local_pos_Z[mySphereID] = sphere_pos_local_Z;
+
+    // write back which SD currently owns this sphere
+    sphere_data.sphere_owner_SDs[mySphereID] = SDTripletID(ownerSD, gran_params);
+
+    // printf("sphere %u, BD offsets are %lld, %lld, %lld\n", mySphereID, -gran_params->BD_frame_X,
+    //        -gran_params->BD_frame_Y, -gran_params->BD_frame_Z);
+    //
+    // printf("sphere %u, SD offsets are %lld, %lld, %lld\n", mySphereID, -(int64_t)ownerSD.x *
+    // gran_params->SD_size_X_SU,
+    //        -(int64_t)ownerSD.y * gran_params->SD_size_Y_SU, -(int64_t)ownerSD.z * gran_params->SD_size_Z_SU);
+    //
+    // printf("sphere %u, global coords are %lld, %lld, %lld, local coords are %d, %d, %d in SD %u\n", mySphereID,
+    //        global_pos_X, global_pos_Y, global_pos_Z, sphere_pos_local_X, sphere_pos_local_Y, sphere_pos_local_Z,
+    //        SDTripletID(ownerSD, gran_params));
+}
+
+/// Convert sphere positions from 64-bit global to 32-bit local
+// only need to run once at beginning
+static __global__ void initializeLocalPositions(sphereDataStruct sphere_data,
+                                                int64_t* sphere_pos_global_X,
+                                                int64_t* sphere_pos_global_Y,
+                                                int64_t* sphere_pos_global_Z,
+                                                unsigned int nSpheres,
+                                                GranParamsPtr gran_params) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (mySphereID < nSpheres) {
+        int64_t global_pos_X = sphere_pos_global_X[mySphereID];
+        int64_t global_pos_Y = sphere_pos_global_Y[mySphereID];
+        int64_t global_pos_Z = sphere_pos_global_Z[mySphereID];
+        findNewLocalCoords(sphere_data, mySphereID, global_pos_X, global_pos_Y, global_pos_Z, gran_params);
+    }
+}
+
 /**
 This device function computes the forces induces by the walls on the box on a sphere
 Input:
@@ -425,9 +434,12 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
 
     // Shift frame so that origin is at lower left corner
-    int64_t sphXpos_modified = -gran_params->BD_frame_X + sphXpos + ownerSD_triplet.x * gran_params->SD_size_X_SU;
-    int64_t sphYpos_modified = -gran_params->BD_frame_Y + sphYpos + ownerSD_triplet.y * gran_params->SD_size_Y_SU;
-    int64_t sphZpos_modified = -gran_params->BD_frame_Z + sphZpos + ownerSD_triplet.z * gran_params->SD_size_Z_SU;
+    int64_t sphXpos_modified = sphXpos + ownerSD_triplet.x * gran_params->SD_size_X_SU;
+    int64_t sphYpos_modified = sphYpos + ownerSD_triplet.y * gran_params->SD_size_Y_SU;
+    int64_t sphZpos_modified = sphZpos + ownerSD_triplet.z * gran_params->SD_size_Z_SU;
+
+    // printf("owner SD is %u, %d, %d, %d\n", ownerSD, ownerSD_triplet.x, ownerSD_triplet.y, ownerSD_triplet.z);
+    // printf("modified pos is %lld, %lld, %lld\n", sphXpos_modified, sphYpos_modified, sphZpos_modified);
 
     constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
     // cache force
@@ -449,7 +461,7 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     float composite_t_fac = gran_params->K_t_s2w_SU * gran_params->stepSize_SU +
                             gran_params->Gamma_t_s2w_SU * m_eff;  // include time integration for now
 
-    signed int penetration;
+    int64_t penetration;
 
     // Todo could dump into float[3] and make this much easier to read
 
@@ -552,6 +564,8 @@ inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X pos
     penetration = sphZpos_modified - sphereRadius_SU;
     // if leftmost part is below wall, we have contact
     if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
+        printf("BWE: pos is %lld, %lld, %lld, pen is %d, force is %f\n", sphXpos_modified, sphYpos_modified,
+               sphZpos_modified, penetration, gran_params->K_n_s2w_SU * abs(penetration));
         float3 curr_contrib = {0, 0, 0};
 
         // positive (upwards) restorative force
@@ -612,18 +626,40 @@ inline __device__ void applyExternalForces_frictionless(unsigned int currSphereI
                                                         unsigned int ownerSD,
                                                         const int3& sphPos,    //!< Global X position of DE
                                                         const float3& sphVel,  //!< Global X velocity of DE
-                                                        const float3& sphOmega,
                                                         float3& sphere_force,
-                                                        float3& sphere_ang_acc,
                                                         GranParamsPtr gran_params,
                                                         sphereDataStruct sphere_data,
                                                         BC_type* bc_type_list,
-                                                        BC_params_t<int, int3>* bc_params_list,
+                                                        BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                         unsigned int nBCs) {
-    // apply wall and BC effects
-    // Perhaps this sphere is hitting the wall[s]
-    boxWallsEffects(sphPos.x, sphPos.y, sphPos.z, sphVel.x, sphVel.y, sphVel.z, sphOmega.x, sphOmega.y, sphOmega.z,
-                    ownerSD, sphere_force, sphere_ang_acc, gran_params);
+    // tmp vars used to satisfy functions
+    const float3 sphOmega = {0, 0, 0};
+    float3 sphere_ang_acc = {0, 0, 0};
+
+    // printf("FIRST: sphere %u, local is %d, %d, %d\n", currSphereID, sphPos.x, sphPos.y, sphPos.z);
+
+    int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
+    int64_t3 sphPos_global = {0, 0, 0};
+
+    sphPos_global.x = ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + gran_params->BD_frame_X;
+    sphPos_global.y = ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + gran_params->BD_frame_Y;
+    sphPos_global.z = ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + gran_params->BD_frame_Z;
+
+    sphPos_global.x += (int64_t)sphPos.x;
+    sphPos_global.y += (int64_t)sphPos.y;
+    sphPos_global.z += (int64_t)sphPos.z;
+
+    // printf(
+    //     "sphere %u, SD is %u, trip %d, %d, %d, SD offset is %lld, %lld, %lld, BD offset is %lld, %lld, %lld,"
+    //     "composite is %lld, %lld, %lld\n",
+    //     currSphereID, ownerSD, ownerSD_triplet.x, ownerSD_triplet.y, ownerSD_triplet.z,
+    //     ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU,
+    //     ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU,
+    //     ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU, gran_params->BD_frame_X, gran_params->BD_frame_Y,
+    //     gran_params->BD_frame_Z, sphPos_global.x, sphPos_global.y, sphPos_global.z);
+    //
+    // printf("SECOND: sphere %u, local is %d, %d, %d\n", currSphereID, sphPos.x, sphPos.y, sphPos.z);
+
     // add forces from each BC
     for (unsigned int BC_id = 0; BC_id < nBCs; BC_id++) {
         // skip inactive BCs
@@ -637,25 +673,24 @@ inline __device__ void applyExternalForces_frictionless(unsigned int currSphereI
             //     break;
             // }
             case BC_type::SPHERE: {
-                addBCForces_Sphere(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                   gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_Sphere(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                   gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::CONE: {
-                addBCForces_ZCone(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                  gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_ZCone(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                  gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::PLANE: {
                 float dist = 0;  // tmp used to satisfy function parameters
-                addBCForces_Plane_frictionless(currSphereID, BC_id, sphPos, sphVel, sphere_force, gran_params,
-                                               sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces,
-                                               dist);
+                addBCForces_Plane_frictionless(currSphereID, BC_id, sphPos_global, sphVel, sphere_force, gran_params,
+                                               bc_params_list[BC_id], bc_params_list[BC_id].track_forces, dist);
                 break;
             }
             case BC_type::CYLINDER: {
-                addBCForces_Zcyl(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                 gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_Zcyl(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                 gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
                 break;
             }
         }
@@ -674,12 +709,19 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
                                            GranParamsPtr gran_params,
                                            sphereDataStruct sphere_data,
                                            BC_type* bc_type_list,
-                                           BC_params_t<int, int3>* bc_params_list,
+                                           BC_params_t<int64_t, int64_t3>* bc_params_list,
                                            unsigned int nBCs) {
-    // apply wall and BC effects
-    // Perhaps this sphere is hitting the wall[s]
-    boxWallsEffects(sphPos.x, sphPos.y, sphPos.z, sphVel.x, sphVel.y, sphVel.z, sphOmega.x, sphOmega.y, sphOmega.z,
-                    ownerSD, sphere_force, sphere_ang_acc, gran_params);
+    int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
+    int64_t3 sphPos_global = {0, 0, 0};
+
+    sphPos_global.x = ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + gran_params->BD_frame_X;
+    sphPos_global.y = ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + gran_params->BD_frame_Y;
+    sphPos_global.z = ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + gran_params->BD_frame_Z;
+
+    sphPos_global.x += (int64_t)sphPos.x;
+    sphPos_global.y += (int64_t)sphPos.y;
+    sphPos_global.z += (int64_t)sphPos.z;
+
     // add forces from each BC
     for (unsigned int BC_id = 0; BC_id < nBCs; BC_id++) {
         // skip inactive BCs
@@ -692,23 +734,23 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
             //     break;
             // }
             case BC_type::SPHERE: {
-                addBCForces_Sphere(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                   gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_Sphere(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                   gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::CONE: {
-                addBCForces_ZCone(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                  gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_ZCone(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                  gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::PLANE: {
-                addBCForces_Plane(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                addBCForces_Plane(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
                                   gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::CYLINDER: {
-                addBCForces_Zcyl(currSphereID, BC_id, sphPos, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                 gran_params, sphere_data, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_Zcyl(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
+                                 gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
                 break;
             }
         }
@@ -846,7 +888,7 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
 static __global__ void computeSphereContactForces(sphereDataStruct sphere_data,
                                                   GranParamsPtr gran_params,
                                                   BC_type* bc_type_list,
-                                                  BC_params_t<int, int3>* bc_params_list,
+                                                  BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                   unsigned int nBCs,
                                                   unsigned int nSpheres) {
     // grab the sphere radius
@@ -1000,9 +1042,9 @@ static __global__ void computeSphereContactForces(sphereDataStruct sphere_data,
 static __global__ void computeSphereForces_frictionless(sphereDataStruct sphere_data,
                                                         GranParamsPtr gran_params,
                                                         BC_type* bc_type_list,
-                                                        BC_params_t<int, int3>* bc_params_list,
+                                                        BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                         unsigned int nBCs) {
-    // Cache positions and velocities in shared memory, this doesn't hurt occupancy at the moment
+    // store positions relative to *THIS* SD
     __shared__ int3 sphere_pos[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ float3 sphere_vel[MAX_COUNT_OF_SPHERES_PER_SD];
 
@@ -1016,37 +1058,37 @@ static __global__ void computeSphereForces_frictionless(sphereDataStruct sphere_
         return;  // no spheres here, move along
     }
 
+    // Assumes each thread is a body, not the greatest assumption but we can fix that later
+    // Note that if we have more threads than bodies, some effort gets wasted.
+    unsigned int bodyA = threadIdx.x;
+
     // If we overran, we have a major issue, time to crash before we make illegal memory accesses
-    if (threadIdx.x == 0 && spheresTouchingThisSD > MAX_COUNT_OF_SPHERES_PER_SD) {
+    if (bodyA == 0 && spheresTouchingThisSD > MAX_COUNT_OF_SPHERES_PER_SD) {
         // Crash now
         ABORTABORTABORT("TOO MANY SPHERES! SD %u has %u spheres\n", thisSD, spheresTouchingThisSD);
     }
 
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
-    if (threadIdx.x < spheresTouchingThisSD) {
+    if (bodyA < spheresTouchingThisSD) {
         // We need int64_ts to index into composite array
-        size_t offset_in_composite_Array = sphere_data.SD_SphereCompositeOffsets[thisSD] + threadIdx.x;
+        size_t offset_in_composite_Array = sphere_data.SD_SphereCompositeOffsets[thisSD] + bodyA;
         mySphereID = sphere_data.spheres_in_SD_composite[offset_in_composite_Array];
-        sphere_pos[threadIdx.x] =
+        sphere_pos[bodyA] =
             make_int3(sphere_data.sphere_local_pos_X[mySphereID], sphere_data.sphere_local_pos_Y[mySphereID],
                       sphere_data.sphere_local_pos_Z[mySphereID]);
 
-        unsigned int sphere_owner_SD = sphere_data.sphere_owner_SDs[threadIdx.x];
+        unsigned int sphere_owner_SD = sphere_data.sphere_owner_SDs[mySphereID];
         // if this SD doesn't own that sphere, add an offset to account
         if (sphere_owner_SD != thisSD) {
-            sphere_pos[threadIdx.x] = sphere_pos[threadIdx.x] + getOffsetFromSDs(thisSD, sphere_owner_SD, gran_params);
+            sphere_pos[bodyA] = sphere_pos[bodyA] + getOffsetFromSDs(thisSD, sphere_owner_SD, gran_params);
         }
 
-        sphere_vel[threadIdx.x] = make_float3(sphere_data.pos_X_dt[mySphereID], sphere_data.pos_Y_dt[mySphereID],
-                                              sphere_data.pos_Z_dt[mySphereID]);
+        sphere_vel[bodyA] = make_float3(sphere_data.pos_X_dt[mySphereID], sphere_data.pos_Y_dt[mySphereID],
+                                        sphere_data.pos_Z_dt[mySphereID]);
     }
 
     __syncthreads();  // Needed to make sure data gets in shmem before using it elsewhere
-
-    // Assumes each thread is a body, not the greatest assumption but we can fix that later
-    // Note that if we have more threads than bodies, some effort gets wasted.
-    unsigned int bodyA = threadIdx.x;
 
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
@@ -1056,8 +1098,16 @@ static __global__ void computeSphereForces_frictionless(sphereDataStruct sphere_
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
             if (bodyA == bodyB)
                 continue;
-
+            // printf("checking contacts for body %u, my local pos is %d, %d, %d, their local pos is %d, %d, %d\n",
+            //        mySphereID, sphere_pos[bodyA].x, sphere_pos[bodyA].y, sphere_pos[bodyA].z, sphere_pos[bodyB].x,
+            //        sphere_pos[bodyB].y, sphere_pos[bodyB].z);
             bool active_contact = checkSpheresContacting_int(sphere_pos[bodyA], sphere_pos[bodyB], thisSD, gran_params);
+            // printf(
+            //     "checking contacts for body %u, my local pos is %d, %d, %d, their local pos is %d, %d, %d, active is
+            //     "
+            //     "%d\n",
+            //     mySphereID, sphere_pos[bodyA].x, sphere_pos[bodyA].y, sphere_pos[bodyA].z, sphere_pos[bodyB].x,
+            //     sphere_pos[bodyB].y, sphere_pos[bodyB].z, active_contact);
 
             // We have a collision here, log it for later
             // not very divergent, super quick
@@ -1096,13 +1146,8 @@ static __global__ void computeSphereForces_frictionless(sphereDataStruct sphere_
 
         unsigned int myOwnerSD = sphere_data.sphere_owner_SDs[mySphereID];
         if (myOwnerSD == thisSD) {
-            // NOTE these are unused but the device function wants them
-            float3 bodyA_AngAcc;
-            constexpr float3 sphere_omega = {0, 0, 0};
-
-            applyExternalForces_frictionless(mySphereID, myOwnerSD, sphere_pos[bodyA], sphere_vel[bodyA], sphere_omega,
-                                             bodyA_force, bodyA_AngAcc, gran_params, sphere_data, bc_type_list,
-                                             bc_params_list, nBCs);
+            applyExternalForces_frictionless(mySphereID, myOwnerSD, sphere_pos[bodyA], sphere_vel[bodyA], bodyA_force,
+                                             gran_params, sphere_data, bc_type_list, bc_params_list, nBCs);
         }
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes
@@ -1272,21 +1317,30 @@ static __global__ void updatePositions(const float stepsize_SU,  //!< The numeri
                 break;
             }
         }
+        int3 ownerSD_triplet = SDIDTriplet(sphere_data.sphere_owner_SDs[mySphereID], gran_params);
 
-        // printf("delta v is %f, %f, %f, delta x is %d, %d, %d\n", v_update_X, v_update_Y, v_update_Z,
+        // printf("delta v is %f, %f, %f, delta x is %f, %f, %f\n", v_update_X, v_update_Y, v_update_Z,
         // position_update_x,
         //        position_update_y, position_update_z);
-
-        int3 ownerSD_triplet = SDIDTriplet(sphere_data.sphere_owner_SDs[mySphereID], gran_params);
+        //
+        // printf("SD ID is %u, trip is %d, %d, %d\n", sphere_data.sphere_owner_SDs[mySphereID], ownerSD_triplet.x,
+        //        ownerSD_triplet.y, ownerSD_triplet.z);
+        //
+        // printf("BD offsets are %lld, %lld, %lld\n", -gran_params->BD_frame_X, -gran_params->BD_frame_Y,
+        //        -gran_params->BD_frame_Z);
+        //
+        // printf("SD offsets are %lld, %lld, %lld\n", -(int64_t)ownerSD_triplet.x * gran_params->SD_size_X_SU,
+        //        -(int64_t)ownerSD_triplet.y * gran_params->SD_size_Y_SU,
+        //        -(int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU);
 
         int64_t global_pos_x = ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + gran_params->BD_frame_X;
         int64_t global_pos_y = ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + gran_params->BD_frame_Y;
         int64_t global_pos_z = ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + gran_params->BD_frame_Z;
 
-        // should be a safe case, TODO verify
-        global_pos_x += sphere_data.sphere_local_pos_X[mySphereID] + position_update_x;
-        global_pos_y += sphere_data.sphere_local_pos_Y[mySphereID] + position_update_y;
-        global_pos_z += sphere_data.sphere_local_pos_Z[mySphereID] + position_update_z;
+        // should be a safe cast, TODO verify
+        global_pos_x += sphere_data.sphere_local_pos_X[mySphereID] + (int64_t)position_update_x;
+        global_pos_y += sphere_data.sphere_local_pos_Y[mySphereID] + (int64_t)position_update_y;
+        global_pos_z += sphere_data.sphere_local_pos_Z[mySphereID] + (int64_t)position_update_z;
 
         findNewLocalCoords(sphere_data, mySphereID, global_pos_x, global_pos_y, global_pos_z, gran_params);
     }

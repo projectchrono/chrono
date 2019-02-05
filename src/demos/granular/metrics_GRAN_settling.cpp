@@ -68,8 +68,6 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC& m_sys, sim_param_holder& 
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
 
-    m_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
-
     // Fill domain with particles
     vector<ChVector<float>> body_points;
     double epsilon = 0.2 * params.sphere_radius;
@@ -128,7 +126,8 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
     switch (run_mode) {
         case RUN_MODE::GRAN: {
             cout << "Running Granular system test..." << endl;
-            ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density);
+            ChSystemGranular_MonodisperseSMC m_sys(params.sphere_radius, params.sphere_density,
+                                                   make_float3(params.box_X, params.box_Y, params.box_Z));
             SetupGranSystem(m_sys, params);
             filesystem::create_directory(filesystem::path(params.output_dir));
             m_sys.initialize();
@@ -146,7 +145,8 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
         }
         case RUN_MODE::GRAN_TRI_DISABLED: {
             cout << "Running Granular system with disabled mesh test..." << endl;
-            ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
+            ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
+                                                           make_float3(params.box_X, params.box_Y, params.box_Z));
             SetupGranTriSystem(m_sys, params);
             m_sys.disableMeshCollision();
             filesystem::create_directory(filesystem::path(params.output_dir));
@@ -184,7 +184,8 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
         }
         case RUN_MODE::GRAN_TRI_ENABLED: {
             cout << "Running Granular system with enabled mesh test..." << endl;
-            ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
+            ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
+                                                           make_float3(params.box_X, params.box_Y, params.box_Z));
             SetupGranTriSystem(m_sys, params);
             m_sys.enableMeshCollision();
             filesystem::create_directory(filesystem::path(params.output_dir));

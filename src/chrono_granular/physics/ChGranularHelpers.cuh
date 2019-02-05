@@ -16,6 +16,8 @@
 
 #include "chrono_granular/physics/ChGranular.h"
 
+#define GRAN_DEBUG_PRINTF(...) printf(__VA_ARGS__)
+
 // Decide which SD owns this point in space
 // Pass it the Center of Mass location for a DE to get its owner, also used to get contact point
 inline __device__ int3 pointSDTriplet(int64_t sphCenter_X,
@@ -28,7 +30,7 @@ inline __device__ int3 pointSDTriplet(int64_t sphCenter_X,
     int64_t sphCenter_Y_modified = -gran_params->BD_frame_Y + sphCenter_Y;
     int64_t sphCenter_Z_modified = -gran_params->BD_frame_Z + sphCenter_Z;
     // printf("PST: global is %lld, %lld, %lld, modified is %lld, %lld, %lld\n", sphCenter_X, sphCenter_Y, sphCenter_Z,
-    // sphCenter_X_modified, sphCenter_Y_modified, sphCenter_Z_modified);
+    //        sphCenter_X_modified, sphCenter_Y_modified, sphCenter_Z_modified);
     int3 n;
     // Get the SD of the sphere's center in the xdir
     n.x = (sphCenter_X_modified) / gran_params->SD_size_X_SU;
@@ -58,14 +60,20 @@ inline __device__ int3 pointSDTriplet(double sphCenter_X,
 // Conver SD ID to SD triplet
 inline __host__ __device__ int3 SDIDTriplet(unsigned int SD_ID, GranParamsPtr gran_params) {
     int3 SD_trip = {0, 0, 0};
+
+    // printf("ID is %u\n", SD_ID);
     // find X component
-    SD_trip.x = SD_ID / gran_params->nSDs_Y * gran_params->nSDs_Z;
+    SD_trip.x = SD_ID / (gran_params->nSDs_Y * gran_params->nSDs_Z);
+
     // subtract off the x contribution
     SD_ID -= SD_trip.x * gran_params->nSDs_Y * gran_params->nSDs_Z;
+    // printf("x is %d, ID is %u\n", SD_trip.x, SD_ID);
     // find y component
     SD_trip.y = SD_ID / gran_params->nSDs_Z;
     // subtract off the y contribution
     SD_ID -= SD_trip.y * gran_params->nSDs_Z;
+    // printf("y is %d, ID is %u\n", SD_trip.y, SD_ID);
+
     // find z component
     SD_trip.z = SD_ID;
 
@@ -172,6 +180,15 @@ inline __device__ bool clampTangentDisplacement(GranParamsPtr gran_params,
     }
     return false;
 }
+
+inline __device__ bool checkLocalPointInSD(const int3& point, GranParamsPtr gran_params) {
+    // TODO verify that this is correct
+    // TODO optimize me
+    bool ret = (point.x >= 0) && (point.y >= 0) && (point.z >= 0);
+    ret = ret && (point.x <= gran_params->SD_size_X_SU) && (point.y <= gran_params->SD_size_Y_SU) &&
+          (point.z <= gran_params->SD_size_Z_SU);
+    return ret;
+}
 /// in integer, check whether a pair of spheres is in contact
 inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
                                                   const int3& sphereB_pos,
@@ -196,14 +213,13 @@ inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
     // this as an int is *much* faster than float, much less double, on Conlain's machine
     int3 contact_pos = (sphereA_pos + sphereB_pos) / 2;
 
-    // We need to make sure we don't count a collision twice -- if a contact pair is in multiple SDs,
-    // count it only in the one that holds the contact point
-    unsigned int contactSD =
-        SDTripletID(pointSDTriplet(contact_pos.x, contact_pos.y, contact_pos.z, gran_params), gran_params);
+    // NOTE this point is now local to the current SD
+
+    bool contact_in_SD = checkLocalPointInSD(contact_pos, gran_params);
 
     const int64_t contact_threshold = (4l * gran_params->sphereRadius_SU) * gran_params->sphereRadius_SU;
 
-    return contactSD == thisSD && penetration_int < contact_threshold;
+    return contact_in_SD && penetration_int < contact_threshold;
 }
 
 /// Get the force multiplier for a contact given the penetration

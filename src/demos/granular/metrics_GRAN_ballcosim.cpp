@@ -86,8 +86,8 @@ int main(int argc, char* argv[]) {
     double iteration_step = params.step_size;
 
     // Setup granular simulation
-    ChSystemGranular_MonodisperseSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density);
-    gran_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
+    ChSystemGranular_MonodisperseSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
+                                                      make_float3(params.box_X, params.box_Y, params.box_Z));
 
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;

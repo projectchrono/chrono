@@ -217,7 +217,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
   public:
     // we do not want the system to be default-constructible
     ChSystemGranular_MonodisperseSMC() = delete;
-    ChSystemGranular_MonodisperseSMC(float radiusSPH, float density);
+    ChSystemGranular_MonodisperseSMC(float radiusSPH, float density, float3 boxDims);
     virtual ~ChSystemGranular_MonodisperseSMC();
 
     unsigned int get_SD_count() const { return nSDs; }
@@ -256,11 +256,19 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Create an z-axis aligned cylinder
     size_t Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal, bool track_forces);
 
+    /// Create big domain walls out of planes
+    void createWallBCs();
+
     /// disable a BC by its ID, returns false if the BC does not exist
     bool disable_BC_by_ID(size_t BC_id) {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
             printf("ERROR: Trying to disable invalid BC ID %lu\n", BC_id);
+            return false;
+        }
+
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
             return false;
         }
         BC_params_list_UU.at(BC_id).active = false;
@@ -275,6 +283,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
             printf("ERROR: Trying to enable invalid BC ID %lu\n", BC_id);
             return false;
         }
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
+            return false;
+        }
         BC_params_list_UU.at(BC_id).active = true;
         BC_params_list_SU.at(BC_id).active = true;
         return true;
@@ -285,6 +297,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
             printf("ERROR: Trying to set offset function for invalid BC ID %lu\n", BC_id);
+            return false;
+        }
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
             return false;
         }
         BC_offset_function_list.at(BC_id) = offset_function;
@@ -298,6 +314,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
             printf("ERROR: Trying to get forces for invalid BC ID %lu\n", BC_id);
+            return false;
+        }
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
             return false;
         }
         if (BC_params_list_SU.at(BC_id).track_forces == false) {
@@ -386,12 +406,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     /// NOTE that this is the center of the container
     void setBDPositionFunction(const GranPositionFunction& pos_fn) { BDPositionFunction = pos_fn; }
-
-    void setBOXdims(float X_DIM, float Y_DIM, float Z_DIM) {
-        box_size_X = X_DIM;
-        box_size_Y = Y_DIM;
-        box_size_Z = Z_DIM;
-    }
 
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
         gran_params->psi_T = psi_T_new;
@@ -549,7 +563,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// set the position of a BC and account for the offset
     void setBCOffset(const BC_type&,
                      const BC_params_t<float, float3>& params_UU,
-                     BC_params_t<int, int3>& params_SU,
+                     BC_params_t<int64_t, int64_t3>& params_SU,
                      double3 offset_UU);
 
     /// update positions of each BC using prescribed functions
@@ -590,21 +604,21 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// List of generalized BCs that constrain sphere motion
     std::vector<BC_type, cudallocator<BC_type>> BC_type_list;
-    std::vector<BC_params_t<int, int3>, cudallocator<BC_params_t<int, int3>>> BC_params_list_SU;
+    std::vector<BC_params_t<int64_t, int64_t3>, cudallocator<BC_params_t<int64_t, int64_t3>>> BC_params_list_SU;
     std::vector<BC_params_t<float, float3>, cudallocator<BC_params_t<float, float3>>> BC_params_list_UU;
     std::vector<GranPositionFunction> BC_offset_function_list;
 
     /// User defined radius of the sphere
-    float sphere_radius_UU;
+    const float sphere_radius_UU;
     /// User defined density of the sphere
-    float sphere_density_UU;
+    const float sphere_density_UU;
 
     /// length of physical box; defines the global X axis located at the CM of the box
-    float box_size_X;
+    const float box_size_X;
     /// depth of physical box; defines the global Y axis located at the CM of the box
-    float box_size_Y;
+    const float box_size_Y;
     /// height of physical box; defines the global Z axis located at the CM of the box
-    float box_size_Z;
+    const float box_size_Z;
 
     /// User-provided sphere positions in UU
     std::vector<ChVector<float>> user_sphere_positions;

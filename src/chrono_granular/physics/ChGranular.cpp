@@ -30,9 +30,12 @@ size_t gran_approx_bytes_used = 0;
 namespace chrono {
 namespace granular {
 
-ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusSPH, float density)
+ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusSPH, float density, float3 boxDims)
     : sphere_radius_UU(radiusSPH),
       sphere_density_UU(density),
+      box_size_X(boxDims.x),
+      box_size_Y(boxDims.y),
+      box_size_Z(boxDims.z),
       time_stepping(GRAN_TIME_STEPPING::ADAPTIVE),
       nSpheres(0),
       elapsedSimTime(0),
@@ -58,6 +61,40 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     gran_params->force_model = HOOKE;
     this->force_model = HOOKE;
     setMaxSafeVelocity_SU((float)UINT_MAX);
+
+    createWallBCs();
+}
+
+void ChSystemGranular_MonodisperseSMC::createWallBCs() {
+    float plane_center_bot_X[3] = {-box_size_X / 2, 0, 0};
+    float plane_center_top_X[3] = {box_size_X / 2, 0, 0};
+    float plane_center_bot_Y[3] = {0, -box_size_Y / 2, 0};
+    float plane_center_top_Y[3] = {0, box_size_Y / 2, 0};
+    float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2};
+    float plane_center_top_Z[3] = {0, 0, box_size_Z / 2};
+    // face in upwards
+    float plane_normal_bot_X[3] = {1, 0, 0};
+    float plane_normal_top_X[3] = {-1, 0, 0};
+    float plane_normal_bot_Y[3] = {0, 1, 0};
+    float plane_normal_top_Y[3] = {0, -1, 0};
+    float plane_normal_bot_Z[3] = {0, 0, 1};
+    float plane_normal_top_Z[3] = {0, 0, -1};
+
+    // create wall BCs
+    size_t plane_BC_X_bot = Create_BC_Plane(plane_center_bot_X, plane_normal_bot_X, false);
+    size_t plane_BC_X_top = Create_BC_Plane(plane_center_top_X, plane_normal_top_X, false);
+    size_t plane_BC_Y_bot = Create_BC_Plane(plane_center_bot_Y, plane_normal_bot_Y, false);
+    size_t plane_BC_Y_top = Create_BC_Plane(plane_center_top_Y, plane_normal_top_Y, false);
+    size_t plane_BC_Z_bot = Create_BC_Plane(plane_center_bot_Z, plane_normal_bot_Z, false);
+    size_t plane_BC_Z_top = Create_BC_Plane(plane_center_top_Z, plane_normal_top_Z, false);
+
+    // verify that we have the right IDs for these walls
+    assert(plane_BC_X_bot == BD_WALL_ID_X_BOT);
+    assert(plane_BC_X_top == BD_WALL_ID_X_TOP);
+    assert(plane_BC_Y_bot == BD_WALL_ID_Y_BOT);
+    assert(plane_BC_Y_top == BD_WALL_ID_Y_TOP);
+    assert(plane_BC_Z_bot == BD_WALL_ID_Z_BOT);
+    assert(plane_BC_Z_top == BD_WALL_ID_Z_TOP);
 }
 
 ChSystemGranular_MonodisperseSMC::~ChSystemGranular_MonodisperseSMC() {
@@ -289,7 +326,7 @@ void ChSystemGranular_MonodisperseSMC::updateBCPositions() {
     for (unsigned int i = 0; i < BC_params_list_UU.size(); i++) {
         auto bc_type = BC_type_list.at(i);
         const BC_params_t<float, float3>& params_UU = BC_params_list_UU.at(i);
-        BC_params_t<int, int3>& params_SU = BC_params_list_SU.at(i);
+        BC_params_t<int64_t, int64_t3>& params_SU = BC_params_list_SU.at(i);
         auto offset_function = BC_offset_function_list.at(i);
         setBCOffset(bc_type, params_UU, params_SU, offset_function(elapsedSimTime));
     }
@@ -485,44 +522,44 @@ double ChSystemGranular_MonodisperseSMC::get_max_K() const {
 // set the position of a BC and account for the offset
 void ChSystemGranular_MonodisperseSMC::setBCOffset(const BC_type& bc_type,
                                                    const BC_params_t<float, float3>& params_UU,
-                                                   BC_params_t<int, int3>& params_SU,
+                                                   BC_params_t<int64_t, int64_t3>& params_SU,
                                                    double3 offset_UU) {
     switch (bc_type) {
         case BC_type::SPHERE: {
             params_SU.sphere_params.sphere_center.x =
-                convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.x + offset_UU.x);
+                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.x + offset_UU.x);
             params_SU.sphere_params.sphere_center.y =
-                convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.y + offset_UU.y);
+                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.y + offset_UU.y);
             params_SU.sphere_params.sphere_center.z =
-                convertToPosSU<int, float>(params_UU.sphere_params.sphere_center.z + offset_UU.z);
+                convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.z + offset_UU.z);
             break;
         }
 
         case BC_type::CONE: {
             params_SU.cone_params.cone_tip.x =
-                convertToPosSU<int, float>(params_UU.cone_params.cone_tip.x + offset_UU.x);
+                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.x + offset_UU.x);
             params_SU.cone_params.cone_tip.y =
-                convertToPosSU<int, float>(params_UU.cone_params.cone_tip.y + offset_UU.y);
+                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.y + offset_UU.y);
             params_SU.cone_params.cone_tip.z =
-                convertToPosSU<int, float>(params_UU.cone_params.cone_tip.z + offset_UU.z);
-            params_SU.cone_params.hmax = convertToPosSU<int, float>(params_UU.cone_params.hmax + offset_UU.z);
-            params_SU.cone_params.hmin = convertToPosSU<int, float>(params_UU.cone_params.hmin + offset_UU.z);
+                convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.z + offset_UU.z);
+            params_SU.cone_params.hmax = convertToPosSU<int64_t, float>(params_UU.cone_params.hmax + offset_UU.z);
+            params_SU.cone_params.hmin = convertToPosSU<int64_t, float>(params_UU.cone_params.hmin + offset_UU.z);
             break;
         }
         case BC_type::PLANE: {
             params_SU.plane_params.position.x =
-                convertToPosSU<int, float>(params_UU.plane_params.position.x + offset_UU.x);
+                convertToPosSU<int64_t, float>(params_UU.plane_params.position.x + offset_UU.x);
             params_SU.plane_params.position.y =
-                convertToPosSU<int, float>(params_UU.plane_params.position.y + offset_UU.y);
+                convertToPosSU<int64_t, float>(params_UU.plane_params.position.y + offset_UU.y);
             params_SU.plane_params.position.z =
-                convertToPosSU<int, float>(params_UU.plane_params.position.z + offset_UU.z);
+                convertToPosSU<int64_t, float>(params_UU.plane_params.position.z + offset_UU.z);
 
             break;
         }
         case BC_type::CYLINDER: {
-            params_SU.cyl_params.center.x = convertToPosSU<int, float>(params_UU.cyl_params.center.x + offset_UU.x);
-            params_SU.cyl_params.center.y = convertToPosSU<int, float>(params_UU.cyl_params.center.y + offset_UU.y);
-            params_SU.cyl_params.center.z = convertToPosSU<int, float>(params_UU.cyl_params.center.z + offset_UU.z);
+            params_SU.cyl_params.center.x = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.x + offset_UU.x);
+            params_SU.cyl_params.center.y = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.y + offset_UU.y);
+            params_SU.cyl_params.center.z = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.z + offset_UU.z);
             break;
         }
         default: {
@@ -536,7 +573,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
     for (int i = 0; i < BC_type_list.size(); i++) {
         auto bc_type = BC_type_list.at(i);
         BC_params_t<float, float3> params_UU = BC_params_list_UU.at(i);
-        BC_params_t<int, int3> params_SU;
+        BC_params_t<int64_t, int64_t3> params_SU;
 
         params_SU.active = params_UU.active;
         params_SU.fixed = params_UU.fixed;
@@ -545,7 +582,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
             case BC_type::SPHERE: {
                 printf("adding sphere!\n");
                 setBCOffset(bc_type, params_UU, params_SU, make_double3(0, 0, 0));
-                params_SU.sphere_params.radius = convertToPosSU<int, float>(params_UU.sphere_params.radius);
+                params_SU.sphere_params.radius = convertToPosSU<int64_t, float>(params_UU.sphere_params.radius);
                 params_SU.sphere_params.normal_sign = params_UU.sphere_params.normal_sign;
 
                 BC_params_list_SU.push_back(params_SU);
@@ -583,7 +620,7 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 // normal is unitless
                 // TODO normalize this just in case
                 // float abs = Length(params_UU);
-                params_SU.cyl_params.radius = convertToPosSU<int, float>(params_UU.cyl_params.radius);
+                params_SU.cyl_params.radius = convertToPosSU<int64_t, float>(params_UU.cyl_params.radius);
                 params_SU.cyl_params.normal_sign = params_UU.cyl_params.normal_sign;
 
                 BC_params_list_SU.push_back(params_SU);
@@ -738,6 +775,7 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     printf("SU radius is %u\n", gran_params->sphereRadius_SU);
     float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
     printf("Safe timestep is about %f\n", dt_safe_estimate);
+    printf("Length unit is %f\n", gran_params->LENGTH_UNIT);
 }
 }  // namespace granular
 }  // namespace chrono

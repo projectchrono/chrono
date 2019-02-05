@@ -33,8 +33,10 @@
 namespace chrono {
 namespace granular {
 
-ChSystemGranular_MonodisperseSMC_trimesh::ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density)
-    : ChSystemGranular_MonodisperseSMC(radiusSPH, density),
+ChSystemGranular_MonodisperseSMC_trimesh::ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH,
+                                                                                   float density,
+                                                                                   float3 boxDims)
+    : ChSystemGranular_MonodisperseSMC(radiusSPH, density, boxDims),
       K_n_s2m_UU(0),
       K_t_s2m_UU(0),
       Gamma_n_s2m_UU(0),
