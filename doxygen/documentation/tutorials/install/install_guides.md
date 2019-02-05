@@ -14,8 +14,6 @@ Installation Guides {#tutorial_table_of_content_install}
 
 -   @subpage module_vehicle_installation	
 
--   @subpage module_fea_installation
-
 -   @subpage module_python_installation
 
 -   @subpage module_irrlicht_installation
