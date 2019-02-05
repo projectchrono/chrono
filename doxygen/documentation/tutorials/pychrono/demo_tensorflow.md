@@ -3,15 +3,15 @@ Deep Reinforcement Learning with PyChrono and Tensorflow {#tutorial_pychrono_dem
 We will train a Neural Network to solve robotic tasks using virtual training environment created with [PyChrono](@ref pychrono_introduction).
 
 ## Environments
-We provide 2 environments for robotic control. 
+We provide two sample environments for robotic control. 
 
 **ChronoPendulum** 
-![](Tutorial_tensorflow_pendulum.jpg)
+![](http://projectchrono.org/assets/manual/Tutorial_tensorflow_pendulum.jpg)
 
 Reverse pendulum, the goal is to balance a pole on a cart.  1 action (force along the z axis) and 4 observations (position and speed of cart and pole).
 
 **ChronoAnt** 
-![](Tutorial_tensorflow_ant.jpg)
+![](http://projectchrono.org/assets/manual/Tutorial_tensorflow_ant.jpg)
 A 4-legged walker, the goal is learning to walk straight as fast as possible. 8 actions (motor torques) and 30 observations.
 
 ## DL algorithm
@@ -24,6 +24,7 @@ The policy and value function codes are in the **Policy.py** and **VF.py** respe
 ## How to run examples
 Make sure that you are using the right Python interpreter (the one with Pychrono an Tensorflow installed). 
 Then simply run the script with the needed keyboard arguments
+
 **EXAMPLES**: 
 
 Train to solve the inverted pendulum over 1000 episodes:
@@ -46,11 +47,11 @@ Alternatively, launch the demo from your favourite IDE, but remember to add the 
 
 ### List of command line arguments
 Besides the environment name and the number of episodes, there are some other arguments, mainly to hand-tune learning parameters.
-**--renderON/--renderOFF** toggles on and off the simulation render. Consider that visualizing the render will slow down the simulation and consequentially the learning process.
+** --renderON/--renderOFF ** toggles on and off the simulation render. Consider that visualizing the render will slow down the simulation and consequentially the learning process.
 
  - **Environment name** : 'env_name'
  - **Number of episodes**: '-n', '--num_episodes', default=1000
- -  **--renderON   /    --renderOFF**
+ - ** --renderON   /    --renderOFF **
  - **Discount factor**: '-g', '--gamma', default=0.995
  - **Lambda for GAE**: -l, --lam, default=0.98
  - **Kullback Leibler divergence target value**: -k, --kl_targ, default=0.003
@@ -62,5 +63,5 @@ NN parameters and the other TF variables are stored inside the Policy and VF dir
 
 ## Tester
 
-To test the Policy without further improving it execute **tester.py**. Set ***--VideoSave*** to save screenshots from the render.
+To test the Policy without further improving it execute **tester.py**. Set ** --VideoSave ** to save screenshots from the render.
 
