@@ -9,7 +9,7 @@ Read [the introduction to modules](modularity.html) for a technical
 background on the modularity of the Chrono::Engine project.
 
 Chrono::Engine usually relies on its [built-in solvers](@ref solvers), whose good perfomance are guaranteed by leveraging the internal data structure. 
-In fact, for a wide range of applications, these suffices.<br>
+In fact, for a wide range of applications, these suffice.<br>
 However, for higher accuracy results, a direct solver could still be needed.
 
 This module provides an interface to the third-party Intel MKL Pardiso solver.
