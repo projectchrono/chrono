@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
 
     {
         // fill box, layer by layer
-        ChVector<> hdims(params.box_X / 2.f - 2 * params.sphere_radius, params.box_Y / 2.f - 2 * params.sphere_radius,
-                         params.box_Z / 2.f - 2 * params.sphere_radius);
+        ChVector<> hdims(params.box_X / 3.f - 2 * params.sphere_radius, params.box_Y / 3.f - 2 * params.sphere_radius,
+                         params.box_Z / 3.f - 2 * params.sphere_radius);
         ChVector<> center(0, 0, 0);
 
         // Fill box with bodies
@@ -118,11 +118,12 @@ int main(int argc, char* argv[]) {
         body_points = sampler.SampleBox(center, hdims);
     }
     std::vector<ChVector<float>> first_points;
-    first_points.push_back(body_points.at(body_points.size() / 2));
-    // first_points.push_back(body_points.at(1 + body_points.size() / 2));
     first_points.push_back(body_points.at(0));
+    first_points.push_back(body_points.at(body_points.size() / 2));
     first_points.push_back(body_points.at(body_points.size() - 1));
     // printf("particle is at %f, %f, %f\n", first_points[0].x(), first_points[0].y(), first_points[0].z());
+    // printf("particle is at %f, %f, %f\n", first_points[1].x(), first_points[1].y(), first_points[1].z());
+    // printf("particle is at %f, %f, %f\n", first_points[2].x(), first_points[2].y(), first_points[2].z());
     settlingExperiment.setParticlePositions(body_points);
 
     switch (params.run_mode) {
@@ -157,7 +158,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setVerbose(params.verbose);
     settlingExperiment.initialize();
 
-    int fps = 50;
+    int fps = 200;
     // assume we run for at least one frame
     // float frame_step = params.step_size * 100.f;
     float frame_step = 1.f / fps;

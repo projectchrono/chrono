@@ -1347,3 +1347,11 @@ Running settling test!
 50 thousand bodies took 4.63383 seconds!
 500 thousand bodies took 22.8026 seconds!
 1 million bodies took 44.0309 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 05 Feb 2019 17:48:47 -0600
+commit 628a67ce91b5ccc8041d722a44e1aabaa3a1b8fe Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Feb 5 17:48:13 2019 -0600 improve local coords, switch sphere data to a pointer
+Results:
+Running settling test!
+50 thousand bodies took 5.04297 seconds!
+500 thousand bodies took 24.2691 seconds!
+1 million bodies took 48.081 seconds!

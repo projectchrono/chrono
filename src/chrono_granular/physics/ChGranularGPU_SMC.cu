@@ -289,8 +289,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
             sphere_global_pos_Z.at(i) = (int64_t)((double)vec.z() / gran_params->LENGTH_UNIT);
         }
 
-        sphereDataStruct sphere_data;
-        packSphereDataPointers(sphere_data);
+        packSphereDataPointers();
         // Figure our the number of blocks that need to be launched to cover the box
         unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
         initializeLocalPositions<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
@@ -352,9 +351,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::runSphereBroadphase() {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
-    sphereDataStruct sphere_data;
-
-    packSphereDataPointers(sphere_data);
+    packSphereDataPointers();
 
     sphereBroadphase_dryrun<CUDA_THREADS_PER_BLOCK>
         <<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres, gran_params);
@@ -392,7 +389,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::runSphereBroadphase() {
     spheres_in_SD_composite.resize(num_entries, NULL_GRANULAR_ID);
 
     // make sure the DEs pointer is updated
-    packSphereDataPointers(sphere_data);
+    packSphereDataPointers();
 
     // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs * MAX_COUNT_OF_SPHERES_PER_SD);
 
@@ -442,8 +439,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
                    stepSize_SU, nsteps, duration / nsteps);
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
-    sphereDataStruct sphere_data;
-    packSphereDataPointers(sphere_data);
+    packSphereDataPointers();
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
@@ -454,7 +450,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
         updateBCPositions();
 
         runSphereBroadphase();
-        packSphereDataPointers(sphere_data);
+        packSphereDataPointers();
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

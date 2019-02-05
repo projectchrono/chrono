@@ -55,7 +55,7 @@ struct contactDataStruct {
 };
 
 /// hold pointers
-struct sphereDataStruct {
+struct ChGranSphereData {
   public:
     /// Store positions and velocities in unified memory
     int* sphere_local_pos_X;
@@ -211,6 +211,7 @@ struct ChGranParams {
 
 // Do two things: make the naming nicer and require a const pointer everywhere
 typedef const chrono::granular::ChGranParams* GranParamsPtr;
+typedef const chrono::granular::ChGranSphereData* GranSphereDataPtr;
 namespace chrono {
 namespace granular {
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
@@ -436,6 +437,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// holds the sphere and BD-related params in unified memory
     ChGranParams* gran_params;
+    ChGranSphereData* sphere_data;
 
     /// Allows the code to be very verbose for debug
     bool verbose_runtime;
@@ -527,8 +529,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Reset sphere-wall forces
     void resetBCForces();
 
-    /// collect all the sphere data into a given struct
-    void packSphereDataPointers(sphereDataStruct& packed);
+    /// collect all the sphere data into the member struct
+    void packSphereDataPointers();
+
     /// Run the first sphere broadphase pass to get things started
     void runSphereBroadphase();
     // just a handy helper function

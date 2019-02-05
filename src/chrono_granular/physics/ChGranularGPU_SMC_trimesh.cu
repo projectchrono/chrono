@@ -507,7 +507,7 @@ __global__ void triangleSoup_StoreSDsTouched(
 template <unsigned int N_CUDATHREADS>
 __global__ void interactionTerrain_TriangleSoup(
     TriangleSoupPtr d_triangleSoup,  //!< Contains information pertaining to triangle soup (in device mem.)
-    sphereDataStruct sphere_data,
+    GranSphereDataPtr sphere_data,
     unsigned int* triangles_in_SD_composite,    //!< Big array that works in conjunction with SD_numTrianglesTouching.
     unsigned int* SD_numTrianglesTouching,      //!< number of triangles touching this SD
     unsigned int* SD_TriangleCompositeOffsets,  //!< offset of triangles in the composite array for each SD
@@ -536,7 +536,7 @@ __global__ void interactionTerrain_TriangleSoup(
     if (SD_numTrianglesTouching[thisSD] == 0) {
         return;  // no triangle touches this SD; return right away
     }
-    unsigned int spheresTouchingThisSD = sphere_data.SD_NumSpheresTouching[thisSD];
+    unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[thisSD];
     if (spheresTouchingThisSD == 0) {
         return;  // no sphere to speak of in this SD
     }
@@ -556,23 +556,23 @@ __global__ void interactionTerrain_TriangleSoup(
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (sphereIDLocal < spheresTouchingThisSD) {
-        unsigned int SD_composite_offset = sphere_data.SD_SphereCompositeOffsets[thisSD];
+        unsigned int SD_composite_offset = sphere_data->SD_SphereCompositeOffsets[thisSD];
 
         // TODO standardize this
         // We may need long ints to index into composite array
         size_t offset_in_composite_Array = SD_composite_offset + sphereIDLocal;
-        sphereIDGlobal = sphere_data.spheres_in_SD_composite[offset_in_composite_Array];
-        sphere_X[sphereIDLocal] = sphere_data.sphere_local_pos_X[sphereIDGlobal];
-        sphere_Y[sphereIDLocal] = sphere_data.sphere_local_pos_Y[sphereIDGlobal];
-        sphere_Z[sphereIDLocal] = sphere_data.sphere_local_pos_Z[sphereIDGlobal];
+        sphereIDGlobal = sphere_data->spheres_in_SD_composite[offset_in_composite_Array];
+        sphere_X[sphereIDLocal] = sphere_data->sphere_local_pos_X[sphereIDGlobal];
+        sphere_Y[sphereIDLocal] = sphere_data->sphere_local_pos_Y[sphereIDGlobal];
+        sphere_Z[sphereIDLocal] = sphere_data->sphere_local_pos_Z[sphereIDGlobal];
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
             omega[sphereIDLocal] =
-                make_float3(sphere_data.sphere_Omega_X[sphereIDGlobal], sphere_data.sphere_Omega_Y[sphereIDGlobal],
-                            sphere_data.sphere_Omega_Z[sphereIDGlobal]);
+                make_float3(sphere_data->sphere_Omega_X[sphereIDGlobal], sphere_data->sphere_Omega_Y[sphereIDGlobal],
+                            sphere_data->sphere_Omega_Z[sphereIDGlobal]);
         }
-        sphere_X_DOT[sphereIDLocal] = sphere_data.pos_X_dt[sphereIDGlobal];
-        sphere_Y_DOT[sphereIDLocal] = sphere_data.pos_Y_dt[sphereIDGlobal];
-        sphere_Z_DOT[sphereIDLocal] = sphere_data.pos_Z_dt[sphereIDGlobal];
+        sphere_X_DOT[sphereIDLocal] = sphere_data->pos_X_dt[sphereIDGlobal];
+        sphere_Y_DOT[sphereIDLocal] = sphere_data->pos_Y_dt[sphereIDGlobal];
+        sphere_Z_DOT[sphereIDLocal] = sphere_data->pos_Z_dt[sphereIDGlobal];
     }
     // Populate the shared memory with mesh triangle data
     unsigned int tripsToCoverTriangles = (numSDTriangles + blockDim.x - 1) / blockDim.x;
@@ -747,15 +747,15 @@ __global__ void interactionTerrain_TriangleSoup(
             }
         }  // end of per-triangle loop
         // write back sphere forces
-        atomicAdd(sphere_data.sphere_acc_X + sphereIDGlobal, sphere_force.x / gran_params->sphere_mass_SU);
-        atomicAdd(sphere_data.sphere_acc_Y + sphereIDGlobal, sphere_force.y / gran_params->sphere_mass_SU);
-        atomicAdd(sphere_data.sphere_acc_Z + sphereIDGlobal, sphere_force.z / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data->sphere_acc_X + sphereIDGlobal, sphere_force.x / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data->sphere_acc_Y + sphereIDGlobal, sphere_force.y / gran_params->sphere_mass_SU);
+        atomicAdd(sphere_data->sphere_acc_Z + sphereIDGlobal, sphere_force.z / gran_params->sphere_mass_SU);
 
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
             // write back torques for later
-            atomicAdd(sphere_data.sphere_ang_acc_X + sphereIDGlobal, sphere_AngAcc.x);
-            atomicAdd(sphere_data.sphere_ang_acc_Y + sphereIDGlobal, sphere_AngAcc.y);
-            atomicAdd(sphere_data.sphere_ang_acc_Z + sphereIDGlobal, sphere_AngAcc.z);
+            atomicAdd(sphere_data->sphere_ang_acc_X + sphereIDGlobal, sphere_AngAcc.x);
+            atomicAdd(sphere_data->sphere_ang_acc_Y + sphereIDGlobal, sphere_AngAcc.y);
+            atomicAdd(sphere_data->sphere_ang_acc_Z + sphereIDGlobal, sphere_AngAcc.z);
         }
     }  // end sphere id check
 }  // end kernel
@@ -763,9 +763,7 @@ __global__ void interactionTerrain_TriangleSoup(
 __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() {
     VERBOSE_PRINTF("Resetting broadphase info!\n");
 
-    sphereDataStruct sphere_data;
-
-    packSphereDataPointers(sphere_data);
+    packSphereDataPointers();
 
     const int nthreads = 32;
 
@@ -844,9 +842,7 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() 
 __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase_rewrite() {
     VERBOSE_PRINTF("Resetting broadphase info!\n");
 
-    sphereDataStruct sphere_data;
-
-    packSphereDataPointers(sphere_data);
+    packSphereDataPointers();
 
     std::vector<unsigned int, cudallocator<unsigned int>> Triangle_NumSDsTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsCompositeOffsets;
@@ -1030,8 +1026,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
     determineNewStepSize_SU();  // doesn't always change the timestep
     unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
-    sphereDataStruct sphere_data;
-    packSphereDataPointers(sphere_data);
+    packSphereDataPointers();
     // cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
 
     VERBOSE_PRINTF("advancing by %f at timestep %f, %u timesteps at approx user timestep %f\n", duration_SU,
@@ -1113,7 +1108,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
 
         runSphereBroadphase();
 
-        packSphereDataPointers(sphere_data);
+        packSphereDataPointers();
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

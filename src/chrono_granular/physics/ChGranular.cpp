@@ -51,6 +51,7 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
       Gamma_t_s2s_UU(0),
       Gamma_t_s2w_UU(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
+    gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
     gran_params->psi_T = PSI_T_DEFAULT;
     gran_params->psi_h = PSI_h_DEFAULT;
     gran_params->psi_L = PSI_L_DEFAULT;
@@ -105,52 +106,57 @@ size_t ChSystemGranular_MonodisperseSMC::estimateMemUsage() const {
     return gran_approx_bytes_used;
 }
 
-void ChSystemGranular_MonodisperseSMC::packSphereDataPointers(sphereDataStruct& packed) {
+void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
     // Set data from system
-    packed.sphere_local_pos_X = sphere_local_pos_X.data();
-    packed.sphere_local_pos_Y = sphere_local_pos_Y.data();
-    packed.sphere_local_pos_Z = sphere_local_pos_Z.data();
-    packed.pos_X_dt = pos_X_dt.data();
-    packed.pos_Y_dt = pos_Y_dt.data();
-    packed.pos_Z_dt = pos_Z_dt.data();
+    sphere_data->sphere_local_pos_X = sphere_local_pos_X.data();
+    sphere_data->sphere_local_pos_Y = sphere_local_pos_Y.data();
+    sphere_data->sphere_local_pos_Z = sphere_local_pos_Z.data();
+    sphere_data->pos_X_dt = pos_X_dt.data();
+    sphere_data->pos_Y_dt = pos_Y_dt.data();
+    sphere_data->pos_Z_dt = pos_Z_dt.data();
 
-    packed.sphere_owner_SDs = sphere_owner_SDs.data();
+    sphere_data->sphere_owner_SDs = sphere_owner_SDs.data();
 
     if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-        packed.sphere_Omega_X = sphere_Omega_X.data();
-        packed.sphere_Omega_Y = sphere_Omega_Y.data();
-        packed.sphere_Omega_Z = sphere_Omega_Z.data();
-        packed.sphere_ang_acc_X = sphere_ang_acc_X.data();
-        packed.sphere_ang_acc_Y = sphere_ang_acc_Y.data();
-        packed.sphere_ang_acc_Z = sphere_ang_acc_Z.data();
+        sphere_data->sphere_Omega_X = sphere_Omega_X.data();
+        sphere_data->sphere_Omega_Y = sphere_Omega_Y.data();
+        sphere_data->sphere_Omega_Z = sphere_Omega_Z.data();
+        sphere_data->sphere_ang_acc_X = sphere_ang_acc_X.data();
+        sphere_data->sphere_ang_acc_Y = sphere_ang_acc_Y.data();
+        sphere_data->sphere_ang_acc_Z = sphere_ang_acc_Z.data();
     }
 
-    packed.sphere_acc_X = sphere_acc_X.data();
-    packed.sphere_acc_Y = sphere_acc_Y.data();
-    packed.sphere_acc_Z = sphere_acc_Z.data();
+    sphere_data->sphere_acc_X = sphere_acc_X.data();
+    sphere_data->sphere_acc_Y = sphere_acc_Y.data();
+    sphere_data->sphere_acc_Z = sphere_acc_Z.data();
 
     if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
-        packed.sphere_acc_X_old = sphere_acc_X_old.data();
-        packed.sphere_acc_Y_old = sphere_acc_Y_old.data();
-        packed.sphere_acc_Z_old = sphere_acc_Z_old.data();
+        sphere_data->sphere_acc_X_old = sphere_acc_X_old.data();
+        sphere_data->sphere_acc_Y_old = sphere_acc_Y_old.data();
+        sphere_data->sphere_acc_Z_old = sphere_acc_Z_old.data();
         if (friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-            packed.sphere_ang_acc_X_old = sphere_ang_acc_X_old.data();
-            packed.sphere_ang_acc_Y_old = sphere_ang_acc_Y_old.data();
-            packed.sphere_ang_acc_Z_old = sphere_ang_acc_Z_old.data();
+            sphere_data->sphere_ang_acc_X_old = sphere_ang_acc_X_old.data();
+            sphere_data->sphere_ang_acc_Y_old = sphere_ang_acc_Y_old.data();
+            sphere_data->sphere_ang_acc_Z_old = sphere_ang_acc_Z_old.data();
         }
     }
 
-    packed.SD_NumSpheresTouching = SD_NumSpheresTouching.data();
-    packed.SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
-    packed.spheres_in_SD_composite = spheres_in_SD_composite.data();
+    sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
+    sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
+    sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP || friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
-        packed.sphere_contact_map = sphere_contact_map.data();
+        sphere_data->sphere_contact_map = sphere_contact_map.data();
     }
 
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
-        packed.contact_history_map = contact_history_map.data();
+        sphere_data->contact_history_map = contact_history_map.data();
     }
+
+    // force prefetch the sphere data pointer after update
+    int dev_ID;
+    gpuErrchk(cudaGetDevice(&dev_ID));
+    gpuErrchk(cudaMemPrefetchAsync(sphere_data, sizeof(*sphere_data), dev_ID));
 }
 
 // // Checkpoint the entire system's data
@@ -224,13 +230,13 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
             float y_UU = sphere_local_pos_Y[n] * gran_params->LENGTH_UNIT;
             float z_UU = sphere_local_pos_Z[n] * gran_params->LENGTH_UNIT;
 
-            // add on SD offset
-            x_UU = x_UU +
-                   (gran_params->BD_frame_X + ownerSD_trip.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
-            y_UU = y_UU +
-                   (gran_params->BD_frame_Y + ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
-            z_UU = z_UU +
-                   (gran_params->BD_frame_Z + ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+            x_UU += gran_params->BD_frame_X * gran_params->LENGTH_UNIT;
+            y_UU += gran_params->BD_frame_Y * gran_params->LENGTH_UNIT;
+            z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+
+            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
+            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
+            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
 
             ptFile.write((const char*)&x_UU, sizeof(float));
             ptFile.write((const char*)&y_UU, sizeof(float));
@@ -265,13 +271,13 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
             float y_UU = sphere_local_pos_Y[n] * gran_params->LENGTH_UNIT;
             float z_UU = sphere_local_pos_Z[n] * gran_params->LENGTH_UNIT;
 
-            // add on SD offset
-            x_UU = x_UU +
-                   (gran_params->BD_frame_X + ownerSD_trip.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
-            y_UU = y_UU +
-                   (gran_params->BD_frame_Y + ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
-            z_UU = z_UU +
-                   (gran_params->BD_frame_Z + ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+            x_UU += gran_params->BD_frame_X * gran_params->LENGTH_UNIT;
+            y_UU += gran_params->BD_frame_Y * gran_params->LENGTH_UNIT;
+            z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+
+            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
+            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
+            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
 
             outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv << "," << ownerSD;
 
@@ -309,13 +315,20 @@ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
 
     int64_t true_max_pos = std::max(std::max(gran_params->max_x_pos_unsigned, gran_params->max_y_pos_unsigned),
                                     gran_params->max_z_pos_unsigned);
-    if (true_max_pos >= UINT_MAX) {
-        printf("ERROR! Max possible position is greater than UINT_MAX!!!\n");
-        exit(1);
-    }
 
     if (true_max_pos >= INT_MAX) {
         printf("WARNING! Max possible position is greater than INT_MAX!!!\n");
+    }
+
+    if (true_max_pos >= UINT_MAX) {
+        printf("BIG WARNING! Max possible position is greater than UINT_MAX!!!\n");
+        printf("You are now relying on Conlain's local coordinate implementation.\n");
+    }
+
+    if (true_max_pos >= LLONG_MAX) {
+        printf("ERROR! Max possible position is greater than LLONG_MAX!!!\n");
+        printf("Not even local coordinates can save you now.\n");
+        exit(1);
     }
 
     // NOTE: Assumes mass = 1
@@ -337,25 +350,26 @@ void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU)
         return;
     }
     // Frequency of oscillation
-    float frame_X_old = gran_params->BD_frame_X;
-    float frame_Y_old = gran_params->BD_frame_Y;
-    float frame_Z_old = gran_params->BD_frame_Z;
+    int64_t frame_X_old = gran_params->BD_frame_X;
+    int64_t frame_Y_old = gran_params->BD_frame_Y;
+    int64_t frame_Z_old = gran_params->BD_frame_Z;
     // Put the bottom-left corner of box wherever the user told us to
     double3 newpos = BDPositionFunction(elapsedSimTime);
+
     // compute in double and cast to int64_t
     gran_params->BD_frame_X =
-        -0.5 * gran_params->nSDs_X * gran_params->SD_size_X_SU + newpos.x / gran_params->LENGTH_UNIT;
+        (int64_t)(-0.5 * gran_params->nSDs_X * gran_params->SD_size_X_SU + newpos.x / gran_params->LENGTH_UNIT);
     gran_params->BD_frame_Y =
-        -0.5 * gran_params->nSDs_Y * gran_params->SD_size_Y_SU + newpos.y / gran_params->LENGTH_UNIT;
+        (int64_t)(-0.5 * gran_params->nSDs_Y * gran_params->SD_size_Y_SU + newpos.y / gran_params->LENGTH_UNIT);
     gran_params->BD_frame_Z =
-        -0.5 * gran_params->nSDs_Z * gran_params->SD_size_Z_SU + newpos.z / gran_params->LENGTH_UNIT;
+        (int64_t)(-0.5 * gran_params->nSDs_Z * gran_params->SD_size_Z_SU + newpos.z / gran_params->LENGTH_UNIT);
 
     // printf("new pos is %f, %f, %f\n", newpos.x, newpos.y, newpos.z);
     // printf("SU is %u, %u, %u\n", gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
 
-    gran_params->BD_frame_X_dot = (gran_params->BD_frame_X - frame_X_old) / stepSize_SU;
-    gran_params->BD_frame_Y_dot = (gran_params->BD_frame_Y - frame_Y_old) / stepSize_SU;
-    gran_params->BD_frame_Z_dot = (gran_params->BD_frame_Z - frame_Z_old) / stepSize_SU;
+    gran_params->BD_frame_X_dot = ((float)(gran_params->BD_frame_X - frame_X_old)) / stepSize_SU;
+    gran_params->BD_frame_Y_dot = ((float)(gran_params->BD_frame_Y - frame_Y_old)) / stepSize_SU;
+    gran_params->BD_frame_Z_dot = ((float)(gran_params->BD_frame_Z - frame_Z_old)) / stepSize_SU;
 }
 
 size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
@@ -656,8 +670,10 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
     printf("priming finished!\n");
 
     int dev_ID;
-    cudaGetDevice(&dev_ID);
-    cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID);
+    gpuErrchk(cudaGetDevice(&dev_ID));
+    // these two will be mostly read by everyone
+    gpuErrchk(cudaMemAdvise(gran_params, sizeof(*gran_params), cudaMemAdviseSetReadMostly, dev_ID));
+    gpuErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_ID));
 
     printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
     printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT);
@@ -716,9 +732,9 @@ void ChSystemGranular_MonodisperseSMC::partitionBD() {
 
     // Place BD frame at bottom-left corner, one half-length in each direction
     // Can change later if desired
-    gran_params->BD_frame_X = -.5 * (nSDs_X * SD_size_X);
-    gran_params->BD_frame_Y = -.5 * (nSDs_Y * SD_size_Y);
-    gran_params->BD_frame_Z = -.5 * (nSDs_Z * SD_size_Z);
+    gran_params->BD_frame_X = -.5 * ((int64_t)nSDs_X * SD_size_X);
+    gran_params->BD_frame_Y = -.5 * ((int64_t)nSDs_Y * SD_size_Y);
+    gran_params->BD_frame_Z = -.5 * ((int64_t)nSDs_Z * SD_size_Z);
     // BD starts at rest
     gran_params->BD_frame_X_dot = 0;
     gran_params->BD_frame_Y_dot = 0;
@@ -775,7 +791,7 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     printf("SU radius is %u\n", gran_params->sphereRadius_SU);
     float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
     printf("Safe timestep is about %f\n", dt_safe_estimate);
-    printf("Length unit is %f\n", gran_params->LENGTH_UNIT);
+    printf("Length unit is %0.16f\n", gran_params->LENGTH_UNIT);
 }
 }  // namespace granular
 }  // namespace chrono

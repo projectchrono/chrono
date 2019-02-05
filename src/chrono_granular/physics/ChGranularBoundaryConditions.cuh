@@ -236,7 +236,7 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
                                          float3& force_from_BCs,
                                          float3& ang_acc_from_BCs,
                                          GranParamsPtr gran_params,
-                                         sphereDataStruct sphere_data,
+                                         GranSphereDataPtr sphere_data,
                                          BC_params_t<int64_t, int64_t3>& bc_params,
                                          bool track_forces) {
     float3 force_accum = {0, 0, 0};
@@ -275,10 +275,10 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
                 unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
 
                 unsigned int contact_id =
-                    findContactPairInfo(sphere_data.sphere_contact_map, gran_params, sphID, BC_histmap_label);
+                    findContactPairInfo(sphere_data->sphere_contact_map, gran_params, sphID, BC_histmap_label);
 
                 // get the tangential displacement so far
-                delta_t = sphere_data.contact_history_map[contact_id];
+                delta_t = sphere_data->contact_history_map[contact_id];
                 // add on what we have for this step
                 delta_t = delta_t + sphere_vel * gran_params->stepSize_SU;
 
@@ -290,7 +290,7 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
                 clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
 
                 // write back the updated displacement
-                sphere_data.contact_history_map[contact_id] = delta_t;
+                sphere_data->contact_history_map[contact_id] = delta_t;
             }
 
             float3 tangent_force = -gran_params->K_t_s2w_SU * delta_t * force_model_multiplier;

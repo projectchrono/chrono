@@ -33,10 +33,10 @@ inline __device__ int3 pointSDTriplet(int64_t sphCenter_X,
     //        sphCenter_X_modified, sphCenter_Y_modified, sphCenter_Z_modified);
     int3 n;
     // Get the SD of the sphere's center in the xdir
-    n.x = (sphCenter_X_modified) / gran_params->SD_size_X_SU;
+    n.x = (sphCenter_X_modified / (int64_t)gran_params->SD_size_X_SU);
     // Same for D and H
-    n.y = (sphCenter_Y_modified) / gran_params->SD_size_Y_SU;
-    n.z = (sphCenter_Z_modified) / gran_params->SD_size_Z_SU;
+    n.y = (sphCenter_Y_modified / (int64_t)gran_params->SD_size_Y_SU);
+    n.z = (sphCenter_Z_modified / (int64_t)gran_params->SD_size_Z_SU);
     return n;
 }
 
@@ -147,21 +147,23 @@ inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_con
 }
 
 // cleanup the contact data for a given body
-inline __device__ void cleanupContactMap(sphereDataStruct sphere_data, unsigned int body_A, GranParamsPtr gran_params) {
+inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
+                                         unsigned int body_A,
+                                         GranParamsPtr gran_params) {
     // printf("cleaning up body %u contacts\n", body_A);
     size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
     // first skim through and see if this contact pair is in the map
     for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         // if the contact is not active, reset it
-        if (sphere_data.sphere_contact_map[body_A_offset + contact_id].active == false) {
+        if (sphere_data->sphere_contact_map[body_A_offset + contact_id].active == false) {
             // printf("contact %u for body %u is inactive now, removing\n", );
-            sphere_data.sphere_contact_map[body_A_offset + contact_id].body_B = NULL_GRANULAR_ID;
+            sphere_data->sphere_contact_map[body_A_offset + contact_id].body_B = NULL_GRANULAR_ID;
             if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-                sphere_data.contact_history_map[body_A_offset + contact_id] = {0., 0., 0.};
+                sphere_data->contact_history_map[body_A_offset + contact_id] = {0., 0., 0.};
             }
         } else {
             // otherwise reset the active bit for next time
-            sphere_data.sphere_contact_map[body_A_offset + contact_id].active = false;
+            sphere_data->sphere_contact_map[body_A_offset + contact_id].active = false;
         }
     }
 }
