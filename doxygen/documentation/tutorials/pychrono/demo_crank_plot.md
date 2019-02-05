@@ -1,4 +1,4 @@
-Create a stack of bricks  {#tutorial_pychrono_demo_crank_plot}
+Create a slider-crank system {#tutorial_pychrono_demo_crank_plot}
 ==========================
 
 Create a slider-crank, visulize and simulate it, and finally plot results using Python plotting tools.

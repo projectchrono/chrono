@@ -146,3 +146,18 @@ If you want to learn how to parse and execute Python programs
     - load the system in PyChrono 
 	- add actuators and additional items not modeled in CAD
     - show the simulation in an Irrlicht 3D view
+	
+	
+<br>
+-   @subpage tutorial_pychrono_demo_tensorflow
+
+    Train a NN in simulation to control actuators.
+	
+	- Build a learning model with Tensorflow
+	- Build a training environment with Pychrono
+	- Use simulation to train the Neural Network 
+
+    - use the Chrono::SolidWorks Add-In for exporting a mechanical system
+    - load the system in PyChrono 
+	- add actuators and additional items not modeled in CAD
+    - show the simulation in an Irrlicht 3D view
