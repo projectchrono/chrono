@@ -225,14 +225,14 @@ int main(int argc, char* argv[]) {
     }
 
     vector<std::pair<string, std::shared_ptr<ChBody>>> gran_collision_bodies;
-    gran_collision_bodies.push_back(std::pair<string, std::shared_ptr<ChBody>>(
-        wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FL)));
-    gran_collision_bodies.push_back(std::pair<string, std::shared_ptr<ChBody>>(
-        wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)));
-    gran_collision_bodies.push_back(std::pair<string, std::shared_ptr<ChBody>>(
-        wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RL)));
-    gran_collision_bodies.push_back(std::pair<string, std::shared_ptr<ChBody>>(
-        wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)));
+    gran_collision_bodies.push_back(
+        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FL)));
+    gran_collision_bodies.push_back(
+        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)));
+    gran_collision_bodies.push_back(
+        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RL)));
+    gran_collision_bodies.push_back(
+        std::pair<string, std::shared_ptr<ChBody>>(wheel_mesh_filename, hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)));
 
     // Add wheel masses
     vector<bool> mesh_inflated;
@@ -333,7 +333,12 @@ int main(int argc, char* argv[]) {
 
     // Output preferences
     gran_sys->setOutputDirectory(out_dir);
-    gran_sys->setOutputMode(params.write_mode);
+    if (run_mode == RUN_MODE::SETTLING) {
+        // Force csv for generating the checkpoint
+        gran_sys->setOutputMode(GRAN_OUTPUT_MODE::CSV);
+    } else {
+        gran_sys->setOutputMode(params.write_mode);
+    }
     gran_sys->setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(out_dir));
 
