@@ -34,14 +34,42 @@ using std::stoi;
 using std::vector;
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_repose <json_file> <output_dir>" << endl;
+    cout << "usage: ./test_GRAN_repose <json_file> <output_dir> <static_friction>" << endl;
+}
+
+void writeMeshFrames(std::ostringstream& outstream,
+                     const string obj_name,
+                     const ChVector<>& pos,
+                     const float3 mesh_scaling) {
+    outstream << obj_name << ",";
+
+    // Get basis vectors
+    ChVector<> vx(1, 0, 0);
+    ChVector<> vy(0, 1, 0);
+    ChVector<> vz(0, 0, 1);
+
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z() << ",";
+    outstream << mesh_scaling.x << "," << mesh_scaling.y << "," << mesh_scaling.z;
+    outstream << "\n";
 }
 
 int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 3 || ParseJSON(argv[1], params) == false) {
+    if (argc != 4 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -72,7 +100,7 @@ int main(int argc, char* argv[]) {
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
 
-    m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
+    m_sys.setOutputMode(params.write_mode);
     string out_dir(argv[2]);
     m_sys.setOutputDirectory(out_dir);
     filesystem::create_directory(filesystem::path(out_dir));
@@ -83,9 +111,9 @@ int main(int argc, char* argv[]) {
     m_sys.set_BD_Fixed(true);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
-    const float static_friction = 0.5;  // TODO
-    m_sys.set_static_friction_coeff(static_friction);
+    float static_friction = std::stof(argv[3]);
     cout << "Static Friction: " << static_friction << endl;
+    m_sys.set_static_friction_coeff(static_friction);
 
     const float Bx = params.box_X;
     const float By = Bx;
@@ -166,7 +194,7 @@ int main(int argc, char* argv[]) {
 
     const double time_settling = 1;
     const double lower_vel = 2;
-    const double lower_dist = 1;
+    const double lower_dist = 3;
     const double time_lowering = lower_dist / lower_vel;
 
     cout << "Time settling " << time_settling << endl;
@@ -209,18 +237,24 @@ int main(int argc, char* argv[]) {
     unsigned int step = 0;
     bool lowered = false;
     bool settled = false;
+    const ChVector<> pos_dish(0, 0, dish_z);
+    ChVector<> pos_ledge(0, 0, ledge_z);
+
     cout << "Settling..." << endl;
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
         if (t >= time_settling && t <= time_settling + time_lowering) {
+            // Lowering phase
             if (!settled) {
                 cout << "Lowering..." << endl;
                 settled = true;
             }
             ledge_z -= iteration_step * lower_vel;
             meshPosRot[ledge_i * pos_per_fam + 2] = ledge_z;
+            pos_ledge.z() = ledge_z;
             meshVel[ledge_i * vel_per_fam + 2] = -lower_vel;
             m_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
         } else if (t > time_settling + time_lowering && !lowered) {
+            // Draining phase
             lowered = true;
             meshVel[ledge_i * vel_per_fam + 2] = 0;
             m_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
@@ -231,7 +265,19 @@ int main(int argc, char* argv[]) {
             char filename[100];
             sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
             m_sys.writeFile(string(filename));
-            m_sys.write_meshes(string(filename));
+            // m_sys.write_meshes(string(filename));
+
+            string mesh_output = string(filename) + "_meshframes.csv";
+
+            std::ofstream meshfile(mesh_output);
+            std::ostringstream outstream;
+            outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3,sx,sy,sz\n";
+
+            writeMeshFrames(outstream, mesh_filename_dish, pos_dish, scaling_dish);
+            writeMeshFrames(outstream, mesh_filename_ledge, pos_ledge, scaling_ledge);
+
+            meshfile << outstream.str();
+            meshfile.close();
         }
 
         m_sys.advance_simulation(iteration_step);

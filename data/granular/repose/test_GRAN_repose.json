@@ -3,7 +3,7 @@
 	"sphere_density": 1,
 	"box_X": 100,
 	"step_size": 5e-6,
-	"time_end": 10,
+	"time_end": 120,
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
@@ -30,5 +30,5 @@
 	"psi_T": 16,
 	"psi_L": 16,
 
-	"write_mode": "csv"
+	"write_mode": "binary"
 }
