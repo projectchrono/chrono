@@ -45,10 +45,8 @@ load_ok = mydoc.Load_STEP(chrono.GetChronoDataPath() + "cascade/assembly.stp"); 
 
 # In most CADs the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
-rotation1 = chrono.ChQuaternionD()
-rotation1.Q_from_AngAxis(-chrono.CH_C_PI / 2, chrono.ChVectorD(1, 0, 0));  # 1: rotate 90° on X axis
-rotation2 = chrono.ChQuaternionD()
-rotation2.Q_from_AngAxis(chrono.CH_C_PI, chrono.ChVectorD(0, 1, 0));  # 2: rotate 180° on vertical Y axis
+rotation1 = chrono.Q_ROTATE_Z_TO_Y
+rotation2 = chrono.Q_FLIP_AROUND_Y
 tot_rotation = chrono.ChQuaternionD()
 tot_rotation = rotation2 % rotation1     # rotate on 1 then on 2, using quaternion product
 root_frame = chrono.ChFrameMovingD(chrono.ChVectorD(0, 0, 0), tot_rotation);
@@ -158,6 +156,9 @@ myapplication.AssetUpdateAll();
 
 
 myapplication.SetTimestep(0.01)
+
+myapplication.SetTryRealtime(True)
+
 
 
 while(myapplication.GetDevice().run()):

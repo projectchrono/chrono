@@ -27,8 +27,6 @@ mysystem      = chrono.ChSystemNSC()
 
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000)
 mfloor.SetBodyFixed(True)
-mfloor.SetRot(chrono.Q_from_AngAxis(0.1,chrono.VECT_Z))
-
 mysystem.Add(mfloor)
 
 #
