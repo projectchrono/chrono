@@ -34,10 +34,28 @@
 #include "chrono_granular/utils/ChGranularUtilities.cuh"
 
 using chrono::granular::contactDataStruct;
+using chrono::granular::GRAN_TIME_INTEGRATOR;
+using chrono::granular::GRAN_FRICTION_MODE;
 
 // NOTE the above 'using's must happen before this file is included
 #include "chrono_granular/physics/ChGranularHelpers.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
+
+inline __device__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD,
+                                                   const int3& local_pos,
+                                                   GranParamsPtr gran_params) {
+    int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
+    int64_t3 sphPos_global = {0, 0, 0};
+
+    sphPos_global.x = ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + gran_params->BD_frame_X;
+    sphPos_global.y = ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + gran_params->BD_frame_Y;
+    sphPos_global.z = ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + gran_params->BD_frame_Z;
+
+    sphPos_global.x += (int64_t)local_pos.x;
+    sphPos_global.y += (int64_t)local_pos.y;
+    sphPos_global.z += (int64_t)local_pos.z;
+    return sphPos_global;
+}
 
 /// Takes in a sphere's position and inserts into the given int array[8] which subdomains, if any, are touched
 /// The array is indexed with the ones bit equal to +/- x, twos bit equal to +/- y, and the fours bit equal to +/- z
@@ -383,12 +401,35 @@ inline __device__ void findNewLocalCoords(GranSphereDataPtr sphere_data,
     sphere_data->sphere_local_pos_Z[mySphereID] = sphere_pos_local_Z;
 
     if (SDID >= gran_params->nSDs) {
-        ABORTABORTABORT("ERROR! Sphere %u has invalid SD %u, max is %u, triplet %d, %d, %d\n", SDID, gran_params->nSDs,
-                        ownerSD.x, ownerSD.y, ownerSD.z);
+        unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+        ABORTABORTABORT("ERROR! Sphere %u has invalid SD %u, max is %u, triplet %d, %d, %d\n", mySphereID, SDID,
+                        gran_params->nSDs, ownerSD.x, ownerSD.y, ownerSD.z);
     }
 
     // write back which SD currently owns this sphere
     sphere_data->sphere_owner_SDs[mySphereID] = SDID;
+}
+
+/// when our BD frame moves, we need to change all local positions to account
+static __global__ void applyBDFrameChange(const int64_t3& delta,
+                                          GranSphereDataPtr sphere_data,
+                                          unsigned int nSpheres,
+                                          GranParamsPtr gran_params) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (mySphereID < nSpheres) {
+        int3 sphere_pos_local =
+            make_int3(sphere_data->sphere_local_pos_X[mySphereID], sphere_data->sphere_local_pos_Y[mySphereID],
+                      sphere_data->sphere_local_pos_Z[mySphereID]);
+
+        unsigned int ownerSD = sphere_data->sphere_owner_SDs[mySphereID];
+
+        // find global pos in old frame, but subtract off the change
+        int64_t3 sphPos_global = convertPosLocalToGlobal(ownerSD, sphere_pos_local, gran_params) - delta;
+
+        findNewLocalCoords(sphere_data, mySphereID, sphPos_global.x, sphPos_global.y, sphPos_global.z, gran_params);
+    }
 }
 
 /// Convert sphere positions from 64-bit global to 32-bit local
@@ -409,219 +450,6 @@ static __global__ void initializeLocalPositions(GranSphereDataPtr sphere_data,
     }
 }
 
-/**
-This device function computes the forces induces by the walls on the box on a sphere
-Input:
-  - sphXpos: X location, measured in the box reference system, of the sphere
-  - sphYpos: Y location, measured in the box reference system, of the sphere
-  - sphZpos: Z location, measured in the box reference system, of the sphere
-  - sphXvel: X velocity, measured in the box reference system, of the sphere
-  - sphYvel: Y velocity, measured in the box reference system, of the sphere
-  - sphZvel: Z velocity, measured in the box reference system, of the sphere
-
-Output:
-  - X_Vel_corr: the X component of the force, as represented in the box reference system
-  - Y_Vel_corr: the Y component of the force, as represented in the box reference system
-  - Z_Vel_corr: the Z component of the force, as represented in the box reference system
-*/
-inline __device__ void boxWallsEffects(const int sphXpos,      //!< Global X position of DE
-                                       const int sphYpos,      //!< Global Y position of DE
-                                       const int sphZpos,      //!< Global Z position of DE
-                                       const float sphXvel,    //!< Global X velocity of DE
-                                       const float sphYvel,    //!< Global Y velocity of DE
-                                       const float sphZvel,    //!< Global Z velocity of DE
-                                       const float sphOmegaX,  //!< Global X velocity of DE
-                                       const float sphOmegaY,  //!< Global Y velocity of DE
-                                       const float sphOmegaZ,  //!< Global Z velocity of DE
-                                       const unsigned int ownerSD,
-                                       float3& force_from_wall,
-                                       float3& ang_acc_from_wall,
-                                       GranParamsPtr gran_params) {
-    // classic radius grab, but signed so we can negate it easier
-    const signed int sphereRadius_SU = gran_params->sphereRadius_SU;
-    int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
-
-    // Shift frame so that origin is at lower left corner
-    int64_t sphXpos_modified = sphXpos + ownerSD_triplet.x * gran_params->SD_size_X_SU;
-    int64_t sphYpos_modified = sphYpos + ownerSD_triplet.y * gran_params->SD_size_Y_SU;
-    int64_t sphZpos_modified = sphZpos + ownerSD_triplet.z * gran_params->SD_size_Z_SU;
-
-    // printf("owner SD is %u, %d, %d, %d\n", ownerSD, ownerSD_triplet.x, ownerSD_triplet.y, ownerSD_triplet.z);
-    // printf("modified pos is %lld, %lld, %lld\n", sphXpos_modified, sphYpos_modified, sphZpos_modified);
-
-    constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
-    // cache force
-    float3 wall_force = {0, 0, 0};
-    // cache force divided by radius
-    float3 wall_torque_by_r = {0, 0, 0};
-
-    // velocity difference of COMs
-    float3 delta_V_com = make_float3(sphXvel - gran_params->BD_frame_X_dot, sphYvel - gran_params->BD_frame_Y_dot,
-                                     sphZvel - gran_params->BD_frame_Z_dot);
-    // r times Omega, these are components of r cross omega
-    float3 r_Omega = {sphereRadius_SU * sphOmegaX, sphereRadius_SU * sphOmegaY, sphereRadius_SU * sphOmegaZ};
-
-    float3 normal_damping_force = delta_V_com * gran_params->Gamma_n_s2w_SU * m_eff;
-
-    // TODO how does multistep work here?
-
-    // scaling factors for tangential spring/damping forces
-    float composite_t_fac = gran_params->K_t_s2w_SU * gran_params->stepSize_SU +
-                            gran_params->Gamma_t_s2w_SU * m_eff;  // include time integration for now
-
-    int64_t penetration;
-
-    // Todo could dump into float[3] and make this much easier to read
-
-    // Do X direction
-    // penetration of sphere into bottom X wall
-    penetration = sphXpos_modified - sphereRadius_SU;
-    // if leftmost part is below wall, we have contact
-    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
-        float3 curr_contrib = {0, 0, 0};
-        // positive (upwards) restorative force
-        curr_contrib.x += gran_params->K_n_s2w_SU * abs(penetration);
-        // damping always has this minus sign
-        curr_contrib.x += -1 * normal_damping_force.x;
-        // adhesion term
-        curr_contrib.x += -1 * gran_params->adhesionAcc_s2w;
-
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
-            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-            // add tangential forces
-            // w cross r = -r w_z e_y + r w_y e_z
-            curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.z));
-            curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.y));
-            wall_torque_by_r = wall_torque_by_r + make_float3(0, curr_contrib.z, -curr_contrib.y);
-        }
-        wall_force = wall_force + curr_contrib;
-    }
-
-    // Do top X wall
-    penetration = gran_params->max_x_pos_unsigned - (sphXpos_modified + sphereRadius_SU);
-    // if leftmost part is below wall, we have contact
-    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
-        float3 curr_contrib = {0, 0, 0};
-
-        // negative (downwards) restorative force
-        curr_contrib.x += -1 * gran_params->K_n_s2w_SU * abs(penetration);
-        // damping always has this minus sign
-        curr_contrib.x += -1 * normal_damping_force.x;
-        // adhesion term
-        curr_contrib.x += gran_params->adhesionAcc_s2w;
-
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
-            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-            // add tangential forces
-            curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.z));
-            curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.y));
-            wall_torque_by_r = wall_torque_by_r + make_float3(0, -curr_contrib.z, curr_contrib.y);
-        }
-        wall_force = wall_force + curr_contrib;
-    }
-
-    // Do Y direction
-    // penetration of sphere into bottom Y wall
-    penetration = sphYpos_modified - sphereRadius_SU;
-    // if leftmost part is below wall, we have contact
-    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
-        float3 curr_contrib = {0, 0, 0};
-
-        // positive (upwards) restorative force
-        curr_contrib.y += gran_params->K_n_s2w_SU * abs(penetration);
-        // damping always has this minus sign
-        curr_contrib.y += -1 * normal_damping_force.y;
-        // adhesion term
-        curr_contrib.y += -1 * gran_params->adhesionAcc_s2w;
-
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
-            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-            // add tangential forces
-            curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z - r_Omega.x));
-            curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.z));
-            wall_torque_by_r = wall_torque_by_r + make_float3(-curr_contrib.z, 0, curr_contrib.x);
-        }
-        wall_force = wall_force + curr_contrib;
-    }
-
-    // Do top Y wall
-    penetration = gran_params->max_y_pos_unsigned - (sphYpos_modified + sphereRadius_SU);
-    // if leftmost part is below wall, we have contact
-    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
-        float3 curr_contrib = {0, 0, 0};
-
-        // negative (downwards) restorative force
-        curr_contrib.y += -1 * gran_params->K_n_s2w_SU * abs(penetration);
-        // damping always has this minus sign
-        curr_contrib.y += -1 * normal_damping_force.y;
-        // adhesion term
-        curr_contrib.y += gran_params->adhesionAcc_s2w;
-
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
-            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-            // add tangential forces
-            curr_contrib.z += -1 * (composite_t_fac * (delta_V_com.z + r_Omega.x));
-            curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.z));
-            wall_torque_by_r = wall_torque_by_r + make_float3(curr_contrib.z, 0, -curr_contrib.x);
-        }
-        wall_force = wall_force + curr_contrib;
-    }
-
-    // Do Z direction
-    // penetration of sphere into bottom Z wall
-    penetration = sphZpos_modified - sphereRadius_SU;
-    // if leftmost part is below wall, we have contact
-    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
-        printf("BWE: pos is %lld, %lld, %lld, pen is %d, force is %f\n", sphXpos_modified, sphYpos_modified,
-               sphZpos_modified, penetration, gran_params->K_n_s2w_SU * abs(penetration));
-        float3 curr_contrib = {0, 0, 0};
-
-        // positive (upwards) restorative force
-        curr_contrib.z += gran_params->K_n_s2w_SU * abs(penetration);
-        // damping always has this minus sign
-        curr_contrib.z += -1 * normal_damping_force.z;
-        // adhesion term
-        curr_contrib.z += -1 * gran_params->adhesionAcc_s2w;
-
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
-            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-            // add tangential forces
-            curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x - r_Omega.y));
-            curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y + r_Omega.x));
-            wall_torque_by_r = wall_torque_by_r + make_float3(curr_contrib.y, -curr_contrib.x, 0);
-        }
-        wall_force = wall_force + curr_contrib;
-    }
-
-    // Do top Z wall
-    penetration = gran_params->max_z_pos_unsigned - (sphZpos_modified + sphereRadius_SU);
-    // if leftmost part is below wall, we have contact
-    if ((penetration < 0) && abs(penetration) < sphereRadius_SU) {
-        float3 curr_contrib = {0, 0, 0};
-
-        // negative (downwards) restorative force
-        curr_contrib.z += -1 * gran_params->K_n_s2w_SU * abs(penetration);
-        // damping always has this minus sign
-        curr_contrib.z += -1 * normal_damping_force.z;
-        // adhesion term
-        curr_contrib.z += gran_params->adhesionAcc_s2w;
-
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
-            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-            // add tangential forces
-            curr_contrib.x += -1 * (composite_t_fac * (delta_V_com.x + r_Omega.y));
-            curr_contrib.y += -1 * (composite_t_fac * (delta_V_com.y - r_Omega.x));
-            wall_torque_by_r = wall_torque_by_r + make_float3(-curr_contrib.y, curr_contrib.x, 0);
-        }
-        wall_force = wall_force + curr_contrib;
-    }
-
-    force_from_wall = force_from_wall + wall_force;
-    if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-        ang_acc_from_wall = ang_acc_from_wall + (wall_torque_by_r / gran_params->sphereInertia_by_r);
-    }
-}
-
 // apply gravity to a sphere
 inline __device__ void applyGravity(float3& sphere_force, GranParamsPtr gran_params) {
     sphere_force.x += gran_params->gravAcc_X_SU * gran_params->sphere_mass_SU;
@@ -630,32 +458,18 @@ inline __device__ void applyGravity(float3& sphere_force, GranParamsPtr gran_par
 }
 
 /// Compute forces on a sphere from walls, BCs, and gravity
-inline __device__ void applyExternalForces_frictionless(unsigned int currSphereID,
-                                                        unsigned int ownerSD,
-                                                        const int3& sphPos,    //!< Global X position of DE
-                                                        const float3& sphVel,  //!< Global X velocity of DE
+inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
+                                                        const int3& sphPos_local,  //!< local X position of DE
+                                                        const float3& sphVel,      //!< Global X velocity of DE
                                                         float3& sphere_force,
                                                         GranParamsPtr gran_params,
                                                         GranSphereDataPtr sphere_data,
                                                         BC_type* bc_type_list,
                                                         BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                         unsigned int nBCs) {
-    // tmp vars used to satisfy functions
-    const float3 sphOmega = {0, 0, 0};
-    float3 sphere_ang_acc = {0, 0, 0};
-
     // printf("FIRST: sphere %u, local is %d, %d, %d\n", currSphereID, sphPos.x, sphPos.y, sphPos.z);
 
-    int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
-    int64_t3 sphPos_global = {0, 0, 0};
-
-    sphPos_global.x = ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + gran_params->BD_frame_X;
-    sphPos_global.y = ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + gran_params->BD_frame_Y;
-    sphPos_global.z = ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + gran_params->BD_frame_Z;
-
-    sphPos_global.x += (int64_t)sphPos.x;
-    sphPos_global.y += (int64_t)sphPos.y;
-    sphPos_global.z += (int64_t)sphPos.z;
+    int64_t3 sphPos_global = convertPosLocalToGlobal(ownerSD, sphPos_local, gran_params);
 
     // printf(
     //     "sphere %u, SD is %u, trip %d, %d, %d, SD offset is %lld, %lld, %lld, BD offset is %lld, %lld, %lld,"
@@ -681,24 +495,24 @@ inline __device__ void applyExternalForces_frictionless(unsigned int currSphereI
             //     break;
             // }
             case BC_type::SPHERE: {
-                addBCForces_Sphere(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                   gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_Sphere_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
+                                                bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::CONE: {
-                addBCForces_ZCone(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                  gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_ZCone_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
+                                               bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::PLANE: {
                 float dist = 0;  // tmp used to satisfy function parameters
-                addBCForces_Plane_frictionless(currSphereID, BC_id, sphPos_global, sphVel, sphere_force, gran_params,
-                                               bc_params_list[BC_id], bc_params_list[BC_id].track_forces, dist);
+                addBCForces_Plane_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
+                                               bc_params_list[BC_id].track_forces, dist);
                 break;
             }
             case BC_type::CYLINDER: {
-                addBCForces_Zcyl(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                 gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_Zcyl_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
+                                              bc_params_list[BC_id].track_forces);
                 break;
             }
         }
@@ -709,8 +523,8 @@ inline __device__ void applyExternalForces_frictionless(unsigned int currSphereI
 /// Compute forces on a sphere from walls, BCs, and gravity
 inline __device__ void applyExternalForces(unsigned int currSphereID,
                                            unsigned int ownerSD,
-                                           const int3& sphPos,    //!< Global X position of DE
-                                           const float3& sphVel,  //!< Global X velocity of DE
+                                           const int3& sphPos_local,  //!< Global X position of DE
+                                           const float3& sphVel,      //!< Global X velocity of DE
                                            const float3& sphOmega,
                                            float3& sphere_force,
                                            float3& sphere_ang_acc,
@@ -719,16 +533,7 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
                                            BC_type* bc_type_list,
                                            BC_params_t<int64_t, int64_t3>* bc_params_list,
                                            unsigned int nBCs) {
-    int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
-    int64_t3 sphPos_global = {0, 0, 0};
-
-    sphPos_global.x = ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + gran_params->BD_frame_X;
-    sphPos_global.y = ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + gran_params->BD_frame_Y;
-    sphPos_global.z = ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + gran_params->BD_frame_Z;
-
-    sphPos_global.x += (int64_t)sphPos.x;
-    sphPos_global.y += (int64_t)sphPos.y;
-    sphPos_global.z += (int64_t)sphPos.z;
+    int64_t3 sphPos_global = convertPosLocalToGlobal(ownerSD, sphPos_local, gran_params);
 
     // add forces from each BC
     for (unsigned int BC_id = 0; BC_id < nBCs; BC_id++) {
@@ -742,13 +547,13 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
             //     break;
             // }
             case BC_type::SPHERE: {
-                addBCForces_Sphere(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                   gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_Sphere_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
+                                                bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::CONE: {
-                addBCForces_ZCone(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                  gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_ZCone_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
+                                               bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::PLANE: {
@@ -757,8 +562,8 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
                 break;
             }
             case BC_type::CYLINDER: {
-                addBCForces_Zcyl(currSphereID, BC_id, sphPos_global, sphVel, sphOmega, sphere_force, sphere_ang_acc,
-                                 gran_params, bc_params_list[BC_id], bc_params_list[BC_id].track_forces);
+                addBCForces_Zcyl_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
+                                              bc_params_list[BC_id].track_forces);
                 break;
             }
         }
@@ -846,25 +651,23 @@ static __global__ void determineContactPairs(GranSphereDataPtr sphere_data, Gran
 inline __device__ float3 computeSphereNormalForces(float& reciplength,
                                                    float3& vrel_t,
                                                    float3& delta_r,
-                                                   const int3 sphereA_pos,
-                                                   const int3 sphereB_pos,
-                                                   const float3 sphereA_vel,
-                                                   const float3 sphereB_vel,
+                                                   const int3& sphereA_pos,
+                                                   const int3& sphereB_pos,
+                                                   const float3& sphereA_vel,
+                                                   const float3& sphereB_vel,
                                                    GranParamsPtr gran_params) {
-    float sphdiameter = 2. * gran_params->sphereRadius_SU;
+    // grab radius from global
+    unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
     // compute penetrations in double
     {
-        double invSphDiameter = 1. / (2. * gran_params->sphereRadius_SU);
+        double invSphDiameter = 1. / (2. * sphereRadius_SU);
         double3 delta_r_double = int3_to_double3(sphereA_pos - sphereB_pos) * invSphDiameter;
         // compute in double then convert to float
         reciplength = rsqrt(Dot(delta_r_double, delta_r_double));
     }
 
-    // Compute penetration term, this becomes the delta as we want it
-    float penetration = reciplength - 1.;
-
-    float force_model_multiplier = get_force_multiplier(penetration, gran_params);
+    float sphdiameter = 2. * sphereRadius_SU;
 
     // compute these in float now
     delta_r = int3_to_float3(sphereA_pos - sphereB_pos) / sphdiameter;
@@ -872,18 +675,24 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
     // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
     float3 v_rel = sphereA_vel - sphereB_vel;
 
+    // n = delta_r * reciplength
+    float3 contact_normal = delta_r * reciplength;
+
     // Compute force updates for damping term
     // Project relative velocity to the normal
-    // n = delta_r * reciplength
     // proj = Dot(delta_dot, n)
-    float projection = Dot(v_rel, delta_r) * reciplength;
+    float projection = Dot(v_rel, contact_normal);
 
     // delta_dot = proj * n
-    float3 vrel_n = projection * delta_r * reciplength;
+    float3 vrel_n = projection * contact_normal;
     vrel_t = v_rel - vrel_n;
 
     constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+
+    // Compute penetration term, this becomes the delta as we want it
+    float penetration = reciplength - 1.;
     // multiplier caused by Hooke vs Hertz force model
+    float force_model_multiplier = get_force_multiplier(penetration, gran_params);
 
     // Add damping term
     // add spring term
@@ -908,7 +717,6 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
     // don't overrun the array
     if (mySphereID < nSpheres) {
         // my offset in the contact map
-        size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
         unsigned int myOwnerSD = sphere_data->sphere_owner_SDs[mySphereID];
 
         // printf("sphere %u is active\n", mySphereID);
@@ -919,7 +727,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
         // prepare in case we have friction
         float3 my_omega;
 
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             my_omega = make_float3(sphere_data->sphere_Omega_X[mySphereID], sphere_data->sphere_Omega_Y[mySphereID],
                                    sphere_data->sphere_Omega_Z[mySphereID]);
         }
@@ -932,6 +740,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
         float3 bodyA_force = {0.f, 0.f, 0.f};
         float3 bodyA_AngAcc = {0.f, 0.f, 0.f};
 
+        size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
         // for each sphere contacting me, compute the forces
         for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
             // who am I colliding with?
@@ -968,7 +777,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                 constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
 
                 // add frictional terms, if needed
-                if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
+                if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                     float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
                                                      sphere_data->sphere_Omega_Y[theirSphereID],
                                                      sphere_data->sphere_Omega_Z[theirSphereID]);
@@ -983,12 +792,12 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
 
                     // TODO improve this
                     // calculate tangential forces -- NOTE that these only come into play with friction enabled
-                    if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+                    if (gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
                         // assume the contact is just this timestep
                         delta_t = vrel_t * gran_params->stepSize_SU;
                         // just in case this gets too big
                         clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
-                    } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+                    } else if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
                         // get the tangential displacement so far
                         delta_t = sphere_data->contact_history_map[body_A_offset + contact_id];
                         // add on what we have
@@ -1038,8 +847,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
         atomicAdd(sphere_data->sphere_acc_Y + mySphereID, bodyA_force.y / gran_params->sphere_mass_SU);
         atomicAdd(sphere_data->sphere_acc_Z + mySphereID, bodyA_force.z / gran_params->sphere_mass_SU);
 
-        if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP ||
-            gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+        if (gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP ||
+            gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
             atomicAdd(sphere_data->sphere_ang_acc_X + mySphereID, bodyA_AngAcc.x);
             atomicAdd(sphere_data->sphere_ang_acc_Y + mySphereID, bodyA_AngAcc.y);
             atomicAdd(sphere_data->sphere_ang_acc_Z + mySphereID, bodyA_AngAcc.z);
@@ -1100,22 +909,11 @@ static __global__ void computeSphereForces_frictionless(GranSphereDataPtr sphere
 
     // Each body looks at each other body and computes the force that the other body exerts on it
     if (bodyA < spheresTouchingThisSD) {
-        // Force generated by this contact
-        float3 bodyA_force = {0.f, 0.f, 0.f};
-
         for (unsigned char bodyB = 0; bodyB < spheresTouchingThisSD; bodyB++) {
             if (bodyA == bodyB)
                 continue;
-            // printf("checking contacts for body %u, my local pos is %d, %d, %d, their local pos is %d, %d, %d\n",
-            //        mySphereID, sphere_pos[bodyA].x, sphere_pos[bodyA].y, sphere_pos[bodyA].z, sphere_pos[bodyB].x,
-            //        sphere_pos[bodyB].y, sphere_pos[bodyB].z);
+
             bool active_contact = checkSpheresContacting_int(sphere_pos[bodyA], sphere_pos[bodyB], thisSD, gran_params);
-            // printf(
-            //     "checking contacts for body %u, my local pos is %d, %d, %d, their local pos is %d, %d, %d, active is
-            //     "
-            //     "%d\n",
-            //     mySphereID, sphere_pos[bodyA].x, sphere_pos[bodyA].y, sphere_pos[bodyA].z, sphere_pos[bodyB].x,
-            //     sphere_pos[bodyB].y, sphere_pos[bodyB].z, active_contact);
 
             // We have a collision here, log it for later
             // not very divergent, super quick
@@ -1128,6 +926,9 @@ static __global__ void computeSphereForces_frictionless(GranSphereDataPtr sphere
                 ncontacts++;                    // Increment the contact counter
             }
         }
+
+        // Force generated on this sphere
+        float3 bodyA_force = {0.f, 0.f, 0.f};
 
         // NOTE that below here I used double precision because I didn't know how much precision I needed.
         // Reducing the amount of doubles will certainly speed this up Run through and do actual force
@@ -1154,8 +955,8 @@ static __global__ void computeSphereForces_frictionless(GranSphereDataPtr sphere
 
         unsigned int myOwnerSD = sphere_data->sphere_owner_SDs[mySphereID];
         if (myOwnerSD == thisSD) {
-            applyExternalForces_frictionless(mySphereID, myOwnerSD, sphere_pos[bodyA], sphere_vel[bodyA], bodyA_force,
-                                             gran_params, sphere_data, bc_type_list, bc_params_list, nBCs);
+            applyExternalForces_frictionless(myOwnerSD, sphere_pos[bodyA], sphere_vel[bodyA], bodyA_force, gran_params,
+                                             sphere_data, bc_type_list, bc_params_list, nBCs);
         }
 
         // Write the force back to global memory so that we can apply them AFTER this kernel finishes
@@ -1198,7 +999,7 @@ inline __device__ float integrateVelVerlet_pos(float stepsize_SU, float vel_old,
  * Numerically integrates force to velocity and velocity to position, then computes the broadphase on the new
  * positions
  */
-static __global__ void updatePositions(const float stepsize_SU,  //!< The numerical integration time step
+static __global__ void updatePositions(const float stepsize_SU,
                                        GranSphereDataPtr sphere_data,
                                        unsigned int nSpheres,
                                        GranParamsPtr gran_params) {
@@ -1325,31 +1126,14 @@ static __global__ void updatePositions(const float stepsize_SU,  //!< The numeri
                 break;
             }
         }
-        int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
 
-        // printf("delta v is %f, %f, %f, delta x is %f, %f, %f\n", v_update_X, v_update_Y, v_update_Z,
-        // position_update_x,
-        //        position_update_y, position_update_z);
-        //
-        // printf("SD ID is %u, trip is %d, %d, %d\n", sphere_data->sphere_owner_SDs[mySphereID], ownerSD_triplet.x,
-        //        ownerSD_triplet.y, ownerSD_triplet.z);
-        //
-        // printf("BD offsets are %lld, %lld, %lld\n", -gran_params->BD_frame_X, -gran_params->BD_frame_Y,
-        //        -gran_params->BD_frame_Z);
-        //
-        // printf("SD offsets are %lld, %lld, %lld\n", -(int64_t)ownerSD_triplet.x * gran_params->SD_size_X_SU,
-        //        -(int64_t)ownerSD_triplet.y * gran_params->SD_size_Y_SU,
-        //        -(int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU);
+        int3 sphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID] + position_update_x,
+                                          sphere_data->sphere_local_pos_Y[mySphereID] + position_update_y,
+                                          sphere_data->sphere_local_pos_Z[mySphereID] + position_update_z);
 
-        int64_t global_pos_x = ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU + gran_params->BD_frame_X;
-        int64_t global_pos_y = ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU + gran_params->BD_frame_Y;
-        int64_t global_pos_z = ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU + gran_params->BD_frame_Z;
+        int64_t3 sphPos_global =
+            convertPosLocalToGlobal(sphere_data->sphere_owner_SDs[mySphereID], sphere_pos_local, gran_params);
 
-        // should be a safe cast, TODO verify
-        global_pos_x += sphere_data->sphere_local_pos_X[mySphereID] + (int64_t)position_update_x;
-        global_pos_y += sphere_data->sphere_local_pos_Y[mySphereID] + (int64_t)position_update_y;
-        global_pos_z += sphere_data->sphere_local_pos_Z[mySphereID] + (int64_t)position_update_z;
-
-        findNewLocalCoords(sphere_data, mySphereID, global_pos_x, global_pos_y, global_pos_z, gran_params);
+        findNewLocalCoords(sphere_data, mySphereID, sphPos_global.x, sphPos_global.y, sphPos_global.z, gran_params);
     }
 }

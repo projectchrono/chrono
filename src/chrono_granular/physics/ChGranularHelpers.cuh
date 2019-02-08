@@ -106,15 +106,15 @@ inline __device__ unsigned int SDTripletID(const int trip[3], GranParamsPtr gran
 }
 
 /// get an index for the current contact pair
-inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_contact_map,
-                                                   GranParamsPtr gran_params,
-                                                   unsigned int body_A,
-                                                   unsigned int body_B) {
+inline __device__ size_t findContactPairInfo(contactDataStruct* sphere_contact_map,
+                                             GranParamsPtr gran_params,
+                                             unsigned int body_A,
+                                             unsigned int body_B) {
     // TODO this should be size_t everywhere
-    unsigned int body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
+    size_t body_A_offset = (size_t)MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
     // first skim through and see if this contact pair is in the map
     for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
-        unsigned int contact_index = body_A_offset + contact_id;
+        size_t contact_index = body_A_offset + contact_id;
         if (sphere_contact_map[contact_index].body_B == body_B) {
             // make sure this contact is marked active
             sphere_contact_map[contact_index].active = true;
@@ -124,7 +124,7 @@ inline __device__ unsigned int findContactPairInfo(contactDataStruct* sphere_con
 
     // if we get this far, the contact pair isn't in the map now and we need to find an empty spot
     for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
-        unsigned int contact_index = body_A_offset + contact_id;
+        size_t contact_index = body_A_offset + contact_id;
         // check whether the slot is free right now
         if (sphere_contact_map[contact_index].body_B == NULL_GRANULAR_ID) {
             // claim this slot for ourselves, atomically

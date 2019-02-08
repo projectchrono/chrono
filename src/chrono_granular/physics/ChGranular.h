@@ -176,16 +176,19 @@ struct ChGranParams {
     float gravAcc_Y_SU;  //!< Device counterpart of the constant gravity_Y_SU
     float gravAcc_Z_SU;  //!< Device counterpart of the constant gravity_Z_SU
 
-    /// Changed by updateBDPosition() at every timestep
-    /// The bottom-left corner xPos of the BD, allows boxes not centered at origin
+    /// The bottom-left corner xPos of the BD
     int64_t BD_frame_X;
-    /// The bottom-left corner yPos of the BD, allows boxes not centered at origin
+    /// The bottom-left corner yPos of the BD
     int64_t BD_frame_Y;
-    /// The bottom-left corner zPos of the BD, allows boxes not centered at origin
+    /// The bottom-left corner zPos of the BD
     int64_t BD_frame_Z;
-    float BD_frame_X_dot;
-    float BD_frame_Y_dot;
-    float BD_frame_Z_dot;
+
+    /// The offset of the BD from its original frame, used to allow the SD definitions to move
+    int64_t BD_offset_X;
+    /// The offset of the BD from its original frame, used to allow the SD definitions to move
+    int64_t BD_offset_Y;
+    /// The offset of the BD from its original frame, used to allow the SD definitions to move
+    int64_t BD_offset_Z;
 
     unsigned int psi_T;
     unsigned int psi_h;
@@ -404,9 +407,18 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     void setParticlePositions(const std::vector<ChVector<float>>& points);
 
+    GranPositionFunction BDOffsetFunction = GranPosFunction_default;
+
     /// Prescribe the motion of the BD, allows wavetank-style simulations
-    /// NOTE that this is the center of the container
-    void setBDPositionFunction(const GranPositionFunction& pos_fn) { BDPositionFunction = pos_fn; }
+    void setBDWallsMotionFunction(const GranPositionFunction& pos_fn) {
+        BDOffsetFunction = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_X_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_X_TOP) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Y_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Y_TOP) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Z_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Z_TOP) = pos_fn;
+    }
 
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
         gran_params->psi_T = psi_T_new;
@@ -558,11 +570,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     const float new_step_freq = .01;
     virtual void determineNewStepSize_SU();
 
-    /// Store the prescribed position function for the BD, used for moving frames
-    // Default is at rest
-    GranPositionFunction BDPositionFunction = GranPosFunction_default;
-
-    void updateBDPosition(float stepSize_SU);
     /// set the position of a BC and account for the offset
     void setBCOffset(const BC_type&,
                      const BC_params_t<float, float3>& params_UU,
@@ -571,6 +578,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// update positions of each BC using prescribed functions
     void updateBCPositions();
+
+    // apply offset to positions to account for frame changes
+    void offsetPositions(int64_t3 delta);
 
     /// Total time elapsed since beginning of simulation
     float elapsedSimTime;
@@ -604,6 +614,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Store the ratio of the acceleration due to adhesion vs the acceleration due to gravity
     float adhesion_s2w_over_gravity;
+
+    /// The reference point for UU to SU local coordinates
+    int64_t3 BD_rest_frame_SU;
 
     /// List of generalized BCs that constrain sphere motion
     std::vector<BC_type, cudallocator<BC_type>> BC_type_list;

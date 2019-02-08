@@ -515,13 +515,9 @@ __global__ void interactionTerrain_TriangleSoup(
     MeshParamsPtr mesh_params) {
     __shared__ unsigned int triangleIDs[MAX_TRIANGLE_COUNT_PER_SD];  //!< global ID of the triangles touching this SD
 
-    __shared__ int sphere_X[MAX_COUNT_OF_SPHERES_PER_SD];  //!< X coordinate of the grElement
-    __shared__ int sphere_Y[MAX_COUNT_OF_SPHERES_PER_SD];  //!< Y coordinate of the grElement
-    __shared__ int sphere_Z[MAX_COUNT_OF_SPHERES_PER_SD];  //!< Z coordinate of the grElement
+    __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];  //!< local X coordinate of the sphere
 
-    __shared__ float sphere_X_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
-    __shared__ float sphere_Y_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
-    __shared__ float sphere_Z_DOT[MAX_COUNT_OF_SPHERES_PER_SD];
+    __shared__ float3 sphere_vel[MAX_COUNT_OF_SPHERES_PER_SD];
 
     // TODO figure out how we can do this better with no friction
     __shared__ float3 omega[MAX_COUNT_OF_SPHERES_PER_SD];
@@ -556,32 +552,41 @@ __global__ void interactionTerrain_TriangleSoup(
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (sphereIDLocal < spheresTouchingThisSD) {
-        unsigned int SD_composite_offset = sphere_data->SD_SphereCompositeOffsets[thisSD];
+        size_t SD_composite_offset = sphere_data->SD_SphereCompositeOffsets[thisSD];
 
         // TODO standardize this
         // We may need long ints to index into composite array
         size_t offset_in_composite_Array = SD_composite_offset + sphereIDLocal;
         sphereIDGlobal = sphere_data->spheres_in_SD_composite[offset_in_composite_Array];
-        sphere_X[sphereIDLocal] = sphere_data->sphere_local_pos_X[sphereIDGlobal];
-        sphere_Y[sphereIDLocal] = sphere_data->sphere_local_pos_Y[sphereIDGlobal];
-        sphere_Z[sphereIDLocal] = sphere_data->sphere_local_pos_Z[sphereIDGlobal];
+
+        sphere_pos_local[sphereIDLocal] =
+            make_int3(sphere_data->sphere_local_pos_X[sphereIDGlobal], sphere_data->sphere_local_pos_Y[sphereIDGlobal],
+                      sphere_data->sphere_local_pos_Z[sphereIDGlobal]);
+
+        unsigned int sphere_owner_SD = sphere_data->sphere_owner_SDs[sphereIDGlobal];
+        // if this SD doesn't own that sphere, add an offset to account
+        if (sphere_owner_SD != thisSD) {
+            sphere_pos_local[sphereIDLocal] =
+                sphere_pos_local[sphereIDLocal] + getOffsetFromSDs(thisSD, sphere_owner_SD, gran_params);
+        }
+
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
             omega[sphereIDLocal] =
                 make_float3(sphere_data->sphere_Omega_X[sphereIDGlobal], sphere_data->sphere_Omega_Y[sphereIDGlobal],
                             sphere_data->sphere_Omega_Z[sphereIDGlobal]);
         }
-        sphere_X_DOT[sphereIDLocal] = sphere_data->pos_X_dt[sphereIDGlobal];
-        sphere_Y_DOT[sphereIDLocal] = sphere_data->pos_Y_dt[sphereIDGlobal];
-        sphere_Z_DOT[sphereIDLocal] = sphere_data->pos_Z_dt[sphereIDGlobal];
+        sphere_vel[sphereIDLocal] =
+            make_float3(sphere_data->pos_X_dt[sphereIDGlobal], sphere_data->pos_Y_dt[sphereIDGlobal],
+                        sphere_data->pos_Z_dt[sphereIDGlobal]);
     }
     // Populate the shared memory with mesh triangle data
     unsigned int tripsToCoverTriangles = (numSDTriangles + blockDim.x - 1) / blockDim.x;
     unsigned int local_ID = threadIdx.x;
     for (unsigned int triangTrip = 0; triangTrip < tripsToCoverTriangles; triangTrip++) {
         if (local_ID < numSDTriangles) {
-            unsigned int SD_composite_offset = SD_TriangleCompositeOffsets[thisSD];
+            size_t SD_composite_offset = SD_TriangleCompositeOffsets[thisSD];
             if (SD_composite_offset == NULL_GRANULAR_ID) {
-                ABORTABORTABORT("Invalid composite offset %u for SD %u, touching %u triangles\n", NULL_GRANULAR_ID,
+                ABORTABORTABORT("Invalid composite offset %llu for SD %u, touching %u triangles\n", NULL_GRANULAR_ID,
                                 thisSD, numSDTriangles);
             }
             size_t offset_in_composite_Array = SD_composite_offset + local_ID;
@@ -632,9 +637,9 @@ __global__ void interactionTerrain_TriangleSoup(
 
             {
                 double3 pt1;  // Contact point on triangle
-                // NOTE implicit cast from int to double
+                // NOTE sphere_pos_local is relative to THIS SD, not its owner SD
                 double3 sphCntr =
-                    make_double3(sphere_X[sphereIDLocal], sphere_Y[sphereIDLocal], sphere_Z[sphereIDLocal]);
+                    int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
                 valid_contact = face_sphere_cd(node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
                                                sphCntr, gran_params->sphereRadius_SU, d_triangleSoup->inflated[fam],
                                                d_triangleSoup->inflation_radii[fam], normal, depth, pt1) &&
@@ -664,11 +669,7 @@ __global__ void interactionTerrain_TriangleSoup(
 
                 // Velocity difference, it's better to do a coalesced access here than a fragmented access
                 // inside
-                float3 v_rel =
-                    make_float3(sphere_X_DOT[sphereIDLocal] - d_triangleSoup->vel[fam].x,
-                                sphere_Y_DOT[sphereIDLocal] - d_triangleSoup->vel[fam].y,
-                                sphere_Z_DOT[sphereIDLocal] -
-                                    d_triangleSoup->vel[fam].z);  // TODO use shared memory if there is any left...
+                float3 v_rel = sphere_vel[sphereIDLocal] - d_triangleSoup->vel[fam];
 
                 // TODO assumes pos is the center of mass of the mesh
                 // TODO can this be float?
@@ -1039,14 +1040,14 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determineNewStepSize_SU();  // doesn't always change the timestep
 
-        // Update the position and velocity of the BD, if relevant
-        updateBDPosition(stepSize_SU);
         updateBCPositions();
 
         resetSphereAccelerations();
         resetBCForces();
-        resetTriangleForces();
-        resetTriangleBroadphaseInformation();
+        if (meshSoup_DEVICE->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+            resetTriangleForces();
+            resetTriangleBroadphaseInformation();
+        }
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -1103,8 +1104,14 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
 
         VERBOSE_PRINTF("Starting updatePositions!\n");
         updatePositions<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+        // if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+        //     updateFrictionData<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+        // }
+        // gpuErrchk(cudaPeekAtLastError());
+        // gpuErrchk(cudaDeviceSynchronize());
 
         runSphereBroadphase();
 

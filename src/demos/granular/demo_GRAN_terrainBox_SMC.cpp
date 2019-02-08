@@ -87,6 +87,8 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
     settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
+    settlingExperiment.set_static_friction_coeff(params.static_friction_coeff);
+
     settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
     settlingExperiment.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     settlingExperiment.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
@@ -106,24 +108,24 @@ int main(int argc, char* argv[]) {
 
     {
         // fill box, layer by layer
-        ChVector<> hdims(params.box_X / 3.f - 2 * params.sphere_radius, params.box_Y / 3.f - 2 * params.sphere_radius,
-                         params.box_Z / 3.f - 2 * params.sphere_radius);
+        ChVector<> hdims(params.box_X / 8.f - 2 * params.sphere_radius, params.box_Y / 8.f - 2 * params.sphere_radius,
+                         params.box_Z / 8.f - 2 * params.sphere_radius);
         ChVector<> center(0, 0, 0);
 
         // Fill box with bodies
-        // body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
+        body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
 
-        utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
-
-        body_points = sampler.SampleBox(center, hdims);
+        // utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
+        //
+        // body_points = sampler.SampleBox(center, hdims);
     }
     std::vector<ChVector<float>> first_points;
     first_points.push_back(body_points.at(0));
     first_points.push_back(body_points.at(body_points.size() / 2));
     first_points.push_back(body_points.at(body_points.size() - 1));
-    // printf("particle is at %f, %f, %f\n", first_points[0].x(), first_points[0].y(), first_points[0].z());
-    // printf("particle is at %f, %f, %f\n", first_points[1].x(), first_points[1].y(), first_points[1].z());
-    // printf("particle is at %f, %f, %f\n", first_points[2].x(), first_points[2].y(), first_points[2].z());
+    printf("particle is at %f, %f, %f\n", first_points[0].x(), first_points[0].y(), first_points[0].z());
+    printf("particle is at %f, %f, %f\n", first_points[1].x(), first_points[1].y(), first_points[1].z());
+    printf("particle is at %f, %f, %f\n", first_points[2].x(), first_points[2].y(), first_points[2].z());
     settlingExperiment.setParticlePositions(body_points);
 
     switch (params.run_mode) {
@@ -158,7 +160,7 @@ int main(int argc, char* argv[]) {
     settlingExperiment.setVerbose(params.verbose);
     settlingExperiment.initialize();
 
-    int fps = 200;
+    int fps = 50;
     // assume we run for at least one frame
     // float frame_step = params.step_size * 100.f;
     float frame_step = 1.f / fps;

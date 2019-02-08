@@ -42,6 +42,11 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
       verbose_runtime(false),
       // load_checkpoint(false),
       file_write_mode(CSV),
+      X_accGrav(0),
+      Y_accGrav(0),
+      Z_accGrav(0),
+      cohesion_over_gravity(0),
+      adhesion_s2w_over_gravity(0),
       K_n_s2s_UU(0),
       K_n_s2w_UU(0),
       K_t_s2s_UU(0),
@@ -62,6 +67,7 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     gran_params->force_model = HOOKE;
     this->force_model = HOOKE;
     setMaxSafeVelocity_SU((float)UINT_MAX);
+    set_static_friction_coeff(0);  // default to zero
 
     createWallBCs();
 }
@@ -255,7 +261,7 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
 
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
-        outstrstream << "x,y,z,absv,ownerSD";
+        outstrstream << "x,y,z,absv";
 
         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             outstrstream << ",wx,wy,wz";
@@ -279,7 +285,7 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
             y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
             z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
 
-            outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv << "," << ownerSD;
+            outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv;
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                 outstrstream << "," << sphere_Omega_X.at(n) << "," << sphere_Omega_Y.at(n) << ","
@@ -343,33 +349,22 @@ void ChSystemGranular_MonodisperseSMC::updateBCPositions() {
         auto offset_function = BC_offset_function_list.at(i);
         setBCOffset(bc_type, params_UU, params_SU, offset_function(elapsedSimTime));
     }
-}
 
-void ChSystemGranular_MonodisperseSMC::updateBDPosition(const float stepSize_SU) {
-    if (BD_is_fixed) {
-        return;
+    if (!BD_is_fixed) {
+        double3 new_BD_offset = BDOffsetFunction(elapsedSimTime);
+
+        int64_t3 bd_offset_SU = {0, 0, 0};
+        bd_offset_SU.x = new_BD_offset.x / gran_params->LENGTH_UNIT;
+        bd_offset_SU.y = new_BD_offset.y / gran_params->LENGTH_UNIT;
+        bd_offset_SU.z = new_BD_offset.z / gran_params->LENGTH_UNIT;
+
+        gran_params->BD_frame_X = bd_offset_SU.x + BD_rest_frame_SU.x;
+        gran_params->BD_frame_Y = bd_offset_SU.y + BD_rest_frame_SU.y;
+        gran_params->BD_frame_Z = bd_offset_SU.z + BD_rest_frame_SU.z;
+
+        printf("offset is %lld, %lld, %lld\n", bd_offset_SU.x, bd_offset_SU.y, bd_offset_SU.z);
+        offsetPositions(bd_offset_SU);
     }
-    // Frequency of oscillation
-    int64_t frame_X_old = gran_params->BD_frame_X;
-    int64_t frame_Y_old = gran_params->BD_frame_Y;
-    int64_t frame_Z_old = gran_params->BD_frame_Z;
-    // Put the bottom-left corner of box wherever the user told us to
-    double3 newpos = BDPositionFunction(elapsedSimTime);
-
-    // compute in double and cast to int64_t
-    gran_params->BD_frame_X =
-        (int64_t)(-0.5 * gran_params->nSDs_X * gran_params->SD_size_X_SU + newpos.x / gran_params->LENGTH_UNIT);
-    gran_params->BD_frame_Y =
-        (int64_t)(-0.5 * gran_params->nSDs_Y * gran_params->SD_size_Y_SU + newpos.y / gran_params->LENGTH_UNIT);
-    gran_params->BD_frame_Z =
-        (int64_t)(-0.5 * gran_params->nSDs_Z * gran_params->SD_size_Z_SU + newpos.z / gran_params->LENGTH_UNIT);
-
-    // printf("new pos is %f, %f, %f\n", newpos.x, newpos.y, newpos.z);
-    // printf("SU is %u, %u, %u\n", gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
-
-    gran_params->BD_frame_X_dot = ((float)(gran_params->BD_frame_X - frame_X_old)) / stepSize_SU;
-    gran_params->BD_frame_Y_dot = ((float)(gran_params->BD_frame_Y - frame_Y_old)) / stepSize_SU;
-    gran_params->BD_frame_Z_dot = ((float)(gran_params->BD_frame_Z - frame_Z_old)) / stepSize_SU;
 }
 
 size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
@@ -664,10 +659,10 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
     resetBroadphaseInformation();
     resetBCForces();
 
-    printf("doing priming!\n");
+    printf("Doing initial broadphase!\n");
     printf("max possible composite offset with 256 limit is %zu\n", (size_t)nSDs * MAX_COUNT_OF_SPHERES_PER_SD);
     runSphereBroadphase();
-    printf("priming finished!\n");
+    printf("Initial broadphase finished!\n");
 
     int dev_ID;
     gpuErrchk(cudaGetDevice(&dev_ID));
@@ -735,10 +730,10 @@ void ChSystemGranular_MonodisperseSMC::partitionBD() {
     gran_params->BD_frame_X = -.5 * ((int64_t)nSDs_X * SD_size_X);
     gran_params->BD_frame_Y = -.5 * ((int64_t)nSDs_Y * SD_size_Y);
     gran_params->BD_frame_Z = -.5 * ((int64_t)nSDs_Z * SD_size_Z);
-    // BD starts at rest
-    gran_params->BD_frame_X_dot = 0;
-    gran_params->BD_frame_Y_dot = 0;
-    gran_params->BD_frame_Z_dot = 0;
+
+    // permanently cache the initial frame
+    BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);
+
     printf("%u Sds as %u, %u, %u\n", gran_params->nSDs, gran_params->nSDs_X, gran_params->nSDs_Y, gran_params->nSDs_Z);
 
     // allocate mem for array saying for each SD how many spheres touch it
@@ -792,6 +787,19 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
     printf("Safe timestep is about %f\n", dt_safe_estimate);
     printf("Length unit is %0.16f\n", gran_params->LENGTH_UNIT);
+
+    // speed at bottom if dropped from top
+    float vdrop_UU = sqrt(abs(2. * box_size_Z / Z_accGrav));
+    // same but in SU
+    float vdrop_SU = vdrop_UU * (gran_params->TIME_UNIT / gran_params->LENGTH_UNIT);
+
+    // damping force at bottom if we dropped a ball from the top
+    float drop_damping_force = 0.5 * gran_params->sphere_mass_SU * vdrop_SU * gran_params->K_n_s2w_SU;
+
+    // force of gravity (or the restorative force of one sphere resting on the bottom)
+    float grav_force = abs(gran_params->sphere_mass_SU * gran_params->gravAcc_Z_SU);
+    printf("max drop speed is %f, damp force is %f, grav force is %f, ratio is %f\n", vdrop_SU, drop_damping_force,
+           grav_force, grav_force / drop_damping_force);
 }
 }  // namespace granular
 }  // namespace chrono

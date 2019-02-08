@@ -92,10 +92,11 @@ int main(int argc, char* argv[]) {
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
-    chrono::utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
+    chrono::utils::PDSampler<float> sampler(2.4 * params.sphere_radius);
     // chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
 
-    ChVector<> hdims(params.box_X / 2 - params.sphere_radius, params.box_Y / 2 - params.sphere_radius, 0);
+    // leave a 4cm margin at edges of sampling
+    ChVector<> hdims(params.box_X / 2 - 4.0, params.box_Y / 2 - 4.0, 0);
     ChVector<> center(0, 0, fill_bottom + 2.0 * params.sphere_radius);
     vector<ChVector<float>> body_points;
 
@@ -110,7 +111,7 @@ int main(int argc, char* argv[]) {
 
     gran_sys.setParticlePositions(body_points);
 
-    gran_sys.set_BD_Fixed(false);
+    gran_sys.set_BD_Fixed(true);
     std::function<double3(float)> pos_func_wave = [&params](float t) {
         double3 pos = {0, 0, 0};
 
@@ -123,7 +124,7 @@ int main(int argc, char* argv[]) {
         return pos;
     };
 
-    gran_sys.setBDPositionFunction(pos_func_wave);
+    // gran_sys.setBDWallsMotionFunction(pos_func_wave);
 
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -201,7 +202,7 @@ int main(int argc, char* argv[]) {
     ball_body->SetInertiaXX(ChVector<>(inertia, inertia, inertia));
     ball_body->SetPos(ball_initial_pos);
     sys_ball.AddBody(ball_body);
-    unsigned int out_fps = 100;
+    unsigned int out_fps = 50;
     cout << "Rendering at " << out_fps << "FPS" << endl;
 
     unsigned int out_steps = 1 / (out_fps * iteration_step);

@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     };
 
     // Set the position of the BD
-    gran_sys.setBDPositionFunction(pos_func_wave);
+    gran_sys.setBDWallsMotionFunction(pos_func_wave);
     gran_sys.set_BD_Fixed(false);
 
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);

@@ -426,6 +426,18 @@ __host__ void ChSystemGranular_MonodisperseSMC::runSphereBroadphase() {
     gpuErrchk(cudaFree(d_temp_storage));
 }
 
+// offset every position in system to accomodate frame change
+__host__ void ChSystemGranular_MonodisperseSMC::offsetPositions(int64_t3 delta) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    packSphereDataPointers();
+
+    applyBDFrameChange<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(delta, sphere_data, nSpheres, gran_params);
+
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+}
+
 __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
@@ -439,14 +451,10 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
                    stepSize_SU, nsteps, duration / nsteps);
     float time_elapsed_SU = 0;  // time elapsed in this advance call
 
-    packSphereDataPointers();
-
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
         determineNewStepSize_SU();  // doesn't always change the timestep
 
-        // Update the position and velocity of the BD, if relevant
-        updateBDPosition(stepSize_SU);
         updateBCPositions();
 
         runSphereBroadphase();

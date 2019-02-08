@@ -24,6 +24,7 @@ SET(DEMOS
 		metrics_GRAN_ballcosim
 		demo_GRAN_wavetank
 		metrics_GRAN_milsettle
+		metrics_GRAN_suite
 		utest_GRAN_TriMeshNoFric_SMC_boxroll
 		utest_GRAN_meshstep
 		test_GRAN_Coneflow

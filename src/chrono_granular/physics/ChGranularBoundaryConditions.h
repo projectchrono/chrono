@@ -72,6 +72,8 @@ struct BC_params_t {
     /// Whether or not to track reaction forces
     bool track_forces;
     float3 reaction_forces;
+    /// velocity in SU if the motion is being prescribed
+    float3 vel_SU;
     union {
         // AABox_BC_params_t<T, T3> AABox_params;
         Sphere_BC_params_t<T, T3> sphere_params;
