@@ -2,7 +2,8 @@ PyChrono tutorials  {#tutorial_table_of_content_pychrono}
 ==========================
 
 
-Tutorials for users that installed the [PyChrono](@ref pychrono_introduction) module.
+This is a collection of tutorials for users that installed the [PyChrono](@ref pychrono_introduction) module.
+
 We suggest you to **study them in the presented order** of increasing difficulty.
 
 <div class="ce-info">
@@ -12,11 +13,13 @@ If you want to learn how to parse and execute Python programs
 [the tutorials for the C++ Chrono Python module](@ref tutorial_table_of_content_chrono_python)
 </div>
 
+## Introductory tutorials
+
 -   @subpage tutorial_pychrono_demo_python1
 
-    Learn the basics of Python interoperation with Chrono::Engine.
+    Learn the basics of Python interoperation with Chrono.
 
-    - import the PyChrono::Engine module
+    - import the PyChrono module
     - use basic classes: vectors, matrices, etc.
     - inherit classes 
 
@@ -33,7 +36,7 @@ If you want to learn how to parse and execute Python programs
 <br>
 -   @subpage tutorial_pychrono_demo_python3
 
-    Create a postprocessing system based on POVray.
+    Create a postprocessing system based on POVray. *(optional reading)*
 
     - create a basic system with two bodies
     - create a postprocessor object
@@ -43,7 +46,7 @@ If you want to learn how to parse and execute Python programs
 <br>
 -   @subpage tutorial_pychrono_demo_irrlicht
 
-    Create a simple pendulum and display it in aan interactive 3D view
+    Create a simple pendulum and display it in an interactive 3D view
 
     - use pychrono.irrlicht, the Irrlicht 3D realtime visualization of PyChrono
     - create bodies and constraints
@@ -73,6 +76,17 @@ If you want to learn how to parse and execute Python programs
 	- add a constraint of 'curvilinear glyph' type
     - add a constraint of 'inposed trajectory' type
 
+<br>
+-   @subpage tutorial_pychrono_demo_mesh
+
+    Create complex rigid body shapes based on meshes. Learn how:
+
+    - load a .obj mesh file and use it for visualization of the shape
+    - load a .obj mesh file and use it for collision
+	- adjust position of center of mass respect to reference in ChBodyAuxRef
+	- change inertia properties.
+	
+## FEA tutorials
 
 <br>
 -   @subpage tutorial_pychrono_demo_fea_beams
@@ -92,6 +106,8 @@ If you want to learn how to parse and execute Python programs
 	- tweak the integrator and solver settings for higher precision
 	- create an ad-hoc motion function by python-side inheritance from ChFunction
 
+## OpenCascade tutorials
+	
 <br>
 -   @subpage tutorial_pychrono_demo_cascade
 
@@ -118,6 +134,9 @@ If you want to learn how to parse and execute Python programs
 	- fetch parts and recerences from the STEP document, and create joints between them.
 	- assign a ChLinkTrajectory to a part
 
+	
+## Tutorials using the SolidWorks add-in
+	
 <br>
 -   @subpage tutorial_pychrono_demo_solidworks_irrlicht
 
@@ -147,11 +166,13 @@ If you want to learn how to parse and execute Python programs
         * add actuators and additional items not modeled in CAD
     - show the simulation in an Irrlicht 3D view
 
+	
+## Tutorials about AI
 
 <br>
 -   @subpage tutorial_pychrono_demo_tensorflow
 
-    Train a NN in simulation to control actuators.
+    Use PyChrono and TensorFlow to train a NN in simulation to control actuators.
     - Build a learning model with Tensorflow
     - Build a training environment with Pychrono
     - Use simulation to train the Neural Network 
