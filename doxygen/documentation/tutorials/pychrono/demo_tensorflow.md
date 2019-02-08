@@ -1,6 +1,14 @@
 Deep Reinforcement Learning with PyChrono and Tensorflow {#tutorial_pychrono_demo_tensorflow}
 ==========================
+[PYTHON CODES HERE](https://github.com/projectchrono/chrono/tree/develop/src/demos/python/chrono-tensorflow)
+
+## Introduction
+Deep Reinforcement Learning (DRL) consits in using Reinforcement Learning to train Deep Neural Network. In the last few years it has been applied with success to various robotic control tasks. 
+The main advantage of this approach is its ability to deal with unstructured and mutable environemnts, while classical robotic control oftens fails in these challenges.
+To train a NN with DRL several interactions with the envrironment are needed. For this reason physical engines offer a valuable help, allowing to train the agent in a virtual environment instead of training it directly in the real world, reducing time and risks of the operation.
+### Goal:
 We will train a Neural Network to solve robotic tasks using virtual training environment created with [PyChrono](@ref pychrono_introduction).
+The demo contains virtual enviroments and a learning model created with Tensorflow. 
 
 ## Environments
 We provide two sample environments for robotic control. 
