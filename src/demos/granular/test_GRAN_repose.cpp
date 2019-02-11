@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
 
     const double time_settling = 1;
     const double lower_vel = 2;
-    const double lower_dist = 3;
+    const double lower_dist = 2;
     const double time_lowering = lower_dist / lower_vel;
 
     cout << "Time settling " << time_settling << endl;
