@@ -496,7 +496,7 @@ if(ENABLE_MODULE_CASCADE)
       ChModuleCascade.i
       )
 
-  include_directories(${CH_CASCADE_INCLUDES})
+  include_directories(${CASCADE_INCLUDE_DIR})
 
   set_source_files_properties(${CHPY_CASCADE_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
