@@ -62,7 +62,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		message(FATAL_ERROR "macOS is not supported!")
 endif()
 
-set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_35,code=sm_35)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_60,code=sm_60)
 message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
 
 

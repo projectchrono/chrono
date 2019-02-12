@@ -93,9 +93,8 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(params.output_dir));
 
     // fill box, layer by layer
-    ChVector<> hdims(params.box_X / 2.f - 2.1 * params.sphere_radius, params.box_Y / 2.f - 2.1 * params.sphere_radius,
-                     params.box_Z / 2.f - 2.1 * params.sphere_radius);
-    ChVector<> center(0, 0, 0);
+    ChVector<> hdims(params.box_X / 2.f - 1.2, params.box_Y / 2.f - 1.2, params.box_Z / 10.f - 1.2);
+    ChVector<> center(0, 0, -params.box_Z / 2.f + params.box_Z / 10.f);
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points =
@@ -141,6 +140,10 @@ int main(int argc, char* argv[]) {
     float frame_step = 1.0f / fps;
     float curr_time = 0;
     int currframe = 0;
+
+    char filename[100];
+    sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
+    gran_sys.writeFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
 

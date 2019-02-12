@@ -51,7 +51,7 @@ float timestep = 1e-4;
 
 GRAN_OUTPUT_MODE write_mode = GRAN_OUTPUT_MODE::BINARY;
 bool verbose = false;
-float cohesion_ratio = 2;
+float cohesion_ratio = 0;
 
 // -----------------------------------------------------------------------------
 // Run a wavetank for a monodisperse collection of spheres in a rectangular box, undergoing a wave motion
@@ -79,6 +79,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     filesystem::create_directory(filesystem::path(output_prefix));
 
     gran_system.set_BD_Fixed(true);
+    gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_system.setVerbose(verbose);
     gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_system.set_fixed_stepSize(timestep);

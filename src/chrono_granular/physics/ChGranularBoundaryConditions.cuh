@@ -71,7 +71,8 @@ inline __device__ bool addBCForces_Sphere_frictionless(const int64_t3& sphPos,
         // n = delta * reciplength
         // proj = Dot(delta_dot, n)
         // TODO this assumes walls at rest
-        float projection = (Dot(sphVel, delta)) * reciplength;
+        float3 rel_vel = sphVel - bc_params.vel_SU;
+        float projection = (Dot(rel_vel, delta)) * reciplength;
 
         constexpr float m_eff = 0.5;
 
@@ -148,7 +149,8 @@ inline __device__ bool addBCForces_ZCone_frictionless(const int64_t3& sphPos,
         // Compute force updates for damping term
         // Project relative velocity to the normal
         // assume static BC
-        float projection = Dot(sphVel, contact_vector);
+        float3 rel_vel = sphVel - bc_params.vel_SU;
+        float projection = Dot(rel_vel, contact_vector);
 
         constexpr float m_eff = 0.5;
 
@@ -197,8 +199,10 @@ inline __device__ bool addBCForces_Plane_frictionless(const int64_t3& sphPos,
         float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
         force_accum = gran_params->K_n_s2w_SU * penetration * contact_normal;
 
+        float3 rel_vel = sphVel - bc_params.vel_SU;
+
         // project velocity onto the normal
-        float projection = Dot(sphVel, contact_normal);
+        float projection = Dot(rel_vel, contact_normal);
 
         constexpr float m_eff = 0.5;
 
@@ -263,8 +267,7 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
                 // TODO this might waste an index
                 unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
 
-                size_t contact_id =
-                    findContactPairInfo(sphere_data->sphere_contact_map, gran_params, sphID, BC_histmap_label);
+                size_t contact_id = findContactPairInfo(sphere_data, gran_params, sphID, BC_histmap_label);
 
                 // get the tangential displacement so far
                 delta_t = sphere_data->contact_history_map[contact_id];
@@ -337,7 +340,8 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
         // Compute force updates for damping term
         // Project relative velocity to the normal
         // assume static BC
-        float projection = (sphVel.x * normal.x + sphVel.y * normal.y);
+        float3 rel_vel = {sphVel.x - bc_params.vel_SU.x, sphVel.y - bc_params.vel_SU.y, 0};
+        float projection = Dot(rel_vel, normal);
 
         constexpr float m_eff = 0.5;
 

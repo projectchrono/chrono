@@ -11,10 +11,10 @@ int main(int argc, char** argv) {
     ofstream csv_data_file(argv[2], ofstream::out);
     csv_data_file << "x,y,z,absv\n";
     while (raw_data_file.good()) {
-        int vals[4];
-        raw_data_file.read((char*)vals, 4 * sizeof(float));
+        int vals[7];
+        raw_data_file.read((char*)vals, 7 * sizeof(float));
         // if we didn't actually get a whole line
-        if (raw_data_file.gcount() < 4 * sizeof(float)) {
+        if (raw_data_file.gcount() < 7 * sizeof(float)) {
             break;
         }
         csv_data_file << *((float*)&vals[0]) << "," << *((float*)&vals[1]) << "," << *((float*)&vals[2]) << ","

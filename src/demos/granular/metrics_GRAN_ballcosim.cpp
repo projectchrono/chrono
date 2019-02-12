@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 
     gran_sys.setParticlePositions(body_points);
 
-    gran_sys.set_BD_Fixed(true);
+    gran_sys.set_BD_Fixed(false);
     std::function<double3(float)> pos_func_wave = [&params](float t) {
         double3 pos = {0, 0, 0};
 
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         return pos;
     };
 
-    // gran_sys.setBDWallsMotionFunction(pos_func_wave);
+    gran_sys.setBDWallsMotionFunction(pos_func_wave);
 
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);

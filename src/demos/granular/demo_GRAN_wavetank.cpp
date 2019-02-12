@@ -89,6 +89,9 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> body_points =
         PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.05);
 
+    std::vector<ChVector<float>> pts;
+    pts.push_back(body_points.at(0));
+
     gran_sys.setParticlePositions(body_points);
 
     // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
@@ -96,7 +99,7 @@ int main(int argc, char* argv[]) {
     std::function<double3(float)> pos_func_wave = [&params](float t) {
         double3 pos = {0, 0, 0};
 
-        float t0 = 0.5;
+        float t0 = 1;
         float freq = 0.5 * M_PI;
 
         if (t > t0) {

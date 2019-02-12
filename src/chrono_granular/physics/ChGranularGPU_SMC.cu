@@ -320,10 +320,8 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
     }
 
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP || friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
-        contactDataStruct null_data;
-        null_data.active = false;
-        null_data.body_B = NULL_GRANULAR_ID;
-        TRACK_VECTOR_RESIZE(sphere_contact_map, 12 * nSpheres, "sphere_contact_map", null_data);
+        TRACK_VECTOR_RESIZE(contact_partners_map, 12 * nSpheres, "contact_partners_map", NULL_GRANULAR_ID);
+        TRACK_VECTOR_RESIZE(contact_active_map, 12 * nSpheres, "contact_active_map", false);
     }
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
         float3 null_history = {0., 0., 0.};
@@ -426,16 +424,49 @@ __host__ void ChSystemGranular_MonodisperseSMC::runSphereBroadphase() {
     gpuErrchk(cudaFree(d_temp_storage));
 }
 
-// offset every position in system to accomodate frame change
-__host__ void ChSystemGranular_MonodisperseSMC::offsetPositions(int64_t3 delta) {
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+__host__ void ChSystemGranular_MonodisperseSMC::updateBCPositions() {
+    for (unsigned int i = 0; i < BC_params_list_UU.size(); i++) {
+        auto bc_type = BC_type_list.at(i);
+        const BC_params_t<float, float3>& params_UU = BC_params_list_UU.at(i);
+        BC_params_t<int64_t, int64_t3>& params_SU = BC_params_list_SU.at(i);
+        auto offset_function = BC_offset_function_list.at(i);
+        setBCOffset(bc_type, params_UU, params_SU, offset_function(elapsedSimTime));
+    }
 
-    packSphereDataPointers();
+    if (!BD_is_fixed) {
+        double3 new_BD_offset = BDOffsetFunction(elapsedSimTime);
 
-    applyBDFrameChange<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(delta, sphere_data, nSpheres, gran_params);
+        int64_t3 bd_offset_SU = {0, 0, 0};
+        bd_offset_SU.x = new_BD_offset.x / gran_params->LENGTH_UNIT;
+        bd_offset_SU.y = new_BD_offset.y / gran_params->LENGTH_UNIT;
+        bd_offset_SU.z = new_BD_offset.z / gran_params->LENGTH_UNIT;
 
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaDeviceSynchronize());
+        int64_t old_frame_X = gran_params->BD_frame_X;
+        int64_t old_frame_Y = gran_params->BD_frame_Y;
+        int64_t old_frame_Z = gran_params->BD_frame_Z;
+
+        gran_params->BD_frame_X = bd_offset_SU.x + BD_rest_frame_SU.x;
+        gran_params->BD_frame_Y = bd_offset_SU.y + BD_rest_frame_SU.y;
+        gran_params->BD_frame_Z = bd_offset_SU.z + BD_rest_frame_SU.z;
+
+        unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+        int64_t3 offset_delta = {0, 0, 0};
+
+        // if the frame X increases, the local X should decrease
+        offset_delta.x = old_frame_X - gran_params->BD_frame_X;
+        offset_delta.y = old_frame_Y - gran_params->BD_frame_Y;
+        offset_delta.z = old_frame_Z - gran_params->BD_frame_Z;
+
+        // printf("offset is %lld, %lld, %lld\n", offset_delta.x, offset_delta.y, offset_delta.z);
+
+        packSphereDataPointers();
+
+        applyBDFrameChange<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(offset_delta, sphere_data, nSpheres, gran_params);
+
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+    }
 }
 
 __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float duration) {
@@ -487,10 +518,16 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
             gpuErrchk(cudaDeviceSynchronize());
         }
 
-        VERBOSE_PRINTF("Starting updatePositions!\n");
-        updatePositions<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+        VERBOSE_PRINTF("Starting integrateSpheres!\n");
+        integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
+
+        if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
+            updateFrictionData<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        }
 
         elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT;  // Advance current time
     }

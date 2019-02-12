@@ -135,6 +135,7 @@ int main(int argc, char* argv[]) {
             settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
             settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
             settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+            break;
         case run_mode::ONE_STEP:
             settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
             settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);

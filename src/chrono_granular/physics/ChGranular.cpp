@@ -70,6 +70,7 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     set_static_friction_coeff(0);  // default to zero
 
     createWallBCs();
+    setBDWallsMotionFunction(GranPosFunction_default);
 }
 
 void ChSystemGranular_MonodisperseSMC::createWallBCs() {
@@ -152,7 +153,8 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
     sphere_data->spheres_in_SD_composite = spheres_in_SD_composite.data();
 
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP || friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
-        sphere_data->sphere_contact_map = sphere_contact_map.data();
+        sphere_data->contact_partners_map = contact_partners_map.data();
+        sphere_data->contact_active_map = contact_active_map.data();
     }
 
     if (friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
@@ -341,32 +343,6 @@ void ChSystemGranular_MonodisperseSMC::copyConstSphereDataToDevice() {
     gran_params->sphereInertia_by_r = (2.f / 5.f) * gran_params->sphere_mass_SU * gran_params->sphereRadius_SU;
 }
 
-void ChSystemGranular_MonodisperseSMC::updateBCPositions() {
-    for (unsigned int i = 0; i < BC_params_list_UU.size(); i++) {
-        auto bc_type = BC_type_list.at(i);
-        const BC_params_t<float, float3>& params_UU = BC_params_list_UU.at(i);
-        BC_params_t<int64_t, int64_t3>& params_SU = BC_params_list_SU.at(i);
-        auto offset_function = BC_offset_function_list.at(i);
-        setBCOffset(bc_type, params_UU, params_SU, offset_function(elapsedSimTime));
-    }
-
-    if (!BD_is_fixed) {
-        double3 new_BD_offset = BDOffsetFunction(elapsedSimTime);
-
-        int64_t3 bd_offset_SU = {0, 0, 0};
-        bd_offset_SU.x = new_BD_offset.x / gran_params->LENGTH_UNIT;
-        bd_offset_SU.y = new_BD_offset.y / gran_params->LENGTH_UNIT;
-        bd_offset_SU.z = new_BD_offset.z / gran_params->LENGTH_UNIT;
-
-        gran_params->BD_frame_X = bd_offset_SU.x + BD_rest_frame_SU.x;
-        gran_params->BD_frame_Y = bd_offset_SU.y + BD_rest_frame_SU.y;
-        gran_params->BD_frame_Z = bd_offset_SU.z + BD_rest_frame_SU.z;
-
-        printf("offset is %lld, %lld, %lld\n", bd_offset_SU.x, bd_offset_SU.y, bd_offset_SU.z);
-        offsetPositions(bd_offset_SU);
-    }
-}
-
 size_t ChSystemGranular_MonodisperseSMC::Create_BC_Sphere(float center[3],
                                                           float radius,
                                                           bool outward_normal,
@@ -533,48 +509,68 @@ void ChSystemGranular_MonodisperseSMC::setBCOffset(const BC_type& bc_type,
                                                    const BC_params_t<float, float3>& params_UU,
                                                    BC_params_t<int64_t, int64_t3>& params_SU,
                                                    double3 offset_UU) {
+    int64_t3 old_pos = {0, 0, 0};
+    int64_t3 new_pos = {0, 0, 0};
     switch (bc_type) {
         case BC_type::SPHERE: {
+            old_pos = params_SU.sphere_params.sphere_center;
             params_SU.sphere_params.sphere_center.x =
                 convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.x + offset_UU.x);
             params_SU.sphere_params.sphere_center.y =
                 convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.y + offset_UU.y);
             params_SU.sphere_params.sphere_center.z =
                 convertToPosSU<int64_t, float>(params_UU.sphere_params.sphere_center.z + offset_UU.z);
+            new_pos = params_SU.sphere_params.sphere_center;
+
             break;
         }
 
         case BC_type::CONE: {
+            old_pos = params_SU.cone_params.cone_tip;
             params_SU.cone_params.cone_tip.x =
                 convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.x + offset_UU.x);
             params_SU.cone_params.cone_tip.y =
                 convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.y + offset_UU.y);
             params_SU.cone_params.cone_tip.z =
                 convertToPosSU<int64_t, float>(params_UU.cone_params.cone_tip.z + offset_UU.z);
+            new_pos = params_SU.cone_params.cone_tip;
+
             params_SU.cone_params.hmax = convertToPosSU<int64_t, float>(params_UU.cone_params.hmax + offset_UU.z);
             params_SU.cone_params.hmin = convertToPosSU<int64_t, float>(params_UU.cone_params.hmin + offset_UU.z);
             break;
         }
         case BC_type::PLANE: {
+            old_pos = params_SU.plane_params.position;
+
             params_SU.plane_params.position.x =
                 convertToPosSU<int64_t, float>(params_UU.plane_params.position.x + offset_UU.x);
             params_SU.plane_params.position.y =
                 convertToPosSU<int64_t, float>(params_UU.plane_params.position.y + offset_UU.y);
             params_SU.plane_params.position.z =
                 convertToPosSU<int64_t, float>(params_UU.plane_params.position.z + offset_UU.z);
+            new_pos = params_SU.plane_params.position;
 
             break;
         }
         case BC_type::CYLINDER: {
+            old_pos = params_SU.cyl_params.center;
+
             params_SU.cyl_params.center.x = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.x + offset_UU.x);
             params_SU.cyl_params.center.y = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.y + offset_UU.y);
             params_SU.cyl_params.center.z = convertToPosSU<int64_t, float>(params_UU.cyl_params.center.z + offset_UU.z);
+            new_pos = params_SU.cyl_params.center;
+
             break;
         }
         default: {
             printf("ERROR: Unsupported BC Type!\n");
             exit(1);
         }
+
+            // do midpoint approx for velocity
+            params_SU.vel_SU.x = (new_pos.x - old_pos.x) / stepSize_SU;
+            params_SU.vel_SU.y = (new_pos.y - old_pos.y) / stepSize_SU;
+            params_SU.vel_SU.z = (new_pos.z - old_pos.z) / stepSize_SU;
     }
 }
 
@@ -587,6 +583,8 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
         params_SU.active = params_UU.active;
         params_SU.fixed = params_UU.fixed;
         params_SU.track_forces = params_UU.track_forces;
+        // always start at rest
+        params_SU.vel_SU = {0, 0, 0};
         switch (bc_type) {
             case BC_type::SPHERE: {
                 printf("adding sphere!\n");

@@ -106,7 +106,7 @@ inline __device__ unsigned int SDTripletID(const int trip[3], GranParamsPtr gran
 }
 
 /// get an index for the current contact pair
-inline __device__ size_t findContactPairInfo(contactDataStruct* sphere_contact_map,
+inline __device__ size_t findContactPairInfo(GranSphereDataPtr sphere_data,
                                              GranParamsPtr gran_params,
                                              unsigned int body_A,
                                              unsigned int body_B) {
@@ -115,9 +115,9 @@ inline __device__ size_t findContactPairInfo(contactDataStruct* sphere_contact_m
     // first skim through and see if this contact pair is in the map
     for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         size_t contact_index = body_A_offset + contact_id;
-        if (sphere_contact_map[contact_index].body_B == body_B) {
+        if (sphere_data->contact_partners_map[contact_index] == body_B) {
             // make sure this contact is marked active
-            sphere_contact_map[contact_index].active = true;
+            sphere_data->contact_active_map[contact_index] = true;
             return contact_index;
         }
     }
@@ -126,15 +126,15 @@ inline __device__ size_t findContactPairInfo(contactDataStruct* sphere_contact_m
     for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         size_t contact_index = body_A_offset + contact_id;
         // check whether the slot is free right now
-        if (sphere_contact_map[contact_index].body_B == NULL_GRANULAR_ID) {
+        if (sphere_data->contact_partners_map[contact_index] == NULL_GRANULAR_ID) {
             // claim this slot for ourselves, atomically
             // if the CAS returns NULL_GRANULAR_ID, it means that the spot was free and we claimed it
             unsigned int body_B_returned =
-                atomicCAS(&(sphere_contact_map[contact_index].body_B), NULL_GRANULAR_ID, body_B);
+                atomicCAS(sphere_data->contact_partners_map + contact_index, NULL_GRANULAR_ID, body_B);
             // did we get the spot? if so, claim it
             if (NULL_GRANULAR_ID == body_B_returned) {
                 // make sure this contact is marked active
-                sphere_contact_map[contact_index].active = true;
+                sphere_data->contact_active_map[contact_index] = true;
                 return contact_index;
             }
         }
@@ -150,20 +150,24 @@ inline __device__ size_t findContactPairInfo(contactDataStruct* sphere_contact_m
 inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
                                          unsigned int body_A,
                                          GranParamsPtr gran_params) {
-    // printf("cleaning up body %u contacts\n", body_A);
-    size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
+    size_t body_A_offset = (size_t)MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
+
+    // get offsets into the global pointers
+    float3* contact_history = sphere_data->contact_history_map + body_A_offset;
+    unsigned int* contact_partners = sphere_data->contact_partners_map + body_A_offset;
+    not_stupid_bool* contact_active = sphere_data->contact_active_map + body_A_offset;
     // first skim through and see if this contact pair is in the map
     for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         // if the contact is not active, reset it
-        if (sphere_data->sphere_contact_map[body_A_offset + contact_id].active == false) {
-            // printf("contact %u for body %u is inactive now, removing\n", );
-            sphere_data->sphere_contact_map[body_A_offset + contact_id].body_B = NULL_GRANULAR_ID;
+        if (contact_active[contact_id] == false) {
+            contact_partners[contact_id] = NULL_GRANULAR_ID;
             if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-                sphere_data->contact_history_map[body_A_offset + contact_id] = {0., 0., 0.};
+                constexpr float3 null_history = {0, 0, 0};
+                contact_history[contact_id] = null_history;
             }
         } else {
             // otherwise reset the active bit for next time
-            sphere_data->sphere_contact_map[body_A_offset + contact_id].active = false;
+            contact_active[contact_id] = false;
         }
     }
 }

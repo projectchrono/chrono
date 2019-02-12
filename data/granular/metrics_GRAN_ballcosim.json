@@ -4,8 +4,8 @@
 	"box_X": 500,
 	"box_Y": 300,
 	"box_Z": 200,
-	"step_size": 1e-4,
-	"time_end": 2,
+	"step_size": 5e-5,
+	"time_end": 1,
 
 	"grav_X": 0,
 	"grav_Y": 0,
@@ -35,5 +35,5 @@
 	"psi_T": 16,
 	"psi_L": 16,
 	"output_dir": "ballcosim",
-	"write_mode": "csv"
+	"write_mode": "binary"
 }

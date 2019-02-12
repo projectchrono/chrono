@@ -29,6 +29,8 @@
 #include "chrono/core/ChMathematics.h"
 #include "cudalloc.hpp"
 
+typedef unsigned char not_stupid_bool;
+
 /**
  * Discrete Elment info
  *
@@ -45,14 +47,6 @@ typedef std::function<double3(float)> GranPositionFunction;
 
 // position function representing no motion or offset
 const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
-
-/// stores the data for a pair of contacting spheres
-struct contactDataStruct {
-    /// other body involved in the contact
-    unsigned int body_B;
-    /// whether the contact is still active
-    bool active;
-};
 
 /// hold pointers
 struct ChGranSphereData {
@@ -88,7 +82,8 @@ struct ChGranSphereData {
     float* sphere_ang_acc_Z_old;
 
     /// set of data for sphere contact pairs
-    contactDataStruct* sphere_contact_map;
+    unsigned int* contact_partners_map;
+    not_stupid_bool* contact_active_map;
     float3* contact_history_map;
 
     /// number of DEs touching each SD
@@ -407,7 +402,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     void setParticlePositions(const std::vector<ChVector<float>>& points);
 
-    GranPositionFunction BDOffsetFunction = GranPosFunction_default;
+    GranPositionFunction BDOffsetFunction;
 
     /// Prescribe the motion of the BD, allows wavetank-style simulations
     void setBDWallsMotionFunction(const GranPositionFunction& pos_fn) {
@@ -495,7 +490,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::vector<float, cudallocator<float>> sphere_ang_acc_Y_old;
     std::vector<float, cudallocator<float>> sphere_ang_acc_Z_old;
 
-    std::vector<contactDataStruct, cudallocator<contactDataStruct>> sphere_contact_map;
+    std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> contact_active_map;
     std::vector<float3, cudallocator<float3>> contact_history_map;
 
     /// gravity in user units
@@ -578,9 +574,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// update positions of each BC using prescribed functions
     void updateBCPositions();
-
-    // apply offset to positions to account for frame changes
-    void offsetPositions(int64_t3 delta);
 
     /// Total time elapsed since beginning of simulation
     float elapsedSimTime;

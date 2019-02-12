@@ -33,7 +33,6 @@
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/utils/ChGranularUtilities.cuh"
 
-using chrono::granular::contactDataStruct;
 using chrono::granular::GRAN_TIME_INTEGRATOR;
 using chrono::granular::GRAN_FRICTION_MODE;
 
@@ -412,7 +411,7 @@ inline __device__ void findNewLocalCoords(GranSphereDataPtr sphere_data,
 }
 
 /// when our BD frame moves, we need to change all local positions to account
-static __global__ void applyBDFrameChange(const int64_t3& delta,
+static __global__ void applyBDFrameChange(int64_t3 delta,
                                           GranSphereDataPtr sphere_data,
                                           unsigned int nSpheres,
                                           GranParamsPtr gran_params) {
@@ -425,8 +424,8 @@ static __global__ void applyBDFrameChange(const int64_t3& delta,
 
         unsigned int ownerSD = sphere_data->sphere_owner_SDs[mySphereID];
 
-        // find global pos in old frame, but subtract off the change
-        int64_t3 sphPos_global = convertPosLocalToGlobal(ownerSD, sphere_pos_local, gran_params) - delta;
+        // find global pos in old frame, but add the offset
+        int64_t3 sphPos_global = convertPosLocalToGlobal(ownerSD, sphere_pos_local, gran_params) + delta;
 
         findNewLocalCoords(sphere_data, mySphereID, sphPos_global.x, sphPos_global.y, sphPos_global.z, gran_params);
     }
@@ -467,20 +466,7 @@ inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
                                                         BC_type* bc_type_list,
                                                         BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                         unsigned int nBCs) {
-    // printf("FIRST: sphere %u, local is %d, %d, %d\n", currSphereID, sphPos.x, sphPos.y, sphPos.z);
-
     int64_t3 sphPos_global = convertPosLocalToGlobal(ownerSD, sphPos_local, gran_params);
-
-    // printf(
-    //     "sphere %u, SD is %u, trip %d, %d, %d, SD offset is %lld, %lld, %lld, BD offset is %lld, %lld, %lld,"
-    //     "composite is %lld, %lld, %lld\n",
-    //     currSphereID, ownerSD, ownerSD_triplet.x, ownerSD_triplet.y, ownerSD_triplet.z,
-    //     ((int64_t)ownerSD_triplet.x) * gran_params->SD_size_X_SU,
-    //     ((int64_t)ownerSD_triplet.y) * gran_params->SD_size_Y_SU,
-    //     ((int64_t)ownerSD_triplet.z) * gran_params->SD_size_Z_SU, gran_params->BD_frame_X, gran_params->BD_frame_Y,
-    //     gran_params->BD_frame_Z, sphPos_global.x, sphPos_global.y, sphPos_global.z);
-    //
-    // printf("SECOND: sphere %u, local is %d, %d, %d\n", currSphereID, sphPos.x, sphPos.y, sphPos.z);
 
     // add forces from each BC
     for (unsigned int BC_id = 0; BC_id < nBCs; BC_id++) {
@@ -640,8 +626,7 @@ static __global__ void determineContactPairs(GranSphereDataPtr sphere_data, Gran
         // for each contact we just found, mark it in the global map
         for (unsigned char contact_id = 0; contact_id < ncontacts; contact_id++) {
             // find and mark a spot in the contact map
-            findContactPairInfo(sphere_data->sphere_contact_map, gran_params, sphIDs[bodyA],
-                                sphIDs[bodyB_list[contact_id]]);
+            findContactPairInfo(sphere_data, gran_params, sphIDs[bodyA], sphIDs[bodyB_list[contact_id]]);
         }
     }
 }
@@ -709,7 +694,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                                                   unsigned int nBCs,
                                                   unsigned int nSpheres) {
     // grab the sphere radius
-    const unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
+    unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
@@ -725,7 +710,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
             make_int3(sphere_data->sphere_local_pos_X[mySphereID], sphere_data->sphere_local_pos_Y[mySphereID],
                       sphere_data->sphere_local_pos_Z[mySphereID]);
         // prepare in case we have friction
-        float3 my_omega;
+        float3 my_omega = {0, 0, 0};
 
         if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
             my_omega = make_float3(sphere_data->sphere_Omega_X[mySphereID], sphere_data->sphere_Omega_Y[mySphereID],
@@ -744,10 +729,10 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
         // for each sphere contacting me, compute the forces
         for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
             // who am I colliding with?
-            bool active_contact = sphere_data->sphere_contact_map[body_A_offset + contact_id].active;
+            bool active_contact = sphere_data->contact_active_map[body_A_offset + contact_id];
 
             if (active_contact) {
-                unsigned int theirSphereID = sphere_data->sphere_contact_map[body_A_offset + contact_id].body_B;
+                unsigned int theirSphereID = sphere_data->contact_partners_map[body_A_offset + contact_id];
 
                 if (theirSphereID >= nSpheres) {
                     ABORTABORTABORT("Invalid other sphere id found for sphere %u at slot %u, other is %u\n", mySphereID,
@@ -996,39 +981,26 @@ inline __device__ float integrateVelVerlet_pos(float stepsize_SU, float vel_old,
 }
 
 /**
- * Numerically integrates force to velocity and velocity to position, then computes the broadphase on the new
- * positions
+ * Numerically integrates force to velocity and velocity to position
  */
-static __global__ void updatePositions(const float stepsize_SU,
-                                       GranSphereDataPtr sphere_data,
-                                       unsigned int nSpheres,
-                                       GranParamsPtr gran_params) {
+static __global__ void integrateSpheres(const float stepsize_SU,
+                                        GranSphereDataPtr sphere_data,
+                                        unsigned int nSpheres,
+                                        GranParamsPtr gran_params) {
     // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid
     // structure
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
-    // if we're in multistep mode, clean up contact histories
-    if (mySphereID < nSpheres && gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-        cleanupContactMap(sphere_data, mySphereID, gran_params);
-    }
-    __syncthreads();  // just in case
-
     // Write back velocity updates
     if (mySphereID < nSpheres) {
+        float curr_acc_X = sphere_data->sphere_acc_X[mySphereID];
+        float curr_acc_Y = sphere_data->sphere_acc_Y[mySphereID];
+        float curr_acc_Z = sphere_data->sphere_acc_Z[mySphereID];
+
         // Check to see if we messed up badly somewhere
-        if (sphere_data->sphere_acc_X[mySphereID] == NAN || sphere_data->sphere_acc_Y[mySphereID] == NAN ||
-            sphere_data->sphere_acc_Z[mySphereID] == NAN) {
-            ABORTABORTABORT("NAN force computed -- sphere is %u, x force is %f\n", mySphereID,
-                            sphere_data->sphere_acc_X[mySphereID]);
+        if (curr_acc_X == NAN || curr_acc_Y == NAN || curr_acc_Z == NAN) {
+            ABORTABORTABORT("NAN force computed -- sphere is %u\n", mySphereID);
         }
-
-        float v_update_X = 0;
-        float v_update_Y = 0;
-        float v_update_Z = 0;
-
-        float omega_update_X = 0;
-        float omega_update_Y = 0;
-        float omega_update_Z = 0;
 
         float old_vel_X = sphere_data->pos_X_dt[mySphereID];
         float old_vel_Y = sphere_data->pos_Y_dt[mySphereID];
@@ -1040,64 +1012,40 @@ static __global__ void updatePositions(const float stepsize_SU,
                             old_vel_Y, old_vel_Z);
         }
 
+        float v_update_X = 0;
+        float v_update_Y = 0;
+        float v_update_Z = 0;
+
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
-                v_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_acc_X[mySphereID]);
-                v_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_acc_Y[mySphereID]);
-                v_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_acc_Z[mySphereID]);
+                v_update_X = integrateForwardEuler(stepsize_SU, curr_acc_X);
+                v_update_Y = integrateForwardEuler(stepsize_SU, curr_acc_Y);
+                v_update_Z = integrateForwardEuler(stepsize_SU, curr_acc_Z);
 
-                if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                    // tau = I alpha => alpha = tau / I, we already computed these alphas
-                    omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
-                    omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
-                    omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
-                }
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
-                v_update_X = integrateChung_vel(stepsize_SU, sphere_data->sphere_acc_X[mySphereID],
-                                                sphere_data->sphere_acc_X_old[mySphereID]);
-                v_update_Y = integrateChung_vel(stepsize_SU, sphere_data->sphere_acc_Y[mySphereID],
-                                                sphere_data->sphere_acc_Y_old[mySphereID]);
-                v_update_Z = integrateChung_vel(stepsize_SU, sphere_data->sphere_acc_Z[mySphereID],
-                                                sphere_data->sphere_acc_Z_old[mySphereID]);
+                v_update_X = integrateChung_vel(stepsize_SU, curr_acc_X, sphere_data->sphere_acc_X_old[mySphereID]);
+                v_update_Y = integrateChung_vel(stepsize_SU, curr_acc_Y, sphere_data->sphere_acc_Y_old[mySphereID]);
+                v_update_Z = integrateChung_vel(stepsize_SU, curr_acc_Z, sphere_data->sphere_acc_Z_old[mySphereID]);
 
-                if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                    omega_update_X = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID],
-                                                        sphere_data->sphere_ang_acc_X_old[mySphereID]);
-                    omega_update_Y = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID],
-                                                        sphere_data->sphere_ang_acc_Y_old[mySphereID]);
-                    omega_update_Z = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID],
-                                                        sphere_data->sphere_ang_acc_Z_old[mySphereID]);
-                }
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
-                v_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_acc_X[mySphereID]);
-                v_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_acc_Y[mySphereID]);
-                v_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_acc_Z[mySphereID]);
+                v_update_X = integrateForwardEuler(stepsize_SU, curr_acc_X);
+                v_update_Y = integrateForwardEuler(stepsize_SU, curr_acc_Y);
+                v_update_Z = integrateForwardEuler(stepsize_SU, curr_acc_Z);
 
-                if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                    // tau = I alpha => alpha = tau / I, we already computed these alphas
-                    omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
-                    omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
-                    omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
-                }
                 break;
             }
         }
 
-        // write back the updates
+        // write back the velocity updates
+        // TODO this is a race condition I think
         sphere_data->pos_X_dt[mySphereID] += v_update_X;
         sphere_data->pos_Y_dt[mySphereID] += v_update_Y;
         sphere_data->pos_Z_dt[mySphereID] += v_update_Z;
-
-        if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-            sphere_data->sphere_Omega_X[mySphereID] += omega_update_X;
-            sphere_data->sphere_Omega_Y[mySphereID] += omega_update_Y;
-            sphere_data->sphere_Omega_Z[mySphereID] += omega_update_Z;
-        }
 
         float position_update_x = 0;
         float position_update_y = 0;
@@ -1105,18 +1053,19 @@ static __global__ void updatePositions(const float stepsize_SU,
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
             case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
+                // TODO this is a race condition I think
                 position_update_x = integrateForwardEuler(stepsize_SU, sphere_data->pos_X_dt[mySphereID]);
                 position_update_y = integrateForwardEuler(stepsize_SU, sphere_data->pos_Y_dt[mySphereID]);
                 position_update_z = integrateForwardEuler(stepsize_SU, sphere_data->pos_Z_dt[mySphereID]);
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
-                position_update_x = integrateChung_pos(stepsize_SU, old_vel_X, sphere_data->sphere_acc_X[mySphereID],
-                                                       sphere_data->sphere_acc_X_old[mySphereID]);
-                position_update_y = integrateChung_pos(stepsize_SU, old_vel_Y, sphere_data->sphere_acc_Y[mySphereID],
-                                                       sphere_data->sphere_acc_Y_old[mySphereID]);
-                position_update_z = integrateChung_pos(stepsize_SU, old_vel_Z, sphere_data->sphere_acc_Z[mySphereID],
-                                                       sphere_data->sphere_acc_Z_old[mySphereID]);
+                position_update_x =
+                    integrateChung_pos(stepsize_SU, old_vel_X, curr_acc_X, sphere_data->sphere_acc_X_old[mySphereID]);
+                position_update_y =
+                    integrateChung_pos(stepsize_SU, old_vel_Y, curr_acc_Y, sphere_data->sphere_acc_Y_old[mySphereID]);
+                position_update_z =
+                    integrateChung_pos(stepsize_SU, old_vel_Z, curr_acc_Z, sphere_data->sphere_acc_Z_old[mySphereID]);
                 break;
             }
             case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
@@ -1135,5 +1084,60 @@ static __global__ void updatePositions(const float stepsize_SU,
             convertPosLocalToGlobal(sphere_data->sphere_owner_SDs[mySphereID], sphere_pos_local, gran_params);
 
         findNewLocalCoords(sphere_data, mySphereID, sphPos_global.x, sphPos_global.y, sphPos_global.z, gran_params);
+    }
+}
+
+/**
+ * Integrate angular accelerations and reset friction data. ONLY use this with friction on
+ */
+static __global__ void updateFrictionData(const float stepsize_SU,
+                                          GranSphereDataPtr sphere_data,
+                                          unsigned int nSpheres,
+                                          GranParamsPtr gran_params) {
+    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid
+    // structure
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    // if we're in multistep mode, clean up contact histories
+    if (mySphereID < nSpheres) {
+        cleanupContactMap(sphere_data, mySphereID, gran_params);
+    }
+
+    // Write back velocity updates
+    if (mySphereID < nSpheres) {
+        float omega_update_X = 0;
+        float omega_update_Y = 0;
+        float omega_update_Z = 0;
+
+        // no divergence, same for every thread in block
+        switch (gran_params->time_integrator) {
+            case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
+                // tau = I alpha => alpha = tau / I, we already computed these alphas
+                omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
+                omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
+                omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
+                break;
+            }
+            case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
+                omega_update_X = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID],
+                                                    sphere_data->sphere_ang_acc_X_old[mySphereID]);
+                omega_update_Y = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID],
+                                                    sphere_data->sphere_ang_acc_Y_old[mySphereID]);
+                omega_update_Z = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID],
+                                                    sphere_data->sphere_ang_acc_Z_old[mySphereID]);
+                break;
+            }
+            case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
+                // tau = I alpha => alpha = tau / I, we already computed these alphas
+                omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
+                omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
+                omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
+                break;
+            }
+        }
+
+        sphere_data->sphere_Omega_X[mySphereID] += omega_update_X;
+        sphere_data->sphere_Omega_Y[mySphereID] += omega_update_Y;
+        sphere_data->sphere_Omega_Z[mySphereID] += omega_update_Z;
     }
 }
