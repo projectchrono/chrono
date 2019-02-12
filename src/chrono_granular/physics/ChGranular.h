@@ -29,6 +29,8 @@
 #include "chrono/core/ChMathematics.h"
 #include "cudalloc.hpp"
 
+typedef unsigned char not_stupid_bool;
+
 /**
  * Discrete Elment info
  *
@@ -41,26 +43,18 @@ namespace chrono {
 namespace granular {
 
 // use to compute position as a function of time
-typedef std::function<float3(float)> GranPositionFunction;
+typedef std::function<double3(float)> GranPositionFunction;
 
 // position function representing no motion or offset
-const GranPositionFunction GranPosFunction_default = [](float t) { return make_float3(0, 0, 0); };
-
-/// stores the data for a pair of contacting spheres
-struct contactDataStruct {
-    /// other body involved in the contact
-    unsigned int body_B;
-    /// whether the contact is still active
-    bool active;
-};
+const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
 
 /// hold pointers
-struct sphereDataStruct {
+struct ChGranSphereData {
   public:
     /// Store positions and velocities in unified memory
-    int* pos_X;
-    int* pos_Y;
-    int* pos_Z;
+    int* sphere_local_pos_X;
+    int* sphere_local_pos_Y;
+    int* sphere_local_pos_Z;
     float* pos_X_dt;
     float* pos_Y_dt;
     float* pos_Z_dt;
@@ -88,7 +82,8 @@ struct sphereDataStruct {
     float* sphere_ang_acc_Z_old;
 
     /// set of data for sphere contact pairs
-    contactDataStruct* sphere_contact_map;
+    unsigned int* contact_partners_map;
+    not_stupid_bool* contact_active_map;
     float3* contact_history_map;
 
     /// number of DEs touching each SD
@@ -97,6 +92,9 @@ struct sphereDataStruct {
     unsigned int* SD_SphereCompositeOffsets;
     /// big composite array of sphere-SD membership
     unsigned int* spheres_in_SD_composite;
+
+    /// list of owner SDs for each sphere
+    unsigned int* sphere_owner_SDs;
 };
 
 // How are we writing?
@@ -173,16 +171,19 @@ struct ChGranParams {
     float gravAcc_Y_SU;  //!< Device counterpart of the constant gravity_Y_SU
     float gravAcc_Z_SU;  //!< Device counterpart of the constant gravity_Z_SU
 
-    /// Changed by updateBDPosition() at every timestep
-    /// The bottom-left corner xPos of the BD, allows boxes not centered at origin
-    int BD_frame_X;
-    /// The bottom-left corner yPos of the BD, allows boxes not centered at origin
-    int BD_frame_Y;
-    /// The bottom-left corner zPos of the BD, allows boxes not centered at origin
-    int BD_frame_Z;
-    float BD_frame_X_dot;
-    float BD_frame_Y_dot;
-    float BD_frame_Z_dot;
+    /// The bottom-left corner xPos of the BD
+    int64_t BD_frame_X;
+    /// The bottom-left corner yPos of the BD
+    int64_t BD_frame_Y;
+    /// The bottom-left corner zPos of the BD
+    int64_t BD_frame_Z;
+
+    /// The offset of the BD from its original frame, used to allow the SD definitions to move
+    int64_t BD_offset_X;
+    /// The offset of the BD from its original frame, used to allow the SD definitions to move
+    int64_t BD_offset_Y;
+    /// The offset of the BD from its original frame, used to allow the SD definitions to move
+    int64_t BD_offset_Z;
 
     unsigned int psi_T;
     unsigned int psi_h;
@@ -208,13 +209,14 @@ struct ChGranParams {
 
 // Do two things: make the naming nicer and require a const pointer everywhere
 typedef const chrono::granular::ChGranParams* GranParamsPtr;
+typedef const chrono::granular::ChGranSphereData* GranSphereDataPtr;
 namespace chrono {
 namespace granular {
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
   public:
     // we do not want the system to be default-constructible
     ChSystemGranular_MonodisperseSMC() = delete;
-    ChSystemGranular_MonodisperseSMC(float radiusSPH, float density);
+    ChSystemGranular_MonodisperseSMC(float radiusSPH, float density, float3 boxDims);
     virtual ~ChSystemGranular_MonodisperseSMC();
 
     unsigned int get_SD_count() const { return nSDs; }
@@ -253,11 +255,19 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Create an z-axis aligned cylinder
     size_t Create_BC_Cyl_Z(float center[3], float radius, bool outward_normal, bool track_forces);
 
+    /// Create big domain walls out of planes
+    void createWallBCs();
+
     /// disable a BC by its ID, returns false if the BC does not exist
     bool disable_BC_by_ID(size_t BC_id) {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
             printf("ERROR: Trying to disable invalid BC ID %lu\n", BC_id);
+            return false;
+        }
+
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
             return false;
         }
         BC_params_list_UU.at(BC_id).active = false;
@@ -272,6 +282,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
             printf("ERROR: Trying to enable invalid BC ID %lu\n", BC_id);
             return false;
         }
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
+            return false;
+        }
         BC_params_list_UU.at(BC_id).active = true;
         BC_params_list_SU.at(BC_id).active = true;
         return true;
@@ -282,6 +296,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
             printf("ERROR: Trying to set offset function for invalid BC ID %lu\n", BC_id);
+            return false;
+        }
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
             return false;
         }
         BC_offset_function_list.at(BC_id) = offset_function;
@@ -295,6 +313,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         size_t max_id = BC_params_list_SU.size();
         if (BC_id >= max_id) {
             printf("ERROR: Trying to get forces for invalid BC ID %lu\n", BC_id);
+            return false;
+        }
+        if (BC_id <= NUM_RESERVED_BC_IDS - 1) {
+            printf("ERROR: Trying to modify reserved BC ID %lu\n", BC_id);
             return false;
         }
         if (BC_params_list_SU.at(BC_id).track_forces == false) {
@@ -344,9 +366,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
 
-    /// set up data structures and carry out pre-processing tasks
-    virtual void setupSimulation();
-
     /// advance simulation by duration seconds in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double advance_simulation(float duration);
@@ -383,14 +402,17 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     void setParticlePositions(const std::vector<ChVector<float>>& points);
 
-    /// Prescribe the motion of the BD, allows wavetank-style simulations
-    /// NOTE that this is the center of the container
-    void setBDPositionFunction(const GranPositionFunction& pos_fn) { BDPositionFunction = pos_fn; }
+    GranPositionFunction BDOffsetFunction;
 
-    void setBOXdims(float X_DIM, float Y_DIM, float Z_DIM) {
-        box_size_X = X_DIM;
-        box_size_Y = Y_DIM;
-        box_size_Z = Z_DIM;
+    /// Prescribe the motion of the BD, allows wavetank-style simulations
+    void setBDWallsMotionFunction(const GranPositionFunction& pos_fn) {
+        BDOffsetFunction = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_X_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_X_TOP) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Y_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Y_TOP) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Z_BOT) = pos_fn;
+        BC_offset_function_list.at(BD_WALL_ID_Z_TOP) = pos_fn;
     }
 
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
@@ -406,6 +428,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
 
   protected:
+    /// Wrap the device helper function
+    int3 getSDTripletFromID(unsigned int SD_ID) const;
+
     /// Create a helper to do sphere initialization
     void initializeSpheres();
 
@@ -419,6 +444,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// holds the sphere and BD-related params in unified memory
     ChGranParams* gran_params;
+    ChGranSphereData* sphere_data;
 
     /// Allows the code to be very verbose for debug
     bool verbose_runtime;
@@ -435,9 +461,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     // Use CUDA allocator written by Colin, could hit system performance if there's not a lot of RAM
     // Makes somewhat faster memcpys
     /// Store positions and velocities in unified memory
-    std::vector<int, cudallocator<int>> pos_X;
-    std::vector<int, cudallocator<int>> pos_Y;
-    std::vector<int, cudallocator<int>> pos_Z;
+    std::vector<int, cudallocator<int>> sphere_local_pos_X;
+    std::vector<int, cudallocator<int>> sphere_local_pos_Y;
+    std::vector<int, cudallocator<int>> sphere_local_pos_Z;
     std::vector<float, cudallocator<float>> pos_X_dt;
     std::vector<float, cudallocator<float>> pos_Y_dt;
     std::vector<float, cudallocator<float>> pos_Z_dt;
@@ -464,7 +490,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     std::vector<float, cudallocator<float>> sphere_ang_acc_Y_old;
     std::vector<float, cudallocator<float>> sphere_ang_acc_Z_old;
 
-    std::vector<contactDataStruct, cudallocator<contactDataStruct>> sphere_contact_map;
+    std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> contact_active_map;
     std::vector<float3, cudallocator<float3>> contact_history_map;
 
     /// gravity in user units
@@ -478,6 +505,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// Array containing the IDs of the spheres stored in the SDs associated with the box
     std::vector<unsigned int, cudallocator<unsigned int>> spheres_in_SD_composite;
+
+    /// list of owner SDs for each sphere
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs;
 
     /// User provided maximum timestep in UU, used in adaptive timestepping
     float max_adaptive_step_UU = 1e-3;
@@ -507,8 +537,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Reset sphere-wall forces
     void resetBCForces();
 
-    /// collect all the sphere data into a given struct
-    void packSphereDataPointers(sphereDataStruct& packed);
+    /// collect all the sphere data into the member struct
+    void packSphereDataPointers();
+
     /// Run the first sphere broadphase pass to get things started
     void runSphereBroadphase();
     // just a handy helper function
@@ -535,16 +566,11 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     const float new_step_freq = .01;
     virtual void determineNewStepSize_SU();
 
-    /// Store the prescribed position function for the BD, used for moving frames
-    // Default is at rest
-    GranPositionFunction BDPositionFunction = GranPosFunction_default;
-
-    void updateBDPosition(float stepSize_SU);
     /// set the position of a BC and account for the offset
     void setBCOffset(const BC_type&,
                      const BC_params_t<float, float3>& params_UU,
-                     BC_params_t<int, int3>& params_SU,
-                     float3 offset_UU);
+                     BC_params_t<int64_t, int64_t3>& params_SU,
+                     double3 offset_UU);
 
     /// update positions of each BC using prescribed functions
     void updateBCPositions();
@@ -582,23 +608,26 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Store the ratio of the acceleration due to adhesion vs the acceleration due to gravity
     float adhesion_s2w_over_gravity;
 
+    /// The reference point for UU to SU local coordinates
+    int64_t3 BD_rest_frame_SU;
+
     /// List of generalized BCs that constrain sphere motion
     std::vector<BC_type, cudallocator<BC_type>> BC_type_list;
-    std::vector<BC_params_t<int, int3>, cudallocator<BC_params_t<int, int3>>> BC_params_list_SU;
+    std::vector<BC_params_t<int64_t, int64_t3>, cudallocator<BC_params_t<int64_t, int64_t3>>> BC_params_list_SU;
     std::vector<BC_params_t<float, float3>, cudallocator<BC_params_t<float, float3>>> BC_params_list_UU;
     std::vector<GranPositionFunction> BC_offset_function_list;
 
     /// User defined radius of the sphere
-    float sphere_radius_UU;
+    const float sphere_radius_UU;
     /// User defined density of the sphere
-    float sphere_density_UU;
+    const float sphere_density_UU;
 
     /// length of physical box; defines the global X axis located at the CM of the box
-    float box_size_X;
+    const float box_size_X;
     /// depth of physical box; defines the global Y axis located at the CM of the box
-    float box_size_Y;
+    const float box_size_Y;
     /// height of physical box; defines the global Z axis located at the CM of the box
-    float box_size_Z;
+    const float box_size_Z;
 
     /// User-provided sphere positions in UU
     std::vector<ChVector<float>> user_sphere_positions;

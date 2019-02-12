@@ -73,10 +73,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC settlingExperiment(params.sphere_radius, params.sphere_density,
+                                                        make_float3(params.box_X, params.box_Y, params.box_Z));
     settlingExperiment.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
 
-    settlingExperiment.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     settlingExperiment.set_K_n_SPH2SPH(params.normalStiffS2S);
     settlingExperiment.set_K_n_SPH2WALL(params.normalStiffS2W);
     settlingExperiment.set_Gamma_n_SPH2SPH(params.normalDampS2S);
@@ -86,6 +86,8 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
     settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
     settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+
+    settlingExperiment.set_static_friction_coeff(params.static_friction_coeff);
 
     settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
     settlingExperiment.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
@@ -106,17 +108,24 @@ int main(int argc, char* argv[]) {
 
     {
         // fill box, layer by layer
-        ChVector<> hdims(params.box_X / 2.f - 2 * params.sphere_radius, params.box_Y / 2.f - 2 * params.sphere_radius,
-                         params.box_Z / 2.f - 2 * params.sphere_radius);
+        ChVector<> hdims(params.box_X / 8.f - 2 * params.sphere_radius, params.box_Y / 8.f - 2 * params.sphere_radius,
+                         params.box_Z / 8.f - 2 * params.sphere_radius);
         ChVector<> center(0, 0, 0);
 
         // Fill box with bodies
-        // body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
+        body_points = PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.01);
 
-        utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
-
-        body_points = sampler.SampleBox(center, hdims);
+        // utils::HCPSampler<float> sampler(2.2 * params.sphere_radius);
+        //
+        // body_points = sampler.SampleBox(center, hdims);
     }
+    std::vector<ChVector<float>> first_points;
+    first_points.push_back(body_points.at(0));
+    first_points.push_back(body_points.at(body_points.size() / 2));
+    first_points.push_back(body_points.at(body_points.size() - 1));
+    printf("particle is at %f, %f, %f\n", first_points[0].x(), first_points[0].y(), first_points[0].z());
+    printf("particle is at %f, %f, %f\n", first_points[1].x(), first_points[1].y(), first_points[1].z());
+    printf("particle is at %f, %f, %f\n", first_points[2].x(), first_points[2].y(), first_points[2].z());
     settlingExperiment.setParticlePositions(body_points);
 
     switch (params.run_mode) {
@@ -126,6 +135,7 @@ int main(int argc, char* argv[]) {
             settlingExperiment.set_K_t_SPH2WALL(params.tangentStiffS2W);
             settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
             settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+            break;
         case run_mode::ONE_STEP:
             settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
             settlingExperiment.set_K_t_SPH2SPH(params.tangentStiffS2S);

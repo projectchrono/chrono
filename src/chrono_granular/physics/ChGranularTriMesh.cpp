@@ -33,14 +33,23 @@
 namespace chrono {
 namespace granular {
 
-ChSystemGranular_MonodisperseSMC_trimesh::ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density)
-    : ChSystemGranular_MonodisperseSMC(radiusSPH, density),
+ChSystemGranular_MonodisperseSMC_trimesh::ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH,
+                                                                                   float density,
+                                                                                   float3 boxDims)
+    : ChSystemGranular_MonodisperseSMC(radiusSPH, density, boxDims),
       K_n_s2m_UU(0),
       K_t_s2m_UU(0),
       Gamma_n_s2m_UU(0),
-      Gamma_t_s2m_UU(0) {
+      Gamma_t_s2m_UU(0),
+      adhesion_s2m_over_gravity(0) {
     // Allocate triangle collision parameters
     gpuErrchk(cudaMallocManaged(&tri_params, sizeof(ChGranParams_trimesh), cudaMemAttachGlobal));
+
+    // Allocate the device soup storage
+    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(ChTriangleSoup<float3>), cudaMemAttachGlobal));
+    // start with no triangles
+    meshSoup_DEVICE->nTrianglesInSoup = 0;
+    meshSoup_DEVICE->nFamiliesInSoup = 0;
 }
 
 ChSystemGranular_MonodisperseSMC_trimesh::~ChSystemGranular_MonodisperseSMC_trimesh() {
@@ -100,6 +109,10 @@ void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::stri
     unsigned int size = objfilenames.size();
     if (size != scalings.size() || size != masses.size() || size != inflated.size() || size != inflation_radii.size()) {
         GRANULAR_ERROR("Vectors of obj files, scalings, and masses must have same size\n");
+    }
+
+    if (size == 0) {
+        printf("WARNING: No meshes provided!\n");
     }
 
     unsigned int nTriangles = 0;
@@ -225,9 +238,6 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
     std::vector<float> masses,
     std::vector<bool> inflated,
     std::vector<float> inflation_radii) {
-    // Allocate the device soup storage
-    gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(ChTriangleSoup<float3>), cudaMemAttachGlobal));
-
     meshSoup_DEVICE->nTrianglesInSoup = nTriangles;
 
     if (nTriangles != 0) {

@@ -65,10 +65,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC gran_sys(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC gran_sys(params.sphere_radius, params.sphere_density,
+                                              make_float3(params.box_X, params.box_Y, params.box_Z));
     gran_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
 
-    gran_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
@@ -89,14 +89,17 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> body_points =
         PDLayerSampler_BOX<float>(center, hdims, 2. * params.sphere_radius, 1.05);
 
+    std::vector<ChVector<float>> pts;
+    pts.push_back(body_points.at(0));
+
     gran_sys.setParticlePositions(body_points);
 
     // Prescribe a custom position function for the X direction. Note that this MUST be continuous or the simulation
     // will not be stable.
-    std::function<float3(float)> pos_func_wave = [&params](float t) {
-        float3 pos = {0, 0, 0};
+    std::function<double3(float)> pos_func_wave = [&params](float t) {
+        double3 pos = {0, 0, 0};
 
-        float t0 = 0.5;
+        float t0 = 1;
         float freq = 0.5 * M_PI;
 
         if (t > t0) {
@@ -107,7 +110,7 @@ int main(int argc, char* argv[]) {
     };
 
     // Set the position of the BD
-    gran_sys.setBDPositionFunction(pos_func_wave);
+    gran_sys.setBDWallsMotionFunction(pos_func_wave);
     gran_sys.set_BD_Fixed(false);
 
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);

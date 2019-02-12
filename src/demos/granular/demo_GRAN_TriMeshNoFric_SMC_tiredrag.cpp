@@ -101,7 +101,6 @@ int main(int argc, char* argv[]) {
     mesh_inflated.push_back(false);
     mesh_inflation_radii.push_back(0);
 
-
     sim_param_holder params;
     // Some of the default values might be overwritten by user via command line
     if (argc != 2 || ParseJSON(argv[1], params) == false) {
@@ -112,9 +111,9 @@ int main(int argc, char* argv[]) {
     mesh_filenames.push_back(mesh_filename);
 
     // Setup simulation
-    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density);
+    ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
+                                                   make_float3(params.box_X, params.box_Y, params.box_Z));
     m_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
-    m_sys.setBOXdims(params.box_X, params.box_Y, params.box_Z);
     m_sys.set_BD_Fixed(true);
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);

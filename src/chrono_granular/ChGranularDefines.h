@@ -19,6 +19,17 @@
 #include <cstdio>
 #include <cstdlib>
 
+typedef longlong3 int64_t3;
+
+constexpr size_t BD_WALL_ID_X_BOT = 0;
+constexpr size_t BD_WALL_ID_X_TOP = 1;
+constexpr size_t BD_WALL_ID_Y_BOT = 2;
+constexpr size_t BD_WALL_ID_Y_TOP = 3;
+constexpr size_t BD_WALL_ID_Z_BOT = 4;
+constexpr size_t BD_WALL_ID_Z_TOP = 5;
+
+constexpr size_t NUM_RESERVED_BC_IDS = 6;
+
 ///< At most 8 domains are touched by a sphere
 #define MAX_SDs_TOUCHED_BY_SPHERE 8
 ///< At most 8 domains are touched by a sphere

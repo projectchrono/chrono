@@ -71,7 +71,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
   public:
     // we do not want the system to be default-constructible
     ChSystemGranular_MonodisperseSMC_trimesh() = delete;
-    ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density);
+    ChSystemGranular_MonodisperseSMC_trimesh(float radiusSPH, float density, float3 boxDims);
     virtual ~ChSystemGranular_MonodisperseSMC_trimesh();
 
     void set_K_n_SPH2MESH(double someValue) { K_n_s2m_UU = someValue; }
