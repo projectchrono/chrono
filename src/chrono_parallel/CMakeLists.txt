@@ -78,6 +78,12 @@ ENDIF()
 
 find_package(Thrust)
 
+if(NOT THRUST_FOUND)
+  mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
+else()
+  mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
+endif()
+
 # ----- Blaze library -----
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
