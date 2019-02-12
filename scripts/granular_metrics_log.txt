@@ -1362,3 +1362,11 @@ Running test suite!
 Frictionless took 47.8904 seconds!
 Single Step took 56.5946 seconds!
 Multistep took 85.3858 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Tue, 12 Feb 2019 14:21:51 -0600
+commit afb697bdb6e019f1984dcb47d7e20017772f69b3 Author: Conlain Kelly <conlain.k@gmail.com> Date: Tue Feb 12 14:21:43 2019 -0600 fix cmakelists SMs
+Results:
+Running test suite!
+Frictionless took 46.8522 seconds!
+Single Step took 55.6729 seconds!
+Multistep took 84.6886 seconds!
