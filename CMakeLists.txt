@@ -142,6 +142,8 @@ elseif(MSVC)
     set(CH_COMPILER "COMPILER_MSVC" CACHE STRING "Compiler Type" FORCE)
 endif()
 
+mark_as_advanced(FORCE CH_COMPILER)
+
 #-----------------------------------------------------------------------------
 # Specify locations of executables and libraries
 #-----------------------------------------------------------------------------
