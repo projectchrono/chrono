@@ -23,8 +23,8 @@ cmake -G "%CMAKE_GENERATOR%" ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_GMOCK=OFF ^
  -DBUILD_BENCHMARKING=OFF ^
- -DCH_IRRLICHTDIR="C:\irrlicht-1.8.2" ^
- -DCH_IRRLICHTLIB="C:\irrlicht-1.8.2\lib\Win64-visualStudio\Irrlicht.lib" ^
+ -DIRRLICHT_ROOT="C:\irrlicht-1.8.2" ^
+ -DIRRLICHT_LIBRARY="C:\irrlicht-1.8.2\lib\Win64-visualStudio\Irrlicht.lib" ^
  ..
 if errorlevel 1 exit 1
  

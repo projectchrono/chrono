@@ -121,10 +121,10 @@ Start CMake to configure the build. We assume that you are using the graphical i
    - Enable the required modules: at least tick `ENABLE_MODULE_IRRLICHT` and `ENABLE_MODULE_POSTPROCESS`.<br>
      Other modules might require additional settings and dependencies.
    - Press **Configure**.
-   - Set the `CH_IRRLICHTDIR` variable: it must contain the path to the directory where you unzipped Irrlicht.<br>
+   - Set the `IRRLICHT_ROOT` variable: it must contain the path to the directory where you unzipped Irrlicht.<br>
      In our example, browse to <tt>C:/engine_demos/irrlicht-1.8.2</tt>
    - Press **Configure** again.
-   - The `CH_IRRLICHTLIB` variable should be filled automatically.
+   - The `IRRLICHT_LIBRARY` variable should be filled automatically.
      If not, select <tt>C:/engine_demos/irrlicht-1.8.2/lib/Win64-visualStudio/Irrlicht.lib</tt>.<br>
 	 Then press **Configure** again.
 -  Remember that you might need to press **Configure** after you change some setting, even multiple times,

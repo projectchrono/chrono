@@ -67,10 +67,10 @@ you do not need to do anything. Otherwise do what follows.
    
 4. Set the `ENABLE_MODULE_IRRLICHT` as 'on', then press 'Configure' (to refresh the variable list) 
  
-5. Set the directory in `CH_IRRLICHTDIR`: it must contain the path to your unzipped Irrlicht directory.  
+5. Set the directory in `IRRLICHT_ROOT`: it must contain the path to your unzipped Irrlicht directory.  
    In our example, browse to `C:/engine_demos/irrlicht-1.8.2`
    
-6. The corresponding `CH_IRRLICHTLIB` should be found automatically: it must contain the file of the Irrlicht.lib.  
+6. The corresponding `IRRLICHT_LIBRARY` should be found automatically: it must contain the file of the Irrlicht.lib.  
    In our example, browse to `C:/engine_demos/irrlicht-1.8.2/lib/Win64-visualStudio/Irrlicht.lib`.
 	 
 7. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.

@@ -81,7 +81,6 @@ FOREACH(PROGRAM ${DEMOS})
   TARGET_LINK_LIBRARIES(${PROGRAM}
     ChronoEngine
     ChronoEngine_irrlicht
-    ${CH_IRRLICHTLIB}
     )
     
   ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_irrlicht)
