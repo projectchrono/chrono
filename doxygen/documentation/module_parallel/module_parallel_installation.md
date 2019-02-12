@@ -19,15 +19,19 @@ using parallel computing within Chrono::Engine
 
 ## Requirements
 
-- To **run** applications based on this module you need:
-    - the [Blaze](https://bitbucket.org/blaze-lib/blaze) library
-    - the [Boost](http://www.boost.org) library
-    - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
-
 - To **build** this module you need:
     - the [Blaze](https://bitbucket.org/blaze-lib/blaze) library
     - the [Boost](http://www.boost.org) library
     - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
+
+<div class="ce-danger">
+The latest version of Blaze (3.4) does not work with Visual Studio.  Use an earlier version (e.g. 3.0).
+</div>
+
+<div class="ce-warning">
+The easiest way to obtain the Thrust library is by installing the CUDA SDK. 
+Alternatively, you can download or clone Thrust from its [GitHub repository](https://github.com/thrust/thrust). In that case, you will need to manually specify the path to the Thrust headers during CMake configuration (set the variable `THRUST_INCLUDE_DIR`).
+</div>
 
 
 ## Building instructions
@@ -48,10 +52,6 @@ using parallel computing within Chrono::Engine
 	 
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 
-<div class="ce-info">
-This unit is under development. 
-</div>
-
 <div class="ce-warning">
 Not all the features of the standard _serial_ version of Chrono::Engine are supported.
 </div>
@@ -61,4 +61,4 @@ Not all the features of the standard _serial_ version of Chrono::Engine are supp
 
 - Look at the [API section](group__parallel__module.html) of this module for documentation about classes and functions.
 
-- Look at the C++ source of [demos](@ref tutorial_root) to learn how to use the functions of this module.
+- Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_parallel) to learn how to use the functions of this module.
