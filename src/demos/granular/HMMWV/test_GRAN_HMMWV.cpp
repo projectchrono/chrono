@@ -445,12 +445,12 @@ int main(int argc, char* argv[]) {
                                               mesh_forces[body_family_offset + 2]),
                     mesh_pos, false);
 
-                // potential  BUG: vehicle moves backwards?
-                // mesh->Accumulate_torque(
-                //     L_cgs_to_mks * F_cgs_to_mks *
-                //         ChVector<>(mesh_forces[body_family_offset + 3], mesh_forces[body_family_offset + 4],
-                //                    mesh_forces[body_family_offset + 5]),
-                //     false);
+                // potential BUG
+                mesh->Accumulate_torque(
+                    L_cgs_to_mks * F_cgs_to_mks *
+                        ChVector<>(mesh_forces[body_family_offset + 3], mesh_forces[body_family_offset + 4],
+                                   mesh_forces[body_family_offset + 5]),
+                    false);
             }
 
             // Output particles and meshes from chrono_granular
