@@ -230,7 +230,7 @@ endif()
 
 message(STATUS "Searching for CUDA...")
 
-find_package(CUDA)
+find_package(CUDA QUIET)
 
 if(CUDA_FOUND)
   message(STATUS "  CUDA version:          ${CUDA_VERSION_STRING}")
@@ -243,7 +243,7 @@ else()
   mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
 endif()
 
-# IDentify the CUDA architecture
+# Identify the CUDA architecture
 if(CUDA_FOUND)
 
   mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
