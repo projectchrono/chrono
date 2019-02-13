@@ -23,7 +23,6 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include <csignal>
 
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChForce.h"
@@ -75,14 +74,6 @@ const double hmmwv_step_size = 1e-5;
 
 string checkpoint_file;
 double throttle_max;
-ChSystemGranular_MonodisperseSMC_trimesh* gran_sys;
-
-void signalHandler(int signum) {
-    cout << "Recieved signal " << signum << endl;
-    cout << "Writing checkpoint_file..." << endl;
-    gran_sys->writeFile(checkpoint_file);
-    std::exit(signum);
-}
 
 void writeMeshFrames(std::ostringstream& outstream,
                      ChBody& body,
@@ -150,10 +141,6 @@ int main(int argc, char* argv[]) {
         cout << "Throttle: " << throttle_max << endl;
     }
 
-    if (run_mode == RUN_MODE::SETTLING) {
-        signal(SIGINT, signalHandler);
-    }
-
     double fill_bottom = -params.box_Z / 2 + 2.05 * params.sphere_radius;
     double fill_top = -params.box_Z / 4;  // 2.05 * params.sphere_radius;
 
@@ -203,7 +190,6 @@ int main(int argc, char* argv[]) {
         (fill_top + wheel_radius + 2 * params.sphere_radius) * L_cgs_to_mks;  // start above the domain for settling
     hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-params.box_X * L_cgs_to_mks / 2, 0, hmmwv_init_height), QUNIT));
 
-    // Tire obj has radius 1
     bool detailed_tires = true;
     cout << "Wheel Radius: " << wheel_radius << " cm" << endl;
     float3 scaling;
@@ -212,6 +198,7 @@ int main(int argc, char* argv[]) {
         scaling.y = L_mks_to_cgs;
         scaling.z = L_mks_to_cgs;
     } else {
+        // Tire obj has radius 1
         scaling.x = wheel_radius;
         scaling.y = wheel_radius;
         scaling.z = wheel_radius;
@@ -246,8 +233,8 @@ int main(int argc, char* argv[]) {
         mesh_inflation_radii.push_back(0);
     }
 
-    gran_sys = new ChSystemGranular_MonodisperseSMC_trimesh(params.sphere_radius, params.sphere_density,
-                                                            make_float3(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGranular_MonodisperseSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
+                                                      make_float3(params.box_X, params.box_Y, params.box_Z));
 
     // Fill box with bodies
     vector<ChVector<float>> body_points;
@@ -294,60 +281,60 @@ int main(int argc, char* argv[]) {
         cp_file.close();
     }
 
-    gran_sys->setParticlePositions(body_points);
+    gran_sys.setParticlePositions(body_points);
 
-    gran_sys->set_BD_Fixed(true);
+    gran_sys.set_BD_Fixed(true);
 
-    gran_sys->set_K_n_SPH2SPH(params.normalStiffS2S);
-    gran_sys->set_K_n_SPH2WALL(params.normalStiffS2W);
-    gran_sys->set_K_n_SPH2MESH(params.normalStiffS2M);
+    gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
+    gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
+    gran_sys.set_K_n_SPH2MESH(params.normalStiffS2M);
 
-    gran_sys->set_Gamma_n_SPH2SPH(params.normalDampS2S);
-    gran_sys->set_Gamma_n_SPH2WALL(params.normalDampS2S);
-    gran_sys->set_Gamma_n_SPH2MESH(params.normalDampS2M);
+    gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2S);
+    gran_sys.set_Gamma_n_SPH2MESH(params.normalDampS2M);
 
-    gran_sys->set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
 
-    gran_sys->set_K_t_SPH2SPH(params.tangentStiffS2S);
-    gran_sys->set_K_t_SPH2WALL(params.tangentStiffS2W);
-    gran_sys->set_K_t_SPH2MESH(params.tangentStiffS2M);
+    gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
+    gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
+    gran_sys.set_K_t_SPH2MESH(params.tangentStiffS2M);
 
-    gran_sys->set_Gamma_t_SPH2SPH(params.tangentDampS2S);
-    gran_sys->set_Gamma_t_SPH2WALL(params.tangentDampS2W);
-    gran_sys->set_Gamma_t_SPH2MESH(params.tangentDampS2M);
+    gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
+    gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+    gran_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    gran_sys->setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
-    gran_sys->set_Cohesion_ratio(params.cohesion_ratio);
-    gran_sys->set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
-    gran_sys->set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
-    gran_sys->set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-    gran_sys->set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    gran_sys->set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    gran_sys->set_fixed_stepSize(params.step_size);
+    gran_sys.setPsiFactors(params.psi_T, params.psi_h, params.psi_L);
+    gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+    gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
+    gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
+    gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    gran_sys.set_fixed_stepSize(params.step_size);
 
-    float mu_static = 0.5;
+    float mu_static = 0.7;
     cout << "Static friciton coefficient: " << mu_static << endl;
-    gran_sys->set_static_friction_coeff(mu_static);
+    gran_sys.set_static_friction_coeff(mu_static);
 
-    gran_sys->load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
+    gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
     // Output preferences
-    gran_sys->setOutputDirectory(out_dir);
+    gran_sys.setOutputDirectory(out_dir);
     if (run_mode == RUN_MODE::SETTLING) {
         // Force csv for generating the checkpoint
-        gran_sys->setOutputMode(GRAN_OUTPUT_MODE::CSV);
+        gran_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
     } else {
-        gran_sys->setOutputMode(params.write_mode);
+        gran_sys.setOutputMode(params.write_mode);
     }
-    gran_sys->setVerbose(params.verbose);
+    gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(out_dir));
 
-    unsigned int nSoupFamilies = gran_sys->nMeshesInSoup();
+    unsigned int nSoupFamilies = gran_sys.nMeshesInSoup();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshPosRot = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
 
-    gran_sys->initialize();
+    gran_sys.initialize();
 
     // Create the straight path and the driver system
     // TODO path
@@ -380,14 +367,14 @@ int main(int argc, char* argv[]) {
         // Set terrain height to be _just_ below wheel
         double wheel_z =
             hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)->GetPos().z() * L_mks_to_cgs - 1.1 * wheel_radius;
-        double max_gran_z = gran_sys->get_max_z();
+        double max_gran_z = gran_sys.get_max_z();
         double rear_wheel_x =
             hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)->GetPos().x() * L_mks_to_cgs - 1.1 * wheel_radius;
 
         gran_offset.x() = -params.box_X / 2 - rear_wheel_x;
         gran_offset.z() = max_gran_z - wheel_z;
         cout << "gran_offset.z() = " << gran_offset.z() << endl;
-        gran_sys->enableMeshCollision();
+        gran_sys.enableMeshCollision();
         hmmwv.SetChassisFixed(false);
 
         while (curr_time < params.time_end) {
@@ -421,7 +408,7 @@ int main(int argc, char* argv[]) {
                 meshVel[fam_offset_vel + 4] = mesh_ang_vel.y();
                 meshVel[fam_offset_vel + 5] = mesh_ang_vel.z();
             }
-            gran_sys->meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
+            gran_sys.meshSoup_applyRigidBodyMotion(meshPosRot, meshVel);
 
             // Collect output data from modules (for inter-module communication)
             // double throttle_input = driver.GetThrottle();
@@ -441,7 +428,7 @@ int main(int argc, char* argv[]) {
             // Apply the mesh orientation data to the mesh
 
             float mesh_forces[6 * num_mesh_bodies];
-            gran_sys->collectGeneralizedForcesOnMeshSoup(mesh_forces);
+            gran_sys.collectGeneralizedForcesOnMeshSoup(mesh_forces);
 
             // Apply forces to the mesh for the duration of the iteration
             for (unsigned int i = 0; i < num_mesh_bodies; i++) {
@@ -475,8 +462,8 @@ int main(int argc, char* argv[]) {
 
                 char filename[100];
                 std::sprintf(filename, "%s/step%06d", out_dir.c_str(), render_frame);
-                gran_sys->writeFile(string(filename));
-                // gran_sys->write_meshes(string(filename));
+                gran_sys.writeFile(string(filename));
+                // gran_sys.write_meshes(string(filename));
                 string mesh_output = string(filename) + "_meshframes.csv";
 
                 std::ofstream meshfile(mesh_output);
@@ -502,7 +489,7 @@ int main(int argc, char* argv[]) {
                 render_frame++;
             }
 
-            gran_sys->advance_simulation(hmmwv_step_size);
+            gran_sys.advance_simulation(hmmwv_step_size);
 
             // Advance simulation for one timestep for all modules
             driver.Advance(hmmwv_step_size);
@@ -516,7 +503,7 @@ int main(int argc, char* argv[]) {
     // Settling phase
     else if (run_mode == RUN_MODE::SETTLING) {
         hmmwv.SetChassisFixed(true);
-        gran_sys->disableMeshCollision();
+        gran_sys.disableMeshCollision();
 
         while (curr_time < time_settling) {
             // Output particles and meshes from chrono_granular
@@ -524,17 +511,17 @@ int main(int argc, char* argv[]) {
                 cout << "Rendering frame " << render_frame << endl;
                 char filename[100];
                 std::sprintf(filename, "%s/settling-step%06d", out_dir.c_str(), render_frame);
-                gran_sys->writeFile(string(filename));
+                gran_sys.writeFile(string(filename));
 
                 render_frame++;
             }
 
-            gran_sys->advance_simulation(hmmwv_step_size);
+            gran_sys.advance_simulation(hmmwv_step_size);
 
             curr_time += hmmwv_step_size;
             sim_frame++;
         }
-        gran_sys->writeFile(checkpoint_file);
+        gran_sys.writeFile(checkpoint_file);
     }
 
     delete[] meshPosRot;
