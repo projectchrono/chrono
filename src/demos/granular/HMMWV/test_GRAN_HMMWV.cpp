@@ -235,6 +235,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemGranular_MonodisperseSMC_trimesh gran_sys(params.sphere_radius, params.sphere_density,
                                                       make_float3(params.box_X, params.box_Y, params.box_Z));
+    double max_gran_z = -1000000;
 
     // Fill box with bodies
     vector<ChVector<float>> body_points;
@@ -275,6 +276,9 @@ int main(int argc, char* argv[]) {
                 tok = line.substr(0, pos);
                 point[i] = std::stof(tok);
                 line.erase(0, pos + 1);
+                if (i == 2 && point[i] > max_gran_z) {
+                    max_gran_z = point[i];
+                }
             }
             body_points.push_back(point);
         }
@@ -367,7 +371,6 @@ int main(int argc, char* argv[]) {
         // Set terrain height to be _just_ below wheel
         double wheel_z =
             hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::FR)->GetPos().z() * L_mks_to_cgs - 1.1 * wheel_radius;
-        double max_gran_z = gran_sys.get_max_z();
         double rear_wheel_x =
             hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)->GetPos().x() * L_mks_to_cgs - 1.1 * wheel_radius;
 
