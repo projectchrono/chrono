@@ -14,9 +14,11 @@ print ("Example: create OpenCascade shapes and use them as rigid bodies");
 import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 import pychrono.cascade as cascade
-import OCC.Core.BRepPrimAPI
-import OCC.BRepAlgoAPI
-
+try:
+    from OCC.Core import BRepPrimAPI
+    from OCC.Core import BRepAlgoAPI
+except:
+    from OCC import BRepPrimAPI, BRepAlgoAPI
 # Change this path to asset path, if running from other working dir. 
 # It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
 chrono.SetChronoDataPath("../../../data/")
@@ -38,9 +40,9 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 
 
 # create a 3dCAD shape using the OCC OpenCascade API (a torus cut by a cylinder)
-my_torus    = OCC.Core.BRepPrimAPI.BRepPrimAPI_MakeTorus(0.1,0.02).Shape()
-my_cylinder = OCC.Core.BRepPrimAPI.BRepPrimAPI_MakeCylinder(0.09,0.1).Shape()
-my_shape    = OCC.BRepAlgoAPI.BRepAlgoAPI_Cut(my_torus, my_cylinder).Shape()
+my_torus    = BRepPrimAPI.BRepPrimAPI_MakeTorus(0.1,0.02).Shape()
+my_cylinder = BRepPrimAPI.BRepPrimAPI_MakeCylinder(0.09,0.1).Shape()
+my_shape    = BRepAlgoAPI.BRepAlgoAPI_Cut(my_torus, my_cylinder).Shape()
 
 # use it to make a body with proper center of mass and inertia tensor,
 # given the CAD shape. Also visualize it.

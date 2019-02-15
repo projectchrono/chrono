@@ -54,7 +54,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     FIND_PATH(CASCADE_INCLUDE_DIR Standard_Version.hxx
       HINTS ${CASCADE_INCLUDE_DIR} "${CASCADE_ROOT}/inc" "${CASCADE_ROOT}/include" "${CASCADE_ROOT}/include/oce"
     )
-	FILE(GLOB CASCADE_LIBRARIES "${CASCADE_LIBDIR}/*.lib")
+	FILE(GLOB CASCADE_LIBRARIES "${CASCADE_LIBDIR}/TK*.lib")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     FIND_PATH(CASCADE_INCLUDE_DIR Standard_Version.hxx
       HINTS ${CASCADE_INCLUDE_DIR} "${CASCADE_ROOT}/inc" "${CASCADE_ROOT}/include"
@@ -64,7 +64,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
       /opt/oce/include
       /opt/oce/inc
     )
-    FILE(GLOB CASCADE_LIBRARIES "${CASCADE_ROOT}/lib/*.so" "${CASCADE_ROOT}/Linux/lib/*.so" "${CASCADE_LIBDIR}/*.so")
+    FILE(GLOB CASCADE_LIBRARIES "${CASCADE_ROOT}/lib/libTK*.so" "${CASCADE_ROOT}/Linux/lib/libTK*.so" "${CASCADE_LIBDIR}/libTK*.so")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     FIND_PATH(CASCADE_INCLUDE_DIR Standard_Version.hxx
       PATHS

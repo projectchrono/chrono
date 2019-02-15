@@ -15,8 +15,10 @@ import pychrono.core as chrono
 import pychrono.irrlicht as chronoirr
 import pychrono.cascade as cascade
 #import pychrono.mkl as mkl
-from OCC.Core.TopoDS import TopoDS_Shape
-
+try:
+    from OCC.Core import TopoDS
+except:
+    from OCC import TopoDS 
 # Change this path to asset path, if running from other working dir. 
 # It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
 chrono.SetChronoDataPath("../../../data/")
@@ -64,7 +66,7 @@ root_frame = chrono.ChFrameMovingD(chrono.ChVectorD(0, 0, 0), tot_rotation);
 # syntax and * or ? wildcards, etc.
 
 def make_body_from_name(partname, root_transformation):
-    shape1 = TopoDS_Shape()
+    shape1 = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape1, partname)):
         # Make a ChBody representing the TopoDS_Shape part from the CAD:
         mbody1 = cascade.ChBodyEasyCascade(shape1, # shape
@@ -99,7 +101,7 @@ mrigidBody_base.SetBodyFixed(True)
 # we can fetch them and get their position/rotation.
 
 def make_frame_from_name(partname, root_transformation):
-    shape_marker = TopoDS_Shape()
+    shape_marker = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape_marker, partname)):
         frame_marker = chrono.ChFrameD()
         mydoc.FromCascadeToChrono(shape_marker.Location(), frame_marker)

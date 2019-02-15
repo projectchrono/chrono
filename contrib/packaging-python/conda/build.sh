@@ -23,13 +23,15 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DPYTHON_LIBRARY:FILEPATH=$PREFIX/lib/${PY_LIB} \
  --config $CONFIGURATION \
  -DENABLE_MODULE_IRRLICHT=ON \
- -DENABLE_MODULE_FEA=ON \
  -DENABLE_MODULE_POSTPROCESS=ON \
  -DENABLE_MODULE_PYTHON=ON \
  -DBUILD_DEMOS=OFF \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \
  -DBUILD_GMOCK=OFF \
+ -DENABLE_MODULE_CASCADE=ON \
+ -DCASCADE_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include/oce \
+ -DCH_CASCADE_LIBDIR=/home/appveyor/miniconda3/envs/myenv/lib \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise

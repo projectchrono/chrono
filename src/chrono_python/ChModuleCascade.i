@@ -123,8 +123,8 @@ using namespace chrono::cascade;
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
-
-%import(module = "OCC.Core.TopoDS") "TopoDS_Shape.hxx"
+//This import gave problems with different PythonOCC versions. Is it 
+//%import(module = "OCC.Core.TopoDS") "TopoDS_Shape.hxx"
 
 %import(module = "pychrono.core")  "ChClassFactory.i"
 %import(module = "pychrono.core")  "ChObject.i"
