@@ -31,7 +31,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DBUILD_GMOCK=OFF \
  -DENABLE_MODULE_CASCADE=ON \
  -DCASCADE_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include/oce \
- -DCH_CASCADE_LIBDIR=/home/appveyor/miniconda3/envs/myenv/lib \
+ -DCASCADE_LIBDIR=/home/appveyor/miniconda3/envs/myenv/lib \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
