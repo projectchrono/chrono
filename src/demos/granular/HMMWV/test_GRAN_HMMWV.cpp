@@ -25,7 +25,6 @@
 #include <string>
 
 #include "chrono/ChConfig.h"
-#include "chrono/physics/ChForce.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -60,6 +59,7 @@ using std::vector;
 
 enum RUN_MODE { SETTLING = 0, TESTING = 1 };
 enum WHEEL_ID { FL = 0, FR = 1, RL = 2, RR = 3 };
+enum WHEEL_TYPE { GROUSER = 0, DETAILED = 1, LUGGED = 2 };
 
 const double L_cgs_to_mks = 1.0 / 100.0;
 const double L_mks_to_cgs = 100.0;
@@ -190,25 +190,29 @@ int main(int argc, char* argv[]) {
         (fill_top + wheel_radius + 2 * params.sphere_radius) * L_cgs_to_mks;  // start above the domain for settling
     hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-params.box_X * L_cgs_to_mks / 2, 0, hmmwv_init_height), QUNIT));
 
-    bool detailed_tires = true;
+    WHEEL_TYPE wheel_type = WHEEL_TYPE::LUGGED;
     cout << "Wheel Radius: " << wheel_radius << " cm" << endl;
     float3 scaling;
-    if (detailed_tires) {
-        scaling.x = L_mks_to_cgs;
-        scaling.y = L_mks_to_cgs;
-        scaling.z = L_mks_to_cgs;
-    } else {
-        // Tire obj has radius 1
-        scaling.x = wheel_radius;
-        scaling.y = wheel_radius;
-        scaling.z = wheel_radius;
-    }
-
     string wheel_mesh_filename;
-    if (detailed_tires) {
-        wheel_mesh_filename = "granular/HMMWV/hmmwv_tire_detailed.obj";
-    } else {
-        wheel_mesh_filename = "granular/grouser_wheel.obj";
+    switch (wheel_type) {
+        case WHEEL_TYPE::GROUSER:
+            scaling.x = wheel_radius;
+            scaling.y = wheel_radius;
+            scaling.z = wheel_radius;
+            wheel_mesh_filename = "granular/grouser_wheel.obj";
+            break;
+        case WHEEL_TYPE::DETAILED:
+            scaling.x = L_mks_to_cgs;
+            scaling.y = L_mks_to_cgs;
+            scaling.z = L_mks_to_cgs;
+            wheel_mesh_filename = "granular/HMMWV/hmmwv_tire_detailed.obj";
+            break;
+        case WHEEL_TYPE::LUGGED:
+            scaling.x = L_mks_to_cgs;
+            scaling.y = L_mks_to_cgs;
+            scaling.z = L_mks_to_cgs;
+            wheel_mesh_filename = "granular/HMMWV/hmmwv_tire_lugged.obj";
+            break;
     }
 
     vector<std::pair<string, std::shared_ptr<ChBody>>> gran_collision_bodies;
@@ -474,13 +478,19 @@ int main(int argc, char* argv[]) {
                 outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3,sx,sy,sz\n";
 
                 // write each mesh to the output file
-                for (auto b : gran_collision_bodies) {
-                    float scale;
-                    if (detailed_tires) {
-                        scale = L_mks_to_cgs;
-                    } else {
+                float scale;
+                switch (wheel_type) {
+                    case WHEEL_TYPE::GROUSER:
                         scale = wheel_radius;
-                    }
+                        break;
+                    case WHEEL_TYPE::DETAILED:
+                        scale = L_mks_to_cgs;
+                        break;
+                    case WHEEL_TYPE::LUGGED:
+                        scale = L_mks_to_cgs;
+                        break;
+                }
+                for (auto b : gran_collision_bodies) {
                     writeMeshFrames(outstream, *(b.second), b.first, scale, gran_offset);
                 }
 
