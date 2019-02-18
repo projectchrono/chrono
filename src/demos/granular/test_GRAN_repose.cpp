@@ -75,10 +75,19 @@ int main(int argc, char* argv[]) {
     }
 
     float iteration_step = params.step_size;
+    const float Bx = params.box_X;
+    const float By = Bx;
+
+    const float fill_height = 80;
+    const float chamber_height = fill_height / 2;
+    const float extra_height = 0;
+
+    const float Bz = chamber_height + fill_height + extra_height;
+    cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
 
     // Setup simulation
     ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
-                                                   make_float3(params.box_X, params.box_Y, params.box_Z));
+                                                   make_float3(Bx, By, Bz));
 
     m_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     m_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -115,16 +124,6 @@ int main(int argc, char* argv[]) {
     float static_friction = std::stof(argv[3]);
     cout << "Static Friction: " << static_friction << endl;
     m_sys.set_static_friction_coeff(static_friction);
-
-    const float Bx = params.box_X;
-    const float By = Bx;
-
-    const float fill_height = 80;
-    const float chamber_height = fill_height / 2;
-    const float extra_height = 0;
-
-    const float Bz = chamber_height + fill_height + extra_height;
-    cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
 
     const float chamber_bottom = -Bz / 2.f;
     const float fill_bottom = chamber_bottom + chamber_height;
