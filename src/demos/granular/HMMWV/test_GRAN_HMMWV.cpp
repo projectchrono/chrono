@@ -517,24 +517,7 @@ int main(int argc, char* argv[]) {
     else if (run_mode == RUN_MODE::SETTLING) {
         hmmwv.SetChassisFixed(true);
         gran_sys.disableMeshCollision();
-
-        while (curr_time < time_settling) {
-            // Output particles and meshes from chrono_granular
-            if (sim_frame % render_steps == 0) {
-                cout << "Rendering frame " << render_frame << endl;
-                char filename[100];
-                std::sprintf(filename, "%s/settling-step%06d", out_dir.c_str(), render_frame);
-                gran_sys.writeFile(string(filename));
-
-                render_frame++;
-            }
-
-            gran_sys.advance_simulation(hmmwv_step_size);
-
-            curr_time += hmmwv_step_size;
-            sim_frame++;
-        }
-        cout << "Writing Checkpoint: " << checkpoint_file << endl;
+        gran_sys.advance_simulation(time_settling);
         gran_sys.writeFile(checkpoint_file);
     }
 
