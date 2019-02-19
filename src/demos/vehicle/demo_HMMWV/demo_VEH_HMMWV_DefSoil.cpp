@@ -15,9 +15,6 @@
 // Chrono::Vehicle + ChronoParallel demo program for simulating a HMMWV vehicle
 // over rigid or granular material.
 //
-// The vehicle model uses the utility class ChWheeledVehicleAssembly and is
-// based on JSON specification files from the Chrono data directory.
-//
 // Contact uses the SMC (penalty) formulation.
 //
 // The global reference frame has Z up.
@@ -34,7 +31,6 @@
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
