@@ -97,8 +97,8 @@ void ChTire::CalculateKinematics(double time, const WheelState& state, const ChT
 // contact points on the disc (ptD) and on the terrain (ptT), the normal contact
 // direction, and the resulting penetration depth (a positive value).
 //
-// NOTE: uses terrain normal at disc center for approximative calculation. 
-// Hence only valid for terrains with constant slope. A completely accurate 
+// NOTE: uses terrain normal at disc center for approximative calculation.
+// Hence only valid for terrains with constant slope. A completely accurate
 // solution would require an iterative calculation of the contact point.
 // -----------------------------------------------------------------------------
 bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
@@ -115,8 +115,8 @@ bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
 
     // Find the lowest point on the disc. There is no contact if the disc is
     // (almost) horizontal.
-	ChVector<> nhelp = terrain.GetNormal(disc_center.x(), disc_center.y());
-    ChVector<> dir1 = Vcross(disc_normal, nhelp); 
+    ChVector<> nhelp = terrain.GetNormal(disc_center.x(), disc_center.y());
+    ChVector<> dir1 = Vcross(disc_normal, nhelp);
     double sinTilt2 = dir1.Length2();
 
     if (sinTilt2 < 1e-3)
