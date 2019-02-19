@@ -7,7 +7,7 @@
 option(ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 
 IF(NOT ENABLE_MODULE_FSI)
-  mark_as_advanced(FORCE USE_FSI_DOUBLE)
+  #mark_as_advanced(FORCE USE_FSI_DOUBLE)
   return()
 ENDIF()
 
@@ -17,21 +17,21 @@ message(STATUS "==== Chrono FSI module ====")
 if(NOT CUDA_FOUND)
   message("Chrono::FSI requires CUDA")
   message(STATUS "Chrono::FSI disabled")
-  mark_as_advanced(FORCE USE_FSI_DOUBLE)
+  #mark_as_advanced(FORCE USE_FSI_DOUBLE)
   set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
   return()
 endif()
 
-mark_as_advanced(CLEAR USE_FSI_DOUBLE)
+#mark_as_advanced(CLEAR USE_FSI_DOUBLE)
 
 # ------------------------------------------------------------------------------
 # Additional options for this module
 # ------------------------------------------------------------------------------
 
-option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
-if(USE_FSI_DOUBLE)
+#option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
+#if(USE_FSI_DOUBLE)
   set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
-endif()
+#endif()
 
 # ----------------------------------------------------------------------------
 # Collect additional include directories necessary for the FSI module.
