@@ -235,13 +235,20 @@ find_package(CUDA QUIET)
 if(CUDA_FOUND)
   message(STATUS "  CUDA version:          ${CUDA_VERSION_STRING}")
   message(STATUS "  CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}")
-  message(STATUS "  CUDA SDK root dir:     ${CUDA_SDK_ROOT_DIR}")
   mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
 else()
   message(STATUS "  CUDA not found (consider manually setting CUDA_TOOLKIT_ROOT_DIR)")
   mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
   mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
 endif()
+
+mark_as_advanced(FORCE
+    CUDA_BUILD_CUBIN
+    CUDA_BUILD_EMULATION
+    CUDA_SEPARABLE_COMPILATION
+    CUDA_SDK_ROOT_DIR
+    CUDA_HOST_COMPILER
+    CUDA_rt_LIBRARY)
 
 # Identify the CUDA architecture
 if(CUDA_FOUND)
@@ -251,7 +258,7 @@ if(CUDA_FOUND)
   set(CUDA_SEPARABLE_COMPILATION OFF)
   
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set(CUDA_SEPARABLE_COMPILATION OFF)
+    set(CUDA_SEPARABLE_COMPILATION OFF)
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
       if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
@@ -269,7 +276,7 @@ if(CUDA_FOUND)
   SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
   list(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
 
-  message(STATUS "  CUDA compile flags:    ${CUDA_NVCC_FLAGS}")
+  message(STATUS "  CUDA compile flags:   ${CUDA_NVCC_FLAGS}")
 
 endif()
 
