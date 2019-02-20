@@ -3,10 +3,10 @@ Install the COSIMULATION module   {#module_cosimulation_installation}
 
 [TOC]
 
-This is an optional module that enables co-simulation capabilities in Chrono::Engine.
+This is an optional module that enables co-simulation capabilities in Chrono.
 
 Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono::Engine project.
+background on the modularity of the Chrono project.
 
 
 ## Features

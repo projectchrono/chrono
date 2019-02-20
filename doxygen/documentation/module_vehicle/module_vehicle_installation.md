@@ -4,10 +4,10 @@ Install the VEHICLE module   {#module_vehicle_installation}
 [TOC]
 
 This is an optional module that enables template-based ground vehicle 
-modeling and simulation within Chrono::Engine.
+modeling and simulation within Chrono.
 
 Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono::Engine project.
+background on the modularity of the Chrono project.
 
 
 ## Features
@@ -59,8 +59,7 @@ Here are the main features:
 
 ## Building instructions
    
-1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
-   the CMake window, you must add the following steps:
+1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window, you must add the following steps:
    
 2. Set the `ENABLE_MODULE_VEHICLE` as 'on', then press 'Configure' (to refresh the variable list) 
 	 
@@ -69,6 +68,6 @@ Here are the main features:
 
 ## How to use it
 
-- Look at the [API section](group__vehicle__module.html) of this module for documentation about classes and functions.
+- Look at the [API section](group__vehicle.html) of this module for documentation about classes and functions.
 
 - Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_vehicle) to learn how to use the functions of this module.

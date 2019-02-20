@@ -6,7 +6,7 @@ Install the DISTRIBUTED module   {#module_distributed_installation}
 This is an optional module that enables MPI_based distributed parallel computation for granular dynamics.
 
 Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono::Engine project.
+background on the modularity of the Chrono project.
 
 
 ## Features

@@ -4,10 +4,10 @@ Install the MATLAB module {#module_matlab_installation}
 [TOC]
 
 This is a simple module that allows exchanging matrices and variables 
-from/to the Matlab environment with simple C++ function calls in Chrono::Engine.
+from/to the Matlab environment with simple C++ function calls in Chrono.
 
 Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono::Engine project.
+background on the modularity of the Chrono project.
 
 
 ## Features

@@ -9,7 +9,7 @@ Parallel solver module for Chrono.
 ## Features
 
 The **PARALLEL module** provides features for performing multibody simulations
-using parallel computing within Chrono::Engine
+using parallel computing within Chrono
 
 - introduces a custom ChSystemParallel class
 - implements a high-performance parallel collision detection algorithm

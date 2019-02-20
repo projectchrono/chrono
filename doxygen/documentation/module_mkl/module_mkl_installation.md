@@ -3,10 +3,10 @@ Install the MKL module {#module_mkl_installation}
 
 [TOC]
 
-This is an optional module that enables Chrono::Engine to use the Intel MKL Pardiso solver.
+This is an optional module that enables Chrono to use the Intel MKL Pardiso solver.
 
 Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono::Engine project.
+background on the modularity of the Chrono project.
 
 Chrono::Engine usually relies on its [built-in solvers](@ref solvers), whose good perfomance are guaranteed by leveraging the internal data structure. 
 In fact, for a wide range of applications, these suffice.<br>

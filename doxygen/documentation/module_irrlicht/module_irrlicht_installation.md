@@ -3,15 +3,15 @@ Install the IRRLICHT module {#module_irrlicht_installation}
 
 [TOC]
 
-This is the default visualization system for interactive 3D viewing of Chrono::Engine simulations.
+This is the default visualization system for interactive 3D viewing of Chrono simulations.
 
-If you develop your custom application based on Chrono::Engine, you may use other 
+If you develop your custom application based on Chrono, you may use other 
 visualization systems (ex. Ogre3D, CryEngine, plain OpenGL or others) and you do not 
 need this module, however this IRRLICHT module is used here in most demos 
 and tutorials because it is lightweight and simple. 
 
 Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono::Engine project.
+background on the modularity of the Chrono project.
 
 
 ## Features
