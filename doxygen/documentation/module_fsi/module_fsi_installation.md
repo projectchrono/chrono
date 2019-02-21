@@ -29,7 +29,11 @@ The **FSI module** allows users to:
    - Linux, CUDA 10, GCC 7.1.0 (Pascal, Volta, and Turing GPU architectures)
    - Linux, CUDA 9.0, GCC/6.1.0 (Pascal, Volta, and Turing GPU architectures)
    - Linux, CUDA 7.5, GCC/4.9.2 (Kepler GPU architecture)
-   - Windows, CUDA 10.0, MS Visual Studio (Pascal GPU architecture)
+   - Windows, CUDA 10.0, MS Visual Studio 2015 and 2017 (Pascal GPU architecture)
+
+<div class="ce-warning">
+Running Chrono::FSI programs on Windows may require adjusting the Timeout Detection and Recovery (TDR) settings. You may need to either increase the timeout delay or even disable TDR. This can be done through the [Windows registry keys](https://docs.microsoft.com/en-us/windows-hardware/drivers/display/tdr-registry-keys) or using the NIDIA [Nsight Monitor](http://developer.download.nvidia.com/NsightVisualStudio/2.2/Documentation/UserGuide/HTML/Content/Timeout_Detection_Recovery.htm)
+</div>
 
 ## Building instructions
 
