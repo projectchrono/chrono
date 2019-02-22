@@ -102,7 +102,7 @@ enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
 // How are we stepping through time?
 enum GRAN_TIME_STEPPING { ADAPTIVE, FIXED };
 /// How are we integrating w.r.t. time
-enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, VELOCITY_VERLET };
+enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, VELOCITY_VERLET, EXTENDED_TAYLOR };
 
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
@@ -362,6 +362,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         gran_params->force_model = new_contact_model;
         force_model = new_contact_model;
     }
+    void set_friction_mode(GRAN_FRICTION_MODE new_mode) {
+        gran_params->friction_mode = new_mode;
+        friction_mode = new_mode;
+    }
 
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
@@ -373,10 +377,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Initialize simulation so that it can be advanced
     virtual void initialize();
 
-    void set_friction_mode(GRAN_FRICTION_MODE new_mode) {
-        gran_params->friction_mode = new_mode;
-        friction_mode = new_mode;
-    }
     void set_static_friction_coeff(float mu) { gran_params->static_friction_coeff = mu; }
 
     void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }

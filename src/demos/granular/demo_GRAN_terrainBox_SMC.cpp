@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     settlingExperiment.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
-    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     settlingExperiment.set_fixed_stepSize(params.step_size);
 
     filesystem::create_directory(filesystem::path(params.output_dir));

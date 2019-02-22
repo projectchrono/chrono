@@ -41,11 +41,14 @@ std::string output_prefix = "../results";
 
 // Default values
 float ballRadius = 1.f;
-float ballDensity = 1.50f;
+float ballDensity = 2.50f;
 float timeEnd = .25f;
 float grav_acceleration = -980.f;
 float normStiffness_S2S = 1e7f;
 float normStiffness_S2W = 1e7f;
+
+float normalDampS2S = 1000;
+float normalDampS2W = 1000;
 float adhesion_ratio_s2w = 0.f;
 float timestep = 1e-4;
 
@@ -63,6 +66,9 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
                                                  make_float3(box_size_X, box_size_Y, box_size_Z));
     gran_system.set_K_n_SPH2SPH(normStiffness_S2S);
     gran_system.set_K_n_SPH2WALL(normStiffness_S2W);
+    gran_system.set_Gamma_n_SPH2SPH(normalDampS2S);
+    gran_system.set_Gamma_n_SPH2WALL(normalDampS2W);
+
     gran_system.set_Cohesion_ratio(cohesion_ratio);
     gran_system.set_Adhesion_ratio_S2W(adhesion_ratio_s2w);
     gran_system.set_gravitational_acceleration(0.f, 0.f, grav_acceleration);
@@ -80,6 +86,7 @@ double run_test(float box_size_X, float box_size_Y, float box_size_Z) {
 
     gran_system.set_BD_Fixed(true);
     gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+    gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     gran_system.setVerbose(verbose);
     gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_system.set_fixed_stepSize(timestep);

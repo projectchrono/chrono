@@ -62,8 +62,8 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     gran_params->psi_L = PSI_L_DEFAULT;
     gran_params->friction_mode = FRICTIONLESS;
     this->friction_mode = FRICTIONLESS;
-    gran_params->time_integrator = FORWARD_EULER;
-    this->time_integrator = FORWARD_EULER;
+    gran_params->time_integrator = EXTENDED_TAYLOR;
+    this->time_integrator = EXTENDED_TAYLOR;
     gran_params->force_model = HOOKE;
     this->force_model = HOOKE;
     setMaxSafeVelocity_SU((float)UINT_MAX);
@@ -638,6 +638,9 @@ void ChSystemGranular_MonodisperseSMC::convertBCUnits() {
                 exit(1);
             }
         }
+
+        // always start at rest
+        params_SU.vel_SU = {0, 0, 0};
     }
 }
 

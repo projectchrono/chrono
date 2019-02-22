@@ -1370,3 +1370,11 @@ Running test suite!
 Frictionless took 46.8522 seconds!
 Single Step took 55.6729 seconds!
 Multistep took 84.6886 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 22 Feb 2019 13:48:43 -0600
+commit 3fcad7b150b46ab87ee72266f54fc25089ac1754 Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Feb 22 13:48:14 2019 -0600 fix bug in forward euler integrator, add ET and make extended taylor default
+Results:
+Running test suite!
+Frictionless took 50.3898 seconds!
+Single Step took 58.1443 seconds!
+Multistep took 88.7134 seconds!

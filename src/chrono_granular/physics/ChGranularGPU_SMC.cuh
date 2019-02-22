@@ -1018,21 +1018,22 @@ static __global__ void integrateSpheres(const float stepsize_SU,
 
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
-            case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
+            case GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR:  // fall through to Euler for this one
+            case GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 v_update_X = integrateForwardEuler(stepsize_SU, curr_acc_X);
                 v_update_Y = integrateForwardEuler(stepsize_SU, curr_acc_Y);
                 v_update_Z = integrateForwardEuler(stepsize_SU, curr_acc_Z);
 
                 break;
             }
-            case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
+            case GRAN_TIME_INTEGRATOR::CHUNG: {
                 v_update_X = integrateChung_vel(stepsize_SU, curr_acc_X, sphere_data->sphere_acc_X_old[mySphereID]);
                 v_update_Y = integrateChung_vel(stepsize_SU, curr_acc_Y, sphere_data->sphere_acc_Y_old[mySphereID]);
                 v_update_Z = integrateChung_vel(stepsize_SU, curr_acc_Z, sphere_data->sphere_acc_Z_old[mySphereID]);
 
                 break;
             }
-            case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
+            case GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
                 v_update_X = integrateForwardEuler(stepsize_SU, curr_acc_X);
                 v_update_Y = integrateForwardEuler(stepsize_SU, curr_acc_Y);
                 v_update_Z = integrateForwardEuler(stepsize_SU, curr_acc_Z);
@@ -1042,7 +1043,6 @@ static __global__ void integrateSpheres(const float stepsize_SU,
         }
 
         // write back the velocity updates
-        // TODO this is a race condition I think
         sphere_data->pos_X_dt[mySphereID] += v_update_X;
         sphere_data->pos_Y_dt[mySphereID] += v_update_Y;
         sphere_data->pos_Z_dt[mySphereID] += v_update_Z;
@@ -1052,14 +1052,20 @@ static __global__ void integrateSpheres(const float stepsize_SU,
         float position_update_z = 0;
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
-            case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
-                // TODO this is a race condition I think
-                position_update_x = integrateForwardEuler(stepsize_SU, sphere_data->pos_X_dt[mySphereID]);
-                position_update_y = integrateForwardEuler(stepsize_SU, sphere_data->pos_Y_dt[mySphereID]);
-                position_update_z = integrateForwardEuler(stepsize_SU, sphere_data->pos_Z_dt[mySphereID]);
+            case GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR: {
+                position_update_x = integrateForwardEuler(stepsize_SU, old_vel_X + 0.5 * curr_acc_X * stepsize_SU);
+                position_update_y = integrateForwardEuler(stepsize_SU, old_vel_Y + 0.5 * curr_acc_Y * stepsize_SU);
+                position_update_z = integrateForwardEuler(stepsize_SU, old_vel_Z + 0.5 * curr_acc_Z * stepsize_SU);
                 break;
             }
-            case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
+
+            case GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
+                position_update_x = integrateForwardEuler(stepsize_SU, old_vel_X);
+                position_update_y = integrateForwardEuler(stepsize_SU, old_vel_Y);
+                position_update_z = integrateForwardEuler(stepsize_SU, old_vel_Z);
+                break;
+            }
+            case GRAN_TIME_INTEGRATOR::CHUNG: {
                 position_update_x =
                     integrateChung_pos(stepsize_SU, old_vel_X, curr_acc_X, sphere_data->sphere_acc_X_old[mySphereID]);
                 position_update_y =
@@ -1068,7 +1074,7 @@ static __global__ void integrateSpheres(const float stepsize_SU,
                     integrateChung_pos(stepsize_SU, old_vel_Z, curr_acc_Z, sphere_data->sphere_acc_Z_old[mySphereID]);
                 break;
             }
-            case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
+            case GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
                 position_update_x = integrateForwardEuler(stepsize_SU, old_vel_X + v_update_X);
                 position_update_y = integrateForwardEuler(stepsize_SU, old_vel_Y + v_update_Y);
                 position_update_z = integrateForwardEuler(stepsize_SU, old_vel_Z + v_update_Z);
@@ -1111,14 +1117,14 @@ static __global__ void updateFrictionData(const float stepsize_SU,
 
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
-            case chrono::granular::GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
+            case GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 // tau = I alpha => alpha = tau / I, we already computed these alphas
                 omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
                 omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
                 omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
                 break;
             }
-            case chrono::granular::GRAN_TIME_INTEGRATOR::CHUNG: {
+            case GRAN_TIME_INTEGRATOR::CHUNG: {
                 omega_update_X = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID],
                                                     sphere_data->sphere_ang_acc_X_old[mySphereID]);
                 omega_update_Y = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID],
@@ -1127,7 +1133,7 @@ static __global__ void updateFrictionData(const float stepsize_SU,
                                                     sphere_data->sphere_ang_acc_Z_old[mySphereID]);
                 break;
             }
-            case chrono::granular::GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
+            case GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
                 // tau = I alpha => alpha = tau / I, we already computed these alphas
                 omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
                 omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
