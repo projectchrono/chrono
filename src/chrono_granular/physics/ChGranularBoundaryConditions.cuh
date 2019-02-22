@@ -316,7 +316,7 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
     Z_Cylinder_BC_params_t<int64_t, int64_t3> cyl_params = bc_params.cyl_params;
     bool contact = false;
     // classic radius grab
-    unsigned int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
+    signed int sphereRadius_SU = (signed int) gran_params->sphereRadius_SU;
 
     // Radial vector from cylinder center to sphere center, along inward direction
     float3 delta_r = make_float3(cyl_params.center.x - sphPos.x, cyl_params.center.y - sphPos.y, 0.f);
@@ -334,7 +334,7 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
         float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
 
         // add spring term
-        float3 force_accum = force_accum + gran_params->K_n_s2w_SU * penetration * normal * force_model_multiplier;
+        float3 force_accum = gran_params->K_n_s2w_SU * penetration * normal * force_model_multiplier;
 
         // damping term
         // Compute force updates for damping term
