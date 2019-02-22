@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::VELOCITY_VERLET);
     gran_sys.set_fixed_stepSize(params.step_size);
 
     float mu_static = 0.7;

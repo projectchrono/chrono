@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::VELOCITY_VERLET);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
@@ -192,9 +192,9 @@ int main(int argc, char* argv[]) {
 
     m_sys.initialize();
 
-    const double time_settling = 1;
-    const double lower_vel = 2;
-    const double lower_dist = 1.25;
+    const double time_settling = 0.5;
+    const double lower_vel = 2.0;
+    const double lower_dist = 1.0;
     const double time_lowering = lower_dist / lower_vel;
 
     cout << "Time settling " << time_settling << endl;
@@ -265,7 +265,6 @@ int main(int argc, char* argv[]) {
             char filename[100];
             sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
             m_sys.writeFile(string(filename));
-            // m_sys.write_meshes(string(filename));
 
             string mesh_output = string(filename) + "_meshframes.csv";
 
