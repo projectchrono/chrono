@@ -78,14 +78,13 @@ int main(int argc, char* argv[]) {
     const float Bx = params.box_X;
     const float By = Bx;
 
-    const float fill_height = 80;
-    const float chamber_height = fill_height / 2;
+    const float fill_height = 40;
+    const float chamber_height = fill_height / 2.f;
     const float extra_height = 0;
 
     const float Bz = chamber_height + fill_height + extra_height;
     cout << "Box Dims: " << Bx << " " << By << " " << Bz << endl;
 
-    // Setup simulation
     ChSystemGranular_MonodisperseSMC_trimesh m_sys(params.sphere_radius, params.sphere_density,
                                                    make_float3(Bx, By, Bz));
 
@@ -129,14 +128,16 @@ int main(int argc, char* argv[]) {
     const float fill_bottom = chamber_bottom + chamber_height;
 
     float cyl_center[3] = {0, 0, 0};
-    const float cyl_rad = Bx / 2.f;
+    const float cyl_rad = Bx / 2.f - params.sphere_radius;
+    cout << "Cylinder radius: " << cyl_rad << endl;
     m_sys.Create_BC_Cyl_Z(cyl_center, cyl_rad, false, false);
 
     utils::PDSampler<float> sampler(2.5 * params.sphere_radius);
-    // utils::HCPSampler<float> sampler(2.01 * params.sphere_radius);
     vector<ChVector<float>> body_points;
 
-    const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
+    const float fill_radius = cyl_rad - 2.f * params.sphere_radius;
+    cout << "Fill radius " << fill_radius << endl;
+
     const float fill_top = fill_bottom + fill_height;
     ChVector<float> center(0, 0, fill_bottom);
     center.z() += 2 * params.sphere_radius;
@@ -193,7 +194,7 @@ int main(int argc, char* argv[]) {
 
     const double time_settling = 1;
     const double lower_vel = 2;
-    const double lower_dist = 2;
+    const double lower_dist = 1.25;
     const double time_lowering = lower_dist / lower_vel;
 
     cout << "Time settling " << time_settling << endl;
