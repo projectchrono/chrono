@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <limits>
 
 #include "chrono/motion_functions/ChFunction_Recorder.h"
 
@@ -42,7 +43,7 @@ void ChFunction_Recorder::Estimate_x_range(double& xmin, double& xmax) const {
 void ChFunction_Recorder::AddPoint(double mx, double my, double mw) {
     for (auto iter = m_points.rbegin(); iter != m_points.rend(); ++iter) {
         double dist = mx - iter->x;
-        if (std::abs(dist) < CH_MICROTOL) {
+        if (std::abs(dist) < std::numeric_limits<double>::epsilon()) {
             // Overwrite current iterator
             iter->x = mx;
             iter->y = my;
@@ -113,6 +114,28 @@ double ChFunction_Recorder::Get_y_dx(double x) const {
 double ChFunction_Recorder::Get_y_dxdx(double x) const {
     //// TODO: can we do better?
     return ChFunction::Get_y_dxdx(x);
+}
+
+void ChFunction_Recorder::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Recorder>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data: copy to vector and store
+    std::vector<ChRecPoint> tmpvect{std::begin(m_points), std::end(m_points)};
+    marchive << CHNVP(tmpvect);
+}
+
+void ChFunction_Recorder::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Recorder>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data: load vector of points and copy to list
+    std::vector<ChRecPoint> tmpvect;
+    marchive >> CHNVP(tmpvect);
+    m_points.clear();
+    std::copy(tmpvect.begin(), tmpvect.end(), std::back_inserter(m_points));
 }
 
 }  // end namespace chrono

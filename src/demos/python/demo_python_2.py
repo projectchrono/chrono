@@ -1,17 +1,18 @@
-#-------------------------------------------------------------------------------
-# Name:        demo_python_2
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
+#------------------------------------------------------------------------------
+# Name:        pychrono example
+# Purpose:
+#
+# Author:      Alessandro Tasora
+#
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+print ("Second tutorial: create and populate a physical system");
 
 
-# Load the Chrono::Engine unit!!!
-import ChronoEngine_python_core as chrono
+# Load the Chrono::Engine core module!
+import pychrono as chrono
 
 
 # Create a physical system,
@@ -41,8 +42,6 @@ my_shbodyB.AddMarker(my_shmarker)
 my_system.Add(my_shbodyA)
 my_system.Add(my_shbodyB)
 
-
-
 # Define surface material(s)
 my_shmaterial = chrono.ChMaterialSurfaceNSC()
 my_shmaterial.SetFriction(0.3)
@@ -65,7 +64,7 @@ my_shbodyB.SetMaterialSurface(my_shmaterial)
 class MyReportContactCallback(chrono.ChReportContactCallbackP):
     def __init__(self):
          chrono.ChReportContactCallbackP.__init__(self)
-    def OnReportContact(self,vA,vB,cA,dist,force,torque,modA,modB):
+    def OnReportContact(self,vA,vB,cA,dist,rad,force,torque,modA,modB):
          print ('  contact: point A=' , vA,  '  dist=',dist)
          return True        # return False to stop reporting contacts
 
@@ -79,27 +78,15 @@ while (my_system.GetChTime() < 1.2) :
 
     my_system.DoStepDynamics(0.01)
 
-    print ('time=', my_system.GetChTime(), ' bodyB y=', my_shbodyB.GetPos().y())
+    print ('time=', my_system.GetChTime(), ' bodyB y=', my_shbodyB.GetPos().y)
 
     my_system.GetContactContainer().ReportAllContacts(my_rep)
 
 
-# Iterate over added bodies - how to use iterators
-print ('This is the list of bodies in the system:')
-iterbodies = my_system.IterBeginBodies()
-while (iterbodies !=  my_system.IterEndBodies()):
-    print ('  body pos=', iterbodies.Ref().GetPos() )
-    iterbodies = iterbodies.Next()
-
-# Easier (but a bit slower) iteration in the style of Python:
-print ('This is the list of bodies in the system:')
-for abody in chrono.IterBodies(my_system):
+# Iterate over added bodies (Python style)
+print ('Positions of all bodies in the system:')
+for abody in my_system.Get_bodylist():
     print ('  body pos=', abody.GetPos() )
-
-# Also iterate on links, Python style:
-for alink in chrono.IterLinks(my_system):
-    print ('  link: ', alink )
-
 
 
 # Move a body, using a ChFrame
@@ -125,10 +112,4 @@ myasset = chrono.ChObjShapeFile()
 myasset.SetFilename("shapes/test.obj")
 body_1.GetAssets().push_back(myasset)
 
-
-
-
-
-
-
-
+print ('Done...')

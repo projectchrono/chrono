@@ -80,6 +80,13 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
     m_central_differential->SetTransmissionRatioOrdinary(GetCentralDifferentialRatio());
     my_system->Add(m_central_differential);
 
+    // Create the clutch for central differential locking. By default, unlocked.
+    m_central_clutch = std::make_shared<ChShaftsClutch>();
+    m_central_clutch->Initialize(m_rear_shaft, m_front_shaft);
+    m_central_clutch->SetTorqueLimit(GetCentralDifferentialLockingLimit());
+    m_central_clutch->SetModulation(0);
+    my_system->Add(m_central_clutch);
+
     // ---Rear differential and axles:
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
@@ -109,6 +116,14 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
     m_rear_differential->SetTransmissionRatioOrdinary(GetRearDifferentialRatio());
     my_system->Add(m_rear_differential);
 
+    // Create the clutch for rear differential locking. By default, unlocked.
+    m_rear_clutch = std::make_shared<ChShaftsClutch>();
+    m_rear_clutch->Initialize(suspensions[m_driven_axles[1]]->GetAxle(LEFT),
+                              suspensions[m_driven_axles[1]]->GetAxle(RIGHT));
+    m_rear_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
+    m_rear_clutch->SetModulation(0);
+    my_system->Add(m_rear_clutch);
+
     // ---Front differential and axles:
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
@@ -137,6 +152,14 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
                                      suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
     m_front_differential->SetTransmissionRatioOrdinary(GetFrontDifferentialRatio());
     my_system->Add(m_front_differential);
+
+    // Create the clutch for front differential locking. By default, unlocked.
+    m_front_clutch = std::make_shared<ChShaftsClutch>();
+    m_front_clutch->Initialize(suspensions[m_driven_axles[0]]->GetAxle(LEFT),
+                               suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
+    m_front_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
+    m_front_clutch->SetModulation(0);
+    my_system->Add(m_front_clutch);
 
     // ---Initialize shaft angular velocities based on the initial wheel angular velocities.
 
@@ -170,23 +193,44 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
 }
 
 // -----------------------------------------------------------------------------
+void ChShaftsDriveline4WD::LockAxleDifferential(int axle, bool lock) {
+    if (axle == m_driven_axles[0]) {
+        m_front_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    } else if (axle == m_driven_axles[1]) {
+        m_rear_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    } else if (axle == -1) {
+        m_front_clutch->SetModulation(lock ? 1 : 0);
+        m_rear_clutch->SetModulation(lock ? 1 : 0);
+        return;
+    }
+
+    GetLog() << "WARNING: Incorrect axle specification in ChShaftsDriveline4WD::LockAxleDifferential.\n";
+    GetLog() << "         Driven axles are: " << m_driven_axles[0] << " and " << m_driven_axles[1] << "\n";
+}
+
+void ChShaftsDriveline4WD::LockCentralDifferential(int which, bool lock) {
+    m_central_clutch->SetModulation(lock ? 1 : 0);
+}
+
 // -----------------------------------------------------------------------------
 double ChShaftsDriveline4WD::GetWheelTorque(const WheelID& wheel_id) const {
     if (wheel_id.axle() == m_driven_axles[0]) {
         switch (wheel_id.side()) {
             case LEFT:
-                return -m_front_differential->GetTorqueReactionOn2();
+                return -m_front_differential->GetTorqueReactionOn2() - m_front_clutch->GetTorqueReactionOn1();
             case RIGHT:
-                return -m_front_differential->GetTorqueReactionOn3();
+                return -m_front_differential->GetTorqueReactionOn3() - m_front_clutch->GetTorqueReactionOn2();
         }
     }
 
     if (wheel_id.axle() == m_driven_axles[1]) {
         switch (wheel_id.side()) {
             case LEFT:
-                return -m_rear_differential->GetTorqueReactionOn2();
+                return -m_rear_differential->GetTorqueReactionOn2() - m_rear_clutch->GetTorqueReactionOn1();
             case RIGHT:
-                return -m_rear_differential->GetTorqueReactionOn3();
+                return -m_rear_differential->GetTorqueReactionOn3() - m_rear_clutch->GetTorqueReactionOn2();
         }
     }
 

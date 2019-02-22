@@ -23,5 +23,13 @@ namespace vehicle {
 
 ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
 
+void ChDriveline::LockAxleDifferential(int axle, bool lock) {
+    GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";
+}
+
+void ChDriveline::LockCentralDifferential(int which, bool lock) {
+    GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

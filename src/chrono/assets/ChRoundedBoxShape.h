@@ -15,68 +15,33 @@
 #ifndef CHROUNDEDBOXSHAPE_H
 #define CHROUNDEDBOXSHAPE_H
 
-
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChRoundedBox.h"
 
 namespace chrono {
 
-/// Class for referencing a rounded box shape that can be
-/// visualized in some way.
-
+/// Class for referencing a rounded box shape that can be visualized in some way.
 class ChApi ChRoundedBoxShape : public ChVisualization {
-
   protected:
-    //
-    // DATA
-    //
     geometry::ChRoundedBox groundedbox;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChRoundedBoxShape() {}
-    ChRoundedBoxShape(geometry::ChRoundedBox& mcap) : groundedbox(mcap) {}
+    ChRoundedBoxShape(const geometry::ChRoundedBox& mcap) : groundedbox(mcap) {}
 
     virtual ~ChRoundedBoxShape() {}
-
-    //
-    // FUNCTIONS
-    //
 
     // Access the rounded box geometry
     geometry::ChRoundedBox& GetRoundedBoxGeometry() { return groundedbox; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChRoundedBoxShape>();
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(groundedbox);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChRoundedBoxShape>();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(groundedbox);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChRoundedBoxShape,0)
+CH_CLASS_VERSION(ChRoundedBoxShape, 0)
 
 }  // end namespace chrono
 

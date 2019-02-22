@@ -20,18 +20,18 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChLoaderUV.h"
-#include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChLoadBodyMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChLoadBodyMesh.h"
+#include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLoaderUV.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChMeshFileLoader.h"
-#include "chrono_fea/ChLoadContactSurfaceMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChLoadContactSurfaceMesh.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"demo_FEA_cosimulate_load", core::dimension2d<u32>(1280, 720), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
 
-    std::vector<std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
+    std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
 
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
@@ -181,8 +181,8 @@ int main(int argc, char* argv[]) {
     mcontactsurf->SetMaterialSurface(
         mysurfmaterial);  // by the way it is not needed because contacts will be emulated by cosimulation
 
-    /// Create a mesh load for cosimulation, acting on the contact surface above
-    /// (forces on nodes will be computed by an external procedure)
+    // Create a mesh load for cosimulation, acting on the contact surface above
+    // (forces on nodes will be computed by an external procedure)
 
     auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
@@ -220,8 +220,8 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetPos(tire_center + ChVector<>(-1, 0, 0));
 
     auto mrigidmesh = std::make_shared<ChTriangleMeshShape>();
-    mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
-    mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
+    mrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
+    mrigidmesh->GetMesh()->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
     mrigidbody->AddAsset(mrigidmesh);
 
     auto mcol = std::make_shared<ChColorAsset>();
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     mrigidbody->AddAsset(mcol);
 
     // this is used to use the mesh in cosimulation!
-    auto mrigidmeshload = std::make_shared<ChLoadBodyMesh>(mrigidbody, mrigidmesh->GetMesh());
+    auto mrigidmeshload = std::make_shared<ChLoadBodyMesh>(mrigidbody, *mrigidmesh->GetMesh());
     mloadcontainer->Add(mrigidmeshload);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

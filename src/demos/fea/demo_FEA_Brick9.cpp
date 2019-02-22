@@ -26,19 +26,17 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChFileutils.h"
-
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
 
@@ -46,6 +44,8 @@
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create (if needed) the output directory
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

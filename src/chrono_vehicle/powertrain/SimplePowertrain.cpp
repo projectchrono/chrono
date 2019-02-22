@@ -29,7 +29,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SimplePowertrain::SimplePowertrain(const std::string& filename) {
+SimplePowertrain::SimplePowertrain(const std::string& filename) : ChSimplePowertrain("") {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -45,15 +45,13 @@ SimplePowertrain::SimplePowertrain(const std::string& filename) {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SimplePowertrain::SimplePowertrain(const rapidjson::Document& d) {
+SimplePowertrain::SimplePowertrain(const rapidjson::Document& d) : ChSimplePowertrain("") {
     Create(d);
 }
 
 void SimplePowertrain::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read data
     m_fwd_gear_ratio = d["Forward Gear Ratio"].GetDouble();

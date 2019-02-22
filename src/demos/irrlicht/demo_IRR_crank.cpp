@@ -26,7 +26,9 @@
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -91,14 +93,14 @@ int main(int argc, char* argv[]) {
     my_system.AddLink(my_link_CA);
 
     // .. an engine between crank and truss
-
-    auto my_link_AB = std::make_shared<ChLinkEngine>();
-    my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0, 0, 0)));
-    my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+    auto my_link_AB = std::make_shared<ChLinkMotorRotationSpeed>();
+    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
     my_link_AB->SetName("RevJointEngine");
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_AB->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI);  // speed w=3.145 rad/sec
     my_system.AddLink(my_link_AB);
+    auto my_speed_function = std::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    my_link_AB->SetSpeedFunction(my_speed_function);
+    
+
 
     // 4- Create the Irrlicht visualization
     ChIrrApp application(&my_system, L"Simple slider-crank example", core::dimension2d<u32>(800, 600), false);
@@ -142,7 +144,7 @@ int main(int argc, char* argv[]) {
         ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
                                 my_link_CA->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 0, 255, 0));
         // .. draw the crank (from joint AB to joint BC)
-        ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_AB->GetMarker1()->GetAbsCoord().pos,
+        ChIrrTools::drawSegment(application.GetVideoDriver(), my_link_AB->GetLinkAbsoluteCoords().pos,
                                 my_link_BC->GetMarker1()->GetAbsCoord().pos, video::SColor(255, 255, 0, 0));
         // .. draw a small circle at crank origin
         ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));

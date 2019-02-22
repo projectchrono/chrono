@@ -42,11 +42,14 @@ class CH_MODELS_API Generic_Driveline2WD : public ChShaftsDriveline2WD {
     virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
     virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
 
+    virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
+
   private:
     static const double m_driveshaft_inertia;
     static const double m_differentialbox_inertia;
     static const double m_conicalgear_ratio;
     static const double m_differential_ratio;
+    static const double m_axle_differential_locking_limit;
 };
 
 /// @} vehicle_models_generic

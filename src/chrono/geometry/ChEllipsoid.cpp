@@ -53,5 +53,25 @@ void ChEllipsoid::CovarianceMatrix(ChMatrix33<>& C) const {
     C(2, 2) = center.z() * center.z();
 }
 
+void ChEllipsoid::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChEllipsoid>();
+    // serialize parent class
+    ChGeometry::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(center);
+    marchive << CHNVP(rad);
+}
+
+void ChEllipsoid::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChEllipsoid>();
+    // deserialize parent class
+    ChGeometry::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(center);
+    marchive >> CHNVP(rad);
+}
+
 }  // end namespace geometry
 }  // end namespace chrono

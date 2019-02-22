@@ -31,7 +31,6 @@ namespace chrono {
 /// must set at least the c_i and b_i values, and jacobians.
 
 class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
-
   protected:
     double l_min;
     double l_max;
@@ -74,10 +73,10 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     virtual double Violation(double mc_i) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

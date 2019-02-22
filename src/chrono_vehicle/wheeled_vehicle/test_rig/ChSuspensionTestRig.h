@@ -76,6 +76,9 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Destructor
     ~ChSuspensionTestRig() {}
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "SuspensionTestRig"; }
+
     /// Set the limits for post displacement.
     /// Each post will move between [-val, +val].
     void SetDisplacementLimit(double val) { m_displ_limit = val; }
@@ -116,6 +119,27 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Return true if a steering system is attached.
     bool HasSteering() const { return m_steering != nullptr; }
 
+    /// Return true if an anti-roll bar system is attached.
+    bool HasAntirollbar() const { return m_antirollbar != nullptr; }
+
+    /// Get the suspension subsystem.
+    std::shared_ptr<ChSuspension> GetSuspension() const { return m_suspension; }
+
+    /// Get the steering subsystem.
+    std::shared_ptr<ChSteering> GetSteering() const { return m_steering; }
+
+    /// Get the anti-roll bar subsystem.
+    std::shared_ptr<ChAntirollBar> GetAntirollBar() const { return m_antirollbar; }
+
+    /// Get a handle to the specified wheel subsystem.
+    std::shared_ptr<ChWheel> GetWheel(VehicleSide side) const { return m_wheel[side]; }
+
+    /// Get a handle to the vehicle's driveshaft body.
+    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
+
+    /// Get the angular speed of the driveshaft.
+    virtual double GetDriveshaftSpeed() const override { return 0; }
+
     /// Get the rig total mass.
     /// This includes the mass of the suspension and wheels, and (if present) the mass of the
     /// steering mechanism.
@@ -126,12 +150,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
         //// TODO
         return ChVector<>(0, 0, 0);
     }
-
-    /// Get a handle to the vehicle's driveshaft body.
-    virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
-
-    /// Get the angular speed of the driveshaft.
-    virtual double GetDriveshaftSpeed() const override { return 0; }
 
     /// Initialize this chassis at the specified global location and orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
@@ -165,6 +183,14 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const override;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const override;
+
   private:
     /// Definition of a terrain object for use by a suspension test rig.
     class Terrain : public ChTerrain {
@@ -172,23 +198,29 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
         Terrain();
         virtual double GetHeight(double x, double y) const override;
         virtual ChVector<> GetNormal(double x, double y) const override;
+        virtual float GetCoefficientFriction(double x, double y) const override;
         double m_height_L;
         double m_height_R;
     };
+
+    /// Output data for all modeling components in the vehicle system.
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
 
     /// Utility functions to load subsystems from JSON files.
     void LoadSteering(const std::string& filename);
     void LoadSuspension(const std::string& filename);
     void LoadWheel(const std::string& filename, int side);
+    void LoadAntirollbar(const std::string& filename);
 
     /// Utility function to add visualization to post bodies.
     void AddVisualize_post(VehicleSide side, const ChColor& color);
 
-    std::shared_ptr<ChSuspension> m_suspension;  ///< handle to suspension subsystem
-    std::shared_ptr<ChSteering> m_steering;      ///< handle to the steering subsystem
-    std::shared_ptr<ChShaft> m_dummy_shaft;      ///< dummy driveshaft
-    std::shared_ptr<ChWheel> m_wheel[2];         ///< handles to wheel subsystems
-    std::shared_ptr<ChTire> m_tire[2];           ///< handles to tire subsystems
+    std::shared_ptr<ChSuspension> m_suspension;    ///< handle to suspension subsystem
+    std::shared_ptr<ChSteering> m_steering;        ///< handle to the steering subsystem
+    std::shared_ptr<ChAntirollBar> m_antirollbar;  ///< handle to the anti-roll bar subsystem
+    std::shared_ptr<ChShaft> m_dummy_shaft;        ///< dummy driveshaft
+    std::shared_ptr<ChWheel> m_wheel[2];           ///< handles to wheel subsystems
+    std::shared_ptr<ChTire> m_tire[2];             ///< handles to tire subsystems
 
     std::shared_ptr<ChBody> m_post[2];                         ///< handles to post bodies
     std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic[2];  ///< handles to post prismatic joints
@@ -202,6 +234,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     ChVector<> m_suspLoc;
     ChVector<> m_steeringLoc;
     ChQuaternion<> m_steeringRot;
+    ChVector<> m_antirollbarLoc;
 
     static const double m_post_radius;  ///< radius of the post cylindrical platform
     static const double m_post_height;  ///< height of the post cylindrical platform

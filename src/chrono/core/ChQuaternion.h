@@ -15,8 +15,12 @@
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 
-#include "chrono/core/ChVector.h"
+#include <algorithm>
+#include <limits>
+
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
@@ -299,6 +303,7 @@ class ChQuaternion {
 
     /// Convert the quaternion to an angle of rotation and an axis, defined in absolute coords.
     /// Resulting angle and axis must be passed as parameters.
+    /// Note that angle is in [-PI....+PI] range. Also remember  (angle, axis) is the same of (-angle,-axis).
     /// If you need directly the rotation vector=axis * angle, use Q_to_Rotv().
     void Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const;
 
@@ -307,6 +312,12 @@ class ChQuaternion {
 
     /// Convert the quaternion to three angles (NASA angle set) heading, bank and attitude.
     ChVector<Real> Q_to_NasaAngles();
+
+    /// Set the quaternion from three angles (Euler Sequence 123) roll, pitch, and yaw.
+    void Q_from_Euler123(const ChVector<Real>& ang);
+
+    /// Convert the quaternion to three angles (Euler Sequence 123) roll, pitch, and yaw.
+    ChVector<Real> Q_to_Euler123();
 
     /// Set the quaternion dq/dt. Inputs: the vector of angular speed w specified in absolute coords,
     /// and the rotation expressed as a quaternion q.
@@ -356,9 +367,7 @@ class ChQuaternion {
                             const ChQuaternion<Real>& qdt,
                             const ChVector<Real>& qimm_dtdt);
 
-    // STREAMING
-
-    /// Method to allow serialization of transient data in archives.
+    /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
@@ -400,8 +409,25 @@ typedef ChQuaternion<float> QuaternionF;
 // -----------------------------------------------------------------------------
 // CONSTANTS
 
+/// Constant null quaternion: {0, 0, 0, 0}
 ChApi extern const ChQuaternion<double> QNULL;
+
+/// Constant unit quaternion: {1, 0, 0, 0} ,
+/// corresponds to no rotation (diagonal rotation matrix)
 ChApi extern const ChQuaternion<double> QUNIT;
+
+// Constants for rotations of 90 degrees:
+ChApi extern const ChQuaternion<double> Q_ROTATE_Y_TO_X;
+ChApi extern const ChQuaternion<double> Q_ROTATE_Y_TO_Z;
+ChApi extern const ChQuaternion<double> Q_ROTATE_X_TO_Y;
+ChApi extern const ChQuaternion<double> Q_ROTATE_X_TO_Z;
+ChApi extern const ChQuaternion<double> Q_ROTATE_Z_TO_Y;
+ChApi extern const ChQuaternion<double> Q_ROTATE_Z_TO_X;
+
+// Constants for rotations of 180 degrees:
+ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_X;
+ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_Y;
+ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_Z;
 
 // -----------------------------------------------------------------------------
 // STATIC QUATERNION MATH OPERATIONS
@@ -434,6 +460,10 @@ ChApi ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, 
 ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& RxRyRz);
 
 ChApi ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& mq);
+
+ChApi ChQuaternion<double> Q_from_Euler123(const ChVector<double>& RxRyRz);
+
+ChApi ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq);
 
 ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
 
@@ -864,9 +894,9 @@ inline Real ChQuaternion<Real>::Length2() const {
 
 template <class Real>
 inline Real ChQuaternion<Real>::LengthInf() const {
-    Real e0e1 = ChMax(fabs(data[0]), fabs(data[1]));
-    Real e0e1e2 = ChMax(e0e1, fabs(data[2]));
-    return ChMax(e0e1e2, fabs(data[3]));
+    Real e0e1 = std::max(fabs(data[0]), fabs(data[1]));
+    Real e0e1e2 = std::max(e0e1, fabs(data[2]));
+    return std::max(e0e1e2, fabs(data[3]));
 }
 
 template <class Real>
@@ -887,10 +917,14 @@ inline void ChQuaternion<Real>::Sub(const ChQuaternion<Real>& A, const ChQuatern
 
 template <class Real>
 inline void ChQuaternion<Real>::Cross(const ChQuaternion<Real>& qa, const ChQuaternion<Real>& qb) {
-    data[0] = qa.data[0] * qb.data[0] - qa.data[1] * qb.data[1] - qa.data[2] * qb.data[2] - qa.data[3] * qb.data[3];
-    data[1] = qa.data[0] * qb.data[1] + qa.data[1] * qb.data[0] - qa.data[3] * qb.data[2] + qa.data[2] * qb.data[3];
-    data[2] = qa.data[0] * qb.data[2] + qa.data[2] * qb.data[0] + qa.data[3] * qb.data[1] - qa.data[1] * qb.data[3];
-    data[3] = qa.data[0] * qb.data[3] + qa.data[3] * qb.data[0] - qa.data[2] * qb.data[1] + qa.data[1] * qb.data[2];
+    Real w = qa.data[0] * qb.data[0] - qa.data[1] * qb.data[1] - qa.data[2] * qb.data[2] - qa.data[3] * qb.data[3];
+    Real x = qa.data[0] * qb.data[1] + qa.data[1] * qb.data[0] - qa.data[3] * qb.data[2] + qa.data[2] * qb.data[3];
+    Real y = qa.data[0] * qb.data[2] + qa.data[2] * qb.data[0] + qa.data[3] * qb.data[1] - qa.data[1] * qb.data[3];
+    Real z = qa.data[0] * qb.data[3] + qa.data[3] * qb.data[0] - qa.data[2] * qb.data[1] + qa.data[1] * qb.data[2];
+    data[0] = w;
+    data[1] = x;
+    data[2] = y;
+    data[3] = z;
 }
 
 template <class Real>
@@ -917,7 +951,7 @@ inline void ChQuaternion<Real>::Scale(Real s) {
 template <class Real>
 inline bool ChQuaternion<Real>::Normalize() {
     Real length = this->Length();
-    if (length < CH_NANOTOL) {
+    if (length < std::numeric_limits<Real>::min()) {
         data[0] = 1;
         data[1] = 0;
         data[2] = 0;
@@ -1049,19 +1083,29 @@ inline void ChQuaternion<Real>::Q_from_AngAxis(Real angle, const ChVector<Real>&
 
 template <class Real>
 inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const {
-    if (fabs(data[0]) < 0.99999999) {
-        Real arg = acos(data[0]);
-        Real invsine = 1 / sin(arg);
-        a_angle = 2 * arg;
-        a_axis.x() = invsine * data[1];
-        a_axis.y() = invsine * data[2];
-        a_axis.z() = invsine * data[3];
+    Real sin_squared = data[1] * data[1] + data[2] * data[2] + data[3] * data[3];
+    // For non-zero rotation
+    if (sin_squared > 0) {
+        Real sin_theta = sqrt(sin_squared);
+        a_angle = 2.0 * atan2(sin_theta, data[0]);
+        Real k = 1.0 / sin_theta;
+        a_axis.x() = data[1] * k;
+        a_axis.y() = data[2] * k;
+        a_axis.z() = data[3] * k;
         a_axis.Normalize();
     } else {
-        a_axis.x() = 1;
-        a_axis.y() = 0;
-        a_axis.z() = 0;
-        a_angle = 0;
+        // For almost zero rotation
+        a_angle = 0.0;
+        a_axis.x() = 1;  // data[1] * 2.0;
+        a_axis.y() = 0;  // data[2] * 2.0;
+        a_axis.z() = 0;  // data[3] * 2.0;
+    }
+    // Ensure that angle is always in  [-PI...PI] range
+    auto PI = static_cast<Real>(CH_C_PI);
+    if (a_angle > PI) {
+        a_angle -= 2 * PI;
+    } else if (a_angle < -PI) {
+        a_angle += 2 * PI;
     }
 }
 
@@ -1097,6 +1141,39 @@ inline ChVector<Real> ChQuaternion<Real>::Q_to_NasaAngles() {
     // attitude
     nasa.x() = asin(-2 * (data[1] * data[3] - data[2] * data[0]));
     return nasa;
+}
+
+template <class Real>
+inline void ChQuaternion<Real>::Q_from_Euler123(const ChVector<Real>& ang) {
+    // Angles {phi;theta;psi} aka {roll;pitch;yaw}
+    Real t0 = cos(ang.z() * 0.5);
+    Real t1 = sin(ang.z() * 0.5);
+    Real t2 = cos(ang.x() * 0.5);
+    Real t3 = sin(ang.x() * 0.5);
+    Real t4 = cos(ang.y() * 0.5);
+    Real t5 = sin(ang.y() * 0.5);
+
+    data[0] = t0 * t2 * t4 + t1 * t3 * t5;
+    data[1] = t0 * t3 * t4 - t1 * t2 * t5;
+    data[2] = t0 * t2 * t5 + t1 * t3 * t4;
+    data[3] = t1 * t2 * t4 - t0 * t3 * t5;
+}
+
+template <class Real>
+inline ChVector<Real> ChQuaternion<Real>::Q_to_Euler123() {
+    // Angles {phi;theta;psi} aka {roll;pitch;yaw} rotation XYZ
+    ChVector<Real> euler;
+    Real sq0 = data[0] * data[0];
+    Real sq1 = data[1] * data[1];
+    Real sq2 = data[2] * data[2];
+    Real sq3 = data[3] * data[3];
+    // roll
+    euler.x() = atan2(2 * (data[2] * data[3] + data[0] * data[1]), sq3 - sq2 - sq1 + sq0);
+    // pitch
+    euler.y() = -asin(2 * (data[1] * data[3] - data[0] * data[2]));
+    // yaw
+    euler.z() = atan2(2 * (data[1] * data[2] + data[3] * data[0]), sq1 + sq0 - sq3 - sq2);
+    return euler;
 }
 
 template <class Real>
@@ -1204,10 +1281,10 @@ inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChQuaternion<double>>();  // must use specialized template (any)
     // stream out all member data
-    marchive << CHNVP(data[0]);
-    marchive << CHNVP(data[1]);
-    marchive << CHNVP(data[2]);
-    marchive << CHNVP(data[3]);
+    marchive << CHNVP(data[0], "e0");
+    marchive << CHNVP(data[1], "e1");
+    marchive << CHNVP(data[2], "e2");
+    marchive << CHNVP(data[3], "e3");
 }
 
 template <class Real>
@@ -1215,10 +1292,10 @@ inline void ChQuaternion<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
     // stream in all member data
-    marchive >> CHNVP(data[0]);
-    marchive >> CHNVP(data[1]);
-    marchive >> CHNVP(data[2]);
-    marchive >> CHNVP(data[3]);
+    marchive >> CHNVP(data[0], "e0");
+    marchive >> CHNVP(data[1], "e1");
+    marchive >> CHNVP(data[2], "e2");
+    marchive >> CHNVP(data[3], "e3");
 }
 
 }  // end namespace chrono

@@ -32,6 +32,8 @@ namespace hmmwv {
 static const double in2m = 0.0254;
 
 const double HMMWV_LugreTire::m_radius = 18.15 * in2m;
+const double HMMWV_LugreTire::m_mass = 37.6;
+const ChVector<> HMMWV_LugreTire::m_inertia(3.84, 6.69, 3.84);
 const double HMMWV_LugreTire::m_discLocs[] = {-5 * in2m, 0 * in2m, 5 * in2m};
 
 const double HMMWV_LugreTire::m_normalStiffness = 2e6;
@@ -72,11 +74,12 @@ void HMMWV_LugreTire::SetLugreParams() {
 // -----------------------------------------------------------------------------
 void HMMWV_LugreTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
     }
     else {

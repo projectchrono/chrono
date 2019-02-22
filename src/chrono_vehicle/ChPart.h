@@ -21,8 +21,19 @@
 
 #include <string>
 
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLoadsBody.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChVehicleOutput.h"
+
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -45,6 +56,9 @@ class CH_VEHICLE_API ChPart {
 
     /// Set the name identifier for this subsystem.
     void SetName(const std::string& name) { m_name = name; }
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const = 0;
 
     /// Set the visualization mode for this subsystem.
     void SetVisualizationType(VisualizationType vis);
@@ -98,6 +112,20 @@ class CH_VEHICLE_API ChPart {
     /// Get tangential viscous damping coefficient for contact material.
     float GetGt() const { return m_gt; }
 
+    /// Enable/disable output for this subsystem.
+    virtual void SetOutput(bool state) { m_output = state; }
+
+    /// Return the output state for this subsystem.
+    bool OutputEnabled() const { return m_output; }
+
+    /// Export this subsystem's component list to the specified JSON object.
+    /// Derived classes should override this function and first invoke the base class implementation,
+    /// followed by calls to the various static Export***List functions, as appropriate.
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const;
+
+    /// Output data for this subsystem's component list to the specified database.
+    virtual void Output(ChVehicleOutput& database) const {}
+
     /// Utility function for transforming inertia tensors between centroidal frames.
     /// It converts an inertia matrix specified in a centroidal frame aligned with the
     /// vehicle reference frame to an inertia matrix expressed in a centroidal body
@@ -110,7 +138,39 @@ class CH_VEHICLE_API ChPart {
         );
 
   protected:
-    std::string m_name;
+    /// Create a vehicle subsystem from JSON data.
+    /// A derived class must override this function and first invoke the base class implementation.
+    virtual void Create(const rapidjson::Document& d);
+
+    /// Export the list of bodies to the specified JSON document.
+    static void ExportBodyList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChBody>> bodies);
+
+    /// Export the list of shafts to the specified JSON document.
+    static void ExportShaftList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChShaft>> shafts);
+
+    /// Export the list of joints to the specified JSON document.
+    static void ExportJointList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLink>> joints);
+
+    /// Export the list of shaft couples to the specified JSON document.
+    static void ExportCouplesList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChShaftsCouple>> couples);
+
+    /// Export the list of markers to the specified JSON document.
+    static void ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChMarker>> markers);
+
+    /// Export the list of translational springs to the specified JSON document.
+    static void ExportLinSpringList(rapidjson::Document& jsonDocument,
+                                    std::vector<std::shared_ptr<ChLinkSpringCB>> springs);
+
+    /// Export the list of rotational springs to the specified JSON document.
+    static void ExportRotSpringList(rapidjson::Document& jsonDocument,
+                                    std::vector<std::shared_ptr<ChLinkRotSpringCB>> springs);
+
+    /// Export the list of body-body loads to the specified JSON document.
+    static void ExportBodyLoadList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLoadBodyBody>> loads);
+
+    std::string m_name;  ///< subsystem name
+
+    bool m_output;  ///< specifies whether or not output is generated for this subsystem
 
     float m_friction;       ///< contact coefficient of friction
     float m_restitution;    ///< contact coefficient of restitution

@@ -18,8 +18,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChFileutils.h"
-
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChSystemNSC.h"
@@ -27,15 +25,20 @@
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
 
-#include "chrono_fea/ChElementShellReissner4.h"
-#include "chrono_fea/ChLinkDirFrame.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_fea/ChRotUtils.h"
+#include "chrono/fea/ChElementShellReissner4.h"
+#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChRotUtils.h"
+
 #include "chrono_irrlicht/ChIrrApp.h"
+
 #include "chrono_mkl/ChSolverMKL.h"
+
 #include "chrono_postprocess/ChGnuPlot.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // Remember to use the namespace 'chrono' because all classes
 // of Chrono::Engine belong to this namespace and its children...
@@ -53,7 +56,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create (if needed) output directory
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

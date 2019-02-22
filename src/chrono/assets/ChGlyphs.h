@@ -13,8 +13,8 @@
 #ifndef CHGLYPHS_H
 #define CHGLYPHS_H
 
-#include "chrono/assets/ChVisualization.h"
 #include "chrono/assets/ChColor.h"
+#include "chrono/assets/ChVisualization.h"
 #include "chrono/core/ChMatrix.h"
 
 namespace chrono {
@@ -23,25 +23,17 @@ namespace chrono {
 /// such as arrows or points to be drawn for showing vector directions etc.
 /// Remember that depending on the type of visualization system
 /// (POVray, Irrlicht,etc.) this asset might not be supported.
-
 class ChApi ChGlyphs : public ChVisualization {
-
   public:
-    enum eCh_GlyphType { 
-        GLYPH_POINT = 0, 
-        GLYPH_VECTOR, 
-        GLYPH_COORDSYS };
+    enum eCh_GlyphType { GLYPH_POINT = 0, GLYPH_VECTOR, GLYPH_COORDSYS };
 
     CH_ENUM_MAPPER_BEGIN(eCh_GlyphType);
-     CH_ENUM_VAL(GLYPH_POINT);
-     CH_ENUM_VAL(GLYPH_VECTOR);
-     CH_ENUM_VAL(GLYPH_COORDSYS); 
+    CH_ENUM_VAL(GLYPH_POINT);
+    CH_ENUM_VAL(GLYPH_VECTOR);
+    CH_ENUM_VAL(GLYPH_COORDSYS);
     CH_ENUM_MAPPER_END(eCh_GlyphType);
 
   public:
-    //
-    // DATA
-    //
     std::vector<ChVector<double> > points;
     std::vector<ChColor> colors;
 
@@ -51,30 +43,16 @@ class ChApi ChGlyphs : public ChVisualization {
 
   protected:
     eCh_GlyphType draw_mode;
-
     double size;
-
     bool zbuffer_hide;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChGlyphs();
 
-    ChGlyphs() {
-        draw_mode = GLYPH_POINT;
-        size = 0.002;
-        zbuffer_hide = true;
-    };
-
-    virtual ~ChGlyphs(){};
-
-    //
-    // FUNCTIONS
-    //
+    virtual ~ChGlyphs() {}
 
     /// Get the way that glyphs must be rendered
-    eCh_GlyphType GetDrawMode() { return draw_mode; }
+    eCh_GlyphType GetDrawMode() const { return draw_mode; }
 
     /// Set the way that glyphs must be rendered
     void SetDrawMode(eCh_GlyphType mmode) { draw_mode = mmode; }
@@ -85,11 +63,11 @@ class ChApi ChGlyphs : public ChVisualization {
     void Reserve(unsigned int n_glyphs);
 
     /// Get the number of glyphs
-    size_t GetNumberOfGlyphs() { return points.size(); }
+    size_t GetNumberOfGlyphs() const { return points.size(); }
 
     /// Get the 'size' (thickness of symbol, depending on the rendering
     /// system) of the glyph symbols
-    double GetGlyphsSize() { return size; }
+    double GetGlyphsSize() const { return size; }
 
     /// Set the 'size' (thickness of symbol, depending on the rendering
     /// system) of the glyph symbols
@@ -98,7 +76,7 @@ class ChApi ChGlyphs : public ChVisualization {
     // Set the Z buffer enable/disable (for those rendering systems that can do this)
     // If hide= false, symbols will appear even if hidden by other geometries. Default true.
     void SetZbufferHide(bool mhide) { this->zbuffer_hide = mhide; }
-    bool GetZbufferHide() { return this->zbuffer_hide; }
+    bool GetZbufferHide() const { return this->zbuffer_hide; }
 
     /// Fast method to set a glyph for GLYPH_POINT draw mode.
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the vectors are inflated.
@@ -112,48 +90,14 @@ class ChApi ChGlyphs : public ChVisualization {
     /// If the id is more than the reserved amount of glyphs (see Reserve() ) the csys are inflated.
     void SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord);
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChGlyphs>();
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(points);
-        marchive << CHNVP(colors);
-        marchive << CHNVP(vectors);
-        marchive << CHNVP(rotations);
-        eCh_GlyphType_mapper mmapper;
-        marchive << CHNVP(mmapper(draw_mode),"draw_mode");
-        marchive << CHNVP(size);
-        marchive << CHNVP(zbuffer_hide);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChGlyphs>();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(points);
-        marchive >> CHNVP(colors);
-        marchive >> CHNVP(vectors);
-        marchive >> CHNVP(rotations);
-        eCh_GlyphType_mapper mmapper;
-        marchive >> CHNVP(mmapper(draw_mode),"draw_mode");
-        marchive >> CHNVP(size);
-        marchive >> CHNVP(zbuffer_hide);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChGlyphs,0)
+CH_CLASS_VERSION(ChGlyphs, 0)
 
 }  // end namespace chrono
 

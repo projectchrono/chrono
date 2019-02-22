@@ -51,6 +51,9 @@ class CH_VEHICLE_API ChWheel : public ChPart {
 
     virtual ~ChWheel() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "Wheel"; }
+
     /// Get the wheel mass.
     virtual double GetMass() const = 0;
 

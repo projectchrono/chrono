@@ -22,18 +22,6 @@
 namespace chrono {
 namespace vehicle {
 
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_models Vehicle models
-        @{
-            @defgroup vehicle_models_generic Generic wheeled vehicle
-            @defgroup vehicle_models_hmmwv  Off-road wheeled vehicle
-            @defgroup vehicle_models_m113   Tracked vehicle (segmented track)
-        @}
-    @}
-*/
-
 /// Enumeration of collision shape types.
 enum class ChassisCollisionType {
     NONE,        ///< no contact shapes
@@ -41,11 +29,17 @@ enum class ChassisCollisionType {
     MESH         ///< contact model composed of convex hulls
 };
 
-/// @addtogroup vehicle
+/// @addtogroup vehicle_models
 /// @{
 
-/// Namespace for the HMMWV vehicle model.
+/// Namespace for the HMMWV vehicle model
 namespace hmmwv {}
+
+/// Namespace for the passenger vehicle model
+namespace sedan {}
+
+/// Namespace for the UAZ vehicle model
+namespace uaz {}
 
 /// Namespace for the generic wheeled vehicle model
 namespace generic {}
@@ -53,7 +47,7 @@ namespace generic {}
 /// Namespace for the M113 segmented track vehicle
 namespace m113 {}
 
-/// @}
+/// @} vehicle_models
 
 }  // end namespace vehicle
 }  // end namespace chrono

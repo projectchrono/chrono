@@ -30,7 +30,7 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double HMMWV_Wheel::m_mass = 45.4;
+const double HMMWV_Wheel::m_mass = 18.8;
 const ChVector<> HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
 
 const double HMMWV_Wheel::m_radius = 0.268;
@@ -54,11 +54,12 @@ HMMWV_WheelRight::HMMWV_WheelRight(const std::string& name) : HMMWV_Wheel(name) 
 // -----------------------------------------------------------------------------
 void HMMWV_Wheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(GetMeshName());
+        m_trimesh_shape->SetStatic(true);
         m_spindle->AddAsset(m_trimesh_shape);
     } else {
         ChWheel::AddVisualizationAssets(vis);

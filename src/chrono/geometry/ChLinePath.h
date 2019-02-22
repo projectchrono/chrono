@@ -24,9 +24,7 @@ namespace geometry {
 
 /// Geometric object representing an sequence of other ChLine objects,
 /// The ChLine objects are assumed to be properly concatenated and to have C0 continuity.
-
 class ChApi ChLinePath : public ChLine {
-
   public:
     std::vector<std::shared_ptr<ChLine> > lines;
     std::vector<double> end_times;
@@ -42,17 +40,14 @@ class ChApi ChLinePath : public ChLine {
 
     virtual GeometryType GetClassType() const override { return LINE_PATH; }
 
-    virtual int Get_complexity() { return 2; }
+    virtual int Get_complexity() const override { return 2; }
 
     /// Return curve length.
     /// Sampling does not matter.
     virtual double Length(int sampling) const override;
 
     /// Curve evaluation (only parU is used, in 0..1 range)
-    virtual void Evaluate(ChVector<>& pos,
-                          const double parU,
-                          const double parV = 0.,
-                          const double parW = 0.) const override;
+    virtual void Evaluate(ChVector<>& pos, const double parU) const override;
 
     /// Return the start point of the line.
     virtual ChVector<> GetEndA() const override { return (lines.front())->GetEndA(); }
@@ -75,32 +70,31 @@ class ChApi ChLinePath : public ChLine {
     /// Queue a line (push it back to the array of lines)
     void AddSubLine(std::shared_ptr<ChLine> mline,  ///< line to add
                     double duration = 1             ///< duration of the abscyssa when calling the Evaluate() function
-                    );
+    );
 
     /// Queue a line (push it back to the array of lines)
     void AddSubLine(ChLine& mline,       ///< line to add
                     double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
-                    );
+    );
 
     /// Insert a line at a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
-    void InsertSubLine(size_t n,  ///< index of line, 0 is first, etc.
-                       std::shared_ptr<ChLine>
-                           mline,           ///< line to add
+    void InsertSubLine(size_t n,                       ///< index of line, 0 is first, etc.
+                       std::shared_ptr<ChLine> mline,  ///< line to add
                        double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
-                       );
+    );
 
     /// Insert a line at a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
     void InsertSubLine(size_t n,            ///< index of line, 0 is first, etc.
                        ChLine& mline,       ///< line to add
                        double duration = 1  ///< duration of the abscyssa when calling the Evaluate() function
-                       );
+    );
 
     /// Erase a line from a specified index  n  in line array.
     /// Note that  n  cannot be higher than GetLineCount().
     void EraseSubLine(size_t n  //<<< index of line, 0 is first, etc.
-                      );
+    );
 
     /// Tells the duration of the path, sum of the durations of all sub-lines.
     /// This is useful because ifyou use the Evaluate() function on the path, the U
@@ -117,33 +111,16 @@ class ChApi ChLinePath : public ChLine {
     /// i.e. if all the sub lines are queued to have C0 continuity
     double GetContinuityMaxError() const;
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChLinePath>();
-        // serialize parent class
-        ChLine::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(lines);
-        marchive << CHNVP(end_times);
-        marchive << CHNVP(durations);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChLinePath>();
-        // deserialize parent class
-        ChLine::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(lines);
-        marchive >> CHNVP(end_times);
-        marchive >> CHNVP(durations);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChLinePath,0)
+CH_CLASS_VERSION(geometry::ChLinePath, 0)
 
 }  // end namespace chrono
 

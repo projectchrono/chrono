@@ -34,7 +34,7 @@ const double M113a_ShaftsPowertrain::m_ingear_shaft_inertia = 0.3;
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-M113a_ShaftsPowertrain::M113a_ShaftsPowertrain() : ChShaftsPowertrain(ChVector<>(1, 0, 0)) {}
+M113a_ShaftsPowertrain::M113a_ShaftsPowertrain(const std::string& name) : ChShaftsPowertrain(name, ChVector<>(1, 0, 0)) {}
 
 // -----------------------------------------------------------------------------
 // Initialize vector of gear ratios

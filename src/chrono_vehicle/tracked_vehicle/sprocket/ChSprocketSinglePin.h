@@ -39,6 +39,9 @@ class CH_VEHICLE_API ChSprocketSinglePin : public ChSprocket {
 
     virtual ~ChSprocketSinglePin() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "SprocketSinglePin"; }
+
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in

@@ -18,14 +18,15 @@
 
 #include <cmath>
 
-#include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChVectorDynamic.h"
 #include "chrono/motion_functions/ChFunction_Recorder.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
+#include "chrono/physics/ChGlobal.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -37,7 +38,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_GNUPLOT";
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

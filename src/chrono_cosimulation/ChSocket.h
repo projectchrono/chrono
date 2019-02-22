@@ -31,7 +31,13 @@
 #include <sys/ioctl.h>
 #include <cstdio>
 #include <cstring>
-#include <sys/filio.h>
+#ifndef UNIX
+    #include <sys/filio.h>
+#endif
+#ifdef __APPLE__
+	// be sure to have TARGET_OS_MAC defined
+    #include "TargetConditionals.h"
+#endif
 #else
 #include <winsock2.h>
 #endif

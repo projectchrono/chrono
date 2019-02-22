@@ -24,4 +24,24 @@ ChFunction_Ramp::ChFunction_Ramp(const ChFunction_Ramp& other) {
     ang = other.ang;
 }
 
+void ChFunction_Ramp::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Ramp>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(y0);
+    marchive << CHNVP(ang);
+}
+
+void ChFunction_Ramp::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Ramp>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(y0);
+    marchive >> CHNVP(ang);
+}
+
 }  // end namespace chrono

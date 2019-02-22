@@ -2,140 +2,45 @@
 # List of demos according their depencies
 # ------------------------------------------------------------------------------
 
-# List all FSI demos that use chrono
+# List FSI demos that do not have other dependencies
 SET(FSI_DEMOS
-# add fluid demos here
-)
-
-# List all FSI demos that use chrono-parallel
-SET(FSI_PARALLEL_DEMOS
-# add fluid demos here
-demo_FSI_cylinderDrop
-demo_FSI_DamBreak
-)
-
-# List all FSI demos use vehicle
-SET(FSI_VEHICLE_DEMOS
-# add fluid demos here
-)
-
-# List all FSI demos use parallel and vehicle
-SET(FSI_PARALLEL_VEHICLE_DEMOS
-# add fluid demos here
+  demo_FSI_DamBreak
+  demo_FSI_Compressibility
+  demo_FSI_Poiseuille_flow
+  demo_FSI_Flexible_Shell
+  demo_FSI_CylinderDrop
 )
 
 #--------------------------------------------------------------
-SET(LIBRARIES
-    ChronoEngine   
-    ChronoEngine_fsi
-)
 
-IF(ENABLE_MODULE_PARALLEL)
-	INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
-	SET(LIBRARIES ${LIBRARIES} ChronoEngine_parallel)
+INCLUDE_DIRECTORIES(${CH_FSI_INCLUDES})
+
+SET(COMPILER_FLAGS "${CH_CXX_FLAGS}")
+SET(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+LIST(APPEND LIBS "")
+
+IF(ENABLE_MODULE_MKL)
+  INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
+  SET(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
+  SET(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
+  LIST(APPEND LIBS "ChronoEngine_mkl")
 ENDIF()
 
-IF(ENABLE_MODULE_VEHICLE)
-SET(LIBRARIES ${LIBRARIES}
-    ChronoEngine_vehicle   
-)
-ENDIF()
-
-IF(ENABLE_MODULE_OPENGL)
-    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
-ENDIF()
+#--------------------------------------------------------------
 
 MESSAGE(STATUS "Demo programs for FSI module...")
 
-# Add executables for demos that have no other dependencies
-IF(ENABLE_MODULE_PARALLEL)
-	INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
-	
-	IF(ENABLE_MODULE_VEHICLE)
-		FOREACH(PROGRAM ${FSI_PARALLEL_VEHICLE_DEMOS})
-		    MESSAGE(STATUS "...add ${PROGRAM}")
+FOREACH(PROGRAM ${FSI_DEMOS})
+  MESSAGE(STATUS "...add ${PROGRAM}")
 
-		    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-		    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+  CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
+  SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
 
-		    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-				FOLDER demos
-				COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
-				LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-		    )
+  SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
+    FOLDER demos
+    COMPILE_FLAGS "${COMPILER_FLAGS}"
+    LINK_FLAGS "${LINKER_FLAGS}")
+  TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_fsi ${LIBS})
 
-		    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-		    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-
-		    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-
-		ENDFOREACH()
-	ENDIF()
-
-	FOREACH(PROGRAM ${FSI_PARALLEL_DEMOS})
-	    MESSAGE(STATUS "...add ${PROGRAM}")
-
-	    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-	    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
-
-	    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-			FOLDER demos
-			COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
-			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	    )
-
-	    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-	    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-
-	    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-
-	ENDFOREACH()
-
-ELSE()
-
-	IF(ENABLE_MODULE_VEHICLE)
-		FOREACH(PROGRAM ${FSI_VEHICLE_DEMOS})
-		    MESSAGE(STATUS "...add ${PROGRAM}")
-
-		    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-		    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
-
-		    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-				FOLDER demos
-				COMPILE_FLAGS "${CH_CXX_FLAGS}"
-				LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-		    )
-
-		    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-		    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-
-		    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-
-		ENDFOREACH()
-	ENDIF()
-
-	FOREACH(PROGRAM ${FSI_DEMOS})
-	    MESSAGE(STATUS "...add ${PROGRAM}")
-
-	    CUDA_ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-	    SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
-
-	    SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
-			FOLDER demos
-			COMPILE_FLAGS "${CH_CXX_FLAGS}"
-			LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-	    )
-
-	    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
-	    ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
-
-	    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-
-	ENDFOREACH()
-
-ENDIF()
-
-
-
-
+  INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+ENDFOREACH()

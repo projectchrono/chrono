@@ -33,9 +33,12 @@ namespace m113 {
 
 class CH_MODELS_API M113a_SimplePowertrain : public ChPowertrain {
   public:
-    M113a_SimplePowertrain();
+    M113a_SimplePowertrain(const std::string& name);
 
     ~M113a_SimplePowertrain() {}
+
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "CustomPowertrain"; }
 
     /// Return the current engine speed.
     virtual double GetMotorSpeed() const override { return m_motorSpeed; }

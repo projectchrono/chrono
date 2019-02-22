@@ -17,6 +17,7 @@
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChSurfaceShape.h"
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -220,6 +221,22 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
 
                     mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mytrimesh->IsWireframe());
                     mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull());
+                } else if (auto mysurf = std::dynamic_pointer_cast<ChSurfaceShape>(k_asset)) {
+                    CDynamicMeshBuffer* buffer =
+                        new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
+                    //	SMeshBuffer* buffer = new SMeshBuffer();
+                    SMesh* newmesh = new SMesh;
+                    newmesh->addMeshBuffer(buffer);
+                    buffer->drop();
+
+                    ChIrrNodeProxyToAsset* mproxynode = new ChIrrNodeProxyToAsset(mysurf, mnode);
+                    ISceneNode* mchildnode = scenemanager->addMeshSceneNode(newmesh, mproxynode);
+                    newmesh->drop();
+                    mproxynode->Update();  // force syncing of triangle positions & face indexes
+                    mproxynode->drop();
+
+                    //mchildnode->setMaterialFlag(video::EMF_WIREFRAME, mysurf->IsWireframe());
+                    //mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mysurf->IsBackfaceCull());
                 } else if (auto myglyphs = std::dynamic_pointer_cast<ChGlyphs>(k_asset)) {
                     CDynamicMeshBuffer* buffer =
                         new CDynamicMeshBuffer(irr::video::EVT_STANDARD, irr::video::EIT_32BIT);
@@ -414,25 +431,25 @@ void ChIrrAssetConverter::BindAllContentsOfAssembly(ChAssembly* massy, std::unor
         return;
     }
 
-    auto myiter = massy->IterBeginBodies();
-    while (myiter != massy->IterEndBodies()) {
-        Bind(*myiter);
-        ++myiter;
+    for (auto body : massy->Get_bodylist()) {
+        Bind(body);
     }
-    ChSystem::IteratorOtherPhysicsItems myiterB = massy->IterBeginOtherPhysicsItems();
-    while (myiterB != massy->IterEndOtherPhysicsItems()) {
-        Bind(*myiterB);
+
+    for (auto& mesh : massy->Get_meshlist()) {
+        Bind(mesh);
+    }
+
+    for (auto ph : massy->Get_otherphysicslist()) {
+        Bind(ph);
 
         // If the assembly holds another assemblies, also bind their contents.
-        if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(*myiterB)) {
+        if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
             BindAllContentsOfAssembly(myassy.get(), mtrace);
         }
-        ++myiterB;
     }
-    ChSystem::IteratorLinks myiterC = massy->IterBeginLinks();
-    while (myiterC != massy->IterEndLinks()) {
-        Bind(*myiterC);
-        ++myiterC;
+
+    for (auto link : massy->Get_linklist()) {
+        Bind(link);
     }
 }
 
@@ -442,25 +459,25 @@ void ChIrrAssetConverter::UpdateAllContentsOfAssembly(ChAssembly* massy, std::un
         return;
     }
 
-    auto myiter = massy->IterBeginBodies();
-    while (myiter != massy->IterEndBodies()) {
-        Update(*myiter);
-        ++myiter;
+    for (auto body : massy->Get_bodylist()) {
+        Update(body);
     }
-    ChSystem::IteratorOtherPhysicsItems myiterB = massy->IterBeginOtherPhysicsItems();
-    while (myiterB != massy->IterEndOtherPhysicsItems()) {
-        Update(*myiterB);
+
+    for (auto& mesh : massy->Get_meshlist()) {
+        Update(mesh);
+    }
+
+    for (auto ph : massy->Get_otherphysicslist()) {
+        Update(ph);
 
         // If the assembly holds another assemblies, also update their contents.
-        if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(*myiterB)) {
+        if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
             UpdateAllContentsOfAssembly(myassy.get(), mtrace);
         }
-        ++myiterB;
     }
-    ChSystem::IteratorLinks myiterC = massy->IterBeginLinks();
-    while (myiterC != massy->IterEndLinks()) {
-        Update(*myiterC);
-        ++myiterC;
+
+    for (auto link : massy->Get_linklist()) {
+        Update(link);
     }
 }
 

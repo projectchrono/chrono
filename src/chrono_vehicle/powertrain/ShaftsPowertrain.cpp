@@ -30,7 +30,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Constructor a shafts powertrain using data from the specified JSON file.
 // -----------------------------------------------------------------------------
-ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) {
+ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) : ChShaftsPowertrain("") {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -46,7 +46,7 @@ ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-ShaftsPowertrain::ShaftsPowertrain(const rapidjson::Document& d) {
+ShaftsPowertrain::ShaftsPowertrain(const rapidjson::Document& d) : ChShaftsPowertrain("") {
     Create(d);
 }
 
@@ -55,12 +55,8 @@ ShaftsPowertrain::ShaftsPowertrain(const rapidjson::Document& d) {
 // specified RapidJSON document.
 // -----------------------------------------------------------------------------
 void ShaftsPowertrain::Create(const rapidjson::Document& d) {
-    unsigned int np;
-
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Read engine data
     assert(d.HasMember("Engine"));
@@ -75,7 +71,7 @@ void ShaftsPowertrain::Create(const rapidjson::Document& d) {
 
     m_ingear_shaft_inertia = d["Transmission"]["Input Shaft Inertia"].GetDouble();
     m_rev_gear = d["Transmission"]["Reverse Gear Ratio"].GetDouble();
-    np = d["Transmission"]["Forward Gear Ratios"].Size();
+    unsigned int np = d["Transmission"]["Forward Gear Ratios"].Size();
     m_fwd_gear.resize(np);
     for (unsigned int i = 0; i < np; i++)
         m_fwd_gear[i] = d["Transmission"]["Forward Gear Ratios"][i].GetDouble();

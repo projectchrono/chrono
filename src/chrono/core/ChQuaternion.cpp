@@ -22,6 +22,17 @@ namespace chrono {
 ChApi const ChQuaternion<double> QNULL(0., 0., 0., 0.);
 ChApi const ChQuaternion<double> QUNIT(1., 0., 0., 0.);
 
+ChApi const ChQuaternion<double> Q_ROTATE_Y_TO_X(CH_C_SQRT_1_2,				0,				0, -CH_C_SQRT_1_2 );
+ChApi const ChQuaternion<double> Q_ROTATE_Y_TO_Z(CH_C_SQRT_1_2, CH_C_SQRT_1_2,				0,				0 );
+ChApi const ChQuaternion<double> Q_ROTATE_X_TO_Y(CH_C_SQRT_1_2,				0,				0,	CH_C_SQRT_1_2 );
+ChApi const ChQuaternion<double> Q_ROTATE_X_TO_Z(CH_C_SQRT_1_2,				0, -CH_C_SQRT_1_2,				0 );
+ChApi const ChQuaternion<double> Q_ROTATE_Z_TO_Y(CH_C_SQRT_1_2,-CH_C_SQRT_1_2,				0,				0 );
+ChApi const ChQuaternion<double> Q_ROTATE_Z_TO_X(CH_C_SQRT_1_2,				0,  CH_C_SQRT_1_2,				0 );
+
+ChApi const ChQuaternion<double> Q_FLIP_AROUND_X(0., 1., 0., 0.);
+ChApi const ChQuaternion<double> Q_FLIP_AROUND_Y(0., 0., 1., 0.);
+ChApi const ChQuaternion<double> Q_FLIP_AROUND_Z(0., 0., 0., 1.);
+
 // -----------------------------------------------------------------------------
 // QUATERNION OPERATIONS
 
@@ -184,6 +195,39 @@ ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
     // attitude
     mnasa.x() = asin(-2.0 * (q1.e1() * q1.e3() - q1.e2() * q1.e0()));
     return mnasa;
+}
+
+ChQuaternion<double> Q_from_Euler123(const ChVector<double>& ang) {
+	ChQuaternion<double> q;
+    double t0 = cos(ang.z() * 0.5);
+	double t1 = sin(ang.z() * 0.5);
+	double t2 = cos(ang.x() * 0.5);
+	double t3 = sin(ang.x() * 0.5);
+	double t4 = cos(ang.y() * 0.5);
+	double t5 = sin(ang.y() * 0.5);
+
+	q.e0() = t0 * t2 * t4 + t1 * t3 * t5;
+	q.e1() = t0 * t3 * t4 - t1 * t2 * t5;
+	q.e2() = t0 * t2 * t5 + t1 * t3 * t4;
+	q.e3() = t1 * t2 * t4 - t0 * t3 * t5;
+	
+	return q;
+}
+
+ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq) {
+	ChVector<double> euler;
+    double sq0 = mq.e0() * mq.e0();
+    double sq1 = mq.e1() * mq.e1();
+    double sq2 = mq.e2() * mq.e2();
+    double sq3 = mq.e3() * mq.e3();
+    // roll
+    euler.x() = atan2(2 * (mq.e2() * mq.e3() + mq.e0() * mq.e1()), sq3 - sq2 - sq1 + sq0);
+    // pitch
+    euler.y() = -asin(2 * (mq.e1() * mq.e3() - mq.e0() * mq.e2()));
+    // yaw
+    euler.z() = atan2(2 * (mq.e1() * mq.e2() + mq.e3() * mq.e0()), sq1 + sq0 - sq3 - sq2);
+	
+	return euler;
 }
 
 void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis) {
@@ -385,9 +429,9 @@ ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset,
     ChVector<double> ang1, ang2;
 
     ang1 = Quat_to_Angle(angset, q);
-    ang2 = Vadd(ang1, Vmul(mangles, CH_LOWTOL));
+    ang2 = Vadd(ang1, Vmul(mangles, BDF_STEP_HIGH));
     q2 = Angle_to_Quat(angset, ang2);
-    res = Qscale(Qsub(q2, q), (1 / CH_LOWTOL));
+    res = Qscale(Qsub(q2, q), 1 / BDF_STEP_HIGH);
 
     return res;
 }
@@ -398,14 +442,13 @@ ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset,
     ChQuaternion<double> res;
     ChQuaternion<double> qa, qb;
     ChVector<double> ang0, angA, angB;
-    double hsquared = CH_LOWTOL;
 
     ang0 = Quat_to_Angle(angset, q);
-    angA = Vsub(ang0, Vmul(mangles, hsquared));
-    angB = Vadd(ang0, Vmul(mangles, hsquared));
+    angA = Vsub(ang0, Vmul(mangles, BDF_STEP_HIGH));
+    angB = Vadd(ang0, Vmul(mangles, BDF_STEP_HIGH));
     qa = Angle_to_Quat(angset, angA);
     qb = Angle_to_Quat(angset, angB);
-    res = Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / hsquared);
+    res = Qscale(Qadd(Qadd(qa, qb), Qscale(q, -2)), 1 / BDF_STEP_HIGH);
 
     return res;
 }

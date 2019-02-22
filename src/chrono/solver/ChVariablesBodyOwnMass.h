@@ -27,7 +27,6 @@ namespace chrono {
 /// inertia matrix and the mass value are enough.
 
 class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
-
   private:
     ChMatrix33<double> inertia;      ///< 3x3 inertia matrix
     double mass;                     ///< mass value
@@ -92,28 +91,11 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     /// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChVariablesBodyOwnMass>();
-        // serialize parent class
-        ChVariablesBody::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(mass);
-        marchive << CHNVP(inertia);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChVariablesBodyOwnMass>();
-        // deserialize parent class
-        ChVariablesBody::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(mass);
-        marchive >> CHNVP(inertia);
-        SetBodyMass(mass);
-        SetBodyInertia(inertia);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

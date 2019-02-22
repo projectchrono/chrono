@@ -245,16 +245,15 @@ ISceneNode* addChBodySceneNode_easyGenericMesh(ChSystem* asystem,
 
     assert(genericMesh);
 
-    geometry::ChTriangleMeshSoup temp_trianglemesh;  // temp., only in function scope, since AddTriangleMesh
-                                                     // doesn't reference by striding interface -just copy
-    fillChTrimeshFromIrlichtMesh(&temp_trianglemesh, genericMesh->getMesh(0));
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshSoup>();
+    fillChTrimeshFromIrlichtMesh(trimesh.get(), genericMesh->getMesh(0));
 
     // create a ChronoENGINE rigid body
     ChBodySceneNode* rigidBodyZ =
         (ChBodySceneNode*)addChBodySceneNode(asystem, amanager, genericMesh, mmass, position, rotation, aparent, mid);
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddTriangleMesh(temp_trianglemesh, is_static, is_convex);
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddTriangleMesh(trimesh, is_static, is_convex);
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 

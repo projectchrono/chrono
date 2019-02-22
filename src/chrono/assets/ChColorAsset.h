@@ -25,9 +25,7 @@ namespace chrono {
 /// the assets of the list (or in same ChAssetLevel). It can be used when
 /// exporting to postprocessing or in OpenGL views. The postprocessor must be
 /// able to recognize it and implement the proper translation.
-
 class ChApi ChColorAsset : public ChAsset {
-
   public:
     ChColorAsset() : fading(0) {}
     ChColorAsset(const ChColor& c) : color(c), fading(0) {}
@@ -48,38 +46,15 @@ class ChApi ChColorAsset : public ChAsset {
     ChColor color;  // color of material
     float fading;   // transparency of material
 
-
   public:
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChColorAsset>();
-        // serialize parent class
-        ChAsset::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(color);
-        marchive << CHNVP(fading);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChColorAsset>();
-        // deserialize parent class
-        ChAsset::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(color);
-        marchive >> CHNVP(fading);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChColorAsset,0)
+CH_CLASS_VERSION(ChColorAsset, 0)
 
 }  // end namespace chrono
 

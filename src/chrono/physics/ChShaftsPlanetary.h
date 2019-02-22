@@ -43,6 +43,11 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     double r3;
 
     double torque_react;  ///< shaft reaction torque
+    
+    bool avoid_phase_drift; 
+    double phase1;
+    double phase2;
+    double phase3;
 
     ChConstraintThreeGeneric constraint;  ///< used as an interface to the solver
 
@@ -173,6 +178,16 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     double GetTransmissionR2() const { return r2; }
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
     double GetTransmissionR3() const { return r3; }
+
+    /// Set if the constraint must avoid phase drift. If true, phasing is always 
+    /// tracked and the constraint is satisfied also at the position level.
+    /// If false, microslipping can accumulate (as in friction wheels).
+    /// Default is enabled.
+    void SetAvoidPhaseDrift(bool mb) {this->avoid_phase_drift = mb;}
+
+    /// Set if the constraint is in "avoid phase drift" mode.
+    bool GetAvoidPhaseDrift() { return this->avoid_phase_drift;}
+
 
     /// Get the reaction torque considered as applied to the 1st axis.
     double GetTorqueReactionOn1() const { return (r1 * torque_react); }

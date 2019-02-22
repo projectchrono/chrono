@@ -23,7 +23,6 @@
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/collision/ChCollision.h"
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/physics/ChMaterialSurface.h"
 
@@ -48,6 +47,7 @@ ChParallelDataManager::ChParallelDataManager()
       num_rigid_tet_node_contacts(0),
       num_marker_tet_contacts(0),
       nnz_bilaterals(0),
+      add_contact_callback(nullptr),
       composition_strategy(new ChMaterialCompositionStrategy<real>) {
     node_container = std::make_shared<Ch3DOFContainer>();
     fea_container = std::make_shared<Ch3DOFContainer>();

@@ -19,4 +19,22 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunction_Const)
 
+void ChFunction_Const::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Const>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(C);
+}
+
+void ChFunction_Const::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Const>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(C);
+}
+
 }  // end namespace chrono

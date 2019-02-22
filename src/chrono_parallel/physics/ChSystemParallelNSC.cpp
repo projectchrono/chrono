@@ -151,9 +151,9 @@ void ChSystemParallelNSC::SolveSystem() {
     collision_system->Run();
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
-    data_manager->system_timer.start("solver");
+    data_manager->system_timer.start("advance");
     std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver_speed)->RunTimeStep();
-    data_manager->system_timer.stop("solver");
+    data_manager->system_timer.stop("advance");
     data_manager->system_timer.stop("step");
 }
 
@@ -175,6 +175,7 @@ void ChSystemParallelNSC::AssembleSystem() {
         icontact.vpB =
             ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
         icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
+        icontact.eff_radius = data_manager->host_data.erad_rigid_rigid[i];
         contact_container->AddContact(icontact);
     }
     contact_container->EndAddContact();

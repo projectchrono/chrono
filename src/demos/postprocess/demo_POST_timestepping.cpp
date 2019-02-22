@@ -18,14 +18,15 @@
 
 #include <cmath>
 
-#include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/physics/ChGlobal.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace postprocess;
@@ -37,7 +38,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_TIMESTEPPER";
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
@@ -271,14 +272,15 @@ int main(int argc, char* argv[]) {
             };
 
             /// compute  dy/dt=f(y,t)
-            virtual bool StateSolveA(ChStateDelta& dvdt,     ///< result: computed accel. a = dv/dt
-                                     ChVectorDynamic<>& L,   ///< result: computed lagrangian multipliers, if any
-                                     const ChState& x,       ///< current state, x
-                                     const ChStateDelta& v,  ///< current state, v
-                                     const double T,         ///< current time T
-                                     const double dt,        ///< timestep (if needed)
-                                     bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
-                                     ) override {
+            virtual bool StateSolveA(
+                ChStateDelta& dvdt,              ///< result: computed accel. a = dv/dt
+                ChVectorDynamic<>& L,            ///< result: computed lagrangian multipliers, if any
+                const ChState& x,                ///< current state, x
+                const ChStateDelta& v,           ///< current state, v
+                const double T,                  ///< current time T
+                const double dt,                 ///< timestep (if needed)
+                bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
+                ) override {
                 if (force_state_scatter)
                     StateScatter(x, v, T);
 
@@ -378,14 +380,15 @@ int main(int argc, char* argv[]) {
             };
 
             /// compute  dy/dt=f(y,t)
-            virtual bool StateSolveA(ChStateDelta& dvdt,     ///< result: computed accel. a=dv/dt
-                                     ChVectorDynamic<>& L,   ///< result: computed lagrangian multipliers, if any
-                                     const ChState& x,       ///< current state, x
-                                     const ChStateDelta& v,  ///< current state, v
-                                     const double T,         ///< current time T
-                                     const double dt,        ///< timestep (if needed)
-                                     bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
-                                     ) override {
+            virtual bool StateSolveA(
+                ChStateDelta& dvdt,              ///< result: computed accel. a=dv/dt
+                ChVectorDynamic<>& L,            ///< result: computed lagrangian multipliers, if any
+                const ChState& x,                ///< current state, x
+                const ChStateDelta& v,           ///< current state, v
+                const double T,                  ///< current time T
+                const double dt,                 ///< timestep (if needed)
+                bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
+                ) override {
                 if (force_state_scatter)
                     StateScatter(x, v, T);
                 double F = sin(mT * 20) * 0.02;

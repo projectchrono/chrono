@@ -31,6 +31,8 @@ const double HMMWV_Driveline2WD::m_differentialbox_inertia = 0.6;
 const double HMMWV_Driveline2WD::m_conicalgear_ratio = -0.2;
 const double HMMWV_Driveline2WD::m_differential_ratio = -1;
 
+const double HMMWV_Driveline2WD::m_axle_differential_locking_limit = 100;
+
 // -----------------------------------------------------------------------------
 // Constructor of the HMMWV_Driveline2WD.
 // the direction of the motor block is along the X axis, while the directions of

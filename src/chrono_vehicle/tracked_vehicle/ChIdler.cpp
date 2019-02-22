@@ -153,8 +153,8 @@ void ChIdler::AddVisualizationAssets(VisualizationType vis) {
 
     auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
-    box->GetBoxGeometry().Pos = m_pT;
-    box->GetBoxGeometry().Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
+    box->Pos = m_pT;
+    box->Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
     m_carrier->AddAsset(box);
 
     auto col = std::make_shared<ChColorAsset>();
@@ -190,6 +190,45 @@ void ChIdler::LogConstraintViolations() {
         GetLog() << "  " << C->GetElement(3, 0) << "  ";
         GetLog() << "  " << C->GetElement(4, 0) << "\n";
     }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChIdler::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_wheel);
+    bodies.push_back(m_carrier);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    joints.push_back(m_prismatic);
+    ChPart::ExportJointList(jsonDocument, joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_tensioner);
+    ChPart::ExportLinSpringList(jsonDocument, springs);
+}
+
+void ChIdler::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_wheel);
+    bodies.push_back(m_carrier);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute);
+    joints.push_back(m_prismatic);
+    database.WriteJoints(joints);
+
+    std::vector<std::shared_ptr<ChLinkSpringCB>> springs;
+    springs.push_back(m_tensioner);
+    database.WriteLinSprings(springs);
 }
 
 }  // end namespace vehicle

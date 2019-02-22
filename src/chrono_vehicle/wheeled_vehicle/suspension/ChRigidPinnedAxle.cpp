@@ -152,6 +152,13 @@ ChVector<> ChRigidPinnedAxle::GetCOMPos() const {
 }
 
 // -----------------------------------------------------------------------------
+// Get the wheel track using the spindle local position.
+// -----------------------------------------------------------------------------
+double ChRigidPinnedAxle::GetTrack() {
+    return 2 * getLocation(SPINDLE).y();
+}
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidPinnedAxle::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
@@ -209,6 +216,50 @@ void ChRigidPinnedAxle::RemoveVisualizationAssets() {
     ChSuspension::RemoveVisualizationAssets();
 
     m_axleTube->GetAssets().clear();
+}
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRigidPinnedAxle::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_axleTube);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    ChPart::ExportShaftList(jsonDocument, shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_axlePin);
+    ChPart::ExportJointList(jsonDocument, joints);
+}
+
+void ChRigidPinnedAxle::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_spindle[0]);
+    bodies.push_back(m_spindle[1]);
+    bodies.push_back(m_axleTube);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChShaft>> shafts;
+    shafts.push_back(m_axle[0]);
+    shafts.push_back(m_axle[1]);
+    database.WriteShafts(shafts);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    joints.push_back(m_revolute[0]);
+    joints.push_back(m_revolute[1]);
+    joints.push_back(m_axlePin);
+    database.WriteJoints(joints);
 }
 
 }  // end namespace vehicle

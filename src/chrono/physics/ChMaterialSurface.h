@@ -24,7 +24,6 @@ namespace chrono {
 
 /// Base class for specifying material properties for contact force generation.
 class ChApi ChMaterialSurface {
-
   public:
     enum ContactMethod {
         NSC,  ///< non-smooth, constraint-based (a.k.a. rigid-body) contact
@@ -36,9 +35,7 @@ class ChApi ChMaterialSurface {
     /// "Virtual" copy constructor.
     virtual ChMaterialSurface* Clone() const = 0;
 
-    virtual ContactMethod GetContactMethod()const  = 0;
-
-    // SERIALIZATION
+    virtual ContactMethod GetContactMethod() const = 0;
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number:
@@ -51,7 +48,7 @@ class ChApi ChMaterialSurface {
     }
 };
 
-CH_CLASS_VERSION(ChMaterialSurface,0)
+CH_CLASS_VERSION(ChMaterialSurface, 0)
 
 /// Base class for composite material for a contact pair.
 class ChApi ChMaterialComposite {

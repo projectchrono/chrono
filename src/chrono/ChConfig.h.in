@@ -31,9 +31,6 @@
 // If module COSIMULATION was enabled, define CHRONO_COSIMULATION
 @CHRONO_COSIMULATION@
 
-// If module FEA was enabled, define CHRONO_FEA
-@CHRONO_FEA@
-
 // If module IRRLICHT was enabled, define CHRONO_IRRLICHT
 @CHRONO_IRRLICHT@
 
@@ -42,6 +39,9 @@
 
 // If module MKL was enabled, define CHRONO_MKL
 @CHRONO_MKL@
+
+// If module MUMPS was enabled, define CHRONO_MUMPS
+@CHRONO_MUMPS@
 
 // If module OPENGL was enabled, define CHRONO_OPENGL
 @CHRONO_OPENGL@
@@ -87,10 +87,6 @@
 // If TBB support was enabled in the main ChronoEngine library, define CHRONO_TBB_ENABLED
 @CHRONO_TBB_ENABLED@
 
-
-// If using vectorized code
-@CHRONO_USE_SIMD@
-
 // -----------------------------------------------------------------------------
 // SSE settings
 // -----------------------------------------------------------------------------
@@ -134,10 +130,26 @@
 @CHRONO_AVX_1_0@
 @CHRONO_AVX_2_0@
 
+// -----------------------------------------------------------------------------
+
+// If NEON support was found, then
+//   #define CHRONO_HAS_NEON
+
+@CHRONO_HAS_NEON@
+
+// -----------------------------------------------------------------------------
 
 // If FMA support was found, then
 //   #define CHRONO_HAS_FMA
 
 @CHRONO_HAS_FMA@
+
+// -----------------------------------------------------------------------------
+
+// If HDF5 was found, then
+//   #define CHRONO_HAS_HDF5
+
+@CHRONO_HAS_HDF5@
+
 
 #endif

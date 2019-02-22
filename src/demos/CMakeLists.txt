@@ -6,23 +6,35 @@ set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib64")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 # add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # the RPATH to be used when installing, but only if it's not a system directory
-list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib64" isSystemDir)
+list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
 if("${isSystemDir}" STREQUAL "-1")
-   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib64")
+   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
 
+# Enable creation of "application bundles" on MacOSX.
+# This is necessary for Irrlicht-based demos and optional for OpenGL or non-graphics demos.
+# For simplicity and consistency, we enable here MACOSX_BUNDLE for all subsequent programs.
+
+if(APPLE)
+    set(CMAKE_MACOSX_BUNDLE ON)
+endif()
+
+#--------------------------------------------------------------
+
+message(STATUS)
 message(STATUS "==== Demo programs ====")
+message(STATUS)
 
 option(BUILD_DEMOS_BASE "Build demo programs for base Chrono module" TRUE)
 mark_as_advanced(FORCE BUILD_DEMOS_BASE)
@@ -30,13 +42,13 @@ if(BUILD_DEMOS_BASE)
 	add_subdirectory(core)
 endif()
 
-if(ENABLE_MODULE_FEA)
-	option(BUILD_DEMOS_FEA "Build demo programs for FEA module" TRUE)
-	mark_as_advanced(FORCE BUILD_DEMOS_FEA)
-	if(BUILD_DEMOS_FEA)
-		add_subdirectory(fea)
-	endif()
+
+option(BUILD_DEMOS_FEA "Build demo programs for FEA" TRUE)
+mark_as_advanced(FORCE BUILD_DEMOS_FEA)
+if(BUILD_DEMOS_FEA)
+	add_subdirectory(fea)
 endif()
+
 
 if(ENABLE_MODULE_COSIMULATION)
 	option(BUILD_DEMOS_COSIMULATION "Build demo programs for Cosimulation module" TRUE)
@@ -69,7 +81,15 @@ if(ENABLE_MODULE_MKL)
 		add_subdirectory(mkl)
 	endif()
 endif()
-	
+
+if(ENABLE_MODULE_MUMPS)
+  option(BUILD_DEMOS_MUMPS "Build demo programs for MUMPS module" TRUE)
+  mark_as_advanced(FORCE BUILD_DEMOS_MUMPS)
+  if(BUILD_DEMOS_MUMPS)
+    add_subdirectory(mumps)
+  endif()
+endif()
+
 #if(ENABLE_MODULE_MPI)
 #	add_subdirectory(mpi)
 #endif()
@@ -138,4 +158,10 @@ if(ENABLE_MODULE_FSI)
   	endif()
 endif()
 
-
+if(ENABLE_MODULE_DISTRIBUTED)
+	option(BUILD_DEMOS_DISTRIBUTED "Build demo programs for Distributed module" TRUE)
+ 	mark_as_advanced(FORCE BUILD_DEMOS_DISTRIBUTED)
+	if(BUILD_DEMOS_DISTRIBUTED)
+  		add_subdirectory(distributed)
+  	endif()
+endif()

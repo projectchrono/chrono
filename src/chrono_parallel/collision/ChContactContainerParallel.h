@@ -52,6 +52,15 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
     virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
     virtual void EndAddContact() override;
 
+    /// Specify a callback object to be used each time a contact point is added to the container.
+    /// Note that not all derived classes can support this. If supported, the OnAddContact() method
+    /// of the provided callback object will be called for each contact pair to allow modifying the
+    /// composite material properties.
+    virtual void RegisterAddContactCallback(AddContactCallback* mcallback) override { data_manager->add_contact_callback = mcallback; }
+
+    /// Get the callback object to be used each time a contact point is added to the container.
+    virtual AddContactCallback* GetAddContactCallback() override { return data_manager->add_contact_callback; }
+
     /// Scans all the contacts and for each contact executes the OnReportContact()
     /// function of the provided callback object.
     /// Note: currently, the contact reaction force and torque are not set (always zero).

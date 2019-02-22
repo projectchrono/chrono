@@ -9,7 +9,7 @@ Install Chrono Solidworks {#chrono_solidworks_installation}
     [Chrono::SolidWorks](http://www.projectchrono.org/download) add-in,
     using the installer in our download section.
 	
-3.  Install the [Chrono::PyEngine](@ref chrono_pyengine_installation)
+3.  Install the [PyChrono](@ref pychrono_installation)
     module, using the installer in our download section.
 
 	

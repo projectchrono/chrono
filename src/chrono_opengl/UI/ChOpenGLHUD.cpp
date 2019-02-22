@@ -14,8 +14,6 @@
 // Class that renders the text and other UI elements
 // =============================================================================
 
-#include "chrono_opengl/UI/ChOpenGLHUD.h"
-#include "chrono_opengl/ChOpenGLMaterials.h"
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/solver/ChIterativeSolver.h"
 
@@ -32,6 +30,9 @@
 #include "resources/text_vert.h"
 #include "resources/bar_frag.h"
 #include "resources/bar_vert.h"
+
+#include "chrono_opengl/UI/ChOpenGLHUD.h"
+#include "chrono_opengl/ChOpenGLMaterials.h"
 
 namespace chrono {
 using namespace collision;
@@ -174,7 +175,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     double timer_step = physics_system->GetTimerStep();
     double timer_collision_broad = physics_system->GetTimerCollisionBroad();
     double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
-    double timer_lcp = physics_system->GetTimerSolver();
+    double timer_lcp = physics_system->GetTimerAdvance();
     double timer_update = physics_system->GetTimerUpdate();
 #ifdef CHRONO_PARALLEL
     if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {

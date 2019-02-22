@@ -70,7 +70,7 @@ class ChApiCASCADE ChCascadeDoc {
 
     /// Get the volume properties (center of mass, inertia moments, volume)
     /// of a given shape.
-    bool static GetVolumeProperties(
+    static bool GetVolumeProperties(
         const TopoDS_Shape& mshape,   ///< pass the shape here
         const double density,         ///< pass the density here
         ChVector<>& center_position,  ///< get the COG position center, respect to shape pos.
@@ -101,8 +101,10 @@ class ChApiCASCADE ChCascadeDoc {
 
     /// Create a ChBodyAuxRef with assets for the given TopoDS_Shape
     static std::shared_ptr<ChBodyAuxRef> CreateBodyFromShape(
-                const TopoDS_Shape& mshape,   ///< pass the shape here
-                const double density          ///< pass the density here
+                const TopoDS_Shape& mshape,     ///< pass the shape here
+                const double density,           ///< pass the density here
+				const bool collide = false,     ///< if true, add a collision shape that uses the triangulation of shape
+				const bool visual_asset = true  ///< if true, uses a triangulated shape for visualization
                 );
 
   private:

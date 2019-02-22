@@ -73,15 +73,21 @@ void ChIterativeSolverParallelNSC::RunTimeStep() {
     data_manager->measures.solver.total_iteration = 0;
     data_manager->measures.solver.maxd_hist.clear();
     data_manager->measures.solver.maxdeltalambda_hist.clear();
+
     // Set pointers to constraint objects and perform setup actions for solver
 
+    data_manager->system_timer.start("ChIterativeSolverParallel_Setup");
     solver->Setup(data_manager);
     bilateral_solver->Setup(data_manager);
+    data_manager->system_timer.stop("ChIterativeSolverParallel_Setup");
 
+    data_manager->system_timer.start("ChIterativeSolverParallel_Matrices");
     ComputeD();
     ComputeE();
     ComputeR();
     ComputeN();
+    data_manager->system_timer.stop("ChIterativeSolverParallel_Matrices");
+
     data_manager->system_timer.start("ChIterativeSolverParallel_Solve");
 
     data_manager->node_container->PreSolve();

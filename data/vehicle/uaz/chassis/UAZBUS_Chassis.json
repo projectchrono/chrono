@@ -1,0 +1,34 @@
+{
+  "Name":     "UAZBUS chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+                              "Location":    [-1.204, 0.0, 0.3], 
+                              "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                2321.0,
+     "Moments of Inertia":  [785.0, 2612.0, 2761.0],
+     "Products of Inertia": [0, 0, 0],
+     "Void":                false
+   }
+  ],
+
+  "Driver Position":
+  {
+    "Location":     [0.0, 0.7, 0.5],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
+  "Visualization":
+  {
+    "Mesh":
+    {
+       "Filename":  "uaz/uazbus_chassis.obj",
+       "Name":      "hmmwv_chassis_POV_geom"
+    }
+  }
+}

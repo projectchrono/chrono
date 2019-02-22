@@ -31,18 +31,30 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_Driveline2WD.h
     hmmwv/HMMWV_Driveline4WD.cpp
     hmmwv/HMMWV_Driveline4WD.h
+    hmmwv/HMMWV_RigidTire.cpp
+    hmmwv/HMMWV_RigidTire.h
     hmmwv/HMMWV_FialaTire.cpp
     hmmwv/HMMWV_FialaTire.h
     hmmwv/HMMWV_LugreTire.cpp
     hmmwv/HMMWV_LugreTire.h
+    hmmwv/HMMWV_Pac02Tire.cpp
+    hmmwv/HMMWV_Pac02Tire.h
+    hmmwv/HMMWV_Pac89Tire.cpp
+    hmmwv/HMMWV_Pac89Tire.h
+    hmmwv/HMMWV_TMeasyTire.cpp
+    hmmwv/HMMWV_TMeasyTire.h
+    hmmwv/HMMWV_ANCFTire.cpp
+    hmmwv/HMMWV_ANCFTire.h
+    hmmwv/HMMWV_ReissnerTire.cpp
+    hmmwv/HMMWV_ReissnerTire.h
     hmmwv/HMMWV_PitmanArm.cpp
     hmmwv/HMMWV_PitmanArm.h
+    hmmwv/HMMWV_PitmanArmShafts.cpp
+    hmmwv/HMMWV_PitmanArmShafts.h
     hmmwv/HMMWV_Powertrain.cpp
     hmmwv/HMMWV_Powertrain.h
     hmmwv/HMMWV_RackPinion.cpp
     hmmwv/HMMWV_RackPinion.h
-    hmmwv/HMMWV_RigidTire.cpp
-    hmmwv/HMMWV_RigidTire.h
     hmmwv/HMMWV_SimpleDriveline.cpp
     hmmwv/HMMWV_SimpleDriveline.h
     hmmwv/HMMWV_SimplePowertrain.cpp
@@ -57,17 +69,37 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_Wheel.cpp
     hmmwv/HMMWV_Wheel.h
 )
-if(ENABLE_MODULE_FEA)
-  set(CVM_HMMWV_FEA_FILES
-      hmmwv/HMMWV_ANCFTire.cpp
-      hmmwv/HMMWV_ANCFTire.h
-      hmmwv/HMMWV_ReissnerTire.cpp
-      hmmwv/HMMWV_ReissnerTire.h
-  )
-else()
-  set(CVM_HMMWV_FEA_FILES "")
-endif()
-source_group("hmmwv" FILES ${CVM_HMMWV_FILES} ${CVM_HMMWV_FEA_FILES})
+source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
+
+set(CVM_UAZ_FILES
+    uaz/UAZBUS.cpp
+    uaz/UAZBUS.h
+    uaz/UAZBUS_BrakeSimple.cpp
+    uaz/UAZBUS_BrakeSimple.h
+    uaz/UAZBUS_Chassis.cpp
+    uaz/UAZBUS_Chassis.h
+    uaz/UAZBUS_Driveline2WD.cpp
+    uaz/UAZBUS_Driveline2WD.h
+    uaz/UAZBUS_Driveline4WD.cpp
+    uaz/UAZBUS_Driveline4WD.h
+    uaz/UAZBUS_LeafspringAxle.cpp
+    uaz/UAZBUS_LeafspringAxle.h
+    uaz/UAZBUS_RigidTire.cpp
+    uaz/UAZBUS_RigidTire.h
+    uaz/UAZBUS_RotaryArm.cpp
+    uaz/UAZBUS_RotaryArm.h
+    uaz/UAZBUS_SimpleMapPowertrain.cpp
+    uaz/UAZBUS_SimpleMapPowertrain.h
+    uaz/UAZBUS_TMeasyTire.cpp
+    uaz/UAZBUS_TMeasyTire.h
+    uaz/UAZBUS_ToeBarLeafspringAxle.cpp
+    uaz/UAZBUS_ToeBarLeafspringAxle.h
+    uaz/UAZBUS_Vehicle.cpp
+    uaz/UAZBUS_Vehicle.h
+    uaz/UAZBUS_Wheel.cpp
+    uaz/UAZBUS_Wheel.h
+)
+source_group("uaz" FILES ${CVM_UAZ_FILES})
 
 set(CVM_GENERIC_FILES
     generic/Generic_AntirollBarRSD.h
@@ -112,6 +144,34 @@ set(CVM_GENERIC_FILES
 )
 source_group("generic" FILES ${CVM_GENERIC_FILES})
 
+set(CVM_SEDAN_FILES
+    sedan/Sedan.cpp
+    sedan/Sedan.h
+    sedan/Sedan_BrakeSimple.cpp
+    sedan/Sedan_BrakeSimple.h
+    sedan/Sedan_Chassis.h
+    sedan/Sedan_Chassis.cpp
+    sedan/Sedan_DoubleWishbone.cpp
+    sedan/Sedan_DoubleWishbone.h
+    sedan/Sedan_Driveline2WD.cpp
+    sedan/Sedan_Driveline2WD.h
+    sedan/Sedan_MultiLink.cpp
+    sedan/Sedan_MultiLink.h
+    sedan/Sedan_RigidTire.cpp
+    sedan/Sedan_RigidTire.h
+    sedan/Sedan_TMeasyTire.cpp
+    sedan/Sedan_TMeasyTire.h
+    sedan/Sedan_RackPinion.cpp
+    sedan/Sedan_RackPinion.h
+    sedan/Sedan_SimpleMapPowertrain.cpp
+    sedan/Sedan_SimpleMapPowertrain.h
+    sedan/Sedan_Vehicle.h
+    sedan/Sedan_Vehicle.cpp
+    sedan/Sedan_Wheel.cpp
+    sedan/Sedan_Wheel.h
+)
+source_group("sedan" FILES ${CVM_SEDAN_FILES})
+
 set(CVM_M113_FILES
     m113/M113_BrakeSimple.h
     m113/M113_Chassis.h
@@ -132,16 +192,26 @@ set(CVM_M113_FILES
     m113/M113_SprocketSinglePin.h
     m113/M113_SprocketDoublePin.cpp
     m113/M113_SprocketDoublePin.h
+    m113/M113_SprocketBand.cpp
+    m113/M113_SprocketBand.h
     m113/M113_Suspension.cpp
     m113/M113_Suspension.h
     m113/M113_TrackAssemblySinglePin.cpp
     m113/M113_TrackAssemblySinglePin.h
     m113/M113_TrackAssemblyDoublePin.cpp
     m113/M113_TrackAssemblyDoublePin.h
+    m113/M113_TrackAssemblyBandBushing.cpp
+    m113/M113_TrackAssemblyBandBushing.h
+    m113/M113_TrackAssemblyBandANCF.cpp
+    m113/M113_TrackAssemblyBandANCF.h
     m113/M113_TrackShoeSinglePin.cpp
     m113/M113_TrackShoeSinglePin.h
     m113/M113_TrackShoeDoublePin.cpp
     m113/M113_TrackShoeDoublePin.h
+    m113/M113_TrackShoeBandBushing.cpp
+    m113/M113_TrackShoeBandBushing.h
+    m113/M113_TrackShoeBandANCF.cpp
+    m113/M113_TrackShoeBandANCF.h
     m113/M113_Vehicle.cpp
     m113/M113_Vehicle.h
 )
@@ -189,15 +259,12 @@ if(ENABLE_MODULE_IRRLICHT)
     include_directories(${CH_IRRLICHTINC})
 endif()
 
-if(ENABLE_MODULE_FEA)
-    list(APPEND LIBRARIES ChronoEngine_fea)
-endif()
-
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
-    ${CVM_HMMWV_FEA_FILES}
+    ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
+    ${CVM_SEDAN_FILES}
     ${CVM_M113_FILES}
     ${CVM_M113_A_FILES}
  )
@@ -211,8 +278,8 @@ target_link_libraries(ChronoModels_vehicle ${LIBRARIES})
 
 install(TARGETS ChronoModels_vehicle
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib64
-        ARCHIVE DESTINATION lib64)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_models/vehicle

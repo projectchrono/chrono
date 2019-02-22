@@ -138,6 +138,132 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
 CH_CLASS_VERSION(ChShaftsBody,0)
 
 
+
+
+/// Class for creating a constraint between a 3D ChBody object and a 1D ChShaft object
+/// that represents a 1D translational DOF (differently from the ChShaftsBody constraint 
+/// that connects to a rotational DOF)
+/// A translation axis must be specified (to tell along which direction the 1D shaft inertia
+/// rotation affects the body).
+
+class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
+
+  private:
+    double force_react;                 ///< reaction force
+    ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
+    ChShaft* shaft;                     ///< connected shaft (translation dof)
+    ChBodyFrame* body;                  ///< connected body
+    ChVector<> shaft_dir;               ///< shaft direction
+    ChVector<> shaft_pos;               ///< shaft anchor to body
+
+  public:
+    ChShaftsBodyTranslation();
+    ChShaftsBodyTranslation(const ChShaftsBodyTranslation& other);
+    ~ChShaftsBodyTranslation() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsBodyTranslation* Clone() const override { return new ChShaftsBodyTranslation(*this); }
+
+    /// Get the number of scalar variables affected by constraints in this link
+    virtual int GetNumCoords() const { return 6 + 1; }
+
+    /// Number of scalar constraints
+    virtual int GetDOC_c() override { return 1; }
+
+    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
+
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override {}
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
+
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
+
+    /// Use this function after object creation, to initialize it, given
+    /// the 1D shaft and 3D body to join.
+    /// Each item must belong to the same ChSystem.
+    /// Direction is expressed in the local coordinates of the body.
+    bool Initialize(std::shared_ptr<ChShaft> mshaft,  ///< shaft to join, representing translational dof
+                    std::shared_ptr<ChBodyFrame> mbody, ///< body to join
+                    const ChVector<>& mdir,  ///< the direction of the shaft on 3D body, in body coords
+                    const ChVector<>& mpos  ///< the anchro position of the shaft on 3D body, in body coords
+                    );
+
+    /// Get the shaft
+    ChShaft* GetShaft() { return shaft; }
+    /// Get the body
+    ChBodyFrame* GetBody() { return body; }
+
+    /// Set the direction of the shaft respect to 3D body, as a
+    /// normalized vector expressed in the coordinates of the body.
+    void SetShaftDirection(ChVector<> md) { shaft_dir = Vnorm(md); }
+
+    /// Get the direction of the shaft respect to 3D body, as a
+    /// normalized vector expressed in the coordinates of the body.
+    const ChVector<>& GetShaftDirection() const { return shaft_dir; }
+
+    /// Set the anchor point of the shaft respect to 3D body, as a
+    /// vector expressed in the coordinates of the body.
+    void SetShaftPos(ChVector<> md) { shaft_pos = md; }
+
+    /// Get the anchor point of the shaft respect to 3D body, as a
+    /// vector expressed in the coordinates of the body.
+    const ChVector<>& GetShaftPos() const { return shaft_pos; }
+
+
+    /// Get the reaction force considered as applied to ChShaft.
+    double GetForceReactionOnShaft() const { return -(force_react); }
+
+    /// Get the reaction torque considered as applied to ChBody,
+    /// expressed in the coordinates of the body.
+    ChVector<> GetForceReactionOnBody() const { return (shaft_dir * force_react); }
+
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    //
+    // SERIALIZATION
+    //
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+};
+
+CH_CLASS_VERSION(ChShaftsBodyTranslation,0)
+
+
+
+
+
 }  // end namespace chrono
 
 #endif

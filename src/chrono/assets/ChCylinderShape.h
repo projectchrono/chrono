@@ -20,62 +20,28 @@
 
 namespace chrono {
 
-/// Class for referencing a cylinder shape that can be
-/// visualized in some way.
-
+/// Class for referencing a cylinder shape that can be visualized in some way.
 class ChApi ChCylinderShape : public ChVisualization {
-
   protected:
-    //
-    // DATA
-    //
     geometry::ChCylinder gcylinder;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    ChCylinderShape(){};
-    ChCylinderShape(geometry::ChCylinder& mcyl) : gcylinder(mcyl){};
+    ChCylinderShape() {}
+    ChCylinderShape(const geometry::ChCylinder& mcyl) : gcylinder(mcyl) {}
 
     virtual ~ChCylinderShape(){};
-
-    //
-    // FUNCTIONS
-    //
 
     // Access the sphere geometry
     geometry::ChCylinder& GetCylinderGeometry() { return gcylinder; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChCylinderShape>();
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(gcylinder);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChCylinderShape>();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(gcylinder);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChCylinderShape,0)
+CH_CLASS_VERSION(ChCylinderShape, 0)
 
 }  // end namespace chrono
 

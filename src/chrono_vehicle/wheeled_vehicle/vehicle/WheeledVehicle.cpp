@@ -36,11 +36,14 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/LeafspringAxle.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
+#include "chrono_vehicle/wheeled_vehicle/steering/RotaryArm.h"
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
@@ -49,6 +52,8 @@
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -59,24 +64,8 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion, respectively,
-// from the specified JSON array.
 // -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-static ChQuaternion<> loadQuaternion(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 4);
-    return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void WheeledVehicle::LoadChassis(const std::string& filename) {
+void WheeledVehicle::LoadChassis(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -101,12 +90,17 @@ void WheeledVehicle::LoadChassis(const std::string& filename) {
         m_chassis = std::make_shared<RigidChassis>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_chassis->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
+void WheeledVehicle::LoadSteering(const std::string& filename, int which, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -131,6 +125,13 @@ void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
         m_steerings[which] = std::make_shared<PitmanArm>(d);
     } else if (subtype.compare("RackPinion") == 0) {
         m_steerings[which] = std::make_shared<RackPinion>(d);
+    } else if (subtype.compare("RotaryArm") == 0) {
+        m_steerings[which] = std::make_shared<RotaryArm>(d);
+    }
+
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_steerings[which]->SetOutput(output == +1);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -138,7 +139,7 @@ void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadDriveline(const std::string& filename) {
+void WheeledVehicle::LoadDriveline(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -167,12 +168,17 @@ void WheeledVehicle::LoadDriveline(const std::string& filename) {
         m_driveline = std::make_shared<SimpleDriveline>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_driveline->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
+void WheeledVehicle::LoadSuspension(const std::string& filename, int axle, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -207,6 +213,15 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
         m_suspensions[axle] = std::make_shared<SemiTrailingArm>(d);
     } else if (subtype.compare("ThreeLinkIRS") == 0) {
         m_suspensions[axle] = std::make_shared<ThreeLinkIRS>(d);
+    } else if (subtype.compare("ToeBarLeafspringAxle") == 0) {
+        m_suspensions[axle] = std::make_shared<ToeBarLeafspringAxle>(d);
+    } else if (subtype.compare("LeafspringAxle") == 0) {
+        m_suspensions[axle] = std::make_shared<LeafspringAxle>(d);
+    }
+
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_suspensions[axle]->SetOutput(output == +1);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -214,7 +229,7 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadAntirollbar(const std::string& filename) {
+void WheeledVehicle::LoadAntirollbar(const std::string& filename, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -238,12 +253,17 @@ void WheeledVehicle::LoadAntirollbar(const std::string& filename) {
         m_antirollbars.push_back(std::make_shared<AntirollBarRSD>(d));
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_antirollbars.back()->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side) {
+void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -268,12 +288,17 @@ void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side) 
         m_wheels[2 * axle + side] = std::make_shared<Wheel>(d);
     }
 
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_wheels[2 * axle + side]->SetOutput(output == +1);
+    }
+
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) {
+void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side, int output) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -296,6 +321,11 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
     // Create the brake using the appropriate template.
     if (subtype.compare("BrakeSimple") == 0) {
         m_brakes[2 * axle + side] = std::make_shared<BrakeSimple>(d);
+    }
+
+    // A non-zero value of 'output' indicates overwriting the subsystem's flag
+    if (output != 0) {
+        m_brakes[2 * axle + side]->SetOutput(output == +1);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -345,6 +375,7 @@ void WheeledVehicle::Create(const std::string& filename) {
     // Validations of the JSON file
     // ----------------------------
 
+    assert(d.HasMember("Chassis"));
     assert(d.HasMember("Steering Subsystems"));
     assert(d.HasMember("Driveline"));
     assert(d.HasMember("Axles"));
@@ -371,11 +402,14 @@ void WheeledVehicle::Create(const std::string& filename) {
     // -------------------------------------------
     // Create the chassis system
     // -------------------------------------------
-    assert(d.HasMember("Chassis"));
 
     {
         std::string file_name = d["Chassis"]["Input File"].GetString();
-        LoadChassis(vehicle::GetDataFile(file_name));
+        int output = 0;
+        if (d["Chassis"].HasMember("Output")) {
+            output = d["Chassis"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadChassis(vehicle::GetDataFile(file_name), output);
     }
 
     // ------------------------------
@@ -384,9 +418,13 @@ void WheeledVehicle::Create(const std::string& filename) {
 
     for (int i = 0; i < m_num_strs; i++) {
         std::string file_name = d["Steering Subsystems"][i]["Input File"].GetString();
-        LoadSteering(vehicle::GetDataFile(file_name), i);
-        m_strLocations[i] = loadVector(d["Steering Subsystems"][i]["Location"]);
-        m_strRotations[i] = loadQuaternion(d["Steering Subsystems"][i]["Orientation"]);
+        int output = 0;
+        if (d["Steering Subsystems"][i].HasMember("Output")) {
+            output = d["Steering Subsystems"][i]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadSteering(vehicle::GetDataFile(file_name), i, output);
+        m_strLocations[i] = LoadVectorJSON(d["Steering Subsystems"][i]["Location"]);
+        m_strRotations[i] = LoadQuaternionJSON(d["Steering Subsystems"][i]["Orientation"]);
     }
 
     // --------------------
@@ -395,7 +433,11 @@ void WheeledVehicle::Create(const std::string& filename) {
 
     {
         std::string file_name = d["Driveline"]["Input File"].GetString();
-        LoadDriveline(vehicle::GetDataFile(file_name));
+        int output = 0;
+        if (d["Driveline"].HasMember("Output")) {
+            output = d["Driveline"]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadDriveline(vehicle::GetDataFile(file_name), output);
         SizeType num_driven_susp = d["Driveline"]["Suspension Indexes"].Size();
         m_driven_susp.resize(num_driven_susp);
         for (SizeType i = 0; i < num_driven_susp; i++) {
@@ -412,8 +454,12 @@ void WheeledVehicle::Create(const std::string& filename) {
     for (int i = 0; i < m_num_axles; i++) {
         // Suspension
         std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
-        LoadSuspension(vehicle::GetDataFile(file_name), i);
-        m_suspLocations[i] = loadVector(d["Axles"][i]["Suspension Location"]);
+        int output = 0;
+        if (d["Axles"][i].HasMember("Output")) {
+            output = d["Axles"][i]["Output"].GetBool() ? +1 : -1;
+        }
+        LoadSuspension(vehicle::GetDataFile(file_name), i, output);
+        m_suspLocations[i] = LoadVectorJSON(d["Axles"][i]["Suspension Location"]);
 
         // Index of steering subsystem (if applicable)
         if (d["Axles"][i].HasMember("Steering Index")) {
@@ -425,23 +471,48 @@ void WheeledVehicle::Create(const std::string& filename) {
             assert(m_suspensions[i]->IsIndependent());
             assert(d["Axles"][i].HasMember("Antirollbar Location"));
             file_name = d["Axles"][i]["Antirollbar Input File"].GetString();
-            LoadAntirollbar(vehicle::GetDataFile(file_name));
-            m_arbLocations.push_back(loadVector(d["Axles"][i]["Antirollbar Location"]));
+            LoadAntirollbar(vehicle::GetDataFile(file_name), output);
+            m_arbLocations.push_back(LoadVectorJSON(d["Axles"][i]["Antirollbar Location"]));
             m_arbSuspension.push_back(i);
         }
 
         // Left and right wheels
         file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-        LoadWheel(vehicle::GetDataFile(file_name), i, 0);
+        LoadWheel(vehicle::GetDataFile(file_name), i, VehicleSide::LEFT, output);
         file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-        LoadWheel(vehicle::GetDataFile(file_name), i, 1);
+        LoadWheel(vehicle::GetDataFile(file_name), i, VehicleSide::RIGHT, output);
 
         // Left and right brakes
         file_name = d["Axles"][i]["Left Brake Input File"].GetString();
-        LoadBrake(vehicle::GetDataFile(file_name), i, 0);
+        LoadBrake(vehicle::GetDataFile(file_name), i, VehicleSide::LEFT, output);
 
         file_name = d["Axles"][i]["Right Brake Input File"].GetString();
-        LoadBrake(vehicle::GetDataFile(file_name), i, 1);
+        LoadBrake(vehicle::GetDataFile(file_name), i, VehicleSide::RIGHT, output);
+    }
+
+    // Get the wheelbase (if defined in JSON file).
+    // Otherwise, approximate as distance between first and last suspensions.
+    if (d.HasMember("Wheelbase")) {
+        m_wheelbase = d["Wheelbase"].GetDouble();
+    } else {
+        m_wheelbase = m_suspLocations[0].x() - m_suspLocations[m_num_axles - 1].x();
+    }
+    assert(m_wheelbase > 0);
+
+    // Get the minimum turning radius (if defined in JSON file).
+    // Otherwise, use default value.
+    if (d.HasMember("Minimum Turning Radius")) {
+        m_turn_radius = d["Minimum Turning Radius"].GetDouble();
+    } else {
+        m_turn_radius = ChWheeledVehicle::GetMinTurningRadius();
+    }
+
+    // Set maximum steering angle. Use value from JSON file is provided.
+    // Otherwise, use default estimate.
+    if (d.HasMember("Maximum Steering Angle")) {
+        m_steer_angle = d["Maximum Steering Angle"].GetDouble() * CH_C_DEG_TO_RAD;
+    } else {
+        m_steer_angle = ChWheeledVehicle::GetMaxSteeringAngle();
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";

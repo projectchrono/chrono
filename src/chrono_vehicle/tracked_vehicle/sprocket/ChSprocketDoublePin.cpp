@@ -286,6 +286,7 @@ void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connecto
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);
     contact.distance = Rdiff - dist;
+    ////contact.eff_radius = cr;  //// TODO: take into account ar?
 
     m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact);
 }
@@ -326,6 +327,7 @@ void SprocketDoublePinContactCB::CheckCircleSegment(std::shared_ptr<ChBody> conn
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);
     contact.distance = dist - cr;
+    ////contact.eff_radius = cr;
 
     m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact);
 }

@@ -243,13 +243,15 @@ void function_CalcContactForces(
         }
     }
 
+    double eps = std::numeric_limits<double>::epsilon();
+
     switch (contact_model) {
         case ChSystemSMC::ContactForceModel::Hooke:
             if (use_mat_props) {
                 real tmp_k = (16.0 / 15) * Sqrt(eff_radius[index]) * E_eff;
                 real v2 = char_vel * char_vel;
-                real loge = (cr_eff < CH_MICROTOL) ? Log(CH_MICROTOL) : Log(cr_eff);
-                loge = (cr_eff > 1 - CH_MICROTOL) ? Log(1 - CH_MICROTOL) : loge;
+                real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
+                loge = (cr_eff > 1 - eps) ? Log(1 - eps) : loge;
                 real tmp_g = 1 + Pow(CH_C_PI / loge, 2);
                 kn = tmp_k * Pow(m_eff * v2 / tmp_k, 1.0 / 5);
                 kt = kn;
@@ -269,7 +271,7 @@ void function_CalcContactForces(
                 real sqrt_Rd = Sqrt(eff_radius[index] * delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real St = 8 * G_eff * sqrt_Rd;
-                real loge = (cr_eff < CH_MICROTOL) ? Log(CH_MICROTOL) : Log(cr_eff);
+                real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
                 real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
                 kn = (2.0 / 3) * Sn;
                 kt = St;
@@ -290,7 +292,7 @@ void function_CalcContactForces(
                 real sqrt_Rd = Sqrt(delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
                 real St = 8 * G_eff * sqrt_Rd;
-                real loge = (cr_eff < CH_MICROTOL) ? Log(CH_MICROTOL) : Log(cr_eff);
+                real loge = (cr_eff < eps) ? Log(eps) : Log(cr_eff);
                 real beta = loge / Sqrt(loge * loge + CH_C_PI * CH_C_PI);
                 kn = (2.0 / 3) * Sn;
                 gn = -2 * Sqrt(5.0 / 6) * beta * Sqrt(Sn * m_eff);
@@ -381,7 +383,7 @@ void function_CalcContactForces(
     real delta_t_mag = Length(delta_t);
     real forceT_slide = mu_eff * Abs(forceN_mag);
     if (forceT_stiff_mag > forceT_slide) {
-        if (delta_t_mag > CH_MICROTOL) {
+        if (delta_t_mag > eps) {
             real ratio = forceT_slide / forceT_stiff_mag;
             forceT_stiff *= ratio;
             if (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
@@ -672,20 +674,23 @@ void ChIterativeSolverParallelSMC::RunTimeStep() {
 
         solver->Setup(data_manager);
 
+        data_manager->system_timer.stop("ChIterativeSolverParallel_Setup");
+
         // Set the initial guess for the iterative solver to zero.
         data_manager->host_data.gamma.resize(data_manager->num_constraints);
         data_manager->host_data.gamma.reset();
 
         // Compute the jacobian matrix, the compliance matrix and the right hand side
+        data_manager->system_timer.start("ChIterativeSolverParallel_Matrices");
         ComputeD();
         ComputeE();
         ComputeR();
-
-        data_manager->system_timer.stop("ChIterativeSolverParallel_Setup");
+        data_manager->system_timer.stop("ChIterativeSolverParallel_Matrices");
 
         ShurProductBilateral.Setup(data_manager);
 
         bilateral_solver->Setup(data_manager);
+
         // Solve for the Lagrange multipliers associated with bilateral constraints.
         PerformStabilization();
     }

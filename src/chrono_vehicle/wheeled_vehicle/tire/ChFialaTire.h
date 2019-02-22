@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Radu Serban, Michael Taylor, Rainer Gericke
 // =============================================================================
 //
 // Template for Fiala tire model
@@ -42,6 +42,9 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
     virtual ~ChFialaTire() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "FialaTire"; }
+
     /// Initialize this tire system.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
                             VehicleSide side                ///< [in] left/right vehicle side
@@ -62,7 +65,10 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
     /// force one the wheel body.
-    virtual TireForce GetTireForce(bool cosim = false) const override { return m_tireforce; }
+    virtual TerrainForce GetTireForce() const override { return m_tireforce; }
+
+    /// Report the tire force and moment.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
     /// Update the state of this tire system at the current time.
     /// The tire system is provided the current state of its associated wheel.
@@ -74,12 +80,6 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) override;
 
-    /// Set the value of the integration step size for the underlying dynamics.
-    void SetStepsize(double val) { m_stepsize = val; }
-
-    /// Get the current value of the integration step size.
-    double GetStepsize() const { return m_stepsize; }
-
     /// Get the width of the tire.
     double GetWidth() const { return m_width; }
 
@@ -87,10 +87,14 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     virtual double GetVisualizationWidth() const { return m_width; }
 
     /// Get the tire slip angle.
-    virtual double GetSlipAngle() const override { return m_states.cp_side_slip; }
+    virtual double GetSlipAngle() const override { return m_states.alpha; }
 
     /// Get the tire longitudinal slip.
-    virtual double GetLongitudinalSlip() const override { return m_states.cp_long_slip; }
+    virtual double GetLongitudinalSlip() const override { return m_states.kappa; }
+    
+    /// Generate basic tire plots.
+    /// This function creates a Gnuplot script file with the specified name.
+    void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
 
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
@@ -101,8 +105,12 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
     /// Set the parameters in the Fiala model.
     virtual void SetFialaParams() = 0;
-
+    
+    /// Calculate Patch Forces
+    void FialaPatchForces(double &fx, double &fy, double &mz, double kappa, double alpha, double fz);
+    
     /// Fiala tire model parameters
+    
     double m_unloaded_radius;
     double m_width;
     double m_rolling_resistance;
@@ -112,10 +120,19 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     double m_u_max;
     double m_relax_length_x;
     double m_relax_length_y;
-
+    
+    // Fiala extensions from ADAMS/Car user source example and TMeasy
+    double m_mu;     ///< Actual friction coefficient of the road
+    double m_mu_0;   ///< Local friction coefficient of the road for given parameters
+    
+    double m_Fz_nom; /// Nominal Tire Load, needed for Plotting
+    
+    /// Switch for dynamic mode (relaxation)
+    bool    m_dynamic_mode;
+    double  m_time;            // actual system time
+    double  m_time_trans;      // end of start transient
+    
   private:
-    double m_stepsize;
-
     struct ContactData {
         bool in_contact;      // true if disc in contact with terrain
         ChCoordsys<> frame;   // contact frame (x: long, y: lat, z: normal)
@@ -125,19 +142,22 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     };
 
     struct TireStates {
-        double cp_long_slip;     // Contact Path - Longitudinal Slip State (Kappa)
-        double cp_side_slip;     // Contact Path - Side Slip State (Alpha)
+        double kappa;       // Contact Path - Stationary Longitudinal Slip State (Kappa)
+        double alpha;       // Contact Path - Stationary Side Slip State (Alpha)
         double abs_vx;           // Longitudinal speed
+        double abs_vt;           // Longitudinal transport speed
         double vsx;              // Longitudinal slip velocity
         double vsy;              // Lateral slip velocity = Lateral velocity
         double omega;            // Wheel angular velocity about its spin axis (temporary for debug)
+        double Fx_l;
+        double Fy_l;
         ChVector<> disc_normal;  //(temporary for debug)
     };
 
     ContactData m_data;
     TireStates m_states;
 
-    TireForce m_tireforce;
+    TerrainForce m_tireforce;
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
     std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset

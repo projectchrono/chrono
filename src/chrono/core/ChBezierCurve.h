@@ -41,6 +41,8 @@
 #include <string>
 
 #include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/serialization/ChArchive.h"
 
@@ -91,10 +93,19 @@ class ChApi ChBezierCurve {
     const ChVector<>& getPoint(size_t i) const { return m_points[i]; }
 
     /// Evaluate the value of the Bezier curve.
+    /// This function calculates and returns the point on the curve at the
+    /// given curve parameter (assumed to be in [0,1]).  
+    /// A value t=0 returns the first point on the curve.
+    /// A value t=1 returns the last point on the curve.
+    ChVector<> eval(double t) const;
+
+    /// Evaluate the value of the Bezier curve.
     /// This function calculates and returns the point on the curve in the
     /// specified interval between two knot points and at the given curve
-    /// parameter (assumed to be in [0,1]). It uses the Bernstein polynomial
-    /// representation of a Bezier curve.
+    /// parameter (assumed to be in [0,1]).
+    /// A value t-0 returns the first end of the specified interval.
+    /// A value t=1 return the second end of the specified interval.
+    /// It uses the Bernstein polynomial representation of a Bezier curve.
     ChVector<> eval(size_t i, double t) const;
 
     /// Evaluate the tangent vector to the Bezier curve.
@@ -138,36 +149,11 @@ class ChApi ChBezierCurve {
     // SERIALIZATION
     //
 
-    void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChBezierCurve>();
+    /// Method to allow serialization of transient data to archives.
+    void ArchiveOUT(ChArchiveOut& marchive);
 
-        // serialize all member data:
-        marchive << CHNVP(m_points);
-        marchive << CHNVP(m_inCV);
-        marchive << CHNVP(m_outCV);
-        marchive << CHNVP(m_maxNumIters);
-        marchive << CHNVP(m_sqrDistTol);
-        marchive << CHNVP(m_cosAngleTol);
-        marchive << CHNVP(m_paramTol);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChBezierCurve>();
-
-        // stream in all member data:
-        marchive >> CHNVP(m_points);
-        marchive >> CHNVP(m_inCV);
-        marchive >> CHNVP(m_outCV);
-        marchive >> CHNVP(m_maxNumIters);
-        marchive >> CHNVP(m_sqrDistTol);
-        marchive >> CHNVP(m_cosAngleTol);
-        marchive >> CHNVP(m_paramTol);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    void ArchiveIN(ChArchiveIn& marchive);
 
   private:
     /// Utility function to solve for the outCV control points.
@@ -219,6 +205,14 @@ class ChApi ChBezierCurveTracker {
     /// interval and curve parameter within that interval from the last query). As
     /// such, this function should be called with a continuous sequence of locations.
     int calcClosestPoint(const ChVector<>& loc, ChVector<>& point);
+
+    /// Calculate the closest point on the underlying curve to the specified location.
+    /// Return the TNB (tangent-normal-binormal) frame and the curvature at the closest point.
+    /// The ChFrame 'tnb' has X axis along the tangent, Y axis along the normal, and Z axis
+    /// along the binormal.  The frame location is the closest point on the Bezier curve.
+    /// Note that the normal and binormal are not defined at points with zero curvature.
+    /// In such cases, we return an orthonormal frame with X axis along the tangent.
+    int calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb, double& curvature);
 
     /// Set if the path is treated as an open loop or a closed loop for tracking
     void setIsClosedPath(bool isClosedPath);

@@ -38,6 +38,9 @@ const double HMMWV_Driveline4WD::m_rear_differential_ratio = -1;
 const double HMMWV_Driveline4WD::m_front_conicalgear_ratio = -0.2;
 const double HMMWV_Driveline4WD::m_rear_conicalgear_ratio = -0.2;
 
+const double HMMWV_Driveline4WD::m_axle_differential_locking_limit = 100;
+const double HMMWV_Driveline4WD::m_central_differential_locking_limit = 100;
+
 // -----------------------------------------------------------------------------
 // Constructor of the HMMWV_Driveline4WD.
 // The direction of the motor block is along the X axis, while the directions of

@@ -18,62 +18,28 @@
 
 namespace chrono {
 
-/// Class for referencing an ellipsoid shape that can be
-/// visualized in some way.
-
+/// Class for referencing an ellipsoid shape that can be visualized in some way.
 class ChApi ChEllipsoidShape : public ChVisualization {
-
   protected:
-    //
-    // DATA
-    //
     geometry::ChEllipsoid gellipsoid;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    ChEllipsoidShape(){};
-    ChEllipsoidShape(geometry::ChEllipsoid& mellipsoid) : gellipsoid(mellipsoid){};
+    ChEllipsoidShape() {}
+    ChEllipsoidShape(const geometry::ChEllipsoid& mellipsoid) : gellipsoid(mellipsoid) {}
 
     virtual ~ChEllipsoidShape(){};
-
-    //
-    // FUNCTIONS
-    //
 
     // Access the sphere geometry
     geometry::ChEllipsoid& GetEllipsoidGeometry() { return gellipsoid; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChEllipsoidShape>();
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(gellipsoid);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChEllipsoidShape>();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(gellipsoid);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChEllipsoidShape,0)
+CH_CLASS_VERSION(ChEllipsoidShape, 0)
 
 }  // end namespace chrono
 

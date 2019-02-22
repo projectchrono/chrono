@@ -326,6 +326,23 @@ ChVector<> ChBezierCurve::evalDD(size_t i, double t) const {
 }
 
 // -----------------------------------------------------------------------------
+// ChBezierCurve::eval()
+//
+// This function evaluates the value of this Bezier curve at the specified value.
+// A value t=0 returns the first point of the Bezier curve.
+// A value t=1 returns the last point of the Bezier curve.
+// -----------------------------------------------------------------------------
+ChVector<> ChBezierCurve::eval(double t) const {
+    double par = ChClamp(t, 0.0, 1.0);
+    size_t numIntervals = getNumPoints() - 1;
+    double epar = par * numIntervals;
+    size_t i = static_cast<size_t>(std::floor(par * numIntervals));
+    ChClampValue(i, size_t(0), numIntervals - 1);
+
+    return eval(i, epar - (double)i);
+}
+
+// -----------------------------------------------------------------------------
 // ChBezierCurve::calcClosestPoint()
 //
 // This function calculates and returns the closest point in the specified
@@ -381,6 +398,38 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
     };
 
     return Q;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
+{
+    // version number
+    marchive.VersionWrite<ChBezierCurve>();
+
+    // serialize all member data:
+    marchive << CHNVP(m_points);
+    marchive << CHNVP(m_inCV);
+    marchive << CHNVP(m_outCV);
+    marchive << CHNVP(m_maxNumIters);
+    marchive << CHNVP(m_sqrDistTol);
+    marchive << CHNVP(m_cosAngleTol);
+    marchive << CHNVP(m_paramTol);
+}
+
+void ChBezierCurve::ArchiveIN(ChArchiveIn& marchive)
+{
+    // version number
+    int version = marchive.VersionRead<ChBezierCurve>();
+
+    // stream in all member data:
+    marchive >> CHNVP(m_points);
+    marchive >> CHNVP(m_inCV);
+    marchive >> CHNVP(m_outCV);
+    marchive >> CHNVP(m_maxNumIters);
+    marchive >> CHNVP(m_sqrDistTol);
+    marchive >> CHNVP(m_cosAngleTol);
+    marchive >> CHNVP(m_paramTol);
 }
 
 // -----------------------------------------------------------------------------
@@ -499,6 +548,45 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChVector<>& po
     }
 }
 
+int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb, double& curvature) {
+    // Find closest point to specified location
+    ChVector<> r;
+    int flag = calcClosestPoint(loc, r);
+
+    // Find 1st and 2nd order derivative vectors at the closest point
+    ChVector<> rp = m_path->evalD(m_curInterval, m_curParam);
+    ChVector<> rpp = m_path->evalDD(m_curInterval, m_curParam);
+
+    // Calculate TNB frame
+    ChVector<> rp_rpp = Vcross(rp, rpp);
+    ChVector<> rp_rpp_rp = Vcross(rp_rpp, rp);
+    double rp_norm = rp.Length();
+    double rp_rpp_norm = rp_rpp.Length();
+
+    ChVector<> T = rp / rp_norm;
+    ChVector<> N;
+    ChVector<> B;
+    if (std::abs(rp_rpp_norm) > 1e-6) {
+        N = Vcross(rp_rpp, rp) / (rp_norm * rp_rpp_norm);
+        B = rp_rpp / rp_rpp_norm;
+    } else {  // Zero curvature
+        B = ChVector<>(0, 0, 1);
+        N = Vcross(B, T);
+        B = Vcross(T, N);
+    }
+
+    ChMatrix33<> A;
+    A.Set_A_axis(T, N, B);
+
+    tnb.SetRot(A);
+    tnb.SetPos(r);
+
+
+    // Calculate curvature
+    curvature = rp_rpp_norm / (rp_norm * rp_norm * rp_norm);
+
+    return flag;
+}
 
 // -----------------------------------------------------------------------------
 // ChBezierCurveTracker::setIsClosedPath()

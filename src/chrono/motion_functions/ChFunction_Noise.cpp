@@ -30,4 +30,28 @@ double ChFunction_Noise::Get_y(double x) const {
     return ChNoise(x, amp, freq, octaves, amp_ratio);
 }
 
+void ChFunction_Noise::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Noise>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(amp);
+    marchive << CHNVP(freq);
+    marchive << CHNVP(amp_ratio);
+    marchive << CHNVP(octaves);
+}
+
+void ChFunction_Noise::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Noise>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(amp);
+    marchive >> CHNVP(freq);
+    marchive >> CHNVP(amp_ratio);
+    marchive >> CHNVP(octaves);
+}
+
 }  // end namespace chrono

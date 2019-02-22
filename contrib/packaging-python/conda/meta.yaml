@@ -1,0 +1,44 @@
+# change the version number in case of a release build
+package:
+  name: pychrono
+  version: 3.0.0
+
+source:
+  path: ../../..
+
+
+build:
+  rpaths:
+    - lib/
+  script_env:
+    - CC
+    - CXX
+
+  number: {{ GIT_DESCRIBE_NUMBER }}
+  binary_relocation: true
+  #features:
+  #  - vc9               [win and py27]
+  #  - vc14              [win and py35]
+  #  - vc14              [win and py36]
+
+requirements:
+  build:
+    - python
+    - cmake >=3.9.3
+    - swig >=3.0.12
+    - mkl
+
+  run:
+    - python
+    - mkl
+
+test:
+  requires:
+    - wxpython          [py27]
+    - pyside            [py27]
+
+about:
+  home: https://github.com/projectchrono/chrono
+  license: BSD 3-Clause
+  license_family: BSD
+  summary: A physics engine for constrained multi-flexible-body dynamics

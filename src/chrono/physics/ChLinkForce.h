@@ -77,11 +77,11 @@ class ChApi ChLinkForce {
     /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow deserialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive);
 };
 
-CH_CLASS_VERSION(ChLinkForce,0)
+CH_CLASS_VERSION(ChLinkForce, 0)
 
 }  // end namespace chrono
 

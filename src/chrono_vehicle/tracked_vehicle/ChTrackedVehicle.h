@@ -53,6 +53,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Destructor.
     virtual ~ChTrackedVehicle();
 
+    /// Get the name of the vehicle system template.
+    virtual std::string GetTemplateName() const override { return "TrackedVehicle"; }
+
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.
     virtual double GetVehicleMass() const override;
@@ -163,6 +166,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// contact information is written (in CSV format) to the specified file.
     void WriteContacts(const std::string& filename) { m_contacts->WriteContacts(filename); }
 
+    /// Enable/disable output for the track assemblies.
+    void SetTrackAssemblyOutput(VehicleSide side, bool state);
+
     /// Initialize this vehicle at the specified global location and orientation.
     /// This base class implementation only initializes the chassis subsystem.
     /// Derived classes must extend this function to initialize all other tracked
@@ -176,19 +182,30 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
     /// from the powertrain, and tire forces (expressed in the global reference
     /// frame).
-    void Synchronize(double time,                              ///< [in] current time
-                     double steering,                          ///< [in] current steering input [-1,+1]
-                     double braking,                           ///< [in] current braking input [0,1]
-                     double powertrain_torque,                 ///< [in] input torque from powertrain
-                     const TrackShoeForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
-                     const TrackShoeForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
-                     );
+    void Synchronize(double time,                            ///< [in] current time
+                     double steering,                        ///< [in] current steering input [-1,+1]
+                     double braking,                         ///< [in] current braking input [0,1]
+                     double powertrain_torque,               ///< [in] input torque from powertrain
+                     const TerrainForces& shoe_forces_left,  ///< [in] vector of track shoe forces (left side)
+                     const TerrainForces& shoe_forces_right  ///< [in] vector of track shoe forces (left side)
+    );
 
     /// Advance the state of this vehicle by the specified time step.
     virtual void Advance(double step) final;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
+
+    /// Return a JSON string with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual std::string ExportComponentList() const override;
+
+    /// Write a JSON-format file with information on all modeling components in the vehicle system.
+    /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
+    virtual void ExportComponentList(const std::string& filename) const override;
+
+    /// Output data for all modeling components in the vehicle system.
+    virtual void Output(int frame, ChVehicleOutput& database) const override;
 
   protected:
     std::shared_ptr<ChTrackAssembly> m_tracks[2];   ///< handles to the track assemblies (left/right)

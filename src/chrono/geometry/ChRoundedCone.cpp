@@ -25,6 +25,29 @@ CH_FACTORY_REGISTER(ChRoundedCone)
 ChRoundedCone::ChRoundedCone(const ChRoundedCone& source) {
     center = source.center;
     rad = source.rad;
+    radsphere = source.radsphere;
+}
+
+void ChRoundedCone::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChRoundedCone>();
+    // serialize parent class
+    ChGeometry::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(center);
+    marchive << CHNVP(rad);
+    marchive << CHNVP(radsphere);
+}
+
+void ChRoundedCone::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChRoundedCone>();
+    // deserialize parent class
+    ChGeometry::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(center);
+    marchive >> CHNVP(rad);
+    marchive >> CHNVP(radsphere);
 }
 
 }  // end namespace geometry

@@ -28,13 +28,35 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name) : ChPart(name) {
-}
+ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name, bool has_shock)
+    : ChPart(name), m_has_shock(has_shock) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
     m_road_wheel->Initialize(chassis, GetCarrierBody(), location);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRoadWheelAssembly::SetOutput(bool state) {
+    m_output = state;
+    m_road_wheel->SetOutput(state);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRoadWheelAssembly::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    jsonDocument.AddMember("has shock", m_has_shock, jsonDocument.GetAllocator());
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_road_wheel->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("road wheel", jsonSubDocument, jsonDocument.GetAllocator());
+    }
 }
 
 }  // end namespace vehicle

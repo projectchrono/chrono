@@ -115,6 +115,13 @@ inline CSV_writer& operator<<(CSV_writer& out, const ChColor& c) {
   return out;
 }
 
+template <typename T>
+inline CSV_writer& operator<<(CSV_writer& out, const std::vector<T>& vec) {
+    for (const auto& v : vec)
+        out << v;
+    return out;
+}
+
 // -----------------------------------------------------------------------------
 // Free function declarations
 // -----------------------------------------------------------------------------
@@ -150,7 +157,7 @@ void WriteShapesPovray(ChSystem* system,
 // Write the specified mesh as a macro in a PovRay include file. The output file
 // will be "[out_dir]/[mesh_name].inc". The mesh vertices will be transformed to
 // the frame with specified offset and orientation.
-ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
+ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
                            const std::string& mesh_name,
                            const std::string& out_dir,
                            const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),

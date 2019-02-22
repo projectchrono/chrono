@@ -47,15 +47,15 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds).
-    virtual void Clear(void) {}
+    virtual void Clear(void) override {}
 
     /// Adds a collision model to the collision
     /// engine (custom data may be allocated).
-    virtual void Add(ChCollisionModel* model);
+    virtual void Add(ChCollisionModel* model) override;
 
     /// Removes a collision model from the collision
     /// engine (custom data may be deallocated).
-    virtual void Remove(ChCollisionModel* model);
+    virtual void Remove(ChCollisionModel* model) override;
 
     /// Removes all collision models from the collision
     /// engine (custom data may be deallocated).
@@ -63,7 +63,13 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
     /// Run the algorithm and finds all the contacts.
     /// (Contacts will be managed by the Bullet persistent contact cache).
-    virtual void Run();
+    virtual void Run() override;
+
+    /// Return the time (in seconds) for broadphase collision detection.
+    virtual double GetTimerCollisionBroad() const override;
+
+    /// Return the time (in seconds) for narrowphase collision detection.
+    virtual double GetTimerCollisionNarrow() const override;
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
@@ -73,7 +79,7 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
     /// EndAddContact() of the contact container. But if a special container (say, GPU enabled)
     /// is passed, a more rapid buffer copy might be performed).
-    virtual void ReportContacts(ChContactContainer* mcontactcontainer) {}
+    virtual void ReportContacts(ChContactContainer* mcontactcontainer) override {}
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'proximity container' (container of narrow phase pairs), that is
@@ -83,31 +89,43 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
     /// EndAddProximities() of the proximity container. But if a special container (say, GPU enabled)
     /// is passed, a more rapid buffer copy might be performed).
-    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) {}
+    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override {}
 
-    /// Perform a raycast (ray-hit test with the collision models).
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) { return false; }
-
-    std::vector<vec2> GetOverlappingPairs();
-    void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax);
-
-    void SetAABB(real3 aabbmin, real3 aabbmax) {
-        data_manager->settings.collision.aabb_min = aabbmin;
-        data_manager->settings.collision.aabb_max = aabbmax;
-        data_manager->settings.collision.use_aabb_active = true;
+    /// Perform a ray-hit test with all collision models.
+    /// Currently not implemented.
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override {
+        return false;
     }
 
-    bool GetAABB(real3& aabbmin, real3& aabbmax) {
-        aabbmin = data_manager->settings.collision.aabb_min;
-        aabbmax = data_manager->settings.collision.aabb_max;
-
-        return data_manager->settings.collision.use_aabb_active;
+    /// Perform a ray-hit test with the specified collision model.
+    /// Currently not implemented.
+    virtual bool RayHit(const ChVector<>& from,
+                        const ChVector<>& to,
+                        ChCollisionModel* model,
+                        ChRayhitResult& mresult) const override {
+        return false;
     }
+
+
+    /// Set and enable "active" box.
+    /// Bodies outside this AABB are deactivated.
+    void SetAABB(real3 aabbmin, real3 aabbmax);
+
+    /// Get the dimensions of the "active" box.
+    /// The return value indicates whether or not the active box feature is enabled.
+    bool GetAABB(real3& aabbmin, real3& aabbmax);
+
+    /// Mark bodies whose AABB is contained within the specified box.
+    virtual void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax);
+
+    /// Return the pairs of IDs for overlapping contact shapes.
+    virtual std::vector<vec2> GetOverlappingPairs();
 
   private:
     ChParallelDataManager* data_manager;
     custom_vector<char> body_active;
-    friend class chrono::ChSystemParallel;
+
+    friend class ChSystemParallel;
 };
 
 /// @} parallel_colision

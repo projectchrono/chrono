@@ -1266,10 +1266,25 @@ void ChCollisionSystemBullet::Run() {
     }
 }
 
+void ChCollisionSystemBullet::ResetTimers() {
+    bt_collision_world->timer_collision_broad.reset();
+    bt_collision_world->timer_collision_narrow.reset();
+}
+
+double ChCollisionSystemBullet::GetTimerCollisionBroad() const {
+    return bt_collision_world->timer_collision_broad();
+}
+
+double ChCollisionSystemBullet::GetTimerCollisionNarrow() const {
+    return bt_collision_world->timer_collision_narrow();
+}
+
 void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontainer) {
     // This should remove all old contacts (or at least rewind the index)
     mcontactcontainer->BeginAddContact();
 
+    // NOTE: Bullet does not provide information on radius of curvature at a contact point.
+    // As such, for all Bullet-identified contacts, the default value will be used (SMC only). 
     ChCollisionInfo icontact;
 
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
@@ -1320,11 +1335,13 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontain
                     icontact.reaction_cache = pt.reactions_cache;
 
                     // Execute some user custom callback, if any
+                    bool add_contact = true;
                     if (this->narrow_callback)
-                        this->narrow_callback->OnNarrowphase(icontact);
+                        add_contact = this->narrow_callback->OnNarrowphase(icontact);
 
                     // Add to contact container
-                    mcontactcontainer->AddContact(icontact);
+                    if (add_contact)
+                        mcontactcontainer->AddContact(icontact);
                 }
             }
         }
@@ -1368,11 +1385,21 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximity
     mproximitycontainer->EndAddProximities();
 }
 
-bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) {
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const {
+    return RayHit(from, to, mresult, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
+}
+
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
+                                     const ChVector<>& to,
+                                     ChRayhitResult& mresult,
+                                     short int filter_group,
+                                     short int filter_mask) const {
     btVector3 btfrom((btScalar)from.x(), (btScalar)from.y(), (btScalar)from.z());
     btVector3 btto((btScalar)to.x(), (btScalar)to.y(), (btScalar)to.z());
 
     btCollisionWorld::ClosestRayResultCallback rayCallback(btfrom, btto);
+    rayCallback.m_collisionFilterGroup = filter_group;
+    rayCallback.m_collisionFilterMask = filter_mask;
 
     this->bt_collision_world->rayTest(btfrom, btto, rayCallback);
 
@@ -1387,11 +1414,63 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& t
             mresult.abs_hitNormal.Normalize();
             mresult.hit = true;
             mresult.dist_factor = rayCallback.m_closestHitFraction;
+            mresult.abs_hitPoint = mresult.abs_hitPoint - mresult.abs_hitNormal * mresult.hitModel->GetEnvelope();
             return true;
         }
     }
     mresult.hit = false;
     return false;
+}
+
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
+                                     const ChVector<>& to,
+                                     ChCollisionModel* model,
+                                     ChRayhitResult& mresult) const {
+    return RayHit(from, to, model, mresult, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
+}
+
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
+                                     const ChVector<>& to,
+                                     ChCollisionModel* model,
+                                     ChRayhitResult& mresult,
+                                     short int filter_group,
+                                     short int filter_mask) const {
+    btVector3 btfrom((btScalar)from.x(), (btScalar)from.y(), (btScalar)from.z());
+    btVector3 btto((btScalar)to.x(), (btScalar)to.y(), (btScalar)to.z());
+
+    btCollisionWorld::AllHitsRayResultCallback rayCallback(btfrom, btto);
+    rayCallback.m_collisionFilterGroup = filter_group;
+    rayCallback.m_collisionFilterMask = filter_mask;
+
+    this->bt_collision_world->rayTest(btfrom, btto, rayCallback);
+
+    // Find the closest hit result on the specified model (if any)
+    int hit = -1;
+    btScalar fraction = 1;
+    for (int i = 0; i < rayCallback.m_collisionObjects.size(); ++i) {
+        if (rayCallback.m_collisionObjects[i]->getUserPointer() == model && rayCallback.m_hitFractions[i] < fraction) {
+            hit = i;
+            fraction = rayCallback.m_hitFractions[i];
+        }
+    }
+
+    // Ray does not hit specified model
+    if (hit == -1) {
+        mresult.hit = false;
+        return false;
+    }
+
+    // Return the closest hit on the specified model
+    mresult.hit = true;
+    mresult.hitModel = static_cast<ChCollisionModel*>(rayCallback.m_collisionObjects[hit]->getUserPointer());
+    mresult.abs_hitPoint.Set(rayCallback.m_hitPointWorld[hit].x(), rayCallback.m_hitPointWorld[hit].y(),
+                             rayCallback.m_hitPointWorld[hit].z());
+    mresult.abs_hitNormal.Set(rayCallback.m_hitNormalWorld[hit].x(), rayCallback.m_hitNormalWorld[hit].y(),
+                              rayCallback.m_hitNormalWorld[hit].z());
+    mresult.abs_hitNormal.Normalize();
+    mresult.dist_factor = fraction;
+    mresult.abs_hitPoint = mresult.abs_hitPoint - mresult.abs_hitNormal * mresult.hitModel->GetEnvelope();
+    return true;
 }
 
 void ChCollisionSystemBullet::SetContactBreakingThreshold(double threshold) {

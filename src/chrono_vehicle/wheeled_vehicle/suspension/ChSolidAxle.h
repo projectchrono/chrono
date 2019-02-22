@@ -60,6 +60,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
     virtual ~ChSolidAxle() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "SolidAxle"; }
+
     /// Specify whether or not this suspension can be steered.
     virtual bool IsSteerable() const final override { return true; }
 
@@ -96,6 +99,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
     /// Get the current global COM location of the suspension subsystem.
     virtual ChVector<> GetCOMPos() const override;
+
+    /// Get the wheel track for the suspension subsystem.
+    virtual double GetTrack() override;
 
     /// Get a handle to the specified spring element.
     std::shared_ptr<ChLinkSpringCB> GetSpring(VehicleSide side) const { return m_spring[side]; }
@@ -275,6 +281,10 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
+
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
 
     static const std::string m_pointNames[NUM_POINTS];
 };

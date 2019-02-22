@@ -16,21 +16,21 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChFileutils.h"
-
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_fea/ChElementBeamEuler.h"
-#include "chrono_fea/ChBuilderBeam.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChElementBeamEuler.h"
+#include "chrono/fea/ChBuilderBeam.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     application.SetPaused(true);
 
     // Output data
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }

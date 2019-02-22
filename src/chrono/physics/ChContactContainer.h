@@ -78,15 +78,14 @@ class ChApi ChContactContainer : public ChPhysicsItem {
             ) = 0;
     };
 
-    /// Specify a callback object to be used each time a contact point is added
-    /// to the container. Note that not all derived classes can support this.
-    /// If supported, the OnAddContact() method of the provided callback object
-    /// will be called for each contact pair to allow modifying the composite
-    /// material properties.
-    void RegisterAddContactCallback(AddContactCallback* mcallback) { add_contact_callback = mcallback; }
+    /// Specify a callback object to be used each time a contact point is added to the container.
+    /// Note that not all derived classes can support this. If supported, the OnAddContact() method
+    /// of the provided callback object will be called for each contact pair to allow modifying the
+    /// composite material properties.
+    virtual void RegisterAddContactCallback(AddContactCallback* mcallback) { add_contact_callback = mcallback; }
 
-    /// Gets the callback to be used each time a contact point is added to the container.
-    AddContactCallback* GetAddContactCallback() { return add_contact_callback; }
+    /// Get the callback object to be used each time a contact point is added to the container.
+    virtual AddContactCallback* GetAddContactCallback() { return add_contact_callback; }
 
     /// Class to be used as a callback interface for some user defined action to be taken
     /// for each contact (already added to the container, maybe with already computed forces).
@@ -102,6 +101,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
             const ChVector<>& pB,             ///< contact pB
             const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           ///< contact distance
+            const double& eff_radius,         ///< effective radius of curvature at contact
             const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
             const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)

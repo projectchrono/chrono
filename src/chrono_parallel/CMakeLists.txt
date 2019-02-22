@@ -15,18 +15,7 @@ if(NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE BLAZE_DIR)
   mark_as_advanced(FORCE USE_PARALLEL_DOUBLE)
   mark_as_advanced(FORCE USE_PARALLEL_SIMD)
-  
-  # GCC > 4.9 does not support CUDA (<= 8.0) by default. 
-  # Users may explicitly select CUDA support if they are sure that their compiler
-  # does make use of any conflicting features, such as C++14.
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
-      message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION} does not support USE_PARALLEL_CUDA by default")
-      set(USE_PARALLEL_CUDA OFF CACHE OFF "")
-      mark_as_advanced(FORCE USE_PARALLEL_CUDA)
-    endif()
-  endif()
-
+  mark_as_advanced(FORCE USE_PARALLEL_CUDA)
   return()
 endif()
 
@@ -50,38 +39,13 @@ set(CH_PARALLEL_C_FLAGS "")
 
 # ----- CUDA support -----
 
-find_package(CUDA)
+cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" OFF "CUDA_FOUND" OFF)
 
-cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" ON "CUDA_FOUND" OFF)
-
-
-IF(USE_PARALLEL_CUDA)
-  SET(CUDA_SEPARABLE_COMPILATION ON)
-
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-      IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
-        SET(CUDA_SEPARABLE_COMPILATION OFF)
-        SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++11")
-        SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11")
-      ENDIF()
-    ENDIF()
-    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
-  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
-  ENDIF()
-
-  #SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode=arch=compute_30,code=sm_30)
-
-  INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/FindCudaArch.cmake)
-  SELECT_NVCC_ARCH_FLAGS(NVCC_FLAGS_EXTRA)
-  LIST(APPEND CUDA_NVCC_FLAGS ${NVCC_FLAGS_EXTRA})
-
-  SET(CHRONO_PARALLEL_USE_CUDA "#define CHRONO_PARALLEL_USE_CUDA")
-ELSE()
-  SET(CHRONO_PARALLEL_USE_CUDA "#undef CHRONO_PARALLEL_USE_CUDA")
-ENDIF()
+if(USE_PARALLEL_CUDA)
+  set(CHRONO_PARALLEL_USE_CUDA "#define CHRONO_PARALLEL_USE_CUDA")
+else()
+  set(CHRONO_PARALLEL_USE_CUDA "#undef CHRONO_PARALLEL_USE_CUDA")
+endif()
 
 # ----- SIMD (SSE or AVX) support -----
 
@@ -102,6 +66,12 @@ ENDIF()
 # ----- Thrust library -----
 
 find_package(Thrust)
+
+if(NOT THRUST_FOUND)
+  mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
+else()
+  mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
+endif()
 
 # ----- Blaze library -----
 
@@ -440,8 +410,8 @@ IF(USE_PARALLEL_CUDA)
             ${ChronoEngine_Parallel_CONSTRAINTS}
             ${ChronoEngine_Parallel_SOLVER}
             ${ChronoEngine_Parallel_MATH}
-            )
-    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
+            ) 
+    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${TBB_LIBRARIES})
 ELSE()
     ADD_LIBRARY(ChronoEngine_parallel SHARED
             ${ChronoEngine_Parallel_BASE}
@@ -451,11 +421,7 @@ ELSE()
             ${ChronoEngine_Parallel_SOLVER}
             ${ChronoEngine_Parallel_MATH}
             )
-    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${MPI_LIBRARIES} ${TBB_LIBRARIES})
-ENDIF()
-
-IF(ENABLE_MODULE_FEA)
-    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ${CHRONO_PARALLEL_LINKED_LIBRARIES} ChronoEngine_fea)
+    SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${TBB_LIBRARIES})
 ENDIF()
 
 SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
@@ -466,8 +432,8 @@ TARGET_LINK_LIBRARIES(ChronoEngine_parallel ${CHRONO_PARALLEL_LINKED_LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_parallel
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib64
-        ARCHIVE DESTINATION lib64)
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_parallel
@@ -478,18 +444,3 @@ IF(USE_PARALLEL_CUDA)
           DESTINATION include/chrono_parallel
           FILES_MATCHING PATTERN "*.cuh")
 ENDIF()
-
-mark_as_advanced(FORCE
-    CUDA_BUILD_CUBIN
-    CUDA_BUILD_EMULATION
-    CUDA_SEPARABLE_COMPILATION
-    CUDA_SDK_ROOT_DIR
-    CUDA_VERBOSE_BUILD
-    CUDA_HOST_COMPILER)
-
-
-
-
-
-
-

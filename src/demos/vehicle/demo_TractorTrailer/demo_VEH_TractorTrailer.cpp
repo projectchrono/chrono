@@ -23,7 +23,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -42,6 +41,8 @@
 
 #include "subsystems/TT_Tractor.h"
 #include "subsystems/TT_Trailer.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // Comment the following line to disable Irrlicht visualization
 #define USE_IRRLICHT
@@ -116,15 +117,17 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem());
-    terrain.SetContactFrictionCoefficient(0.9f);
-    terrain.SetContactRestitutionCoefficient(0.01f);
-    terrain.SetContactMaterialProperties(2e7f, 0.3f);
-    terrain.SetColor(ChColor(0.5f, 0.5f, 1));
-    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+                                  ChVector<>(terrainLength, terrainWidth, 10));
+    patch->SetContactFrictionCoefficient(0.9f);
+    patch->SetContactRestitutionCoefficient(0.01f);
+    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    patch->SetColor(ChColor(0.5f, 0.5f, 1));
+    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    terrain.Initialize();
 
     // Create and initialize the powertrain system
-    Generic_SimplePowertrain powertrain;
+    Generic_SimplePowertrain powertrain("Powertrain");
 
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
@@ -199,8 +202,8 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    TireForces tire_forces(4);
-    TireForces tr_tire_forces(4);
+    TerrainForces tire_forces(4);
+    TerrainForces tr_tire_forces(4);
     WheelState wheel_states[4];
     double driveshaft_speed;
     double powertrain_torque;
@@ -307,11 +310,11 @@ int main(int argc, char* argv[]) {
 
     int render_frame = 0;
 
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
         std::cout << "Error creating directory " << pov_dir << std::endl;
         return 1;
     }

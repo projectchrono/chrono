@@ -67,6 +67,12 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
             case KEY_RIGHT:
                 m_app->m_camera.Turn(-1);
                 return true;
+            case KEY_NEXT:
+                m_app->m_camera.Raise(1);
+                return true;
+            case KEY_PRIOR:
+                m_app->m_camera.Raise(-1);
+                return true;
             default:
                 break;
         }
@@ -83,6 +89,9 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
                 return true;
             case KEY_KEY_4:
                 m_app->m_camera.SetState(utils::ChChaseCamera::Inside);
+                return true;
+            case KEY_KEY_5:
+                m_app->m_camera.SetState(utils::ChChaseCamera::Free);
                 return true;
             case KEY_KEY_V:
                 m_app->m_vehicle->LogConstraintViolations();
@@ -101,8 +110,9 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
 ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
                                  ChPowertrain* powertrain,
                                  const wchar_t* title,
-                                 irr::core::dimension2d<irr::u32> dims)
-    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL),
+                                 irr::core::dimension2d<irr::u32> dims,
+    irr::ELOG_LEVEL log_level)
+    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL, log_level),
       m_vehicle(vehicle),
       m_powertrain(powertrain),
       m_camera(vehicle->GetChassisBody()),

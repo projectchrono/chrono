@@ -48,8 +48,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     virtual ~ChTire() {}
 
     /// Initialize this tire subsystem.
-    /// A derived class must call this base implementation (which simply caches the
-    /// associated wheel body and vehicle side flag).
+    /// Cache the associated wheel body and vehicle side flag, and add tire mass and
+    /// inertia to the wheel body. A derived class must first call this base implementation.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
                             VehicleSide side                ///< [in] left/right vehicle side
                             );
@@ -64,19 +64,47 @@ class CH_VEHICLE_API ChTire : public ChPart {
         CalculateKinematics(time, wheel_state, terrain);
     }
 
+    /// Set the value of the integration step size for the underlying dynamics (if applicable).
+    /// Default value: 1ms.
+    void SetStepsize(double val) { m_stepsize = val; }
+
+    /// Get the current value of the integration step size.
+    double GetStepsize() const { return m_stepsize; }
+
     /// Advance the state of this tire by the specified time step.
     virtual void Advance(double step) {}
 
     /// Get the tire radius.
     virtual double GetRadius() const = 0;
 
+    /// Get the tire mass.
+    /// Note that this should not include the mass of the wheel (rim).
+    virtual double GetMass() const = 0;
+
+    /// Report the tire mass.
+    /// Certain tire models (e.g. those based on FEA) must return 0 in GetMass()
+    /// so that the tire mass is not double counted in the underlying mechanical system.
+    /// For reporting purposes, use this function instead.
+    virtual double ReportMass() const;
+
+    /// Get the tire moments of inertia.
+    /// Note that these should not include the inertia of the wheel (rim).
+    virtual ChVector<> GetInertia() const = 0;
+
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
-    /// vehicle system.  Typically, the vehicle subsystem will pass the tire force
+    /// vehicle system. Typically, the vehicle subsystem will pass the tire force
     /// to the appropriate suspension subsystem which applies it as an external
-    /// force one the wheel body.
-    virtual TireForce GetTireForce(bool cosim = false  ///< [in] indicate if the tire is co-simulated
-                                   ) const = 0;
+    /// force on the wheel body.
+    /// NOTE: tire models that rely on underlying Chrono functionality (e.g., the
+    /// Chrono contact system or Chrono constraints) must always return zero forces
+    /// and moments, else tire forces are double counted.
+    virtual TerrainForce GetTireForce() const = 0;
+
+    /// Report the tire force and moment.
+    /// This function can be used for reporting purposes or else to calculate tire
+    /// forces in a co-simulation framework.
+    virtual TerrainForce ReportTireForce(ChTerrain* terrain) const = 0;
 
     /// Get the tire slip angle.
     /// Return the slip angle calculated based on the current state of the associated
@@ -96,6 +124,19 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// calculation based on its specific tire model.
     virtual double GetCamberAngle() const { return m_camber_angle; }
 
+    /// Utility function for estimating the tire moments of inertia.
+    /// The tire is assumed to be specified with the common scheme (e.g. 215/65R15)
+    /// and the mass of the tire (excluding the wheel) provided.
+    static ChVector<> EstimateInertia(double tire_width,    ///< tire width [mm]
+                                      double aspect_ratio,  ///< aspect ratio: height to width [percentage]
+                                      double rim_diameter,  ///< rim diameter [in]
+                                      double tire_mass,     ///< mass of the tire [kg]
+                                      double t_factor = 2   ///< tread to sidewall thickness factor
+    );
+
+	/// Report the tire deflection 
+	virtual double GetDeflection() const { return 0; }
+	
   protected:
     /// Perform disc-terrain collision detection.
     /// This utility function checks for contact between a disc of specified
@@ -117,6 +158,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     VehicleSide m_side;               ///< tire mounted on left/right side
     std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
+    double m_stepsize;                ///< tire integration step size (if applicable)
 
   private:
     /// Calculate kinematics quantities based on the current state of the associated

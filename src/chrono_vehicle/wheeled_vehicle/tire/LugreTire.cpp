@@ -20,6 +20,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -27,16 +28,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -65,15 +56,13 @@ LugreTire::~LugreTire() {
 }
 
 void LugreTire::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
-    SetName(d["Name"].GetString());
-
-    // Read tire radius
+    // Read tire radius, mass, and inertia
     m_radius = d["Radius"].GetDouble();
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = LoadVectorJSON(d["Inertia"]);
 
     // Read disc locations
     m_numDiscs = d["Disc Locations"].Size();
@@ -118,11 +107,12 @@ void LugreTire::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void LugreTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
     }
     else {

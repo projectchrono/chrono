@@ -24,9 +24,10 @@
 #include "chrono/serialization/ChArchiveBinary.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 #include "chrono/serialization/ChArchiveJSON.h"
+#include "chrono/serialization/ChArchiveXML.h"
+#include "chrono/serialization/ChArchiveExplorer.h"
 
 #include "chrono/physics/ChGlobal.h"
-#include "chrono/core/ChFileutils.h"
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChVector.h"
@@ -35,6 +36,7 @@
 #include "chrono/core/ChException.h"
 #include "chrono/solver/ChConstraintTuple.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 
@@ -83,15 +85,13 @@ class myEmployee {
     int age;
     double wages;
     myEnum body;
+    std::string name;
 
-    myEmployee(int m_age = 18, double m_wages = 1020.3, myEnum m_body = myEnum::ATHLETIC) : 
+    myEmployee(int m_age = 18, double m_wages = 1020.3, myEnum m_body = myEnum::ATHLETIC, std::string m_name = "John") : 
         age(m_age), 
         wages(m_wages),
-        body(m_body){};
-
-    myEmployee (const myEmployee& other) {
-        GetLog()<< "------------------copy an employee \n";
-    }
+        body(m_body),
+        name(m_name) {};
 
     // MEMBER FUNCTIONS FOR BINARY I/O
     // NOTE!!!In order to allow serialization with Chrono approach,
@@ -119,6 +119,11 @@ class myEmployee {
         marchive >> CHNVP(enum_map(body), "body");
     }
 
+    // Optional: implement ArchiveContainerName()  so that, when supported as in JSON, 
+    // serialization of containers (std::vector, arrays, etc.) show a mnemonic name 
+    // instead of "0", "1", "2", etc. :  
+
+    virtual std::string& ArchiveContainerName() {return name;}  //*****  optional, for advanced serialization
 };
 
 
@@ -183,9 +188,8 @@ CH_CLASS_VERSION(myEmployeeBoss, 2)
 
 
 // Finally, let's serialize a class that has no default constructor.
-// The archive system canno
 // How to manage the (de)serialization of the initialization parameters?
-// The trick is adding two optional 
+// The trick is adding two optional ArchiveOUTconstructor() and ArchiveINconstructor():
 
 class myEmployeeCustomConstructor : public myEmployee {
 
@@ -295,8 +299,8 @@ void my_serialization_example(ChArchiveOut& marchive)
         m_matr.FillRandom(10, 0);
         ChVector<> m_vect(0.5, 0.6, 0.7);
         ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
-   
-        marchive << CHNVP(m_double,"custom double");  // store data n.1      
+ 
+        marchive << CHNVP(m_double,"custom_double");  // store data n.1      
         marchive << CHNVP(m_int);     // store data n.2 
         marchive << CHNVP(m_array);   // store data n.3
         marchive << CHNVP(m_text);    // store data n....
@@ -402,7 +406,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         ChVector<>* a_vect;
         ChVector<>* a_null_ptr;
 
-        marchive >> CHNVP(m_double,"custom double");  // deserialize data n.1
+        marchive >> CHNVP(m_double,"custom_double");  // deserialize data n.1
         marchive >> CHNVP(m_int);     // deserialize data n.2
         marchive >> CHNVP(m_array);   // deserialize data n.3
         marchive >> CHNVP(m_text);    // deserialize data n....
@@ -510,7 +514,90 @@ void my_deserialization_example(ChArchiveIn& marchive)
         GetLog() << "\n";
         GetLog() << "loaded object is a myEmployee?     :" << (dynamic_cast<myEmployee*>(a_boss) !=nullptr) << "\n";
         GetLog() << "loaded object is a myEmployeeBoss? :" << (dynamic_cast<myEmployeeBoss*>(a_boss) !=nullptr) << "\n";
+
         delete a_boss;
+}
+
+
+//
+// Example on how to use reflection (c++ introspection) to explore the properties exposed 
+// through the ArchiveIN() and ArchiveOUT() functions.
+//
+
+void my_reflection_example()
+{
+    ChArchiveExplorer mexplorer;
+    mexplorer.SetUseWildcards(true);
+    mexplorer.SetUseUserNames(true);
+
+    myEmployeeBoss m_boss(71, 42000.4, true);
+    m_boss.body = FAT;
+
+    double my_wages;
+    if (mexplorer.FetchValue(my_wages, m_boss, "wages"))
+        GetLog() << "Property explorer : retrieved 'wages'=" << my_wages << "\n";
+    else
+        GetLog() << "Property explorer : cannot retrieve 'wages'! \n";
+
+    myEmployee my_slave;
+    if (mexplorer.FetchValue(my_slave, m_boss, "slave"))
+        GetLog() << "Property explorer : retrieved 'slave'=\n" << my_slave << "\n";
+    else
+        GetLog() << "Property explorer : cannot retrieve 'slave'! \n";
+
+    int my_age;
+    if (mexplorer.FetchValue(my_age, m_boss, "s?*e/age"))
+        GetLog() << "Property explorer : retrieved 'slave/age'=" << my_age << "\n";
+    else
+        GetLog() << "Property explorer : cannot retrieve 'slave/age'! \n";
+
+    int my_foo = 123;
+    if (mexplorer.FetchValue(my_foo, m_boss, "foo"))
+        GetLog() << "Property explorer : retrieved 'int foo'=" << my_foo << "\n";
+    else
+        GetLog() << "Property explorer : cannot retrieve 'int foo'! \n";
+
+    // Test access to containers (std::vector, arrays, etc.). Elements can
+    // be fetched using two approaches: integer indexes or menmonic names.
+    std::vector<myEmployee> mcontainer;
+    mcontainer.push_back(myEmployee(19,4000,ATHLETIC, "Josh"));
+    mcontainer.push_back(myEmployeeBoss(29,5000, "Jeff"));
+    mcontainer.push_back(myEmployee(31,6000,ATHLETIC, "Marie"));
+    myEmployee a_employee;
+
+    // Method A: just use the index in the search string, 
+    //   ex: "stuff/arrayofpositions/6/x" as in:
+
+    if (mexplorer.FetchValue(a_employee, mcontainer, "1"))
+        GetLog() << "Property explorer : retrieved from element number in container '1' =\n" << a_employee << "\n";
+    else
+        GetLog() << "Property explorer : cannot retrieve from element number! \n";
+
+    // Method B: if you deal if working with objects that implement 
+    // ArchiveContainerName(), you can use the name between single quotation marks '...',
+    //   ex: "stuff/arrayofbodies/'Crank'/mass" as in:
+    if (mexplorer.FetchValue(a_employee, mcontainer, "'Marie'"))
+        GetLog() << "Property explorer : retrieved from element container name 'Marie' =\n" << a_employee << "\n";
+    else
+        GetLog() << "Property explorer : cannot retrieve from element container name! \n";
+
+    // Test if some object can be explored
+    GetLog() << "This has sub properties? : " << mexplorer.IsObject(mcontainer) << "\n";
+    GetLog() << "This has sub properties? : " << mexplorer.IsObject(my_age) << "\n\n";
+
+    // Fetch all subproperties of an object using "*"
+    GetLog() << "List of fetched properties in std::vector of employees: \n";
+    auto props = mexplorer.FetchValues(mcontainer, "*");
+    for (auto i : props) {
+        GetLog() << " val: " << i->name() << ",  reg.class: " << i->GetClassRegisteredName() << ",  typeid: " << i->GetTypeidName() << "\n";
+        //if (auto pi = dynamic_cast<myEmployeeBoss*>(i->PointerUpCast<myEmployee>()))
+        //    GetLog() <<"   castable to myEmployeeBoss \n";
+        ChArchiveExplorer mexplorer2;
+        auto props2 = mexplorer2.FetchValues(*i, "*");
+        for (auto i2 : props2) {
+            GetLog() << "    val: " << i2->name() << ",  reg.class: " << i2->GetClassRegisteredName() << ",  typeid: " << i2->GetTypeidName() << "\n";
+        }
+    }
 }
 
 
@@ -518,12 +605,11 @@ void my_deserialization_example(ChArchiveIn& marchive)
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    GetLog() << "\n"
-             << "CHRONO foundation classes demo: archives (serialization)\n\n";
+    GetLog() << "CHRONO foundation classes demo: archives (serialization)\n\n";
 
     // Create (if needed) output directory
     const std::string out_dir = GetChronoOutputPath() + "DEMO_ARCHIVE";
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
@@ -536,6 +622,7 @@ int main(int argc, char* argv[]) {
     
     try {       
         
+		
         {
             //
             // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
@@ -544,7 +631,7 @@ int main(int argc, char* argv[]) {
             std::string asciifile = out_dir + "/foo_archive.txt";
             ChStreamOutAsciiFile mfileo(asciifile.c_str());
 
-            // Create a binary archive, that uses the binary file as storage.
+            // Create an ASCII archive object, for dumping C++ objects into a readable file
             ChArchiveAsciiDump marchiveout(mfileo);
         
             my_serialization_example(marchiveout);
@@ -560,7 +647,7 @@ int main(int argc, char* argv[]) {
                 std::string binfile = out_dir + "/foo_archive.dat";
                 ChStreamOutBinaryFile mfileo(binfile.c_str());
                 
-                // Create a binary archive, that uses the binary file as storage.
+				// Use a binary archive object to serialize C++ objects into the binary file
                 ChArchiveOutBinary marchiveout(mfileo);
 
                 my_serialization_example(marchiveout);
@@ -570,7 +657,7 @@ int main(int argc, char* argv[]) {
                 std::string binfile = out_dir + "/foo_archive.dat";
                 ChStreamInBinaryFile mfilei(binfile.c_str());
                 
-                // Create a binary archive, that uses the binary file as storage.
+				// Use a binary archive object to deserialize C++ objects from the binary file
                 ChArchiveInBinary marchivein(mfilei);
 
                 my_deserialization_example(marchivein);
@@ -587,7 +674,7 @@ int main(int argc, char* argv[]) {
                 std::string jsonfile = out_dir + "/foo_archive.json";
                 ChStreamOutAsciiFile mfileo(jsonfile.c_str());
 
-                // Create a binary archive, that uses the binary file as storage.
+                // Use a JSON archive object to serialize C++ objects into the file
                 ChArchiveOutJSON marchiveout(mfileo);
         
                 my_serialization_example(marchiveout);
@@ -598,7 +685,7 @@ int main(int argc, char* argv[]) {
                 std::string jsonfile = out_dir + "/foo_archive.json";
                 ChStreamInAsciiFile mfilei(jsonfile.c_str());
 
-                // Create a binary archive, that uses the binary file as storage.
+				// Use a JSON archive object to deserialize C++ objects from the file
                 ChArchiveInJSON marchivein(mfilei);
 
                 my_deserialization_example(marchivein);
@@ -607,7 +694,42 @@ int main(int argc, char* argv[]) {
         }
 
 
-        GetLog() << "Serialization test ended with success.\n";
+		{
+			//
+			// Example: SERIALIZE TO/FROM XML
+			//
+			{
+				std::string xmlfile = out_dir + "/foo_archive.xml";
+				ChStreamOutAsciiFile mfileo(xmlfile.c_str());
+
+				// Use a XML archive object to serialize C++ objects into the file
+				ChArchiveOutXML marchiveout(mfileo);
+
+				my_serialization_example(marchiveout);
+			}
+
+			{
+				std::string xmlfile = out_dir + "/foo_archive.xml";
+				ChStreamInAsciiFile mfilei(xmlfile.c_str());
+
+				// Use a XML archive object to deserialize C++ objects from the file
+				ChArchiveInXML marchivein(mfilei);
+
+				my_deserialization_example(marchivein);
+			}
+
+		}
+
+
+        GetLog() << "Serialization test ended with success.\n\n";
+
+
+        my_reflection_example();
+
+        GetLog() << "Reflection test ended with success.\n";
+
+
+		
 
     } catch (ChException myex) {
         GetLog() << "ERROR: " << myex.what() << "\n\n";

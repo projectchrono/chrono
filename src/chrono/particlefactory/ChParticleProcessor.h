@@ -56,16 +56,11 @@ class ChParticleProcessor {
 
         int nprocessed = 0;
 
-        ChSystem::IteratorBodies myiter = msystem.IterBeginBodies();
-        while (myiter != msystem.IterEndBodies()) {
-            std::shared_ptr<ChBody> mybody = (*myiter);
-
-            if (this->trigger->TriggerEvent(mybody, msystem)) {
-                this->particle_processor->ParticleProcessEvent(mybody, msystem, this->trigger);
+        for (auto body : msystem.Get_bodylist()) {
+            if (this->trigger->TriggerEvent(body, msystem)) {
+                this->particle_processor->ParticleProcessEvent(body, msystem, this->trigger);
                 ++nprocessed;
             }
-
-            ++myiter;
         }
 
         this->particle_processor->SetupPostProcess(msystem);

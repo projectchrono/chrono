@@ -62,11 +62,12 @@ M113a_SprocketSinglePin::M113a_SprocketSinglePin(const std::string& name) : ChSp
 // -----------------------------------------------------------------------------
 void M113a_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(GetMeshName());
+        trimesh_shape->SetStatic(true);
         m_gear->AddAsset(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);

@@ -21,16 +21,14 @@ namespace chrono {
 namespace geometry {
 
 /// An ellipsoid geometric object for collisions and such.
-
 class ChApi ChEllipsoid : public ChGeometry {
-
   public:
     ChVector<> center;  ///< ellipsoid center
     ChVector<> rad;     ///< ellipsoid semi-axes
 
   public:
     ChEllipsoid() : center(VNULL), rad(0) {}
-    ChEllipsoid(ChVector<>& mc, ChVector<> mrad) : center(mc), rad(mrad) {}
+    ChEllipsoid(const ChVector<>& mc, const ChVector<>& mrad) : center(mc), rad(mrad) {}
     ChEllipsoid(const ChEllipsoid& source);
     ~ChEllipsoid() {}
 
@@ -54,31 +52,16 @@ class ChApi ChEllipsoid : public ChGeometry {
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChEllipsoid>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChEllipsoid>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChEllipsoid,0)
+CH_CLASS_VERSION(geometry::ChEllipsoid, 0)
 
 }  // end namespace chrono
 

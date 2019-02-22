@@ -23,7 +23,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -39,6 +38,8 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
@@ -57,34 +58,39 @@ using namespace chrono::vehicle;
 
 // JSON file for vehicle model
 std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
-// std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
-// std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
-// std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
-// std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Independent.json");
-// std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_MacPhersonStruts.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_SemiTrailingArm.json");
-// std::string vehicle_file("generic/vehicle/Vehicle_ThreeLinkIRS.json");
+////std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
+////std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_SolidAxles.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_ThreeAxles.json");
+////std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Independent.json");
+////std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_MacPhersonStruts.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_SemiTrailingArm.json");
+////std::string vehicle_file("generic/vehicle/Vehicle_ThreeLinkIRS.json");
 
-// JSON files for terrain (rigid plane), and powertrain (simple)
+// JSON files for terrain
 std::string rigidterrain_file("terrain/RigidPlane.json");
+////std::string rigidterrain_file("terrain/RigidMesh.json");
+////std::string rigidterrain_file("terrain/RigidHeightMap.json");
+////std::string rigidterrain_file("terrain/RigidSlope10.json");
+////std::string rigidterrain_file("terrain/RigidSlope20.json");
+
+// JSON file for powertrain (simple)
 std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // JSON files tire models (rigid)
-std::string rigidtire_file("generic/tire/RigidTire.json");
-//std::string rigidtire_file("hmmwv/tire/HMMWV_RigidMeshTire.json");
-//std::string rigidtire_file("MAN_5t/tire/MAN_5t_RigidTire.json");
+std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
+////std::string rigidtire_file("hmmwv/tire/HMMWV_RigidMeshTire.json");
+////std::string rigidtire_file("generic/tire/RigidTire.json");
 
 // Driver input file (if not using Irrlicht)
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.0);
+ChVector<> initLoc(0, 0, 1.6);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -99,13 +105,10 @@ double terrainLength = 300.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 2e-3;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
-
-// Time interval between two output frames
-double output_step_size = 1.0 / 1;  // once a second
 
 // Point on chassis tracked by the camera (Irrlicht only)
 ChVector<> trackPoint(0.0, 0.0, 1.75);
@@ -127,9 +130,10 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetFixed(true);
+    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -208,24 +212,36 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
+        std::cout << "Error creating directory " << pov_dir << std::endl;
+        return 1;
+    }
+
+    // Generate JSON information with available output channels
+    std::string out_json = vehicle.ExportComponentList();
+    std::cout << out_json << std::endl;
+    vehicle.ExportComponentList(out_dir + "/component_list.json");
+
     // ---------------
     // Simulation loop
     // ---------------
 
     // Inter-module communication data
-    TireForces tire_forces(num_wheels);
+    TerrainForces tire_forces(num_wheels);
     WheelStates wheel_states(num_wheels);
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
     double steering_input;
     double braking_input;
-
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
-    // Number of simulation steps between two output frames
-    int output_steps = (int)std::ceil(output_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
@@ -236,24 +252,20 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
-        // Render scene
-        if (step_number % render_steps == 0) {
-            // Update the position of the shadow mapping so that it follows the car
-            ////if (do_shadows) {
-            ////  ChVector<> lightaim = vehicle.GetChassisPos();
-            ////  ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
-            ////  irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
-            ////  irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
-            ////  application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
-            ////  application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
-            ////  mlight->setPosition(mlightpos);
-            ////}
+        // Update the position of the shadow mapping so that it follows the car
+        ////if (do_shadows) {
+        ////  ChVector<> lightaim = vehicle.GetChassisPos();
+        ////  ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
+        ////  irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
+        ////  irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
+        ////  application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
+        ////  application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
+        ////  mlight->setPosition(mlightpos);
+        ////}
 
-            // Draw all scene elements
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
-        }
+        // Render scene
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
 
         // Collect output data from modules (for inter-module communication)
         throttle_input = driver.GetThrottle();
@@ -288,21 +300,16 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
 #else
 
+    // Number of simulation steps between two 3D view render frames
+    int render_steps = (int)std::ceil(render_step_size / step_size);
+
     int render_frame = 0;
-
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
-        std::cout << "Error creating directory " << pov_dir << std::endl;
-        return 1;
-    }
-
     char filename[100];
 
     while (time < tend) {

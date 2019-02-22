@@ -43,23 +43,21 @@ using namespace irr::gui;
 // a rotating fan, to all objects in front of it (a simple
 // example just to demonstrate how to apply custom forces).
 
-void apply_fan_force(ChSystemNSC* msystem,       // contains all bodies
+void apply_fan_force(ChSystemNSC* msystem,    // contains all bodies
                      ChCoordsys<>& fan_csys,  // pos and rotation of fan
                      double aradius,          // radius of fan
                      double aspeed,           // speed of fan
                      double adensity)         // density (heuristic)
 {
-    for (unsigned int i = 0; i < msystem->Get_bodylist()->size(); i++) {
-        auto abody = (*msystem->Get_bodylist())[i];
-
+    for (auto body : msystem->Get_bodylist()) {
         // Remember to reset 'user forces accumulators':
-        abody->Empty_forces_accumulators();
+        body->Empty_forces_accumulators();
 
         // initialize speed of air (steady, if outside fan stream):
         ChVector<> abs_wind(0, 0, 0);
 
         // calculate the position of body COG in fan coordinates:
-        ChVector<> mrelpos = fan_csys.TransformParentToLocal(abody->GetPos());
+        ChVector<> mrelpos = fan_csys.TransformParentToLocal(body->GetPos());
         ChVector<> mrelpos_ondisc = mrelpos;
         mrelpos_ondisc.z() = 0;
 
@@ -74,9 +72,9 @@ void apply_fan_force(ChSystemNSC* msystem,       // contains all bodies
 
         // force proportional to relative speed body-wind
         // and fluid density (NOTE! pretty simplified physics..)
-        ChVector<> abs_force = (abs_wind - abody->GetPos_dt()) * adensity;
+        ChVector<> abs_force = (abs_wind - body->GetPos_dt()) * adensity;
         // apply this force at the body COG
-        abody->Accumulate_force(abs_force, abody->GetPos(), false);
+        body->Accumulate_force(abs_force, body->GetPos(), false);
     }
 }
 

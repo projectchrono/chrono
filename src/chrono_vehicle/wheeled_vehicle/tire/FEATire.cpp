@@ -17,10 +17,11 @@
 //
 // =============================================================================
 
-#include "chrono_fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChMeshFileLoader.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -29,22 +30,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// These utility functions return a ChVector and a ChQuaternion, respectively,
-// from the specified JSON array.
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
-
-static ChQuaternion<> loadQuaternion(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 4);
-    return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // Constructors for FEATire
@@ -147,11 +132,11 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
 }
 
 std::vector<std::shared_ptr<ChNodeFEAbase>> FEATire::GetInternalNodes() const {
-    return m_node_sets[0];
+    return m_node_sets.at("BC_INT");
 }
 
 std::vector<std::shared_ptr<fea::ChNodeFEAbase>> FEATire::GetConnectedNodes() const {
-    return m_node_sets[1];
+    return m_node_sets.at("BC_CONN");
 }
 
 }  // end namespace vehicle

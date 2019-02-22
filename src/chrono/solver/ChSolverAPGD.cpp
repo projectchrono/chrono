@@ -14,7 +14,6 @@
 
 #include "chrono/solver/ChSolverAPGD.h"
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 
 #include <iostream>

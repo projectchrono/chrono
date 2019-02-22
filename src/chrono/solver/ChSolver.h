@@ -89,7 +89,7 @@ class ChApi ChSolver {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
   protected:

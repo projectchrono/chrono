@@ -26,7 +26,7 @@ CH_FACTORY_REGISTER(ChBox)
 ChBox::ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths)
     : Pos(mpos), Rot(mrot), Size(0.5 * mlengths) {}
 
-ChBox::ChBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3) {
+ChBox::ChBox(const ChVector<>& mC0, const ChVector<>& mC1, const ChVector<>& mC2, const ChVector<>& mC3) {
     ChVector<> D1 = Vsub(mC1, mC0);
     ChVector<> D2 = Vsub(mC2, mC0);
     ChVector<> D3 = Vsub(mC3, mC0);
@@ -285,18 +285,43 @@ void ChBox::CovarianceMatrix(ChMatrix33<>& C) const {
     p7 = GetP7();
     p8 = GetP8();
 
-    C(0, 0) =
-        p1.x() * p1.x() + p2.x() * p2.x() + p3.x() * p3.x() + p4.x() * p4.x() + p5.x() * p5.x() + p6.x() * p6.x() + p7.x() * p7.x() + p8.x() * p8.x();
-    C(1, 1) =
-        p1.y() * p1.y() + p2.y() * p2.y() + p3.y() * p3.y() + p4.y() * p4.y() + p5.y() * p5.y() + p6.y() * p6.y() + p7.y() * p7.y() + p8.y() * p8.y();
-    C(2, 2) =
-        p1.z() * p1.z() + p2.z() * p2.z() + p3.z() * p3.z() + p4.z() * p4.z() + p5.z() * p5.z() + p6.z() * p6.z() + p7.z() * p7.z() + p8.z() * p8.z();
-    C(0, 1) =
-        p1.x() * p1.y() + p2.x() * p2.y() + p3.x() * p3.y() + p4.x() * p4.y() + p5.x() * p5.y() + p6.x() * p6.y() + p7.x() * p7.y() + p8.x() * p8.y();
-    C(0, 2) =
-        p1.x() * p1.z() + p2.x() * p2.z() + p3.x() * p3.z() + p4.x() * p4.z() + p5.x() * p5.z() + p6.x() * p6.z() + p7.x() * p7.z() + p8.x() * p8.z();
-    C(1, 2) =
-        p1.y() * p1.z() + p2.y() * p2.z() + p3.y() * p3.z() + p4.y() * p4.z() + p5.y() * p5.z() + p6.y() * p6.z() + p7.y() * p7.z() + p8.y() * p8.z();
+    C(0, 0) = p1.x() * p1.x() + p2.x() * p2.x() + p3.x() * p3.x() + p4.x() * p4.x() + p5.x() * p5.x() +
+              p6.x() * p6.x() + p7.x() * p7.x() + p8.x() * p8.x();
+    C(1, 1) = p1.y() * p1.y() + p2.y() * p2.y() + p3.y() * p3.y() + p4.y() * p4.y() + p5.y() * p5.y() +
+              p6.y() * p6.y() + p7.y() * p7.y() + p8.y() * p8.y();
+    C(2, 2) = p1.z() * p1.z() + p2.z() * p2.z() + p3.z() * p3.z() + p4.z() * p4.z() + p5.z() * p5.z() +
+              p6.z() * p6.z() + p7.z() * p7.z() + p8.z() * p8.z();
+    C(0, 1) = p1.x() * p1.y() + p2.x() * p2.y() + p3.x() * p3.y() + p4.x() * p4.y() + p5.x() * p5.y() +
+              p6.x() * p6.y() + p7.x() * p7.y() + p8.x() * p8.y();
+    C(0, 2) = p1.x() * p1.z() + p2.x() * p2.z() + p3.x() * p3.z() + p4.x() * p4.z() + p5.x() * p5.z() +
+              p6.x() * p6.z() + p7.x() * p7.z() + p8.x() * p8.z();
+    C(1, 2) = p1.y() * p1.z() + p2.y() * p2.z() + p3.y() * p3.z() + p4.y() * p4.z() + p5.y() * p5.z() +
+              p6.y() * p6.z() + p7.y() * p7.z() + p8.y() * p8.z();
+}
+
+void ChBox::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChBox>();
+    // serialize parent class
+    ChVolume::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(Pos);
+    marchive << CHNVP(Rot);
+    ChVector<> Lengths = GetLengths();
+    marchive << CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
+}
+
+void ChBox::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChBox>();
+    // deserialize parent class
+    ChVolume::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(Pos);
+    marchive >> CHNVP(Rot);
+    ChVector<> Lengths;
+    marchive >> CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
+    SetLengths(Lengths);
 }
 
 }  // end namespace geometry

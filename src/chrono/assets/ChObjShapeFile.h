@@ -13,69 +13,32 @@
 #ifndef CHOBJSHAPEFILE_H
 #define CHOBJSHAPEFILE_H
 
-
 #include "chrono/assets/ChVisualization.h"
 
 namespace chrono {
 
-/// Class for referencing a Wavefront/Alias .obj
-/// file containing a shape that can be visualized
-/// in some way.
-/// The file is not load into this object: it
-/// is simply a reference to the resource on the disk.
-
+/// Class for referencing a Wavefront/Alias .obj file containing a shape that can be visualized in some way.
+/// The file is not load into this object: it is simply a reference to the resource on the disk.
 class ChApi ChObjShapeFile : public ChVisualization {
-
   protected:
-    //
-    // DATA
-    //
     std::string filename;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
+    ChObjShapeFile() : filename("") {}
 
-    ChObjShapeFile() : filename(""){};
-
-    virtual ~ChObjShapeFile(){};
-
-    //
-    // FUNCTIONS
-    //
+    virtual ~ChObjShapeFile() {}
 
     std::string GetFilename() const { return filename; }
     void SetFilename(const std::string ms) { filename = ms; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite<ChObjShapeFile>();
-        // serialize parent class
-        ChVisualization::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(filename);
-    }
-
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead<ChObjShapeFile>();
-        // deserialize parent class
-        ChVisualization::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(filename);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChObjShapeFile,0)
+CH_CLASS_VERSION(ChObjShapeFile, 0)
 
 }  // end namespace chrono
 

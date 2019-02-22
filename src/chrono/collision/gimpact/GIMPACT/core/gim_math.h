@@ -79,7 +79,7 @@ enum GIM_SCALAR_TYPES
 #define G_RADTODEG(X) ((X)*180.0f/3.1415926f)
 
 //! Integer representation of a floating-point value.
-#define GIM_IR(x)					((GUINT&)(x))
+#define GIM_IR(x)					(GUINT)((GUINT&)(x))
 
 //! Signed integer representation of a floating-point value.
 #define GIM_SIR(x)					((GINT&)(x))

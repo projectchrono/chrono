@@ -25,8 +25,10 @@
 #include "chrono_models/vehicle/m113/M113_Chassis.h"
 #include "chrono_models/vehicle/m113/M113_DrivelineBDS.h"
 #include "chrono_models/vehicle/m113/M113_SimpleDriveline.h"
-#include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandBushing.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblyBandANCF.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
 namespace chrono {
@@ -65,6 +67,14 @@ void M113_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_typ
         case TrackShoeType::DOUBLE_PIN:
             m_tracks[0] = std::make_shared<M113_TrackAssemblyDoublePin>(LEFT);
             m_tracks[1] = std::make_shared<M113_TrackAssemblyDoublePin>(RIGHT);
+            break;
+        case TrackShoeType::BAND_BUSHING:
+            m_tracks[0] = std::make_shared<M113_TrackAssemblyBandBushing>(LEFT);
+            m_tracks[1] = std::make_shared<M113_TrackAssemblyBandBushing>(RIGHT);
+            break;
+        case TrackShoeType::BAND_ANCF:
+            m_tracks[0] = std::make_shared<M113_TrackAssemblyBandANCF>(LEFT);
+            m_tracks[1] = std::make_shared<M113_TrackAssemblyBandANCF>(RIGHT);
             break;
     }
 

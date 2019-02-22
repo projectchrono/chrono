@@ -23,7 +23,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChLinkDistance.h"
@@ -37,6 +36,8 @@
 #include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
 #include "chrono_models/vehicle/generic/Generic_RigidTire.h"
 #include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
@@ -102,9 +103,10 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
-    // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Generic_Vehicle vehicle(false, SuspensionType::DOUBLE_WISHBONE);
+    // and visualization mode for the various vehicle components.
+    Generic_Vehicle vehicle(false, SuspensionType::MACPHERSON_STRUT);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    vehicle.SetStepsize(step_size);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -112,15 +114,17 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem());
-    terrain.SetContactFrictionCoefficient(0.9f);
-    terrain.SetContactRestitutionCoefficient(0.01f);
-    terrain.SetContactMaterialProperties(2e7f, 0.3f);
-    terrain.SetColor(ChColor(0.5f, 0.8f, 0.5f));
-    terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-    terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+                                  ChVector<>(terrainLength, terrainWidth, 10));
+    patch->SetContactFrictionCoefficient(0.9f);
+    patch->SetContactRestitutionCoefficient(0.01f);
+    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
+    patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
+    terrain.Initialize();
 
     // Create and initialize the powertrain system
-    Generic_SimplePowertrain powertrain;
+    Generic_SimplePowertrain powertrain("powertrain");
 
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
@@ -202,19 +206,13 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Inter-module communication data
-    TireForces tire_forces(4);
+    TerrainForces tire_forces(4);
     WheelState wheel_states[4];
     double driveshaft_speed;
     double powertrain_torque;
     double throttle_input;
     double steering_input;
     double braking_input;
-
-    // Number of simulation steps between two 3D view render frames
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
-    // Number of simulation steps between two output frames
-    int output_steps = (int)std::ceil(output_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
@@ -225,26 +223,25 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
-        // Render scene
-        if (step_number % render_steps == 0) {
-            // Update the position of the shadow mapping so that it follows the car
-            ////if (do_shadows) {
-            ////  ChVector<> lightaim = vehicle.GetChassisPos();
-            ////  ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
-            ////  irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
-            ////  irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
-            ////  application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
-            ////  application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
-            ////  mlight->setPosition(mlightpos);
-            ////}
+        // Update the position of the shadow mapping so that it follows the car
+        ////if (do_shadows) {
+        ////  ChVector<> lightaim = vehicle.GetChassisPos();
+        ////  ChVector<> lightpos = vehicle.GetChassisPos() + ChVector<>(10, 30, 60);
+        ////  irr::core::vector3df mlightpos((irr::f32)lightpos.x, (irr::f32)lightpos.y, (irr::f32)lightpos.z);
+        ////  irr::core::vector3df mlightaim((irr::f32)lightaim.x, (irr::f32)lightaim.y, (irr::f32)lightaim.z);
+        ////  application.GetEffects()->getShadowLight(0).setPosition(mlightpos);
+        ////  application.GetEffects()->getShadowLight(0).setTarget(mlightaim);
+        ////  mlight->setPosition(mlightpos);
+        ////}
 
-            // Draw all scene elements
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
-        }
+        // Render scene
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
 
 #ifdef DEBUG_LOG
+        // Number of simulation steps between two output frames
+        int output_steps = (int)std::ceil(output_step_size / step_size);
+
         if (step_number % output_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
@@ -309,17 +306,22 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
 #else
 
+    // Number of simulation steps between two 3D view render frames
+    int render_steps = (int)std::ceil(render_step_size / step_size);
+
     int render_frame = 0;
 
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(pov_dir))) {
         std::cout << "Error creating directory " << pov_dir << std::endl;
         return 1;
     }

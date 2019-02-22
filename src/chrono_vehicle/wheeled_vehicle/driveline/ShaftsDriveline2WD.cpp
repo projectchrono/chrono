@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -25,16 +26,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -59,17 +50,13 @@ ShaftsDriveline2WD::ShaftsDriveline2WD(const rapidjson::Document& d) : ChShaftsD
 }
 
 void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
-    // Read top-level data.
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    SetName(d["Name"].GetString());
+    // Invoke base class method.
+    ChPart::Create(d);
 
     // Get shaft directions.
     assert(d.HasMember("Shaft Direction"));
-    SetMotorBlockDirection(loadVector(d["Shaft Direction"]["Motor Block"]));
-    SetAxleDirection(loadVector(d["Shaft Direction"]["Axle"]));
+    SetMotorBlockDirection(LoadVectorJSON(d["Shaft Direction"]["Motor Block"]));
+    SetAxleDirection(LoadVectorJSON(d["Shaft Direction"]["Axle"]));
 
     // Read shaft inertias.
     assert(d.HasMember("Shaft Inertia"));
@@ -80,6 +67,11 @@ void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Gear Ratio"));
     m_conicalgear_ratio = d["Gear Ratio"]["Conical Gear"].GetDouble();
     m_differential_ratio = d["Gear Ratio"]["Differential"].GetDouble();
+
+    m_axle_differential_locking_limit = 100;
+    if (d.HasMember("Axle Differential Locking Limit")) {
+        m_axle_differential_locking_limit = d["Axle Differential Locking Limit"].GetDouble();
+    }
 }
 
 }  // end namespace vehicle

@@ -71,7 +71,7 @@ class CH_VEHICLE_API FEATire : public ChFEATire {
     std::shared_ptr<fea::ChContinuumElastic> m_material;
     std::string m_input_file;
 
-    std::vector<std::vector<std::shared_ptr<fea::ChNodeFEAbase>>> m_node_sets;
+    std::map<std::string, std::vector<std::shared_ptr<fea::ChNodeFEAbase>>> m_node_sets;
 };
 
 /// @} vehicle_wheeled_tire

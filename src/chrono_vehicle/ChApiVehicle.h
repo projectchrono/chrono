@@ -30,7 +30,7 @@
 
 /**
     @defgroup vehicle VEHICLE module
-    @brief Ground vehicle modeling
+    @brief Ground vehicle modeling and simulation
 
     This module introduces template-based modeling tools
     for creating wheeled and tracked vehicles.

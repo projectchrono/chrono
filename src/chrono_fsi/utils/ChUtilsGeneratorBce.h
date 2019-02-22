@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Utility class for generating fluid markers.//
@@ -18,31 +18,66 @@
 #ifndef CH_UTILSGENERATORBCE__CUH
 #define CH_UTILSGENERATORBCE__CUH
 
+#include <thrust/host_vector.h>
+#include <string>
+#include "chrono/ChConfig.h"
 #include "chrono_fsi/ChParams.cuh"
 #include "chrono_fsi/custom_math.h"
-#include <string>
-#include <thrust/host_vector.h>
 
 namespace chrono {
+// Forward declaration
+namespace fea {
+class ChElementCableANCF;
+class ChElementShellANCF;
+}  // namespace fea
+
 namespace fsi {
 namespace utils {
 // =============================================================================
-void CreateBCE_On_Sphere(thrust::host_vector<Real3> &posRadBCE, Real rad,
-                         SimParams *paramsH);
+void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, SimParams* paramsH);
+void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, Real kernel_h);
+void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
+                           Real cyl_rad,
+                           Real cyl_h,
+                           SimParams* paramsH,
+                           Real kernel_h,
+                           bool cartesian = true);
 
-void CreateBCE_On_Cylinder(thrust::host_vector<Real3> &posRadBCE, Real cyl_rad,
-                           Real cyl_h, SimParams *paramsH);
+void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
+                                      thrust::host_vector<Real3>& normals,
+                                      Real cyl_rad,
+                                      Real cyl_h,
+                                      Real spacing);
 
-void CreateBCE_On_Box(thrust::host_vector<Real3> &posRadBCE, const Real3 &hsize,
-                      int face, SimParams *paramsH);
+void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE, const Real3& hsize, int face, SimParams* paramsH);
 
-void LoadBCE_fromFile(thrust::host_vector<Real3> &posRadBCE, // do not set the
-                                                             // size here since
-                                                             // you are using
-                                                             // push back later
-                      std::string fileName);
+void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale = 1);
 
-} // end namespace utils
-} // end namespace fsi
-} // end namespace chrono
+void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
+                        SimParams* paramsH,
+                        std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
+                        bool multiLayer = true,
+                        bool removeMiddleLayer = false,
+                        int SIDE = -2);
+
+void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
+                                     SimParams* paramsH,
+                                     std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
+                                     std::vector<int> remove,
+                                     bool multiLayer = true,
+                                     bool removeMiddleLayer = false,
+                                     int SIDE = 1);
+
+void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
+                                     SimParams* paramsH,
+                                     std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
+                                     std::vector<int> remove,
+                                     bool multiLayer = true,
+                                     bool removeMiddleLayer = false,
+                                     int SIDE = -2,
+                                     double kernel_h = 0);
+
+}  // end namespace utils
+}  // end namespace fsi
+}  // end namespace chrono
 #endif

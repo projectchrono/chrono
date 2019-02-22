@@ -15,19 +15,25 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
+#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-////#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
-
-#include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
+#include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
+
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChSolverMKL.h"
+#endif
+
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -42,11 +48,19 @@ using std::endl;
 
 bool use_JSON = false;
 std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
+////std::string filename("M113/track_assembly/M113_TrackAssemblyDoublePin_Left.json");
 
 double post_limit = 0.2;
 
 // Simulation step size
 double step_size = 1e-3;
+
+// Use HHT + MKL / MUMPS
+bool use_mkl = false;
+bool use_mumps = true;
+
+// Solver output level (MKL and MUMPS)
+bool verbose_solver = false;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;
@@ -60,15 +74,27 @@ const std::string out_dir = GetChronoOutputPath() + "TRACK_TEST_RIG";
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // -----------------------
+    // Construct rig mechanism
+    // -----------------------
+
     ChTrackTestRig* rig = nullptr;
     ChVector<> attach_loc(0, 1, 0);
+    ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC;
+
+    //// NOTE
+    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
+    //// However, there appear to still be redundant constraints in the double-pin assembly
+    //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
+    ////
+    //// For now, use ChMaterialSurface::NSC for a double-pin track model
 
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc, contact_method);
+        std::cout << "Rig uses track assembly from JSON file: " << vehicle::GetDataFile(filename) << std::endl;
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::SINGLE_PIN;
-
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
@@ -81,20 +107,83 @@ int main(int argc, char* argv[]) {
                 track_assembly = assembly;
                 break;
             }
+            default:
+                GetLog() << "Track type NOT supported\n";
+                break;
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::NSC);
+        rig = new ChTrackTestRig(track_assembly, attach_loc, contact_method);
+        std::cout << "Rig uses M113 track assembly:  type " << (int)type << " side " << side << std::endl;
     }
 
-    //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-    rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
-    rig->GetSystem()->SetMaxItersSolverSpeed(50);
-    rig->GetSystem()->SetMaxItersSolverStab(50);
-    rig->GetSystem()->SetTol(0);
-    rig->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-    rig->GetSystem()->SetMinBounceSpeed(2.0);
-    rig->GetSystem()->SetSolverOverrelaxationParam(0.8);
-    rig->GetSystem()->SetSolverSharpnessParam(1.0);
+    // ------------------------------
+    // Solver and integrator settings
+    // ------------------------------
+
+    // Cannot use HHT with MKL/MUMPS with NSC contact
+    if (contact_method == ChMaterialSurface::NSC) {
+        use_mkl = false;
+        use_mumps = false;
+    }
+
+#ifndef CHRONO_MKL
+    use_mkl = false;
+#endif
+#ifndef CHRONO_MUMPS
+    use_mumps = false;
+#endif
+
+    if (use_mkl) {
+#ifdef CHRONO_MKL
+        std::cout << "Solver: MKL" << std::endl;
+        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        mkl_solver->SetSparsityPatternLock(true);
+        mkl_solver->SetVerbose(verbose_solver);
+        rig->GetSystem()->SetSolver(mkl_solver);
+#endif
+    } else if (use_mumps) {
+#ifdef CHRONO_MUMPS
+        std::cout << "Solver: MUMPS" << std::endl;
+        auto mumps_solver = std::make_shared<ChSolverMumps>();
+        mumps_solver->SetSparsityPatternLock(true);
+        mumps_solver->SetNullPivotDetection(true);
+        mumps_solver->SetVerbose(verbose_solver);
+        rig->GetSystem()->SetSolver(mumps_solver);
+#endif
+    } else {
+        std::cout << "Solver: SOR" << std::endl;
+        rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
+        rig->GetSystem()->SetMaxItersSolverSpeed(50);
+        rig->GetSystem()->SetMaxItersSolverStab(50);
+        rig->GetSystem()->SetTol(0);
+        rig->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+        rig->GetSystem()->SetMinBounceSpeed(2.0);
+        rig->GetSystem()->SetSolverOverrelaxationParam(0.8);
+        rig->GetSystem()->SetSolverSharpnessParam(1.0);
+    }
+
+    if (use_mkl || use_mumps) {
+        std::cout << "Integrator: HHT" << std::endl;
+        rig->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
+        integrator->SetAlpha(-0.2);
+        integrator->SetMaxiters(50);
+        integrator->SetAbsTolerances(1e-4, 1e2);
+        integrator->SetMode(ChTimestepperHHT::ACCELERATION);
+        integrator->SetStepControl(false);
+        integrator->SetModifiedNewton(false);
+        integrator->SetScaling(true);
+        integrator->SetVerbose(verbose_solver);
+    } else {
+        std::cout << "Solver: Default" << std::endl;
+    }
+
+    // Disable gravity in this simulation
+    ////rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+
+    // ----------------------------
+    // Initialize the rig mechanism
+    // ----------------------------
 
     rig->SetMaxTorque(6000);
 
@@ -112,7 +201,10 @@ int main(int argc, char* argv[]) {
     ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
     ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
-    // Create the vehicle Irrlicht application.
+    // ---------------------------------------
+    // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
     ////ChVector<> target_point = rig->GetPostPosition();
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
     ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
@@ -122,12 +214,17 @@ int main(int argc, char* argv[]) {
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
     app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
+    app.SetChaseCameraState(utils::ChChaseCamera::Free);
+    app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();
 
-    // Create the driver system and set the time response for keyboard inputs.
+    // ------------------------
+    // Create the driver system
+    // ------------------------
+
     ChIrrGuiDriverTTR driver(app, post_limit);
     double steering_time = 1.0;      // time to go from 0 to max
     double displacement_time = 2.0;  // time to go from 0 to max applied post motion
@@ -135,8 +232,11 @@ int main(int argc, char* argv[]) {
     driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
     driver.Initialize();
 
+    // -----------------
     // Initialize output
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
@@ -146,13 +246,10 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    TireForces tire_forces(2);
-    WheelStates wheel_states(2);
+    TerrainForces shoe_forces(1);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
-
-    TrackShoeForces shoe_forces(1);
 
     // Initialize simulation frame counter
     int step_number = 0;
@@ -170,17 +267,14 @@ int main(int argc, char* argv[]) {
         ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
 
         // Render scene
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
 
-            if (img_output && step_number > 1000) {
-                char filename[100];
-                sprintf(filename, "%s/img_%03d.jpg", out_dir.c_str(), render_frame + 1);
-                app.WriteImageToFile(filename);
-            }
-
+        if (img_output && step_number > 1000 && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/img_%03d.jpg", out_dir.c_str(), render_frame + 1);
+            app.WriteImageToFile(filename);
             render_frame++;
         }
 

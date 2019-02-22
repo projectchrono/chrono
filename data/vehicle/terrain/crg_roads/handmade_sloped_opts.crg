@@ -1,0 +1,120 @@
+* Emacs major mode to be selected automagically: -*-CASCaDE-*-
+* $Id: handmade_sloped_opts.crg 184 2010-09-22 07:41:39Z jorauh $
+$CT                                                 ! comment text block
+CRG file example for road surface description (width: 3m, length: 22m)
+with sloped referenceline and grid of (0.25m...1.0m) x 1.0m
+
+Copyright 2005-2010 OpenCRG - Daimler AG - Jochen Rauh
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+More Information on OpenCRG open file formats and tools can be found at
+
+    http://www.opencrg.org
+
+$!**********************************************************************
+$ROAD_CRG                                          ! crg road parameters
+REFERENCE_LINE_START_U   = 0.0
+REFERENCE_LINE_START_X   = 0.0
+REFERENCE_LINE_START_Y   = 0.0
+REFERENCE_LINE_START_PHI = 0.0
+REFERENCE_LINE_END_U     = 22.0
+REFERENCE_LINE_END_PHI   = 0.0
+REFERENCE_LINE_INCREMENT = 1.0
+LONG_SECTION_V_RIGHT     =-1.50         ! with explicit definition below
+LONG_SECTION_V_LEFT      = 1.50         ! with explicit definition below
+$!**********************************************************************
+$KD_Definition                                   ! data definition block
+#:LRFI                           ! one of the men readable IPLOS formats
+U:reference line x,m,0,1.0      ! undefined data, only for IPLOS viewing
+D:reference line slope,m/m                          ! longitudinal slope
+D:long section at v = -1.500,m           ! 1.50m right of reference line
+D:long section at v = -1.250,m           ! 1.25m right of reference line
+D:long section at v = -1.000,m           ! 1.00m right of reference line
+D:long section at v =  0.000,m           !             on reference line
+D:long section at v =  1.000,m           ! 1.00m left  of reference line
+D:long section at v =  1.250,m           ! 1.25m left  of reference line
+D:long section at v =  1.500,m           ! 1.50m left  of reference line
+$!**********************************************************************
+$ROAD_CRG_OPTS                          ! crg runtime evaluation options
+*
+* CRG elevation grid border modes in u and v directions
+* BORDER_MODE_U = 0             ! return NaN
+* BORDER_MODE_U = 1             ! set zero
+  BORDER_MODE_U = 2             ! keep last (default)
+* BORDER_MODE_U = 3             ! repeat
+  BORDER_OFFSET_U = 0.0         ! z offset beyond border (default: 0)
+*
+* BORDER_MODE_V = 0             ! return NaN
+* BORDER_MODE_V = 1             ! set zero
+  BORDER_MODE_V = 2             ! keep last (default)
+* BORDER_MODE_V = 3             ! repeat
+  BORDER_OFFSET_V = 0.0         ! z offset beyond border (default: 0)
+*
+* CRG reference line continuation
+  REFLINE_CONTINUATION = 0      ! follow linear extrapolation (default)
+* REFLINE_CONTINUATION = 1      ! cclose track
+*
+* CRG reference line search strategy
+  REFLINE_SEARCH_FAR = 1.5      ! far value (default: 1.5)
+  REFLINE_SEARCH_CLOSE = 0.3    ! close value (default: sfar/5)
+*
+* CRG message options
+*   = 0: no messages at all
+*   = -1: unlimited messages
+*   > 0: max. number of messages to show
+  WARN_MSGS = -1                ! warning messages (default: -1)
+  WARN_CURV_LOCAL = -1          ! local curvature limit exceeded (d: -1)
+  WARN_CURV_GLOBAL = -1         ! global curvature limit exceeded (d:-1)
+*
+  LOG_MSGS = -1                 ! log messages (default: -1)
+  LOG_EVAL = 20                 ! evaluation inputs and outputs (d: 20)
+  LOG_EVAL_FREQ = 1             ! how often (default: 1)
+  LOG_EVAL = 20                 ! evaluation inputs and outputs (d: 20)
+  LOG_EVAL_FREQ = 1             ! how often (default: 1)
+  LOG_HIST = -1                 ! refline search history (default: -1)
+  LOG_HIST_FREQ = 100000        ! how often (default: 100000)
+  LOG_STAT = -1                 ! evaluation statistics (default: -1)
+  LOG_STAT_FREQ = 100000        ! how often (default: 100000)
+*
+* CRG check options
+  CHECK_EPS = 0.000001          ! expected min. accuracy (default: 1e-6)
+  CHECK_INC = 0.001             ! expected min. increm. (default: 1e-3)
+  CHECK_TOL = 0.0001            ! expected abs. tol. (default: 0.1*cinc)
+$!**********************************************************************
+* slope     l_sec 1   l_sec 2   l_sec 3   l_sec 4   l_sec 5   l_sec 6   l_sec 7
+*           v=-1.50   v=-1.25   v=-1.00   v= 0.00   v= 1.00   v= 1.25   v= 1.50
+$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0$$$$$$$$$0
+**unused** 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0000000
+ 0.0110000 0.0000000 0.0000000 0.0111111 0.0111111 0.0111111 0.0000000 0.0000000
+ 0.0220000 0.0000000 0.0111111 0.0111111 0.0111111 0.0111111 0.0111111 0.0000000
+ 0.0330000 0.0000000 0.0000000 0.0111111 0.0111111 0.0111111 0.0000000 0.0000000
+ 0.0440000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0111111
+ 0.0550000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000 0.0111111 0.0222222
+ 0.0660000 0.0111111 0.0111111 0.0111111 0.0000000 0.0111111 0.0222222 0.0333333
+ 0.0770000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000 0.0111111 0.0222222
+ 0.0880000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0111111
+ 0.0990000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.1100000 0.0000000 0.0111111 0.0222222 0.0222222 0.0222222 0.0111111 0.0000000
+ 0.1100000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0990000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000-0.0111111
+ 0.0880000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000-0.0111111-0.0222222
+ 0.0770000 0.0111111 0.0111111 0.0111111 0.0000000-0.0111111-0.0222222-0.0333333
+ 0.0660000 0.0111111 0.0111111 0.0000000 0.0000000 0.0000000-0.0111111-0.0222222
+ 0.0550000 0.0111111 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000-0.0111111
+ 0.0440000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0330000 0.0000000 0.0111111 0.0222222 0.0333333 0.0222222 0.0111111 0.0000000
+ 0.0220000 0.0000000 0.0000000 0.0111111 0.0222222 0.0111111 0.0000000 0.0000000
+ 0.0110000 0.0000000 0.0000000 0.0000000 0.0111111 0.0000000 0.0000000 0.0000000
+ 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000 0.0000000

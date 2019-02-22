@@ -13,7 +13,7 @@
 #include "ModifyPath.iss"
 
 #define MyAppName "ChronoPyEngine"
-#define MyAppVersion "v2.0.8"
+#define MyAppVersion "v3.0.0"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.chronoengine.info"
 #define MyWin64PythonDir  "D:\build\chrono\bin\Release"
@@ -45,19 +45,19 @@ DisableProgramGroupPage=yes
 Source: {#MyChronoEngineSDK}\data\*; Excludes: "*\.svn,\mpi,\vehicle,\cascade"; DestDir: "{app}\data"; Flags: recursesubdirs createallsubdirs
 Source: {#MyChronoEngineSDK}\src\demos\python\*; DestDir: "{app}\src\demos\python\"; Flags: recursesubdirs createallsubdirs
 
-Source: {#MyWin64PythonDir}\_ChronoEngine_python_core.pyd; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\_ChronoEngine_python_postprocess.pyd; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\_ChronoEngine_python_irrlicht.pyd; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\_ChronoEngine_python_fea.pyd; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_postprocess.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_irrlicht.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_fea.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\Irrlicht.dll; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_python_core.py; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_python_postprocess.py; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_python_irrlicht.py; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
-Source: {#MyWin64PythonDir}\ChronoEngine_python_fea.py; DestDir: {app};  Flags: ignoreversion;  Check: myFoundWin64Python;
+Source: {#MyWin64PythonDir}\_ChronoEngine_python_core.pyd; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\_ChronoEngine_python_postprocess.pyd; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\_ChronoEngine_python_irrlicht.pyd; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\_ChronoEngine_python_fea.pyd; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_postprocess.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_irrlicht.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_fea.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\Irrlicht.dll; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_python_core.py; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_python_postprocess.py; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_python_irrlicht.py; DestDir: {app};  Flags: ignoreversion;
+Source: {#MyWin64PythonDir}\ChronoEngine_python_fea.py; DestDir: {app};  Flags: ignoreversion;
 
 [Icons]
 Name: "{group}\ProjectChrono"; Filename: "http://www.projectchrono.org"
@@ -289,6 +289,8 @@ begin
 
   //if ((PageId = DataDirPage.ID) and ((mFoundWin64Python =1) or (mFoundWin32Python =1)))  then
   //  Result := True
+  if (PageId = DataDirPage.ID) then
+      Result := True
 end;
 
 
@@ -330,8 +332,25 @@ begin
   end
 
   if ((mFoundWin64Python = 0) and  (mFoundWin32Python = 0)) then begin
-    S := S + 'Neither Win32 nor Win64 Python (version' +  '{#MyPythonVers}' + ') has been detected.' + NewLine;
-    S := S + 'Chrono::Engine module CANNOT BE INSTALLED!' + NewLine;
+    //S := S + 'Neither Win32 nor Win64 Python (version' +  '{#MyPythonVers}' + ') has been detected.' + NewLine;
+    //S := S + 'Chrono::Engine module CANNOT BE INSTALLED!' + NewLine;
+    S := S + NewLine;
+    S := S + 'The Chrono::Engine 64 bit module will be installed in:' + NewLine;
+    S := S + space + ExpandConstant('{app}') + NewLine;
+
+    if (CheckAppendPath = True) then begin
+      S := S + NewLine;
+      S := S + 'Your PYTHONPATH environment variable will be automatically' + NewLine;
+      S := S + 'updated by appending the ' + NewLine;
+      S := S + space + ExpandConstant('{app}') + NewLine;
+      S := S + 'value, if not already existing.';
+    end else begin
+      S := S + NewLine;
+      S := S + 'REMEMBER! you must manually add the directory' + NewLine;
+      S := S + space + ExpandConstant('{app}') + NewLine;
+      S := S + 'to your PYTHONPATH environment variable!' + NewLine;
+      S := S + 'Otherwise, Python cannot find the installed Chrono modules.'
+    end
   end
 
   //HKEY_CURRENT_USER\Environment 

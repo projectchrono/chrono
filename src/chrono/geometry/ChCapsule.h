@@ -21,9 +21,7 @@ namespace chrono {
 namespace geometry {
 
 /// A capsule geometric object for collision and visualization.
-
 class ChApi ChCapsule : public ChGeometry {
-
   public:
     ChVector<> center;  ///< capsule center
     double rad;         ///< capsule radius
@@ -31,7 +29,7 @@ class ChApi ChCapsule : public ChGeometry {
 
   public:
     ChCapsule() : center(VNULL), rad(0), hlen(0) {}
-    ChCapsule(ChVector<>& mcenter, double mrad, double mhlen) : center(mcenter), rad(mrad), hlen(mhlen) {}
+    ChCapsule(const ChVector<>& mcenter, double mrad, double mhlen) : center(mcenter), rad(mrad), hlen(mhlen) {}
     ChCapsule(const ChCapsule& source);
     ~ChCapsule() {}
 
@@ -55,34 +53,16 @@ class ChApi ChCapsule : public ChGeometry {
     /// This is a solid
     virtual int GetManifoldDimension() const override { return 3; }
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChCapsule>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
-        marchive << CHNVP(hlen);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChCapsule>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
-        marchive >> CHNVP(hlen);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
-
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChCapsule,0)
+CH_CLASS_VERSION(geometry::ChCapsule, 0)
 
 }  // end namespace chrono
 

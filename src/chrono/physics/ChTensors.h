@@ -35,6 +35,8 @@ class ChVoightTensor : public ChMatrixNM<Real, 6, 1> {
     /// Constructors (default empty)
     ChVoightTensor(){};
 
+	~ChVoightTensor(){};
+
     /// Copy constructor, from a typical 3D rank-two stress or strain tensor (as 3x3 matrix)
     template <class RealB>
     inline ChVoightTensor(const ChMatrix33<RealB>& msource) {

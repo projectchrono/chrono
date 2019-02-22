@@ -22,11 +22,12 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
 
+#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
-#include "chrono/physics/ChShaftsPlanetary.h"
-#include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsMotor.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsTorque.h"
 
 namespace chrono {
@@ -42,6 +43,9 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
 
     virtual ~ChShaftsDriveline4WD() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "ShaftsDriveline4WD"; }
+
     /// Set the direction of the motor block.
     /// This direction is a unit vector, relative to the chassis frame (for the
     /// ISO coordinate system, this is [1, 0, 0] for a longitudinal engine and
@@ -53,6 +57,18 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
     /// specified for the design configuration (for the ISO vehicle coordinate
     /// system, this is typically [0, 1, 0]).
     void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
+
+    /// Lock/unlock the differential on the specified axle.
+    /// By convention, axles are counted front to back, starting with index 0 for the front-most axle.
+    /// Pass axle=-1 to simultaneously lock/unlock both axle differentials.
+    /// Differential locking is implemented through a friction torque between the output shafts
+    /// of the differential. The locking effect is limited by a maximum locking torque.
+    virtual void LockAxleDifferential(int axle, bool lock) override;
+
+    /// Lock/unlock the central differential.
+    /// Differential locking is implemented through a friction torque between the output shafts
+    /// of the differential. The locking effect is limited by a maximum locking torque.
+    virtual void LockCentralDifferential(int which, bool lock) override;
 
     /// Return the number of driven axles.
     /// A ChShaftsDriveline4WD driveline connects to two axles.
@@ -94,16 +110,28 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
     /// Return the gear ratio for the central differential.
     virtual double GetCentralDifferentialRatio() const = 0;
 
+    /// Return the limit for the axle differential locking torque.
+    virtual double GetAxleDifferentialLockingLimit() const = 0;
+
+    /// Return the limit for the central differential locking torque.
+    virtual double GetCentralDifferentialLockingLimit() const = 0;
+
   private:
-    std::shared_ptr<ChShaftsPlanetary> m_central_differential;
-    std::shared_ptr<ChShaft> m_front_shaft;
-    std::shared_ptr<ChShaft> m_rear_shaft;
-    std::shared_ptr<ChShaftsGearboxAngled> m_rear_conicalgear;
-    std::shared_ptr<ChShaftsPlanetary> m_rear_differential;
-    std::shared_ptr<ChShaft> m_rear_differentialbox;
-    std::shared_ptr<ChShaftsGearboxAngled> m_front_conicalgear;
-    std::shared_ptr<ChShaftsPlanetary> m_front_differential;
-    std::shared_ptr<ChShaft> m_front_differentialbox;
+    std::shared_ptr<ChShaftsPlanetary> m_central_differential;  ///< central differential
+    std::shared_ptr<ChShaftsClutch> m_central_clutch;           ///< clutch for locking central differential
+
+    std::shared_ptr<ChShaft> m_front_shaft;  ///< shaft to front axle
+    std::shared_ptr<ChShaft> m_rear_shaft;   ///< shaft to rear axle
+
+    std::shared_ptr<ChShaftsGearboxAngled> m_rear_conicalgear;  ///< rear conic gear
+    std::shared_ptr<ChShaftsPlanetary> m_rear_differential;     ///< rear differential
+    std::shared_ptr<ChShaft> m_rear_differentialbox;            ///< rear differential casing
+    std::shared_ptr<ChShaftsClutch> m_rear_clutch;              ///< clutch for locking rear differential
+
+    std::shared_ptr<ChShaftsGearboxAngled> m_front_conicalgear;  ///< front conic gear
+    std::shared_ptr<ChShaftsPlanetary> m_front_differential;     ///< front differential
+    std::shared_ptr<ChShaft> m_front_differentialbox;            ///< front differential casing
+    std::shared_ptr<ChShaftsClutch> m_front_clutch;              ///< clutch for locking front differential
 
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;

@@ -44,8 +44,10 @@ class CH_VEHICLE_API ShaftsDriveline2WD : public ChShaftsDriveline2WD {
     virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
     virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
 
+    virtual double GetAxleDifferentialLockingLimit() const override { return m_axle_differential_locking_limit; }
+
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     // Shaft inertias.
     double m_driveshaft_inertia;
@@ -54,6 +56,9 @@ class CH_VEHICLE_API ShaftsDriveline2WD : public ChShaftsDriveline2WD {
     // Gear ratios.
     double m_conicalgear_ratio;
     double m_differential_ratio;
+
+    // Differential locking torque limit.
+    double m_axle_differential_locking_limit;
 };
 
 /// @} vehicle_wheeled_driveline

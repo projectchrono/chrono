@@ -157,7 +157,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     Quaternion q_8;
     Vector q_4;
 
-    Quaternion temp1 = marker2->GetCoord_dt().rot;
+    Quaternion temp1 = marker1->GetCoord_dt().rot;
     Quaternion temp2 = marker2->GetCoord_dt().rot;
 
     if (Qnotnull(temp1) || Qnotnull(temp2)) {

@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -29,9 +28,13 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
+#include "chrono_vehicle/output/ChVehicleOutputASCII.h"
+
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -52,10 +55,10 @@ enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType chassis_vis_type = VisualizationType::MESH;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType wheel_vis_type = VisualizationType::NONE;
+VisualizationType wheel_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
@@ -66,12 +69,14 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 // Drive type (FWD, RWD, or AWD)
 DrivelineType drive_type = DrivelineType::AWD;
 
-// Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA)
+// Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
+SteeringType steering_type = SteeringType::PITMAN_ARM;
+
+// Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA, PAC89)
 TireModelType tire_model = TireModelType::RIGID;
 
 // Rigid terrain
-RigidTerrain::Type terrain_model = RigidTerrain::FLAT;
-bool terrain_vis = true;
+RigidTerrain::Type terrain_model = RigidTerrain::BOX;
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
@@ -84,8 +89,8 @@ ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 1e-3;
-double tire_step_size = step_size;
+double step_size = 3e-3;
+double tire_step_size = 1e-3;
 
 // Simulation end time
 double t_end = 1000;
@@ -121,13 +126,14 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
+    my_hmmwv.SetSteeringType(steering_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.SetPacejkaParamfile("hmmwv/tire/HMMWV_pacejka.tir");
+    my_hmmwv.SetVehicleStepSize(step_size);
     my_hmmwv.Initialize();
 
     VisualizationType tire_vis_type =
-        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
+        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::NONE;
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
     my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
@@ -137,25 +143,29 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactFrictionCoefficient(0.9f);
-    terrain.SetContactRestitutionCoefficient(0.01f);
-    terrain.SetContactMaterialProperties(2e7f, 0.3f);
-    terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
-    terrain.EnableVisualization(terrain_vis);
+
+    std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
-        case RigidTerrain::FLAT:
-            terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
-            terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
+        case RigidTerrain::BOX:
+            patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
+                                     ChVector<>(terrainLength, terrainWidth, 10));
+            patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::HEIGHT_MAP:
-            terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
-            terrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 128, 128, 0, 4);
+            patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 128,
+                                     128, 0, 4);
+            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::MESH:
-            terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
-            terrain.Initialize(vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+            patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+            patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
+    patch->SetContactFrictionCoefficient(0.9f);
+    patch->SetContactRestitutionCoefficient(0.01f);
+    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+    terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
     ChWheeledVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"HMMWV Demo");
@@ -170,20 +180,30 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
     if (povray_output) {
-        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
         terrain.ExportMeshPovray(out_dir);
     }
 
+    // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
     utils::CSV_writer driver_csv(" ");
+
+    // Set up vehicle output
+    my_hmmwv.GetVehicle().SetChassisOutput(true);
+    my_hmmwv.GetVehicle().SetSuspensionOutput(0, true);
+    my_hmmwv.GetVehicle().SetSteeringOutput(0, true);
+    my_hmmwv.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+
+    // Generate JSON information with available output channels
+    my_hmmwv.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------
     // Create the driver system
@@ -240,18 +260,14 @@ int main(int argc, char* argv[]) {
         if (time >= t_end)
             break;
 
-        // Render scene and output POV-Ray data
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
 
-            if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
-            }
-
+        // Output POV-Ray data
+        if (povray_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+            utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
             render_frame++;
         }
 
@@ -260,6 +276,12 @@ int main(int argc, char* argv[]) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
             my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+
+            auto marker_driver = my_hmmwv.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
+            auto marker_com = my_hmmwv.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
+            GetLog() << "Markers\n";
+            std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " " << marker_driver.z() << std::endl;
+            std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z() << std::endl;
         }
 
         // Collect output data from modules (for inter-module communication)
@@ -287,6 +309,8 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
+
+        app.EndScene();
     }
 
     if (driver_mode == RECORD) {

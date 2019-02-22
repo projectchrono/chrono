@@ -28,11 +28,9 @@ namespace chrono {
 ///
 ///   fa(t) = fa(window_start + mod(t + window_phase, window_length))
 ///
-/// Note: for infinite window_length and zero window_start, you can use 
+/// Note: for infinite window_length and zero window_start, you can use
 /// window_phase to simply 'translate' the function on abscissa.
-
 class ChApi ChFunction_Repeat : public ChFunction {
-
   private:
     double window_start;   ///< window begin position
     double window_length;  ///< window length
@@ -66,33 +64,13 @@ class ChApi ChFunction_Repeat : public ChFunction {
     virtual void Estimate_x_range(double& xmin, double& xmax) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Repeat>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(fa);
-        marchive << CHNVP(window_start);
-        marchive << CHNVP(window_length);
-        marchive << CHNVP(window_phase);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Repeat>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(fa);
-        marchive >> CHNVP(window_start);
-        marchive >> CHNVP(window_length);
-        marchive >> CHNVP(window_phase);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Repeat,0)
+CH_CLASS_VERSION(ChFunction_Repeat, 0)
 
 }  // end namespace chrono
 

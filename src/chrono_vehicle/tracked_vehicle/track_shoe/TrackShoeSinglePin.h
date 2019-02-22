@@ -70,7 +70,7 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_shoe_height;
     double m_shoe_pitch;

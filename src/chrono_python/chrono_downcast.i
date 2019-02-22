@@ -44,7 +44,20 @@
 %}
 %enddef
 
-
+// Same as DefChSharedPtrDynamicDowncast, but the third parameter is the typename in a 
+// readable form. For example if __CHTYPE__ is a templated class such as Myclass<Mytype>, 
+// DefChSharedPtrDynamicDowncast cannot be used because it would attempt to generate 
+// a function "CastToMyclass<Mytype>" that cannot be wrapped because of the <> brackets. Same for :: namespaces etc. 
+// So here one could use for example  DefChSharedPtrDynamicDowncastCustomName(Mybase, Myclass<Mytype>, Myclass_Tmytype)
+// to generate "CastToMyclass_Tmytype".
+%define %DefChSharedPtrDynamicDowncastCustomName(__CHTYPE_BASE__, __CHTYPE__, __CHTYPEREADABLE__)
+%inline %{
+	std::shared_ptr<__CHTYPE__> CastTo ## __CHTYPEREADABLE__ ## Shared(std::shared_ptr<__CHTYPE_BASE__> in_obj)
+	{
+		return (std::dynamic_pointer_cast<__CHTYPE__>(in_obj));
+	}
+%}
+%enddef
 
 
 

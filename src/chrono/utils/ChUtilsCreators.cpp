@@ -175,11 +175,11 @@ void AddTriangleMeshGeometry(ChBody* body,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
                              bool visualization) {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(obj_filename, false, false);
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(obj_filename, false, false);
 
-    for (int i = 0; i < trimesh.m_vertices.size(); i++)
-        trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+    for (int i = 0; i < trimesh->m_vertices.size(); i++)
+        trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
 
     body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
 
@@ -209,15 +209,15 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
     float volumep = 0.1f;
     bool useinitialislands = true;
 
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(obj_filename, true, false);
-    for (int i = 0; i < trimesh.m_vertices.size(); i++) {
-        trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(obj_filename, true, false);
+    for (int i = 0; i < trimesh->m_vertices.size(); i++) {
+        trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
     }
     collision::ChConvexDecompositionJR mydecompositionJR;
 
     mydecompositionJR.Reset();
-    mydecompositionJR.AddTriangleMesh(trimesh);
+    mydecompositionJR.AddTriangleMesh(*trimesh);
     mydecompositionJR.SetParameters(skin_thickness,     // skin width
                                     decompdepth,        // decomp.depth
                                     maxhullvert,        // max hull vertexes
@@ -238,8 +238,8 @@ void AddTriangleMeshConvexDecomposition(ChBody* body,
         if (!use_original_asset) {
             std::stringstream ss;
             ss << name << "_" << c;
-            geometry::ChTriangleMeshConnected trimesh_convex;
-            used_decomposition->GetConvexHullResult(c, trimesh_convex);
+            auto trimesh_convex = std::make_shared<geometry::ChTriangleMeshConnected>();
+            used_decomposition->GetConvexHullResult(c, *trimesh_convex);
 
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh_convex);
@@ -268,11 +268,11 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                           const ChVector<>& pos,
                                           const ChQuaternion<>& rot,
                                           bool use_original_asset) {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.LoadWavefrontMesh(obj_filename, true, false);
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(obj_filename, true, false);
 
-    for (int i = 0; i < trimesh.m_vertices.size(); i++) {
-        trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+    for (int i = 0; i < trimesh->m_vertices.size(); i++) {
+        trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
     }
     collision::ChConvexDecompositionHACDv2 mydecompositionHACDv2;
 
@@ -284,7 +284,7 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
     double hacd_fusetolerance = 1e-6;
 
     mydecompositionHACDv2.Reset();
-    mydecompositionHACDv2.AddTriangleMesh(trimesh);
+    mydecompositionHACDv2.AddTriangleMesh(*trimesh);
 
     mydecompositionHACDv2.SetParameters(hacd_maxhullcount, hacd_maxhullmerge, hacd_maxhullvertexes,
                                         (float)hacd_concavity, (float)hacd_smallclusterthreshold,
@@ -302,8 +302,8 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
         if (!use_original_asset) {
             std::stringstream ss;
             ss << name << "_" << c;
-            geometry::ChTriangleMeshConnected trimesh_convex;
-            used_decomposition->GetConvexHullResult(c, trimesh_convex);
+            auto trimesh_convex = std::make_shared<geometry::ChTriangleMeshConnected>();
+            used_decomposition->GetConvexHullResult(c, *trimesh_convex);
 
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh_convex);
@@ -332,7 +332,7 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              const std::string& name,
                                              const ChVector<>& pos,
                                              const ChQuaternion<>& rot,
-                                             std::shared_ptr<ChMaterialSurfaceNSC>& material,
+                                             std::shared_ptr<ChMaterialSurfaceNSC> material,
                                              double total_mass) {
     assert(material->GetContactMethod() == system->GetContactMethod());
 
@@ -377,9 +377,9 @@ void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
     double scale = 1.0 / sum;
 
     for (int c = 0; c < hull_count; c++) {
-        geometry::ChTriangleMeshConnected trimesh_convex;
-        used_decomposition->GetConvexHullResult(c, trimesh_convex);
-        trimesh_convex.ComputeMassProperties(true, mass, center, inertia);
+        auto trimesh_convex = std::make_shared<geometry::ChTriangleMeshConnected>();
+        used_decomposition->GetConvexHullResult(c, *trimesh_convex);
+        trimesh_convex->ComputeMassProperties(true, mass, center, inertia);
 
         body = std::shared_ptr<ChBody>(system->NewBody());
 
@@ -425,16 +425,16 @@ void AddTriangle(ChBody* body,
                  const ChVector<>& pos,
                  const ChQuaternion<>& rot,
                  bool visualization) {
-    geometry::ChTriangleMeshConnected trimesh;
-    trimesh.m_vertices.clear();
-    trimesh.m_face_v_indices.clear();
-    trimesh.m_vertices.push_back(vertA);
-    trimesh.m_vertices.push_back(vertB);
-    trimesh.m_vertices.push_back(vertC);
-    trimesh.m_face_v_indices.push_back(ChVector<int>(0, 1, 2));
+    auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->m_vertices.clear();
+    trimesh->m_face_v_indices.clear();
+    trimesh->m_vertices.push_back(vertA);
+    trimesh->m_vertices.push_back(vertB);
+    trimesh->m_vertices.push_back(vertC);
+    trimesh->m_face_v_indices.push_back(ChVector<int>(0, 1, 2));
 
-    for (int i = 0; i < trimesh.m_vertices.size(); i++)
-        trimesh.m_vertices[i] = pos + rot.Rotate(trimesh.m_vertices[i]);
+    for (int i = 0; i < trimesh->m_vertices.size(); i++)
+        trimesh->m_vertices[i] = pos + rot.Rotate(trimesh->m_vertices[i]);
 
     body->GetCollisionModel()->AddTriangleMesh(trimesh, false, false);
 
@@ -751,7 +751,7 @@ void LoadConvexHulls(const std::string& file_name,
 // -----------------------------------------------------------------------------
 
 void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
-                             ChTriangleMeshConnected& convex_mesh,
+                             std::shared_ptr<ChTriangleMeshConnected> convex_mesh,
                              ChConvexDecompositionHACDv2& convex_shape,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot,
@@ -768,9 +768,9 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
         // Add each convex chunk as a new asset
         if (!use_original_asset) {
             std::stringstream ss;
-            ss << convex_mesh.GetFileName() << "_" << c;
-            geometry::ChTriangleMeshConnected trimesh_convex;
-            used_decomposition->GetConvexHullResult(c, trimesh_convex);
+            ss << convex_mesh->GetFileName() << "_" << c;
+            auto trimesh_convex = std::make_shared<geometry::ChTriangleMeshConnected>();
+            used_decomposition->GetConvexHullResult(c, *trimesh_convex);
 
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh_convex);
@@ -784,7 +784,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
     if (use_original_asset) {
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(convex_mesh);
-        trimesh_shape->SetName(convex_mesh.GetFileName());
+        trimesh_shape->SetName(convex_mesh->GetFileName());
         trimesh_shape->Pos = VNULL;
         trimesh_shape->Rot = QUNIT;
         body->GetAssets().push_back(trimesh_shape);
@@ -794,7 +794,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
 // -----------------------------------------------------------------------------
 
 void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
-                             ChTriangleMeshConnected& convex_mesh,
+                             std::shared_ptr<ChTriangleMeshConnected> convex_mesh,
                              std::vector<std::vector<ChVector<double> > >& convex_hulls,
                              const ChVector<>& pos,
                              const ChQuaternion<>& rot) {
@@ -804,7 +804,7 @@ void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
     // Add the original triangle mesh as asset
     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(convex_mesh);
-    trimesh_shape->SetName(convex_mesh.GetFileName());
+    trimesh_shape->SetName(convex_mesh->GetFileName());
     trimesh_shape->Pos = pos;
     trimesh_shape->Rot = rot;
     body->GetAssets().push_back(trimesh_shape);

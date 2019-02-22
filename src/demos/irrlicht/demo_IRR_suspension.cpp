@@ -731,21 +731,15 @@ int main(int argc, char* argv[]) {
         application.GetIGUIEnvironment()->drawAll();
 
         // .. draw the distance constraints (the massless rods) as simplified lines
-        auto iterlink = my_system.Get_linklist()->begin();
-        while (iterlink != my_system.Get_linklist()->end()) {
-            if (auto mylinkdis = std::dynamic_pointer_cast<ChLinkDistance>(*iterlink))
-                ChIrrTools::drawSegment(application.GetVideoDriver(), mylinkdis->GetEndPoint1Abs(), mylinkdis->GetEndPoint2Abs(),
-                                        video::SColor(255, 0, 20, 0), true);
-            iterlink++;
-        }
-
         // .. draw the spring constraints as simplified spring helix
-        iterlink = my_system.Get_linklist()->begin();
-        while (iterlink != my_system.Get_linklist()->end()) {
-            if (auto mylinkspri = std::dynamic_pointer_cast<ChLinkSpring>(*iterlink))
-                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, mylinkspri->GetEndPoint1Abs(), mylinkspri->GetEndPoint2Abs(),
-                                       video::SColor(255, 150, 20, 20), 80, 5, true);
-            iterlink++;
+        for (auto link : my_system.Get_linklist()) {
+            if (auto linkdist = std::dynamic_pointer_cast<ChLinkDistance>(link)) {
+                ChIrrTools::drawSegment(application.GetVideoDriver(), linkdist->GetEndPoint1Abs(),
+                                        linkdist->GetEndPoint2Abs(), video::SColor(255, 0, 20, 0), true);
+            } else if (auto linkspring = std::dynamic_pointer_cast<ChLinkSpring>(link)) {
+                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, linkspring->GetEndPoint1Abs(),
+                                       linkspring->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 5, true);
+            }
         }
 
         // The torque applied to wheels, using the ChLinkEngine links between

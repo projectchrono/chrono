@@ -40,7 +40,7 @@ class CH_VEHICLE_API SimpleTrackDriveline : public ChSimpleTrackDriveline {
     virtual double GetDifferentialMaxBias() const override { return m_diff_bias; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_diff_bias;
 };

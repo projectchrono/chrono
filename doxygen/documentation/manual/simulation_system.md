@@ -215,7 +215,7 @@ We recommend using one of the following iterative solvers:
 - ```BARZILAIBORWEIN``` 
     - good convergence
 	- supports DVI (hard contacts, with complementarity)   
-    - similar to ```SOLVER_APGD```, might be more robust when using large mass ratios
+    - similar to ```APGD```, might be more robust when using large mass ratios
 	
 - ```MINRES``` 
     - good convergence
@@ -240,7 +240,7 @@ Advanced settings are not accessible directly from @ref chrono::ChSystem,
 for instance:
 
 ~~~{.cpp}
-if (auto msolver = dynamic_cast<chrono::ChSolverMINRES*>(my_system.GetSolver())) {
+if (auto msolver = std::dynamic_pointer_cast<ChSolverMINRES>(my_system.GetSolver())) {
 	msolver->SetDiagonalPreconditioning(true);
 }
 ~~~

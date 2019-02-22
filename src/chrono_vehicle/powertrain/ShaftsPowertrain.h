@@ -27,6 +27,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_powertrain
+/// @{
+
 class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
   public:
     ShaftsPowertrain(const std::string& filename);
@@ -55,7 +58,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
         std::vector<double> m_y;
     };
 
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     void ReadMapData(const rapidjson::Value& a, MapData& map_data);
     void SetMapData(const MapData& map_data, std::shared_ptr<ChFunction_Recorder>& map);
@@ -72,6 +75,8 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     MapData m_tc_capacity_factor;
     MapData m_tc_torque_ratio;
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono

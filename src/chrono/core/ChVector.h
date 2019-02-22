@@ -15,11 +15,10 @@
 #ifndef CHVECTOR_H
 #define CHVECTOR_H
 
+#include <algorithm>
 #include <cmath>
-#include <iostream>
-#include <iomanip>
+#include <limits>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/serialization/ChArchive.h"
 
@@ -201,14 +200,10 @@ class ChVector {
     /// Return a unit vector orthogonal to this vector
     ChVector<Real> GetOrthogonalVector() const;
 
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data in archives.
+    /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de serialization of transient data from archives.
+    /// Method to allow de-serialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive);
 
   private:
@@ -793,13 +788,13 @@ inline Real ChVector<Real>::Length2() const {
 
 template <class Real>
 inline Real ChVector<Real>::LengthInf() const {
-    return ChMax(ChMax(fabs(data[0]), fabs(data[1])), fabs(data[2]));
+    return std::max(std::max(fabs(data[0]), fabs(data[1])), fabs(data[2]));
 }
 
 template <class Real>
 inline bool ChVector<Real>::Normalize() {
     Real length = this->Length();
-    if (length < CH_NANOTOL) {
+    if (length < std::numeric_limits<Real>::min()) {
         data[0] = 1;
         data[1] = 0;
         data[2] = 0;
@@ -852,7 +847,7 @@ inline void ChVector<Real>::DirToDxDyDz(ChVector<Real>& Vx,
     }
 
     // normalize Vz.
-    Vz.Scale(1.0 / zlen);
+    Vz.Scale(1 / zlen);
 
     // compute Vy.
     Vy.Cross(Vz, Vx);
@@ -896,9 +891,9 @@ inline void ChVector<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // suggested: use versioning
     marchive.VersionWrite<ChVector<double>>();  // must use specialized template (any)
     // stream out all member data
-    marchive << CHNVP(data[0]);
-    marchive << CHNVP(data[1]);
-    marchive << CHNVP(data[2]);
+    marchive << CHNVP(data[0], "x");
+    marchive << CHNVP(data[1], "y");
+    marchive << CHNVP(data[2], "z");
 }
 
 template <class Real>
@@ -906,9 +901,9 @@ inline void ChVector<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // suggested: use versioning
     int version = marchive.VersionRead<ChVector<double>>();  // must use specialized template (any)
     // stream in all member data
-    marchive >> CHNVP(data[0]);
-    marchive >> CHNVP(data[1]);
-    marchive >> CHNVP(data[2]);
+    marchive >> CHNVP(data[0], "x");
+    marchive >> CHNVP(data[1], "y");
+    marchive >> CHNVP(data[2], "z");
 }
 
 // -----------------------------------------------------------------------------

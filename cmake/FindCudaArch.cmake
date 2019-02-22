@@ -5,7 +5,7 @@
 
 # Known NVIDIA GPU achitectures Chrono can be compiled for.
 # This list will be used for CUDA_ARCH_NAME = All option
-SET(KNOWN_GPU_ARCHITECTURES "2.0 2.1(2.0) 3.0 3.5 5.0 6.0")
+SET(KNOWN_GPU_ARCHITECTURES "3.0 3.5 5.0 6.0 6.1 7.0 7.5")
 
 ################################################################################################
 # Removes duplicates from LIST(s)
@@ -48,8 +48,13 @@ FUNCTION(DETECT_INSTALLED_GPUS OUT_VARIABLE)
                     RESULT_VARIABLE __nvcc_res OUTPUT_VARIABLE __nvcc_out
                     ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+    # RADU: fix for nvcc on Windows (output includes compilation messages)
+    string(REGEX MATCH "([0-9]+)\\.([0-9]+)$" __nvcc_out "${__nvcc_out}")
+
     IF(__nvcc_res EQUAL 0)
-      STRING(REPLACE "2.1" "2.1(2.0)" __nvcc_out "${__nvcc_out}")
+      # Catch any pre-CUDA 8.0 GPUs and replace the target SM with a newer one
+      STRING(REPLACE "2.0" "3.0" __nvcc_out "${__nvcc_out}")
+      STRING(REPLACE "2.1(2.0)" "3.0" __nvcc_out "${__nvcc_out}")
       SET(CUDA_GPU_DETECT_OUTPUT ${__nvcc_out} CACHE INTERNAL "Returned GPU architectures from detect_gpus tool" FORCE)
     ENDIF()
   ENDIF()
@@ -69,7 +74,7 @@ ENDFUNCTION()
 #   SELECT_NVCC_ARCH_FLAGS(out_variable)
 FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
   # List of arch names
-  SET(__archs_names "Fermi" "Kepler" "Maxwell" "All" "Manual")
+  SET(__archs_names "Kepler" "Maxwell" "Pascal" "Volta" "Turing" "All" "Manual")
   SET(__archs_name_default "All")
   IF(NOT CMAKE_CROSSCOMPILING)
     LIST(APPEND __archs_names "Auto")
@@ -81,27 +86,33 @@ FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
   SET_property( CACHE CUDA_ARCH_NAME PROPERTY STRINGS "" ${__archs_names} )
   mark_as_advanced(CUDA_ARCH_NAME)
 
-  # verIFy CUDA_ARCH_NAME value
+  # verify CUDA_ARCH_NAME value
   IF(NOT ";${__archs_names};" MATCHES ";${CUDA_ARCH_NAME};")
     STRING(REPLACE ";" ", " __archs_names "${__archs_names}")
-    message(FATAL_ERROR "Only ${__archs_names} architeture names are supported.")
+    message(FATAL_ERROR "Only ${__archs_names} architecture names are supported.")
   ENDIF()
 
   IF(${CUDA_ARCH_NAME} STREQUAL "Manual")
-    SET(CUDA_ARCH_BIN ${KNOWN_GPU_ARCHITECTURES} CACHE STRING "SpecIFy 'real' GPU architectures to build binaries for, BIN(PTX) format is supported")
-    SET(CUDA_ARCH_PTX "50"                     CACHE STRING "SpecIFy 'virtual' PTX architectures to build PTX intermediate code for")
+    SET(CUDA_ARCH_BIN ${KNOWN_GPU_ARCHITECTURES} CACHE STRING "Specify 'real' GPU architectures to build binaries for, BIN(PTX) format is supported")
+    SET(CUDA_ARCH_PTX "50"                     CACHE STRING "Specify 'virtual' PTX architectures to build PTX intermediate code for")
     mark_as_advanced(CUDA_ARCH_BIN CUDA_ARCH_PTX)
   else()
     unSET(CUDA_ARCH_BIN CACHE)
     unSET(CUDA_ARCH_PTX CACHE)
   ENDIF()
 
-  IF(${CUDA_ARCH_NAME} STREQUAL "Fermi")
-    SET(__cuda_arch_bin "2.0 2.1(2.0)")
-  elseIF(${CUDA_ARCH_NAME} STREQUAL "Kepler")
+  # IF(${CUDA_ARCH_NAME} STREQUAL "Fermi")
+  #   SET(__cuda_arch_bin "2.0 2.1(2.0)")
+  IF(${CUDA_ARCH_NAME} STREQUAL "Kepler")
     SET(__cuda_arch_bin "3.0 3.5")
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Maxwell")
     SET(__cuda_arch_bin "5.0")
+  elseIF(${CUDA_ARCH_NAME} STREQUAL "Pascal")
+    SET(__cuda_arch_bin "6.0 6.1")
+  elseIF(${CUDA_ARCH_NAME} STREQUAL "Volta")
+    SET(__cuda_arch_bin "7.0")
+  elseIF(${CUDA_ARCH_NAME} STREQUAL "Turing")
+    SET(__cuda_arch_bin "7.5")
   elseIF(${CUDA_ARCH_NAME} STREQUAL "All")
     SET(__cuda_arch_bin ${KNOWN_GPU_ARCHITECTURES})
   elseIF(${CUDA_ARCH_NAME} STREQUAL "Auto")
@@ -122,20 +133,20 @@ FUNCTION(SELECT_NVCC_ARCH_FLAGS out_variable)
   SET(__nvcc_flags "")
   SET(__nvcc_archs_readable "")
 
-  # Tell NVCC to add binaries for the specIFied GPUs
+  # Tell NVCC to add binaries for the specified GPUs
   FOREACH(__arch ${__cuda_arch_bin})
     IF(__arch MATCHES "([0-9]+)\\(([0-9]+)\\)")
       # User explicitly specIFied PTX for the concrete BIN
       LIST(APPEND __nvcc_flags -gencode arch=compute_${CMAKE_MATCH_2},code=sm_${CMAKE_MATCH_1})
       LIST(APPEND __nvcc_archs_readable sm_${CMAKE_MATCH_1})
     else()
-      # User didn't explicitly specIFy PTX for the concrete BIN, we assume PTX=BIN
+      # User didn't explicitly specify PTX for the concrete BIN, we assume PTX=BIN
       LIST(APPEND __nvcc_flags -gencode arch=compute_${__arch},code=sm_${__arch})
       LIST(APPEND __nvcc_archs_readable sm_${__arch})
     ENDIF()
   ENDFOREACH()
 
-  # Tell NVCC to add PTX intermediate code for the specIFied architectures
+  # Tell NVCC to add PTX intermediate code for the specified architectures
   FOREACH(__arch ${__cuda_arch_ptx})
     LIST(APPEND __nvcc_flags -gencode arch=compute_${__arch},code=compute_${__arch})
     LIST(APPEND __nvcc_archs_readable compute_${__arch})

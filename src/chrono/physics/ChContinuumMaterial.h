@@ -27,7 +27,6 @@ namespace fea {
 /// Base class for properties of materials in a continuum.
 
 class ChApi ChContinuumMaterial {
-
   protected:
     double density;
 
@@ -45,12 +44,10 @@ class ChApi ChContinuumMaterial {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-
 /// Class for the basic properties of materials in an elastic continuum.
 /// This is a base material with isotropic hookean elasticity.
 
 class ChApi ChContinuumElastic : public ChContinuumMaterial {
-
   private:
     double E;                              ///< Young Modulus
     double v;                              ///< Poisson ratio
@@ -135,14 +132,12 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-
 // -----------------------------------------------------------------------------
 
 /// Class for all elastic materials that can undergo plastic flow.
 /// Defines simply some interface functions.
 
 class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
-
   public:
     ChContinuumElastoplastic(double myoung = 10000000, double mpoisson = 0.4, double mdensity = 1000)
         : ChContinuumElastic(myoung, mpoisson, mdensity) {}
@@ -173,14 +168,12 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-
 // -----------------------------------------------------------------------------
 
 /// Class for the basic properties of materials in an elastoplastic continuum,
 /// with strain yield limit based on Von Mises yield.
 
 class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
-
   private:
     double elastic_yeld;
     double plastic_yeld;
@@ -235,14 +228,12 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-
 // -----------------------------------------------------------------------------
 
 /// Class for the basic properties of elastoplastic materials of Drucker-Prager type,
 /// that are useful for simulating soils.
 
 class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
-
   private:
     double elastic_yeld;
     double alpha;
@@ -321,13 +312,11 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
 
 }  // end namespace fea
 
-
-CH_CLASS_VERSION(fea::ChContinuumMaterial,0)
-CH_CLASS_VERSION(fea::ChContinuumElastic,0)
-CH_CLASS_VERSION(fea::ChContinuumElastoplastic,0)
-CH_CLASS_VERSION(fea::ChContinuumPlasticVonMises,0)
-CH_CLASS_VERSION(fea::ChContinuumDruckerPrager,0)
-
+CH_CLASS_VERSION(fea::ChContinuumMaterial, 0)
+CH_CLASS_VERSION(fea::ChContinuumElastic, 0)
+CH_CLASS_VERSION(fea::ChContinuumElastoplastic, 0)
+CH_CLASS_VERSION(fea::ChContinuumPlasticVonMises, 0)
+CH_CLASS_VERSION(fea::ChContinuumDruckerPrager, 0)
 
 }  // end namespace chrono
 

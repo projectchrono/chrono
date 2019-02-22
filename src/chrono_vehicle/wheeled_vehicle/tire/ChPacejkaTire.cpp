@@ -31,7 +31,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-static const double default_step_size = 0.01;
+
 // Threshold value for small forward tangential velocity.
 // static const double v_x_threshold = 0.2;
 
@@ -59,9 +59,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name, const std::string& pacTire
       m_params_defined(false),
       m_use_transient_slip(true),
       m_use_Fz_override(false),
-      m_driven(false),
-      m_step_size(default_step_size) {
-}
+      m_driven(false) {}
 
 ChPacejkaTire::ChPacejkaTire(const std::string& name,
                              const std::string& pacTire_paramFile,
@@ -73,9 +71,7 @@ ChPacejkaTire::ChPacejkaTire(const std::string& name,
       m_use_transient_slip(use_transient_slip),
       m_use_Fz_override(Fz_override > 0),
       m_Fz_override(Fz_override),
-      m_driven(false),
-      m_step_size(default_step_size) {
-}
+      m_driven(false) {}
 
 // -----------------------------------------------------------------------------
 // Destructor
@@ -215,16 +211,20 @@ void ChPacejkaTire::RemoveVisualizationAssets() {
 // local or global frame). The main GetTireForce() function returns the combined
 // slip tire forces, expressed in the global frame.
 // -----------------------------------------------------------------------------
-TireForce ChPacejkaTire::GetTireForce(bool cosim) const {
+TerrainForce ChPacejkaTire::GetTireForce() const {
     return GetTireForce_combinedSlip(false);
 }
 
-TireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
+TerrainForce ChPacejkaTire::ReportTireForce(ChTerrain* terrain) const {
+    return GetTireForce_combinedSlip(false);
+}
+
+TerrainForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
     if (local)
         return m_FM_pure;
 
     // reactions are on wheel CM
-    TireForce m_FM_global;
+    TerrainForce m_FM_global;
     m_FM_global.point = m_tireState.pos;
     // only transform the directions of the forces, moments, from local to global
     m_FM_global.force = m_W_frame.TransformDirectionLocalToParent(m_FM_pure.force);
@@ -234,12 +234,12 @@ TireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
 }
 
 /// Return the reactions for the combined slip EQs, in local or global coordinates
-TireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
+TerrainForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
     if (local)
         return m_FM_combined;
 
     // reactions are on wheel CM
-    TireForce m_FM_global;
+    TerrainForce m_FM_global;
     m_FM_global.point = m_W_frame.pos;
     // only transform the directions of the forces, moments, from local to global
     m_FM_global.force = m_W_frame.TransformDirectionLocalToParent(m_FM_combined.force);
@@ -320,17 +320,17 @@ void ChPacejkaTire::Advance(double step) {
         // 1 of 2 ways to deal with user input time step increment
 
         // 1) ...
-        // a) step <= m_step_size, so integrate using input step
-        // b) step > m_step_size, use m_step_size until step <= m_step_size
+        // a) step <= m_stepsize, so integrate using input step
+        // b) step > m_stepsize, use m_stepsize until step <= m_stepsize
         double remaining_time = step;
         // only count the time take to do actual calculations in Advance time
         advance_time.start();
         // keep track of the ODE calculation time
         ChTimer<double> ODE_timer;
         ODE_timer.start();
-        while (remaining_time > m_step_size) {
-            advance_tire(m_step_size);
-            remaining_time -= m_step_size;
+        while (remaining_time > m_stepsize) {
+            advance_tire(m_stepsize);
+            remaining_time -= m_stepsize;
         }
         // take one final step to reach the specified time.
         advance_tire(remaining_time);
@@ -347,7 +347,7 @@ void ChPacejkaTire::Advance(double step) {
         // until actually re-calculating reactions.
         m_time_since_last_step =+ step;
         // enough time has accumulated to do a macro step, OR, it's the first step
-        if( m_time_since_last_step >= m_step_size || !m_initial_step)
+        if( m_time_since_last_step >= m_stepsize || !m_initial_step)
         {
           // only count the time take to do actual calculations in Advance time
           advance_time.start();
@@ -1800,7 +1800,7 @@ void ChPacejkaTire::WriteOutData(double time, const std::string& outFilename) {
         // open file, append
         std::ofstream appFile(outFilename.c_str(), std::ios_base::app);
         // global force/moments applied to wheel rigid body
-        TireForce global_FM = GetTireForce_combinedSlip(false);
+        TerrainForce global_FM = GetTireForce_combinedSlip(false);
         // write the slip info, reaction forces for pure & combined slip cases
         appFile << time << "," << m_slip->kappa << "," << m_slip->alpha * 180. / 3.14159 << "," << m_slip->gamma << ","
                 << m_slip->kappaP << "," << m_slip->alphaP << "," << m_slip->gammaP << "," << m_slip->V_cx << ","

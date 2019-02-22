@@ -19,13 +19,14 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunction_Repeat)
 
-ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1) {
+ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1), window_phase(0) {
     fa = std::make_shared<ChFunction_Const>();  // default
 }
 
 ChFunction_Repeat::ChFunction_Repeat(const ChFunction_Repeat& other) {
     window_start = other.window_start;
     window_length = other.window_length;
+    window_phase = other.window_phase;
     fa = std::shared_ptr<ChFunction>(other.fa->Clone());
 }
 
@@ -35,6 +36,30 @@ double ChFunction_Repeat::Get_y(double x) const {
 
 void ChFunction_Repeat::Estimate_x_range(double& xmin, double& xmax) const {
     fa->Estimate_x_range(xmin, xmax);
+}
+
+void ChFunction_Repeat::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChFunction_Repeat>();
+    // serialize parent class
+    ChFunction::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(fa);
+    marchive << CHNVP(window_start);
+    marchive << CHNVP(window_length);
+    marchive << CHNVP(window_phase);
+}
+
+void ChFunction_Repeat::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChFunction_Repeat>();
+    // deserialize parent class
+    ChFunction::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(fa);
+    marchive >> CHNVP(window_start);
+    marchive >> CHNVP(window_length);
+    marchive >> CHNVP(window_phase);
 }
 
 }  // end namespace chrono

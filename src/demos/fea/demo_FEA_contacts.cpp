@@ -22,14 +22,14 @@
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChMeshFileLoader.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_fea/ChElementCableANCF.h"
-#include "chrono_fea/ChBuilderBeam.h"
+#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChElementCableANCF.h"
+#include "chrono/fea/ChBuilderBeam.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -64,6 +64,9 @@ int main(int argc, char* argv[]) {
     // CREATE THE PHYSICAL SYSTEM
     //
 
+    // Set default effective radius of curvature for all SCM contacts.
+    collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
+
     // collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemSMC
     collision::ChCollisionModel::SetDefaultSuggestedMargin(
         0.006);  // max inside penetration - if not enough stiffness in material: troubles
@@ -87,8 +90,8 @@ int main(int argc, char* argv[]) {
 
     bool do_mesh_collision_floor = false;
 
-    ChTriangleMeshConnected mmeshbox;
-    mmeshbox.LoadWavefrontMesh(GetChronoDataFile("cube.obj"), true, true);
+    auto mmeshbox = std::make_shared<ChTriangleMeshConnected>();
+    mmeshbox->LoadWavefrontMesh(GetChronoDataFile("cube.obj"), true, true);
 
     if (do_mesh_collision_floor) {
         // floor as a triangle mesh surface:

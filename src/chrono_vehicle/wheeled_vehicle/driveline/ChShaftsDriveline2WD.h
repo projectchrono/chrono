@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // 2WD driveline model template based on ChShaft objects. This template can be
@@ -23,11 +23,12 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChDriveline.h"
 
+#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
-#include "chrono/physics/ChShaftsPlanetary.h"
-#include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsMotor.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsTorque.h"
 
 namespace chrono {
@@ -44,6 +45,9 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
 
     virtual ~ChShaftsDriveline2WD() {}
 
+    /// Get the name of the vehicle subsystem template.
+    virtual std::string GetTemplateName() const override { return "ShaftsDriveline2WD"; }
+
     /// Set the direction of the motor block.
     /// This direction is a unit vector, relative to the chassis frame (for the
     /// ISO coordinate system, this is [1, 0, 0] for a longitudinal engine and
@@ -55,6 +59,14 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
     /// specified for the design configuration (for the ISO vehicle coordinate
     /// system, this is typically [0, 1, 0]).
     void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
+
+    /// Lock/unlock the differential on the specified axle.
+    /// Differential locking is implemented through a friction torque between the output shafts
+    /// of the differential. The locking effect is limited by a maximum locking torque.
+    /// This function ignores the argument 'axle' and locks/unlocks its one and only differential.
+    virtual void LockAxleDifferential(int axle, bool lock) override;
+
+    virtual void LockCentralDifferential(int which, bool lock) override;
 
     /// Return the number of driven axles.
     /// A ChShaftsDriveline2WD driveline connects to a single axle.
@@ -83,10 +95,14 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
     /// Return the gear ratio for the differential.
     virtual double GetDifferentialRatio() const = 0;
 
+    /// Return the limit for the axle differential locking torque.
+    virtual double GetAxleDifferentialLockingLimit() const = 0;
+
   private:
     std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;
     std::shared_ptr<ChShaft> m_differentialbox;
     std::shared_ptr<ChShaftsPlanetary> m_differential;
+    std::shared_ptr<ChShaftsClutch> m_clutch;
 
     ChVector<> m_dir_motor_block;
     ChVector<> m_dir_axle;

@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 
 ChTire::ChTire(const std::string& name)
-    : ChPart(name), m_slip_angle(0), m_longitudinal_slip(0), m_camber_angle(0) {}
+    : ChPart(name), m_stepsize(1e-3), m_slip_angle(0), m_longitudinal_slip(0), m_camber_angle(0) {}
 
 // -----------------------------------------------------------------------------
 // Base class implementation of the initialization function.
@@ -37,13 +37,18 @@ void ChTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     m_wheel = wheel;
     m_side = side;
 
-    ////WheelState state;
-    ////state.pos = wheel->GetPos();
-    ////state.rot = wheel->GetRot();
-    ////state.lin_vel = wheel->GetPos_dt();
-    ////state.ang_vel = wheel->GetWvel_par();
-    ////ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    ////state.omega = ang_vel_loc.y();
+    // Increment mass and inertia of the wheel body.
+    wheel->SetMass(wheel->GetMass() + GetMass());
+    wheel->SetInertiaXX(wheel->GetInertiaXX() + GetInertia());
+}
+
+// -----------------------------------------------------------------------------
+// Default implementation of ReportMass simply returns the value from GetMass.
+// However, concrete tire models which need to return 0 from GetMass (so that
+// the mass of the tire is not double counted) will override this function.
+// -----------------------------------------------------------------------------
+double ChTire::ReportMass() const {
+    return GetMass();
 }
 
 // -----------------------------------------------------------------------------
@@ -91,6 +96,10 @@ void ChTire::CalculateKinematics(double time, const WheelState& state, const ChT
 // This function returns false if no contact occurs. Otherwise, it sets the
 // contact points on the disc (ptD) and on the terrain (ptT), the normal contact
 // direction, and the resulting penetration depth (a positive value).
+//
+// NOTE: uses terrain normal at disc center for approximative calculation.
+// Hence only valid for terrains with constant slope. A completely accurate
+// solution would require an iterative calculation of the contact point.
 // -----------------------------------------------------------------------------
 bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
                                   const ChVector<>& disc_center,
@@ -106,7 +115,8 @@ bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
 
     // Find the lowest point on the disc. There is no contact if the disc is
     // (almost) horizontal.
-    ChVector<> dir1 = Vcross(disc_normal, ChVector<>(0, 0, 1));
+    ChVector<> nhelp = terrain.GetNormal(disc_center.x(), disc_center.y());
+    ChVector<> dir1 = Vcross(disc_normal, nhelp);
     double sinTilt2 = dir1.Length2();
 
     if (sinTilt2 < 1e-3)
@@ -138,6 +148,65 @@ bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
     assert(depth > 0);
 
     return true;
+}
+
+// -----------------------------------------------------------------------------
+// Estimate the tire moments of inertia, given the tire specification and mass.
+// The tire is assumed to be composed of simple geometric shapes:
+// - The sidewalls are treated as discs with an inner diameter equal to the
+//   wheel diameter, and an outer diameter equal to the static diameter of the
+//   tire.
+// - The tread face is treated as a band with a diameter equal to the static
+//   radius of the tire.
+// A rubber material is assumed, using a density of 1050 kg/m^3.
+// -----------------------------------------------------------------------------
+double VolumeCyl(double r_outer, double r_inner, double cyl_height) {
+    return CH_C_PI * cyl_height * (r_outer * r_outer - r_inner * r_inner);
+}
+
+double InertiaRotCyl(double mass, double r_outer, double r_inner) {
+    return mass * (r_outer * r_outer + r_inner * r_inner) / 2.0;
+}
+
+double InertiaTipCyl(double mass, double r_outer, double r_inner, double cyl_height) {
+    return mass * (3.0 * (r_outer * r_outer + r_inner * r_inner) + cyl_height * cyl_height) / 12.0;
+}
+
+ChVector<> ChTire::EstimateInertia(double tire_width,    // tire width [mm]
+                                   double aspect_ratio,  // aspect ratio: height to width [percentage]
+                                   double rim_diameter,  // rim diameter [in]
+                                   double tire_mass,     // mass of the tire [kg]
+                                   double t_factor       // tread to sidewall thickness factor
+) {
+    double rho = 1050.0;  // rubber density in kg/m^3
+
+    double width = tire_width / 1000;             // tire width in meters
+    double secth = (aspect_ratio / 100) * width;  // tire height in meters
+    double r_rim = (rim_diameter / 2) * 0.0254;   // rim radius in meters
+    double r_tire = r_rim + secth;                // tire radius in meters
+
+    // Estimate sidewall thickness.
+    double t = 0;
+    double m_test = 0;
+    while (tire_mass - m_test > 0.0) {
+        t += 1e-6;
+        m_test = rho * (VolumeCyl(r_tire, r_tire - t_factor * t, width - 2 * t) + 2 * VolumeCyl(r_tire - t, r_rim, t));
+    }
+
+    // Lateral sidewall offset.
+    double r_steiner = (width - t) / 2.0;
+
+    // Calculate mass and moments of inertia of tread section and sidewall, separately.
+    double m_tread = rho * VolumeCyl(r_tire, r_tire - t_factor * t, width - 2 * t);
+    double Irot_tread = InertiaRotCyl(m_tread, r_tire, r_tire - 2 * t);
+    double Itip_tread = InertiaTipCyl(m_tread, r_tire, r_tire - t_factor * t, width - 2 * t);
+
+    double m_sidewall = rho * VolumeCyl(r_tire - t, r_rim, t);
+    double Irot_sidewall = InertiaRotCyl(m_sidewall, r_tire - t, r_rim);
+    double Itip_sidewall = InertiaTipCyl(m_sidewall, r_tire - t, r_rim, t) + m_sidewall * pow(r_steiner, 2.0);
+
+    // Return composite tire inertia.
+    return ChVector<>(Itip_tread + 2 * Itip_sidewall, Irot_tread + 2 * Irot_sidewall, Itip_tread + 2 * Itip_sidewall);
 }
 
 }  // end namespace vehicle

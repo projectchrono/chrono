@@ -23,12 +23,12 @@
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
-#include "chrono_fea/ChElementBeamEuler.h"
-#include "chrono_fea/ChBuilderBeam.h"
-#include "chrono_fea/ChMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChElementBeamEuler.h"
+#include "chrono/fea/ChBuilderBeam.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkDirFrame.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -260,14 +260,14 @@ int main(int argc, char* argv[]) {
     belement1->GetStateBlock(displ);
     GetLog() << displ;
     for (double eta = -1; eta <= 1; eta += 0.4) {
-        belement1->EvaluateSectionForceTorque(eta, displ, F, M);
+        belement1->EvaluateSectionForceTorque(eta, F, M);
         GetLog() << "  b1_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
                  << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
     }
     GetLog() << "\n";
     belement2->GetStateBlock(displ);
     for (double eta = -1; eta <= 1; eta += 0.4) {
-        belement2->EvaluateSectionForceTorque(eta, displ, F, M);
+        belement2->EvaluateSectionForceTorque(eta, F, M);
         GetLog() << "  b2_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
                  << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
     }

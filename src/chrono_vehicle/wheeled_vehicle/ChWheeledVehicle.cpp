@@ -16,7 +16,13 @@
 //
 // =============================================================================
 
+#include <fstream>
+
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 namespace chrono {
 namespace vehicle {
@@ -51,7 +57,7 @@ void ChWheeledVehicle::Synchronize(double time,
                                    double steering,
                                    double braking,
                                    double powertrain_torque,
-                                   const TireForces& tire_forces) {
+                                   const TerrainForces& tire_forces) {
     // Apply powertrain torque to the driveline's input shaft.
     m_driveline->Synchronize(powertrain_torque);
 
@@ -68,6 +74,19 @@ void ChWheeledVehicle::Synchronize(double time,
         m_brakes[2 * i]->Synchronize(braking);
         m_brakes[2 * i + 1]->Synchronize(braking);
     }
+
+    m_chassis->Synchronize(time);
+}
+
+// -----------------------------------------------------------------------------
+// Enable/disable differential locking.
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::LockAxleDifferential(int axle, bool lock) {
+    m_driveline->LockAxleDifferential(axle, lock);
+}
+
+void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
+    m_driveline->LockCentralDifferential(which, lock);
 }
 
 // -----------------------------------------------------------------------------
@@ -103,6 +122,25 @@ void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
         // Chassis does not collide with tires
         m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::TIRES);
     }
+}
+
+// -----------------------------------------------------------------------------
+// Enable/disable output from the various subsystems
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::SetSuspensionOutput(int id, bool state) {
+    m_suspensions[id]->SetOutput(state);
+}
+
+void ChWheeledVehicle::SetSteeringOutput(int id, bool state) {
+    m_steerings[id]->SetOutput(state);
+}
+
+void ChWheeledVehicle::SetAntirollbarOutput(int id, bool state) {
+    m_antirollbars[id]->SetOutput(state);
+}
+
+void ChWheeledVehicle::SetDrivelineOutput(bool state) {
+    m_driveline->SetOutput(state);
 }
 
 // -----------------------------------------------------------------------------
@@ -201,6 +239,14 @@ double ChWheeledVehicle::GetDriveshaftSpeed() const {
 }
 
 // -----------------------------------------------------------------------------
+// Estimate the maximum steering angle based on a bicycle model, from the vehicle
+// minimum turning radius, the wheelbase, and the track of the front suspension.
+// -----------------------------------------------------------------------------
+double ChWheeledVehicle::GetMaxSteeringAngle() const {
+    return std::asin(GetWheelbase() / (GetMinTurningRadius() - 0.5 * GetWheeltrack(0)));
+}
+
+// -----------------------------------------------------------------------------
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::LogConstraintViolations() {
@@ -221,6 +267,108 @@ void ChWheeledVehicle::LogConstraintViolations() {
     }
 
     GetLog().SetNumFormat("%g");
+}
+
+std::string ChWheeledVehicle::ExportComponentList() const {
+    rapidjson::Document jsonDocument;
+    jsonDocument.SetObject();
+
+    std::string template_name = GetTemplateName();
+    jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
+    jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
+        jsonDocument.GetAllocator());
+
+    {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        m_chassis->ExportComponentList(jsonSubDocument);
+        jsonDocument.AddMember("chassis", jsonSubDocument, jsonDocument.GetAllocator());
+    }
+
+    rapidjson::Value suspArray(rapidjson::kArrayType);
+    for (auto suspension : m_suspensions) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        suspension->ExportComponentList(jsonSubDocument);
+        suspArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
+    }
+    jsonDocument.AddMember("suspension", suspArray, jsonDocument.GetAllocator());
+
+    rapidjson::Value sterringArray(rapidjson::kArrayType);
+    for (auto steering : m_steerings) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        steering->ExportComponentList(jsonSubDocument);
+        sterringArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
+    }
+    jsonDocument.AddMember("steering", sterringArray, jsonDocument.GetAllocator());
+
+    rapidjson::Value brakeArray(rapidjson::kArrayType);
+    for (auto brake : m_brakes) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        brake->ExportComponentList(jsonSubDocument);
+        brakeArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
+    }
+    jsonDocument.AddMember("brake", brakeArray, jsonDocument.GetAllocator());
+
+    rapidjson::Value arArray(rapidjson::kArrayType);
+    for (auto antirollbar : m_antirollbars) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        antirollbar->ExportComponentList(jsonSubDocument);
+        arArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
+    }
+    jsonDocument.AddMember("anti-roll bar", arArray, jsonDocument.GetAllocator());
+
+    rapidjson::StringBuffer jsonBuffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonWriter(jsonBuffer);
+    jsonDocument.Accept(jsonWriter);
+
+    return jsonBuffer.GetString();
+}
+
+void ChWheeledVehicle::ExportComponentList(const std::string& filename) const {
+    std::ofstream of(filename);
+    of << ExportComponentList();
+    of.close();
+}
+
+void ChWheeledVehicle::Output(int frame, ChVehicleOutput& database) const {
+    database.WriteTime(frame, m_system->GetChTime());
+
+    if (m_chassis->OutputEnabled()) {
+        database.WriteSection(m_chassis->GetName());
+        m_chassis->Output(database);
+    }
+
+    for (auto suspension : m_suspensions) {
+        if (suspension->OutputEnabled()) {
+            database.WriteSection(suspension->GetName());
+            suspension->Output(database);
+        }
+    }
+
+    for (auto steering : m_steerings) {
+        if (steering->OutputEnabled()) {
+            database.WriteSection(steering->GetName());
+            steering->Output(database);
+        }
+    }
+
+    for (auto brake : m_brakes) {
+        if (brake->OutputEnabled()) {
+            database.WriteSection(brake->GetName());
+            brake->Output(database);
+        }
+    }
+
+    for (auto antirollbar : m_antirollbars) {
+        if (antirollbar->OutputEnabled()) {
+            database.WriteSection(antirollbar->GetName());
+            antirollbar->Output(database);
+        }
+    }
 }
 
 }  // end namespace vehicle

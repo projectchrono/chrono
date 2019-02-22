@@ -22,9 +22,9 @@
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 
-#include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChContactSurfaceMesh.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/FEADeformableTerrain.h"
@@ -59,6 +59,11 @@ double FEADeformableTerrain::GetHeight(double x, double y) const {
 ChVector<> FEADeformableTerrain::GetNormal(double x, double y) const {
     //// TODO
     return ChVector<>(0, 0, 1);
+}
+
+// Return the terrain coefficient of friction at the specified location
+float FEADeformableTerrain::GetCoefficientFriction(double x, double y) const {
+    return m_friction_fun ? (*m_friction_fun)(x, y) : 0.8f;
 }
 
 // Set properties of the FEA soil model

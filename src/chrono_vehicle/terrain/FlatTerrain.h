@@ -29,27 +29,37 @@ namespace vehicle {
 /// @{
 
 /// Concrete class for a flat horizontal terrain.
-/// This class implements a terrain modeled as an infinite horizontal plane at
-/// a specified height.  This type of terrain can be used in conjunction with
-/// tire models that perform their own collision detection (e.g. ChPacejkaTire
-/// and ChLugreTire).
+/// This class implements a terrain modeled as an infinite horizontal plane at a specified height.
+/// This type of terrain can be used in conjunction with tire models that perform their own collision detection
+/// (e.g. ChPacejkaTire, ChFiala, and ChLugreTire).
 class CH_VEHICLE_API FlatTerrain : public ChTerrain {
   public:
-    FlatTerrain(double height  ///< [in] terrain height
+    FlatTerrain(double height,         ///< [in] terrain height
+                float friction = 0.8f  ///< [in] terrain coefficient of friction
                 );
 
     ~FlatTerrain() {}
 
     /// Get the terrain height at the specified (x,y) location.
     /// Returns the constant value passed at construction.
-    virtual double GetHeight(double x, double y) const { return m_height; }
+    virtual double GetHeight(double x, double y) const override { return m_height; }
 
     /// Get the terrain normal at the specified (x,y) location.
     /// Returns a constant unit vector along the Z axis.
-    virtual ChVector<> GetNormal(double x, double y) const { return ChVector<>(0, 0, 1); }
+    virtual ChVector<> GetNormal(double x, double y) const override { return ChVector<>(0, 0, 1); }
+
+    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// This coefficient of friction value may be used by certain tire models to modify
+    /// the tire characteristics, but it will have no effect on the interaction of the terrain
+    /// with other objects (including tire models that do not explicitly use it).
+    /// For FlatTerrain, this function defers to the user-provided functor object
+    /// of type ChTerrain::FrictionFunctor, if one was specified.
+    /// Otherwise, it returns the constant value specified at construction.
+    virtual float GetCoefficientFriction(double x, double y) const override;
 
   private:
-    double m_height;
+    double m_height;   ///< terrain height
+    float m_friction;  ///< contact coefficient of friction
 };
 
 /// @} vehicle_terrain

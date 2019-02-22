@@ -28,8 +28,8 @@ namespace vehicle {
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsPowertrain::ChShaftsPowertrain(const ChVector<>& dir_motor_block)
-    : ChPowertrain(), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {
+ChShaftsPowertrain::ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block)
+    : ChPowertrain(name), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {
 }
 
 // -----------------------------------------------------------------------------
@@ -182,14 +182,12 @@ void ChShaftsPowertrain::Synchronize(double time, double throttle, double shaft_
     if (gearshaft_speed > 2500 * CH_C_2PI / 60.0) {
         // upshift if possible
         if (m_current_gear + 1 < m_gear_ratios.size()) {
-            GetLog() << "SHIFT UP " << m_current_gear << " -> " << m_current_gear + 1 << "\n";
             SetSelectedGear(m_current_gear + 1);
             m_last_time_gearshift = time;
         }
     } else if (gearshaft_speed < 1500 * CH_C_2PI / 60.0) {
         // downshift if possible
         if (m_current_gear - 1 > 0) {
-            GetLog() << "SHIFT DOWN " << m_current_gear << " -> " << m_current_gear - 1 << "\n";
             SetSelectedGear(m_current_gear - 1);
             m_last_time_gearshift = time;
         }

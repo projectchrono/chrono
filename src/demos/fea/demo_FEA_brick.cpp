@@ -18,12 +18,12 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
-#include "chrono_fea/ChElementSpring.h"
-#include "chrono_fea/ChElementBrick.h"
-#include "chrono_fea/ChElementBar.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChLinkDirFrame.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+#include "chrono/fea/ChElementSpring.h"
+#include "chrono/fea/ChElementBrick.h"
+#include "chrono/fea/ChElementBar.h"
+#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChVisualizationFEAmesh.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;

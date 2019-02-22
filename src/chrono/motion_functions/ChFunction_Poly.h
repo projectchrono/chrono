@@ -21,9 +21,7 @@ namespace chrono {
 
 /// POLYNOMIAL FUNCTION:
 /// y = a + bx + cx^2 + dx^3 + ...
-
 class ChApi ChFunction_Poly : public ChFunction {
-
   private:
     static const int POLY_COEFF_ARRAY = 6;
     double coeff[POLY_COEFF_ARRAY];  ///< vector of coefficients
@@ -66,29 +64,13 @@ class ChApi ChFunction_Poly : public ChFunction {
     int Get_order() const { return order; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChFunction_Poly>();
-        // serialize parent class
-        ChFunction::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(coeff);
-        marchive << CHNVP(order);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChFunction_Poly>();
-        // deserialize parent class
-        ChFunction::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(coeff);
-        marchive >> CHNVP(order);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChFunction_Poly,0)
+CH_CLASS_VERSION(ChFunction_Poly, 0)
 
 }  // end namespace chrono
 

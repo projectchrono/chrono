@@ -38,7 +38,9 @@
 //
 // =============================================================================
 
+#include <algorithm>
 #include <cstdio>
+#include <fstream>
 #include <map>
 #include <unordered_map>
 
@@ -744,7 +746,6 @@ class BuildMesh : public GeometryInterface {
 
 }  // end namespace WAVEFRONT
 
-
 // -----------------------------------------------------------------------------
 
 ChTriangleMeshConnected::ChTriangleMeshConnected(const ChTriangleMeshConnected& source) {
@@ -1029,6 +1030,111 @@ bool WavefrontObj::saveObj(const char *fname,int vcount,const float *vertices,in
 
 */
 
+// Write the specified meshes in a Wavefront .obj file
+void ChTriangleMeshConnected::WriteWavefront(const std::string& filename,
+                                             std::vector<ChTriangleMeshConnected>& meshes) {
+    std::ofstream mf(filename);
+
+    //// TODO: include normal information if available
+
+    /*
+        // Create a separate object for each mesh
+        int i = 0;
+        for (auto& m : meshes) {
+            mf << "o mesh_" << std::to_string(i++) << std::endl;
+
+            for (auto& v : m.getCoordsVertices()) {
+                mf << "v " << v.x() << " " << v.y() << " " << v.z() << std::endl;
+            }
+
+            for (auto& f : m.getIndicesVertexes()) {
+                mf << "f " << f.x() << " " << f.y() << " " << f.z() << std::endl;
+            }
+        }
+    */
+
+    // Create a single object mesh
+    std::vector<int> v_offsets;
+    int v_off = 1;
+    for (auto& m : meshes) {
+        for (auto& v : m.getCoordsVertices()) {
+            mf << "v " << v.x() << " " << v.y() << " " << v.z() << std::endl;
+        }
+        v_offsets.push_back(v_off);
+        v_off += static_cast<int>(m.getCoordsVertices().size());
+    }
+
+    for (size_t i = 0; i < meshes.size(); i++) {
+        v_off = v_offsets[i];
+        for (auto& f : meshes[i].getIndicesVertexes()) {
+            mf << "f " << f.x() + v_off << " " << f.y() + v_off << " " << f.z() + v_off << std::endl;
+        }
+    }
+
+    mf.close();
+}
+
+/// Utility function for merging multiple meshes.
+ChTriangleMeshConnected ChTriangleMeshConnected::Merge(std::vector<ChTriangleMeshConnected>& meshes) {
+    ChTriangleMeshConnected trimesh;
+    auto& vertices = trimesh.getCoordsVertices();
+    auto& normals = trimesh.getCoordsNormals();
+    auto& uvs = trimesh.getCoordsUV();
+    auto& colors = trimesh.getCoordsColors();
+    auto& idx_vertices = trimesh.getIndicesVertexes();
+    auto& idx_normals = trimesh.getIndicesNormals();
+    auto& idx_uvs = trimesh.getIndicesUV();
+    auto& idx_colors = trimesh.getIndicesColors();
+
+    int v_off = 0;
+    int n_off = 0;
+    int uv_off = 0;
+    int c_off = 0;
+    for (auto& m : meshes) {
+        {
+            vertices.insert(vertices.end(), m.getCoordsVertices().begin(), m.getCoordsVertices().end());
+            std::vector<ChVector<int>> tmp;
+            tmp.reserve(m.getIndicesVertexes().size());
+            std::transform(m.getIndicesVertexes().begin(), m.getIndicesVertexes().end(), std::back_inserter(tmp),
+                           [&v_off](ChVector<int>& a) { return a + v_off; });
+            idx_vertices.insert(idx_vertices.end(), tmp.begin(), tmp.end());
+            v_off += static_cast<int>(m.getCoordsVertices().size());
+        }
+
+        {
+            normals.insert(normals.end(), m.getCoordsNormals().begin(), m.getCoordsNormals().end());
+            std::vector<ChVector<int>> tmp;
+            tmp.reserve(m.getIndicesNormals().size());
+            std::transform(m.getIndicesNormals().begin(), m.getIndicesNormals().end(), std::back_inserter(tmp),
+                           [&n_off](ChVector<int>& a) { return a + n_off; });
+            idx_normals.insert(idx_normals.end(), tmp.begin(), tmp.end());
+            n_off += static_cast<int>(m.getCoordsNormals().size());
+        }
+
+        {
+            uvs.insert(uvs.end(), m.getCoordsUV().begin(), m.getCoordsUV().end());
+            std::vector<ChVector<int>> tmp;
+            tmp.reserve(m.getIndicesUV().size());
+            std::transform(m.getIndicesUV().begin(), m.getIndicesUV().end(), std::back_inserter(tmp),
+                           [&uv_off](ChVector<int>& a) { return a + uv_off; });
+            idx_uvs.insert(idx_uvs.end(), tmp.begin(), tmp.end());
+            uv_off += static_cast<int>(m.getCoordsUV().size());
+        }
+
+        {
+            colors.insert(colors.end(), m.getCoordsColors().begin(), m.getCoordsColors().end());
+            std::vector<ChVector<int>> tmp;
+            tmp.reserve(m.getIndicesColors().size());
+            std::transform(m.getIndicesColors().begin(), m.getIndicesColors().end(), std::back_inserter(tmp),
+                           [&c_off](ChVector<int>& a) { return a + c_off; });
+            idx_colors.insert(idx_colors.end(), tmp.begin(), tmp.end());
+            c_off += static_cast<int>(m.getCoordsColors().size());
+        }
+    }
+
+    return trimesh;
+}
+
 void ChTriangleMeshConnected::Transform(const ChVector<> displ, const ChMatrix33<> rotscale) {
     for (int i = 0; i < m_vertices.size(); ++i) {
         m_vertices[i] = rotscale * m_vertices[i];
@@ -1265,64 +1371,61 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
     return true;
 }
 
-
 /// Return the indexes of the two vertexes of the i-th edge of the triangle
-std::pair<int, int> ChTriangleMeshConnected::GetTriangleEdgeIndexes (
-        const std::vector<ChVector<int>>& indexes, ///< indexes, xyz per each face, ex. getIndicesVertexes()
-        int it,      ///< triangle id
-        int nedge,   ///< number of edge: 0,1,2 
-        bool unique  ///< if true, swaps the pair so that 1st is always < 2nd id, so can test sharing wiht other triangle
-        ) {
-        std::pair<int, int> medge;
-        if (nedge ==0)
-            medge = {indexes[it].x(),  indexes[it].y()};
-        if (nedge ==1)
-            medge = {indexes[it].y(),  indexes[it].z()};
-        if (nedge ==2)
-            medge = {indexes[it].z(),  indexes[it].x()};
-        if (unique) {
-            // unique? sort always in increasing order to avoid ambiguous duplicated edges
-            if (medge.first > medge.second)
-                medge = std::pair<int, int>(medge.second, medge.first);
-        }
-        return medge;
+std::pair<int, int> ChTriangleMeshConnected::GetTriangleEdgeIndexes(
+    const std::vector<ChVector<int>>& indexes,  ///< indexes, xyz per each face, ex. getIndicesVertexes()
+    int it,                                     ///< triangle id
+    int nedge,                                  ///< number of edge: 0,1,2
+    bool unique  ///< if true, swaps the pair so that 1st is always < 2nd id, so can test sharing wiht other triangle
+) {
+    std::pair<int, int> medge;
+    if (nedge == 0)
+        medge = {indexes[it].x(), indexes[it].y()};
+    if (nedge == 1)
+        medge = {indexes[it].y(), indexes[it].z()};
+    if (nedge == 2)
+        medge = {indexes[it].z(), indexes[it].x()};
+    if (unique) {
+        // unique? sort always in increasing order to avoid ambiguous duplicated edges
+        if (medge.first > medge.second)
+            medge = std::pair<int, int>(medge.second, medge.first);
+    }
+    return medge;
 }
 
-
-
-bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, int i2, int& created_index ) {
+bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, int i2, int& created_index) {
     switch (ibuffer) {
         case 0: {
-            if (mesh.m_vertices.empty()) 
+            if (mesh.m_vertices.empty())
                 return false;
             ChVector<> Vnew = (mesh.m_vertices[i1] + mesh.m_vertices[i2]) * 0.5;
             mesh.m_vertices.push_back(Vnew);
-            created_index = (int)mesh.m_vertices.size()-1;
+            created_index = (int)mesh.m_vertices.size() - 1;
             return true;
         }
         case 1: {
-            if (mesh.m_normals.empty()) 
+            if (mesh.m_normals.empty())
                 return false;
             ChVector<> Vnew = (mesh.m_normals[i1] + mesh.m_normals[i2]) * 0.5;
             Vnew.Normalize();
             mesh.m_normals.push_back(Vnew);
-            created_index = (int)mesh.m_normals.size()-1;
+            created_index = (int)mesh.m_normals.size() - 1;
             return true;
         }
         case 2: {
-            if (mesh.m_UV.empty()) 
+            if (mesh.m_UV.empty())
                 return false;
             ChVector<> Vnew = (mesh.m_UV[i1] + mesh.m_UV[i2]) * 0.5;
             mesh.m_UV.push_back(Vnew);
-            created_index = (int)mesh.m_UV.size()-1;
+            created_index = (int)mesh.m_UV.size() - 1;
             return true;
         }
         case 3: {
-            if (mesh.m_colors.empty()) 
+            if (mesh.m_colors.empty())
                 return false;
             ChVector<float> Vnew = (mesh.m_colors[i1] + mesh.m_colors[i2]) * 0.5;
             mesh.m_colors.push_back(Vnew);
-            created_index = (int)mesh.m_colors.size()-1;
+            created_index = (int)mesh.m_colors.size() - 1;
             return true;
         }
         default:
@@ -1330,44 +1433,44 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
     }
 }
 
-
 // Split an edge by inserting a point in the middle
 // It also updates uv buffer, normals buffer, etc. and recomputes neighboring map.
-bool ChTriangleMeshConnected::SplitEdge (
-        int itA,      ///< triangle index,
-        int itB,      ///< triangle index, -1 if not existing (means free edge on A)
-        int neA,      ///< n.edge on tri A: 0,1,2
-        int neB,      ///< n.edge on tri B: 0,1,2
-        int& itA_1,   ///< returns the index of split triangle A, part1
-        int& itA_2,   ///< returns the index of split triangle A, part2
-        int& itB_1,   ///< returns the index of split triangle B, part1
-        int& itB_2,   ///< returns the index of split triangle B, part2
-        std::vector<std::array<int, 4>>& tri_map, ///< triangle neighboring map
-        std::vector<std::vector<double>*>& aux_data_double, ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
-        std::vector<std::vector<int>*>& aux_data_int,       ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
-        std::vector<std::vector<bool>*>& aux_data_bool,      ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
-        std::vector<std::vector<ChVector<>>*>& aux_data_vect///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
-        ) {
-    
+bool ChTriangleMeshConnected::SplitEdge(
+    int itA,                                             ///< triangle index,
+    int itB,                                             ///< triangle index, -1 if not existing (means free edge on A)
+    int neA,                                             ///< n.edge on tri A: 0,1,2
+    int neB,                                             ///< n.edge on tri B: 0,1,2
+    int& itA_1,                                          ///< returns the index of split triangle A, part1
+    int& itA_2,                                          ///< returns the index of split triangle A, part2
+    int& itB_1,                                          ///< returns the index of split triangle B, part1
+    int& itB_2,                                          ///< returns the index of split triangle B, part2
+    std::vector<std::array<int, 4>>& tri_map,            ///< triangle neighboring map
+    std::vector<std::vector<double>*>& aux_data_double,  ///< auxiliary buffers to interpolate (assuming indexed as
+                                                         ///< vertexes: each with same size as vertex buffer)
+    std::vector<std::vector<int>*>& aux_data_int,  ///< auxiliary buffers to interpolate (assuming indexed as vertexes:
+                                                   ///< each with same size as vertex buffer)
+    std::vector<std::vector<bool>*>& aux_data_bool,       ///< auxiliary buffers to interpolate (assuming indexed as
+                                                          ///< vertexes: each with same size as vertex buffer)
+    std::vector<std::vector<ChVector<>>*>& aux_data_vect  ///< auxiliary buffers to interpolate (assuming indexed as
+                                                          ///< vertexes: each with same size as vertex buffer)
+) {
     std::array<std::vector<ChVector<int>>*, 4> face_indexes;
-    face_indexes[0]=&m_face_v_indices;
-    face_indexes[1]=&m_face_n_indices; 
-    face_indexes[2]=&m_face_uv_indices; 
-    face_indexes[3]=&m_face_col_indices;
+    face_indexes[0] = &m_face_v_indices;
+    face_indexes[1] = &m_face_n_indices;
+    face_indexes[2] = &m_face_uv_indices;
+    face_indexes[3] = &m_face_col_indices;
 
     int iea, ieb;
 
     for (int ibuffer = 0; ibuffer < 4; ++ibuffer) {
-
         if (face_indexes[ibuffer]->size()) {
-
             // case where one used normals, uv, color buffers, with custom face indexes:
-            std::pair<int, int> eA; 
-            eA = ChTriangleMeshConnected::GetTriangleEdgeIndexes(*face_indexes[ibuffer], itA,neA,false);
-            std::pair<int, int> eAB =eA;
+            std::pair<int, int> eA;
+            eA = ChTriangleMeshConnected::GetTriangleEdgeIndexes(*face_indexes[ibuffer], itA, neA, false);
+            std::pair<int, int> eAB = eA;
             std::pair<int, int> eB;
             if (itB != -1)
-                eB = ChTriangleMeshConnected::GetTriangleEdgeIndexes(*face_indexes[ibuffer], itB,neB,false);
+                eB = ChTriangleMeshConnected::GetTriangleEdgeIndexes(*face_indexes[ibuffer], itB, neB, false);
             bool swapA = false;
             if (eA.first > eA.second) {
                 swapA = true;
@@ -1376,12 +1479,12 @@ bool ChTriangleMeshConnected::SplitEdge (
             bool swapB = false;
             if (eB.first > eB.second)
                 swapB = true;
-    
+
             // average new vertex/property and add it
             int iVnew = -1;
             InterpolateAndInsert(*this, ibuffer, eAB.first, eAB.second, iVnew);
 
-            if (ibuffer==0) {
+            if (ibuffer == 0) {
                 iea = eAB.first;
                 ieb = eAB.second;
             }
@@ -1393,81 +1496,94 @@ bool ChTriangleMeshConnected::SplitEdge (
 
             // Split triangle A in two (reuse existing, and allocate one new)
             ChVector<int> tA_1 = face_indexes[ibuffer]->at(itA);
-            if (tA_1.x() == eAB.first) tA_1.x() = iVnew;
-            if (tA_1.y() == eAB.first) tA_1.y() = iVnew;
-            if (tA_1.z() == eAB.first) tA_1.z() = iVnew;
+            if (tA_1.x() == eAB.first)
+                tA_1.x() = iVnew;
+            if (tA_1.y() == eAB.first)
+                tA_1.y() = iVnew;
+            if (tA_1.z() == eAB.first)
+                tA_1.z() = iVnew;
             ChVector<int> tA_2 = face_indexes[ibuffer]->at(itA);
-            if (tA_2.x() == eAB.second) tA_2.x() = iVnew;
-            if (tA_2.y() == eAB.second) tA_2.y() = iVnew;
-            if (tA_2.z() == eAB.second) tA_2.z() = iVnew;
-            face_indexes[ibuffer]->at(itA) = tA_1; // reuse face
+            if (tA_2.x() == eAB.second)
+                tA_2.x() = iVnew;
+            if (tA_2.y() == eAB.second)
+                tA_2.y() = iVnew;
+            if (tA_2.z() == eAB.second)
+                tA_2.z() = iVnew;
+            face_indexes[ibuffer]->at(itA) = tA_1;  // reuse face
             itA_1 = itA;
-            face_indexes[ibuffer]->push_back(tA_2); // allocate new face
-            itA_2 = (int)face_indexes[ibuffer]->size() -1;
+            face_indexes[ibuffer]->push_back(tA_2);  // allocate new face
+            itA_2 = (int)face_indexes[ibuffer]->size() - 1;
 
             // Split triangle B in two (reuse existing, and allocate one new)
             if (itB != -1) {
                 ChVector<int> tB_1 = face_indexes[ibuffer]->at(itB);
-                if (tB_1.x() == eAB.first) tB_1.x() = iVnew;
-                if (tB_1.y() == eAB.first) tB_1.y() = iVnew;
-                if (tB_1.z() == eAB.first) tB_1.z() = iVnew;
+                if (tB_1.x() == eAB.first)
+                    tB_1.x() = iVnew;
+                if (tB_1.y() == eAB.first)
+                    tB_1.y() = iVnew;
+                if (tB_1.z() == eAB.first)
+                    tB_1.z() = iVnew;
                 ChVector<int> tB_2 = face_indexes[ibuffer]->at(itB);
-                if (tB_2.x() == eAB.second) tB_2.x() = iVnew;
-                if (tB_2.y() == eAB.second) tB_2.y() = iVnew;
-                if (tB_2.z() == eAB.second) tB_2.z() = iVnew;
-                face_indexes[ibuffer]->at(itB) = tB_1; // reuse face 
+                if (tB_2.x() == eAB.second)
+                    tB_2.x() = iVnew;
+                if (tB_2.y() == eAB.second)
+                    tB_2.y() = iVnew;
+                if (tB_2.z() == eAB.second)
+                    tB_2.z() = iVnew;
+                face_indexes[ibuffer]->at(itB) = tB_1;  // reuse face
                 itB_1 = itB;
-                face_indexes[ibuffer]->push_back(tB_2); // allocate new face
-                itB_2 = (int)face_indexes[ibuffer]->size() -1;
+                face_indexes[ibuffer]->push_back(tB_2);  // allocate new face
+                itB_2 = (int)face_indexes[ibuffer]->size() - 1;
             }
 
             // for m_face_v_indices buffer (vertex indexes) only:
-            if (ibuffer ==0)  {
-                
+            if (ibuffer == 0) {
                 // Update triangle neighboring map
 
                 std::array<int, 4> topo_A_1 = tri_map[itA];
                 std::array<int, 4> topo_A_2 = tri_map[itA];
-                topo_A_1[1+neA] = itB_1;
-                topo_A_2[1+neA] = itB_2;
-                int is1 = 1+((neA+2)%3);
-                int is2 = 1+((neA+1)%3);
-                if (swapA) std::swap(is1,is2);
+                topo_A_1[1 + neA] = itB_1;
+                topo_A_2[1 + neA] = itB_2;
+                int is1 = 1 + ((neA + 2) % 3);
+                int is2 = 1 + ((neA + 1) % 3);
+                if (swapA)
+                    std::swap(is1, is2);
                 topo_A_1[is1] = itA_2;
                 topo_A_2[is2] = itA_1;
                 int itD = topo_A_1[is2];
                 int itC = topo_A_2[is1];
-                for (int in = 1; in<4; ++in)
+                for (int in = 1; in < 4; ++in)
                     if (tri_map[itD][in] == itA)
-                        tri_map[itD][in] = itA_1; // not needed?
-                for (int in = 1; in<4; ++in)
+                        tri_map[itD][in] = itA_1;  // not needed?
+                for (int in = 1; in < 4; ++in)
                     if (tri_map[itC][in] == itA)
                         tri_map[itC][in] = itA_2;
-                tri_map[itA] = topo_A_1; // reuse  
-                tri_map.push_back(topo_A_2); // allocate
-                topo_A_2[0] = (int)tri_map.size() -1;
+                tri_map[itA] = topo_A_1;      // reuse
+                tri_map.push_back(topo_A_2);  // allocate
+                topo_A_2[0] = (int)tri_map.size() - 1;
 
                 if (itB != -1) {
                     std::array<int, 4> topo_B_1 = tri_map[itB];
                     std::array<int, 4> topo_B_2 = tri_map[itB];
-                    topo_B_1[1+neB] = itA_1;
-                    topo_B_2[1+neB] = itA_2;
-                    int is1 = 1+((neB+2)%3);
-                    int is2 = 1+((neB+1)%3);
-                    if (swapB) std::swap(is1,is2);
+                    topo_B_1[1 + neB] = itA_1;
+                    topo_B_2[1 + neB] = itA_2;
+                    int is1 = 1 + ((neB + 2) % 3);
+                    int is2 = 1 + ((neB + 1) % 3);
+                    if (swapB)
+                        std::swap(is1, is2);
                     topo_B_1[is1] = itB_2;
                     topo_B_2[is2] = itB_1;
                     int itF = topo_B_1[is2];
                     int itE = topo_B_2[is1];
-                    for (int in = 1; in<4; ++in)
+                    for (int in = 1; in < 4; ++in)
                         if (tri_map[itF][in] == itB)
-                            tri_map[itF][in] = itB_1; // not needed?
-                    for (int in = 1; in<4; ++in)
+                            tri_map[itF][in] = itB_1;  // not needed?
+                    for (int in = 1; in < 4; ++in)
                         if (tri_map[itE][in] == itB)
                             tri_map[itE][in] = itB_2;
-                    tri_map[itB] = topo_B_1; // reuse  
-                    tri_map.push_back(topo_B_2); // allocate
-                    topo_B_2[0] = (int)tri_map.size() -1;
+                    tri_map[itB] = topo_B_1;      // reuse
+                    tri_map.push_back(topo_B_2);  // allocate
+                    topo_B_2[0] = (int)tri_map.size() - 1;
                 }
             }
         } else {
@@ -1476,7 +1592,7 @@ bool ChTriangleMeshConnected::SplitEdge (
             InterpolateAndInsert(*this, ibuffer, iea, ieb, iVnew);
         }
 
-    } // end loop on buffers
+    }  // end loop on buffers
 
     // just in case the user populated the vector of external auxiliary data buffers,
     // interpolate and store the created value. Assume those have same size of m_vertices
@@ -1496,30 +1612,34 @@ bool ChTriangleMeshConnected::SplitEdge (
         bool data = data_buffer->at(iea) || data_buffer->at(ieb);
         data_buffer->push_back(data);
     }
-    
+
     return true;
 }
-
 
 // Performs mesh refinement using Rivara LEPP long-edge bisection algorithm.
 // Based on "Multithread parallelization of Lepp-bisection algorithms"
 //    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473–488
 
 void ChTriangleMeshConnected::RefineMeshEdges(
-        std::vector<int>& marked_tris,  ///< triangles to refine (aso surrounding triangles might be affected by refinements)
-        double edge_maxlen,             ///< maximum length of edge (small values give higher resolution)
-        ChRefineEdgeCriterion* criterion, ///< criterion for computing lenght (or other merit function) of edge, if =0 uses default (euclidean length)
-        std::vector<std::array<int, 4>>* atri_map, ///< triangle connectivity map: use and modify it. Optional. If =0, creates a temporary one just for life span of function.
-        std::vector<std::vector<double>*>& aux_data_double, ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
-        std::vector<std::vector<int>*>& aux_data_int,       ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
-        std::vector<std::vector<bool>*>& aux_data_bool,      ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
-        std::vector<std::vector<ChVector<>>*>& aux_data_vect///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
-        ) {
-
+    std::vector<int>&
+        marked_tris,     ///< triangles to refine (aso surrounding triangles might be affected by refinements)
+    double edge_maxlen,  ///< maximum length of edge (small values give higher resolution)
+    ChRefineEdgeCriterion* criterion,  ///< criterion for computing lenght (or other merit function) of edge, if =0 uses
+                                       ///< default (euclidean length)
+    std::vector<std::array<int, 4>>* atri_map,  ///< triangle connectivity map: use and modify it. Optional. If =0,
+                                                ///< creates a temporary one just for life span of function.
+    std::vector<std::vector<double>*>& aux_data_double,  ///< auxiliary buffers to refine (assuming indexed as vertexes:
+                                                         ///< each with same size as vertex buffer)
+    std::vector<std::vector<int>*>& aux_data_int,  ///< auxiliary buffers to refine (assuming indexed as vertexes: each
+                                                   ///< with same size as vertex buffer)
+    std::vector<std::vector<bool>*>& aux_data_bool,  ///< auxiliary buffers to refine (assuming indexed as vertexes:
+                                                     ///< each with same size as vertex buffer)
+    std::vector<std::vector<ChVector<>>*>& aux_data_vect  ///< auxiliary buffers to refine (assuming indexed as
+                                                          ///< vertexes: each with same size as vertex buffer)
+) {
     // initialize the list of triangles to refine, copying from marked triangles:
     std::list<int> S(marked_tris.begin(), marked_tris.end());
-    
-    
+
     // compute the connectivity map between triangles:
     std::vector<std::array<int, 4>> tmp_tri_map;
     std::vector<std::array<int, 4>>& tri_map = tmp_tri_map;
@@ -1537,36 +1657,34 @@ void ChTriangleMeshConnected::RefineMeshEdges(
     std::vector<int> new_marked_tris;
 
     for (auto t_0 : S) {
-        
         // Insert-lepp-points
 
         std::list<int> mlist;
         mlist.push_back(t_0);
 
-        while(!mlist.empty()) {
-
+        while (!mlist.empty()) {
             //  find last triangle in ordered list
             auto t_N = mlist.back();
 
             //  find longest-edge neighbour
-            int t_N1 = 0; 
+            int t_N1 = 0;
             double L_max = 0;
-            int edge_N =0;
+            int edge_N = 0;
             double L_e;
-            for (int ie = 0; ie<3; ++ie) {
+            for (int ie = 0; ie < 3; ++ie) {
                 std::pair<int, int> ie_verts = this->GetTriangleEdgeIndexes(m_face_v_indices, t_N, ie, true);
                 if (criterion)
                     L_e = criterion->ComputeLength(ie_verts.first, ie_verts.second, this);
                 else
-                    L_e = (this->m_vertices[ie_verts.first] - this->m_vertices[ie_verts.second]).Length(); 
+                    L_e = (this->m_vertices[ie_verts.first] - this->m_vertices[ie_verts.second]).Length();
                 if (L_e > L_max) {
                     L_max = L_e;
                     edge_N = ie;
-                    t_N1 = tri_map[t_N][1+ie]; // neighbour triangle
+                    t_N1 = tri_map[t_N][1 + ie];  // neighbour triangle
                 }
             }
 
-            if(L_max < edge_maxlen) {
+            if (L_max < edge_maxlen) {
                 //  GetLog() << "  already small triangle - pop it and break while " << "\n";
                 mlist.pop_back();
                 break;
@@ -1575,26 +1693,23 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             // add longest-edge neighbour to the list
             mlist.push_back(t_N1);
 
-            if (mlist.size() > 1000) throw ChException("overflow in ChTriangleMeshConnected::RefineMeshEdges");
+            if (mlist.size() > 1000)
+                throw ChException("overflow in ChTriangleMeshConnected::RefineMeshEdges");
 
             // if boundary edge: always terminal edge
             if (t_N1 == -1) {
-  
-                // split triangle edge 
+                // split triangle edge
                 if (L_max > edge_maxlen) {
                     // do edge split
                     int itA_1, itA_2, itB_1, itB_2;
-                    SplitEdge(t_N, -1, edge_N, 0, 
-                        itA_1, itA_2, itB_1, itB_2,
-                        tri_map,
-                        aux_data_double, aux_data_int, aux_data_bool, aux_data_vect);
+                    SplitEdge(t_N, -1, edge_N, 0, itA_1, itA_2, itB_1, itB_2, tri_map, aux_data_double, aux_data_int,
+                              aux_data_bool, aux_data_vect);
 
                     // prepare list of original triangles after split, for the next iteration of bisection
-                    if (t_N  < marked_tris_flagged.size() && marked_tris_flagged[t_N] == true) {
+                    if (t_N < marked_tris_flagged.size() && marked_tris_flagged[t_N] == true) {
                         new_marked_tris.push_back(itA_1);
                         new_marked_tris.push_back(itA_2);
                     }
-
                 }
 
                 // remove from list
@@ -1604,34 +1719,31 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             } else {
                 //  find longest-edge in neighboring triangle
                 double T1_L_max = 0;
-                int edge_N1 =0;
-                int t_shared = 0; 
-                for (int ie = 0; ie<3; ++ie) {
+                int edge_N1 = 0;
+                int t_shared = 0;
+                for (int ie = 0; ie < 3; ++ie) {
                     std::pair<int, int> T1_ie_verts = this->GetTriangleEdgeIndexes(m_face_v_indices, t_N1, ie, true);
                     if (criterion)
                         L_e = criterion->ComputeLength(T1_ie_verts.first, T1_ie_verts.second, this);
                     else
-                        L_e = (this->m_vertices[T1_ie_verts.first] - this->m_vertices[T1_ie_verts.second]).Length(); 
+                        L_e = (this->m_vertices[T1_ie_verts.first] - this->m_vertices[T1_ie_verts.second]).Length();
                     if (L_e > T1_L_max) {
                         T1_L_max = L_e;
                         edge_N1 = ie;
-                        t_shared = tri_map[t_N1][1+ie]; // neighbour triangle
+                        t_shared = tri_map[t_N1][1 + ie];  // neighbour triangle
                     }
                 }
                 // shared terminal edge (it is the longest edge in both triangles)
                 if (t_shared == t_N) {
-
-                    // split triangle edge 
+                    // split triangle edge
                     if (L_max > edge_maxlen) {
                         // do edge split
                         int itA_1, itA_2, itB_1, itB_2;
-                        SplitEdge(t_N, t_N1, edge_N, edge_N1, 
-                            itA_1, itA_2, itB_1, itB_2,
-                            tri_map,
-                            aux_data_double, aux_data_int, aux_data_bool, aux_data_vect);
+                        SplitEdge(t_N, t_N1, edge_N, edge_N1, itA_1, itA_2, itB_1, itB_2, tri_map, aux_data_double,
+                                  aux_data_int, aux_data_bool, aux_data_vect);
 
                         // prepare list of original triangles after split, for the next iteration of bisection
-                        if (t_N  < marked_tris_flagged.size() && marked_tris_flagged[t_N] == true) {
+                        if (t_N < marked_tris_flagged.size() && marked_tris_flagged[t_N] == true) {
                             new_marked_tris.push_back(itA_1);
                             new_marked_tris.push_back(itA_2);
                         }
@@ -1645,16 +1757,45 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                     mlist.pop_back();
                     mlist.pop_back();
                 }
-
             }
-
         }
-
     }
     marked_tris = new_marked_tris;
 }
 
+void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChTriangleMeshConnected>();
+    // serialize parent class
+    ChTriangleMesh::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(m_vertices);
+    marchive << CHNVP(m_normals);
+    marchive << CHNVP(m_UV);
+    marchive << CHNVP(m_colors);
+    marchive << CHNVP(m_face_v_indices);
+    marchive << CHNVP(m_face_n_indices);
+    marchive << CHNVP(m_face_uv_indices);
+    marchive << CHNVP(m_face_col_indices);
+    marchive << CHNVP(m_filename);
+}
 
+void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChTriangleMeshConnected>();
+    // deserialize parent class
+    ChTriangleMesh::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(m_vertices);
+    marchive >> CHNVP(m_normals);
+    marchive >> CHNVP(m_UV);
+    marchive >> CHNVP(m_colors);
+    marchive >> CHNVP(m_face_v_indices);
+    marchive >> CHNVP(m_face_n_indices);
+    marchive >> CHNVP(m_face_uv_indices);
+    marchive >> CHNVP(m_face_col_indices);
+    marchive >> CHNVP(m_filename);
+}
 
 }  // end namespace geometry
 }  // end namespace chrono

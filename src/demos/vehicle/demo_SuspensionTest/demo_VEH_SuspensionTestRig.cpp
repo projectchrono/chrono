@@ -45,7 +45,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -54,6 +53,8 @@
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -155,7 +156,7 @@ int main(int argc, char* argv[]) {
     driver->Initialize();
 
     // Initialize output
-    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
@@ -198,8 +199,8 @@ int main(int argc, char* argv[]) {
         // Write output data
         if (collect_output && step_number % out_steps == 0) {
             // Current tire forces
-            auto tire_force_L = tire_L->GetTireForce(true);
-            auto tire_force_R = tire_R->GetTireForce(true);
+            auto tire_force_L = tire_L->ReportTireForce(nullptr);
+            auto tire_force_R = tire_R->ReportTireForce(nullptr);
             out_csv << time << left_input << right_input << steering_input;
             out_csv << rig->GetActuatorDisp(VehicleSide::LEFT) << rig->GetActuatorDisp(VehicleSide::RIGHT);
             out_csv << tire_force_L.point << tire_force_L.force << tire_force_L.moment;

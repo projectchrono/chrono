@@ -33,9 +33,9 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 const int M113_SprocketSinglePin::m_num_teeth = 10;
 
-const double M113_SprocketSinglePin::m_gear_mass = 436.7;
-const ChVector<> M113_SprocketSinglePin::m_gear_inertia(12.22, 13.87, 12.22);
-const double M113_SprocketSinglePin::m_axle_inertia = 1;
+const double M113_SprocketSinglePin::m_gear_mass = 27.68;
+const ChVector<> M113_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
+const double M113_SprocketSinglePin::m_axle_inertia = 0.02;
 const double M113_SprocketSinglePin::m_separation = 0.225;
 
 const double M113_SprocketSinglePin::m_gear_RT = 0.2605;
@@ -62,11 +62,12 @@ M113_SprocketSinglePin::M113_SprocketSinglePin(const std::string& name) : ChSpro
 // -----------------------------------------------------------------------------
 void M113_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(GetMeshName());
+        trimesh_shape->SetStatic(true);
         m_gear->AddAsset(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);

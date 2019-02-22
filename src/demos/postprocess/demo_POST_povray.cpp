@@ -17,25 +17,24 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChSphereShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChCamera.h"
 #include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChObjShapeFile.h"
+#include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChAssetLevel.h"
-#include "chrono/core/ChFileutils.h"
+#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
 
-// Use the namespace of Chrono
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
-using namespace postprocess;  // <- to keep things shorter
+using namespace postprocess;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -78,13 +77,11 @@ int main(int argc, char* argv[]) {
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     mfloor->AddAsset(mfloorcolor);
 
-    
     /// [Example 1]
     /* End example */
 
     /* Start example */
     /// [Example 2]
-    
 
     // Textures, colors, asset levels with transformations.
     // This section shows how to add more advanced types of assets
@@ -197,7 +194,7 @@ int main(int argc, char* argv[]) {
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)
-        mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() -0.5)));
+        mparticles->AddParticle(ChCoordsys<>(ChVector<>(ChRandom() - 2, 1, ChRandom() - 0.5)));
 
     // Do not forget to add the particle cluster to the system:
     mphysicalSystem.Add(mparticles);
@@ -220,7 +217,7 @@ int main(int argc, char* argv[]) {
 
     // Create (if needed) the output directory
     const std::string demo_dir = GetChronoOutputPath() + "DEMO_POVRAY";
-    if (ChFileutils::MakeDirectory(demo_dir.c_str()) < 0) {
+    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
         std::cout << "Error creating directory " << demo_dir << std::endl;
         return 1;
     }
@@ -238,8 +235,8 @@ int main(int argc, char* argv[]) {
     // to avoid cluttering the current directory.
     const std::string out_dir = demo_dir + "/output";
     const std::string anim_dir = demo_dir + "/anim";
-    ChFileutils::MakeDirectory(out_dir.c_str());
-    ChFileutils::MakeDirectory(anim_dir.c_str());
+    filesystem::create_directory(filesystem::path(out_dir));
+    filesystem::create_directory(filesystem::path(anim_dir));
 
     pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
     pov_exporter.SetPictureFilebase(anim_dir + "/picture");

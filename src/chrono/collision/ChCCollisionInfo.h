@@ -13,8 +13,9 @@
 #ifndef CHCCOLLISIONINFO_H
 #define CHCCOLLISIONINFO_H
 
-#include "chrono/core/ChVector.h"
 #include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVector.h"
 
 namespace chrono {
 namespace collision {
@@ -23,59 +24,37 @@ namespace collision {
 /// @{
 
 ///   Class for passing basic data about contact pairs
-class ChCollisionInfo {
+class ChApi ChCollisionInfo {
   public:
-    ChCollisionModel* modelA;  ///<  model A
-    ChCollisionModel* modelB;  ///<  model B
-    ChVector<> vpA;            ///<  coll.point on A, in abs coords
-    ChVector<> vpB;            ///<  coll.point on B, in abs coords
-    ChVector<> vN;             ///<  coll.normal, respect to A, in abs coords
-    double distance;           ///<  distance (negative for penetration)
-    float* reaction_cache;     ///<  pointer to some persistent user cache of reactions
+    ChCollisionModel* modelA;  ///< model A
+    ChCollisionModel* modelB;  ///< model B
+    ChVector<> vpA;            ///< coll.point on A, in abs coords
+    ChVector<> vpB;            ///< coll.point on B, in abs coords
+    ChVector<> vN;             ///< coll.normal, respect to A, in abs coords
+    double distance;           ///< distance (negative for penetration)
+    double eff_radius;         ///< effective radius of curvature at contact (SMC only)
+    float* reaction_cache;     ///< pointer to some persistent user cache of reactions
 
-    /// Basic default constructor
-    ChCollisionInfo() {
-        modelA = modelB = 0;
-        vpA = vpB = VNULL;
-        vN.Set(1, 0, 0);
-        distance = 0.;
-        reaction_cache = 0;
-    }
+    /// Basic default constructor.
+    ChCollisionInfo();
 
-    /// Copy from other 
-    ChCollisionInfo(const ChCollisionInfo& other, const bool swap=false) {
-        if (!swap) {
-            modelA = other.modelA;
-            modelB = other.modelB;
-            vpA = other.vpA;
-            vpB = other.vpB;
-            vN  = other.vN;
-        } 
-        else {
-            // copy by swapping models !
-            modelA = other.modelB;
-            modelB = other.modelA;
-            vpA = other.vpB;
-            vpB = other.vpA;
-            vN  = -other.vN;
-        }
-        distance = other.distance;
-        reaction_cache = other.reaction_cache;
-    }
+    /// Copy from other.
+    ChCollisionInfo(const ChCollisionInfo& other, const bool swap = false);
 
-    /// Swap models, that is modelA becomes modelB and viceversa;
-    /// normal and so on are updates as well.
-    void SwapModels() {
-        ChCollisionModel* modeltemp;
-        modeltemp = modelA;
-        modelA = modelB;
-        modelB = modeltemp;
-        ChVector<> vtemp;
-        vtemp = vpA;
-        vpA = vpB;
-        vpB = vtemp;
-        vN = Vmul(vN, -1.0);
-    }
+    /// Swap models, that is modelA becomes modelB and viceversa.
+    void SwapModels();
+
+    /// Set the default effective radius of curvature (for SMC contact).
+    /// <pre>
+    /// A collision system should evaluate this value for each collision using
+    ///     1/r_eff = 1/rA + 1/rB
+    /// where rA and rB are the radii of curvature of the two surfaces at the contact point.
+    /// </pre>
+    /// If a collision system does not set this quantity, all collisions use this default value.
+    static void SetDefaultEffectiveCurvatureRadius(double eff_radius);
+
+    /// Return the current value of the default effective radius of curvature.
+    static double GetDefaultEffectiveCurvatureRadius();
 };
 
 /// @} chrono_collision

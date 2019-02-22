@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // 2WD driveline model template based on ChShaft objects. This template can be
@@ -82,17 +82,32 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChBody> chassis,
                                suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
     m_differential->SetTransmissionRatioOrdinary(GetDifferentialRatio());
     my_system->Add(m_differential);
+
+    // Create the clutch for differential locking. By default, unlocked.
+    m_clutch = std::make_shared<ChShaftsClutch>();
+    m_clutch->Initialize(suspensions[m_driven_axles[0]]->GetAxle(LEFT), suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
+    m_clutch->SetTorqueLimit(GetAxleDifferentialLockingLimit());
+    m_clutch->SetModulation(0);
+    my_system->Add(m_clutch);
 }
 
 // -----------------------------------------------------------------------------
+void ChShaftsDriveline2WD::LockAxleDifferential(int axle, bool lock) {
+    m_clutch->SetModulation(lock ? 1 : 0);
+}
+
+void ChShaftsDriveline2WD::LockCentralDifferential(int which, bool lock) {
+    GetLog() << "WARNINIG: " << GetTemplateName() << " does not contain a central differential.\n";
+}
+
 // -----------------------------------------------------------------------------
 double ChShaftsDriveline2WD::GetWheelTorque(const WheelID& wheel_id) const {
     if (wheel_id.axle() == m_driven_axles[0]) {
         switch (wheel_id.side()) {
             case LEFT:
-                return -m_differential->GetTorqueReactionOn2();
+                return -m_differential->GetTorqueReactionOn2() - m_clutch->GetTorqueReactionOn1();
             case RIGHT:
-                return -m_differential->GetTorqueReactionOn3();
+                return -m_differential->GetTorqueReactionOn3() - m_clutch->GetTorqueReactionOn2();
         }
     }
 

@@ -21,12 +21,11 @@ namespace chrono {
 namespace geometry {
 
 /// A rounded cone (sphere-swept cone) geometric object for collisions and visualization.
-
 class ChApi ChRoundedCone : public ChGeometry {
-
   public:
-    ChRoundedCone() : center(VNULL), rad(0) {}
-    ChRoundedCone(ChVector<>& mc, ChVector<> mrad) : center(mc), rad(mrad) {}
+    ChRoundedCone() : center(VNULL), rad(0), radsphere(0) {}
+    ChRoundedCone(const ChVector<>& mc, const ChVector<>& mrad, double mradsphere)
+        : center(mc), rad(mrad), radsphere(mradsphere) {}
     ChRoundedCone(const ChRoundedCone& source);
     ~ChRoundedCone() {}
 
@@ -58,33 +57,16 @@ class ChApi ChRoundedCone : public ChGeometry {
     ChVector<> rad;     ///< cone radius
     double radsphere;   ///< radius of sweeping sphere
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChRoundedCone>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(center);
-        marchive << CHNVP(rad);
-        marchive << CHNVP(radsphere);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChRoundedCone>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(center);
-        marchive >> CHNVP(rad);
-        marchive >> CHNVP(radsphere);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChRoundedCone,0)
+CH_CLASS_VERSION(geometry::ChRoundedCone, 0)
 
 }  // end namespace chrono
 

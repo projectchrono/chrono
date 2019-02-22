@@ -30,8 +30,8 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_RoadWheel::m_wheel_mass = 561.1;
-const ChVector<> M113_RoadWheel::m_wheel_inertia(19.82, 26.06, 19.82);
+const double M113_RoadWheel::m_wheel_mass = 35.56;
+const ChVector<> M113_RoadWheel::m_wheel_inertia(1.14, 2.16, 1.14);
 const double M113_RoadWheel::m_wheel_radius = 0.305;
 const double M113_RoadWheel::m_wheel_width = 0.181;
 const double M113_RoadWheel::m_wheel_gap = 0.051;
@@ -55,11 +55,12 @@ M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name
 // -----------------------------------------------------------------------------
 void M113_RoadWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(GetMeshFile(), false, false);
         auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(GetMeshName());
+        trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(trimesh_shape);
     } else {
         ChDoubleRoadWheel::AddVisualizationAssets(vis);

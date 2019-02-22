@@ -60,8 +60,9 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
         ChVehicle* vehicle,        ///< pointer to the associated vehicle system
         ChPowertrain* powertrain,  ///< pointer to the associated powertrain system
         const wchar_t* title = 0,  ///< window title
-        irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800)  ///< window dimensions
-        );
+        irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
+        irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
+    );
 
     virtual ~ChVehicleIrrApp();
 
@@ -76,9 +77,13 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
                         );
     /// Set the step size for integration of the chase-cam dynamics.
     void SetStepsize(double val) { m_stepsize = val; }
+    /// Set camera state (mode).
+    void SetChaseCameraState(utils::ChChaseCamera::State state) { m_camera.SetState(state); }
     /// Set camera position.
     /// Note that this forces the chase-cam in Track mode.
     void SetChaseCameraPosition(const ChVector<>& pos) { m_camera.SetCameraPos(pos); }
+    /// Set camera angle.
+    void SetChaseCameraAngle(double angle) { m_camera.SetCameraAngle(angle); }
     /// Set camera zoom multipliers.
     void SetChaseCameraMultipliers(double minMult, double maxMult) { m_camera.SetMultLimits(minMult, maxMult); }
 
@@ -141,7 +146,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     ChVehicle* m_vehicle;        ///< pointer to the associated vehicle system
     ChPowertrain* m_powertrain;  ///< pointer to the associated powertrain system
 
-  private:
+  protected:
     void renderGrid();
     void renderStats();
 

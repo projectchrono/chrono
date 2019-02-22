@@ -46,7 +46,8 @@ class ChApiIrr ChIrrAppInterface {
                       bool do_fullscreen = false,
                       bool do_shadows = false,
                       bool do_antialias = true,
-                      irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9);
+                      irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9,
+                      irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION);
 
     /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
     virtual ~ChIrrAppInterface();
@@ -67,6 +68,10 @@ class ChApiIrr ChIrrAppInterface {
     /// Show the realtime profiler in the 3D view
     void SetShowProfiler(bool val) { show_profiler = val; }
     bool GetShowProfiler() { return show_profiler; }
+
+    /// Show the object explorer
+    void SetShowExplorer(bool val) { show_explorer = val; }
+    bool GetShowExplorer() { return show_explorer; }
 
     /// Set/Get the time step for time integration. This value is used when
     /// calling DoStep() in a loop, to advance the simulation by one timestep.
@@ -113,6 +118,8 @@ class ChApiIrr ChIrrAppInterface {
     void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
 	/// Set if the COG frames will be plotted
 	void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
+	/// Set if the Bullet collision shapes will be plotted
+	void SetPlotCollisionShapes(bool val) { this->gad_plot_collisionshapes->setChecked(val); }
 	/// Set if the link frames will be plotted
     void SetPlotLinkFrames(bool val) { this->gad_plot_linkframes->setChecked(val); }
 	/// Set if the COG frames will be plotted
@@ -239,6 +246,7 @@ class ChApiIrr ChIrrAppInterface {
 
     bool show_infos;
     bool show_profiler;
+    bool show_explorer;
 
     bool step_manage;
     bool pause_step;
@@ -266,6 +274,7 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIComboBox* gad_labellinks;
     irr::gui::IGUICheckBox* gad_plot_aabb;
     irr::gui::IGUICheckBox* gad_plot_cogs;
+	irr::gui::IGUICheckBox* gad_plot_collisionshapes;
     irr::gui::IGUICheckBox* gad_plot_linkframes;
     irr::gui::IGUICheckBox* gad_plot_convergence;
 
@@ -294,6 +303,8 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIEditBox* gad_symbolscale;
     irr::gui::IGUIStaticText* gad_symbolscale_info;
     irr::gui::IGUIStaticText* gad_textHelp;
+
+    irr::gui::IGUITreeView* gad_treeview;
 
   public:
     std::shared_ptr<ChLinkSpring>* selectedspring;

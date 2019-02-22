@@ -14,8 +14,6 @@
 // OpenGL viewer, this class draws the system to the screen and handles input
 // =============================================================================
 
-#include "chrono_opengl/ChOpenGLViewer.h"
-#include "chrono_opengl/ChOpenGLMaterials.h"
 #include "chrono/ChConfig.h"
 
 #ifdef CHRONO_PARALLEL
@@ -56,6 +54,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "chrono_opengl/ChOpenGLViewer.h"
+#include "chrono_opengl/ChOpenGLMaterials.h"
 
 namespace chrono {
 namespace opengl {
@@ -208,9 +209,8 @@ void ChOpenGLViewer::Render() {
             model_cylinder.clear();
             model_obj.clear();
             line_path_data.clear();
-            for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-                auto abody = physics_system->Get_bodylist()->at(i);
-                DrawObject(abody);
+            for (auto body : physics_system->Get_bodylist()) {
+                DrawObject(body);
             }
             if (model_box.size() > 0) {
                 box.Update(model_box);
@@ -241,10 +241,10 @@ void ChOpenGLViewer::Render() {
             }
 
         } else {
-            cloud_data.resize(physics_system->Get_bodylist()->size());
+            cloud_data.resize(physics_system->Get_bodylist().size());
 #pragma omp parallel for
-            for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-                auto abody = physics_system->Get_bodylist()->at(i);
+            for (int i = 0; i < physics_system->Get_bodylist().size(); i++) {
+                auto abody = physics_system->Get_bodylist().at(i);
                 ChVector<> pos = abody->GetPos();
                 cloud_data[i] = glm::vec3(pos.x(), pos.y(), pos.z());
             }
@@ -482,12 +482,12 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             for (unsigned int ig = 0; ig < 200; ig++) {
                 double mU = maxU * ((double)ig / (double)(200 - 1));  // abscyssa
                 ChVector<> t2;
-                mline->Evaluate(t2, mU, 0, 0);
+                mline->Evaluate(t2, mU);
                 t2 = pos_final + lrot.Rotate(t2);
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
 
                 mU = maxU * ((double)(ig + 1) / (double)(200 - 1));  // abscyssa
-                mline->Evaluate(t2, mU, 0, 0);
+                mline->Evaluate(t2, mU);
                 t2 = pos_final + lrot.Rotate(t2);
                 line_path_data.push_back(glm::vec3(t2.x(), t2.y(), t2.z()));
             }

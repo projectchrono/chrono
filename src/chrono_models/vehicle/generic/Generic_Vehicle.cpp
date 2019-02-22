@@ -54,7 +54,7 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<Generic_Chassis>("Chassis");
+    m_chassis = std::make_shared<Generic_Chassis>("Chassis", fixed);
 
     // -------------------------------------------
     // Create the suspension subsystems

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Michael Taylor
+// Authors: Radu Serban, Michael Taylor, Rainer Gericke
 // =============================================================================
 //
 // Fiala tire constructed with data from file (JSON format).
@@ -20,6 +20,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -27,16 +28,6 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
-
-// -----------------------------------------------------------------------------
-// This utility function returns a ChVector from the specified JSON array
-// -----------------------------------------------------------------------------
-static ChVector<> loadVector(const Value& a) {
-    assert(a.IsArray());
-    assert(a.Size() == 3);
-
-    return ChVector<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -64,26 +55,34 @@ FialaTire::~FialaTire() {
 }
 
 void FialaTire::Create(const rapidjson::Document& d) {
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
+    // Invoke base class method.
+    ChPart::Create(d);
 
-    SetName(d["Name"].GetString());
-
+    m_mass = d["Mass"].GetDouble();
+    m_inertia = LoadVectorJSON(d["Inertia"]);
+    if (d.HasMember("Coefficient of Friction")) {
+        // Default value = 0.8
+        m_mu_0 = d["Coefficient of Friction"].GetDouble();
+    }
+    if(d.HasMember("Nominal Vertical Force [N]")) {
+        // Helpful for plotting
+        m_Fz_nom = d["Nominal Vertical Force [N]"].GetDouble();
+    }
     // Read in Fiala tire model parameters
     m_unloaded_radius = d["Fiala Parameters"]["Unloaded Radius"].GetDouble();
     m_width = d["Fiala Parameters"]["Width"].GetDouble();
     m_normalStiffness = d["Fiala Parameters"]["Vertical Stiffness"].GetDouble();
     m_normalDamping = d["Fiala Parameters"]["Vertical Damping"].GetDouble();
-    m_rolling_resistance = 0;  // d["Fiala Parameters"]["Rolling Resistance"].GetDouble();
+    m_rolling_resistance = d["Fiala Parameters"]["Rolling Resistance"].GetDouble();
     m_c_slip = d["Fiala Parameters"]["CSLIP"].GetDouble();
     m_c_alpha = d["Fiala Parameters"]["CALPHA"].GetDouble();
     m_u_min = d["Fiala Parameters"]["UMIN"].GetDouble();
     m_u_max = d["Fiala Parameters"]["UMAX"].GetDouble();
     m_relax_length_x = d["Fiala Parameters"]["X Relaxation Length"].GetDouble();
     m_relax_length_y = d["Fiala Parameters"]["Y Relaxation Length"].GetDouble();
-
+    if(m_relax_length_x <= 0.0 || m_relax_length_y <= 0.0) {
+        m_dynamic_mode = false;
+    }
     m_visualization_width = m_width;
 
     // Check how to visualize this tire.
@@ -103,11 +102,12 @@ void FialaTire::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void FialaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        auto trimesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
         m_trimesh_shape->SetMesh(trimesh);
         m_trimesh_shape->SetName(m_meshName);
+        m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
     }
     else {

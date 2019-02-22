@@ -19,7 +19,6 @@
 
 // Chrono::Engine header files
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -48,6 +47,8 @@
 // M113 model header files
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -217,12 +218,12 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     if (povray_output) {
-        if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;
         }
 
-        if (ChFileutils::MakeDirectory(pov_dir.c_str()) < 0) {
+        if (!filesystem::create_directory(filesystem::path(pov_dir))) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
@@ -384,7 +385,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) & (~TrackCollide::SPROCKET_RIGHT));
 
     // Create the powertrain system
-    M113_SimplePowertrain powertrain;
+    M113_SimplePowertrain powertrain("Powertrain");
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the driver system
@@ -417,8 +418,8 @@ int main(int argc, char* argv[]) {
     // Inter-module communication data
     BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
     BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TrackShoeForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TrackShoeForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
+    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
+    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     while (time < time_end) {
         // Collect output data from modules
@@ -468,6 +469,7 @@ int main(int argc, char* argv[]) {
         driver.Advance(time_step);
         powertrain.Advance(time_step);
         vehicle.Advance(time_step);
+        system->DoStepDynamics(time_step);
 
 #ifdef CHRONO_OPENGL
         if (gl_window.Active())

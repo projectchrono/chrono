@@ -107,10 +107,6 @@ class ChApi ChLinkLimit {
     double GetForce(double x, double x_dt) const;
     double GetPolarForce(double x, double x_dt, double pol_ang) const;
 
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 

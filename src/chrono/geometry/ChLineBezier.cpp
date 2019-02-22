@@ -41,7 +41,7 @@ ChLineBezier::ChLineBezier(const ChLineBezier& source) : ChLine(source) {
     complexityU = source.complexityU;
 }
 
-void ChLineBezier::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
+void ChLineBezier::Evaluate(ChVector<>& pos, const double parU) const {
     double par = ChClamp(parU, 0.0, 1.0);
     size_t numIntervals = m_path->getNumPoints() - 1;
     double epar = par * numIntervals;
@@ -50,6 +50,24 @@ void ChLineBezier::Evaluate(ChVector<>& pos, const double parU, const double par
     double t = epar - (double)i;
 
     pos = m_path->eval(i, t);
+}
+
+void ChLineBezier::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChLineBezier>();
+    // serialize parent class
+    ChLine::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(m_path);
+}
+
+void ChLineBezier::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChLineBezier>();
+    // deserialize parent class
+    ChLine::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(m_path);
 }
 
 }  // end of namespace geometry

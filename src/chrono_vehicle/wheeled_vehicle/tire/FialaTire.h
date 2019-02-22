@@ -45,6 +45,8 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
     }
 
     virtual void SetFialaParams() override {}
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
 
     virtual double GetVisualizationWidth() const override { return m_visualization_width; }
 
@@ -52,10 +54,13 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
     virtual void RemoveVisualizationAssets() override final;
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_normalStiffness;
     double m_normalDamping;
+
+    double m_mass;
+    ChVector<> m_inertia;
 
     bool m_has_mesh;
     std::string m_meshName;

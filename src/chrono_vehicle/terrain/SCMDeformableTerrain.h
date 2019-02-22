@@ -22,6 +22,8 @@
 
 #include <set>
 #include <string>
+#include <unordered_map>
+#include <ostream>
 
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -29,8 +31,10 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/core/ChTimer.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChTerrain.h"
 
 namespace chrono {
@@ -76,6 +80,15 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Get the terrain normal at the specified (x,y) location.
     virtual chrono::ChVector<> GetNormal(double x, double y) const override;
+
+    /// Get the coefficient of friction at the specified (x,y) location.
+    /// This coefficient of friction value may be used by certain tire models to modify
+    /// the tire characteristics, but it will have no effect on the interaction of the terrain
+    /// with other objects (including tire models that do not explicitly use it).
+    /// For SCMDeformableTerrain, this function defers to the user-provided functor object
+    /// of type ChTerrain::FrictionFunctor, if one was specified.
+    /// Otherwise, it returns the constant value of 0.8.
+    virtual float GetCoefficientFriction(double x, double y) const override;
 
     /// Set visualization color.
     void SetColor(ChColor color  ///< [in] color of the visualization material
@@ -159,6 +172,15 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     /// Also, when a scalar plot is used, also define which is the max-min range in the falsecolor colormap.
     void SetPlotType(DataPlotType mplot, double mmin, double mmax);
 
+    /// Enable moving patch an set parameters (default: disabled).
+    /// If enabled, ray-casting is performed only for the SCM vertices that are within the specified
+    /// range (dimX, dimY) of the given point on the specified reference body.
+    void EnableMovingPatch(std::shared_ptr<ChBody> body,     ///< [in] monitored body
+                           const ChVector<>& point_on_body,  ///< [in] patch center, relative to body
+                           double dimX,                      ///< [in] patch X dimension
+                           double dimY                       ///< [in] patch Y dimension
+    );
+
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
     void Initialize(double height,  ///< [in] terrain height
@@ -182,6 +204,11 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
                     double hMin,                        ///< [in] minimum height (black level)
                     double hMax                         ///< [in] maximum height (white level)
                     );
+
+    TerrainForce GetContactForce(std::shared_ptr<ChBody> body) const;
+
+    /// Print timing and counter information for last step.
+    void PrintStepStatistics(std::ostream& os) const;
 
   private:
     std::shared_ptr<SCMDeformableSoil> m_ground;
@@ -309,9 +336,28 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     double test_high_offset;
     double test_low_offset;
 
-    friend class SCMDeformableTerrain;
-
     double last_t;  // for optimization
+
+    // Moving patch parameters
+    bool m_moving_patch;             ///< moving patch feature enabled?
+    std::shared_ptr<ChBody> m_body;  ///< tracked body
+    ChVector<> m_body_point;         ///< patch center, relative to body
+    ChVector2<> m_patch_dim;         ///< patch dimensions (X,Y)
+
+    // Timers and counters
+    ChTimer<double> m_timer_calc_areas;
+    ChTimer<double> m_timer_ray_casting;
+    ChTimer<double> m_timer_refinement;
+    ChTimer<double> m_timer_bulldozing;
+    ChTimer<double> m_timer_visualization;
+    size_t m_num_vertices;
+    size_t m_num_faces;
+    size_t m_num_ray_casts;
+    size_t m_num_marked_faces;
+
+    std::unordered_map<ChContactable*, TerrainForce> m_contact_forces;
+
+    friend class SCMDeformableTerrain;
 };
 
 /// @} vehicle_terrain

@@ -24,7 +24,6 @@ namespace geometry {
 
 /// A triangle geometric shape for collisions and visualization.
 class ChApi ChTriangle : public ChGeometry {
-
   public:
     ChVector<> p1;  ///< first triangle vertex
     ChVector<> p2;  ///< second triangle vertex
@@ -77,7 +76,7 @@ class ChApi ChTriangle : public ChGeometry {
                                         double& mv,             ///< returns V parametric coord of projection
                                         bool& is_into,          ///< returns true if projection falls on the triangle
                                         ChVector<>& Bprojected  ///< returns the position of the projected point
-                                        );
+    );
 
     /// Given point B, computes the distance from this triangle plane,
     /// returning also the projection of point on the plane and other infos
@@ -87,7 +86,7 @@ class ChApi ChTriangle : public ChGeometry {
                                  double& mv,             ///< returns V parametric coord of projection
                                  bool& is_into,          ///< returns true if projection falls on the triangle
                                  ChVector<>& Bprojected  ///< returns the position of the projected point
-                                 ) {
+    ) {
         return PointTriangleDistance(B, this->p1, this->p2, this->p3, mu, mv, is_into, Bprojected);
     }
 
@@ -101,35 +100,18 @@ class ChApi ChTriangle : public ChGeometry {
         ChVector<>& dB,     ///< another point on the line
         double& mu,         ///< parametric coord: if in 0..1 interval, projection is between dA and dB
         bool& is_insegment  ///< returns true if projected point is between dA and dB
-        );
+    );
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite<ChTriangle>();
-        // serialize parent class
-        ChGeometry::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(p1);
-        marchive << CHNVP(p2);
-        marchive << CHNVP(p3);
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead<ChTriangle>();
-        // deserialize parent class
-        ChGeometry::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(p1);
-        marchive >> CHNVP(p2);
-        marchive >> CHNVP(p3);
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace geometry
 
-CH_CLASS_VERSION(geometry::ChTriangle,0)
+CH_CLASS_VERSION(geometry::ChTriangle, 0)
 
 }  // end namespace chrono
 

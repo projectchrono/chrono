@@ -23,8 +23,9 @@ ChIrrApp::ChIrrApp(ChSystem* psystem,
                    bool do_fullscreen,
                    bool do_shadows,
                    bool do_antialias,
-                   video::E_DRIVER_TYPE mydriver)
-    : ChIrrAppInterface(psystem, title, dimens, do_fullscreen, do_shadows, do_antialias, mydriver) {
+                   video::E_DRIVER_TYPE mydriver,
+                   irr::ELOG_LEVEL log_level)
+    : ChIrrAppInterface(psystem, title, dimens, do_fullscreen, do_shadows, do_antialias, mydriver, log_level) {
     mconverter = new ChIrrAssetConverter(*this);
 }
 
@@ -58,10 +59,17 @@ void ChIrrApp::AddShadow(std::shared_ptr<ChPhysicsItem> mitem) {
 }
 
 void ChIrrApp::AddShadowAll() {
-    ChSystem::IteratorPhysicsItems miter = this->GetSystem()->IterBeginPhysicsItems();
-    while (miter.HasItem()) {
-        AddShadow(*miter);
-        ++miter;
+    for (auto body : GetSystem()->Get_bodylist()) {
+        AddShadow(body);
+    }
+    for (auto link : GetSystem()->Get_linklist()) {
+        AddShadow(link);
+    }
+    for (auto mesh : GetSystem()->Get_meshlist()) {
+        AddShadow(mesh);
+    }
+    for (auto ph : GetSystem()->Get_otherphysicslist()) {
+        AddShadow(ph);
     }
 }
 

@@ -1,7 +1,7 @@
 #--------------------------------------------------------------
 # Additional include paths and settings
 
-INCLUDE_DIRECTORIES("${CH_CASCADE_INCLUDES}")
+INCLUDE_DIRECTORIES("${CASCADE_INCLUDE_DIR}")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")	
     ADD_DEFINITIONS( "/DWNT" )
@@ -40,8 +40,6 @@ if(ENABLE_MODULE_IRRLICHT)
             COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
             LINK_FLAGS "${CH_LINKERFLAG_EXE}")
         TARGET_LINK_LIBRARIES(${PROGRAM}
-            ${CH_IRRLICHTLIB}
-            ${CH_CASCADE_LIBS}
             ChronoEngine
             ChronoEngine_cascade
             ChronoEngine_irrlicht)

@@ -22,14 +22,27 @@ Basic example code for various features in Chrono. Rather verbose, good place to
 
 @subpage manual_root
 
-More detailed documentation of Chrono's main features.
-
-Download the reference manual as a single [PDF](refman.pdf) file. 
+Detailed documentation of Chrono's main features.
 
 ---
 
-Plugins
+@subpage tutorial_slides_300
 
-- Overview of [Chrono::PyEngine](@ref introduction_chrono_pyengine)
+Training material (PowerPoint slides and PDF) used in various week-long Chrono tutorials offered in the past.
 
-- Overview of [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
+
+---
+
+
+
+[PyChrono](@ref pychrono_introduction)
+
+How to use PyChrono, that is the Chrono library for Python
+
+
+---
+
+
+[Chrono::SolidWorks](@ref introduction_chrono_solidworks)
+
+The experimental add-on for exporting CAD data from SolidWorks

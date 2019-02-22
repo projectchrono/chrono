@@ -42,6 +42,11 @@ SET(DEMOS
   demo_IRR_prismatic_limits
   demo_IRR_callbackNSC
   demo_IRR_callbackSMC
+  demo_IRR_motors
+  demo_IRR_OpenSim_parser
+  demo_IRR_report_collisions
+  demo_IRR_Adams_parser
+  demo_IRR_debugDrawer_collisionModels
 )
 
 #--------------------------------------------------------------
@@ -76,7 +81,6 @@ FOREACH(PROGRAM ${DEMOS})
   TARGET_LINK_LIBRARIES(${PROGRAM}
     ChronoEngine
     ChronoEngine_irrlicht
-    ${CH_IRRLICHTLIB}
     )
     
   ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_irrlicht)

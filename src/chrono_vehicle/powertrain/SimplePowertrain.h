@@ -27,6 +27,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_powertrain
+/// @{
+
 class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain {
   public:
     SimplePowertrain(const std::string& filename);
@@ -39,13 +42,15 @@ class CH_VEHICLE_API SimplePowertrain : public ChSimplePowertrain {
     virtual double GetMaxSpeed() const override { return m_max_speed; }
 
   private:
-    void Create(const rapidjson::Document& d);
+    virtual void Create(const rapidjson::Document& d) override;
 
     double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
     double m_rev_gear_ratio;  // reverse gear ratio
     double m_max_torque;      // maximum motor torque
     double m_max_speed;       // maximum motor speed
 };
+
+/// @} vehicle_powertrain
 
 }  // end namespace vehicle
 }  // end namespace chrono
