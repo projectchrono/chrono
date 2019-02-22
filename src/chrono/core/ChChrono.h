@@ -45,8 +45,13 @@
 /// @addtogroup chrono
 /// @{
 
-/// This is the main namespace for the Chrono package.
-namespace chrono {}
+/// Main namespace for the Chrono package.
+namespace chrono {
+/// Namespace for FEA classes.
+namespace fea {}	
+}
+
+
 
 /// @} chrono
 
