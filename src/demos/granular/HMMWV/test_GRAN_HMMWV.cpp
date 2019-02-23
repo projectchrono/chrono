@@ -359,7 +359,7 @@ int main(int argc, char* argv[]) {
 
     // Account for the frame difference between vehicle and terrain
     ChVector<> gran_offset(0, 0, 0);
-
+    double x_offset_extra = 2.0 * wheel_radius;
     double render_fps = 100;
     int render_steps = (int)std::ceil((1.0 / render_fps) / hmmwv_step_size);
 
@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
         double rear_wheel_x =
             hmmwv.GetVehicle().GetWheelBody(WHEEL_ID::RR)->GetPos().x() * L_mks_to_cgs - 1.1 * wheel_radius;
 
-        gran_offset.x() = -params.box_X / 2 - rear_wheel_x;
+        gran_offset.x() = -params.box_X / 2 - rear_wheel_x + x_offset_extra;
         gran_offset.z() = max_gran_z - wheel_z;
         cout << "gran_offset.z() = " << gran_offset.z() << endl;
         gran_sys.enableMeshCollision();
