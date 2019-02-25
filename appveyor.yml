@@ -167,7 +167,7 @@ test_script:
   - sh: conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty
   - sh: mkdir dist
   - sh: cp  /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 ./dist/pychrono.tar.bz
-  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 --force
+  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 -l $APPVEYOR_REPO_BRANCH --force
   
   
 ##################################################### WINDOWS ###########################################
