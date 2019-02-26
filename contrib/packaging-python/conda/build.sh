@@ -13,6 +13,10 @@ else
     PY_LIB="libpython${MY_PY_VER}.so"
 fi
 
+# set MKL vars
+export MKL_INTERFACE_LAYER=LP64
+export MKL_THREADING_LAYER=INTEL
+
 # Configure step
 cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCMAKE_PREFIX_PATH=$PREFIX \
@@ -32,6 +36,10 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DENABLE_MODULE_CASCADE=ON \
  -DCASCADE_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include/oce \
  -DCASCADE_LIBDIR=/home/appveyor/miniconda3/envs/myenv/lib \
+ -DENABLE_MODULE_MKL=ON \
+ -DBUILD_DEMOS_MKL=ON \
+ -DMKL_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include \ 
+ -DMKL_RT_LIBRARY=/home/appveyor/miniconda3/envs/myenv/lib/mkl_rt.lib \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
