@@ -126,7 +126,7 @@ install:
     - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
     # need to manually add non standard channels. For the up-to date version by tpaviot (no real difference):
     # conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
-    - cmd: conda install -c intel mkl-devel 
+    - cmd: conda install -c intel mkl-devel --yes
 
 ############################################### UBUNTU ###############################################################
 
@@ -158,7 +158,7 @@ install:
     - sh: conda config --add channels https://conda.anaconda.org/conda-forge
     - sh: conda config --add channels https://conda.anaconda.org/intel
     - sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
-    - sh: conda install -c intel mkl-devel
+    - sh: conda install -c intel mkl-devel --yes
 
 build: off
 
