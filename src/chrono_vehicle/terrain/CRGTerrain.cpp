@@ -35,9 +35,10 @@
 
 #include "chrono/assets/ChPathShape.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/utils/ChFilters.h"
 
-#include "chrono/core/ChBezierCurve.h"
+#include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/geometry/ChLineSegment.h"
 
@@ -52,6 +53,8 @@ extern "C" {
 
 namespace chrono {
 namespace vehicle {
+
+const std::string CRGTerrain::m_mesh_name = "crg_road";
 
 CRGTerrain::CRGTerrain(ChSystem* system)
     : m_use_vis_mesh(true), m_friction(0.8f), m_dataSetId(0), m_cpId(0), m_isClosed(false) {
@@ -134,6 +137,8 @@ void CRGTerrain::Initialize(const std::string& crg_file) {
     } else {
         m_isClosed = (uIsClosed != 0);
     }
+
+    GenerateMesh();
 
     if (m_use_vis_mesh) {
         SetupMeshGraphics();
@@ -279,10 +284,10 @@ void CRGTerrain::SetupLineGraphics() {
     m_ground->AddAsset(bezier_asset_right);
 }
 
-void CRGTerrain::SetupMeshGraphics() {
-    auto mmesh = std::make_shared<ChTriangleMeshShape>();
-    auto& coords = mmesh->GetMesh()->getCoordsVertices();
-    auto& indices = mmesh->GetMesh()->getIndicesVertexes();
+void CRGTerrain::GenerateMesh() {
+    m_mesh = std::make_shared<geometry::ChTriangleMeshConnected>();
+    auto& coords = m_mesh->getCoordsVertices();
+    auto& indices = m_mesh->getIndicesVertexes();
 
     int nu = static_cast<int>((m_uend - m_ubeg) / m_uinc) + 1;
     int nv;
@@ -359,12 +364,27 @@ void CRGTerrain::SetupMeshGraphics() {
             indices.push_back(ChVector<int>(j + 1 + ofs, j + nv + ofs, j + 1 + nv + ofs));
         }
     }
+}
 
-    auto mfloorcolor = std::make_shared<ChColorAsset>();
-    mfloorcolor->SetColor(ChColor(0.6f, 0.6f, 0.8f));
+void CRGTerrain::SetupMeshGraphics() {
+    auto vmesh = std::make_shared<ChTriangleMeshShape>();
+    vmesh->SetMesh(m_mesh);
+    vmesh->SetName(m_mesh_name);
 
-    m_ground->AddAsset(mfloorcolor);
-    m_ground->AddAsset(mmesh);
+    auto vcolor = std::make_shared<ChColorAsset>();
+    vcolor->SetColor(ChColor(0.6f, 0.6f, 0.8f));
+
+    m_ground->AddAsset(vcolor);
+    m_ground->AddAsset(vmesh);
+}
+
+void CRGTerrain::ExportMeshWavefront(const std::string& out_dir) {
+    std::vector<geometry::ChTriangleMeshConnected> meshes = { *m_mesh };
+    geometry::ChTriangleMeshConnected::WriteWavefront(out_dir + "/" + m_mesh_name + ".obj", meshes);
+}
+
+void CRGTerrain::ExportMeshPovray(const std::string& out_dir) {
+    utils::WriteMeshPovray(*m_mesh, m_mesh_name, out_dir, ChColor(1, 1, 1));
 }
 
 }  // end namespace vehicle
