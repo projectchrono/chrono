@@ -38,7 +38,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCASCADE_LIBDIR=/home/appveyor/miniconda3/envs/myenv/lib \
  -DENABLE_MODULE_MKL=ON \
  -DBUILD_DEMOS_MKL=ON \
- -DMKL_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include \ 
+ -DMKL_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include \
  -DMKL_RT_LIBRARY=/home/appveyor/miniconda3/envs/myenv/lib/mkl_rt.lib \
  ./..
 # Build step
