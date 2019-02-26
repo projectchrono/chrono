@@ -39,7 +39,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DENABLE_MODULE_MKL=ON \
  -DBUILD_DEMOS_MKL=ON \
  -DMKL_INCLUDE_DIR=/home/appveyor/miniconda3/envs/myenv/include \
- -DMKL_RT_LIBRARY=/home/appveyor/miniconda3/envs/myenv/lib/mkl_rt.lib \
+ -DMKL_RT_LIBRARY=/home/appveyor/miniconda3/envs/myenv/lib/mkl_rt.so \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
