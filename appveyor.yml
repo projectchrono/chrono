@@ -19,7 +19,7 @@ environment:
     # and copy paste to
     # https://ci.appveyor.com/tools/encrypt
     # then copy/paste the result below
-    secure: jLGbLjhmiUW9thvy7985o5eEpHQ+InM95XSV4aiGnuxnWIfgJCgzBsYIC4FTHn2b
+    secure: GMdyezok6xJOnKB5w7km6dvQvBqGxR6RfYSPODdXhy1rq0lvDPMW4m9O9eeBHU99
   
   global:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
