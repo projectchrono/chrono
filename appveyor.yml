@@ -126,6 +126,7 @@ install:
     - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
     # need to manually add non standard channels. For the up-to date version by tpaviot (no real difference):
     # conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
+    - cmd: conda install -c intel mkl-devel --yes
 
 ############################################### UBUNTU ###############################################################
 
@@ -157,6 +158,7 @@ install:
     - sh: conda config --add channels https://conda.anaconda.org/conda-forge
     - sh: conda config --add channels https://conda.anaconda.org/intel
     - sh: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
+    - sh: conda install -c intel mkl-devel --yes
 
 build: off
 
@@ -167,7 +169,7 @@ test_script:
   - sh: conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty
   - sh: mkdir dist
   - sh: cp  /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 ./dist/pychrono.tar.bz
-  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 --force
+  - sh: anaconda -t $BINSTAR_TOKEN upload /home/appveyor/miniconda3/envs/myenv/conda-bld/linux-$PYTHON_ARCH/pychrono*.bz2 -l $APPVEYOR_REPO_BRANCH --force
   
   
 ##################################################### WINDOWS ###########################################
