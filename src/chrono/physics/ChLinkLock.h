@@ -29,7 +29,6 @@ namespace chrono {
 /// thank to the ChLinkLimit objects.
 
 class ChApi ChLinkLock : public ChLinkMasked {
-
   protected:
     Coordsys relC;       ///< relative constraint position: relC = (relM-deltaC)
     Coordsys relC_dt;    ///< relative constraint speed
@@ -45,14 +44,6 @@ class ChApi ChLinkLock : public ChLinkMasked {
     ChMatrix<>* Qc_temp;   ///<   i.e. the full x,y,z,r0,r1,r2,r3 joint
     Coordsys Ct_temp;      ///<
 
-    Vector PQw;  ///< for intermediate calculus (here, for speed reasons)
-    Vector PQw_dt;
-    Vector PQw_dtdt;
-    Quaternion q_AD;
-    Quaternion q_BC;
-    Quaternion q_8;
-    Vector q_4;
-
     // imposed motion
     std::shared_ptr<ChFunction> motion_X;     ///< user imposed motion for X coord, marker relative
     std::shared_ptr<ChFunction> motion_Y;     ///< user imposed motion for Y coord, marker relative
@@ -60,8 +51,8 @@ class ChApi ChLinkLock : public ChLinkMasked {
     std::shared_ptr<ChFunction> motion_ang;   ///< user imposed angle rotation about axis
     std::shared_ptr<ChFunction> motion_ang2;  ///< user imposed angle rotation if three-angles rot.
     std::shared_ptr<ChFunction> motion_ang3;  ///< user imposed angle rotation if three-angles rot.
-    Vector motion_axis;       ///< this is the axis for the user imposed rotation
-    AngleSet angleset;             ///< type of rotation (3 Eul angles, angle/axis, etc.)
+    Vector motion_axis;                       ///< this is the axis for the user imposed rotation
+    AngleSet angleset;                        ///< type of rotation (3 Eul angles, angle/axis, etc.)
 
     // limits
     ChLinkLimit* limit_X;   ///< the upper/lower limits for X dof
@@ -109,13 +100,6 @@ class ChApi ChLinkLock : public ChLinkMasked {
 
     // Inherits, and also updates motion laws: deltaC, deltaC_dt, deltaC_dtdt
     virtual void UpdateTime(double mytime) override;
-
-    // Updates coords relM, relM_dt, relM_dtdt;
-    // dist, dist_dt et simila, just like in parent class, but
-    // overrides parent implementation of ChLinkMarkers because it can save some
-    // temporary vectors (q_4, q_8 etc.) which can be useful in UpdateState(),
-    // for speed reasons.
-    virtual void UpdateRelMarkerCoords() override;
 
     // Given current time and body state, computes
     // the constraint differentiation to get the
@@ -286,9 +270,7 @@ class ChApi ChLinkLock : public ChLinkMasked {
     void BuildLinkType(LinkType link_type);
 };
 
-CH_CLASS_VERSION(ChLinkLock,0)
-
-
+CH_CLASS_VERSION(ChLinkLock, 0)
 
 // ---------------------------------------------------------------------------------------
 // SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
@@ -298,7 +280,6 @@ CH_CLASS_VERSION(ChLinkLock,0)
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockRevolute : public ChLinkLock {
-
   public:
     ChLinkLockRevolute() { ChangeLinkType(LinkType::REVOLUTE); }
 
@@ -310,7 +291,6 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockLock : public ChLinkLock {
-
   public:
     ChLinkLockLock() { ChangeLinkType(LinkType::LOCK); }
 
@@ -322,7 +302,6 @@ class ChApi ChLinkLockLock : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockSpherical : public ChLinkLock {
-
   public:
     ChLinkLockSpherical() { ChangeLinkType(LinkType::SPHERICAL); }
 
@@ -334,7 +313,6 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockCylindrical : public ChLinkLock {
-
   public:
     ChLinkLockCylindrical() { ChangeLinkType(LinkType::CYLINDRICAL); }
 
@@ -346,7 +324,6 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
 /// Default axis along +z
 
 class ChApi ChLinkLockPrismatic : public ChLinkLock {
-
   public:
     ChLinkLockPrismatic() { ChangeLinkType(LinkType::PRISMATIC); }
 
@@ -358,7 +335,6 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointPlane : public ChLinkLock {
-
   public:
     ChLinkLockPointPlane() { ChangeLinkType(LinkType::POINTPLANE); }
 
@@ -370,7 +346,6 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointLine : public ChLinkLock {
-
   public:
     ChLinkLockPointLine() { ChangeLinkType(LinkType::POINTLINE); }
 
@@ -382,7 +357,6 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPlanePlane : public ChLinkLock {
-
   public:
     ChLinkLockPlanePlane() { ChangeLinkType(LinkType::PLANEPLANE); }
 
@@ -394,7 +368,6 @@ class ChApi ChLinkLockPlanePlane : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockOldham : public ChLinkLock {
-
   public:
     ChLinkLockOldham() { ChangeLinkType(LinkType::OLDHAM); }
 
@@ -406,7 +379,6 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockFree : public ChLinkLock {
-
   public:
     ChLinkLockFree() { ChangeLinkType(LinkType::FREE); }
 
@@ -418,7 +390,6 @@ class ChApi ChLinkLockFree : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockAlign : public ChLinkLock {
-
   public:
     ChLinkLockAlign() { ChangeLinkType(LinkType::ALIGN); }
 
@@ -430,7 +401,6 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockParallel : public ChLinkLock {
-
   public:
     ChLinkLockParallel() { ChangeLinkType(LinkType::PARALLEL); }
 
@@ -442,7 +412,6 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPerpend : public ChLinkLock {
-
   public:
     ChLinkLockPerpend() { ChangeLinkType(LinkType::PERPEND); }
 
@@ -453,7 +422,6 @@ class ChApi ChLinkLockPerpend : public ChLinkLock {
 /// RevolutePrismatic joint , with the 'ChLinkLock' formulation.
 /// Translates along x-dir, rotates about z-axis
 class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
-
   public:
     ChLinkLockRevolutePrismatic() { ChangeLinkType(LinkType::REVOLUTEPRISMATIC); }
 

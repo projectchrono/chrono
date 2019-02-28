@@ -56,7 +56,7 @@ ChLinkLock::ChLinkLock()
     if (mask)
         delete mask;
     // create instead the LF-mask (the extended version, for lock-formulation)
-    mask = new ChLinkMaskLF();  
+    mask = new ChLinkMaskLF();
 
     // default type: spherical link
     // Sets the mask, all the matrices, and number of DOC and DOF
@@ -254,13 +254,8 @@ void ChLinkLock::SetMotion_axis(Vector m_axis) {
     motion_axis = m_axis;
 }
 
-////////////////////////////////////
-////////////////////////////////////
-///
-///    UPDATING PROCEDURES
-
-/////////   1-   UPDATE TIME
-/////////
+// -----------------------------------------------------------------------------
+// UPDATING PROCEDURES
 
 void ChLinkLock::UpdateTime(double time) {
     ChLinkMasked::UpdateTime(time);
@@ -326,196 +321,6 @@ void ChLinkLock::UpdateTime(double time) {
             break;
     }
 }
-
-/////////   2-   UPDATE RELATIVE MARKER COORDINATES
-/////////
-
-void ChLinkLock::UpdateRelMarkerCoords() {
-    // FOR ALL THE 6(or3) COORDINATES OF RELATIVE MOTION OF THE TWO MARKERS.
-    //  Also set some static vectors/quaternions which will be used later in the
-    // UpdateState function for the Lock-Formulation method (this customization,
-    // happens only for speed reasons, otherwise the base UpdateRelMarkerCoords()
-    // could be sufficient)
-
-    PQw = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
-    PQw_dt = Vsub(marker1->GetAbsCoord_dt().pos, marker2->GetAbsCoord_dt().pos);
-    PQw_dtdt = Vsub(marker1->GetAbsCoord_dtdt().pos, marker2->GetAbsCoord_dtdt().pos);
-
-    dist = Vlength(PQw);                 // distance between origins, modulus
-    dist_dt = Vdot(Vnorm(PQw), PQw_dt);  // speed between origins, modulus.
-
-    Vector vtemp1;  // for intermediate calculus
-    Vector vtemp2;
-    Quaternion qtemp1;
-    ChMatrixNM<double, 3, 4> relGw;
-    Quaternion temp1 = marker1->GetCoord_dt().rot;
-    Quaternion temp2 = marker2->GetCoord_dt().rot;
-
-    if (Qnotnull(temp2) || Qnotnull(temp1)) {
-        q_AD =  //  q'qqq + qqqq'
-            Qadd(Qcross(Qconjugate(marker2->GetCoord_dt().rot),
-                        Qcross(Qconjugate(marker2->GetBody()->GetCoord().rot),
-                               Qcross((marker1->GetBody()->GetCoord().rot), (marker1->GetCoord().rot)))),
-                 Qcross(Qconjugate(marker2->GetCoord().rot),
-                        Qcross(Qconjugate(marker2->GetBody()->GetCoord().rot),
-                               Qcross((marker1->GetBody()->GetCoord().rot), (marker1->GetCoord_dt().rot)))));
-    } else
-        q_AD = QNULL;
-
-    q_BC =  // qq'qq + qqq'q
-        Qadd(Qcross(Qconjugate(marker2->GetCoord().rot),
-                    Qcross(Qconjugate(marker2->GetBody()->GetCoord_dt().rot),
-                           Qcross((marker1->GetBody()->GetCoord().rot), (marker1->GetCoord().rot)))),
-             Qcross(Qconjugate(marker2->GetCoord().rot),
-                    Qcross(Qconjugate(marker2->GetBody()->GetCoord().rot),
-                           Qcross((marker1->GetBody()->GetCoord_dt().rot), (marker1->GetCoord().rot)))));
-
-    // q_8 = q''qqq + 2q'q'qq + 2q'qq'q + 2q'qqq'
-    //     + 2qq'q'q + 2qq'qq' + 2qqq'q' + qqqq''
-    temp2 = marker2->GetCoord_dtdt().rot;
-    if (Qnotnull(temp2))
-        q_8 = Qcross(Qconjugate(marker2->GetCoord_dtdt().rot),
-                     Qcross(Qconjugate(Body2->GetCoord().rot),
-                            Qcross(Body1->GetCoord().rot,
-                                   marker1->GetCoord().rot)));  // q_dtdt'm2 * q'o2 * q,o1 * q,m1
-    else
-        q_8 = QNULL;
-    temp1 = marker1->GetCoord_dtdt().rot;
-    if (Qnotnull(temp1)) {
-        qtemp1 = Qcross(Qconjugate(marker2->GetCoord().rot),
-                        Qcross(Qconjugate(Body2->GetCoord().rot),
-                               Qcross(Body1->GetCoord().rot,
-                                      marker1->GetCoord_dtdt().rot)));  // q'm2 * q'o2 * q,o1 * q_dtdt,m1
-        q_8 = Qadd(q_8, qtemp1);
-    }
-    temp2 = marker2->GetCoord_dt().rot;
-    if (Qnotnull(temp2)) {
-        qtemp1 = Qcross(
-            Qconjugate(marker2->GetCoord_dt().rot),
-            Qcross(Qconjugate(Body2->GetCoord_dt().rot), Qcross(Body1->GetCoord().rot, marker1->GetCoord().rot)));
-        qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q_dt'o2 * q,o1 * q,m1)
-        q_8 = Qadd(q_8, qtemp1);
-    }
-    temp2 = marker2->GetCoord_dt().rot;
-    if (Qnotnull(temp2)) {
-        qtemp1 = Qcross(
-            Qconjugate(marker2->GetCoord_dt().rot),
-            Qcross(Qconjugate(Body2->GetCoord().rot), Qcross(Body1->GetCoord_dt().rot, marker1->GetCoord().rot)));
-        qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q'o2 * q_dt,o1 * q,m1)
-        q_8 = Qadd(q_8, qtemp1);
-    }
-    temp1 = marker1->GetCoord_dt().rot;
-    temp2 = marker2->GetCoord_dt().rot;
-    if (Qnotnull(temp2) && Qnotnull(temp1)) {
-        qtemp1 = Qcross(
-            Qconjugate(marker2->GetCoord_dt().rot),
-            Qcross(Qconjugate(Body2->GetCoord().rot), Qcross(Body1->GetCoord().rot, marker1->GetCoord_dt().rot)));
-        qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q'o2 * q,o1 * q_dt,m1)
-        q_8 = Qadd(q_8, qtemp1);
-    }
-
-    qtemp1 =
-        Qcross(Qconjugate(marker2->GetCoord().rot),
-               Qcross(Qconjugate(Body2->GetCoord_dt().rot), Qcross(Body1->GetCoord_dt().rot, marker1->GetCoord().rot)));
-    qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q_dt'o2 * q_dt,o1 * q,m1)
-    q_8 = Qadd(q_8, qtemp1);
-    temp1 = marker1->GetCoord_dt().rot;
-    if (Qnotnull(temp1)) {
-        qtemp1 = Qcross(
-            Qconjugate(marker2->GetCoord().rot),
-            Qcross(Qconjugate(Body2->GetCoord_dt().rot), Qcross(Body1->GetCoord().rot, marker1->GetCoord_dt().rot)));
-        qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q_dt'o2 * q,o1 * q_dt,m1)
-        q_8 = Qadd(q_8, qtemp1);
-    }
-    temp1 = marker1->GetCoord_dt().rot;
-    if (Qnotnull(temp1)) {
-        qtemp1 = Qcross(
-            Qconjugate(marker2->GetCoord().rot),
-            Qcross(Qconjugate(Body2->GetCoord().rot), Qcross(Body1->GetCoord_dt().rot, marker1->GetCoord_dt().rot)));
-        qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q'o2 * q_dt,o1 * q_dt,m1)
-        q_8 = Qadd(q_8, qtemp1);
-    }
-
-    // q_4 = [Adtdt]'[A]'q + 2[Adt]'[Adt]'q
-    //       + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
-    ChMatrix33<> m2_Rel_A_dt;
-    marker2->Compute_Adt(m2_Rel_A_dt);
-    ChMatrix33<> m2_Rel_A_dtdt;
-    marker2->Compute_Adtdt(m2_Rel_A_dtdt);
-
-    vtemp1 = Body2->GetA_dt().MatrT_x_Vect(PQw);
-    vtemp2 = m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
-    q_4 = Vmul(vtemp2, 2);  // 2[Aq_dt]'[Ao2_dt]'*Qpq,w
-
-    vtemp1 = Body2->GetA().MatrT_x_Vect(PQw_dt);
-    vtemp2 = m2_Rel_A_dt.MatrT_x_Vect(vtemp1);
-    vtemp2 = Vmul(vtemp2, 2);  // 2[Aq_dt]'[Ao2]'*Qpq,w_dt
-    q_4 = Vadd(q_4, vtemp2);
-
-    vtemp1 = Body2->GetA_dt().MatrT_x_Vect(PQw_dt);
-    vtemp2 = marker2->GetA().MatrT_x_Vect(vtemp1);
-    vtemp2 = Vmul(vtemp2, 2);  // 2[Aq]'[Ao2_dt]'*Qpq,w_dt
-    q_4 = Vadd(q_4, vtemp2);
-
-    vtemp1 = Body2->GetA().MatrT_x_Vect(PQw);
-    vtemp2 = m2_Rel_A_dtdt.MatrT_x_Vect(vtemp1);
-    q_4 = Vadd(q_4, vtemp2);  //  [Aq_dtdt]'[Ao2]'*Qpq,w
-
-    // ----------- RELATIVE MARKER COORDINATES
-
-    // relM.pos
-    relM.pos = marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw));
-
-    // relM.rot
-    relM.rot = Qcross(Qconjugate(marker2->GetCoord().rot),
-                      Qcross(Qconjugate(marker2->GetBody()->GetCoord().rot),
-                             Qcross((marker1->GetBody()->GetCoord().rot), (marker1->GetCoord().rot))));
-
-    // relM_dt.pos
-    relM_dt.pos = Vadd(Vadd(m2_Rel_A_dt.MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw)),
-                            marker2->GetA().MatrT_x_Vect(Body2->GetA_dt().MatrT_x_Vect(PQw))),
-                       marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw_dt)));
-
-    // relM_dt.rot
-    relM_dt.rot = Qadd(q_AD, q_BC);
-
-    // relM_dtdt.pos
-    relM_dtdt.pos = Vadd(Vadd(marker2->GetA().MatrT_x_Vect(Body2->GetA_dtdt().MatrT_x_Vect(PQw)),
-                              marker2->GetA().MatrT_x_Vect(Body2->GetA().MatrT_x_Vect(PQw_dtdt))),
-                         q_4);
-
-    // relM_dtdt.rot
-    qtemp1 = Qcross(Qconjugate(marker2->GetCoord().rot),
-                    Qcross(Qconjugate(Body2->GetCoord_dtdt().rot),
-                           Qcross(Body1->GetCoord().rot,
-                                  marker1->GetCoord().rot)));  // ( q'm2 * q_dtdt'o2 * q,o1 * q,m1)
-    relM_dtdt.rot = Qadd(q_8, qtemp1);
-    qtemp1 = Qcross(Qconjugate(marker2->GetCoord().rot),
-                    Qcross(Qconjugate(Body2->GetCoord().rot),
-                           Qcross(Body1->GetCoord_dtdt().rot,
-                                  marker1->GetCoord().rot)));  // ( q'm2 * q'o2 * q_dtdt,o1 * q,m1)
-    relM_dtdt.rot = Qadd(relM_dtdt.rot, qtemp1);               // = q_8 + qq''qq + qqq''q
-
-    // ... and also "user-friendly" relative coordinates:
-
-    // relAngle and relAxis
-    Q_to_AngAxis(relM.rot, relAngle, relAxis);
-    // flip rel rotation axis if jerky sign
-    if (relAxis.z() < 0) {
-        relAxis = Vmul(relAxis, -1);
-        relAngle = -relAngle;
-    }
-    // rotation axis
-    relRotaxis = Vmul(relAxis, relAngle);
-    // relWvel
-    ChFrame<>::SetMatrix_Gw(relGw, relM.rot);  // relGw.Set_Gw_matrix(relM.rot);
-    relWvel = relGw.Matr34_x_Quat(relM_dt.rot);
-    // relWacc
-    relWacc = relGw.Matr34_x_Quat(relM_dtdt.rot);
-}
-
-/////////   4-   UPDATE STATE
-/////////
 
 void ChLinkLock::UpdateState() {
     // ---------------------
@@ -810,9 +615,6 @@ void ChLinkLock::UpdateState() {
     }
 }
 
-/////////   5-   UPDATE FORCES
-/////////
-
 void ChLinkLock::UpdateForces(double mytime) {
     // Inherit force computation:
     // also base class can add its own forces.
@@ -869,10 +671,7 @@ void ChLinkLock::UpdateForces(double mytime) {
     // ========== other forces??
 }
 
-//
-// Reimplement parent solver methods because 'upper/lower limits' may add
-// constraints
-//
+// Reimplement parent solver methods because 'upper/lower limits' may add constraints
 
 int ChLinkLock::GetDOC_d() {
     int mdocd = ChLinkMasked::GetDOC_d();
@@ -1109,7 +908,7 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in
                                      ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                      const ChVectorDynamic<>& L,  ///< the L vector
                                      const double c               ///< a scaling factor
-                                     ) {
+) {
     // parent class:
     ChLinkMasked::IntLoadResidual_CqL(off_L, R, L, c);
 
@@ -1182,7 +981,7 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
                                      const double c,            ///< a scaling factor
                                      bool do_clamp,             ///< apply clamping to c*C?
                                      double recovery_clamp      ///< value for min/max clamping of c*C
-                                     ) {
+) {
     // parent class:
     ChLinkMasked::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
@@ -1256,7 +1055,7 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
 void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in Qc residual
                                       ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*Ct
                                       const double c             ///< a scaling factor
-                                      ) {
+) {
     // parent class:
     ChLinkMasked::IntLoadConstraint_Ct(off_L, Qc, c);
 
