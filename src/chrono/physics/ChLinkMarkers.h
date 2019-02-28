@@ -30,6 +30,10 @@ namespace chrono {
 
 class ChApi ChLinkMarkers : public ChLink {
   protected:
+    // Protected constructors.
+    ChLinkMarkers();
+    ChLinkMarkers(const ChLinkMarkers& other);
+
     ChMarker* marker1;  ///< slave coordsys
     ChMarker* marker2;  ///< master coordsys, =0 if liked to ground
 
@@ -64,8 +68,6 @@ class ChApi ChLinkMarkers : public ChLink {
     ChVector<> q_4;
 
   public:
-    ChLinkMarkers();
-    ChLinkMarkers(const ChLinkMarkers& other);
     virtual ~ChLinkMarkers() {}
 
     /// "Virtual" copy constructor (covariant return type).
