@@ -529,29 +529,16 @@ void ChLinkMasked::UpdateForces(double mytime) {
     C_torque = Vadd(C_torque, m_torque);
 }
 
-/////////
-/////////   COMPLETE UPDATE
-/////////
-/////////
-
+// COMPLETE UPDATE
 void ChLinkMasked::Update(double time, bool update_assets) {
-    // 1 -
     UpdateTime(time);
-
-    // 2 -
     UpdateRelMarkerCoords();
-
-    // 3 -
     UpdateState();
-
-    // 3b-
     UpdateCqw();
-
-    // 4 -
     UpdateForces(time);
     
-    // Inherit time changes of parent class (ChLinkMarkers)
-    ChLinkMarkers::Update(time, update_assets);
+    // Update assets
+    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 // Define some  link-specific flags for backward compatibility

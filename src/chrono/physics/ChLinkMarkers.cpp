@@ -328,17 +328,12 @@ void ChLinkMarkers::UpdateForces(double mytime) {
 }
 
 void ChLinkMarkers::Update(double time, bool update_assets) {
-    // 1 -
     UpdateTime(time);
-
-    // 2 -
     UpdateRelMarkerCoords();
-
-    // 3 -
     UpdateForces(time);
 
-    // Inherit time changes of parent class (ChLink)
-    ChLink::Update(time, update_assets);
+    // Update assets
+    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
