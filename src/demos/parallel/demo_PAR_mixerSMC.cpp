@@ -31,6 +31,7 @@
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -105,14 +106,10 @@ void AddContainer(ChSystemParallelSMC* sys) {
 
     sys->AddBody(mixer);
 
-    // Create an engine between the two bodies, constrained to rotate at 90 deg/s
-    auto motor = std::make_shared<ChLinkEngine>();
-
-    motor->Initialize(mixer, bin, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(motor->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI / 2);
-
+    // Create a motor between the two bodies, constrained to rotate at 90 deg/s
+    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    motor->Initialize(mixer, bin, ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 2));
     sys->AddLink(motor);
 }
 

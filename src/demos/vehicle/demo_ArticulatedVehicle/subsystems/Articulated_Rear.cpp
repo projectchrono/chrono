@@ -125,11 +125,10 @@ void Articulated_Rear::Initialize() {
     m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
 
     // Create the connection to the front side.
-    m_joint = std::make_shared<ChLinkEngine>();
-    m_joint->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
-    m_joint->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    m_joint->Initialize(m_chassis, m_front->GetBody(), ChCoordsys<>(connection, rot));
-    m_chassis->GetSystem()->AddLink(m_joint);
+    m_motor = std::make_shared<ChLinkMotorRotationAngle>();
+    m_motor->SetAngleFunction(std::make_shared<ChFunction_Const>());
+    m_motor->Initialize(m_chassis, m_front->GetBody(), ChFrame<>(connection, rot));
+    m_chassis->GetSystem()->AddLink(m_motor);
 }
 
 // -----------------------------------------------------------------------------
@@ -160,7 +159,7 @@ void Articulated_Rear::Synchronize(double time, double steering, double braking,
 
     // Apply steering
     double max_angle = CH_C_PI / 6;
-    auto fun = std::static_pointer_cast<ChFunction_Const>(m_joint->Get_rot_funct());
+    auto fun = std::static_pointer_cast<ChFunction_Const>(m_motor->GetAngleFunction());
     fun->Set_yconst(-max_angle * steering);
 }
 

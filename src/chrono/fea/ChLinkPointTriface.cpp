@@ -25,7 +25,7 @@ CH_FACTORY_REGISTER(ChLinkPointTriface)
 
 ChLinkPointTriface::ChLinkPointTriface() : react(VNULL), s2(0), s3(0), d(0) {}
 
-ChLinkPointTriface::ChLinkPointTriface(const ChLinkPointTriface& other) : ChLinkInterface(other) {
+ChLinkPointTriface::ChLinkPointTriface(const ChLinkPointTriface& other) : ChLinkBase(other) {
     react = other.react;
     s2 = other.s2;
     s3 = other.s3;
@@ -368,7 +368,7 @@ CH_FACTORY_REGISTER(ChLinkPointTrifaceRot)
 
 ChLinkPointTrifaceRot::ChLinkPointTrifaceRot() : react(VNULL), s2(0), s3(0), d(0) {}
 
-ChLinkPointTrifaceRot::ChLinkPointTrifaceRot(const ChLinkPointTrifaceRot& other) : ChLinkInterface(other) {
+ChLinkPointTrifaceRot::ChLinkPointTrifaceRot(const ChLinkPointTrifaceRot& other) : ChLinkBase(other) {
     react = other.react;
     s2 = other.s2;
     s3 = other.s3;

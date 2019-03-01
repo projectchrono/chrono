@@ -25,6 +25,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -308,7 +309,7 @@ class TestMech {
     std::shared_ptr<ChBodyEasyBox> wall3;
     std::shared_ptr<ChBodyEasyBox> wall4;
     std::shared_ptr<ChLinkSpring> spring;
-    std::shared_ptr<ChLinkEngine> torqueDriver;
+    std::shared_ptr<ChLinkMotorRotationTorque> torqueDriver;
     std::shared_ptr<ChLinkLockRevolute> spindle;
 
     // GUI-tweaked data
@@ -389,9 +390,8 @@ class TestMech {
         system->AddLink(spindle);
 
         // create a torque between the truss and wheel
-        torqueDriver = std::make_shared<ChLinkEngine>();
-        torqueDriver->Initialize(truss, wheelBody, ChCoordsys<>(trussCM, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        torqueDriver->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
+        torqueDriver = std::make_shared<ChLinkMotorRotationTorque>();
+        torqueDriver->Initialize(truss, wheelBody, ChFrame<>(trussCM, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         system->AddLink(torqueDriver);
 
         // ******
@@ -434,8 +434,8 @@ class TestMech {
     // for now, just use the slider value as directly as the torque
     void applyTorque() {
         // note: negative sign is to get Trelleborg tire to spin in the correct direction
-        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(torqueDriver->Get_tor_funct()))
-            mfun->Set_yconst(-this->currTorque);
+        auto mfun = std::static_pointer_cast<ChFunction_Const>(torqueDriver->GetTorqueFunction());
+        mfun->Set_yconst(-this->currTorque);
     }
 
     ~TestMech() {}

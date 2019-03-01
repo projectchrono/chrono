@@ -21,8 +21,9 @@
 
 #include <cmath>
 
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -144,15 +145,14 @@ int main(int argc, char* argv[]) {
     // Connect the first shaft to ground
     // ---------------------------------
 
-    // Use a ChLinkEngine to impose both the revolute joint constraints, as well
-    // as constant angular velocity.  The joint is located at the origin of the
-    // first shaft.
-
-    auto motor = std::make_shared<ChLinkEngine>();
+    // Use a rotational motor to impose both the revolute joint constraints, as well
+    // as constant angular velocity. Here, we drive the motor angle with a ramp function.
+    // Alternatively, we could use a ChLinkMotorAngularSpeed with constant speed.
+    // The joint is located at the origin of the first shaft.
+    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    motor->Initialize(ground, shaft_1, ChFrame<>(ChVector<>(0, 0, -hl), ChQuaternion<>(1, 0, 0, 0)));
+    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, 1));
     system.AddLink(motor);
-    motor->Initialize(ground, shaft_1, ChCoordsys<>(ChVector<>(0, 0, -hl), ChQuaternion<>(1, 0, 0, 0)));
-    motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, 1));
 
     // Connect the second shaft to ground through a cylindrical joint
     // --------------------------------------------------------------

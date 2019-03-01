@@ -14,7 +14,7 @@
 //
 //  Demo code about
 //
-//  - constraints and 'engine' objects
+//  - constraints and 'motor' objects
 //  - using IRRLICHT as a realtime 3D viewer of a slider-crank mechanism
 //    simulated with Chrono::Engine.
 //  - using the real-time step.
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     // HERE YOU CREATE THE MECHANICAL SYSTEM OF CHRONO...
     //
 
-    // 1- Create a ChronoENGINE physical system: all bodies and constraints
+    // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
 
     ChSystemNSC my_system;
@@ -92,10 +92,10 @@ int main(int argc, char* argv[]) {
     my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
     my_system.AddLink(my_link_CA);
 
-    // .. an engine between crank and truss
+    // .. a motor between crank and truss
     auto my_link_AB = std::make_shared<ChLinkMotorRotationSpeed>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
-    my_link_AB->SetName("RevJointEngine");
+    my_link_AB->SetName("RotationalMotor");
     my_system.AddLink(my_link_AB);
     auto my_speed_function = std::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);

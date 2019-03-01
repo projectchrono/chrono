@@ -20,15 +20,7 @@
 
 namespace chrono {
 
-/// Base class for all types of constraints that act like
-/// mechanical joints ('links') in 3D space.
-///
-/// Note that there are many specializations of this base class,
-/// for example the ChLinkEngine class inherits this base class and
-/// implements specific functions to represent an engine between two
-/// bodies, etc. etc. (In fact, this base ChLink class does basically
-/// _nothing_ unless it is specialized by some child class).
-
+/// Base class for all types of constraints that act like mechanical joints ('links') in 3D space.
 class ChApi ChLinkBase : public ChPhysicsItem {
 
   protected:

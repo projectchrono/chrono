@@ -29,18 +29,14 @@ class Model(object):
 
 
     # Create a contact material (surface property)to share between all objects.
-    # The rolling and spinning parameters are optional - if enabled they double
-    # the computational time.
-    # non ho cantatti, da vedere se è necessario tenere tutto il baraccone
+
+
       self.rod_material = chrono.ChMaterialSurfaceNSC()
       self.rod_material.SetFriction(0.5)
       self.rod_material.SetDampingF(0.2)
       self.rod_material.SetCompliance (0.0000001)
       self.rod_material.SetComplianceT(0.0000001)
-    # rod_material.SetRollingFriction(rollfrict_param)
-    # rod_material.SetSpinningFriction(0)
-    # rod_material.SetComplianceRolling(0.0000001)
-    # rod_material.SetComplianceSpinning(0.0000001)
+
 
 
 
@@ -75,7 +71,7 @@ class Model(object):
                                             30)                # angle of FOV
 
    def reset(self):
-      #print("reset")
+
       self.isdone = False
       self.rev_pend_sys.Clear()
             # create it
@@ -92,7 +88,7 @@ class Model(object):
 
 
     # Visualization shape, for rendering animation
-    # vettori visual cilindro
+
       self.cyl_base1= chrono.ChVectorD(0, -self.size_rod_y/2, 0 )
       self.cyl_base2= chrono.ChVectorD(0, self.size_rod_y/2, 0 )
     #body_rod_shape = chrono.ChCylinder(cyl_base1, cyl_base2, radius_rod)
@@ -142,9 +138,6 @@ class Model(object):
       self.rev_pend_sys.Add(self.body_table)
 
 
-    # Create a constraint that blocks free 3 x y z translations and 3 rx ry rz rotations
-    # of the table respect to the floor, and impose that the relative imposed position
-    # depends on a specified motion law.
 
       self.link_slider = chrono.ChLinkLockPrismatic()
       z2x = chrono.ChQuaternionD()
@@ -152,25 +145,12 @@ class Model(object):
 
       self.link_slider.Initialize(self.body_table, self.body_floor, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), z2x))
       self.rev_pend_sys.Add(self.link_slider)
-      self.link_slider.SetMotion_axis(chrono.ChVectorD(1,0,0))
-      #attuatore lineare
+
       self.act_initpos = chrono.ChVectorD(0,0,0)
       self.actuator = chrono.ChLinkMotorLinearForce()
       self.actuator.Initialize(self.body_table, self.body_floor, chrono.ChFrameD(self.act_initpos))
       self.rev_pend_sys.Add(self.actuator)
 
-    # ..create the function for imposed y vertical motion, etc.
-    # tolta: solo traslazione asse z
-    #mfunY = chrono.ChFunction_Sine(0,1.5,0.001)  # phase, frequency, amplitude
-    #link_slider.SetMotion_Y(mfunY)
-
-    # ..create the function for imposed z horizontal motion, etc.
-      #self.mfunX = chrono.ChFunction_Sine(0,1.5,0.4)  # phase, frequency, amplitude
-      #self.link_slider.SetMotion_X(self.action)
-
-    # Note that you could use other types of ChFunction_ objects, or create
-    # your custom function by class inheritance (see demo_python.py), or also
-    # set a function for table rotation , etc.
 
     # REVLOLUTE JOINT:
     # create frames for the joint
@@ -211,11 +191,7 @@ class Model(object):
       self.steps= 0
       self.step(np.array([[0]]))
       return self.get_ob()
-    # end reset
 
-    # while in script pr
-    # do step prima e al limite + step per frame grafico
-    # begin draw all tutto insieme
    def step(self, ac):
        
        action=float(ac[0])
@@ -244,12 +220,11 @@ class Model(object):
 
    def get_ob(self):
            
-          #self.omega2 = self.pin_joint.GetRelWvel().z()        
+     
           self.state = [self.link_slider.GetDist(), self.link_slider.GetDist_dt(), self.pin_joint.GetRelAngle(), self.omega]
           return np.asarray(self.state)
    
-#   def calc_rew(self):
-#                 self.rew= -(self.pin_joint.GetRelAngle()^2 + 0.1*self.omega^2 + 0.001*self.ac^2)                 
+             
                  
    def is_done(self):
           if abs(self.link_slider.GetDist()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :

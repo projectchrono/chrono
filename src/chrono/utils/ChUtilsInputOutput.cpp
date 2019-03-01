@@ -476,12 +476,6 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
         } else if (auto link = std::dynamic_pointer_cast<ChLinkDistance>(ilink)) {
             csv << DISTANCE << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
             l_count++;
-        } else if (auto link = std::dynamic_pointer_cast<ChLinkEngine>(ilink)) {
-            chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
-            chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
-
-            csv << ENGINE << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
-            l_count++;
         }
     }
 

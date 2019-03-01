@@ -15,12 +15,14 @@
 // =============================================================================
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
@@ -98,12 +100,11 @@ int main(int argc, char* argv[]) {
     mcol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
     mrigidbody->AddAsset(mcol);
 
-    std::shared_ptr<ChLinkEngine> myengine(new ChLinkEngine);
-    myengine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);
-    myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    myengine->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));  // phase, speed
-    myengine->Initialize(mrigidbody, mtruss, ChCoordsys<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
-    my_system.Add(myengine);
+    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
+    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
+    motor->Initialize(mrigidbody, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
+    my_system.Add(motor);
 
     //
     // THE DEFORMABLE TERRAIN

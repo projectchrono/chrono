@@ -258,7 +258,7 @@ class Model(object):
          
    def get_ob(self):
           
-          #q = np.array([])
+
           ab_rot =  	self.body_abdomen.GetRot().Q_to_Euler123()
           ab_q = np.asarray([self.body_abdomen.GetPos().z, ab_rot.x, ab_rot.y, ab_rot.z])
           ab_speed = self.body_abdomen.GetRot().RotateBack(self.body_abdomen.GetPos_dt())
@@ -277,30 +277,26 @@ class Model(object):
                                                                self.Ankle_rev[i].GetLimit_Rz().Get_max() < self.q_mot[i+4] or self.Ankle_rev[i].GetLimit_Rz().Get_min() > self.q_mot[i+4]])
                  feet_contact = np.append(feet_contact, [self.ankle_body[i].GetContactForce().Length()] )
            
-          #TODO: clip contacts?
+
           feet_contact = np.clip(feet_contact , -5, 5)
           self.joint_at_limit = np.count_nonzero(np.abs(joint_at_limit))
-          #if self.stepcounter%250 == 0:
-           #   print(self.joint_at_limit)
+
           return np.concatenate ([ab_q, ab_qdot, self.q_mot,  self.q_dot_mot, feet_contact])
    
    def calc_rew(self, xposbefore):
                   
                   electricity_cost     = -2.0    # cost for using motors -- this parameter should be carefully tuned against reward for making progress, other values less improtant
-                  #stall_torque_cost    = -0.1    # cost for running electric current through a motor even at zero rotational speed, small
-                  #TODO: is there a way to punish self-collision? Is it worth the complication?
-                  #foot_collision_cost  = -1.0    # touches another leg, or other objects, that cost makes robot avoid smashing feet into itself
+
                   joints_at_limit_cost = -0.2    # discourage stuck joints
                   
                   power_cost  = electricity_cost  * float(np.abs(self.ac*self.q_dot_mot).mean())  # let's assume we have DC motor with controller, and reverse current braking. BTW this is the formula of motor power
                   #REduced stall cost to avoid joints at limit
                   #power_cost += stall_torque_cost * float(np.square(self.ac).mean())
                   joints_limit = joints_at_limit_cost * self.joint_at_limit
-                  #self.alive_bonus =  +1 if self.body_abdomen.GetPos().z > 0.26 else -1  # 0.25 is central sphere rad, die if it scrapes the ground
-                  #TODO: changed condidtion. To check
+
                   self.alive_bonus =  +1 if self.body_abdomen.GetContactForce().Length() == 0 else -1  # 0.25 is central sphere rad, die if it scrapes the ground
                   progress = self.calc_progress()
-                  #TODO: inspest energy malus: since this gain is 1/10 of the gain in MuJoCo energy malus is reduced as well. Energy malus tuning impacts noticeably on local maxima
+                
                   rew = progress + self.alive_bonus + 0.1*(power_cost) + 3*(joints_limit)
                   return rew
    def calc_progress(self):
