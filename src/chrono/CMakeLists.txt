@@ -133,7 +133,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkLock.cpp
     physics/ChLinkBrake.cpp
     physics/ChLinkBushing.cpp
-    physics/ChLinkEngine.cpp
     physics/ChLinkGear.cpp
     physics/ChLinkPulley.cpp
     physics/ChLinkLinActuator.cpp
@@ -236,7 +235,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkBrake.h
     physics/ChLinkBushing.h
     physics/ChLinkDistance.h
-    physics/ChLinkEngine.h
     physics/ChLinkForce.h
     physics/ChLinkGear.h
     physics/ChLinkLinActuator.h
