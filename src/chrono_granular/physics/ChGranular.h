@@ -102,11 +102,9 @@ enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
 // How are we stepping through time?
 enum GRAN_TIME_STEPPING { ADAPTIVE, FIXED };
 /// How are we integrating w.r.t. time
-enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, VELOCITY_VERLET, EXTENDED_TAYLOR };
+enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };
 
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
-
-enum GRAN_FORCE_MODEL { HOOKE, HERTZ };
 
 enum GRAN_INPUT_MODE { USER, CHECKPOINT_POSITION, CHECKPOINT_FULL };
 
@@ -118,7 +116,6 @@ struct ChGranParams {
     // settings on friction, integrator, and force model
     GRAN_FRICTION_MODE friction_mode;
     GRAN_TIME_INTEGRATOR time_integrator;
-    GRAN_FORCE_MODEL force_model;
 
     // ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
     float static_friction_coeff;
@@ -358,10 +355,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         gran_params->time_integrator = new_integrator;
         time_integrator = new_integrator;
     }
-    void set_ForceModel(GRAN_FORCE_MODEL new_contact_model) {
-        gran_params->force_model = new_contact_model;
-        force_model = new_contact_model;
-    }
+
     void set_friction_mode(GRAN_FRICTION_MODE new_mode) {
         gran_params->friction_mode = new_mode;
         friction_mode = new_mode;
@@ -521,7 +515,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     GRAN_FRICTION_MODE friction_mode;
     GRAN_TIME_INTEGRATOR time_integrator;
-    GRAN_FORCE_MODEL force_model;
 
     /// Partitions the big domain (BD) and sets the number of SDs that BD is split in.
     void partitionBD();

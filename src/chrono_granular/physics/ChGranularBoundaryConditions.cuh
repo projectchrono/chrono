@@ -53,17 +53,20 @@ inline __device__ bool addBCForces_Sphere_frictionless(const int64_t3& sphPos,
     // recompute in float to be cheaper
     float3 delta = int64_t3_to_float3(delta_int) / (sphere_params.radius + sphereRadius_SU);
 
-    float penetration = reciplength - 1.;
-    contact = (penetration > 0);
-    // contact means d2 <1, so 1/d2 > 1, reciplength > 1, penetration > 0
+    float3 contact_normal = delta * reciplength;
+
+    float penetration_over_R = 2. - 2. / reciplength;
+    contact = (penetration_over_R > 0);
+    // contact means d2 <1, so 1/d2 > 1, reciplength > 1, penetration_over_R > 0
     if (contact) {
         float3 force_accum = {0, 0, 0};
 
-        float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
+        float force_model_multiplier = sqrt(penetration_over_R);
 
         // spring term
-        force_accum = force_accum + sphere_params.normal_sign * gran_params->K_n_s2w_SU * delta *
-                                        (sphere_params.radius + sphereRadius_SU) * penetration * force_model_multiplier;
+        force_accum = force_accum + sphere_params.normal_sign * gran_params->K_n_s2w_SU * contact_normal * 0.5 *
+                                        (sphere_params.radius + sphereRadius_SU) * penetration_over_R *
+                                        force_model_multiplier;
 
         // damping term
         // Compute force updates for damping term
@@ -72,12 +75,12 @@ inline __device__ bool addBCForces_Sphere_frictionless(const int64_t3& sphPos,
         // proj = Dot(delta_dot, n)
         // TODO this assumes walls at rest
         float3 rel_vel = sphVel - bc_params.vel_SU;
-        float projection = (Dot(rel_vel, delta)) * reciplength;
+        float projection = Dot(rel_vel, contact_normal);
 
         constexpr float m_eff = 0.5;
 
-        force_accum = force_accum +
-                      -gran_params->Gamma_n_s2w_SU * projection * delta * reciplength * m_eff * force_model_multiplier;
+        force_accum =
+            force_accum + -gran_params->Gamma_n_s2w_SU * projection * contact_normal * m_eff * force_model_multiplier;
 
         force_from_BCs = force_from_BCs + force_accum;
         if (track_forces) {
@@ -139,7 +142,7 @@ inline __device__ bool addBCForces_ZCone_frictionless(const int64_t3& sphPos,
     // if penetrating and the material is inside (not above or below) the cone, add forces
     if (contact) {
         float3 force_accum = {0, 0, 0};
-        float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
+        float force_model_multiplier = sqrt(penetration / sphereRadius_SU);
 
         // add spring term
         force_accum = force_accum + cone_params.normal_sign * gran_params->K_n_s2w_SU * penetration * contact_vector *
@@ -196,7 +199,7 @@ inline __device__ bool addBCForces_Plane_frictionless(const int64_t3& sphPos,
         float3 force_accum = {0, 0, 0};
 
         float3 contact_normal = plane_params.normal;
-        float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
+        float force_model_multiplier = sqrt(penetration / sphereRadius_SU);
         force_accum = gran_params->K_n_s2w_SU * penetration * contact_normal;
 
         float3 rel_vel = sphVel - bc_params.vel_SU;
@@ -247,7 +250,7 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
     float3 sphere_vel = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
 
     if (contact) {
-        float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
+        float force_model_multiplier = sqrt(penetration / sphereRadius_SU);
 
         constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
 
@@ -316,7 +319,7 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
     Z_Cylinder_BC_params_t<int64_t, int64_t3> cyl_params = bc_params.cyl_params;
     bool contact = false;
     // classic radius grab
-    signed int sphereRadius_SU = (signed int) gran_params->sphereRadius_SU;
+    signed int sphereRadius_SU = (signed int)gran_params->sphereRadius_SU;
 
     // Radial vector from cylinder center to sphere center, along inward direction
     float3 delta_r = make_float3(cyl_params.center.x - sphPos.x, cyl_params.center.y - sphPos.y, 0.f);
@@ -331,7 +334,7 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
 
     // if penetrating and the material is inside (not above or below) the cone, add forces
     if (contact) {
-        float force_model_multiplier = get_force_multiplier(penetration / (2. * sphereRadius_SU), gran_params);
+        float force_model_multiplier = sqrt(penetration / sphereRadius_SU);
 
         // add spring term
         float3 force_accum = gran_params->K_n_s2w_SU * penetration * normal * force_model_multiplier;

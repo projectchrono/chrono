@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::VELOCITY_VERLET);
+    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);

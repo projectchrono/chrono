@@ -34,10 +34,13 @@ using std::cout;
 using std::endl;
 using std::string;
 
-enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2 };
+enum run_mode { FRICTIONLESS_NOCYL = 0, FRICTIONLESS_WITHCYL = 1, MULTI_STEP_NOCYL = 2, MULTI_STEP_WITHCYL = 3 };
 
 // expected number of args for param sweep
 constexpr int num_args_full = 6;
+
+// whether or not to have a cylinder blocking the flow
+bool use_cylinder = false;
 
 // -----------------------------------------------------------------------------
 // Show command line usage
@@ -154,24 +157,30 @@ int main(int argc, char* argv[]) {
     gran_system.setOutputMode(params.write_mode);
 
     gran_system.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
-    gran_system.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
+    gran_system.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gran_system.set_fixed_stepSize(params.step_size);
     gran_system.setVerbose(params.verbose);
 
     gran_system.set_BD_Fixed(true);
 
     switch (params.run_mode) {
-        case run_mode::MULTI_STEP:
+        case run_mode::MULTI_STEP_WITHCYL:
             gran_system.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+            use_cylinder = true;
             break;
-        case run_mode::ONE_STEP:
-            gran_system.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
+        case run_mode::MULTI_STEP_NOCYL:
+            gran_system.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+            use_cylinder = false;
             break;
-        case run_mode::FRICTIONLESS:
+        case run_mode::FRICTIONLESS_WITHCYL:
+            gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            use_cylinder = true;
+            break;
+        case run_mode::FRICTIONLESS_NOCYL:
         default:
             // fall through to frictionless as default
             gran_system.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
+            use_cylinder = false;
     }
 
     // offset of radius from walls
@@ -198,15 +207,18 @@ int main(int argc, char* argv[]) {
     // face in -y, hold material in
     float plane_normal[3] = {-1, 0, 0};
 
-    printf("center is %f, %f, %f, plane center is is %f, %f, %f\n", center[0], center[1], center[2], plane_center[0],
-           plane_center[1], plane_center[2]);
+    printf("fill center is %f, %f, %f, plane center is is %f, %f, %f\n", center[0], center[1], center[2],
+           plane_center[0], plane_center[1], plane_center[2]);
     size_t plane_bc_id = gran_system.Create_BC_Plane(plane_center, plane_normal, true);
 
     float cyl_center[3] = {params.box_X / 2.f - 200.f, 0, 0};
 
     float cyl_rad = 30;
 
-    size_t cyl_bc_id = gran_system.Create_BC_Cyl_Z(cyl_center, cyl_rad, true, true);
+    size_t cyl_bc_id;
+    if (use_cylinder) {
+        cyl_bc_id = gran_system.Create_BC_Cyl_Z(cyl_center, cyl_rad, true, true);
+    }
 
     filesystem::create_directory(filesystem::path(params.output_dir));
 
@@ -214,7 +226,7 @@ int main(int argc, char* argv[]) {
     gran_system.initialize();
     // gran_system.disable_BC_by_ID(plane_bc_id);
 
-    int fps = 100;
+    int fps = 50;
     // assume we run for at least one frame
     float frame_step = 1. / fps;
     float curr_time = 0;
@@ -261,13 +273,15 @@ int main(int argc, char* argv[]) {
                        F_CGS_TO_SI * reaction_forces[2]);
             }
         } else {
-            bool success = gran_system.getBCReactionForces(cyl_bc_id, reaction_forces);
-            if (!success) {
-                printf("ERROR! Get contact forces for cyl failed\n");
-            } else {
-                printf("curr time is %f, cyl force is (%f, %f, %f) Newtons\n", curr_time,
-                       F_CGS_TO_SI * reaction_forces[0], F_CGS_TO_SI * reaction_forces[1],
-                       F_CGS_TO_SI * reaction_forces[2]);
+            if (use_cylinder) {
+                bool success = gran_system.getBCReactionForces(cyl_bc_id, reaction_forces);
+                if (!success) {
+                    printf("ERROR! Get contact forces for cyl failed\n");
+                } else {
+                    printf("curr time is %f, cyl force is (%f, %f, %f) Newtons\n", curr_time,
+                           F_CGS_TO_SI * reaction_forces[0], F_CGS_TO_SI * reaction_forces[1],
+                           F_CGS_TO_SI * reaction_forces[2]);
+                }
             }
         }
         gran_system.advance_simulation(frame_step);

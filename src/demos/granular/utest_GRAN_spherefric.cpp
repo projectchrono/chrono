@@ -60,7 +60,6 @@ int main(int argc, char* argv[]) {
     m_sys.setOutputMode(params.write_mode);
 
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP);
-    m_sys.set_ForceModel(chrono::granular::GRAN_FORCE_MODEL::HOOKE);
 
     std::vector<ChVector<float>> points;
     points.push_back(ChVector<float>(0, 0, -params.box_Z / 2 + params.sphere_radius));

@@ -660,7 +660,10 @@ __global__ void interactionTerrain_TriangleSoup(
                 // TODO contact models
                 // Use the CD information to compute the force on the grElement
                 float3 delta = -depth * normal;
-                float3 force_accum = mesh_params->Kn_s2m_SU * delta;
+
+                float hertz_force_factor = sqrt(abs(depth) / gran_params->sphereRadius_SU);
+
+                float3 force_accum = hertz_force_factor * mesh_params->Kn_s2m_SU * delta;
 
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
@@ -703,7 +706,7 @@ __global__ void interactionTerrain_TriangleSoup(
                 v_rel = v_rel - vrel_n;  // v_rel is now tangential relative velocity
 
                 // Add normal damping term
-                force_accum = force_accum + -mesh_params->Gamma_n_s2m_SU * m_eff * vrel_n;
+                force_accum = force_accum - hertz_force_factor * mesh_params->Gamma_n_s2m_SU * m_eff * vrel_n;
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
                     if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
@@ -713,7 +716,7 @@ __global__ void interactionTerrain_TriangleSoup(
 
                         // we dotted out normal component of v, so v_rel is the tangential component
                         // TODO apply model multiplier
-                        float3 tangent_force = -combined_tangent_coeff * v_rel;
+                        float3 tangent_force = -hertz_force_factor * combined_tangent_coeff * v_rel;
 
                         // Vector from sphere center to center of contact volume
                         // NOTE depth is negative

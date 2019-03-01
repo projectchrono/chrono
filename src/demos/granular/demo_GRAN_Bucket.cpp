@@ -85,7 +85,7 @@ void writeBoxMesh(std::ostringstream& outstream) {
     outstream << "\n";
 }
 
-enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2, FRICLESS_CHUNG = 3, FRICLESS_VERLET = 4 };
+enum run_mode { FRICTIONLESS = 0, ONE_STEP = 1, MULTI_STEP = 2, FRICLESS_CHUNG = 3, FRICLESS_CD = 4 };
 
 std::vector<size_t> bc_ids;
 std::vector<std::string> bc_names;
@@ -229,7 +229,6 @@ int main(int argc, char* argv[]) {
 
     settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
     settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    settlingExperiment.set_ForceModel(GRAN_FORCE_MODEL::HOOKE);
 
     switch (params.run_mode) {
         case run_mode::MULTI_STEP:
@@ -245,9 +244,9 @@ int main(int argc, char* argv[]) {
             settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
             break;
 
-        case run_mode::FRICLESS_VERLET:
+        case run_mode::FRICLESS_CD:
             settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
-            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::VELOCITY_VERLET);
+            settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
             break;
 
         case run_mode::FRICTIONLESS:

@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     settlingExperiment.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     // settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
-    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    settlingExperiment.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     settlingExperiment.set_friction_mode(GRAN_FRICTION_MODE::SINGLE_STEP);
     settlingExperiment.set_fixed_stepSize(params.step_size);
 

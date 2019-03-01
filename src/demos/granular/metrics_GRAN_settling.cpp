@@ -64,7 +64,7 @@ void SetupGranSystem(ChSystemGranular_MonodisperseSMC& m_sys, sim_param_holder& 
     m_sys.setOutputDirectory(params.output_dir);
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
 

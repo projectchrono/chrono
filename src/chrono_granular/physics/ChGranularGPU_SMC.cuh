@@ -649,13 +649,11 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
         double invSphDiameter = 1. / (2. * sphereRadius_SU);
         double3 delta_r_double = int3_to_double3(sphereA_pos - sphereB_pos) * invSphDiameter;
         // compute in double then convert to float
-        reciplength = rsqrt(Dot(delta_r_double, delta_r_double));
+        reciplength = (float)rsqrt(Dot(delta_r_double, delta_r_double));
     }
 
-    float sphdiameter = 2. * sphereRadius_SU;
-
     // compute these in float now
-    delta_r = int3_to_float3(sphereA_pos - sphereB_pos) / sphdiameter;
+    delta_r = int3_to_float3(sphereA_pos - sphereB_pos) / (2 * sphereRadius_SU);
 
     // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
     float3 v_rel = sphereA_vel - sphereB_vel;
@@ -672,17 +670,18 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
     float3 vrel_n = projection * contact_normal;
     vrel_t = v_rel - vrel_n;
 
-    constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
-
     // Compute penetration term, this becomes the delta as we want it
-    float penetration = reciplength - 1.;
+    float penetration_over_R = 2. - 2. / reciplength;
     // multiplier caused by Hooke vs Hertz force model
-    float force_model_multiplier = get_force_multiplier(penetration, gran_params);
+    float hertz_force_factor = sqrt(penetration_over_R);
+
+    // add spring term
+    float3 force_accum =
+        hertz_force_factor * gran_params->K_n_s2s_SU * sphereRadius_SU * penetration_over_R * contact_normal;
 
     // Add damping term
-    // add spring term
-    float3 force_accum = gran_params->K_n_s2s_SU * delta_r * sphdiameter * penetration * force_model_multiplier;
-    force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff * force_model_multiplier;
+    constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+    force_accum = force_accum - gran_params->Gamma_n_s2s_SU * vrel_n * m_eff * hertz_force_factor;
     return force_accum;
 }
 
@@ -758,7 +757,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     gran_params);
 
                 // TODO fix this
-                constexpr float force_model_multiplier = 1;
+                float hertz_force_factor = sqrt(2. - (2. / reciplength));
                 constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
 
                 // add frictional terms, if needed
@@ -799,11 +798,12 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         sphere_data->contact_history_map[body_A_offset + contact_id] = delta_t;
                     }
 
-                    float3 tangent_force = -gran_params->K_t_s2s_SU * delta_t * force_model_multiplier;
+                    float3 tangent_force = -gran_params->K_t_s2s_SU * delta_t * hertz_force_factor;
 
                     // if no-slip, add the tangential damping
                     if (!clamped) {
-                        tangent_force = tangent_force - gran_params->Gamma_t_s2s_SU * m_eff * vrel_t;
+                        tangent_force =
+                            tangent_force - gran_params->Gamma_t_s2s_SU * m_eff * vrel_t * hertz_force_factor;
                     }
                     // tau = r cross f = radius * n cross F
                     // 2 * radius * n = -1 * delta_r * sphdiameter
@@ -970,16 +970,6 @@ inline __device__ float integrateChung_pos(float stepsize_SU, float vel_old, flo
     return stepsize_SU * (vel_old + stepsize_SU * (acc * beta + acc_old * beta_hat));
 }
 
-// Compute update for a velocity using Velocity Verlet
-inline __device__ float integrateVelVerlet_vel(float stepsize_SU, float acc, float acc_old) {
-    return 0.5f * stepsize_SU * (acc + acc_old);
-}
-
-// Compute update for a position using Velocity Verlet
-inline __device__ float integrateVelVerlet_pos(float stepsize_SU, float vel_old, float acc_old) {
-    return stepsize_SU * (vel_old + 0.5f * stepsize_SU * acc_old);
-}
-
 /**
  * Numerically integrates force to velocity and velocity to position
  */
@@ -1018,7 +1008,9 @@ static __global__ void integrateSpheres(const float stepsize_SU,
 
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
-            case GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR:  // fall through to Euler for this one
+            case GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE:  // centered diff also computes velocity with the same
+                                                             // signature as Euler
+            case GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR:      // fall through to Euler for this one
             case GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 v_update_X = integrateForwardEuler(stepsize_SU, curr_acc_X);
                 v_update_Y = integrateForwardEuler(stepsize_SU, curr_acc_Y);
@@ -1030,13 +1022,6 @@ static __global__ void integrateSpheres(const float stepsize_SU,
                 v_update_X = integrateChung_vel(stepsize_SU, curr_acc_X, sphere_data->sphere_acc_X_old[mySphereID]);
                 v_update_Y = integrateChung_vel(stepsize_SU, curr_acc_Y, sphere_data->sphere_acc_Y_old[mySphereID]);
                 v_update_Z = integrateChung_vel(stepsize_SU, curr_acc_Z, sphere_data->sphere_acc_Z_old[mySphereID]);
-
-                break;
-            }
-            case GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
-                v_update_X = integrateForwardEuler(stepsize_SU, curr_acc_X);
-                v_update_Y = integrateForwardEuler(stepsize_SU, curr_acc_Y);
-                v_update_Z = integrateForwardEuler(stepsize_SU, curr_acc_Z);
 
                 break;
             }
@@ -1074,7 +1059,7 @@ static __global__ void integrateSpheres(const float stepsize_SU,
                     integrateChung_pos(stepsize_SU, old_vel_Z, curr_acc_Z, sphere_data->sphere_acc_Z_old[mySphereID]);
                 break;
             }
-            case GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
+            case GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE: {
                 position_update_x = integrateForwardEuler(stepsize_SU, old_vel_X + v_update_X);
                 position_update_y = integrateForwardEuler(stepsize_SU, old_vel_Y + v_update_Y);
                 position_update_z = integrateForwardEuler(stepsize_SU, old_vel_Z + v_update_Z);
@@ -1133,7 +1118,7 @@ static __global__ void updateFrictionData(const float stepsize_SU,
                                                     sphere_data->sphere_ang_acc_Z_old[mySphereID]);
                 break;
             }
-            case GRAN_TIME_INTEGRATOR::VELOCITY_VERLET: {
+            case GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE: {
                 // tau = I alpha => alpha = tau / I, we already computed these alphas
                 omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
                 omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);

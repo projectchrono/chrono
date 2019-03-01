@@ -64,8 +64,6 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     this->friction_mode = FRICTIONLESS;
     gran_params->time_integrator = EXTENDED_TAYLOR;
     this->time_integrator = EXTENDED_TAYLOR;
-    gran_params->force_model = HOOKE;
-    this->force_model = HOOKE;
     setMaxSafeVelocity_SU((float)UINT_MAX);
     set_static_friction_coeff(0);  // default to zero
 
@@ -137,7 +135,7 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
     sphere_data->sphere_acc_Y = sphere_acc_Y.data();
     sphere_data->sphere_acc_Z = sphere_acc_Z.data();
 
-    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         sphere_data->sphere_acc_X_old = sphere_acc_X_old.data();
         sphere_data->sphere_acc_Y_old = sphere_acc_Y_old.data();
         sphere_data->sphere_acc_Z_old = sphere_acc_Z_old.data();

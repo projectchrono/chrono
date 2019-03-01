@@ -58,7 +58,7 @@ void ChSystemGranular_MonodisperseSMC::resetBroadphaseInformation() {
 // Reset sphere acceleration data structures
 void ChSystemGranular_MonodisperseSMC::resetSphereAccelerations() {
     // cache past acceleration data
-    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         gpuErrchk(cudaMemcpy(sphere_acc_X_old.data(), sphere_acc_X.data(), nSpheres * sizeof(float),
                              cudaMemcpyDeviceToDevice));
         gpuErrchk(cudaMemcpy(sphere_acc_Y_old.data(), sphere_acc_Y.data(), nSpheres * sizeof(float),
@@ -328,7 +328,7 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
         TRACK_VECTOR_RESIZE(contact_history_map, 12 * nSpheres, "contact_history_map", null_history);
     }
 
-    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG || time_integrator == GRAN_TIME_INTEGRATOR::VELOCITY_VERLET) {
+    if (time_integrator == GRAN_TIME_INTEGRATOR::CHUNG) {
         TRACK_VECTOR_RESIZE(sphere_acc_X_old, nSpheres, "sphere_acc_X_old", 0);
         TRACK_VECTOR_RESIZE(sphere_acc_Y_old, nSpheres, "sphere_acc_Y_old", 0);
         TRACK_VECTOR_RESIZE(sphere_acc_Z_old, nSpheres, "sphere_acc_Z_old", 0);

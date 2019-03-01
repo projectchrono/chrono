@@ -164,17 +164,17 @@ double runFrictionlessChung() {
     return runGranularSystem(gran_sys, "nofric_chung");
 }
 // run the basic frictionless system
-double runFrictionlessVerlet() {
+double runFrictionlessCenteredDiff() {
     ChSystemGranular_MonodisperseSMC gran_sys(ballRadius, ballDensity,
                                               make_float3(full_box_size.x, full_box_size.y, full_box_size.z));
     std::cout << delim << "\n"
-              << "Running verlet test!\n";
+              << "Running Centered Diff test!\n";
     setupBasicSystem(gran_sys, full_box_size);
     gran_sys.set_friction_mode(FRICTIONLESS);
-    gran_sys.set_timeIntegrator(VELOCITY_VERLET);
+    gran_sys.set_timeIntegrator(CENTERED_DIFFERENCE);
 
     // Run settling experiment and time it
-    return runGranularSystem(gran_sys, "nofric_verlet");
+    return runGranularSystem(gran_sys, "nofric_CD");
 }
 
 // run the basic frictionless system
@@ -228,19 +228,19 @@ int main(int argc, char* argv[]) {
     double nofric = 0;
     double singlestep = 0;
     double nofricChung = 0;
-    double nofricVerlet = 0;
+    double nofricCenteredDiff = 0;
     double multistep = 0;
 
     nofric = runFrictionlessTest();
     singlestep = runSingleStepTest();
     // nofricChung = runFrictionlessChung();
-    // nofricVerlet = runFrictionlessVerlet();
+    nofricCenteredDiff = runFrictionlessCenteredDiff();
     multistep = runMultistepTest();
 
     std::cout << "Running metrics suite!" << std::endl;
     std::cout << "Frictionless took " << nofric << " seconds!" << std::endl;
     std::cout << "Chung took " << nofricChung << " seconds!" << std::endl;
-    std::cout << "Verlet took " << nofricVerlet << " seconds!" << std::endl;
+    std::cout << "CenteredDiff took " << nofricCenteredDiff << " seconds!" << std::endl;
     std::cout << "Single Step took " << singlestep << " seconds!" << std::endl;
     std::cout << "Multistep took " << multistep << " seconds!" << std::endl;
 
