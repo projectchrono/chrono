@@ -428,7 +428,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChPolarDecomposition.h
     fea/ChMatrixCorotation.h
     fea/ChVisualizationFEAmesh.h
-    fea/ChLinkInterface.h
     fea/ChLinkPointFrame.h
     fea/ChLinkDirFrame.h
     fea/ChLinkPointPoint.h
