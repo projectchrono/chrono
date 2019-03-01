@@ -16,9 +16,10 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkTrajectory.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -242,15 +243,11 @@ int main(int argc, char* argv[]) {
     mcrankasset2->SetLineGeometry(mpathcrankstopper);
     mcrank->AddAsset(mcrankasset2);
 
-    // .. an engine between crank and truss
-    auto my_crankmotor = std::make_shared<ChLinkEngine>();
-    my_crankmotor->Initialize(mcrank, mfloor, ChCoordsys<>(crank_center));
-    my_crankmotor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_crankmotor->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI / 8.0);  
-    application.GetSystem()->AddLink(my_crankmotor);
-
-
+    // .. a motor between crank and truss
+    auto my_motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    my_motor->Initialize(mcrank, mfloor, ChFrame<>(crank_center));
+    my_motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI / 8.0));
+    application.GetSystem()->AddLink(my_motor);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     // in the system. These ChIrrNodeAsset assets are 'proxies' to the Irrlicht meshes.

@@ -16,15 +16,17 @@
 // =============================================================================
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/solver/ChSolverMINRES.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_mkl/ChSolverMKL.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
-#include "chrono_mkl/ChSolverMKL.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -42,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     double tire_w0 = tire_vel_z0/tire_rad;
 
-    // Create a Chrono::Engine physical system
+    // Create a Chrono physical system
     ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
@@ -86,14 +88,13 @@ int main(int argc, char* argv[]) {
     tire_reissner->Initialize(mrim, LEFT);
     tire_reissner->SetVisualizationType(VisualizationType::MESH);
 
-    // the engine that rotates the rim:
+    // the motor that rotates the rim:
 
-    std::shared_ptr<ChLinkEngine> myengine(new ChLinkEngine);
-    myengine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);
-    myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    myengine->Set_rot_funct( std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0)); // CH_C_PI / 4.0) ); // phase, speed
-    myengine->Initialize(mrim, mtruss, ChCoordsys<>(tire_center, Q_from_AngAxis(CH_C_PI_2,VECT_Y)));
-    my_system.Add(myengine);
+    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
+    motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
+    motor->SetAngleFunction(std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));
+    motor->Initialize(mrim, mtruss, ChFrame<>(tire_center, Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
+    my_system.Add(motor);
 
 
     //
