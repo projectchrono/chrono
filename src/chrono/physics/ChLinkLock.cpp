@@ -27,20 +27,11 @@ ChLinkLock::ChLinkLock()
       relC_dtdt(CSYSNULL),
       deltaC(CSYSNORM),
       deltaC_dt(CSYSNULL),
-      deltaC_dtdt(CSYSNULL),
-      motion_axis(VECT_Z),
-      angleset(AngleSet::ANGLE_AXIS) {
+      deltaC_dtdt(CSYSNULL) {
     // matrices used by lock formulation
     Cq1_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Cq2_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Qc_temp = new ChMatrixDynamic<>(7, 1);
-
-    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
-    motion_Y = std::make_shared<ChFunction_Const>(0);
-    motion_Z = std::make_shared<ChFunction_Const>(0);
-    motion_ang = std::make_shared<ChFunction_Const>(0);
-    motion_ang2 = std::make_shared<ChFunction_Const>(0);
-    motion_ang3 = std::make_shared<ChFunction_Const>(0);
 
     limit_X = new ChLinkLimit;  // default: inactive limits
     limit_Y = new ChLinkLimit;
@@ -83,16 +74,6 @@ ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMasked(other) {
     relC_dtdt = other.relC_dtdt;
     Ct_temp = other.Ct_temp;
 
-    motion_X = std::shared_ptr<ChFunction>(other.motion_X->Clone());
-    motion_Y = std::shared_ptr<ChFunction>(other.motion_Y->Clone());
-    motion_Z = std::shared_ptr<ChFunction>(other.motion_Z->Clone());
-    motion_ang = std::shared_ptr<ChFunction>(other.motion_ang->Clone());
-    motion_ang2 = std::shared_ptr<ChFunction>(other.motion_ang2->Clone());
-    motion_ang3 = std::shared_ptr<ChFunction>(other.motion_ang3->Clone());
-
-    motion_axis = other.motion_axis;
-    angleset = other.angleset;
-
     BuildLinkType(other.type);
 }
 
@@ -125,6 +106,54 @@ ChLinkLock::~ChLinkLock() {
     // DestroyLinkType()
 }
 
+void ChLinkLock::SetLimit_X(ChLinkLimit* m_limit_X) {
+    if (limit_X)
+        delete limit_X;
+    limit_X = m_limit_X;
+}
+
+void ChLinkLock::SetLimit_Y(ChLinkLimit* m_limit_Y) {
+    if (limit_Y)
+        delete limit_Y;
+    limit_Y = m_limit_Y;
+}
+
+void ChLinkLock::SetLimit_Z(ChLinkLimit* m_limit_Z) {
+    if (limit_Z)
+        delete limit_Z;
+    limit_Z = m_limit_Z;
+}
+
+void ChLinkLock::SetLimit_Rx(ChLinkLimit* m_limit_Rx) {
+    if (limit_Rx)
+        delete limit_Rx;
+    limit_Rx = m_limit_Rx;
+}
+
+void ChLinkLock::SetLimit_Ry(ChLinkLimit* m_limit_Ry) {
+    if (limit_Ry)
+        delete limit_Ry;
+    limit_Ry = m_limit_Ry;
+}
+
+void ChLinkLock::SetLimit_Rz(ChLinkLimit* m_limit_Rz) {
+    if (limit_Rz)
+        delete limit_Rz;
+    limit_Rz = m_limit_Rz;
+}
+
+void ChLinkLock::SetLimit_Rp(ChLinkLimit* m_limit_Rp) {
+    if (limit_Rp)
+        delete limit_Rp;
+    limit_Rp = m_limit_Rp;
+}
+
+void ChLinkLock::SetLimit_D(ChLinkLimit* m_limit_D) {
+    if (limit_D)
+        delete limit_D;
+    limit_D = m_limit_D;
+}
+
 void ChLinkLock::BuildLinkType(LinkType link_type) {
     type = link_type;
 
@@ -136,6 +165,7 @@ void ChLinkLock::BuildLinkType(LinkType link_type) {
             m_mask.SetLockMask(false, false, false, false, false, false, false);
             break;
         case LinkType::LOCK:
+            // this should never happen
             m_mask.SetLockMask(true, true, true, false, true, true, true);
             break;
         case LinkType::SPHERICAL:
@@ -185,17 +215,6 @@ void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
     DestroyLink();
     BuildLinkType(new_link_type);
 
-    // reset all motions and limits!
-
-    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
-    motion_Y = std::make_shared<ChFunction_Const>(0);
-    motion_Z = std::make_shared<ChFunction_Const>(0);
-    motion_ang = std::make_shared<ChFunction_Const>(0);
-    motion_ang2 = std::make_shared<ChFunction_Const>(0);
-    motion_ang3 = std::make_shared<ChFunction_Const>(0);
-    motion_axis = VECT_Z;
-    angleset = AngleSet::ANGLE_AXIS;
-
     if (limit_X)
         delete limit_X;
     if (limit_Y)
@@ -226,101 +245,8 @@ void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
 
 // setup the functions when user changes them.
 
-void ChLinkLock::SetMotion_X(std::shared_ptr<ChFunction> m_funct) {
-    motion_X = m_funct;
-}
-
-void ChLinkLock::SetMotion_Y(std::shared_ptr<ChFunction> m_funct) {
-    motion_Y = m_funct;
-}
-
-void ChLinkLock::SetMotion_Z(std::shared_ptr<ChFunction> m_funct) {
-    motion_Z = m_funct;
-}
-
-void ChLinkLock::SetMotion_ang(std::shared_ptr<ChFunction> m_funct) {
-    motion_ang = m_funct;
-}
-
-void ChLinkLock::SetMotion_ang2(std::shared_ptr<ChFunction> m_funct) {
-    motion_ang2 = m_funct;
-}
-
-void ChLinkLock::SetMotion_ang3(std::shared_ptr<ChFunction> m_funct) {
-    motion_ang3 = m_funct;
-}
-
-void ChLinkLock::SetMotion_axis(Vector m_axis) {
-    motion_axis = m_axis;
-}
-
 // -----------------------------------------------------------------------------
 // UPDATING PROCEDURES
-
-void ChLinkLock::UpdateTime(double time) {
-    ChLinkMasked::UpdateTime(time);
-
-    double ang, ang_dt, ang_dtdt;
-
-    // If some limit is provided, the delta values may have been
-    // changed by limits themselves, so no further modifications by motion laws..
-    if (limit_X->Get_active() || limit_Y->Get_active() || limit_Z->Get_active() || limit_Rx->Get_active() ||
-        limit_Ry->Get_active() || limit_Rz->Get_active())
-        return;
-
-    // Update motion position/speed/acceleration by motion laws
-    // as expressed by specific link CH functions
-    deltaC.pos.x() = motion_X->Get_y(time);
-    deltaC_dt.pos.x() = motion_X->Get_y_dx(time);
-    deltaC_dtdt.pos.x() = motion_X->Get_y_dxdx(time);
-
-    deltaC.pos.y() = motion_Y->Get_y(time);
-    deltaC_dt.pos.y() = motion_Y->Get_y_dx(time);
-    deltaC_dtdt.pos.y() = motion_Y->Get_y_dxdx(time);
-
-    deltaC.pos.z() = motion_Z->Get_y(time);
-    deltaC_dt.pos.z() = motion_Z->Get_y_dx(time);
-    deltaC_dtdt.pos.z() = motion_Z->Get_y_dxdx(time);
-
-    switch (angleset) {
-        case AngleSet::ANGLE_AXIS:
-            ang = motion_ang->Get_y(time);
-            ang_dt = motion_ang->Get_y_dx(time);
-            ang_dtdt = motion_ang->Get_y_dxdx(time);
-
-            if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
-                deltaC.rot = Q_from_AngAxis(ang, motion_axis);
-                deltaC_dt.rot = Qdt_from_AngAxis(deltaC.rot, ang_dt, motion_axis);
-                deltaC_dtdt.rot = Qdtdt_from_AngAxis(ang_dtdt, motion_axis, deltaC.rot, deltaC_dt.rot);
-            } else {
-                deltaC.rot = QUNIT;
-                deltaC_dt.rot = QNULL;
-                deltaC_dtdt.rot = QNULL;
-            }
-            break;
-        case AngleSet::EULERO:
-        case AngleSet::CARDANO:
-        case AngleSet::HPB:
-        case AngleSet::RXYZ: {
-            Vector vangles, vangles_dt, vangles_dtdt;
-            vangles.x() = motion_ang->Get_y(time);
-            vangles.y() = motion_ang2->Get_y(time);
-            vangles.z() = motion_ang3->Get_y(time);
-            vangles_dt.x() = motion_ang->Get_y_dx(time);
-            vangles_dt.y() = motion_ang2->Get_y_dx(time);
-            vangles_dt.z() = motion_ang3->Get_y_dx(time);
-            vangles_dtdt.x() = motion_ang->Get_y_dxdx(time);
-            vangles_dtdt.y() = motion_ang2->Get_y_dxdx(time);
-            vangles_dtdt.z() = motion_ang3->Get_y_dxdx(time);
-            deltaC.rot = Angle_to_Quat(angleset, vangles);
-            deltaC_dt.rot = AngleDT_to_QuatDT(angleset, vangles_dt, deltaC.rot);
-            deltaC_dtdt.rot = AngleDTDT_to_QuatDTDT(angleset, vangles_dtdt, deltaC.rot);
-            break;
-        }
-        default:
-            break;
-    }
-}
 
 void ChLinkLock::UpdateState() {
     // ---------------------
@@ -615,12 +541,15 @@ void ChLinkLock::UpdateState() {
     }
 }
 
+// Sequence of calls for full update:
+//     UpdateTime(time);
+//     UpdateRelMarkerCoords();
+//     UpdateState();
+//     UpdateCqw();
+//     UpdateForces(time);
+// Override UpdateForces to include possible contributions from joint limits.
 void ChLinkLock::UpdateForces(double mytime) {
-    // Inherit force computation:
-    // also base class can add its own forces.
     ChLinkMasked::UpdateForces(mytime);
-
-    // now add:
 
     // ========== the link-limits "cushion forces"
 
@@ -904,11 +833,11 @@ void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynam
     // TODO not yet implemented
 }
 
-void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                     ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                     const ChVectorDynamic<>& L,  ///< the L vector
-                                     const double c               ///< a scaling factor
-) {
+void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+                                     ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                     const ChVectorDynamic<>& L,  // the L vector
+                                     const double c)              // a scaling factor
+{
     // parent class:
     ChLinkMasked::IntLoadResidual_CqL(off_L, R, L, c);
 
@@ -976,12 +905,12 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in
     }
 }
 
-void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                     ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                     const double c,            ///< a scaling factor
-                                     bool do_clamp,             ///< apply clamping to c*C?
-                                     double recovery_clamp      ///< value for min/max clamping of c*C
-) {
+void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+                                     ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                     const double c,            // a scaling factor
+                                     bool do_clamp,             // apply clamping to c*C?
+                                     double recovery_clamp)     // value for min/max clamping of c*C
+{
     // parent class:
     ChLinkMasked::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
@@ -1052,10 +981,10 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
     }
 }
 
-void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in Qc residual
-                                      ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*Ct
-                                      const double c             ///< a scaling factor
-) {
+void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc residual
+                                      ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
+                                      const double c)            // a scaling factor
+{
     // parent class:
     ChLinkMasked::IntLoadConstraint_Ct(off_L, Qc, c);
 
@@ -1753,13 +1682,11 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
     // react_torque = Vadd(react_torque, C_torque);
 }
 
-/////////
-///////// FILE I/O
-/////////
+// SERIALIZATION
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
-class my_enum_mappers : public ChLinkLock {
+class my_enum_mappers_types : public ChLinkLock {
   public:
     CH_ENUM_MAPPER_BEGIN(LinkType);
     CH_ENUM_VAL(LinkType::LOCK);
@@ -1779,16 +1706,6 @@ class my_enum_mappers : public ChLinkLock {
     CH_ENUM_VAL(LinkType::CLEARANCE);
     CH_ENUM_VAL(LinkType::REVOLUTEPRISMATIC);
     CH_ENUM_MAPPER_END(LinkType);
-
-    CH_ENUM_MAPPER_BEGIN(AngleSet);
-    CH_ENUM_VAL(AngleSet::ANGLE_AXIS);
-    CH_ENUM_VAL(AngleSet::EULERO);
-    CH_ENUM_VAL(AngleSet::CARDANO);
-    CH_ENUM_VAL(AngleSet::HPB);
-    CH_ENUM_VAL(AngleSet::RXYZ);
-    CH_ENUM_VAL(AngleSet::RODRIGUEZ);
-    CH_ENUM_VAL(AngleSet::QUATERNION);
-    CH_ENUM_MAPPER_END(AngleSet);
 };
 
 void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
@@ -1798,18 +1715,10 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize parent class
     ChLinkMasked::ArchiveOUT(marchive);
 
-    // serialize all member data:
-    my_enum_mappers::LinkType_mapper typemapper;
+    // serialize all member data
+    my_enum_mappers_types::LinkType_mapper typemapper;
     marchive << CHNVP(typemapper(type), "link_type");
-    marchive << CHNVP(motion_X);
-    marchive << CHNVP(motion_Y);
-    marchive << CHNVP(motion_Z);
-    marchive << CHNVP(motion_ang);
-    marchive << CHNVP(motion_ang2);
-    marchive << CHNVP(motion_ang3);
-    marchive << CHNVP(motion_axis);
-    my_enum_mappers::AngleSet_mapper setmapper;
-    marchive << CHNVP(setmapper(angleset), "angle_set");
+
     marchive << CHNVP(limit_X);
     marchive << CHNVP(limit_Y);
     marchive << CHNVP(limit_Z);
@@ -1820,7 +1729,6 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(limit_D);
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChLinkLock>();
@@ -1828,20 +1736,12 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize parent class
     ChLinkMasked::ArchiveIN(marchive);
 
-    // deserialize all member data:
-    my_enum_mappers::LinkType_mapper typemapper;
+    // deserialize all member data
+    my_enum_mappers_types::LinkType_mapper typemapper;
     LinkType link_type;
     marchive >> CHNVP(typemapper(link_type), "link_type");
     ChangeLinkType(link_type);
-    marchive >> CHNVP(motion_X);
-    marchive >> CHNVP(motion_Y);
-    marchive >> CHNVP(motion_Z);
-    marchive >> CHNVP(motion_ang);
-    marchive >> CHNVP(motion_ang2);
-    marchive >> CHNVP(motion_ang3);
-    marchive >> CHNVP(motion_axis);
-    my_enum_mappers::AngleSet_mapper setmapper;
-    marchive >> CHNVP(setmapper(angleset), "angle_set");
+
     marchive >> CHNVP(limit_X);
     marchive >> CHNVP(limit_Y);
     marchive >> CHNVP(limit_Z);
@@ -1853,14 +1753,219 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
 }
 
 // ---------------------------------------------------------------------------------------
-// SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
+// ChLinkLockLock functions
 // ---------------------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time dynamic creation and
-// persistence
+ChLinkLockLock::ChLinkLockLock() : motion_axis(VECT_Z), angleset(AngleSet::ANGLE_AXIS) {
+    type = LinkType::LOCK;
+    ChLinkMaskLF m_mask;
+    m_mask.SetLockMask(true, true, true, false, true, true, true);
+    BuildLink(&m_mask);
 
-CH_FACTORY_REGISTER(ChLinkLockRevolute)
+    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = std::make_shared<ChFunction_Const>(0);
+    motion_Z = std::make_shared<ChFunction_Const>(0);
+    motion_ang = std::make_shared<ChFunction_Const>(0);
+    motion_ang2 = std::make_shared<ChFunction_Const>(0);
+    motion_ang3 = std::make_shared<ChFunction_Const>(0);
+}
+
+ChLinkLockLock::ChLinkLockLock(const ChLinkLockLock& other) : ChLinkLock(other) {
+    type = LinkType::LOCK;
+    ChLinkMaskLF m_mask;
+    m_mask.SetLockMask(true, true, true, false, true, true, true);
+    BuildLink(&m_mask);
+
+    motion_X = std::shared_ptr<ChFunction>(other.motion_X->Clone());
+    motion_Y = std::shared_ptr<ChFunction>(other.motion_Y->Clone());
+    motion_Z = std::shared_ptr<ChFunction>(other.motion_Z->Clone());
+    motion_ang = std::shared_ptr<ChFunction>(other.motion_ang->Clone());
+    motion_ang2 = std::shared_ptr<ChFunction>(other.motion_ang2->Clone());
+    motion_ang3 = std::shared_ptr<ChFunction>(other.motion_ang3->Clone());
+
+    motion_axis = other.motion_axis;
+    angleset = other.angleset;
+}
+
+void ChLinkLockLock::SetMotion_X(std::shared_ptr<ChFunction> m_funct) {
+    motion_X = m_funct;
+}
+
+void ChLinkLockLock::SetMotion_Y(std::shared_ptr<ChFunction> m_funct) {
+    motion_Y = m_funct;
+}
+
+void ChLinkLockLock::SetMotion_Z(std::shared_ptr<ChFunction> m_funct) {
+    motion_Z = m_funct;
+}
+
+void ChLinkLockLock::SetMotion_ang(std::shared_ptr<ChFunction> m_funct) {
+    motion_ang = m_funct;
+}
+
+void ChLinkLockLock::SetMotion_ang2(std::shared_ptr<ChFunction> m_funct) {
+    motion_ang2 = m_funct;
+}
+
+void ChLinkLockLock::SetMotion_ang3(std::shared_ptr<ChFunction> m_funct) {
+    motion_ang3 = m_funct;
+}
+
+void ChLinkLockLock::SetMotion_axis(Vector m_axis) {
+    motion_axis = m_axis;
+}
+
+// Sequence of calls for full update:
+//     UpdateTime(time);
+//     UpdateRelMarkerCoords();
+//     UpdateState();
+//     UpdateCqw();
+//     UpdateForces(time);
+// Override UpdateTime to include possible contributions from imposed motion. 
+void ChLinkLockLock::UpdateTime(double time) {
+    ChLinkMasked::UpdateTime(time);
+
+    double ang, ang_dt, ang_dtdt;
+
+    // If some limit is provided, the delta values may have been changed by limits themselves,
+    // so no further modifications by motion laws.
+    if (limit_X->Get_active() || limit_Y->Get_active() || limit_Z->Get_active() || limit_Rx->Get_active() ||
+        limit_Ry->Get_active() || limit_Rz->Get_active())
+        return;
+
+    // Update motion position/speed/acceleration by motion laws
+    // as expressed by specific link CH functions
+    deltaC.pos.x() = motion_X->Get_y(time);
+    deltaC_dt.pos.x() = motion_X->Get_y_dx(time);
+    deltaC_dtdt.pos.x() = motion_X->Get_y_dxdx(time);
+
+    deltaC.pos.y() = motion_Y->Get_y(time);
+    deltaC_dt.pos.y() = motion_Y->Get_y_dx(time);
+    deltaC_dtdt.pos.y() = motion_Y->Get_y_dxdx(time);
+
+    deltaC.pos.z() = motion_Z->Get_y(time);
+    deltaC_dt.pos.z() = motion_Z->Get_y_dx(time);
+    deltaC_dtdt.pos.z() = motion_Z->Get_y_dxdx(time);
+
+    switch (angleset) {
+        case AngleSet::ANGLE_AXIS:
+            ang = motion_ang->Get_y(time);
+            ang_dt = motion_ang->Get_y_dx(time);
+            ang_dtdt = motion_ang->Get_y_dxdx(time);
+
+            if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
+                deltaC.rot = Q_from_AngAxis(ang, motion_axis);
+                deltaC_dt.rot = Qdt_from_AngAxis(deltaC.rot, ang_dt, motion_axis);
+                deltaC_dtdt.rot = Qdtdt_from_AngAxis(ang_dtdt, motion_axis, deltaC.rot, deltaC_dt.rot);
+            } else {
+                deltaC.rot = QUNIT;
+                deltaC_dt.rot = QNULL;
+                deltaC_dtdt.rot = QNULL;
+            }
+            break;
+        case AngleSet::EULERO:
+        case AngleSet::CARDANO:
+        case AngleSet::HPB:
+        case AngleSet::RXYZ: {
+            Vector vangles, vangles_dt, vangles_dtdt;
+            vangles.x() = motion_ang->Get_y(time);
+            vangles.y() = motion_ang2->Get_y(time);
+            vangles.z() = motion_ang3->Get_y(time);
+            vangles_dt.x() = motion_ang->Get_y_dx(time);
+            vangles_dt.y() = motion_ang2->Get_y_dx(time);
+            vangles_dt.z() = motion_ang3->Get_y_dx(time);
+            vangles_dtdt.x() = motion_ang->Get_y_dxdx(time);
+            vangles_dtdt.y() = motion_ang2->Get_y_dxdx(time);
+            vangles_dtdt.z() = motion_ang3->Get_y_dxdx(time);
+            deltaC.rot = Angle_to_Quat(angleset, vangles);
+            deltaC_dt.rot = AngleDT_to_QuatDT(angleset, vangles_dt, deltaC.rot);
+            deltaC_dtdt.rot = AngleDTDT_to_QuatDTDT(angleset, vangles_dtdt, deltaC.rot);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+// Trick to avoid putting the following mapper macro inside the class definition in .h file:
+// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+class my_enum_mappers_angles : public ChLinkLockLock {
+  public:
+    CH_ENUM_MAPPER_BEGIN(AngleSet);
+    CH_ENUM_VAL(AngleSet::ANGLE_AXIS);
+    CH_ENUM_VAL(AngleSet::EULERO);
+    CH_ENUM_VAL(AngleSet::CARDANO);
+    CH_ENUM_VAL(AngleSet::HPB);
+    CH_ENUM_VAL(AngleSet::RXYZ);
+    CH_ENUM_VAL(AngleSet::RODRIGUEZ);
+    CH_ENUM_VAL(AngleSet::QUATERNION);
+    CH_ENUM_MAPPER_END(AngleSet);
+};
+
+void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChLinkLockLock>();
+
+    // serialize parent class
+    ChLinkMasked::ArchiveOUT(marchive);
+
+    // serialize all member data
+    marchive << CHNVP(limit_X);
+    marchive << CHNVP(limit_Y);
+    marchive << CHNVP(limit_Z);
+    marchive << CHNVP(limit_Rx);
+    marchive << CHNVP(limit_Ry);
+    marchive << CHNVP(limit_Rz);
+    marchive << CHNVP(limit_Rp);
+    marchive << CHNVP(limit_D);
+
+    marchive << CHNVP(motion_X);
+    marchive << CHNVP(motion_Y);
+    marchive << CHNVP(motion_Z);
+    marchive << CHNVP(motion_ang);
+    marchive << CHNVP(motion_ang2);
+    marchive << CHNVP(motion_ang3);
+    marchive << CHNVP(motion_axis);
+
+    my_enum_mappers_angles::AngleSet_mapper setmapper;
+    marchive << CHNVP(setmapper(angleset), "angle_set");
+}
+
+void ChLinkLockLock::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChLinkLock>();
+
+    // deserialize parent class
+    ChLinkMasked::ArchiveIN(marchive);
+
+    // deserialize all member data
+    marchive >> CHNVP(limit_X);
+    marchive >> CHNVP(limit_Y);
+    marchive >> CHNVP(limit_Z);
+    marchive >> CHNVP(limit_Rx);
+    marchive >> CHNVP(limit_Ry);
+    marchive >> CHNVP(limit_Rz);
+    marchive >> CHNVP(limit_Rp);
+    marchive >> CHNVP(limit_D);
+
+    marchive >> CHNVP(motion_X);
+    marchive >> CHNVP(motion_Y);
+    marchive >> CHNVP(motion_Z);
+    marchive >> CHNVP(motion_ang);
+    marchive >> CHNVP(motion_ang2);
+    marchive >> CHNVP(motion_ang3);
+    marchive >> CHNVP(motion_axis);
+
+    my_enum_mappers_angles::AngleSet_mapper setmapper;
+    marchive >> CHNVP(setmapper(angleset), "angle_set");
+}
+
+// ---------------------------------------------------------------------------------------
+// Register into the object factory, to enable run-time dynamic creation and persistence
+// ---------------------------------------------------------------------------------------
+
 CH_FACTORY_REGISTER(ChLinkLockLock)
+CH_FACTORY_REGISTER(ChLinkLockRevolute)
 CH_FACTORY_REGISTER(ChLinkLockSpherical)
 CH_FACTORY_REGISTER(ChLinkLockCylindrical)
 CH_FACTORY_REGISTER(ChLinkLockPrismatic)
