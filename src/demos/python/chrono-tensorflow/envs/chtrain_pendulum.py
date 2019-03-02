@@ -7,10 +7,11 @@ import numpy as np
 class Model(object):
    def __init__(self, render):
       self.render = render
-       #self.size_rod_y = l 
+
       self.observation_space= np.empty([4,1])
       self.action_space= np.empty([1,1])
       self.info =  {}
+      self.timestep = 0.01
     # ---------------------------------------------------------------------
     #
     #  Create the simulation system and add items
@@ -18,8 +19,6 @@ class Model(object):
       
       self.rev_pend_sys = chrono.ChSystemNSC()
 
-    # Set the default outward/inward shape margins for collision detection,
-    # this is epecially important for very large or very small objects.
       chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.001)
       chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 
@@ -29,14 +28,11 @@ class Model(object):
 
 
     # Create a contact material (surface property)to share between all objects.
-
-
       self.rod_material = chrono.ChMaterialSurfaceNSC()
       self.rod_material.SetFriction(0.5)
       self.rod_material.SetDampingF(0.2)
       self.rod_material.SetCompliance (0.0000001)
       self.rod_material.SetComplianceT(0.0000001)
-
 
 
 
@@ -71,7 +67,7 @@ class Model(object):
                                             30)                # angle of FOV
 
    def reset(self):
-
+      #print("reset")
       self.isdone = False
       self.rev_pend_sys.Clear()
             # create it
@@ -80,7 +76,7 @@ class Model(object):
       self.body_rod.SetPos(chrono.ChVectorD(0, self.size_rod_y/2, 0 ))
     # set mass properties
       self.body_rod.SetMass(self.mass_rod)
-    # una volta che le hao calcolate inserisci inerzie diverse
+
       self.body_rod.SetInertiaXX(chrono.ChVectorD(self.inertia_rod_x,self.inertia_rod_y,self.inertia_rod_x))
     # set collision surface properties
       self.body_rod.SetMaterialSurface(self.rod_material)
@@ -91,12 +87,12 @@ class Model(object):
 
       self.cyl_base1= chrono.ChVectorD(0, -self.size_rod_y/2, 0 )
       self.cyl_base2= chrono.ChVectorD(0, self.size_rod_y/2, 0 )
-    #body_rod_shape = chrono.ChCylinder(cyl_base1, cyl_base2, radius_rod)
+
       self.body_rod_shape = chrono.ChCylinderShape()
       self.body_rod_shape.GetCylinderGeometry().p1= self.cyl_base1
       self.body_rod_shape.GetCylinderGeometry().p2= self.cyl_base2
       self.body_rod_shape.GetCylinderGeometry().rad= self.radius_rod
-    #body_rod.GetAssets().push_back(body_rod_shape)
+
       self.body_rod.AddAsset(self.body_rod_shape)
       self.rev_pend_sys.Add(self.body_rod)
 
@@ -107,7 +103,7 @@ class Model(object):
       self.body_floor.SetMaterialSurface(self.rod_material)
 
 
-    # Visualization shape
+
       if self.render:
              self.body_floor_shape = chrono.ChBoxShape()
              self.body_floor_shape.GetBoxGeometry().Size = chrono.ChVectorD(3, 1, 3)
@@ -124,7 +120,7 @@ class Model(object):
       self.body_table.SetPos(chrono.ChVectorD(0, -self.size_table_y/2, 0 ))
       self.body_table.SetMaterialSurface(self.rod_material)
 
-    # Visualization shape
+
       if self.render:
              self.body_table_shape = chrono.ChBoxShape()
              self.body_table_shape.GetBoxGeometry().Size = chrono.ChVectorD(self.size_table_x/2, self.size_table_y/2, self.size_table_z/2)
@@ -133,7 +129,7 @@ class Model(object):
        
              self.body_table_texture = chrono.ChTexture()
              self.body_table_texture.SetTextureFilename('../../../data/concrete.jpg')
-      self.body_table.GetAssets().push_back(self.body_table_texture)
+             self.body_table.GetAssets().push_back(self.body_table_texture)
       self.body_table.SetMass(0.1)
       self.rev_pend_sys.Add(self.body_table)
 
@@ -146,14 +142,12 @@ class Model(object):
       self.link_slider.Initialize(self.body_table, self.body_floor, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), z2x))
       self.rev_pend_sys.Add(self.link_slider)
 
+
       self.act_initpos = chrono.ChVectorD(0,0,0)
       self.actuator = chrono.ChLinkMotorLinearForce()
       self.actuator.Initialize(self.body_table, self.body_floor, chrono.ChFrameD(self.act_initpos))
       self.rev_pend_sys.Add(self.actuator)
 
-
-    # REVLOLUTE JOINT:
-    # create frames for the joint
       self.rod_pin = chrono.ChMarker()
       self.body_rod.AddMarker(self.rod_pin)
       self.rod_pin.Impose_Abs_Coord(chrono.ChCoordsysD(chrono.ChVectorD(0,0,0)))
@@ -183,9 +177,7 @@ class Model(object):
                        # that you added to the bodies into 3D shapes, they can be visualized by Irrlicht!
        
              self.myapplication.AssetUpdateAll();
-       
-                       # If you want to show shadows because you used "AddLightWithShadow()'
-                       # you must remember this:
+
 	
       self.isdone= False
       self.steps= 0
@@ -220,11 +212,10 @@ class Model(object):
 
    def get_ob(self):
            
-     
+
           self.state = [self.link_slider.GetDist(), self.link_slider.GetDist_dt(), self.pin_joint.GetRelAngle(), self.omega]
           return np.asarray(self.state)
-   
-             
+
                  
    def is_done(self):
           if abs(self.link_slider.GetDist()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :
@@ -240,6 +231,9 @@ class Model(object):
                      
        
    def __del__(self):
-        self.myapplication.GetDevice().closeDevice()
-        print('Destructor called, Device deleted.')
+        if self.render:
+            self.myapplication.GetDevice().closeDevice()
+            print('Destructor called, Device deleted.')
+        else:
+            print('Destructor called, No device to delete.')
         
