@@ -1171,7 +1171,11 @@ ChCollisionSystemBullet::ChCollisionSystemBullet(unsigned int max_objects, doubl
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
 
-    bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration);
+    //bt_dispatcher = new btCollisionDispatcher(bt_collision_configuration); // serial version
+
+	bt_dispatcher = new btCollisionDispatcherMt(bt_collision_configuration); // parallel version
+	btSetTaskScheduler( btGetOpenMPTaskScheduler() );
+
     //((btDefaultCollisionConfiguration*)bt_collision_configuration)->setConvexConvexMultipointIterations(4,4);
 
     //***OLD***
