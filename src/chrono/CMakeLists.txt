@@ -852,19 +852,21 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp
-    collision/bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp
     collision/bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp
+	collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp
+	collision/bullet/BulletCollision/CollisionDispatch/btCollisionWorldImporter.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp
+	collision/bullet/BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp
@@ -880,6 +882,7 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp
     collision/bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
+	collision/bullet/BulletCollision/CollisionDispatch/btHashedSimplePairCache.cpp
     collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/bt2DShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.cpp
@@ -918,6 +921,9 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btShapeHull.cpp
     collision/bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.cpp
+	collision/bullet/BulletCollision/CollisionShapes/btSdfCollisionShape.cpp
+	collision/bullet/BulletCollision/CollisionShapes/btMiniSDF.cpp
+	collision/bullet/BulletCollision/CollisionShapes/btConvexPolyhedron.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp
@@ -929,16 +935,25 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp
     collision/bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp
-    collision/bullet/BulletFileLoader/bChunk.cpp
-    collision/bullet/BulletFileLoader/bDNA.cpp
-    collision/bullet/BulletFileLoader/bFile.cpp
-    collision/bullet/BulletFileLoader/btBulletFile.cpp
-    collision/bullet/BulletWorldImporter/btBulletWorldImporter.cpp
+	collision/bullet/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.cpp
+    #collision/bullet/BulletFileLoader/bChunk.cpp
+    #collision/bullet/BulletFileLoader/bDNA.cpp
+    #collision/bullet/BulletFileLoader/bFile.cpp
+    #collision/bullet/BulletFileLoader/btBulletFile.cpp
+    #collision/bullet/BulletWorldImporter/btBulletWorldImporter.cpp
     collision/bullet/LinearMath/btQuickprof.cpp
     collision/bullet/LinearMath/btAlignedAllocator.cpp
     collision/bullet/LinearMath/btGeometryUtil.cpp
     collision/bullet/LinearMath/btConvexHull.cpp
+	collision/bullet/LinearMath/btConvexHullComputer.cpp
     collision/bullet/LinearMath/btSerializer.cpp
+	collision/bullet/LinearMath/btSerializer64.cpp
+	collision/bullet/LinearMath/btPolarDecomposition.cpp
+	collision/bullet/LinearMath/btThreads.cpp
+	collision/bullet/LinearMath/btVector3.cpp
+	collision/bullet/LinearMath/TaskScheduler/btTaskScheduler.cpp
+	collision/bullet/LinearMath/TaskScheduler/btThreadSupportPosix.cpp
+	collision/bullet/LinearMath/TaskScheduler/btThreadSupportWin32.cpp
     )
 
 source_group("collision\\bullet" FILES
@@ -958,7 +973,7 @@ set(ChronoEngine_collision_gimpact_SOURCES
     collision/gimpact/GIMPACT/Bullet/btGImpactQuantizedBvh.cpp
     collision/gimpact/GIMPACT/Bullet/btGImpactShape.cpp
     collision/gimpact/GIMPACT/Bullet/btTriangleShapeEx.cpp
-    collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.cpp
+    #collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.cpp
     collision/gimpact/ConvexDecomposition/bestfit.cpp
     collision/gimpact/ConvexDecomposition/bestfitobb.cpp
     collision/gimpact/ConvexDecomposition/cd_hull.cpp

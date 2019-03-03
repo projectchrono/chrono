@@ -22,7 +22,7 @@
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
-#include "chrono/collision/bullet/BulletWorldImporter/btBulletWorldImporter.h"
+//#include "chrono/collision/bullet/BulletWorldImporter/btBulletWorldImporter.h"
 #include "chrono/collision/bullet/btBulletCollisionCommon.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "chrono/collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.h"
@@ -824,6 +824,9 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
     // serialize parent class
     ChCollisionModel::ArchiveOUT(marchive);
 
+	/*
+	// ***DEPRECATED*** remove experimental streaming as Bullet serialized byte stream
+
     // serialize all member data:
     std::vector< char > serialized(0);
 
@@ -846,6 +849,7 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
     }
 
     marchive << CHNVP(serialized, "bullet_serialized_bytes");
+	*/
 }
 
 void ChModelBullet::ArchiveIN(ChArchiveIn& marchive) 
@@ -859,6 +863,8 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
 
     this->ClearModel();  // remove shape
 
+	// ***DEPRECATED*** remove experimental streaming as Bullet serialized byte stream
+	/*
     std::vector<char> serialized;
 
     marchive >> CHNVP(serialized, "bullet_serialized_bytes");
@@ -887,6 +893,7 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
 
         delete[] mbuffer;
     }
+	*/
 }
 
 
