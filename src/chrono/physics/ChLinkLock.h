@@ -37,27 +37,6 @@ class ChApi ChLinkLock : public ChLinkMasked {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLock* Clone() const override { return new ChLinkLock(*this); }
 
-    /// Get constraint violations in pos/rot coordinates.
-    const Coordsys& GetRelC() const { return relC; }
-    /// Get first time derivative of constraint violations in pos/rot coordinates.
-    const Coordsys& GetRelC_dt() const { return relC_dt; }
-    /// Get second time derivative of constraint violations in pos/rot coordinates.
-    const Coordsys& GetRelC_dtdt() const { return relC_dtdt; }
-
-    /// Set imposed clearances.
-    void SetDeltaC(Coordsys mc) { deltaC = mc; }
-    /// Set imposed time derivatives of clearances.
-    void SetDeltaC_dt(Coordsys mc) { deltaC_dt = mc; }
-    /// Set imposed second time derivative of clearances.
-    void SetDeltaC_dtdt(Coordsys mc) { deltaC_dtdt = mc; }
-
-    /// Get imposed clearances.
-    const Coordsys& GetDeltaC() const { return deltaC; }
-    /// Get imposed time derivative of clearances.
-    const Coordsys& GetDeltaC_dt() const { return deltaC_dt; }
-    /// Get imposed second time derivative of clearances.
-    const Coordsys& GetDeltaC_dtdt() const { return deltaC_dtdt; }
-
     // Limits on free degrees of freedom
 
     void SetLimit_X(ChLinkLimit* m_limit_X);
@@ -119,13 +98,6 @@ class ChApi ChLinkLock : public ChLinkMasked {
     };
 
     LinkType type;       ///< type of link_lock joint
-    Coordsys relC;       ///< relative constraint position: relC = (relM-deltaC)
-    Coordsys relC_dt;    ///< relative constraint speed
-    Coordsys relC_dtdt;  ///< relative constraint acceleration
-
-    Coordsys deltaC;       ///< user-imposed rel. position
-    Coordsys deltaC_dt;    ///< user-imposed rel. speed
-    Coordsys deltaC_dtdt;  ///< user-imposed rel. acceleration
 
     // limits
     ChLinkLimit* limit_X;   ///< the upper/lower limits for X dof
@@ -222,14 +194,20 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     const ChVector<>& GetMotion_axis() const { return motion_axis; }
     AngleSet Get_angleset() const { return angleset; }
 
+    /// Get constraint violations in pos/rot coordinates.
+    const Coordsys& GetRelC() const { return relC; }
+    /// Get first time derivative of constraint violations in pos/rot coordinates.
+    const Coordsys& GetRelC_dt() const { return relC_dt; }
+    /// Get second time derivative of constraint violations in pos/rot coordinates.
+    const Coordsys& GetRelC_dtdt() const { return relC_dtdt; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
-  private:
-    // imposed motion
+  protected:
     std::shared_ptr<ChFunction> motion_X;     ///< user imposed motion for X coord, marker relative
     std::shared_ptr<ChFunction> motion_Y;     ///< user imposed motion for Y coord, marker relative
     std::shared_ptr<ChFunction> motion_Z;     ///< user imposed motion for Z coord, marker relative
@@ -239,8 +217,20 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     Vector motion_axis;                       ///< this is the axis for the user imposed rotation
     AngleSet angleset;                        ///< type of rotation (3 Eul angles, angle/axis, etc.)
 
+    Coordsys relC;       ///< relative constraint position: relC = (relM-deltaC)
+    Coordsys relC_dt;    ///< relative constraint speed
+    Coordsys relC_dtdt;  ///< relative constraint acceleration
+
+    Coordsys deltaC;       ///< user-imposed rel. position
+    Coordsys deltaC_dt;    ///< user-imposed rel. speed
+    Coordsys deltaC_dtdt;  ///< user-imposed rel. acceleration
+
     /// Inherits, and also updates motion laws: deltaC, deltaC_dt, deltaC_dtdt
     virtual void UpdateTime(double mytime) override;
+
+    /// Given current time and body state, computes the constraint differentiation to get the
+    /// the state matrices Cq1,  Cq2,  Qc,  Ct , and also C, C_dt, C_dtd.
+    virtual void UpdateState() override;
 };
 
 // ---------------------------------------------------------------------------------------

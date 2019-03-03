@@ -34,7 +34,7 @@ ChLinkPointSpline::ChLinkPointSpline() {
     ChangedLinkMask();
 }
 
-ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLock(other) {
+ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLockLock(other) {
     other.trajectory_line->Clone();
     //trajectory_line = std::shared_ptr<ChLine>(other.trajectory_line->Clone());  // deep copy
 }
@@ -127,7 +127,7 @@ void ChLinkPointSpline::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkPointSpline>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(trajectory_line);
@@ -139,7 +139,7 @@ void ChLinkPointSpline::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkPointSpline>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(trajectory_line);

@@ -42,7 +42,7 @@ ChLinkPulley::ChLinkPulley()
     ChangedLinkMask();
 }
 
-ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLock(other) {
+ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLockLock(other) {
     tau = other.tau;
     phase = other.phase;
     a1 = other.a1;
@@ -107,7 +107,7 @@ Vector ChLinkPulley::Get_shaft_pos2() {
 
 void ChLinkPulley::UpdateTime(double mytime) {
     // First, inherit to parent class
-    ChLinkLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(mytime);
 
     ChFrame<double> abs_shaft1;
     ChFrame<double> abs_shaft2;
@@ -228,7 +228,7 @@ void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkPulley>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(tau);
@@ -248,7 +248,7 @@ void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkPulley>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(tau);

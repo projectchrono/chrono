@@ -265,15 +265,6 @@ void ChLinkGear::UpdateTime(double mytime) {
     newmarkpos.pos = mmark2;
     newmarkpos.rot = ma2.Get_A_quaternion();
     marker2->Impose_Abs_Coord(newmarkpos);  // move marker2 into teeth position
-
-    // imposed relative positions/speeds
-    deltaC.pos = VNULL;
-    deltaC_dt.pos = VNULL;
-    deltaC_dtdt.pos = VNULL;
-
-    deltaC.rot = QUNIT;  // no relative rotations imposed!
-    deltaC_dt.rot = QNULL;
-    deltaC_dtdt.rot = QNULL;
 }
 
 void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive) {
