@@ -16,23 +16,49 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time dynamic creation and
-// persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLock)
 
 ChLinkLock::ChLinkLock() : type(LinkType::SPHERICAL) {
-    // matrices used by lock formulation
+    force_D = new ChLinkForce;
+    force_R = new ChLinkForce;
+    force_X = new ChLinkForce;
+    force_Y = new ChLinkForce;
+    force_Z = new ChLinkForce;
+    force_Rx = new ChLinkForce;
+    force_Ry = new ChLinkForce;
+    force_Rz = new ChLinkForce;
+
+    d_restlength = 0;
+
+    ndoc_d = ndoc_c = ndoc = 0;
+
+    C = C_dt = C_dtdt = NULL;
+
+    react = 0;
+    Qc = Ct = 0;
+    Cq1 = Cq2 = 0;
+    Cqw1 = Cqw2 = 0;
+
+    mask = new ChLinkMask(1);                    // create the mask;
+    mask->Constr_N(0).SetMode(CONSTRAINT_FREE);  // default: one constr.eq. but not working
+
+    // Setup all matrices and DOC and DOF.
+    BuildLink();
+
+    // Matrices used by lock formulation
     Cq1_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Cq2_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Qc_temp = new ChMatrixDynamic<>(7, 1);
 
-    limit_X = new ChLinkLimit;  // default: inactive limits
+    limit_X = new ChLinkLimit;
     limit_Y = new ChLinkLimit;
     limit_Z = new ChLinkLimit;
     limit_Rx = new ChLinkLimit;
     limit_Ry = new ChLinkLimit;
     limit_Rz = new ChLinkLimit;
     limit_D = new ChLinkLimit;
+
     limit_Rp = new ChLinkLimit;  // the polar limit;
     limit_Rp->Set_polar(true);
 
@@ -47,7 +73,23 @@ ChLinkLock::ChLinkLock() : type(LinkType::SPHERICAL) {
     BuildLinkType(LinkType::SPHERICAL);
 }
 
-ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMasked(other) {
+ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
+    mask = other.mask->Clone();
+
+    // setup -alloc all needed matrices!!
+    ChangedLinkMask();
+
+    force_D = other.force_D->Clone();
+    force_R = other.force_R->Clone();
+    force_X = other.force_X->Clone();
+    force_Y = other.force_Y->Clone();
+    force_Z = other.force_Z->Clone();
+    force_Rx = other.force_Rx->Clone();
+    force_Ry = other.force_Ry->Clone();
+    force_Rz = other.force_Rz->Clone();
+
+    d_restlength = other.d_restlength;
+
     type = other.type;
 
     limit_X = other.limit_X->Clone();
@@ -89,8 +131,75 @@ ChLinkLock::~ChLinkLock() {
     if (limit_D)
         delete limit_D;
 
-    // jacobians etc. are deleted by base class, which also calls
-    // DestroyLinkType()
+    DestroyLink();
+
+    if (force_D)
+        delete force_D;
+    if (force_R)
+        delete force_R;
+    if (force_X)
+        delete force_X;
+    if (force_Y)
+        delete force_Y;
+    if (force_Z)
+        delete force_Z;
+    if (force_Rx)
+        delete force_Rx;
+    if (force_Ry)
+        delete force_Ry;
+    if (force_Rz)
+        delete force_Rz;
+
+    delete mask;
+    mask = NULL;
+}
+
+void ChLinkLock::SetForce_D(ChLinkForce* m_for) {
+    if (force_D)
+        delete force_D;
+    force_D = m_for;
+}
+
+void ChLinkLock::SetForce_R(ChLinkForce* m_for) {
+    if (force_R)
+        delete force_R;
+    force_R = m_for;
+}
+
+void ChLinkLock::SetForce_X(ChLinkForce* m_for) {
+    if (force_X)
+        delete force_X;
+    force_X = m_for;
+}
+
+void ChLinkLock::SetForce_Y(ChLinkForce* m_for) {
+    if (force_Y)
+        delete force_Y;
+    force_Y = m_for;
+}
+
+void ChLinkLock::SetForce_Z(ChLinkForce* m_for) {
+    if (force_Z)
+        delete force_Z;
+    force_Z = m_for;
+}
+
+void ChLinkLock::SetForce_Rx(ChLinkForce* m_for) {
+    if (force_Rx)
+        delete force_Rx;
+    force_Rx = m_for;
+}
+
+void ChLinkLock::SetForce_Ry(ChLinkForce* m_for) {
+    if (force_Ry)
+        delete force_Ry;
+    force_Ry = m_for;
+}
+
+void ChLinkLock::SetForce_Rz(ChLinkForce* m_for) {
+    if (force_Rz)
+        delete force_Rz;
+    force_Rz = m_for;
 }
 
 void ChLinkLock::SetLimit_X(ChLinkLimit* m_limit_X) {
@@ -139,6 +248,142 @@ void ChLinkLock::SetLimit_D(ChLinkLimit* m_limit_D) {
     if (limit_D)
         delete limit_D;
     limit_D = m_limit_D;
+}
+
+void ChLinkLock::ChangeLinkMask(ChLinkMask* new_mask) {
+    DestroyLink();
+    BuildLink(new_mask);
+}
+
+void ChLinkLock::ChangedLinkMask() {
+    DestroyLink();
+    BuildLink();
+}
+
+void ChLinkLock::SetDisabled(bool mdis) {
+    ChLinkMarkers::SetDisabled(mdis);
+
+    if (mask->SetAllDisabled(mdis) > 0)
+        ChangedLinkMask();
+}
+
+void ChLinkLock::SetBroken(bool mbro) {
+    ChLinkMarkers::SetBroken(mbro);
+
+    if (mask->SetAllBroken(mbro) > 0)
+        ChangedLinkMask();
+}
+
+int ChLinkLock::RestoreRedundant() {
+    int mchanges = mask->RestoreRedundant();
+    if (mchanges)
+        ChangedLinkMask();
+    return mchanges;
+}
+
+void ChLinkLock::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
+    ChLinkMarkers::SetUpMarkers(mark1, mark2);
+
+    // could the line below be:     assert(this->Body1 && this->Body2); ?
+    if (this->Body1 && this->Body2) {
+        ((ChLinkMaskLF*)this->mask)->SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+        // This is needed because only if all constraints in mask are now active, and C,Ct,etc.
+        // matrices must be allocated accordingly, otherwise are null.
+        DestroyLink();
+        BuildLink();
+    }
+}
+
+void ChLinkLock::BuildLink() {
+    // set ndoc by counting non-dofs
+    ndoc = mask->GetMaskDoc();
+    ndoc_c = mask->GetMaskDoc_c();
+    ndoc_d = mask->GetMaskDoc_d();
+
+    // create matrices
+    if (ndoc > 0) {
+        C = new ChMatrixDynamic<>(ndoc, 1);
+        C_dt = new ChMatrixDynamic<>(ndoc, 1);
+        C_dtdt = new ChMatrixDynamic<>(ndoc, 1);
+        react = new ChMatrixDynamic<>(ndoc, 1);
+        Qc = new ChMatrixDynamic<>(ndoc, 1);
+        Ct = new ChMatrixDynamic<>(ndoc, 1);
+        Cq1 = new ChMatrixDynamic<>(ndoc, BODY_QDOF);
+        Cq2 = new ChMatrixDynamic<>(ndoc, BODY_QDOF);
+        Cqw1 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
+        Cqw2 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
+    } else {
+        C = 0;
+        C_dt = 0;
+        C_dtdt = 0;
+        react = 0;
+        Qc = 0;
+        Ct = 0;
+        Cq1 = 0;
+        Cq2 = 0;
+        Cqw1 = 0;
+        Cqw2 = 0;
+    }
+}
+
+void ChLinkLock::BuildLink(ChLinkMask* new_mask) {
+    // set mask
+    delete mask;
+    mask = new_mask->Clone();
+
+    // setup matrices;
+    BuildLink();
+}
+
+void ChLinkLock::DestroyLink() {
+    if (ndoc > 0) {
+        if (C) {
+            delete C;
+            C = NULL;
+        }
+        if (C_dt) {
+            delete C_dt;
+            C_dt = NULL;
+        }
+        if (C_dtdt) {
+            delete C_dtdt;
+            C_dtdt = NULL;
+        }
+        if (react) {
+            delete react;
+            react = NULL;
+        }
+        if (Qc) {
+            delete Qc;
+            Qc = NULL;
+        }
+        if (Ct) {
+            delete Ct;
+            Ct = NULL;
+        }
+        if (Cq1) {
+            delete Cq1;
+            Cq1 = NULL;
+        }
+        if (Cq2) {
+            delete Cq2;
+            Cq2 = NULL;
+        }
+        if (Cqw1) {
+            delete Cqw1;
+            Cqw1 = NULL;
+        }
+        if (Cqw2) {
+            delete Cqw2;
+            Cqw2 = NULL;
+        }
+        if (react) {
+            delete react;
+            react = NULL;
+        }
+    }
+
+    ndoc = 0;
 }
 
 void ChLinkLock::BuildLinkType(LinkType link_type) {
@@ -234,6 +479,18 @@ void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
 
 // -----------------------------------------------------------------------------
 // UPDATING PROCEDURES
+
+// Complete update.
+void ChLinkLock::Update(double time, bool update_assets) {
+    UpdateTime(time);
+    UpdateRelMarkerCoords();
+    UpdateState();
+    UpdateCqw();
+    UpdateForces(time);
+
+    // Update assets
+    ChPhysicsItem::Update(ChTime, update_assets);
+}
 
 void ChLinkLock::UpdateState() {
     // ---------------------
@@ -483,20 +740,117 @@ void ChLinkLock::UpdateState() {
     }
 }
 
-// Sequence of calls for full update:
-//     UpdateTime(time);
-//     UpdateRelMarkerCoords();
-//     UpdateState();
-//     UpdateCqw();
-//     UpdateForces(time);
+static void Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBodyFrame* mbody) {
+    if (!mCq)
+        return;
+
+    // translational part - not changed
+    mCqw->PasteClippedMatrix(*mCq, 0, 0, mCq->GetRows(), 3, 0, 0);
+
+    // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
+    int col, row, colres;
+    double sum;
+
+    ChMatrixNM<double, 3, 4> mGl;
+    ChFrame<>::SetMatrix_Gl(mGl, mbody->GetCoord().rot);
+
+    for (colres = 0; colres < 3; colres++) {
+        for (row = 0; row < (mCq->GetRows()); row++) {
+            sum = 0;
+            for (col = 0; col < 4; col++) {
+                sum += ((mCq->GetElement(row, col + 3)) * (mGl.GetElement(colres, col)));
+            }
+            mCqw->SetElement(row, colres + 3, sum * 0.25);
+        }
+    }
+}
+
+void ChLinkLock::UpdateCqw() {
+    if (!Cq1 || !Cq2)
+        return;
+
+    Transform_Cq_to_Cqw(Cq1, Cqw1, Body1);
+    Transform_Cq_to_Cqw(Cq2, Cqw2, Body2);
+}
+
 // Override UpdateForces to include possible contributions from joint limits.
 void ChLinkLock::UpdateForces(double mytime) {
-    ChLinkMasked::UpdateForces(mytime);
-
-    // ========== the link-limits "cushion forces"
+    ChLinkMarkers::UpdateForces(mytime);
 
     ChVector<> m_force = VNULL;
     ChVector<> m_torque = VNULL;
+
+    // COMPUTE THE FORCES IN THE LINK, FOR EXAMPLE
+    // CAUSED BY SPRINGS
+    // NOTE!!!!!   C_force and C_torque   are considered in the reference coordsystem
+    // of marker2  (the MAIN marker), and their application point is considered the
+    // origin of marker1 (the SLAVE marker)
+
+    // 1)========== the generic spring-damper
+
+    if (force_D && force_D->Get_active()) {
+        double dfor;
+        dfor = force_D->Get_Force((dist - d_restlength), dist_dt, ChTime);
+        m_force = Vmul(Vnorm(relM.pos), dfor);
+
+        C_force = Vadd(C_force, m_force);
+    }
+
+    // 2)========== the generic torsional spring / torsional damper
+
+    if (force_R && force_R->Get_active()) {
+        double tor;
+        // 1) the tors. spring
+        tor = force_R->Get_Force(relAngle, 0, ChTime);
+        m_torque = Vmul(relAxis, tor);
+        C_torque = Vadd(C_torque, m_torque);
+        // 2) the tors. damper
+        double angle_dt = Vlength(relWvel);
+        tor = force_R->Get_Force(0, angle_dt, ChTime);
+        m_torque = Vmul(Vnorm(relWvel), tor);
+        C_torque = Vadd(C_torque, m_torque);
+    }
+
+    // 3)========== the XYZ forces
+
+    m_force = VNULL;
+
+    if (force_X && force_X->Get_active()) {
+        m_force.x() = force_X->Get_Force(relM.pos.x(), relM_dt.pos.x(), ChTime);
+    }
+
+    if (force_Y && force_Y->Get_active()) {
+        m_force.y() = force_Y->Get_Force(relM.pos.y(), relM_dt.pos.y(), ChTime);
+    }
+
+    if (force_Z && force_Z->Get_active()) {
+        m_force.z() = force_Z->Get_Force(relM.pos.z(), relM_dt.pos.z(), ChTime);
+    }
+
+    C_force = Vadd(C_force, m_force);
+
+    // 4)========== the RxRyRz forces (torques)
+
+    m_torque = VNULL;
+
+    if (force_Rx && force_Rx->Get_active()) {
+        m_torque.x() = force_Rx->Get_Force(relRotaxis.x(), relWvel.x(), ChTime);
+    }
+
+    if (force_Ry && force_Ry->Get_active()) {
+        m_torque.y() = force_Ry->Get_Force(relRotaxis.y(), relWvel.y(), ChTime);
+    }
+
+    if (force_Rz && force_Rz->Get_active()) {
+        m_torque.z() = force_Rz->Get_Force(relRotaxis.z(), relWvel.z(), ChTime);
+    }
+
+    C_torque = Vadd(C_torque, m_torque);
+
+    // ========== the link-limits "cushion forces"
+
+    m_force = VNULL;
+    m_torque = VNULL;
 
     if (limit_X->Get_active()) {
         m_force.x() = limit_X->GetForce(relM.pos.x(), relM_dt.pos.x());
@@ -542,10 +896,9 @@ void ChLinkLock::UpdateForces(double mytime) {
     // ========== other forces??
 }
 
-// Reimplement parent solver methods because 'upper/lower limits' may add constraints
-
+// Count also unilateral constraints from joint limits (if any)
 int ChLinkLock::GetDOC_d() {
-    int mdocd = ChLinkMasked::GetDOC_d();
+    int mdocd = ndoc_d;
 
     if (limit_X && limit_X->Get_active()) {
         if (limit_X->constr_lower.IsActive())
@@ -588,8 +941,11 @@ int ChLinkLock::GetDOC_d() {
 }
 
 void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    // parent (from ChConstraint objects to react vector)
-    ChLinkMasked::IntStateScatterReactions(off_L, L);
+    react_force = VNULL;
+    react_torque = VNULL;
+
+    if (react)
+        react->PasteClippedMatrix(L, off_L, 0, react->GetRows(), 1, 0, 0);
 
     // From react vector to the 'intuitive' react_force and react_torque
     const ChQuaternion<>& q2 = Body2->GetRot();
@@ -766,8 +1122,8 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 }
 
 void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    // parent (from ChConstraint objects to react vector)
-    ChLinkMasked::IntStateGatherReactions(off_L, L);
+    if (react)
+        L.PasteMatrix(*react, off_L, 0);
 
     int local_off = this->GetDOC_c();
 
@@ -780,8 +1136,13 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L
                                      const ChVectorDynamic<>& L,  // the L vector
                                      const double c)              // a scaling factor
 {
-    // parent class:
-    ChLinkMasked::IntLoadResidual_CqL(off_L, R, L, c);
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            mask->Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+            cnt++;
+        }
+    }
 
     int local_offset = this->GetDOC_c();
 
@@ -853,8 +1214,19 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
                                      bool do_clamp,             // apply clamping to c*C?
                                      double recovery_clamp)     // value for min/max clamping of c*C
 {
-    // parent class:
-    ChLinkMasked::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            if (do_clamp) {
+                if (mask->Constr_N(i).IsUnilateral())
+                    Qc(off_L + cnt) += ChMax(c * C->ElementN(cnt), -recovery_clamp);
+                else
+                    Qc(off_L + cnt) += ChMin(ChMax(c * C->ElementN(cnt), -recovery_clamp), recovery_clamp);
+            } else
+                Qc(off_L + cnt) += c * C->ElementN(cnt);
+            cnt++;
+        }
+    }
 
     if (!do_clamp)
         recovery_clamp = 1e24;
@@ -927,8 +1299,13 @@ void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc
                                       ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                       const double c)            // a scaling factor
 {
-    // parent class:
-    ChLinkMasked::IntLoadConstraint_Ct(off_L, Qc, c);
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            Qc(off_L + cnt) += c * Ct->ElementN(cnt);
+            cnt++;
+        }
+    }
 
     // nothing to do for ChLinkLimit
 }
@@ -939,8 +1316,14 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
-    // parent class:
-    ChLinkMasked::IntToDescriptor(off_v, v, R, off_L, L, Qc);
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            mask->Constr_N(i).Set_l_i(L(off_L + cnt));
+            mask->Constr_N(i).Set_b_i(Qc(off_L + cnt));
+            cnt++;
+        }
+    }
 
     int local_offset = this->GetDOC_c();
 
@@ -1022,8 +1405,13 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
                                    ChStateDelta& v,
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) {
-    // parent class:
-    ChLinkMasked::IntFromDescriptor(off_L, v, off_L, L);
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            L(off_L + cnt) = mask->Constr_N(i).Get_l_i();
+            cnt++;
+        }
+    }
 
     int local_offset = this->GetDOC_c();
 
@@ -1090,8 +1478,13 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
 }
 
 void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    // parent
-    ChLinkMasked::InjectConstraints(mdescriptor);
+    if (!this->IsActive())
+        return;
+
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive())
+            mdescriptor.InsertConstraint(&mask->Constr_N(i));
+    }
 
     if (limit_X && limit_X->Get_active()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1156,8 +1549,9 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChLinkLock::ConstraintsBiReset() {
-    // parent
-    ChLinkMasked::ConstraintsBiReset();
+    for (int i = 0; i < mask->nconstr; i++) {
+        mask->Constr_N(i).Set_b_i(0.);
+    }
 
     if (limit_X && limit_X->Get_active()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1210,8 +1604,22 @@ void ChLinkLock::ConstraintsBiReset() {
 }
 
 void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // parent
-    ChLinkMasked::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            if (do_clamp) {
+                if (mask->Constr_N(i).IsUnilateral())
+                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
+                                              ChMax(factor * C->ElementN(cnt), -recovery_clamp));
+                else
+                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
+                                              ChMin(ChMax(factor * C->ElementN(cnt), -recovery_clamp), recovery_clamp));
+            } else
+                mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * C->ElementN(cnt));
+
+            cnt++;
+        }
+    }
 
     if (limit_X && limit_X->Get_active()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1342,13 +1750,23 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 }
 
 void ChLinkLock::ConstraintsBiLoad_Ct(double factor) {
-    // parent
-    ChLinkMasked::ConstraintsBiLoad_Ct(factor);
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * Ct->ElementN(cnt));
+            cnt++;
+        }
+    }
 }
 
 void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
-    // parent
-    ChLinkMasked::ConstraintsBiLoad_Qc(factor);
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() + factor * Qc->ElementN(cnt));
+            cnt++;
+        }
+    }
 }
 
 void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<>* mCqw, int qwrow, ChBodyFrame* mbody) {
@@ -1370,8 +1788,20 @@ void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<>* mCqw, int qw
 }
 
 void ChLinkLock::ConstraintsLoadJacobians() {
-    // parent
-    ChLinkMasked::ConstraintsLoadJacobians();
+    if (!this->ndoc)
+        return;
+
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            mask->Constr_N(i).Get_Cq_a()->PasteClippedMatrix(*Cqw1, cnt, 0, 1, this->Cqw1->GetColumns(), 0, 0);
+            mask->Constr_N(i).Get_Cq_b()->PasteClippedMatrix(*Cqw2, cnt, 0, 1, this->Cqw2->GetColumns(), 0, 0);
+            cnt++;
+
+            // sets also the CFM term
+            // mask->Constr_N(i).Set_cfm_i(this->attractor);
+        }
+    }
 
     if (limit_X && limit_X->Get_active()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1460,8 +1890,17 @@ void ChLinkLock::ConstraintsLoadJacobians() {
 }
 
 void ChLinkLock::ConstraintsFetch_react(double factor) {
-    // parent (from ChConstraint objects to react vector)
-    ChLinkMasked::ConstraintsFetch_react(factor);
+    react_force = VNULL;
+    react_torque = VNULL;
+
+    // From constraints to react vector:
+    int cnt = 0;
+    for (int i = 0; i < mask->nconstr; i++) {
+        if (mask->Constr_N(i).IsActive()) {
+            react->ElementN(cnt) = mask->Constr_N(i).Get_l_i() * factor;
+            cnt++;
+        }
+    }
 
     // From react vector to the 'intuitive' react_force and react_torque
     const ChQuaternion<>& q2 = Body2->GetRot();
@@ -1626,8 +2065,8 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
 // SERIALIZATION
 
-// Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+// To avoid putting the following mapper macro inside the class definition,
+// enclose macros in local 'my_enum_mappers_types'.
 class my_enum_mappers_types : public ChLinkLock {
   public:
     CH_ENUM_MAPPER_BEGIN(LinkType);
@@ -1655,11 +2094,23 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkLock>();
 
     // serialize parent class
-    ChLinkMasked::ArchiveOUT(marchive);
+    ChLinkMarkers::ArchiveOUT(marchive);
 
     // serialize all member data
     my_enum_mappers_types::LinkType_mapper typemapper;
     marchive << CHNVP(typemapper(type), "link_type");
+
+    ////marchive << CHNVP(mask); //// TODO: needed?
+
+    marchive << CHNVP(d_restlength);
+    marchive << CHNVP(force_D);
+    marchive << CHNVP(force_R);
+    marchive << CHNVP(force_X);
+    marchive << CHNVP(force_Y);
+    marchive << CHNVP(force_Z);
+    marchive << CHNVP(force_Rx);
+    marchive << CHNVP(force_Ry);
+    marchive << CHNVP(force_Rz);
 
     marchive << CHNVP(limit_X);
     marchive << CHNVP(limit_Y);
@@ -1676,13 +2127,25 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkLock>();
 
     // deserialize parent class
-    ChLinkMasked::ArchiveIN(marchive);
+    ChLinkMarkers::ArchiveIN(marchive);
 
     // deserialize all member data
     my_enum_mappers_types::LinkType_mapper typemapper;
     LinkType link_type;
     marchive >> CHNVP(typemapper(link_type), "link_type");
     ChangeLinkType(link_type);
+
+    ////if (mask) delete (mask); marchive >> CHNVP(mask); //// TODO: needed?
+
+    marchive >> CHNVP(d_restlength);
+    marchive >> CHNVP(force_D);
+    marchive >> CHNVP(force_R);
+    marchive >> CHNVP(force_X);
+    marchive >> CHNVP(force_Y);
+    marchive >> CHNVP(force_Z);
+    marchive >> CHNVP(force_Rx);
+    marchive >> CHNVP(force_Ry);
+    marchive >> CHNVP(force_Rz);
 
     marchive >> CHNVP(limit_X);
     marchive >> CHNVP(limit_Y);
@@ -1694,9 +2157,12 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(limit_D);
 }
 
-// ---------------------------------------------------------------------------------------
-// ChLinkLockLock functions
-// ---------------------------------------------------------------------------------------
+// =======================================================================================
+// ChLinkLockLock implementation
+// =======================================================================================
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChLinkLockLock)
 
 ChLinkLockLock::ChLinkLockLock()
     : motion_axis(VECT_Z),
@@ -1780,7 +2246,7 @@ void ChLinkLockLock::SetMotion_axis(Vector m_axis) {
 //     UpdateForces(time);
 // Override UpdateTime to include possible contributions from imposed motion.
 void ChLinkLockLock::UpdateTime(double time) {
-    ChLinkMasked::UpdateTime(time);
+    ChLinkLock::UpdateTime(time);
 
     double ang, ang_dt, ang_dtdt;
 
@@ -2128,8 +2594,8 @@ void ChLinkLockLock::UpdateState() {
     }
 }
 
-// Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+// To avoid putting the following mapper macro inside the class definition,
+// enclose macros in local 'my_enum_mappers_angles'.
 class my_enum_mappers_angles : public ChLinkLockLock {
   public:
     CH_ENUM_MAPPER_BEGIN(AngleSet);
@@ -2148,9 +2614,21 @@ void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkLockLock>();
 
     // serialize parent class
-    ChLinkMasked::ArchiveOUT(marchive);
+    ChLinkMarkers::ArchiveOUT(marchive);
 
     // serialize all member data
+    ////marchive << CHNVP(mask); //// TODO: needed?
+
+    marchive << CHNVP(d_restlength);
+    marchive << CHNVP(force_D);
+    marchive << CHNVP(force_R);
+    marchive << CHNVP(force_X);
+    marchive << CHNVP(force_Y);
+    marchive << CHNVP(force_Z);
+    marchive << CHNVP(force_Rx);
+    marchive << CHNVP(force_Ry);
+    marchive << CHNVP(force_Rz);
+
     marchive << CHNVP(limit_X);
     marchive << CHNVP(limit_Y);
     marchive << CHNVP(limit_Z);
@@ -2174,12 +2652,24 @@ void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkLockLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkLock>();
+    int version = marchive.VersionRead<ChLinkLockLock>();
 
     // deserialize parent class
-    ChLinkMasked::ArchiveIN(marchive);
+    ChLinkMarkers::ArchiveIN(marchive);
 
     // deserialize all member data
+    ////if (mask) delete (mask); marchive >> CHNVP(mask); //// TODO: needed?
+
+    marchive >> CHNVP(d_restlength);
+    marchive >> CHNVP(force_D);
+    marchive >> CHNVP(force_R);
+    marchive >> CHNVP(force_X);
+    marchive >> CHNVP(force_Y);
+    marchive >> CHNVP(force_Z);
+    marchive >> CHNVP(force_Rx);
+    marchive >> CHNVP(force_Ry);
+    marchive >> CHNVP(force_Rz);
+
     marchive >> CHNVP(limit_X);
     marchive >> CHNVP(limit_Y);
     marchive >> CHNVP(limit_Z);
@@ -2201,11 +2691,9 @@ void ChLinkLockLock::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(setmapper(angleset), "angle_set");
 }
 
-// ---------------------------------------------------------------------------------------
-// Register into the object factory, to enable run-time dynamic creation and persistence
-// ---------------------------------------------------------------------------------------
+// =======================================================================================
 
-CH_FACTORY_REGISTER(ChLinkLockLock)
+// Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLockRevolute)
 CH_FACTORY_REGISTER(ChLinkLockSpherical)
 CH_FACTORY_REGISTER(ChLinkLockCylindrical)

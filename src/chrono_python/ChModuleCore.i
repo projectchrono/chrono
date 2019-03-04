@@ -218,7 +218,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkBase)
 %shared_ptr(chrono::ChLink)
 %shared_ptr(chrono::ChLinkMarkers)
-%shared_ptr(chrono::ChLinkMasked)
 %shared_ptr(chrono::ChLinkLimit)
 %shared_ptr(chrono::ChLinkLock)
 %shared_ptr(chrono::ChLinkLockRevolute)
@@ -422,7 +421,6 @@ using namespace chrono::fea;
 %include "ChLinkBase.i"
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
-%include "ChLinkMasked.i"
 %include "ChLinkLimit.i"
 %include "ChLinkForce.i"
 %include "ChLinkLock.i"
@@ -504,7 +502,6 @@ using namespace chrono::fea;
 
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLink)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMarkers)
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkMasked)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLock)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockLock)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkLockRevolute)
@@ -548,7 +545,6 @@ using namespace chrono::fea;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLoadContainer)
 
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkMarkers)
-%DefChSharedPtrDynamicDowncast(ChLink, ChLinkMasked)
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkLock)
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockLock)
 %DefChSharedPtrDynamicDowncast(ChLink, ChLinkLockRevolute)

@@ -42,9 +42,8 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     m_constants_K = K;  // K_x, K_y, K_z, KTheta_x, KTheta_y, KTheta_z
     m_constants_R = R;  // R_x, R_y, R_z, RTheta_x, RTheta_y, RTheta_z
 
-    // Bushing joint always applied compliance in all translation directions
-    // Use force objects (force_X, force_Y, force_Z; force_Rx, force_Ry, force_Rz) from parent
-    // class ChLinkMasked
+    // Bushing joint always applied compliance in all translation directions.
+    // Use force objects (force_X, force_Y, force_Z; force_Rx, force_Ry, force_Rz) from parent class.
 
     force_X = new ChLinkForce();
     force_X->Set_active(true);

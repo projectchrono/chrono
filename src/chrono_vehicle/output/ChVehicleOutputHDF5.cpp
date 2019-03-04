@@ -21,7 +21,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "chrono/physics/ChLinkMasked.h"
+#include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkUniversal.h"
 
 #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
