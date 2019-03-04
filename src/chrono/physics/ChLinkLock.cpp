@@ -12,6 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban, Arman Pazouki
 // =============================================================================
 
+//// TODO: Do not expose raw pointers to user.  
+////       Consider using std::unique_ptr for forces and limits
+
 #include "chrono/physics/ChLinkLock.h"
 
 namespace chrono {
@@ -19,7 +22,23 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLock)
 
-ChLinkLock::ChLinkLock() : type(LinkType::SPHERICAL) {
+ChLinkLock::ChLinkLock()
+    : type(LinkType::SPHERICAL),
+      ndoc_d(0),
+      ndoc_c(0),
+      ndoc(0),
+      d_restlength(0),
+      mask(nullptr),
+      C(nullptr),
+      C_dt(nullptr),
+      C_dtdt(nullptr),
+      react(nullptr),
+      Qc(nullptr),
+      Ct(nullptr),
+      Cq1(nullptr),
+      Cq2(nullptr),
+      Cqw1(nullptr),
+      Cqw2(nullptr) {
     force_D = new ChLinkForce;
     force_R = new ChLinkForce;
     force_X = new ChLinkForce;
@@ -28,23 +47,6 @@ ChLinkLock::ChLinkLock() : type(LinkType::SPHERICAL) {
     force_Rx = new ChLinkForce;
     force_Ry = new ChLinkForce;
     force_Rz = new ChLinkForce;
-
-    d_restlength = 0;
-
-    ndoc_d = ndoc_c = ndoc = 0;
-
-    C = C_dt = C_dtdt = NULL;
-
-    react = 0;
-    Qc = Ct = 0;
-    Cq1 = Cq2 = 0;
-    Cqw1 = Cqw2 = 0;
-
-    mask = new ChLinkMask(1);                    // create the mask;
-    mask->Constr_N(0).SetMode(CONSTRAINT_FREE);  // default: one constr.eq. but not working
-
-    // Setup all matrices and DOC and DOF.
-    BuildLink();
 
     // Matrices used by lock formulation
     Cq1_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
@@ -62,22 +64,15 @@ ChLinkLock::ChLinkLock() : type(LinkType::SPHERICAL) {
     limit_Rp = new ChLinkLimit;  // the polar limit;
     limit_Rp->Set_polar(true);
 
-    // delete the class mask created by base constructor
-    if (mask)
-        delete mask;
-    // create instead the LF-mask (the extended version, for lock-formulation)
-    mask = new ChLinkMaskLF();
-
-    // default type: spherical link
+    // Default type: spherical link
     // Sets the mask, all the matrices, and number of DOC and DOF
     BuildLinkType(LinkType::SPHERICAL);
 }
 
 ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
-    mask = other.mask->Clone();
+    DestroyLink();
 
-    // setup -alloc all needed matrices!!
-    ChangedLinkMask();
+    mask = other.mask->Clone();
 
     force_D = other.force_D->Clone();
     force_R = other.force_R->Clone();
@@ -107,146 +102,111 @@ ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
 }
 
 ChLinkLock::~ChLinkLock() {
-    if (Cq1_temp)
-        delete Cq1_temp;
-    if (Cq2_temp)
-        delete Cq2_temp;
-    if (Qc_temp)
-        delete Qc_temp;
+    delete Cq1_temp;
+    delete Cq2_temp;
+    delete Qc_temp;
 
-    if (limit_X)
-        delete limit_X;
-    if (limit_Y)
-        delete limit_Y;
-    if (limit_Z)
-        delete limit_Z;
-    if (limit_Rx)
-        delete limit_Rx;
-    if (limit_Ry)
-        delete limit_Ry;
-    if (limit_Rz)
-        delete limit_Rz;
-    if (limit_Rp)
-        delete limit_Rp;
-    if (limit_D)
-        delete limit_D;
+    delete limit_X;
+    delete limit_Y;
+    delete limit_Z;
+    delete limit_Rx;
+    delete limit_Ry;
+    delete limit_Rz;
+    delete limit_Rp;
+    delete limit_D;
 
     DestroyLink();
 
-    if (force_D)
-        delete force_D;
-    if (force_R)
-        delete force_R;
-    if (force_X)
-        delete force_X;
-    if (force_Y)
-        delete force_Y;
-    if (force_Z)
-        delete force_Z;
-    if (force_Rx)
-        delete force_Rx;
-    if (force_Ry)
-        delete force_Ry;
-    if (force_Rz)
-        delete force_Rz;
+    delete force_D;
+    delete force_R;
+    delete force_X;
+    delete force_Y;
+    delete force_Z;
+    delete force_Rx;
+    delete force_Ry;
+    delete force_Rz;
 
     delete mask;
-    mask = NULL;
+    mask = nullptr;
 }
 
 void ChLinkLock::SetForce_D(ChLinkForce* m_for) {
-    if (force_D)
-        delete force_D;
+    delete force_D;
     force_D = m_for;
 }
 
 void ChLinkLock::SetForce_R(ChLinkForce* m_for) {
-    if (force_R)
-        delete force_R;
+    delete force_R;
     force_R = m_for;
 }
 
 void ChLinkLock::SetForce_X(ChLinkForce* m_for) {
-    if (force_X)
-        delete force_X;
+    delete force_X;
     force_X = m_for;
 }
 
 void ChLinkLock::SetForce_Y(ChLinkForce* m_for) {
-    if (force_Y)
-        delete force_Y;
+    delete force_Y;
     force_Y = m_for;
 }
 
 void ChLinkLock::SetForce_Z(ChLinkForce* m_for) {
-    if (force_Z)
-        delete force_Z;
+    delete force_Z;
     force_Z = m_for;
 }
 
 void ChLinkLock::SetForce_Rx(ChLinkForce* m_for) {
-    if (force_Rx)
-        delete force_Rx;
+    delete force_Rx;
     force_Rx = m_for;
 }
 
 void ChLinkLock::SetForce_Ry(ChLinkForce* m_for) {
-    if (force_Ry)
-        delete force_Ry;
+    delete force_Ry;
     force_Ry = m_for;
 }
 
 void ChLinkLock::SetForce_Rz(ChLinkForce* m_for) {
-    if (force_Rz)
-        delete force_Rz;
+    delete force_Rz;
     force_Rz = m_for;
 }
 
 void ChLinkLock::SetLimit_X(ChLinkLimit* m_limit_X) {
-    if (limit_X)
-        delete limit_X;
+    delete limit_X;
     limit_X = m_limit_X;
 }
 
 void ChLinkLock::SetLimit_Y(ChLinkLimit* m_limit_Y) {
-    if (limit_Y)
-        delete limit_Y;
+    delete limit_Y;
     limit_Y = m_limit_Y;
 }
 
 void ChLinkLock::SetLimit_Z(ChLinkLimit* m_limit_Z) {
-    if (limit_Z)
-        delete limit_Z;
+    delete limit_Z;
     limit_Z = m_limit_Z;
 }
 
 void ChLinkLock::SetLimit_Rx(ChLinkLimit* m_limit_Rx) {
-    if (limit_Rx)
-        delete limit_Rx;
+    delete limit_Rx;
     limit_Rx = m_limit_Rx;
 }
 
 void ChLinkLock::SetLimit_Ry(ChLinkLimit* m_limit_Ry) {
-    if (limit_Ry)
-        delete limit_Ry;
+    delete limit_Ry;
     limit_Ry = m_limit_Ry;
 }
 
 void ChLinkLock::SetLimit_Rz(ChLinkLimit* m_limit_Rz) {
-    if (limit_Rz)
-        delete limit_Rz;
+    delete limit_Rz;
     limit_Rz = m_limit_Rz;
 }
 
 void ChLinkLock::SetLimit_Rp(ChLinkLimit* m_limit_Rp) {
-    if (limit_Rp)
-        delete limit_Rp;
+    delete limit_Rp;
     limit_Rp = m_limit_Rp;
 }
 
 void ChLinkLock::SetLimit_D(ChLinkLimit* m_limit_D) {
-    if (limit_D)
-        delete limit_D;
+    delete limit_D;
     limit_D = m_limit_D;
 }
 
@@ -313,16 +273,16 @@ void ChLinkLock::BuildLink() {
         Cqw1 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
         Cqw2 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
     } else {
-        C = 0;
-        C_dt = 0;
-        C_dtdt = 0;
-        react = 0;
-        Qc = 0;
-        Ct = 0;
-        Cq1 = 0;
-        Cq2 = 0;
-        Cqw1 = 0;
-        Cqw2 = 0;
+        C = nullptr;
+        C_dt = nullptr;
+        C_dtdt = nullptr;
+        react = nullptr;
+        Qc = nullptr;
+        Ct = nullptr;
+        Cq1 = nullptr;
+        Cq2 = nullptr;
+        Cqw1 = nullptr;
+        Cqw2 = nullptr;
     }
 }
 
@@ -336,52 +296,17 @@ void ChLinkLock::BuildLink(ChLinkMask* new_mask) {
 }
 
 void ChLinkLock::DestroyLink() {
-    if (ndoc > 0) {
-        if (C) {
-            delete C;
-            C = NULL;
-        }
-        if (C_dt) {
-            delete C_dt;
-            C_dt = NULL;
-        }
-        if (C_dtdt) {
-            delete C_dtdt;
-            C_dtdt = NULL;
-        }
-        if (react) {
-            delete react;
-            react = NULL;
-        }
-        if (Qc) {
-            delete Qc;
-            Qc = NULL;
-        }
-        if (Ct) {
-            delete Ct;
-            Ct = NULL;
-        }
-        if (Cq1) {
-            delete Cq1;
-            Cq1 = NULL;
-        }
-        if (Cq2) {
-            delete Cq2;
-            Cq2 = NULL;
-        }
-        if (Cqw1) {
-            delete Cqw1;
-            Cqw1 = NULL;
-        }
-        if (Cqw2) {
-            delete Cqw2;
-            Cqw2 = NULL;
-        }
-        if (react) {
-            delete react;
-            react = NULL;
-        }
-    }
+    delete C;
+    delete C_dt;
+    delete C_dtdt;
+
+    delete react;
+    delete Qc;
+    delete Ct;
+    delete Cq1;
+    delete Cq2;
+    delete Cqw1;
+    delete Cqw2;
 
     ndoc = 0;
 }
