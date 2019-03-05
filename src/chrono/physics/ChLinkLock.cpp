@@ -12,8 +12,9 @@
 // Authors: Alessandro Tasora, Radu Serban, Arman Pazouki
 // =============================================================================
 
-//// TODO: Do not expose raw pointers to user.  
-////       Consider using std::unique_ptr for forces and limits
+//// TODO
+////    Serialization/deserialization of unique_ptr members is currently commented
+////    out until support for unique_ptr is implemented in ChArchive.
 
 #include "chrono/physics/ChLinkLock.h"
 
@@ -39,30 +40,10 @@ ChLinkLock::ChLinkLock()
       Cq2(nullptr),
       Cqw1(nullptr),
       Cqw2(nullptr) {
-    force_D = new ChLinkForce;
-    force_R = new ChLinkForce;
-    force_X = new ChLinkForce;
-    force_Y = new ChLinkForce;
-    force_Z = new ChLinkForce;
-    force_Rx = new ChLinkForce;
-    force_Ry = new ChLinkForce;
-    force_Rz = new ChLinkForce;
-
     // Matrices used by lock formulation
     Cq1_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Cq2_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Qc_temp = new ChMatrixDynamic<>(7, 1);
-
-    limit_X = new ChLinkLimit;
-    limit_Y = new ChLinkLimit;
-    limit_Z = new ChLinkLimit;
-    limit_Rx = new ChLinkLimit;
-    limit_Ry = new ChLinkLimit;
-    limit_Rz = new ChLinkLimit;
-    limit_D = new ChLinkLimit;
-
-    limit_Rp = new ChLinkLimit;  // the polar limit;
-    limit_Rp->Set_polar(true);
 
     // Default type: spherical link
     // Sets the mask, all the matrices, and number of DOC and DOF
@@ -74,27 +55,27 @@ ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMarkers(other) {
 
     mask = other.mask->Clone();
 
-    force_D = other.force_D->Clone();
-    force_R = other.force_R->Clone();
-    force_X = other.force_X->Clone();
-    force_Y = other.force_Y->Clone();
-    force_Z = other.force_Z->Clone();
-    force_Rx = other.force_Rx->Clone();
-    force_Ry = other.force_Ry->Clone();
-    force_Rz = other.force_Rz->Clone();
+    force_D.reset(other.force_D->Clone());
+    force_R.reset(other.force_R->Clone());
+    force_X.reset(other.force_X->Clone());
+    force_Y.reset(other.force_Y->Clone());
+    force_Z.reset(other.force_Z->Clone());
+    force_Rx.reset(other.force_Rx->Clone());
+    force_Ry.reset(other.force_Ry->Clone());
+    force_Rz.reset(other.force_Rz->Clone());
 
     d_restlength = other.d_restlength;
 
     type = other.type;
 
-    limit_X = other.limit_X->Clone();
-    limit_Y = other.limit_Y->Clone();
-    limit_Z = other.limit_Z->Clone();
-    limit_Rx = other.limit_Rx->Clone();
-    limit_Ry = other.limit_Ry->Clone();
-    limit_Rz = other.limit_Rz->Clone();
-    limit_Rp = other.limit_Rp->Clone();
-    limit_D = other.limit_D->Clone();
+    limit_X.reset(other.limit_X->Clone());
+    limit_Y.reset(other.limit_Y->Clone());
+    limit_Z.reset(other.limit_Z->Clone());
+    limit_Rx.reset(other.limit_Rx->Clone());
+    limit_Ry.reset(other.limit_Ry->Clone());
+    limit_Rz.reset(other.limit_Rz->Clone());
+    limit_Rp.reset(other.limit_Rp->Clone());
+    limit_D.reset(other.limit_D->Clone());
 
     Ct_temp = other.Ct_temp;
 
@@ -106,108 +87,158 @@ ChLinkLock::~ChLinkLock() {
     delete Cq2_temp;
     delete Qc_temp;
 
-    delete limit_X;
-    delete limit_Y;
-    delete limit_Z;
-    delete limit_Rx;
-    delete limit_Ry;
-    delete limit_Rz;
-    delete limit_Rp;
-    delete limit_D;
-
     DestroyLink();
-
-    delete force_D;
-    delete force_R;
-    delete force_X;
-    delete force_Y;
-    delete force_Z;
-    delete force_Rx;
-    delete force_Ry;
-    delete force_Rz;
 
     delete mask;
     mask = nullptr;
 }
 
-void ChLinkLock::SetForce_D(ChLinkForce* m_for) {
-    delete force_D;
-    force_D = m_for;
+//// Note: ability to explicitly provide joint forces was removed.
+//// If ever needed, these functions can be re-enabled. In that case,
+//// a typical user call would be:
+////         auto my_force = std::make_unique<ChLinkForce>();
+////         my_joint->SetForce_X(std::move(my_force));
+
+/*
+void ChLinkLock::SetForce_D(std::unique_ptr<ChLinkForce>&& force) {
+    force_D = std::move(force);
+}
+void ChLinkLock::SetForce_R(std::unique_ptr<ChLinkForce>&& force) {
+    force_R = std::move(force);
+}
+void ChLinkLock::SetForce_X(std::unique_ptr<ChLinkForce>&& force) {
+    force_X = std::move(force);
+}
+void ChLinkLock::SetForce_Y(std::unique_ptr<ChLinkForce>&& force) {
+    force_Y = std::move(force);
+}
+void ChLinkLock::SetForce_Z(std::unique_ptr<ChLinkForce>&& force) {
+    force_Z = std::move(force);
+}
+void ChLinkLock::SetForce_Rx(std::unique_ptr<ChLinkForce>&& force) {
+    force_Rx = std::move(force);
+}
+void ChLinkLock::SetForce_Ry(std::unique_ptr<ChLinkForce>&& force) {
+    force_Ry = std::move(force);
+}
+void ChLinkLock::SetForce_Rz(std::unique_ptr<ChLinkForce>&& force) {
+    force_Rz = std::move(force);
+}
+*/
+
+ChLinkForce& ChLinkLock::GetForce_D() {
+    if (!force_D)
+        force_D = std::make_unique<ChLinkForce>();
+    return *force_D;
+}
+ChLinkForce& ChLinkLock::GetForce_R() {
+    if (!force_R)
+        force_R = std::make_unique<ChLinkForce>();
+    return *force_R;
+}
+ChLinkForce& ChLinkLock::GetForce_X() {
+    if (!force_X)
+        force_X = std::make_unique<ChLinkForce>();
+    return *force_X;
+}
+ChLinkForce& ChLinkLock::GetForce_Y() {
+    if (!force_Y)
+        force_Y = std::make_unique<ChLinkForce>();
+    return *force_Y;
+}
+ChLinkForce& ChLinkLock::GetForce_Z() {
+    if (!force_Z)
+        force_Z = std::make_unique<ChLinkForce>();
+    return *force_Z;
+}
+ChLinkForce& ChLinkLock::GetForce_Rx() {
+    if (!force_Rx)
+        force_Rx = std::make_unique<ChLinkForce>();
+    return *force_Rx;
+}
+ChLinkForce& ChLinkLock::GetForce_Ry() {
+    if (!force_Ry)
+        force_Ry = std::make_unique<ChLinkForce>();
+    return *force_Ry;
+}
+ChLinkForce& ChLinkLock::GetForce_Rz() {
+    if (!force_Rz)
+        force_Rz = std::make_unique<ChLinkForce>();
+    return *force_Rz;
 }
 
-void ChLinkLock::SetForce_R(ChLinkForce* m_for) {
-    delete force_R;
-    force_R = m_for;
-}
+//// Note: ability to explicitly provide limits was removed.
+//// If ever needed, these functions can be re-enabled. In that case,
+//// a typical user call would be:
+////         auto my_limit = std::make_unique<ChLinkLimit>();
+////         my_joint->SetLimit_X(std::move(my_force));
 
-void ChLinkLock::SetForce_X(ChLinkForce* m_for) {
-    delete force_X;
-    force_X = m_for;
+/*
+void ChLinkLock::SetLimit_X(std::unique_ptr<ChLinkLimit>&& limit) {
+    limit_X = std::move(limit);
 }
-
-void ChLinkLock::SetForce_Y(ChLinkForce* m_for) {
-    delete force_Y;
-    force_Y = m_for;
+void ChLinkLock::SetLimit_Y(std::unique_ptr<ChLinkLimit>&& limit) {
+    limit_Y = std::move(limit);
 }
-
-void ChLinkLock::SetForce_Z(ChLinkForce* m_for) {
-    delete force_Z;
-    force_Z = m_for;
+void ChLinkLock::SetLimit_Z(std::unique_ptr<ChLinkLimit>&& limit) {
+    limit_Z = std::move(limit);
 }
-
-void ChLinkLock::SetForce_Rx(ChLinkForce* m_for) {
-    delete force_Rx;
-    force_Rx = m_for;
+void ChLinkLock::SetLimit_Rx(std::unique_ptr<ChLinkLimit>&& limit) {
+    limit_Rx = std::move(limit);
 }
-
-void ChLinkLock::SetForce_Ry(ChLinkForce* m_for) {
-    delete force_Ry;
-    force_Ry = m_for;
+void ChLinkLock::SetLimit_Ry(std::unique_ptr<ChLinkLimit>&& limit) {
+    limit_Ry = std::move(limit);
 }
-
-void ChLinkLock::SetForce_Rz(ChLinkForce* m_for) {
-    delete force_Rz;
-    force_Rz = m_for;
+void ChLinkLock::SetLimit_Rz(std::unique_ptr<ChLinkLimit>&& limit) {
+    limit_Rz = std::move(limit);
 }
-
-void ChLinkLock::SetLimit_X(ChLinkLimit* m_limit_X) {
-    delete limit_X;
-    limit_X = m_limit_X;
+void ChLinkLock::SetLimit_Rp(std::unique_ptr<ChLinkLimit>&& limit) {
+    limit_Rp = std::move(limit);
 }
-
-void ChLinkLock::SetLimit_Y(ChLinkLimit* m_limit_Y) {
-    delete limit_Y;
-    limit_Y = m_limit_Y;
+void ChLinkLock::SetLimit_D(std::unique_ptr<ChLinkLimit>&& limit) {
+    limit_D = std::move(limit);
 }
+*/
 
-void ChLinkLock::SetLimit_Z(ChLinkLimit* m_limit_Z) {
-    delete limit_Z;
-    limit_Z = m_limit_Z;
+ChLinkLimit& ChLinkLock::GetLimit_X() {
+    if (!limit_X)
+        limit_X = std::make_unique<ChLinkLimit>();
+    return *limit_X;
 }
-
-void ChLinkLock::SetLimit_Rx(ChLinkLimit* m_limit_Rx) {
-    delete limit_Rx;
-    limit_Rx = m_limit_Rx;
+ChLinkLimit& ChLinkLock::GetLimit_Y() {
+    if (!limit_Y)
+        limit_Y = std::make_unique<ChLinkLimit>();
+    return *limit_Y;
 }
-
-void ChLinkLock::SetLimit_Ry(ChLinkLimit* m_limit_Ry) {
-    delete limit_Ry;
-    limit_Ry = m_limit_Ry;
+ChLinkLimit& ChLinkLock::GetLimit_Z() {
+    if (!limit_Z)
+        limit_Z = std::make_unique<ChLinkLimit>();
+    return *limit_Z;
 }
-
-void ChLinkLock::SetLimit_Rz(ChLinkLimit* m_limit_Rz) {
-    delete limit_Rz;
-    limit_Rz = m_limit_Rz;
+ChLinkLimit& ChLinkLock::GetLimit_Rx() {
+    if (!limit_Rx)
+        limit_Rx = std::make_unique<ChLinkLimit>();
+    return *limit_Rx;
 }
-
-void ChLinkLock::SetLimit_Rp(ChLinkLimit* m_limit_Rp) {
-    delete limit_Rp;
-    limit_Rp = m_limit_Rp;
+ChLinkLimit& ChLinkLock::GetLimit_Ry() {
+    if (!limit_Ry)
+        limit_Ry = std::make_unique<ChLinkLimit>();
+    return *limit_Ry;
 }
-
-void ChLinkLock::SetLimit_D(ChLinkLimit* m_limit_D) {
-    delete limit_D;
-    limit_D = m_limit_D;
+ChLinkLimit& ChLinkLock::GetLimit_Rz() {
+    if (!limit_Rz)
+        limit_Rz = std::make_unique<ChLinkLimit>();
+    return *limit_Rz;
+}
+ChLinkLimit& ChLinkLock::GetLimit_Rp() {
+    if (!limit_Rp)
+        limit_Rp = std::make_unique<ChLinkLimit>();
+    return *limit_Rp;
+}
+ChLinkLimit& ChLinkLock::GetLimit_D() {
+    if (!limit_D)
+        limit_D = std::make_unique<ChLinkLimit>();
+    return *limit_D;
 }
 
 void ChLinkLock::ChangeLinkMask(ChLinkMask* new_mask) {
@@ -372,32 +403,14 @@ void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
     DestroyLink();
     BuildLinkType(new_link_type);
 
-    if (limit_X)
-        delete limit_X;
-    if (limit_Y)
-        delete limit_Y;
-    if (limit_Z)
-        delete limit_Z;
-    if (limit_Rx)
-        delete limit_Rx;
-    if (limit_Ry)
-        delete limit_Ry;
-    if (limit_Rz)
-        delete limit_Rz;
-    if (limit_Rp)
-        delete limit_Rp;
-    if (limit_D)
-        delete limit_D;
-
-    limit_X = new ChLinkLimit;  // default: inactive limits
-    limit_Y = new ChLinkLimit;
-    limit_Z = new ChLinkLimit;
-    limit_Rx = new ChLinkLimit;
-    limit_Ry = new ChLinkLimit;
-    limit_Rz = new ChLinkLimit;
-    limit_D = new ChLinkLimit;
-    limit_Rp = new ChLinkLimit;  // the polar limit;
-    limit_Rp->Set_polar(true);
+    limit_X.reset(nullptr);
+    limit_Y.reset(nullptr);
+    limit_Z.reset(nullptr);
+    limit_Rx.reset(nullptr);
+    limit_Ry.reset(nullptr);
+    limit_Rz.reset(nullptr);
+    limit_D.reset(nullptr);
+    limit_Rp.reset(nullptr);
 }
 
 // setup the functions when user changes them.
@@ -777,30 +790,30 @@ void ChLinkLock::UpdateForces(double mytime) {
     m_force = VNULL;
     m_torque = VNULL;
 
-    if (limit_X->Get_active()) {
+    if (limit_X && limit_X->Get_active()) {
         m_force.x() = limit_X->GetForce(relM.pos.x(), relM_dt.pos.x());
     }
-    if (limit_Y->Get_active()) {
+    if (limit_Y && limit_Y->Get_active()) {
         m_force.y() = limit_Y->GetForce(relM.pos.y(), relM_dt.pos.y());
     }
-    if (limit_Z->Get_active()) {
+    if (limit_Z && limit_Z->Get_active()) {
         m_force.z() = limit_Z->GetForce(relM.pos.z(), relM_dt.pos.z());
     }
 
-    if (limit_D->Get_active()) {
+    if (limit_D && limit_D->Get_active()) {
         m_force = Vadd(m_force, Vmul(Vnorm(relM.pos), limit_D->GetForce(dist, dist_dt)));
     }
 
-    if (limit_Rx->Get_active()) {
+    if (limit_Rx && limit_Rx->Get_active()) {
         m_torque.x() = limit_Rx->GetForce(relRotaxis.x(), relWvel.x());
     }
-    if (limit_Ry->Get_active()) {
+    if (limit_Ry && limit_Ry->Get_active()) {
         m_torque.y() = limit_Ry->GetForce(relRotaxis.y(), relWvel.y());
     }
-    if (limit_Rz->Get_active()) {
+    if (limit_Rz && limit_Rz->Get_active()) {
         m_torque.z() = limit_Rz->GetForce(relRotaxis.z(), relWvel.z());
     }
-    if (limit_Rp->Get_active()) {
+    if (limit_Rp && limit_Rp->Get_active()) {
         ChVector<> arm_xaxis = VaxisXfromQuat(relM.rot);  // the X axis of the marker1, respect to m2.
         double zenith = VangleYZplaneNorm(arm_xaxis);     // the angle of m1 Xaxis about normal to YZ plane
         double polar = VangleRX(arm_xaxis);               // the polar angle of m1 Xaxis spinning about m2 Xaxis
@@ -1927,7 +1940,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
         n_constraint++;
     }
 
-    // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if
+    // ***TO DO***?: TRANSFORMATION FROM delta COORDS TO LINK COORDS, if
     // non-default delta
     // if delta rotation?
 
@@ -2028,23 +2041,26 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     ////marchive << CHNVP(mask); //// TODO: needed?
 
     marchive << CHNVP(d_restlength);
-    marchive << CHNVP(force_D);
-    marchive << CHNVP(force_R);
-    marchive << CHNVP(force_X);
-    marchive << CHNVP(force_Y);
-    marchive << CHNVP(force_Z);
-    marchive << CHNVP(force_Rx);
-    marchive << CHNVP(force_Ry);
-    marchive << CHNVP(force_Rz);
 
-    marchive << CHNVP(limit_X);
-    marchive << CHNVP(limit_Y);
-    marchive << CHNVP(limit_Z);
-    marchive << CHNVP(limit_Rx);
-    marchive << CHNVP(limit_Ry);
-    marchive << CHNVP(limit_Rz);
-    marchive << CHNVP(limit_Rp);
-    marchive << CHNVP(limit_D);
+    marchive << CHNVP(force_D.get());
+
+    ////marchive << CHNVP(force_D);
+    ////marchive << CHNVP(force_R);
+    ////marchive << CHNVP(force_X);
+    ////marchive << CHNVP(force_Y);
+    ////marchive << CHNVP(force_Z);
+    ////marchive << CHNVP(force_Rx);
+    ////marchive << CHNVP(force_Ry);
+    ////marchive << CHNVP(force_Rz);
+
+    ////marchive << CHNVP(limit_X);
+    ////marchive << CHNVP(limit_Y);
+    ////marchive << CHNVP(limit_Z);
+    ////marchive << CHNVP(limit_Rx);
+    ////marchive << CHNVP(limit_Ry);
+    ////marchive << CHNVP(limit_Rz);
+    ////marchive << CHNVP(limit_Rp);
+    ////marchive << CHNVP(limit_D);
 }
 
 void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
@@ -2063,23 +2079,29 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     ////if (mask) delete (mask); marchive >> CHNVP(mask); //// TODO: needed?
 
     marchive >> CHNVP(d_restlength);
-    marchive >> CHNVP(force_D);
-    marchive >> CHNVP(force_R);
-    marchive >> CHNVP(force_X);
-    marchive >> CHNVP(force_Y);
-    marchive >> CHNVP(force_Z);
-    marchive >> CHNVP(force_Rx);
-    marchive >> CHNVP(force_Ry);
-    marchive >> CHNVP(force_Rz);
 
-    marchive >> CHNVP(limit_X);
-    marchive >> CHNVP(limit_Y);
-    marchive >> CHNVP(limit_Z);
-    marchive >> CHNVP(limit_Rx);
-    marchive >> CHNVP(limit_Ry);
-    marchive >> CHNVP(limit_Rz);
-    marchive >> CHNVP(limit_Rp);
-    marchive >> CHNVP(limit_D);
+    {
+        ChLinkForce* force_D_ptr;
+        marchive >> CHNVP(force_D_ptr);
+        force_D.reset(force_D_ptr);
+    }
+    ////marchive >> CHNVP(force_D);
+    ////marchive >> CHNVP(force_R);
+    ////marchive >> CHNVP(force_X);
+    ////marchive >> CHNVP(force_Y);
+    ////marchive >> CHNVP(force_Z);
+    ////marchive >> CHNVP(force_Rx);
+    ////marchive >> CHNVP(force_Ry);
+    ////marchive >> CHNVP(force_Rz);
+
+    ////marchive >> CHNVP(limit_X);
+    ////marchive >> CHNVP(limit_Y);
+    ////marchive >> CHNVP(limit_Z);
+    ////marchive >> CHNVP(limit_Rx);
+    ////marchive >> CHNVP(limit_Ry);
+    ////marchive >> CHNVP(limit_Rz);
+    ////marchive >> CHNVP(limit_Rp);
+    ////marchive >> CHNVP(limit_D);
 }
 
 // =======================================================================================
@@ -2177,8 +2199,9 @@ void ChLinkLockLock::UpdateTime(double time) {
 
     // If some limit is provided, the delta values may have been changed by limits themselves,
     // so no further modifications by motion laws.
-    if (limit_X->Get_active() || limit_Y->Get_active() || limit_Z->Get_active() || limit_Rx->Get_active() ||
-        limit_Ry->Get_active() || limit_Rz->Get_active())
+    if ((limit_X && limit_X->Get_active()) || (limit_Y && limit_Y->Get_active()) ||
+        (limit_Z && limit_Z->Get_active()) || (limit_Rx && limit_Rx->Get_active()) ||
+        (limit_Ry && limit_Ry->Get_active()) || (limit_Rz && limit_Rz->Get_active()))
         return;
 
     // Update motion position/speed/acceleration by motion laws
@@ -2545,23 +2568,24 @@ void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
     ////marchive << CHNVP(mask); //// TODO: needed?
 
     marchive << CHNVP(d_restlength);
-    marchive << CHNVP(force_D);
-    marchive << CHNVP(force_R);
-    marchive << CHNVP(force_X);
-    marchive << CHNVP(force_Y);
-    marchive << CHNVP(force_Z);
-    marchive << CHNVP(force_Rx);
-    marchive << CHNVP(force_Ry);
-    marchive << CHNVP(force_Rz);
 
-    marchive << CHNVP(limit_X);
-    marchive << CHNVP(limit_Y);
-    marchive << CHNVP(limit_Z);
-    marchive << CHNVP(limit_Rx);
-    marchive << CHNVP(limit_Ry);
-    marchive << CHNVP(limit_Rz);
-    marchive << CHNVP(limit_Rp);
-    marchive << CHNVP(limit_D);
+    ////marchive << CHNVP(force_D);
+    ////marchive << CHNVP(force_R);
+    ////marchive << CHNVP(force_X);
+    ////marchive << CHNVP(force_Y);
+    ////marchive << CHNVP(force_Z);
+    ////marchive << CHNVP(force_Rx);
+    ////marchive << CHNVP(force_Ry);
+    ////marchive << CHNVP(force_Rz);
+
+    ////marchive << CHNVP(limit_X);
+    ////marchive << CHNVP(limit_Y);
+    ////marchive << CHNVP(limit_Z);
+    ////marchive << CHNVP(limit_Rx);
+    ////marchive << CHNVP(limit_Ry);
+    ////marchive << CHNVP(limit_Rz);
+    ////marchive << CHNVP(limit_Rp);
+    ////marchive << CHNVP(limit_D);
 
     marchive << CHNVP(motion_X);
     marchive << CHNVP(motion_Y);
@@ -2586,23 +2610,24 @@ void ChLinkLockLock::ArchiveIN(ChArchiveIn& marchive) {
     ////if (mask) delete (mask); marchive >> CHNVP(mask); //// TODO: needed?
 
     marchive >> CHNVP(d_restlength);
-    marchive >> CHNVP(force_D);
-    marchive >> CHNVP(force_R);
-    marchive >> CHNVP(force_X);
-    marchive >> CHNVP(force_Y);
-    marchive >> CHNVP(force_Z);
-    marchive >> CHNVP(force_Rx);
-    marchive >> CHNVP(force_Ry);
-    marchive >> CHNVP(force_Rz);
 
-    marchive >> CHNVP(limit_X);
-    marchive >> CHNVP(limit_Y);
-    marchive >> CHNVP(limit_Z);
-    marchive >> CHNVP(limit_Rx);
-    marchive >> CHNVP(limit_Ry);
-    marchive >> CHNVP(limit_Rz);
-    marchive >> CHNVP(limit_Rp);
-    marchive >> CHNVP(limit_D);
+    ////marchive >> CHNVP(force_D);
+    ////marchive >> CHNVP(force_R);
+    ////marchive >> CHNVP(force_X);
+    ////marchive >> CHNVP(force_Y);
+    ////marchive >> CHNVP(force_Z);
+    ////marchive >> CHNVP(force_Rx);
+    ////marchive >> CHNVP(force_Ry);
+    ////marchive >> CHNVP(force_Rz);
+
+    ////marchive >> CHNVP(limit_X);
+    ////marchive >> CHNVP(limit_Y);
+    ////marchive >> CHNVP(limit_Z);
+    ////marchive >> CHNVP(limit_Rx);
+    ////marchive >> CHNVP(limit_Ry);
+    ////marchive >> CHNVP(limit_Rz);
+    ////marchive >> CHNVP(limit_Rp);
+    ////marchive >> CHNVP(limit_D);
 
     marchive >> CHNVP(motion_X);
     marchive >> CHNVP(motion_Y);

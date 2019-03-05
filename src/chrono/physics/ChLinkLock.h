@@ -41,17 +41,17 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     virtual ChLinkLock* Clone() const override { return new ChLinkLock(*this); }
 
     /// Must be called after whatever change the mask of the link,
-    /// in order to update auxiliary matrices sizes...
+    /// in order to update auxiliary matrices sizes.
     void ChangeLinkMask(ChLinkMask* new_mask);
 
     /// Must be called after whatever change the mask of the link,
     /// in order to update auxiliary matrices sizes.
     void ChangedLinkMask();
 
-    /// If some constraint is redundant, return to normal state
+    /// If some constraint is redundant, return to normal state.
     int RestoreRedundant() override;
 
-    /// User can use this to enable/disable all the constraint of the link as desired.
+    /// Enable/disable all constraints of the link.
     virtual void SetDisabled(bool mdis) override;
 
     /// For example, a 3rd party software can set the 'broken' status via this method
@@ -64,45 +64,37 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// overwrites inherited implementation of this method
     virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2) override;
 
-    // Internal forces
+    //@{
+    /// Accessors for internal forces on free degrees of freedom.
+    /// These functions provide access to initialize and set parameters for link
+    /// forces acting on different degrees of freedom of the joint.
+    /// Note that they use "lazy initialization"; an internal link force object is
+    /// created on the first invocation of the corresponding accessor function.
+    ChLinkForce& GetForce_D();
+    ChLinkForce& GetForce_R();
+    ChLinkForce& GetForce_X();
+    ChLinkForce& GetForce_Y();
+    ChLinkForce& GetForce_Z();
+    ChLinkForce& GetForce_Rx();
+    ChLinkForce& GetForce_Ry();
+    ChLinkForce& GetForce_Rz();
+    //@}
 
-    void SetForce_D(ChLinkForce* m_for);
-    void SetForce_R(ChLinkForce* m_for);
-    void SetForce_X(ChLinkForce* m_for);
-    void SetForce_Y(ChLinkForce* m_for);
-    void SetForce_Z(ChLinkForce* m_for);
-    void SetForce_Rx(ChLinkForce* m_for);
-    void SetForce_Ry(ChLinkForce* m_for);
-    void SetForce_Rz(ChLinkForce* m_for);
-
-    ChLinkForce* GetForce_D() { return force_D; }
-    ChLinkForce* GetForce_R() { return force_R; }
-    ChLinkForce* GetForce_X() { return force_X; }
-    ChLinkForce* GetForce_Y() { return force_Y; }
-    ChLinkForce* GetForce_Z() { return force_Z; }
-    ChLinkForce* GetForce_Rx() { return force_Rx; }
-    ChLinkForce* GetForce_Ry() { return force_Ry; }
-    ChLinkForce* GetForce_Rz() { return force_Rz; }
-
-    // Limits on free degrees of freedom
-
-    void SetLimit_X(ChLinkLimit* m_limit_X);
-    void SetLimit_Y(ChLinkLimit* m_limit_Y);
-    void SetLimit_Z(ChLinkLimit* m_limit_Z);
-    void SetLimit_Rx(ChLinkLimit* m_limit_Rx);
-    void SetLimit_Ry(ChLinkLimit* m_limit_Ry);
-    void SetLimit_Rz(ChLinkLimit* m_limit_Rz);
-    void SetLimit_Rp(ChLinkLimit* m_limit_Rp);
-    void SetLimit_D(ChLinkLimit* m_limit_D);
-
-    ChLinkLimit* GetLimit_X() const { return limit_X; }
-    ChLinkLimit* GetLimit_Y() const { return limit_Y; }
-    ChLinkLimit* GetLimit_Z() const { return limit_Z; }
-    ChLinkLimit* GetLimit_Rx() const { return limit_Rx; }
-    ChLinkLimit* GetLimit_Ry() const { return limit_Ry; }
-    ChLinkLimit* GetLimit_Rz() const { return limit_Rz; }
-    ChLinkLimit* GetLimit_Rp() const { return limit_Rp; }
-    ChLinkLimit* GetLimit_D() const { return limit_D; }
+    //@{
+    /// Accessors for limits on free degrees of freedom.
+    /// These functions provide access to initialize and set parameters for link
+    /// limits on different free degrees of freedom of the joint.
+    /// Note that they use "lazy initialization"; an internal link limit object is
+    /// created on the first invocation of the corresponding accessor function.
+    ChLinkLimit& GetLimit_X();
+    ChLinkLimit& GetLimit_Y();
+    ChLinkLimit& GetLimit_Z();
+    ChLinkLimit& GetLimit_Rx();
+    ChLinkLimit& GetLimit_Ry();
+    ChLinkLimit& GetLimit_Rz();
+    ChLinkLimit& GetLimit_Rp();
+    ChLinkLimit& GetLimit_D();
+    //@}
 
     /// Get the number of scalar constraints for this link.
     virtual int GetDOC() override { return GetDOC_c() + GetDOC_d(); }
@@ -118,11 +110,11 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     // Get the constraint violations, i.e. the residual of the constraint equations
     // and their time derivatives
 
-    /// Link violation (residuals of the link constraint equations)
+    /// Link violation (residuals of the link constraint equations).
     ChMatrix<>* GetC() { return C; }
-    /// Time derivatives of link violations
+    /// Time derivatives of link violations.
     ChMatrix<>* GetC_dt() { return C_dt; }
-    /// Double time derivatives of link violations
+    /// Double time derivatives of link violations.
     ChMatrix<>* GetC_dtdt() { return C_dtdt; }
 
     // LINK STATE MATRICES
@@ -214,24 +206,24 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     int ndoc_c;  ///< number of degrees of constraint (bilateral constraintss)
     int ndoc_d;  ///< number of degrees of constraint (unilateral constraints, excluding joint limits)
 
-    ChLinkForce* force_D;   ///< the force acting on the straight line m1-m2 (distance)
-    ChLinkForce* force_R;   ///< the torque acting about rotation axis
-    ChLinkForce* force_X;   ///< the force acting along X dof
-    ChLinkForce* force_Y;   ///< the force acting along Y dof
-    ChLinkForce* force_Z;   ///< the force acting along Z dof
-    ChLinkForce* force_Rx;  ///< the torque acting about Rx dof
-    ChLinkForce* force_Ry;  ///< the torque acting about Ry dof
-    ChLinkForce* force_Rz;  ///< the torque acting about Rz dof
-    double d_restlength;    ///< the rest length of the "d_spring" spring
+    std::unique_ptr<ChLinkForce> force_D;   ///< the force acting on the straight line m1-m2 (distance)
+    std::unique_ptr<ChLinkForce> force_R;   ///< the torque acting about rotation axis
+    std::unique_ptr<ChLinkForce> force_X;   ///< the force acting along X dof
+    std::unique_ptr<ChLinkForce> force_Y;   ///< the force acting along Y dof
+    std::unique_ptr<ChLinkForce> force_Z;   ///< the force acting along Z dof
+    std::unique_ptr<ChLinkForce> force_Rx;  ///< the torque acting about Rx dof
+    std::unique_ptr<ChLinkForce> force_Ry;  ///< the torque acting about Ry dof
+    std::unique_ptr<ChLinkForce> force_Rz;  ///< the torque acting about Rz dof
+    double d_restlength;                    ///< the rest length of the "d_spring" spring
 
-    ChLinkLimit* limit_X;   ///< the upper/lower limits for X dof
-    ChLinkLimit* limit_Y;   ///< the upper/lower limits for Y dof
-    ChLinkLimit* limit_Z;   ///< the upper/lower limits for Z dof
-    ChLinkLimit* limit_Rx;  ///< the upper/lower limits for Rx dof
-    ChLinkLimit* limit_Ry;  ///< the upper/lower limits for Ry dof
-    ChLinkLimit* limit_Rz;  ///< the upper/lower limits for Rz dof
-    ChLinkLimit* limit_Rp;  ///< the polar (conical) limit for "shoulder"rotation
-    ChLinkLimit* limit_D;   ///< the polar (conical) limit for "shoulder"rotation
+    std::unique_ptr<ChLinkLimit> limit_X;   ///< the upper/lower limits for X dof
+    std::unique_ptr<ChLinkLimit> limit_Y;   ///< the upper/lower limits for Y dof
+    std::unique_ptr<ChLinkLimit> limit_Z;   ///< the upper/lower limits for Z dof
+    std::unique_ptr<ChLinkLimit> limit_Rx;  ///< the upper/lower limits for Rx dof
+    std::unique_ptr<ChLinkLimit> limit_Ry;  ///< the upper/lower limits for Ry dof
+    std::unique_ptr<ChLinkLimit> limit_Rz;  ///< the upper/lower limits for Rz dof
+    std::unique_ptr<ChLinkLimit> limit_Rp;  ///< the polar (conical) limit for "shoulder"rotation
+    std::unique_ptr<ChLinkLimit> limit_D;   ///< the polar (conical) limit for "shoulder"rotation
 
     ChMatrix<>* C;       ///< C(q,q_dt,t), the constraint violations
     ChMatrix<>* C_dt;    ///< Speed constraint violations
