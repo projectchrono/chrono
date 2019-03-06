@@ -50,22 +50,36 @@ my_shbodyA.SetMaterialSurface(my_shmaterial)
 my_shbodyB.SetMaterialSurface(my_shmaterial)
 
 
-# Add Contact callback (TO FIX!!)
-##class MyContactCallback(chrono.ChCustomCollisionPointCallbackP):
-##    def __init__(self):
-##         chrono.ChCustomCollisionPointCallbackP.__init__(self)
-##    def ContactCallback(self,collinfo,matcouple):
-##         print (' add contact: ' , collinfo.distance, matcouple.static_friction)
-##
-##my_call = MyContactCallback()
-##my_system.SetCustomCollisionPointCallback(my_call)
+# Add Contact callback (TO FIX downcast matcouple to ChMaterialCompositeSMC !!)
+class MyContactCallback(chrono.ChAddContactCallbackP):
+    def __init__(self):
+         chrono.ChAddContactCallbackP.__init__(self)
+    def OnAddContact(self,
+                     collinfo, # get infos as ChCollisionInfo 
+                     matcouple # change values here if needed, as ChMaterialComposite
+                     ):
+         print (' add contact: distance=' , collinfo, matcouple)
+         #matcouple.static_friction = 0.001  # change the default friction from srface materials
+         
+my_on_add_contact = MyContactCallback()
+my_system.GetContactContainer().RegisterAddContactCallback(my_on_add_contact)
+
 
 # Report Contact callback
 class MyReportContactCallback(chrono.ChReportContactCallbackP):
     def __init__(self):
          chrono.ChReportContactCallbackP.__init__(self)
-    def OnReportContact(self,vA,vB,cA,dist,rad,force,torque,modA,modB):
-         print ('  contact: point A=' , vA,  '  dist=',dist)
+    def OnReportContact(self,
+                        pA,             # point A as ChVectorD
+                        pB,             # point B as ChVectorD
+                        plane_coord,    # plane coords ChMatrix33D
+                        distance,       # distance
+                        eff_radius,     # surf. radius 
+                        react_forces,   # as ChVectorD
+                        react_torques,  # as ChVectorD
+                        contactobjA,    # contacted object as ChContactable
+                        contactobjB):   # contacted object as ChContactable
+         print ('  contact: point A=' , pA,  '  dist=',distance)
          return True        # return False to stop reporting contacts
 
 my_rep = MyReportContactCallback()
