@@ -235,8 +235,8 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
         // only 1 contact per pair, avoid persistence
         resultOut->getPersistentManifold()->clearManifold();
 
-        bt2DarcShape* arc = (bt2DarcShape*)arcObjWrap->getCollisionShape();
-        bt2DsegmentShape* segment = (bt2DsegmentShape*)segmentObjWrap->getCollisionShape();
+        const bt2DarcShape* arc = (bt2DarcShape*)arcObjWrap->getCollisionShape();
+        const bt2DsegmentShape* segment = (bt2DsegmentShape*)segmentObjWrap->getCollisionShape();
 
         // A concave arc (i.e.with outward volume, counterclockwise abscissa) will never collide with segments
         if (arc->get_counterclock()) 
