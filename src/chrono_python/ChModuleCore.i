@@ -318,6 +318,9 @@ using namespace chrono::fea;
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
 %shared_ptr(chrono::geometry::ChTriangleMeshSoup)
 
+%feature("director") chrono::ChLoadBase;
+%feature("director") chrono::ChLoadBodyBody;
+
 //
 // B- INCLUDE HEADERS
 //
@@ -418,7 +421,7 @@ using namespace chrono::fea;
 %include "ChSystemSMC.i"
 %include "ChContactContainer.i"
 %include "ChProximityContainer.i"
-%include "ChLoadContainer.i"
+//%include "ChLoadContainer.i"
 %include "ChLinkBase.i"
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
@@ -453,7 +456,7 @@ using namespace chrono::fea;
 %include "../chrono/physics/ChLoad.h"
 %include "../chrono/physics/ChLoadsBody.h"
 %include "../chrono/physics/ChLoadContainer.h"
-
+%include "ChLoadContainer.i"
 
 
 
