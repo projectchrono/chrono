@@ -129,6 +129,7 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
             return;
         } else {
             btCompoundShape* mcompound = new btCompoundShape(true);
+			mcompound->setMargin(this->GetSuggestedFullMargin());
             shapes.push_back(std::shared_ptr<btCollisionShape>(mcompound));
             shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
             bt_collision_object->setCollisionShape(mcompound);
@@ -145,6 +146,7 @@ void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot,
         shapes.push_back(shapes[0]);
         shapes.push_back(std::shared_ptr<btCollisionShape>(mshape));
         btCompoundShape* mcompound = new btCompoundShape(true);
+		mcompound->setMargin(this->GetSuggestedFullMargin());
         shapes[0] = std::shared_ptr<btCollisionShape>(mcompound);
         bt_collision_object->setCollisionShape(mcompound);
         mtransform.setIdentity();
@@ -626,7 +628,7 @@ bool ChModelBullet::AddTriangleMesh(std::shared_ptr<geometry::ChTriangleMesh> tr
                                              false   // use island generation (unsupported-disabled)
             );
             mydecompositionJR->ComputeConvexDecomposition();
-            GetLog() << " found n.hulls=" << mydecompositionJR->GetHullCount() << "\n";
+            //GetLog() << " found n.hulls=" << mydecompositionJR->GetHullCount() << "\n";
             this->AddTriangleMeshConcaveDecomposed(mydecompositionJR, pos, rot);
 
             /*
