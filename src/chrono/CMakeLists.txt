@@ -1078,6 +1078,10 @@ set(ChronoEngine_utils_HEADERS
     utils/ChConvexHull.h
 )
 
+if(BUILD_BENCHMARKING)
+    set(ChronoEngine_utils_HEADERS ${ChronoEngine_utils_HEADERS} utils/ChBenchmark.h)
+endif()
+
 source_group(utils FILES
     ${ChronoEngine_utils_SOURCES}
     ${ChronoEngine_utils_HEADERS})
