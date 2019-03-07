@@ -6,11 +6,9 @@
 %}
  
 // Tell SWIG about parent class in Python
-%import "ChLinkMasked.i"
+%import "ChLinkMarkers.i"
 
 
 /* Parse the header file to generate wrappers */
+%include "../chrono/physics/ChLinkForce.h"
 %include "../chrono/physics/ChLinkLock.h"  
-
-
-

@@ -81,22 +81,16 @@ class LinkLockBM : public ::benchmark::Fixture {
 // Benchmark individual operations
 
 BM_LINK_OP_TIME(UpdateTime_LinkMarkers, ChLinkMarkers, UpdateTime)
-BM_LINK_OP_TIME(UpdateTime_LinkMasked, ChLinkMasked, UpdateTime)
 BM_LINK_OP_TIME(UpdateTime_LinkLock, ChLinkLock, UpdateTime)
 
 BM_LINK_OP_TIME(UpdateForces_LinkMarkers, ChLinkMarkers, UpdateForces)
-BM_LINK_OP_TIME(UpdateForces_LinkMasked, ChLinkMasked, UpdateForces)
 BM_LINK_OP_TIME(UpdateForces_LinkLock, ChLinkLock, UpdateForces)
 
 BM_LINK_OP_VOID(UpdateRelMarkerCoords_LinkMarkers, ChLinkMarkers, UpdateRelMarkerCoords)
-BM_LINK_OP_VOID(UpdateRelMarkerCoords_LinkMasked, ChLinkMasked, UpdateRelMarkerCoords)
-BM_LINK_OP_VOID(UpdateRelMarkerCoords_LinkLock, ChLinkLock, UpdateRelMarkerCoords)
 
-BM_LINK_OP_VOID(UpdateState_LinkMasked, ChLinkMasked, UpdateState)
 BM_LINK_OP_VOID(UpdateState_LinkLock, ChLinkLock, UpdateState)
 
 BM_LINK_OP_TIME(Update_LinkMarkers, ChLinkMarkers, Update)
-BM_LINK_OP_TIME(Update_LinkMasked, ChLinkMasked, Update)
 BM_LINK_OP_TIME(Update_LinkLock, ChLinkLock, Update)
 
 // Main function
