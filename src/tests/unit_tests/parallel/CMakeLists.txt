@@ -52,6 +52,8 @@ ENDFOREACH(PROGRAM)
 #--------------------------------------------------------------
 # Executables that use Bullet
 
+if(USE_PARALLEL_BULLET)
+
 SET(TESTS_B
     utest_PAR_mpr
 )
@@ -67,6 +69,8 @@ IF (MSVC)
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.h
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btConvexPolyhedron.h
+        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btConvexPolyhedron.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.h
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btConeShape.h
@@ -102,6 +106,7 @@ FOREACH(PROGRAM ${TESTS_B})
 
 ENDFOREACH(PROGRAM)
 
+endif()
 
 #--------------------------------------------------------------
 # Executables that use OpenGL if it is available

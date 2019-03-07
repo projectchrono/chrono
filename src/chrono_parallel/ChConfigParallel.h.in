@@ -36,5 +36,8 @@
 //   #define CHRONO_PARALLEL_USE_CUDA
 @CHRONO_PARALLEL_USE_CUDA@
 
+// If using Bullet is enabled
+//   #define CHRONO_PARALLEL_USE_BULLET
+@CHRONO_PARALLEL_USE_BULLET@
 
 #endif

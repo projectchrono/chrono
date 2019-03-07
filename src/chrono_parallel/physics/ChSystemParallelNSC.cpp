@@ -12,11 +12,14 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 
+#include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
+#ifdef CHRONO_PARALLEL_USE_BULLET
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
+#endif
 
 using namespace chrono;
 

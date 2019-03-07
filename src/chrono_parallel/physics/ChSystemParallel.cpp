@@ -27,14 +27,18 @@
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
+#include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
-#include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/math/matrix.h"  // for quaternion, real4
+#include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
+
+#ifdef CHRONO_PARALLEL_USE_BULLET
+#include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
+#endif
 
 #include <numeric>
 
@@ -685,7 +689,11 @@ void ChSystemParallel::ChangeCollisionSystem(CollisionSystemType type) {
             collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
             break;
         case CollisionSystemType::COLLSYS_BULLET_PARALLEL:
+#ifdef CHRONO_PARALLEL_USE_BULLET
             collision_system = std::make_shared<ChCollisionSystemBulletParallel>(data_manager);
+#else
+            collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
+#endif
             break;
     }
 }
