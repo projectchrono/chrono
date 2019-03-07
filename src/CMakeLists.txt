@@ -401,10 +401,13 @@ if(BUILD_TESTING)
     # Hide some Google test-related variables
     mark_as_advanced(FORCE BUILD_GMOCK)
     mark_as_advanced(FORCE INSTALL_GTEST)
+
+    set(CHRONO_HAS_GTEST "#define CHRONO_HAS_GTEST")
   else()
     message("  Google test code not found: update git submodules.")
     message("  Building of unit tests was disabled.")
     set(BUILD_TESTING OFF CACHE BOOL "Build the testing tree." FORCE)
+    set(CHRONO_HAS_GTEST "")
   endif()
 
 endif()
@@ -432,10 +435,13 @@ if(BUILD_BENCHMARKING)
     mark_as_advanced(FORCE BENCHMARK_ENABLE_TESTING)
     mark_as_advanced(FORCE BENCHMARK_USE_LIBCXX)
     mark_as_advanced(FORCE LIBRT)
+
+    set(CHRONO_HAS_GBENCHMARK "#define CHRONO_HAS_GBENCHMARK")
   else()
     message("  Google benchmark code not found: update git submodules.")
     message("  Building of benchmark tests was disabled.")
     set(BUILD_BENCHMARKING OFF CACHE BOOL "Build benchmark tests" FORCE)
+    set(CHRONO_HAS_GBENCHMARK "")
   endif()
 
 endif()

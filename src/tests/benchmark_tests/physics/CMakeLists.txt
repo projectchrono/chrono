@@ -1,9 +1,22 @@
-SET(LIBRARIES ChronoEngine)
-INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
+include_directories( ${CH_INCLUDES} )
+set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+list(APPEND LIBS "ChronoEngine")
 
 SET(TESTS
     btest_CH_ChBody
+    btest_CH_joints
 )
+
+if(ENABLE_MODULE_IRRLICHT)
+  SET(TESTS ${TESTS} 
+    btest_CH_pendulums
+    btest_CH_mixerNSC
+  )
+  include_directories(${CH_IRRLICHTINC})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+  list(APPEND LIBS "ChronoEngine_irrlicht")
+endif()
 
 MESSAGE(STATUS "Benchmark test programs for PHYSICS module...")
 
@@ -15,11 +28,11 @@ FOREACH(PROGRAM ${TESTS})
 
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
         FOLDER demos
-        COMPILE_FLAGS "${CH_CXX_FLAGS}"
-        LINK_FLAGS "${CH_LINKERFLAG_EXE}"
+        COMPILE_FLAGS "${COMPILER_FLAGS}"
+        LINK_FLAGS "${LINKER_FLAGS}"
     )
 
-    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} benchmark_main)
+    TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBS} benchmark_main)
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH(PROGRAM)

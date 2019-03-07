@@ -32,22 +32,18 @@ class Model(object):
     #ant_sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
       self.ant_sys.SetMaxItersSolverSpeed(70)
       
-      #TODO: check contact parameters
+
       self.ant_material = chrono.ChMaterialSurfaceNSC()
       self.ant_material.SetFriction(0.5)
       self.ant_material.SetDampingF(0.2)
       self.ant_material.SetCompliance (0.0005)
       self.ant_material.SetComplianceT(0.0005)
-    # ant_material.SetRollingFriction(rollfrict_param)
-    # ant_material.SetSpinningFriction(0)
-    # ant_material.SetComplianceRolling(0.0000001)
-    # ant_material.SetComplianceSpinning(0.0000001)
-    #TODO: timestep tuning (initialization argument?)
+
       self.timestep = 0.01
       self.abdomen_x = 0.25
       self.abdomen_y = 0.25
       self.abdomen_z = 0.25
-      #TODO: check densisties
+
       self.leg_density = 250    # kg/m^3
       self.abdomen_density = 100
       self.abdomen_y0 = 0.4
@@ -189,8 +185,7 @@ class Model(object):
              self.Ankle_rev[i].GetLimit_Rz().Set_min(-math.pi/2)
              self.Ankle_rev[i].GetLimit_Rz().Set_max(math.pi/4)
              
-             #self.leg_body[i].SetBodyFixed(True)
-             #self.ankle_body[i].SetBodyFixed(True)
+
            
     # Create the room floor: a simple fixed rigid body with a collision shape
     # and a visualization shape
@@ -200,7 +195,7 @@ class Model(object):
       self.body_floor.SetPos(chrono.ChVectorD(0, -1, 0 ))
       self.body_floor.SetMaterialSurface(self.ant_material)
       
-      # Floor Collision. TODO different material 
+      # Floor Collision.
       self.body_floor.SetMaterialSurface(self.ant_material)
       self.body_floor.GetCollisionModel().ClearModel()
       self.body_floor.GetCollisionModel().AddBox(50, 1, 50, chrono.ChVectorD(0, 0, 0 ))
@@ -221,7 +216,7 @@ class Model(object):
       if (self.animate):
             self.myapplication.AssetBindAll()
             self.myapplication.AssetUpdateAll()
-	      #self.myapplication.AddShadowAll()
+
       self.numsteps= 0
       self.step(np.zeros(8))
       return self.get_ob()
@@ -237,7 +232,7 @@ class Model(object):
               self.myapplication.DrawAll()
        self.ac = ac.reshape((-1,))
        for i in range(len(self.leg_motor)): 
-              #TODO: check twice the max motor torque ()
+
               action_a = chrono.ChFunction_Const(self.gain*float(self.ac[i])) 
               action_b = chrono.ChFunction_Const(self.gain*float(self.ac[i+4])) 
               self.leg_motor[i].SetTorqueFunction(action_a)
@@ -286,17 +281,15 @@ class Model(object):
    def calc_rew(self, xposbefore):
                   
                   electricity_cost     = -2.0    # cost for using motors -- this parameter should be carefully tuned against reward for making progress, other values less improtant
+                  #stall_torque_cost    = -0.1    # cost for running electric current through a motor even at zero rotational speed, small
 
                   joints_at_limit_cost = -0.2    # discourage stuck joints
                   
                   power_cost  = electricity_cost  * float(np.abs(self.ac*self.q_dot_mot).mean())  # let's assume we have DC motor with controller, and reverse current braking. BTW this is the formula of motor power
-                  #REduced stall cost to avoid joints at limit
-                  #power_cost += stall_torque_cost * float(np.square(self.ac).mean())
+                  #Reduced stall cost to avoid joints at limit
                   joints_limit = joints_at_limit_cost * self.joint_at_limit
-
-                  self.alive_bonus =  +1 if self.body_abdomen.GetContactForce().Length() == 0 else -1  # 0.25 is central sphere rad, die if it scrapes the ground
+                  self.alive_bonus =  +1 if self.body_abdomen.GetContactForce().Length() == 0 else -1
                   progress = self.calc_progress()
-                
                   rew = progress + self.alive_bonus + 0.1*(power_cost) + 3*(joints_limit)
                   return rew
    def calc_progress(self):

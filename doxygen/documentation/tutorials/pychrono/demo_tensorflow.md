@@ -4,11 +4,11 @@ Deep Reinforcement Learning with PyChrono and Tensorflow {#tutorial_pychrono_dem
 
 ## Introduction
 Deep Reinforcement Learning (DRL) consits in using Reinforcement Learning to train Deep Neural Network. In the last few years it has been applied with success to various robotic control tasks. 
-The main advantage of this approach is its ability to deal with unstructured and mutable environemnts, while classical robotic control oftens fails in these challenges.
-To train a NN with DRL several interactions with the envrironment are needed. For this reason physical engines offer a valuable help, allowing to train the agent in a virtual environment instead of training it directly in the real world, reducing time and risks of the operation.
+The main advantage of this approach is its ability to deal with unstructured and mutable environemnts, while classical robotic control often fails in these challenges.
+To train a NN with DRL several interactions with the environment are needed. For this reason physical engines offer a valuable help, allowing to train the agent in a virtual environment instead of training it directly in the real world, reducing time and risks of the operation.
 ### Goal:
 We will train a Neural Network to solve robotic tasks using virtual training environment created with [PyChrono](@ref pychrono_introduction).
-The demo contains virtual enviroments and a learning model created with Tensorflow. 
+The demo contains virtual environments and a learning model created with Tensorflow. 
 
 ## Environments
 We provide two sample environments for robotic control. 
@@ -33,13 +33,16 @@ The policy and value function codes are in the **Policy.py** and **VF.py** respe
 Make sure that you are using the right Python interpreter (the one with Pychrono an Tensorflow installed). 
 Then simply run the script with the needed keyboard arguments
 
+### Serial and Parallel Training
+You can choose between "train_serial.py" and "train_parallel.py". The parallel version collects data over multiple simulations using the Python multiprocessing module. In the advanced stages of training, when episodes last longer, this feature greatly speeds up the learning process. 
+
 **EXAMPLES**: 
 
 Train to solve the inverted pendulum over 1000 episodes:
 
 ~~~~~~~~~~~~~{.sh}
 
-python ./train.py ChronoPendulum -n 1000
+python ./train_serial.py ChronoPendulum -n 1000
 
 ~~~~~~~~~~~~~
 
@@ -47,11 +50,11 @@ Learn to make the 4-legged ant walk over 20000 episodes:
 
 ~~~~~~~~~~~~~{.sh}
 
-python ./train.py ChronoAnt -n 20000
+python ./train_parallel.py ChronoAnt -n 20000
 
 ~~~~~~~~~~~~~
 
-Alternatively, launch the demo from your favourite IDE, but remember to add the required arguments.
+Alternatively, launch the demo from your favorite IDE, but remember to add the required arguments.
 
 ### List of command line arguments
 Besides the environment name and the number of episodes, there are some other arguments, mainly to hand-tune learning parameters.
@@ -69,7 +72,8 @@ Besides the environment name and the number of episodes, there are some other ar
 
 NN parameters and the other TF variables are stored inside the Policy and VF directories, while the scaler means and variances are stored in the scaler.dat saved numpy array. These files and folders are stored and used to restore a previous checkpoint.
 
+Since they use the same NN architecture using parallel or serial version does not matter when restoring checkpoints.
+
 ## Tester
 
 To test the Policy without further improving it execute **tester.py**. Set ** --VideoSave ** to save screenshots from the render.
-

@@ -62,11 +62,14 @@ class Scaler(object):
             self.m += n
 
     def resume(self):
-        resumed = np.load("./savedmodel/"+self.env_name+"/scaler.dat")
-        self.means = resumed[0: self.means.size]
-        self.vars = resumed[self.means.size : self.means.size+self.vars.size]
-        self.m = resumed[self.means.size+self.vars.size: resumed.size]
-        self.first_pass = False
+        if os.path.isfile("./savedmodel/" + self.env_name + "/scaler.dat"):
+            resumed = np.load("./savedmodel/"+self.env_name+"/scaler.dat")
+            self.means = resumed[0: self.means.size]
+            self.vars = resumed[self.means.size : self.means.size+self.vars.size]
+            self.m = resumed[self.means.size+self.vars.size: resumed.size]
+            self.first_pass = False
+        else:
+            return 0
 
     def get(self):
         """ returns 2-tuple: (scale, offset) """
