@@ -22,7 +22,7 @@ namespace chrono {
 /// A class for the custom fast simulation of revolute joints with clearance.
 /// ***OBSOLETE***
 
-class ChApi ChLinkClearance : public ChLinkLock {
+class ChApi ChLinkClearance : public ChLinkLockLock {
 
   protected:
     double clearance;           ///< distance offset

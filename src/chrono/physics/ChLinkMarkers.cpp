@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChLinkMarkers)    // NO! Abstract class!
+// CH_FACTORY_REGISTER(ChLinkMarkers)    // NO! Abstract class!
 
 ChLinkMarkers::ChLinkMarkers()
     : marker1(NULL),
@@ -136,26 +136,21 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
     }
 }
 
+// For all relative degrees of freedom of the two markers, compute relM, relM_dt,
+// and relM_dtdt, as well as auxiliary data. Cache some intermediate quantities
+// for possible reuse in UpdateState by some derived classes.
 void ChLinkMarkers::UpdateRelMarkerCoords() {
-    // FOR ALL THE 6(or3) COORDINATES OF RELATIVE MOTION OF THE TWO MARKERS:
-    // COMPUTE THE relM, relM_dt relM_dtdt COORDINATES, AND AUXILIARY DATA (distance,etc.)
-
-    Vector PQw = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
-    Vector PQw_dt = Vsub(marker1->GetAbsCoord_dt().pos, marker2->GetAbsCoord_dt().pos);
-    Vector PQw_dtdt = Vsub(marker1->GetAbsCoord_dtdt().pos, marker2->GetAbsCoord_dtdt().pos);
+    PQw = Vsub(marker1->GetAbsCoord().pos, marker2->GetAbsCoord().pos);
+    PQw_dt = Vsub(marker1->GetAbsCoord_dt().pos, marker2->GetAbsCoord_dt().pos);
+    PQw_dtdt = Vsub(marker1->GetAbsCoord_dtdt().pos, marker2->GetAbsCoord_dtdt().pos);
 
     dist = Vlength(PQw);                 // distance between origins, modulus
     dist_dt = Vdot(Vnorm(PQw), PQw_dt);  // speed between origins, modulus.
 
-    Vector vtemp1;  // for intermediate calculus
+    Vector vtemp1;
     Vector vtemp2;
     Quaternion qtemp1;
-
     ChMatrixNM<double, 3, 4> relGw;
-    Quaternion q_AD;
-    Quaternion q_BC;
-    Quaternion q_8;
-    Vector q_4;
 
     Quaternion temp1 = marker1->GetCoord_dt().rot;
     Quaternion temp2 = marker2->GetCoord_dt().rot;
@@ -333,17 +328,12 @@ void ChLinkMarkers::UpdateForces(double mytime) {
 }
 
 void ChLinkMarkers::Update(double time, bool update_assets) {
-    // 1 -
     UpdateTime(time);
-
-    // 2 -
     UpdateRelMarkerCoords();
-
-    // 3 -
     UpdateForces(time);
 
-    // Inherit time changes of parent class (ChLink)
-    ChLink::Update(time, update_assets);
+    // Update assets
+    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -351,7 +341,7 @@ void ChLinkMarkers::Update(double time, bool update_assets) {
 void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                       ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                       const double c           // a scaling factor
-                                      ) {
+) {
     if (!Body1 || !Body2)
         return;
 

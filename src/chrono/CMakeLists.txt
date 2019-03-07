@@ -129,7 +129,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkBase.cpp
     physics/ChLink.cpp
     physics/ChLinkDistance.cpp
-    physics/ChLinkMasked.cpp
     physics/ChLinkMarkers.cpp
     physics/ChLinkLock.cpp
     physics/ChLinkBrake.cpp
@@ -242,7 +241,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkLock.h
     physics/ChLinkMarkers.h
     physics/ChLinkMask.h
-    physics/ChLinkMasked.h
     physics/ChLinkPointSpline.h
     physics/ChLinkPulley.h
     physics/ChLinksAll.h
@@ -1093,6 +1091,10 @@ set(ChronoEngine_utils_HEADERS
     utils/ChParserOpenSim.h
     utils/ChConvexHull.h
 )
+
+if(BUILD_BENCHMARKING)
+    set(ChronoEngine_utils_HEADERS ${ChronoEngine_utils_HEADERS} utils/ChBenchmark.h)
+endif()
 
 source_group(utils FILES
     ${ChronoEngine_utils_SOURCES}

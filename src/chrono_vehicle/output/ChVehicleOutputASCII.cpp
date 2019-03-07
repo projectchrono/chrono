@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include "chrono/physics/ChLinkMasked.h"
+#include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkUniversal.h"
 #include "chrono/physics/ChLinkDistance.h"
 
@@ -97,7 +97,7 @@ void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>
         std::vector<double> violations;
         //// TODO: Fix this mess in Chrono
         ChMatrix<>* C = nullptr;
-        if (auto jnt = std::dynamic_pointer_cast<ChLinkMasked>(joint)) {
+        if (auto jnt = std::dynamic_pointer_cast<ChLinkLock>(joint)) {
             C = jnt->GetC();
             for (int i = 0; i < C->GetRows(); i++)
                 violations.push_back(C->GetElement(i, 0));

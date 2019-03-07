@@ -58,7 +58,7 @@ void ChLinkBrake::SetDisabled(bool mdis) {
     ChangedLinkMask();
 }
 
-// Update time: just change internal time, do not let parent class modify deltaC !
+// Update time: just change internal time!
 void ChLinkBrake::UpdateTime(double time) {
     ChTime = time;
 }

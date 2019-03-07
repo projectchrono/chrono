@@ -25,7 +25,7 @@ namespace chrono {
 /// It can be used also to simulate the imposed motion of objects in space
 /// (for motion capture, for example).
 
-class ChApi ChLinkTrajectory : public ChLinkLock {
+class ChApi ChLinkTrajectory : public ChLinkLockLock {
 
   protected:
     std::shared_ptr<ChFunction> space_fx;  ///< function providing the time history of the trajectory parameter

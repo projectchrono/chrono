@@ -42,21 +42,20 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     m_constants_K = K;  // K_x, K_y, K_z, KTheta_x, KTheta_y, KTheta_z
     m_constants_R = R;  // R_x, R_y, R_z, RTheta_x, RTheta_y, RTheta_z
 
-    // Bushing joint always applied compliance in all translation directions
-    // Use force objects (force_X, force_Y, force_Z; force_Rx, force_Ry, force_Rz) from parent
-    // class ChLinkMasked
+    // Bushing joint always applied compliance in all translation directions.
+    // Use force objects (force_X, force_Y, force_Z; force_Rx, force_Ry, force_Rz) from parent class.
 
-    force_X = new ChLinkForce();
+    force_X = std::make_unique<ChLinkForce>();
     force_X->Set_active(true);
     force_X->Set_K(m_constants_K(0, 0));
     force_X->Set_R(m_constants_R(0, 0));
 
-    force_Y = new ChLinkForce();
+    force_Y = std::make_unique<ChLinkForce>();
     force_Y->Set_active(true);
     force_Y->Set_K(m_constants_K(1, 1));
     force_Y->Set_R(m_constants_R(1, 1));
 
-    force_Z = new ChLinkForce();
+    force_Z = std::make_unique<ChLinkForce>();
     force_Z->Set_active(true);
     force_Z->Set_K(m_constants_K(2, 2));
     force_Z->Set_R(m_constants_R(2, 2));
@@ -64,17 +63,17 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     // Apply compliance in rotational dofs depending on bushing type selected
     switch (m_bushing_joint) {
         case ChLinkBushing::Mount:
-            force_Rx = new ChLinkForce();
+            force_Rx = std::make_unique<ChLinkForce>();
             force_Rx->Set_active(true);
             force_Rx->Set_K(m_constants_K(3, 3));
             force_Rx->Set_R(m_constants_R(3, 3));
 
-            force_Ry = new ChLinkForce();
+            force_Ry = std::make_unique<ChLinkForce>();
             force_Ry->Set_active(true);
             force_Ry->Set_K(m_constants_K(4, 4));
             force_Ry->Set_R(m_constants_R(4, 4));
 
-            force_Rz = new ChLinkForce();
+            force_Rz = std::make_unique<ChLinkForce>();
             force_Rz->Set_active(true);
             force_Rz->Set_K(m_constants_K(5, 5));
             force_Rz->Set_R(m_constants_R(5, 5));
@@ -91,16 +90,6 @@ void ChLinkBushing::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
-
-    // serialize all member data:
-    marchive << CHNVP(force_X);
-    marchive << CHNVP(force_Y);
-    marchive << CHNVP(force_Z);
-    marchive << CHNVP(force_Rx);
-    marchive << CHNVP(force_Ry);
-    marchive << CHNVP(force_Rz);
-    marchive << CHNVP(m_constants_K);
-    marchive << CHNVP(m_constants_R);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -110,16 +99,6 @@ void ChLinkBushing::ArchiveIN(ChArchiveIn& marchive) {
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);
-
-    // serialize all member data:
-    marchive >> CHNVP(force_X);
-    marchive >> CHNVP(force_Y);
-    marchive >> CHNVP(force_Z);
-    marchive >> CHNVP(force_Rx);
-    marchive >> CHNVP(force_Ry);
-    marchive >> CHNVP(force_Rz);
-    marchive >> CHNVP(m_constants_K);
-    marchive >> CHNVP(m_constants_R);
 }
 
 }  // end namespace chrono

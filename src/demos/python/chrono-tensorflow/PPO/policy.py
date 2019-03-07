@@ -113,6 +113,8 @@ class Policy(object):
         Calculates log probabilities using previous step's model parameters and
         new parameters being trained.
         """
+        # Consider the log probability of a gaussian distribution:
+        # https://math.stackexchange.com/questions/892832/why-we-consider-log-likelihood-instead-of-likelihood-in-gaussian-distribution
         logp = -0.5 * tf.reduce_sum(self.log_vars)
         logp += -0.5 * tf.reduce_sum(tf.square(self.act_ph - self.means) /
                                      tf.exp(self.log_vars), axis=1)

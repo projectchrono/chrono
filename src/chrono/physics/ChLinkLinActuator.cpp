@@ -42,7 +42,7 @@ ChLinkLinActuator::ChLinkLinActuator()
     mot_rerot = mot_rerot_dt = mot_rerot_dtdt = 0;
 }
 
-ChLinkLinActuator::ChLinkLinActuator(const ChLinkLinActuator& other) : ChLinkLock(other) {
+ChLinkLinActuator::ChLinkLinActuator(const ChLinkLinActuator& other) : ChLinkLockLock(other) {
     learn = other.learn;
     learn_torque_rotation = other.learn_torque_rotation;
     offset = other.offset;
@@ -87,7 +87,7 @@ void ChLinkLinActuator::Set_learn_torque_rotaton(bool mset) {
 
 void ChLinkLinActuator::UpdateTime(double mytime) {
     // First, inherit to parent class
-    ChLinkLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(mytime);
 
     // If LEARN MODE, just record motion
     if (learn) {
@@ -190,7 +190,7 @@ void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkLinActuator>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(learn);
@@ -210,7 +210,7 @@ void ChLinkLinActuator::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkLinActuator>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(learn);

@@ -39,7 +39,7 @@ ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
     ChangedLinkMask();
 }
 
-ChLinkTrajectory::ChLinkTrajectory(const ChLinkTrajectory& other) : ChLinkLock(other) {
+ChLinkTrajectory::ChLinkTrajectory(const ChLinkTrajectory& other) : ChLinkLockLock(other) {
     space_fx = std::shared_ptr<ChFunction>(other.space_fx->Clone());            // deep copy
     trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
 }
@@ -110,7 +110,7 @@ void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkTrajectory>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(space_fx);
@@ -123,7 +123,7 @@ void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkTrajectory>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(space_fx);
