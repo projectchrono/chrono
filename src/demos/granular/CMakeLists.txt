@@ -30,6 +30,7 @@ SET(DEMOS
 		test_GRAN_Coneflow
 		test_GRAN_HopperReposeAngle
 		utest_GRAN_spherefric
+        utest_GRAN_rotf
 		demo_GRAN_DamBreak
 		demo_GRAN_ShearBand
 		test_GRAN_meshforce
