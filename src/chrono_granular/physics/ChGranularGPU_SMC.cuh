@@ -1102,6 +1102,9 @@ static __global__ void updateFrictionData(const float stepsize_SU,
 
         // no divergence, same for every thread in block
         switch (gran_params->time_integrator) {
+            case GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR:      // fall through to Euler for this one
+            case GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE:  // both of these have the smae signature as forward Euler
+                                                             // vels
             case GRAN_TIME_INTEGRATOR::FORWARD_EULER: {
                 // tau = I alpha => alpha = tau / I, we already computed these alphas
                 omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
@@ -1116,13 +1119,6 @@ static __global__ void updateFrictionData(const float stepsize_SU,
                                                     sphere_data->sphere_ang_acc_Y_old[mySphereID]);
                 omega_update_Z = integrateChung_vel(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID],
                                                     sphere_data->sphere_ang_acc_Z_old[mySphereID]);
-                break;
-            }
-            case GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE: {
-                // tau = I alpha => alpha = tau / I, we already computed these alphas
-                omega_update_X = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_X[mySphereID]);
-                omega_update_Y = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Y[mySphereID]);
-                omega_update_Z = integrateForwardEuler(stepsize_SU, sphere_data->sphere_ang_acc_Z[mySphereID]);
                 break;
             }
         }

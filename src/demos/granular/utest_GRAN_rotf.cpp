@@ -45,22 +45,25 @@ int main(int argc, char* argv[]) {
     gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
     gran_sys.set_Gamma_n_SPH2SPH(params.normalDampS2S);
     gran_sys.set_Gamma_n_SPH2WALL(params.normalDampS2W);
+
     gran_sys.set_K_t_SPH2SPH(params.tangentStiffS2S);
     gran_sys.set_K_t_SPH2WALL(params.tangentStiffS2W);
     gran_sys.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
     gran_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
+
     gran_sys.set_Cohesion_ratio(params.cohesion_ratio);
     gran_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     gran_sys.setOutputDirectory(params.output_dir);
     gran_sys.setOutputMode(params.write_mode);
     gran_sys.set_static_friction_coeff(0.7);
-    
+
     gran_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
-    gran_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::NAIVE);
+    // gran_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::NAIVE);
 
     std::vector<ChVector<float>> points;
-    ChVector<float> sphere_pos(-params.box_X / 2 + 2 * params.sphere_radius, 0, -params.box_Z / 2 + 5 * params.sphere_radius);
+    ChVector<float> sphere_pos(-params.box_X / 2 + 2 * params.sphere_radius, 0,
+                               -params.box_Z / 2 + 5 * params.sphere_radius);
     points.push_back(sphere_pos);
     gran_sys.setParticlePositions(points);
 
@@ -68,19 +71,19 @@ int main(int argc, char* argv[]) {
     // Vector up ramp
     float dx = 1.f;
     float dz = std::tan(ramp_angle);
-    
+
     // Ramp normal
     dz = dx / dz;
     dx = 1.f;
     float len = std::sqrt(dx * dx + dz * dz);
     dx = dx / len;
     dz = dz / len;
-    
+
     float plane_n[] = {dx, 0.f, dz};
     ChVector<float> p_n(plane_n[0], plane_n[1], plane_n[2]);
     cout << "p_n" << p_n.x() << " " << p_n.y() << " " << p_n.z() << endl;
-    
-    ChVector<float> p_pos = sphere_pos - 1.1f * (float) params.sphere_radius * p_n;
+
+    ChVector<float> p_pos = sphere_pos - 1.1f * (float)params.sphere_radius * p_n;
     cout << "p_pos" << p_pos.x() << " " << p_pos.y() << " " << p_pos.z() << endl;
 
     float plane_pos[] = {p_pos.x(), p_pos.y(), p_pos.z()};
@@ -88,7 +91,7 @@ int main(int argc, char* argv[]) {
     gran_sys.Create_BC_Plane(plane_pos, plane_n, false);
 
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gran_sys.set_fixed_stepSize(params.step_size);
     filesystem::create_directory(filesystem::path(params.output_dir));
     gran_sys.set_BD_Fixed(true);
