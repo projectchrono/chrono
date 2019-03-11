@@ -1394,3 +1394,11 @@ Running test suite!
 Frictionless took 43.8894 seconds!
 Single Step took 57.8487 seconds!
 Multistep took 85.7192 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Mon, 11 Mar 2019 13:02:49 -0500
+commit 34cc8cc32f494a983fafc611dbe9d8bfcab5bb5f Author: Conlain Kelly <conlain.k@gmail.com> Date: Mon Mar 11 13:02:49 2019 -0500 add mini gran test for driver/nvprof checks
+Results:
+Running test suite!
+Frictionless took 46.2591 seconds!
+Single Step took 59.1936 seconds!
+Multistep took 87.7473 seconds!
