@@ -51,8 +51,7 @@ FialaTire::FialaTire(const rapidjson::Document& d) : ChFialaTire(""), m_has_mesh
     Create(d);
 }
 
-FialaTire::~FialaTire() {
-}
+FialaTire::~FialaTire() {}
 
 void FialaTire::Create(const rapidjson::Document& d) {
     // Invoke base class method.
@@ -63,10 +62,6 @@ void FialaTire::Create(const rapidjson::Document& d) {
     if (d.HasMember("Coefficient of Friction")) {
         // Default value = 0.8
         m_mu_0 = d["Coefficient of Friction"].GetDouble();
-    }
-    if(d.HasMember("Nominal Vertical Force [N]")) {
-        // Helpful for plotting
-        m_Fz_nom = d["Nominal Vertical Force [N]"].GetDouble();
     }
     // Read in Fiala tire model parameters
     m_unloaded_radius = d["Fiala Parameters"]["Unloaded Radius"].GetDouble();
@@ -80,7 +75,7 @@ void FialaTire::Create(const rapidjson::Document& d) {
     m_u_max = d["Fiala Parameters"]["UMAX"].GetDouble();
     m_relax_length_x = d["Fiala Parameters"]["X Relaxation Length"].GetDouble();
     m_relax_length_y = d["Fiala Parameters"]["Y Relaxation Length"].GetDouble();
-    if(m_relax_length_x <= 0.0 || m_relax_length_y <= 0.0) {
+    if (m_relax_length_x <= 0.0 || m_relax_length_y <= 0.0) {
         m_dynamic_mode = false;
     }
     m_visualization_width = m_width;
@@ -109,8 +104,7 @@ void FialaTire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
-    }
-    else {
+    } else {
         ChFialaTire::AddVisualizationAssets(vis);
     }
 }
