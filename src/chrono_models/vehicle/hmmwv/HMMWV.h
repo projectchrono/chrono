@@ -67,6 +67,8 @@ class CH_MODELS_API HMMWV {
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
+    void SetTireCollisionType(ChTire::CollisionType collision_type) { m_tire_collision_type = collision_type; }
+
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
@@ -117,6 +119,7 @@ class CH_MODELS_API HMMWV {
     DrivelineType m_driveType;
     PowertrainModelType m_powertrainType;
     TireModelType m_tireType;
+    ChTire::CollisionType m_tire_collision_type;
 
     double m_vehicle_step_size;
     double m_tire_step_size;

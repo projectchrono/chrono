@@ -39,6 +39,7 @@ HMMWV::HMMWV()
       m_driveType(DrivelineType::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_vehicle_step_size(-1),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -57,6 +58,7 @@ HMMWV::HMMWV(ChSystem* system)
       m_driveType(DrivelineType::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_vehicle_step_size(-1),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -281,10 +283,10 @@ void HMMWV::Synchronize(double time,
 
     double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
 
-    m_tires[0]->Synchronize(time, wheel_states[0], terrain);
-    m_tires[1]->Synchronize(time, wheel_states[1], terrain);
-    m_tires[2]->Synchronize(time, wheel_states[2], terrain);
-    m_tires[3]->Synchronize(time, wheel_states[3], terrain);
+    m_tires[0]->Synchronize(time, wheel_states[0], terrain, m_tire_collision_type);
+    m_tires[1]->Synchronize(time, wheel_states[1], terrain, m_tire_collision_type);
+    m_tires[2]->Synchronize(time, wheel_states[2], terrain, m_tire_collision_type);
+    m_tires[3]->Synchronize(time, wheel_states[3], terrain, m_tire_collision_type);
 
     m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
 
