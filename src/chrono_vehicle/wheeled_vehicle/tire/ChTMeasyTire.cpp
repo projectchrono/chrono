@@ -377,12 +377,10 @@ void ChTMeasyTire::Advance(double step) {
                 case 1: {
                     // explicit Euler, may be unstable
                     // 1. oder tire dynamics
-                    m_states.xe = m_states.xe +
-                                  h * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
-                                      (vtxs * m_TMeasyCoeff.dx + fos);
-                    m_states.ye = m_states.ye +
-                                  h * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
-                                      (vtys * m_TMeasyCoeff.dy + fos);
+                    m_states.xe = m_states.xe + h * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
+                                                    (vtxs * m_TMeasyCoeff.dx + fos);
+                    m_states.ye = m_states.ye + h * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
+                                                    (vtys * m_TMeasyCoeff.dy + fos);
                     // 0. order tire dynamics
                     m_states.Mb_dyn = m_states.Mb_dyn + h * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
                     break;
@@ -391,13 +389,13 @@ void ChTMeasyTire::Advance(double step) {
                     // semi-implicit Euler, absolutely stable
                     // 1. oder tire dynamics
                     double dFx = -vtxs * m_TMeasyCoeff.cx / (vtxs * m_TMeasyCoeff.dx + fos);
-                    m_states.xe = m_states.xe +
-                                  h / (1.0 - h * dFx) * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
-                                      (vtxs * m_TMeasyCoeff.dx + fos);
+                    m_states.xe = m_states.xe + h / (1.0 - h * dFx) *
+                                                    (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
+                                                    (vtxs * m_TMeasyCoeff.dx + fos);
                     double dFy = -vtys * m_TMeasyCoeff.cy / (vtys * m_TMeasyCoeff.dy + fos);
-                    m_states.ye = m_states.ye +
-                                  h / (1.0 - h * dFy) * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
-                                      (vtys * m_TMeasyCoeff.dy + fos);
+                    m_states.ye = m_states.ye + h / (1.0 - h * dFy) *
+                                                    (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
+                                                    (vtys * m_TMeasyCoeff.dy + fos);
                     // 0. order tire dynamics
                     double dMb = -gain;
                     m_states.Mb_dyn = m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * gain;
@@ -775,8 +773,8 @@ void ChTMeasyTire::GuessTruck80Par(unsigned int li,   // tire load index
                                    double ratio,      // [] = use 0.75 meaning 75%
                                    double rimDia,     // rim diameter [m]
                                    double pinfl_li,   // inflation pressure at load index
-                                   double pinfl_use   // inflation pressure in this configuration
-                                   ) {
+                                   double pinfl_use)  // inflation pressure in this configuration
+{
     double tireLoad = GetTireMaxLoad(li);
     GuessTruck80Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use);
 }
@@ -787,8 +785,8 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,   // tire load force [N]
                                    double ratio,      // [] = use 0.75 meaning 75%
                                    double rimDia,     // rim diameter [m]
                                    double pinfl_li,   // inflation pressure at load index
-                                   double pinfl_use   // inflation pressure in this configuration
-                                   ) {
+                                   double pinfl_use)  // inflation pressure in this configuration
+{
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
     double xi = 0.05;                  // damping ratio
@@ -856,8 +854,8 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,   // tire load index
                                      double ratio,      // [] = use 0.75 meaning 75%
                                      double rimDia,     // rim diameter [m]
                                      double pinfl_li,   // inflation pressure at load index
-                                     double pinfl_use   // inflation pressure in this configuration
-                                     ) {
+                                     double pinfl_use)  // inflation pressure in this configuration
+{
     double tireLoad = GetTireMaxLoad(li);
     GuessPassCar70Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use);
 }
@@ -867,8 +865,8 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,   // tire load force [N]
                                      double ratio,      // [] = use 0.75 meaning 75%
                                      double rimDia,     // rim diameter [m]
                                      double pinfl_li,   // inflation pressure at load index
-                                     double pinfl_use   // inflation pressure in this configuration
-                                     ) {
+                                     double pinfl_use)  // inflation pressure in this configuration
+{
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
     double xi = 0.05;                  // damping ration

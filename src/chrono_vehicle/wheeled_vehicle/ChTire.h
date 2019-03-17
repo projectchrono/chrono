@@ -199,8 +199,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     double m_stepsize;                ///< tire integration step size (if applicable)
 
   private:
-    /// Calculate kinematics quantities based on the current state of the associated
-    /// wheel body.
+    /// Calculate kinematics quantities based on the current state of the associated wheel body.
     void CalculateKinematics(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
                              const ChTerrain& terrain        ///< [in] reference to the terrain system

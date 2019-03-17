@@ -59,7 +59,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   public:
     ChTMeasyTire(const std::string& name  ///< [in] name of this tire system
-                 );
+    );
 
     virtual ~ChTMeasyTire() {}
 
@@ -122,7 +122,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
     double GetCamberAngle_internal() { return m_gamma; }
 
-    /// Get Max. Tire Load from Load Index (LI) in N [0:279]
+    /// Get maximum tire load from Load Index (LI) in N [0:279]
     static double GetTireMaxLoad(unsigned int li);
 
     /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%)
@@ -132,7 +132,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                          double rimDia,          ///< rim diameter [m]
                          double pinfl_li = 1.0,  ///< inflation pressure at load index
                          double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                         );
+    );
 
     void GuessTruck80Par(double loadForce,       ///< tire nominal load force [N]
                          double tireWidth,       ///< tire width [m]
@@ -140,7 +140,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                          double rimDia,          ///< rim diameter [m]
                          double pinfl_li = 1.0,  ///< inflation pressure at load index
                          double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                         );
+    );
 
     /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%)
     void GuessPassCar70Par(unsigned int li,        ///< tire load index
@@ -149,14 +149,14 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
                            double rimDia,          ///< rim diameter [m]
                            double pinfl_li = 1.0,  ///< inflation pressure at load index
                            double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                           );
+    );
     void GuessPassCar70Par(double loadForce,       ///< tire nominal load force [N]
                            double tireWidth,       ///< tire width [m]
                            double ratio,           ///< use 0.75 meaning 75%
                            double rimDia,          ///< rim diameter [m]
                            double pinfl_li = 1.0,  ///< inflation pressure at load index
                            double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                           );
+    );
 
     /// Set vertical tire stiffness as linear function by coefficient [N/m].
     void SetVerticalStiffness(double Cz) { SetVerticalStiffness(Cz, Cz); }
@@ -275,9 +275,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
     TMeasyCoeff m_TMeasyCoeff;
 
-    // linear Interpolation
+    // linear interpolation
     double InterpL(double fz, double w1, double w2) { return w1 + (w2 - w1) * (fz / m_TMeasyCoeff.pn - 1.0); };
-    // quadratic Interpolation
+    // quadratic interpolation
     double InterpQ(double fz, double w1, double w2) {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };

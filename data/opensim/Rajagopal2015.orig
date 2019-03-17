@@ -97,7 +97,7 @@
 						<transform> -0 0 -0 0 0 0</transform>
 						<!--Whether to show a coordinate frame-->
 						<show_axes>false</show_axes>
-						<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+						<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 						<display_preference>4</display_preference>
 					</VisibleObject>
 				</GeometryPath>
@@ -131,7 +131,7 @@
 				<kv> 1 1 1</kv>
 				<!--Feedforward acceleration gain.  This is normally set to 1.0, so no gain.-->
 				<ka> 1 1 1</ka>
-				<!--Direction vector[3] for component 0 of a task. Joint tasks do not use this propery.-->
+				<!--Direction vector[3] for component 0 of a task. Joint tasks do not use this property.-->
 				<r0> 0 0 0</r0>
 				<!--Direction vector[3] for component 1 of a task. Joint tasks do not use this property.-->
 				<r1> 0 0 0</r1>
@@ -139,7 +139,7 @@
 				<r2> 0 0 0</r2>
 				<!--Name of the coordinate to be tracked.-->
 				<coordinate />
-				<!--Error limit on the tracking accuracy for this coordinate. If the tracking errors approach this limit, the weighting for this coordinate is increased. -->
+				<!--Error limit on the tracking accuracy for this coordinate. If the tracking errors approach this limit, the weighting for this coordinate is increased.-->
 				<limit>0</limit>
 			</CMC_Joint>
 		</defaults>
@@ -175,7 +175,7 @@
 						<transform> -0 0 -0 0 0 0</transform>
 						<!--Whether to show a coordinate frame-->
 						<show_axes>false</show_axes>
-						<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+						<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 						<display_preference>4</display_preference>
 					</VisibleObject>
 					<WrapObjectSet>
@@ -205,7 +205,7 @@
 							<location>0 0 0</location>
 							<!--Orientation of the joint in the owing body specified in the owning body reference frame.  Euler XYZ body-fixed rotation angles are used to express the orientation. -->
 							<orientation>0 0 0</orientation>
-							<!--Set holding the generalized coordinates (q's) that parmeterize this joint.-->
+							<!--Set holding the generalized coordinates (q's) that parameterize this joint.-->
 							<CoordinateSet>
 								<objects>
 									<Coordinate name="pelvis_tilt">
@@ -325,11 +325,11 @@
 							<SpatialTransform>
 								<!--3 Axes for rotations are listed first.-->
 								<TransformAxis name="rotation1">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>pelvis_tilt</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>0 0 1</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -337,11 +337,11 @@
 									</function>
 								</TransformAxis>
 								<TransformAxis name="rotation2">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>pelvis_list</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>1 0 0</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -349,11 +349,11 @@
 									</function>
 								</TransformAxis>
 								<TransformAxis name="rotation3">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>pelvis_rotation</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>0 1 0</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -362,11 +362,11 @@
 								</TransformAxis>
 								<!--3 Axes for translations are listed next.-->
 								<TransformAxis name="translation1">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>pelvis_tx</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>1 0 0</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -374,11 +374,11 @@
 									</function>
 								</TransformAxis>
 								<TransformAxis name="translation2">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>pelvis_ty</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>0 1 0</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -386,11 +386,11 @@
 									</function>
 								</TransformAxis>
 								<TransformAxis name="translation3">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>pelvis_tz</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>0 0 1</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -461,7 +461,7 @@
 						<transform> -0 0 -0 0 0 0</transform>
 						<!--Whether to show a coordinate frame-->
 						<show_axes>false</show_axes>
-						<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+						<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 						<display_preference>4</display_preference>
 					</VisibleObject>
 					<WrapObjectSet>
@@ -485,7 +485,7 @@
 									<transform> -0.6 0.45 0 -0.077 -0.099 0.061</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>4</display_preference>
 								</VisibleObject>
 								<radius>0.04</radius>
@@ -510,7 +510,7 @@
 									<transform> -0.75 0.39 0 -0.08 -0.083 0.068</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.04</radius>
@@ -535,7 +535,7 @@
 									<transform> -0.1 0 0 -0.083 -0.088 0.068</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.04</radius>
@@ -560,7 +560,7 @@
 									<transform> 0.6 -0.45 0 -0.077 -0.099 -0.061</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.04</radius>
@@ -585,7 +585,7 @@
 									<transform> 0.75 -0.39 0 -0.08 -0.083 -0.068</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.04</radius>
@@ -610,7 +610,7 @@
 									<transform> 0.1 0 0 -0.083 -0.088 -0.068</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.04</radius>
@@ -635,7 +635,7 @@
 									<transform> -0.25 -0.27 0.1 -0.074 -0.06 0.0656</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.05</radius>
@@ -660,7 +660,7 @@
 									<transform> 0.25 0.27 0.1 -0.074 -0.06 -0.0656</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.05</radius>
@@ -685,7 +685,7 @@
 									<transform> -0.32 -0.24 0.9 -0.071 -0.065 0.0756</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.0549</radius>
@@ -710,7 +710,7 @@
 									<transform> 0.32 0.24 0.9 -0.071 -0.065 -0.0756</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.0549</radius>
@@ -742,7 +742,7 @@
 							<location>0 0 0</location>
 							<!--Orientation of the joint in the owing body specified in the owning body reference frame.  Euler XYZ body-fixed rotation angles are used to express the orientation. -->
 							<orientation>0 0 0</orientation>
-							<!--Set holding the generalized coordinates (q's) that parmeterize this joint.-->
+							<!--Set holding the generalized coordinates (q's) that parameterize this joint.-->
 							<CoordinateSet>
 								<objects>
 									<Coordinate name="hip_flexion_r">
@@ -808,11 +808,11 @@
 							<SpatialTransform>
 								<!--3 Axes for rotations are listed first.-->
 								<TransformAxis name="rotation1">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>hip_flexion_r</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>0 0 1</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -820,11 +820,11 @@
 									</function>
 								</TransformAxis>
 								<TransformAxis name="rotation2">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>hip_adduction_r</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>1 0 0</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -832,11 +832,11 @@
 									</function>
 								</TransformAxis>
 								<TransformAxis name="rotation3">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates>hip_rotation_r</coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>0 1 0</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<LinearFunction>
 											<coefficients> 1 0</coefficients>
@@ -845,11 +845,11 @@
 								</TransformAxis>
 								<!--3 Axes for translations are listed next.-->
 								<TransformAxis name="translation1">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates></coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>1 0 0</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<Constant>
 											<value>0</value>
@@ -857,11 +857,11 @@
 									</function>
 								</TransformAxis>
 								<TransformAxis name="translation2">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates></coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>0 1 0</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<Constant>
 											<value>0</value>
@@ -869,11 +869,11 @@
 									</function>
 								</TransformAxis>
 								<TransformAxis name="translation3">
-									<!--Names of the coordinates that serve as the independent variables         of the transform function.-->
+									<!--Names of the coordinates that serve as the independent variables of the transform function.-->
 									<coordinates></coordinates>
 									<!--Rotation or translation axis for the transform.-->
 									<axis>0 0 1</axis>
-									<!--Transform function of the generalized coordinates used to        represent the amount of transformation along a specified axis.-->
+									<!--Transform function of the generalized coordinates used to represent the amount of transformation along a specified axis.-->
 									<function>
 										<Constant>
 											<value>0</value>
@@ -912,7 +912,7 @@
 						<transform> -0 0 -0 0 0 0</transform>
 						<!--Whether to show a coordinate frame-->
 						<show_axes>false</show_axes>
-						<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+						<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 						<display_preference>0</display_preference>
 					</VisibleObject>
 					<WrapObjectSet>
@@ -936,7 +936,7 @@
 									<transform> 0 0 0 0.005 -0.41 0</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.025</radius>
@@ -961,7 +961,7 @@
 									<transform> -0.0623366 0.0507601 0 0.00358828 -0.402732 0.00209111</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.025</radius>
@@ -986,7 +986,7 @@
 									<transform> 1.66157 0.186644 0 0.0146434 -0.112595 0.023365</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.0165</radius>
@@ -1011,7 +1011,7 @@
 									<transform> 1.77711 0.136489 0 0.0307327 -0.231909 0.0151137</transform>
 									<!--Whether to show a coordinate frame-->
 									<show_axes>false</show_axes>
-									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overriden for individual geometries-->
+									<!--Display Pref. 0:Hide 1:Wire 3:Flat 4:Shaded Can be overridden for individual geometries-->
 									<display_preference>0</display_preference>
 								</VisibleObject>
 								<radius>0.0201</radius>
