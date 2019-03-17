@@ -48,11 +48,11 @@ HMMWV_Pac89Tire::HMMWV_Pac89Tire(const std::string& name) : ChPac89Tire(name) {}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_Pac89Tire::SetPac89Params() {
+    m_unloaded_radius = 326.0 / 1000;
+    m_width = 245.0 / 1000;
 
-    m_unloaded_radius = 326.0/1000;
-    m_width = 245.0/1000;
-    m_rolling_resistance = 0.0;
-    m_lateral_stiffness = 190*1000.; // N/mm -> N/m
+    m_rolling_resistance = 0.015;
+    m_lateral_stiffness = 190 * 1000.;  // N/mm -> N/m
     m_measured_side = LEFT;
 
     m_PacCoeff.A0 = 1.650;
@@ -100,15 +100,11 @@ void HMMWV_Pac89Tire::SetPac89Params() {
     m_PacCoeff.C15 = 0.89469;
     m_PacCoeff.C16 = -0.099443;
     m_PacCoeff.C17 = -3.336941;
-
 }
 
 double HMMWV_Pac89Tire::GetNormalStiffnessForce(double depth) const {
     // corresponding depths = 0 : 0.01 : 0.03
-    double normalforcetabel[11] = {0.0,
-                                   2300.0,
-                                   5000.0,
-                                   8100.0};
+    double normalforcetabel[11] = {0.0, 2300.0, 5000.0, 8100.0};
 
     depth = depth * (depth > 0);  // Ensure that depth is positive;
 
@@ -116,7 +112,7 @@ double HMMWV_Pac89Tire::GetNormalStiffnessForce(double depth) const {
 
     // Linear extrapolation if the depth is at or greater than the maximum depth in the table (.030)
     if (position >= 3) {
-        return (8100.0 + (depth - 0.03) * 8100.0/.03);
+        return (8100.0 + (depth - 0.03) * 8100.0 / .03);
     }
     // Linearly interpolate between the table entries
     else {
@@ -137,8 +133,7 @@ void HMMWV_Pac89Tire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
-    }
-    else {
+    } else {
         ChPac89Tire::AddVisualizationAssets(vis);
     }
 }
