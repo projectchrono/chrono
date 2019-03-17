@@ -25,8 +25,8 @@
             0.75
         ],
         "Tire Load": {
-            "Nominal Vertical Force [N]": 15200.0,
-            "Maximum Vertical Force [N]": 53200.0
+            "Nominal Vertical Force [N]": 7600.0,
+            "Maximum Vertical Force [N]": 26600.0
         },
         "Tire Stiffness": {
             "Longitudinal [N/m]": 293699.1810600001,
