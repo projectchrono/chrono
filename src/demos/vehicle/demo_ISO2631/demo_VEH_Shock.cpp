@@ -36,6 +36,7 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
@@ -97,7 +98,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using standard values for simulation:\n"
                      << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89) = " << iTire << "\n";
             break;
         case 2:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 5) {
@@ -107,7 +108,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89) = " << iTire << "\n";
             break;
         case 3:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 5) {
@@ -118,7 +119,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89) = " << iTire << "\n";
             break;
         case 4:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 5) {
@@ -126,13 +127,13 @@ int main(int argc, char* argv[]) {
                 rigidterrain_file = "terrain/RigidObstacle" + std::to_string(iObstacle) + ".json";
             }
             target_speed = atof(argv[2]);
-            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 3) {
+            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 4) {
                 iTire = atoi(argv[3]);
             }
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iObstacle << " (" << heightVals[iObstacle] << " mm Obstacle Height)\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89) = " << iTire << "\n";
             break;
     }
     // --------------------------
@@ -167,6 +168,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::shared_ptr<TMeasyTire> > tmeasy_tires(num_wheels);
     std::vector<std::shared_ptr<FialaTire> > fiala_tires(num_wheels);
     std::vector<std::shared_ptr<hmmwv::HMMWV_Pac02Tire> > pacejka_tires(num_wheels);
+    std::vector<std::shared_ptr<hmmwv::HMMWV_Pac89Tire> > pacejka89_tires(num_wheels);
     GetLog() << "TMeasy Tire selected\n";
     for (int i = 0; i < num_wheels; i++) {
         switch (iTire) {
@@ -187,13 +189,20 @@ int main(int argc, char* argv[]) {
                 fiala_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
                 fiala_tires[i]->SetVisualizationType(VisualizationType::MESH);
             case 3:
-                pacejka_tires[i] =
-                    std::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
+                pacejka_tires[i] = std::make_shared<hmmwv::HMMWV_Pac02Tire>(vehicle::GetDataFile(pacejka_tire_file));
                 if (pacejka_tires[i] == nullptr) {
                     GetLog() << "Bad Pacejka tire problem\n";
                 }
                 pacejka_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
                 pacejka_tires[i]->SetVisualizationType(VisualizationType::MESH);
+                break;
+            case 4:
+                pacejka89_tires[i] = std::make_shared<hmmwv::HMMWV_Pac89Tire>("HMMWV_Pac89_Tire");
+                if (pacejka89_tires[i] == nullptr) {
+                    GetLog() << "Bad Pacejka89 tire problem\n";
+                }
+                pacejka89_tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+                pacejka89_tires[i]->SetVisualizationType(VisualizationType::MESH);
                 break;
         }
     }
@@ -213,6 +222,10 @@ int main(int argc, char* argv[]) {
             break;
         case 3:
             windowTitle.append(L"(Pacejka Tire) - " + std::to_wstring(heightVals[iObstacle]) + L" mm Obstacle Height");
+            break;
+        case 4:
+            windowTitle.append(L"(Pacejka89 Tire) - " + std::to_wstring(heightVals[iObstacle]) +
+                               L" mm Obstacle Height");
             break;
     }
 
@@ -276,6 +289,9 @@ int main(int argc, char* argv[]) {
                 case 3:
                     tire_forces[i] = pacejka_tires[i]->GetTireForce();
                     break;
+                case 4:
+                    tire_forces[i] = pacejka89_tires[i]->GetTireForce();
+                    break;
             }
             wheel_states[i] = vehicle.GetWheelState(i);
         }
@@ -298,6 +314,9 @@ int main(int argc, char* argv[]) {
                 case 3:
                     pacejka_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
                     break;
+                case 4:
+                    pacejka89_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    break;
             }
         }
         app.Synchronize("", steering_input, throttle_input, braking_input);
@@ -318,6 +337,9 @@ int main(int argc, char* argv[]) {
                     break;
                 case 3:
                     pacejka_tires[i]->Advance(step_size);
+                    break;
+                case 4:
+                    pacejka89_tires[i]->Advance(step_size);
                     break;
             }
         }
@@ -358,6 +380,9 @@ int main(int argc, char* argv[]) {
                 case 3:
                     tire_forces[i] = pacejka_tires[i]->GetTireForce();
                     break;
+                case 4:
+                    tire_forces[i] = pacejka89_tires[i]->GetTireForce();
+                    break;
             }
             wheel_states[i] = vehicle.GetWheelState(i);
         }
@@ -372,13 +397,16 @@ int main(int argc, char* argv[]) {
             switch (iTire) {
                 default:
                 case 1:
-                    tmeasy_tires[i]->Synchronize(time, wheel_states[i], terrain);
+                    tmeasy_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
                     break;
                 case 2:
-                    fiala_tires[i]->Synchronize(time, wheel_states[i], terrain);
+                    fiala_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
                     break;
                 case 3:
-                    pacejka_tires[i]->Synchronize(time, wheel_states[i], terrain);
+                    pacejka_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
+                    break;
+                case 4:
+                    pacejka89_tires[i]->Synchronize(time, wheel_states[i], terrain, collision_type);
                     break;
             }
         }
@@ -399,6 +427,9 @@ int main(int argc, char* argv[]) {
                     break;
                 case 3:
                     pacejka_tires[i]->Advance(step_size);
+                    break;
+                case 4:
+                    pacejka89_tires[i]->Advance(step_size);
                     break;
             }
         }
