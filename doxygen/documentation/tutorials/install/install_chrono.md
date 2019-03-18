@@ -10,24 +10,24 @@ A summary of the process required to **build** Chrono is provided in the picture
 ## 1) Check/Install a C++ compiler
 
 Recommended compilers:
-- Microsoft Visual C++: Visual Studio from 2013 (free Community edition is fine, both 32 or 64 bit are ok)
-- MingW GNU C++ compiler for Windows
-- GNU C++ compiler for Linux-based platforms.
-- Xcode Package for MacOS: Download via App Store for free - it contains the clang++ compiler
+- Microsoft Visual C++: Visual Studio 2015 or newer. The community edition of [VS 2017](https://visualstudio.microsoft.com/downloads/) is available for free. 
+- GNU C++ compiler for Linux-based platforms (version 4.9 or newer).
+- Xcode Package for MacOS: Download via App Store for free - it contains the clang++ compiler.
 
-<small>Other compilers could work as well, but they might require changes to the CMake scripts.</small>
+Other compilers were also tested (e.g. Intel C++, PGI) but they are not officially supported and maintained.
+While it is likely possible to build Chrono with other toolchains, this might require changes to the CMake scripts.
+
+<div class="ce-warning"> 
+The Microsoft Visual C++ compiler is included in the Visual Studio package, but it is **not** installed by default.<br>
+So, make sure to install the C++ toolchain during the setup!<br>
+Moreover, for the Visual Studio 2017 make sure to also select, under the *Single Components* tab, the `Windows Universal CRT SDK` and the`Windows 8.1 SDK`.
+</div> 
 
 <div class="ce-danger">
 The initial release of Visual Studio 2015 gives an 
 error compiling Chrono. [Upgrade](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx) to 
 **update 2** to fix this problem.
 </div>
-
-<div class="ce-warning"> 
-The Microsoft Visual C++ compiler is included in the Visual Studio package, but it is **not** installed by default.<br>
-So, make sure to install the C++ toolchain during the setup!<br>
-Moreover, in the Visual Studio 2017 (and later) installer make sure to install also, under the *Single Components* tab, the `Windows Universal CRT SDK` and the`Windows 8.1 SDK`.
-</div> 
 
 
 ## 2) Install [CMake](http://www.cmake.org/cmake/resources/software.html)
@@ -60,15 +60,17 @@ Assuming you are using [SourceTree](http://www.sourcetreeapp.com/):
 
 -  leave the **Local Folder** field as it is
 
--  under "Advanced Options" make sure that `Checkout branch` is set on `master`
+-  under "Advanced Options" set `Checkout branch` to `master`
    
--  press **Clone**, and the source code will be downloaded into the folder you specified.
+-  press **Clone** and the source code will be downloaded into the folder you specified
 
 <div class="ce-info">
-The `master` branch is the most stable and tested. We will refer to this branch for tutorials, demos and reference manuals. <br>
+The `master` branch contains the various Chrono releases and contains the most stable code. If you are interested in using the latest features as they are developed and before the next official release, you can checkout the `develop` branch at any time after the initial cloning. <br>
 </div>
 
 ## 5) Download the Irrlicht library
+
+While Chrono::Irrlicht is an optional module and not required to begin modeling with Chrono, it is suggested you enable this module to get access to many Chrono demos which rely on Irrlicht for their run-time visualization.
 
 - **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html) 
 - **unzip** it in a directory of your choice. For example, here we suppose that you unzipped it in <tt>C:/engine_demos/irrlicht-1.8.2</tt>.
@@ -78,28 +80,32 @@ Click here for the direct download of the
 [release v.1.8.2 of Irrlicht](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.2.zip)<br>
 This release is tested to be stable and working well with Chrono. This is the recommended release for Windows and Linux.<br>
 Release v.1.8.4 should work perfectly as well. On MacOS only use this one!<br>
-Release v.1.8.3 does not contain the precompiled 64bit dlls.<br>
+Release v.1.8.3 does not contain the precompiled 64bit DLL.<br>
 Release v.1.8.0 has issues with soft shadows.<br>
 </div>
 
 <div class="ce-warning"> 
-**MacOS issues:** irrlicht-1.8.4 is fairly outdated compared to XCode 9.3.1.<br>
-Before any building, you must correct a bug in the file:
-<tt>irrlicht-1.8.4/source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm</tt>. Open it with CotEdit or BBEdit. Search for the string <tt>NSFileManagerDelegate</tt> 
-and replace it by <tt>NSApplicationDelegate</tt>, don't forget to save your changes. In the terminal go to the directory containing the
-<tt>MacOSX.xcodeproj</tt> bundle:<br>
-<tt>cd irrlicht-1.8.4/source/Irrlicht/MacOSX</tt><br>
-To build the library, type:<br>
-<tt>xcodebuild</tt><br>
-The library <tt>libIrrlicht.a</tt> should be found in <tt>irrlicht-1.8.4/source/Irrlicht/MacOSX/build/Release</tt>. It can be used from here, but it is better
-to copy it to <tt>irrlicht-1.8.4/lib/MacOS</tt>. After copying type:<br>
-<tt>cd irrlicht-1.8.4/lib/MacOSX</tt><br>
-<tt>ranlib libIrrlicht.a</tt><br>
+**MacOS issues:** irrlicht-1.8.4 is fairly outdated compared to XCode 9.3.1.
+<br>
+Before any building, you must correct a bug in the file `irrlicht-1.8.4/source/Irrlicht/MacOSX/CIrrDeviceMacOSX.mm`. 
+Open it with CotEdit or BBEdit. Search for the string `NSFileManagerDelegate` and replace it by `NSApplicationDelegate`.
+In the terminal go to the directory containing the `MacOSX.xcodeproj` bundle:
+
+    % cd irrlicht-1.8.4/source/Irrlicht/MacOSX
+To build the library, type:
+
+    % xcodebuild
+The `libIrrlicht.a` libray should be found in `irrlicht-1.8.4/source/Irrlicht/MacOSX/build/Release`.
+It can be used from here, but it is better to copy it to `irrlicht-1.8.4/lib/MacOS`. After copying type:
+    
+    % cd irrlicht-1.8.4/lib/MacOSX
+    % ranlib libIrrlicht.a
 If you use Mac OS >= 10.13 (High Sierra) and Xcode 10, please apply the patch from the contribution directory before building.
-Unlike the Windows version we get a static library, that will be part of <tt>libChrono_irrlicht.dylib</tt>, so we don't have to copy it around 
+Unlike the Windows version, we get a static library that will be part of <tt>libChrono_irrlicht.dylib</tt>, so we don't have to copy it around 
 anymore after building chrono.
+<br>
 For chrono_opengl users:
-Beginning with Mac OS 10.14 GLFW 3.2.1 doesn't work any more, use the latest version from github.
+Beginning with Mac OS 10.14 GLFW 3.2.1 doesn't work any more, use the latest version from GitHub.
 </div> 
 
 
@@ -110,11 +116,11 @@ Start CMake to configure the build. We assume that you are using the graphical i
    This is the directory where you created your Git repository, in our example is <tt>C:/chrono_source</tt>. 
 -  In the field "Where to build the binaries" set the path to *another* directory on your system, 
    that must be empty. This is where the Visual C++ project will be created (or the makefiles, if on Linux). <br>
-   For our example, let's use <tt>C:/chrono_build</tt>, 
+   For our example, let's use <tt>C:/chrono_build</tt>
    ![](http://www.projectchrono.org/assets/manual/Install_5.gif)
 -  Press the **Configure** button.
 -  Set the compiler among the generators in the window that opens, and press **Ok**.<br> 
-   If possible, choose a **64bit** compiler.
+   You must select a **64-bit** compiler (for Visual Studio, make sure to select 'Visual Studio XX 20XX **Win64**')
 -  Change the settings in the user interface of CMake.
    Some of these settings are automatically detected, but some other must be changed. 
    ![](http://www.projectchrono.org/assets/manual/Install_7.gif)
@@ -139,7 +145,7 @@ The build configuration will be chosen directly from Visual Studio.
 
 <div class="ce-warning"> 
 CMake uses the slash `/` character for paths. Unix users are already used to this convention.<br>
-Windows users, on the opposite, should take particular care to convert the backslash `\` (the default in Win OS) to slash `/`!
+Windows users should take care to convert the backslash `\` (the default in Win OS) to slash `/`!
 </div>
 
 At this point you just created a project that will be later used to build Chrono. You can close CMake.
@@ -183,7 +189,7 @@ Having done so, you can then configure Chrono with OpenMP support. For this, you
 </div> 
 
 
-## 8) Take the demos for a ride!
+## 8) Test the demos
 
 Go to the directory that you set in "Where to build the binaries", 
 in our case <tt>C:/chrono_build</tt>, then go to <tt>bin/Release</tt> or <tt>bin/Debug</tt> (Windows), or to <tt>bin</tt> (Linux).
@@ -194,7 +200,7 @@ You have to manually copy the Irrlicht.dll from your Irrlicht `/bin/Win64-visual
 </div>
 
 <div class="ce-danger">
-IMPORTANT: never mix 64bit and 32bit binaries and libraries! 
-For example, if you built Chrono in 64 bit, using a 64bit compiler, you must link the 64bit Irrlicht library.  
+IMPORTANT: never mix 64-bit and 32-bit binaries and libraries! 
+For example, you must link the 64-bit Irrlicht library.  
 </div>
 
