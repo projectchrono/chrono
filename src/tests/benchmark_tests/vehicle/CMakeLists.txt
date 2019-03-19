@@ -25,14 +25,6 @@ list(APPEND LIBS "ChronoModels_vehicle")
 
 #--------------------------------------------------------------
 
-include_directories(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include)
-list(APPEND LIBS gtest_main)
-
-include_directories(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/include)
-list(APPEND LIBS benchmark_main)
-
-# ------------------------------------------------------------------------------
-
 set(TESTS
     btest_VEH_m113Acc
 )
@@ -48,5 +40,5 @@ foreach(PROGRAM ${TESTS})
         COMPILE_FLAGS "${COMPILER_FLAGS}"
         LINK_FLAGS "${LINKER_FLAGS}"
     )
-    target_link_libraries(${PROGRAM} ${LIBS})
+    target_link_libraries(${PROGRAM} ${LIBS} benchmark_main)
 endforeach(PROGRAM)

@@ -74,7 +74,8 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// The tire system is provided the current state of its associated wheel.
     virtual void Synchronize(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
+                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
                              ) override;
 
     /// Advance the state of this tire by the specified time step.
@@ -86,12 +87,20 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }
 
-    /// Get the tire slip angle.
-    virtual double GetSlipAngle() const override { return m_states.alpha; }
+    /// Get the tire slip angle computed internally by the Fiala model (in radians).
+    /// The reported value will be similar to that reported by ChTire::GetSlipAngle.
+    double GetSlipAngle_internal() const { return m_states.alpha; }
 
-    /// Get the tire longitudinal slip.
-    virtual double GetLongitudinalSlip() const override { return m_states.kappa; }
-    
+    /// Get the tire longitudinal slip computed internally by the Fiala model.
+    /// The reported value will be different from that reported by ChTire::GetLongitudinalSlip
+    /// because ChFialaTire uses the loaded tire radius for its calculation.
+    double GetLongitudinalSlip_internal() const { return m_states.kappa; }
+
+    /// Get the camber angle for the Fiala tire model (in radians).
+    /// ChFialaTire does not calculate its own camber angle. This value is the same as that
+    /// reported by ChTire::GetCamberAngle.
+    double GetCamberAngle_internal() { return GetCamberAngle(); }
+
     /// Generate basic tire plots.
     /// This function creates a Gnuplot script file with the specified name.
     void WritePlots(const std::string& plFileName, const std::string& plTireFormat);
@@ -105,12 +114,12 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
 
     /// Set the parameters in the Fiala model.
     virtual void SetFialaParams() = 0;
-    
+
     /// Calculate Patch Forces
-    void FialaPatchForces(double &fx, double &fy, double &mz, double kappa, double alpha, double fz);
-    
+    void FialaPatchForces(double& fx, double& fy, double& mz, double kappa, double alpha, double fz);
+
     /// Fiala tire model parameters
-    
+
     double m_unloaded_radius;
     double m_width;
     double m_rolling_resistance;
@@ -120,18 +129,16 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     double m_u_max;
     double m_relax_length_x;
     double m_relax_length_y;
-    
+
     // Fiala extensions from ADAMS/Car user source example and TMeasy
-    double m_mu;     ///< Actual friction coefficient of the road
-    double m_mu_0;   ///< Local friction coefficient of the road for given parameters
-    
-    double m_Fz_nom; /// Nominal Tire Load, needed for Plotting
-    
+    double m_mu;    ///< Actual friction coefficient of the road
+    double m_mu_0;  ///< Local friction coefficient of the road for given parameters
+
     /// Switch for dynamic mode (relaxation)
-    bool    m_dynamic_mode;
-    double  m_time;            // actual system time
-    double  m_time_trans;      // end of start transient
-    
+    bool m_dynamic_mode;
+    double m_time;        // actual system time
+    double m_time_trans;  // end of start transient
+
   private:
     struct ContactData {
         bool in_contact;      // true if disc in contact with terrain
@@ -142,17 +149,19 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     };
 
     struct TireStates {
-        double kappa;       // Contact Path - Stationary Longitudinal Slip State (Kappa)
-        double alpha;       // Contact Path - Stationary Side Slip State (Alpha)
-        double abs_vx;           // Longitudinal speed
-        double abs_vt;           // Longitudinal transport speed
-        double vsx;              // Longitudinal slip velocity
-        double vsy;              // Lateral slip velocity = Lateral velocity
-        double omega;            // Wheel angular velocity about its spin axis (temporary for debug)
+        double kappa;   // Contact Path - Stationary Longitudinal Slip State (Kappa)
+        double alpha;   // Contact Path - Stationary Side Slip State (Alpha)
+        double abs_vx;  // Longitudinal speed
+        double abs_vt;  // Longitudinal transport speed
+        double vsx;     // Longitudinal slip velocity
+        double vsy;     // Lateral slip velocity = Lateral velocity
+        double omega;   // Wheel angular velocity about its spin axis (temporary for debug)
         double Fx_l;
         double Fy_l;
-        ChVector<> disc_normal;  //(temporary for debug)
+        ChVector<> disc_normal;  // temporary for debug
     };
+
+    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
 
     ContactData m_data;
     TireStates m_states;

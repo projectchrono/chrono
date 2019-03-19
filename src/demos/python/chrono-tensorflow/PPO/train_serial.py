@@ -71,9 +71,9 @@ def run_episode(env, policy, scaler, animate=True):
     done = False
     step = 0.0
     scale, offset = scaler.get()
-	if time_state:
-		scale[-1] = 1.0  # don't scale time step feature
-		offset[-1] = 0.0  # don't offset time step feature
+    if time_state:
+           scale[-1] = 1.0  # don't scale time step feature
+           offset[-1] = 0.0  # don't offset time step feature
 
     while not done:
 

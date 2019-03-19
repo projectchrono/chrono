@@ -164,6 +164,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// (coefficient of friction, cohesion, compliance, etc.)
     void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy);
 
+    /// Accessor for the current composition laws for contact surface material.
+    const ChMaterialCompositionStrategy<float>& GetMaterialCompositionStrategy() const { return *composition_strategy; }
+
     /// For elastic collisions, with objects that have nonzero
     /// restitution coefficient: objects will rebounce only if their
     /// relative colliding speed is above this threshold. Default 0.15 m/s.

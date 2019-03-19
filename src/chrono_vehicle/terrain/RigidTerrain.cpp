@@ -42,12 +42,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Default constructor.
 // -----------------------------------------------------------------------------
-RigidTerrain::RigidTerrain(ChSystem* system) : m_system(system), m_num_patches(0) {}
+RigidTerrain::RigidTerrain(ChSystem* system)
+    : m_system(system), m_num_patches(0), m_use_friction_functor(false), m_contact_callback(nullptr) {}
 
 // -----------------------------------------------------------------------------
 // Constructor from JSON file
 // -----------------------------------------------------------------------------
-RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename) : m_system(system), m_num_patches(0) {
+RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
+    : m_system(system), m_num_patches(0), m_use_friction_functor(false), m_contact_callback(nullptr) {
     // Open the JSON file and read data
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -74,9 +76,10 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename) : m_sy
     for (int i = 0; i < num_patches; i++) {
         LoadPatch(d["Patches"][i]);
     }
+}
 
-    // Initialize the terrain
-    Initialize();
+RigidTerrain::~RigidTerrain() {
+    delete m_contact_callback;
 }
 
 void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
@@ -482,9 +485,82 @@ std::shared_ptr<ChBody> RigidTerrain::Patch::GetGroundBody() const {
 // -----------------------------------------------------------------------------
 // Initialize all terrain patches
 // -----------------------------------------------------------------------------
+class RTContactCallback : public ChContactContainer::AddContactCallback {
+  public:
+    virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
+                              ChMaterialComposite* const material) override {
+        //// TODO: also accomodate terrain contact with FEA meshes.
+
+        // Loop over all patch bodies and check if this contact involves one of them.
+        ChBody* body_other = nullptr;
+        bool process = false;
+        for (auto patch : m_terrain->GetPatches()) {
+            auto model = patch->GetGroundBody()->GetCollisionModel().get();
+            if (model == contactinfo.modelA) {
+                body_other = dynamic_cast<ChBody*>(contactinfo.modelB->GetContactable());
+                process = true;
+                break;
+            }
+            if (model == contactinfo.modelB) {
+                body_other = dynamic_cast<ChBody*>(contactinfo.modelA->GetContactable());
+                process = true;
+                break;
+            }
+        }
+
+        // Do nothing if this contact does not involve a terrain body or if the other contactable
+        // is not a body.
+        if (!process || !body_other)
+            return;
+
+        // Find the terrain coefficient of friction at the location of current contact.
+        // Arbitrarily use the collision point on modelA.
+        auto friction_terrain = (*m_friction_fun)(contactinfo.vpA.x(), contactinfo.vpA.y());
+
+        // Get the current combination strategy for composite materials.
+        auto& strategy = body_other->GetSystem()->GetMaterialCompositionStrategy();
+
+        // Set friction in composite material based on contact formulation.
+        switch (body_other->GetContactMethod()) {
+            case ChMaterialSurface::NSC: {
+                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceNSC>(body_other->GetMaterialSurfaceBase());
+                auto friction_other = mat_other->sliding_friction;
+                auto friction = strategy.CombineFriction(friction_terrain, friction_other);
+                auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+                mat->static_friction = friction;
+                mat->sliding_friction = friction;
+                break;
+            }
+            case ChMaterialSurface::SMC: {
+                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceSMC>(body_other->GetMaterialSurfaceBase());
+                auto friction_other = mat_other->sliding_friction;
+                auto friction = strategy.CombineFriction(friction_terrain, friction_other);
+                auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
+                mat->mu_eff = friction;
+                break;
+            }
+        }
+    }
+
+    ChTerrain::FrictionFunctor* m_friction_fun;
+    RigidTerrain* m_terrain;
+};
+
 void RigidTerrain::Initialize() {
-    // Nothing to do here.
-    // Kept for consistency and possible future extensions.
+    if (!m_friction_fun)
+        m_use_friction_functor = false;
+    if (!m_use_friction_functor)
+        return;
+    if (m_patches.empty())
+        return;
+
+    // Create and register a custom callback functor of type ChContactContainer::AddContactCallback
+    // and pass to it a list of patch bodies as well as the location-dependent friction functor.
+    auto callback = new RTContactCallback;
+    callback->m_terrain = this;
+    callback->m_friction_fun = m_friction_fun;
+    m_contact_callback = callback;
+    m_patches[0]->m_body->GetSystem()->GetContactContainer()->RegisterAddContactCallback(m_contact_callback);
 }
 
 // -----------------------------------------------------------------------------

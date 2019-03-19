@@ -94,7 +94,8 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// The tire system is provided the current state of its associated wheel.
     virtual void Synchronize(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
+                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
                              ) override;
 
     /// Advance the state of this tire by the specified time step.
@@ -109,16 +110,19 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }
 
-    /// Get the tire slip angle.
-    virtual double GetSlipAngle() const override { return atan(m_states.sy); }
+    /// Get the tire slip angle computed internally by the TMeasy model (in radians).
+    /// The reported value will be similar to that reported by ChTire::GetSlipAngle.
+    double GetSlipAngle_internal() const { return atan(-m_states.sy); }
 
-    /// Get the tire longitudinal slip.
-    virtual double GetLongitudinalSlip() const override { return m_states.sx; }
+    /// Get the tire longitudinal slip computed internally by the TMeasy model.
+    /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
+    double GetLongitudinalSlip_internal() const { return m_states.sx; }
 
-    /// Get the camber angle used in the TMeasy model (expressed in radian).
-    double GetGamma() { return m_gamma; }
+    /// Get the camber angle computed internally by the TMeasy model (in radians).
+    /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
+    double GetCamberAngle_internal() { return m_gamma; }
 
-    /// Get Max. Tire Load from Load Index (LI) in N [0:279]
+    /// Get maximum tire load from Load Index (LI) in N [0:279]
     static double GetTireMaxLoad(unsigned int li);
 
     /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%)
@@ -193,33 +197,6 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     bool CheckParameters();
 
   protected:
-    /// Perform disc-terrain collision detection considering the curvature of the road
-    /// surface. The surface normal is calculated based on 4 different height values below
-    /// the wheel center. The effective height is calculated as average value of the four
-    /// height values.
-    /// This utility function checks for contact between a disc of specified
-    /// radius with given position and orientation (specified as the location of
-    /// its center and a unit vector normal to the disc plane) and the terrain
-    /// system associated with this tire. It returns true if the disc contacts the
-    /// terrain and false otherwise.  If contact occurs, it returns a coordinate
-    /// system with the Z axis along the contact normal and the X axis along the
-    /// "rolling" direction, as well as a positive penetration depth (i.e. the
-    /// height below the terrain of the lowest point on the disc).
-    bool disc_terrain_contact_3d(
-        const ChTerrain& terrain,       ///< [in] reference to terrain system
-        const ChVector<>& disc_center,  ///< [in] global location of the disc center
-        const ChVector<>& disc_normal,  ///< [in] disc normal, expressed in the global frame
-        double disc_radius,             ///< [in] disc radius
-        ChCoordsys<>& contact,          ///< [out] contact coordinate system (relative to the global frame)
-        double& depth                   ///< [out] penetration depth (positive if contact occurred)
-    );
-
-    /// Return the vertical tire stiffness contribution to the normal force.
-    double GetNormalStiffnessForce(double depth);
-
-    /// Return the vertical tire damping contribution to the normal force.
-    double GetNormalDampingForce(double depth, double velocity);
-
     /// Set the parameters in the TMeasy model.
     virtual void SetTMeasyParams() = 0;
 
@@ -298,9 +275,9 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
 
     TMeasyCoeff m_TMeasyCoeff;
 
-    // linear Interpolation
+    // linear interpolation
     double InterpL(double fz, double w1, double w2) { return w1 + (w2 - w1) * (fz / m_TMeasyCoeff.pn - 1.0); };
-    // quadratic Interpolation
+    // quadratic interpolation
     double InterpQ(double fz, double w1, double w2) {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };
@@ -340,6 +317,8 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         double Mb;               // Steady state bore torque
         ChVector<> disc_normal;  // (temporary for debug)
     };
+
+    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
 
     ContactData m_data;
     TireStates m_states;

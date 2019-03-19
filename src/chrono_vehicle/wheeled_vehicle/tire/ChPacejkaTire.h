@@ -19,14 +19,14 @@
 #ifndef CH_PACEJKATIRE_H
 #define CH_PACEJKATIRE_H
 
-#include <vector>
-#include <string>
-#include <sstream>
 #include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
@@ -115,17 +115,21 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Set the PacTire spindle state data from the global wheel body state.
     virtual void Synchronize(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
+                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
                              ) override;
 
-    /// Get the tire slip angle.
-    virtual double GetSlipAngle() const override { return m_slip->alpha; }
+    /// Get the tire slip angle computed internally by the Pacejka model (in radians).
+    /// The reported value will be the same as that reported by ChTire::GetSlipAngle.
+    double GetSlipAngle_internal() const { return m_slip->alpha; }
 
-    /// Get the tire longitudinal slip.
-    virtual double GetLongitudinalSlip() const override { return m_slip->kappa; }
+    /// Get the tire longitudinal slip computed internally by the Pacejka model.
+    /// The reported value will be the same as that reported by ChTire::GetLongitudinalSlip.
+    double GetLongitudinalSlip_internal() const { return m_slip->kappa; }
 
-    /// Get the tire camber angle.
-    virtual double GetCamberAngle() const override { return m_slip->gamma; }
+    /// Get the camber angle for the Pacejka tire model (in radians).
+    /// The reported value will be the same as that reported by ChTire::GetCamberAngle.
+    double GetCamberAngle_internal() const { return m_slip->gamma; }
 
     /// Advance the state of this tire by the specified time step.
     /// Use the new body state, calculate all the relevant quantities over the
@@ -142,10 +146,10 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Assumes the tire is going straight forward (global x-dir), and the
     /// returned state's orientation yields gamma and alpha, as x and z NASA angles
     WheelState getState_from_KAG(double kappa,  ///< [in] ...
-                                   double alpha,  ///< [in] ...
-                                   double gamma,  ///< [in] ...
-                                   double Vx      ///< [in] tire forward velocity x-dir
-                                   );
+                                 double alpha,  ///< [in] ...
+                                 double gamma,  ///< [in] ...
+                                 double Vx      ///< [in] tire forward velocity x-dir
+                                 );
 
     /// Get the average simulation time per step spent in advance()
     double get_average_Advance_time() { return m_sum_Advance_time / (double)m_num_Advance_calls; }
@@ -218,7 +222,7 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     /// update the tire contact coordinate system, TYDEX W-Axis
     /// checks for contact, sets m_in_contact and m_depth
-    void update_W_frame(const ChTerrain& terrain);
+    void update_W_frame(const ChTerrain& terrain, CollisionType collisionType);
 
     // update the vertical load, tire deflection, and tire rolling radius
     void update_verticalLoad(double step);
@@ -353,8 +357,8 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     int m_sameSide;  // does parameter file side equal m_side? 1 = true, -1 opposite
 
     WheelState m_tireState;  // tire state, global coordinates
-    ChCoordsys<> m_W_frame;    // tire contact coordinate system, TYDEX W-Axis
-    double m_simTime;          // Chrono simulation time
+    ChCoordsys<> m_W_frame;  // tire contact coordinate system, TYDEX W-Axis
+    double m_simTime;        // Chrono simulation time
 
     bool m_in_contact;  // indicates if there is tire-terrain contact
     double m_depth;     // if in contact, this is the contact depth
@@ -411,6 +415,11 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     combinedTorqueCoefs* m_combinedTorque;
 
     zetaCoefs* m_zeta;
+
+    double m_mu;   // current road friction coefficient
+    double m_mu0;  // tire reference friction coeffient
+
+    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
 
     // for transient contact point tire model
     relaxationL* m_relaxation;
