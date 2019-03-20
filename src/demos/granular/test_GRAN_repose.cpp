@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 4 || ParseJSON(argv[1], params) == false) {
+    if (argc != 5 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -107,7 +107,16 @@ int main(int argc, char* argv[]) {
     m_sys.set_Cohesion_ratio(params.cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
+
+    float static_friction = std::stof(argv[3]);
+    cout << "Static Friction: " << static_friction << endl;
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
+    m_sys.set_static_friction_coeff(static_friction);
+
+    float rolling_coeff = std::stof(argv[4]);
+    cout << "Rolling resistance coefficient: " << rolling_coeff << endl;
+    m_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::NAIVE);
+    m_sys.set_rolling_coeff(rolling_coeff);
 
     m_sys.setOutputMode(params.write_mode);
     string out_dir(argv[2]);
@@ -115,14 +124,10 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
-
-    float static_friction = std::stof(argv[3]);
-    cout << "Static Friction: " << static_friction << endl;
-    m_sys.set_static_friction_coeff(static_friction);
 
     const float chamber_bottom = -Bz / 2.f;
     const float fill_bottom = chamber_bottom + chamber_height;

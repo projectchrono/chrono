@@ -61,11 +61,14 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
     gran_params->psi_h = PSI_h_DEFAULT;
     gran_params->psi_L = PSI_L_DEFAULT;
     gran_params->friction_mode = FRICTIONLESS;
+    gran_params->rolling_mode = NO_RESISTANCE;
     this->friction_mode = FRICTIONLESS;
+    this->rolling_mode = NO_RESISTANCE;
     gran_params->time_integrator = EXTENDED_TAYLOR;
     this->time_integrator = EXTENDED_TAYLOR;
     setMaxSafeVelocity_SU((float)UINT_MAX);
     set_static_friction_coeff(0);  // default to zero
+    set_rolling_coeff(0);
 
     createWallBCs();
     setBDWallsMotionFunction(GranPosFunction_default);

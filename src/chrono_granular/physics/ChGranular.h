@@ -106,6 +106,8 @@ enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_
 
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
+enum GRAN_ROLLING_MODE { NO_RESISTANCE, NAIVE };
+
 enum GRAN_INPUT_MODE { USER, CHECKPOINT_POSITION, CHECKPOINT_FULL };
 
 /// Parameters needed for sphere-based granular dynamics
@@ -115,10 +117,14 @@ struct ChGranParams {
 
     // settings on friction, integrator, and force model
     GRAN_FRICTION_MODE friction_mode;
+    GRAN_ROLLING_MODE rolling_mode;
     GRAN_TIME_INTEGRATOR time_integrator;
 
     // ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
     float static_friction_coeff;
+
+    // Coefficient of rolling resistance
+    float rolling_coeff;
 
     // Use user-defined quantities for coefficients
     // sphere-to-sphere contact damping coefficient, expressed in SU
@@ -361,6 +367,11 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         friction_mode = new_mode;
     }
 
+    void set_rolling_mode(GRAN_ROLLING_MODE new_mode) {
+        gran_params->rolling_mode = new_mode;
+        rolling_mode = new_mode;
+    }
+
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
 
@@ -372,6 +383,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     virtual void initialize();
 
     void set_static_friction_coeff(float mu) { gran_params->static_friction_coeff = mu; }
+    void set_rolling_coeff(float mu) { gran_params->rolling_coeff = mu; }
 
     void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
     void set_K_n_SPH2WALL(double someValue) { K_n_s2w_UU = someValue; }
@@ -514,6 +526,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     GRAN_TIME_STEPPING time_stepping;
 
     GRAN_FRICTION_MODE friction_mode;
+    GRAN_ROLLING_MODE rolling_mode;
     GRAN_TIME_INTEGRATOR time_integrator;
 
     /// Partitions the big domain (BD) and sets the number of SDs that BD is split in.

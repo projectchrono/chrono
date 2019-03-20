@@ -2,7 +2,7 @@
 	"sphere_radius": 0.25,
 	"sphere_density": 2,
 	"box_X": 50,
-	"step_size": 2e-5,
+	"step_size": 5e-6,
 	"time_end": 120,
 	"grav_X": 0,
 	"grav_Y": 0,

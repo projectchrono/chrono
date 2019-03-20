@@ -35,6 +35,7 @@
 
 using chrono::granular::GRAN_TIME_INTEGRATOR;
 using chrono::granular::GRAN_FRICTION_MODE;
+using chrono::granular::GRAN_ROLLING_MODE;
 
 // NOTE the above 'using's must happen before this file is included
 #include "chrono_granular/physics/ChGranularHelpers.cuh"
@@ -759,6 +760,33 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                 // TODO fix this
                 float hertz_force_factor = sqrt(2. - (2. / reciplength));
                 constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+
+                // NOTE: expects force_accum to be normal force only
+                if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
+                    gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE) {
+                    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::NAIVE) {
+                        float r_eff = ((float)(sphereRadius_SU * sphereRadius_SU)) /
+                                      (sphereRadius_SU + sphereRadius_SU);  // TODO could just store this in gran_params
+                        float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
+                                                         sphere_data->sphere_Omega_Y[theirSphereID],
+                                                         sphere_data->sphere_Omega_Z[theirSphereID]);
+                        float3 omega_rel = my_omega - their_omega;  // TODO check sign
+                        float omega_rel_mag =
+                            sqrt(omega_rel.x * omega_rel.x + omega_rel.y * omega_rel.y + omega_rel.z * omega_rel.z);
+                        if (omega_rel_mag != 0.f) {  // TODO some small bound
+                            omega_rel = 1.f / omega_rel_mag * omega_rel;
+                        }
+                        float f_n = sqrt(force_accum.x * force_accum.x + force_accum.y * force_accum.y +
+                                         force_accum.z * force_accum.z);
+
+                         // M = -w / ||w|| * mu_r * r_eff * ||f_n||
+                         // Assumes r_eff = r/2
+                        bodyA_AngAcc = bodyA_AngAcc - omega_rel * gran_params->rolling_coeff * 0.5 * f_n / gran_params->sphereInertia_by_r;
+                        // } else if (gran_params->rolling_mode == GRAN_ROLLING_MODE::SIMPLE) {
+                    } else {
+                        ABORTABORTABORT("Rolling mode not implemented\n");
+                    }
+                }
 
                 // add frictional terms, if needed
                 if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
