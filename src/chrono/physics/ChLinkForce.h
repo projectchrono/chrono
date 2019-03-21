@@ -23,62 +23,60 @@
 
 namespace chrono {
 
-/// Class for forces in link joints of type ChLink().
-
+/// Class for forces in link joints of type ChLinkLock.
 class ChApi ChLinkForce {
-  private:
-    bool active;  ///< true/false
-
-    double iforce;             ///< impressed force
-    ChFunction* modul_iforce;  ///< time-modulation of imp. force
-
-    double K;             ///< stiffness of the dof
-    ChFunction* modul_K;  ///< modulation of K along the dof coord
-
-    double R;             ///< damping of the dof
-    ChFunction* modul_R;  ///< modulation of R along the dof coord
-
   public:
     ChLinkForce();
     ChLinkForce(const ChLinkForce& other);
-    ~ChLinkForce();
+    ~ChLinkForce() {}
 
     /// "Virtual" copy constructor (covariant return type).
     ChLinkForce* Clone() const { return new ChLinkForce(*this); }
 
-    bool Get_active() const { return active; }
-    void Set_active(bool m_a) { active = m_a; }
+    bool IsActive() const { return m_active; }
+    void SetActive(bool val) { m_active = val; }
 
-    double Get_iforce() const { return iforce; }
-    void Set_iforce(double m_f) { iforce = m_f; }
+    double GetF() const { return m_F; }
+    void SetF(double F) { m_F = F; }
 
-    double Get_K() const { return K; }
-    void Set_K(double m_K) { K = m_K; }
+    double GetK() const { return m_K; }
+    void SetK(double K) { m_K = K; }
 
-    double Get_R() const { return R; }
-    void Set_R(double m_R) { R = m_R; }
+    double GetR() const { return m_R; }
+    void SetR(double R) { m_R = R; }
 
-    ChFunction* Get_modul_iforce() const { return modul_iforce; }
-    ChFunction* Get_modul_K() const { return modul_K; }
-    ChFunction* Get_modul_R() const { return modul_R; }
+    std::shared_ptr<ChFunction> GetModulationF() const { return m_F_modul; }
+    std::shared_ptr<ChFunction> GetModulationK() const { return m_K_modul; }
+    std::shared_ptr<ChFunction> GetModulationR() const { return m_R_modul; }
 
-    void Set_modul_iforce(ChFunction* m_funct);
-    void Set_modul_K(ChFunction* m_funct);
-    void Set_modul_R(ChFunction* m_funct);
+    void SetModulationF(std::shared_ptr<ChFunction> funct) { m_F_modul = funct; }
+    void SetModulationK(std::shared_ptr<ChFunction> funct) { m_K_modul = funct; }
+    void SetModulationR(std::shared_ptr<ChFunction> funct) { m_R_modul = funct; }
 
-    double Get_Kcurrent(double x, double x_dt, double t) const;
-    double Get_Rcurrent(double x, double x_dt, double t) const;
-    double Get_iFcurrent(double x, double x_dt, double t) const;
+    double GetFcurrent(double x, double x_dt, double t) const;
+    double GetKcurrent(double x, double x_dt, double t) const;
+    double GetRcurrent(double x, double x_dt, double t) const;
 
     // This is the most important function: it is called to evaluate
     // the internal force at instant t, position x and speed x_dt
-    double Get_Force(double x, double x_dt, double t) const;
+    double GetForce(double x, double x_dt, double t) const;
 
     /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive);
+
+  private:
+    bool m_active;  ///< true/false
+
+    double m_F;  ///< impressed force
+    double m_K;  ///< stiffness of the dof
+    double m_R;  ///< damping of the dof
+
+    std::shared_ptr<ChFunction> m_F_modul;  ///< time-modulation of imp. force
+    std::shared_ptr<ChFunction> m_K_modul;  ///< modulation of K along the dof coord
+    std::shared_ptr<ChFunction> m_R_modul;  ///< modulation of R along the dof coord
 };
 
 CH_CLASS_VERSION(ChLinkForce, 0)
