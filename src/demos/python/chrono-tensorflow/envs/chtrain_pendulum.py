@@ -1,6 +1,5 @@
 import pychrono as chrono
 from pychrono import irrlicht as chronoirr
-#from pychrono import postprocess
 import numpy as np
 
 
@@ -49,9 +48,10 @@ class Model(object):
       
       self.size_table_x = 0.3;
       self.size_table_y = 0.3;
+      self.size_table_z = 0.3;
 
       if self.render:
-             self.size_table_z = 0.3;
+             
              self.myapplication = chronoirr.ChIrrApp(self.rev_pend_sys)
              self.myapplication.AddShadowAll();
              self.myapplication.SetStepManage(True)
