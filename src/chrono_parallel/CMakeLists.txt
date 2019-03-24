@@ -83,6 +83,22 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
 
+# Extract Blaze version
+find_file(BLAZE_VERSION_FILENAME "Version.h" PATHS "${BLAZE_DIR}/blaze/system")
+mark_as_advanced(FORCE BLAZE_VERSION_FILENAME)
+if(BLAZE_VERSION_FILENAME)
+  file(READ ${BLAZE_VERSION_FILENAME} BLAZE_VERSION_FILE)
+  message(STATUS "Blaze version file: ${BLAZE_VERSION_FILENAME}")
+  string(REGEX MATCH "#define BLAZE_MAJOR_VERSION ([0-9]*)" _BLAZE_MAJOR_VERSION ${BLAZE_VERSION_FILE})
+  set(BLAZE_MAJOR_VERSION ${CMAKE_MATCH_1})
+  string(REGEX MATCH "#define BLAZE_MINOR_VERSION ([0-9]*)" _BLAZE_MINOR_VERSION ${BLAZE_VERSION_FILE})
+  set(BLAZE_MINOR_VERSION ${CMAKE_MATCH_1})
+  set(BLAZE_VERSION "${BLAZE_MAJOR_VERSION}.${BLAZE_MINOR_VERSION}")
+  message(STATUS "Blaze version: ${BLAZE_VERSION}")
+else()
+  message(FATAL_ERROR "Cannot find blaze/system/Version.h.  Set BLAZE_DIR.")
+endif()
+
 # ----- Configure Blaze and Thrust -----
 
 IF(ENABLE_OPENMP)
@@ -98,15 +114,25 @@ ELSE()
   add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP)
 ENDIF()
 
-# ----- BOOST -- required for Blaze -----
+# ----- BOOST -- required only for older versions of Blaze -----
 
-set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
-find_package(Boost REQUIRED)
-
-if (Boost_FOUND)
-  message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
+if (BLAZE_VERSION VERSION_LESS "3.2")
+  set(BOOST_REQUIRED "TRUE")
 else()
-  mark_as_advanced(CLEAR BOOST_ROOT)
+  set(BOOST_REQUIRED "FALSE")
+endif()
+
+if(BOOST_REQUIRED)
+  set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
+  find_package(Boost REQUIRED)
+
+  if (Boost_FOUND)
+    message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
+  else()
+    mark_as_advanced(CLEAR BOOST_ROOT)
+    message(FATAL_ERROR "Boost required for Blaze version ${BLAZE_VERSION}. Specify BOOST_ROOT or use Blaze 3.2 or newer.")
+  endif()
+
 endif()
 
 # ----------------------------------------------------------------------------
@@ -129,13 +155,18 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h"
 # Collect all additional include directories necessary for the PARALLEL module
 # ------------------------------------------------------------------------------
 
-SET(CH_PARALLEL_INCLUDES
+set(CH_PARALLEL_INCLUDES
     ${BLAZE_DIR}
-    ${Boost_INCLUDE_DIRS}
     ${THRUST_INCLUDE_DIR}
 )
 
+if(BOOST_REQUIRED)
+  set(CH_PARALLEL_INCLUDES "${CH_PARALLEL_INCLUDES};${Boost_INCLUDE_DIRS}")
+endif()
+
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
+
+message(STATUS "Include dirs: ${CH_PARALLEL_INCLUDES}")
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
