@@ -50,7 +50,8 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
       m_gamma(0),
       m_gamma_limit(5),
       m_begin_start_transition(0.1),
-      m_end_start_transition(0.25) {
+      m_end_start_transition(0.25),
+      m_use_startup_transition(false) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -352,7 +353,10 @@ void ChTMeasyTire::Advance(double step) {
 
     double Ms = 0.0;
 
-    double startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+    double startup = 1;
+    if (m_use_startup_transition) {
+        startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+    }
 
     if (m_consider_relaxation) {
         double vtxs = m_states.vta * hsxn;
@@ -377,10 +381,12 @@ void ChTMeasyTire::Advance(double step) {
                 case 1: {
                     // explicit Euler, may be unstable
                     // 1. oder tire dynamics
-                    m_states.xe = m_states.xe + h * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
-                                                    (vtxs * m_TMeasyCoeff.dx + fos);
-                    m_states.ye = m_states.ye + h * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
-                                                    (vtys * m_TMeasyCoeff.dy + fos);
+                    m_states.xe = m_states.xe +
+                                  h * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
+                                      (vtxs * m_TMeasyCoeff.dx + fos);
+                    m_states.ye = m_states.ye +
+                                  h * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
+                                      (vtys * m_TMeasyCoeff.dy + fos);
                     // 0. order tire dynamics
                     m_states.Mb_dyn = m_states.Mb_dyn + h * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
                     break;
@@ -389,13 +395,13 @@ void ChTMeasyTire::Advance(double step) {
                     // semi-implicit Euler, absolutely stable
                     // 1. oder tire dynamics
                     double dFx = -vtxs * m_TMeasyCoeff.cx / (vtxs * m_TMeasyCoeff.dx + fos);
-                    m_states.xe = m_states.xe + h / (1.0 - h * dFx) *
-                                                    (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
-                                                    (vtxs * m_TMeasyCoeff.dx + fos);
+                    m_states.xe = m_states.xe +
+                                  h / (1.0 - h * dFx) * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
+                                      (vtxs * m_TMeasyCoeff.dx + fos);
                     double dFy = -vtys * m_TMeasyCoeff.cy / (vtys * m_TMeasyCoeff.dy + fos);
-                    m_states.ye = m_states.ye + h / (1.0 - h * dFy) *
-                                                    (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
-                                                    (vtys * m_TMeasyCoeff.dy + fos);
+                    m_states.ye = m_states.ye +
+                                  h / (1.0 - h * dFy) * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
+                                      (vtys * m_TMeasyCoeff.dy + fos);
                     // 0. order tire dynamics
                     double dMb = -gain;
                     m_states.Mb_dyn = m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * gain;
