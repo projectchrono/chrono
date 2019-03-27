@@ -778,6 +778,12 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     gran_params->Gamma_t_s2s_SU = Gamma_scalingFactor * Gamma_t_s2s_UU;
     gran_params->Gamma_t_s2w_SU = Gamma_scalingFactor * Gamma_t_s2w_UU;
 
+    float rolling_scalingFactor = 1.f;
+    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::SIMPLE) {
+        rolling_scalingFactor = 1.f / gran_params->TIME_UNIT;
+    }
+    gran_params->rolling_coeff_SU = rolling_scalingFactor * rolling_coeff_UU;
+
     gran_params->cohesionAcc_s2s = cohesion_over_gravity * g_scalingFactor;
     gran_params->adhesionAcc_s2w = adhesion_s2w_over_gravity * g_scalingFactor;
 

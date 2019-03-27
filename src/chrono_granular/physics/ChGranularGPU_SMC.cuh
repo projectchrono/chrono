@@ -764,25 +764,39 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                 // NOTE: expects force_accum to be normal force only
                 if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
                     gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE) {
-                    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::NAIVE) {
-                        float r_eff = ((float)(sphereRadius_SU * sphereRadius_SU)) /
-                                      (sphereRadius_SU + sphereRadius_SU);  // TODO could just store this in gran_params
-                        float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
-                                                         sphere_data->sphere_Omega_Y[theirSphereID],
-                                                         sphere_data->sphere_Omega_Z[theirSphereID]);
-                        float3 omega_rel = my_omega - their_omega;  // TODO check sign
+                    float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
+                                                     sphere_data->sphere_Omega_Y[theirSphereID],
+                                                     sphere_data->sphere_Omega_Z[theirSphereID]);
+                    float3 omega_rel = my_omega - their_omega;
+                    const float f_n = sqrt(force_accum.x * force_accum.x + force_accum.y * force_accum.y +
+                                           force_accum.z * force_accum.z);
+                    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::NAIVE) {  // TODO rename
                         float omega_rel_mag =
                             sqrt(omega_rel.x * omega_rel.x + omega_rel.y * omega_rel.y + omega_rel.z * omega_rel.z);
-                        if (omega_rel_mag != 0.f) {  // TODO some small bound
+                        if (omega_rel_mag != 0.f) {  // TODO some small bound?
                             omega_rel = 1.f / omega_rel_mag * omega_rel;
                         }
-                        float f_n = sqrt(force_accum.x * force_accum.x + force_accum.y * force_accum.y +
-                                         force_accum.z * force_accum.z);
 
-                         // M = -w / ||w|| * mu_r * r_eff * ||f_n||
-                         // Assumes r_eff = r/2
-                        bodyA_AngAcc = bodyA_AngAcc - omega_rel * gran_params->rolling_coeff * 0.5 * f_n / gran_params->sphereInertia_by_r;
-                        // } else if (gran_params->rolling_mode == GRAN_ROLLING_MODE::SIMPLE) {
+                        // M = -w / ||w|| * mu_r * r_eff * ||f_n||
+                        // Assumes r_eff = r/2
+                        bodyA_AngAcc = bodyA_AngAcc - omega_rel * gran_params->rolling_coeff_SU * 0.5 * f_n /
+                                                          gran_params->sphereInertia_by_r;
+                    } else if (gran_params->rolling_mode == GRAN_ROLLING_MODE::SIMPLE) {  // TODO rename
+                        const float my_omega_mag =
+                            sqrt(my_omega.x * my_omega.x + my_omega.y * my_omega.y + my_omega.z * my_omega.z);
+                        float3 R;
+                        {
+                            int3 R_int = their_pos - my_sphere_pos;
+                            R = 0.5f * make_float3(R_int.x, R_int.y, R_int.z);
+                        }
+                        float3 v = Cross(R, my_omega + their_omega);
+                        const float v_mag = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+                        if (my_omega_mag != 0.f) {
+                            my_omega = 1.f / my_omega_mag * my_omega;
+                        }
+                        float3 torque = -gran_params->rolling_coeff_SU * v_mag * f_n * my_omega;
+                        bodyA_AngAcc = bodyA_AngAcc +
+                                       1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
                     } else {
                         ABORTABORTABORT("Rolling mode not implemented\n");
                     }

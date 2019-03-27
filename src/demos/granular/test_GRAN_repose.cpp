@@ -34,7 +34,7 @@ using std::stoi;
 using std::vector;
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_repose <json_file> <output_dir> <static_friction>" << endl;
+    cout << "usage: ./test_GRAN_repose <json_file> <output_dir> <static_friction> <rolling_friction>" << endl;
 }
 
 void writeMeshFrames(std::ostringstream& outstream,
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
 
     float rolling_coeff = std::stof(argv[4]);
     cout << "Rolling resistance coefficient: " << rolling_coeff << endl;
-    m_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::NAIVE);
+    m_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::SIMPLE);
     m_sys.set_rolling_coeff(rolling_coeff);
 
     m_sys.setOutputMode(params.write_mode);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(out_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
-    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::EXTENDED_TAYLOR);
+    m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     m_sys.set_fixed_stepSize(params.step_size);
     m_sys.set_BD_Fixed(true);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);

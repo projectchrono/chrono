@@ -106,7 +106,7 @@ enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_
 
 enum GRAN_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 
-enum GRAN_ROLLING_MODE { NO_RESISTANCE, NAIVE };
+enum GRAN_ROLLING_MODE { NO_RESISTANCE, NAIVE, SIMPLE, ELASTIC_PLASTIC };
 
 enum GRAN_INPUT_MODE { USER, CHECKPOINT_POSITION, CHECKPOINT_FULL };
 
@@ -124,7 +124,7 @@ struct ChGranParams {
     float static_friction_coeff;
 
     // Coefficient of rolling resistance
-    float rolling_coeff;
+    float rolling_coeff_SU;
 
     // Use user-defined quantities for coefficients
     // sphere-to-sphere contact damping coefficient, expressed in SU
@@ -383,7 +383,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     virtual void initialize();
 
     void set_static_friction_coeff(float mu) { gran_params->static_friction_coeff = mu; }
-    void set_rolling_coeff(float mu) { gran_params->rolling_coeff = mu; }
+    void set_rolling_coeff(float mu) { rolling_coeff_UU = mu; }
 
     void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
     void set_K_n_SPH2WALL(double someValue) { K_n_s2w_UU = someValue; }
@@ -607,6 +607,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
 
     /// tangential damping for sphere-to-wall
     double Gamma_t_s2w_UU;
+
+    /// rolling friction coefficient
+    double rolling_coeff_UU;
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
