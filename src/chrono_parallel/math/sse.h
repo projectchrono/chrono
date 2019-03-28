@@ -22,6 +22,8 @@
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/ChCudaDefines.h"
 
+#include <blaze/system/Version.h>
+
 #ifndef __CUDACC__
 
 // Include appropriate SSE header, depending on supported level
@@ -56,13 +58,12 @@
 #undef USE_SSE
 #endif
 
-// Disable AVX support on Windows
+// Address an issue with Blaze macros in Vectorization.h pre-3.2
 #ifdef _MSC_VER
-// To address Visual Studio C2593 errors (ambiguous operator) in simd_avx & matrix
-//#undef USE_AVX
-// Fix for Blaze
+#if (BLAZE_MAJOR_VERSION < 3) || (BLAZE_MAJOR_VERSION == 3 && BLAZE_MINOR_VERSION < 2)
 #undef __AVX__
 #undef __AVX2__
+#endif
 #endif
 
 #endif

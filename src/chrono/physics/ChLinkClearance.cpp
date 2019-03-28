@@ -32,10 +32,10 @@ ChLinkClearance::ChLinkClearance() {
     contact_F_abs = VNULL;
     contact_V_abs = VNULL;
 
-    this->limit_X->Set_active(true);
-    this->limit_X->Set_max(clearance);
-    this->limit_X->Set_maxElastic(c_restitution);
-    this->limit_X->Set_min(-1000.0);
+    this->limit_X->SetActive(true);
+    this->limit_X->SetMax(clearance);
+    this->limit_X->SetMaxElastic(c_restitution);
+    this->limit_X->SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     // It was a LinkMaskLF because this class inherited from LinkLock.

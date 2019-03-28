@@ -14,7 +14,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChBuilderBeam.h"
-#include "chrono/fea/ChContactSurfaceNodeCloud.h"
+
 
 namespace chrono {
 namespace fea {

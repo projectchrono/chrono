@@ -396,8 +396,6 @@ using namespace chrono::fea;
 %include "ChPhysicsItem.i"
 %include "../chrono/physics/ChIndexedNodes.h"
 %include "ChMaterialSurface.i"
-%include "ChMaterialSurfaceNSC.i"
-%include "ChMaterialSurfaceSMC.i"
 %include "../chrono/physics/ChNodeBase.h"
 %include "../chrono/physics/ChNodeXYZ.h"
 %include "ChBodyFrame.i"
