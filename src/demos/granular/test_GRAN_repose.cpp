@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) {
 
     float static_friction = std::stof(argv[3]);
     cout << "Static Friction: " << static_friction << endl;
+    cout << "Expected angle from sliding: " << std::atan(static_friction) << endl;
     m_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     m_sys.set_static_friction_coeff(static_friction);
 
@@ -130,6 +131,7 @@ int main(int argc, char* argv[]) {
             cout << "Elasti-plastic rolling model not yet implemented" << endl;
             ShowUsage();
             return 1;
+            break;
         default:
             cout << "Invalid rolling mode" << endl;
             ShowUsage();
@@ -138,6 +140,8 @@ int main(int argc, char* argv[]) {
 
     float rolling_coeff = std::stof(argv[5]);
     cout << "Rolling resistance coefficient: " << rolling_coeff << endl;
+    cout << "Expected angle from rolling: " << std::atan(rolling_coeff) << endl;
+
     m_sys.set_rolling_coeff(rolling_coeff);
 
     m_sys.setOutputMode(params.write_mode);

@@ -779,8 +779,9 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
 
                         // M = -w / ||w|| * mu_r * r_eff * ||f_n||
                         // Assumes r_eff = r/2
-                        bodyA_AngAcc = bodyA_AngAcc - omega_rel * gran_params->rolling_coeff_SU * 0.5 * f_n /
-                                                          gran_params->sphereInertia_by_r;
+                        bodyA_AngAcc =
+                            bodyA_AngAcc -
+                            (gran_params->rolling_coeff_SU * 0.5 * f_n / gran_params->sphereInertia_by_r) * omega_rel;
                     } else if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
                         float3 R;
                         {
