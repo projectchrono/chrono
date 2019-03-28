@@ -34,6 +34,10 @@
 # include <limits.h>
 #endif
 
+#ifdef __FreeBSD__
+# include <sys/syslimits.h>
+#endif
+
 
 NAMESPACE_BEGIN(filesystem)
 
