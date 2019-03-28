@@ -770,7 +770,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     float3 omega_rel = my_omega - their_omega;
                     const float f_n = sqrt(force_accum.x * force_accum.x + force_accum.y * force_accum.y +
                                            force_accum.z * force_accum.z);
-                    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::NAIVE) {  // TODO rename
+                    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::CONSTANT_TORQUE) {
                         float omega_rel_mag =
                             sqrt(omega_rel.x * omega_rel.x + omega_rel.y * omega_rel.y + omega_rel.z * omega_rel.z);
                         if (omega_rel_mag != 0.f) {  // TODO some small bound?
@@ -781,9 +781,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         // Assumes r_eff = r/2
                         bodyA_AngAcc = bodyA_AngAcc - omega_rel * gran_params->rolling_coeff_SU * 0.5 * f_n /
                                                           gran_params->sphereInertia_by_r;
-                    } else if (gran_params->rolling_mode == GRAN_ROLLING_MODE::SIMPLE) {  // TODO rename
-                        const float my_omega_mag =
-                            sqrt(my_omega.x * my_omega.x + my_omega.y * my_omega.y + my_omega.z * my_omega.z);
+                    } else if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
                         float3 R;
                         {
                             int3 R_int = their_pos - my_sphere_pos;
@@ -791,10 +789,12 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         }
                         float3 v = Cross(R, my_omega + their_omega);
                         const float v_mag = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-                        if (my_omega_mag != 0.f) {
-                            my_omega = 1.f / my_omega_mag * my_omega;
+                        float omega_rel_mag =
+                            sqrt(omega_rel.x * omega_rel.x + omega_rel.y * omega_rel.y + omega_rel.z * omega_rel.z);
+                        if (omega_rel_mag != 0.f) {  // TODO some small bound?
+                            omega_rel = 1.f / omega_rel_mag * omega_rel;
                         }
-                        float3 torque = -gran_params->rolling_coeff_SU * v_mag * f_n * my_omega;
+                        float3 torque = -gran_params->rolling_coeff_SU * v_mag * f_n * omega_rel;
                         bodyA_AngAcc = bodyA_AngAcc +
                                        1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
                     } else {

@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     gran_sys.set_static_friction_coeff(0.7);
 
     gran_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
-    gran_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::NAIVE);
+    gran_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::CONSTANT_TORQUE);
 
     std::vector<ChVector<float>> points;
     ChVector<float> sphere_pos(-params.box_X / 2 + 2 * params.sphere_radius, 0,

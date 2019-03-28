@@ -34,7 +34,9 @@ using std::stoi;
 using std::vector;
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_repose <json_file> <output_dir> <static_friction> <rolling_friction>" << endl;
+    cout << "usage: ./test_GRAN_repose <json_file> <output_dir> <static_friction> <rolling_model 0:constant, "
+            "1:viscous> <rolling_friction>"
+         << endl;
 }
 
 void writeMeshFrames(std::ostringstream& outstream,
@@ -69,7 +71,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 5 || ParseJSON(argv[1], params) == false) {
+    if (argc != 6 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -110,12 +112,32 @@ int main(int argc, char* argv[]) {
 
     float static_friction = std::stof(argv[3]);
     cout << "Static Friction: " << static_friction << endl;
-    m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
+    m_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     m_sys.set_static_friction_coeff(static_friction);
 
-    float rolling_coeff = std::stof(argv[4]);
+    int rolling_mode = std::atoi(argv[4]);
+    switch (rolling_mode) {
+        case 0:
+            m_sys.set_rolling_mode(GRAN_ROLLING_MODE::CONSTANT_TORQUE);
+            cout << "Constant torque rolling model" << endl;
+            break;
+        case 1:
+            m_sys.set_rolling_mode(GRAN_ROLLING_MODE::VISCOUS);
+            cout << "Viscous rolling model" << endl;
+            break;
+        case 2:
+            m_sys.set_rolling_mode(GRAN_ROLLING_MODE::ELASTIC_PLASTIC);
+            cout << "Elasti-plastic rolling model not yet implemented" << endl;
+            ShowUsage();
+            return 1;
+        default:
+            cout << "Invalid rolling mode" << endl;
+            ShowUsage();
+            return 1;
+    }
+
+    float rolling_coeff = std::stof(argv[5]);
     cout << "Rolling resistance coefficient: " << rolling_coeff << endl;
-    m_sys.set_rolling_mode(chrono::granular::GRAN_ROLLING_MODE::SIMPLE);
     m_sys.set_rolling_coeff(rolling_coeff);
 
     m_sys.setOutputMode(params.write_mode);
