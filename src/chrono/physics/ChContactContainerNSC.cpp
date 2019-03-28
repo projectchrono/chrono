@@ -220,6 +220,7 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
     if ((inactiveA && inactiveB))
         return;
 
+
     // CREATE THE CONTACTS
     //
     // Switch among the various cases of contacts: i.e. between a 6-dof variable and another 6-dof variable,
@@ -227,54 +228,38 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
     // These cases are made distinct to exploit the optimization coming from templates and static data sizes
     // in contact types.
 
-    /*
-    if (ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelA->GetContactable())) {
-        // 6_6
-        if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
-            if ((mmatA->rolling_friction && mmatB->rolling_friction) ||
-                (mmatA->spinning_friction && mmatB->spinning_friction)) {
-                _OptimalContactInsert(contactlist_6_6_rolling, lastcontact_6_6_rolling, n_added_6_6_rolling, this,
-                                      mmboA, mmboB, mcontact);
-            } else {
-                _OptimalContactInsert(contactlist_6_6, lastcontact_6_6, n_added_6_6, this, mmboA, mmboB, mcontact);
-            }
-            return;
-        }
-        // 6_3
-        if (ChContactable_1vars<3>* mmboB = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelB->GetContactable())) {
-            _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboA, mmboB, mcontact);
-            return;
-        }
-    }
-
-    if (ChContactable_1vars<3>* mmboA = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelA->GetContactable())) {
-        // 3_6 -> 6_3
-        if (ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(mcontact.modelB->GetContactable())) {
-            collision::ChCollisionInfo swapped_contact(mcontact, true);
-            _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboB, mmboA, swapped_contact);
-            return;
-        }
-        // 3_3
-        if (ChContactable_1vars<3>* mmboB = dynamic_cast<ChContactable_1vars<3>*>(mcontact.modelB->GetContactable())) {
-            _OptimalContactInsert(contactlist_3_3, lastcontact_3_3, n_added_3_3, this, mmboA, mmboB, mcontact);
-            return;
-        }
-    }
-    */
+	/*
+	Note: formerly it dispatched all combinations by using dynamic_cast<>, but the
+	casting had a very high CPU overhead (at least on MSVC compiler)...
+	
     if (auto mmboA = dynamic_cast<ChContactable_1vars<3>*>(contactableA)) {
         if (auto mmboB = dynamic_cast<ChContactable_1vars<3>*>(contactableB)) {
             // 3_3
             _OptimalContactInsert(contactlist_3_3, lastcontact_3_3, n_added_3_3, this, mmboA, mmboB, mcontact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_1vars<6>*>(contactableB)) {
+         ...
+	Therefore now we implement a speedup by accessing an enum that 'fakes' rtti, 
+	at the cost of a virtual GetContactableType() call:
+	*/
+
+	if (contactableA->GetContactableType()==ChContactable::CONTACTABLE_3) { // if(auto mmboA = dynamic_cast<ChContactable_1vars<3>*>(contactableA)) {
+		auto mmboA = static_cast<ChContactable_1vars<3>*>(contactableA);
+		if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_3) { //auto mmboB = dynamic_cast<ChContactable_1vars<3>*>(contactableB)) {
+			auto mmboB = static_cast<ChContactable_1vars<3>*>(contactableB);
+            // 3_3
+            _OptimalContactInsert(contactlist_3_3, lastcontact_3_3, n_added_3_3, this, mmboA, mmboB, mcontact);
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_6) {
+			auto mmboB = static_cast<ChContactable_1vars<6>*>(contactableB);
             // 3_6 -> 6_3
             collision::ChCollisionInfo swapped_contact(mcontact, true);
             _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboB, mmboA, swapped_contact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_333) { 
+			auto mmboB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
             // 3_333 -> 333_3
             collision::ChCollisionInfo swapped_contact(mcontact, true);
             _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboB, mmboA,
                                   swapped_contact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_3vars<6, 6, 6>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_666) { 
+			auto mmboB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
             // 3_666 -> 666_3
             collision::ChCollisionInfo swapped_contact(mcontact, true);
             _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, mmboB, mmboA,
@@ -282,11 +267,14 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
         }
     }
 
-    else if (auto mmboA = dynamic_cast<ChContactable_1vars<6>*>(contactableA)) {
-        if (auto mmboB = dynamic_cast<ChContactable_1vars<3>*>(contactableB)) {
+    else if (contactableA->GetContactableType()==ChContactable::CONTACTABLE_6) {
+		auto mmboA = static_cast<ChContactable_1vars<6>*>(contactableA);
+        if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_3) {
+			auto mmboB = static_cast<ChContactable_1vars<3>*>(contactableB);
             // 6_3
             _OptimalContactInsert(contactlist_6_3, lastcontact_6_3, n_added_6_3, this, mmboA, mmboB, mcontact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_1vars<6>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_6) {
+			auto mmboB = static_cast<ChContactable_1vars<6>*>(contactableB);
             // 6_6    ***NOTE: for body-body one could have rolling friction: ***
             if ((mmatA->rolling_friction && mmatB->rolling_friction) ||
                 (mmatA->spinning_friction && mmatB->spinning_friction)) {
@@ -295,12 +283,14 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
             } else {
                 _OptimalContactInsert(contactlist_6_6, lastcontact_6_6, n_added_6_6, this, mmboA, mmboB, mcontact);
             }
-        } else if (auto mmboB = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_333) {
+			auto mmboB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
             // 6_333 -> 333_6
             collision::ChCollisionInfo swapped_contact(mcontact, true);
             _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboB, mmboA,
                                   swapped_contact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_3vars<6, 6, 6>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_666) {
+			auto mmboB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
             // 6_666 -> 666_6
             collision::ChCollisionInfo swapped_contact(mcontact, true);
             _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, mmboB, mmboA,
@@ -308,18 +298,23 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
         }
     }
 
-    else if (auto mmboA = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(contactableA)) {
-        if (auto mmboB = dynamic_cast<ChContactable_1vars<3>*>(contactableB)) {
+    else if (contactableA->GetContactableType()==ChContactable::CONTACTABLE_333) {
+		auto mmboA = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableA);
+        if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_3) {
+			auto mmboB = static_cast<ChContactable_1vars<3>*>(contactableB);
             // 333_3
             _OptimalContactInsert(contactlist_333_3, lastcontact_333_3, n_added_333_3, this, mmboA, mmboB, mcontact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_1vars<6>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_6) {
+			auto mmboB = static_cast<ChContactable_1vars<6>*>(contactableB);
             // 333_6
             _OptimalContactInsert(contactlist_333_6, lastcontact_333_6, n_added_333_6, this, mmboA, mmboB, mcontact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_333) {
+			auto mmboB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
             // 333_333
             _OptimalContactInsert(contactlist_333_333, lastcontact_333_333, n_added_333_333, this, mmboA, mmboB,
                                   mcontact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_3vars<6, 6, 6>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_666) {
+			auto mmboB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
             // 333_666 -> 666_333
             collision::ChCollisionInfo swapped_contact(mcontact, true);
             _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, mmboB, mmboA,
@@ -327,18 +322,23 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
         }
     }
 
-    else if (auto mmboA = dynamic_cast<ChContactable_3vars<6, 6, 6>*>(contactableA)) {
-        if (auto mmboB = dynamic_cast<ChContactable_1vars<3>*>(contactableB)) {
+    else if (contactableA->GetContactableType()==ChContactable::CONTACTABLE_666) {
+		auto mmboA = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableA);
+        if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_3) {
+			auto mmboB = static_cast<ChContactable_1vars<3>*>(contactableB);
             // 666_3
             _OptimalContactInsert(contactlist_666_3, lastcontact_666_3, n_added_666_3, this, mmboA, mmboB, mcontact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_1vars<6>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_6) {
+			auto mmboB = static_cast<ChContactable_1vars<6>*>(contactableB);
             // 666_6
             _OptimalContactInsert(contactlist_666_6, lastcontact_666_6, n_added_666_6, this, mmboA, mmboB, mcontact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_333) {
+			auto mmboB = static_cast<ChContactable_3vars<3, 3, 3>*>(contactableB);
             // 666_333
             _OptimalContactInsert(contactlist_666_333, lastcontact_666_333, n_added_666_333, this, mmboA, mmboB,
                                   mcontact);
-        } else if (auto mmboB = dynamic_cast<ChContactable_3vars<6, 6, 6>*>(contactableB)) {
+        } else if (contactableB->GetContactableType()==ChContactable::CONTACTABLE_666) {
+			auto mmboB = static_cast<ChContactable_3vars<6, 6, 6>*>(contactableB);
             // 666_666
             _OptimalContactInsert(contactlist_666_666, lastcontact_666_666, n_added_666_666, this, mmboA, mmboB,
                                   mcontact);

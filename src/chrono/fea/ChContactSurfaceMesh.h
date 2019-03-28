@@ -71,6 +71,8 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     // INTERFACE TO ChContactable
     //
 
+	virtual eChContactableType GetContactableType() const override { return CONTACTABLE_333; }
+	
     /// Access variables for node 1
     virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }
     /// Access variables for node 2
@@ -391,6 +393,8 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     //
     // INTERFACE TO ChContactable
     //
+
+	virtual eChContactableType GetContactableType() const override { return CONTACTABLE_666; }
 
     /// Access variables for node 1
     virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }

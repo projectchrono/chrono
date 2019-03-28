@@ -53,6 +53,8 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     // INTERFACE TO ChContactable
     //
 
+	virtual eChContactableType GetContactableType() const override { return CONTACTABLE_3; }
+
     /// Access variables
     virtual ChVariables* GetVariables1() override { return &mnode->Variables(); }
 
@@ -190,6 +192,8 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     //
     // INTERFACE TO ChContactable
     //
+
+	virtual eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
 
     /// Access variables
     virtual ChVariables* GetVariables1() override { return &mnode->Variables(); }
