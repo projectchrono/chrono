@@ -124,12 +124,8 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
         // (contractive, but performs correction on three components: normal,u,v)
 
         double f_n = this->l_i + this->cohesion;
-        double f_u = constraint_U->Get_l_i();
-        double f_v = constraint_V->Get_l_i();
 
-        double f_tang = sqrt(f_v * f_v + f_u * f_u);
-
-        // shortcut
+		// shortcut
         if (!friction) {
             constraint_U->Set_l_i(0);
             constraint_V->Set_l_i(0);
@@ -138,25 +134,32 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
             return;
         }
 
-        // inside upper cone? keep untouched!
-        if (f_tang < friction * f_n)
-            return;
+        double f_u = constraint_U->Get_l_i();
+        double f_v = constraint_V->Get_l_i();
+
+        double f_tang_squared = (f_v * f_v + f_u * f_u);
 
         // inside lower cone? reset  normal,u,v to zero!
-        if ((f_tang < -(1.0 / friction) * f_n) || (fabs(f_n) < 10e-15)) {
-            double f_n_proj = 0;
-            double f_u_proj = 0;
-            double f_v_proj = 0;
+		if (f_n < 0)
+		{
+			double inv_friction_f_n = f_n / friction;
+			if (f_tang_squared < inv_friction_f_n*inv_friction_f_n) {
+				this->Set_l_i(0);
+				constraint_U->Set_l_i(0);
+				constraint_V->Set_l_i(0);
+				return;
+			}
+		}
 
-            this->Set_l_i(f_n_proj);
-            constraint_U->Set_l_i(f_u_proj);
-            constraint_V->Set_l_i(f_v_proj);
-
+		// inside upper cone? keep untouched!
+		double friction_f_n = friction * f_n;
+        if (f_tang_squared < friction_f_n*friction_f_n)
             return;
-        }
 
+		
         // remaining case: project orthogonally to generator segment of upper cone
-        double f_n_proj = (f_tang * friction + f_n) / (friction * friction + 1);
+        double f_tang = sqrt(f_tang_squared); // postpone sqrt as much as possible to avoid cpu overhead
+		double f_n_proj = (f_tang * friction + f_n) / (friction * friction + 1);
         double f_tang_proj = f_n_proj * friction;
         double tproj_div_t = f_tang_proj / f_tang;
         double f_u_proj = tproj_div_t * f_u;
