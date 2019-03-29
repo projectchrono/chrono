@@ -347,7 +347,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
 
     /// Infer the contact method from the underlying material properties object.
-    ChMaterialSurface::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
+    ChMaterialSurface::ContactMethod GetContactMethod() const { return matsurface->GetContactMethod(); }
 
     /// Access the NSC material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
