@@ -209,12 +209,12 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
 
     // Check if both collision models use NSC ('non-smooth dynamics') materials.
     // If not NSC vs NSC, just bailout (ex it could be that this was a SMC vs SMC contact)
-    if (contactableA->GetMaterialSurfaceBase()->GetContactMethod() != ChMaterialSurface::NSC ||
-        contactableB->GetMaterialSurfaceBase()->GetContactMethod() != ChMaterialSurface::NSC)
+    if (contactableA->GetMaterialSurface()->GetContactMethod() != ChMaterialSurface::NSC ||
+        contactableB->GetMaterialSurface()->GetContactMethod() != ChMaterialSurface::NSC)
         return;
 
-    auto mmatA = std::static_pointer_cast<ChMaterialSurfaceNSC>(contactableA->GetMaterialSurfaceBase());
-    auto mmatB = std::static_pointer_cast<ChMaterialSurfaceNSC>(contactableB->GetMaterialSurfaceBase());
+    auto mmatA = std::static_pointer_cast<ChMaterialSurfaceNSC>(contactableA->GetMaterialSurface());
+    auto mmatB = std::static_pointer_cast<ChMaterialSurfaceNSC>(contactableB->GetMaterialSurface());
 
     // CREATE THE CONTACTS
     //

@@ -51,9 +51,8 @@ class ChContactable {
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) = 0;
 
     /// Return the pointer to the surface material.
-    /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() = 0;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() = 0;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) = 0;

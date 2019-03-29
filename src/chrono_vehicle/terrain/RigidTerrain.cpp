@@ -523,7 +523,7 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
         // Set friction in composite material based on contact formulation.
         switch (body_other->GetContactMethod()) {
             case ChMaterialSurface::NSC: {
-                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceNSC>(body_other->GetMaterialSurfaceBase());
+                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceNSC>(body_other->GetMaterialSurface());
                 auto friction_other = mat_other->sliding_friction;
                 auto friction = strategy.CombineFriction(friction_terrain, friction_other);
                 auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
@@ -532,7 +532,7 @@ class RTContactCallback : public ChContactContainer::AddContactCallback {
                 break;
             }
             case ChMaterialSurface::SMC: {
-                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceSMC>(body_other->GetMaterialSurfaceBase());
+                auto mat_other = std::static_pointer_cast<ChMaterialSurfaceSMC>(body_other->GetMaterialSurface());
                 auto friction_other = mat_other->sliding_friction;
                 auto friction = strategy.CombineFriction(friction_terrain, friction_other);
                 auto mat = static_cast<ChMaterialCompositeSMC* const>(material);

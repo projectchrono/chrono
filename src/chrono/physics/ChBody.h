@@ -628,7 +628,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return the pointer to the surface material.
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override { return matsurface; }
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override { return matsurface; }
 
     /// Get the resultant contact force acting on this body.
     ChVector<> GetContactForce();

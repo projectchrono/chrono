@@ -211,12 +211,12 @@ void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& mcontac
 
     // Check that the two collision models are compatible with penalty contact.
     // If either one has a contact material for complementarity, skip processing this contact.
-    if (contactableA->GetMaterialSurfaceBase()->GetContactMethod() != ChMaterialSurface::SMC ||
-        contactableB->GetMaterialSurfaceBase()->GetContactMethod() != ChMaterialSurface::SMC)
+    if (contactableA->GetMaterialSurface()->GetContactMethod() != ChMaterialSurface::SMC ||
+        contactableB->GetMaterialSurface()->GetContactMethod() != ChMaterialSurface::SMC)
         return;
 
-    auto mmatA = std::static_pointer_cast<ChMaterialSurfaceSMC>(contactableA->GetMaterialSurfaceBase());
-    auto mmatB = std::static_pointer_cast<ChMaterialSurfaceSMC>(contactableB->GetMaterialSurfaceBase());
+    auto mmatA = std::static_pointer_cast<ChMaterialSurfaceSMC>(contactableA->GetMaterialSurface());
+    auto mmatB = std::static_pointer_cast<ChMaterialSurfaceSMC>(contactableB->GetMaterialSurface());
 
     // CREATE THE CONTACTS
     //

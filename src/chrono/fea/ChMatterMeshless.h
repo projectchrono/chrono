@@ -162,7 +162,7 @@ class ChApi ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> {
     virtual double GetContactableMass() override { return this->GetMass(); }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility.
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -249,7 +249,7 @@ class ChApi ChMatterMeshless : public ChIndexedNodes {
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
     //
     // STATE FUNCTIONS
