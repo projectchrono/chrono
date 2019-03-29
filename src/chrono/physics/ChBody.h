@@ -597,7 +597,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // INTERFACE TO ChContactable
     //
 
-	virtual eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
 
     virtual ChVariables* GetVariables1() override { return &this->variables; }
 

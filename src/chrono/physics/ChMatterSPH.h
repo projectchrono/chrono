@@ -69,7 +69,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     // INTERFACE TO ChContactable
     //
 
-	virtual eChContactableType GetContactableType() const override { return CONTACTABLE_3; }
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_3; }
 
     /// Access variables.
     virtual ChVariables* GetVariables1() override { return &Variables(); }

@@ -51,7 +51,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // INTERFACE TO ChContactable
     //
 
-	virtual eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
 
     /// Access variables.
     virtual ChVariables* GetVariables1() override { return &Variables(); }
