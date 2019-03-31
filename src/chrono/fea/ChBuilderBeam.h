@@ -20,6 +20,7 @@
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -33,7 +34,6 @@ namespace fea {
 /// @addtogroup fea_utils
 /// @{
 
-class ChContactSurfaceNodeCloud;
 
 /// Class for an helper object that provides easy functions to create
 /// complex beams, for example subdivides a segment in multiple finite

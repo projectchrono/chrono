@@ -18,7 +18,6 @@ class Model(object):
     #
     #  Create the simulation system and add items
     #
-      self.stepcounter = 0
       self.Xtarg = 1000.0
       self.Ytarg = 0.0
       self.d_old = np.linalg.norm(self.Xtarg + self.Ytarg)
@@ -63,10 +62,10 @@ class Model(object):
       
       self.leg_limit = chrono.ChLinkLimit()
       self.ankle_limit = chrono.ChLinkLimit()
-      self.leg_limit.Set_Rmax(math.pi/9)
-      self.leg_limit.Set_Rmin(-math.pi/9)
-      self.ankle_limit.Set_Rmax(math.pi/9)
-      self.ankle_limit.Set_Rmin(-math.pi/9)
+      self.leg_limit.SetRmax(math.pi/9)
+      self.leg_limit.SetRmin(-math.pi/9)
+      self.ankle_limit.SetRmax(math.pi/9)
+      self.ankle_limit.SetRmin(-math.pi/9)
       
       if (self.animate) :
              self.myapplication = chronoirr.ChIrrApp(self.ant_sys)
@@ -178,12 +177,12 @@ class Model(object):
              
              self.ankle_body[i].AddAsset(self.foot_shape)
              
-             self.Leg_rev[i].GetLimit_Rz().Set_active(True)
-             self.Leg_rev[i].GetLimit_Rz().Set_min(-math.pi/3)
-             self.Leg_rev[i].GetLimit_Rz().Set_max(math.pi/3)
-             self.Ankle_rev[i].GetLimit_Rz().Set_active(True)
-             self.Ankle_rev[i].GetLimit_Rz().Set_min(-math.pi/2)
-             self.Ankle_rev[i].GetLimit_Rz().Set_max(math.pi/4)
+             self.Leg_rev[i].GetLimit_Rz().SetActive(True)
+             self.Leg_rev[i].GetLimit_Rz().SetMin(-math.pi/3)
+             self.Leg_rev[i].GetLimit_Rz().SetMax(math.pi/3)
+             self.Ankle_rev[i].GetLimit_Rz().SetActive(True)
+             self.Ankle_rev[i].GetLimit_Rz().SetMin(-math.pi/2)
+             self.Ankle_rev[i].GetLimit_Rz().SetMax(math.pi/4)
              
 
            
@@ -222,7 +221,6 @@ class Model(object):
       return self.get_ob()
 
    def step(self, ac):
-       self.stepcounter += 1
        xposbefore = self.body_abdomen.GetPos().x
        self.numsteps += 1
        if (self.animate):
@@ -268,8 +266,8 @@ class Model(object):
                  self.q_mot[i+4] = self.Ankle_rev[i].GetRelAngle() 
                  self.q_dot_mot[i]  = self.Leg_rev[i].GetRelWvel().z
                  self.q_dot_mot[i+4]  = self.Ankle_rev[i].GetRelWvel().z
-                 joint_at_limit = np.append(joint_at_limit,  [ self.Leg_rev[i].GetLimit_Rz().Get_max()   < self.q_mot[i]   or self.Leg_rev[i].GetLimit_Rz().Get_min()   > self.q_mot[i] ,
-                                                               self.Ankle_rev[i].GetLimit_Rz().Get_max() < self.q_mot[i+4] or self.Ankle_rev[i].GetLimit_Rz().Get_min() > self.q_mot[i+4]])
+                 joint_at_limit = np.append(joint_at_limit,  [ self.Leg_rev[i].GetLimit_Rz().GetMax()   < self.q_mot[i]   or self.Leg_rev[i].GetLimit_Rz().GetMin()   > self.q_mot[i] ,
+                                                               self.Ankle_rev[i].GetLimit_Rz().GetMax() < self.q_mot[i+4] or self.Ankle_rev[i].GetLimit_Rz().GetMin() > self.q_mot[i+4]])
                  feet_contact = np.append(feet_contact, [self.ankle_body[i].GetContactForce().Length()] )
            
 

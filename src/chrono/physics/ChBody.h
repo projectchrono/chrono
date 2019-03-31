@@ -347,7 +347,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
 
     /// Infer the contact method from the underlying material properties object.
-    ChMaterialSurface::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
+    ChMaterialSurface::ContactMethod GetContactMethod() const { return matsurface->GetContactMethod(); }
 
     /// Access the NSC material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
@@ -597,6 +597,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // INTERFACE TO ChContactable
     //
 
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+
     virtual ChVariables* GetVariables1() override { return &this->variables; }
 
     /// Tell if the object must be considered in collision detection
@@ -626,7 +628,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return the pointer to the surface material.
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override { return matsurface; }
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override { return matsurface; }
 
     /// Get the resultant contact force acting on this body.
     ChVector<> GetContactForce();

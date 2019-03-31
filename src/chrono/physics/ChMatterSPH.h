@@ -69,6 +69,8 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     // INTERFACE TO ChContactable
     //
 
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_3; }
+
     /// Access variables.
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
@@ -146,7 +148,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     virtual double GetContactableMass() override { return GetMass(); }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -276,7 +278,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
     //
     // STATE FUNCTIONS

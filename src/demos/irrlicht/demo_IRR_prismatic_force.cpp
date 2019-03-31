@@ -12,13 +12,15 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demonstration of using limits on a translational joint.
+// Demonstration of actuating a translational joint with a ChLinkForce.
 // The model is built with gravity acting in the negative Y direction.
 //
 // Recall that Irrlicht uses a left-hand frame, so everything is rendered with
 // left and right flipped.
 //
 // =============================================================================
+
+#include <cmath>
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
@@ -33,10 +35,9 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     ChSystemNSC system;
+    system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the ground body
-    // ----------------------
-
     auto ground = std::make_shared<ChBody>();
     system.AddBody(ground);
     ground->SetIdentifier(-1);
@@ -58,8 +59,6 @@ int main(int argc, char* argv[]) {
     ground->AddAsset(col);
 
     // Create the slider bodies
-    // ------------------------
-
     auto slider1 = std::make_shared<ChBody>();
     system.AddBody(slider1);
     slider1->SetIdentifier(1);
@@ -99,42 +98,32 @@ int main(int argc, char* argv[]) {
     slider2->AddAsset(col2);
 
     // Create prismatic joints between ground and sliders
-    // --------------------------------------------------
-
-    // Add limit (Z min) on this prismatic joint.
-    // The limit value relates to the Z component of the relative marker position 2->1
     auto prismatic1 = std::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, slider1, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
-    prismatic1->GetLimit_Z().SetActive(true);
-    prismatic1->GetLimit_Z().SetMin(-6);
+    prismatic1->Initialize(slider1, ground, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
     system.AddLink(prismatic1);
 
     auto prismatic2 = std::make_shared<ChLinkLockPrismatic>();
-    prismatic2->Initialize(ground, slider2, ChCoordsys<>(ChVector<>(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
+    prismatic2->Initialize(slider2, ground, ChCoordsys<>(ChVector<>(0, 0, +1), Q_from_AngY(CH_C_PI_2)));
     system.AddLink(prismatic2);
 
-    // Add linear springs to the sliders
-    // ---------------------------------
+    // Sine function
+    double freq = 1;
+    double ampl = 4;
+    double omg = 2 * CH_C_PI * freq;
+    auto mod = std::make_shared<ChFunction_Sine>(0.0, freq, ampl);
 
-    auto spring1 = std::make_shared<ChLinkSpring>();
-    spring1->Initialize(ground, slider1, true, ChVector<>(0, 0, -1), ChVector<>(0, 0, 0), false, 0);
-    spring1->Set_SpringK(10);
-    spring1->Set_SpringR(0);
-    system.AddLink(spring1);
-    spring1->AddAsset(std::make_shared<ChPointPointSpring>(0.1, 80, 15));
+    // Actuate first slider using a link force
+    prismatic1->GetForce_Z().SetActive(true);
+    prismatic1->GetForce_Z().SetF(1);
+    prismatic1->GetForce_Z().SetModulationF(mod);
 
-    auto spring2 = std::make_shared<ChLinkSpring>();
-    spring2->Initialize(ground, slider2, true, ChVector<>(0, 0, +1), ChVector<>(0, 0, 0), false, 0);
-    spring2->Set_SpringK(10);
-    spring2->Set_SpringR(0);
-    system.AddLink(spring2);
-    spring2->AddAsset(std::make_shared<ChPointPointSpring>(0.1, 80, 15));
+    // Actuate second slider using a body force
+    auto frc2 = std::make_shared<ChForce>();
+    frc2->SetF_x(mod);
+    slider2->AddForce(frc2);
 
     // Create the Irrlicht application
-    // -------------------------------
-
-    ChIrrApp application(&system, L"Limits on LinkLockPrismatic demo", irr::core::dimension2d<irr::u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&system, L"Actuated prismatic joint", irr::core::dimension2d<irr::u32>(800, 600), false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -143,27 +132,22 @@ int main(int argc, char* argv[]) {
     application.AssetBindAll();
     application.AssetUpdateAll();
 
+    application.SetTimestep(1e-3);
+
     // Simulation loop
-    // ---------------
-
-    application.SetTimestep(0.001);
-    bool max_lim_enabled = false;
-
+    double x0 = slider1->GetPos().x();
     while (application.GetDevice()->run()) {
-        // Enable also the Z max limit on the 1st prismatic joint
-        if (!max_lim_enabled && slider1->GetPos().x() > 0) {
-            prismatic1->GetLimit_Z().SetMax(-3);
-            max_lim_enabled = true;
-        }
+        double time = system.GetChTime();
+
+        // Output slider x position/velocity and analytical solution
+        ////double x = slider1->GetPos().x();
+        ////double x_d = slider1->GetPos_dt().x();
+        ////double xa = x0 + (ampl / omg) * (time - std::sin(omg * time) / omg);
+        ////double xa_d = (ampl / omg) * (1 - std::cos(omg * time));
+        ////std::cout << time << "   " << x << " " << x_d << "   " << xa << " " << xa_d << std::endl;
 
         application.BeginScene();
         application.DrawAll();
-        ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(+2, 0, 0), ChVector<>(+2, 0, -2),
-                                irr::video::SColor(255, 255, 150, 0), true);
-        if (max_lim_enabled) {
-            ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(-1, 0, 0), ChVector<>(-1, 0, -2),
-                                    irr::video::SColor(255, 255, 150, 0), true);
-        }
         ChIrrTools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
         application.DoStep();
         application.EndScene();

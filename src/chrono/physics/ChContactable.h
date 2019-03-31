@@ -51,9 +51,8 @@ class ChContactable {
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) = 0;
 
     /// Return the pointer to the surface material.
-    /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() = 0;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() = 0;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) = 0;
@@ -94,6 +93,21 @@ class ChContactable {
     /// The ChPhysicsItem could be the ChContactable itself (ex. see the ChBody) or
     /// a container (ex. the ChMEsh, for ChContactTriangle)
     virtual ChPhysicsItem* GetPhysicsItem() = 0;
+
+	// enum used for dispatcher optimization instead than rtti
+	enum eChContactableType {
+		CONTACTABLE_UNKNOWN = 0,
+		CONTACTABLE_6,
+		CONTACTABLE_3,
+		CONTACTABLE_333,
+		CONTACTABLE_666
+	};
+	/// This must return the proper eChContactableType enum, for allowing
+	/// a faster collision dispatcher in ChContactContainer classes (this enum
+	/// will be used instead of slow dynamic_cast<> to infer the type of ChContactable,
+	/// if possible)
+	virtual eChContactableType GetContactableType() const = 0;
+
 };
 
 // Note that template T1 is the number of DOFs in the referenced ChVariable, 
@@ -178,6 +192,7 @@ class ChContactable_3vars : public ChContactable, public ChVariableTupleCarrier_
                                                       type_constraint_tuple& jacobian_tuple_U,
                                                       type_constraint_tuple& jacobian_tuple_V,
                                                       bool second){};
+
 };
 
 }  // end namespace chrono

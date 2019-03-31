@@ -9,24 +9,19 @@ Parallel solver module for Chrono.
 ## Features
 
 The **PARALLEL module** provides features for performing multibody simulations
-using parallel computing within Chrono
+using shared-memory parallel computing within Chrono
 
 - introduces a custom ChSystemParallel class
 - implements a high-performance parallel collision detection algorithm
 - uses efficient APIs for parallelism (OpenMP, Thrust, etc.)
-- planned: support of MPI parallelism
 
 
 ## Requirements
 
 - To **build** this module you need:
     - the [Blaze](https://bitbucket.org/blaze-lib/blaze) library
-    - the [Boost](http://www.boost.org) library
+    - the [Boost](http://www.boost.org) library (only for Blaze 3.1 or older)
     - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
-
-<div class="ce-danger">
-The latest version of Blaze (3.4) does not work with Visual Studio.  Use an earlier version (e.g. 3.0).
-</div>
 
 <div class="ce-warning">
 The easiest way to obtain the Thrust library is by installing the CUDA SDK. 
@@ -36,19 +31,20 @@ Alternatively, you can download or clone Thrust from its [GitHub repository](htt
 
 ## Building instructions
   
-1. Download and install these libraries (depending on the platform, the process can be different)
+1. Download the following libraries (depending on the platform, the process can be different)
     - the [Blaze](https://bitbucket.org/blaze-lib/blaze) library
-    - the [Boost](http://www.boost.org) library
+    - the [Boost](http://www.boost.org) library (if using Blaze 3.1 or older)
     - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
 
-2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
-   the CMake window, you must add the following steps:
+    For use with the Chrono PARALLEL module, no installation is required for the above headers-only libraries. However, if so desired, they can be installed in the appropriate system directories (on platforms that support them).
+
+2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), with the following additional steps:
    
 3. Set the `ENABLE_MODULE_PARALLEL` as 'on', then press 'Configure' (to refresh the variable list) 
  
-4. Set the path for `BLAZE_DIR`
+4. If prompted, set the path for `BLAZE_DIR`, the press 'Configure'
 
-5. Set the path for `BOOST_DIR`
+5. If using an older version of Blaze (pre 3.2) and if so prompted, set the path for `BOOST_DIR`
 	 
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

@@ -56,7 +56,7 @@ class ChApi ChContactSurface {
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
     /// Functions to interface this with ChPhysicsItem container
     virtual void SurfaceSyncCollisionModels() = 0;

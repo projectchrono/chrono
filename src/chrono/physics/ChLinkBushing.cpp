@@ -46,37 +46,37 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     // Use force objects (force_X, force_Y, force_Z; force_Rx, force_Ry, force_Rz) from parent class.
 
     force_X = std::make_unique<ChLinkForce>();
-    force_X->Set_active(true);
-    force_X->Set_K(m_constants_K(0, 0));
-    force_X->Set_R(m_constants_R(0, 0));
+    force_X->SetActive(true);
+    force_X->SetK(m_constants_K(0, 0));
+    force_X->SetR(m_constants_R(0, 0));
 
     force_Y = std::make_unique<ChLinkForce>();
-    force_Y->Set_active(true);
-    force_Y->Set_K(m_constants_K(1, 1));
-    force_Y->Set_R(m_constants_R(1, 1));
+    force_Y->SetActive(true);
+    force_Y->SetK(m_constants_K(1, 1));
+    force_Y->SetR(m_constants_R(1, 1));
 
     force_Z = std::make_unique<ChLinkForce>();
-    force_Z->Set_active(true);
-    force_Z->Set_K(m_constants_K(2, 2));
-    force_Z->Set_R(m_constants_R(2, 2));
+    force_Z->SetActive(true);
+    force_Z->SetK(m_constants_K(2, 2));
+    force_Z->SetR(m_constants_R(2, 2));
 
     // Apply compliance in rotational dofs depending on bushing type selected
     switch (m_bushing_joint) {
         case ChLinkBushing::Mount:
             force_Rx = std::make_unique<ChLinkForce>();
-            force_Rx->Set_active(true);
-            force_Rx->Set_K(m_constants_K(3, 3));
-            force_Rx->Set_R(m_constants_R(3, 3));
+            force_Rx->SetActive(true);
+            force_Rx->SetK(m_constants_K(3, 3));
+            force_Rx->SetR(m_constants_R(3, 3));
 
             force_Ry = std::make_unique<ChLinkForce>();
-            force_Ry->Set_active(true);
-            force_Ry->Set_K(m_constants_K(4, 4));
-            force_Ry->Set_R(m_constants_R(4, 4));
+            force_Ry->SetActive(true);
+            force_Ry->SetK(m_constants_K(4, 4));
+            force_Ry->SetR(m_constants_R(4, 4));
 
             force_Rz = std::make_unique<ChLinkForce>();
-            force_Rz->Set_active(true);
-            force_Rz->Set_K(m_constants_K(5, 5));
-            force_Rz->Set_R(m_constants_R(5, 5));
+            force_Rz->SetActive(true);
+            force_Rz->SetK(m_constants_K(5, 5));
+            force_Rz->SetR(m_constants_R(5, 5));
 
             break;
         case ChLinkBushing::Spherical:
