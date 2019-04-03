@@ -35,7 +35,7 @@
 #endif
 
 #ifdef __FreeBSD__
-# include <sys/syslimits.h>
+# include <limits.h>
 #endif
 
 
