@@ -19,7 +19,7 @@ environment:
     # and copy paste to
     # https://ci.appveyor.com/tools/encrypt
     # then copy/paste the result below
-    secure: GMdyezok6xJOnKB5w7km6dvQvBqGxR6RfYSPODdXhy1rq0lvDPMW4m9O9eeBHU99
+    secure: c+NCR991RaD0ERnXdzceVw==
   
   global:
     # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
@@ -123,9 +123,10 @@ install:
     - cmd: conda install conda-build anaconda-client --yes
     - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
     - cmd: conda config --add channels https://conda.anaconda.org/intel
-    - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
-    # need to manually add non standard channels. For the up-to date version by tpaviot (no real difference):
-    # conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
+    # need to manually add non standard channels.
+    #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1 --yes
+    # Up-to date version by tpaviot
+    - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
     - cmd: conda install -c intel mkl-devel --yes
 
 ############################################### UBUNTU ###############################################################
