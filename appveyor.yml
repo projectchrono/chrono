@@ -118,10 +118,10 @@ install:
     #- cmd: set "PATH=%OLDPATH%"
     - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
     - cmd: conda create -n myenv python=%PYTHON_VERSION% -y 
-    - cmd: activate myenv
     - cmd: conda config --set show_channel_urls true
     - cmd: conda update conda --yes
     - cmd: conda update -n root conda --yes
+    - cmd: activate myenv
     - cmd: conda install conda-build anaconda-client --yes
     - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
     - cmd: conda config --add channels https://conda.anaconda.org/intel
