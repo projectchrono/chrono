@@ -61,8 +61,8 @@ ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> n1,
     this->collision_model->SetContactable(this);
 }
 
-std::shared_ptr<ChMaterialSurface>& ChContactTriangleXYZ::GetMaterialSurfaceBase() {
-    return container->GetMaterialSurfaceBase();
+std::shared_ptr<ChMaterialSurface>& ChContactTriangleXYZ::GetMaterialSurface() {
+    return container->GetMaterialSurface();
 }
 
 ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
@@ -157,8 +157,8 @@ ChContactTriangleXYZROT::ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot
     this->collision_model->SetContactable(this);
 }
 
-std::shared_ptr<ChMaterialSurface>& ChContactTriangleXYZROT::GetMaterialSurfaceBase() {
-    return container->GetMaterialSurfaceBase();
+std::shared_ptr<ChMaterialSurface>& ChContactTriangleXYZROT::GetMaterialSurface() {
+    return container->GetMaterialSurface();
 }
 
 ChPhysicsItem* ChContactTriangleXYZROT::GetPhysicsItem() {

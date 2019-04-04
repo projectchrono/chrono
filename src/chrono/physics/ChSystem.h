@@ -43,10 +43,6 @@
 
 namespace chrono {
 
-// Forward references
-class ChSystemDescriptor;
-class ChContactContainer;
-
 /// Physical system.
 ///
 /// This class is used to represent a multibody physical system,

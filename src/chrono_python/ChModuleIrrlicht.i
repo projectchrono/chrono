@@ -49,7 +49,11 @@
 #include <irrlicht.h>
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
-
+#include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono_irrlicht/ChIrrEffects.h"
+#include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono_irrlicht/ChIrrWizard.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace irr;
@@ -149,6 +153,11 @@ using namespace gui;
 %include "dimension2d.h"
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
 
+%ignore chrono::irrlicht::ScreenQuadCB;
+%include "chrono_irrlicht/ChIrrEffects.h"
+%include "chrono_irrlicht/ChIrrTools.h"
+%include "chrono_irrlicht/ChIrrCamera.h"
+%include "chrono_irrlicht/ChIrrWizard.h"
 %include "ChIrrAppInterface.i"
 %include "ChIrrAssetConverter.i"
 %include "ChIrrApp.i"
