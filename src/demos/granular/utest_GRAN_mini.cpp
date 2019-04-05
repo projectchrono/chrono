@@ -142,15 +142,15 @@ int main(int argc, char* argv[]) {
 
     int canAccessPeer;
 
-    gpuErrchk(cudaDeviceCanAccessPeer(&canAccessPeer, gpu_dev_id_active, gpu_dev_id_other));
-    printf("\tCan access peer (GPU 0 -> GPU 1): %d\n", canAccessPeer);
+    // gpuErrchk(cudaDeviceCanAccessPeer(&canAccessPeer, gpu_dev_id_active, gpu_dev_id_other));
+    // printf("\tCan access peer (GPU 0 -> GPU 1): %d\n", canAccessPeer);
 
-    gpuErrchk(cudaDeviceCanAccessPeer(&canAccessPeer, gpu_dev_id_active, cudaCpuDeviceId));
-    printf("\tCan access peer (GPU 0 -> CPU): %d\n", canAccessPeer);
+    // gpuErrchk(cudaDeviceCanAccessPeer(&canAccessPeer, gpu_dev_id_active, cudaCpuDeviceId));
+    // printf("\tCan access peer (GPU 0 -> CPU): %d\n", canAccessPeer);
     // up to one million bodies
     // double time50k = run_test(100, 100, 100);
     // double time500k = run_test(220, 220, 220);
-    double run_time = run_test(280, 280, 280);
+    double run_time = run_test(1500, 1500, 1000);
 
     std::cout << "Running mini granular test!" << std::endl;
     // std::cout << "50 thousand bodies took " << time50k << " seconds!" << std::endl;

@@ -49,6 +49,68 @@ void ShowUsage() {
     cout << "must have either 1 or " << num_args_full - 1 << " arguments" << endl;
 }
 
+std::string cyl_filename = "Gran_cylinder_transparent.obj";
+
+// Take a ChBody and write its
+void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad, float height) {
+    // Get basis vectors
+    ChVector<> vx(1, 0, 0);
+    ChVector<> vy(0, 1, 0);
+    ChVector<> vz(0, 0, 1);
+
+    ChVector<> scaling(rad, rad, height / 2);
+
+    // Write the mesh name to find
+    outstream << cyl_filename << ",";
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z() << ",";
+    outstream << scaling.x() << ",";
+    outstream << scaling.y() << ",";
+    outstream << scaling.z();
+    outstream << "\n";
+}
+
+// Take a ChBody and write its
+void writeZConeMesh(std::ostringstream& outstream, ChVector<> pos, std::string mesh_filename) {
+    // Get basis vectors
+    ChVector<> vx(1, 0, 0);
+    ChVector<> vy(0, 1, 0);
+    ChVector<> vz(0, 0, 1);
+
+    ChVector<> scaling(1, 1, 1);
+
+    // Write the mesh name to find
+    outstream << mesh_filename << ",";
+    // Output in order
+    outstream << pos.x() << ",";
+    outstream << pos.y() << ",";
+    outstream << pos.z() << ",";
+    outstream << vx.x() << ",";
+    outstream << vx.y() << ",";
+    outstream << vx.z() << ",";
+    outstream << vy.x() << ",";
+    outstream << vy.y() << ",";
+    outstream << vy.z() << ",";
+    outstream << vz.x() << ",";
+    outstream << vz.y() << ",";
+    outstream << vz.z() << ",";
+    outstream << scaling.x() << ",";
+    outstream << scaling.y() << ",";
+    outstream << scaling.z();
+    outstream << "\n";
+}
+
 // -----------------------------------------------------------------------------
 // Demo for settling a monodisperse collection of shperes in a rectangular box.
 // There is no friction. The units are always cm/s/g[L/T/M].
@@ -143,7 +205,7 @@ int main(int argc, char* argv[]) {
 
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     // gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CHUNG);
-    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::FORWARD_EULER);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     // gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
     gran_sys.set_fixed_stepSize(params.step_size);
@@ -160,8 +222,24 @@ int main(int argc, char* argv[]) {
     // Finalize settings and initialize for runtime
     gran_sys.Create_BC_Cone_Z(center_pt, cone_slope, hmax, hmin, false, false);
 
-    float zvec[3] = {0, 0, 0};
+    ChVector<> cone_top_pos(0, 0, center_pt[2] + fill_width + 8);
+
     float cyl_rad = fill_width + 8;
+    printf("top of cone is at %f, cone tip is %f, top width is %f, bottom width is hmin %f\n", cone_top_pos.z(),
+           fill_width + 8, hmax, cone_offset);
+
+    float zvec[3] = {0, 0, 0};
+    {
+        std::string meshes_file = "coneflow_meshes.csv";
+
+        std::ofstream meshfile{params.output_dir + "/" + meshes_file};
+        std::ostringstream outstream;
+        outstream << "mesh_name,dx,dy,dz,x1,x2,x3,y1,y2,y3,z1,z2,z3\n";
+        writeZConeMesh(outstream, cone_top_pos, "granular/gran_zcone.obj");
+        writeZCylinderMesh(outstream, ChVector<>(zvec[0], zvec[1], zvec[2]), cyl_rad, params.box_Z);
+
+        meshfile << outstream.str();
+    }
 
     gran_sys.Create_BC_Cyl_Z(zvec, cyl_rad, false, false);
 

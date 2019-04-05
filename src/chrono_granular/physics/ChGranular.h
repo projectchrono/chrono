@@ -188,10 +188,6 @@ struct ChGranParams {
     /// The offset of the BD from its original frame, used to allow the SD definitions to move
     int64_t BD_offset_Z;
 
-    unsigned int psi_T;
-    unsigned int psi_h;
-    unsigned int psi_L;
-
     /// Acceleration of cohesion
     float cohesionAcc_s2s;
 
@@ -199,8 +195,8 @@ struct ChGranParams {
     float adhesionAcc_s2w;
 
     double LENGTH_UNIT;  //!< 1 / C_L. Any length expressed in SU is a multiple of LENGTH_UNIT
-    double TIME_UNIT;    //!< 1 / C_T. Any time quanity in SU is measured as a positive multiple of TIME_UNIT
-    double MASS_UNIT;    //!< 1 / C_M. Any mass quanity is measured as a positive multiple of MASS_UNIT.
+    double TIME_UNIT;    //!< 1 / C_T. Any time quantity in SU is measured as a positive multiple of TIME_UNIT
+    double MASS_UNIT;    //!< 1 / C_M. Any mass quantity is measured as a positive multiple of MASS_UNIT.
 
     /// this is to make clear that the underlying assumption is unit SU mass
     constexpr static float sphere_mass_SU = 1.f;
@@ -332,16 +328,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         }
         float3 reaction_forces = BC_params_list_SU.at(BC_id).reaction_forces;
 
-        float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
-        float sphere_mass = 4.f / 3.f * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU *
-                            sphere_density_UU;  // UU sphere mass
-
         // conversion from SU to UU force
-        float C_F =
-            gran_params->psi_L / (alpha_g * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
-        forces[0] = reaction_forces.x / C_F;
-        forces[1] = reaction_forces.y / C_F;
-        forces[2] = reaction_forces.z / C_F;
+        forces[0] = reaction_forces.x * FORCE_SU2UU;
+        forces[1] = reaction_forces.y * FORCE_SU2UU;
+        forces[2] = reaction_forces.z * FORCE_SU2UU;
         return true;
     }
 
@@ -422,9 +412,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     }
 
     void setPsiFactors(unsigned int psi_T_new, unsigned int psi_h_new, unsigned int psi_L_new) {
-        gran_params->psi_T = psi_T_new;
-        gran_params->psi_h = psi_h_new;
-        gran_params->psi_L = psi_L_new;
+        psi_T = psi_T_new;
+        psi_h = psi_h_new;
+        psi_L = psi_L_new;
     }
 
     /// Copy back the sd device data and save it to a file for error checking on the priming kernel
@@ -434,12 +424,31 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     void setMaxSafeVelocity_SU(float max_vel) { gran_params->max_safe_vel = max_vel; }
 
   protected:
+    // Conversion factors from SU to UU
+    /// 1 / C_L. Any length expressed in SU is a multiple of SU2UU
+    double LENGTH_SU2UU;
+    /// 1 / C_T. Any time quantity in SU is measured as a positive multiple of TIME_SU2UU
+    double TIME_SU2UU;
+    /// 1 / C_M. Any mass quantity is measured as a positive multiple of MASS_SU2UU.
+    double MASS_SU2UU;
+    /// 1 / C_F. Any force quantity is measured as a multiple of FORCE_SU2UU.
+    double FORCE_SU2UU;
+    /// 1 / C_tau. Any torque quantity is measured as a multiple of TORQUE_SU2UU.
+    double TORQUE_SU2UU;
+    /// 1 / C_v. Any velocity quantity is measured as a multiple of VEL_SU2UU.
+    double VEL_SU2UU;
+
+    unsigned int psi_T;
+    unsigned int psi_h;
+    unsigned int psi_L;
+
     /// Wrap the device helper function
     int3 getSDTripletFromID(unsigned int SD_ID) const;
 
     /// Create a helper to do sphere initialization
     void initializeSpheres();
 
+    /// Setup sphere data, initialize local coords
     void setupSphereDataStructures();
 
     // /// whether we are using user-provided or checkpointed spheres

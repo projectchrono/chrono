@@ -93,7 +93,7 @@ void writeZCylinderMesh(std::ostringstream& outstream, ChVector<> pos, float rad
     ChVector<> vy(0, 1, 0);
     ChVector<> vz(0, 0, 1);
 
-    ChVector<> scaling(rad / 2, rad / 2, height / 2);
+    ChVector<> scaling(rad, rad, height / 2);
 
     // Write the mesh name to find
     outstream << cyl_filename << ",";

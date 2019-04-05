@@ -1402,3 +1402,11 @@ Running test suite!
 Frictionless took 46.2591 seconds!
 Single Step took 59.1936 seconds!
 Multistep took 87.7473 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Fri, 05 Apr 2019 16:16:25 -0500
+commit c859338ff04d710ab39190f25ddef39b7e5c9e5f Author: Conlain Kelly <conlain.k@gmail.com> Date: Fri Apr 5 16:16:01 2019 -0500 Convert unit dimensions to hertzian base, a little cleanup
+Results:
+Running test suite!
+Frictionless took 44.7291 seconds!
+Single Step took 60.3925 seconds!
+Multistep took 89.8441 seconds!

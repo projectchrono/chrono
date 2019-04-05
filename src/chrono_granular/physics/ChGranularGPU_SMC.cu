@@ -37,7 +37,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::get_max_z() const {
 
     gpuErrchk(cudaMemcpy(&max_z_h, max_z_d, sizeof(int), cudaMemcpyDeviceToHost));
 
-    double max_z_UU = max_z_h * gran_params->LENGTH_UNIT;
+    double max_z_UU = max_z_h * LENGTH_SU2UU;
     gpuErrchk(cudaFree(max_z_d));
     gpuErrchk(cudaDeviceSynchronize());
 
@@ -284,9 +284,9 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
         for (unsigned int i = 0; i < nSpheres; i++) {
             auto vec = user_sphere_positions.at(i);
             // cast to double, convert to SU, then cast to int64_t
-            sphere_global_pos_X.at(i) = (int64_t)((double)vec.x() / gran_params->LENGTH_UNIT);
-            sphere_global_pos_Y.at(i) = (int64_t)((double)vec.y() / gran_params->LENGTH_UNIT);
-            sphere_global_pos_Z.at(i) = (int64_t)((double)vec.z() / gran_params->LENGTH_UNIT);
+            sphere_global_pos_X.at(i) = (int64_t)((double)vec.x() / LENGTH_SU2UU);
+            sphere_global_pos_Y.at(i) = (int64_t)((double)vec.y() / LENGTH_SU2UU);
+            sphere_global_pos_Z.at(i) = (int64_t)((double)vec.z() / LENGTH_SU2UU);
         }
 
         packSphereDataPointers();
@@ -437,9 +437,9 @@ __host__ void ChSystemGranular_MonodisperseSMC::updateBCPositions() {
         double3 new_BD_offset = BDOffsetFunction(elapsedSimTime);
 
         int64_t3 bd_offset_SU = {0, 0, 0};
-        bd_offset_SU.x = new_BD_offset.x / gran_params->LENGTH_UNIT;
-        bd_offset_SU.y = new_BD_offset.y / gran_params->LENGTH_UNIT;
-        bd_offset_SU.z = new_BD_offset.z / gran_params->LENGTH_UNIT;
+        bd_offset_SU.x = new_BD_offset.x / LENGTH_SU2UU;
+        bd_offset_SU.y = new_BD_offset.y / LENGTH_SU2UU;
+        bd_offset_SU.z = new_BD_offset.z / LENGTH_SU2UU;
 
         int64_t old_frame_X = gran_params->BD_frame_X;
         int64_t old_frame_Y = gran_params->BD_frame_Y;
@@ -474,7 +474,7 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = duration / gran_params->TIME_UNIT;
+    float duration_SU = duration / TIME_SU2UU;
     determineNewStepSize_SU();  // doesn't always change the timestep
     unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
@@ -529,10 +529,10 @@ __host__ double ChSystemGranular_MonodisperseSMC::advance_simulation(float durat
             gpuErrchk(cudaDeviceSynchronize());
         }
 
-        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT;  // Advance current time
+        elapsedSimTime += stepSize_SU * TIME_SU2UU;  // Advance current time
     }
 
-    return time_elapsed_SU * gran_params->TIME_UNIT;  // return elapsed UU time
+    return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time
 }
 }  // namespace granular
 }  // namespace chrono

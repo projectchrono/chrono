@@ -57,12 +57,12 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
       Gamma_t_s2w_UU(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
     gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
-    gran_params->psi_T = PSI_T_DEFAULT;
-    gran_params->psi_h = PSI_h_DEFAULT;
-    gran_params->psi_L = PSI_L_DEFAULT;
+    psi_T = PSI_T_DEFAULT;
+    psi_h = PSI_h_DEFAULT;
+    psi_L = PSI_L_DEFAULT;
     gran_params->friction_mode = FRICTIONLESS;
-    gran_params->rolling_mode = NO_RESISTANCE;
     this->friction_mode = FRICTIONLESS;
+    gran_params->rolling_mode = NO_RESISTANCE;
     this->rolling_mode = NO_RESISTANCE;
     gran_params->time_integrator = EXTENDED_TAYLOR;
     this->time_integrator = EXTENDED_TAYLOR;
@@ -231,21 +231,21 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
         for (unsigned int n = 0; n < nSpheres; n++) {
             float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                         (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
+                         VEL_SU2UU;
 
             unsigned int ownerSD = sphere_owner_SDs.at(n);
             int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-            float x_UU = sphere_local_pos_X[n] * gran_params->LENGTH_UNIT;
-            float y_UU = sphere_local_pos_Y[n] * gran_params->LENGTH_UNIT;
-            float z_UU = sphere_local_pos_Z[n] * gran_params->LENGTH_UNIT;
+            float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
+            float y_UU = sphere_local_pos_Y[n] * LENGTH_SU2UU;
+            float z_UU = sphere_local_pos_Z[n] * LENGTH_SU2UU;
 
-            x_UU += gran_params->BD_frame_X * gran_params->LENGTH_UNIT;
-            y_UU += gran_params->BD_frame_Y * gran_params->LENGTH_UNIT;
-            z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+            x_UU += gran_params->BD_frame_X * LENGTH_SU2UU;
+            y_UU += gran_params->BD_frame_Y * LENGTH_SU2UU;
+            z_UU += gran_params->BD_frame_Z * LENGTH_SU2UU;
 
-            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
-            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
-            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU;
+            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU;
+            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
 
             ptFile.write((const char*)&x_UU, sizeof(float));
             ptFile.write((const char*)&y_UU, sizeof(float));
@@ -253,9 +253,12 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
             ptFile.write((const char*)&absv, sizeof(float));
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-                ptFile.write((const char*)&sphere_Omega_X.at(n), sizeof(float));
-                ptFile.write((const char*)&sphere_Omega_Y.at(n), sizeof(float));
-                ptFile.write((const char*)&sphere_Omega_Z.at(n), sizeof(float));
+                float omega_x_UU = sphere_Omega_X.at(n) / TIME_SU2UU;
+                float omega_y_UU = sphere_Omega_Y.at(n) / TIME_SU2UU;
+                float omega_z_UU = sphere_Omega_Z.at(n) / TIME_SU2UU;
+                ptFile.write((const char*)&omega_x_UU, sizeof(float));
+                ptFile.write((const char*)&omega_y_UU, sizeof(float));
+                ptFile.write((const char*)&omega_z_UU, sizeof(float));
             }
         }
     } else if (file_write_mode == GRAN_OUTPUT_MODE::CSV) {
@@ -274,25 +277,25 @@ void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
             unsigned int ownerSD = sphere_owner_SDs.at(n);
             float absv = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                         (gran_params->LENGTH_UNIT / gran_params->TIME_UNIT);
+                         VEL_SU2UU;
             int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-            float x_UU = sphere_local_pos_X[n] * gran_params->LENGTH_UNIT;
-            float y_UU = sphere_local_pos_Y[n] * gran_params->LENGTH_UNIT;
-            float z_UU = sphere_local_pos_Z[n] * gran_params->LENGTH_UNIT;
+            float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
+            float y_UU = sphere_local_pos_Y[n] * LENGTH_SU2UU;
+            float z_UU = sphere_local_pos_Z[n] * LENGTH_SU2UU;
 
-            x_UU += gran_params->BD_frame_X * gran_params->LENGTH_UNIT;
-            y_UU += gran_params->BD_frame_Y * gran_params->LENGTH_UNIT;
-            z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+            x_UU += gran_params->BD_frame_X * LENGTH_SU2UU;
+            y_UU += gran_params->BD_frame_Y * LENGTH_SU2UU;
+            z_UU += gran_params->BD_frame_Z * LENGTH_SU2UU;
 
-            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * gran_params->LENGTH_UNIT;
-            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * gran_params->LENGTH_UNIT;
-            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU;
+            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU;
+            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
 
             outstrstream << x_UU << "," << y_UU << "," << z_UU << "," << absv;
 
             if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
-                outstrstream << "," << sphere_Omega_X.at(n) << "," << sphere_Omega_Y.at(n) << ","
-                             << sphere_Omega_Z.at(n);
+                outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
+                             << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
             }
             outstrstream << "\n";
         }
@@ -468,13 +471,13 @@ void ChSystemGranular_MonodisperseSMC::determineNewStepSize_SU() {
             float max_v = get_max_vel();
             if (max_v <= 0) {
                 // clearly we have an issue, just fallback to the fixed step
-                stepSize_SU = fixed_step_UU / gran_params->TIME_UNIT;
+                stepSize_SU = fixed_step_UU / TIME_SU2UU;
             } else {
                 // maximum number of gravity displacements we allow moving in one timestep
                 constexpr float num_disp_grav = 100;
                 // maximum fraction of radius we allow moving in one timestep
                 constexpr float num_disp_radius = .1;
-                float max_displacement_grav = num_disp_grav * gran_params->psi_T;
+                float max_displacement_grav = num_disp_grav * psi_T;
                 float max_displacement_radius = num_disp_radius * gran_params->sphereRadius_SU;
 
                 // TODO consider gravity drift
@@ -482,18 +485,18 @@ void ChSystemGranular_MonodisperseSMC::determineNewStepSize_SU() {
                 // find the highest position displacement we allow
                 float max_displacement = std::min(max_displacement_grav, max_displacement_radius);
                 float suggested_SU = max_displacement / max_v;
-                float max_step_SU = max_adaptive_step_UU / gran_params->TIME_UNIT;
-                float min_step_SU = 1e-5 / gran_params->TIME_UNIT;
+                float max_step_SU = max_adaptive_step_UU / TIME_SU2UU;
+                float min_step_SU = 1e-5 / TIME_SU2UU;
                 printf("grav step is %f, rad step is %f\n", max_displacement_grav / max_v,
                        max_displacement_radius / max_v);
 
                 // don't go above max
                 stepSize_SU = std::max(std::min(suggested_SU, max_step_SU), min_step_SU);
             }
-            printf("new timestep is %f SU, %f UU\n", stepSize_SU, stepSize_SU * gran_params->TIME_UNIT);
+            printf("new timestep is %f SU, %f UU\n", stepSize_SU, stepSize_SU * TIME_SU2UU);
         }
     } else {
-        stepSize_SU = fixed_step_UU / gran_params->TIME_UNIT;
+        stepSize_SU = fixed_step_UU / TIME_SU2UU;
     }
     // if step ize changed, update it on device
     if (gran_params->stepSize_SU != stepSize_SU) {
@@ -673,7 +676,7 @@ void ChSystemGranular_MonodisperseSMC::initializeSpheres() {
     gpuErrchk(cudaMemAdvise(sphere_data, sizeof(*sphere_data), cudaMemAdviseSetReadMostly, dev_ID));
 
     printf("z grav term with timestep %f is %f\n", stepSize_SU, stepSize_SU * stepSize_SU * gran_params->gravAcc_Z_SU);
-    printf("running at approximate timestep %f\n", stepSize_SU * gran_params->TIME_UNIT);
+    printf("running at approximate timestep %f\n", stepSize_SU * TIME_SU2UU);
 }
 
 // mean to be overriden by children
@@ -701,19 +704,19 @@ void ChSystemGranular_MonodisperseSMC::partitionBD() {
     // work with an even kFac to hit the CM of the box.
     if (nSDs_X & 1)
         nSDs_X++;
-    int SD_size_X = (unsigned int)std::ceil(box_size_X / (nSDs_X * gran_params->LENGTH_UNIT));
+    int SD_size_X = (unsigned int)std::ceil(box_size_X / (nSDs_X * LENGTH_SU2UU));
 
     unsigned int nSDs_Y = (unsigned int)(std::ceil(box_size_Y / sd_length_scale));
     // work with an even kFac to hit the CM of the box.
     if (nSDs_Y & 1)
         nSDs_Y++;
-    int SD_size_Y = (unsigned int)std::ceil(box_size_Y / (nSDs_Y * gran_params->LENGTH_UNIT));
+    int SD_size_Y = (unsigned int)std::ceil(box_size_Y / (nSDs_Y * LENGTH_SU2UU));
 
     unsigned int nSDs_Z = (unsigned int)(std::ceil(box_size_Z / sd_length_scale));
     // work with an even kFac to hit the CM of the box.
     if (nSDs_Z & 1)
         nSDs_Z++;
-    int SD_size_Z = (unsigned int)std::ceil(box_size_Z / (nSDs_Z * gran_params->LENGTH_UNIT));
+    int SD_size_Z = (unsigned int)std::ceil(box_size_Z / (nSDs_Z * LENGTH_SU2UU));
 
     nSDs = nSDs_X * nSDs_Y * nSDs_Z;
 
@@ -748,66 +751,67 @@ This method defines the mass, time, length Simulation Units. It also sets severa
 scaling of various physical quantities set by the user.
 */
 void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
-    double massSphere = 4. / 3. * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
-    gran_params->MASS_UNIT = massSphere / gran_params->sphere_mass_SU;
-    double K_stiffness = get_max_K();
-    gran_params->TIME_UNIT = sqrt(massSphere / (gran_params->psi_h * K_stiffness)) / gran_params->psi_T;
-
+    // Compute sphere mass, highest system stiffness, and gravity magnitude
+    double massSphere = (4. / 3.) * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+    double K_star = get_max_K();
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
-    gran_params->LENGTH_UNIT = massSphere * magGravAcc / (gran_params->psi_L * K_stiffness);
 
-    gran_params->sphereRadius_SU = sphere_radius_UU / gran_params->LENGTH_UNIT;
+    // These two are independent of hooke/hertz
+    this->MASS_SU2UU = massSphere / gran_params->sphere_mass_SU;
+    this->TIME_SU2UU = sqrt(massSphere / (psi_h * K_star)) / psi_T;
+    // old hooke way
+    // LENGTH_SU2UU = massSphere * magGravAcc / (psi_L * K_star);
+    // new hertz way
+    this->LENGTH_SU2UU =
+        std::pow(massSphere * massSphere * magGravAcc * magGravAcc * sphere_radius_UU / (K_star * K_star), 1. / 3.) /
+        psi_L;
 
-    float g_scalingFactor =
-        ((float)gran_params->psi_L) / (gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
-    gran_params->gravAcc_X_SU = g_scalingFactor * X_accGrav / magGravAcc;
-    gran_params->gravAcc_Y_SU = g_scalingFactor * Y_accGrav / magGravAcc;
-    gran_params->gravAcc_Z_SU = g_scalingFactor * Z_accGrav / magGravAcc;
+    // compute temporary composite quantities
+    double ACC_SU2UU = LENGTH_SU2UU / (TIME_SU2UU * TIME_SU2UU);
+    double K_SU2UU = MASS_SU2UU / (TIME_SU2UU * TIME_SU2UU);
+    double GAMMA_SU2UU = 1. / TIME_SU2UU;
+
+    // compute quantities to store back in class
+    this->VEL_SU2UU = LENGTH_SU2UU / TIME_SU2UU;
+    this->FORCE_SU2UU = MASS_SU2UU * ACC_SU2UU;
+    // copy into gran params for now
+    gran_params->LENGTH_UNIT = LENGTH_SU2UU;
+
+    gran_params->sphereRadius_SU = sphere_radius_UU / LENGTH_SU2UU;
+
+    gran_params->gravAcc_X_SU = X_accGrav / ACC_SU2UU;
+    gran_params->gravAcc_Y_SU = Y_accGrav / ACC_SU2UU;
+    gran_params->gravAcc_Z_SU = Z_accGrav / ACC_SU2UU;
+
+    gran_params->cohesionAcc_s2s = magGravAcc * cohesion_over_gravity / ACC_SU2UU;
+    gran_params->adhesionAcc_s2w = magGravAcc * adhesion_s2w_over_gravity / ACC_SU2UU;
 
     /// SU values for normal stiffnesses for S2S and S2W
-    float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
-    gran_params->K_n_s2s_SU = K_scalingFactor * (K_n_s2s_UU / K_stiffness);
-    gran_params->K_n_s2w_SU = K_scalingFactor * (K_n_s2w_UU / K_stiffness);
+    gran_params->K_n_s2s_SU = K_n_s2s_UU / K_SU2UU;
+    gran_params->K_n_s2w_SU = K_n_s2w_UU / K_SU2UU;
 
-    gran_params->K_t_s2s_SU = K_scalingFactor * (K_t_s2s_UU / K_stiffness);
-    gran_params->K_t_s2w_SU = K_scalingFactor * (K_t_s2w_UU / K_stiffness);
+    gran_params->K_t_s2s_SU = K_t_s2s_UU / K_SU2UU;
+    gran_params->K_t_s2w_SU = K_t_s2w_UU / K_SU2UU;
 
-    float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
-    gran_params->Gamma_n_s2s_SU = Gamma_scalingFactor * Gamma_n_s2s_UU;
-    gran_params->Gamma_n_s2w_SU = Gamma_scalingFactor * Gamma_n_s2w_UU;
-    gran_params->Gamma_t_s2s_SU = Gamma_scalingFactor * Gamma_t_s2s_UU;
-    gran_params->Gamma_t_s2w_SU = Gamma_scalingFactor * Gamma_t_s2w_UU;
+    gran_params->Gamma_n_s2s_SU = Gamma_n_s2s_UU / GAMMA_SU2UU;
+    gran_params->Gamma_n_s2w_SU = Gamma_n_s2w_UU / GAMMA_SU2UU;
+    gran_params->Gamma_t_s2s_SU = Gamma_t_s2s_UU / GAMMA_SU2UU;
+    gran_params->Gamma_t_s2w_SU = Gamma_t_s2w_UU / GAMMA_SU2UU;
 
-    float rolling_scalingFactor = 1.f;
+    double rolling_scalingFactor = 1.;
     if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
-        rolling_scalingFactor = 1.f / gran_params->TIME_UNIT;
+        rolling_scalingFactor = 1. / TIME_SU2UU;
     }
     gran_params->rolling_coeff_SU = rolling_scalingFactor * rolling_coeff_UU;
 
-    gran_params->cohesionAcc_s2s = cohesion_over_gravity * g_scalingFactor;
-    gran_params->adhesionAcc_s2w = adhesion_s2w_over_gravity * g_scalingFactor;
-
     // Handy debug output
-    printf("UU mass is %f\n", gran_params->MASS_UNIT);
+    printf("UU mass is %f\n", MASS_SU2UU);
     printf("SU gravity is %f, %f, %f\n", gran_params->gravAcc_X_SU, gran_params->gravAcc_Y_SU,
            gran_params->gravAcc_Z_SU);
     printf("SU radius is %u\n", gran_params->sphereRadius_SU);
     float dt_safe_estimate = sqrt(massSphere / K_n_s2s_UU);
-    printf("Safe timestep is about %f\n", dt_safe_estimate);
+    printf("CFL timestep is about %f\n", dt_safe_estimate);
     printf("Length unit is %0.16f\n", gran_params->LENGTH_UNIT);
-
-    // speed at bottom if dropped from top
-    float vdrop_UU = sqrt(abs(2. * box_size_Z / Z_accGrav));
-    // same but in SU
-    float vdrop_SU = vdrop_UU * (gran_params->TIME_UNIT / gran_params->LENGTH_UNIT);
-
-    // damping force at bottom if we dropped a ball from the top
-    float drop_damping_force = 0.5 * gran_params->sphere_mass_SU * vdrop_SU * gran_params->K_n_s2w_SU;
-
-    // force of gravity (or the restorative force of one sphere resting on the bottom)
-    float grav_force = abs(gran_params->sphere_mass_SU * gran_params->gravAcc_Z_SU);
-    printf("max drop speed is %f, damp force is %f, grav force is %f, ratio is %f\n", vdrop_SU, drop_damping_force,
-           grav_force, grav_force / drop_damping_force);
 }
 }  // namespace granular
 }  // namespace chrono

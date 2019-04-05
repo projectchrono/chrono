@@ -668,7 +668,7 @@ __global__ void interactionTerrain_TriangleSoup(
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
                 // NOTE the cancelation of two negatives
-                force_accum = force_accum + gran_params->adhesionAcc_s2w * delta / depth;
+                force_accum = force_accum + gran_params->sphere_mass_SU * gran_params->adhesionAcc_s2w * delta / depth;
 
                 // Velocity difference, it's better to do a coalesced access here than a fragmented access
                 // inside
@@ -1026,7 +1026,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // Settling simulation loop.
-    float duration_SU = duration / gran_params->TIME_UNIT;
+    float duration_SU = duration / TIME_SU2UU;
     determineNewStepSize_SU();  // doesn't always change the timestep
     unsigned int nsteps = std::round(duration_SU / stepSize_SU);
 
@@ -1123,10 +1123,10 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
 
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        elapsedSimTime += stepSize_SU * gran_params->TIME_UNIT;  // Advance current time
+        elapsedSimTime += stepSize_SU * TIME_SU2UU;  // Advance current time
     }
 
-    return time_elapsed_SU * gran_params->TIME_UNIT;  // return elapsed UU time
+    return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time
 }
 }  // namespace granular
 }  // namespace chrono

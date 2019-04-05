@@ -74,19 +74,22 @@ void ChSystemGranular_MonodisperseSMC_trimesh::copyTriangleDataToDevice() {
 }
 
 void ChSystemGranular_MonodisperseSMC_trimesh::initializeTriangles() {
-    double K_stiffness = get_max_K();
-    float K_scalingFactor = 1.f / (1.f * gran_params->psi_T * gran_params->psi_T * gran_params->psi_h);
-    K_n_s2m_SU = K_scalingFactor * (K_n_s2m_UU / K_stiffness);
-    K_t_s2m_SU = K_scalingFactor * (K_t_s2m_UU / K_stiffness);
+    double K_star = get_max_K();
+    double massSphere = (4. / 3.) * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU;
 
-    float massSphere = 4.f / 3.f * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU;
-    float Gamma_scalingFactor = 1.f / (gran_params->psi_T * std::sqrt(K_stiffness * gran_params->psi_h / massSphere));
-    Gamma_n_s2m_SU = Gamma_scalingFactor * Gamma_n_s2m_UU;
-    Gamma_t_s2m_SU = Gamma_scalingFactor * Gamma_t_s2m_UU;
+    double K_SU2UU = (K_star * psi_T * psi_T * psi_h);
+    //  Same as 1/ TIME_UNIT
+    double GAMMA_SU2UU = (psi_T * std::sqrt(K_star * psi_h / massSphere));
+
+    K_n_s2m_SU = K_n_s2m_UU / K_SU2UU;
+    K_t_s2m_SU = K_t_s2m_UU / K_SU2UU;
+
+    Gamma_n_s2m_SU = Gamma_n_s2m_UU / GAMMA_SU2UU;
+    Gamma_t_s2m_SU = Gamma_t_s2m_UU / GAMMA_SU2UU;
 
     for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
-        meshSoup_DEVICE->familyMass_SU[fam] = meshSoup_DEVICE->familyMass_SU[fam] / gran_params->MASS_UNIT;
-        meshSoup_DEVICE->inflation_radii[fam] = meshSoup_DEVICE->inflation_radii[fam] / gran_params->LENGTH_UNIT;
+        meshSoup_DEVICE->familyMass_SU[fam] = meshSoup_DEVICE->familyMass_SU[fam] / MASS_SU2UU;
+        meshSoup_DEVICE->inflation_radii[fam] = meshSoup_DEVICE->inflation_radii[fam] / LENGTH_SU2UU;
     }
     copyTriangleDataToDevice();
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
@@ -323,28 +326,17 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
 }
 
 void ChSystemGranular_MonodisperseSMC_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
-    float alpha_k_star = get_max_K();
-    float alpha_g = std::sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);  // UU gravity
-    float sphere_mass = 4.f / 3.f * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU *
-                        sphere_density_UU;  // UU sphere mass
-    float C_F =
-        gran_params->psi_L / (alpha_g * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
-
-    float C_TAU =
-        (alpha_k_star * gran_params->psi_L * gran_params->psi_L) /
-        (alpha_g * alpha_g * sphere_mass * sphere_mass * gran_params->psi_h * gran_params->psi_T * gran_params->psi_T);
-
     // pull directly from unified memory
     for (unsigned int i = 0; i < 6 * meshSoup_DEVICE->nFamiliesInSoup; i += 6) {
         // Divide by C_F to go from SU to UU
-        genForcesOnSoup[i + 0] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 0] / C_F;
-        genForcesOnSoup[i + 1] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 1] / C_F;
-        genForcesOnSoup[i + 2] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 2] / C_F;
+        genForcesOnSoup[i + 0] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 0] * FORCE_SU2UU;
+        genForcesOnSoup[i + 1] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 1] * FORCE_SU2UU;
+        genForcesOnSoup[i + 2] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 2] * FORCE_SU2UU;
 
         // Divide by C_TAU to go from SU to UU
-        genForcesOnSoup[i + 3] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 3] / C_TAU;
-        genForcesOnSoup[i + 4] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 4] / C_TAU;
-        genForcesOnSoup[i + 5] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 5] / C_TAU;
+        genForcesOnSoup[i + 3] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 3] * TORQUE_SU2UU;
+        genForcesOnSoup[i + 4] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 4] * TORQUE_SU2UU;
+        genForcesOnSoup[i + 5] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 5] * TORQUE_SU2UU;
     }
 }
 
@@ -363,9 +355,9 @@ void ChSystemGranular_MonodisperseSMC_trimesh::meshSoup_applyRigidBodyMotion(dou
         tri_params->fam_frame_narrow[fam].pos[2] = position_orientation_data[7 * fam + 2];
 
         // Set linear and angular velocity
-        const float C_V = gran_params->TIME_UNIT / gran_params->LENGTH_UNIT;
+        const float C_V = TIME_SU2UU / LENGTH_SU2UU;
         meshSoup_DEVICE->vel[fam] = make_float3(C_V * vel[6 * fam + 0], C_V * vel[6 * fam + 1], C_V * vel[6 * fam + 2]);
-        const float C_O = gran_params->TIME_UNIT;
+        const float C_O = TIME_SU2UU;
         meshSoup_DEVICE->omega[fam] =
             make_float3(C_O * vel[6 * fam + 3], C_O * vel[6 * fam + 4], C_O * vel[6 * fam + 5]);
     }

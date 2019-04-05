@@ -111,12 +111,12 @@ int main(int argc, char* argv[]) {
 
     gran_sys.setParticlePositions(body_points);
 
-    gran_sys.set_BD_Fixed(false);
+    gran_sys.set_BD_Fixed(true);
     std::function<double3(float)> pos_func_wave = [&params](float t) {
         double3 pos = {0, 0, 0};
 
-        double t0 = 0.0;
-        double freq = M_PI;
+        double t0 = 0.5;
+        double freq = M_PI / 4;
 
         if (t > t0) {
             pos.x = 0.1 * params.box_X * std::sin((t - t0) * freq);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         return pos;
     };
 
-    gran_sys.setBDWallsMotionFunction(pos_func_wave);
+    // gran_sys.setBDWallsMotionFunction(pos_func_wave);
 
     gran_sys.set_K_n_SPH2SPH(params.normalStiffS2S);
     gran_sys.set_K_n_SPH2WALL(params.normalStiffS2W);
@@ -148,13 +148,14 @@ int main(int argc, char* argv[]) {
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_sys.set_fixed_stepSize(params.step_size);
-    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::FRICTIONLESS);
-    // gran_sys.set_static_friction_coeff(0.5);
+    gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
+    gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
+    gran_sys.set_static_friction_coeff(params.static_friction_coeff);
 
     vector<string> mesh_filenames;
     string mesh_filename = string("granular/sphere.obj");
 
-    float ball_radius = 20 * params.sphere_radius;
+    float ball_radius = 20;
     vector<float3> mesh_scalings;
     float3 scaling;
     scaling.x = ball_radius;
@@ -162,7 +163,7 @@ int main(int argc, char* argv[]) {
     scaling.z = ball_radius;
 
     vector<float> mesh_masses;
-    float ball_density = params.sphere_density / 20;
+    float ball_density = params.sphere_density / 100;
     float ball_mass = 4.0 / 3.0 * CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density;
     mesh_masses.push_back(ball_mass);
 
