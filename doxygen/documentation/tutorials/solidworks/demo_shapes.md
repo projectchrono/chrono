@@ -18,7 +18,7 @@ Currently, the following convex shapes are supported:
 Also groups of them are supported.
 
 
-###Prerequisites:
+# Prerequisites:
 
 + you must have a [SolidWorks](http://www.solidworks.com) CAD license.
 + the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in must be installed in SolidWorks.
@@ -35,7 +35,7 @@ The files for this demo can be found in the directory ```C:/[install path]/chron
 We are going to model a small set of columns with capitals, that will be shaken by an earthquake.
 
 
-###Create a column
+# Create a column
 
 + First, start SolidWorks.
 
@@ -95,7 +95,7 @@ After you created the collision shape with the tool, **do not modify** its solid
 + Save it as ```column.sldprt```.
 
 
-###Create a capital
+# Create a capital
 
 + First, start SolidWorks.
 
@@ -136,14 +136,14 @@ After you created the collision shape with the tool, **do not modify** its solid
 Note that in this case you defined the collision shape with a group of different collision primitives, namely a cube and a cylinder. You can add as many collision shapes as you want in a single part.
 
 
-###Create the floor
+# Create the floor
 
 + Use menu **File/New...** and create a new *Part*.
 
 + Following the instructions previously described for creating the capital, you should be able to create a large flat box, assign a box collision shape to it, and save it as ```floor.sldprt``` (in our example files on disk, we saved ```floor``` directly inside the assembly portal.sldasm).
 
 
-###Assembly the building
+# Assembly the building
 
 + Use menu **File/New...** and create a new *Assembly*.
 
@@ -173,39 +173,37 @@ Note that in this case you defined the collision shape with a group of different
 
 
 
-###Export the assembly as a Chrono::Engine system
+# Export the assembly as a Chrono::Engine system
 
 
 + Export the system as you learned in previous tutorials: open the tab of the Chrono::Engine exporter, check the **Save test.py** button, press the **Save as Python...** button and save as ```collisions.py``` in an empty directory.
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_engine_17.jpg)
 
-+ If you press the **Run test** button, the test Python script will compute the simulation. 
-
-+ By running POVray over the generated ```rendering_frames.pov.ini``` file, you will render the animation. 
++ If you press the **Run test** button, the test Python script will compute the simulation. Just a static scene. 
 
 However, there are three points to improve here: columns will stay fixed because there is not yet any earthquake, the camera view frustrum might not be properly aligned to show all columns, and surface materials might look too dull and boring.
 In the next steps we will modify the simulation by writing a customized Python script.
 
 
-###Custom Python simulation, introducing earthquake
+# Custom Python simulation, introducing earthquake
 
 + Copy the run_test.py file and rename it as ```run_test_modified.py```. We will work on this file as a template. 
 
-+ Open run_test_modified.py in your Python IDE (for example, PyScripter). 
++ Open run_test_modified.py in your Python IDE (for example, Spyder). 
 
-+ Modify the section that loads the .py system file as:
-~~~{.py}
-import collisions
-imp.reload(collisions)  # useful if python engine not reinitialized at each run
-from collisions import exported_items
-~~~
- 
-+ Although is not mandatory, it is wise to set the inward and outward collision envelopes of the collision detection algorithm. This is epecially important for very large or very small objects.
++ Although is not mandatory, it is wise to set the inward and outward collision envelopes of the collision detection algorithm. This is epecially important for very large or very small objects. 
+Note, this must be put *before* importing the models and/or creating the ChSystem.
 ~~~{.py}
 chrono.ChCollisionModel.SetDefaultSuggestedEnvelope(0.005)
 chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.005)
 ~~~
+
++ Modify the section that loads the .py system file as:
+~~~{.py}
+exported_items = chrono.ImportSolidWorksSystem('./collisions')
+~~~
+ 
 
 + Create a *contact surface material* (surface data that will be used by collision detection to know the friction coefficient and other properties in contact points). In this example, there is a single contact surface material to share between all objects.
 ~~~{.py}
@@ -241,12 +239,9 @@ Note also that nonzero restitution coefficient is not physically accurate except
 
 + Assign the brick_material to all rigid body objects, by iterating over all items in the ChSystem:
 ~~~{.py}
-for my_item in chrono.IterOtherPhysicsItems(my_system):
-        my_body  = chrono.CastToChBodyAuxRef(my_item)
-        if not my_body.IsNull() :
-            my_body.SetMaterialSurface(brick_material)
+for my_body in my_system.Get_bodylist(): 
+        my_body.SetMaterialSurface(brick_material) 
 ~~~
-Note the ```my_body = chrono.CastToChBodyAuxRef(my_item)``` statement for performing a casting, that is necessary because the my_item iterator is a generic pointer to the base ChPhysicsItem.
 
 
 + For a better look in the animation, assign a marble procedural texture to all objects. This is done by creating a ChPovRayAssetCustom object, that contains a custom statement in POVray syntax, that will be used when the POV postprocessor will produce the POV scripts. In this example we use the ```T_Stone8``` procedural texture of POVray:
@@ -255,8 +250,9 @@ marble_povmat = postprocess.ChPovRayAssetCustom()
 marble_povmat.SetCommands('''
        texture{T_Stone8}
         ''')
-for my_item in chrono.IterOtherPhysicsItems(my_system):
-        my_item.GetAssets().push_back(marble_povmat)
+
+for my_body in my_system.Get_bodylist(): 
+        my_body.AddAsset(marble_povmat)
 ~~~
 
 + If you want to assign a specific texture to a specific object, just fetch the object via its name as in the following example:
@@ -265,21 +261,18 @@ floor_povmat = postprocess.ChPovRayAssetCustom()
 floor_povmat.SetCommands('''
        texture{T_Stone9}
         ''')
-my_item = my_system.Search('floor^portal-1')
-my_floor  = chrono.CastToChBodyAuxRef(my_item)
-if my_floor.IsNull() :
+my_floor = my_system.SearchBody('floor^portal-1')
+if not my_floor :
     sys.exit('Error: cannot find floor  from its name in the C::E system!')
-my_floor.GetAssets().push_back(floor_povmat)
+my_floor.AddAsset(floor_povmat)
 ~~~
 
 + Now we want to shake the floor box in order to simulate an earthquake. To do so, we create a constraint between the ```floor``` object and the default ```ground``` object that always exists in .py exported scenes; then we set the 'floor' as free (not fixed as it was created in SolidWorks) and we impose the motion between the ground and the floor by applying a motion law to the constraint.
 ~~~{.py}
-my_item = my_system.Search('ground')
-my_ground  = chrono.CastToChBodyAuxRef(my_item)
-if my_ground.IsNull() :
+my_ground = my_system.SearchBody('ground')
+if not my_ground :
     sys.exit('Error: cannot find ground  from its name in the C::E system!')
-
-# make the shaking motion
+	
 my_floor.SetBodyFixed(False)
 link_shaker = chrono.ChLinkLockLock()
 link_shaker.Initialize(my_floor, my_ground, chrono.CSYSNORM)
@@ -289,12 +282,14 @@ my_system.Add(link_shaker)
 + Up to here, the link_shaker object has no custom motion law assigned, so it will simply keep the floor statically connected to the ground. So now we create a motion law of the type x=(Ca*sin(t*A+phaseA))*(Cb*sin(t*B+phaseB)) as a product of two armonic laws:
 ~~~{.py}
 my_functA = chrono.ChFunction_Sine(0,1.4,0.06)
+my_functA.thisown = 0
 my_functB = chrono.ChFunction_Sine(0,0.1,1)
+my_functB.thisown = 0
 my_funct = chrono.ChFunction_Operation()
 my_funct.Set_fa(my_functA)
 my_funct.Set_fb(my_functB)
-my_funct.Set_optype(chrono.CHOP_MUL)
-
+my_funct.Set_optype(chrono.ChOP_MUL)
+my_funct.thisown = 0
 link_shaker.SetMotion_X(my_funct)
 ~~~
 
