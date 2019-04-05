@@ -8,7 +8,7 @@ You will learn how to model a 3D assembly using SolidWorks, how to export it as 
 Please follow all steps of the tutorial, once you understood all these steps, you will be able to create a lot of complex mechanisms that can be exported from SolidWorks to Chrono::Engine. 
 
 
-### Prerequisites:
+# Prerequisites:
 
 + you must have a [SolidWorks](http://www.solidworks.com) CAD license.
 + the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in must be installed in SolidWorks.
@@ -23,7 +23,7 @@ The files for this demo can be found in the directory ```C:/[install path]/chron
 </div>
 
 
-###[Create a subassembly
+# Create a subassembly
 
 + First, start SolidWorks. 
 
@@ -64,7 +64,7 @@ The files for this demo can be found in the directory ```C:/[install path]/chron
 + Use menu: **File/Save As...** and save this assembly as ```piston_rod.sldasm```, in the directory that you prefer. This subassembly (piston + rod) will be used later as a building block for making a larger assembly of the entire motor. 
 
 
-###Create the root assembly
+# Create the root assembly
 
 + Use menu: **File/New...** and choose *Assembly*. Now we will make the root assembly, that contains the entire motor. An assembly can contain parts or sub-assemblies too. 
 
@@ -129,9 +129,10 @@ with the ```(-)``` label.
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_engine_165.jpg)
 
-+ Use menu: **File/Save As...** and save this assembly as ```engine.sldasm```, in the directory that you prefer. (note that a ready-to-use assembly with this name is already given for your convenience if you want to skip the previous steps of the tutorial). 
++ Use menu: **File/Save As...** and save this assembly as ```engine.sldasm```, in the directory that you prefer. (note that a ready-to-use assembly with this name is already given for your convenience if you want to skip the previous steps of the tutorial).
+ 
 
-###Export the assembly as a Chrono::Engine system
+# Export the assembly as a Chrono::Engine system
 
 + **Open the tab** of the Chrono::Engine exporter, at the right of the view window: 
 
@@ -149,54 +150,92 @@ Aside to the engine.py exported file, there will be a directory called ```engine
 You can also modify, edit or simplify these .obj meshes using 3D tools such as [Blender](http://www.blender.org)
 
 
-###Run a Chrono::Engine simulation of the crankshaft
+# Run a Chrono::Engine simulation in an interactive 3D view
 
-Press the **Run test** button. (Or open the directory with the engine.py and execute ```test.py``` by clicking. Or use your Python IDE to navigate to test.py and execute it).
+Since you enabled the *Save test.py* option, a ```test.py``` program that loads and simulate the engine was automatically generated for you. You can run it directly from SoliWorks for a quick test, do this: 
 
-This will call the Python interpreter that will run the test.py file. On its turn, the test.py file will:
+- Check the **Visualization Irrlicht** option, to use a 3D realtime view
 
-+ load the engine.py file
+- Press the **Run test** button. 
 
-+ put all objects of engine.py into a ChSystem object
+At this point the test.py will load the engine.py model and show this interactive view, that you can pan&zoom with the mouse while the simulation is running:
 
-+ setup a simple postprocessing system based on POVray, with results saved as files in a new output directory,
+![](http://www.projectchrono.org/assets/manual/Tutorial_engine_17_irrlicht.jpg)
 
-+ compute few timesteps of the simulation and save .pov files in output. 
+That is!
+
+Note, do not expect to see a lot of movement in this animation: the only motion will be caused by the weight of the piston that will make the crankshaft swing a bit. If you want to impose a continuous rotation, you need to follow the following tutorial,Demo_engine advanced.
 
 
-The test.py file is just a simple stub. You can use it as an inspiration and modify it for creating a more sophisticated Python program. We strongly suggest to open it in your Python IDE editor and see how it is working.
+# How is this working? 
+
+What is happening under the hood? When you press Run test: 
+
+1. SolidWorks calls the Python interpreter that will run the test.py file, based on [PyChrono](@ref pychrono_introduction);
+
+2. on its turn, the test.py file will:
+
+3. load the engine.py file that you exported from SolidWorks
+
+4. put all objects of engine.py into a ChSystem object
+
+5. setup a simple visualization system based on Irrlicht 
+
+6. run the simulation loop
+
+Note that on some systems the step 1 could fail if the Python interpreter is not available on a global path. If so, you can start test.py by hand, by opening for example an Anaconda shell and launching it with:
+
+```run_test.py -f engine.py```
+
+The test.py program, in fact, uses the mandatory -f parameter to specify the model to load. 
+
+Other flags can be used too, as the command line syntax is
+
+```run_test.py (-f|--filename)<model_file> [-d|--timestep]<dt>  [-T|--Tlength]<max_simulated_time> [-v|--visualization]<irrlicht|pov> [-p|--datapath]<path_to_data_folder>```
+
+Anyway: the test.py file is just a simple stub. You can use it as an inspiration and modify it for creating a more sophisticated Python program. We strongly suggest to open it in your Python IDE editor and see how it is working.
 
 
-###Render the POVray animation
 
-After you run the test.py program by pressing the Run test buttom, you will find that the directly of engine.py has been populated with additional files; some of them are generated by the postprocessing system of Chrono::Engine.
+# Run a Chrono::Engine simulation using POVray
 
-+ Open POVray. 
+- Check the **Visualization pov** option, to use POVray as a postprocessing rendering tool
 
-+ Drag and drop the rendering_frames.pov.ini file into POVray window. 
+- Press the **Run test** button. 
 
-+ Press the Run button in POVray. 
+The simulation will be computed with no interactive view: wait few seconds.
+At the end of the simulation, you will find that the directory of engine.py has been populated with additional files; some of them are generated by the postprocessing system of Chrono::Engine. Proceed as follows:
+
+- Open POVray. 
+
+- Drag and drop the ```rendering_frames.pov.ini``` file into POVray window. 
+
+- Press the **Run** button in POVray. 
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_engine_18.jpg)
 
-+ A series of .bmp images will be generated with raytracing, and saved in the *anim* directory: 
+- A series of .bmp images will be generated with raytracing, and saved in the *anim* directory: 
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_engine_19.jpg)
 
-+ To generate an animation starting from a sequence of .bmp files: just start the VirtualDub tool and load the first image of the sequence, then save as AVI. 
+- To generate an animation starting from a sequence of .bmp files: 
+  just start the *VirtualDub* tool and **load** the first image of the sequence, 
+  all others will be automatically added:
 
   ![](http://www.projectchrono.org/assets/manual/Tutorial_engine_20.jpg)
 
+- It is suggested that you choose a proper compression codec, in VirtualDub. 
+  To do so, use the menu **Video/Compression...** and configure the codec. 
+  We suggest a Mpeg4 / DivX codec. Maybe you need to install a codec pack 
+  if the Mpeg4 is not yet installed on your system.
 
-+ It is suggested that you choose a proper compression codec, in VirtualDub. To do so, use the menu
-**Video/Compression...** and configure the codec. We suggest a Mpeg4 / DivX codec. Maybe you need to install a codec pack if the Mpeg4 is not yet installed on your system.
+- Also, remember that you might need to set the frame rate, 
+  that usually is 25 or 30 frames per second. Just use the menu  **Video/Frame rate...**
 
-+ Also, remember that you might need to set the frame rate, that usually is 25 or 30 frames per second. Just use the menu  **Video/Frame rate...**
-
-+ Note, do not expect to see a lot of movement in this animation: the only motion will be caused by the weight of the piston that will make the crankshaft swing a bit. If you want to impose a continuous rotation, you need to follow the following tutorial,Demo_engine advanced.
+- Finally **Save as AVI**. 
 
 
-###Proceed to a more complex system
+# Proceed to a more complex system
 
 Optionally, you can repeat this exercise by adding more cylinders, to create a complete four cylinder engine:
 
@@ -210,7 +249,7 @@ Optionally, you can repeat this exercise by adding more cylinders, to create a c
 + Export the Chrono::Engine system as ```engine4c.py``` 
 
 This done, now you can proceed with the following
-[Demo_engine advanced](@ref tutorial_chrono_solidworks_demo_engine)
+[Demo_engine advanced](@ref tutorial_chrono_solidworks_demo_engine_advanced)
 where you will learn advanced topics about how to add additional constraints (ex. a motor constraints that imposes the rotation of the crank), how to change the rendering look of the shapes, etc. 
 
 
