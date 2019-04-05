@@ -16,16 +16,18 @@
 //
 // =============================================================================
 
+#include "chrono/ChConfig.h"
 #include "chrono/utils/ChBenchmark.h"
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
+#ifdef CHRONO_IRRLICHT
 #include "chrono_irrlicht/ChIrrApp.h"
+#endif
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 
 // =============================================================================
 
@@ -101,7 +103,8 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
 
 template <int N>
 void MixerTestNSC<N>::SimulateVis() {
-    ChIrrApp application(m_system, L"Rigid contacts", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+#ifdef CHRONO_IRRLICHT
+    irrlicht::ChIrrApp application(m_system, L"Rigid contacts", irr::core::dimension2d<irr::u32>(800, 600), false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -116,6 +119,7 @@ void MixerTestNSC<N>::SimulateVis() {
         ExecuteStep();
         application.EndScene();
     }
+#endif
 }
 
 // =============================================================================
@@ -131,11 +135,13 @@ CH_BM_SIMULATION_LOOP(MixerNSC064, MixerTestNSC<64>,  NUM_SKIP_STEPS, NUM_SIM_ST
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
 
+#ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
         MixerTestNSC<64> test;
         test.SimulateVis();
         return 0;
     }
+#endif
 
     ::benchmark::RunSpecifiedBenchmarks();
 }

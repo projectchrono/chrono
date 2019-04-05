@@ -16,16 +16,19 @@
 //
 // =============================================================================
 
+#include "chrono/ChConfig.h"
 #include "chrono/utils/ChBenchmark.h"
 
+#include "chrono/assets/ChColorAsset.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
+#ifdef CHRONO_IRRLICHT
 #include "chrono_irrlicht/ChIrrApp.h"
+#endif
 
 using namespace chrono;
-using namespace chrono::irrlicht;
 
 // =============================================================================
 
@@ -124,9 +127,10 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
 template <int N>
 void ChainTest<N>::SimulateVis() {
+#ifdef CHRONO_IRRLICHT
     float offset = static_cast<float>(N * m_length);
 
-    ChIrrApp application(m_system, L"Pendulum chain", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(m_system, L"Pendulum chain", irr::core::dimension2d<irr::u32>(800, 600), false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -141,6 +145,7 @@ void ChainTest<N>::SimulateVis() {
         m_system->DoStepDynamics(m_step);
         application.EndScene();
     }
+#endif
 }
 
 // =============================================================================
@@ -159,11 +164,13 @@ CH_BM_SIMULATION_LOOP(Chain64, ChainTest<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 20)
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
 
+#ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
         ChainTest<4> test;
         test.SimulateVis();
         return 0;
     }
+#endif
 
     ::benchmark::RunSpecifiedBenchmarks();
 }
