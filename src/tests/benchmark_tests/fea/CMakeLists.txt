@@ -1,27 +1,24 @@
-# ------------------------------------------------------------------------------
-# Additional include paths and libraries
-# ------------------------------------------------------------------------------
-
-if(NOT ENABLE_MODULE_IRRLICHT)
-    return()
-endif()
+set(TESTS
+    btest_FEA_ANCFshell
+    btest_FEA_contact
+    )
 
 # ------------------------------------------------------------------------------
 
+include_directories(${CH_INCLUDES})
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "ChronoEngine")
 
-include_directories(${CH_IRRLICHTINC})
-set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-list(APPEND LIBS "ChronoEngine_irrlicht")
+if(ENABLE_MODULE_IRRLICHT)
+  include_directories(${CH_IRRLICHTINC})
+  set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+  list(APPEND LIBS "ChronoEngine_irrlicht")
+endif()
 
 # ------------------------------------------------------------------------------
 
-set(TESTS
-  btest_FEA_ANCFshell
-  btest_FEA_contact
-)
+message(STATUS "Benchmark test programs for FEA module...")
 
 foreach(PROGRAM ${TESTS})
     message(STATUS "...add ${PROGRAM}")

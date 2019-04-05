@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "chrono/ChConfig.h"
 #include "chrono/utils/ChBenchmark.h"
 
 #include "chrono/physics/ChSystemSMC.h"
@@ -25,11 +26,12 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
+#ifdef CHRONO_IRRLICHT
 #include "chrono_irrlicht/ChIrrApp.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::fea;
-using namespace chrono::irrlicht;
 
 template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
@@ -129,7 +131,8 @@ ANCFshell<N>::ANCFshell() {
 
 template <int N>
 void ANCFshell<N>::SimulateVis() {
-    ChIrrApp application(m_system, L"ANCF shells", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+#ifdef CHRONO_IRRLICHT
+    irrlicht::ChIrrApp application(m_system, L"ANCF shells", irr::core::dimension2d<irr::u32>(800, 600), false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -141,15 +144,16 @@ void ANCFshell<N>::SimulateVis() {
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
-        ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
-                                irr::video::SColor(255, 255, 0, 0));
-        ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
-                                irr::video::SColor(255, 0, 255, 0));
-        ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
-                                irr::video::SColor(255, 0, 0, 255));
+        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
+                                          irr::video::SColor(255, 255, 0, 0));
+        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
+                                          irr::video::SColor(255, 0, 255, 0));
+        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
+                                          irr::video::SColor(255, 0, 0, 255));
         ExecuteStep();
         application.EndScene();
     }
+#endif
 }
 
 // =============================================================================
@@ -167,11 +171,13 @@ CH_BM_SIMULATION_LOOP(ANCFshell64, ANCFshell<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS,
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
 
+#ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
         ANCFshell<16> test;
         test.SimulateVis();
         return 0;
     }
+#endif
 
     ::benchmark::RunSpecifiedBenchmarks();
 }

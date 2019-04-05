@@ -16,16 +16,20 @@
 //
 // =============================================================================
 
+#include "chrono/ChConfig.h"
 #include "chrono/utils/ChBenchmark.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChVehiclePath.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
+
+#ifdef CHRONO_IRRLICHT
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
+#endif
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -148,6 +152,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::ExecuteStep() {
 
 template <typename EnumClass, EnumClass SHOE_TYPE>
 void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
+#ifdef CHRONO_IRRLICHT
     ChTrackedVehicleIrrApp app(m_m113, m_powertrain, L"M113 acceleration test");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(-200.f, -30.f, 100.f), irr::core::vector3df(-200.f, 50.f, 100.f), 250, 130);
@@ -164,6 +169,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
         app.Advance(m_step);
         app.EndScene();
     }
+#endif
 }
 
 // =============================================================================
@@ -184,12 +190,14 @@ CH_BM_SIMULATION_LOOP(M113Acc_DP, dp_test_type, NUM_SKIP_STEPS, NUM_SIM_STEPS, R
 int main(int argc, char* argv[]) {
     ::benchmark::Initialize(&argc, argv);
 
+#ifdef CHRONO_IRRLICHT
     if (::benchmark::ReportUnrecognizedArguments(argc, argv)) {
         M113AccTest<TrackShoeType, TrackShoeType::SINGLE_PIN> test;
         ////M113AccTest<TrackShoeType, TrackShoeType::DOUBLE_PIN> test;
         test.SimulateVis();
         return 0;
     }
+#endif
 
     ::benchmark::RunSpecifiedBenchmarks();
 }
