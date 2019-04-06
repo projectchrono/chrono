@@ -45,7 +45,7 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->columns = 3;
         this->address = this->buffer;
         for (int i = 0; i < 9; ++i)
-            this->address[i] = (Real)msource.address[i];
+            this->address[i] = (Real)msource.GetAddress()[i];
     }
 
     /// Construct a diagonal 3x3 matrix with all diagonal elements equal to the specified value.

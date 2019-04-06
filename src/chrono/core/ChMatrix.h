@@ -293,7 +293,7 @@ class ChMatrix {
     template <class RealB>
     void CopyFromMatrix(const ChMatrix<RealB>& matra) {
         Resize(matra.GetRows(), matra.GetColumns());
-        std::memcpy(address, matra.address, rows * columns * sizeof(Real));
+        std::memcpy(address, matra.GetAddress(), rows * columns * sizeof(Real));
     }
 
     /// Copy the transpose of matrix "matra" into this matrix. Note that
