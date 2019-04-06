@@ -41,7 +41,7 @@ using chrono::granular::GRAN_ROLLING_MODE;
 #include "chrono_granular/physics/ChGranularHelpers.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
 
-inline __device__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD,
+inline __device__ __host__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD,
                                                    const int3& local_pos,
                                                    GranParamsPtr gran_params) {
     int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);

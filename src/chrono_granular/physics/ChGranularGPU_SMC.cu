@@ -12,6 +12,8 @@
 // Authors: Dan Negrut, Conlain Kelly, Nic Olsen
 // =============================================================================
 
+#include <cmath>
+
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/utils/ChGranularUtilities.h"
 
@@ -19,27 +21,19 @@ namespace chrono {
 namespace granular {
 
 __host__ double ChSystemGranular_MonodisperseSMC::get_max_z() const {
-    int* max_z_d;
-    int max_z_h;
-    void* d_temp_storage = NULL;
-    size_t temp_storage_bytes = 0;
+    size_t nSpheres = sphere_local_pos_Z.size();
+    std::vector<int64_t> sphere_pos_global_Z;
+    sphere_pos_global_Z.resize(nSpheres);
+    for (size_t index = 0; index < nSpheres; index++) {
+        unsigned int ownerSD = sphere_data->sphere_owner_SDs[index];
+        int3 sphere_pos_local =
+            make_int3(sphere_data->sphere_local_pos_X[index], sphere_data->sphere_local_pos_Y[index],
+                      sphere_data->sphere_local_pos_Z[index]);
+        sphere_pos_global_Z[index] = convertPosLocalToGlobal(ownerSD, sphere_pos_local, gran_params).z;
+    }
 
-    gpuErrchk(cudaMalloc(&max_z_d, sizeof(int)));
-
-    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, sphere_local_pos_Z.data(), max_z_d, nSpheres);
-    gpuErrchk(cudaDeviceSynchronize());
-
-    // Allocate temporary storage
-    cudaMalloc(&d_temp_storage, temp_storage_bytes);
-    // Run max-reduction
-    cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes, sphere_local_pos_Z.data(), max_z_d, nSpheres);
-    gpuErrchk(cudaDeviceSynchronize());
-
-    gpuErrchk(cudaMemcpy(&max_z_h, max_z_d, sizeof(int), cudaMemcpyDeviceToHost));
-
-    double max_z_UU = max_z_h * LENGTH_SU2UU;
-    gpuErrchk(cudaFree(max_z_d));
-    gpuErrchk(cudaDeviceSynchronize());
+    double max_z_SU = *(std::max_element(sphere_pos_global_Z.begin(), sphere_pos_global_Z.end()));
+    double max_z_UU = max_z_SU * LENGTH_SU2UU;
 
     return max_z_UU;
 }
