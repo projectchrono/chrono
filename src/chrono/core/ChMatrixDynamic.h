@@ -56,7 +56,7 @@ class ChMatrixDynamic : public ChMatrix<Real> {
         this->columns = msource.GetColumns();
         this->address = new Real[this->rows * this->columns];
         for (int i = 0; i < this->rows * this->columns; ++i)
-            this->address[i] = (Real)msource.address[i];
+            this->address[i] = (Real)msource.GetAddress()[i];
     }
 
     /// The constructor for a generic nxm matrix.

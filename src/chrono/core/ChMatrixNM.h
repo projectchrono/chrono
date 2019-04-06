@@ -46,7 +46,7 @@ class ChMatrixNM : public ChMatrix<Real> {
         this->rows = preall_rows;
         this->columns = preall_columns;
         this->address = buffer;
-        Reset();
+        this->Reset();
     }
 
     /// Copy constructor
@@ -65,7 +65,7 @@ class ChMatrixNM : public ChMatrix<Real> {
         this->columns = preall_columns;
         this->address = buffer;
         for (int i = 0; i < preall_rows * preall_columns; ++i)
-            this->address[i] = (Real)msource.address[i];
+            this->address[i] = (Real)msource.GetAddress()[i];
     }
 
     /// Destructor

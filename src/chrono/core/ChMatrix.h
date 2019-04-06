@@ -74,15 +74,6 @@ class ChMatrix {
     int columns = 1;
     Real* address;
 
-    template <class RealB>
-    friend class ChMatrixDynamic;
-
-    template <class RealB>
-    friend class ChVectorDynamic;
-
-    template <class RealB, int N, int M>
-    friend class ChMatrixNM;
-
   public:
     virtual ~ChMatrix() {}
 

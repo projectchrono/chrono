@@ -72,7 +72,7 @@ class ChVectorDynamic : public ChMatrix<Real> {
         this->columns = 1;
         this->address = new Real[this->rows];
         for (int i = 0; i < this->rows; ++i)
-            this->address[i] = (Real)msource.address[i];
+            this->address[i] = (Real)msource.GetAddress()[i];
     }
 
     /// Destructor
