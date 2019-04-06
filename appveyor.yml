@@ -113,7 +113,7 @@ install:
     # so that we can update it. Then we remove it so that
     # we can do a proper activation.
     #- cmd: set "OLDPATH=%PATH%"
-    #- cmd: set "PATH=%CONDA_INSTALL_LOCN%\\Scripts;%CONDA_INSTALL_LOCN%\\Library\\bin;%PATH%"
+    - cmd: set "PATH=%CONDA_INSTALL_LOCN%\\Scripts;%CONDA_INSTALL_LOCN%\\Library\\bin;%CONDA_INSTALL_LOCN%\\condabin;%PATH%"
     #- cmd: conda config --set always_yes yes --set changeps1 no
     #- cmd: conda update conda
     #- cmd: set "PATH=%OLDPATH%"
