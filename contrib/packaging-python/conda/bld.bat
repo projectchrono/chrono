@@ -29,11 +29,11 @@ cmake -G "%CMAKE_GENERATOR%" ^
  -DIRRLICHT_ROOT="C:\irrlicht-1.8.2" ^
  -DIRRLICHT_LIBRARY="C:\irrlicht-1.8.2\lib\Win64-visualStudio\Irrlicht.lib" ^
  -DENABLE_MODULE_CASCADE=ON ^
- -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\oce ^
- -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\Library\lib ^
+ -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\include\oce ^
+ -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\lib ^
  -DENABLE_MODULE_MKL=ON ^
- -DMKL_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include ^
- -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\Library\lib\mkl_rt.lib ^
+ -DMKL_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\include ^
+ -DMKL_RT_LIBRARY="%CONDA_INSTALL_LOCN%"\envs\myenv\Library\lib\mkl_rt.lib ^
  ..
 if errorlevel 1 exit 1
  
