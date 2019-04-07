@@ -59,6 +59,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_SimpleDriveline.h
     hmmwv/HMMWV_SimplePowertrain.cpp
     hmmwv/HMMWV_SimplePowertrain.h
+    hmmwv/HMMWV_SimpleCVTPowertrain.cpp
+    hmmwv/HMMWV_SimpleCVTPowertrain.h
     hmmwv/HMMWV_SimpleMapPowertrain.cpp
     hmmwv/HMMWV_SimpleMapPowertrain.h
     hmmwv/HMMWV_Vehicle.h
