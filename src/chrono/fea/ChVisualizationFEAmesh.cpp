@@ -700,8 +700,10 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                             ++i_verts;
                             trianglemesh->getCoordsColors()[i_vcols] = mcol;
                             ++i_vcols;
-                            trianglemesh->getCoordsNormals()[i_vnorms] = msectionrot.Rotate(Rw.GetNormalized());
-                            ++i_vnorms;
+							if (this->smooth_faces) {
+								trianglemesh->getCoordsNormals()[i_vnorms] = Rw.GetNormalized();
+								++i_vnorms;
+							}
                         }
                         // no need to compute normals later with TriangleNormalsCompute
                         need_automatic_smoothing = false;
