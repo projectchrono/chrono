@@ -50,6 +50,7 @@ environment:
       CONDA_INSTALL_LOCN: "C:\\Miniconda35-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       CONFIGURATION: Release
+      CONDAVER: 4.2.0
       
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       PYTHON_VERSION: "3.6"
@@ -68,6 +69,7 @@ environment:
       CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       CONFIGURATION: Release
+      CONDAVER: 5.2.0
       
     - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu
       PYTHON_VERSION: "3.7"
@@ -86,6 +88,7 @@ environment:
       CONDA_INSTALL_LOCN: "C:\\Miniconda36-x64"
       CMAKE_GENERATOR: Visual Studio 15 2017 Win64
       CONFIGURATION: Release
+      CONDAVER: 5.2.0
 init:
    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
    - sh: curl -sflL 'https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-ssh.sh' | bash -e -    
@@ -120,7 +123,7 @@ install:
     - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
     - cmd: conda create -n myenv python=%PYTHON_VERSION% -y 
     - cmd: conda config --set show_channel_urls true
-    #- cmd: conda update conda --yes
+    - cmd: conda update conda=%CONDAVER% --yes
     - cmd: conda update -n root conda --yes
     - cmd: conda install python=%PYTHON_VERSION% --yes
     - cmd: activate myenv
