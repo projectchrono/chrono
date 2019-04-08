@@ -68,11 +68,11 @@ mysystem.Add(mfloor)
 # and will automatically compute the mass property (COG position respect to REF, 
 # mass and inertia tensor) given an uniform density.
 
-body_A= chrono.ChBodyEasyMesh(chrono.GetChronoDataPath() +'body_1_1.obj', # mesh filename
+body_A= chrono.ChBodyEasyMesh(chrono.GetChronoDataPath() +'shoe_view.obj', # mesh filename
                               7000, # density kg/m^3
                               True, # use mesh for visualization?
                               True) # use mesh for collision?
-body_A.SetPos(chrono.ChVectorD(0.5,1,0))
+body_A.SetPos(chrono.ChVectorD(0.5,0.5,0))
 mysystem.Add(body_A)
 
 
@@ -90,18 +90,18 @@ mysystem.Add(body_A)
 
 # Rigid body part
 body_B= chrono.ChBodyAuxRef()
-body_B.SetPos(chrono.ChVectorD(0,1,0))
+body_B.SetPos(chrono.ChVectorD(0,0.5,0))
 body_B.SetMass(16)
 body_B.SetInertiaXX(chrono.ChVectorD(0.270,0.400,0.427))
 body_B.SetInertiaXY(chrono.ChVectorD(0.057,0.037,-0.062))
 body_B.SetFrame_COG_to_REF(chrono.ChFrameD(
-            chrono.ChVectorD(-0.0294,0.1317,-0.0399),
+            chrono.ChVectorD( 0.12,0.0,0),
             chrono.ChQuaternionD(1,0,0,0)))
 
 # Attach a visualization shape .
 # First load a .obj from disk into a ChTriangleMeshConnected:
 mesh_for_visualization = chrono.ChTriangleMeshConnected()
-mesh_for_visualization.LoadWavefrontMesh(chrono.GetChronoDataPath() +'body_1_1.obj')
+mesh_for_visualization.LoadWavefrontMesh(chrono.GetChronoDataPath() +'shoe_view.obj')
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_visualization.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
 # Now the  triangle mesh is inserted in a ChTriangleMeshShape visualization asset, 
@@ -118,7 +118,7 @@ body_B.AddAsset(visualization_shape)
 # collision, so the simulation performance is not affected by many details such 
 # as bolts and chamfers that may be wanted only for visualization.
 mesh_for_collision = chrono.ChTriangleMeshConnected()
-mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataPath() +'body_1_1.obj')
+mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataPath() +'shoe_view.obj')
 # Optionally: you can scale/shrink/rotate the mesh using this:
 mesh_for_collision.Transform(chrono.ChVectorD(0.01,0,0), chrono.ChMatrix33D(1))
 body_B.GetCollisionModel().ClearModel()
@@ -149,7 +149,7 @@ myapplication = chronoirr.ChIrrApp(mysystem, 'PyChrono example', chronoirr.dimen
 
 myapplication.AddTypicalSky()
 myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
-myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,1,1), chronoirr.vector3df(0,0,0))
+myapplication.AddTypicalCamera(chronoirr.vector3df(0.5,0.5,1), chronoirr.vector3df(0,0,0))
 #myapplication.AddTypicalLights()
 myapplication.AddLightWithShadow(chronoirr.vector3df(3,6,2),    # point
                                  chronoirr.vector3df(0,0,0),    # aimpoint
