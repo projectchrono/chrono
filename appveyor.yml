@@ -123,7 +123,7 @@ install:
     - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
     - cmd: conda create -n myenv python=%PYTHON_VERSION% -y 
     - cmd: conda config --set show_channel_urls true
-    - cmd: conda update conda=%CONDAVER% --yes
+    - cmd: conda install conda=%CONDAVER% --yes
     - cmd: conda update -n root conda --yes
     - cmd: conda install python=%PYTHON_VERSION% --yes
     - cmd: activate myenv
