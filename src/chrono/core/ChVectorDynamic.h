@@ -18,17 +18,12 @@
 #include <cmath>
 
 #include "chrono/core/ChCoordsys.h"
-#include "chrono/core/ChStream.h"
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChStream.h"
 
 namespace chrono {
 
-//
-// FAST MACROS TO SPEEDUP CODE
-//
-
-///
 /// ChVectorDynamic
 ///
 ///  Specialized 'resizeable' vector class where the elements are allocated on heap.
@@ -42,37 +37,22 @@ namespace chrono {
 
 template <class Real = double>
 class ChVectorDynamic : public ChMatrix<Real> {
-  private:
-    //
-    // DATA
-    //
-
-    /// [simply use the  "Real* address" pointer of the base class
-
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     /// The default constructor builds a 1 element vector.
     ChVectorDynamic() {
         this->rows = 1;
         this->columns = 1;
         this->address = new Real[1];
-        // SetZero(1);
         this->address[0] = 0;
     }
 
     /// The constructor for a generic n sized vector.
-    /// Rows cannot be zero or negative.
-    ChVectorDynamic(const int rows) {
+    ChVectorDynamic(int rows) {
         assert(rows >= 0);
         this->rows = rows;
         this->columns = 1;
         this->address = new Real[rows];
-        // SetZero(rows);
-        for (int i = 0; i < this->rows; ++i)
-            this->address[i] = 0;
+        std::memset(this->address, 0, this->rows * sizeof(Real));
     }
 
     /// Copy constructor
@@ -80,9 +60,7 @@ class ChVectorDynamic : public ChMatrix<Real> {
         this->rows = msource.GetRows();
         this->columns = 1;
         this->address = new Real[this->rows];
-        // ElementsCopy(this->address, msource.GetAddress(), this->rows);
-        for (int i = 0; i < this->rows; ++i)
-            this->address[i] = (Real)msource.GetAddress()[i];
+        std::memcpy(this->address, msource.address, this->rows * sizeof(Real));
     }
 
     /// Copy constructor from all types of base matrices
@@ -93,7 +71,6 @@ class ChVectorDynamic : public ChMatrix<Real> {
         this->rows = msource.GetRows();
         this->columns = 1;
         this->address = new Real[this->rows];
-        // ElementsCopy(this->address, msource.GetAddress(), this->rows);
         for (int i = 0; i < this->rows; ++i)
             this->address[i] = (Real)msource.GetAddress()[i];
     }
@@ -104,7 +81,7 @@ class ChVectorDynamic : public ChMatrix<Real> {
 
     /// Return the length of the vector
     int GetLength() const { return this->rows; }
-    
+
     //
     // OPERATORS
     //
@@ -161,9 +138,7 @@ class ChVectorDynamic : public ChMatrix<Real> {
             this->columns = 1;
             delete[] this->address;
             this->address = new Real[this->rows];
-            // SetZero(this->rows);
-            for (int i = 0; i < this->rows; ++i)
-                this->address[i] = 0;
+            std::memset(this->address, 0, this->rows * sizeof(Real));
         }
     }
 
@@ -175,17 +150,11 @@ class ChVectorDynamic : public ChMatrix<Real> {
     /// Reset to zeroes and (if needed) changes the size to have row and col
     void Reset(int nrows) {
         Resize(nrows);
-        //SetZero(rows);
-        for (int i = 0; i < this->rows; ++i)
-            this->address[i] = 0;
+        std::memset(this->address, 0, this->rows * sizeof(Real));
     }
 
-    /// Resets the matrix to zero  (warning: simply sets memory to 0 bytes!)
-    void Reset() {
-        // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
-        for (int i = 0; i < this->rows; ++i)
-            this->address[i] = 0;
-    }
+    /// Resets to zero
+    virtual void Reset() override { std::memset(this->address, 0, this->rows * sizeof(Real)); }
 
     /// Calculate the WRMS (weighted root-mean-square) norm of this vector.
     ///     norm = sqrt{ sum{(w_i * x_i)^2} / N}

@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2019 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -51,7 +51,7 @@ VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
 
-// Type of powertrain model (SHAFTS, SIMPLE)
+// Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)

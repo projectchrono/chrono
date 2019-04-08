@@ -15,9 +15,11 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
+#include <cstring>
+
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChException.h"
-#include "chrono/ChConfig.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 
@@ -30,10 +32,6 @@
 #endif
 
 namespace chrono {
-
-//
-// FAST MACROS TO SPEEDUP CODE
-//
 
 #define Set33Element(a, b, val) SetElementN(((a * 3) + (b)), val)
 #define Get33Element(a, b) GetElementN((a * 3) + (b))
@@ -72,19 +70,11 @@ class ChMatrixDynamic;
 template <class Real = double>
 class ChMatrix {
   protected:
-    //
-    // DATA
-    //
-
     int rows = 1;
     int columns = 1;
     Real* address;
 
   public:
-    //
-    // CONSTRUCTORS (none - abstract class that must be implemented with child classes)
-    //
-
     virtual ~ChMatrix() {}
 
     //
@@ -283,19 +273,13 @@ class ChMatrix {
             SetElementN(i, min + (Real)ChRandom() * (max - min));
     }
 
-    /// Resets the matrix to zero  (warning: simply sets memory to 0 bytes!)
-    virtual void Reset() {
-        // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
-        for (int i = 0; i < rows * columns; ++i)
-            this->address[i] = 0;
-    }
+    /// Resets the matrix to zero.
+    virtual void Reset() { std::memset(address, 0, rows * columns * sizeof(Real)); }
 
     /// Reset to zeroes and (if needed) changes the size to have row and col
     void Reset(int nrows, int ncols) {
         Resize(nrows, ncols);
-        // SetZero(rows*columns); //memset(address, 0, sizeof(Real) * rows * columns);
-        for (int i = 0; i < rows * columns; ++i)
-            this->address[i] = 0;
+        std::memset(address, 0, rows * columns * sizeof(Real));
     }
 
     /// Reset to identity matrix (ones on diagonal, zero elsewhere)
@@ -309,10 +293,7 @@ class ChMatrix {
     template <class RealB>
     void CopyFromMatrix(const ChMatrix<RealB>& matra) {
         Resize(matra.GetRows(), matra.GetColumns());
-        // ElementsCopy(address, matra.GetAddress(), rows*columns);
-        // memcpy (address, matra.address, (sizeof(Real) * rows * columns));
-        for (int i = 0; i < rows * columns; ++i)
-            address[i] = (Real)matra.GetAddress()[i];
+        std::memcpy(address, matra.GetAddress(), rows * columns * sizeof(Real));
     }
 
     /// Copy the transpose of matrix "matra" into this matrix. Note that
@@ -377,13 +358,12 @@ class ChMatrix {
                 mascii->GetStream()->operator<<("\n");
             }
         } else {
-      
             marchive << make_ChNameValue("rows", rows);
             marchive << make_ChNameValue("columns", columns);
 
             // NORMAL array-based serialization:
             int tot_elements = GetRows() * GetColumns();
-            ChValueSpecific< Real* > specVal(this->address, "data", 0);
+            ChValueSpecific<Real*> specVal(this->address, "data", 0);
             marchive.out_array_pre(specVal, tot_elements);
             for (int i = 0; i < tot_elements; i++) {
                 marchive << CHNVP(ElementN(i), "");
@@ -615,24 +595,24 @@ class ChMatrix {
 
 #ifdef CHRONO_HAS_NEON
 
-	/// Multiplies two matrices, and stores the result in "this" matrix: [this]=[A]*[B].
-	/// NEON implementation: The speed up is marginal if size of the matrices are small.
-	/// Much like AVX, as the matra.GetColumns() increases the method performs better
-	template <class RealB, class RealC>
-	void MatrMultiplyNEON(const ChMatrix<double>& matra, const ChMatrix<double>& matrb) {
-		assert(matra.GetColumns() == matrb.GetRows());
-		assert(this->rows == matra.GetRows());
-		assert(this->columns == matrb.GetColumns());
-		int A_Nrow = matra.GetRows();
+    /// Multiplies two matrices, and stores the result in "this" matrix: [this]=[A]*[B].
+    /// NEON implementation: The speed up is marginal if size of the matrices are small.
+    /// Much like AVX, as the matra.GetColumns() increases the method performs better
+    template <class RealB, class RealC>
+    void MatrMultiplyNEON(const ChMatrix<double>& matra, const ChMatrix<double>& matrb) {
+        assert(matra.GetColumns() == matrb.GetRows());
+        assert(this->rows == matra.GetRows());
+        assert(this->columns == matrb.GetColumns());
+        int A_Nrow = matra.GetRows();
         int B_Nrow = matrb.GetRows();
         int A_NCol = matra.GetColumns();
         int B_NCol = matrb.GetColumns();
         const double* A_add = matra.GetAddress();
         const double* B_add = matrb.GetAddress();
         double* this_Add = this->GetAddress();
-		// NEON doesn't provide direct zeroing, so we need to do it ourselves
-		float64_t zero_mem = 0.0;
-		float64x2_t zero_reg = vld1q_dup_f64(&zero_mem);
+        // NEON doesn't provide direct zeroing, so we need to do it ourselves
+        float64_t zero_mem = 0.0;
+        float64x2_t zero_reg = vld1q_dup_f64(&zero_mem);
         for (int rowA = 0; rowA < A_Nrow; rowA++) {
             for (int colB = 0; colB < B_NCol; colB += 2) {
                 float64x2_t sum = vmovq_n_f64(zero_reg);
@@ -645,7 +625,7 @@ class ChMatrix {
             }
         }
     }
-		
+
 #endif
 
     /// Multiplies two matrices (the second is considered transposed): [this]=[A]*[B]'

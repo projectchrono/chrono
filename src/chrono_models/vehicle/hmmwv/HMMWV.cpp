@@ -32,6 +32,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleCVTPowertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 
 namespace chrono {
@@ -125,6 +126,11 @@ void HMMWV::Initialize() {
         }
         case PowertrainModelType::SIMPLE: {
             HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain("Powertrain");
+            m_powertrain = ptrain;
+            break;
+        }
+        case PowertrainModelType::SIMPLE_CVT: {
+            HMMWV_SimpleCVTPowertrain* ptrain = new HMMWV_SimpleCVTPowertrain("Powertrain");
             m_powertrain = ptrain;
             break;
         }
