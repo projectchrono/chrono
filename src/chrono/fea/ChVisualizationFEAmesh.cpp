@@ -720,14 +720,18 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
                                 trianglemesh->getIndicesVertexes()[i_triindex] =
                                     ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
-                                trianglemesh->getIndicesNormals()[i_triindex] =
-                                    ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
+								if (this->smooth_faces) {
+									trianglemesh->getIndicesNormals()[i_triindex] =
+										ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
+								}
                                 ++i_triindex;
 
                                 trianglemesh->getIndicesVertexes()[i_triindex] =
                                     ChVector<int>(ipa, ipb, ipbb) + islice_offset + ivert_offset;
-                                trianglemesh->getIndicesNormals()[i_triindex] =
-                                    ChVector<int>(ipa, ipb, ipbb) + islice_offset + ivert_offset;
+								if (this->smooth_faces) {
+									trianglemesh->getIndicesNormals()[i_triindex] =
+										ChVector<int>(ipa, ipb, ipbb) + islice_offset + ivert_offset;
+								}
                                 ++i_triindex;
                             }
                         }
