@@ -106,6 +106,10 @@ void ChElementShellANCF::SetupInitial(ChSystem* system) {
     // Reserve space for the EAS parameters and Jacobians.
     m_alphaEAS.resize(m_numLayers);
     m_KalphaEAS.resize(m_numLayers);
+    for (size_t i = 0; i < m_numLayers; i++) {
+        m_alphaEAS[i].Reset();
+        m_KalphaEAS[i].Reset();
+    }
 
     // Cache the scaling factor (due to change of integration intervals)
     m_GaussScaling = (m_lenX * m_lenY * m_thickness) / 8;
@@ -174,6 +178,8 @@ void MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const 
     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)]
     ChMatrixNM<double, 3, 24> S;
     ChMatrix33<> Si;
+    Si.Reset();
+
     Si.FillDiag(N(0));
     S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
@@ -207,13 +213,13 @@ void ChElementShellANCF::ComputeMassMatrix() {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
         MyMass myformula(this);
         ChMatrixNM<double, 24, 24> TempMassMatrix;
-
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(TempMassMatrix,  // result of integration will go there
-                                                               myformula,       // formula to integrate
-                                                               -1, 1,           // x limits
-                                                               -1, 1,           // y limits
-                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                               2                                // order of integration
+        TempMassMatrix.Reset();
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24>>(TempMassMatrix,  // result of integration will go there
+                                                              myformula,       // formula to integrate
+                                                              -1, 1,           // x limits
+                                                              -1, 1,           // y limits
+                                                              m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                              2                                // order of integration
         );
         TempMassMatrix *= rho;
         m_MassMatrix += TempMassMatrix;
@@ -265,13 +271,13 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
         MyGravity myformula(this, g_acc);
         ChMatrixNM<double, 24, 1> Fgravity;
-
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(Fgravity,   // result of integration will go there
-                                                              myformula,  // formula to integrate
-                                                              -1, 1,      // x limits
-                                                              -1, 1,      // y limits
-                                                              m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                              2                                // order of integration
+        Fgravity.Reset();
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1>>(Fgravity,   // result of integration will go there
+                                                             myformula,  // formula to integrate
+                                                             -1, 1,      // x limits
+                                                             -1, 1,      // y limits
+                                                             m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                             2                                // order of integration
         );
 
         Fgravity *= rho;
@@ -606,14 +612,15 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
         // Newton loop for EAS
         for (int count = 0; count < m_maxIterationsEAS; count++) {
-            ChMatrixNM<double, 54, 1> result;
             MyForce formula(this, kl, &alphaEAS);
-            ChQuadrature::Integrate3D<ChMatrixNM<double, 54, 1> >(result,   // result of integration
-                                                                  formula,  // integrand formula
-                                                                  -1, 1,    // x limits
-                                                                  -1, 1,    // y limits
-                                                                  m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                                  2  // order of integration
+            ChMatrixNM<double, 54, 1> result;
+            result.Reset();
+            ChQuadrature::Integrate3D<ChMatrixNM<double, 54, 1>>(result,   // result of integration
+                                                                 formula,  // integrand formula
+                                                                 -1, 1,    // x limits
+                                                                 -1, 1,    // y limits
+                                                                 m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                                 2  // order of integration
             );
 
             // Extract vectors and matrices from result of integration
@@ -930,6 +937,7 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, co
 
     /// Gd : Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
     ChMatrixNM<double, 9, 24> Gd;
+    Gd.Reset();
 
     for (int ii = 0; ii < 8; ii++) {
         Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -973,6 +981,7 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, co
 
     // Declaration and computation of Sigm, to be removed
     ChMatrixNM<double, 9, 9> Sigm;  ///< Rearrangement of stress vector (not always needed)
+    Sigm.Reset();
 
     Sigm(0, 0) = stress(0, 0);  // XX
     Sigm(1, 1) = stress(0, 0);
@@ -1056,14 +1065,15 @@ void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 
     // Loop over all layers.
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        ChMatrixNM<double, 696, 1> result;
         MyJacobian formula(this, Kfactor, Rfactor, kl);
-        ChQuadrature::Integrate3D<ChMatrixNM<double, 696, 1> >(result,                          // result of integration
-                                                               formula,                         // integrand formula
-                                                               -1, 1,                           // x limits
-                                                               -1, 1,                           // y limits
-                                                               m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                               2                                // order of integration
+        ChMatrixNM<double, 696, 1> result;
+        result.Reset();
+        ChQuadrature::Integrate3D<ChMatrixNM<double, 696, 1>>(result,                          // result of integration
+                                                              formula,                         // integrand formula
+                                                              -1, 1,                           // x limits
+                                                              -1, 1,                           // y limits
+                                                              m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                                              2                                // order of integration
         );
 
         // Extract matrices from result of integration
@@ -2082,6 +2092,7 @@ void ChMaterialShellANCF::Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, 
     double nu_yx = nu.x() * E.y() / E.x();
     double nu_zx = nu.y() * E.z() / E.x();
     double nu_zy = nu.z() * E.z() / E.y();
+    m_E_eps.Reset();
     m_E_eps(0, 0) = E.x() * (1.0 - (nu.z() * nu.z()) * E.z() / E.y()) / delta;
     m_E_eps(1, 1) = E.y() * (1.0 - (nu.y() * nu.y()) * E.z() / E.x()) / delta;
     m_E_eps(3, 3) = E.z() * (1.0 - (nu.x() * nu.x()) * E.y() / E.x()) / delta;

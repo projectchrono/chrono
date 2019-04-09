@@ -28,6 +28,15 @@ namespace fea {
 
 ChElementBrick_9::ChElementBrick_9() : m_gravity_on(false) {
     m_nodes.resize(8);
+
+    m_ddT.Reset();
+    m_d_dt.Reset();
+
+    m_Alpha_Plast.Reset();
+    m_CCPinv_Plast.Reset();
+
+    m_DPVector1.Reset();
+    m_DPVector2.Reset();
 }
 
 // -----------------------------------------------------------------------------
@@ -180,8 +189,11 @@ class MyMassBrick9 : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
 void MyMassBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, const double y, const double z) {
     ChMatrixNM<double, 1, 11> N;
     m_element->ShapeFunctions(N, x, y, z);
+
     ChMatrixNM<double, 3, 33> S;
     ChMatrix33<> Si;
+    Si.Reset();
+    
     Si.FillDiag(N(0));
     S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
@@ -216,17 +228,15 @@ void MyMassBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, 
 
 // Compute the mass matrix of the element.
 void ChElementBrick_9::ComputeMassMatrix() {
-    m_MassMatrix.Reset();
-
     MyMassBrick9 myformula(this);
-
+    m_MassMatrix.Reset();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 33>>(m_MassMatrix,  // result of integration will go there
                                                           myformula,     // formula to integrate
                                                           -1, 1,         // limits in x direction
                                                           -1, 1,         // limits in y direction
                                                           -1, 1,         // limits in z direction
                                                           3              // order of integration
-                                                          );
+    );
 
     m_MassMatrix *= m_material->Get_density();
 }
@@ -266,9 +276,9 @@ void MyGravityBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x
 
 // Compute the gravitational forces.
 void ChElementBrick_9::ComputeGravityForce(const ChVector<>& g_acc) {
-    m_GravForce.Reset();
-
     MyGravityBrick9 myformula(this, g_acc);
+
+    m_GravForce.Reset();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 1>>(m_GravForce,  // result of integration will go there
                                                          myformula,    // formula to integrate
                                                          -1, 1,        // limits in x direction
@@ -353,6 +363,8 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
     // Matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> E_eps;
+    E_eps.Reset();
+
     E_eps(0, 0) = C1 + 2.0 * C2;
     E_eps(1, 1) = C1 + 2.0 * C2;
     E_eps(3, 3) = C1 + 2.0 * C2;
@@ -493,6 +505,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                 CCPinv(2, 1) = m_element->m_CCPinv_Plast(7, m_element->m_InteCounter);
                 CCPinv(2, 2) = m_element->m_CCPinv_Plast(8, m_element->m_InteCounter);
             } else {
+                CCPinv.Reset();
                 CCPinv(0, 0) = 1.0;
                 CCPinv(1, 1) = 1.0;
                 CCPinv(2, 2) = 1.0;
@@ -651,7 +664,6 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
                     case ChElementBrick_9::DruckerPrager: {
                         double EDNInv;  // Inverse of norm of deviatoric Hencky strain
-                        ChMatrixNM<double, 6, 1> UniDev;
 
                         // Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
@@ -660,9 +672,13 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                             EDNInv = 0.0;
                         }
 
+                        ChMatrixNM<double, 6, 1> UniDev;
                         UniDev(0, 0) = EETD.x() * EDNInv;
                         UniDev(1, 0) = EETD.y() * EDNInv;
                         UniDev(3, 0) = EETD.z() * EDNInv;
+                        UniDev(2, 0) = 0.0;
+                        UniDev(4, 0) = 0.0;
+                        UniDev(5, 0) = 0.0;
 
                         double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
                         hydroP = K * EETV;
@@ -820,7 +836,6 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         int FlagYieldType;  //(DP_Cap)
                         int PlasticCount;   //(DP_Cap)
                         double EDNInv;      // Inverse of norm of deviatoric Hencky strain
-                        ChMatrixNM<double, 6, 1> UniDev;
 
                         //// Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
@@ -828,10 +843,11 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         } else {
                             EDNInv = 0.0;
                         }
+
+                        ChMatrixNM<double, 6, 1> UniDev;
                         UniDev(2, 0) = 0.0;
                         UniDev(4, 0) = 0.0;
                         UniDev(5, 0) = 0.0;
-
                         UniDev(0, 0) = EETD.x() * EDNInv;
                         UniDev(1, 0) = EETD.y() * EDNInv;
                         UniDev(3, 0) = EETD.z() * EDNInv;
@@ -1244,6 +1260,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
             // Influence of damping
             ChMatrixNM<double, 6, 1> DEPS;
+            DEPS.Reset();
             for (int ii = 0; ii < 33; ii++) {
                 DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
                 DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
@@ -1285,8 +1302,9 @@ void ChElementBrick_9::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     Fi.Reset();
     // Set plastic counter to zero. This runs for each integration point
     m_InteCounter = 0;
-    ChMatrixNM<double, 33, 1> result;
     MyForceBrick9 formula(this);
+    ChMatrixNM<double, 33, 1> result;
+    result.Reset();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 1>>(result,   // result of integration
                                                          formula,  // integrand formula
                                                          -1, 1,    // x limits
@@ -1381,6 +1399,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
     // Matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> E_eps;
+    E_eps.Reset();
+
     E_eps(0, 0) = C1 + 2.0 * C2;
     E_eps(1, 1) = C1 + 2.0 * C2;
     E_eps(3, 3) = C1 + 2.0 * C2;
@@ -1473,13 +1493,12 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
             // coordinates)
             ChMatrixNM<double, 9, 33> Gd;
-            double Temp1;
-            double Temp2;
-            double Temp3;
+            Gd.Reset();
+
             for (int ii = 0; ii < 11; ii++) {
-                Temp1 = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                Temp2 = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                Temp3 = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+                double Temp1 = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+                double Temp2 = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+                double Temp3 = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
                 Gd(0, 3 * (ii)) = Temp1;
                 Gd(1, 3 * (ii) + 1) = Temp1;
                 Gd(2, 3 * (ii) + 2) = Temp1;
@@ -1495,6 +1514,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             // Add damping strains
             ChMatrixNM<double, 6, 1> DEPS;
+            DEPS.Reset();
             for (int ii = 0; ii < 33; ii++) {
                 DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
                 DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
@@ -1513,6 +1533,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             // Declaration and computation of Sigm, to be removed
             ChMatrixNM<double, 9, 9> Sigm;
+            Sigm.Reset();
+
             Sigm(0, 0) = stress(0, 0);  // XX
             Sigm(1, 1) = stress(0, 0);
             Sigm(2, 2) = stress(0, 0);
@@ -1587,6 +1609,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 CCPinv(2, 1) = m_element->m_CCPinv_Plast(7, m_element->m_InteCounter);
                 CCPinv(2, 2) = m_element->m_CCPinv_Plast(8, m_element->m_InteCounter);
             } else {
+                CCPinv.Reset();
                 CCPinv(0, 0) = 1.0;
                 CCPinv(1, 1) = 1.0;
                 CCPinv(2, 2) = 1.0;
@@ -1706,10 +1729,13 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             devStressVec(0, 0) = devStress.x();
                             devStressVec(1, 0) = devStress.y();
                             devStressVec(3, 0) = devStress.z();
+                            devStressVec(2, 0) = 0.0;
+                            devStressVec(4, 0) = 0.0;
+                            devStressVec(5, 0) = 0.0;
 
                             // Obtain matrices DEVPRJ and Dep, necessary for Jacobian of plastic internal forces
                             ChMatrixNM<double, 6, 6> FOID;
-                            ChMatrixNM<double, 6, 1> SOID;
+                            FOID.Reset();
 
                             FOID(0, 0) = 1.0;
                             FOID(1, 1) = 1.0;
@@ -1718,16 +1744,18 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             FOID(4, 4) = 0.5;
                             FOID(5, 5) = 0.5;
 
+                            ChMatrixNM<double, 6, 1> SOID;
                             SOID(0, 0) = 1.0;
                             SOID(1, 0) = 1.0;
                             SOID(3, 0) = 1.0;
-
-                            ChMatrixNM<double, 6, 6> DEVPRJ;
+                            SOID(2, 0) = 0.0;
+                            SOID(4, 0) = 0.0;
+                            SOID(5, 0) = 0.0;
 
                             for (int i = 0; i < 6; i++) {
                                 for (int j = i; j < 6; j++) {
-                                    DEVPRJ(i, j) = FOID(i, j) - SOID(i, 0) * SOID(j, 0) / 3.0;
-                                    Dep(i, j) = AFACT * DEVPRJ(i, j) + BFACT * devStressVec(i, 0) * devStressVec(j, 0) +
+                                    double DEVPRJ_ij = FOID(i, j) - SOID(i, 0) * SOID(j, 0) / 3.0;
+                                    Dep(i, j) = AFACT * DEVPRJ_ij + BFACT * devStressVec(i, 0) * devStressVec(j, 0) +
                                                 K * SOID(i, 0) * SOID(j, 0);
                                 }
                             }
@@ -1742,16 +1770,20 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
                     case ChElementBrick_9::DruckerPrager: {
                         double EDNInv;  // Inverse of norm of deviatoric Hencky strain
-                        ChMatrixNM<double, 6, 1> UniDev;
                         // Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
                             EDNInv = 1.0 / ETDNorm;
                         } else {
                             EDNInv = 0.0;
                         }
+
+                        ChMatrixNM<double, 6, 1> UniDev;
                         UniDev(0, 0) = EETD.x() * EDNInv;
                         UniDev(1, 0) = EETD.y() * EDNInv;
                         UniDev(3, 0) = EETD.z() * EDNInv;
+                        UniDev(2, 0) = 0.0;
+                        UniDev(4, 0) = 0.0;
+                        UniDev(5, 0) = 0.0;
 
                         double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
                         hydroP = K * EETV;
@@ -1859,7 +1891,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
                             // Calculation for Dep: Plastic contribution to Jacobian of internal forces
                             ChMatrixNM<double, 6, 6> FOID;
-                            ChMatrixNM<double, 6, 1> SOID;
+                            FOID.Reset();
 
                             FOID(0, 0) = 1.0;
                             FOID(1, 1) = 1.0;
@@ -1868,9 +1900,13 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             FOID(4, 4) = 0.5;
                             FOID(5, 5) = 0.5;
 
+                            ChMatrixNM<double, 6, 1> SOID;
                             SOID(0, 0) = 1.0;
                             SOID(1, 0) = 1.0;
                             SOID(3, 0) = 1.0;
+                            SOID(2, 0) = 0.0;
+                            SOID(4, 0) = 0.0;
+                            SOID(5, 0) = 0.0;
 
                             double AFact;
                             if (Check_DP_Cone >= 0.0) {  // Consistent tangent for smooth cone wall return
@@ -1906,7 +1942,6 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                         int FlagYieldType;  //(DP_Cap)
                         int PlasticCount;   //(DP_Cap)
                         double EDNInv;      // Inverse of norm of deviatoric Hencky strain
-                        ChMatrixNM<double, 6, 1> UniDev;
 
                         // Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
@@ -1915,9 +1950,13 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             EDNInv = 0.0;
                         }
 
+                        ChMatrixNM<double, 6, 1> UniDev;
                         UniDev(0, 0) = EETD.x() * EDNInv;
                         UniDev(1, 0) = EETD.y() * EDNInv;
                         UniDev(3, 0) = EETD.z() * EDNInv;
+                        UniDev(2, 0) = 0.0;
+                        UniDev(4, 0) = 0.0;
+                        UniDev(5, 0) = 0.0;
 
                         double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
                         hydroP = K * EETV;
@@ -2069,7 +2108,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 }  // end of // Cone return mapping
                                 // Calculation for Dep: Plastic contribution to Jacobian of internal forces
                                 ChMatrixNM<double, 6, 6> FOID;
-                                ChMatrixNM<double, 6, 1> SOID;
+                                FOID.Reset();
 
                                 FOID(0, 0) = 1.0;
                                 FOID(1, 1) = 1.0;
@@ -2078,9 +2117,13 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 FOID(4, 4) = 0.5;
                                 FOID(5, 5) = 0.5;
 
+                                ChMatrixNM<double, 6, 1> SOID;
                                 SOID(0, 0) = 1.0;
                                 SOID(1, 0) = 1.0;
                                 SOID(3, 0) = 1.0;
+                                SOID(2, 0) = 0.0;
+                                SOID(4, 0) = 0.0;
+                                SOID(5, 0) = 0.0;
 
                                 double AFact;
                                 if (Check_DP_Cone >= 0.0) {  // Consistent tangent for smooth cone wall return
@@ -2320,7 +2363,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 }  // end if of transition return mapping
                                 // Calculation for Dep: Plastic contribution to Jacobian of internal forces
                                 ChMatrixNM<double, 6, 6> FOID;
-                                ChMatrixNM<double, 6, 1> SOID;
+                                FOID.Reset();
+
                                 FOID(0, 0) = 1.0;
                                 FOID(1, 1) = 1.0;
                                 FOID(2, 2) = 0.5;
@@ -2328,9 +2372,14 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 FOID(4, 4) = 0.5;
                                 FOID(5, 5) = 0.5;
 
+                                ChMatrixNM<double, 6, 1> SOID;
                                 SOID(0, 0) = 1.0;
                                 SOID(1, 0) = 1.0;
                                 SOID(3, 0) = 1.0;
+                                SOID(2, 0) = 0.0;
+                                SOID(4, 0) = 0.0;
+                                SOID(5, 0) = 0.0;
+
                                 double AFact;
                                 double BFact;
                                 double C1Fact;
@@ -2460,6 +2509,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             // Influence of damping
             ChMatrixNM<double, 6, 1> DEPS;
+            DEPS.Reset();
             for (int ii = 0; ii < 33; ii++) {
                 DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
                 DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
@@ -2484,6 +2534,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             // Declaration and computation of Sigm, to be removed
             ChMatrixNM<double, 9, 9> Sigm;
+            Sigm.Reset();
+
             Sigm(0, 0) = Stress(0, 0);  // XX
             Sigm(1, 1) = Stress(0, 0);
             Sigm(2, 2) = Stress(0, 0);
@@ -2523,13 +2575,12 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
             // coordinates)
             ChMatrixNM<double, 9, 33> Gd;
-            double Temp1;
-            double Temp2;
-            double Temp3;
+            Gd.Reset();
+
             for (int ii = 0; ii < 11; ii++) {
-                Temp1 = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                Temp2 = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                Temp3 = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+                double Temp1 = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+                double Temp2 = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+                double Temp3 = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
                 Gd(0, 3 * (ii)) = Temp1;
                 Gd(1, 3 * (ii) + 1) = Temp1;
                 Gd(2, 3 * (ii) + 2) = Temp1;
@@ -2569,8 +2620,9 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 void ChElementBrick_9::ComputeInternalJacobians(double Kfactor, double Rfactor) {
     m_JacobianMatrix.Reset();
     m_InteCounter = 0;
-    ChMatrixNM<double, 33, 33> result;
     MyJacobianBrick9 formula(this, Kfactor, Rfactor);
+    ChMatrixNM<double, 33, 33> result;
+    result.Reset();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 33>>(result,   // result of integration
                                                           formula,  // integrand formula
                                                           -1, 1,    // x limits
@@ -2692,6 +2744,8 @@ void ChElementBrick_9::ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
                                              ChMatrixNM<double, 1, 11> Nz,
                                              ChMatrixNM<double, 3, 3> FI,
                                              ChMatrixNM<double, 3, 3> J0I) {
+    strainD.Reset();
+    
     double Tempx = FI(0, 0) * J0I(0, 0) + FI(1, 0) * J0I(0, 1) + FI(2, 0) * J0I(0, 2);
     double Tempy = FI(0, 0) * J0I(1, 0) + FI(1, 0) * J0I(1, 1) + FI(2, 0) * J0I(1, 2);
     double Tempz = FI(0, 0) * J0I(2, 0) + FI(1, 0) * J0I(2, 1) + FI(2, 0) * J0I(2, 2);
@@ -2701,6 +2755,7 @@ void ChElementBrick_9::ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
     double Tempx2 = FI(0, 2) * J0I(0, 0) + FI(1, 2) * J0I(0, 1) + FI(2, 2) * J0I(0, 2);
     double Tempy2 = FI(0, 2) * J0I(1, 0) + FI(1, 2) * J0I(1, 1) + FI(2, 2) * J0I(1, 2);
     double Tempz2 = FI(0, 2) * J0I(2, 0) + FI(1, 2) * J0I(2, 1) + FI(2, 2) * J0I(2, 2);
+
     strainD(0, 0) = Nx(0, 0) * (Tempx) + Ny(0, 0) * (Tempy) + Nz(0, 0) * (Tempz);
     strainD(0, 3) = Nx(0, 1) * (Tempx) + Ny(0, 1) * (Tempy) + Nz(0, 1) * (Tempz);
     strainD(0, 6) = Nx(0, 2) * (Tempx) + Ny(0, 2) * (Tempy) + Nz(0, 2) * (Tempz);

@@ -97,13 +97,23 @@ int main(int argc, char* argv[]) {
     fileDruckerPrager.close();
 
     bool passBending = BendingQuasiStatic(FileInputBend);
+    if (passBending)
+        GetLog() << "Passed\n";
     bool passSwinging = SwingingShell(FileInputMat);
+    if (passSwinging)
+        GetLog() << "Passed\n";
     bool passJ2 = J2Plastic(FileInputJ2);
+    if (passJ2)
+        GetLog() << "Passed\n";
     bool passDP = DruckerPragerPlastic(FileInputDP);
+    if (passDP)
+        GetLog() << "Passed\n";
+
     if (passBending && passSwinging && passJ2 && passDP) {
         return 0;
-    } else
-        return 1;
+    }
+
+    return 1;
 }
 
 // QuasiStatic
@@ -585,6 +595,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     material->Set_G(G.x());
     material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
+    CCPInitial.Reset();
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
         CCPInitial(4, k) = 1;
@@ -790,6 +801,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     material->Set_G(G.x());
     material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
+    CCPInitial.Reset();
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
         CCPInitial(4, k) = 1;

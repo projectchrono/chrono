@@ -212,8 +212,8 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             // Choose constructors depending on m_isMooney
             MyForceNum myformula = !m_isMooney ? MyForceNum(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v)
                                                : MyForceNum(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
-
-            ChQuadrature::Integrate3D<ChMatrixNM<double, 330, 1> >(
+            TempIntegratedResult.Reset();
+            ChQuadrature::Integrate3D<ChMatrixNM<double, 330, 1>>(
                 TempIntegratedResult,  // result of integration will go there
                 myformula,             // formula to integrate
                 -1,                    // start of x
@@ -223,7 +223,8 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 -1,                    // start of z
                 1,                     // end of z
                 2                      // order of integration
-                );
+            );
+
             ///===============================================================//
             ///===TempIntegratedResult(0:23,1) -> InternalForce(24x1)=========//
             ///===TempIntegratedResult(24:32,1) -> HE(9x1)   brick   =========//
@@ -337,8 +338,8 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             MyForceAnalytical myformula = !m_isMooney
                                               ? MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas, &E, &v)
                                               : MyForceAnalytical(&d, &m_d0, this, &T0, &detJ0C, &alpha_eas);
-
-            ChQuadrature::Integrate3D<ChMatrixNM<double, 906, 1> >(
+            TempIntegratedResult.Reset();
+            ChQuadrature::Integrate3D<ChMatrixNM<double, 906, 1>>(
                 TempIntegratedResult,  // result of integration will go there
                 myformula,             // formula to integrate
                 -1,                    // start of x
@@ -348,7 +349,8 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                 -1,                    // start of z
                 1,                     // end of z
                 2                      // order of integration
-                );
+            );
+
             //	///===============================================================//
             //	///===TempIntegratedResult(0:23,1) -> InternalForce(24x1)=========//
             //	///===TempIntegratedResult(24:28,1) -> HE(5x1)           =========//
@@ -584,6 +586,8 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     }
     //		// Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
     ChMatrix33<> Sxi;
+    Sxi.Reset();
+
     Sxi.FillDiag(Nx(0));
     Sx.PasteMatrix(Sxi, 0, 0);
     Sxi.FillDiag(Nx(1));
@@ -602,6 +606,8 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     Sx.PasteMatrix(Sxi, 0, 21);
 
     ChMatrix33<> Syi;
+    Syi.Reset();
+
     Syi.FillDiag(Ny(0));
     Sy.PasteMatrix(Syi, 0, 0);
     Syi.FillDiag(Ny(1));
@@ -620,6 +626,8 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     Sy.PasteMatrix(Syi, 0, 21);
 
     ChMatrix33<> Szi;
+    Szi.Reset();
+
     Szi.FillDiag(Nz(0));
     Sz.PasteMatrix(Szi, 0, 0);
     Szi.FillDiag(Nz(1));
@@ -639,10 +647,10 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
 
     // EAS and Initial Shape
     ChMatrixNM<double, 3, 3> rd0;
-    ChMatrixNM<double, 3, 3> temp33;
     ChMatrixNM<double, 1, 3> temp13;
 
     temp13.Reset();
+
     temp13 = (Nx * (*d0));
     temp13.MatrTranspose();
     rd0.PasteClippedMatrix(temp13, 0, 0, 3, 1, 0, 0);
@@ -1130,6 +1138,8 @@ void ChElementBrick::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
 
     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
     ChMatrix33<> Si;
+    Si.Reset();
+
     Si.FillDiag(N(0));
     S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
@@ -1201,6 +1211,8 @@ void ChElementBrick::MyForceNum::Evaluate(ChMatrixNM<double, 330, 1>& result,
     // Expand shape functions Sx, Sy, Sz
     // Sx=[Nx1*eye(3) Nx2*eye(3) Nx3*eye(3) Nx4*eye(3) Nx5*eye(3) Nx6*eye(3) Nx7*eye(3) Nx8*eye(3)]
     ChMatrix33<> Sxi;
+    Sxi.Reset();
+
     Sxi.FillDiag(Nx(0));
     Sx.PasteMatrix(Sxi, 0, 0);
     Sxi.FillDiag(Nx(1));
@@ -1219,6 +1231,8 @@ void ChElementBrick::MyForceNum::Evaluate(ChMatrixNM<double, 330, 1>& result,
     Sx.PasteMatrix(Sxi, 0, 21);
 
     ChMatrix33<> Syi;
+    Syi.Reset();
+
     Syi.FillDiag(Ny(0));
     Sy.PasteMatrix(Syi, 0, 0);
     Syi.FillDiag(Ny(1));
@@ -1237,6 +1251,8 @@ void ChElementBrick::MyForceNum::Evaluate(ChMatrixNM<double, 330, 1>& result,
     Sy.PasteMatrix(Syi, 0, 21);
 
     ChMatrix33<> Szi;
+    Szi.Reset();
+
     Szi.FillDiag(Nz(0));
     Sz.PasteMatrix(Szi, 0, 0);
     Szi.FillDiag(Nz(1));
@@ -1664,35 +1680,33 @@ void ChElementBrick::MyGravity::Evaluate(ChMatrixNM<double, 24, 1>& result,
 }
 
 void ChElementBrick::ComputeGravityForce(const ChVector<>& g_acc) {
-    m_GravForce.Reset();
-
     MyGravity myformula1(&m_d0, this, g_acc);
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1> >(m_GravForce,  // result of integration will go there
-                                                          myformula1,   // formula to integrate
-                                                          -1, 1,        // limits in x direction
-                                                          -1, 1,        // limits in y direction
-                                                          -1, 1,        // limits in z direction
-                                                          2             // order of integration
-                                                          );
+    m_GravForce.Reset();
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 1>>(m_GravForce,  // result of integration will go there
+                                                         myformula1,   // formula to integrate
+                                                         -1, 1,        // limits in x direction
+                                                         -1, 1,        // limits in y direction
+                                                         -1, 1,        // limits in z direction
+                                                         2             // order of integration
+    );
 
     m_GravForce *= m_Material->Get_density();
 }
 
 void ChElementBrick::ComputeMassMatrix() {
     double rho = m_Material->Get_density();
-
     MyMass myformula(&m_d0, this);
-
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24> >(m_MassMatrix,  // result of integration will go there
-                                                           myformula,     // formula to integrate
-                                                           -1,            // start of x
-                                                           1,             // end of x
-                                                           -1,            // start of y
-                                                           1,             // end of y
-                                                           -1,            // start of z
-                                                           1,             // end of z
-                                                           2              // order of integration
-                                                           );
+    m_MassMatrix.Reset();
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24>>(m_MassMatrix,  // result of integration will go there
+                                                          myformula,     // formula to integrate
+                                                          -1,            // start of x
+                                                          1,             // end of x
+                                                          -1,            // start of y
+                                                          1,             // end of y
+                                                          -1,            // start of z
+                                                          1,             // end of z
+                                                          2              // order of integration
+    );
 
     m_MassMatrix *= rho;
 }
@@ -1789,7 +1803,7 @@ void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    ;
+
     A1 = G1 / sqrt(G1[0] * G1[0] + G1[1] * G1[1] + G1[2] * G1[2]);
     A3 = G1xG2 / sqrt(G1xG2[0] * G1xG2[0] + G1xG2[1] * G1xG2[1] + G1xG2[2] * G1xG2[2]);
     A2.Cross(A3, A1);

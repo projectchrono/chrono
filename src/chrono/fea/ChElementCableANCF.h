@@ -332,6 +332,8 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
                     // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
                     ChMatrix33<> Sdi;
+                    Sdi.Reset();
+
                     Sdi.FillDiag(Nd(0));
                     Sd.PasteMatrix(Sdi, 0, 0);
                     Sdi.FillDiag(Nd(1));
@@ -366,11 +368,12 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
             myformulaAx.element = this;
 
             ChMatrixNM<double, 12, 12> Kaxial;
-            ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12> >(Kaxial,       // result of integration will go there
-                                                                   myformulaAx,  // formula to integrate
-                                                                   0,            // start of x
-                                                                   1,            // end of x
-                                                                   5             // order of integration
+            Kaxial.Reset();
+            ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12>>(Kaxial,       // result of integration will go there
+                                                                  myformulaAx,  // formula to integrate
+                                                                  0,            // start of x
+                                                                  1,            // end of x
+                                                                  5             // order of integration
             );
             Kaxial *= E * Area * length;
 
@@ -404,6 +407,8 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                     // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
                     // Sdd=[Ndd1*eye(3) Ndd2*eye(3) Ndd3*eye(3) Ndd4*eye(3)]
                     ChMatrix33<> Sdi;
+                    Sdi.Reset();
+
                     Sdi.FillDiag(Nd(0));
                     Sd.PasteMatrix(Sdi, 0, 0);
                     Sdi.FillDiag(Nd(1));
@@ -467,11 +472,12 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
             myformulaCurv.element = this;
 
             ChMatrixNM<double, 12, 12> Kcurv;
-            ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12> >(Kcurv,  // result of integration will go there
-                                                                   myformulaCurv,  // formula to integrate
-                                                                   0,              // start of x
-                                                                   1,              // end of x
-                                                                   3               // order of integration
+            Kcurv.Reset();
+            ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12>>(Kcurv,          // result of integration will go there
+                                                                  myformulaCurv,  // formula to integrate
+                                                                  0,              // start of x
+                                                                  1,              // end of x
+                                                                  3               // order of integration
             );
             Kcurv *= E * I * length;  // note Iyy should be the same value (circular section assumption)
 
@@ -511,6 +517,8 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                 element->ShapeFunctions(N, x);
                 // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
                 ChMatrix33<> Si;
+                Si.Reset();
+
                 Si.FillDiag(N(0));
                 S.PasteMatrix(Si, 0, 0);
                 Si.FillDiag(N(1));
@@ -526,16 +534,15 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
         MyMass myformula;
         myformula.element = this;
-
-        ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12> >(
-            this->m_MassMatrix,  // result of integration will go there
-            myformula,           // formula to integrate
-            0,                   // start of x
-            1,                   // end of x
-            4                    // order of integration
+        m_MassMatrix.Reset();
+        ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12>>(m_MassMatrix,  // result of integration will go there
+                                                              myformula,     // formula to integrate
+                                                              0,             // start of x
+                                                              1,             // end of x
+                                                              4              // order of integration
         );
 
-        this->m_MassMatrix *= (rho * Area * this->length);
+        m_MassMatrix *= (rho * Area * this->length);
     }
 
     /// Setup. Precompute mass and matrices that do not change during the
@@ -551,10 +558,10 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
         // Here we calculate the internal forces in the initial configuration
         // Contribution of initial configuration in elastic forces is automatically subtracted
         ChMatrixDynamic<> FVector0(12, 1);
-        FVector0.FillElem(0.0);
-        this->m_GenForceVec0.FillElem(0.0);
+        FVector0.Reset();
+        m_GenForceVec0.Reset();  // Note: this is important here (m_GenForceVec0 used in ComputeInternalForces)
         ComputeInternalForces(FVector0);
-        this->m_GenForceVec0 = FVector0;
+        m_GenForceVec0 = FVector0;
 
         // Compute mass matrix
         ComputeMassMatrix();
@@ -661,6 +668,8 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
                 // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
                 ChMatrix33<> Sdi;
+                Sdi.Reset();
+
                 Sdi.FillDiag(Nd(0));
                 Sd.PasteMatrix(Sdi, 0, 0);
                 Sdi.FillDiag(Nd(1));
@@ -695,11 +704,12 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
         myformulaAx.element = this;
 
         ChMatrixNM<double, 12, 1> Faxial;
-        ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 1> >(Faxial,       // result of integration will go there
-                                                              myformulaAx,  // formula to integrate
-                                                              0,            // start of x
-                                                              1,            // end of x
-                                                              5             // order of integration
+        Faxial.Reset();
+        ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 1>>(Faxial,       // result of integration will go there
+                                                             myformulaAx,  // formula to integrate
+                                                             0,            // start of x
+                                                             1,            // end of x
+                                                             5             // order of integration
         );
         Faxial *= -E * Area * length;
 
@@ -732,6 +742,8 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                 // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
                 // Sdd=[Ndd1*eye(3) Ndd2*eye(3) Ndd3*eye(3) Ndd4*eye(3)]
                 ChMatrix33<> Sdi;
+                Sdi.Reset();
+
                 Sdi.FillDiag(Nd(0));
                 Sd.PasteMatrix(Sdi, 0, 0);
                 Sdi.FillDiag(Nd(1));
@@ -801,11 +813,12 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
         myformulaCurv.element = this;
 
         ChMatrixNM<double, 12, 1> Fcurv;
-        ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 1> >(Fcurv,          // result of integration will go there
-                                                              myformulaCurv,  // formula to integrate
-                                                              0,              // start of x
-                                                              1,              // end of x
-                                                              3               // order of integration
+        Fcurv.Reset();
+        ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 1>>(Fcurv,          // result of integration will go there
+                                                             myformulaCurv,  // formula to integrate
+                                                             0,              // start of x
+                                                             1,              // end of x
+                                                             3               // order of integration
         );
         Fcurv *= -E * I * length;  // note Iyy should be the same value (circular section assumption)
 
@@ -918,13 +931,16 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
         this->ShapeFunctionsDerivatives(Nd, xi);
         this->ShapeFunctionsDerivatives2(Ndd, xi);
         ChMatrixDynamic<> mD(GetNdofs(), 1);
-        ChMatrix33<> Sdi;
         ChMatrixNM<double, 3, 12> Sd;
         ChMatrixNM<double, 3, 12> Sdd;
         ChMatrixNM<double, 3, 1> r_x;
         ChMatrixNM<double, 3, 1> r_xx;
 
         this->GetStateBlock(mD);
+
+        ChMatrix33<> Sdi;
+        Sdi.Reset();
+
         Sdi.FillDiag(Nd(0));
         Sd.PasteMatrix(Sdi, 0, 0);
         Sdi.FillDiag(Nd(1));

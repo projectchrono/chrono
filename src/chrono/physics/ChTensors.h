@@ -18,8 +18,8 @@
 #include <cstdlib>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
 #include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChMath.h"
 
 namespace chrono {
 namespace fea {
@@ -33,9 +33,9 @@ template <class Real = double>
 class ChVoightTensor : public ChMatrixNM<Real, 6, 1> {
   public:
     /// Constructors (default empty)
-    ChVoightTensor(){};
+    ChVoightTensor() { this->Reset(); }
 
-	~ChVoightTensor(){};
+    ~ChVoightTensor() {}
 
     /// Copy constructor, from a typical 3D rank-two stress or strain tensor (as 3x3 matrix)
     template <class RealB>
@@ -43,23 +43,23 @@ class ChVoightTensor : public ChMatrixNM<Real, 6, 1> {
         this->ConvertFromMatrix(msource);
     }
 
-    inline Real& XX() { return ChMatrix<Real>::ElementN(0); };
-    inline const Real& XX() const { return ChMatrix<Real>::ElementN(0); };
+    inline Real& XX() { return ChMatrix<Real>::ElementN(0); }
+    inline const Real& XX() const { return ChMatrix<Real>::ElementN(0); }
 
-    inline Real& YY() { return ChMatrix<Real>::ElementN(1); };
-    inline const Real& YY() const { return ChMatrix<Real>::ElementN(1); };
+    inline Real& YY() { return ChMatrix<Real>::ElementN(1); }
+    inline const Real& YY() const { return ChMatrix<Real>::ElementN(1); }
 
-    inline Real& ZZ() { return ChMatrix<Real>::ElementN(2); };
-    inline const Real& ZZ() const { return ChMatrix<Real>::ElementN(2); };
+    inline Real& ZZ() { return ChMatrix<Real>::ElementN(2); }
+    inline const Real& ZZ() const { return ChMatrix<Real>::ElementN(2); }
 
-    inline Real& XY() { return ChMatrix<Real>::ElementN(3); };
-    inline const Real& XY() const { return ChMatrix<Real>::ElementN(3); };
+    inline Real& XY() { return ChMatrix<Real>::ElementN(3); }
+    inline const Real& XY() const { return ChMatrix<Real>::ElementN(3); }
 
-    inline Real& XZ() { return ChMatrix<Real>::ElementN(4); };
-    inline const Real& XZ() const { return ChMatrix<Real>::ElementN(4); };
+    inline Real& XZ() { return ChMatrix<Real>::ElementN(4); }
+    inline const Real& XZ() const { return ChMatrix<Real>::ElementN(4); }
 
-    inline Real& YZ() { return ChMatrix<Real>::ElementN(5); };
-    inline const Real& YZ() const { return ChMatrix<Real>::ElementN(5); };
+    inline Real& YZ() { return ChMatrix<Real>::ElementN(5); }
+    inline const Real& YZ() const { return ChMatrix<Real>::ElementN(5); }
 
     /// Convert from a typical 3D rank-two stress or strain tensor (a 3x3 matrix)
     template <class RealB>

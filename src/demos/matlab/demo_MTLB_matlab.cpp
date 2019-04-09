@@ -89,6 +89,7 @@ int main(int argc, char* argv[]) {
         m_sparse.SetElement(4, 4, 101);
 
         matlab_engine.PutSparseMatrix(m_sparse, "m_sparse");
+        matlab_engine.Eval("figure; spy(m_sparse);");
 
         // Wait some seconds before closing all
 

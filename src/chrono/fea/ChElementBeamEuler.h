@@ -959,7 +959,6 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
         } else {
             // Generic computation, by rotating and translating the constitutive
             // matrix of the beam:
-            ChMatrixNM<double, 6, 6> Klaw_d;
             double ca = cos(section->alpha);
             double sa = sin(section->alpha);
             double cb = cos(section->alpha);  // could be beta if shear custom axes
@@ -974,8 +973,10 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
             double Klaw_d3 = this->section->G * Jpolar;
             double Klaw_d4 = this->section->E * this->section->Iyy;
             double Klaw_d5 = this->section->E * this->section->Izz;
+
             // ..unrolled rotated constitutive matrix..
             ChMatrixNM<double, 6, 6> Klaw_r;
+            Klaw_r.Reset();
 
             Klaw_r(0, 0) = Klaw_d0;
             Klaw_r(1, 1) = Klaw_d1 * cb * cb + Klaw_d2 * sb * sb;

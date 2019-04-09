@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     // Create an object from the function class
     MySine1d mfx;
     // Invoke 6th order Gauss-Legendre quadrature on 0..PI interval:
-    double qresult;
+    double qresult = 0;
     ChQuadrature::Integrate1D<double>(qresult, mfx, 0, CH_C_PI, 6);
 
     GetLog() << "Quadrature 1d result:" << qresult << " (analytic solution: 2.0) \n";
@@ -211,6 +211,7 @@ int main(int argc, char* argv[]) {
     };
 
     MySine2d mfx2d;
+    qresult = 0;
     ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_C_PI, -1, 1, 6);
     GetLog() << "Quadrature 2d result:" << qresult << " (analytic solution: 4.0) \n";
 
@@ -227,6 +228,7 @@ int main(int argc, char* argv[]) {
 
     MySine2dM mfx2dM;
     ChMatrixNM<double, 2, 1> resultM;
+    resultM.Reset();
     ChQuadrature::Integrate2D<ChMatrixNM<double, 2, 1> >(resultM, mfx2dM, 0, 1, 0, 3, 6);
     GetLog() << "Quadrature 2d matrix result:" << resultM << " (analytic solution: 2.25, 4.5) \n";
 

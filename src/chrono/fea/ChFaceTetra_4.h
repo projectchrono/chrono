@@ -127,9 +127,9 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override {
         // evaluate shape functions (in compressed vector), btw. not dependant on state
+        // note: U,V in 0..1 range, thanks to IsTriangleIntegrationNeeded() {return true;}
         ChMatrixNM<double, 1, 3> N;
-        this->ShapeFunctions(N, U,
-                             V);  // note: U,V in 0..1 range, thanks to IsTriangleIntegrationNeeded() {return true;}
+        this->ShapeFunctions(N, U, V);
 
         // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
         ChVector<> p0 = GetNodeN(0)->GetPos();

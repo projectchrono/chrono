@@ -26,14 +26,14 @@ namespace fea {
 ///
 class ChApi ChElementHexahedron : public ChElement3D,
                                      public ChElementCorotational
-//		    __ __ __ __				//
-{                                         //		  /			  /|			//
-  protected:                              //		 /_|__ __ __ / |			//
-    ChGaussIntegrationRule* ir;           //		|			|  |			//
-    std::vector<ChGaussPoint*> GpVector;  //		|  |		|  |			//
-                                          //		|	 __	 __	|  |			//
-                                          //		| /			| /				//
-                                          //		|__ __ __ __|/				//
+//                                        //       __ __ __ __      //
+{                                         //      /           /|    //
+  protected:                              //     /_ __ __ __ / |    //
+    ChGaussIntegrationRule* ir;           //    |           |  |    //
+    std::vector<ChGaussPoint*> GpVector;  //    |           |  |    //
+                                          //    |           |  |    //
+                                          //    |           | /     //
+                                          //    |__ __ __ __|/      //
   public:
     int ID;
 

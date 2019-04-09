@@ -150,9 +150,9 @@ double ChElementShellReissner4::xi_n[ChElementShellReissner4::NUMNODES][2] = {{1
 double ChElementShellReissner4::xi_0[2] = {0., 0.};
 
 void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
-    ChMatrix33<> T_avg;
     ChMatrix33<> Tn[NUMNODES];
-    ChMatrix33<> R_tilde_n[NUMNODES];
+    ChMatrix33<> T_avg;
+    T_avg.Reset();
     for (int i = 0; i < NUMNODES; i++) {
         xa[i] = this->m_nodes[i]->GetPos();
         Tn[i] = this->m_nodes[i]->GetA() * iTa[i];
@@ -176,6 +176,8 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
         ChQuaternion<> Tavg =(qTa + qTb + qTc + qTd ).GetNormalized();
         T_overline.Set_A_quaternion(Tavg);
     */
+
+    ChMatrix33<> R_tilde_n[NUMNODES];
     for (int i = 0; i < NUMNODES; i++) {
         R_tilde_n[i].MatrTMultiply(T_overline, Tn[i]);  // = T_overline.MulTM(Tn[i]);
         phi_tilde_n[i] = ChRotUtils::VecRot(R_tilde_n[i]);
@@ -313,6 +315,16 @@ ChElementShellReissner4::ChElementShellReissner4() : tot_thickness(0) {
     m_Alpha = 0;
 
     // add here other constructor-time initializations
+    for (int i = 0; i < NUMIP; i++) {
+        L_alpha_beta_i[i].Reset();
+        B_overline_i[i].Reset();
+        D_overline_i[i].Reset();
+        G_i[i].Reset();
+        P_i[i].Reset();
+    }
+
+    for (int i = 0; i < NUMSSEP; i++)
+        L_alpha_beta_A[i].Reset();
 }
 
 ChElementShellReissner4::~ChElementShellReissner4() {}
@@ -488,8 +500,10 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
 
         L_alpha_beta_i[i].MatrMultiply(L_alpha_B_i, xi_i_i);
 
-        ChMatrixNM<double, 4, IDOFS> H;
         double t = xi_i[i][0] * xi_i[i][1];
+        ChMatrixNM<double, 4, IDOFS> H;
+        H.Reset();
+
         H(0, 0) = xi_i[i][0];
         H(0, 1) = t;
 
@@ -503,14 +517,17 @@ void ChElementShellReissner4::SetupInitial(ChSystem* system) {
         H(3, 5) = t;
 
         ChMatrixNM<double, 12, 4> Perm;
-        ChMatrixNM<double, 4, IDOFS> tmpP;
+        Perm.Reset();
+
         // 1, 5, 4, 2, 3, 6
         Perm(0, 0) = 1.;
         Perm(1, 2) = 1.;
         Perm(3, 3) = 1.;
         Perm(4, 1) = 1.;
 
+        ChMatrixNM<double, 4, IDOFS> tmpP;
         tmpP.MatrTMultiply(M_0_Inv, H);
+
         P_i[i].MatrMultiply(Perm, tmpP);
         P_i[i].MatrScale(alpha_0 / alpha_i[i]);
     }
@@ -816,9 +833,14 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ChMatrixNM<double, 1, 4> sh1;
         ChMatrixNM<double, 1, 4> sh2;
         sh1(0, 0) = (1. + xi_i[i][1]) * 0.5;
+        sh1(0, 1) = 0;
         sh1(0, 2) = (1. - xi_i[i][1]) * 0.5;
-        sh2(0, 3) = (1. + xi_i[i][0]) * 0.5;
+        sh1(0, 3) = 0;
+
+        sh2(0, 0) = 0;
         sh2(0, 1) = (1. - xi_i[i][0]) * 0.5;
+        sh2(0, 2) = 0;
+        sh2(0, 3) = (1. + xi_i[i][0]) * 0.5;
 
         eps_tilde_1_i[i].z() = sh1(0, 0) * eps_tilde_1_A[0].z() + sh1(0, 2) * eps_tilde_1_A[2].z();
         eps_tilde_2_i[i].z() = sh2(0, 1) * eps_tilde_2_A[1].z() + sh2(0, 3) * eps_tilde_2_A[3].z();
@@ -1018,6 +1040,8 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 
         ChMatrixNM<double, 12, 12> C;
         ChMatrixNM<double, 12, 12> l_C;
+        C.Reset();
+        l_C.Reset();
         // loop on layers
         for (size_t il = 0; il < this->m_layers.size(); ++il) {
             // compute layer tang. material stiff, and accumulate

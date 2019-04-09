@@ -218,6 +218,8 @@ void MyMass_8::Evaluate(ChMatrixNM<double, 72, 72>& result, const double x, cons
 
     ChMatrixNM<double, 3, 72> S;
     ChMatrix33<> Si;
+    Si.Reset();
+
     Si.FillDiag(N(0));
     S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
@@ -285,7 +287,7 @@ void ChElementShellANCF_8::ComputeMassMatrix() {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
         MyMass_8 myformula(this);
         ChMatrixNM<double, 72, 72> TempMassMatrix;
-
+        TempMassMatrix.Reset();
         ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 72> >(TempMassMatrix,  // result of integration will go there
                                                                myformula,       // formula to integrate
                                                                -1, 1,           // x limits
@@ -358,7 +360,7 @@ void ChElementShellANCF_8::ComputeGravityForce(const ChVector<>& g_acc) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
         MyGravity_8 myformula(this, g_acc);
         ChMatrixNM<double, 72, 1> Fgravity;
-
+        Fgravity.Reset();
         ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 1> >(Fgravity,   // result of integration will go there
                                                               myformula,  // formula to integrate
                                                               -1, 1,      // x limits
@@ -622,6 +624,7 @@ void MyForce_8::Evaluate(ChMatrixNM<double, 72, 1>& result, const double x, cons
 
     // Strain time derivative for structural damping
     ChMatrixNM<double, 6, 1> DEPS;
+    DEPS.Reset();
     for (int ii = 0; ii < 72; ii++) {
         DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
         DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
@@ -654,8 +657,9 @@ void ChElementShellANCF_8::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     Fi.Reset();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        ChMatrixNM<double, 72, 1> Finternal;
         MyForce_8 formula(this, kl);
+        ChMatrixNM<double, 72, 1> Finternal;
+        Finternal.Reset();
         ChQuadrature::Integrate3D<ChMatrixNM<double, 72, 1> >(Finternal,                       // result of integration
                                                               formula,                         // integrand formula
                                                               -1, 1,                           // x limits
@@ -927,6 +931,7 @@ void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x,
 
     /// Gd : Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
     ChMatrixNM<double, 9, 72> Gd;
+    Gd.Reset();
 
     for (int ii = 0; ii < 24; ii++) {
         Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -967,6 +972,7 @@ void MyJacobian_8::Evaluate(ChMatrixNM<double, 5184, 1>& result, const double x,
 
     // Declaration and computation of Sigm, to be removed
     ChMatrixNM<double, 9, 9> Sigm;  ///< Rearrangement of stress vector (not always needed)
+    Sigm.Reset();
 
     Sigm(0, 0) = stress(0, 0);  // XX
     Sigm(1, 1) = stress(0, 0);
@@ -1033,8 +1039,9 @@ void ChElementShellANCF_8::ComputeInternalJacobians(double Kfactor, double Rfact
     m_JacobianMatrix.Reset();
     // Loop over all layers.
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        ChMatrixNM<double, 5184, 1> result;
         MyJacobian_8 formula(this, Kfactor, Rfactor, kl);
+        ChMatrixNM<double, 5184, 1> result;
+        result.Reset();
         ChQuadrature::Integrate3D<ChMatrixNM<double, 5184, 1> >(result,   // result of integration
                                                                 formula,  // integrand formula
                                                                 -1, 1,    // x limits

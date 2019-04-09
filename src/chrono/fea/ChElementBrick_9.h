@@ -219,8 +219,6 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
     virtual double GetDensity() override { return this->m_material->Get_density(); }
 
-    virtual ChMatrixNM<double, 6, 6> GetE_eps() { return m_E_eps; }
-
   private:
     // -----------------------------------
     // Data
@@ -243,7 +241,6 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     ChMatrixNM<double, 11, 11> m_ddT;    ///< matrix m_d * m_d^T
     ChMatrixNM<double, 11, 11> m_d0d0T;  ///< matrix m_d0 * m_d0^T
     ChMatrixNM<double, 33, 1> m_d_dt;    ///< current nodal velocities
-    ChMatrixNM<double, 6, 6> m_E_eps;
     double m_FrictionAngle;   ///< Drucker-Prager Friction Angle Beta
     double m_DilatancyAngle;  ///< Drucker-Prager Dilatancy Angle Phi
     int m_DPHardening;        ///< Drucker-Prager Hardening Type

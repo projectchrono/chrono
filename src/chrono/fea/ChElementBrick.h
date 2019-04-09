@@ -65,7 +65,7 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Internal force, EAS stiffness, and analytical jacobian are calculated
     class MyForceAnalytical : public ChIntegrable3D<ChMatrixNM<double, 906, 1> > {
       public:
-        MyForceAnalytical();
+        MyForceAnalytical() {}
         /// Constructor 1
         MyForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                           ChMatrixNM<double, 8, 3>* m_d0_,
@@ -79,6 +79,10 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
             T0 = T0_;
             detJ0C = detJ0C_;
             alpha_eas = alpha_eas_;
+
+            E_eps.Reset();
+            Gd.Reset();
+            Sigm.Reset();
         }
         /// Constructor 2
         MyForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
@@ -97,6 +101,10 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
             alpha_eas = alpha_eas_;
             E = E_;
             v = v_;
+
+            E_eps.Reset();
+            Gd.Reset();
+            Sigm.Reset();
         }
         ~MyForceAnalytical() {}
 
