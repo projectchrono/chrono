@@ -86,7 +86,7 @@ bool ChCollisionModelDistributed::AddBox(double hx,
     return this->ChCollisionModelParallel::AddBox(hx, hy, hz, pos, rot);
 }
 
-bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos = ChVector<>()) {
+bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos) {
     ChVector<double> body_pos(this->GetBody()->GetPos());
 
     ChVector<double> max = pos + ChVector<double>(radius, radius, radius);
@@ -118,8 +118,8 @@ bool ChCollisionModelDistributed::AddSphere(double radius, const ChVector<>& pos
 bool ChCollisionModelDistributed::AddTriangle(ChVector<> A,
                                               ChVector<> B,
                                               ChVector<> C,
-                                              const ChVector<>& pos = ChVector<>(),
-                                              const ChMatrix33<>& rot = ChMatrix33<>(1)) {
+                                              const ChVector<>& pos,
+                                              const ChMatrix33<>& rot) {
     // TODO doesn't allow for global triangle bodies
     return this->ChCollisionModelParallel::AddTriangle(A, B, C, pos, rot);
 }

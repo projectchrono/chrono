@@ -36,17 +36,21 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     virtual int ClearModel() override;
 
     /// Adds a box collision shape to the model and calculates the model's new AABB
-    virtual bool AddBox(double hx, double hy, double hz, const ChVector<>& pos, const ChMatrix33<>& rot) override;
+    virtual bool AddBox(double hx,
+                        double hy,
+                        double hz,
+                        const ChVector<>& pos = ChVector<>(),
+                        const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Adds a sphere collision shape to the model and calculates the model's new AABB
-    virtual bool AddSphere(double radius, const ChVector<>& pos) override;
+    virtual bool AddSphere(double radius, const ChVector<>& pos = ChVector<>()) override;
 
     /// Adds a triangle collision shape to the model
     virtual bool AddTriangle(ChVector<> A,  ///< Vertex of triangle
                              ChVector<> B,  ///< Vertex of triangle
                              ChVector<> C,  ///< Vertex of triangle
-                             const ChVector<>& pos,
-                             const ChMatrix33<>& rot) override;
+                             const ChVector<>& pos = ChVector<>(),
+                             const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
 
     /// Gets the axis-aligned bounding box for the entire model
     /// Only valid at beginning of simulation
