@@ -202,7 +202,7 @@ for:
         - "%CMD_IN_ENV% conda build .\\contrib\\packaging-python\\conda --no-remove-work-dir --dirty"
   # move conda package to /dist
         - cmd: 'mkdir dist'
-        - cmd: 'copy /Y %CONDA_INSTALL_LOCN%\envs\myenv\conda-bld\win-%PYTHON_ARCH%\pychrono*.bz2 dist || cmd /c "exit /b 0"'
+        - cmd: 'copy /Y %CONDA_INSTALL_LOCN%\conda-bld\win-%PYTHON_ARCH%\pychrono*.bz2 dist || cmd /c "exit /b 0"'
   # upload package to anaconda$
         - ps: cmd /C anaconda --token $env:BINSTAR_TOKEN upload  dist\*.bz2 -l $env:APPVEYOR_REPO_BRANCH --force "2>&1"
 
