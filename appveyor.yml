@@ -134,7 +134,7 @@ install:
     - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce pythonocc-core==0.18.1
     # Up-to date version by tpaviot
     #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
-    #- cmd: conda install python=%PYTHON_VERSION% --yes
+    - cmd: conda install python=%PYTHON_VERSION% --yes
     - cmd: conda install -c intel mkl-devel --yes
     #- cmd: conda install -c anaconda conda=%CONDAVER% --yes
 
