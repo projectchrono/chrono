@@ -132,10 +132,10 @@ install:
     - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
     - cmd: conda config --add channels https://conda.anaconda.org/intel
     # need to manually add non standard channels.
+    - cmd: conda install -c dlr-sc gl2ps --yes
     - cmd: conda install -c conda-forge -c dlr-sc -c oce oce==0.18.1 --yes
     # Up-to date version by tpaviot
     #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
-    #- cmd: conda uninstall gl2ps --yes
     #- cmd: conda install python=%PYTHON_VERSION% --yes
     - cmd: conda install -c intel mkl-devel --yes
 
