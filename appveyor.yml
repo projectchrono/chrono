@@ -135,7 +135,8 @@ install:
     
     #- cmd: conda install -c conda-forge -c dlr-sc -c oce oce==0.18.1 --yes
     # without version to avoid downgrade
-    - cmd: conda install -c conda-forge -c dlr-sc -c oce oce --yes
+    #- cmd: conda install -c conda-forge -c dlr-sc -c oce oce --yes
+    - cmd: conda install -c https://conda.anaconda.org/dlr-sc oce --yes
     # Up-to date version by tpaviot
     #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
     - cmd: conda install -c intel mkl-devel --yes
