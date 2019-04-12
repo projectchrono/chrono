@@ -189,6 +189,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticlesClones)
 %shared_ptr(chrono::ChAssembly)
+%shared_ptr(chrono::ChIntegrable)
+%shared_ptr(chrono::ChIntegrableIIorder)
 %shared_ptr(chrono::ChTimestepper)
 %shared_ptr(chrono::ChTimestepperIorder)
 %shared_ptr(chrono::ChTimestepperIIorder)
@@ -205,6 +207,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChTimestepperTrapezoidalLinearized2)
 %shared_ptr(chrono::ChTimestepperTrapezoidal)
 %shared_ptr(chrono::ChTimestepperNewmark)
+%shared_ptr(chrono::ChTimestepperHHT)
 %shared_ptr(chrono::ChImplicitIterativeTimestepper)
 %shared_ptr(chrono::ChImplicitTimestepper)
 %shared_ptr(chrono::ChSolver)
@@ -408,7 +411,7 @@ using namespace chrono::fea;
 %include "ChIndexedParticles.i"
 %include "ChParticlesClones.i"
 %include "ChAssembly.i"
-%include "../chrono/timestepper/ChTimestepper.h"
+%include "ChTimestepper.i"
 %include "../chrono/solver/ChSolver.h"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"
