@@ -28,6 +28,25 @@ using namespace chrono;
 
 %shared_ptr(chrono::ChIntegrable)
 %shared_ptr(chrono::ChIntegrableIIorder)
+%shared_ptr(chrono::ChTimestepper)
+%shared_ptr(chrono::ChTimestepperIorder)
+%shared_ptr(chrono::ChTimestepperIIorder)
+%shared_ptr(chrono::ChTimestepperEulerExpl)
+%shared_ptr(chrono::ChTimestepperEulerExplIIorder)
+%shared_ptr(chrono::ChTimestepperEulerSemiImplicit)
+%shared_ptr(chrono::ChTimestepperRungeKuttaExpl)
+%shared_ptr(chrono::ChTimestepperHeun)
+%shared_ptr(chrono::ChTimestepperLeapfrog)
+%shared_ptr(chrono::ChTimestepperEulerImplicit)
+%shared_ptr(chrono::ChTimestepperEulerImplicitLinearized)
+%shared_ptr(chrono::ChTimestepperEulerImplicitProjected)
+%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized)
+%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized2)
+%shared_ptr(chrono::ChTimestepperTrapezoidal)
+%shared_ptr(chrono::ChTimestepperNewmark)
+%shared_ptr(chrono::ChTimestepperHHT)
+%shared_ptr(chrono::ChImplicitIterativeTimestepper)
+%shared_ptr(chrono::ChImplicitTimestepper)
   
 %include "../chrono/timestepper/ChState.h"
 %include "../chrono/timestepper/ChIntegrable.h"
