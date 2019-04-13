@@ -123,19 +123,21 @@ install:
     - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
     - cmd: conda create -n myenv python=%PYTHON_VERSION% -y 
     - cmd: conda config --set show_channel_urls true
-    - cmd: conda update -n root conda --yes
-    - cmd: conda install python=%PYTHON_VERSION% --yes
-    - cmd: activate myenv
+    #- cmd: conda update conda --yes
+    - cmd: conda install -c anaconda conda=%CONDAVER% --yes    
     - cmd: conda install conda-build anaconda-client --yes
+    - cmd: activate myenv
     - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
     - cmd: conda config --add channels https://conda.anaconda.org/intel
     # need to manually add non standard channels.
-    - cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce oce==0.18.2 --yes
+    
+    #- cmd: conda install -c conda-forge -c dlr-sc -c oce oce==0.18.1 --yes
+    # without version to avoid downgrade
+    #- cmd: conda install -c conda-forge -c dlr-sc -c oce oce --yes
+    - cmd: conda install -c https://conda.anaconda.org/dlr-sc oce --yes
     # Up-to date version by tpaviot
     #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
-    #- cmd: conda install python=%PYTHON_VERSION% --yes
-    - cmd: conda install -c intel mkl-devel --yes
-    - cmd: conda install -c anaconda conda=%CONDAVER% --yes
+    - cmd: conda install -c intel mkl-devel=2018.0.3 --yes
 
 ############################################### UBUNTU ###############################################################
 
@@ -201,7 +203,7 @@ for:
         - "%CMD_IN_ENV% conda build .\\contrib\\packaging-python\\conda --no-remove-work-dir --dirty"
   # move conda package to /dist
         - cmd: 'mkdir dist'
-        - cmd: 'copy /Y %CONDA_INSTALL_LOCN%\envs\myenv\conda-bld\win-%PYTHON_ARCH%\pychrono*.bz2 dist || cmd /c "exit /b 0"'
+        - cmd: 'copy /Y %CONDA_INSTALL_LOCN%\conda-bld\win-%PYTHON_ARCH%\pychrono*.bz2 dist || cmd /c "exit /b 0"'
   # upload package to anaconda$
         - ps: cmd /C anaconda --token $env:BINSTAR_TOKEN upload  dist\*.bz2 -l $env:APPVEYOR_REPO_BRANCH --force "2>&1"
 
