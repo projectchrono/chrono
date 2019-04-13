@@ -25,6 +25,9 @@ using namespace chrono;
 %import "ChVectorDynamic.i"
 
 /* Parse the header file to generate wrappers */
+
+%shared_ptr(chrono::ChIntegrable)
+%shared_ptr(chrono::ChIntegrableIIorder)
   
 %include "../chrono/timestepper/ChState.h"
 %include "../chrono/timestepper/ChIntegrable.h"
