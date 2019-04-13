@@ -27,7 +27,8 @@
 
 #include <vector>
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShell.h"
+#include "chrono/fea/ChMaterialShellANCF.h"
 #include "chrono/fea/ChNodeFEAxyzDD.h"
 
 namespace chrono {
@@ -36,7 +37,6 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-// ----------------------------------------------------------------------------
 /// ANCF laminated shell element with eight nodes.
 /// This class implements composite material elastic force formulations.
 ///

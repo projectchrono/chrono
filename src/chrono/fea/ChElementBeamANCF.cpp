@@ -2085,7 +2085,7 @@ ChVector<> ChElementBeamANCF::ComputeTangent(const double U) {
 }
 
 // ============================================================================
-// Implementation of ChMaterialShellANCF methods
+// Implementation of ChMaterialBeamANCF methods
 // ============================================================================
 
 // Construct an isotropic material.

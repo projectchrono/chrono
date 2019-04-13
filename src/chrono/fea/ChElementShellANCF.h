@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "chrono/fea/ChElementShell.h"
+#include "chrono/fea/ChMaterialShellANCF.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 
 namespace chrono {
@@ -28,39 +29,6 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-// ----------------------------------------------------------------------------
-/// Material definition.
-/// This class implements material properties for a layer.
-class ChApi ChMaterialShellANCF {
-  public:
-    /// Construct an isotropic material.
-    ChMaterialShellANCF(double rho,  ///< material density
-                        double E,    ///< Young's modulus
-                        double nu    ///< Poisson ratio
-    );
-
-    /// Construct a (possibly) orthotropic material.
-    ChMaterialShellANCF(double rho,            ///< material density
-                        const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
-                        const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
-                        const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
-    );
-
-    /// Return the material density.
-    double Get_rho() const { return m_rho; }
-
-    /// Return the matrix of elastic coefficients.
-    const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
-
-  private:
-    /// Calculate the matrix of elastic coefficients.
-    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
-
-    double m_rho;                      ///< density
-    ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
-};
-
-// ----------------------------------------------------------------------------
 /// ANCF laminated shell element with four nodes.
 /// This class implements composite material elastic force formulations.
 ///
