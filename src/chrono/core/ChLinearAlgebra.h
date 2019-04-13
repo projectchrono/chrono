@@ -539,7 +539,7 @@ class ChLinearAlgebra {
         double* rv1;
         double u, v, w;  // cond_num;
 
-        double machep = std::numeric_limits<double>::epsilon();
+        constexpr double machep = std::numeric_limits<double>::epsilon();
 
         // get dimension of input matrix
         n = A->GetRows();
@@ -824,7 +824,7 @@ class ChLinearAlgebra {
                     V(j, k) = -V(j, k);
             }
         }
-        delete rv1;
+        delete[] rv1;
 
         // sort by singular values
         for (i = 0; i < m - 1; i++) {
