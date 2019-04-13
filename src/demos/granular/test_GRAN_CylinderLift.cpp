@@ -35,7 +35,7 @@ using std::vector;
 
 void ShowUsage() {
     cout << "usage: ./test_GRAN_repose <json_file> <output_dir> <static_friction> <rolling_model 0:constant, "
-            "1:viscous> <rolling_friction>"
+            "1:viscous> <rolling_friction> <cohesion_ratio>"
          << endl;
 }
 
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 6 || ParseJSON(argv[1], params) == false) {
+    if (argc != 7 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
@@ -102,7 +102,9 @@ int main(int argc, char* argv[]) {
     m_sys.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
     m_sys.set_Gamma_t_SPH2MESH(params.tangentDampS2M);
 
-    m_sys.set_Cohesion_ratio(params.cohesion_ratio);
+    float cohesion_ratio = std::stof(argv[6]);
+    cout << "Cohesion Ratio: " << cohesion_ratio << endl;
+    m_sys.set_Cohesion_ratio(cohesion_ratio);
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
 
@@ -159,7 +161,7 @@ int main(int argc, char* argv[]) {
     const float3 scaling = make_float3(Bx / 4.f, Bx / 4.f, Bz);
     cout << "Cylinder radius: " << scaling.x << endl;
 
-    utils::PDSampler<float> sampler(2.5 * params.sphere_radius);
+    utils::PDSampler<float> sampler(2.05 * params.sphere_radius);
     vector<ChVector<float>> body_points;
 
     const float fill_radius = scaling.x - 2.f * params.sphere_radius;
@@ -182,7 +184,7 @@ int main(int argc, char* argv[]) {
     vector<string> mesh_filenames;
     vector<float3> mesh_scalings;
     vector<float> mesh_masses;
-    const float mass = 10;  // TODO hardcoded mass
+    const float mass = 10;
 
     string mesh_filename("granular/cylinder_lift/cylinder.obj");
     mesh_filenames.push_back(mesh_filename);
@@ -203,8 +205,8 @@ int main(int argc, char* argv[]) {
 
     m_sys.initialize();
 
-    const double time_settling = 0.5;
-    const double raising_vel = 2.0;
+    const double time_settling = 1.0;
+    const double raising_vel = 1.0;
     const double raising_dist = Bz / 2.0;
     const double time_raising = raising_dist / raising_vel;
 
