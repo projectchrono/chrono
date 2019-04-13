@@ -189,7 +189,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticlesClones)
 %shared_ptr(chrono::ChAssembly)
-// shared_ptr macros for ChIntegrable, Chtimestepper and thier children classes moved into "ChTimestepper.i"
+// shared_ptr macros for ChIntegrable, Chtimestepper and their children classes moved into "ChTimestepper.i"
 %shared_ptr(chrono::ChSolver)
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChSystemNSC)
