@@ -11,6 +11,7 @@ if len(argv) != 2:
     exit(1)
 
 infile = argv[1]
+t = infile.split('_')[-3:]
 data = pd.read_csv(infile)
 pos = np.array(data[['x','y','z']])
 
@@ -19,14 +20,16 @@ center = pos[max_i,:]
 
 r_z = np.zeros((pos.shape[0],2))
 r_z[:,1] = pos[:,2]
-r_z[:,0] = np.linalg.norm(pos[:,0:2] - center[0:2])
+r_z[:,0] = np.sqrt((pos[:,0] - center[0])**2 + (pos[:,1] - center[1])**2)
 r_z = r_z[r_z[:,0].argsort()]
+# print(r_z)
 
-# Get third quartile
-lo, hi = np.percentile(r_z[:,0], [50,75])
+lo, hi = np.percentile(r_z[:,0], [95,100])
 third_quart = r_z[np.where(np.logical_and(lo <= r_z[:,0], r_z[:,0] <= hi)),:][0]
 mid_point_i = np.argmax(third_quart[:,1])
 mid_point = third_quart[mid_point_i,:]
 
-slope = (center[2] - mid_point[1]) / (mid_point[0])
-print(slope)
+slope = (center[2] - mid_point[1]) / mid_point[0]
+theta = np.degrees(np.arctan(slope))
+
+print(",".join([t[0], t[1], t[2], str(theta)]))
