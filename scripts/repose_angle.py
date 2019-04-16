@@ -3,15 +3,17 @@
 import sys
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
 argv = sys.argv
-if len(argv) != 2:
-    print("usage: " + argv[0] + " <input_csv_file>")
+if len(argv) != 3:
+    print("usage: " + argv[0] + " <input_csv_file> <data_dir>")
     exit(1)
 
 infile = argv[1]
-t = infile.split('_')[-3:]
+dirname = argv[2]
+
+t = dirname.split('_')[-3:]
+
 data = pd.read_csv(infile)
 pos = np.array(data[['x','y','z']])
 
