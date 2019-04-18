@@ -87,7 +87,7 @@ class ChVectorDynamic : public ChMatrix<Real> {
     //
 
     /// Assignment operator (from generic other matrix, it always work)
-    ChVectorDynamic<Real>& operator=(const ChMatrix<Real>& matbis) {
+    virtual ChVectorDynamic<Real>& operator=(const ChMatrix<Real>& matbis) override {
         ChMatrix<Real>::operator=(matbis);
         return *this;
     }
@@ -142,7 +142,7 @@ class ChVectorDynamic : public ChMatrix<Real> {
         }
     }
 
-    virtual void Resize(int nrows, int ncols) {
+    virtual void Resize(int nrows, int ncols) override {
         assert(ncols == 1);
         Resize(nrows);
     }
