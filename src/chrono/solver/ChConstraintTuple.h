@@ -38,7 +38,10 @@ class ChConstraintTuple_1vars {
 
   public:
     /// Default constructor
-    ChConstraintTuple_1vars() : variables(0) {}
+    ChConstraintTuple_1vars() : variables(nullptr) {
+        Cq.Reset();
+        Eq.Reset();
+    }
 
     /// Copy constructor
     ChConstraintTuple_1vars(const ChConstraintTuple_1vars& other) {
