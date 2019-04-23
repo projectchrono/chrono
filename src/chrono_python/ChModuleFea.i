@@ -319,6 +319,8 @@ using namespace chrono::fea;
 %include "../chrono/fea/ChContactSurface.h"
 %include "../chrono/fea/ChContactSurfaceMesh.h"
 %include "../chrono/fea/ChContactSurfaceNodeCloud.h"
+%template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
+%template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
 %include "../chrono/fea/ChMesh.h"
 %include "../chrono/fea/ChMeshSurface.h"
 %include "../chrono/fea/ChVisualizationFEAmesh.h"
@@ -343,33 +345,33 @@ using namespace chrono::fea;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefChSharedPtrDynamicDowncast(ChPhysicsItem,ChMesh)
-%DefChSharedPtrDynamicDowncast(ChElasticityCosserat,ChElasticityCosseratSimple)
-%DefChSharedPtrDynamicDowncast(ChElasticityCosserat,ChElasticityCosseratGeneric)
-%DefChSharedPtrDynamicDowncast(ChElasticityCosserat,ChElasticityCosseratAdvanced)
-%DefChSharedPtrDynamicDowncast(ChElasticityCosserat,ChElasticityCosseratMesh)
-%DefChSharedPtrDynamicDowncast(ChPlasticityCosserat,ChPlasticityCosseratLumped)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementBar)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementSpring)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementTetra_4)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementTetra_10)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementHexa_8)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementHexa_20)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementBeamEuler)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementBeamANCF)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementBeamIGA)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementCableANCF)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementShellReissner4)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementShellANCF)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementShellANCF_8)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementBrick)
-%DefChSharedPtrDynamicDowncast(ChElementBase,ChElementBrick_9)
-%DefChSharedPtrDynamicDowncast(ChNodeFEAbase,ChNodeFEAxyz)
-%DefChSharedPtrDynamicDowncast(ChNodeFEAbase,ChNodeFEAxyzP)
-%DefChSharedPtrDynamicDowncast(ChNodeFEAbase,ChNodeFEAxyzD)
-%DefChSharedPtrDynamicDowncast(ChNodeFEAbase,ChNodeFEAxyzDD)
-%DefChSharedPtrDynamicDowncast(ChNodeFEAbase,ChNodeFEAxyzrot)
-%DefChSharedPtrDynamicDowncast(ChAsset,ChVisualizationFEAmesh)
+%DefChSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChPhysicsItem,ChMesh)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratSimple)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratGeneric)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratAdvanced)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElasticityCosserat,ChElasticityCosseratMesh)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChPlasticityCosserat,ChPlasticityCosseratLumped)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBar)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementSpring)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetra_4)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetra_10)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexa_8)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexa_20)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamEuler)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamANCF)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamIGA)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementCableANCF)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellReissner4)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_8)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick_9)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyz)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzP)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzD)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDD)
+%DefChSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzrot)
+%DefChSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChAsset,ChVisualizationFEAmesh)
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

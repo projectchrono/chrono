@@ -181,7 +181,7 @@ using namespace gui;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefChSharedPtrDynamicDowncast(ChAsset,ChIrrNodeAsset)
+%DefChSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChAsset,ChIrrNodeAsset)
 
 
 //
