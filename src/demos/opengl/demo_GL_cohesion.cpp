@@ -17,8 +17,9 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono_opengl/ChOpenGLWindow.h"
 
 // Use the namespace of Chrono
@@ -42,9 +43,8 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     // to allow some compliance with the plastic deformation of cohesive bounds
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
 
+    // Create a bunch of Chrono rigid bodies which will fall..
     for (int bi = 0; bi < 400; bi++) {
-        // Create a bunch of ChronoENGINE rigid bodies which will fall..
-
         auto mrigidBody = std::make_shared<ChBodyEasySphere>(0.81,   // radius
                                                              1000,   // density
                                                              true,   // collide enable?
@@ -113,19 +113,17 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
     mphysicalSystem.Add(rotatingBody);
 
-    // .. an engine between mixer and truss
-    auto my_motor = std::make_shared<ChLinkEngine>();
-    my_motor->Initialize(rotatingBody, floorBody, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_motor->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI / 2.0);  // speed w=90�/s
-    mphysicalSystem.AddLink(my_motor);
+    // .. a motor between mixer and truss
+    auto motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI / 2.0));
+    mphysicalSystem.AddLink(motor);
 }
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create a Chrono physical system
     ChSystemNSC mphysicalSystem;
 
     // Create all the rigid bodies.

@@ -20,14 +20,13 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-
-#include <irrlicht.h>
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -44,7 +43,7 @@ using namespace irr::gui;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Create a ChronoENGINE physical system
+    // Create a Chrono physical system
     ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
@@ -95,14 +94,11 @@ int main(int argc, char* argv[]) {
     mshaft_shape->GetCylinderGeometry().rad = radA*0.4;
     mbody_gearA->AddAsset(mshaft_shape);
 
-    // ...impose rotation between the first gear and the fixed truss
-    auto link_engine = std::make_shared<ChLinkEngine>();
-    link_engine->Initialize(mbody_gearA, mbody_truss, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
-    link_engine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);  // also works as revolute support
-    link_engine->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_engine->Get_spe_funct()))
-        mfun->Set_yconst(6);  // rad/s  angular speed
-    mphysicalSystem.AddLink(link_engine);
+    // ...impose rotation speed between the first gear and the fixed truss
+    auto link_motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    link_motor->Initialize(mbody_gearA, mbody_truss, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
+    link_motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(6));
+    mphysicalSystem.AddLink(link_motor);
 
     // ...the second gear
     double interaxis12 = radA + radB;
@@ -164,7 +160,7 @@ int main(int argc, char* argv[]) {
                                ChCoordsys<>(ChVector<>(-10, 0, -9), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
     mphysicalSystem.AddLink(link_revoluteD);
 
-    // ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: chrono::engine does not require
+    // ... Let's make a 1:1 gear between wheel A and wheel D as a bevel gear: Chrono does not require
     //     special info for this case -the position of the two shafts and the transmission ratio are enough-
     auto link_gearAD = std::make_shared<ChLinkGear>();
     link_gearAD->Initialize(mbody_gearA, mbody_gearD, CSYSNORM);

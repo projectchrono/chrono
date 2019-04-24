@@ -55,7 +55,7 @@ class CH_VEHICLE_API ChTerrain {
     virtual float GetCoefficientFriction(double x, double y) const = 0;
 
     /// Class to be used as a functor interface for location-dependent coefficient of friction.
-    class ChApi FrictionFunctor {
+    class CH_VEHICLE_API FrictionFunctor {
       public:
         virtual ~FrictionFunctor() {}
 

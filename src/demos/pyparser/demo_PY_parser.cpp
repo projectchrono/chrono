@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 	// TEST 1   -   figure out what version of Python is run under the hood
 	//
 
-	GetLog() << " Chrono::PyEngine Test 1.\n";
+	GetLog() << " PyChrono Test 1.\n";
 	my_python.Run("import sys");
 	GetLog() << "Python version run by Chrono:\n";
 	my_python.Run("print (sys.version)");
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
 	// TEST 2   -   execute simple instructions
 	//
 
-	GetLog() << "\n\n Chrono::PyEngine Test 2.\n";
+	GetLog() << "\n\n PyChrono Test 2.\n";
 	my_python.Run("a =8.6");
     my_python.Run("b =4");
     my_python.Run("c ='blabla' ");
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     // TEST 3   -   fetch a value from a python variable (in __main__ namespace)
     //
 
-	GetLog() << "\n\n Chrono::PyEngine Test 3.\n";
+	GetLog() << "\n\n PyChrono Test 3.\n";
 	double mfval;
     my_python.GetFloat("a", mfval);
     GetLog() << "In:C++    - Passed float variable 'a' from Python, a=" << mfval << "\n";
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     // TEST 4   -   set a value into a python variable (in __main__ namespace)
     //
 
-	GetLog() << "\n\n Chrono::PyEngine Test 4.\n";
+	GetLog() << "\n\n PyChrono Test 4.\n";
 	my_python.SetFloat("d", 123.5);
     my_python.Run("print('In:Python - Passed variable d from c++, d=', d)");
 
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     // In general, it is wise to enclose Python commands in a try-catch block 
     // because errors are handled with exceptions:
 
-	GetLog() << "\n\n Chrono::PyEngine Test 5.\n";
+	GetLog() << "\n\n PyChrono Test 5.\n";
 	try {
         my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
     } catch (ChException myerror) {
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     // TEST 6   -   load mechanical system, previously saved to disk from SolidWorks add-in
     //
 
-	GetLog() << "\n\n Chrono::PyEngine Test 6.\n";
+	GetLog() << "\n\n PyChrono Test 6.\n";
 	ChSystemNSC my_system;
 
     try {

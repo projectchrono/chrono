@@ -23,6 +23,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_nodes
+/// @{
+
 /// Class for a generic ED finite element node, with x,y,z displacement and a 3D rotation.
 /// This is the typical node that can be used for beams, etc.
 class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6> {
@@ -149,6 +152,8 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     ChVector<> Force;                  ///< applied force
     ChVector<> Torque;                 ///< applied torque
 };
+
+/// @} fea_nodes
 
 }  // end namespace fea
 }  // end namespace chrono

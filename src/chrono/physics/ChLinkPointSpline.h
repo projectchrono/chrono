@@ -24,7 +24,7 @@ namespace chrono {
 /// This class implements the 'point on a spline curve' constraint.
 /// It can be used also to simulate curvilinear glyphs, etc.
 
-class ChApi ChLinkPointSpline : public ChLinkLock {
+class ChApi ChLinkPointSpline : public ChLinkLockLock {
 
   protected:
     std::shared_ptr<geometry::ChLine> trajectory_line;  ///< The line for the trajectory.

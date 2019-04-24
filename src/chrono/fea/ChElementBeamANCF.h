@@ -33,7 +33,7 @@ namespace fea {
 
 /// @addtogroup fea_elements
 /// @{
-// ----------------------------------------------------------------------------
+
 /// Material definition.
 /// This class implements material properties for a layer.
 class ChApi ChMaterialBeamANCF {

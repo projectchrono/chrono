@@ -35,6 +35,9 @@ namespace chrono {
 namespace vehicle {
 namespace sedan {
 
+/// @addtogroup vehicle_models_sedan
+/// @{
+
 class CH_MODELS_API Sedan {
   public:
     Sedan();
@@ -113,6 +116,8 @@ class CH_MODELS_API Sedan {
 
     double m_tire_mass;
 };
+
+/// @} vehicle_models_sedan
 
 }  // end namespace sedan
 }  // end namespace vehicle

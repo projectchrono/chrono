@@ -51,6 +51,8 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     // INTERFACE TO ChContactable
     //
 
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
+
     /// Access variables.
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
@@ -74,7 +76,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Return the pointer to the contact surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
@@ -236,7 +238,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for contacts
-    std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
     //
     // STATE FUNCTIONS

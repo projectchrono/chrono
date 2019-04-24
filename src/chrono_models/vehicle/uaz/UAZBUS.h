@@ -35,6 +35,9 @@ namespace chrono {
 namespace vehicle {
 namespace uaz {
 
+/// @addtogroup vehicle_models_uaz
+/// @{
+
 class CH_MODELS_API UAZBUS {
   public:
     UAZBUS();
@@ -122,6 +125,8 @@ class CH_MODELS_API UAZBUS {
 
     double m_tire_mass;
 };
+
+/// @} vehicle_models_uaz
 
 }  // end namespace uaz
 }  // end namespace vehicle

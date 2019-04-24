@@ -35,11 +35,20 @@
 // but could be also viceversa) by calling a python function.
 // For example:  myvis = CastToChVisualizationShared(myasset)
 
-%define %DefChSharedPtrDynamicDowncast(__CHTYPE_BASE__, __CHTYPE__)
+%define %DefChSharedPtrDynamicDowncast(__NS__,__CHTYPE_BASE__, __CHTYPE__)
 %inline %{
-  std::shared_ptr<__CHTYPE__> CastTo ## __CHTYPE__ ## Shared (std::shared_ptr<__CHTYPE_BASE__> in_obj) 
+  std::shared_ptr<__NS__::__CHTYPE__> CastTo ## __CHTYPE__ ## Shared (std::shared_ptr<__NS__::__CHTYPE_BASE__> in_obj) 
   {
-	  return (std::dynamic_pointer_cast<__CHTYPE__>(in_obj));
+	  return (std::dynamic_pointer_cast<__NS__::__CHTYPE__>(in_obj));
+  }
+%}
+%enddef
+
+%define %DefChSharedPtrDynamicDowncast2NS(__NS1__,__NS2__,__CHTYPE_BASE__, __CHTYPE__)
+%inline %{
+  std::shared_ptr<__NS2__::__CHTYPE__> CastTo ## __CHTYPE__ ## Shared (std::shared_ptr<__NS1__::__CHTYPE_BASE__> in_obj) 
+  {
+	  return (std::dynamic_pointer_cast<__NS2__::__CHTYPE__>(in_obj));
   }
 %}
 %enddef

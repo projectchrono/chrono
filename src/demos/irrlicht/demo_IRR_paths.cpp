@@ -16,9 +16,10 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkTrajectory.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -119,12 +120,10 @@ int main(int argc, char* argv[]) {
     application.GetSystem()->Add(mwheel);
 
     // Create a motor that spins the wheel
-    auto my_motor = std::make_shared<ChLinkEngine>();
-    my_motor->Initialize(mwheel, mfloor, ChCoordsys<>(ChVector<>(-3, 2, 0)));
-    my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_motor->Get_spe_funct()))
-        mfun->Set_yconst(CH_C_PI / 4.0);  // speed w=45 deg/s
-    mphysicalSystem.AddLink(my_motor);
+    auto motor = std::make_shared<ChLinkMotorRotationSpeed>();
+    motor->Initialize(mwheel, mfloor, ChFrame<>(ChVector<>(-3, 2, 0)));
+    motor->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI / 4.0));
+    mphysicalSystem.AddLink(motor);
 
     // Create a ChLinePath geometry, and insert sub-paths:
     auto mglyph = std::make_shared<ChLinePath>();

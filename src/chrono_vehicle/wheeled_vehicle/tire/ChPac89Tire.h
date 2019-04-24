@@ -37,7 +37,7 @@ namespace vehicle {
 /// Pacjeka 89 tire model.
 class CH_VEHICLE_API ChPac89Tire : public ChTire {
   public:
-      ChPac89Tire(const std::string& name  ///< [in] name of this tire system
+    ChPac89Tire(const std::string& name  ///< [in] name of this tire system
                 );
 
     virtual ~ChPac89Tire() {}
@@ -73,7 +73,8 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     /// The tire system is provided the current state of its associated wheel.
     virtual void Synchronize(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
+                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
                              ) override;
 
     /// Advance the state of this tire by the specified time step.
@@ -85,27 +86,25 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     /// Get the width of the tire.
     double GetWidth() const { return m_width; }
 
+    /// Get the tire deflection
+    virtual double GetDeflection() const override { return m_data.depth; }
+
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }
 
-    /// Get the tire slip angle.
-    virtual double GetSlipAngle() const override { return m_states.cp_side_slip; }
+    /// Get the slip angle used in Pac89 (expressed in radians).
+    /// The reported value will have opposite sign to that reported by ChTire::GetSlipAngle
+    /// because ChPac89 uses internally a different frame convention.
+    double GetSlipAngle_internal() const { return m_states.cp_side_slip; }
 
-    /// Get the tire longitudinal slip.
-    virtual double GetLongitudinalSlip() const override { return m_states.cp_long_slip; }
+    /// Get the longitudinal slip used in Pac89.
+    /// The reported value will be similar to that reported by ChTire::GetLongitudinalSlip.
+    double GetLongitudinalSlip_internal() const { return m_states.cp_long_slip; }
 
-	/// Get the longitudinal slip used in Pac89 (expressed as a percentage).
-    double GetKappa() const { return m_kappa; }
-	
-    /// Get the slip angle used in Pac89 (expressed in degrees).
-    double GetAlpha() const { return m_alpha; }
+    /// Get the camber angle used in Pac89 (expressed in radians).
+    /// The reported value will be similar to that reported by ChTire::GetCamberAngle.
+    double GetCamberAngle_internal() { return m_gamma * CH_C_DEG_TO_RAD; }
 
-    /// Get the camber angle used in Pac89 (expressed in degrees).
-	double GetGamma() { return m_gamma; }
-	
-	/// Get the tire deflection
-	virtual double GetDeflection() const override { return m_data.depth; }
-  
   protected:
     /// Return the vertical tire stiffness contribution to the normal force.
     virtual double GetNormalStiffnessForce(double depth) const = 0;
@@ -121,6 +120,11 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     double m_gamma;  ///< camber angle (degrees)
 
     double m_gamma_limit;  ///< limit camber angle (degrees)
+
+    /// Road friction
+    double m_mu;
+    /// Tire reference friction
+    double m_mu0;
 
     /// Pac89 tire model parameters
     double m_unloaded_radius;
@@ -198,6 +202,8 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
         double R_eff;            // Effective Radius
         ChVector<> disc_normal;  //(temporary for debug)
     };
+
+    ChFunction_Recorder m_areaDep;  // lookup table for estimation of penetration depth from intersection area
 
     ContactData m_data;
     TireStates m_states;

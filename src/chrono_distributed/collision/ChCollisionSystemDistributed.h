@@ -22,6 +22,9 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup distributed_collision
+/// @{
+
 /// This class scaffolds on ChCollisionSystemParallel in order to manage
 /// collision data for the system during MPI exchanges.
 /// Maintains a mapping from a body to its shapes.
@@ -38,11 +41,14 @@ class ChCollisionSystemDistributed : public ChCollisionSystemParallel {
     /// chrono::parallel and marks the space as free
     virtual void Remove(ChCollisionModel* model) override;
 
+    /// Set each entry of active_id to true if the AABB of the
+    /// shape with that index overlaps the given AABB
     virtual void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) override;
 
   protected:
     ChDistributedDataManager* ddm;
 };
+/// @} distributed_collision
 
 } /* namespace collision */
 } /* namespace chrono */

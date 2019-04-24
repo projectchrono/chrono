@@ -101,6 +101,11 @@ using namespace chrono;
 						{ return $self->operator-(matbis);};
 			ChMatrix33<double> operator*(const ChMatrix<double>& matbis) 
 						{ return $self->operator*(matbis);};
+
+			ChMatrix33<double>(const ChQuaternion<double>& mq){ 
+						ChMatrix33<double>* newX = new ChMatrix33<double>();
+						newX->Set_A_quaternion(mq);
+						return newX;};
 			
 			//%template(ChMatrix33) ChMatrix33<double>;
 			%template(Matr_x_Vect) Matr_x_Vect<double>;

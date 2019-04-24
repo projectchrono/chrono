@@ -30,7 +30,7 @@
 # include <linux/limits.h>
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__FreeBSD__)
 # include <limits.h>
 #endif
 

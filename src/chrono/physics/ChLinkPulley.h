@@ -24,7 +24,7 @@ namespace chrono {
 /// links, for example two revolute joints (ChLinkLockRevolute), because
 /// this link constraints only the rotation.
 
-class ChApi ChLinkPulley : public ChLinkLock {
+class ChApi ChLinkPulley : public ChLinkLockLock {
 
   protected:
     double tau;       ///< transmission coeff.

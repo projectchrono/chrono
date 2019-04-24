@@ -40,6 +40,7 @@ SET(DEMOS
   demo_IRR_plane_plane
   demo_IRR_link_bushing
   demo_IRR_prismatic_limits
+  demo_IRR_prismatic_force
   demo_IRR_callbackNSC
   demo_IRR_callbackSMC
   demo_IRR_motors
@@ -81,7 +82,6 @@ FOREACH(PROGRAM ${DEMOS})
   TARGET_LINK_LIBRARIES(${PROGRAM}
     ChronoEngine
     ChronoEngine_irrlicht
-    ${CH_IRRLICHTLIB}
     )
     
   ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_irrlicht)

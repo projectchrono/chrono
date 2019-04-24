@@ -141,7 +141,7 @@ using namespace chrono::postprocess;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefChSharedPtrDynamicDowncast(ChAsset,ChPovRayAssetCustom)
+%DefChSharedPtrDynamicDowncast2NS(chrono, chrono::postprocess, ChAsset,ChPovRayAssetCustom)
 
 
 //

@@ -9,25 +9,34 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Author: Radu Serban
+// =============================================================================
+//
+// Demo for using the ChWheeledVehicleAssembly wrapper class.
+//
+// The global reference frame has Z up.
+// All units SI.
+// =============================================================================
 
+#include <cmath>
 #include <cstdio>
 #include <vector>
-#include <cmath>
 
 // Chrono::Engine header files
 #include "chrono/core/ChStream.h"
 
 // Chrono::Parallel header files
+#include "chrono_parallel/collision/ChNarrowphaseRUtils.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChNarrowphaseRUtils.h"
-// Chrono::Parallel OpenGL header files
+
+// Chrono::OpenGL header files
 #include "chrono_opengl/ChOpenGLWindow.h"
 
 // Chrono utility header files
-#include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 // Chrono::Vehicle header files
@@ -125,11 +134,11 @@ int bilateral_frame_interval = 100;
 // =============================================================================
 
 // Callback class for providing driver inputs.
-class MyDriverInputs : public ChDriverInputsCallback {
+class MyDriverInputs : public ChWheeledVehicleAssembly::ChDriverInputsCallback {
   public:
     MyDriverInputs(double delay) : m_delay(delay) {}
 
-    virtual void onCallback(double time, double& throttle, double& steering, double& braking) {
+    virtual void onCallback(double time, double& throttle, double& steering, double& braking) override {
         throttle = 0;
         steering = 0;
         braking = 0;
@@ -152,7 +161,7 @@ class MyDriverInputs : public ChDriverInputsCallback {
 
 // Callback class for specifying rigid tire contact model.
 // This version uses cylindrical contact shapes.
-class MyCylindricalTire : public ChTireContactCallback {
+class MyCylindricalTire : public ChWheeledVehicleAssembly::ChTireContactCallback {
   public:
     virtual void onCallback(std::shared_ptr<ChBody> wheelBody) override {
         wheelBody->SetCollisionModel(std::make_shared<collision::ChCollisionModelParallel>());

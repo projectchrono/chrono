@@ -409,8 +409,25 @@ typedef ChQuaternion<float> QuaternionF;
 // -----------------------------------------------------------------------------
 // CONSTANTS
 
+/// Constant null quaternion: {0, 0, 0, 0}
 ChApi extern const ChQuaternion<double> QNULL;
+
+/// Constant unit quaternion: {1, 0, 0, 0} ,
+/// corresponds to no rotation (diagonal rotation matrix)
 ChApi extern const ChQuaternion<double> QUNIT;
+
+// Constants for rotations of 90 degrees:
+ChApi extern const ChQuaternion<double> Q_ROTATE_Y_TO_X;
+ChApi extern const ChQuaternion<double> Q_ROTATE_Y_TO_Z;
+ChApi extern const ChQuaternion<double> Q_ROTATE_X_TO_Y;
+ChApi extern const ChQuaternion<double> Q_ROTATE_X_TO_Z;
+ChApi extern const ChQuaternion<double> Q_ROTATE_Z_TO_Y;
+ChApi extern const ChQuaternion<double> Q_ROTATE_Z_TO_X;
+
+// Constants for rotations of 180 degrees:
+ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_X;
+ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_Y;
+ChApi extern const ChQuaternion<double> Q_FLIP_AROUND_Z;
 
 // -----------------------------------------------------------------------------
 // STATIC QUATERNION MATH OPERATIONS

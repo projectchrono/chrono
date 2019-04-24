@@ -1,26 +1,20 @@
-#-------------------------------------------------------------------------------
-# Name:        modulo1
+#------------------------------------------------------------------------------
+# Name:        pychrono example
 # Purpose:
 #
-# Author:      tasora
+# Author:      Alessandro Tasora
 #
-# Created:     14/02/2012
-# Copyright:   (c) tasora 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
 
-import os
-import math
 import pychrono as chrono
 import pychrono.irrlicht as chronoirr
+
+# Change this path to asset path, if running from other working dir. 
+# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
+chrono.SetChronoDataPath("../../../data/")
 
 
 # ---------------------------------------------------------------------
@@ -46,7 +40,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001);
 
 print ("Loading C::E scene...");
 
-exported_items = chrono.ImportSolidWorksSystem('../../../data/solid_works/swiss_escapement')
+exported_items = chrono.ImportSolidWorksSystem(chrono.GetChronoDataPath() + "solid_works/swiss_escapement")
 
 print ("...done!");
 
@@ -63,11 +57,13 @@ for my_item in exported_items:
 #
 #  Create an Irrlicht application to visualize the system
 #
+print (chrono.GetChronoDataFile("skybox/"))
 
-myapplication = chronoirr.ChIrrApp(my_system);
+myapplication = chronoirr.ChIrrApp(my_system, 'Test: using data exported by Chrono::Solidworks', chronoirr.dimension2du(1024,768));
 
-myapplication.AddTypicalSky('../../../data/skybox/')
-myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
+myapplication.AddTypicalSky()
+myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalCamera(chronoirr.vector3df(0.3,0.3,0.4))
 myapplication.AddTypicalLights()
 
             # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

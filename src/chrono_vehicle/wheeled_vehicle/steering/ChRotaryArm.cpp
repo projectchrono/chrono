@@ -89,7 +89,7 @@ void ChRotaryArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_pL = m_link->TransformPointParentToLocal(points[PITMANARM]);
 
     // Create and initialize the revolute joint between chassis and Pitman arm.
-    // Note that this is modeled as a ChLinkEngine to allow driving it with
+    // Note that this is modeled as a rotational motor to allow driving it with
     // imposed rotation (steering input).
     // The z direction of the joint orientation matrix is dirs[REV_AXIS], assumed
     // to be a unit vector.

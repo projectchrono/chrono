@@ -37,6 +37,9 @@ class ChDomainDistributed;
 class ChCommDistributed;
 class ChDataManagerDistr;
 
+/// @addtogroup distributed_physics
+/// @{
+
 /// This is the main user interface for Chrono::Distributed
 /// Add bodies and set all settings through the system.
 /// The simulation runs on all ranks given in the world parameter.
@@ -240,11 +243,12 @@ class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
     /// called by the user.
     void AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status);
 
-    // Co-simulation
+    /// Type for internally sending contact forces
     MPI_Datatype InternalForceType;
 
     friend class ChCommDistributed;
     friend class ChDomainDistributed;
 };
+/// @} distributed_physics
 
 } /* namespace chrono */

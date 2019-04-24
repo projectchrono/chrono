@@ -17,8 +17,7 @@
 
 #include "chrono/core/ChPlatform.h"
 
-// Chrono::Engine version
-//
+// Chrono::Mumps version
 // This is an integer, as 0xaabbccdd where
 // for example version 1.2.0 is 0x00010200
 
@@ -34,5 +33,15 @@
 #else
 #define ChApiMumps ChApiIMPORT
 #endif
+
+/**
+    @defgroup mumps_module MUMPS module
+    @brief Module for the MUMPS direct solver
+
+    Module provides access to the MUMPS library.
+
+    For additional information, see:
+    - the [installation guide](@ref module_mumps_installation)
+*/
 
 #endif  // END of header

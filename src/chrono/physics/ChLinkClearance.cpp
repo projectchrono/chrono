@@ -32,10 +32,10 @@ ChLinkClearance::ChLinkClearance() {
     contact_F_abs = VNULL;
     contact_V_abs = VNULL;
 
-    this->limit_X->Set_active(true);
-    this->limit_X->Set_max(clearance);
-    this->limit_X->Set_maxElastic(c_restitution);
-    this->limit_X->Set_min(-1000.0);
+    this->limit_X->SetActive(true);
+    this->limit_X->SetMax(clearance);
+    this->limit_X->SetMaxElastic(c_restitution);
+    this->limit_X->SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     // It was a LinkMaskLF because this class inherited from LinkLock.
@@ -44,7 +44,7 @@ ChLinkClearance::ChLinkClearance() {
     ChangedLinkMask();
 }
 
-ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLock(other) {
+ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLockLock(other) {
     clearance = other.clearance;
     c_friction = other.c_friction;
     c_restitution = other.c_restitution;
@@ -140,7 +140,7 @@ void ChLinkClearance::UpdateForces(double mytime) {
 
 void ChLinkClearance::UpdateTime(double mytime) {
     // First, inherit to parent class
-    ChLinkLock::UpdateTime(mytime);
+    ChLinkLockLock::UpdateTime(mytime);
 
     // Move (well, rotate...) marker 2 to align it in actuator direction
 
@@ -189,7 +189,7 @@ void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChLinkClearance>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOUT(marchive);
+    ChLinkLockLock::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(clearance);
@@ -206,7 +206,7 @@ void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChLinkClearance>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIN(marchive);
+    ChLinkLockLock::ArchiveIN(marchive);
 
     // deserialize all member data:
     marchive >> CHNVP(clearance);

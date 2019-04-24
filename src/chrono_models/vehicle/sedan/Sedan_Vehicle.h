@@ -12,7 +12,7 @@
 // Authors: Radu Serban, Asher Elmquist
 // =============================================================================
 //
-// Base class for the WVP vehicle models
+// Base class for the Sedan vehicle models
 //
 // =============================================================================
 
@@ -30,27 +30,31 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono_models/vehicle/sedan/Sedan_Chassis.h"
 #include "chrono_models/vehicle/sedan/Sedan_BrakeSimple.h"
+#include "chrono_models/vehicle/sedan/Sedan_Chassis.h"
 #include "chrono_models/vehicle/sedan/Sedan_DoubleWishbone.h"
+#include "chrono_models/vehicle/sedan/Sedan_Driveline2WD.h"
 #include "chrono_models/vehicle/sedan/Sedan_MultiLink.h"
 #include "chrono_models/vehicle/sedan/Sedan_RackPinion.h"
-#include "chrono_models/vehicle/sedan/Sedan_Driveline2WD.h"
 #include "chrono_models/vehicle/sedan/Sedan_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
 namespace sedan {
 
+/// @addtogroup vehicle_models_sedan
+/// @{
+
+/// Sedan vehicle system.
 class CH_MODELS_API Sedan_Vehicle : public ChWheeledVehicle {
   public:
     Sedan_Vehicle(const bool fixed = false,
-                ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
-                ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
+                  ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     Sedan_Vehicle(ChSystem* system,
-                const bool fixed = false,
-                ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                  const bool fixed = false,
+                  ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~Sedan_Vehicle();
 
@@ -84,6 +88,8 @@ class CH_MODELS_API Sedan_Vehicle : public ChWheeledVehicle {
 
     std::vector<double> m_omega;
 };
+
+/// @} vehicle_models_sedan
 
 }  // end namespace sedan
 }  // end namespace vehicle

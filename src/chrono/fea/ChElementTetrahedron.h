@@ -25,23 +25,16 @@ namespace fea {
 /// @{
 
 /// Class for tetrahedral elements.
-class ChApi ChElementTetrahedron : public ChElement3D,
-                                      public ChElementCorotational
-//		  /|\						//
-{             //		 / |  \						//
-  protected:  //		/  |	\					//
-              //	   /.  |	  \					//
-  public:     //	   \   |.		\				//
-    int ID;   //		\  |	.	  \				//
-              //		 \ |		.	\			//
-              //		  \|__ __ __ __'__\			//
+class ChApi ChElementTetrahedron : public ChElement3D, public ChElementCorotational {
+  public:
+    int ID;
 
     virtual void Update() {
         // parent class update:
         ChElement3D::Update();
         // always keep updated the rotation matrix A:
         this->UpdateRotation();
-    };
+    }
 };
 
 /// @} fea_elements

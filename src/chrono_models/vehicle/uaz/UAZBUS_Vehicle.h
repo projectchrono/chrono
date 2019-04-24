@@ -30,30 +30,34 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Driveline4WD.h"
-#include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_RotaryArm.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
 namespace uaz {
 
+/// @addtogroup vehicle_models_uaz
+/// @{
+
+/// UAZ vehicle system.
 class CH_MODELS_API UAZBUS_Vehicle : public ChWheeledVehicle {
   public:
     UAZBUS_Vehicle(const bool fixed = false,
-                SteeringType steering_model = SteeringType::PITMAN_ARM,
-                ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
-                ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                   SteeringType steering_model = SteeringType::PITMAN_ARM,
+                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
+                   ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     UAZBUS_Vehicle(ChSystem* system,
-                const bool fixed = false,
-                SteeringType steering_model = SteeringType::PITMAN_ARM,
-                ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                   const bool fixed = false,
+                   SteeringType steering_model = SteeringType::PITMAN_ARM,
+                   ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~UAZBUS_Vehicle();
 
@@ -87,6 +91,8 @@ class CH_MODELS_API UAZBUS_Vehicle : public ChWheeledVehicle {
 
     std::vector<double> m_omega;
 };
+
+/// @} vehicle_models_uaz
 
 }  // end namespace uaz
 }  // end namespace vehicle

@@ -25,7 +25,7 @@
 namespace chrono {
 namespace fea {
 
-/// @addtogroup fea_module
+/// @addtogroup fea_utils
 /// @{
 
 /// Collection of mesh file loader utilities.
@@ -80,7 +80,7 @@ class ChApi ChMeshFileLoader {
     );
 };
 
-/// @} fea_module
+/// @} fea_utils
 
 }  // end namespace fea
 }  // end namespace chrono

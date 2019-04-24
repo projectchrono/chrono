@@ -86,7 +86,7 @@ void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     // material properties in a thread-safe manner (we cannot use the function
     // ChBody::GetMaterialSurfaceSMC since that returns a copy of the reference
     // counted shared pointer).
-    std::shared_ptr<ChMaterialSurface>& mat = body->GetMaterialSurfaceBase();
+    std::shared_ptr<ChMaterialSurface>& mat = body->GetMaterialSurface();
     ChMaterialSurfaceSMC* mat_ptr = static_cast<ChMaterialSurfaceSMC*>(mat.get());
 
     mass[index] = body->GetMass();

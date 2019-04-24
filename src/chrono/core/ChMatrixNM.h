@@ -19,18 +19,6 @@
 
 namespace chrono {
 
-#define SetZero(els)                  \
-    {                                 \
-        for (int i = 0; i < els; ++i) \
-            this->address[i] = 0;     \
-    }
-#define ElementsCopy(to, from, els)   \
-    {                                 \
-        for (int i = 0; i < els; ++i) \
-            to[i] = (Real)from[i];    \
-    }
-
-///
 /// ChMatrixNM
 ///
 /// Specialized matrix class having a pre-allocated NxM buffer of elements on stack.
@@ -53,16 +41,12 @@ class ChMatrixNM : public ChMatrix<Real> {
 #endif
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     /// The default constructor builds a NxN matrix
     inline ChMatrixNM() {
         this->rows = preall_rows;
         this->columns = preall_columns;
         this->address = buffer;
-        SetZero(preall_rows * preall_columns);
+        this->Reset();
     }
 
     /// Copy constructor
@@ -70,7 +54,7 @@ class ChMatrixNM : public ChMatrix<Real> {
         this->rows = preall_rows;
         this->columns = preall_columns;
         this->address = buffer;
-        ElementsCopy(this->address, msource.address, preall_rows * preall_columns);
+        std::memcpy(this->address, msource.address, preall_rows * preall_columns * sizeof(Real));
     }
 
     /// Copy constructor from all types of base matrices (only with same size)
@@ -80,7 +64,8 @@ class ChMatrixNM : public ChMatrix<Real> {
         this->rows = preall_rows;
         this->columns = preall_columns;
         this->address = buffer;
-        ElementsCopy(this->address, msource.GetAddress(), preall_rows * preall_columns);
+        for (int i = 0; i < preall_rows * preall_columns; ++i)
+            this->address[i] = (Real)msource.GetAddress()[i];
     }
 
     /// Destructor

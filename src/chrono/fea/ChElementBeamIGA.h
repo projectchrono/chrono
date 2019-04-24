@@ -23,7 +23,6 @@
 #include "chrono/geometry/ChBasisToolsBspline.h"
 #include "chrono/core/ChQuadrature.h"
 
-
 namespace chrono {
 namespace fea {
 
@@ -33,7 +32,6 @@ namespace fea {
 /// Element of IGA type, with Timoshenko shear etc.
 /// et.. etc.  (intro to write)
 /// Note: each IGA element represents one "knot span" of the spline!
-
 class  ChElementBeamIGA :   public ChElementBeam,
                             public ChLoadableU,
 							public ChLoadableUVW

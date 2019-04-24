@@ -659,9 +659,8 @@ class ChEnumMapper : public ChEnumMapperBase {
     };
 
     virtual bool SetValueAsString(const std::string& mname) override {
-        for (int i = 0; i < enummap->size(); ++i)
-        {
-            if(enummap->at(i).name == mname) {
+        for (int i = 0; i < enummap->size(); ++i) {
+            if (enummap->at(i).name == mname) {
                 *value_ptr = enummap->at(i).enumid;
                 return true;
             }
@@ -670,14 +669,12 @@ class ChEnumMapper : public ChEnumMapperBase {
         int numb;
         std::istringstream mstream(mname);
         mstream >> numb;
-        if (mstream.fail()) 
+        if (mstream.fail())
             return false;
-        else{
-            SetValueAsInt(numb);
-            return true;
-        }
-        // neither found enum from string, nor from number...
-        return false; 
+
+        // Set value from number
+        SetValueAsInt(numb);
+        return true;
     };
 
     Te* value_ptr;

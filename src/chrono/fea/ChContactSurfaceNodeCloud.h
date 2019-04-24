@@ -21,11 +21,12 @@
 #include "chrono/fea/ChNodeFEAxyzrot.h"
 
 namespace chrono {
-
 namespace fea {
 
-/// Proxy to FEA nodes, to grant them the features
-/// needed for collision detection.
+/// @addtogroup fea_contact
+/// @{
+
+/// Proxy to FEA nodes, to grant them the features needed for collision detection.
 class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
 
   public:
@@ -51,6 +52,8 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     //
     // INTERFACE TO ChContactable
     //
+
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_3; }
 
     /// Access variables
     virtual ChVariables* GetVariables1() override { return &mnode->Variables(); }
@@ -133,7 +136,7 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -189,6 +192,8 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     //
     // INTERFACE TO ChContactable
     //
+
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_6; }
 
     /// Access variables
     virtual ChVariables* GetVariables1() override { return &mnode->Variables(); }
@@ -271,7 +276,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -342,6 +347,8 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     std::vector<std::shared_ptr<ChContactNodeXYZsphere> > vnodes;         //  nodes
     std::vector<std::shared_ptr<ChContactNodeXYZROTsphere> > vnodes_rot;  //  nodes with rotations
 };
+
+/// @} fea_contact
 
 }  // end namespace fea
 }  // end namespace chrono

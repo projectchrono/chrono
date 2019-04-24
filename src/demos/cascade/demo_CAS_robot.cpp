@@ -407,7 +407,8 @@ int main(int argc, char* argv[]) {
     
     // Create a large cube as a floor.
 
-    std::shared_ptr<ChBodyEasyBox> mfloor( new ChBodyEasyBox(20,1,20,1000,true,true));
+    std::shared_ptr<ChBodyEasyBox> mfloor( new ChBodyEasyBox(6,1,6,1000,true,true));
+    mfloor->SetPos(ChVector<>(0, -0.5, 0));
     my_system.Add(mfloor);
     mfloor->SetBodyFixed(true);
 
@@ -435,11 +436,10 @@ int main(int argc, char* argv[]) {
     // kinematic chain, i.e. the hand, is very low when compared to other bodies, so
     // the convergence of the solver would be bad when 'pulling the hand' as in this
     // 'teaching mode' IK.
-    // So switch to a more precise solver; this SOLVER_MINRES is fast
-    // and precise (although it is not fit for frictional collisions):
+    // So switch to a more precise solver, ex. BARZILAIBORWEIN
 
-    my_system.SetSolverType(ChSolver::Type::MINRES);
-    my_system.SetMaxItersSolverSpeed(44);
+    my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    my_system.SetMaxItersSolverSpeed(120);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

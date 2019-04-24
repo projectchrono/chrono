@@ -28,9 +28,7 @@ SET(LIBRARIES
     ChronoEngine_vehicle)
 
 IF(ENABLE_MODULE_IRRLICHT)
-  SET(LIBRARIES_IRR
-      ChronoEngine_irrlicht
-      ${CH_IRRLICHTLIB})
+  SET(LIBRARIES_IRR ChronoEngine_irrlicht)
 ELSE()
   SET(LIBRARIES_IRR "")
 ENDIF()

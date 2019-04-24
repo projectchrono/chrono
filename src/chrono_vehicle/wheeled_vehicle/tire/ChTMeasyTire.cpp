@@ -39,6 +39,9 @@
 namespace chrono {
 namespace vehicle {
 
+const double kN2N = 1000.0;
+const double N2kN = 0.001;
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTMeasyTire::ChTMeasyTire(const std::string& name)
@@ -47,12 +50,14 @@ ChTMeasyTire::ChTMeasyTire(const std::string& name)
       m_gamma(0),
       m_gamma_limit(5),
       m_begin_start_transition(0.1),
-      m_end_start_transition(0.5) {
+      m_end_start_transition(0.25),
+      m_use_startup_transition(false) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
 
     m_TMeasyCoeff.pn = 0.0;
+    m_TMeasyCoeff.mu_0 = 0.8;
 }
 
 // -----------------------------------------------------------------------------
@@ -61,6 +66,10 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     ChTire::Initialize(wheel, side);
 
     SetTMeasyParams();
+
+    // Build the lookup table for penetration depth as function of intersection area
+    // (used only with the ChTire::ENVELOPE method for terrain-tire collision detection)
+    ConstructAreaDepthTable(m_unloaded_radius, m_areaDep);
 
     // Initialize contact patch state variables to 0;
     m_states.sx = 0;
@@ -115,17 +124,12 @@ void ChTMeasyTire::RemoveVisualizationAssets() {
     }
 }
 
-double ChTMeasyTire::GetNormalStiffnessForce(double depth) {
-    return m_TMeasyCoeff.cz * depth;
-}
-
-double ChTMeasyTire::GetNormalDampingForce(double depth, double velocity) {
-    return m_TMeasyCoeff.dz * velocity;
-}
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTMeasyTire::Synchronize(double time, const WheelState& wheel_state, const ChTerrain& terrain) {
+void ChTMeasyTire::Synchronize(double time,
+                               const WheelState& wheel_state,
+                               const ChTerrain& terrain,
+                               CollisionType collision_type) {
     // Invoke the base class function.
     ChTire::Synchronize(time, wheel_state, terrain);
 
@@ -146,24 +150,38 @@ void ChTMeasyTire::Synchronize(double time, const WheelState& wheel_state, const
     ChVector<> disc_normal = A.Get_A_Yaxis();
 
     // Assuming the tire is a disc, check contact with terrain
-    m_data.in_contact =
-        disc_terrain_contact_3d(terrain, wheel_state.pos, disc_normal, m_unloaded_radius, m_data.frame, m_data.depth);
+    switch (collision_type) {
+        case CollisionType::SINGLE_POINT:
+            m_data.in_contact = DiscTerrainCollision(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+                                                     m_data.frame, m_data.depth);
+            m_gamma = GetCamberAngle();
+            break;
+        case CollisionType::FOUR_POINTS:
+            m_data.in_contact = DiscTerrainCollision4pt(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+                                                        m_width, m_data.frame, m_data.depth, m_gamma);
+            break;
+        case CollisionType::ENVELOPE:
+            m_data.in_contact = DiscTerrainCollisionEnvelope(terrain, wheel_state.pos, disc_normal, m_unloaded_radius,
+                                                             m_areaDep, m_data.frame, m_data.depth);
+            m_gamma = GetCamberAngle();
+            break;
+    }
     UpdateVerticalStiffness();
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
         ChVector<> vel = wheel_state.lin_vel;
         m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
-        // Generate normal contact force (recall, all forces are reduced to the wheel
-        // center). If the resulting force is negative, the disc is moving away from
-        // the terrain so fast that no contact force is generated.
-        // The sign of the velocity term in the damping function is negative since
-        // a positive velocity means a decreasing depth, not an increasing depth
-        double Fn_mag = GetNormalStiffnessForce(m_data.depth) + GetNormalDampingForce(m_data.depth, -m_data.vel.z());
+        // Generate normal contact force. If the resulting force is negative, the disc
+        // is moving away from the terrain so fast that no contact force is generated.
+        // The sign of the velocity term in the damping function is negative since a
+        // positive velocity means a decreasing depth, not an increasing depth.
+        double Fn_mag = m_TMeasyCoeff.cz * m_data.depth - m_TMeasyCoeff.dz * m_data.vel.z();
 
+        // Skip Force and moment calculations when the normal force = 0
         if (Fn_mag < 0) {
             Fn_mag = 0;
-            m_data.in_contact = false;  // Skip Force and moment calculations when the normal force = 0
+            m_data.in_contact = false;
         }
 
         m_data.normal_force = Fn_mag;
@@ -224,9 +242,10 @@ void ChTMeasyTire::Advance(double step) {
     // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.
     double gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
 
-    // Limit the effect of Fz on handling forces and torques to avoid nonsensical extrapolation of the curve coefficients
+    // Limit the effect of Fz on handling forces and torques to avoid nonsensical extrapolation of the curve
+    // coefficients
     // m_data.normal_force is nevertheless still taken as the applied vertical tire force
-    double Fz = std::min(m_data.normal_force,m_TMeasyCoeff.pn_max);
+    double Fz = std::min(m_data.normal_force, m_TMeasyCoeff.pn_max);
     double Mx = 0;
     double My = 0;
     double Mz = 0;
@@ -328,12 +347,16 @@ void ChTMeasyTire::Advance(double step) {
 
         double Lrad = (m_unloaded_radius - m_data.depth);
         m_rolling_resistance = InterpL(Fz, m_TMeasyCoeff.rrcoeff_pn, m_TMeasyCoeff.rrcoeff_p2n);
-        My = -ChSineStep(m_states.vta,vx_min,0.0,vx_max,1.0) * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
+        My = -ChSineStep(m_states.vta, vx_min, 0.0, vx_max, 1.0) * m_rolling_resistance * m_data.normal_force * Lrad *
+             ChSignum(m_states.omega);
     }
 
     double Ms = 0.0;
 
-    double startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+    double startup = 1;
+    if (m_use_startup_transition) {
+        startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+    }
 
     if (m_consider_relaxation) {
         double vtxs = m_states.vta * hsxn;
@@ -352,16 +375,18 @@ void ChTMeasyTire::Advance(double step) {
             double h = std::min<>(m_stepsize, step - t);
             // limit delay time of bore torque Mb to realistic values
             double tau = ChClamp(relax / m_states.vta, 1.0e-4, 0.25);
-            double gain = 1.0/tau;
-            
+            double gain = 1.0 / tau;
+
             switch (m_integration_method) {
                 case 1: {
                     // explicit Euler, may be unstable
                     // 1. oder tire dynamics
-                    m_states.xe = m_states.xe + h * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
-                                                    (vtxs * m_TMeasyCoeff.dx + fos);
-                    m_states.ye = m_states.ye + h * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
-                                                    (vtys * m_TMeasyCoeff.dy + fos);
+                    m_states.xe = m_states.xe +
+                                  h * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
+                                      (vtxs * m_TMeasyCoeff.dx + fos);
+                    m_states.ye = m_states.ye +
+                                  h * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
+                                      (vtys * m_TMeasyCoeff.dy + fos);
                     // 0. order tire dynamics
                     m_states.Mb_dyn = m_states.Mb_dyn + h * (m_states.Mb - m_states.Mb_dyn) * m_states.vta / relax;
                     break;
@@ -370,17 +395,16 @@ void ChTMeasyTire::Advance(double step) {
                     // semi-implicit Euler, absolutely stable
                     // 1. oder tire dynamics
                     double dFx = -vtxs * m_TMeasyCoeff.cx / (vtxs * m_TMeasyCoeff.dx + fos);
-                    m_states.xe = m_states.xe + h / (1.0 - h * dFx) *
-                                                    (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
-                                                    (vtxs * m_TMeasyCoeff.dx + fos);
+                    m_states.xe = m_states.xe +
+                                  h / (1.0 - h * dFx) * (-vtxs * m_TMeasyCoeff.cx * m_states.xe - fos * m_states.vsx) /
+                                      (vtxs * m_TMeasyCoeff.dx + fos);
                     double dFy = -vtys * m_TMeasyCoeff.cy / (vtys * m_TMeasyCoeff.dy + fos);
-                    m_states.ye = m_states.ye + h / (1.0 - h * dFy) *
-                                                    (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
-                                                    (vtys * m_TMeasyCoeff.dy + fos);
+                    m_states.ye = m_states.ye +
+                                  h / (1.0 - h * dFy) * (-vtys * m_TMeasyCoeff.cy * m_states.ye - fos * m_states.vsy) /
+                                      (vtys * m_TMeasyCoeff.dy + fos);
                     // 0. order tire dynamics
                     double dMb = -gain;
-                    m_states.Mb_dyn =
-                        m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * gain;
+                    m_states.Mb_dyn = m_states.Mb_dyn + h / (1.0 - h * dMb) * (m_states.Mb - m_states.Mb_dyn) * gain;
                     break;
                 }
             }
@@ -426,85 +450,6 @@ void ChTMeasyTire::Advance(double step) {
         Vcross((m_data.frame.pos + m_data.depth * m_data.frame.rot.GetZaxis()) - m_tireforce.point, m_tireforce.force);
 }
 
-bool ChTMeasyTire::disc_terrain_contact_3d(
-    const ChTerrain& terrain,       // [in] reference to terrain system
-    const ChVector<>& disc_center,  // [in] global location of the disc center
-    const ChVector<>& disc_normal,  // [in] disc normal, expressed in the global frame
-    double disc_radius,             // [in] disc radius
-    ChCoordsys<>& contact,          // [out] contact coordinate system (relative to the global frame)
-    double& depth                   // [out] penetration depth (positive if contact occurred)
-) {
-    double dx = 0.1 * m_unloaded_radius;
-    double dy = 0.3 * m_width;
-
-    // Find terrain height below disc center. There is no contact if the disc
-    // center is below the terrain or farther away by more than its radius.
-    double hc = terrain.GetHeight(disc_center.x(), disc_center.y());
-    if (disc_center.z() <= hc || disc_center.z() >= hc + disc_radius)
-        return false;
-
-    // Find the lowest point on the disc. There is no contact if the disc is
-    // (almost) horizontal.
-    ChVector<> dir1 = Vcross(disc_normal, ChVector<>(0, 0, 1));
-    double sinTilt2 = dir1.Length2();
-
-    if (sinTilt2 < 1e-3)
-        return false;
-
-    // Contact point (lowest point on disc).
-    ChVector<> ptD = disc_center + disc_radius * Vcross(disc_normal, dir1 / sqrt(sinTilt2));
-
-    // Approximate the terrain with a plane. Define the projection of the lowest
-    // point onto this plane as the contact point on the terrain.
-    ChVector<> normal = terrain.GetNormal(ptD.x(), ptD.y());
-    ChVector<> longitudinal = Vcross(disc_normal, normal);
-    longitudinal.Normalize();
-    ChVector<> lateral = Vcross(normal, longitudinal);
-
-    // Calculate four contact points in the contact patch
-    ChVector<> ptQ1 = ptD + dx * longitudinal;
-    ptQ1.z() = terrain.GetHeight(ptQ1.x(), ptQ1.y());
-
-    ChVector<> ptQ2 = ptD - dx * longitudinal;
-    ptQ2.z() = terrain.GetHeight(ptQ2.x(), ptQ2.y());
-
-    ChVector<> ptQ3 = ptD + dy * lateral;
-    ptQ3.z() = terrain.GetHeight(ptQ3.x(), ptQ3.y());
-
-    ChVector<> ptQ4 = ptD - dy * lateral;
-    ptQ4.z() = terrain.GetHeight(ptQ4.x(), ptQ4.y());
-
-    // Calculate a smoothed road surface normal
-    ChVector<> rQ2Q1 = ptQ1 - ptQ2;
-    ChVector<> rQ4Q3 = ptQ3 - ptQ4;
-
-    ChVector<> terrain_normal = Vcross(rQ2Q1, rQ4Q3);
-    terrain_normal.Normalize();
-
-    // Find terrain height as average of four points. No contact if lowest point is above
-    // the terrain.
-    ptD = 0.25 * (ptQ1 + ptQ2 + ptQ3 + ptQ4);
-    ChVector<> d = ptD - disc_center;
-    double da = d.Length();
-
-    if (da >= m_unloaded_radius)
-        return false;
-
-    // Calculate an improved value for the camber angle
-    m_gamma = std::asin(Vdot(disc_normal, terrain_normal));
-
-    ChMatrix33<> rot;
-    rot.Set_A_axis(longitudinal, lateral, terrain_normal);
-
-    contact.pos = ptD;
-    contact.rot = rot.Get_A_quaternion();
-
-    depth = m_unloaded_radius - da;
-    assert(depth > 0);
-
-    return true;
-}
-
 void ChTMeasyTire::tmxy_combined(double& f,
                                  double& fos,
                                  double s,
@@ -513,7 +458,6 @@ void ChTMeasyTire::tmxy_combined(double& f,
                                  double fm,
                                  double ss,
                                  double fs) {
-    const double kN2N = 1000.0;
     double df0loc = 0.0;
     if (sm > 0.0) {
         df0loc = std::max(2.0 * fm / sm, df0);
@@ -586,8 +530,6 @@ double ChTMeasyTire::tmy_tireoff(double sy, double nto0, double synto0, double s
 }
 
 void ChTMeasyTire::SetVerticalStiffness(double Cz1, double Cz2) {
-    const double N2kN = 0.001;
-
     double cz1 = N2kN * Cz1;
     double cz2 = N2kN * Cz2;
 
@@ -602,7 +544,6 @@ void ChTMeasyTire::SetVerticalStiffness(double Cz1, double Cz2) {
 
 void ChTMeasyTire::SetVerticalStiffness(std::vector<double>& defl, std::vector<double>& frc) {
     // for numerical reasons we scale down the force values form N to kN
-    double const N2kN = 0.001;
     // polynomial regression of the type y = a*t + b*t^2
     // at least 3 table entries, no identical pairs, no 0,0 pair
     double sat2 = 0.0, sat3 = 0.0, sbt3, sbt4 = 0.0, syt = 0.0, syt2 = 0.0;
@@ -653,7 +594,6 @@ void ChTMeasyTire::SetVerticalStiffness(std::vector<double>& defl, std::vector<d
 }
 
 void ChTMeasyTire::UpdateVerticalStiffness() {
-    const double kN2N = 1000.0;
     m_TMeasyCoeff.cz = kN2N * (m_a1 + 2.0 * m_a2 * m_data.depth);
 }
 
@@ -839,8 +779,8 @@ void ChTMeasyTire::GuessTruck80Par(unsigned int li,   // tire load index
                                    double ratio,      // [] = use 0.75 meaning 75%
                                    double rimDia,     // rim diameter [m]
                                    double pinfl_li,   // inflation pressure at load index
-                                   double pinfl_use   // inflation pressure in this configuration
-) {
+                                   double pinfl_use)  // inflation pressure in this configuration
+{
     double tireLoad = GetTireMaxLoad(li);
     GuessTruck80Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use);
 }
@@ -851,9 +791,8 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,   // tire load force [N]
                                    double ratio,      // [] = use 0.75 meaning 75%
                                    double rimDia,     // rim diameter [m]
                                    double pinfl_li,   // inflation pressure at load index
-                                   double pinfl_use   // inflation pressure in this configuration
-) {
-    const double N2kN = 0.001;
+                                   double pinfl_use)  // inflation pressure in this configuration
+{
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
     double xi = 0.05;                  // damping ratio
@@ -921,8 +860,8 @@ void ChTMeasyTire::GuessPassCar70Par(unsigned int li,   // tire load index
                                      double ratio,      // [] = use 0.75 meaning 75%
                                      double rimDia,     // rim diameter [m]
                                      double pinfl_li,   // inflation pressure at load index
-                                     double pinfl_use   // inflation pressure in this configuration
-) {
+                                     double pinfl_use)  // inflation pressure in this configuration
+{
     double tireLoad = GetTireMaxLoad(li);
     GuessPassCar70Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use);
 }
@@ -932,9 +871,8 @@ void ChTMeasyTire::GuessPassCar70Par(double tireLoad,   // tire load force [N]
                                      double ratio,      // [] = use 0.75 meaning 75%
                                      double rimDia,     // rim diameter [m]
                                      double pinfl_li,   // inflation pressure at load index
-                                     double pinfl_use   // inflation pressure in this configuration
-) {
-    const double N2kN = 0.001;
+                                     double pinfl_use)  // inflation pressure in this configuration
+{
     double secth = tireWidth * ratio;  // tire section height
     double defl_max = 0.16 * secth;    // deflection at tire payload
     double xi = 0.05;                  // damping ration
@@ -1124,8 +1062,6 @@ void ChTMeasyTire::SetDynamicRadiusCoefficients(double rdyn_coeff_1, double rdyn
 
 void ChTMeasyTire::ExportParameterFile(std::string fileName) {
     // Generate a tire parameter file from programmatical setup
-    const double N2kN = 0.001;
-    const double kN2N = 1000.0;
     std::ofstream tpf(fileName);
     if (!tpf.good()) {
         std::cout << GetName() << ": ChTMeasyTire::ExportParameterFile() no export possible!" << std::endl;

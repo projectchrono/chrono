@@ -45,7 +45,6 @@ if(ENABLE_MODULE_IRRLICHT)
             COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
             LINK_FLAGS "${CH_LINKERFLAG_EXE}")
         target_link_libraries(${PROGRAM} 
-        	${CH_IRRLICHTLIB} 
         	ChronoEngine
             ChronoEngine_postprocess
             ChronoEngine_irrlicht)

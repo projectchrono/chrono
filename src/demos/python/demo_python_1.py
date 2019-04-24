@@ -1,19 +1,17 @@
-#-------------------------------------------------------------------------------
-# Name:        demo_python_1
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
+#------------------------------------------------------------------------------
+# Name:        pychrono example
+# Purpose:
+#
+# Author:      Alessandro Tasora
+#
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
-
-
-print ("First tutorial about Chrono::Engine in Python");
+print ("First tutorial for PyChrono: vectors, matrices etc.");
 
 
-# Load the Chrono::Engine module!!!
+# Load the Chrono::Engine core module!
 import pychrono as chrono
 
 # Test logging

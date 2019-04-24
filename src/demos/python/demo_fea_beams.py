@@ -1,23 +1,30 @@
-#-------------------------------------------------------------------------------
-# Name:        demo_python_1
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
-
-
-print ("Tutorial on pychrono with finite elements");
+#------------------------------------------------------------------------------
+# Name:        pychrono example
+# Purpose:
+#
+# Author:      Alessandro Tasora
+#
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
 
-# Load the Chrono::Engine module!!!
 import pychrono as chrono
 import pychrono.fea as fea
 import pychrono.mkl as mkl
 import pychrono.irrlicht as chronoirr
+
+print ("Example: PyChrono using  beam finite elements");
+
+# Change this path to asset path, if running from other working dir. 
+# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
+chrono.SetChronoDataPath("../../../data/")
+
+
+# ---------------------------------------------------------------------
+#
+#  Create the simulation system and add items
+#
 
 
 # Create a Chrono::Engine physical system
@@ -151,13 +158,20 @@ mvisualizebeamC.SetZbufferHide(False)
 my_mesh.AddAsset(mvisualizebeamC)
 
 
+# ---------------------------------------------------------------------
+#
+#  Create an Irrlicht application to visualize the system
+#
+
+
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
 myapplication = chronoirr.ChIrrApp(my_system, 'Test FEA beams', chronoirr.dimension2du(1024,768))
 
 #application.AddTypicalLogo()
-myapplication.AddTypicalSky('../../../data/skybox/')
-myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
+myapplication.AddTypicalSky()
+myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+myapplication.AddTypicalCamera(chronoirr.vector3df(0.1,0.1,0.2))
 myapplication.AddTypicalLights()
 
 # ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items

@@ -17,10 +17,11 @@
 
 #include <array>
 
+#include "chrono/physics/ChLinkBase.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
+
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
-#include "chrono/fea/ChLinkInterface.h"
 
 namespace chrono {
 
@@ -48,8 +49,7 @@ class ChApi ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> 
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
 
-class ChApi ChLinkPointTriface : public ChLinkInterface {
-
+class ChApi ChLinkPointTriface : public ChLinkBase {
   private:
     ChVector<> react;
 
@@ -130,7 +130,7 @@ class ChApi ChLinkPointTriface : public ChLinkInterface {
                            std::shared_ptr<ChNodeFEAxyz> anodeB1,  ///< triangle: corner n.1
                            std::shared_ptr<ChNodeFEAxyz> anodeB2,  ///< triangle: corner n.2
                            std::shared_ptr<ChNodeFEAxyz> anodeB3   ///< triangle: corner n.3
-                           );
+    );
 
     /// Set the area coordinates to specify where the point A is connected on triangle.
     /// These are 0..1 values, one respect to point B2, the other respect to B3
@@ -207,8 +207,7 @@ class ChApi ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 
 /// and a triangular face given by three xyzrot FEA nodes, with linear
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
-class ChApi ChLinkPointTrifaceRot : public ChLinkInterface {
-
+class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
   private:
     ChVector<> react;
 
@@ -289,7 +288,7 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkInterface {
                            std::shared_ptr<ChNodeFEAxyzrot> anodeB1,  ///< triangle: corner n.1
                            std::shared_ptr<ChNodeFEAxyzrot> anodeB2,  ///< triangle: corner n.2
                            std::shared_ptr<ChNodeFEAxyzrot> anodeB3   ///< triangle: corner n.3
-                           );
+    );
 
     /// Set the area coordinates to specify where the point A is connected on triangle.
     /// These are 0..1 values, one respect to point B2, the other respect to B3

@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace uaz {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_uaz
 /// @{
 
 /// UAZBUS chassis subsystem.

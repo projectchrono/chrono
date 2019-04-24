@@ -146,7 +146,7 @@ void AddContainer(ChIrrApp& application) {
 
     application.GetSystem()->AddBody(rotatingBody);
 
-    // An engine between the two
+    // A motor between the two
     auto my_motor = std::make_shared<ChLinkMotorRotationSpeed>();
 
     my_motor->Initialize(rotatingBody, fixedBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));

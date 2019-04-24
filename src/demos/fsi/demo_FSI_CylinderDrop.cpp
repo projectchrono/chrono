@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
         printf("bin=%f,%f,%f\n", bin->GetPos().x(), bin->GetPos().y(), bin->GetPos().z());
         printf("cyl=%f,%f,%f\n", cyl->GetPos().x(), cyl->GetPos().y(), cyl->GetPos().z());
 
-        if (time > 10.0)
+        if (time > paramsH->tFinal)
             break;
     }
 

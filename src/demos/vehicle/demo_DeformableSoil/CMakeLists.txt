@@ -29,7 +29,6 @@ SET(LIBRARIES
     ChronoEngine
     ChronoEngine_irrlicht
     ChronoEngine_vehicle
-    ${CH_IRRLICHTLIB}
 )
 
 #--------------------------------------------------------------

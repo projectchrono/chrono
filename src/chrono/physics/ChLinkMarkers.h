@@ -29,8 +29,11 @@ namespace chrono {
 /// to be set between the two connected markers.
 
 class ChApi ChLinkMarkers : public ChLink {
-
   protected:
+    // Protected constructors.
+    ChLinkMarkers();
+    ChLinkMarkers(const ChLinkMarkers& other);
+
     ChMarker* marker1;  ///< slave coordsys
     ChMarker* marker2;  ///< master coordsys, =0 if liked to ground
 
@@ -54,15 +57,22 @@ class ChApi ChLinkMarkers : public ChLink {
     ChVector<> C_force;     ///< internal force  applied by springs/dampers/actuators
     ChVector<> C_torque;    ///< internal torque applied by springs/dampers/actuators
 
+    // Cached intermediate variables.
+    // These are calculated in UpdateRelMarkerCoords and may be reused in UpdateState.
+    ChVector<> PQw;
+    ChVector<> PQw_dt;
+    ChVector<> PQw_dtdt;
+    ChQuaternion<> q_AD;
+    ChQuaternion<> q_BC;
+    ChQuaternion<> q_8;
+    ChVector<> q_4;
+
   public:
-    ChLinkMarkers();
-    ChLinkMarkers(const ChLinkMarkers& other);
     virtual ~ChLinkMarkers() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMarkers* Clone() const override { return new ChLinkMarkers(*this); }
 
-  public:
     /// Return the 1st referenced marker (the 'slave' marker, owned by 1st body)
     ChMarker* GetMarker1() { return marker1; }
     /// Return the 2nd referenced marker (the 'master' marker, owned by 2nd body)
@@ -84,7 +94,7 @@ class ChApi ChLinkMarkers : public ChLink {
     /// The position of mark2 is used as link's position and main reference.
     virtual void Initialize(std::shared_ptr<ChMarker> mark1,  ///< first  marker to join
                             std::shared_ptr<ChMarker> mark2   ///< second marker to join (master)
-                            );
+    );
 
     /// Use this function after link creation, to initialize the link from
     /// two joined rigid bodies.
@@ -95,7 +105,7 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual void Initialize(std::shared_ptr<ChBody> mbody1,  ///< first  body to join
                             std::shared_ptr<ChBody> mbody2,  ///< second body to join
                             const ChCoordsys<>& mpos         ///< the current absolute pos.& alignment.
-                            );
+    );
 
     /// Use this function after link creation, to initialize the link from
     /// two joined rigid bodies.
@@ -106,10 +116,10 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual void Initialize(
         std::shared_ptr<ChBody> mbody1,  ///< first  body to join
         std::shared_ptr<ChBody> mbody2,  ///< second body to join
-        bool pos_are_relative,      ///< if =true, following two positions are relative to bodies. If false, are absolute.
+        bool pos_are_relative,  ///< if =true, following two positions are relative to bodies. If false, are absolute.
         const ChCoordsys<>& mpos1,  ///< the position & alignment of 1st marker (relative to body1 cords, or absolute)
         const ChCoordsys<>& mpos2   ///< the position & alignment of 2nd marker (relative to body2 cords, or absolute)
-        );
+    );
 
     /// Get the link coordinate system, expressed relative to Body2 (the 'master'
     /// body). This represents the 'main' reference of the link: reaction forces
@@ -125,11 +135,10 @@ class ChApi ChLinkMarkers : public ChLink {
     // UPDATING FUNCTIONS
     //
 
-    /// Updates auxiliary vars relM, relM_dt, relM_dtdt,
-    /// dist, dist_dt et simila.
+    /// Updates auxiliary quantities for all relative degrees of freedom of the two markers.
     virtual void UpdateRelMarkerCoords();
 
-    ///  Updates auxiliary forces caused by springs/dampers/etc. which may
+    /// Updates auxiliary forces caused by springs/dampers/etc. which may
     /// be connected between the two bodies of the link.
     /// By default, it adds the forces which might have been added by the
     /// user using Set_Scr_force() and Set_Scr_torque(). Note, these forces
@@ -137,12 +146,7 @@ class ChApi ChLinkMarkers : public ChLink {
     /// and their application point is the origin of marker1 (the SLAVE marker).
     virtual void UpdateForces(double mytime);
 
-    // -----------COMPLETE UPDATE.
-    // sequence:
-    //			UpdateTime;
-    //          UpdateRelMarkerCoords;
-    //			UpdateForces;
-
+    /// Complete link update: UpdateTime -> UpdateRelMarkerCoords -> UpdateForces.
     virtual void Update(double mytime, bool update_assets = true) override;
 
     //
@@ -217,8 +221,7 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChLinkMarkers,0)
-
+CH_CLASS_VERSION(ChLinkMarkers, 0)
 
 }  // end namespace chrono
 

@@ -20,45 +20,25 @@
 
 namespace chrono {
 
-//
-// FAST MACROS TO SPEEDUP CODE
-//
-
-//#define SetZero(els) {for (int i=0; i<els; ++i) this->address[i]=0; }
-//#define ElementsCopy(to,from,els) {for (int i=0; i<els; ++i) to[i]=(Real)from[i]; }
-
-///
 /// ChMatrixDynamic
 ///
-///  Specialized 'resizeable' matrix class where the elements are allocated on heap.
+/// Specialized 'resizeable' matrix class where the elements are allocated on heap.
 /// The size of the matrix can be known even at compile-time, and the matrix can
 /// be freely resized also after creation. The size is unlimited (until you have memory).
-///  Although this is the most generic type of matrix, please do not use it
+/// Although this is the most generic type of matrix, please do not use it
 /// where you know in advance its size because there are more efficient
 /// types for those matrices with 'static' size (for example, 3x3 rotation
 /// matrices are faster if created as ChMatrix33).
 
 template <class Real>
 class ChMatrixDynamic : public ChMatrix<Real> {
-  private:
-    //
-    // DATA
-    //
-
-    /// [simply use the  "Real* address" pointer of the base class
-
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     /// The default constructor builds a 3x3 matrix.
     ChMatrixDynamic() {
         this->rows = 3;
         this->columns = 3;
         this->address = new Real[9];
-        for (int i = 0; i < 9; ++i)
-            this->address[i] = 0;
+        std::memset(this->address, 0, 9 * sizeof(Real));
     }
 
     /// Copy constructor
@@ -66,9 +46,7 @@ class ChMatrixDynamic : public ChMatrix<Real> {
         this->rows = msource.GetRows();
         this->columns = msource.GetColumns();
         this->address = new Real[this->rows * this->columns];
-        // ElementsCopy(this->address, msource.GetAddress(), this->rows*this->columns);
-        for (int i = 0; i < this->rows * this->columns; ++i)
-            this->address[i] = (Real)msource.GetAddress()[i];
+        std::memcpy(this->address, msource.address, this->rows * this->columns * sizeof(Real));
     }
 
     /// Copy constructor from all types of base matrices
@@ -77,14 +55,12 @@ class ChMatrixDynamic : public ChMatrix<Real> {
         this->rows = msource.GetRows();
         this->columns = msource.GetColumns();
         this->address = new Real[this->rows * this->columns];
-        // ElementsCopy(this->address, msource.GetAddress(), this->rows*this->columns);
         for (int i = 0; i < this->rows * this->columns; ++i)
             this->address[i] = (Real)msource.GetAddress()[i];
     }
 
     /// The constructor for a generic nxm matrix.
-    /// Rows and columns cannot be zero or negative.
-    ChMatrixDynamic(const int row, const int col) {
+    ChMatrixDynamic(int row, int col) {
         assert(row >= 0 && col >= 0);
         this->rows = row;
         this->columns = col;
@@ -94,12 +70,10 @@ class ChMatrixDynamic : public ChMatrix<Real> {
         this->address = new Real[row * col];
 
 #endif
-        // SetZero(row*col);
-        for (int i = 0; i < this->rows * this->columns; ++i)
-            this->address[i] = 0;
+        std::memset(this->address, 0, this->rows * this->columns * sizeof(Real));
     }
 
-    /// Destructor
+    /// Destructor.
     /// Delete allocated heap mem.
     virtual ~ChMatrixDynamic() { delete[] this->address; }
 
@@ -168,9 +142,7 @@ class ChMatrixDynamic : public ChMatrix<Real> {
             this->columns = ncols;
             delete[] this->address;
             this->address = new Real[this->rows * this->columns];
-            // SetZero(this->rows*this->columns);
-            for (int i = 0; i < this->rows * this->columns; ++i)
-                this->address[i] = 0;
+            std::memset(this->address, 0, this->rows * this->columns * sizeof(Real));
         }
     }
 };

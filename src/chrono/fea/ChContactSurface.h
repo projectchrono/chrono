@@ -23,6 +23,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_contact
+/// @{
+
 /// Base class for contact surfaces in FEA meshes.
 /// Use children classes like ChContactSurfaceNodeCloud or ChContactSurfaceMesh
 /// that implement practical functionalities.
@@ -53,7 +56,7 @@ class ChApi ChContactSurface {
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() { return matsurface; }
 
     /// Functions to interface this with ChPhysicsItem container
     virtual void SurfaceSyncCollisionModels() = 0;
@@ -65,6 +68,8 @@ class ChApi ChContactSurface {
 
     ChMesh* mmesh;
 };
+
+/// @} fea_contact
 
 }  // end namespace fea
 }  // end namespace chrono

@@ -109,7 +109,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
 
         fluidDynamics->IntegrateSPH(&(fsiData->sphMarkersD1), &(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2),
-                                    &(fsiData->fsiMeshD), 0.5 * paramsH->dT);
+                                    &(fsiData->fsiMeshD), 1.0 * paramsH->dT);
 
         bceWorker->Rigid_Forces_Torques(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
 

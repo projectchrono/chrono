@@ -151,5 +151,13 @@
 
 @CHRONO_HAS_HDF5@
 
+// -----------------------------------------------------------------------------
+
+// If Google Test and Benchmark are enabled and available, then
+//   #define CHRONO_HAS_GTEST
+//   #define CHRONO_HAS_GBENCHMARK
+
+@CHRONO_HAS_GTEST@
+@CHRONO_HAS_GBENCHMARK@
 
 #endif

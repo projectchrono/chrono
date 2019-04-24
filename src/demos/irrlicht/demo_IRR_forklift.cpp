@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
 // Demo code about
@@ -18,15 +18,16 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkLinActuator.h"
-#include "chrono/assets/ChTexture.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChSystemNSC.h"
+
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-
-#include <irrlicht.h>
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -65,11 +66,11 @@ class MySimpleForklift {
     // .. back wheel:
     std::shared_ptr<ChBody> spindleB;
     std::shared_ptr<ChBody> wheelB;
-    std::shared_ptr<ChLinkEngine> link_steer_engineB;
-    std::shared_ptr<ChLinkEngine> link_engineB;
+    std::shared_ptr<ChLinkMotorRotationAngle> link_steer_engineB;
+    std::shared_ptr<ChLinkMotorRotationSpeed> link_engineB;
     // ..the vertical arm
     std::shared_ptr<ChBody> arm;
-    std::shared_ptr<ChLinkEngine> link_engineArm;
+    std::shared_ptr<ChLinkMotorRotationAngle> link_engineArm;
     // ..the fork
     std::shared_ptr<ChBody> fork;
     std::shared_ptr<ChLinkLinActuator> link_actuatorFork;
@@ -194,14 +195,11 @@ class MySimpleForklift {
         spindleB->SetMass(10);
         spindleB->SetInertiaXX(ChVector<>(1, 1, 1));
 
-
         // .. create the vertical steering link between the spindle structure and the truss
-        link_steer_engineB = std::make_shared<ChLinkEngine>();
-        link_steer_engineB->Initialize(
-            spindleB, truss,
-            ChCoordsys<>(COG_wheelB, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X)));  // vertical axis
-        link_steer_engineB->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
-        link_steer_engineB->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+        link_steer_engineB = std::make_shared<ChLinkMotorRotationAngle>();
+        link_steer_engineB->SetAngleFunction(std::make_shared<ChFunction_Const>(0));
+        link_steer_engineB->Initialize(spindleB, truss,
+                                       ChFrame<>(COG_wheelB, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_X)));
         app->GetSystem()->AddLink(link_steer_engineB);
 
         // ..the back wheel
@@ -228,13 +226,10 @@ class MySimpleForklift {
         auto wheelB_texture = std::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
         wheelB_asset_assembly->AddAsset(wheelB_texture);
 
-
         // .. create the motor between the back wheel and the steering spindle structure
-        link_engineB = std::make_shared<ChLinkEngine>();
-        link_engineB->Initialize(wheelB, spindleB,
-                                 ChCoordsys<>(COG_wheelB, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        link_engineB->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
-        link_engineB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
+        link_engineB = std::make_shared<ChLinkMotorRotationSpeed>();
+        link_engineB->SetSpeedFunction(std::make_shared<ChFunction_Const>(0));
+        link_engineB->Initialize(wheelB, spindleB, ChFrame<>(COG_wheelB, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         app->GetSystem()->AddLink(link_engineB);
 
         // ..the arm
@@ -251,13 +246,10 @@ class MySimpleForklift {
         arm_mesh->SetFilename(GetChronoDataFile("forklift_arm.obj"));
         arm_asset_assembly->AddAsset(arm_mesh);
 
-
         // .. create the revolute joint between the arm and the truss
-        link_engineArm = std::make_shared<ChLinkEngine>();  // right, front, upper, 1
-        link_engineArm->Initialize(arm, truss,
-                                   ChCoordsys<>(POS_pivotarm, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        link_engineArm->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_LOCK);
-        link_engineArm->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+        link_engineArm = std::make_shared<ChLinkMotorRotationAngle>();
+        link_engineArm->SetAngleFunction(std::make_shared<ChFunction_Const>(0));
+        link_engineArm->Initialize(arm, truss, ChFrame<>(POS_pivotarm, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
         app->GetSystem()->AddLink(link_engineArm);
 
         // ..the fork
@@ -374,19 +366,19 @@ class MyEventReceiver : public IEventReceiver {
         if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
             switch (event.KeyInput.Key) {
                 case irr::KEY_KEY_Q:
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_steer_engineB->Get_rot_funct()))
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_steer_engineB->GetAngleFunction()))
                         mfun->Set_yconst(-0.6 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_W:
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_steer_engineB->Get_rot_funct()))
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_steer_engineB->GetAngleFunction()))
                         mfun->Set_yconst(+0.3 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_A:
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineB->Get_spe_funct()))
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineB->GetSpeedFunction()))
                         mfun->Set_yconst(0.5 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_Z:
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineB->Get_spe_funct()))
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineB->GetSpeedFunction()))
                         mfun->Set_yconst(-0.5 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_S:
@@ -398,11 +390,11 @@ class MyEventReceiver : public IEventReceiver {
                         mfun->Set_yconst(-0.05 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_D:
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineArm->Get_rot_funct()))
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineArm->GetAngleFunction()))
                         mfun->Set_yconst(0.005 + mfun->Get_yconst());
                     return true;
                 case irr::KEY_KEY_C:
-                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineArm->Get_rot_funct()))
+                    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineArm->GetAngleFunction()))
                         mfun->Set_yconst(-0.005 + mfun->Get_yconst());
                     return true;
                 default:

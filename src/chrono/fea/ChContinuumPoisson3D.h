@@ -20,10 +20,12 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup chrono_fea
+/// @{
+
 /// Class for the basic properties of scalar fields P in 3D FEM problems
 /// that can be described by Laplace PDEs of type
 ///    rho dP/dt + div [C] grad P = 0
-
 class ChApi ChContinuumPoisson3D : public ChContinuumMaterial {
   protected:
     ChMatrixDynamic<> ConstitutiveMatrix;  // constitutive matrix
@@ -44,6 +46,8 @@ class ChApi ChContinuumPoisson3D : public ChContinuumMaterial {
     /// Get the rho multiplier for the 'rho dP/dt term', if any (default, none)
     virtual double Get_DtMultiplier() { return 0; }
 };
+
+/// @} chrono_fea
 
 }  // end namespace fea
 }  // end namespace chrono

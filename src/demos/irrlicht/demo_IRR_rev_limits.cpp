@@ -88,9 +88,9 @@ int main(int argc, char* argv[]) {
     // Add limits to the Z rotation of the revolute joint
     double min_angle = 0;
     double max_angle = 0.75 * CH_C_PI;
-    rev->GetLimit_Rz()->Set_active(true);
-    rev->GetLimit_Rz()->Set_min(min_angle);
-    rev->GetLimit_Rz()->Set_max(max_angle);
+    rev->GetLimit_Rz().SetActive(true);
+    rev->GetLimit_Rz().SetMin(min_angle);
+    rev->GetLimit_Rz().SetMax(max_angle);
 
     // Initialize the joint specifying a coordinate system (expressed in the absolute frame).
     rev->Initialize(ground, pend, ChCoordsys<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));

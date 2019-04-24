@@ -275,7 +275,7 @@ class DegressiveDamperForce : public ChLinkSpringCB::ForceFunctor {
     /// Fallback to LinearDamperForce
     DegressiveDamperForce(double c_compression)
         : m_c_compression(c_compression), m_degr_compression(0), m_c_expansion(c_compression), m_degr_expansion(0) {}
-    
+
     /// Fallback to LinearDamperForce with different compression and expansion bins
     DegressiveDamperForce(double c_compression, double c_expansion)
         : m_c_compression(c_compression), m_degr_compression(0), m_c_expansion(c_expansion), m_degr_expansion(0) {}
@@ -488,7 +488,8 @@ enum class TireModelType {
 enum class PowertrainModelType {
     SHAFTS,      ///< powertrain based on ChShaft elements
     SIMPLE_MAP,  ///< simple powertrain model (based on engine-map)
-    SIMPLE       ///< simple powertrain model (similar to a DC motor)
+    SIMPLE,      ///< simple powertrain model (similar to a DC motor)
+    SIMPLE_CVT   ///< simple cvt powertrain model (like a DC motor / CVT gearbox)
 };
 
 /// Enum for available wheeled-vehicle suspension model templates.

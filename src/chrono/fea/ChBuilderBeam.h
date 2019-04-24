@@ -20,6 +20,7 @@
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChContactSurfaceNodeCloud.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -27,11 +28,12 @@
 
 #include "chrono/geometry/ChLineBspline.h"
 
-
 namespace chrono {
 namespace fea {
 
-class ChContactSurfaceNodeCloud;
+/// @addtogroup fea_utils
+/// @{
+
 
 /// Class for an helper object that provides easy functions to create
 /// complex beams, for example subdivides a segment in multiple finite
@@ -92,7 +94,6 @@ class ChApi ChBuilderBeam {
 /// Class for an helper object that provides easy functions to create
 /// complex beams of ChElementCableANCF class, for example subdivides a segment
 /// in multiple finite elements.
-
 class ChApi ChBuilderBeamANCF {
   protected:
     std::vector<std::shared_ptr<ChElementCableANCF> > beam_elems;
@@ -160,7 +161,6 @@ class ChApi ChBuilderBeamANCFFullyPar {
 /// Class for an helper object that provides easy functions to create
 /// complex beams of ChElementBeamIGA class, for example subdivides a segment
 /// in multiple finite elements.
-
 class ChApi ChBuilderBeamIGA {
   protected:
     std::vector<std::shared_ptr<ChElementBeamIGA> > beam_elems;
@@ -201,12 +201,7 @@ class ChApi ChBuilderBeamIGA {
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> >& GetLastBeamNodes() { return beam_nodes; }
 };
 
-
-
-
-/// Class for object that continuously extrude a beam
-/// with prescribed velocity
-
+/// Class for object that continuously extrude a beam with prescribed velocity.
 class ChApi ChExtruderBeamEuler {
   protected:
     std::vector<std::shared_ptr<ChElementBeamEuler> > beam_elems;
@@ -263,9 +258,7 @@ class ChApi ChExtruderBeamEuler {
 
 
 
-/// Class for object that continuously extrude a beam
-/// with prescribed velocity
-
+/// Class for object that continuously extrude a beam with prescribed velocity.
 class ChApi ChExtruderBeamIGA {
   protected:
     std::vector<std::shared_ptr<ChElementBeamIGA> > beam_elems;
@@ -323,10 +316,7 @@ class ChApi ChExtruderBeamIGA {
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> >& GetLastBeamNodes() { return beam_nodes; }
 };
 
-
-
-
-
+/// @} fea_utils
 
 }  // end namespace fea
 }  // end namespace chrono

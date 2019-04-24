@@ -128,12 +128,10 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkBase.cpp
     physics/ChLink.cpp
     physics/ChLinkDistance.cpp
-    physics/ChLinkMasked.cpp
     physics/ChLinkMarkers.cpp
     physics/ChLinkLock.cpp
     physics/ChLinkBrake.cpp
     physics/ChLinkBushing.cpp
-    physics/ChLinkEngine.cpp
     physics/ChLinkGear.cpp
     physics/ChLinkPulley.cpp
     physics/ChLinkLinActuator.cpp
@@ -236,14 +234,12 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkBrake.h
     physics/ChLinkBushing.h
     physics/ChLinkDistance.h
-    physics/ChLinkEngine.h
     physics/ChLinkForce.h
     physics/ChLinkGear.h
     physics/ChLinkLinActuator.h
     physics/ChLinkLock.h
     physics/ChLinkMarkers.h
     physics/ChLinkMask.h
-    physics/ChLinkMasked.h
     physics/ChLinkPointSpline.h
     physics/ChLinkPulley.h
     physics/ChLinksAll.h
@@ -430,7 +426,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChPolarDecomposition.h
     fea/ChMatrixCorotation.h
     fea/ChVisualizationFEAmesh.h
-    fea/ChLinkInterface.h
     fea/ChLinkPointFrame.h
     fea/ChLinkDirFrame.h
     fea/ChLinkPointPoint.h
@@ -1080,6 +1075,10 @@ set(ChronoEngine_utils_HEADERS
     utils/ChParserOpenSim.h
     utils/ChConvexHull.h
 )
+
+if(BUILD_BENCHMARKING)
+    set(ChronoEngine_utils_HEADERS ${ChronoEngine_utils_HEADERS} utils/ChBenchmark.h)
+endif()
 
 source_group(utils FILES
     ${ChronoEngine_utils_SOURCES}

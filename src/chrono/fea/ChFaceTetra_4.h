@@ -20,6 +20,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Face of a linear ChElementTetra_4 tetrahedron.
 /// This is a proxy to the tetrahedron. It can be used to apply pressure loads.
 /// Note, face_id is the number of the vertex to whom it is opposed: 0,1,2,3.
@@ -157,6 +160,8 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
         return Vcross(p1 - p0, p2 - p0).GetNormalized();
     }
 };
+
+/// @} fea_elements
 
 }  // end namespace fea
 }  // end namespace chrono

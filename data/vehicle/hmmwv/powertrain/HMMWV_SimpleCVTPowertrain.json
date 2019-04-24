@@ -1,0 +1,10 @@
+{
+  "Name":                    "HMMWV Simplified CVT Powertrain 6.2 L V8 Diesel",
+  "Type":                    "Powertrain",
+  "Template":                "SimpleCVTPowertrain",
+
+  "Forward Gear Ratio":      0.3,
+  "Reverse Gear Ratio":      -0.3,
+  "Maximum Engine Torque":   330.0,
+  "Maximum Engine Power":    110000
+}

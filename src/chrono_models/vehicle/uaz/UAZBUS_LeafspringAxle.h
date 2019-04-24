@@ -89,6 +89,8 @@ class CH_MODELS_API UAZBUS_LeafspringAxle : public ChLeafspringAxle {
     static const double m_damperDegressivityCompression;
 };
 
+/// @} vehicle_models_uaz
+
 }  // end namespace uaz
 }  // end namespace vehicle
 }  // end namespace chrono

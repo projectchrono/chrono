@@ -874,6 +874,7 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
                                            bool second) {
+	/*
     ChVector<> m_p1_loc = this->Point_World2Body(abs_point);
     ChMatrix33<> Jx1, Jr1;
     ChMatrix33<> Ps1, Jtemp;
@@ -894,6 +895,73 @@ void ChBody::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
     jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
+	*/
+	
+	// UNROLLED VERSION - FASTER
+	ChVector<> p1 = this->Point_World2Body(abs_point);
+	double temp00 = Amatrix(0,2)* contact_plane(0,0) +  Amatrix(1,2)* contact_plane(1,0) + Amatrix(2,2)* contact_plane(2,0);
+	double temp01 = Amatrix(0,2)* contact_plane(0,1) +  Amatrix(1,2)* contact_plane(1,1) + Amatrix(2,2)* contact_plane(2,1);
+	double temp02 = Amatrix(0,2)* contact_plane(0,2) +  Amatrix(1,2)* contact_plane(1,2) + Amatrix(2,2)* contact_plane(2,2);
+	double temp10 = Amatrix(0,1)* contact_plane(0,0) +  Amatrix(1,1)* contact_plane(1,0) + Amatrix(2,1)* contact_plane(2,0);
+	double temp11 = Amatrix(0,1)* contact_plane(0,1) +  Amatrix(1,1)* contact_plane(1,1) + Amatrix(2,1)* contact_plane(2,1);
+	double temp12 = Amatrix(0,1)* contact_plane(0,2) +  Amatrix(1,1)* contact_plane(1,2) + Amatrix(2,1)* contact_plane(2,2);
+	double temp20 = Amatrix(0,0)* contact_plane(0,0) +  Amatrix(1,0)* contact_plane(1,0) + Amatrix(2,0)* contact_plane(2,0);
+	double temp21 = Amatrix(0,0)* contact_plane(0,1) +  Amatrix(1,0)* contact_plane(1,1) + Amatrix(2,0)* contact_plane(2,1);
+	double temp22 = Amatrix(0,0)* contact_plane(0,2) +  Amatrix(1,0)* contact_plane(1,2) + Amatrix(2,0)* contact_plane(2,2);
+
+	//Jx1 =
+	// [ c00, c10, c20]
+	// [ c01, c11, c21]	
+	// [ c02, c12, c22]
+	//Jr1 = [ p1y*(temp00) - p1z*(temp10), p1z*(temp20) - p1x*(temp00), p1x*(temp10) - p1y*(temp20);
+    //       p1y*(temp01) - p1z*(temp11), p1z*(temp21) - p1x*(temp01), p1x*(temp11) - p1y*(temp21);
+    //       p1y*(temp02) - p1z*(temp12), p1z*(temp22) - p1x*(temp02), p1x*(temp12) - p1y*(temp22)];
+	if (!second) {
+		jacobian_tuple_N.Get_Cq()->SetElementN(0, -contact_plane(0, 0));
+		jacobian_tuple_N.Get_Cq()->SetElementN(1, -contact_plane(1, 0));
+		jacobian_tuple_N.Get_Cq()->SetElementN(2, -contact_plane(2, 0));
+		jacobian_tuple_N.Get_Cq()->SetElementN(3, -p1.y()*(temp00) + p1.z()*(temp10));
+		jacobian_tuple_N.Get_Cq()->SetElementN(4, -p1.z()*(temp20) + p1.x()*(temp00));
+		jacobian_tuple_N.Get_Cq()->SetElementN(5, -p1.x()*(temp10) + p1.y()*(temp20));
+
+		jacobian_tuple_U.Get_Cq()->SetElementN(0, -contact_plane(0, 1));
+		jacobian_tuple_U.Get_Cq()->SetElementN(1, -contact_plane(1, 1));
+		jacobian_tuple_U.Get_Cq()->SetElementN(2, -contact_plane(2, 1));
+		jacobian_tuple_U.Get_Cq()->SetElementN(3, -p1.y()*(temp01) + p1.z()*(temp11));
+		jacobian_tuple_U.Get_Cq()->SetElementN(4, -p1.z()*(temp21) + p1.x()*(temp01));
+		jacobian_tuple_U.Get_Cq()->SetElementN(5, -p1.x()*(temp11) + p1.y()*(temp21));
+
+		jacobian_tuple_V.Get_Cq()->SetElementN(0, -contact_plane(0, 2));
+		jacobian_tuple_V.Get_Cq()->SetElementN(1, -contact_plane(1, 2));
+		jacobian_tuple_V.Get_Cq()->SetElementN(2, -contact_plane(2, 2));
+		jacobian_tuple_V.Get_Cq()->SetElementN(3, -p1.y()*(temp02) + p1.z()*(temp12));
+		jacobian_tuple_V.Get_Cq()->SetElementN(4, -p1.z()*(temp22) + p1.x()*(temp02));
+		jacobian_tuple_V.Get_Cq()->SetElementN(5, -p1.x()*(temp12) + p1.y()*(temp22));
+	}
+	else
+	{
+		jacobian_tuple_N.Get_Cq()->SetElementN(0, contact_plane(0, 0));
+		jacobian_tuple_N.Get_Cq()->SetElementN(1, contact_plane(1, 0));
+		jacobian_tuple_N.Get_Cq()->SetElementN(2, contact_plane(2, 0));
+		jacobian_tuple_N.Get_Cq()->SetElementN(3, p1.y()*(temp00) - p1.z()*(temp10));
+		jacobian_tuple_N.Get_Cq()->SetElementN(4, p1.z()*(temp20) - p1.x()*(temp00));
+		jacobian_tuple_N.Get_Cq()->SetElementN(5, p1.x()*(temp10) - p1.y()*(temp20));
+
+		jacobian_tuple_U.Get_Cq()->SetElementN(0, contact_plane(0, 1));
+		jacobian_tuple_U.Get_Cq()->SetElementN(1, contact_plane(1, 1));
+		jacobian_tuple_U.Get_Cq()->SetElementN(2, contact_plane(2, 1));
+		jacobian_tuple_U.Get_Cq()->SetElementN(3, p1.y()*(temp01) - p1.z()*(temp11));
+		jacobian_tuple_U.Get_Cq()->SetElementN(4, p1.z()*(temp21) - p1.x()*(temp01));
+		jacobian_tuple_U.Get_Cq()->SetElementN(5, p1.x()*(temp11) - p1.y()*(temp21));
+
+		jacobian_tuple_V.Get_Cq()->SetElementN(0, contact_plane(0, 2));
+		jacobian_tuple_V.Get_Cq()->SetElementN(1, contact_plane(1, 2));
+		jacobian_tuple_V.Get_Cq()->SetElementN(2, contact_plane(2, 2));
+		jacobian_tuple_V.Get_Cq()->SetElementN(3, p1.y()*(temp02) - p1.z()*(temp12));
+		jacobian_tuple_V.Get_Cq()->SetElementN(4, p1.z()*(temp22) - p1.x()*(temp02));
+		jacobian_tuple_V.Get_Cq()->SetElementN(5, p1.x()*(temp12) - p1.y()*(temp22));
+	}
+	
 }
 
 void ChBody::ComputeJacobianForRollingContactPart(

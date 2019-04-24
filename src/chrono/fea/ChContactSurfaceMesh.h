@@ -25,6 +25,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_contact
+/// @{
+
 /// Contact element of triangular type.
 /// This can be used to 'tessellate' a generic surface like the
 /// outer of tetrahedral meshes
@@ -68,6 +71,8 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     // INTERFACE TO ChContactable
     //
 
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_333; }
+	
     /// Access variables for node 1
     virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }
     /// Access variables for node 2
@@ -251,7 +256,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -388,6 +393,8 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     //
     // INTERFACE TO ChContactable
     //
+
+	virtual ChContactable::eChContactableType GetContactableType() const override { return CONTACTABLE_666; }
 
     /// Access variables for node 1
     virtual ChVariables* GetVariables1() override { return &mnode1->Variables(); }
@@ -577,7 +584,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurface() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -728,6 +735,8 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     std::vector<std::shared_ptr<ChContactTriangleXYZROT> >
         vfaces_rot;  //  faces that collide (for nodes with rotation too)
 };
+
+/// @} fea_contact
 
 }  // end namespace fea
 }  // end namespace chrono

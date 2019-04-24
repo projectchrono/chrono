@@ -16,17 +16,6 @@ if(NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE USE_PARALLEL_DOUBLE)
   mark_as_advanced(FORCE USE_PARALLEL_SIMD)
   mark_as_advanced(FORCE USE_PARALLEL_CUDA)
-
-  # GCC > 4.9 does not support CUDA (<= 8.0) by default. 
-  # Users may explicitly select CUDA support if they are sure that their compiler
-  # does make use of any conflicting features, such as C++14.
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
-      message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION} does not support USE_PARALLEL_CUDA by default")
-      set(USE_PARALLEL_CUDA OFF CACHE OFF "")
-    endif()
-  endif()
-
   return()
 endif()
 
@@ -78,6 +67,12 @@ ENDIF()
 
 find_package(Thrust)
 
+if(NOT THRUST_FOUND)
+  mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
+else()
+  mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
+endif()
+
 # ----- Blaze library -----
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -87,6 +82,22 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
+
+# Extract Blaze version
+find_file(BLAZE_VERSION_FILENAME "Version.h" PATHS "${BLAZE_DIR}/blaze/system")
+mark_as_advanced(FORCE BLAZE_VERSION_FILENAME)
+if(BLAZE_VERSION_FILENAME)
+  file(READ ${BLAZE_VERSION_FILENAME} BLAZE_VERSION_FILE)
+  message(STATUS "Blaze version file: ${BLAZE_VERSION_FILENAME}")
+  string(REGEX MATCH "#define BLAZE_MAJOR_VERSION ([0-9]*)" _BLAZE_MAJOR_VERSION ${BLAZE_VERSION_FILE})
+  set(BLAZE_MAJOR_VERSION ${CMAKE_MATCH_1})
+  string(REGEX MATCH "#define BLAZE_MINOR_VERSION ([0-9]*)" _BLAZE_MINOR_VERSION ${BLAZE_VERSION_FILE})
+  set(BLAZE_MINOR_VERSION ${CMAKE_MATCH_1})
+  set(BLAZE_VERSION "${BLAZE_MAJOR_VERSION}.${BLAZE_MINOR_VERSION}")
+  message(STATUS "Blaze version: ${BLAZE_VERSION}")
+else()
+  message(FATAL_ERROR "Cannot find blaze/system/Version.h.  Set BLAZE_DIR.")
+endif()
 
 # ----- Configure Blaze and Thrust -----
 
@@ -103,15 +114,25 @@ ELSE()
   add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP)
 ENDIF()
 
-# ----- BOOST -- required for Blaze -----
+# ----- BOOST -- required only for older versions of Blaze -----
 
-set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
-find_package(Boost REQUIRED)
-
-if (Boost_FOUND)
-  message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
+if (BLAZE_VERSION VERSION_LESS "3.2")
+  set(BOOST_REQUIRED "TRUE")
 else()
-  mark_as_advanced(CLEAR BOOST_ROOT)
+  set(BOOST_REQUIRED "FALSE")
+endif()
+
+if(BOOST_REQUIRED)
+  set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
+  find_package(Boost REQUIRED)
+
+  if (Boost_FOUND)
+    message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
+  else()
+    mark_as_advanced(CLEAR BOOST_ROOT)
+    message(FATAL_ERROR "Boost required for Blaze version ${BLAZE_VERSION}. Specify BOOST_ROOT or use Blaze 3.2 or newer.")
+  endif()
+
 endif()
 
 # ----------------------------------------------------------------------------
@@ -134,13 +155,18 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h"
 # Collect all additional include directories necessary for the PARALLEL module
 # ------------------------------------------------------------------------------
 
-SET(CH_PARALLEL_INCLUDES
+set(CH_PARALLEL_INCLUDES
     ${BLAZE_DIR}
-    ${Boost_INCLUDE_DIRS}
     ${THRUST_INCLUDE_DIR}
 )
 
+if(BOOST_REQUIRED)
+  set(CH_PARALLEL_INCLUDES "${CH_PARALLEL_INCLUDES};${Boost_INCLUDE_DIRS}")
+endif()
+
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
+
+message(STATUS "Include dirs: ${CH_PARALLEL_INCLUDES}")
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
@@ -449,18 +475,3 @@ IF(USE_PARALLEL_CUDA)
           DESTINATION include/chrono_parallel
           FILES_MATCHING PATTERN "*.cuh")
 ENDIF()
-
-mark_as_advanced(FORCE
-    CUDA_BUILD_CUBIN
-    CUDA_BUILD_EMULATION
-    CUDA_SEPARABLE_COMPILATION
-    CUDA_SDK_ROOT_DIR
-    CUDA_VERBOSE_BUILD
-    CUDA_HOST_COMPILER)
-
-
-
-
-
-
-

@@ -105,8 +105,8 @@ int main(int argc, char* argv[]) {
     // The limit value relates to the Z component of the relative marker position 2->1
     auto prismatic1 = std::make_shared<ChLinkLockPrismatic>();
     prismatic1->Initialize(ground, slider1, ChCoordsys<>(ChVector<>(0, 0, -1), Q_from_AngY(CH_C_PI_2)));
-    prismatic1->GetLimit_Z()->Set_active(true);
-    prismatic1->GetLimit_Z()->Set_min(-6);
+    prismatic1->GetLimit_Z().SetActive(true);
+    prismatic1->GetLimit_Z().SetMin(-6);
     system.AddLink(prismatic1);
 
     auto prismatic2 = std::make_shared<ChLinkLockPrismatic>();
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         // Enable also the Z max limit on the 1st prismatic joint
         if (!max_lim_enabled && slider1->GetPos().x() > 0) {
-            prismatic1->GetLimit_Z()->Set_max(-3);
+            prismatic1->GetLimit_Z().SetMax(-3);
             max_lim_enabled = true;
         }
 

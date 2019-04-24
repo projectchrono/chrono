@@ -134,8 +134,8 @@ void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-std::shared_ptr<ChMaterialSurface>& ChNodeMeshless::GetMaterialSurfaceBase() {
-    return container->GetMaterialSurfaceBase();
+std::shared_ptr<ChMaterialSurface>& ChNodeMeshless::GetMaterialSurface() {
+    return container->GetMaterialSurface();
 }
 
 ChPhysicsItem* ChNodeMeshless::GetPhysicsItem() {
