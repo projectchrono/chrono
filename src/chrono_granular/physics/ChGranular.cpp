@@ -774,6 +774,7 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     // compute quantities to store back in class
     this->VEL_SU2UU = LENGTH_SU2UU / TIME_SU2UU;
     this->FORCE_SU2UU = MASS_SU2UU * ACC_SU2UU;
+    this->TORQUE_SU2UU = FORCE_SU2UU * LENGTH_SU2UU;
     // copy into gran params for now
     gran_params->LENGTH_UNIT = LENGTH_SU2UU;
 

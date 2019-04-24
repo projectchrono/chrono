@@ -1410,3 +1410,11 @@ Running test suite!
 Frictionless took 44.7291 seconds!
 Single Step took 60.3925 seconds!
 Multistep took 89.8441 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 14:56:08 -0500
+commit f321c1dde23f7e6ec008d5b27ee37bf8e71d5c7d Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 14:54:57 2019 -0500 several bug fixes, add rover and test suite, rewrite BC friction fix triangle bug (zero triangle crash) fix hertz tangential clamping bug (TODO better way)
+Results:
+Running test suite!
+Frictionless took 42.4476 seconds!
+Single Step took 55.5818 seconds!
+Multistep took 83.4554 seconds!

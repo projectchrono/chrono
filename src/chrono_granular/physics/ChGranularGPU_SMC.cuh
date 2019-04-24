@@ -31,7 +31,6 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
-#include "chrono_granular/utils/ChGranularUtilities.cuh"
 
 using chrono::granular::GRAN_TIME_INTEGRATOR;
 using chrono::granular::GRAN_FRICTION_MODE;
@@ -42,8 +41,8 @@ using chrono::granular::GRAN_ROLLING_MODE;
 #include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
 
 inline __device__ __host__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD,
-                                                   const int3& local_pos,
-                                                   GranParamsPtr gran_params) {
+                                                            const int3& local_pos,
+                                                            GranParamsPtr gran_params) {
     int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
     int64_t3 sphPos_global = {0, 0, 0};
 
@@ -477,10 +476,7 @@ inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
         }
         // TODO update for local coords
         switch (bc_type_list[BC_id]) {
-            // case BC_type::AA_BOX: {
-            //     ABORTABORTABORT("ERROR: AA_BOX is currently unsupported!\n");
-            //     break;
-            // }
+                // these may use the frictionless overloads
             case BC_type::SPHERE: {
                 addBCForces_Sphere_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
                                                 bc_params_list[BC_id].track_forces);
@@ -492,9 +488,8 @@ inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
                 break;
             }
             case BC_type::PLANE: {
-                float dist = 0;  // tmp used to satisfy function parameters
                 addBCForces_Plane_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
-                                               bc_params_list[BC_id].track_forces, dist);
+                                               bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::CYLINDER: {
@@ -823,7 +818,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         // assume the contact is just this timestep
                         delta_t = vrel_t * gran_params->stepSize_SU;
                         // just in case this gets too big
-                        clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
+                        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2s_SU,
+                                                           force_accum / hertz_force_factor, delta_t);
                     } else if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
                         // get the tangential displacement so far
                         delta_t = sphere_data->contact_history_map[body_A_offset + contact_id];
@@ -835,7 +831,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         // remove normal projection
                         delta_t = delta_t - projection * delta_r * reciplength;
                         // clamp tangent displacement
-                        clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
+                        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2s_SU,
+                                                           force_accum / hertz_force_factor, delta_t);
 
                         // write back the updated displacement
                         sphere_data->contact_history_map[body_A_offset + contact_id] = delta_t;

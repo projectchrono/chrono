@@ -16,6 +16,16 @@
 
 #include "chrono_granular/physics/ChGranular.h"
 
+#include "chrono_thirdparty/cub/cub.cuh"
+
+// Print a user-given error message and crash
+#define ABORTABORTABORT(...) \
+    {                        \
+        printf(__VA_ARGS__); \
+        __threadfence();     \
+        cub::ThreadTrap();   \
+    }
+
 #define GRAN_DEBUG_PRINTF(...) printf(__VA_ARGS__)
 
 // Decide which SD owns this point in space
@@ -158,6 +168,10 @@ inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
     not_stupid_bool* contact_active = sphere_data->contact_active_map + body_A_offset;
     // first skim through and see if this contact pair is in the map
     for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
+        // printf("contact map for sphere %u entry %u is other %u, active %u \t history is %f, %f, %f\n", body_A,
+        //        contact_id, contact_partners[contact_id], contact_active[contact_id], contact_history[contact_id].x,
+        //        contact_history[contact_id].y, contact_history[contact_id].z);
+
         // if the contact is not active, reset it
         if (contact_active[contact_id] == false) {
             contact_partners[contact_id] = NULL_GRANULAR_ID;
@@ -172,12 +186,14 @@ inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
     }
 }
 
+/// NOTE that this requires the normal force to be in hookean form (no hertz factor yet)
 /// enforce the Coulomb condition that Ft <= mu Fn
 /// by enforcing ut <= mu Fn / kt
 inline __device__ bool clampTangentDisplacement(GranParamsPtr gran_params,
+                                                const float kt,
                                                 const float3& normal_force,
                                                 float3& tangent_disp) {
-    float ut_max = gran_params->static_friction_coeff * Length(normal_force) / gran_params->K_t_s2s_SU;
+    float ut_max = gran_params->static_friction_coeff * Length(normal_force) / kt;
     // TODO also consider wall mu and kt clamping
     float ut = Length(tangent_disp);
     if (ut > ut_max) {
