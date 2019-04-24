@@ -1418,3 +1418,11 @@ Running test suite!
 Frictionless took 42.4476 seconds!
 Single Step took 55.5818 seconds!
 Multistep took 83.4554 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 17:00:10 -0500
+commit b1f95ed3ef139ef3ea5bdd037efb4b49fc73fa66 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 16:59:59 2019 -0500 cleanup rolling resistance and add to BC code
+Results:
+Running test suite!
+Frictionless took 43.6621 seconds!
+Single Step took 57.0067 seconds!
+Multistep took 86.7274 seconds!

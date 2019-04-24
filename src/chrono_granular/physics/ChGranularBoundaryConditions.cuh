@@ -18,6 +18,11 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
 #include "chrono_granular/physics/ChGranularBoundaryConditions.h"
+#include "chrono_granular/physics/ChGranularHelpers.cuh"
+
+using chrono::granular::GRAN_TIME_INTEGRATOR;
+using chrono::granular::GRAN_FRICTION_MODE;
+using chrono::granular::GRAN_ROLLING_MODE;
 
 using chrono::granular::BC_type;
 using chrono::granular::BC_params_t;
@@ -26,77 +31,6 @@ using chrono::granular::Sphere_BC_params_t;
 using chrono::granular::Z_Cone_BC_params_t;
 using chrono::granular::Z_Cylinder_BC_params_t;
 using chrono::granular::Plane_BC_params_t;
-
-/// compute friction displacement given
-/// returns whether force was clamped, sets delta_t
-inline __device__ bool computeFrictionDisplacement(
-    GranParamsPtr gran_params,
-    GranSphereDataPtr sphere_data,
-    unsigned int body_A_index,
-    unsigned int body_B_index,
-    // NOTE this is the hookean part of the force to avoid over-counting the hertz factor in clamping
-    const float3& normal_force_hooke,
-    const float3& rel_vel,
-    const float3& contact_normal,
-    float3& delta_t) {
-    bool clamped = false;
-    delta_t = {0, 0, 0};
-
-    if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-        // single step collapses into one parameter
-        delta_t = rel_vel * gran_params->stepSize_SU;
-        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2w_SU, normal_force_hooke, delta_t);
-
-    } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-        // index for this 'body' in the history map, note that BC 0 is index nSpheres + 1
-        // TODO this might waste an index
-
-        size_t contact_id = findContactPairInfo(sphere_data, gran_params, body_A_index, body_B_index);
-
-        // get the tangential displacement so far
-        delta_t = sphere_data->contact_history_map[contact_id];
-        // add on what we have for this step
-        delta_t = delta_t + rel_vel * gran_params->stepSize_SU;
-
-        // project onto contact normal
-        float disp_proj = Dot(delta_t, contact_normal);
-        // remove normal projection
-        delta_t = delta_t - disp_proj * contact_normal;
-        // clamp tangent displacement
-        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2w_SU, normal_force_hooke, delta_t);
-
-        // write back the updated displacement
-        sphere_data->contact_history_map[contact_id] = delta_t;
-    }
-
-    return clamped;
-}
-
-/// compute friction forces for a contact
-/// returns tangent force
-inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
-                                               GranSphereDataPtr sphere_data,
-                                               unsigned int body_A_index,
-                                               unsigned int body_B_index,
-                                               float k_t,
-                                               float gamma_t,
-                                               float force_model_multiplier,
-                                               const float3& normal_force,
-                                               const float3& rel_vel,
-                                               const float3& contact_normal) {
-    float3 delta_t = {0., 0., 0.};
-
-    bool clamped = computeFrictionDisplacement(gran_params, sphere_data, body_A_index, body_B_index,
-                                               normal_force / force_model_multiplier, rel_vel, contact_normal, delta_t);
-
-    float3 tangent_force = -k_t * delta_t * force_model_multiplier;
-    // if no-slip, add the tangential damping
-    if (!clamped) {
-        constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
-        tangent_force = tangent_force - gamma_t * m_eff * rel_vel;
-    }
-    return tangent_force;
-}
 
 inline __device__ bool addBCForces_Sphere_frictionless(const int64_t3& sphPos,
                                                        const float3& sphVel,
@@ -279,10 +213,14 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
         // add tangent forces
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
             float projection = Dot(sphVel, contact_normal);
-            float3 sphere_vel_rel = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
+            float3 sphere_vel_rel =
+                sphVel - bc_params.vel_SU - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
 
             float force_model_multiplier = sqrt((sphereRadius_SU - dist) / sphereRadius_SU);
             unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
+
+            float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, force_accum, sphOmega,
+                                                   make_float3(0, 0, 0), dist * contact_normal);
 
             // compute tangent force
             float3 tangent_force = computeFrictionForces(
@@ -291,6 +229,7 @@ inline __device__ bool addBCForces_ZCone(unsigned int sphID,
 
             ang_acc_from_BCs =
                 ang_acc_from_BCs + (Cross(-1 * contact_normal, tangent_force) / gran_params->sphereInertia_by_r);
+            ang_acc_from_BCs = ang_acc_from_BCs + roll_acc;
             force_accum = force_accum + tangent_force;
         }
 
@@ -404,8 +343,12 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
                                                          gran_params->K_t_s2w_SU, gran_params->Gamma_t_s2w_SU,
                                                          force_model_multiplier, force_accum, rel_vel, contact_normal);
 
+            float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, force_accum, sphOmega,
+                                                   make_float3(0, 0, 0), dist * contact_normal);
+
             ang_acc_from_BCs =
                 ang_acc_from_BCs + (Cross(-1 * contact_normal, tangent_force) / gran_params->sphereInertia_by_r);
+            ang_acc_from_BCs = ang_acc_from_BCs + roll_acc;
             force_accum = force_accum + tangent_force;
         }
 
@@ -519,6 +462,9 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
         if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
             unsigned int BC_histmap_label = gran_params->nSpheres + BC_id + 1;
 
+            float3 roll_acc = computeRollingAngAcc(sphere_data, gran_params, force_accum, sphOmega,
+                                                   make_float3(0, 0, 0), dist * contact_normal);
+
             // compute tangent force
             float3 tangent_force = computeFrictionForces(gran_params, sphere_data, sphID, BC_histmap_label,
                                                          gran_params->K_t_s2w_SU, gran_params->Gamma_t_s2w_SU,
@@ -526,6 +472,8 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
 
             ang_acc_from_BCs =
                 ang_acc_from_BCs + (Cross(-1 * contact_normal, tangent_force) / gran_params->sphereInertia_by_r);
+            ang_acc_from_BCs = ang_acc_from_BCs + roll_acc;
+
             force_accum = force_accum + tangent_force;
         }
 

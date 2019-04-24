@@ -87,7 +87,7 @@ void setCommonParameters(ChSystemGranular_MonodisperseSMC& gran_sys) {
     gran_sys.setOutputDirectory(output_dir);
     gran_sys.setOutputMode(write_mode);
     gran_sys.set_static_friction_coeff(static_friction_coeff);
-    gran_sys.set_rolling_coeff(static_friction_coeff);
+    gran_sys.set_rolling_coeff(static_friction_coeff / 2.);
 
     gran_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -187,6 +187,7 @@ int main(int argc, char* argv[]) {
                 }
                 advanceGranSim(gran_sys);
             }
+            break;
         }
         case PYRAMID: {
             timeEnd = 1;
@@ -227,6 +228,7 @@ int main(int argc, char* argv[]) {
             while (curr_time < timeEnd) {
                 advanceGranSim(gran_sys);
             }
+            break;
         }
     }
     return 0;

@@ -14,9 +14,15 @@
 // Authors: Dan Negrut, Conlain Kelly, Nic Olsen
 // =============================================================================
 
+#pragma once
+
 #include "chrono_granular/physics/ChGranular.h"
 
 #include "chrono_thirdparty/cub/cub.cuh"
+
+using chrono::granular::GRAN_TIME_INTEGRATOR;
+using chrono::granular::GRAN_FRICTION_MODE;
+using chrono::granular::GRAN_ROLLING_MODE;
 
 // Print a user-given error message and crash
 #define ABORTABORTABORT(...) \
@@ -242,4 +248,119 @@ inline __device__ bool checkSpheresContacting_int(const int3& sphereA_pos,
     const int64_t contact_threshold = (4l * gran_params->sphereRadius_SU) * gran_params->sphereRadius_SU;
 
     return contact_in_SD && penetration_int < contact_threshold;
+}
+
+// NOTE: expects force_accum to be normal force only
+inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
+                                              GranParamsPtr gran_params,
+                                              const float3& normal_force,
+                                              const float3& my_omega,
+                                              const float3& their_omega,
+                                              // points from their center to my center (in line with normal force)
+                                              const float3& delta_r) {
+    float3 delta_Ang_Acc = {0, 0, 0};
+
+    if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
+        gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE) {
+        float3 omega_rel = my_omega - their_omega;
+        float omega_rel_mag = Length(omega_rel);
+        // normalize relative rotation
+        if (omega_rel_mag != 0.f) {  // TODO some small bound?
+            omega_rel = omega_rel / omega_rel_mag;
+        }
+
+        const float normal_force_mag = Length(normal_force);
+        switch (gran_params->rolling_mode) {
+            case GRAN_ROLLING_MODE::CONSTANT_TORQUE: {
+                // M = -w / ||w|| * mu_r * r_eff * ||f_n||
+                // Assumes r_eff = r/2
+                // Reff / inerta = 1 / (2 * inertia_by_r)
+                /// TODO ADD BC CHECK
+                delta_Ang_Acc = -1 * omega_rel * gran_params->rolling_coeff_SU * normal_force_mag /
+                                (2 * gran_params->sphereInertia_by_r);
+                break;
+            }
+            case GRAN_ROLLING_MODE::VISCOUS: {
+                // relative contact point velocity due to rotation ????
+                const float v_mag = Length(Cross(-1 * delta_r, my_omega + their_omega));
+
+                float3 torque = -gran_params->rolling_coeff_SU * v_mag * normal_force_mag * omega_rel;
+                delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
+                break;
+            }
+            default: { ABORTABORTABORT("Rolling mode not implemented\n"); }
+        }
+    }
+    return delta_Ang_Acc;
+}
+
+/// compute friction displacement given
+/// returns whether force was clamped, sets delta_t
+inline __device__ bool computeFrictionDisplacement(
+    GranParamsPtr gran_params,
+    GranSphereDataPtr sphere_data,
+    unsigned int body_A_index,
+    unsigned int body_B_index,
+    // NOTE this is the hookean part of the force to avoid over-counting the hertz factor in clamping
+    const float3& normal_force_hooke,
+    const float3& rel_vel,
+    const float3& contact_normal,
+    float3& delta_t) {
+    bool clamped = false;
+    delta_t = {0, 0, 0};
+
+    if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
+        // single step collapses into one parameter
+        delta_t = rel_vel * gran_params->stepSize_SU;
+        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2w_SU, normal_force_hooke, delta_t);
+
+    } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
+        // index for this 'body' in the history map, note that BC 0 is index nSpheres + 1
+        // TODO this might waste an index
+
+        size_t contact_id = findContactPairInfo(sphere_data, gran_params, body_A_index, body_B_index);
+
+        // get the tangential displacement so far
+        delta_t = sphere_data->contact_history_map[contact_id];
+        // add on what we have for this step
+        delta_t = delta_t + rel_vel * gran_params->stepSize_SU;
+
+        // project onto contact normal
+        float disp_proj = Dot(delta_t, contact_normal);
+        // remove normal projection
+        delta_t = delta_t - disp_proj * contact_normal;
+        // clamp tangent displacement
+        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2w_SU, normal_force_hooke, delta_t);
+
+        // write back the updated displacement
+        sphere_data->contact_history_map[contact_id] = delta_t;
+    }
+
+    return clamped;
+}
+
+/// compute friction forces for a contact
+/// returns tangent force
+inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
+                                               GranSphereDataPtr sphere_data,
+                                               unsigned int body_A_index,
+                                               unsigned int body_B_index,
+                                               float k_t,
+                                               float gamma_t,
+                                               float force_model_multiplier,
+                                               const float3& normal_force,
+                                               const float3& rel_vel,
+                                               const float3& contact_normal) {
+    float3 delta_t = {0., 0., 0.};
+
+    bool clamped = computeFrictionDisplacement(gran_params, sphere_data, body_A_index, body_B_index,
+                                               normal_force / force_model_multiplier, rel_vel, contact_normal, delta_t);
+
+    float3 tangent_force = -k_t * delta_t * force_model_multiplier;
+    // if no-slip, add the tangential damping
+    if (!clamped) {
+        constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+        tangent_force = tangent_force - gamma_t * m_eff * rel_vel;
+    }
+    return tangent_force;
 }
