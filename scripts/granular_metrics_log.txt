@@ -1426,3 +1426,11 @@ Running test suite!
 Frictionless took 43.6621 seconds!
 Single Step took 57.0067 seconds!
 Multistep took 86.7274 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 17:33:56 -0500
+commit df8febf471cf9430a01737e94c1f54b464cd2846 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 17:33:47 2019 -0500 fix build and rover demo
+Results:
+Running test suite!
+Frictionless took 45.4499 seconds!
+Single Step took 58.1371 seconds!
+Multistep took 84.92 seconds!

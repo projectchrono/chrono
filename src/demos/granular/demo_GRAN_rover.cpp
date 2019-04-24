@@ -113,12 +113,11 @@ void addWheelBody(ChSystemNSC& rover_sys, std::shared_ptr<ChBody> chassis_body, 
     joint->Initialize(chassis_body, wheel_body, ChCoordsys<>(wheel_initial_pos, Q_from_AngX(CH_C_PI / 2)));
     rover_sys.AddLink(joint);
 
-    auto motor = std::make_shared<ChLinkEngine>();
+    auto motor = std::make_shared<ChLinkMotorRotationAngle>();
 
-    motor->Initialize(chassis_body, wheel_body, ChCoordsys<>(wheel_initial_pos, Q_from_AngX(CH_C_PI / 2)));
+    motor->Initialize(chassis_body, wheel_body, ChFrame<>(wheel_initial_pos, Q_from_AngX(CH_C_PI / 2)));
 
-    motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, CH_C_PI));
+    motor->SetMotorFunction(std::make_shared<ChFunction_Ramp>(0, CH_C_PI));
     rover_sys.AddLink(motor);
 
     mesh_masses.push_back(wheel_mass);
