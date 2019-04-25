@@ -8,7 +8,7 @@ postprocessing simulation data. For example, it can generate
 the .pov and .ini scripts to be used with the POVray rendering tool.
 
 Read [the introduction to modules](modularity.html) for a technical 
-background on the modularity of the Chrono::Engine project.
+background on the modularity of the Chrono project.
 
 
 ## Features

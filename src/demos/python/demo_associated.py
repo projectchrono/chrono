@@ -1,35 +1,30 @@
-#-------------------------------------------------------------------------------
-# Name:        modulo1
+#------------------------------------------------------------------------------
+# Name:        pychrono example
 # Purpose:
 #
-# Author:      tasora
+# Author:      Alessandro Tasora
 #
-# Created:     30/11/2017
-# Copyright:   (c) tasora 2017
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
-
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
 
-import os
 import math
 import pychrono as chrono
-import pychrono.postprocess as postprocess
 import pychrono.irrlicht as chronoirr
 
-print ("Example: create a system and visualize it in realtime 3D");
+print ("Example: study the associative effect of friction.");
 
+
+# Change this path to asset path, if running from other working dir. 
+# It must point to the data folder, containing GUI assets (textures, fonts, meshes, etc.)
+chrono.SetChronoDataPath("../../../data/")
 
 # ---------------------------------------------------------------------
 #
 #  Create the simulation system and add items
 #
+
 
 mysystem      = chrono.ChSystemNSC()
 
@@ -135,7 +130,8 @@ if not(fixed_L):
 
 myapplication = chronoirr.ChIrrApp(mysystem, 'Test', chronoirr.dimension2du(1024,768))
 
-myapplication.AddTypicalSky('../../../data/skybox/')
+myapplication.AddTypicalLogo(chrono.GetChronoDataPath() + "logo_pychrono_alpha.png")
+myapplication.AddTypicalSky(chrono.GetChronoDataPath() + "skybox/")
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))
 myapplication.AddTypicalLights()
 

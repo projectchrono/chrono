@@ -30,11 +30,13 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChColorAsset.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/core/ChBezierCurve.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
 
@@ -89,20 +91,32 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// This function returns a path along the road's midline.
     std::shared_ptr<ChBezierCurve> GetPath();
 
+    /// Get the road mesh.
+    std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
+
     /// Is the road a round course (closed loop)?
     bool IsPathClosed() { return m_isClosed; }
 
     /// Get length of the road.
     double GetLength() { return m_uend - m_ubeg; }
 
+    /// Export road mesh to Wavefront file.
+    void ExportMeshWavefront(const std::string& out_dir);
+
+    /// Export the patch mesh as a macro in a PovRay include file.
+    void ExportMeshPovray(const std::string& out_dir);
+
   private:
     /// Build the graphical representation.
     void SetupLineGraphics();
     void SetupMeshGraphics();
+    void GenerateMesh();
 
     std::shared_ptr<ChBody> m_ground;  ///< ground body
     bool m_use_vis_mesh;               ///< mesh or boundary visual asset?
     float m_friction;                  ///< contact coefficient of friction
+
+    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
 
     bool m_isClosed;  ///< closed road profile?
 
@@ -112,8 +126,9 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     double m_uinc, m_ubeg, m_uend;  // increment, begin , end of longitudinal road coordinates
     double m_vinc, m_vbeg, m_vend;  // increment, begin , end of lateral road coordinates
 
-
     std::vector<double> m_v;  // vector with distinct v values, if m_vinc <= 0.01 m
+
+    static const std::string m_mesh_name;
 };
 
 /// @} vehicle_terrain

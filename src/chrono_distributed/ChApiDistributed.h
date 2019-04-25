@@ -38,6 +38,13 @@
 
     For additional information, see:
     - the [installation guide](@ref module_distributed_installation)
+
+    @{
+        @defgroup distributed_collision Collision objects
+        @defgroup distributed_comm Communication objects
+        @defgroup distributed_physics Physics objects
+    @}
+
 */
 
 #endif

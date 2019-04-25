@@ -29,6 +29,10 @@ namespace chrono {
 class ChDistributedDataManager;
 class ChSystemDistributed;
 
+/// @addtogroup distributed_comm
+/// @{
+
+/// Structure of data for sending a new body to a rank
 typedef struct BodyExchange {
     uint gid;
     bool collide;
@@ -46,7 +50,12 @@ typedef struct BodyExchange {
     float gt;
     int identifier;
 } BodyExchange;
+/// @} distributed_comm
 
+/// @addtogroup distributed_comm
+/// @{
+
+/// Structure of data for sending an update of an existing body to a rank
 typedef struct BodyUpdate {
     uint gid;
     int update_type;
@@ -54,7 +63,12 @@ typedef struct BodyUpdate {
     double rot[4];
     double vel[6];
 } BodyUpdate;
+/// @} distributed_comm
 
+/// @addtogroup distributed_comm
+/// @{
+
+/// Structure of data for sending a collision shape to a rank
 typedef struct Shape {
     uint gid;
     int type;
@@ -63,6 +77,10 @@ typedef struct Shape {
     double R[4];
     double data[6];  // B C and shape-specific data
 } Shape;
+/// @} distributed_comm
+
+/// @addtogroup distributed_comm
+/// @{
 
 /// This class holds functions for processing the system's bodies to determine
 /// when a body needs to be sent to another rank for either an update or for
@@ -96,12 +114,15 @@ class CH_DISTR_API ChCommDistributed {
   protected:
     ChSystemDistributed* my_sys;
 
-    // MPI Data Types
+    /// MPI Data Types for sending 1) new body 2) body update 3) new collision shape
     MPI_Datatype BodyExchangeType;
     MPI_Datatype BodyUpdateType;
     MPI_Datatype ShapeType;
 
+    /// Pointer to underlying chrono::parallel data
     ChParallelDataManager* data_manager;
+
+    /// Set of data for scaffolding on top of chrono::parallel
     ChDistributedDataManager* ddm;
 
   private:
@@ -137,4 +158,6 @@ class CH_DISTR_API ChCommDistributed {
     /// the number of shapes that it has packed.
     int PackShapes(std::vector<Shape>* buf, int index);
 };
+/// @} distributed_comm
+
 } /* namespace chrono */

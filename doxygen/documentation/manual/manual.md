@@ -57,7 +57,7 @@ Reference Manual {#manual_root}
 	* [List of nodes](@ref manual_fea_nodes)
 	* [List of elements](@ref manual_fea_elements)
 	
-* @subpage introduction_chrono_pyengine
+* @subpage pychrono_introduction
 
 * @subpage introduction_chrono_solidworks
 

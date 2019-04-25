@@ -7,6 +7,7 @@ using namespace chrono;
 
 %}
  
+ %import"ChMatrix.i"
 
 /* Parse the header file to generate wrappers */
 %include "../chrono/core/ChVectorDynamic.h"

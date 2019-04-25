@@ -44,6 +44,7 @@ HMMWV_FialaTire::HMMWV_FialaTire(const std::string& name) : ChFialaTire(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+/* Original Settings
 void HMMWV_FialaTire::SetFialaParams() {
     // Parameters were fit at roughly 1700lbs and 24psi
     // Note, the width is not based on the width of the physical tire.
@@ -57,6 +58,22 @@ void HMMWV_FialaTire::SetFialaParams() {
     m_u_max = 0.9835;
     m_relax_length_x = 0.1244;
     m_relax_length_y = 0.0317;
+}
+*/
+// Alternative Settings
+void HMMWV_FialaTire::SetFialaParams() {
+    // Parameters were roughly converted from TMeasy, still questionable, but better
+    m_unloaded_radius = 0.4699;
+    m_width = 0.3175;
+    m_rolling_resistance = 0.015;
+    m_c_slip = 193929.0;
+    m_c_alpha = 50000.0;
+    m_u_min = 0.5568;
+    m_u_max = 0.9835;
+    // m_relax_length_x = 0.1244;
+    // m_relax_length_y = 0.0317;
+    m_relax_length_x = 2;
+    m_relax_length_y = 2;
 }
 
 double HMMWV_FialaTire::GetNormalStiffnessForce(double depth) const {
@@ -122,8 +139,7 @@ void HMMWV_FialaTire::AddVisualizationAssets(VisualizationType vis) {
         m_trimesh_shape->SetName(m_meshName);
         m_trimesh_shape->SetStatic(true);
         m_wheel->AddAsset(m_trimesh_shape);
-    }
-    else {
+    } else {
         ChFialaTire::AddVisualizationAssets(vis);
     }
 }

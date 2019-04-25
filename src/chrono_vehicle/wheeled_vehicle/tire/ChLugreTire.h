@@ -21,12 +21,12 @@
 
 #include <vector>
 
-#include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/physics/ChBody.h"
 
-#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -74,7 +74,8 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     /// The tire system is provided the current state of its associated wheel.
     virtual void Synchronize(double time,                    ///< [in] current time
                              const WheelState& wheel_state,  ///< [in] current state of associated wheel body
-                             const ChTerrain& terrain        ///< [in] reference to the terrain system
+                             const ChTerrain& terrain,       ///< [in] reference to the terrain system
+                             CollisionType collision_type = CollisionType::SINGLE_POINT  ///< [in] collision type
                              ) override;
 
     /// Advance the state of this tire by the specified time step.

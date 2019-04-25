@@ -26,6 +26,7 @@
 #ifndef CH_PITMANARM_SHAFTS_H
 #define CH_PITMANARM_SHAFTS_H
 
+#include "chrono/physics/ChShaftsBody.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsMotorAngle.h"
 #include "chrono/physics/ChShaftsTorsionSpring.h"

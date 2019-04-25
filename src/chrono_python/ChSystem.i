@@ -2,6 +2,9 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/physics/ChSystem.h"
+#include "chrono/timestepper/ChIntegrable.h"
+#include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperHHT.h"
 
 using namespace chrono;
 
@@ -26,6 +29,8 @@ class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallb
 %}
 
 // Forward ref
+%import "ChAssembly.i"
+%import "ChTimestepper.i"
 %import "ChCollisionModel.i"
 %import "ChCollisionInfo.i"
 

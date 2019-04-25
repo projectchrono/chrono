@@ -1410,3 +1410,27 @@ Running test suite!
 Frictionless took 44.7291 seconds!
 Single Step took 60.3925 seconds!
 Multistep took 89.8441 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 14:56:08 -0500
+commit f321c1dde23f7e6ec008d5b27ee37bf8e71d5c7d Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 14:54:57 2019 -0500 several bug fixes, add rover and test suite, rewrite BC friction fix triangle bug (zero triangle crash) fix hertz tangential clamping bug (TODO better way)
+Results:
+Running test suite!
+Frictionless took 42.4476 seconds!
+Single Step took 55.5818 seconds!
+Multistep took 83.4554 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 17:00:10 -0500
+commit b1f95ed3ef139ef3ea5bdd037efb4b49fc73fa66 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 16:59:59 2019 -0500 cleanup rolling resistance and add to BC code
+Results:
+Running test suite!
+Frictionless took 43.6621 seconds!
+Single Step took 57.0067 seconds!
+Multistep took 86.7274 seconds!
+<================ Running post-commit scripts, information is below: ================>
+Current date is  Wed, 24 Apr 2019 17:33:56 -0500
+commit df8febf471cf9430a01737e94c1f54b464cd2846 Author: Conlain Kelly <conlain.k@gmail.com> Date: Wed Apr 24 17:33:47 2019 -0500 fix build and rover demo
+Results:
+Running test suite!
+Frictionless took 45.4499 seconds!
+Single Step took 58.1371 seconds!
+Multistep took 84.92 seconds!

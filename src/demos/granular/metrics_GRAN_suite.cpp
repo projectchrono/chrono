@@ -45,13 +45,13 @@ float ballRadius = 1.f;
 float ballDensity = 2.50f;
 float timeEnd = .25f;
 float grav_acceleration = -980.f;
-float normalStiffness_S2S = 1e7f;
-float normalStiffness_S2W = 1e7f;
-float normalDampS2S = 1000;
-float normalDampS2W = 1000;
+float normalStiffness_S2S = 5e7f;
+float normalStiffness_S2W = 5e7f;
+float normalDampS2S = 10000;
+float normalDampS2W = 10000;
 
-float tangentStiffness_S2S = 1e7f;
-float tangentStiffness_S2W = 1e7f;
+float tangentStiffness_S2S = 2e7f;
+float tangentStiffness_S2W = 2e7f;
 float tangentDampS2S = 0;
 float tangentDampS2W = 0;
 

@@ -61,16 +61,22 @@ int main(int argc, char* argv[]) {
     // Create all the rigid bodies.
     // 
 
-    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
-    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
+	collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
+	collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // - Create a floor
+
+	// We could use a primitive box for the floor collision, doing simply
+       auto mfloor2 = std::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true);
+	// but here we rather use a mesh-based collision also for the floor, for 
+	// added difficulty in the benchmark. So we start from a basic ChBody and add collision
+	// and visualization stuff separately:
     
-    auto mfloor2 = std::make_shared<ChBody>();
+	//auto mfloor2 = std::make_shared<ChBody>();
     mfloor2->SetPos(ChVector<>(0, -1, 0));
     mfloor2->SetBodyFixed(true);
     mphysicalSystem.Add(mfloor2);
-
+/*
     auto mmeshbox = std::make_shared<ChTriangleMeshConnected>();
     mmeshbox->LoadWavefrontMesh(GetChronoDataFile("cube.obj"),true,true);
 
@@ -82,7 +88,7 @@ int main(int argc, char* argv[]) {
     auto masset_meshbox = std::make_shared<ChTriangleMeshShape>();
     masset_meshbox->SetMesh(mmeshbox);
     mfloor2->AddAsset(masset_meshbox);
-
+*/
     auto masset_texture = std::make_shared<ChTexture>();
     masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
     mfloor2->AddAsset(masset_texture);

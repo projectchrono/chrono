@@ -21,6 +21,7 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 
 using namespace chrono;
@@ -165,18 +166,12 @@ int main(int argc, char* argv[]) {
         my_link_CA->GetMarker2()->SetName("truss_pointline");
         my_link_CA->SetName("POINTLINE rod-truss");
 
-        // Now create a 'motor' link between crank and truss,
-        // in 'imposed speed' mode:
-        auto my_link_AB = std::make_shared<ChLinkEngine>();
-        my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0, 0, 0)));
-        my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_AB->Get_spe_funct()))
-            mfun->Set_yconst(CH_C_PI);  // speed w=3.145 rad/sec
-        my_system.AddLink(my_link_AB);
-
-        my_link_AB->GetMarker1()->SetName("truss_engine");
-        my_link_AB->GetMarker2()->SetName("crank_engine");
-        my_link_AB->SetName("ENGINE truss-crank");
+        // Now create a 'motor' link between crank and truss, in 'imposed speed' mode:
+        auto my_motor_AB = std::make_shared<ChLinkMotorRotationSpeed>();
+        my_motor_AB->SetName("MOTOR truss-crank");
+        my_motor_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
+        my_motor_AB->SetSpeedFunction(std::make_shared<ChFunction_Const>(CH_C_PI));
+        my_system.AddLink(my_motor_AB);
 
         GetLog() << "\n\n\nHere's the system hierarchy for slider-crank: \n\n ";
         my_system.ShowHierarchy(GetLog());
@@ -200,7 +195,7 @@ int main(int argc, char* argv[]) {
             // Print something on the console..
             GetLog() << "Time: " << chronoTime
                      << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoord().pos.x()
-                     << "  Engine torque: " << my_link_AB->Get_mot_retorque() << "\n";
+                     << "  Engine torque: " << my_motor_AB->GetMotorTorque() << "\n";
         }
     }
 

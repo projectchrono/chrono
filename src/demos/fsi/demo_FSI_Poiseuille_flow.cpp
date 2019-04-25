@@ -229,6 +229,8 @@ int main(int argc, char* argv[]) {
         myFsiSystem.DoStepDynamics_FSI();
         time += paramsH->dT;
         SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, next_frame, time);
+	if (time>paramsH->tFinal)
+	   break;
     }
 
     return 0;

@@ -94,7 +94,7 @@ void ChSystemParallelNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     // material properties in a thread-safe manner (we cannot use the function
     // ChBody::GetMaterialSurfaceNSC since that returns a copy of the reference
     // counted shared pointer).
-    std::shared_ptr<ChMaterialSurface>& mat = body->GetMaterialSurfaceBase();
+    std::shared_ptr<ChMaterialSurface>& mat = body->GetMaterialSurface();
     ChMaterialSurfaceNSC* mat_ptr = static_cast<ChMaterialSurfaceNSC*>(mat.get());
 
     friction[index] = real3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());

@@ -17,7 +17,6 @@
 
 #include "chrono_granular/ChApiGranular.h"
 #include "chrono_granular/ChGranularDefines.h"
-#include "cuda_runtime.h"
 
 namespace chrono {
 namespace granular {
@@ -29,7 +28,7 @@ struct Sphere_BC_params_t {
     T normal_sign;
 };
 
-/// Z-oriented cone facing upward
+/// Z-aligned cone facing upward
 template <typename T, typename T3>
 struct Z_Cone_BC_params_t {
     T3 cone_tip;
@@ -39,15 +38,7 @@ struct Z_Cone_BC_params_t {
     T normal_sign;
 };
 
-// /// Axis-aligned box
-// template <typename T, typename T3>
-// struct AABox_BC_params_t {
-//     T3 max_corner;
-//     T3 min_corner;
-//     T normal_sign;
-// };
-
-/// Infinite Plane
+/// Infinite Plane defined by point in plane and normal
 template <typename T3>
 struct Plane_BC_params_t {
     float3 normal;
@@ -75,7 +66,6 @@ struct BC_params_t {
     /// velocity in SU if the motion is being prescribed
     float3 vel_SU;
     union {
-        // AABox_BC_params_t<T, T3> AABox_params;
         Sphere_BC_params_t<T, T3> sphere_params;
         Z_Cone_BC_params_t<T, T3> cone_params;
         Plane_BC_params_t<T3> plane_params;        // plane only needs one template arg
@@ -83,12 +73,6 @@ struct BC_params_t {
     };
 };
 
-enum BC_type {
-    // AA_BOX,
-    SPHERE,
-    CONE,
-    PLANE,
-    CYLINDER
-};
+enum BC_type { SPHERE, CONE, PLANE, CYLINDER };
 }  // namespace granular
 }  // namespace chrono

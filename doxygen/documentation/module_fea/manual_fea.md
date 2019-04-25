@@ -2,8 +2,7 @@
 Finite Elements      {#manual_fea}
 ===============
 
-This part of Chrono requires that the optional [FEA module](group__fea__module.html) is correctly installed and built. 
-Go to the [installation guide](@ref module_fea_installation).
+This part discusses the Chrono [FEA module](group__chrono__fea.html).
 
 Finite elements can be used in Chrono to model flexible parts. 
 
@@ -179,11 +178,9 @@ The following example illustrates it.
 - [tutorials](@ref tutorial_table_of_content_chrono_fea) 
   Demos and examples
   
-- [API documentation](group__fea__module.html) 
+- [API documentation](group__chrono__fea.html) 
   The C++ classes and functions of this module.
 
-- [installation guide](@ref module_fea_installation)
-  How to install and build this module.
 
 
 

@@ -10,7 +10,7 @@ In some cases the rigid body assumption
 is an approximation of what happens in the real world. For instance the crankshaft of a car engine might have 
 torsional and bending vibrations, but in many cases 
 this can be neglected. If this flexibility attribute of the time evolution cannot be neglected, 
-one should use the [FEA module](group__fea__module.html), which introduces flexible bodies at the cost of a more complex model definition/set up and longer run times.
+one should use the [FEA module](group__chrono__fea.html), which introduces flexible bodies at the cost of a more complex model definition/set up and longer run times.
 
 # ChBody   {#manual_ChBody}
 

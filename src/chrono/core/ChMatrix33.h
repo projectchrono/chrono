@@ -19,7 +19,6 @@
 
 namespace chrono {
 
-///
 /// ChMatrix33
 ///
 /// A special type of NxM matrix: the 3x3 matrix that is commonly used
@@ -32,10 +31,6 @@ namespace chrono {
 template <class Real = double>
 class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     /// Default constructor builds a 3x3 matrix with zeroes.
     ChMatrix33() : ChMatrixNM<Real, 3, 3>() {}
 
@@ -49,7 +44,6 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->rows = 3;
         this->columns = 3;
         this->address = this->buffer;
-        // ElementsCopy(this->address, msource.GetAddress(), 9);
         for (int i = 0; i < 9; ++i)
             this->address[i] = (Real)msource.GetAddress()[i];
     }
@@ -106,21 +100,27 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set_A_AngAxis(angle, axis);
     }
 
-    /// Complete generic constructor from 9 elements, ordered as three in first row, 
+    /// Complete generic constructor from 9 elements, ordered as three in first row,
     /// three in second row, three in third row.
     template <class RealB>
-    ChMatrix33(const RealB& m00, const RealB& m01, const RealB& m02,
-	           const RealB& m10, const RealB& m11, const RealB& m12,
-	           const RealB& m20, const RealB& m21, const RealB& m22) {
-        this->Set33Element(0,0, m00);
-        this->Set33Element(0,1, m01);
-        this->Set33Element(0,2, m02);
-        this->Set33Element(1,0, m10);
-        this->Set33Element(1,1, m11);
-        this->Set33Element(1,2, m12);
-        this->Set33Element(2,0, m20);
-        this->Set33Element(2,1, m21);
-        this->Set33Element(2,2, m22);
+    ChMatrix33(const RealB& m00,
+               const RealB& m01,
+               const RealB& m02,
+               const RealB& m10,
+               const RealB& m11,
+               const RealB& m12,
+               const RealB& m20,
+               const RealB& m21,
+               const RealB& m22) {
+        this->Set33Element(0, 0, m00);
+        this->Set33Element(0, 1, m01);
+        this->Set33Element(0, 2, m02);
+        this->Set33Element(1, 0, m10);
+        this->Set33Element(1, 1, m11);
+        this->Set33Element(1, 2, m12);
+        this->Set33Element(2, 0, m20);
+        this->Set33Element(2, 1, m21);
+        this->Set33Element(2, 2, m22);
     }
 
     //
@@ -261,24 +261,30 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         matra.Set33Element(0, 0, sdet0 / det);
         matra.Set33Element(1, 0, sdet1 / det);
         matra.Set33Element(2, 0, sdet2 / det);
-        matra.Set33Element(0, 1, (-(this->Get33Element(0, 1) * this->Get33Element(2, 2)) +
-                                  (this->Get33Element(2, 1) * this->Get33Element(0, 2))) /
-                                     det);
-        matra.Set33Element(1, 1, (+(this->Get33Element(0, 0) * this->Get33Element(2, 2)) -
-                                  (this->Get33Element(2, 0) * this->Get33Element(0, 2))) /
-                                     det);
-        matra.Set33Element(2, 1, (-(this->Get33Element(0, 0) * this->Get33Element(2, 1)) +
-                                  (this->Get33Element(2, 0) * this->Get33Element(0, 1))) /
-                                     det);
-        matra.Set33Element(0, 2, (+(this->Get33Element(0, 1) * this->Get33Element(1, 2)) -
-                                  (this->Get33Element(1, 1) * this->Get33Element(0, 2))) /
-                                     det);
-        matra.Set33Element(1, 2, (-(this->Get33Element(0, 0) * this->Get33Element(1, 2)) +
-                                  (this->Get33Element(1, 0) * this->Get33Element(0, 2))) /
-                                     det);
-        matra.Set33Element(2, 2, (+(this->Get33Element(0, 0) * this->Get33Element(1, 1)) -
-                                  (this->Get33Element(1, 0) * this->Get33Element(0, 1))) /
-                                     det);
+        matra.Set33Element(0, 1,
+                           (-(this->Get33Element(0, 1) * this->Get33Element(2, 2)) +
+                            (this->Get33Element(2, 1) * this->Get33Element(0, 2))) /
+                               det);
+        matra.Set33Element(1, 1,
+                           (+(this->Get33Element(0, 0) * this->Get33Element(2, 2)) -
+                            (this->Get33Element(2, 0) * this->Get33Element(0, 2))) /
+                               det);
+        matra.Set33Element(2, 1,
+                           (-(this->Get33Element(0, 0) * this->Get33Element(2, 1)) +
+                            (this->Get33Element(2, 0) * this->Get33Element(0, 1))) /
+                               det);
+        matra.Set33Element(0, 2,
+                           (+(this->Get33Element(0, 1) * this->Get33Element(1, 2)) -
+                            (this->Get33Element(1, 1) * this->Get33Element(0, 2))) /
+                               det);
+        matra.Set33Element(1, 2,
+                           (-(this->Get33Element(0, 0) * this->Get33Element(1, 2)) +
+                            (this->Get33Element(1, 0) * this->Get33Element(0, 2))) /
+                               det);
+        matra.Set33Element(2, 2,
+                           (+(this->Get33Element(0, 0) * this->Get33Element(1, 1)) -
+                            (this->Get33Element(1, 0) * this->Get33Element(0, 1))) /
+                               det);
 
         return det;
     }
@@ -418,19 +424,19 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set33Element(2, 2, 0);
     }
 
-    /// Fills a 3x3 matrix as product of two 'cross product' matrices, 
+    /// Fills a 3x3 matrix as product of two 'cross product' matrices,
     /// as double vector cross product.
     template <class RealB>
-    void Set_XY_matrix(const ChVector<RealB>& vectA,const ChVector<RealB>& vectB) {
-        this->Set33Element(0,0, -vectA.y()*vectB.y()-vectA.z()*vectB.z());
-        this->Set33Element(1,0,  vectA.x()*vectB.y());
-        this->Set33Element(2,0,  vectA.x()*vectB.z());
-        this->Set33Element(0,1,  vectA.y()*vectB.x());
-        this->Set33Element(1,1, -vectA.z()*vectB.z()-vectA.x()*vectB.x());
-        this->Set33Element(2,1,  vectA.y()*vectB.z());
-        this->Set33Element(0,2,  vectA.z()*vectB.x());
-        this->Set33Element(1,2,  vectA.z()*vectB.y());
-        this->Set33Element(2,2, -vectA.x()*vectB.x()-vectA.y()*vectB.y());
+    void Set_XY_matrix(const ChVector<RealB>& vectA, const ChVector<RealB>& vectB) {
+        this->Set33Element(0, 0, -vectA.y() * vectB.y() - vectA.z() * vectB.z());
+        this->Set33Element(1, 0, vectA.x() * vectB.y());
+        this->Set33Element(2, 0, vectA.x() * vectB.z());
+        this->Set33Element(0, 1, vectA.y() * vectB.x());
+        this->Set33Element(1, 1, -vectA.z() * vectB.z() - vectA.x() * vectB.x());
+        this->Set33Element(2, 1, vectA.y() * vectB.z());
+        this->Set33Element(0, 2, vectA.z() * vectB.x());
+        this->Set33Element(1, 2, vectA.z() * vectB.y());
+        this->Set33Element(2, 2, -vectA.x() * vectB.x() - vectA.y() * vectB.y());
     }
 
     /// Fills a 3x3 matrix as a rotation matrix, given the three
@@ -820,32 +826,25 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         temp.z() = this->Get33Element(2, 2);
         return temp;
     }
-    
+
     /// Return the sum of the three elements on the diagonal
-    Real GetTrace() const {
-        return this->Get33Element(0, 0) + this->Get33Element(1, 1) + this->Get33Element(2, 2);
-    }
+    Real GetTrace() const { return this->Get33Element(0, 0) + this->Get33Element(1, 1) + this->Get33Element(2, 2); }
 
     /// Assuming it is an orthogonal rotation matrix, get Ax vector
     ChVector<Real> GetAx() const {
-        return ChVector<Real>(
-		      0.5*(this->Get33Element(2,1)-this->Get33Element(1,2)),
-		      0.5*(this->Get33Element(0,2)-this->Get33Element(2,0)),
-		      0.5*(this->Get33Element(1,0)-this->Get33Element(0,1))
-		      );
+        return ChVector<Real>(0.5 * (this->Get33Element(2, 1) - this->Get33Element(1, 2)),
+                              0.5 * (this->Get33Element(0, 2) - this->Get33Element(2, 0)),
+                              0.5 * (this->Get33Element(1, 0) - this->Get33Element(0, 1)));
     };
 
     /// Return a symmetric matrix =(1/2)*(A+A')
     ChMatrix33<Real> GetSymm() const {
-        Real m12 = 0.5*(this->Get33Element(1,0)+this->Get33Element(0,1));
-        Real m13 = 0.5*(this->Get33Element(2,0)+this->Get33Element(0,2));
-        Real m23 = 0.5*(this->Get33Element(2,1)+this->Get33Element(1,2));
+        Real m12 = 0.5 * (this->Get33Element(1, 0) + this->Get33Element(0, 1));
+        Real m13 = 0.5 * (this->Get33Element(2, 0) + this->Get33Element(0, 2));
+        Real m23 = 0.5 * (this->Get33Element(2, 1) + this->Get33Element(1, 2));
 
-        return ChMatrix33<Real>(
-		      this->Get33Element(0,0), m12, m13,
-		      m12, this->Get33Element(1,1), m23,
-		      m13, m23, this->Get33Element(2,2)
-		      );
+        return ChMatrix33<Real>(this->Get33Element(0, 0), m12, m13, m12, this->Get33Element(1, 1), m23, m13, m23,
+                                this->Get33Element(2, 2));
     };
 
     /// Convert to a 2-dimensional array
@@ -878,9 +877,6 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         return mma;
     }
 };
-
-
-
 
 // Compute a 3x3 matrix as a tensor product between two vectors (outer product of vectors)
 template <class Real>

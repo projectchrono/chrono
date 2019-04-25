@@ -227,6 +227,9 @@ int main(int argc, char* argv[]) {
         paramsH->Adaptive_time_stepping = isAdaptive;
         time += paramsH->dT;
         SaveParaViewFiles(myFsiSystem, mphysicalSystem, my_mesh, NodeNeighborElement_mesh, paramsH, next_frame, time);
+
+	if (time > paramsH->tFinal)
+		break;
     }
 
     return 0;

@@ -21,6 +21,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_nodes
+/// @{
+
 /// Class for a generic 3D finite element node, with x,y,z displacement and a direction.
 /// The direction D represents a gradient vector to be used in ANCF elements.
 class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
@@ -177,6 +180,8 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     ChVector<> D_dt;
     ChVector<> D_dtdt;
 };
+
+/// @} fea_nodes
 
 }  // end namespace fea
 }  // end namespace chrono

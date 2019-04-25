@@ -21,7 +21,6 @@
 
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
-#include "chrono_granular/utils/ChGranularUtilities.cuh"
 
 // these define things that mess with cub
 #include "chrono_granular/physics/ChGranularCollision.cuh"
@@ -97,10 +96,10 @@ __device__ void triangle_figureOutSDBox(const float3& vA,
 /// Takes in a triangle's position in UU and finds out how many SDs it touches
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
-__device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
-                                                 const TriangleSoupPtr triangleSoup,
-                                                 GranParamsPtr gran_params,
-                                                 MeshParamsPtr tri_params) {
+inline __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
+                                                        const TriangleSoupPtr triangleSoup,
+                                                        GranParamsPtr gran_params,
+                                                        MeshParamsPtr tri_params) {
     float3 vA, vB, vC;
 
     // Transform LRF to GRF
@@ -188,11 +187,11 @@ __device__ unsigned int triangle_countTouchedSDs(unsigned int triangleID,
 /// Takes in a triangle's position in UU and finds out what SDs it touches
 /// Triangle broadphase is done in float by applying the frame transform
 /// and then converting the GRF position to SU
-__device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
-                                             const TriangleSoupPtr triangleSoup,
-                                             unsigned int* touchedSDs,
-                                             GranParamsPtr gran_params,
-                                             MeshParamsPtr tri_params) {
+inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
+                                                    const TriangleSoupPtr triangleSoup,
+                                                    unsigned int* touchedSDs,
+                                                    GranParamsPtr gran_params,
+                                                    MeshParamsPtr tri_params) {
     float3 vA, vB, vC;
 
     // Transform LRF to GRF
@@ -954,39 +953,42 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase_re
     SD_TriangleCompositeOffsets_tmp.resize(nSDs, NULL_GRANULAR_ID);
     SD_numTrianglesTouching_tmp.resize(nSDs, 0);
 
-    // get first active SD
-    unsigned int prev_SD = Triangle_SDsComposite_SDs_out.at(0);
-    // first SD has offset 0
-    SD_TriangleCompositeOffsets.at(prev_SD) = 0;
-    // number of triangles in current SD
-    unsigned int curr_count = 0;
-    // offset to current SD
-    unsigned int curr_offset = 0;
+    // if there are triangle-sd contacts, sweep through them, otherwise just move on
+    if (Triangle_SDsComposite_SDs_out.size() > 0) {
+        // get first active SD
+        unsigned int prev_SD = Triangle_SDsComposite_SDs_out.at(0);
+        // first SD has offset 0
+        SD_TriangleCompositeOffsets.at(prev_SD) = 0;
+        // number of triangles in current SD
+        unsigned int curr_count = 0;
+        // offset to current SD
+        unsigned int curr_offset = 0;
 
-    // simultaneously do a prefix scan and a store, but on host
-    // TODO optimize and test
-    // TODO can we do this with a weird prefix scan operation?
-    for (unsigned int i = 0; i < Triangle_SDsComposite_SDs_out.size(); i++) {
-        unsigned int curr_SD = Triangle_SDsComposite_SDs_out.at(i);
-        // this is the start of a new SD
-        if (prev_SD != curr_SD) {
-            // printf("change! SD %u has curr count %u, offset %u, prev is %u\n",curr_count, curr_offset,  );
-            // store the count for this SD
-            SD_numTrianglesTouching.at(prev_SD) = curr_count;
-            // reset count
-            curr_count = 0;
-            // set this SD to have offset after the previous one ends
-            SD_TriangleCompositeOffsets.at(curr_SD) = curr_offset;
+        // simultaneously do a prefix scan and a store, but on host
+        // TODO optimize and test
+        // TODO can we do this with a weird prefix scan operation?
+        for (unsigned int i = 0; i < Triangle_SDsComposite_SDs_out.size(); i++) {
+            unsigned int curr_SD = Triangle_SDsComposite_SDs_out.at(i);
+            // this is the start of a new SD
+            if (prev_SD != curr_SD) {
+                // printf("change! SD %u has curr count %u, offset %u, prev is %u\n",curr_count, curr_offset,  );
+                // store the count for this SD
+                SD_numTrianglesTouching.at(prev_SD) = curr_count;
+                // reset count
+                curr_count = 0;
+                // set this SD to have offset after the previous one ends
+                SD_TriangleCompositeOffsets.at(curr_SD) = curr_offset;
+            }
+            curr_count++;
+            curr_offset++;
+            // now this is the active SD to check against
+            prev_SD = curr_SD;
         }
-        curr_count++;
-        curr_offset++;
-        // now this is the active SD to check against
-        prev_SD = curr_SD;
-    }
 
-    // right now we only store counts at the end of a streak, so we need to store the last streak
-    // TODO is this always right???
-    SD_numTrianglesTouching.at(prev_SD) = curr_count;
+        // right now we only store counts at the end of a streak, so we need to store the last streak
+        // TODO is this always right???
+        SD_numTrianglesTouching.at(prev_SD) = curr_count;
+    }
 
     // for (unsigned int i = 0; i < SD_numTrianglesTouching.size(); i++) {
     //     printf("tri count index %u is usual %u, other %u\n", i, SD_numTrianglesTouching[i],

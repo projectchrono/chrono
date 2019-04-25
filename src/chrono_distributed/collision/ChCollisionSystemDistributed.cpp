@@ -116,7 +116,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
                 new_end->size = needed_count;
                 new_end->free = false;
                 // This portion will begin right after the end of the current body_shapes
-                new_end->body_shapes_index = static_cast<int>(ddm->body_shapes.size());  
+                new_end->body_shapes_index = static_cast<int>(ddm->body_shapes.size());
                 new_end->next = NULL;
                 begin_shapes = new_end->body_shapes_index;
             }
@@ -238,7 +238,8 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
         this->ChCollisionSystemParallel::Add(model);
         for (int i = 0; i < needed_count; i++) {
             ddm->dm_free_shapes.push_back(false);
-            ddm->body_shapes[begin_shapes] = static_cast<int>(dm->shape_data.id_rigid.size()) - needed_count + i;  // TODO ?
+            ddm->body_shapes[begin_shapes] =
+                static_cast<int>(dm->shape_data.id_rigid.size()) - needed_count + i;  // TODO ?
             begin_shapes++;
         }
     }
@@ -515,8 +516,9 @@ void ChCollisionSystemDistributed::GetOverlappingAABB(custom_vector<char>& activ
     ////#pragma omp parallel for
     for (int i = 0; i < ddm->data_manager->shape_data.typ_rigid.size(); i++) {
         auto id_rigid = ddm->data_manager->shape_data.id_rigid[i];
-        if (id_rigid == UINT_MAX)
+        if (id_rigid == UINT_MAX) {
             continue;
+        }
         real3 Bmin = ddm->data_manager->host_data.aabb_min[i];
         real3 Bmax = ddm->data_manager->host_data.aabb_max[i];
 

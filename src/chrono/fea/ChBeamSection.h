@@ -17,17 +17,15 @@
 
 #include "chrono/core/ChMathematics.h"
 
-
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_utils
+/// @{
 
-
-
-/// Base class for internal variables of materials. 
-/// Especially useful for plasticity, where internal variables are used 
+/// Base class for internal variables of materials.
+/// Especially useful for plasticity, where internal variables are used
 /// to carry information on plastic flow, accumulated flow, etc.
-
 class ChApi ChBeamMaterialInternalData {
 public:
 	ChBeamMaterialInternalData() :
@@ -48,7 +46,6 @@ public:
 /// Base class for properties of all beam sections.
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
-
 class ChApi ChBeamSectionProperties {
 public:
 	double y_drawsize;
@@ -117,20 +114,13 @@ public:
 
 };
 
-
-
-
-
-
 //
 // OLD CLASSES FOR BEAM MATERIALS
 //
 
-
 /// Base class for properties of beam sections.
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
-
 class ChApi ChBeamSection {
 public:
 	double y_drawsize;
@@ -171,8 +161,6 @@ public:
 	double GetDrawCircularRadius() { return this->y_drawsize; }
 
 };
-
-
 
 
 /// Basic geometry for a beam section in 3D, along with basic material
@@ -399,6 +387,8 @@ class ChApi ChBeamSectionCable : public ChBeamSection {
     void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
     double GetBeamRaleyghDamping() { return this->rdamping; }
 };
+
+/// @} fea_utils
 
 }  // end namespace fea
 }  // end namespace chrono

@@ -26,8 +26,13 @@ set(CH_GRANULAR_C_FLAGS "")
 # ------------------------------------------------------------------------------
 
 # ----- CUDA support -----
-find_package(CUDA QUIET REQUIRED)
-
+# Return now if CUDA is not available
+if(NOT CUDA_FOUND)
+  message("Chrono::Granular requires CUDA")
+  message(STATUS "Chrono::Granular disabled")
+  set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono Granular module" FORCE)
+  return()
+endif()
 
 option(GRANULAR_VERBOSE_PTXAS "Enable verbose output from ptxas during compilation" OFF)
 mark_as_advanced(GRANULAR_VERBOSE_PTXAS)
@@ -128,7 +133,6 @@ set(ChronoEngine_Granular_CUDA
 		physics/ChGranularBoundaryConditions.cuh
 		physics/ChGranularHelpers.cuh
 		physics/ChGranularBoxTriangle.cuh
-		utils/ChGranularUtilities.cuh
 		utils/ChCudaMathUtils.cuh
 		)
 

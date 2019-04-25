@@ -21,6 +21,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_nodes
+/// @{
+
 /// Class for a generic finite element node in 3D space, with scalar field P.
 /// This can be used for typical Poisson-type problems (ex. thermal, if the
 /// scalar field is temperature T, or electrostatics if the scalar field is
@@ -131,6 +134,8 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     double F;                      ///< applied term
     ChVector<> pos;
 };
+
+/// @} fea_nodes
 
 }  // end namespace fea
 }  // end namespace chrono

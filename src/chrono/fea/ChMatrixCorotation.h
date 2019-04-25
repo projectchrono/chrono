@@ -21,6 +21,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_math
+/// @{
+
 /// Perform a corotation (warping) of a K matrix by pre- or post- multiplying
 /// it with a C matrix that has 3x3 rotation matrices R as diagonal blocks,
 /// so that C*K  means:
@@ -34,7 +37,6 @@ namespace fea {
 /// and to obtain a global stiffness matrix.
 /// This class provides methods to do either C*K or also C*K*C' , without
 /// explicitly building C, for improved performance.
-
 template <class Real = double>
 class ChMatrixCorotation {
   public:
@@ -156,6 +158,8 @@ void ChMatrixCorotation<Real>::ComputeKCt(
             }
     }
 }
+
+/// @} fea_math
 
 }  // end namespace fea
 }  // end namespace chrono

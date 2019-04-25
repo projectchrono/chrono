@@ -327,8 +327,7 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
         }
     }
 
-    // Needed! pre-computes aux.topology 
-    // data structures for the mesh, aux. material data, etc.
+    // Precompute aux. topology data structures for the mesh, aux. material data, etc.
     SetupAuxData();
 }
 
@@ -336,6 +335,9 @@ void SCMDeformableSoil::Initialize(double height, double sizeX, double sizeY, in
 void SCMDeformableSoil::Initialize(const std::string& mesh_file) {
     m_trimesh_shape->GetMesh()->Clear();
     m_trimesh_shape->GetMesh()->LoadWavefrontMesh(mesh_file, true, true);
+
+    // Precompute aux. topology data structures for the mesh, aux. material data, etc.
+    SetupAuxData();
 }
 
 // Initialize the terrain from a specified height map.
@@ -453,8 +455,7 @@ void SCMDeformableSoil::Initialize(const std::string& heightmap_file,
         normals[in] /= (double)accumulators[in];
     }
 
-    // Needed! pre-computes auxiliary topology 
-    // data structures for the mesh, aux. material data, etc.
+    // Precompute aux. topology data structures for the mesh, aux. material data, etc.
     SetupAuxData();
 }
 

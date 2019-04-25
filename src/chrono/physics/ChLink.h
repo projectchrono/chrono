@@ -23,18 +23,13 @@ namespace chrono {
 // Forward references
 class ChSystem;
 
-/// Base class for joints betwenn two ChBodyFrame objects.
+/// Base class for joints between two ChBodyFrame objects.
 ///
-/// Links are objects which can be created to constrain two rigid
-/// bodies (i.e. objects from the ChBody class) in 3D space, like with
-/// revolute joints, guides, etc.
+/// Links (joints) are objects which can be created to constrain two rigid bodies
+/// (i.e. objects from the ChBody class) in 3D space.
 ///
-/// Note that there are many specializations of this base class,
-/// for example the ChLinkEngine class inherits this base class and
-/// implements specific functions to represent an engine between two
-/// bodies, etc. etc. (In fact, this base ChLink class does basically
-/// _nothing_ unless it is specialized by some child class).
-
+/// Note that there are many specializations of this base class. In fact, this base
+/// ChLink class does basically nothing, unless it is specialized by some child class.
 class ChApi ChLink : public ChLinkBase {
 
   protected:

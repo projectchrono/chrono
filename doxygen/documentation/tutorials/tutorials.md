@@ -18,51 +18,57 @@ Tutorials {#tutorial_root}
 
 -   @subpage tutorial_table_of_content_chrono_vehicle
  
-    Learn how to set up vehicle models in Chrono.
+    Modeling and simulating ground vehicles in Chrono.
 	
 -   @subpage tutorial_table_of_content_chrono_postprocess
 
-    Examples about postprocessing (ex. POVray or GNUplot output).
+    Examples on producing postprocessing data (e.g. POVray or GNUplot output).
 
 -   @subpage tutorial_table_of_content_chrono_python
 
-    Examples about how to parse Python programs.
+    Examples on how to parse Python programs.
 
 -   @subpage tutorial_table_of_content_chrono_matlab
 
-    Examples about Matlab inter-operation.
+    Examples for Matlab inter-operation.
 
 -   @subpage tutorial_table_of_content_chrono_cosimulation
 
-    Examples about cosimulation with Simulink. 
+    Examples for cosimulation with Simulink. 
 
 -   @subpage tutorial_table_of_content_chrono_cascade
 
-    Examples about loading CAD models.
+    Examples for loading CAD models.
 	
 -   @subpage tutorial_table_of_content_chrono_parallel
 
-    Examples about the parallel module.
+    Examples on using the Parallel module.
 	
+-   @subpage tutorial_table_of_content_chrono_distributed
+
+    Examples on using the Distributed module.
+
 -   @subpage tutorial_table_of_content_chrono_opengl
 
-    Examples about the OpenGL module.
+    Examples on run-time visualization with the OpenGL module.
 
 -   @subpage tutorial_table_of_content_chrono_fsi
 
-    Examples about the FSI module.	
+    Examples of fluid-solid interaction using the FSI module.	
 	
+
 ## Other tools
+
+
+-   @subpage tutorial_table_of_content_pychrono
+ 
+    Learn how to use [PyChrono](@ref pychrono_introduction)
 
 -   @subpage tutorial_table_of_content_chrono_solidworks
 
     Learn how to use [Chrono::SolidWorks](@ref introduction_chrono_solidworks)
 
--   @subpage tutorial_table_of_content_chrono_pyengine
- 
-    Learn how to use [Chrono::PyEngine](@ref introduction_chrono_pyengine)
 
-    
 ## Chrono training materials
 
 -   [Tutorial slides](@ref tutorial_slides_300)
@@ -74,5 +80,5 @@ Tutorials {#tutorial_root}
 
 -    @subpage tutorial_table_of_content_documentation
 
-     Learn how to write technical documentation for Chrono if you are developing new modules/features.
+     Guidelines on writing technical documentation for Chrono (for developers of new modules/features).
 

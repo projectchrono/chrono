@@ -43,10 +43,6 @@
 
 namespace chrono {
 
-// Forward references
-class ChSystemDescriptor;
-class ChContactContainer;
-
 /// Physical system.
 ///
 /// This class is used to represent a multibody physical system,
@@ -163,6 +159,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.)
     void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy);
+
+    /// Accessor for the current composition laws for contact surface material.
+    const ChMaterialCompositionStrategy<float>& GetMaterialCompositionStrategy() const { return *composition_strategy; }
 
     /// For elastic collisions, with objects that have nonzero
     /// restitution coefficient: objects will rebounce only if their

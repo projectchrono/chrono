@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/math/matrix.h"
 
 namespace chrono {
@@ -299,8 +300,7 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
     return false;
 }
 
-
 /// @} parallel_colision
 
-} // end namespace collision
-} // end namespace chrono
+}  // end namespace collision
+}  // end namespace chrono

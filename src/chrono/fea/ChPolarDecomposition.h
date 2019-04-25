@@ -29,9 +29,10 @@
 namespace chrono {
 namespace fea {
 
-/*
-Polar decomposition of a general 3x3 matrix
+/// @addtogroup fea_math
+/// @{
 
+/*
 This code uses the polar decomposition implementation provided as a companion to the book "Graphics Gems IV":
 Decompose.c
 Ken Shoemake, 1993
@@ -52,18 +53,20 @@ format, etc.).
 He releases his adaptations of the polar decomposition code into the public domain, free of charge. The above EULA still
 applies, of course.
 */
-// This class is wrapped by ChPolarDecomposition (see below)
-// It is based on VEGA (J. Barbic).
+
+/// Polar decomposition of a general 3x3 matrix.
+/// This class is wrapped by ChPolarDecomposition.
+/// It is based on VEGA (J. Barbic).
 class PolarDecomposition {
   public:
-    // Computes the Polar Decomposition of a general 3x3 matrix M.
-    // M = Q * S
-    // M is 3x3 input matrix
-    // Q is 3x3 orthogonal output matrix, Q Q^T = Q^T Q = I
-    // S is 3x3 symmetric output matrix
-    // Note: det(Q)=sgn(det(M)); this sign can be 1 or -1, depending on M
-    // M is not modified
-    // All matrices are row-major
+    /// Computes the Polar Decomposition of a general 3x3 matrix M.
+    /// M = Q * S.
+    /// M is 3x3 input matrix.
+    /// Q is 3x3 orthogonal output matrix, Q Q^T = Q^T Q = I.
+    /// S is 3x3 symmetric output matrix.
+    /// Note: det(Q)=sgn(det(M)); this sign can be 1 or -1, depending on M.
+    /// M is not modified.
+    /// All matrices are row-major.
     static double Compute(const double* M, double* Q, double* S, double tolerance = 1E-6);
 
   protected:
@@ -86,8 +89,6 @@ class PolarDecomposition {
 
 /// Perform a polar decomposition of a 3x3 P matrix in order to retrieve
 /// the orthogonal Q and the symmetric S form, as P=Q*S
-///
-
 template <class Real = double>
 class ChApi ChPolarDecomposition {
   public:
@@ -107,6 +108,8 @@ class ChApi ChPolarDecomposition {
         return PolarDecomposition::Compute(M.GetAddress(), Q.GetAddress(), S.GetAddress());
     }
 };
+
+/// @} fea_math
 
 }  // end namespace fea
 }  // end namespace chrono

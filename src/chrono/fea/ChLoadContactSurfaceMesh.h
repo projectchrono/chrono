@@ -21,6 +21,9 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup chrono_fea
+/// @{
+
 /// Class for applying loads to a contact mesh as a cluster of forces
 /// operating on the nodes of the underlying finite elements.
 /// It is useful for doing cosimulation: one can pass this object's vertex & faces
@@ -117,6 +120,8 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     std::shared_ptr<ChContactSurfaceMesh> contactmesh;
     std::vector<std::shared_ptr<ChLoadXYZnode>> forces;
 };
+
+/// @} chrono_fea
 
 }  // end namespace fea
 }  // end namespace chrono

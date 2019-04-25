@@ -21,7 +21,6 @@
 #include "chrono/physics/ChLinkBrake.h"
 #include "chrono/physics/ChLinkClearance.h"
 #include "chrono/physics/ChLinkDistance.h"
-#include "chrono/physics/ChLinkEngine.h"
 #include "chrono/physics/ChLinkGear.h"
 #include "chrono/physics/ChLinkLinActuator.h"
 #include "chrono/physics/ChLinkLock.h"

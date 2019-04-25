@@ -29,10 +29,10 @@ namespace chrono {
 namespace vehicle {
 namespace sedan {
 
-/// @addtogroup vehicle_models_wvp
+/// @addtogroup vehicle_models_sedan
 /// @{
 
-/// TMeasy tire model for the WVP vehicle.
+/// TMeasy tire model for the Sedan vehicle.
 class CH_MODELS_API Sedan_TMeasyTire : public ChTMeasyTire {
   public:
     Sedan_TMeasyTire(const std::string& name);

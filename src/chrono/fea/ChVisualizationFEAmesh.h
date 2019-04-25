@@ -27,11 +27,13 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup chrono_fea
+/// @{
+
 /// Class for a FEA mesh visualization.
 /// It converts tetrahedrons, etc. into a colored triangle mesh asset
 /// of class ChTriangleMeshShape that is contained in its sublevel,
 /// so that it can be rendered or postprocessed.
-
 class ChApi ChVisualizationFEAmesh : public ChAssetLevel {
   public:
     enum eChFemDataType {
@@ -215,6 +217,8 @@ class ChApi ChVisualizationFEAmesh : public ChAssetLevel {
                            unsigned int& i_vcols,
                            unsigned int& i_triindex);
 };
+
+/// @} chrono_fea
 
 }  // end namespace fea
 }  // end namespace chrono

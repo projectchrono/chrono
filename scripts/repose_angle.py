@@ -17,15 +17,24 @@ t = dirname.split('_')[-3:]
 
 data = pd.read_csv(infile)
 pos = np.array(data[['x','y','z']])
+l1 = pos.shape[0]
+
+pos = pos[np.where(pos[:,2] <= -20)]
+l2 = pos.shape[0]
+
+if l1 - l2 >= 10:
+    print("WARNING: removing more than 10 particles")
+    exit(1)
 
 max_i = np.argmax(pos[:,2])
 top_point = pos[max_i,:]
-pos = pos[pos[:,0].argsort()]
+
 r_z = np.zeros((pos.shape[0],2))
 r_z[:,0] = np.sqrt((pos[:,0]-top_point[0])**2 + (pos[:,1]-top_point[1])**2)
 r_z[:,1] = pos[:,2]
 
 part_size = 1.0
+rmin = 2*part_size
 rmax = np.max(r_z[:,0])
 top_layer = []
 # Divide r into partitions
@@ -35,7 +44,7 @@ top_layer = []
 # IDEA: find highest point, then chose the point (on the top surface) that maximizes
 # the slope between it and the highest point. DANGER: don't let it choose a point
 # right next to the highest point.
-for r in np.arange(0, rmax, part_size):
+for r in np.arange(rmin, rmax, part_size):
     lo = r
     hi = r + part_size
     section = r_z[np.where(np.logical_and(r_z[:,0] > lo, r_z[:,0] <= hi))]

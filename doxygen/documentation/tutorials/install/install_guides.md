@@ -1,47 +1,53 @@
 Installation Guides {#tutorial_table_of_content_install}
 ==========================
 
-## Installing/building Chrono
+## Building Chrono
 
--   @subpage tutorial_install_chrono
+-   [Core Chrono module](@ref tutorial_install_chrono)
 
--   @subpage tutorial_install_project
-	
-	
-## How to build optional modules
+Additional Chrono functionality is provided through optional modules. Building one or more of these modules can be enabled during CMake configuration. A brief overview of the functionality provided by each module, additional requirements and dependencies, and specific build instructions are provided in the following subsections:
 
--   @subpage module_postprocess_installation
+-   [CASCADE module](@ref module_cascade_installation)
 
--   @subpage module_vehicle_installation	
+-   [COSIMULATION module](@ref module_cosimulation_installation)
 
--   @subpage module_fea_installation
+-   [DISTRIBUTED module](@ref module_distributed_installation)
 
--   @subpage module_python_installation
+-   [FSI module](@ref module_fsi_installation)
 
--   @subpage module_irrlicht_installation
+-   [IRRLICHT module](@ref module_irrlicht_installation)
 
--   @subpage module_matlab_installation	
+-   [MATLAB module](@ref module_matlab_installation)
 
--   @subpage module_cosimulation_installation
+-   [MKL module](@ref module_mkl_installation)
 
--   @subpage module_cascade_installation
+-   [MUMPS module](@ref module_mumps_installation)
 
--   @subpage module_opengl_installation
+-   [OPENGL module](@ref module_opengl_installation)
 
--   @subpage module_parallel_installation
+-   [PARALLEL module](@ref module_parallel_installation)
 
--   @subpage module_mkl_installation
+-   [POSTPROCESS module](@ref module_postprocess_installation) 
 
--   @subpage module_fsi_installation
+-   [PYTHON module](@ref module_python_installation)
 
--   @subpage module_ogre_installation
+-   [VEHICLE module](@ref module_vehicle_installation)	
 
-	
-## How to install auxiliary tools
 
-- @subpage chrono_pyengine_installation
-  - [Chrono::PyEngine](@ref introduction_chrono_pyengine), brief overview
+## Building a project that uses Chrono
 
+-   [Linking to Chrono](@ref tutorial_install_project)
+
+## Auxiliary tools
+
+#### The PyChrono Python module
+
+- [PyChrono](@ref pychrono_introduction), brief overview
+- @subpage pychrono_installation
+
+
+#### The Chrono::Solidworks add-in tool
+
+- [Chrono::SolidWorks](@ref introduction_chrono_solidworks), brief overview
 - @subpage tutorial_install_chrono_solidworks
-  - [Chrono::SolidWorks](@ref introduction_chrono_solidworks), brief overview
-	
+  

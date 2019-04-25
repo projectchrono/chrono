@@ -1,16 +1,17 @@
-#-------------------------------------------------------------------------------
-# Name:        demo_python_2
-#-------------------------------------------------------------------------------
-#!/usr/bin/env python
+#------------------------------------------------------------------------------
+# Name:        pychrono example
+# Purpose:
+#
+# Author:      Alessandro Tasora
+#
+# Created:     1/01/2019
+# Copyright:   (c) ProjectChrono 2019
+#------------------------------------------------------------------------------
 
-def main():
-    pass
-
-if __name__ == '__main__':
-    main()
+print ("Second tutorial: create and populate a physical system");
 
 
-# Load the Chrono::Engine unit!!!
+# Load the Chrono::Engine core module!
 import pychrono as chrono
 
 

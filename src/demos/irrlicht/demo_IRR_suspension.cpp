@@ -24,9 +24,10 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/physics/ChLinkDistance.h"
+#include "chrono/physics/ChLinkMotorRotationTorque.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -88,7 +89,7 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distRBL2;
     std::shared_ptr<ChLinkSpring> link_springRB;
     std::shared_ptr<ChLinkDistance> link_distRBlat;
-    std::shared_ptr<ChLinkEngine> link_engineL;
+    std::shared_ptr<ChLinkMotorRotationTorque> link_motorL;
     // .. left back suspension:
     std::shared_ptr<ChBody> spindleLB;
     std::shared_ptr<ChBody> wheelLB;
@@ -99,17 +100,17 @@ class MySimpleCar {
     std::shared_ptr<ChLinkDistance> link_distLBL2;
     std::shared_ptr<ChLinkSpring> link_springLB;
     std::shared_ptr<ChLinkDistance> link_distLBlat;
-    std::shared_ptr<ChLinkEngine> link_engineR;
+    std::shared_ptr<ChLinkMotorRotationTorque> link_motorR;
 
     // THE FUNCTIONS
 
     // Build and initialize the car, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleCar(ChSystemNSC& my_system,           ///< the Chrono physical system
+    MySimpleCar(ChSystemNSC& my_system,        ///< the Chrono physical system
                 ISceneManager* msceneManager,  ///< the Irrlicht scene manager for 3d shapes
                 IVideoDriver* mdriver          ///< the Irrlicht video driver
-                ) {
+    ) {
         throttle = 0;  // initially, gas throttle is 0.
         conic_tau = 0.2;
         gear_tau = 0.3;
@@ -155,37 +156,31 @@ class MySimpleCar {
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
         link_distRFU1 = std::make_shared<ChLinkDistance>();  // right, front, upper, 1
-        link_distRFU1->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.2),
-                                  ChVector<>(1.25, 1.2, 1));
+        link_distRFU1->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.2), ChVector<>(1.25, 1.2, 1));
         my_system.AddLink(link_distRFU1);
 
         link_distRFU2 = std::make_shared<ChLinkDistance>();  // right, front, upper, 2
-        link_distRFU2->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 0.8),
-                                  ChVector<>(1.25, 1.2, 1));
+        link_distRFU2->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 0.8), ChVector<>(1.25, 1.2, 1));
         my_system.AddLink(link_distRFU2);
 
         link_distRFL1 = std::make_shared<ChLinkDistance>();  // right, front, lower, 1
-        link_distRFL1->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 0.8, 1.2),
-                                  ChVector<>(1.25, 0.8, 1));
+        link_distRFL1->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 0.8, 1.2), ChVector<>(1.25, 0.8, 1));
         my_system.AddLink(link_distRFL1);
 
         link_distRFL2 = std::make_shared<ChLinkDistance>();  // right, front, lower, 2
-        link_distRFL2->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 0.8, 0.8),
-                                  ChVector<>(1.25, 0.8, 1));
+        link_distRFL2->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 0.8, 0.8), ChVector<>(1.25, 0.8, 1));
         my_system.AddLink(link_distRFL2);
 
         // .. create the spring between the truss and the spindle
         link_springRF = std::make_shared<ChLinkSpring>();
-        link_springRF->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.0),
-                                  ChVector<>(1.25, 0.8, 1));
+        link_springRF->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.2, 1.0), ChVector<>(1.25, 0.8, 1));
         link_springRF->Set_SpringK(28300);
         link_springRF->Set_SpringR(80);
         my_system.AddLink(link_springRF);
 
         // .. create the rod for steering the wheel
         link_distRSTEER = std::make_shared<ChLinkDistance>();  // right steer
-        link_distRSTEER->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.21, 1.4),
-                                    ChVector<>(1.25, 1.21, 1.3));
+        link_distRSTEER->Initialize(chassis, spindleRF, false, ChVector<>(0.5, 1.21, 1.4), ChVector<>(1.25, 1.21, 1.3));
         my_system.AddLink(link_distRSTEER);
 
         // --- Left Front suspension ---
@@ -215,29 +210,24 @@ class MySimpleCar {
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
         link_distLFU1 = std::make_shared<ChLinkDistance>();  // left, front, upper, 1
-        link_distLFU1->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.2),
-                                  ChVector<>(-1.25, 1.2, 1));
+        link_distLFU1->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.2), ChVector<>(-1.25, 1.2, 1));
         my_system.AddLink(link_distLFU1);
 
         link_distLFU2 = std::make_shared<ChLinkDistance>();  // left, front, upper, 2
-        link_distLFU2->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 0.8),
-                                  ChVector<>(-1.25, 1.2, 1));
+        link_distLFU2->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 0.8), ChVector<>(-1.25, 1.2, 1));
         my_system.AddLink(link_distLFU2);
 
         link_distLFL1 = std::make_shared<ChLinkDistance>();  // left, front, lower, 1
-        link_distLFL1->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 0.8, 1.2),
-                                  ChVector<>(-1.25, 0.8, 1));
+        link_distLFL1->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 0.8, 1.2), ChVector<>(-1.25, 0.8, 1));
         my_system.AddLink(link_distLFL1);
 
         link_distLFL2 = std::make_shared<ChLinkDistance>();  // left, front, lower, 2
-        link_distLFL2->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 0.8, 0.8),
-                                  ChVector<>(-1.25, 0.8, 1));
+        link_distLFL2->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 0.8, 0.8), ChVector<>(-1.25, 0.8, 1));
         my_system.AddLink(link_distLFL2);
 
         // .. create the spring between the truss and the spindle
         link_springLF = std::make_shared<ChLinkSpring>();
-        link_springLF->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.0),
-                                  ChVector<>(-1.25, 0.8, 1));
+        link_springLF->Initialize(chassis, spindleLF, false, ChVector<>(-0.5, 1.2, 1.0), ChVector<>(-1.25, 0.8, 1));
         link_springLF->Set_SpringK(28300);
         link_springLF->Set_SpringR(80);
         my_system.AddLink(link_springLF);
@@ -274,38 +264,31 @@ class MySimpleCar {
         my_system.AddLink(link_revoluteRB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
-        link_engineR = std::make_shared<ChLinkEngine>();
-        link_engineR->Initialize(wheelRB, chassis,
-                                 ChCoordsys<>(ChVector<>(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        link_engineR->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_CARDANO);  // approx as a double Rzeppa joint
-        link_engineR->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
-        my_system.AddLink(link_engineR);
+        link_motorR = std::make_shared<ChLinkMotorRotationTorque>();
+        link_motorR->Initialize(wheelRB, chassis,
+                                ChFrame<>(ChVector<>(1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+        my_system.AddLink(link_motorR);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
         link_distRBU1 = std::make_shared<ChLinkDistance>();  // right, back, upper, 1
-        link_distRBU1->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.2),
-                                  ChVector<>(1.25, 1.2, -1));
+        link_distRBU1->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.2), ChVector<>(1.25, 1.2, -1));
         my_system.AddLink(link_distRBU1);
 
         link_distRBU2 = std::make_shared<ChLinkDistance>();  // right, back, upper, 2
-        link_distRBU2->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -0.8),
-                                  ChVector<>(1.25, 1.2, -1));
+        link_distRBU2->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -0.8), ChVector<>(1.25, 1.2, -1));
         my_system.AddLink(link_distRBU2);
 
         link_distRBL1 = std::make_shared<ChLinkDistance>();  // right, back, lower, 1
-        link_distRBL1->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 0.8, -1.2),
-                                  ChVector<>(1.25, 0.8, -1));
+        link_distRBL1->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 0.8, -1.2), ChVector<>(1.25, 0.8, -1));
         my_system.AddLink(link_distRBL1);
 
         link_distRBL2 = std::make_shared<ChLinkDistance>();  // right, back, lower, 2
-        link_distRBL2->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 0.8, -0.8),
-                                  ChVector<>(1.25, 0.8, -1));
+        link_distRBL2->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 0.8, -0.8), ChVector<>(1.25, 0.8, -1));
         my_system.AddLink(link_distRBL2);
 
         // .. create the spring between the truss and the spindle
         link_springRB = std::make_shared<ChLinkSpring>();
-        link_springRB->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.0),
-                                  ChVector<>(1.25, 0.8, -1));
+        link_springRB->Initialize(chassis, spindleRB, false, ChVector<>(0.5, 1.2, -1.0), ChVector<>(1.25, 0.8, -1));
         link_springRB->Set_SpringK(28300);
         link_springRB->Set_SpringR(80);
         my_system.AddLink(link_springRB);
@@ -342,38 +325,31 @@ class MySimpleCar {
         my_system.AddLink(link_revoluteLB);
 
         // .. create the motor transmission joint between the wheel and the truss (assuming small changes of alignment)
-        link_engineL = std::make_shared<ChLinkEngine>();
-        link_engineL->Initialize(wheelLB, chassis,
-                                 ChCoordsys<>(ChVector<>(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
-        link_engineL->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_CARDANO);  // approx as a double Rzeppa joint
-        link_engineL->Set_eng_mode(ChLinkEngine::ENG_MODE_TORQUE);
-        my_system.AddLink(link_engineL);
+        link_motorL = std::make_shared<ChLinkMotorRotationTorque>();
+        link_motorL->Initialize(wheelLB, chassis,
+                                ChFrame<>(ChVector<>(-1.5, 1, -1), chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+        my_system.AddLink(link_motorL);
 
         // .. impose distance between two parts (as a massless rod with two spherical joints at the end)
         link_distLBU1 = std::make_shared<ChLinkDistance>();  // left, front, upper, 1
-        link_distLBU1->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.2),
-                                  ChVector<>(-1.25, 1.2, -1));
+        link_distLBU1->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.2), ChVector<>(-1.25, 1.2, -1));
         my_system.AddLink(link_distLBU1);
 
         link_distLBU2 = std::make_shared<ChLinkDistance>();  // left, back, upper, 2
-        link_distLBU2->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -0.8),
-                                  ChVector<>(-1.25, 1.2, -1));
+        link_distLBU2->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -0.8), ChVector<>(-1.25, 1.2, -1));
         my_system.AddLink(link_distLBU2);
 
         link_distLBL1 = std::make_shared<ChLinkDistance>();  // left, back, lower, 1
-        link_distLBL1->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 0.8, -1.2),
-                                  ChVector<>(-1.25, 0.8, -1));
+        link_distLBL1->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 0.8, -1.2), ChVector<>(-1.25, 0.8, -1));
         my_system.AddLink(link_distLBL1);
 
         link_distLBL2 = std::make_shared<ChLinkDistance>();  // left, back, lower, 2
-        link_distLBL2->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 0.8, -0.8),
-                                  ChVector<>(-1.25, 0.8, -1));
+        link_distLBL2->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 0.8, -0.8), ChVector<>(-1.25, 0.8, -1));
         my_system.AddLink(link_distLBL2);
 
         // .. create the spring between the truss and the spindle
         link_springLB = std::make_shared<ChLinkSpring>();
-        link_springLB->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.0),
-                                  ChVector<>(-1.25, 0.8, -1));
+        link_springLB->Initialize(chassis, spindleLB, false, ChVector<>(-0.5, 1.2, -1.0), ChVector<>(-1.25, 0.8, -1));
         link_springLB->Set_SpringK(28300);
         link_springLB->Set_SpringR(80);
         my_system.AddLink(link_springLB);
@@ -418,7 +394,7 @@ class MySimpleCar {
         mysystem->RemoveLink(link_distRBL2);
         mysystem->RemoveLink(link_springRB);
         mysystem->RemoveLink(link_distRBlat);
-        mysystem->RemoveLink(link_engineR);
+        mysystem->RemoveLink(link_motorR);
 
         mysystem->RemoveLink(link_revoluteLB);
         mysystem->RemoveLink(link_distLBU1);
@@ -427,7 +403,7 @@ class MySimpleCar {
         mysystem->RemoveLink(link_distLBL2);
         mysystem->RemoveLink(link_springLB);
         mysystem->RemoveLink(link_distLBlat);
-        mysystem->RemoveLink(link_engineL);
+        mysystem->RemoveLink(link_motorL);
     }
 
     // This can be used, at each time step, to compute the actual value of torque
@@ -438,8 +414,8 @@ class MySimpleCar {
         // Assume clutch is never used. Given the kinematics of differential,
         // the speed of the engine transmission shaft is the average of the two wheel speeds,
         // multiplied the conic gear transmission ratio inversed:
-        double shaftspeed = (1.0 / this->conic_tau) * 0.5 *
-                            (this->link_engineL->Get_mot_rot_dt() + this->link_engineR->Get_mot_rot_dt());
+        double shaftspeed =
+            (1.0 / this->conic_tau) * 0.5 * (link_motorL->GetMotorRot_dt() + link_motorR->GetMotorRot_dt());
         // The motorspeed is the shaft speed multiplied by gear ratio inversed:
         double motorspeed = (1.0 / this->gear_tau) * shaftspeed;
         // The torque depends on speed-torque curve of the motor: here we assume a
@@ -452,10 +428,10 @@ class MySimpleCar {
         // The torque at wheels - for each wheel, given the differential transmission,
         // it is half of the shaft torque  (multiplied the conic gear transmission ratio)
         double singlewheeltorque = 0.5 * shafttorque * (1.0 / this->conic_tau);
-        // Set the wheel torque in both 'engine' links, connecting the wheels to the truss;
-        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_engineL->Get_tor_funct()))
+        // Set the wheel torque in both 'motor' links, connecting the wheels to the truss;
+        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_motorL->GetTorqueFunction()))
             mfun->Set_yconst(singlewheeltorque);
-        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_engineR->Get_tor_funct()))
+        if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_motorR->GetTorqueFunction()))
             mfun->Set_yconst(singlewheeltorque);
         // debug:print infos on screen:
         // GetLog() << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" << singlewheeltorque
@@ -580,7 +556,7 @@ class MyEventReceiver : public IEventReceiver {
                         double newthrottle = ((double)(pos)) / 100.0;
                         // Set the throttle value of car (the torque transmitted
                         // to wheels depends on throttle, speed, transmission gear, so
-                        // it will sent to the link_engineR and link_engineL only when
+                        // it will sent to the link_motorR and link_motorL only when
                         // computed by MySimplifiedCar::ComputeWheelTorque(),
                         this->mcar->throttle = newthrottle;
                     }
@@ -620,7 +596,7 @@ int main(int argc, char* argv[]) {
     // HERE YOU CREATE THE MECHANICAL SYSTEM OF CHRONO...
     //
 
-    // 1- Create a ChronoENGINE physical system: all bodies and constraints
+    // 1- Create a Chrono physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC my_system;
 
@@ -690,7 +666,6 @@ int main(int argc, char* argv[]) {
     application.AssetBindAll();
     application.AssetUpdateAll();
 
-
     //
     // USER INTERFACE
     //
@@ -724,7 +699,8 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // .. draw a grid (rotated so that it's horizontal)
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30, 30, ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
+        ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30, 30,
+                             ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 80, 130, 130), true);
 
         // .. draw GUI user interface items (sliders, buttons) belonging to Irrlicht screen, if any
@@ -742,7 +718,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // The torque applied to wheels, using the ChLinkEngine links between
+        // The torque applied to wheels, using the ChLinkMotorRotationTorque links between
         // wheels and truss, depends on many parameters (gear, throttle, etc):
         mycar->ComputeWheelTorque();
 

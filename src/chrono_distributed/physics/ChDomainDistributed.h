@@ -27,6 +27,9 @@ namespace chrono {
 
 class ChSystemDistributed;
 
+/// @addtogroup distributed_physics
+/// @{
+
 /// This class maps sub-domains of the global simulation domain to each MPI rank.
 /// The global domain is split along the longest axis.
 /// Within each sub-domain, there are layers of ownership:
@@ -102,7 +105,6 @@ class ChSystemDistributed;
 ///
 /// A body with a GHOST comm_status will become OWNED when it moves into the owned region of this rank.
 /// A body with a GHOST comm_status will be removed when it moves into the one of this rank's unowned regions.
-
 class CH_DISTR_API ChDomainDistributed {
   public:
     ChDomainDistributed(ChSystemDistributed* sys);
@@ -165,5 +167,6 @@ class CH_DISTR_API ChDomainDistributed {
     /// the region classification for a body based on the center position.
     distributed::COMM_STATUS GetRegion(double pos);
 };
+/// @} distributed_physics
 
 } /* namespace chrono */

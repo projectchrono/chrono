@@ -40,7 +40,7 @@ class ChApi ChLinePath : public ChLine {
 
     virtual GeometryType GetClassType() const override { return LINE_PATH; }
 
-    virtual int Get_complexity() { return 2; }
+    virtual int Get_complexity() const override { return 2; }
 
     /// Return curve length.
     /// Sampling does not matter.

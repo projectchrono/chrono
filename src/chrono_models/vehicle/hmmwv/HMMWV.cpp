@@ -22,6 +22,18 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleCVTPowertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_TMeasyTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -39,6 +51,7 @@ HMMWV::HMMWV()
       m_driveType(DrivelineType::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_vehicle_step_size(-1),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -57,6 +70,7 @@ HMMWV::HMMWV(ChSystem* system)
       m_driveType(DrivelineType::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_vehicle_step_size(-1),
       m_tire_step_size(-1),
       m_initFwdVel(0),
@@ -112,6 +126,11 @@ void HMMWV::Initialize() {
         }
         case PowertrainModelType::SIMPLE: {
             HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain("Powertrain");
+            m_powertrain = ptrain;
+            break;
+        }
+        case PowertrainModelType::SIMPLE_CVT: {
+            HMMWV_SimpleCVTPowertrain* ptrain = new HMMWV_SimpleCVTPowertrain("Powertrain");
             m_powertrain = ptrain;
             break;
         }
@@ -281,10 +300,10 @@ void HMMWV::Synchronize(double time,
 
     double driveshaft_speed = m_vehicle->GetDriveshaftSpeed();
 
-    m_tires[0]->Synchronize(time, wheel_states[0], terrain);
-    m_tires[1]->Synchronize(time, wheel_states[1], terrain);
-    m_tires[2]->Synchronize(time, wheel_states[2], terrain);
-    m_tires[3]->Synchronize(time, wheel_states[3], terrain);
+    m_tires[0]->Synchronize(time, wheel_states[0], terrain, m_tire_collision_type);
+    m_tires[1]->Synchronize(time, wheel_states[1], terrain, m_tire_collision_type);
+    m_tires[2]->Synchronize(time, wheel_states[2], terrain, m_tire_collision_type);
+    m_tires[3]->Synchronize(time, wheel_states[3], terrain, m_tire_collision_type);
 
     m_powertrain->Synchronize(time, throttle_input, driveshaft_speed);
 

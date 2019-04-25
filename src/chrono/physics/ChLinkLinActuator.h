@@ -25,7 +25,7 @@ namespace chrono {
 /// **NOTE! THIS IS OBSOLETE**. Prefer using the new classes 
 /// inherited from chrono::ChLinkMotor.
 
-class ChApi ChLinkLinActuator : public ChLinkLock {
+class ChApi ChLinkLinActuator : public ChLinkLockLock {
 
   protected:
     std::shared_ptr<ChFunction> dist_funct;  ///< distance function

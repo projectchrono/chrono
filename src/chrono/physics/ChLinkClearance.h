@@ -22,7 +22,7 @@ namespace chrono {
 /// A class for the custom fast simulation of revolute joints with clearance.
 /// ***OBSOLETE***
 
-class ChApi ChLinkClearance : public ChLinkLock {
+class ChApi ChLinkClearance : public ChLinkLockLock {
 
   protected:
     double clearance;           ///< distance offset
@@ -54,14 +54,14 @@ class ChApi ChLinkClearance : public ChLinkLock {
     double Get_clearance() { return clearance; }
     void Set_clearance(double mset) {
         clearance = mset;
-        limit_X->Set_max(clearance);
+        limit_X->SetMax(clearance);
     }
     double Get_c_friction() { return c_friction; }
     void Set_c_friction(double mset) { c_friction = mset; }
     double Get_c_restitution() { return c_restitution; }
     void Set_c_restitution(double mset) {
         c_restitution = mset;
-        limit_X->Set_maxElastic(c_restitution);
+        limit_X->SetMaxElastic(c_restitution);
     }
     double Get_c_tang_restitution() { return c_tang_restitution; }
     void Set_c_tang_restitution(double mset) { c_tang_restitution = mset; }

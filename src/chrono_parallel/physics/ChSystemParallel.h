@@ -30,6 +30,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChShaft.h"
 
 #include "chrono/fea/ChMesh.h"
 

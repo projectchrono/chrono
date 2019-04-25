@@ -22,10 +22,13 @@
 namespace chrono {
 namespace fea {
 
+/// @addtogroup fea_elements
+/// @{
+
 /// Face of a linear ChElementHexa_8 hexahedron.
 /// This is a proxy to the hexahedron. It can be used to apply pressure loads.
 /// Corner nodes, obtainable with GetNodeN(), are in counterclockwise order seen from the outside.
-///
+/// <pre>
 ///         v
 ///         ^
 /// 3 o-----+-----o 2
@@ -33,7 +36,7 @@ namespace fea {
 /// --+-----+-----+-> u
 ///   |     |     |
 /// 0 o-----+-----o 1
-///
+/// </pre>
 class ChApi ChFaceHexa_8 : public ChLoadableUV {
   protected:
     char face_id;
@@ -175,6 +178,8 @@ class ChApi ChFaceHexa_8 : public ChLoadableUV {
         return Vcross(p1 - p0, p2 - p0).GetNormalized();
     }
 };
+
+/// @} fea_elements
 
 }  // end namespace fea
 }  // end namespace chrono

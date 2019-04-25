@@ -8,20 +8,17 @@ option(ENABLE_MODULE_CASCADE "Enable the Chrono Cascade module" OFF)
 
 # Return now if this module is not enabled
 IF(NOT ENABLE_MODULE_CASCADE)
-  MARK_AS_ADVANCED(FORCE CH_CASCADE_DIR)
-  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    MARK_AS_ADVANCED(FORCE CH_CASCADE_LIBDIR)
-  ENDIF()
+  MARK_AS_ADVANCED(FORCE CASCADE_ROOT)
+  MARK_AS_ADVANCED(FORCE CASCADE_INCLUDE_DIR)
+  MARK_AS_ADVANCED(FORCE CASCADE_LIBDIR)
   RETURN()
 ENDIF()
 
 MESSAGE(STATUS "==== Chrono Cascade module ====")
 
-MARK_AS_ADVANCED(CLEAR CH_CASCADE_DIR)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-   MARK_AS_ADVANCED(CLEAR CH_CASCADE_LIBDIR)
-ENDIF()
-
+MARK_AS_ADVANCED(CLEAR CASCADE_ROOT)
+MARK_AS_ADVANCED(CLEAR CASCADE_INCLUDE_DIR)
+MARK_AS_ADVANCED(CLEAR CASCADE_LIBDIR)
 
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE OpenCASCADE LIBRARY
@@ -29,7 +26,7 @@ ENDIF()
 SET(ChronoEngine_CASCADE_SOURCES 
     ChCascadeMeshTools.cpp
     ChCascadeDoc.cpp
-	ChCascadeShapeAsset.cpp
+    ChCascadeShapeAsset.cpp
 )
 
 SET(ChronoEngine_CASCADE_HEADERS
@@ -47,26 +44,26 @@ SOURCE_GROUP("" FILES
 
 #-----------------------------------------------------------------------------	
 
-SET(CH_CASCADE_DIR "" CACHE PATH  "Where is your OpenCASCADE SDK installed?")
-SET(CH_CASCADE_LIBDIR "" CACHE PATH "Path to the OpenCASCADE library directory.")
+SET(CASCADE_ROOT "" CACHE PATH  "Path to OpenCASCADE SDK installation.")
+SET(CASCADE_LIBDIR "" CACHE PATH "Path to the OpenCASCADE library directory.")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    FIND_PATH(CH_CASCADE_INCLUDES Standard_Version.hxx
-      HINTS ${CH_CASCADE_INCLUDES} "${CH_CASCADE_DIR}/inc" "${CH_CASCADE_DIR}/include" "${CH_CASCADE_DIR}/include/oce"
+    FIND_PATH(CASCADE_INCLUDE_DIR Standard_Version.hxx
+      HINTS ${CASCADE_INCLUDE_DIR} "${CASCADE_ROOT}/inc" "${CASCADE_ROOT}/include" "${CASCADE_ROOT}/include/oce"
     )
-	FILE(GLOB CH_CASCADE_LIBS "${CH_CASCADE_LIBDIR}/*.lib")
+    FILE(GLOB CASCADE_LIBRARIES "${CASCADE_LIBDIR}/TK*.lib")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    FIND_PATH(CH_CASCADE_INCLUDES Standard_Version.hxx
-      HINTS ${CH_CASCADE_INCLUDES} "${CH_CASCADE_DIR}/inc" "${CH_CASCADE_DIR}/include"
+    FIND_PATH(CASCADE_INCLUDE_DIR Standard_Version.hxx
+      HINTS ${CASCADE_INCLUDE_DIR} "${CASCADE_ROOT}/inc" "${CASCADE_ROOT}/include"
       PATHS
       /usr/include/oce
       /usr/local/include/oce
       /opt/oce/include
       /opt/oce/inc
     )
-    FILE(GLOB CH_CASCADE_LIBS "${CH_CASCADE_DIR}/lib/*.so" "${CH_CASCADE_DIR}/Linux/lib/*.so" "${CH_CASCADE_LIBDIR}/*.so")
+    FILE(GLOB CASCADE_LIBRARIES "${CASCADE_ROOT}/lib/libTK*.so" "${CASCADE_ROOT}/Linux/lib/libTK*.so" "${CASCADE_LIBDIR}/libTK*.so")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    FIND_PATH(CH_CASCADE_INCLUDES Standard_Version.hxx
+    FIND_PATH(CASCADE_INCLUDE_DIR Standard_Version.hxx
       PATHS
       /usr/include/oce
       /usr/local/include/oce
@@ -80,27 +77,27 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     )
     GET_FILENAME_COMPONENT(OCE_LIBRARY_DIR ${OCE_LIBRARY} PATH)
 
-    FILE(GLOB CH_CASCADE_LIBS "${OCE_LIBRARY_DIR}/libTK*.dylib")
+    FILE(GLOB CASCADE_LIBRARIES "${OCE_LIBRARY_DIR}/libTK*.dylib")
     #add_definitions( -DHAVE_LIMITS_H -DHAVE_IOSTREAM )
 ENDIF()
 
-IF(NOT EXISTS ${CH_CASCADE_INCLUDES} OR NOT EXISTS ${CH_CASCADE_LIBDIR})
+IF(NOT EXISTS ${CASCADE_INCLUDE_DIR} OR NOT EXISTS ${CASCADE_LIBDIR})
     message("Cannot find OpenCASCADE directories.")
 ENDIF()
 
-message(STATUS "  OpenCASCADE include directory: ${CH_CASCADE_INCLUDES}")
-message(STATUS "  OpenCASCADE library directory: ${CH_CASCADE_LIBDIR}")
-message(STATUS "  OpenCASCADE libraries:         ${CH_CASCADE_LIBS}")
+message(STATUS "  OpenCASCADE include directory: ${CASCADE_INCLUDE_DIR}")
+message(STATUS "  OpenCASCADE library directory: ${CASCADE_LIBDIR}")
+message(STATUS "  OpenCASCADE libraries:         ${CASCADE_LIBRARIES}")
 
 # Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 
-SET (CH_CASCADE_INCLUDES "${CH_CASCADE_INCLUDES}" PARENT_SCOPE )
-SET (CH_CASCADE_LIBS "${CH_CASCADE_LIBS}" PARENT_SCOPE )
+SET (CASCADE_INCLUDE_DIR "${CASCADE_INCLUDE_DIR}" PARENT_SCOPE )
+SET (CASCADE_LIBRARIES "${CASCADE_LIBRARIES}" PARENT_SCOPE )
 
 #-----------------------------------------------------------------------------	
 # Add the ChronoEngine_cascade library
 
-INCLUDE_DIRECTORIES( "${CH_CASCADE_INCLUDES}" )
+INCLUDE_DIRECTORIES( "${CASCADE_INCLUDE_DIR}" )
 
 ADD_LIBRARY(ChronoEngine_cascade SHARED 
             ${ChronoEngine_CASCADE_SOURCES}
@@ -118,7 +115,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF()
 
 TARGET_LINK_LIBRARIES(ChronoEngine_cascade
-        ${CH_CASCADE_LIBS} 
+        ${CASCADE_LIBRARIES} 
         ChronoEngine)
 ADD_DEPENDENCIES(ChronoEngine_cascade ChronoEngine)
 

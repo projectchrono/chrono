@@ -83,7 +83,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
 
     /// Get a handle to the mesh visualization.
-    const fea::ChVisualizationFEAmesh* GetMeshVisualization() const { return m_visualization.get(); }
+    fea::ChVisualizationFEAmesh* GetMeshVisualization() const { return m_visualization.get(); }
 
     /// Get the underlying FEA mesh.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }

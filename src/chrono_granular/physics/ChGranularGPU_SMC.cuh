@@ -31,19 +31,17 @@
 #include "chrono_granular/ChGranularDefines.h"
 #include "chrono_granular/physics/ChGranular.h"
 #include "chrono_granular/utils/ChCudaMathUtils.cuh"
-#include "chrono_granular/utils/ChGranularUtilities.cuh"
+
+#include "chrono_granular/physics/ChGranularHelpers.cuh"
+#include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
 
 using chrono::granular::GRAN_TIME_INTEGRATOR;
 using chrono::granular::GRAN_FRICTION_MODE;
 using chrono::granular::GRAN_ROLLING_MODE;
 
-// NOTE the above 'using's must happen before this file is included
-#include "chrono_granular/physics/ChGranularHelpers.cuh"
-#include "chrono_granular/physics/ChGranularBoundaryConditions.cuh"
-
 inline __device__ __host__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD,
-                                                   const int3& local_pos,
-                                                   GranParamsPtr gran_params) {
+                                                            const int3& local_pos,
+                                                            GranParamsPtr gran_params) {
     int3 ownerSD_triplet = SDIDTriplet(ownerSD, gran_params);
     int64_t3 sphPos_global = {0, 0, 0};
 
@@ -477,10 +475,7 @@ inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
         }
         // TODO update for local coords
         switch (bc_type_list[BC_id]) {
-            // case BC_type::AA_BOX: {
-            //     ABORTABORTABORT("ERROR: AA_BOX is currently unsupported!\n");
-            //     break;
-            // }
+                // these may use the frictionless overloads
             case BC_type::SPHERE: {
                 addBCForces_Sphere_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
                                                 bc_params_list[BC_id].track_forces);
@@ -492,9 +487,8 @@ inline __device__ void applyExternalForces_frictionless(unsigned int ownerSD,
                 break;
             }
             case BC_type::PLANE: {
-                float dist = 0;  // tmp used to satisfy function parameters
                 addBCForces_Plane_frictionless(sphPos_global, sphVel, sphere_force, gran_params, bc_params_list[BC_id],
-                                               bc_params_list[BC_id].track_forces, dist);
+                                               bc_params_list[BC_id].track_forces);
                 break;
             }
             case BC_type::CYLINDER: {
@@ -634,6 +628,7 @@ static __global__ void determineContactPairs(GranSphereDataPtr sphere_data, Gran
 
 /// Compute normal forces for a contacting pair
 // returns the normal force and sets the reciplength, tangent velocity, and delta_r
+// delta_r is direction of normal force on me
 inline __device__ float3 computeSphereNormalForces(float& reciplength,
                                                    float3& vrel_t,
                                                    float3& delta_r,
@@ -761,48 +756,6 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                 float hertz_force_factor = sqrt(2. - (2. / reciplength));
                 constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
 
-                // NOTE: expects force_accum to be normal force only
-                if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
-                    gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE) {
-                    float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
-                                                     sphere_data->sphere_Omega_Y[theirSphereID],
-                                                     sphere_data->sphere_Omega_Z[theirSphereID]);
-                    float3 omega_rel = my_omega - their_omega;
-                    const float f_n = sqrt(force_accum.x * force_accum.x + force_accum.y * force_accum.y +
-                                           force_accum.z * force_accum.z);
-                    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::CONSTANT_TORQUE) {
-                        float omega_rel_mag =
-                            sqrt(omega_rel.x * omega_rel.x + omega_rel.y * omega_rel.y + omega_rel.z * omega_rel.z);
-                        if (omega_rel_mag != 0.f) {  // TODO some small bound?
-                            omega_rel = 1.f / omega_rel_mag * omega_rel;
-                        }
-
-                        // M = -w / ||w|| * mu_r * r_eff * ||f_n||
-                        // Assumes r_eff = r/2
-                        bodyA_AngAcc =
-                            bodyA_AngAcc -
-                            (gran_params->rolling_coeff_SU * 0.5 * f_n / gran_params->sphereInertia_by_r) * omega_rel;
-                    } else if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
-                        float3 R;
-                        {
-                            int3 R_int = their_pos - my_sphere_pos;
-                            R = 0.5f * make_float3(R_int.x, R_int.y, R_int.z);
-                        }
-                        float3 v = Cross(R, my_omega + their_omega);
-                        const float v_mag = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-                        float omega_rel_mag =
-                            sqrt(omega_rel.x * omega_rel.x + omega_rel.y * omega_rel.y + omega_rel.z * omega_rel.z);
-                        if (omega_rel_mag != 0.f) {  // TODO some small bound?
-                            omega_rel = 1.f / omega_rel_mag * omega_rel;
-                        }
-                        float3 torque = -gran_params->rolling_coeff_SU * v_mag * f_n * omega_rel;
-                        bodyA_AngAcc = bodyA_AngAcc +
-                                       1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
-                    } else {
-                        ABORTABORTABORT("Rolling mode not implemented\n");
-                    }
-                }
-
                 // add frictional terms, if needed
                 if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                     float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
@@ -817,13 +770,18 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     bool clamped = false;
                     float3 delta_t = {0, 0, 0};
 
+                    // compute alpha due to rolling resistance
+                    float3 rolling_resist_ang_acc = computeRollingAngAcc(
+                        sphere_data, gran_params, force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
+
                     // TODO improve this
                     // calculate tangential forces -- NOTE that these only come into play with friction enabled
                     if (gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
                         // assume the contact is just this timestep
                         delta_t = vrel_t * gran_params->stepSize_SU;
                         // just in case this gets too big
-                        clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
+                        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2s_SU,
+                                                           force_accum / hertz_force_factor, delta_t);
                     } else if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
                         // get the tangential displacement so far
                         delta_t = sphere_data->contact_history_map[body_A_offset + contact_id];
@@ -835,7 +793,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                         // remove normal projection
                         delta_t = delta_t - projection * delta_r * reciplength;
                         // clamp tangent displacement
-                        clamped = clampTangentDisplacement(gran_params, force_accum, delta_t);
+                        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2s_SU,
+                                                           force_accum / hertz_force_factor, delta_t);
 
                         // write back the updated displacement
                         sphere_data->contact_history_map[body_A_offset + contact_id] = delta_t;

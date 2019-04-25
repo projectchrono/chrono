@@ -20,6 +20,7 @@
 #ifndef ARTICULATED_REAR_H
 #define ARTICULATED_REAR_H
 
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "subsystems/Articulated_Front.h"
 
@@ -63,7 +64,7 @@ class Articulated_Rear {
     chrono::vehicle::ChWheelList m_wheels;            ///< list of handles to wheel subsystems
     chrono::vehicle::ChBrakeList m_brakes;            ///< list of handles to brake subsystems
 
-    std::shared_ptr<chrono::ChLinkEngine> m_joint;
+    std::shared_ptr<chrono::ChLinkMotorRotationAngle> m_motor;
 
     // Chassis mass properties
     static const double m_chassisMass;

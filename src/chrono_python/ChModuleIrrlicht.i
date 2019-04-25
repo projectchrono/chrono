@@ -49,7 +49,11 @@
 #include <irrlicht.h>
 #include "chrono_irrlicht/ChIrrAppInterface.h"
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
-
+#include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono_irrlicht/ChIrrEffects.h"
+#include "chrono_irrlicht/ChIrrTools.h"
+#include "chrono_irrlicht/ChIrrWizard.h"
+#include "chrono_irrlicht/ChIrrCamera.h"
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace irr;
@@ -76,11 +80,14 @@ using namespace gui;
 %include "typemaps.i"
 %include "wchar.i"
 %include "python/cwstring.i"
+%include "cstring.i"
+
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
 %pointer_class(double,double_ptr);
 %pointer_class(float,float_ptr);
+%pointer_class(char,char_ptr);
 
 
 
@@ -99,6 +106,7 @@ using namespace gui;
 // tree must be promoted to %shared_ptr too).
 
 %shared_ptr(chrono::ChSystem)
+%shared_ptr(chrono::ChAsset)
 %shared_ptr(chrono::irrlicht::ChIrrNodeAsset)
 
 
@@ -125,6 +133,11 @@ using namespace gui;
 %import  "ChSystem.i"
 %import  "ChAsset.i"
 
+%include "IReferenceCounted.h"
+%include "IImage.h"
+%include "IImageWriter.h"
+%ignore irr::io::createWriteFile;
+%include "IWriteFile.h"
 %include "irrTypes.h"
 %include "vector2d.h"
 %template(vector2df) irr::core::vector2d<irr::f32>;
@@ -141,6 +154,11 @@ using namespace gui;
 %include "dimension2d.h"
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
 
+%ignore chrono::irrlicht::ScreenQuadCB;
+%include "chrono_irrlicht/ChIrrEffects.h"
+%include "chrono_irrlicht/ChIrrTools.h"
+%include "chrono_irrlicht/ChIrrCamera.h"
+%include "chrono_irrlicht/ChIrrWizard.h"
 %include "ChIrrAppInterface.i"
 %include "ChIrrAssetConverter.i"
 %include "ChIrrApp.i"
@@ -163,7 +181,7 @@ using namespace gui;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefChSharedPtrDynamicDowncast(ChAsset,ChIrrNodeAsset)
+%DefChSharedPtrDynamicDowncast2NS(chrono, chrono::irrlicht, ChAsset,ChIrrNodeAsset)
 
 
 //
@@ -177,7 +195,19 @@ using namespace gui;
 %}
 */
 
-
+// Add function to support bytes exporting
+%extend  irr::video::IImage{
+		%cstring_output_allocate_size(char **buffer, unsigned int *size, free(*$1) ); 
+		void get_img_bytes(char **buffer, unsigned int *size) 
+					{
+						*size = self->getImageDataSizeInBytes();
+						*buffer = (char*)malloc(*size); 
+						//char* dest = (char*)self->lock();
+						strcpy(*buffer,  (char*)self->lock());
+						self->unlock();
+						
+					}
+		};
 //
 // ADD PYTHON CODE
 //
