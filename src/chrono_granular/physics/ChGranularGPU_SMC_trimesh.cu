@@ -515,7 +515,7 @@ __global__ void interactionTerrain_TriangleSoup(
     MeshParamsPtr mesh_params) {
     __shared__ unsigned int triangleIDs[MAX_TRIANGLE_COUNT_PER_SD];  //!< global ID of the triangles touching this SD
 
-    __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];  //!< local X coordinate of the sphere
+    __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];  //!< local coordinate of the sphere
 
     __shared__ float3 sphere_vel[MAX_COUNT_OF_SPHERES_PER_SD];
 
@@ -530,23 +530,15 @@ __global__ void interactionTerrain_TriangleSoup(
     unsigned int thisSD = blockIdx.x;
 
     if (SD_numTrianglesTouching[thisSD] == 0) {
-        return;  // no triangle touches this SD; return right away
+        return;  // no triangle touches this block's SD
     }
     unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[thisSD];
     if (spheresTouchingThisSD == 0) {
-        return;  // no sphere to speak of in this SD
+        return;  // no sphere touches this block's SD
     }
 
     // Getting here means that there are both triangles and DEs in this SD.
-    // First, figure out which bucket stores the triangles associated with this SD.
     unsigned int numSDTriangles = SD_numTrianglesTouching[thisSD];
-
-    // Unpleasant fact: this bucket might store more than the triangles associated with this SD. The narrow phase is
-    // done for ALL triangles in this bucket with the expectation that if a triangle does not belong to this SD, the
-    // narrow phase will prune this triangle fast and the penalty associated with storing triangles from multiple
-    // SDs into one bucket is not stiff.
-    // Sphere angular velocities
-
     unsigned int sphereIDLocal = threadIdx.x;
     unsigned int sphereIDGlobal = NULL_GRANULAR_ID;
     // Bring in data from global into shmem. Only a subset of threads get to do this.
@@ -555,7 +547,6 @@ __global__ void interactionTerrain_TriangleSoup(
         size_t SD_composite_offset = sphere_data->SD_SphereCompositeOffsets[thisSD];
 
         // TODO standardize this
-        // We may need long ints to index into composite array
         size_t offset_in_composite_Array = SD_composite_offset + sphereIDLocal;
         sphereIDGlobal = sphere_data->spheres_in_SD_composite[offset_in_composite_Array];
 
