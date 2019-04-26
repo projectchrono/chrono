@@ -13,9 +13,11 @@
 // =============================================================================
 
 #include <cmath>
+#include <numeric>
 
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/utils/ChGranularUtilities.h"
+#include "chrono/core/ChTimer.h"
 
 namespace chrono {
 namespace granular {
@@ -245,7 +247,60 @@ __host__ float ChSystemGranular_MonodisperseSMC::get_max_vel() const {
 __host__ int3 ChSystemGranular_MonodisperseSMC::getSDTripletFromID(unsigned int SD_ID) const {
     return SDIDTriplet(SD_ID, gran_params);
 }
+/// Sort sphere positions by subdomain id
+/// Occurs entirely on host, not intended to be efficient
+/// ONLY DO AT BEGINNING OF SIMULATION
+__host__ void ChSystemGranular_MonodisperseSMC::defragment_initial_positions() {
+    printf("Starting defrag run!\n");
+    ChTimer<> timer;
+    timer.start();
 
+    // key and value pointers
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
+
+    // load sphere indices
+    sphere_ids.resize(nSpheres);
+    std::iota(sphere_ids.begin(), sphere_ids.end(), 0);
+
+    // sort sphere ids by owner SD
+    std::sort(sphere_ids.begin(), sphere_ids.end(),
+              [&](std::size_t i, std::size_t j) { return sphere_owner_SDs.at(i) < sphere_owner_SDs.at(j); });
+
+    std::vector<int, cudallocator<int>> sphere_pos_x_tmp;
+    std::vector<int, cudallocator<int>> sphere_pos_y_tmp;
+    std::vector<int, cudallocator<int>> sphere_pos_z_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
+
+    sphere_pos_x_tmp.resize(nSpheres);
+    sphere_pos_y_tmp.resize(nSpheres);
+    sphere_pos_z_tmp.resize(nSpheres);
+    sphere_owner_SDs_tmp.resize(nSpheres);
+
+    // reorder values into sphere order
+    for (int i = 0; i < nSpheres; i++) {
+        // printf("after: sphere %u is owned by SD %u\n", sphere_ids.at(i), sphere_owner_SDs.at(sphere_ids.at(i)));
+        sphere_pos_x_tmp.at(i) = sphere_local_pos_X.at(sphere_ids.at(i));
+        sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
+        sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
+        sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
+    }
+
+    // swap into the correct data structures
+    sphere_local_pos_X.swap(sphere_pos_x_tmp);
+    sphere_local_pos_Y.swap(sphere_pos_y_tmp);
+    sphere_local_pos_Z.swap(sphere_pos_z_tmp);
+    sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
+
+    // for (int i = 0; i < nSpheres; i++) {
+    //     printf("after: sphere %u is owned by SD %u, pos is %d, %d, %d\n", sphere_ids.at(i),
+    //     sphere_owner_SDs.at(i),
+    //            sphere_local_pos_X.at(i), sphere_local_pos_Y.at(i), sphere_local_pos_Z.at(i));
+    // }
+
+    packSphereDataPointers();
+    timer.stop();
+    printf("finished defrag run in %f seconds!\n", timer.GetTimeSeconds());
+}
 __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
     if (user_sphere_positions.size() == 0) {
@@ -289,6 +344,10 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
         initializeLocalPositions<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
             sphere_data, sphere_global_pos_X.data(), sphere_global_pos_Y.data(), sphere_global_pos_Z.data(), nSpheres,
             gran_params);
+
+        gpuErrchk(cudaDeviceSynchronize());
+        gpuErrchk(cudaPeekAtLastError());
+        defragment_initial_positions();
     }
 
     TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);

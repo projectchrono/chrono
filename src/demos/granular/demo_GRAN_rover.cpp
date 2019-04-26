@@ -49,7 +49,7 @@ constexpr double KG_TO_GRAM = 1000;
 constexpr double wheel_rad = 0.1 * METERS_TO_CM;
 constexpr double wheel_height = 0.1 * METERS_TO_CM;
 
-constexpr double ROVER_MASS_REDUCTION = 1.;
+constexpr double ROVER_MASS_REDUCTION = 1. / 10.;
 
 constexpr double wheel_mass = ROVER_MASS_REDUCTION * 3 * KG_TO_GRAM;
 constexpr double chassis_mass = ROVER_MASS_REDUCTION * 100 * KG_TO_GRAM;
@@ -72,6 +72,8 @@ constexpr float3 wheel_scaling = {wheel_rad * 2, wheel_height, wheel_rad * 2};
 constexpr double wheel_inertia_x = (1. / 4.) * wheel_mass * wheel_rad * wheel_rad + (1 / 12.) * wheel_mass;
 constexpr double wheel_inertia_y = (1. / 2.) * wheel_mass * wheel_rad * wheel_rad;
 constexpr double wheel_inertia_z = wheel_inertia_x;
+
+double terrain_height_offset = 0;
 
 std::string chassis_filename = "BD_Box.obj";
 
@@ -137,7 +139,7 @@ void writeMeshFrames(std::ostringstream& outstream,
     // Get frame position
     ChFrame<> body_frame = body->GetFrame_REF_to_abs();
     ChQuaternion<> rot = body_frame.GetRot();
-    ChVector<> pos = body_frame.GetPos();
+    ChVector<> pos = body_frame.GetPos() + ChVector<>(0, 0, terrain_height_offset);
 
     // Get basis vectors
     ChVector<> vx = rot.GetXaxis();
@@ -186,7 +188,7 @@ int main(int argc, char* argv[]) {
     double fill_top = 0;
 
     // leave a 4cm margin at edges of sampling
-    ChVector<> hdims(params.box_X / 2 - 2.0, params.box_Y / 2 - 2.0, abs((fill_bottom - fill_top) / 2.) - 2.0);
+    ChVector<> hdims(params.box_X / 2 - 2.0, params.box_Y / 2 - 2.0, std::abs((fill_bottom - fill_top) / 2.) - 2.0);
     ChVector<> center(0, 0, (fill_bottom + fill_top) / 2.);
     std::vector<ChVector<float>> body_points;
 
@@ -201,7 +203,7 @@ int main(int argc, char* argv[]) {
     ChVector<> sample_cyl_center(params.box_X / 4, 0, params.box_Z / 2 - sample_cyl_rad - 3 * params.sphere_radius);
     auto cyl_points =
         sampler.SampleCylinderY(sample_cyl_center, sample_cyl_rad, params.box_Y / 2 - 3 * params.sphere_radius);
-    body_points.insert(body_points.end(), cyl_points.begin(), cyl_points.end());
+    // body_points.insert(body_points.end(), cyl_points.begin(), cyl_points.end());
 
     first_points.push_back(body_points.at(0));
     gran_sys.setParticlePositions(body_points);
@@ -249,21 +251,22 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChBody> chassis_body(rover_sys.NewBody());
 
-    double init_height_boost = params.box_Z + 2 * wheel_rad;
+    double height_offset_chassis_to_bottom = std::abs(wheel_offset_z) + 2 * wheel_rad;
     double init_offset_x = -params.box_X / 4;
+    // start well above the terrain
+    terrain_height_offset = params.box_Z + 2 * wheel_rad;
 
-    // bool wheel_fixed = true;
-    // chassis_body->SetBodyFixed(wheel_fixed);
+    bool chassis_fixed = true;
     chassis_body->SetMass(chassis_mass);
     // assume it's a solid box inertially
     chassis_body->SetInertiaXX(
         ChVector<>((chassis_length_y * chassis_length_y + chassis_length_z * chassis_length_z) * chassis_mass / 12,
                    (chassis_length_x * chassis_length_x + chassis_length_z * chassis_length_z) * chassis_mass / 12,
                    (chassis_length_x * chassis_length_x + chassis_length_y * chassis_length_y) * chassis_mass / 12));
-    chassis_body->SetPos(ChVector<>(init_offset_x, 0, init_height_boost));
+    chassis_body->SetPos(ChVector<>(init_offset_x, 0, 0));
     rover_sys.AddBody(chassis_body);
 
-    chassis_body->SetBodyFixed(false);
+    chassis_body->SetBodyFixed(true);
 
     // NOTE these must happen before the gran system loads meshes!!!
     addWheelBody(rover_sys, chassis_body,
@@ -299,15 +302,20 @@ int main(int argc, char* argv[]) {
 
     gran_sys.enableMeshCollision();
 
+    printf("Chassis mass: %f g, each wheel mass: %f g\n", chassis_mass, wheel_mass);
+    printf("Total Chassis weight in CGS: %f\n", std::abs((chassis_mass + 4 * wheel_mass) * params.grav_Z));
+
     clock_t start = std::clock();
     for (float t = 0; t < params.time_end; t += iteration_step, curr_step++) {
-        // if (wheel_fixed && t >= 0.5) {
-        //     printf("Setting wheel free!\n");
-        //     wheel_fixed = false;
-        //     // wheel_body->SetBodyFixed(false);
-        //     // gran_sys.enableMeshCollision();
-        //     // wheel_pos.z() = 0 + 3 * params.sphere_radius;
-        // }
+        if (chassis_fixed && t >= 0.5) {
+            printf("Setting wheel free!\n");
+            chassis_fixed = false;
+            chassis_body->SetBodyFixed(false);
+            float max_terrain_z = gran_sys.get_max_z();
+            printf("terrain max is %f\n", max_terrain_z);
+            // put terrain just below bottom of wheels
+            terrain_height_offset = max_terrain_z + height_offset_chassis_to_bottom;
+        }
         for (unsigned int i = 0; i < wheel_bodies.size(); i++) {
             auto curr_body = wheel_bodies.at(i);
 
@@ -320,7 +328,7 @@ int main(int argc, char* argv[]) {
 
             meshPosRot[7 * i + 0] = wheel_pos.x();
             meshPosRot[7 * i + 1] = wheel_pos.y();
-            meshPosRot[7 * i + 2] = wheel_pos.z();
+            meshPosRot[7 * i + 2] = wheel_pos.z() + terrain_height_offset;
             meshPosRot[7 * i + 3] = wheel_rot[0];
             meshPosRot[7 * i + 4] = wheel_rot[1];
             meshPosRot[7 * i + 5] = wheel_rot[2];

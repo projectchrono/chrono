@@ -448,6 +448,8 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Create a helper to do sphere initialization
     void initializeSpheres();
 
+    void defragment_initial_positions();
+
     /// Setup sphere data, initialize local coords
     void setupSphereDataStructures();
 

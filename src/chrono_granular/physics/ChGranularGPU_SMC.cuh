@@ -642,14 +642,13 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
 
     // compute penetrations in double
     {
-        double invSphDiameter = 1. / (2. * sphereRadius_SU);
-        double3 delta_r_double = int3_to_double3(sphereA_pos - sphereB_pos) * invSphDiameter;
+        double3 delta_r_double = int3_to_double3(sphereA_pos - sphereB_pos) / (2. * sphereRadius_SU);
         // compute in double then convert to float
         reciplength = (float)rsqrt(Dot(delta_r_double, delta_r_double));
     }
 
     // compute these in float now
-    delta_r = int3_to_float3(sphereA_pos - sphereB_pos) / (2 * sphereRadius_SU);
+    delta_r = int3_to_float3(sphereA_pos - sphereB_pos) / (2. * sphereRadius_SU);
 
     // Velocity difference, it's better to do a coalesced access here than a fragmented access inside
     float3 v_rel = sphereA_vel - sphereB_vel;
@@ -699,7 +698,6 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
         // my offset in the contact map
         unsigned int myOwnerSD = sphere_data->sphere_owner_SDs[mySphereID];
 
-        // printf("sphere %u is active\n", mySphereID);
         // Bring in data from global
         int3 my_sphere_pos =
             make_int3(sphere_data->sphere_local_pos_X[mySphereID], sphere_data->sphere_local_pos_Y[mySphereID],
@@ -740,6 +738,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                                            sphere_data->sphere_local_pos_Z[theirSphereID]);
 
                 if (theirOwnerSD != myOwnerSD) {
+                    // if the spheres are in different subdomains, offset their positions accordingly
                     their_pos = their_pos + getOffsetFromSDs(myOwnerSD, theirOwnerSD, gran_params);
                 }
 
@@ -752,61 +751,29 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                                 sphere_data->pos_Z_dt[theirSphereID]),
                     gran_params);
 
-                // TODO fix this
-                float hertz_force_factor = sqrt(2. - (2. / reciplength));
-                constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+                // TODO verify this
+                float hertz_force_factor = std::sqrt(2. - (2. / reciplength));
 
                 // add frictional terms, if needed
                 if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
                     float3 their_omega = make_float3(sphere_data->sphere_Omega_X[theirSphereID],
                                                      sphere_data->sphere_Omega_Y[theirSphereID],
                                                      sphere_data->sphere_Omega_Z[theirSphereID]);
+                    // delta_r * radius is dimensional vector to center of contact point
                     // (omega_b cross r_b - omega_a cross r_a), where r_b  = -r_a = delta_r * radius
                     // add tangential components if they exist, these are automatically tangential from the cross
                     // product
                     vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
 
-                    // accumulator for tangent force
-                    bool clamped = false;
-                    float3 delta_t = {0, 0, 0};
-
                     // compute alpha due to rolling resistance
                     float3 rolling_resist_ang_acc = computeRollingAngAcc(
                         sphere_data, gran_params, force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
+                    bodyA_AngAcc = bodyA_AngAcc + rolling_resist_ang_acc;
 
-                    // TODO improve this
-                    // calculate tangential forces -- NOTE that these only come into play with friction enabled
-                    if (gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
-                        // assume the contact is just this timestep
-                        delta_t = vrel_t * gran_params->stepSize_SU;
-                        // just in case this gets too big
-                        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2s_SU,
-                                                           force_accum / hertz_force_factor, delta_t);
-                    } else if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
-                        // get the tangential displacement so far
-                        delta_t = sphere_data->contact_history_map[body_A_offset + contact_id];
-                        // add on what we have
-                        delta_t = delta_t + vrel_t * gran_params->stepSize_SU;
+                    float3 tangent_force = computeFrictionForces(
+                        gran_params, sphere_data, body_A_offset + contact_id, gran_params->K_t_s2s_SU,
+                        gran_params->Gamma_t_s2s_SU, hertz_force_factor, force_accum, vrel_t, delta_r * reciplength);
 
-                        // project onto contact normal
-                        float projection = Dot(delta_t, delta_r) * reciplength;
-                        // remove normal projection
-                        delta_t = delta_t - projection * delta_r * reciplength;
-                        // clamp tangent displacement
-                        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2s_SU,
-                                                           force_accum / hertz_force_factor, delta_t);
-
-                        // write back the updated displacement
-                        sphere_data->contact_history_map[body_A_offset + contact_id] = delta_t;
-                    }
-
-                    float3 tangent_force = -gran_params->K_t_s2s_SU * delta_t * hertz_force_factor;
-
-                    // if no-slip, add the tangential damping
-                    if (!clamped) {
-                        tangent_force =
-                            tangent_force - gran_params->Gamma_t_s2s_SU * m_eff * vrel_t * hertz_force_factor;
-                    }
                     // tau = r cross f = radius * n cross F
                     // 2 * radius * n = -1 * delta_r * sphdiameter
                     // assume abs(r) ~ radius, so n = delta_r
@@ -816,7 +783,8 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     force_accum = force_accum + tangent_force;
                 }
 
-                // Add cohesion term
+                // Add cohesion term against contact normal
+                // delta_r * reciplength is contact normal
                 force_accum =
                     force_accum - gran_params->sphere_mass_SU * gran_params->cohesionAcc_s2s * delta_r * reciplength;
 

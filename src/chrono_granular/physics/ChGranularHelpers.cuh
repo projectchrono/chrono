@@ -162,22 +162,23 @@ inline __device__ size_t findContactPairInfo(GranSphereDataPtr sphere_data,
     return NULL_GRANULAR_ID;  // shouldn't get here anyways
 }
 
-// cleanup the contact data for a given body
+/// cleanup the contact data for a given body
 inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
                                          unsigned int body_A,
                                          GranParamsPtr gran_params) {
+    // index of the sphere into the big array
     size_t body_A_offset = (size_t)MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
 
     // get offsets into the global pointers
     float3* contact_history = sphere_data->contact_history_map + body_A_offset;
     unsigned int* contact_partners = sphere_data->contact_partners_map + body_A_offset;
     not_stupid_bool* contact_active = sphere_data->contact_active_map + body_A_offset;
-    // first skim through and see if this contact pair is in the map
+
+    // sweep through each available contact slot and reset it if that slot wasn't active last timestep
     for (unsigned int contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
         // printf("contact map for sphere %u entry %u is other %u, active %u \t history is %f, %f, %f\n", body_A,
         //        contact_id, contact_partners[contact_id], contact_active[contact_id], contact_history[contact_id].x,
         //        contact_history[contact_id].y, contact_history[contact_id].z);
-
         // if the contact is not active, reset it
         if (contact_active[contact_id] == false) {
             contact_partners[contact_id] = NULL_GRANULAR_ID;
@@ -186,7 +187,7 @@ inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
                 contact_history[contact_id] = null_history;
             }
         } else {
-            // otherwise reset the active bit for next time
+            // otherwise reset the active bit for the next step
             contact_active[contact_id] = false;
         }
     }
@@ -198,8 +199,10 @@ inline __device__ void cleanupContactMap(GranSphereDataPtr sphere_data,
 inline __device__ bool clampTangentDisplacement(GranParamsPtr gran_params,
                                                 const float kt,
                                                 const float3& normal_force,
+                                                const float force_model_multiplier,
                                                 float3& tangent_disp) {
-    float ut_max = gran_params->static_friction_coeff * Length(normal_force) / kt;
+    // divide out hertz force factor
+    float ut_max = gran_params->static_friction_coeff * Length(normal_force) / (kt * force_model_multiplier);
     // TODO also consider wall mu and kt clamping
     float ut = Length(tangent_disp);
     if (ut > ut_max) {
@@ -258,7 +261,7 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
                                               const float3& their_omega,
                                               // points from their center to my center (in line with normal force)
                                               const float3& delta_r) {
-    float3 delta_Ang_Acc = {0, 0, 0};
+    float3 delta_Ang_Acc = {0., 0., 0.};
 
     if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS &&
         gran_params->rolling_mode != GRAN_ROLLING_MODE::NO_RESISTANCE) {
@@ -294,53 +297,82 @@ inline __device__ float3 computeRollingAngAcc(GranSphereDataPtr sphere_data,
     return delta_Ang_Acc;
 }
 
-/// compute friction displacement given
-/// returns whether force was clamped, sets delta_t
-inline __device__ bool computeFrictionDisplacement(
-    GranParamsPtr gran_params,
-    GranSphereDataPtr sphere_data,
-    unsigned int body_A_index,
-    unsigned int body_B_index,
-    // NOTE this is the hookean part of the force to avoid over-counting the hertz factor in clamping
-    const float3& normal_force_hooke,
-    const float3& rel_vel,
-    const float3& contact_normal,
-    float3& delta_t) {
-    bool clamped = false;
-    delta_t = {0, 0, 0};
+/// Compute single-step friction displacement and clamp it
+/// set delta_t for the displacement
+inline __device__ bool computeSingleStepDisplacement(GranParamsPtr gran_params,
+                                                     GranSphereDataPtr sphere_data,
+                                                     const float3& normal_force,
+                                                     const float force_model_multiplier,
+                                                     const float3& rel_vel,
+                                                     const float3& contact_normal,
+                                                     const float k_t,
+                                                     float3& delta_t) {
+    delta_t = rel_vel * gran_params->stepSize_SU;
+    bool clamped = clampTangentDisplacement(gran_params, k_t, normal_force, force_model_multiplier, delta_t);
+    return clamped;
+}
 
-    if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-        // single step collapses into one parameter
-        delta_t = rel_vel * gran_params->stepSize_SU;
-        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2w_SU, normal_force_hooke, delta_t);
+/// Compute multi-step friction displacement and clamp it
+/// set delta_t for the displacement
+inline __device__ bool computeMultiStepDisplacement(GranParamsPtr gran_params,
+                                                    GranSphereDataPtr sphere_data,
+                                                    const size_t& contact_id,
+                                                    const float3& normal_force,
+                                                    const float force_model_multiplier,
+                                                    const float3& rel_vel,
+                                                    const float3& contact_normal,
+                                                    const float k_t,
+                                                    float3& delta_t) {
+    // get the tangential displacement so far
+    delta_t = sphere_data->contact_history_map[contact_id];
+    // add on what we have for this step
+    delta_t = delta_t + rel_vel * gran_params->stepSize_SU;
 
-    } else if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP) {
-        // index for this 'body' in the history map, note that BC 0 is index nSpheres + 1
-        // TODO this might waste an index
+    // project onto contact normal
+    float disp_proj = Dot(delta_t, contact_normal);
+    // remove normal projection
+    delta_t = delta_t - disp_proj * contact_normal;
+    // clamp tangent displacement
+    bool clamped = clampTangentDisplacement(gran_params, k_t, normal_force, force_model_multiplier, delta_t);
 
-        size_t contact_id = findContactPairInfo(sphere_data, gran_params, body_A_index, body_B_index);
-
-        // get the tangential displacement so far
-        delta_t = sphere_data->contact_history_map[contact_id];
-        // add on what we have for this step
-        delta_t = delta_t + rel_vel * gran_params->stepSize_SU;
-
-        // project onto contact normal
-        float disp_proj = Dot(delta_t, contact_normal);
-        // remove normal projection
-        delta_t = delta_t - disp_proj * contact_normal;
-        // clamp tangent displacement
-        clamped = clampTangentDisplacement(gran_params, gran_params->K_t_s2w_SU, normal_force_hooke, delta_t);
-
-        // write back the updated displacement
-        sphere_data->contact_history_map[contact_id] = delta_t;
-    }
-
+    // write back the updated displacement
+    sphere_data->contact_history_map[contact_id] = delta_t;
     return clamped;
 }
 
 /// compute friction forces for a contact
-/// returns tangent force
+/// returns tangent force including hertz factor, clamped and all
+inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
+                                               GranSphereDataPtr sphere_data,
+                                               size_t contact_index,
+                                               float k_t,
+                                               float gamma_t,
+                                               float force_model_multiplier,
+                                               const float3& normal_force,
+                                               const float3& rel_vel,
+                                               const float3& contact_normal) {
+    float3 delta_t = {0., 0., 0.};
+    bool clamped = true;
+
+    if (gran_params->friction_mode == GRAN_FRICTION_MODE::SINGLE_STEP) {
+        clamped = computeSingleStepDisplacement(gran_params, sphere_data, normal_force, force_model_multiplier, rel_vel,
+                                                contact_normal, k_t, delta_t);
+    } else if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+        // TODO optimize this if we already have the contact ID
+        clamped = computeMultiStepDisplacement(gran_params, sphere_data, contact_index, normal_force,
+                                               force_model_multiplier, rel_vel, contact_normal, k_t, delta_t);
+    }
+
+    float3 tangent_force = -k_t * delta_t * force_model_multiplier;
+    // if no-slip, add the tangential damping
+    if (!clamped) {
+        constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+        tangent_force = tangent_force - gamma_t * m_eff * rel_vel * force_model_multiplier;
+    }
+    return tangent_force;
+}
+
+// overload for if the body ids are given rather than contact id
 inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
                                                GranSphereDataPtr sphere_data,
                                                unsigned int body_A_index,
@@ -351,16 +383,12 @@ inline __device__ float3 computeFrictionForces(GranParamsPtr gran_params,
                                                const float3& normal_force,
                                                const float3& rel_vel,
                                                const float3& contact_normal) {
-    float3 delta_t = {0., 0., 0.};
+    size_t contact_id = 0;
 
-    bool clamped = computeFrictionDisplacement(gran_params, sphere_data, body_A_index, body_B_index,
-                                               normal_force / force_model_multiplier, rel_vel, contact_normal, delta_t);
-
-    float3 tangent_force = -k_t * delta_t * force_model_multiplier;
-    // if no-slip, add the tangential damping
-    if (!clamped) {
-        constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
-        tangent_force = tangent_force - gamma_t * m_eff * rel_vel;
+    // if multistep, compute contact id, otherwise we don't care anyways
+    if (gran_params->friction_mode == GRAN_FRICTION_MODE::MULTI_STEP) {
+        contact_id = findContactPairInfo(sphere_data, gran_params, body_A_index, body_B_index);
     }
-    return tangent_force;
+    return computeFrictionForces(gran_params, sphere_data, contact_id, k_t, gamma_t, force_model_multiplier,
+                                 normal_force, rel_vel, contact_normal);
 }
