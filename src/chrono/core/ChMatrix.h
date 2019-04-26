@@ -611,11 +611,9 @@ class ChMatrix {
         const double* B_add = matrb.GetAddress();
         double* this_Add = this->GetAddress();
         // NEON doesn't provide direct zeroing, so we need to do it ourselves
-        float64_t zero_mem = 0.0;
-        float64x2_t zero_reg = vld1q_dup_f64(&zero_mem);
         for (int rowA = 0; rowA < A_Nrow; rowA++) {
             for (int colB = 0; colB < B_NCol; colB += 2) {
-                float64x2_t sum = vmovq_n_f64(zero_reg);
+                float64x2_t sum = vmovq_n_f64(0.0);
                 for (int elem = 0; elem < A_NCol; elem++) {
                     float64x2_t V_2DA = vld1q_dup_f64(A_add + A_NCol * rowA + elem);
                     float64x2_t V_2DB = vld1q_f64(B_add + elem * B_NCol + colB);
