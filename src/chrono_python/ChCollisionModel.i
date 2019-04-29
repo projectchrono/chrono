@@ -8,9 +8,9 @@ using namespace collision;
 %}
 
 
-%feature("director") chrono::collision::ChCollisionModel; // ?????
+//%feature("director") chrono::collision::ChCollisionModel; // ?????
 
-
+//%ignore chrono::ChCollisionModel::GetPhysicsItem();
 /* Parse the header file to generate wrappers */
 %include "../chrono/collision/ChCCollisionModel.h"
 

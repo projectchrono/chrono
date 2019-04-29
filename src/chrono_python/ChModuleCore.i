@@ -85,7 +85,7 @@ using namespace chrono::fea;
 
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
-%feature("director") chrono::ChLoadBase;
+//%feature("director") chrono::ChLoadBase;
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
