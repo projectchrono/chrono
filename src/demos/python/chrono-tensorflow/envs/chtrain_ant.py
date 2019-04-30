@@ -189,7 +189,6 @@ class Model(object):
     # Create the room floor: a simple fixed rigid body with a collision shape
     # and a visualization shape
       self.body_floor = chrono.ChBody()
-    #il floor viene direttamente imposto fixed non servono vincoli
       self.body_floor.SetBodyFixed(True)
       self.body_floor.SetPos(chrono.ChVectorD(0, -1, 0 ))
       self.body_floor.SetMaterialSurface(self.ant_material)

@@ -16,7 +16,7 @@ fi
 # set MKL vars
 export MKL_INTERFACE_LAYER=LP64
 export MKL_THREADING_LAYER=INTEL
-
+CONFIGURATION=Release
 # Configure step
 cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DCMAKE_PREFIX_PATH=$PREFIX \
@@ -43,9 +43,9 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
 # gcc gets out of memory
-cmake --build . --config "%CONFIGURATION%"
+cmake --build . --config "$CONFIGURATION"
 
-cmake --build . --config "%CONFIGURATION%" --target install
+cmake --build . --config "$CONFIGURATION" --target install
 
 
 
