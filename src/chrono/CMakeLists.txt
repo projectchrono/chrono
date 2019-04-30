@@ -47,6 +47,8 @@ set(ChronoEngine_core_SOURCES
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
+    core/ChDistribution.cpp
+    core/ChLinearAlgebra.cpp
     )
 
 set(ChronoEngine_core_HEADERS
@@ -334,6 +336,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChBeamSection.cpp
     fea/ChBeamSectionCosserat.cpp
     fea/ChElementBeamANCF.cpp
+    fea/ChElementBeamEuler.cpp
     fea/ChElementCableANCF.cpp
     fea/ChElementGeneric.cpp
     fea/ChElementSpring.cpp

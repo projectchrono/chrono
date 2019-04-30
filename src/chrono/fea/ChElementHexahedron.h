@@ -21,11 +21,9 @@
 namespace chrono {
 namespace fea {
 
-///
 /// Class for hexahedral elements.
-///
 class ChApi ChElementHexahedron : public ChElement3D,
-                                     public ChElementCorotational
+                                  public ChElementCorotational
 //                                        //       __ __ __ __      //
 {                                         //      /           /|    //
   protected:                              //     /_ __ __ __ / |    //
@@ -42,7 +40,7 @@ class ChApi ChElementHexahedron : public ChElement3D,
         ChElement3D::Update();
         // always keep updated the rotation matrix A:
         this->UpdateRotation();
-    };
+    }
 };
 
 }  // end namespace fea

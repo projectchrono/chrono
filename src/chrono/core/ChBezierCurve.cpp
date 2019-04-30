@@ -35,12 +35,14 @@
 // =============================================================================
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
 
 #include "chrono/core/ChBezierCurve.h"
+
 #include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChMatrixDynamic.h"
 
 namespace chrono {
 
