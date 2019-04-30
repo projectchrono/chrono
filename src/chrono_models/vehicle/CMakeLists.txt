@@ -125,6 +125,8 @@ set(CVM_GENERIC_FILES
     generic/Generic_RackPinion.cpp
     generic/Generic_RigidTire.h
     generic/Generic_RigidTire.cpp
+    generic/Generic_RigidMeshTire.h
+    generic/Generic_RigidMeshTire.cpp
     generic/Generic_FialaTire.h
     generic/Generic_FialaTire.cpp
     generic/Generic_SimplePowertrain.h
