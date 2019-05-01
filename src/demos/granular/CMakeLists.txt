@@ -43,6 +43,7 @@ SET(DEMOS
 		test_GRAN_repose
 		test_GRAN_CylinderLift
 		metrics_GRAN_settling
+		test_GRAN_couette
 )
 
 # ------------------------------------------------------------------------------
