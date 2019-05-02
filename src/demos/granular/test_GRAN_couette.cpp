@@ -36,7 +36,7 @@ using std::vector;
 enum TEST_MODE { SINGLE = 0, DOUBLE = 1 };
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_couette <json_file> <test: 0-single drum, 1-double drum> <material_height>" << endl;
+    cout << "usage: ./test_GRAN_couette <json_file> <output_dir> <test: 0-single drum, 1-double drum> <material_height>" << endl;
 }
 
 void writeMeshFrames(std::ostringstream& outstream,
@@ -75,12 +75,12 @@ int main(int argc, char* argv[]) {
     sim_param_holder params;
 
     // Some of the default values might be overwritten by user via command line
-    if (argc != 4 || ParseJSON(argv[1], params) == false) {
+    if (argc != 5 || ParseJSON(argv[1], params) == false) {
         ShowUsage();
         return 1;
     }
 
-    TEST_MODE test_mode = (TEST_MODE)stoi(argv[2]);
+    TEST_MODE test_mode = (TEST_MODE)stoi(argv[3]);
     switch (test_mode) {
         case SINGLE:
             cout << "Single-Cylinder test" << endl;
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     const double omega = 0.15;
     const double sphere_radius = 0.035 / 2.0;      // 0.35mm diameter
     const float friction = 0.9;                    // Glass static friction
-    const double material_height = stof(argv[3]);  // 10,20,30,40,50 mm
+    const double material_height = stof(argv[4]);  // 10,20,30,40,50 mm
     const double extra_cyl_height = 1.0;
     const double padding = sphere_radius * 2.0;
     const double cyl_height = material_height + extra_cyl_height;
@@ -141,9 +141,10 @@ int main(int argc, char* argv[]) {
     m_sys.set_rolling_coeff(friction);
 
     m_sys.setOutputMode(params.write_mode);
-    string out_dir(params.output_dir);
-    m_sys.setOutputDirectory(params.output_dir);
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    
+    string output_dir(argv[2]);
+    m_sys.setOutputDirectory(output_dir);
+    filesystem::create_directory(filesystem::path(output_dir));
 
     m_sys.set_timeStepping(GRAN_TIME_STEPPING::FIXED);
     m_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
@@ -282,7 +283,7 @@ int main(int argc, char* argv[]) {
         if (step % out_steps == 0) {
             cout << "Rendering frame " << currframe << endl;
             char filename[100];
-            sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
+            sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe++);
             m_sys.writeFile(string(filename));
             m_sys.write_meshes(string(filename));
             string mesh_output = string(filename) + "_meshframes.csv";
