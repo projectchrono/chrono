@@ -23,6 +23,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
+#include "chrono_models/vehicle/generic/Generic_RigidSuspension.h"
 #include "chrono_models/vehicle/generic/Generic_RigidPinnedAxle.h"
 #include "chrono_models/vehicle/generic/Generic_Wheel.h"
 #include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
@@ -83,7 +84,8 @@ Articulated_Rear::Articulated_Rear(std::shared_ptr<Articulated_Chassis> front) :
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(1);
-    m_suspensions[0] = std::make_shared<Generic_RigidPinnedAxle>("RearSusp");
+    ////m_suspensions[0] = std::make_shared<Generic_RigidPinnedAxle>("RearSusp");
+    m_suspensions[0] = std::make_shared<Generic_RigidSuspension>("RearSusp");
 
     // -----------------
     // Create the wheels
