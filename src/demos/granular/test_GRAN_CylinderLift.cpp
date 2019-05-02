@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     vector<float> mesh_masses;
     const float mass = 10;
 
-    string mesh_filename("granular/cylinder_lift/cylinder.obj");
+    string mesh_filename("granular/cylinder_lift/cylinder_refined.obj");
     mesh_filenames.push_back(mesh_filename);
     mesh_scalings.push_back(scaling);
     mesh_masses.push_back(mass);
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
             char filename[100];
             sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
             m_sys.writeFile(string(filename));
-
+            // m_sys.write_meshes(string(filename));
             string mesh_output = string(filename) + "_meshframes.csv";
 
             std::ofstream meshfile(mesh_output);
