@@ -86,6 +86,7 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
 
     // ...and now do  b_shur = - D' * q  ..
+    mb.Reset();
     int s_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {

@@ -19,7 +19,7 @@ namespace fea {
 
 ChElementTetra_4::ChElementTetra_4() {
     nodes.resize(4);
-    this->MatrB.Resize(6, 12);
+    this->MatrB.Reset(6, 12);
     this->StiffnessMatrix.Resize(12, 12);
 }
 
@@ -83,7 +83,7 @@ void ChElementTetra_4::ComputeStiffnessMatrix() {
     mM(3, 3) = 1.0;
     mM.MatrInverse();
 
-    MatrB.Reset(6, 12);
+    ////MatrB.Reset(6, 12);
     MatrB(0) = mM(0);
     MatrB(3) = mM(4);
     MatrB(6) = mM(8);
@@ -402,7 +402,7 @@ void ChElementTetra_4::ComputeNF(const double U,
 
 ChElementTetra_4_P::ChElementTetra_4_P() {
     nodes.resize(4);
-    this->MatrB.Resize(3, 12);
+    this->MatrB.Resize(3, 4);
     this->StiffnessMatrix.Resize(4, 4);
 }
 
@@ -464,7 +464,7 @@ void ChElementTetra_4_P::ComputeStiffnessMatrix() {
     mM(3, 3) = 1.0;
     mM.MatrInverse();
 
-    MatrB.Reset(3, 4);
+    ////MatrB.Reset(3, 4);
     MatrB(0, 0) = mM(0);
     MatrB(0, 1) = mM(4);
     MatrB(0, 2) = mM(8);

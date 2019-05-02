@@ -364,7 +364,7 @@ int ChSystemDescriptor::BuildFbVector(ChMatrix<>& Fvector  ///< matrix which wil
 int ChSystemDescriptor::BuildBiVector(ChMatrix<>& Bvector  ///< matrix which will contain the entire vector of 'b'
                                          ) {
     n_c = CountActiveConstraints();
-    Bvector.Resize(n_c, 1);
+    Bvector.Reset(n_c, 1);
 
 // Fill the 'b' vector
     for (int ic = 0; ic < (int)vconstraints.size(); ic++) {
@@ -432,7 +432,7 @@ int ChSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resize_v
     // Count active variables and resize vector if necessary
     if (resize_vector) {
         n_q = CountActiveVariables();
-        mvector.Resize(n_q, 1);
+        mvector.Reset(n_q, 1);
     }
 
 // Fill the vector
@@ -464,7 +464,7 @@ int ChSystemDescriptor::FromConstraintsToVector(ChMatrix<>& mvector, bool resize
     // Count active constraints and resize vector if necessary
     if (resize_vector) {
         n_c = CountActiveConstraints();
-        mvector.Resize(n_c, 1);
+        mvector.Reset(n_c, 1);
     }
 
 // Fill the vector
@@ -499,7 +499,7 @@ int ChSystemDescriptor::FromUnknownsToVector(ChMatrix<>& mvector, bool resize_ve
     n_c = CountActiveConstraints();
 
     if (resize_vector) {
-        mvector.Resize(n_q + n_c, 1);
+        mvector.Reset(n_q + n_c, 1);
     }
 
 // Fill the first part of vector, x.q ,with variables q

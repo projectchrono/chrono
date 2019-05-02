@@ -167,7 +167,9 @@ TEST(ChCSMatrixTest, compress) {
     mat.SetElement(2, 1, 2.1);
     mat.SetElement(1, 2, 1.2);
 
-    ChMatrixDynamic<double> matDYN;
+    ChMatrixDynamic<double> matDYN(3, 3);
+    matDYN.Reset();
+    
     matDYN.SetElement(0, 0, 10.0);
     matDYN.SetElement(2, 2, 2.2);
     matDYN.SetElement(1, 1, 1.1);
@@ -184,6 +186,7 @@ TEST(ChCSMatrixTest, compress) {
 
 TEST(ChCSMatrixTest, column_major) {
     int n = 3;
+
     ChCSMatrix matCM(n, n, false);
     matCM.SetElement(0, 0, 3);
     matCM.SetElement(0, 1, 5);
@@ -210,8 +213,7 @@ TEST(ChCSMatrixTest, column_major) {
 }
 
 TEST(ChCSMatrixTest, mat_mult) {
-    ChMatrixDynamic<double> matB(3, 2), mat_outR(3, 2), mat_outC(3, 2);
-
+    ChMatrixDynamic<double> matB(3, 2);
     matB.SetElement(0, 0, 7.1);
     matB.SetElement(1, 0, 3.7);
     matB.SetElement(2, 0, 9.4);
@@ -220,18 +222,18 @@ TEST(ChCSMatrixTest, mat_mult) {
     matB.SetElement(2, 1, 7.1);
 
     ChCSMatrix matA_rm(3, 3, true);   // row-major format
-    ChCSMatrix matA_cm(3, 3, false);  // column-major format
-
     matA_rm.SetElement(0, 0, 3.1);
     matA_rm.SetElement(0, 1, 2.4);
     matA_rm.SetElement(1, 1, 9.2);
     matA_rm.SetElement(2, 2, 5.6);
 
+    ChCSMatrix matA_cm(3, 3, false);  // column-major format
     matA_cm = matA_rm;
 
     ASSERT_TRUE(CompareMatrix(matA_cm, matA_rm));
 
     // Test A * B
+    ChMatrixDynamic<double> mat_outR(3, 2), mat_outC(3, 2);
     matA_rm.MatrMultiply(matB, mat_outR, false);
     matA_cm.MatrMultiply(matB, mat_outC, false);
     ////PrintMatrix(mat_outR);
@@ -247,10 +249,7 @@ TEST(ChCSMatrixTest, mat_mult) {
 }
 
 TEST(ChCSMatrixTest, mat_mult_clipped) {
-    ChMatrixDynamic<double> matB(6, 8), mat_out1(8, 6), mat_out2(8, 6), mat_out3(8, 6);
-
     ChCSMatrix matA_cm(6, 4);
-    ChCSMatrix matA_cmT(4, 6);
 
     matA_cm.SetElement(0, 0, 1.7);
     matA_cm.SetElement(0, 1, 1.3);
@@ -266,6 +265,8 @@ TEST(ChCSMatrixTest, mat_mult_clipped) {
     matA_cm.SetElement(4, 2, 8.2);
     matA_cm.SetElement(5, 2, 4.4);
 
+    ChCSMatrix matA_cmT(4, 6);
+
     matA_cmT.SetElement(0, 0, 1.7);
     matA_cmT.SetElement(1, 0, 1.3);
     matA_cmT.SetElement(3, 0, 0.6);
@@ -279,6 +280,9 @@ TEST(ChCSMatrixTest, mat_mult_clipped) {
     matA_cmT.SetElement(2, 3, 5.1);
     matA_cmT.SetElement(2, 4, 8.2);
     matA_cmT.SetElement(2, 5, 4.4);
+
+    ChMatrixDynamic<double> matB(6, 8);
+    matB.Reset();
 
     matB.SetElement(2, 0, 1.7);
     matB.SetElement(3, 0, 1.3);
@@ -301,17 +305,23 @@ TEST(ChCSMatrixTest, mat_mult_clipped) {
     ////std::cout << "matB" << std::endl;
     ////PrintMatrix(matB);
 
+    ChMatrixDynamic<double> mat_out1(8, 6);
+    mat_out1.Reset();
     matA_cm.MatrMultiplyClipped(matB, mat_out1, 1, 3, 1, 2, 3, 1, false, 1, 3, 1);
     ////std::cout << "mat_out1" << std::endl;
     ////PrintMatrix(mat_out1);
 
+    ChMatrixDynamic<double> mat_out2(8, 6);
+    mat_out2.Reset();
     matA_cm.MatrMultiplyClipped(matB, mat_out2, 1, 3, 1, 2, 3, 1, true, 1, 3, 1);
     ////std::cout << "mat_out2" << std::endl;
-    ////PrintMatrix(mat_out2);
+    PrintMatrix(mat_out2);
 
+    ChMatrixDynamic<double> mat_out3(8, 6);
+    mat_out3.Reset();
     matA_cmT.MatrMultiplyClipped(matB, mat_out3, 1, 3, 1, 2, 3, 1, false, 1, 3, 1);
     ////std::cout << "mat_out3" << std::endl;
-    ////PrintMatrix(mat_out3);
+    PrintMatrix(mat_out3);
 
     ASSERT_TRUE(mat_out2.Equals(mat_out3));
 }

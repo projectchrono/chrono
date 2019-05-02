@@ -30,7 +30,7 @@ ChElementBeamEuler::ChElementBeamEuler()
 {
     nodes.resize(2);
 
-    this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
+    StiffnessMatrix.Reset(this->GetNdofs(), this->GetNdofs());
 }
 
 void ChElementBeamEuler::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB) {
@@ -253,6 +253,7 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
         ChMatrix33<> Rotsect;
         Rotsect.Set_A_Rxyz(ChVector<>(-section->alpha, 0, 0));
         ChMatrixDynamic<> CKtemp(12, 12);
+        CKtemp.Reset();
         ChMatrixCorotation<>::ComputeCK(this->StiffnessMatrix, Rotsect, 4, CKtemp);
         ChMatrixCorotation<>::ComputeKCt(CKtemp, Rotsect, 4, this->StiffnessMatrix);
     }
@@ -394,6 +395,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
         mS.PasteMatrix(mI, 9, 0);
 
         ChMatrixDynamic<> mG(3, 12);  // [G] = [dw_frame/du_a; dw_frame/dw_a; dw_frame/du_b; dw_frame/dw_b]
+        mG.Reset();
         mG(2, 1) = -1. / Lel;
         mG(1, 2) = 1. / Lel;
         mG(2, 7) = 1. / Lel;
@@ -424,6 +426,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
         ChMatrix33<> skew_f;
 
         if (!force_symmetric_stiffness) {
+            mFn.Reset();
             skew_f.Set_X_matrix(f_p.ClipVector(0, 0));
             mFnm.PasteMatrix(skew_f, 0, 0);
             mFn.PasteMatrix(skew_f, 0, 0);
@@ -462,6 +465,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
         // ...							// [K_gm] = [P]'[L][P]  (simplify: avoid computing this)
 
         ChMatrixDynamic<> K_tang(12, 12);  // [K_tang] = [K_m] - [K_gr] - [K_gp] + [K_gm]
+        K_tang.Reset();
         K_tang.MatrInc(K_m);
         K_tang.MatrDec(K_gr);
         K_tang.MatrDec(K_gp);
@@ -515,6 +519,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor,
     // For M mass matrix, do mass lumping:
 
     ChMatrixDynamic<> Mloc(12, 12);
+    Mloc.Reset();
 
     double lmass = mass * 0.5;
     double lineryz = (1. / 50.) * mass * pow(length, 2);  // note: 1/50 can be even less (this is 0 in many texts)
@@ -635,6 +640,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         mS.PasteMatrix(mI, 9, 0);
 
         ChMatrixDynamic<> mG(3, 12);  // [G] = [dw_frame/du_a; dw_frame/dw_a; dw_frame/du_b; dw_frame/dw_b]
+        mG.Reset();
         mG(2, 1) = -1. / Lel;
         mG(1, 2) = 1. / Lel;
         mG(2, 7) = 1. / Lel;

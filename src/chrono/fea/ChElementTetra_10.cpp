@@ -20,10 +20,10 @@ namespace fea {
 ChElementTetra_10::ChElementTetra_10() {
     nodes.resize(10);
     MatrB.resize(4);  // standard: 4 integration points
-    MatrB[0].Resize(6, 30);
-    MatrB[1].Resize(6, 30);
-    MatrB[2].Resize(6, 30);
-    MatrB[3].Resize(6, 30);
+    MatrB[0].Reset(6, 30);
+    MatrB[1].Reset(6, 30);
+    MatrB[2].Reset(6, 30);
+    MatrB[3].Reset(6, 30);
     this->StiffnessMatrix.Resize(30, 30);
 }
 
@@ -568,6 +568,7 @@ ChStrainTensor<> ChElementTetra_10::GetStrain(double z1, double z2, double z3, d
 
     double JacobianDet;
     ChMatrixDynamic<> amatrB(6, GetNdofs());
+    amatrB.Reset();
     ComputeMatrB(amatrB, z1, z2, z3, z4, JacobianDet);
 
     ChStrainTensor<> mstrain;

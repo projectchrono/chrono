@@ -45,6 +45,10 @@ ChLinkLock::ChLinkLock()
     Cq2_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Qc_temp = new ChMatrixDynamic<>(7, 1);
 
+    // Need to zero out the bottom-right 4x3 block
+    Cq1_temp->Reset();
+    Cq2_temp->Reset();
+
     // Default type: spherical link
     // Sets the mask, all the matrices, and number of DOC and DOF
     BuildLinkType(LinkType::SPHERICAL);
@@ -303,6 +307,16 @@ void ChLinkLock::BuildLink() {
         Cq2 = new ChMatrixDynamic<>(ndoc, BODY_QDOF);
         Cqw1 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
         Cqw2 = new ChMatrixDynamic<>(ndoc, BODY_DOF);
+
+        // Zero out vectors of constraint violations
+        C->Reset();
+        C_dt->Reset();
+        C_dtdt->Reset();
+        react->Reset();
+
+        // Need to zero out the first 3 entries in rows corrsponding to rotation constraints
+        Cq1->Reset();
+        Cq2->Reset();
     } else {
         C = nullptr;
         C_dt = nullptr;
@@ -510,7 +524,7 @@ void ChLinkLock::UpdateState() {
     mtemp3.MatrMultiply(mtemp1, mtemp2);
     CqxR.MatrMultiply(mtemp3, body2Gl);
 
-    Cq2_temp->PasteSumMatrix(CqxR, 0, 3);  // -- -* Cq1_temp(4-7)
+    Cq2_temp->PasteSumMatrix(CqxR, 0, 3);  // -- -* Cq2_temp(4-7)
 
     mtempQ1.Set_Xq_matrix(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
     CqrR.Set_Xq_matrix(marker1->GetCoord().rot);
@@ -2364,7 +2378,7 @@ void ChLinkLockLock::UpdateState() {
     mtemp3.MatrMultiply(mtemp1, mtemp2);
     CqxR.MatrMultiply(mtemp3, body2Gl);
 
-    Cq2_temp->PasteSumMatrix(CqxR, 0, 3);  // -- -* Cq1_temp(4-7)
+    Cq2_temp->PasteSumMatrix(CqxR, 0, 3);  // -- -* Cq2_temp(4-7)
 
     mtempQ1.Set_Xq_matrix(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
     CqrR.Set_Xq_matrix(marker1->GetCoord().rot);

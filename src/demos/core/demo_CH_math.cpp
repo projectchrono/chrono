@@ -75,6 +75,7 @@ int main(int argc, char* argv[]) {
 
     // Create a diagonal matrix
     chrono::ChMatrixDynamic<> md(4, 4);
+    md.Reset();
     md.FillDiag(3);
 
     // Use the () operator to reference single elements

@@ -755,6 +755,7 @@ void ChDampingCosseratLinear::ComputeStress(ChVector<>& stress_n,
 void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixDynamic<>& R,
                                                    const ChVector<>& dstrain_e,
                                                    const ChVector<>& dstrain_k) {
+    R.Reset();
     R(0, 0) = R_e.x();
     R(1, 1) = R_e.y();
     R(2, 2) = R_e.z();

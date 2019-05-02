@@ -457,6 +457,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         //
 
         ChMatrixDynamic<> Mloc(6 * (int)nodes.size(), 6 * (int)nodes.size());
+        Mloc.Reset();
 
         double nmass = mass /(double)nodes.size();
          //Iyy and Izz: (orthogonal to spline) approx as 1/50 lumped mass at half dist:

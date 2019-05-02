@@ -19,7 +19,7 @@ namespace fea {
 
 ChElementHexa_8::ChElementHexa_8() {
     nodes.resize(8);
-    StiffnessMatrix.Resize(24, 24);
+    StiffnessMatrix.Reset(24, 24);
     this->ir = new ChGaussIntegrationRule;
     this->SetDefaultIntegrationRule();
 }
@@ -150,7 +150,7 @@ void ChElementHexa_8::ComputeMatrB(ChMatrixDynamic<>& MatrB,
 
     ChMatrixDynamic<> Btemp(3, 8);
     Btemp.MatrMultiply(Jinv, J1);
-    MatrB.Resize(6, 24);  // Remember to resize the matrix!
+    MatrB.Reset(6, 24);  // Remember to resize the matrix!
 
     MatrB.SetElement(0, 0, Btemp(0, 0));
     MatrB.SetElement(0, 3, Btemp(0, 1));

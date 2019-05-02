@@ -17,22 +17,28 @@
 namespace chrono {
 namespace fea {
 
-// Constructor. Creates a Gauss point belonging to element elem, with number
-// n, with coordinates c, with weight w
-ChGaussPoint::ChGaussPoint(/*ChIntegrationRule *ir, ChElement elem*/ int n, ChVector<>* c, double w) {
-    // irule        = ir;
-    // element...
-    number = n;
-    LocalCoordinates = *c;
-    coordinates = NULL;
-    weight = w;
+ChGaussPoint::ChGaussPoint(int number, ChVector<>* coord, double weight)
+    : m_number(number), m_local_coordinates(*coord), m_weight(weight), m_coordinates(nullptr) {
     MatrB = new ChMatrixDynamic<>(1, 1);
 }
 
-// Destructor
 ChGaussPoint::~ChGaussPoint() {
-    if (coordinates) {
-        delete coordinates;
+    delete m_coordinates;
+}
+
+ChVector<> ChGaussPoint::GetCoordinates() const {
+    if (m_coordinates) {
+        return *m_coordinates;
+    } else {
+        return m_local_coordinates;
+    }
+}
+
+void ChGaussPoint::SetCoordinates(const ChVector<>& c) {
+    if (m_coordinates) {
+        *m_coordinates = c;
+    } else {
+        m_coordinates = new ChVector<>(c);
     }
 }
 
