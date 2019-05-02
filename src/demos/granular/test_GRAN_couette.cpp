@@ -36,7 +36,7 @@ using std::vector;
 enum TEST_MODE { SINGLE = 0, DOUBLE = 1 };
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_couette <json_file> <test: 0-single drum, 1-double drum> <static_friction>" << endl;
+    cout << "usage: ./test_GRAN_couette <json_file> <test: 0-single drum, 1-double drum> <material_height>" << endl;
 }
 
 void writeMeshFrames(std::ostringstream& outstream,
@@ -94,8 +94,9 @@ int main(int argc, char* argv[]) {
     const double R1 = 6.5;  // 65 mm
     const double R2 = 9.0;  // 90 mm
     const double omega = 0.15;
-    const double sphere_radius = 0.035 / 2.0;  // 0.35mm diameter
-    const double material_height = 1.0;        // 10,20,30,40,50 mm
+    const double sphere_radius = 0.035 / 2.0;      // 0.35mm diameter
+    const float friction = 0.9;                    // Glass static friction
+    const double material_height = stof(argv[3]);  // 10,20,30,40,50 mm
     const double extra_cyl_height = 1.0;
     const double padding = sphere_radius * 2.0;
     const double cyl_height = material_height + extra_cyl_height;
@@ -134,11 +135,10 @@ int main(int argc, char* argv[]) {
     m_sys.set_Adhesion_ratio_S2M(params.adhesion_ratio_s2m);
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
 
-    float static_friction = std::stof(argv[3]);
     m_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
-    m_sys.set_static_friction_coeff(static_friction);
-
-    m_sys.set_rolling_mode(GRAN_ROLLING_MODE::NO_RESISTANCE);
+    m_sys.set_static_friction_coeff(friction);
+    m_sys.set_rolling_mode(GRAN_ROLLING_MODE::CONSTANT_TORQUE);
+    m_sys.set_rolling_coeff(friction);
 
     m_sys.setOutputMode(params.write_mode);
     string out_dir(params.output_dir);
