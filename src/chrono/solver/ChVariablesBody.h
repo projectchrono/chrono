@@ -20,10 +20,8 @@
 
 namespace chrono {
 
-/// Specialized class for representing a 6-DOF item for a
-/// system, that is a 3D rigid body, with mass matrix and
-/// associate variables (a 6 element vector, ex.speed)
-/// This is an abstract class, specialized for example in
+/// Specialized class for representing a 6-DOF item for a system, that is a 3D rigid body, with mass matrix and
+/// associate variables (a 6 element vector, ex.speed) This is an abstract class, specialized for example in
 /// ChVariablesBodyOwnMass and ChVariablesBodySharedMass.
 
 class ChApi ChVariablesBody : public ChVariables {
@@ -49,8 +47,7 @@ class ChApi ChVariablesBody : public ChVariables {
     virtual ChMatrix33<>& GetBodyInvInertia() = 0;
     virtual const ChMatrix33<>& GetBodyInvInertia() const = 0;
 
-    /// The number of scalar variables in the vector qb
-    /// (dof=degrees of freedom)
+    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
     virtual int Get_ndof() const override { return 6; }
 
     void* GetUserData() { return this->user_data; }
