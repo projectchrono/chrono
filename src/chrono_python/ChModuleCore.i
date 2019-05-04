@@ -412,10 +412,10 @@ using namespace chrono::fea;
 %include "ChAssembly.i"
 %include "ChTimestepper.i"
 %include "../chrono/solver/ChSolver.h"
+%include "ChContactContainer.i"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"
 %include "ChSystemSMC.i"
-%include "ChContactContainer.i"
 %include "ChProximityContainer.i"
 %include "ChLoadContainer.i"
 
