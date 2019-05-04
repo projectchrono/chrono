@@ -43,7 +43,6 @@ class ChVectorDynamic : public ChMatrix<Real> {
         this->rows = 1;
         this->columns = 1;
         this->address = new Real[1];
-        this->address[0] = 0;
     }
 
     /// The constructor for a generic n sized vector.
@@ -52,7 +51,6 @@ class ChVectorDynamic : public ChMatrix<Real> {
         this->rows = rows;
         this->columns = 1;
         this->address = new Real[rows];
-        std::memset(this->address, 0, this->rows * sizeof(Real));
     }
 
     /// Copy constructor
@@ -75,16 +73,11 @@ class ChVectorDynamic : public ChMatrix<Real> {
             this->address[i] = (Real)msource.GetAddress()[i];
     }
 
-    /// Destructor
     /// Delete allocated heap mem.
     virtual ~ChVectorDynamic() { delete[] this->address; }
 
     /// Return the length of the vector
     int GetLength() const { return this->rows; }
-
-    //
-    // OPERATORS
-    //
 
     /// Assignment operator (from generic other matrix, it always work)
     virtual ChVectorDynamic<Real>& operator=(const ChMatrix<Real>& matbis) override {
@@ -92,8 +85,7 @@ class ChVectorDynamic : public ChMatrix<Real> {
         return *this;
     }
 
-    /// Negates sign of the matrix.
-    /// Performance warning: a new object is created.
+    /// Negates vector.
     ChVectorDynamic<Real> operator-() const {
         ChVectorDynamic<Real> result(*this);
         result.MatrNeg();
@@ -101,7 +93,6 @@ class ChVectorDynamic : public ChMatrix<Real> {
     }
 
     /// Sums this vector and another vector.
-    /// Performance warning: a new object is created.
     template <class RealB>
     ChVectorDynamic<Real> operator+(const ChMatrix<RealB>& matbis) const {
         ChVectorDynamic<Real> result(this->rows);
@@ -110,7 +101,6 @@ class ChVectorDynamic : public ChMatrix<Real> {
     }
 
     /// Subtracts this vector and another vector.
-    /// Performance warning: a new object is created.
     template <class RealB>
     ChVectorDynamic<Real> operator-(const ChMatrix<RealB>& matbis) const {
         ChVectorDynamic<Real> result(this->rows);
@@ -119,16 +109,11 @@ class ChVectorDynamic : public ChMatrix<Real> {
     }
 
     /// Multiplies this vector by a scalar value.
-    /// Performance warning: a new object is created.
     ChVectorDynamic<Real> operator*(const Real factor) const {
         ChVectorDynamic<Real> result(*this);
         result.MatrScale(factor);
         return result;
     }
-
-    //
-    // FUNCTIONS
-    //
 
     /// Reallocate memory for a new size.
     virtual void Resize(int nrows) {
@@ -138,7 +123,6 @@ class ChVectorDynamic : public ChMatrix<Real> {
             this->columns = 1;
             delete[] this->address;
             this->address = new Real[this->rows];
-            std::memset(this->address, 0, this->rows * sizeof(Real));
         }
     }
 

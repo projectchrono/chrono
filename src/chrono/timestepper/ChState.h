@@ -30,13 +30,13 @@ class ChIntegrable;
 class ChState : public ChVectorDynamic<double> {
   public:
     /// Constructors
-    explicit ChState(ChIntegrable* mint = 0) : ChVectorDynamic<double>(1) { integrable = mint; };
+    explicit ChState(ChIntegrable* mint = 0) : ChVectorDynamic<double>(1) { integrable = mint; }
 
-    explicit ChState(const int nrows, ChIntegrable* mint) : ChVectorDynamic<double>(nrows) { integrable = mint; };
+    explicit ChState(const int nrows, ChIntegrable* mint) : ChVectorDynamic<double>(nrows) { integrable = mint; }
 
     explicit ChState(const ChMatrixDynamic<double> matr, ChIntegrable* mint) : ChVectorDynamic<double>(matr) {
         integrable = mint;
-    };
+    }
 
     /// Copy constructor
     ChState(const ChState& msource) : ChVectorDynamic<double>(msource) { integrable = msource.integrable; };
@@ -122,13 +122,13 @@ class ChState : public ChVectorDynamic<double> {
 class ChStateDelta : public ChVectorDynamic<double> {
   public:
     /// Constructors
-    explicit ChStateDelta(ChIntegrable* mint = 0) : ChVectorDynamic<double>(1) { integrable = mint; };
+    explicit ChStateDelta(ChIntegrable* mint = 0) : ChVectorDynamic<double>(1) { integrable = mint; }
 
-    explicit ChStateDelta(const int nrows, ChIntegrable* mint) : ChVectorDynamic<double>(nrows) { integrable = mint; };
+    explicit ChStateDelta(const int nrows, ChIntegrable* mint) : ChVectorDynamic<double>(nrows) { integrable = mint; }
 
     explicit ChStateDelta(const ChMatrixDynamic<double> matr, ChIntegrable* mint) : ChVectorDynamic<double>(matr) {
         integrable = mint;
-    };
+    }
 
     /// Copy constructor
     ChStateDelta(const ChStateDelta& msource) : ChVectorDynamic<double>(msource) { integrable = msource.integrable; };
