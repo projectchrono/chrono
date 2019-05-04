@@ -151,7 +151,10 @@ class ChConstraintTuple_2vars {
 
   public:
     /// Default constructor
-    ChConstraintTuple_2vars() : variables_1(0), variables_2(0) {}
+    ChConstraintTuple_2vars() : variables_1(nullptr), variables_2(nullptr) {
+        Cq_1.Reset();
+        Cq_2.Reset();
+    }
 
     /// Copy constructor
     ChConstraintTuple_2vars(const ChConstraintTuple_2vars& other) {
@@ -307,7 +310,11 @@ class ChConstraintTuple_3vars {
 
   public:
     /// Default constructor
-    ChConstraintTuple_3vars() : variables_1(0), variables_2(0), variables_3(0) {}
+    ChConstraintTuple_3vars() : variables_1(nullptr), variables_2(nullptr), variables_3(nullptr) {
+        Cq_1.Reset();
+        Cq_2.Reset();
+        Cq_3.Reset();
+    }
 
     /// Copy constructor
     ChConstraintTuple_3vars(const ChConstraintTuple_3vars& other) {
@@ -510,7 +517,12 @@ class ChConstraintTuple_4vars {
 
   public:
     /// Default constructor
-    ChConstraintTuple_4vars() : variables_1(0), variables_2(0), variables_3(0), variables_4(0) {}
+    ChConstraintTuple_4vars() : variables_1(nullptr), variables_2(nullptr), variables_3(nullptr), variables_4(nullptr) {
+        Cq_1.Reset();
+        Cq_2.Reset();
+        Cq_3.Reset();
+        Cq_4.Reset();
+    }
 
     /// Copy constructor
     ChConstraintTuple_4vars(const ChConstraintTuple_4vars& other) {
