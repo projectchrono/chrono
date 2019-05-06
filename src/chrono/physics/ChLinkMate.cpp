@@ -48,22 +48,13 @@ void ChLinkMate::ArchiveIN(ChArchiveIn& marchive) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkMateGeneric)
 
-ChLinkMateGeneric::ChLinkMateGeneric(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
-    c_x = mc_x;
-    c_y = mc_y;
-    c_z = mc_z;
-    c_rx = mc_rx;
-    c_ry = mc_ry;
-    c_rz = mc_rz;
-
-    C = 0;
-
+ChLinkMateGeneric::ChLinkMateGeneric(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz)
+    : c_x(mc_x), c_y(mc_y), c_z(mc_z), c_rx(mc_rx), c_ry(mc_ry), c_rz(mc_rz), C(nullptr) {
     mask = new ChLinkMask();
-
     SetupLinkMask();
 }
 
-ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMate(other) {
+ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMate(other), C(nullptr) {
     c_x = other.c_x;
     c_y = other.c_y;
     c_z = other.c_z;
@@ -71,17 +62,13 @@ ChLinkMateGeneric::ChLinkMateGeneric(const ChLinkMateGeneric& other) : ChLinkMat
     c_ry = other.c_ry;
     c_rz = other.c_rz;
 
+    mask = new ChLinkMask();
     SetupLinkMask();
 }
 
 ChLinkMateGeneric::~ChLinkMateGeneric() {
-    if (C)
-        delete C;
-    C = 0;
-
-    if (mask)
-        delete mask;
-    mask = 0;
+    delete C;
+    delete mask;
 }
 
 void ChLinkMateGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
@@ -112,9 +99,9 @@ void ChLinkMateGeneric::SetupLinkMask() {
 
     mask->ResetNconstr(nc);
 
-    if (C)
-        delete C;
+    delete C;
     C = new ChMatrixDynamic<>(nc, 1);
+    C->Reset();
 
     ChangedLinkMask();
 }
