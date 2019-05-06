@@ -140,20 +140,19 @@ make
 -------------------------------------------------------
 
 By default all binaries (ex. myexe.exe) of your project will go into
-your build directory, in our example `C:\workspace\my_project_build\Release\my_project.sln` 
-(or `C:\workspace\my_project_build\Debug\my_project.sln` if you decided to compile in Debug mode).
+your build directory, in our example `C:\workspace\my_project_build\Release` 
+(or `C:\workspace\my_project_build\Debug` if you decided to compile in Debug mode).
 
-- double click on the .exe file and you should see the demo running in an interactive 3D view
-
+Double click on the .exe file and you should see the demo running in an interactive 3D view
 <img src="http://projectchrono.org/assets/manual/Install_my_project_2.jpg" class="img-responsive">
 
 Important information for Windows users!
 ----------------------
 
-If you are a Windows users, your project executables need to know where to find the Chrono shared libraries (i.e. those with .dll extension), otherwise they will crash as soon as you try to run them;
+If you are a Windows users, your project executables need to know where to find the Chrono shared libraries (i.e. those with .dll extension), otherwise they will crash as soon as you try to run them.
 
 To make things simple, we added an auxiliary CMake target (namely COPY_DLLS) that makes a copy of the Chrono shared libraries (and of Irrlicht shared library, if enabled) in the project binaries folder (e.g. `C:\workspace\my_project_build\Release`); however, there are different scenarios. In the case that:
-  + `Chrono_DIR` is a _build_ folder; if you followed our [installation guide](@ref tutorial_install_chrono) then `C:/workspace/chrono_build` is of this type; in this case you may have both Release and Debug version of Chrono (under `C:/workspace/chrono_build/bin`); if both are present, please mind that **only Release libraries will be copied**; if you want to run your project in Debug configuration then you have to manually copy the Debug libraries contained in `C:/workspace/chrono_build/bin/Debug` into ;
+  + `Chrono_DIR` is a _build_ folder; if you followed our [installation guide](@ref tutorial_install_chrono) then `C:/workspace/chrono_build` is of this type; in this case you may have both Release and Debug version of Chrono (under `C:/workspace/chrono_build/bin`); if both are present, please mind that **only Release libraries will be copied**; if you want to run your project in Debug configuration then you have to manually copy the Debug libraries contained in `C:/workspace/chrono_build/bin/Debug` into `C:/workspace/my_project_build/Debug`;
   + `Chrono_DIR` is an _install_ folder; this is the folder type that is created by building the `INSTALL` target; this folder is usually `C:/Program Files/Chrono` and contains either Debug or Release libraries, depending on the configuration that you set when you built the `INSTALL` target; please mind that the Chrono configuration type must match your project configuration. If Chrono was built in Release also your project must be compiled in Release.
 
 
