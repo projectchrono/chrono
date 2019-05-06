@@ -4,10 +4,10 @@ Links      {#links}
 
 
 A Chrono body can be constrained in its relative motion with respect to a different body or ground. This is achieved by using ChLink classes.  
-From the @ref chrono::ChLink class various set of links are derived. The most noticeable are those derived by:
-- **@ref chrono::ChLinkMate**: more efficient, however they do not implement limits and only few of them can have an imposed motion;
-- **@ref chrono::ChLinkLock**: more general, the relative motion can be limited within boundaries, the motion can be imposed, forces and relative displacements can easily be retrieved; it is possible to specify a constraint over points that are _moving_ respect to the body reference frame.
-- **@ref chrono::ChLinkMotor**; ChLinkMate derived joints  with included actuation;
+From the @ref chrono::ChLink class various set of links are derived. The most noticeable are those derived from:
+- @ref chrono::ChLinkMate: more efficient, however they do not implement limits and only few of them can have an imposed motion;
+- @ref chrono::ChLinkLock: more general, the relative motion can be limited within boundaries, the motion can be imposed, forces and relative displacements can easily be retrieved; it is possible to specify a constraint over points that are _moving_ respect to the body reference frame.
+- @ref chrono::ChLinkMotor; ChLinkMate derived joints  with included actuation;
 
 Thus, some of the ChLinkMate and ChLinkLock derived classes may overlap. The latter being more flexible, the first more efficient. Because of this, the ChLinkMate version should be preferred, in general.
 
@@ -39,7 +39,7 @@ Some general information are fundamental to effectively use these classes:
 | 2 | Point on a Line | Point belongs to a given line; free to rotate | @ref chrono::ChLinkLockPointLine <br> @ref chrono::ChLinkPointSpline |
 | 2 | Parallel | X axes are parallel | @ref chrono::ChLinkMateParallel <br> @ref chrono::ChLinkLockParallel |
 | 2 | Orthogonal | X axes are orthogonal | @ref chrono::ChLinkMateOrthogonal <br> @ref chrono::ChLinkLockPerpend |
-| 1 | Distance | Polar distance is fixed | @ref ChLinkDistance |
+| 1 | Distance | Polar distance is fixed | @ref chrono::ChLinkDistance |
 | 1 | Rack-Pinion | Couple rotation of the pinion Z axis with rack X axis | @ref chrono::ChLinkRackpinion |
 | 1 | Pulley | Couple rotation over Z axes; pulley-specific features | @ref chrono::ChLinkPulley |
 | 1 | Gear | Couple rotation over Z axes; gear-specific features | @ref chrono::ChLinkGear |
@@ -49,10 +49,10 @@ Some general information are fundamental to effectively use these classes:
 ## Actuated joints
 | ConDOF | MotDOF | Task | Description | Class |
 | :-: | :-: | :--- | :-- | :-- |
-| 0\|3\|5 | 1 | Linear Actuator | Applies linear force\|speed\|position between frames; <br> optionally adds none\|prismatic\|spherical joints to its ends <br> can be paired with 1D @ref chrono::ChShafts | @ref chrono::ChLinkMotorLinear and derived |
-| 0\|3\|5 | 1 | Rotating Actuator | Applies torque\|speed\|position between frames; <br> optionally adds none\|revolute\|cylindrical\|Oldham joints to its ends <br> can be paired with 1D @ref chrono::ChShafts | @ref chrono::ChLinkMotorRotation and derived |
-| 0 | 1 | Spring+Damper+Actuation according to frame distance; also with custom force | @ref chrono::ChLinkSpring <br> @ref chrono::ChLinkSpringCB |
-| 0 | 1 | Spring+Damper+Actuation according to frame rotation along Z axis with custom force | @ref chrono::ChLinkRotSpringCB |
+| 0\|3\|5 | 1 | Linear Actuator | Applies linear force\|speed\|position between frames; <br> optionally adds none\|prismatic\|spherical joints to its ends <br> can be paired with 1D @ref chrono::ChShaft | @ref chrono::ChLinkMotorLinear and derived |
+| 0\|3\|5 | 1 | Rotating Actuator | Applies torque\|speed\|position between frames; <br> optionally adds none\|revolute\|cylindrical\|Oldham joints to its ends <br> can be paired with 1D @ref chrono::ChShaft | @ref chrono::ChLinkMotorRotation and derived |
+| 0 | 1 | Linear Spring+Damper | Spring+Damper depending to frame distance; also with custom force | @ref chrono::ChLinkSpring <br> @ref chrono::ChLinkSpringCB |
+| 0 | 1 | Rotational Spring+Damper | Spring+Damper depending to frame rotation along Z axis; with custom force | @ref chrono::ChLinkRotSpringCB |
 
 
 ## Usage
@@ -71,11 +71,11 @@ In general, the process involves the following steps:
 2. Use ```mylink->Initialize(…)``` to connect two bodies
    ~~~{.cpp}
    mylink->Initialize(pendulumBody,        // the 1st body to connect
-                           floorBody,      // the 2nd body to connect
-                           ChCoordsys<>(ChVector<>(1, 0, 0),
-                                        Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0))
-                                        )   // master reference
-                           );
+                      floorBody,      // the 2nd body to connect
+                      ChCoordsys<>(ChVector<>(1, 0, 0),
+                                   Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0))
+                                   )   // master reference
+                      );
    ~~~
 3. Add the link to a ChSystem
    ~~~{.cpp}
