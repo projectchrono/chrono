@@ -29,6 +29,7 @@
 
 #include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
 #include "chrono_models/vehicle/generic/Generic_RigidTire.h"
+#include "chrono_models/vehicle/generic/Generic_RigidMeshTire.h"
 #include "chrono_models/vehicle/generic/Generic_FialaTire.h"
 
 #include "subsystems/Articulated_Front.h"
@@ -46,8 +47,8 @@ ChVector<> initLoc(0, 0, 0.5);
 // Initial front_side orientation
 ChQuaternion<> initRot = Q_from_AngZ(CH_C_PI / 10);
 
-// Type of tire model (RIGID or FIALA)
-TireModelType tire_model = TireModelType::FIALA;
+// Type of tire model (RIGID, RIGID_MESH, or FIALA)
+TireModelType tire_model = TireModelType::RIGID;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -109,6 +110,10 @@ int main(int argc, char* argv[]) {
             tire_FL = std::unique_ptr<ChTire>(new Generic_RigidTire("FL"));
             tire_FR = std::unique_ptr<ChTire>(new Generic_RigidTire("FR"));
             break;
+        case TireModelType::RIGID_MESH:
+            tire_FL = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("FL"));
+            tire_FR = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("FR"));
+            break;
         case TireModelType::FIALA:
             tire_FL = std::unique_ptr<ChTire>(new Generic_FialaTire("FL"));
             tire_FR = std::unique_ptr<ChTire>(new Generic_FialaTire("FR"));
@@ -120,8 +125,8 @@ int main(int argc, char* argv[]) {
 
     tire_FL->Initialize(front_side.GetWheelBody(FRONT_LEFT), LEFT);
     tire_FR->Initialize(front_side.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tire_FL->SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_FR->SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_FL->SetVisualizationType(VisualizationType::MESH);
+    tire_FR->SetVisualizationType(VisualizationType::MESH);
 
     // Create the rear tires
     std::unique_ptr<ChTire> tire_RL;
@@ -130,6 +135,10 @@ int main(int argc, char* argv[]) {
         case TireModelType::RIGID:
             tire_RL = std::unique_ptr<ChTire>(new Generic_RigidTire("RL"));
             tire_RR = std::unique_ptr<ChTire>(new Generic_RigidTire("RR"));
+            break;
+        case TireModelType::RIGID_MESH:
+            tire_RL = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("RL"));
+            tire_RR = std::unique_ptr<ChTire>(new Generic_RigidMeshTire("RR"));
             break;
         case TireModelType::FIALA:
             tire_RL = std::unique_ptr<ChTire>(new Generic_FialaTire("RL"));
@@ -142,8 +151,8 @@ int main(int argc, char* argv[]) {
 
     tire_RL->Initialize(rear_side.GetWheelBody(FRONT_LEFT), LEFT);
     tire_RR->Initialize(rear_side.GetWheelBody(FRONT_RIGHT), RIGHT);
-    tire_RL->SetVisualizationType(VisualizationType::PRIMITIVES);
-    tire_RR->SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_RL->SetVisualizationType(VisualizationType::MESH);
+    tire_RR->SetVisualizationType(VisualizationType::MESH);
 
     // Initialize Irrlicht app
     ChWheeledVehicleIrrApp app(&front_side, &powertrain, L"Articulated Vehicle Demo");
