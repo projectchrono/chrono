@@ -19,6 +19,8 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVariablesNode)
 
+ChVariablesNode::ChVariablesNode() : ChVariables(3), user_data(nullptr), mass(1) {}
+
 ChVariablesNode& ChVariablesNode::operator=(const ChVariablesNode& other) {
     if (&other == this)
         return *this;
@@ -33,8 +35,7 @@ ChVariablesNode& ChVariablesNode::operator=(const ChVariablesNode& other) {
     return *this;
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and set in result: result = [invMb]*vect
+// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
 void ChVariablesNode::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -45,8 +46,7 @@ void ChVariablesNode::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<d
     result(2) = inv_mass * vect(2);
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and increment result: result += [invMb]*vect
+// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesNode::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -57,8 +57,7 @@ void ChVariablesNode::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatr
     result(2) += inv_mass * vect(2);
 }
 
-// Computes the product of the mass matrix by a
-// vector, and set in result: result = [Mb]*vect
+// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesNode::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());

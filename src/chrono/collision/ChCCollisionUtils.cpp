@@ -148,10 +148,10 @@ double ChCollisionUtils::PointTriangleDistance(Vector B,
     Dy = Vmul(Dy, 1.0 / dylen);
 
     ChMatrix33<> mA;
-    ChMatrix33<> mAi;
     mA.Set_A_axis(Dx, Dy, Dz);
 
     // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
+    ChMatrix33<> mAi;
     if (fabs(mA.FastInvert(mAi)) < 0.000001)
         return mdistance;
 

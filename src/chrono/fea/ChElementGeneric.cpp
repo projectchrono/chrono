@@ -45,8 +45,12 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     int stride = 0;
     for (int in = 0; in < this->GetNnodes(); in++) {
         int nodedofs = GetNodeNdofs(in);
-        if (!GetNodeN(in)->GetFixed())
+        if (GetNodeN(in)->GetFixed()) {
+            for (int i = 0; i < nodedofs; ++i)
+                mqi.Element(stride + i, 0) = 0;
+        } else {
             mqi.PasteClippedMatrix(w, GetNodeN(in)->NodeGetOffset_w(), 0, nodedofs, 1, stride, 0);
+        }
         stride += nodedofs;
     }
 

@@ -354,6 +354,8 @@ inline void ChLoad<Tloader>::ComputeJacobian(ChState* state_x,
     ChStateDelta state_delta(mrows_w, nullptr);
 
     // Compute K=-dQ(x,v)/dx by backward differentiation
+    state_delta.Reset(mrows_w, nullptr);
+
     for (int i = 0; i < mrows_w; ++i) {
         state_delta(i) += Delta;
         this->LoadStateIncrement(*state_x, state_delta,

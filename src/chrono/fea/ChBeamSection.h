@@ -27,91 +27,74 @@ namespace fea {
 /// Especially useful for plasticity, where internal variables are used
 /// to carry information on plastic flow, accumulated flow, etc.
 class ChApi ChBeamMaterialInternalData {
-public:
-	ChBeamMaterialInternalData() :
-		p_strain_acc(0)
-	{};
+  public:
+    ChBeamMaterialInternalData() : p_strain_acc(0) {}
 
-	virtual ~ChBeamMaterialInternalData() {};
+    virtual ~ChBeamMaterialInternalData(){};
 
-	virtual void Copy(const ChBeamMaterialInternalData& other) {
-		p_strain_acc = other.p_strain_acc;
-	}
+    virtual void Copy(const ChBeamMaterialInternalData& other) { p_strain_acc = other.p_strain_acc; }
 
-	double p_strain_acc;  // accumulated flow,  \overbar\eps^p  in Neto-Owen book
+    double p_strain_acc;  // accumulated flow,  \overbar\eps^p  in Neto-Owen book
 };
-
-
 
 /// Base class for properties of all beam sections.
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
 class ChApi ChBeamSectionProperties {
-public:
-	double y_drawsize;
-	double z_drawsize;
-	bool is_circular;
+  public:
+    double y_drawsize;
+    double z_drawsize;
+    bool is_circular;
 
-	double Area;
-	double density;
+    double Area;
+    double density;
 
+    ChBeamSectionProperties() : y_drawsize(0.01), z_drawsize(0.01), is_circular(false), Area(1), density(1000) {}
 
-	ChBeamSectionProperties() {
-		this->y_drawsize = 0.01;
-		this->z_drawsize = 0.01;
-		this->is_circular = 0;
+    virtual ~ChBeamSectionProperties() {}
 
-		this->Area = 1;
-		this->density = 1000;
-	}
+    /// Sets the rectangular thickness of the beam on y and z directions,
+    /// only for drawing/rendering purposes (these thickness values do NOT
+    /// have any meaning at a physical level, use SetAsRectangularSection()
+    ////instead if you want to affect also the inertias of the beam section).
+    void SetDrawThickness(double thickness_y, double thickness_z) {
+        this->y_drawsize = thickness_y;
+        this->z_drawsize = thickness_z;
+    }
+    double GetDrawThicknessY() { return this->y_drawsize; }
+    double GetDrawThicknessZ() { return this->z_drawsize; }
 
-	virtual ~ChBeamSectionProperties() {}
+    /// Tells if the section must be drawn as a circular
+    /// section instead than default rectangular
+    bool IsCircular() { return is_circular; }
+    /// Set if the section must be drawn as a circular
+    /// section instead than default rectangular
+    void SetCircular(bool ic) { is_circular = ic; }
 
-	/// Sets the rectangular thickness of the beam on y and z directions,
-	/// only for drawing/rendering purposes (these thickness values do NOT
-	/// have any meaning at a physical level, use SetAsRectangularSection()
-	////instead if you want to affect also the inertias of the beam section).
-	void SetDrawThickness(double thickness_y, double thickness_z) {
-		this->y_drawsize = thickness_y;
-		this->z_drawsize = thickness_z;
-	}
-	double GetDrawThicknessY() { return this->y_drawsize; }
-	double GetDrawThicknessZ() { return this->z_drawsize; }
+    /// Sets the radius of the beam if in 'circular section' draw mode,
+    /// only for drawing/rendering purposes (this radius value do NOT
+    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
+    ////instead if you want to affect also the inertias of the beam section).
+    void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
+    double GetDrawCircularRadius() { return this->y_drawsize; }
 
-	/// Tells if the section must be drawn as a circular
-	/// section instead than default rectangular
-	bool IsCircular() { return is_circular; }
-	/// Set if the section must be drawn as a circular
-	/// section instead than default rectangular
-	void SetCircular(bool ic) { is_circular = ic; }
+    /// Set the cross sectional area A of the beam (m^2)
+    void SetArea(const double ma) { this->Area = ma; }
+    double GetArea() const { return this->Area; }
 
-	/// Sets the radius of the beam if in 'circular section' draw mode,
-	/// only for drawing/rendering purposes (this radius value do NOT
-	/// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
-	////instead if you want to affect also the inertias of the beam section).
-	void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
-	double GetDrawCircularRadius() { return this->y_drawsize; }
+    /// Set the density of the beam (kg/m^3)
+    void SetDensity(double md) { this->density = md; }
+    double GetDensity() const { return this->density; }
 
+    /// Shortcut: set elastic and plastic constants
+    /// at once, given the y and z widths of the beam assumed
+    /// with rectangular shape.
+    virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
 
-	/// Set the cross sectional area A of the beam (m^2)
-	void SetArea(const double ma) { this->Area = ma; }
-	double GetArea() const { return this->Area; }
-
-	/// Set the density of the beam (kg/m^3)
-	void SetDensity(double md) { this->density = md; }
-	double GetDensity() const { return this->density; }
-
-
-	/// Shortcut: set elastic and plastic constants
-	/// at once, given the y and z widths of the beam assumed
-	/// with rectangular shape.
-	virtual void SetAsRectangularSection(double width_y, double width_z) = 0;
-
-	/// Shortcut: set elastic and plastic constants
-	/// at once, given the diameter of the beam assumed
-	/// with circular shape.
-	virtual void SetAsCircularSection(double diameter) = 0;
-
+    /// Shortcut: set elastic and plastic constants
+    /// at once, given the diameter of the beam assumed
+    /// with circular shape.
+    virtual void SetAsCircularSection(double diameter) = 0;
 };
 
 //
@@ -122,46 +105,40 @@ public:
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
 class ChApi ChBeamSection {
-public:
-	double y_drawsize;
-	double z_drawsize;
-	bool is_circular;
+  public:
+    double y_drawsize;
+    double z_drawsize;
+    bool is_circular;
 
-	ChBeamSection() {
-		this->y_drawsize = 0.01;
-		this->z_drawsize = 0.01;
-		this->is_circular = 0;
-	}
+    ChBeamSection() : y_drawsize(0.01), z_drawsize(0.01), is_circular(false) {}
 
-	virtual ~ChBeamSection() {}
+    virtual ~ChBeamSection() {}
 
-	/// Sets the rectangular thickness of the beam on y and z directions,
-	/// only for drawing/rendering purposes (these thickness values do NOT
-	/// have any meaning at a physical level, use ChBeamSectionBasic::SetAsRectangularSection()
-	////instead if you want to affect also the inertias of the beam section).
-	void SetDrawThickness(double thickness_y, double thickness_z) {
-		this->y_drawsize = thickness_y;
-		this->z_drawsize = thickness_z;
-	}
-	double GetDrawThicknessY() { return this->y_drawsize; }
-	double GetDrawThicknessZ() { return this->z_drawsize; }
+    /// Sets the rectangular thickness of the beam on y and z directions,
+    /// only for drawing/rendering purposes (these thickness values do NOT
+    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsRectangularSection()
+    ////instead if you want to affect also the inertias of the beam section).
+    void SetDrawThickness(double thickness_y, double thickness_z) {
+        this->y_drawsize = thickness_y;
+        this->z_drawsize = thickness_z;
+    }
+    double GetDrawThicknessY() { return this->y_drawsize; }
+    double GetDrawThicknessZ() { return this->z_drawsize; }
 
-	/// Tells if the section must be drawn as a circular
-	/// section instead than default rectangular
-	bool IsCircular() { return is_circular; }
-	/// Set if the section must be drawn as a circular
-	/// section instead than default rectangular
-	void SetCircular(bool ic) { is_circular = ic; }
+    /// Tells if the section must be drawn as a circular
+    /// section instead than default rectangular
+    bool IsCircular() { return is_circular; }
+    /// Set if the section must be drawn as a circular
+    /// section instead than default rectangular
+    void SetCircular(bool ic) { is_circular = ic; }
 
-	/// Sets the radius of the beam if in 'circular section' draw mode,
-	/// only for drawing/rendering purposes (this radius value do NOT
-	/// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
-	////instead if you want to affect also the inertias of the beam section).
-	void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
-	double GetDrawCircularRadius() { return this->y_drawsize; }
-
+    /// Sets the radius of the beam if in 'circular section' draw mode,
+    /// only for drawing/rendering purposes (this radius value do NOT
+    /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsCircularSection()
+    ////instead if you want to affect also the inertias of the beam section).
+    void SetDrawCircularRadius(double draw_rad) { this->y_drawsize = draw_rad; }
+    double GetDrawCircularRadius() { return this->y_drawsize; }
 };
-
 
 /// Basic geometry for a beam section in 3D, along with basic material
 /// properties (zz and yy moments of inertia, area, Young modulus, etc.)
@@ -179,14 +156,13 @@ class ChApi ChBeamSectionBasic : public ChBeamSection {
     double Ks_y;
     double Ks_z;
 
-    ChBeamSectionBasic() {
-        E = 0.01e9;                 // default E stiffness: (almost rubber)
-        SetGwithPoissonRatio(0.3);  // default G (low poisson ratio)
-
+    ChBeamSectionBasic()
+        : E(0.01e9),      // default E stiffness: (almost rubber)
+          density(1000),  // default density: water
+          rdamping(0.01)  // default Rayleigh damping.
+    {
+        SetGwithPoissonRatio(0.3);            // default G (low poisson ratio)
         SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
-
-        density = 1000;   // default density: water
-        rdamping = 0.01;  // default Rayleigh damping.
     }
 
     virtual ~ChBeamSectionBasic() {}
@@ -296,23 +272,16 @@ class ChApi ChBeamSectionAdvanced : public ChBeamSectionBasic {
     double Sy;  // Shear center
     double Sz;
 
-    ChBeamSectionAdvanced() {
-        alpha = 0;
-        Cy = 0;
-        Cz = 0;
-        Sy = 0;
-        Sz = 0;
-    }
+    ChBeamSectionAdvanced() : alpha(0), Cy(0), Cz(0), Sy(0), Sz(0) {}
 
     virtual ~ChBeamSectionAdvanced() {}
 
-    /// Set the rotation of the section for which the Iyy Izz are
-    /// defined.
+    /// Set the rotation of the section for which the Iyy Izz are defined.
     void SetSectionRotation(double ma) { this->alpha = ma; }
     double GetSectionRotation() { return this->alpha; }
 
     /// Set the displacement of the centroid C (i.e. the elastic center,
-    /// or tension center) respect to the reference beam line.
+    /// or tension center) with respect to the reference beam line.
     void SetCentroid(double my, double mz) {
         this->Cy = my;
         this->Cz = mz;
@@ -320,11 +289,10 @@ class ChApi ChBeamSectionAdvanced : public ChBeamSectionBasic {
     double GetCentroidY() { return this->Cy; }
     double GetCentroidZ() { return this->Cz; }
 
-    /// Set the displacement of the shear center S
-    /// respect to the reference beam line. For shapes like rectangles,
-    /// rotated rectangles, etc., it corresponds to the centroid C, but
-    /// for "L" shaped or "U" shaped beams this is not always true, and
-    /// the shear center accounts for torsion effects when a shear force is applied.
+    /// Set the displacement of the shear center S with respect to the reference beam line.
+    /// For shapes like rectangles, rotated rectangles, etc., it corresponds to the centroid C,
+    /// but for "L" shaped or "U" shaped beams this is not always true, and the shear center
+    /// accounts for torsion effects when a shear force is applied.
     void SetShearCenter(double my, double mz) {
         this->Sy = my;
         this->Sz = mz;
@@ -344,13 +312,12 @@ class ChApi ChBeamSectionCable : public ChBeamSection {
     double density;
     double rdamping;
 
-    ChBeamSectionCable() {
-        E = 0.01e9;  // default E stiffness: (almost rubber)
-
+    ChBeamSectionCable()
+        : E(0.01e9),      // default E stiffness: (almost rubber)
+          density(1000),  // default density: water
+          rdamping(0.01)  // default Rayleigh damping.
+    {
         SetDiameter(0.01);  // defaults Area, I
-
-        density = 1000;   // default density: water
-        rdamping = 0.01;  // default Rayleigh damping.
     }
 
     virtual ~ChBeamSectionCable() {}

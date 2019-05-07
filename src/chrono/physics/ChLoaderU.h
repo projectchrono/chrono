@@ -41,9 +41,8 @@ class ChLoaderU : public ChLoader {
     std::shared_ptr<ChLoadableU> GetLoadableU() { return loadable; }
 };
 
-/// Class of loaders for ChLoadableU objects (which support
-/// line loads), for loads of distributed type, so these loads
-/// will undergo Gauss quadrature to integrate them in the surface.
+/// Class of loaders for ChLoadableU objects (which support line loads), for loads of distributed type,
+/// so these loads will undergo Gauss quadrature to integrate them in the surface.
 
 class ChLoaderUdistributed : public ChLoaderU {
   public:
@@ -60,34 +59,35 @@ class ChLoaderUdistributed : public ChLoaderU {
 
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+        mF.Reset();
 
-        std::vector<double>* Ulroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
-        std::vector<double>* Uweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU() - 1];
+        const std::vector<double>& Ulroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
+        const std::vector<double>& Uweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU() - 1];
 
         ChVectorDynamic<> mNF(Q.GetRows());  // temporary value for loop
 
         // Gauss quadrature :  Q = sum (N'*F*detJ * wi)
-        for (unsigned int iu = 0; iu < Ulroots->size(); iu++) {
+        for (unsigned int iu = 0; iu < Ulroots.size(); iu++) {
             double detJ;
             // Compute F= F(u)
-            this->ComputeF(Ulroots->at(iu), mF, state_x, state_w);
+            this->ComputeF(Ulroots[iu], mF, state_x, state_w);
             // Compute mNF= N(u)'*F
-            loadable->ComputeNF(Ulroots->at(iu), mNF, detJ, mF, state_x, state_w);
+            loadable->ComputeNF(Ulroots[iu], mNF, detJ, mF, state_x, state_w);
             // Compute Q+= mNF detJ * wi
-            mNF *= (detJ * Uweight->at(iu));
+            mNF *= (detJ * Uweight[iu]);
             Q += mNF;
         }
     }
 };
 
-/// Class of loaders for ChLoadableU objects (which support
-/// line loads) of atomic type, that is, with a concentrated load in a point Pu
+/// Class of loaders for ChLoadableU objects (which support line loads) of atomic type,
+/// that is, with a concentrated load in a point Pu.
 
 class ChLoaderUatomic : public ChLoaderU {
   public:
     double Pu;
 
-    ChLoaderUatomic(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderU(mloadable) {}
+    ChLoaderUatomic(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderU(mloadable), Pu(0) {}
 
     /// Computes Q = N'*F
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
@@ -95,13 +95,13 @@ class ChLoaderUatomic : public ChLoaderU {
                           ) override {
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-
-        double detJ;  // not used btw
+        mF.Reset();
 
         // Compute F=F(u)
         this->ComputeF(Pu, mF, state_x, state_w);
 
         // Compute N(u)'*F
+        double detJ;
         loadable->ComputeNF(Pu, Q, detJ, mF, state_x, state_w);
     }
 

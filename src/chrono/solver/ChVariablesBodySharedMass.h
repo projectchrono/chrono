@@ -29,22 +29,13 @@ class ChApi ChSharedMassBody {
     double inv_mass;                 ///< inverse of mass value
 
   public:
-    ChSharedMassBody() : mass(1), inv_mass(1) {
-        inertia.Set33Identity();
-        inv_inertia.Set33Identity();
-    }
+    ChSharedMassBody();
 
     /// Set the inertia matrix
-    void SetBodyInertia(const ChMatrix33<>& minertia) {
-        inertia.CopyFromMatrix(minertia);
-        inertia.FastInvert(inv_inertia);
-    }
+    void SetBodyInertia(const ChMatrix33<>& minertia);
 
     /// Set the mass associated with translation of body
-    void SetBodyMass(const double mmass) {
-        mass = mmass;
-        inv_mass = 1.0 / mass;
-    }
+    void SetBodyMass(const double mmass);
 
     /// Access the 3x3 inertia matrix
     ChMatrix33<>& GetBodyInertia() { return inertia; }
@@ -58,44 +49,24 @@ class ChApi ChSharedMassBody {
     double GetBodyMass() const { return mass; }
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite<ChSharedMassBody>();
-
-        // serialize all member data:
-        marchive << CHNVP(mass);
-        marchive << CHNVP(inertia);
-    }
+    void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead<ChSharedMassBody>();
-
-        // stream in all member data:
-        marchive >> CHNVP(mass);
-        marchive >> CHNVP(inertia);
-        SetBodyMass(mass);
-        SetBodyInertia(inertia);
-    }
+    void ArchiveIN(ChArchiveIn& marchive);
 };
 
-///  Specialized class for representing a 6-DOF item for a
-///  system, that is a 3D rigid body, with mass matrix and
-///  associate variables (a 6 element vector, ex.speed)
-///  Differently from the 'naive' implementation ChVariablesGeneric,
-///  here a full 6x6 mass matrix is not built, since only the 3x3
-///  inertia matrix and the mass value are enough.
-///  This is very similar to ChVariablesBodyOwnMass, but the
-///  mass and inertia values are shared, that can be useful for
-///  problems with thousands of equally-shaped objects.
+/// Specialized class for representing a 6-DOF item for a  system, that is a 3D rigid body, with mass matrix and
+/// associate variables (a 6 element vector, ex.speed)  Differently from the 'naive' implementation ChVariablesGeneric,
+/// here a full 6x6 mass matrix is not built, since only the 3x3  inertia matrix and the mass value are enough.  This is
+/// very similar to ChVariablesBodyOwnMass, but the  mass and inertia values are shared, that can be useful for problems
+/// with thousands of equally-shaped objects.
 
 class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
   private:
     ChSharedMassBody* sharedmass;  ///< shared inertia properties
 
   public:
-    ChVariablesBodySharedMass() : sharedmass(NULL) {}
+    ChVariablesBodySharedMass();
 
     virtual ~ChVariablesBodySharedMass() {}
 
@@ -119,16 +90,13 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     virtual ChMatrix33<>& GetBodyInvInertia() override { return sharedmass->GetBodyInvInertia(); }
     virtual const ChMatrix33<>& GetBodyInvInertia() const override { return sharedmass->GetBodyInvInertia(); }
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and set in result: result = [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
     virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and increment result: result += [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
     virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the mass matrix by a
-    /// vector, and set in result: result = [Mb]*vect
+    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
     virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the

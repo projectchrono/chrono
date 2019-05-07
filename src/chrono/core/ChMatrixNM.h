@@ -46,7 +46,6 @@ class ChMatrixNM : public ChMatrix<Real> {
         this->rows = preall_rows;
         this->columns = preall_columns;
         this->address = buffer;
-        this->Reset();
     }
 
     /// Copy constructor

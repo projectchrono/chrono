@@ -45,6 +45,8 @@ int main(int argc, char* argv[]) {
 
         ChMatrixDynamic<double> data_in(3, 1);
         ChMatrixDynamic<double> data_out(2, 1);
+        data_in.Reset();
+        data_out.Reset();
 
         // 1) Add a socket framework object
         ChSocketFramework socket_tools;

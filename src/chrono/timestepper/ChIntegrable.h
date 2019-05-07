@@ -323,7 +323,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                 const double c         ///< a scaling factor
                                 ) override {
         throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
@@ -335,7 +335,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                  const double c               ///< a scaling factor
                                  ) {
         throw ChException("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
@@ -347,7 +347,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const double c               ///< a scaling factor
                                   ) override {
         throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
@@ -360,7 +360,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const double mclam = 1e30     ///< clamping value
                                   ) override {
         throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
@@ -371,7 +371,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                    const double c          ///< a scaling factor
                                    ) override {
         throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
-    };
+    }
 
     //
     // OVERRIDE ChIntegrable BASE MEMBERS TO SUPPORT 1st ORDER INTEGRATORS:
@@ -390,11 +390,11 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
 
     /// Return the number of coordinates in the state Y.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_y() override { return GetNcoords_x() + GetNcoords_v(); };
+    virtual int GetNcoords_y() override { return GetNcoords_x() + GetNcoords_v(); }
 
     /// Return the number of coordinates in the state increment.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_dy() override { return GetNcoords_v() + GetNcoords_a(); };
+    virtual int GetNcoords_dy() override { return GetNcoords_v() + GetNcoords_a(); }
 
     /// Gather system state in specified array.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)

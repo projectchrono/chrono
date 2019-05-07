@@ -42,23 +42,26 @@ ChConstraintNgeneric& ChConstraintNgeneric::operator=(const ChConstraintNgeneric
 }
 
 void ChConstraintNgeneric::SetVariables(std::vector<ChVariables*> mvars) {
-
     SetValid(true);
 
-	this->variables = mvars;
+    this->variables = mvars;
 
-	Cq.clear();
-	Eq.clear();
+    Cq.clear();
+    Eq.clear();
 
-	for (size_t i=0; i <  variables.size(); ++i) {
-		if (!variables[i]) {
-			SetValid(false);
-			return;
-		}
+    for (size_t i = 0; i < variables.size(); ++i) {
+        if (!variables[i]) {
+            SetValid(false);
+            return;
+        }
 
-		Cq.push_back(ChMatrixDynamic<double>(1, variables[i]->Get_ndof()));
-		Eq.push_back(ChMatrixDynamic<double>(variables[i]->Get_ndof(), 1));
-	}
+        Cq.push_back(ChMatrixDynamic<double>(1, variables[i]->Get_ndof()));
+        Eq.push_back(ChMatrixDynamic<double>(variables[i]->Get_ndof(), 1));
+    }
+
+    for (size_t i = 0; i < variables.size(); ++i) {
+        Cq[i].Reset();
+    }
 }
 
 void ChConstraintNgeneric::Update_auxiliary() {

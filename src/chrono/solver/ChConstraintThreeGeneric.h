@@ -45,7 +45,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
 
   public:
     /// Default constructor
-    ChConstraintThreeGeneric() : Cq_a(NULL), Cq_b(NULL), Cq_c(NULL), Eq_a(NULL), Eq_b(NULL), Eq_c(NULL) {}
+    ChConstraintThreeGeneric();
 
     /// Construct and immediately set references to variables
     ChConstraintThreeGeneric(ChVariables* mvariables_a, ChVariables* mvariables_b, ChVariables* mvariables_c);

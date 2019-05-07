@@ -19,8 +19,7 @@
 
 namespace chrono {
 
-/// Specialized class for representing a 3-DOF item for a
-/// system, that is a 3D point node, with mass matrix and
+/// Specialized class for representing a 3-DOF item for a system, that is a 3D point node, with mass matrix and
 /// associate variables (a 3 element vector, ex.speed)
 
 class ChApi ChVariablesNode : public ChVariables {
@@ -29,7 +28,7 @@ class ChApi ChVariablesNode : public ChVariables {
     double mass;      ///< mass value
 
   public:
-    ChVariablesNode() : ChVariables(3), user_data(NULL), mass(1) {}
+    ChVariablesNode();
     virtual ~ChVariablesNode() {}
 
     /// Assignment operator: copy from other object
@@ -41,23 +40,19 @@ class ChApi ChVariablesNode : public ChVariables {
     /// Set the mass associated with translation of node
     void SetNodeMass(const double mmass) { mass = mmass; }
 
-    /// The number of scalar variables in the vector qb
-    /// (dof=degrees of freedom)
+    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
     virtual int Get_ndof() const override { return 3; }
 
     void* GetUserData() { return this->user_data; }
     void SetUserData(void* mdata) { this->user_data = mdata; }
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and set in result: result = [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
     virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and increment result: result += [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
     virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the mass matrix by a
-    /// vector, and set in result: result = [Mb]*vect
+    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
     virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the

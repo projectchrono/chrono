@@ -14,6 +14,7 @@
 
 #include "chrono/physics/ChNlsolver.h"
 #include "chrono/core/ChLinearAlgebra.h"
+#include "chrono/core/ChMatrixDynamic.h"
 
 namespace chrono {
 

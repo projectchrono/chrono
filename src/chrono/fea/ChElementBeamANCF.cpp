@@ -137,6 +137,8 @@ void MyMassBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, co
 
     ChMatrixNM<double, 3, 27> S;
     ChMatrix33<> Si;
+    Si.Reset();
+
     Si.FillDiag(N(0));
     S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
@@ -171,14 +173,14 @@ void ChElementBeamANCF::ComputeMassMatrix() {
     double rho = GetMaterial()->Get_rho();
     MyMassBeam myformula(this);
     ChMatrixNM<double, 27, 27> TempMassMatrix;
-
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 27> >(TempMassMatrix,  // result of integration will go there
-                                                           myformula,       // formula to integrate
-                                                           -1, 1,           // x limits
-                                                           -1, 1,           // y limits
-                                                           -1, 1,           // z limits
-                                                           3                // order of integration
-                                                           );
+    TempMassMatrix.Reset();
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 27>>(TempMassMatrix,  // result of integration will go there
+                                                          myformula,       // formula to integrate
+                                                          -1, 1,           // x limits
+                                                          -1, 1,           // y limits
+                                                          -1, 1,           // z limits
+                                                          3                // order of integration
+    );
     TempMassMatrix *= rho;
     m_MassMatrix += TempMassMatrix;
 }
@@ -226,14 +228,14 @@ void ChElementBeamANCF::ComputeGravityForce(const ChVector<>& g_acc) {
     double rho = GetMaterial()->Get_rho();
     MyGravityBeam myformula(this, g_acc);
     ChMatrixNM<double, 27, 1> Fgravity;
-
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 1> >(Fgravity,   // result of integration will go there
-                                                          myformula,  // formula to integrate
-                                                          -1, 1,      // x limits
-                                                          -1, 1,      // y limits
-                                                          -1, 1,      // z limits
-                                                          3           // order of integration
-                                                          );
+    Fgravity.Reset();
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 1>>(Fgravity,   // result of integration will go there
+                                                         myformula,  // formula to integrate
+                                                         -1, 1,      // x limits
+                                                         -1, 1,      // y limits
+                                                         -1, 1,      // z limits
+                                                         3           // order of integration
+    );
 
     Fgravity *= rho;
     m_GravForce += Fgravity;
@@ -780,15 +782,16 @@ void ChElementBeamANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
     // Three-dimensional integration of Poisson-less terms
     ChMatrixNM<double, 27, 1> Finternal0;
-    ChMatrixNM<double, 27, 1> result;
     MyForceBeam formula(this);
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 1> >(result,   // result of integration
-                                                          formula,  // integrand formula
-                                                          -1, 1,    // x limits
-                                                          -1, 1,    // y limits
-                                                          -1, 1,    // z limits
-                                                          3         // order of integration
-                                                          );
+    ChMatrixNM<double, 27, 1> result;
+    result.Reset();
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 1>>(result,   // result of integration
+                                                         formula,  // integrand formula
+                                                         -1, 1,    // x limits
+                                                         -1, 1,    // y limits
+                                                         -1, 1,    // z limits
+                                                         3         // order of integration
+    );
 
     // Extract vectors and matrices from result of integration
     Finternal0.PasteClippedMatrix(result, 0, 0, 27, 1, 0, 0);
@@ -798,14 +801,14 @@ void ChElementBeamANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
     if (GetStrainFormulation() == ChElementBeamANCF::StrainFormulation::CMPoisson) {
         // One-dimensional integration of Poisson terms (over centerline)
-        result.Reset();
         Finternal0.Reset();
         MyForceBeam_Nu formula_Nu(this);
-        ChQuadrature::Integrate1D<ChMatrixNM<double, 27, 1> >(result,      // result of integration
-                                                              formula_Nu,  // integrand formula
-                                                              -1, 1,       // x limits
-                                                              2            // order of integration
-                                                              );
+        result.Reset();
+        ChQuadrature::Integrate1D<ChMatrixNM<double, 27, 1>>(result,      // result of integration
+                                                             formula_Nu,  // integrand formula
+                                                             -1, 1,       // x limits
+                                                             2            // order of integration
+        );
 
         // Extract vectors and matrices from result of integration
         result.MatrScale(GetThicknessY() * GetThicknessZ());
@@ -1063,6 +1066,7 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x
 
     /// Gd : Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
     ChMatrixNM<double, 9, 27> Gd;
+    Gd.Reset();
 
     for (int ii = 0; ii < 9; ii++) {
         Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -1082,6 +1086,7 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x
     // Strain time derivative for structural damping
     ChMatrixNM<double, 6, 1> DEPS;
     DEPS.Reset();
+
     for (int ii = 0; ii < 27; ii++) {
         DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
         DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
@@ -1106,6 +1111,7 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x
     }
     // Declaration and computation of Sigm, to be removed
     ChMatrixNM<double, 9, 9> Sigm;  ///< Rearrangement of stress vector (not always needed)
+    Sigm.Reset();
 
     Sigm(0, 0) = stress(0, 0);  // XX
     Sigm(1, 1) = stress(0, 0);
@@ -1403,6 +1409,7 @@ void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const doubl
 
     /// Gd : Jacobian (w.r.t. coordinates) of the initial position vector gradient matrix
     ChMatrixNM<double, 9, 27> Gd;
+    Gd.Reset();
 
     for (int ii = 0; ii < 9; ii++) {
         Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
@@ -1443,6 +1450,7 @@ void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const doubl
 
     // Declaration and computation of Sigm, to be removed
     ChMatrixNM<double, 9, 9> Sigm;  ///< Rearrangement of stress vector (not always needed)
+    Sigm.Reset();
 
     Sigm(0, 0) = stress(0, 0);  // XX
     Sigm(1, 1) = stress(0, 0);
@@ -1512,15 +1520,16 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
     m_JacobianMatrix.Reset();
 
     // Jacobian from diagonal terms D0 (three-dimensional)
-    ChMatrixNM<double, 729, 1> result;
     MyJacobianBeam formula(this, Kfactor, Rfactor);
-    ChQuadrature::Integrate3D<ChMatrixNM<double, 729, 1> >(result,   // result of integration
-                                                           formula,  // integrand formula
-                                                           -1, 1,    // x limits
-                                                           -1, 1,    // y limits
-                                                           -1, 1,    // z limits
-                                                           3         // order of integration
-                                                           );
+    ChMatrixNM<double, 729, 1> result;
+    result.Reset();
+    ChQuadrature::Integrate3D<ChMatrixNM<double, 729, 1>>(result,   // result of integration
+                                                          formula,  // integrand formula
+                                                          -1, 1,    // x limits
+                                                          -1, 1,    // y limits
+                                                          -1, 1,    // z limits
+                                                          3         // order of integration
+    );
 
     // Extract matrices from result of integration
     ChMatrixNM<double, 27, 27> KTE;
@@ -1531,11 +1540,11 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
 
     if (GetStrainFormulation() == ChElementBeamANCF::StrainFormulation::CMPoisson) {
         MyJacobianBeam_Nu formula_Nu(this, Kfactor, Rfactor);
-        ChQuadrature::Integrate1D<ChMatrixNM<double, 729, 1> >(result,      // result of integration
-                                                               formula_Nu,  // integrand formula
-                                                               -1, 1,       // x limits
-                                                               2            // order of integration
-                                                               );
+        ChQuadrature::Integrate1D<ChMatrixNM<double, 729, 1>>(result,      // result of integration
+                                                              formula_Nu,  // integrand formula
+                                                              -1, 1,       // x limits
+                                                              2            // order of integration
+        );
 
         // Extract matrices from result of integration
         result.MatrScale(GetThicknessY() * GetThicknessZ());
@@ -2076,7 +2085,7 @@ ChVector<> ChElementBeamANCF::ComputeTangent(const double U) {
 }
 
 // ============================================================================
-// Implementation of ChMaterialShellANCF methods
+// Implementation of ChMaterialBeamANCF methods
 // ============================================================================
 
 // Construct an isotropic material.

@@ -19,12 +19,9 @@
 
 namespace chrono {
 
-/// Specialized class for representing a 6-DOF item for a
-/// system, that is a 3D rigid body, with mass matrix and
-/// associate variables (a 6 element vector, ex.speed)
-/// Differently from the 'naive' implementation ChVariablesGeneric,
-/// here a full 6x6 mass matrix is not built, since only the 3x3
-/// inertia matrix and the mass value are enough.
+/// Specialized class for representing a 6-DOF item for a system, that is a 3D rigid body, with mass matrix and
+/// associate variables (a 6 element vector, ex.speed) Differently from the 'naive' implementation ChVariablesGeneric,
+/// here a full 6x6 mass matrix is not built, since only the 3x3 inertia matrix and the mass value are enough.
 
 class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
   private:
@@ -57,16 +54,13 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     /// Set the mass associated with translation of body
     void SetBodyMass(const double mmass);
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and set in result: result = [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
     virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and increment result: result += [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
     virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the mass matrix by a
-    /// vector, and set in result: result = [Mb]*vect
+    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
     virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the

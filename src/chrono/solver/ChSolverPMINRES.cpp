@@ -77,6 +77,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd  ///< system description 
     }
 
     // The vector with the inverse of diagonal of the N matrix
+    mDi.Reset();
     int d_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {
@@ -99,6 +100,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd  ///< system description 
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
 
     // ...and now do  b_shur = - D' * q  ..
+    mb.Reset();
     int s_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {
@@ -129,10 +131,9 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd  ///< system description 
     // ...
 
     // r = b - N*l;
-    sysd.ShurComplementProduct(
-        mr, &ml);    // 1)  r = N*l ...        #### MATR.MULTIPLICATION!!!### can be avoided if no warm starting!
-    mr.MatrNeg();    // 2)  r =-N*l
-    mr.MatrInc(mb);  // 3)  r =-N*l+b
+    sysd.ShurComplementProduct(mr, &ml);  // 1)  r = N*l ... MATR.MULTIPLICATION!!!can be avoided if no warm starting!
+    mr.MatrNeg();                         // 2)  r =-N*l
+    mr.MatrInc(mb);                       // 3)  r =-N*l+b
 
     // r = (project_orthogonal(l+diff*r, fric) - l)/diff;
     mr.MatrScale(this->grad_diffstep);

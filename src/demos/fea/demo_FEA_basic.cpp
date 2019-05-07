@@ -625,8 +625,11 @@ int main(int argc, char* argv[]) {
 
     GetLog() << " Example: the FEM technology for finite elements \n\n\n";
 
-    // Test: an introductory problem:
+    //test_1(); //// NOT WORKING
+    test_2();
+    test_3();
     test_4();
+    test_5();
 
     return 0;
 }

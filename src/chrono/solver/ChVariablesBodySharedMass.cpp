@@ -19,6 +19,47 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVariablesBodySharedMass)
 
+// -----------------------------------------------------------------------------
+
+ChSharedMassBody::ChSharedMassBody() : mass(1), inv_mass(1) {
+    inertia.Set33Identity();
+    inv_inertia.Set33Identity();
+}
+
+void ChSharedMassBody::SetBodyInertia(const ChMatrix33<>& minertia) {
+    inertia.CopyFromMatrix(minertia);
+    inertia.FastInvert(inv_inertia);
+}
+
+void ChSharedMassBody::SetBodyMass(const double mmass) {
+    mass = mmass;
+    inv_mass = 1.0 / mass;
+}
+
+void ChSharedMassBody::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChSharedMassBody>();
+
+    // serialize all member data:
+    marchive << CHNVP(mass);
+    marchive << CHNVP(inertia);
+}
+
+void ChSharedMassBody::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChSharedMassBody>();
+
+    // stream in all member data:
+    marchive >> CHNVP(mass);
+    marchive >> CHNVP(inertia);
+    SetBodyMass(mass);
+    SetBodyInertia(inertia);
+}
+
+// -----------------------------------------------------------------------------
+
+ChVariablesBodySharedMass::ChVariablesBodySharedMass() : sharedmass(nullptr) {}
+
 ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariablesBodySharedMass& other) {
     if (&other == this)
         return *this;
@@ -32,8 +73,7 @@ ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariable
     return *this;
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and set in result: result = [invMb]*vect
+// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
 void ChVariablesBodySharedMass::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -49,8 +89,7 @@ void ChVariablesBodySharedMass::Compute_invMb_v(ChMatrix<double>& result, const 
                 sharedmass->inv_inertia(2, 2) * vect(5);
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and increment result: result += [invMb]*vect
+// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(vect.GetRows() == Get_ndof());
     assert(result.GetRows() == Get_ndof());
@@ -66,8 +105,7 @@ void ChVariablesBodySharedMass::Compute_inc_invMb_v(ChMatrix<double>& result, co
                  sharedmass->inv_inertia(2, 2) * vect(5);
 }
 
-// Computes the product of the mass matrix by a
-// vector, and set in result: result = [Mb]*vect
+// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesBodySharedMass::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == Get_ndof());
     assert(vect.GetRows() == Get_ndof());

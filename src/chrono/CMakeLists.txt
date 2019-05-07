@@ -47,6 +47,8 @@ set(ChronoEngine_core_SOURCES
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
     core/ChCubicSpline.cpp
+    core/ChDistribution.cpp
+    core/ChLinearAlgebra.cpp
     )
 
 set(ChronoEngine_core_HEADERS
@@ -334,6 +336,8 @@ set(ChronoEngine_fea_SOURCES
     fea/ChBeamSection.cpp
     fea/ChBeamSectionCosserat.cpp
     fea/ChElementBeamANCF.cpp
+    fea/ChElementBeamEuler.cpp
+    fea/ChElementCableANCF.cpp
     fea/ChElementGeneric.cpp
     fea/ChElementSpring.cpp
     fea/ChElementBar.cpp
@@ -372,6 +376,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChContactSurfaceMesh.cpp
     fea/ChMeshSurface.cpp
     fea/ChLoadContactSurfaceMesh.cpp
+    fea/ChMaterialShellANCF.cpp
     fea/ChMaterialShellReissner.cpp
     )
 
@@ -438,6 +443,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChUtilsFEA.h
     fea/ChLoadContactSurfaceMesh.h
     fea/ChRotUtils.h
+    fea/ChMaterialShellANCF.h
     fea/ChMaterialShellReissner.h
 )
 

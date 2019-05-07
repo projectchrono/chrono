@@ -27,12 +27,8 @@ ChVariablesGeneric::ChVariablesGeneric(int m_ndof) : ChVariables(m_ndof), ndof(m
 }
 
 ChVariablesGeneric::~ChVariablesGeneric() {
-    if (Mmass)
-        delete Mmass;
-    Mmass = NULL;
-    if (inv_Mmass)
-        delete inv_Mmass;
-    inv_Mmass = NULL;
+    delete Mmass;
+    delete inv_Mmass;
 }
 
 ChVariablesGeneric& ChVariablesGeneric::operator=(const ChVariablesGeneric& other) {
@@ -43,48 +39,42 @@ ChVariablesGeneric& ChVariablesGeneric::operator=(const ChVariablesGeneric& othe
     ChVariables::operator=(other);
 
     // copy class data
-
     if (other.Mmass) {
-        if (Mmass == NULL)
+        if (!Mmass)
             Mmass = new ChMatrixDynamic<>;
         Mmass->CopyFromMatrix(*other.Mmass);
     } else {
-        if (Mmass)
             delete Mmass;
-        Mmass = NULL;
+        Mmass = nullptr;
     }
 
     if (other.inv_Mmass) {
-        if (inv_Mmass == NULL)
+        if (!inv_Mmass)
             inv_Mmass = new ChMatrixDynamic<>;
         inv_Mmass->CopyFromMatrix(*other.inv_Mmass);
     } else {
-        if (inv_Mmass)
-            delete inv_Mmass;
-        inv_Mmass = NULL;
+        delete inv_Mmass;
+        inv_Mmass = nullptr;
     }
 
     return *this;
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and add to result: result = [invMb]*vect
+// Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
 void ChVariablesGeneric::Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result = (*inv_Mmass) * vect;
 }
 
-// Computes the product of the inverse mass matrix by a
-// vector, and increment result: result += [invMb]*vect
+// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesGeneric::Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());
     result += (*inv_Mmass) * vect;
 }
 
-// Computes the product of the mass matrix by a
-// vector, and set in result: result = [Mb]*vect
+// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesGeneric::Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const {
     assert(result.GetRows() == vect.GetRows());
     assert(vect.GetRows() == Get_ndof());

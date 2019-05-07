@@ -21,30 +21,21 @@
 
 namespace chrono {
 
-/// Base class for representing objects that introduce
-/// 'variables' (also referred as 'v') and their associated mass submatrices
-/// for a sparse representation of the problem.
+/// Base class for representing objects that introduce 'variables' (also referred as 'v') and their associated mass
+/// submatrices for a sparse representation of the problem.
 ///
-/// See ChSystemDescriptor for more information about the overall
-/// problem and data representation.
+/// See ChSystemDescriptor for more information about the overall problem and data representation.
 ///
-/// Each ChVariables object must be able to compute a mass submatrix,
-/// that will be assembled directly inside the global matrix Z,
-/// (in particular inside the block H or M).\n
-/// Because of this there is no need for ChVariables and derived classes
-/// to actually \e store their mass submatrix in memory:
-/// they just need to be able to compute it!
+/// Each ChVariables object must be able to compute a mass submatrix, that will be assembled directly inside the global
+/// matrix Z, (in particular inside the block H or M). Because of this there is no need for ChVariables and derived
+/// classes to actually \e store their mass submatrix in memory: they just need to be able to compute it!
 ///
-/// Moreover, in some cases, the mass submatrix is not even needed.
-/// In fact, some Chrono solvers are matrix-free. \n
-/// This means that each ChVariables (and derived) object can be asked
-/// not to \e assemble its mass submatrix,
-/// but instead to provide operation related to it.\n
-/// E.g. M*x, M\\x, +=M*x, and so on...
-/// Each derived class must implement these methods!
+/// Moreover, in some cases, the mass submatrix is not even needed. In fact, some Chrono solvers are matrix-free. This
+/// means that each ChVariables (and derived) object can be asked not to \e assemble its mass submatrix, but instead to
+/// provide operation related to it. E.g. M*x, M\\x, +=M*x, and so on... Each derived class must implement these
+/// methods!
 ///
-/// Because of this, the ChVariables class
-/// does \e not include any mass submatrix by default
+/// Because of this, the ChVariables class does \e not include any mass submatrix by default
 
 class ChApi ChVariables {
 
@@ -58,71 +49,56 @@ class ChApi ChVariables {
     int offset;  ///< offset in global q state vector (needed by some solvers)
 
   public:
-    ChVariables() : disabled(false), ndof(0), qb(NULL), fb(NULL), offset(0) {}
+    ChVariables();
     ChVariables(int m_ndof);
     virtual ~ChVariables();
 
     /// Assignment operator: copy from other object
     ChVariables& operator=(const ChVariables& other);
 
-    /// Deactivates/freezes the variable (these 'frozen',
-    /// variables won't be modified by the system solver).
+    /// Deactivates/freezes the variable (these variables won't be modified by the system solver).
     void SetDisabled(bool mdis) { disabled = mdis; }
 
-    /// Tells if the variables have been deactivated (these 'frozen',
-    /// variables won't be modified by the system solver).
+    /// Check if the variables have been deactivated (these variables won't be modified by the system solver).
     bool IsDisabled() const { return disabled; }
 
-    /// Tells if these variables are currently active, in general,
-    /// that is tells if they must be included into the system solver or not.
+    /// Check if these variables are currently active.
+    /// In general, tells if they must be included into the system solver or not.
     bool IsActive() const { return !disabled; }
 
-    /// The number of scalar variables in the vector qb
-    /// (dof=degrees of freedom)
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes.
+    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
+    /// *** This function MUST BE OVERRIDDEN by specialized inherited classes.
     virtual int Get_ndof() const { return ndof; }
 
-    /// Returns reference to qb, body-relative part of degrees
-    /// of freedom q in system:
+    /// Returns reference to qb, body-relative part of degrees of freedom q in system:
+    /// <pre>
     ///    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*r=0;
     ///    | Cq  0 | |l|  |-b|  |c|
+    /// </pre>
     ChMatrix<>& Get_qb() { return *qb; }
 
-    /// Compute fb, body-relative part of known
-    /// vector f in system.
-    /// *** This function MAY BE OVERRIDDEN by specialized
-    /// inherited classes (example, for impulsive multibody simulation,
-    /// this may be fb=dt*Forces+[M]*previous_v ).
-    ///  Another option is to set values into fb vectors, accessing
-    /// them by Get_fb() from an external procedure, for each body,
-    /// before starting the solver.
+    /// Compute fb, body-relative part of known vector f in system.
+    /// *** This function MAY BE OVERRIDDEN by specialized inherited classes (e.g., for impulsive multibody simulation,
+    /// this may be fb = dt*Forces+[M]*previous_v ).
+    /// Another option is to set values into fb vectors, accessing them by Get_fb() from an external procedure,
+    /// for each body, before starting the solver.
     virtual void Compute_fb() {}
 
-    /// Returns reference to fb, body-relative part of known
-    /// vector f in system.
+    /// Returns reference to fb, body-relative part of known vector f in system.
+    /// <pre>
     ///    | M -Cq'|*|q|- | f|= |0| ,  c>0, l>0, l*r=0;
     ///    | Cq  0 | |l|  |-b|  |c|
-    /// This function can be used to set values of fb vector
-    /// before starting the solver.
+    /// </pre>
+    /// This function can be used to set values of fb vector before starting the solver.
     ChMatrix<>& Get_fb() { return *fb; }
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and store in result: result = [invMb]*vect
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes
+    /// Computes the product of the inverse mass matrix by a vector, and store in result: result = [invMb]*vect
     virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and increment result: result += [invMb]*vect
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes
+    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
     virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
-    /// Computes the product of the mass matrix by a
-    /// vector, and increment result: result = [Mb]*vect
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes
+    /// Computes the product of the mass matrix by a vector, and increment result: result = [Mb]*vect
     virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const = 0;
 
     /// Computes the product of the corresponding block in the
