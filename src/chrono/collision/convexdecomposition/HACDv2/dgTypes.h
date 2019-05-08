@@ -51,7 +51,7 @@ class dgBigVector;
 
 #define dgApi __cdecl 	
 //#ifdef _DEBUG
-#ifdef _WINDOWS
+#if defined(_WINDOWS) && !defined(__GNUC__)
 #define dgCheckFloat(x) (_finite(x) && !_isnan(x))
 #else
 #define dgCheckFloat(x) (isfinite(x) && !isnan(x))
