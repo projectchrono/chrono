@@ -16,9 +16,9 @@
 
 namespace chrono {
 
-ChApi const ChVector<double> VNULL(0., 0., 0.);
-ChApi const ChVector<double> VECT_X(1., 0., 0.);
-ChApi const ChVector<double> VECT_Y(0., 1., 0.);
-ChApi const ChVector<double> VECT_Z(0., 0., 1.);
+const ChVector<double> VNULL(0., 0., 0.);
+const ChVector<double> VECT_X(1., 0., 0.);
+const ChVector<double> VECT_Y(0., 1., 0.);
+const ChVector<double> VECT_Z(0., 0., 1.);
 
 }  // end namespace chrono
