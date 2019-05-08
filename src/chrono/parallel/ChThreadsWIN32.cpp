@@ -13,7 +13,7 @@
 #if defined _WIN32
 
 #include <cstdio>
-#include <Windows.h>
+#include <windows.h>
 
 #include "chrono/parallel/ChThreadsWIN32.h"
 #include "chrono/core/ChLog.h"

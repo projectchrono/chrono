@@ -17,7 +17,7 @@
 #include "chrono_thirdparty/filesystem/path.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#include "Windows.h"
+#include "windows.h"
 #endif
 
 #if defined(__APPLE__)

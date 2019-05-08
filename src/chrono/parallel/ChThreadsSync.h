@@ -33,7 +33,7 @@ Modified by: Alessandro Tasora
 #ifdef _XBOX
 #include <Xtl.h>
 #else
-#include <Windows.h>
+#include <windows.h>
 #include <intrin.h>
 #endif
 
