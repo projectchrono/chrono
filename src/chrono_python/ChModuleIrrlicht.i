@@ -132,6 +132,7 @@ using namespace gui;
 %import  "ChClassFactory.i"
 %import  "ChSystem.i"
 %import  "ChAsset.i"
+%import  "ChVector.i"
 
 %include "IReferenceCounted.h"
 %include "IImage.h"
