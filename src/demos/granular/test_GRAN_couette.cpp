@@ -36,7 +36,8 @@ using std::vector;
 enum TEST_MODE { SINGLE = 0, DOUBLE = 1 };
 
 void ShowUsage() {
-    cout << "usage: ./test_GRAN_couette <json_file> <output_dir> <test: 0-single drum, 1-double drum> <material_height>" << endl;
+    cout << "usage: ./test_GRAN_couette <json_file> <output_dir> <test: 0-single drum, 1-double drum> <material_height>"
+         << endl;
 }
 
 void writeMeshFrames(std::ostringstream& outstream,
@@ -91,9 +92,9 @@ int main(int argc, char* argv[]) {
         default:
             cout << "Invalid test" << endl;
     }
-    const double R1 = 6.5;  // 65 mm
-    const double R2 = 9.0;  // 90 mm
-    const double omega = 0.15;
+    const double R1 = 6.5;                         // 65 mm
+    const double R2 = 9.0;                         // 90 mm
+    const double omega = 0.15;                     // 0.15 rad/s
     const double sphere_radius = 0.035 / 2.0;      // 0.35mm diameter
     const float friction = 0.9;                    // Glass static friction
     const double material_height = stof(argv[4]);  // 10,20,30,40,50 mm
@@ -141,7 +142,7 @@ int main(int argc, char* argv[]) {
     m_sys.set_rolling_coeff(friction);
 
     m_sys.setOutputMode(params.write_mode);
-    
+
     string output_dir(argv[2]);
     m_sys.setOutputDirectory(output_dir);
     filesystem::create_directory(filesystem::path(output_dir));
@@ -152,8 +153,8 @@ int main(int argc, char* argv[]) {
     m_sys.set_BD_Fixed(true);
     m_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
 
-    utils::PDSampler<float> sampler(2.05 * sphere_radius);
-    // utils::HCPSampler<float> sampler(2.05 * sphere_radius);
+    // utils::PDSampler<float> sampler(2.05 * sphere_radius);
+    utils::HCPSampler<float> sampler(2.05 * sphere_radius);
     vector<ChVector<float>> body_points;
 
     const float fill_radius = R2 - 2.f * sphere_radius - 0.02 * R2;
@@ -285,7 +286,7 @@ int main(int argc, char* argv[]) {
             char filename[100];
             sprintf(filename, "%s/step%06u", output_dir.c_str(), currframe++);
             m_sys.writeFile(string(filename));
-            m_sys.write_meshes(string(filename));
+            // m_sys.write_meshes(string(filename));
             string mesh_output = string(filename) + "_meshframes.csv";
 
             std::ofstream meshfile(mesh_output);

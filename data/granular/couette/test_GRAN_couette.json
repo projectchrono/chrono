@@ -28,6 +28,5 @@
 	"psi_T": 16,
 	"psi_L": 16,
 
-	"output_dir" : "couette",
 	"write_mode": "csv"
 }
