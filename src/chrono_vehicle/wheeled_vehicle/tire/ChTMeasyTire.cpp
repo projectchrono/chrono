@@ -80,6 +80,7 @@ void ChTMeasyTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     m_states.Fx_dyn = 0;
     m_states.Fy_dyn = 0;
     m_states.Mb_dyn = 0;
+    m_states.R_eff = m_unloaded_radius;
     m_consider_relaxation = true;
     m_use_Reff_fallback_calculation = false;
     m_integration_method = 2;
