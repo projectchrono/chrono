@@ -112,16 +112,6 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
 
     virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
 
-    /// Initialize this constraint, given the node and body frame to join.
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defined, using the optional 'pos' parameter).
-    /// Note: the nodes and body must belong to the same ChSystem.
-	/// ***OBSOLETE***
-    virtual int Initialize(std::shared_ptr<ChIndexedNodes> nodes,  ///< nodes container
-                           unsigned int node_index,                ///< index of the xyz node (point) to join
-                           std::shared_ptr<ChBodyFrame> body,      ///< body (frame) to join
-                           ChVector<>* pos = 0                     ///< attachment position in absolute coordinates
-                           );
 
     /// Initialize this constraint, given the node and body frame to join.
     /// The attachment position is the actual position of the node (unless
@@ -290,16 +280,6 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
 
     virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
 
-    /// Initialize this constraint, given the node and body frame to join.
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defined, using the optional 'pos' parameter).
-    /// Note: the nodes and body must belong to the same ChSystem.
-	/// ***OBSOLETE***
-    virtual int Initialize(std::shared_ptr<ChIndexedNodes> nodes,  ///< nodes container
-                           unsigned int node_index,                ///< index of the xyz node (point) to join
-                           std::shared_ptr<ChBodyFrame> body,      ///< body (frame) to join
-                           ChVector<>* pos = 0                     ///< attachment position in absolute coordinates
-                           );
 
     /// Initialize this constraint, given the node and body frame to join.
     /// The attachment position is the actual position of the node (unless

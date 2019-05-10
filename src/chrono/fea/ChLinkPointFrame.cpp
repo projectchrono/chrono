@@ -47,17 +47,6 @@ ChCoordsys<> ChLinkPointFrameGeneric::GetLinkAbsoluteCoords() {
     return CSYSNORM;
 }
 
-int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChIndexedNodes> nodes,
-                                 unsigned int node_index,
-                                 std::shared_ptr<ChBodyFrame> body,
-                                 ChVector<>* pos) {
-    assert(nodes);
-
-    if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(nodes->GetNode(node_index)))
-        return Initialize(node, body, pos);
-
-    return false;
-}
 
 int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
 										std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
@@ -79,19 +68,10 @@ int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///
 int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
                                  std::shared_ptr<ChBodyFrame> body,
                                  ChVector<>* pos) {
-    assert(node && body);
 
-    m_body = body;
-    m_node = node;
+	ChVector<> pos_abs = pos ? *pos : node->GetPos();
 
-    constraint1.SetVariables(&(node->Variables()), &(body->Variables()));
-    constraint2.SetVariables(&(node->Variables()), &(body->Variables()));
-    constraint3.SetVariables(&(node->Variables()), &(body->Variables()));
-
-    ChVector<> pos_abs = pos ? *pos : node->GetPos();
-    SetAttachPositionInAbsoluteCoords(pos_abs);
-
-    return true;
+	return this->Initialize(node, body, ChCoordsys<>(pos_abs));
 }
 
 void ChLinkPointFrameGeneric::SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z) {
@@ -388,17 +368,6 @@ ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
     return CSYSNORM;
 }
 
-int ChLinkPointFrame::Initialize(std::shared_ptr<ChIndexedNodes> nodes,
-                                 unsigned int node_index,
-                                 std::shared_ptr<ChBodyFrame> body,
-                                 ChVector<>* pos) {
-    assert(nodes);
-
-    if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(nodes->GetNode(node_index)))
-        return Initialize(node, body, pos);
-
-    return false;
-}
 
 int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
                                  std::shared_ptr<ChBodyFrame> body,
