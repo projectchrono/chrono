@@ -116,6 +116,7 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     /// The attachment position is the actual position of the node (unless
     /// otherwise defined, using the optional 'pos' parameter).
     /// Note: the nodes and body must belong to the same ChSystem.
+	/// ***OBSOLETE***
     virtual int Initialize(std::shared_ptr<ChIndexedNodes> nodes,  ///< nodes container
                            unsigned int node_index,                ///< index of the xyz node (point) to join
                            std::shared_ptr<ChBodyFrame> body,      ///< body (frame) to join
@@ -187,6 +188,18 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+
+/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type
+/// and a ChBodyFrame (frame) object.
+/// The node position is constrained to a given coordinate system CSYS
+/// that moves with the ChBodyFrame. The movements of the node respect
+/// to X, Y, Z  axes of such CSYS can be costrained or not, 
+/// depending on three boolean toggles. 
+/// By default, XYZ are all constrained and the node follows the center of CSYS, 
+/// s it is completely locked to it, but other options are, for example, that
+/// you just enable the X constraint (so the node moves on the flat YZ plane)
+/// or you just enable XY constraints (so the node moves along the Z direction) 
+/// etc. 
 
 class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
 
