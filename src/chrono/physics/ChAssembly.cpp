@@ -118,14 +118,14 @@ void ChAssembly::RemoveBody(std::shared_ptr<ChBody> body) {
     body->SetSystem(nullptr);
 }
 
-void ChAssembly::AddLink(std::shared_ptr<ChLink> link) {
+void ChAssembly::AddLink(std::shared_ptr<ChLinkBase> link) {
     assert(std::find(std::begin(linklist), std::end(linklist), link) == linklist.end());
 
     link->SetSystem(system);
     linklist.push_back(link);
 }
 
-void ChAssembly::RemoveLink(std::shared_ptr<ChLink> link) {
+void ChAssembly::RemoveLink(std::shared_ptr<ChLinkBase> link) {
     auto itr = std::find(std::begin(linklist), std::end(linklist), link);
     assert(itr != linklist.end());
 
@@ -150,7 +150,7 @@ void ChAssembly::RemoveMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
 void ChAssembly::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
     assert(!std::dynamic_pointer_cast<ChBody>(item));
-    assert(!std::dynamic_pointer_cast<ChLink>(item));
+    assert(!std::dynamic_pointer_cast<ChLinkBase>(item));
     assert(!std::dynamic_pointer_cast<ChMesh>(item));
     assert(std::find(std::begin(otherphysicslist), std::end(otherphysicslist), item) == otherphysicslist.end());
     // assert(item->GetSystem()==nullptr); // should remove from other system before adding here
@@ -174,7 +174,7 @@ void ChAssembly::Add(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
-    if (auto link = std::dynamic_pointer_cast<ChLink>(item)) {
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         AddLink(link);
         return;
     }
@@ -204,7 +204,7 @@ void ChAssembly::Remove(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
-    if (auto link = std::dynamic_pointer_cast<ChLink>(item)) {
+    if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         RemoveLink(link);
         return;
     }
@@ -250,8 +250,8 @@ std::shared_ptr<ChBody> ChAssembly::SearchBody(const char* name) {
         name, bodylist.begin(), bodylist.end());
 }
 
-std::shared_ptr<ChLink> ChAssembly::SearchLink(const char* name) {
-    return ChContainerSearchFromName<std::shared_ptr<ChLink>, std::vector<std::shared_ptr<ChLink>>::iterator>(
+std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const char* name) {
+    return ChContainerSearchFromName<std::shared_ptr<ChLinkBase>, std::vector<std::shared_ptr<ChLinkBase>>::iterator>(
         name, linklist.begin(), linklist.end());
 }
 
@@ -596,7 +596,7 @@ void ChAssembly::IntStateGatherReactions(const unsigned int off_L, ChVectorDynam
     }
 }
 
-// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
+// From reaction forces to system, ex. store last computed reactions in ChLinkBase objects for plotting etc.
 void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     unsigned int displ_L = off_L - this->offset_L;
 
@@ -1141,7 +1141,7 @@ void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
 
     // stream in all member data:
     std::vector<std::shared_ptr<ChBody>> tempbodies;
-    std::vector<std::shared_ptr<ChLink>> templinks;
+    std::vector<std::shared_ptr<ChLinkBase>> templinks;
     std::vector<std::shared_ptr<ChMesh>> tempmeshes;
     std::vector<std::shared_ptr<ChPhysicsItem>> tempitems;
     marchive >> CHNVP(tempbodies, "bodies");

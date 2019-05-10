@@ -178,8 +178,7 @@ int main(int argc, char* argv[]) {
 
         GetLog() << "Now use an interator to scan through already-added constraints:\n\n";
         for (auto link : my_system.Get_linklist()) {
-            GetLog() << "   Link class: " << typeid(link).name()
-                     << "  , leaves n.DOFs: " << link->GetLeftDOF() << "\n";
+            GetLog() << "   Link class: " << typeid(link).name() << "\n";
         }
 
         // OK! NOW GET READY FOR THE DYNAMICAL SIMULATION!
