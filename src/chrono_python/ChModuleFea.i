@@ -216,6 +216,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChVisulizationFEAmesh)
 %shared_ptr(chrono::fea::ChLinkDirFrame)
 %shared_ptr(chrono::fea::ChLinkPointFrame)
+%shared_ptr(chrono::fea::ChLinkPointFrameGeneric)
 %shared_ptr(chrono::fea::ChLinkPointPoint)
 %shared_ptr(chrono::fea::ChMaterialShellReissner)
 %shared_ptr(chrono::fea::ChMaterialShellReissnerIsothropic)
