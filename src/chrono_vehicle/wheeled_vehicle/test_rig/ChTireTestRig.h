@@ -55,14 +55,16 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Set camber angle (default: 0 rad).
     void SetCamberAngle(double camber) { m_camber_angle = camber; }
 
-    /// Specify rig carrier longitudinal speed as function of time (default: constant value 0 m/s).
-    void SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) { m_ls_fun = funct; }
+    /// Specify rig carrier longitudinal speed as function of time (default: none).
+    /// If a function is not specified, the carrier is not actuated.
+    void SetLongSpeedFunction(std::shared_ptr<ChFunction> funct);
 
-    /// Specify rig wheel slip angle as function of time (default: constant value 0 rad).
+    /// Specify wheel angular speed as function of time (default: none).
+    /// If a function is not specified, the wheel is not actuated.
+    void SetAngSpeedFunction(std::shared_ptr<ChFunction> funct);
+
+    /// Specify wheel slip angle as function of time (default: constant value 0 rad).
     void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
-
-    /// Specify angular speed as function of time (default: constant value 0 rad/s).
-    void SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) { m_rs_fun = funct; }
 
     /// Set collision type for tire-terrain interaction (default: SINGLE_POINT).
     void SetTireCollisionType(ChTire::CollisionType coll_type) { m_collision_type = coll_type; }
@@ -163,6 +165,8 @@ class CH_VEHICLE_API ChTireTestRig {
     std::shared_ptr<ChBody> m_slip_body;     ///< intermediate body for controlling slip angle
     std::shared_ptr<ChBody> m_spindle_body;  ///< wheel body
 
+    bool m_ls_actuated;                    ///< is linear spped actuated?
+    bool m_rs_actuated;                    ///< is angular speed actuated?
     std::shared_ptr<ChFunction> m_ls_fun;  ///< longitudinal speed function of time
     std::shared_ptr<ChFunction> m_rs_fun;  ///< angular speed function of time
     std::shared_ptr<ChFunction> m_sa_fun;  ///< slip angle function of time

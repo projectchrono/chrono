@@ -41,6 +41,8 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel,
       m_tire(tire),
       m_camber_angle(0),
       m_normal_load(0),
+      m_ls_actuated(false),
+      m_rs_actuated(false),
       m_terrain_type(TerrainType::NONE),
       m_terrain_length(10),
       m_terrain_offset(0),
@@ -57,10 +59,20 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel,
     m_system->SetMaxPenetrationRecoverySpeed(4.0);
     m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
-    // Default motion functions
-    m_ls_fun = std::make_shared<ChFunction_Const>(0);
-    m_rs_fun = std::make_shared<ChFunction_Const>(0);
+    // Default motion function for slip angle control
     m_sa_fun = std::make_shared<ChFunction_Const>(0);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChTireTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) { 
+    m_ls_fun = funct; 
+    m_ls_actuated = true;
+}
+
+void ChTireTestRig::SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) { 
+    m_rs_fun = funct; 
+    m_rs_actuated = true;
 }
 
 // -----------------------------------------------------------------------------
@@ -94,8 +106,12 @@ void ChTireTestRig::SetTerrainRigid(double friction, double Y, double cr) {
 void ChTireTestRig::Initialize() {
     CreateMechanism();
 
-    m_lin_motor->SetSpeedFunction(m_ls_fun);
-    m_rot_motor->SetSpeedFunction(m_rs_fun);
+    if (m_ls_actuated)
+        m_lin_motor->SetSpeedFunction(m_ls_fun);
+
+    if (m_rs_actuated)
+        m_rot_motor->SetSpeedFunction(m_rs_fun);
+    
     m_slip_lock->SetMotion_ang(m_sa_fun);
 
     CreateTerrain();
@@ -140,6 +156,9 @@ class RotSpeedFunction : public BaseFunction, public ChFunction {
 };
 
 void ChTireTestRig::Initialize(double long_slip, double base_speed) {
+    m_ls_actuated = true;
+    m_rs_actuated = true;
+
     CreateMechanism();
 
     m_ls_fun = std::make_shared<LinSpeedFunction>(base_speed);
@@ -266,9 +285,17 @@ void ChTireTestRig::CreateMechanism() {
     }
 
     // Create joints and motors
-    m_lin_motor = std::make_shared<ChLinkMotorLinearSpeed>();
-    m_system->AddLink(m_lin_motor);
-    m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
+    if (m_ls_actuated) {
+        m_lin_motor = std::make_shared<ChLinkMotorLinearSpeed>();
+        m_system->AddLink(m_lin_motor);
+        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
+    } else {
+        ChQuaternion<> z2x;
+        z2x.Q_from_AngY(CH_C_PI_2);
+        auto prismatic = std::make_shared<ChLinkLockPrismatic>();
+        m_system->AddLink(prismatic);
+        prismatic->Initialize(m_carrier_body, m_ground_body, ChCoordsys<>(VNULL, z2x));
+    }
 
     auto prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_system->AddLink(prismatic);
@@ -281,9 +308,15 @@ void ChTireTestRig::CreateMechanism() {
 
     ChQuaternion<> z2y;
     z2y.Q_from_AngAxis(-CH_C_PI / 2 - m_camber_angle, ChVector<>(1, 0, 0));
-    m_rot_motor = std::make_shared<ChLinkMotorRotationSpeed>();
-    m_system->AddLink(m_rot_motor);
-    m_rot_motor->Initialize(m_spindle_body, m_slip_body, ChFrame<>(ChVector<>(0, 3 * dim, -4 * dim), z2y));
+    if (m_rs_actuated) {
+        m_rot_motor = std::make_shared<ChLinkMotorRotationSpeed>();
+        m_system->AddLink(m_rot_motor);
+        m_rot_motor->Initialize(m_spindle_body, m_slip_body, ChFrame<>(ChVector<>(0, 3 * dim, -4 * dim), z2y));
+    } else {
+        auto revolute = std::make_shared<ChLinkLockRevolute>();
+        m_system->AddLink(revolute);
+        revolute->Initialize(m_spindle_body, m_slip_body, ChCoordsys<>(ChVector<>(0, 3 * dim, -4 * dim), z2y));
+    }
 
     // Calculate required body force on chassis (to enforce given normal load)
     double total_mass = m_chassis_body->GetMass() + m_slip_body->GetMass() + m_spindle_body->GetMass() +

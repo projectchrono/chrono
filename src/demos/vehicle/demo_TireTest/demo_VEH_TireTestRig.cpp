@@ -46,8 +46,8 @@ int main() {
     auto tire = std::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
     ////auto tire = std::make_shared<hmmwv::HMMWV_LugreTire>("Lugre tire");
 
-    // Create and initialize test rig
-    // ------------------------------
+    // Create and configure test rig
+    // -----------------------------
 
     ChTireTestRig rig(wheel, tire);
 
@@ -56,18 +56,37 @@ int main() {
 
     ////rig.SetCamberAngle(+15 * CH_C_DEG_TO_RAD);
 
-    ////rig.SetLongSpeedFunction(std::make_shared<ChFunction_Const>(1.0));
-    ////rig.SetAngSpeedFunction(std::make_shared<ChFunction_Const>(1.0));
-    ////rig.SetSlipAngleFunction(std::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
-
     rig.SetTireStepsize(tire_step_size);
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
     rig.SetTireVisualizationType(VisualizationType::MESH);
 
+    rig.SetTerrainLength(10);
     rig.SetTerrainRigid(0.8, 2e7, 0);
     ////rig.SetTerrainSCM(6259.1e3, 5085.6e3, 1.42, 1.58e3, 34.1, 22.17e-3);
 
+    // Set test scenario
+    // -----------------
+
+    // Scenario: driven wheel
+    ////rig.SetAngSpeedFunction(std::make_shared<ChFunction_Const>(10.0));
     ////rig.Initialize();
+
+    // Scenario: pulled wheel
+    ////rig.SetLongSpeedFunction(std::make_shared<ChFunction_Const>(1.0));
+    ////rig.Initialize();
+
+    // Scenario: imobilized wheel
+    ////rig.SetLongSpeedFunction(std::make_shared<ChFunction_Const>(0.0));
+    ////rig.SetAngSpeedFunction(std::make_shared<ChFunction_Const>(0.0));
+    ////rig.Initialize();
+
+    // Scenario: prescribe all motion functions
+    ////rig.SetLongSpeedFunction(std::make_shared<ChFunction_Const>(0.2));
+    ////rig.SetAngSpeedFunction(std::make_shared<ChFunction_Const>(10.0));
+    ////rig.SetSlipAngleFunction(std::make_shared<ChFunction_Sine>(0, 0.6, 0.2));
+    ////rig.Initialize();
+
+    // Scenario: specified longitudinal slip
     rig.Initialize(0.2, 1.0);
 
     // Create the Irrlicht visualization
@@ -77,7 +96,7 @@ int main() {
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(irr::core::vector3df(1, 1, 1), irr::core::vector3df(0, 0, 0));
+    application.AddTypicalCamera();
 
     application.AssetBindAll();
     application.AssetUpdateAll();
@@ -96,7 +115,7 @@ int main() {
         auto y = (irr::f32)loc.y();
         auto z = (irr::f32)loc.z();
         camera->setPosition(irr::core::vector3df(x + 1, y + 1.5f, z + 2));
-        camera->setTarget(irr::core::vector3df(x, y, z));
+        camera->setTarget(irr::core::vector3df(x, y + 0.25f, z));
 
         application.BeginScene();
         application.DrawAll();
