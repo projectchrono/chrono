@@ -400,6 +400,8 @@ set(CV_WV_TEST_RIG_FILES
     wheeled_vehicle/test_rig/ChDriverSTR.cpp
     wheeled_vehicle/test_rig/ChDataDriverSTR.h
     wheeled_vehicle/test_rig/ChDataDriverSTR.cpp
+    wheeled_vehicle/test_rig/ChTireTestRig.h
+    wheeled_vehicle/test_rig/ChTireTestRig.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_WV_TEST_RIG_FILES
