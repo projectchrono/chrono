@@ -11,7 +11,6 @@
 // =============================================================================
 // Authors: Dan Negrut, Nic Olsen
 // =============================================================================
-/*! \file */
 
 #pragma once
 
@@ -33,7 +32,7 @@ namespace granular {
 template <class T3>
 struct ChTriangleSoup {
     unsigned int nTrianglesInSoup;    //!< total number of triangles in the soup
-    unsigned int nFamiliesInSoup;     //!< indicates how many meshes are squashed together in this soup
+    unsigned int numTriangleFamilies;  //!< indicates how many meshes are squashed together in this soup
     unsigned int* triangleFamily_ID;  //!< each entry says what family that triagnle belongs to; size: nTrianglesInSoup
 
     float* familyMass_SU;  //!< entry i is the SU mass of family i
@@ -49,13 +48,34 @@ struct ChTriangleSoup {
     T3* omega;  //!< entry i is the angular velocity of family i (rigid body motion)
 
     float* generalizedForcesPerFamily;  //!< Generalized forces acting on each family. Expressed
-                                        //!< in the global reference frame. Size: 6 * MAX_TRIANGLE_FAMILIES.
+                                        //!< in the global reference frame. Size: 6 * getNumTriangleFamilies.
 };
 
 template <class T>
 struct ChFamilyFrame {
     T pos[3];
     T rot_mat[9];
+};
+
+/// Extra parameters needed for triangle-sphere contact
+struct ChGranParams_trimesh {
+    float Gamma_n_s2m_SU;  //!< sphere-to-mesh contact damping coefficient, expressed in SU
+    float Gamma_t_s2m_SU;
+    float K_n_s2m_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+    float K_t_s2m_SU;
+    /// acceleration caused by adhesion force
+    float adhesionAcc_s2m;
+
+    // ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
+    float static_friction_coeff_s2m;
+
+    // Coefficient of rolling resistance
+    float rolling_coeff_s2m_SU;
+
+    /// Number of triangle families
+    unsigned int num_triangle_families;
+    ChFamilyFrame<float>* fam_frame_broad;
+    ChFamilyFrame<double>* fam_frame_narrow;
 };
 
 /** \brief Class implements functionality required to handle the interaction between a mesh soup and granular material.
@@ -80,20 +100,12 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     void set_K_t_SPH2MESH(double someValue) { K_t_s2m_UU = someValue; }
     void set_Gamma_t_SPH2MESH(double someValue) { Gamma_t_s2m_UU = someValue; }
 
-    unsigned int nMeshesInSoup() const { return meshSoup_DEVICE->nFamiliesInSoup; }
+    unsigned int getNumTriangleFamilies() const { return meshSoup_DEVICE->numTriangleFamilies; }
 
-    /**
-    * \brief Collects the forces that each mesh feels as a result of their interaction with the DEs.
-    * Each generalized force acting on a family in the soup has six components: three forces &
-    * three torques.
-    *
-    * \param [in] crntTime The time at which the force is computed
-    * \param [out] genForcesOnSoup Array that stores the generalized forces on the meshes in the soup
-
-    * \return nothing
-    *
-    * \attention The size of genForcesOnSoup should be 6 * nFamiliesInSoup
-    */
+    /// Collect forces exerted on meshes by granular system
+    /// Each generalized force is 3 forces (x,y,z) and 3 torques (x,y,z)
+    /// Forces are genForcesOnSoup in order of triangle family
+    /// genForcesOnSoup should have 6 entries for each family
     void collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup);
 
     /// position_orientation_data should have 7 entries for each family: 3 pos, 4 orientation
@@ -101,19 +113,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     void meshSoup_applyRigidBodyMotion(double* position_orientation_data, float* vel);
 
     virtual double advance_simulation(float duration) override;
-    /// Extra parameters needed for triangle-sphere contact
-    struct ChGranParams_trimesh {
-        float Gamma_n_s2m_SU;  //!< sphere-to-mesh contact damping coefficient, expressed in SU
-        float Gamma_t_s2m_SU;
-        float Kn_s2m_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
-        float Kt_s2m_SU;
-        /// acceleration caused by adhesion force
-        float adhesionAcc_s2m;
-        /// Number of triangle families
-        unsigned int num_triangle_families;
-        ChFamilyFrame<float>* fam_frame_broad;
-        ChFamilyFrame<double>* fam_frame_narrow;
-    };
 
     virtual void initialize() override;
     void load_meshes(std::vector<std::string> objfilenames,
@@ -125,6 +124,11 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
 
     /// Set the ratio of adhesion force to sphere weight for sphere to mesh
     void set_Adhesion_ratio_S2M(float someValue) { adhesion_s2m_over_gravity = someValue; }
+
+    // these quantities are unitless anyways
+    void set_static_friction_coeff_SPH2MESH(float mu) { tri_params->static_friction_coeff_s2m = mu; }
+    // set internally and convert later
+    void set_rolling_coeff_SPH2MESH(float mu) { rolling_coeff_s2s_UU = mu; }
 
     /// Enable mesh contact
     void enableMeshCollision() { mesh_collision_enabled = true; }
@@ -142,16 +146,15 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     ChTriangleSoup<float3>* meshSoup_DEVICE;
 
     double K_n_s2m_UU;  //!< the stiffness associated w/ contact between a mesh element and gran material
-    double K_n_s2m_SU;  //!< size of the normal stiffness (SU) for sphere-to-mesh contact
 
     double Gamma_n_s2m_UU;
-    double Gamma_n_s2m_SU;
 
     double K_t_s2m_UU;
-    double K_t_s2m_SU;
 
     double Gamma_t_s2m_UU;
-    double Gamma_t_s2m_SU;
+
+    /// rolling friction coefficient for sphere-to-mesh
+    double rolling_coeff_s2m_UU;
 
     float adhesion_s2m_over_gravity;
 
@@ -164,7 +167,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
 
     // Function members
-    void copyTriangleDataToDevice();
     void resetTriangleBroadphaseInformation();
     void resetTriangleForces();
 

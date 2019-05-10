@@ -25,7 +25,7 @@
 // The University of Wisconsin - Madison may relicense this code
 // in any way so long as it maintains the above copyright notice.
 
-/*! \file */
+
 
 #include <cuda_runtime_api.h>
 #include <climits>

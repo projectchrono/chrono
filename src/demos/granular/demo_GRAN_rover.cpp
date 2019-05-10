@@ -14,7 +14,6 @@
 //
 // Simplified rover in Chrono::Granular.
 // =============================================================================
-/*! \file */
 
 #include <iostream>
 #include <vector>
@@ -46,28 +45,32 @@ using std::endl;
 constexpr double METERS_TO_CM = 100;
 constexpr double KG_TO_GRAM = 1000;
 
-constexpr double wheel_rad = 0.1 * METERS_TO_CM;
-constexpr double wheel_height = 0.1 * METERS_TO_CM;
+constexpr double wheel_rad = 0.13 * METERS_TO_CM;
+constexpr double wheel_width = 0.16 * METERS_TO_CM;
 
-constexpr double ROVER_MASS_REDUCTION = 1. / 10.;
+constexpr double ROVER_MASS_REDUCTION = 1.;
 
-constexpr double wheel_mass = ROVER_MASS_REDUCTION * 3 * KG_TO_GRAM;
-constexpr double chassis_mass = ROVER_MASS_REDUCTION * 100 * KG_TO_GRAM;
+constexpr double wheel_mass = ROVER_MASS_REDUCTION * 4 * KG_TO_GRAM;
+constexpr double chassis_mass = ROVER_MASS_REDUCTION * 161 * KG_TO_GRAM;
 
 // distance wheels are in front of / behind chassis COM
-constexpr double wheel_offset_x = 0.45 * METERS_TO_CM;
-// distance wheels are to left/right of chassis COM
-constexpr double wheel_offset_y = 0.35 * METERS_TO_CM;
-// distance wheels are below chassis COM
-constexpr double wheel_offset_z = -0.35 * METERS_TO_CM;
-// distance wheels are in front of / behind chassis COM
-constexpr double chassis_length_x = 2.5 * wheel_offset_x;
-// distance wheels are to left/right of chassis COM
-constexpr double chassis_length_y = 2.5 * wheel_offset_y;
-// distance wheels are below chassis COM
-constexpr double chassis_length_z = 2.5 * wheel_offset_z;
+constexpr double front_wheel_offset_x = 0.7 * METERS_TO_CM;
+constexpr double front_wheel_offset_y = 0.6 * METERS_TO_CM;
 
-constexpr float3 wheel_scaling = {wheel_rad * 2, wheel_height, wheel_rad * 2};
+constexpr double middle_wheel_offset_x = -0.01 * METERS_TO_CM;
+constexpr double middle_wheel_offset_y = 0.55 * METERS_TO_CM;
+
+constexpr double rear_wheel_offset_x = -0.51 * METERS_TO_CM;
+constexpr double rear_wheel_offset_y = 0.6 * METERS_TO_CM;
+
+constexpr double wheel_offset_z = -0.164 * METERS_TO_CM;
+
+// assume chassis is solid rectangle inertially, these are the dimensions
+constexpr double chassis_length_x = 2 * METERS_TO_CM;
+constexpr double chassis_length_y = 2 * METERS_TO_CM;
+constexpr double chassis_length_z = 1.5 * METERS_TO_CM;
+
+constexpr float3 wheel_scaling = {wheel_rad * 2, wheel_width, wheel_rad * 2};
 
 constexpr double wheel_inertia_x = (1. / 4.) * wheel_mass * wheel_rad * wheel_rad + (1 / 12.) * wheel_mass;
 constexpr double wheel_inertia_y = (1. / 2.) * wheel_mass * wheel_rad * wheel_rad;
@@ -75,7 +78,7 @@ constexpr double wheel_inertia_z = wheel_inertia_x;
 
 double terrain_height_offset = 0;
 
-std::string chassis_filename = "BD_Box.obj";
+std::string chassis_filename = "granular/rover/MER_body.obj";
 
 enum ROVER_BODY_ID { WHEEL_FRONT_LEFT, WHEEL_FRONT_RIGHT, WHEEL_REAR_LEFT, WHEEL_REAR_RIGHT };
 
@@ -96,7 +99,10 @@ void ShowUsage() {
     cout << "usage: ./demo_GRAN_rover <json_file>" << endl;
 }
 
-void addWheelBody(ChSystemNSC& rover_sys, std::shared_ptr<ChBody> chassis_body, const ChVector<>& wheel_initial_pos) {
+void addWheelBody(ChSystemNSC& rover_sys,
+                  std::shared_ptr<ChBody> chassis_body,
+                  const ChVector<>& wheel_initial_pos_relative) {
+    ChVector<> wheel_initial_pos = chassis_body->GetPos() + wheel_initial_pos_relative;
     std::shared_ptr<ChBody> wheel_body(rover_sys.NewBody());
 
     // bool wheel_fixed = true;
@@ -234,19 +240,18 @@ int main(int argc, char* argv[]) {
     gran_sys.set_fixed_stepSize(params.step_size);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    gran_sys.set_static_friction_coeff(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeff);
 
     // Create rigid wheel simulation
     ChSystemNSC rover_sys;
 
     rover_sys.SetMaxItersSolverSpeed(200);
-    if (rover_sys.GetContactMethod() == ChMaterialSurface::NSC) {
-        rover_sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    }
 
     // rover_sys.SetContactForceModel(ChSystemNSC::ContactForceModel::Hooke);
     // rover_sys.SetTimestepperType(ChTimestepper::Type::EULER_EXPLICIT);
-    rover_sys.Set_G_acc(ChVector<>(0, 0, -980));
+    rover_sys.Set_G_acc(ChVector<>(params.grav_X, params.grav_Y, params.grav_Z));
     // rover_sys.Set_G_acc(ChVector<>(0, 0, 0));
 
     std::shared_ptr<ChBody> chassis_body(rover_sys.NewBody());
@@ -254,7 +259,7 @@ int main(int argc, char* argv[]) {
     double height_offset_chassis_to_bottom = std::abs(wheel_offset_z) + 2 * wheel_rad;
     double init_offset_x = -params.box_X / 4;
     // start well above the terrain
-    terrain_height_offset = params.box_Z + 2 * wheel_rad;
+    terrain_height_offset = params.box_Z + height_offset_chassis_to_bottom;
 
     bool chassis_fixed = true;
     chassis_body->SetMass(chassis_mass);
@@ -269,14 +274,15 @@ int main(int argc, char* argv[]) {
     chassis_body->SetBodyFixed(true);
 
     // NOTE these must happen before the gran system loads meshes!!!
-    addWheelBody(rover_sys, chassis_body,
-                 chassis_body->GetPos() + ChVector<>(wheel_offset_x, wheel_offset_y, wheel_offset_z));
-    addWheelBody(rover_sys, chassis_body,
-                 chassis_body->GetPos() + ChVector<>(wheel_offset_x, -wheel_offset_y, wheel_offset_z));
-    addWheelBody(rover_sys, chassis_body,
-                 chassis_body->GetPos() + ChVector<>(-wheel_offset_x, wheel_offset_y, wheel_offset_z));
-    addWheelBody(rover_sys, chassis_body,
-                 chassis_body->GetPos() + ChVector<>(-wheel_offset_x, -wheel_offset_y, wheel_offset_z));
+    // two wheels at front
+    addWheelBody(rover_sys, chassis_body, ChVector<>(front_wheel_offset_x, front_wheel_offset_y, wheel_offset_z));
+    addWheelBody(rover_sys, chassis_body, ChVector<>(front_wheel_offset_x, -front_wheel_offset_y, wheel_offset_z));
+    // two wheels at back
+    addWheelBody(rover_sys, chassis_body, ChVector<>(middle_wheel_offset_x, middle_wheel_offset_y, wheel_offset_z));
+    addWheelBody(rover_sys, chassis_body, ChVector<>(middle_wheel_offset_x, -middle_wheel_offset_y, wheel_offset_z));
+    // two wheels in middle of chassis
+    addWheelBody(rover_sys, chassis_body, ChVector<>(rear_wheel_offset_x, rear_wheel_offset_y, wheel_offset_z));
+    addWheelBody(rover_sys, chassis_body, ChVector<>(rear_wheel_offset_x, -rear_wheel_offset_y, wheel_offset_z));
 
     gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
@@ -285,7 +291,7 @@ int main(int argc, char* argv[]) {
     gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nSoupFamilies = gran_sys.nMeshesInSoup();
+    unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshPosRot = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();
@@ -378,8 +384,7 @@ int main(int argc, char* argv[]) {
                 writeMeshFrames(outstream, wheel_bodies.at(i), wheel_filename, wheel_scaling);
             }
 
-            writeMeshFrames(outstream, chassis_body, chassis_filename,
-                            {chassis_length_x / 2, chassis_length_y / 2, chassis_length_z / 4});
+            writeMeshFrames(outstream, chassis_body, chassis_filename, {METERS_TO_CM, METERS_TO_CM, METERS_TO_CM});
 
             meshfile << outstream.str();
             // }

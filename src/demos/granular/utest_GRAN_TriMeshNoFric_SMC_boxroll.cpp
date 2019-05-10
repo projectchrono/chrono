@@ -18,7 +18,7 @@
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
 // =============================================================================
-/*! \file */
+
 
 #include <iostream>
 #include <string>
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
-    unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
+    unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];

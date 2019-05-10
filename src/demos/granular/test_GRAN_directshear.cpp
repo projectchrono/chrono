@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     SetupGranSystem(m_sys, params);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nFamilies = m_sys.nMeshesInSoup();
+    unsigned int nFamilies = m_sys.getNumTriangleFamilies();
     cout << nFamilies << " soup families" << endl;
     double* meshPosRot = new double[FAM_ENTRIES_POS * nFamilies]();
     float* meshVel = new float[FAM_ENTRIES_VEL * nFamilies]();

@@ -11,7 +11,6 @@
 // =============================================================================
 // Authors: Dan Negrut, Nic Olsen
 // =============================================================================
-/*! \file */
 
 #pragma once
 
@@ -20,6 +19,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+// make windows behave with math
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "chrono_granular/ChApiGranular.h"
@@ -31,24 +31,19 @@
 
 typedef unsigned char not_stupid_bool;
 
-/**
- * Discrete Elment info
- *
- * Observations:
- *   - The units are not specified; they are user units. Additionally, internally, Chrono::Granular redimensiolizes
- * evertyhing using element characteristic size, etc.
- *
- */
 namespace chrono {
 namespace granular {
 
-// use to compute position as a function of time
+/// @addtogroup granular_physics
+/// @{
+
+/// use to compute position as a function of time
 typedef std::function<double3(float)> GranPositionFunction;
 
 // position function representing no motion or offset
 const GranPositionFunction GranPosFunction_default = [](float t) { return make_double3(0, 0, 0); };
 
-/// hold pointers
+/// hold pointers to kinematic quantities of a granular system
 struct ChGranSphereData {
   public:
     /// Store positions and velocities in unified memory
@@ -60,7 +55,7 @@ struct ChGranSphereData {
     float* pos_Z_dt;
 
     /// store angular velocity (axis and magnitude in one vector)
-    float* sphere_Omega_X;  // Could these just be a single float3 array?
+    float* sphere_Omega_X;
     float* sphere_Omega_Y;
     float* sphere_Omega_Z;
 
@@ -97,9 +92,9 @@ struct ChGranSphereData {
     unsigned int* sphere_owner_SDs;
 };
 
-// How are we writing?
+/// Output mode of system
 enum GRAN_OUTPUT_MODE { CSV, BINARY, NONE };
-// How are we stepping through time?
+/// Allows adaptive time stepping -- CAREFUL, NOT WELL TESTED
 enum GRAN_TIME_STEPPING { ADAPTIVE, FIXED };
 /// How are we integrating w.r.t. time
 enum GRAN_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };
@@ -117,14 +112,18 @@ struct ChGranParams {
 
     // settings on friction, integrator, and force model
     GRAN_FRICTION_MODE friction_mode;
+
     GRAN_ROLLING_MODE rolling_mode;
+
     GRAN_TIME_INTEGRATOR time_integrator;
 
     // ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
-    float static_friction_coeff;
+    float static_friction_coeff_s2s;
+    float static_friction_coeff_s2w;
 
     // Coefficient of rolling resistance
-    float rolling_coeff_SU;
+    float rolling_coeff_s2s_SU;
+    float rolling_coeff_s2w_SU;
 
     // Use user-defined quantities for coefficients
     // sphere-to-sphere contact damping coefficient, expressed in SU
@@ -202,6 +201,8 @@ struct ChGranParams {
     constexpr static float sphere_mass_SU = 1.f;
 
     float max_safe_vel = (float)UINT_MAX;
+
+    /// @} granular_physics
 };
 }  // namespace granular
 }  // namespace chrono
@@ -211,6 +212,10 @@ typedef const chrono::granular::ChGranParams* GranParamsPtr;
 typedef const chrono::granular::ChGranSphereData* GranSphereDataPtr;
 namespace chrono {
 namespace granular {
+
+/// @addtogroup granular_physics
+/// @{
+
 class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
   public:
     // we do not want the system to be default-constructible
@@ -352,15 +357,9 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         time_integrator = new_integrator;
     }
 
-    void set_friction_mode(GRAN_FRICTION_MODE new_mode) {
-        gran_params->friction_mode = new_mode;
-        friction_mode = new_mode;
-    }
+    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { gran_params->friction_mode = new_mode; }
 
-    void set_rolling_mode(GRAN_ROLLING_MODE new_mode) {
-        gran_params->rolling_mode = new_mode;
-        rolling_mode = new_mode;
-    }
+    void set_rolling_mode(GRAN_ROLLING_MODE new_mode) { gran_params->rolling_mode = new_mode; }
 
     /// get the max z position of the spheres, this allows us to do easier cosimulation
     double get_max_z() const;
@@ -372,8 +371,12 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Initialize simulation so that it can be advanced
     virtual void initialize();
 
-    void set_static_friction_coeff(float mu) { gran_params->static_friction_coeff = mu; }
-    void set_rolling_coeff(float mu) { rolling_coeff_UU = mu; }
+    // these quantities are unitless anyways
+    void set_static_friction_coeff_SPH2SPH(float mu) { gran_params->static_friction_coeff_s2s = mu; }
+    void set_static_friction_coeff_SPH2WALL(float mu) { gran_params->static_friction_coeff_s2w = mu; }
+    // set internally and convert later
+    void set_rolling_coeff_SPH2SPH(float mu) { rolling_coeff_s2s_UU = mu; }
+    void set_rolling_coeff_SPH2WALL(float mu) { rolling_coeff_s2w_UU = mu; }
 
     void set_K_n_SPH2SPH(double someValue) { K_n_s2s_UU = someValue; }
     void set_K_n_SPH2WALL(double someValue) { K_n_s2w_UU = someValue; }
@@ -537,7 +540,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     GRAN_TIME_STEPPING time_stepping;
 
     GRAN_FRICTION_MODE friction_mode;
-    GRAN_ROLLING_MODE rolling_mode;
+    GRAN_FRICTION_MODE friction_mode_s2w;
     GRAN_TIME_INTEGRATOR time_integrator;
 
     /// Partitions the big domain (BD) and sets the number of SDs that BD is split in.
@@ -595,10 +598,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// Total time elapsed since beginning of simulation
     float elapsedSimTime;
 
-    /// size of the normal stiffness (UU) for sphere-to-sphere contact
+    /// normal stiffness for sphere-to-sphere contact (represents a linear spring constant)
     double K_n_s2s_UU;
 
-    /// size of the normal stiffness (UU) for sphere-to-wall contact
+    /// normal stiffness for sphere-to-wall contact (represents a linear spring constant)
     double K_n_s2w_UU;
 
     /// normal damping for sphere-to-sphere
@@ -619,8 +622,11 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     /// tangential damping for sphere-to-wall
     double Gamma_t_s2w_UU;
 
-    /// rolling friction coefficient
-    double rolling_coeff_UU;
+    /// rolling friction coefficient for sphere-to-sphere
+    double rolling_coeff_s2s_UU;
+
+    /// rolling friction coefficient for sphere-to-wall
+    double rolling_coeff_s2w_UU;
 
     /// Store the ratio of the acceleration due to cohesion vs the acceleration due to gravity, makes simple API
     float cohesion_over_gravity;
@@ -656,5 +662,6 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
     bool BD_is_fixed = true;
 };
 
+/// @} granular_physics
 }  // namespace granular
 }  // namespace chrono

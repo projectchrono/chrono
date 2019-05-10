@@ -276,9 +276,8 @@ __host__ void ChSystemGranular_MonodisperseSMC::defragment_initial_positions() {
     sphere_pos_z_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
-    // reorder values into sphere order
+    // reorder values into new sorted
     for (int i = 0; i < nSpheres; i++) {
-        // printf("after: sphere %u is owned by SD %u\n", sphere_ids.at(i), sphere_owner_SDs.at(sphere_ids.at(i)));
         sphere_pos_x_tmp.at(i) = sphere_local_pos_X.at(sphere_ids.at(i));
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
         sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
@@ -291,13 +290,6 @@ __host__ void ChSystemGranular_MonodisperseSMC::defragment_initial_positions() {
     sphere_local_pos_Z.swap(sphere_pos_z_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 
-    // for (int i = 0; i < nSpheres; i++) {
-    //     printf("after: sphere %u is owned by SD %u, pos is %d, %d, %d\n", sphere_ids.at(i),
-    //     sphere_owner_SDs.at(i),
-    //            sphere_local_pos_X.at(i), sphere_local_pos_Y.at(i), sphere_local_pos_Z.at(i));
-    // }
-
-    packSphereDataPointers();
     timer.stop();
     printf("finished defrag run in %f seconds!\n", timer.GetTimeSeconds());
 }
@@ -393,6 +385,8 @@ __host__ void ChSystemGranular_MonodisperseSMC::setupSphereDataStructures() {
             TRACK_VECTOR_RESIZE(sphere_ang_acc_Z_old, nSpheres, "sphere_ang_acc_Z_old", 0);
         }
     }
+    // make sure the right pointers are packed
+    packSphereDataPointers();
 }
 
 __host__ void ChSystemGranular_MonodisperseSMC::runSphereBroadphase() {

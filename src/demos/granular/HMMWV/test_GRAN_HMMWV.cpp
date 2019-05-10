@@ -322,7 +322,9 @@ int main(int argc, char* argv[]) {
 
     float mu_static = 0.7;
     cout << "Static friciton coefficient: " << mu_static << endl;
-    gran_sys.set_static_friction_coeff(mu_static);
+    gran_sys.set_static_friction_coeff_SPH2SPH(mu_static);
+    gran_sys.set_static_friction_coeff_SPH2WALL(mu_static);
+    gran_sys.set_static_friction_coeff_SPH2MESH(mu_static);
 
     gran_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
@@ -337,7 +339,7 @@ int main(int argc, char* argv[]) {
     gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(out_dir));
 
-    unsigned int nSoupFamilies = gran_sys.nMeshesInSoup();
+    unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshPosRot = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();

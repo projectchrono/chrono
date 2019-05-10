@@ -666,7 +666,7 @@ inline __device__ float3 computeSphereNormalForces(float& reciplength,
     vrel_t = v_rel - vrel_n;
 
     // Compute penetration term, this becomes the delta as we want it
-    float penetration_over_R = 2. - 2. / reciplength;
+    float penetration_over_R = 2. * (1. - 1. / reciplength);
     // multiplier caused by Hooke vs Hertz force model
     float hertz_force_factor = sqrt(penetration_over_R);
 
@@ -752,7 +752,7 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     gran_params);
 
                 // TODO verify this
-                float hertz_force_factor = std::sqrt(2. - (2. / reciplength));
+                float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));
 
                 // add frictional terms, if needed
                 if (gran_params->friction_mode != GRAN_FRICTION_MODE::FRICTIONLESS) {
@@ -766,13 +766,17 @@ static __global__ void computeSphereContactForces(GranSphereDataPtr sphere_data,
                     vrel_t = vrel_t + Cross((my_omega + their_omega), -1.f * delta_r * sphereRadius_SU);
 
                     // compute alpha due to rolling resistance
-                    float3 rolling_resist_ang_acc = computeRollingAngAcc(
-                        sphere_data, gran_params, force_accum, my_omega, their_omega, delta_r * sphereRadius_SU);
+                    float3 rolling_resist_ang_acc =
+                        computeRollingAngAcc(sphere_data, gran_params, gran_params->rolling_coeff_s2s_SU, force_accum,
+                                             my_omega, their_omega, delta_r * sphereRadius_SU);
                     bodyA_AngAcc = bodyA_AngAcc + rolling_resist_ang_acc;
 
+                    constexpr float m_eff = gran_params->sphere_mass_SU / 2.f;
+
                     float3 tangent_force = computeFrictionForces(
-                        gran_params, sphere_data, body_A_offset + contact_id, gran_params->K_t_s2s_SU,
-                        gran_params->Gamma_t_s2s_SU, hertz_force_factor, force_accum, vrel_t, delta_r * reciplength);
+                        gran_params, sphere_data, body_A_offset + contact_id, gran_params->static_friction_coeff_s2s,
+                        gran_params->K_t_s2s_SU, gran_params->Gamma_t_s2s_SU, hertz_force_factor, m_eff, force_accum,
+                        vrel_t, delta_r * reciplength);
 
                     // tau = r cross f = radius * n cross F
                     // 2 * radius * n = -1 * delta_r * sphdiameter

@@ -87,7 +87,8 @@ int main(int argc, char* argv[]) {
     settlingExperiment.set_Gamma_t_SPH2SPH(params.tangentDampS2S);
     settlingExperiment.set_Gamma_t_SPH2WALL(params.tangentDampS2W);
 
-    settlingExperiment.set_static_friction_coeff(params.static_friction_coeff);
+    settlingExperiment.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
+    settlingExperiment.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
 
     settlingExperiment.set_Cohesion_ratio(params.cohesion_ratio);
     settlingExperiment.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);

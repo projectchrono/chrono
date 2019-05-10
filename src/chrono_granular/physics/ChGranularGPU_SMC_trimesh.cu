@@ -11,7 +11,6 @@
 // =============================================================================
 // Authors: Dan Negrut, Conlain Kelly, Nic Olsen
 // =============================================================================
-/*! \file */
 // These two must be included first
 
 // NOTE: DON'T MOVE OR CHANGE THESE THREE LINES
@@ -21,6 +20,7 @@
 
 #include "chrono_granular/physics/ChGranularGPU_SMC.cuh"
 #include "chrono_granular/physics/ChGranularTriMesh.h"
+#include "chrono_granular/ChGranularDefines.h"
 
 // these define things that mess with cub
 #include "chrono_granular/physics/ChGranularCollision.cuh"
@@ -29,7 +29,9 @@
 
 namespace chrono {
 namespace granular {
-typedef const ChSystemGranular_MonodisperseSMC_trimesh::ChGranParams_trimesh* MeshParamsPtr;
+
+// get nicer handles to pointer names, enforce const-ness on the mesh params
+typedef const ChGranParams_trimesh* MeshParamsPtr;
 typedef ChTriangleSoup<float3>* TriangleSoupPtr;
 
 /// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
@@ -58,13 +60,13 @@ __device__ void convert_pos_UU2SU(T3& pos, GranParamsPtr gran_params) {
 }
 
 /// Takes in a triangle ID and figures out an SD AABB for broadphase use
-__device__ void triangle_figureOutSDBox(const float3& vA,
-                                        const float3& vB,
-                                        const float3& vC,
-                                        const bool inflated,
-                                        int* L,
-                                        int* U,
-                                        GranParamsPtr gran_params) {
+__inline__ __device__ void triangle_figureOutSDBox(const float3& vA,
+                                                   const float3& vB,
+                                                   const float3& vC,
+                                                   const bool inflated,
+                                                   int* L,
+                                                   int* U,
+                                                   GranParamsPtr gran_params) {
     int3 min_pt;
     min_pt.x = MIN(vA.x, MIN(vB.x, vC.x));
     min_pt.y = MIN(vA.y, MIN(vB.y, vC.y));
@@ -247,8 +249,8 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                 touchedSDs[SD_count++] = currSD;
             }
         }
-        if (SD_count >= MAX_SDs_TOUCHED_BY_TRIANGLE) {
-            ABORTABORTABORT("SD_count exceeds MAX_SDs_TOUCHED_BY_TRIANGLE\n");
+        if (SD_count >= MAX_SDS_TOUCHED_BY_TRIANGLE) {
+            ABORTABORTABORT("SD_count exceeds MAX_SDS_TOUCHED_BY_TRIANGLE\n");
         }
         return;
     }
@@ -272,26 +274,14 @@ inline __device__ void triangle_figureOutTouchedSDs(unsigned int triangleID,
                     unsigned int currSD = SDTripletID(i, j, k, gran_params);
                     if (currSD != NULL_GRANULAR_ID) {
                         touchedSDs[SD_count++] = currSD;
-                        if (SD_count == MAX_SDs_TOUCHED_BY_TRIANGLE) {
-                            ABORTABORTABORT("SD_count exceeds MAX_SDs_TOUCHED_BY_TRIANGLE\n");
+                        if (SD_count == MAX_SDS_TOUCHED_BY_TRIANGLE) {
+                            ABORTABORTABORT("SD_count exceeds MAX_SDS_TOUCHED_BY_TRIANGLE\n");
                         }
                     }
                 }
             }
         }
     }
-}
-
-void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleForces() {
-    gpuErrchk(cudaMemset(meshSoup_DEVICE->generalizedForcesPerFamily, 0, 6 * MAX_TRIANGLE_FAMILIES * sizeof(float)));
-}
-// Reset triangle broadphase data structures
-void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleBroadphaseInformation() {
-    gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, SD_numTrianglesTouching.size() * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(SD_TriangleCompositeOffsets.data(), NULL_GRANULAR_ID,
-                         SD_TriangleCompositeOffsets.size() * sizeof(unsigned int)));
-    gpuErrchk(cudaMemset(triangles_in_SD_composite.data(), NULL_GRANULAR_ID,
-                         triangles_in_SD_composite.size() * sizeof(unsigned int)));
 }
 
 template <unsigned int CUB_THREADS>  //!< Number of CUB threads engaged in block-collective CUB operations. Should be a
@@ -304,21 +294,21 @@ __global__ void triangleSoupBroadPhase(
     GranParamsPtr gran_params,
     MeshParamsPtr mesh_params) {
     /// Set aside shared memory
-    volatile __shared__ unsigned int compositeOffsets[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
-    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
+    volatile __shared__ unsigned int compositeOffsets[CUB_THREADS * MAX_SDS_TOUCHED_BY_TRIANGLE];
+    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDS_TOUCHED_BY_TRIANGLE];
 
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_TRIANGLE, unsigned int> BlockRadixSortOP;
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDS_TOUCHED_BY_TRIANGLE, unsigned int> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
 
     typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
     __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
 
-    unsigned int triangleIDs[MAX_SDs_TOUCHED_BY_TRIANGLE];
-    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_TRIANGLE];
+    unsigned int triangleIDs[MAX_SDS_TOUCHED_BY_TRIANGLE];
+    unsigned int SDsTouched[MAX_SDS_TOUCHED_BY_TRIANGLE];
 
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
+    for (unsigned int i = 0; i < MAX_SDS_TOUCHED_BY_TRIANGLE; i++) {
         // start with a clean slate
         triangleIDs[i] = myTriangleID;
         SDsTouched[i] = NULL_GRANULAR_ID;
@@ -336,19 +326,19 @@ __global__ void triangleSoupBroadPhase(
     __syncthreads();
 
     // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE];
+    bool head_flags[MAX_SDS_TOUCHED_BY_TRIANGLE];
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
     __syncthreads();
 
     // Write back to shared memory; eight-way bank conflicts here - to revisit later
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
-        shMem_head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i] = head_flags[i];
+    for (unsigned int i = 0; i < MAX_SDS_TOUCHED_BY_TRIANGLE; i++) {
+        shMem_head_flags[MAX_SDS_TOUCHED_BY_TRIANGLE * threadIdx.x + i] = head_flags[i];
     }
     __syncthreads();
 
     // Seed offsetInComposite_SphInSD_Array with "no valid ID" so that we know later on what is legit;
     // No shmem bank coflicts here, good access...
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
+    for (unsigned int i = 0; i < MAX_SDS_TOUCHED_BY_TRIANGLE; i++) {
         compositeOffsets[i * CUB_THREADS + threadIdx.x] = NULL_GRANULAR_ID;
     }
 
@@ -357,18 +347,18 @@ __global__ void triangleSoupBroadPhase(
     // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS triangles. There
     // will be some thread divergence here.
     // Loop through each potential SD, after sorting, and see if it is the start of a head
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
+    for (unsigned int i = 0; i < MAX_SDS_TOUCHED_BY_TRIANGLE; i++) {
         // SD currently touched, could easily be inlined
         unsigned int touchedSD = SDsTouched[i];
         if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
             // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
-            unsigned int idInShared = MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i;
+            unsigned int idInShared = MAX_SDS_TOUCHED_BY_TRIANGLE * threadIdx.x + i;
             unsigned int winningStreak = 0;
             // This is the beginning of a sequence of SDs with a new ID
             do {
                 winningStreak++;
                 // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < MAX_SDs_TOUCHED_BY_TRIANGLE * CUB_THREADS &&
+            } while (idInShared + winningStreak < MAX_SDS_TOUCHED_BY_TRIANGLE * CUB_THREADS &&
                      !(shMem_head_flags[idInShared + winningStreak]));
 
             // Store start of new entries
@@ -384,8 +374,8 @@ __global__ void triangleSoupBroadPhase(
     __syncthreads();  // needed since we write to shared memory above; i.e., offsetInComposite_SphInSD_Array
 
     // Write out the data now; register with triangles_in_SD_composite each triangle that touches a certain SD
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
-        unsigned int offset = compositeOffsets[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i];
+    for (unsigned int i = 0; i < MAX_SDS_TOUCHED_BY_TRIANGLE; i++) {
+        unsigned int offset = compositeOffsets[MAX_SDS_TOUCHED_BY_TRIANGLE * threadIdx.x + i];
         if (offset != NULL_GRANULAR_ID) {
             triangles_in_SD_composite[offset] = triangleIDs[i];
         }
@@ -400,19 +390,19 @@ __global__ void triangleSoupBroadPhase_dryrun(
     GranParamsPtr gran_params,
     MeshParamsPtr mesh_params) {
     /// Set aside shared memory
-    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_TRIANGLE];
+    volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDS_TOUCHED_BY_TRIANGLE];
 
-    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_TRIANGLE> BlockRadixSortOP;
+    typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDS_TOUCHED_BY_TRIANGLE> BlockRadixSortOP;
     __shared__ typename BlockRadixSortOP::TempStorage temp_storage_sort;
 
     typedef cub::BlockDiscontinuity<unsigned int, CUB_THREADS> Block_Discontinuity;
     __shared__ typename Block_Discontinuity::TempStorage temp_storage_disc;
 
-    unsigned int SDsTouched[MAX_SDs_TOUCHED_BY_TRIANGLE];
+    unsigned int SDsTouched[MAX_SDS_TOUCHED_BY_TRIANGLE];
 
     // Figure out what triangleID this thread will handle. We work with a 1D block structure and a 1D grid structure
     unsigned int myTriangleID = threadIdx.x + blockIdx.x * blockDim.x;
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
+    for (unsigned int i = 0; i < MAX_SDS_TOUCHED_BY_TRIANGLE; i++) {
         // start with a clean slate
         SDsTouched[i] = NULL_GRANULAR_ID;
     }
@@ -425,13 +415,13 @@ __global__ void triangleSoupBroadPhase_dryrun(
     __syncthreads();
 
     // Do a winningStreak search on whole block, might not have high utilization here
-    bool head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE];
+    bool head_flags[MAX_SDS_TOUCHED_BY_TRIANGLE];
     Block_Discontinuity(temp_storage_disc).FlagHeads(head_flags, SDsTouched, cub::Inequality());
     __syncthreads();
 
     // Write back to shared memory; eight-way bank conflicts here - to revisit later
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
-        shMem_head_flags[MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i] = head_flags[i];
+    for (unsigned int i = 0; i < MAX_SDS_TOUCHED_BY_TRIANGLE; i++) {
+        shMem_head_flags[MAX_SDS_TOUCHED_BY_TRIANGLE * threadIdx.x + i] = head_flags[i];
     }
 
     __syncthreads();
@@ -439,18 +429,18 @@ __global__ void triangleSoupBroadPhase_dryrun(
     // Count how many times an SD shows up in conjunction with the collection of CUB_THREADS triangles. There
     // will be some thread divergence here.
     // Loop through each potential SD, after sorting, and see if it is the start of a head
-    for (unsigned int i = 0; i < MAX_SDs_TOUCHED_BY_TRIANGLE; i++) {
+    for (unsigned int i = 0; i < MAX_SDS_TOUCHED_BY_TRIANGLE; i++) {
         // SD currently touched, could easily be inlined
         unsigned int touchedSD = SDsTouched[i];
         if (touchedSD != NULL_GRANULAR_ID && head_flags[i]) {
             // current index into shared datastructure of length 8*CUB_THREADS, could easily be inlined
-            unsigned int idInShared = MAX_SDs_TOUCHED_BY_TRIANGLE * threadIdx.x + i;
+            unsigned int idInShared = MAX_SDS_TOUCHED_BY_TRIANGLE * threadIdx.x + i;
             unsigned int winningStreak = 0;
             // This is the beginning of a sequence of SDs with a new ID
             do {
                 winningStreak++;
                 // Go until we run out of threads on the warp or until we find a new head
-            } while (idInShared + winningStreak < MAX_SDs_TOUCHED_BY_TRIANGLE * CUB_THREADS &&
+            } while (idInShared + winningStreak < MAX_SDS_TOUCHED_BY_TRIANGLE * CUB_THREADS &&
                      !(shMem_head_flags[idInShared + winningStreak]));
 
             // Store start of new entries
@@ -511,7 +501,8 @@ __global__ void interactionTerrain_TriangleSoup(
     unsigned int* SD_numTrianglesTouching,      //!< number of triangles touching this SD
     unsigned int* SD_TriangleCompositeOffsets,  //!< offset of triangles in the composite array for each SD
     GranParamsPtr gran_params,
-    MeshParamsPtr mesh_params) {
+    MeshParamsPtr mesh_params,
+    unsigned int triangleFamilyHistmapOffset) {
     __shared__ unsigned int triangleIDs[MAX_TRIANGLE_COUNT_PER_SD];  //!< global ID of the triangles touching this SD
 
     __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];  //!< local coordinate of the sphere
@@ -632,7 +623,9 @@ __global__ void interactionTerrain_TriangleSoup(
                     int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
                 valid_contact = face_sphere_cd(node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
                                                sphCntr, gran_params->sphereRadius_SU, d_triangleSoup->inflated[fam],
-                                               d_triangleSoup->inflation_radii[fam], normal, depth, pt1) &&
+                                               d_triangleSoup->inflation_radii[fam], normal, depth, pt1);
+
+                valid_contact = valid_contact &&
                                 SDTripletID(pointSDTriplet(pt1.x, pt1.y, pt1.z, gran_params), gran_params) == thisSD;
                 pt1_float = make_float3(pt1.x, pt1.y, pt1.z);
 
@@ -651,9 +644,10 @@ __global__ void interactionTerrain_TriangleSoup(
                 // Use the CD information to compute the force on the grElement
                 float3 delta = -depth * normal;
 
+                // effective radius is just sphere radius -- assume meshes are locally flat (a safe assumption?)
                 float hertz_force_factor = sqrt(abs(depth) / gran_params->sphereRadius_SU);
 
-                float3 force_accum = hertz_force_factor * mesh_params->Kn_s2m_SU * delta;
+                float3 force_accum = hertz_force_factor * mesh_params->K_n_s2m_SU * delta;
 
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
@@ -699,27 +693,22 @@ __global__ void interactionTerrain_TriangleSoup(
                 force_accum = force_accum - hertz_force_factor * mesh_params->Gamma_n_s2m_SU * m_eff * vrel_n;
 
                 if (gran_params->friction_mode != chrono::granular::GRAN_FRICTION_MODE::FRICTIONLESS) {
-                    if (gran_params->friction_mode == chrono::granular::GRAN_FRICTION_MODE::SINGLE_STEP) {
-                        // both tangential terms combine for single step
-                        float combined_tangent_coeff =
-                            mesh_params->Kt_s2m_SU * gran_params->stepSize_SU + mesh_params->Gamma_t_s2m_SU * m_eff;
+                    float3 roll_ang_acc =
+                        computeRollingAngAcc(sphere_data, gran_params, mesh_params->rolling_coeff_s2m_SU, force_accum,
+                                             omega[sphereIDLocal], d_triangleSoup->omega[fam], delta);
 
-                        // we dotted out normal component of v, so v_rel is the tangential component
-                        // TODO apply model multiplier
-                        float3 tangent_force = -hertz_force_factor * combined_tangent_coeff * v_rel;
+                    // sphere_AngAcc = sphere_AngAcc + roll_ang_acc;
 
-                        // Vector from sphere center to center of contact volume
-                        // NOTE depth is negative
-                        float3 sphere_r = -(gran_params->sphereRadius_SU + depth / 2.f) * normal;
+                    unsigned int BC_histmap_label = triangleFamilyHistmapOffset + fam;
 
-                        // TODO could do scaling to eliminate a factor of radius?
-                        sphere_AngAcc =
-                            sphere_AngAcc + Cross(sphere_r, tangent_force) /
-                                                (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU);
+                    // compute tangent force
+                    float3 tangent_force = computeFrictionForces(
+                        gran_params, sphere_data, sphereIDGlobal, BC_histmap_label,
+                        mesh_params->static_friction_coeff_s2m, mesh_params->K_t_s2m_SU, mesh_params->Gamma_t_s2m_SU,
+                        hertz_force_factor, m_eff, force_accum, v_rel, normal);
 
-                        // add to total forces
-                        force_accum = force_accum + tangent_force;
-                    }
+                    force_accum = force_accum + tangent_force;
+                    sphere_AngAcc = sphere_AngAcc + Cross(-1 * delta, tangent_force) / gran_params->sphereInertia_by_r;
                 }
 
                 // Use the CD information to compute the force and torque on the family of this triangle
@@ -753,6 +742,19 @@ __global__ void interactionTerrain_TriangleSoup(
         }
     }  // end sphere id check
 }  // end kernel
+
+void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleForces() {
+    gpuErrchk(cudaMemset(meshSoup_DEVICE->generalizedForcesPerFamily, 0,
+                         6 * meshSoup_DEVICE->numTriangleFamilies * sizeof(float)));
+}
+// Reset triangle broadphase data structures
+void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleBroadphaseInformation() {
+    gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, SD_numTrianglesTouching.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(SD_TriangleCompositeOffsets.data(), NULL_GRANULAR_ID,
+                         SD_TriangleCompositeOffsets.size() * sizeof(unsigned int)));
+    gpuErrchk(cudaMemset(triangles_in_SD_composite.data(), NULL_GRANULAR_ID,
+                         triangles_in_SD_composite.size() * sizeof(unsigned int)));
+}
 
 __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() {
     VERBOSE_PRINTF("Resetting broadphase info!\n");
@@ -1081,12 +1083,14 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        if (meshSoup_DEVICE->nFamiliesInSoup != 0 && mesh_collision_enabled) {
+        if (meshSoup_DEVICE->numTriangleFamilies != 0 && mesh_collision_enabled) {
             // TODO please do not use a template here
+            // triangle labels come after BC labels numerically
+            unsigned int triangleFamilyHistmapOffset = gran_params->nSpheres + 1 + BC_params_list_SU.size() + 1;
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
                 meshSoup_DEVICE, sphere_data, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
-                SD_TriangleCompositeOffsets.data(), gran_params, tri_params);
+                SD_TriangleCompositeOffsets.data(), gran_params, tri_params, triangleFamilyHistmapOffset);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());

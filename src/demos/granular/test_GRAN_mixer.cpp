@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-/*! \file */
+
 
 #include <iostream>
 #include <string>
@@ -82,7 +82,9 @@ int main(int argc, char* argv[]) {
     m_sys.set_friction_mode(chrono::granular::GRAN_FRICTION_MODE::MULTI_STEP);
 
     const float static_friction = 0.9;
-    m_sys.set_static_friction_coeff(static_friction);
+    m_sys.set_static_friction_coeff_SPH2SPH(static_friction);
+    m_sys.set_static_friction_coeff_SPH2WALL(static_friction);
+    m_sys.set_static_friction_coeff_SPH2MESH(static_friction);
     cout << "Static Friction: " << static_friction << endl;
 
     m_sys.setOutputMode(GRAN_OUTPUT_MODE::CSV);
@@ -185,7 +187,7 @@ int main(int argc, char* argv[]) {
 
     m_sys.load_meshes(mesh_filenames, mesh_scalings, mesh_masses, mesh_inflated, mesh_inflation_radii);
 
-    unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
+    unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();

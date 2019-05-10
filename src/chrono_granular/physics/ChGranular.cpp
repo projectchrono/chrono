@@ -11,7 +11,6 @@
 // =============================================================================
 // Authors: Dan Negrut, Nic Olsen
 // =============================================================================
-/*! \file */
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -54,21 +53,22 @@ ChSystemGranular_MonodisperseSMC::ChSystemGranular_MonodisperseSMC(float radiusS
       Gamma_n_s2s_UU(0),
       Gamma_n_s2w_UU(0),
       Gamma_t_s2s_UU(0),
-      Gamma_t_s2w_UU(0) {
+      Gamma_t_s2w_UU(0),
+      rolling_coeff_s2s_UU(0),
+      rolling_coeff_s2w_UU(0) {
     gpuErrchk(cudaMallocManaged(&gran_params, sizeof(ChGranParams), cudaMemAttachGlobal));
     gpuErrchk(cudaMallocManaged(&sphere_data, sizeof(ChGranSphereData), cudaMemAttachGlobal));
     psi_T = PSI_T_DEFAULT;
     psi_h = PSI_h_DEFAULT;
     psi_L = PSI_L_DEFAULT;
     gran_params->friction_mode = FRICTIONLESS;
-    this->friction_mode = FRICTIONLESS;
     gran_params->rolling_mode = NO_RESISTANCE;
-    this->rolling_mode = NO_RESISTANCE;
     gran_params->time_integrator = EXTENDED_TAYLOR;
     this->time_integrator = EXTENDED_TAYLOR;
     setMaxSafeVelocity_SU((float)UINT_MAX);
-    set_static_friction_coeff(0);  // default to zero
-    set_rolling_coeff(0);
+
+    set_static_friction_coeff_SPH2SPH(0);
+    set_static_friction_coeff_SPH2WALL(0);
 
     createWallBCs();
     setBDWallsMotionFunction(GranPosFunction_default);
@@ -477,7 +477,7 @@ void ChSystemGranular_MonodisperseSMC::determineNewStepSize_SU() {
                 constexpr float num_disp_grav = 100;
                 // maximum fraction of radius we allow moving in one timestep
                 constexpr float num_disp_radius = .1;
-                float max_displacement_grav = num_disp_grav * psi_T;
+                float max_displacement_grav = num_disp_grav;
                 float max_displacement_radius = num_disp_radius * gran_params->sphereRadius_SU;
 
                 // TODO consider gravity drift
@@ -803,7 +803,8 @@ void ChSystemGranular_MonodisperseSMC::switchToSimUnits() {
     if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
         rolling_scalingFactor = 1. / TIME_SU2UU;
     }
-    gran_params->rolling_coeff_SU = rolling_scalingFactor * rolling_coeff_UU;
+    gran_params->rolling_coeff_s2s_SU = rolling_scalingFactor * rolling_coeff_s2s_UU;
+    gran_params->rolling_coeff_s2w_SU = rolling_scalingFactor * rolling_coeff_s2w_UU;
 
     // Handy debug output
     printf("UU mass is %f\n", MASS_SU2UU);

@@ -18,7 +18,7 @@
 // The global reference frame has X to the right, Y into the screen, Z up.
 // The global reference frame located in the left lower corner, close to the viewer.
 // =============================================================================
-/*! \file */
+
 
 #include <iostream>
 #include <string>
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     m_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
+    unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families \n";
     float* genForcesOnMeshSoup = new float[6 * nSoupFamilies];
     double* meshSoupLocOri = new double[7 * nSoupFamilies];

@@ -11,7 +11,6 @@
 // =============================================================================
 // Authors: Dan Negrut, Nic Olsen
 // =============================================================================
-/*! \file */
 
 #include <vector>
 #include <algorithm>
@@ -41,6 +40,7 @@ ChSystemGranular_MonodisperseSMC_trimesh::ChSystemGranular_MonodisperseSMC_trime
       K_t_s2m_UU(0),
       Gamma_n_s2m_UU(0),
       Gamma_t_s2m_UU(0),
+      rolling_coeff_s2m_UU(0),
       adhesion_s2m_over_gravity(0) {
     // Allocate triangle collision parameters
     gpuErrchk(cudaMallocManaged(&tri_params, sizeof(ChGranParams_trimesh), cudaMemAttachGlobal));
@@ -49,7 +49,9 @@ ChSystemGranular_MonodisperseSMC_trimesh::ChSystemGranular_MonodisperseSMC_trime
     gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE, sizeof(ChTriangleSoup<float3>), cudaMemAttachGlobal));
     // start with no triangles
     meshSoup_DEVICE->nTrianglesInSoup = 0;
-    meshSoup_DEVICE->nFamiliesInSoup = 0;
+    meshSoup_DEVICE->numTriangleFamilies = 0;
+
+    set_static_friction_coeff_SPH2MESH(0);
 }
 
 ChSystemGranular_MonodisperseSMC_trimesh::~ChSystemGranular_MonodisperseSMC_trimesh() {
@@ -60,38 +62,30 @@ double ChSystemGranular_MonodisperseSMC_trimesh::get_max_K() const {
     return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
 }
 
-/// Copy const triangle data to device
-void ChSystemGranular_MonodisperseSMC_trimesh::copyTriangleDataToDevice() {
-    // unified memory does some copying for us, cool
-    tri_params->Kn_s2m_SU = K_n_s2m_SU;
-    tri_params->Kt_s2m_SU = K_t_s2m_SU;
-    tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_SU;
-    tri_params->Gamma_t_s2m_SU = Gamma_t_s2m_SU;
-    tri_params->adhesionAcc_s2m =
-        adhesion_s2m_over_gravity * std::sqrt(gran_params->gravAcc_X_SU * gran_params->gravAcc_X_SU +
-                                              gran_params->gravAcc_Y_SU * gran_params->gravAcc_Y_SU +
-                                              gran_params->gravAcc_Z_SU * gran_params->gravAcc_Z_SU);
-}
-
 void ChSystemGranular_MonodisperseSMC_trimesh::initializeTriangles() {
-    double K_star = get_max_K();
-    double massSphere = (4. / 3.) * M_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU;
+    double K_SU2UU = MASS_SU2UU / (TIME_SU2UU * TIME_SU2UU);
+    double GAMMA_SU2UU = 1. / TIME_SU2UU;
 
-    double K_SU2UU = (K_star * psi_T * psi_T * psi_h);
-    //  Same as 1/ TIME_UNIT
-    double GAMMA_SU2UU = (psi_T * std::sqrt(K_star * psi_h / massSphere));
+    tri_params->K_n_s2m_SU = K_n_s2m_UU / K_SU2UU;
+    tri_params->K_t_s2m_SU = K_t_s2m_UU / K_SU2UU;
 
-    K_n_s2m_SU = K_n_s2m_UU / K_SU2UU;
-    K_t_s2m_SU = K_t_s2m_UU / K_SU2UU;
+    tri_params->Gamma_n_s2m_SU = Gamma_n_s2m_UU / GAMMA_SU2UU;
+    tri_params->Gamma_t_s2m_SU = Gamma_t_s2m_UU / GAMMA_SU2UU;
 
-    Gamma_n_s2m_SU = Gamma_n_s2m_UU / GAMMA_SU2UU;
-    Gamma_t_s2m_SU = Gamma_t_s2m_UU / GAMMA_SU2UU;
+    double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
+    tri_params->adhesionAcc_s2m = adhesion_s2m_over_gravity * magGravAcc;
 
-    for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
+    for (unsigned int fam = 0; fam < meshSoup_DEVICE->numTriangleFamilies; fam++) {
         meshSoup_DEVICE->familyMass_SU[fam] = meshSoup_DEVICE->familyMass_SU[fam] / MASS_SU2UU;
         meshSoup_DEVICE->inflation_radii[fam] = meshSoup_DEVICE->inflation_radii[fam] / LENGTH_SU2UU;
     }
-    copyTriangleDataToDevice();
+
+    double rolling_scalingFactor = 1.;
+    if (gran_params->rolling_mode == GRAN_ROLLING_MODE::VISCOUS) {
+        rolling_scalingFactor = 1. / TIME_SU2UU;
+    }
+    tri_params->rolling_coeff_s2m_SU = rolling_scalingFactor * rolling_coeff_s2m_UU;
+
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
     TRACK_VECTOR_RESIZE(SD_TriangleCompositeOffsets, nSDs, "SD_TriangleCompositeOffsets", 0);
 
@@ -119,7 +113,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::stri
     }
 
     unsigned int nTriangles = 0;
-    unsigned int nFamiliesInSoup = 0;
+    unsigned int numTriangleFamilies = 0;
     std::vector<geometry::ChTriangleMeshConnected> all_meshes;
     for (unsigned int i = 0; i < objfilenames.size(); i++) {
         printf("importing %s\n", objfilenames[i].c_str());
@@ -130,11 +124,11 @@ void ChSystemGranular_MonodisperseSMC_trimesh::load_meshes(std::vector<std::stri
         mesh.Transform({0, 0, 0}, ChMatrix33<>(ChVector<>(scalings[i].x, scalings[i].y, scalings[i].z)));
 
         nTriangles += mesh.getNumTriangles();
-        nFamiliesInSoup++;
+        numTriangleFamilies++;
     }
 
     printf("nTriangles is %u\n", nTriangles);
-    printf("nTriangleFamiliesInSoup is %u\n", nFamiliesInSoup);
+    printf("nTriangleFamiliesInSoup is %u\n", numTriangleFamilies);
 
     // Allocate memory to store mesh soup in unified memory
     printf("Allocating mesh unified memory\n");
@@ -290,7 +284,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
         printf("Done writing family %d\n", family);
     }
 
-    meshSoup_DEVICE->nFamiliesInSoup = family;
+    meshSoup_DEVICE->numTriangleFamilies = family;
 
     if (meshSoup_DEVICE->nTrianglesInSoup != 0) {
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->familyMass_SU, family * sizeof(float), cudaMemAttachGlobal));
@@ -305,18 +299,20 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
         }
 
         gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->generalizedForcesPerFamily,
-                                    6 * MAX_TRIANGLE_FAMILIES * sizeof(float), cudaMemAttachGlobal));
+                                    6 * meshSoup_DEVICE->numTriangleFamilies * sizeof(float), cudaMemAttachGlobal));
         // Allocate memory for the float and double frames
-        gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_broad, MAX_TRIANGLE_FAMILIES * sizeof(ChFamilyFrame<float>),
+        gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_broad,
+                                    meshSoup_DEVICE->numTriangleFamilies * sizeof(ChFamilyFrame<float>),
                                     cudaMemAttachGlobal));
         gpuErrchk(cudaMallocManaged(&tri_params->fam_frame_narrow,
-                                    MAX_TRIANGLE_FAMILIES * sizeof(ChFamilyFrame<double>), cudaMemAttachGlobal));
+                                    meshSoup_DEVICE->numTriangleFamilies * sizeof(ChFamilyFrame<double>),
+                                    cudaMemAttachGlobal));
 
         // Allocate memory for linear and angular velocity
-        gpuErrchk(
-            cudaMallocManaged(&meshSoup_DEVICE->vel, MAX_TRIANGLE_FAMILIES * sizeof(float3), cudaMemAttachGlobal));
-        gpuErrchk(
-            cudaMallocManaged(&meshSoup_DEVICE->omega, MAX_TRIANGLE_FAMILIES * sizeof(float3), cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->vel, meshSoup_DEVICE->numTriangleFamilies * sizeof(float3),
+                                    cudaMemAttachGlobal));
+        gpuErrchk(cudaMallocManaged(&meshSoup_DEVICE->omega, meshSoup_DEVICE->numTriangleFamilies * sizeof(float3),
+                                    cudaMemAttachGlobal));
 
         for (unsigned int i = 0; i < family; i++) {
             meshSoup_DEVICE->vel[i] = make_float3(0, 0, 0);
@@ -327,7 +323,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::setupTriMesh_DEVICE(
 
 void ChSystemGranular_MonodisperseSMC_trimesh::collectGeneralizedForcesOnMeshSoup(float* genForcesOnSoup) {
     // pull directly from unified memory
-    for (unsigned int i = 0; i < 6 * meshSoup_DEVICE->nFamiliesInSoup; i += 6) {
+    for (unsigned int i = 0; i < 6 * meshSoup_DEVICE->numTriangleFamilies; i += 6) {
         // Divide by C_F to go from SU to UU
         genForcesOnSoup[i + 0] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 0] * FORCE_SU2UU;
         genForcesOnSoup[i + 1] = meshSoup_DEVICE->generalizedForcesPerFamily[i + 1] * FORCE_SU2UU;
@@ -343,7 +339,7 @@ void ChSystemGranular_MonodisperseSMC_trimesh::collectGeneralizedForcesOnMeshSou
 void ChSystemGranular_MonodisperseSMC_trimesh::meshSoup_applyRigidBodyMotion(double* position_orientation_data,
                                                                              float* vel) {
     // Set both broadphase and narrowphase frames for each family
-    for (unsigned int fam = 0; fam < meshSoup_DEVICE->nFamiliesInSoup; fam++) {
+    for (unsigned int fam = 0; fam < meshSoup_DEVICE->numTriangleFamilies; fam++) {
         generate_rot_matrix<float>(position_orientation_data + 7 * fam + 3, tri_params->fam_frame_broad[fam].rot_mat);
         tri_params->fam_frame_broad[fam].pos[0] = (float)position_orientation_data[7 * fam + 0];
         tri_params->fam_frame_broad[fam].pos[1] = (float)position_orientation_data[7 * fam + 1];

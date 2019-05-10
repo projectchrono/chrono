@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Dan Negrut
 // =============================================================================
-/*! \file */
+
 #pragma once
 
 #include <climits>
@@ -30,9 +30,9 @@ constexpr size_t BD_WALL_ID_Z_TOP = 5;
 
 constexpr size_t NUM_RESERVED_BC_IDS = 6;
 
-///< At most 8 domains are touched by a sphere
+/// At most 8 domains are touched by a sphere
 #define MAX_SDs_TOUCHED_BY_SPHERE 8
-///< At most 8 domains are touched by a sphere
+/// At most 8 domains are touched by a sphere
 #define MAX_SPHERES_TOUCHED_BY_SPHERE 12
 /// The L-size of an SD should contain, on average, about these many spheres
 #define AVERAGE_SPHERES_PER_SD_X_DIR 3.5
@@ -53,8 +53,7 @@ constexpr size_t NUM_RESERVED_BC_IDS = 6;
 /// Value that controls the time unit. It is like a safety factor.
 #define PSI_T_DEFAULT 16
 /// Max number of SDs that a mesh triangle can touch. Note that it can touch an equal number of buckets
-#define MAX_SDs_TOUCHED_BY_TRIANGLE 64
-#define MAX_TRIANGLE_FAMILIES 5
+#define MAX_SDS_TOUCHED_BY_TRIANGLE 64
 /// MAX_TRIANGLE_COUNT_PER_SD indicates how much memory we set aside to store mesh triangles that belong to a
 /// bucket. This number is not the amount of memory, rather the max number of triangles we anticipate to see in a
 /// bucket. Note that if TRIANGLE_BUCKET_COUNT is small, a lot of SDs will send their triangles to the same bucket,

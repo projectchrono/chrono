@@ -16,7 +16,7 @@
 // by an OBJ file is time-integrated in Chrono and interacts with a Granular
 // wave tank in Chrono::Granular via the co-simulation framework.
 // =============================================================================
-/*! \file */
+
 
 #include <iostream>
 #include <vector>
@@ -150,7 +150,9 @@ int main(int argc, char* argv[]) {
     gran_sys.set_fixed_stepSize(params.step_size);
     gran_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
     gran_sys.set_timeIntegrator(GRAN_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
-    gran_sys.set_static_friction_coeff(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2MESH(params.static_friction_coeff);
 
     vector<string> mesh_filenames;
     string mesh_filename = string("granular/sphere.obj");
@@ -182,7 +184,7 @@ int main(int argc, char* argv[]) {
     gran_sys.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nSoupFamilies = gran_sys.nMeshesInSoup();
+    unsigned int nSoupFamilies = gran_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshPosRot = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();

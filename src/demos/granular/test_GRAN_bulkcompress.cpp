@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-/*! \file */
+
 
 #include <iostream>
 #include <string>
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     block->SetMass(block_mass);
     ch_sys.AddBody(block);
 
-    unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
+    unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();

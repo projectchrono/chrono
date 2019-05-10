@@ -137,9 +137,13 @@ int main(int argc, char* argv[]) {
     m_sys.set_Adhesion_ratio_S2W(params.adhesion_ratio_s2w);
 
     m_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
-    m_sys.set_static_friction_coeff(friction);
+    m_sys.set_static_friction_coeff_SPH2SPH(friction);
+    m_sys.set_static_friction_coeff_SPH2SPH(friction);
+    m_sys.set_static_friction_coeff_SPH2MESH(friction);
     m_sys.set_rolling_mode(GRAN_ROLLING_MODE::CONSTANT_TORQUE);
-    m_sys.set_rolling_coeff(friction);
+    m_sys.set_rolling_coeff_SPH2SPH(friction);
+    m_sys.set_rolling_coeff_SPH2SPH(friction);
+    m_sys.set_rolling_coeff_SPH2MESH(friction);
 
     m_sys.setOutputMode(params.write_mode);
 

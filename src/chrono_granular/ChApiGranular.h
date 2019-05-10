@@ -50,20 +50,30 @@
 #endif
 
 /**
-@defgroup parallel_module GRANULAR module
-@brief Module that enables granular dynamics simulation in Chrono
+    @defgroup granular Granular module
+    @brief GPU solver for granular dynamics
 
-This module implements dedicated algorithms that can be
-used as a faster alternative to the default simulation algorithms
-in Chrono::Engine or Chrono::Parallel. This is achieved using OpenMP, CUDA, CUB, etc.
+    This module provides support for modeling systems of granular material on the GPU through CUDA.
+    Currently systems of monodisperse spheres can interact with full-history frictional contact with both
+    analytica boundary conditions and triangle meshes.
 
-For additional information, see:
-- the [installation guide](@ref module_granular_installation)
-- the [tutorials](@ref tutorial_root)
+    For additional information, see:
+    -- the [installation guide](@ref module_granular_installation)
+    -- the [tutorials](@ref tutorial_root)
 
-@{
-@defgroup granular_physics Physics objects
-@defgroup granular_cuda CUDA objects
-@}
+
+    @{
+        @defgroup granular_physics Physics objects
+    @}
 */
 
+namespace chrono {
+
+/// @addtogroup granular
+/// @{
+
+/// Namespace with classes for the Granular module.
+namespace granular {}
+
+/// @}
+}  // namespace chrono

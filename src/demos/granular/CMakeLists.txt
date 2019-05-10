@@ -30,7 +30,7 @@ SET(DEMOS
 		test_GRAN_Coneflow
 		test_GRAN_HopperReposeAngle
 		utest_GRAN_spherefric
-		utest_GRAN_suite
+		utest_GRAN_testsuite
 		utest_GRAN_mini
 		demo_GRAN_DamBreak
 		demo_GRAN_rover

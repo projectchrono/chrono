@@ -14,7 +14,7 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-/*! \file */
+
 
 #include <iostream>
 #include <string>
@@ -151,7 +151,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             m_sys.disableMeshCollision();
             filesystem::create_directory(filesystem::path(params.output_dir));
 
-            unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
+            unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
             cout << nSoupFamilies << " soup families" << endl;
             double* meshSoupLocOri = new double[7 * nSoupFamilies];
             float* meshVel = new float[6 * nSoupFamilies]();
@@ -190,7 +190,7 @@ double RunTest(sim_param_holder& params, RUN_MODE run_mode) {
             m_sys.enableMeshCollision();
             filesystem::create_directory(filesystem::path(params.output_dir));
 
-            unsigned int nSoupFamilies = m_sys.nMeshesInSoup();
+            unsigned int nSoupFamilies = m_sys.getNumTriangleFamilies();
             cout << nSoupFamilies << " soup families" << endl;
             double* meshSoupLocOri = new double[7 * nSoupFamilies];
             float* meshVel = new float[6 * nSoupFamilies]();

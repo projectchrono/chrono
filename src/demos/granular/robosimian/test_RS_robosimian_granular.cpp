@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
     m_sys_gran.setVerbose(params.verbose);
     filesystem::create_directory(filesystem::path(params.output_dir));
 
-    unsigned int nSoupFamilies = m_sys_gran.nMeshesInSoup();
+    unsigned int nSoupFamilies = m_sys_gran.getNumTriangleFamilies();
     cout << nSoupFamilies << " soup families" << endl;
     double* meshSoupLocOri = new double[7 * nSoupFamilies];
     float* meshVel = new float[6 * nSoupFamilies]();

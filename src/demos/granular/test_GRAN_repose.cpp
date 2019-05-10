@@ -11,7 +11,6 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
-/*! \file */
 
 #include <iostream>
 #include <string>
@@ -114,7 +113,9 @@ int main(int argc, char* argv[]) {
     cout << "Static Friction: " << static_friction << endl;
     cout << "Expected angle from sliding: " << std::atan(static_friction) << endl;
     m_sys.set_friction_mode(GRAN_FRICTION_MODE::MULTI_STEP);
-    m_sys.set_static_friction_coeff(static_friction);
+    m_sys.set_static_friction_coeff_SPH2SPH(static_friction);
+    m_sys.set_static_friction_coeff_SPH2WALL(static_friction);
+    m_sys.set_static_friction_coeff_SPH2MESH(static_friction);
 
     int rolling_mode = std::atoi(argv[4]);
     switch (rolling_mode) {
@@ -142,7 +143,9 @@ int main(int argc, char* argv[]) {
     cout << "Rolling resistance coefficient: " << rolling_coeff << endl;
     cout << "Expected angle from rolling: " << std::atan(rolling_coeff) << endl;
 
-    m_sys.set_rolling_coeff(rolling_coeff);
+    m_sys.set_rolling_coeff_SPH2SPH(rolling_coeff);
+    m_sys.set_rolling_coeff_SPH2WALL(rolling_coeff);
+    m_sys.set_rolling_coeff_SPH2MESH(rolling_coeff);
 
     m_sys.setOutputMode(params.write_mode);
     string out_dir(argv[2]);

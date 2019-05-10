@@ -90,7 +90,8 @@ int main(int argc, char* argv[]) {
     gran_sys.set_gravitational_acceleration(params.grav_X, params.grav_Y, params.grav_Z);
     gran_sys.setOutputDirectory(params.output_dir);
     gran_sys.setOutputMode(params.write_mode);
-    gran_sys.set_static_friction_coeff(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2SPH(params.static_friction_coeff);
+    gran_sys.set_static_friction_coeff_SPH2WALL(params.static_friction_coeff);
 
     gran_sys.set_BD_Fixed(true);
 
