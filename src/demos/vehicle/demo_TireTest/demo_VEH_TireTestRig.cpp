@@ -60,8 +60,7 @@ int main() {
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
     rig.SetTireVisualizationType(VisualizationType::MESH);
 
-    rig.SetTerrainLength(10);
-    rig.SetTerrainRigid(0.8, 2e7, 0);
+    rig.SetTerrainRigid(0.8, 0, 2e7);
     ////rig.SetTerrainSCM(6259.1e3, 5085.6e3, 1.42, 1.58e3, 34.1, 22.17e-3);
 
     // Set test scenario
@@ -92,7 +91,7 @@ int main() {
     // Create the Irrlicht visualization
     // ---------------------------------
 
-    ChIrrApp application(&rig.GetSystem(), L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1920, 1080), false, true);
+    ChIrrApp application(&rig.GetSystem(), L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720), false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
