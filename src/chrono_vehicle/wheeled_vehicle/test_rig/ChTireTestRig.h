@@ -42,14 +42,11 @@ namespace vehicle {
 /// Definition of a single-tire test rig.
 class CH_VEHICLE_API ChTireTestRig {
   public:
+    //// Construct a tire test rig within the specified system.
     ChTireTestRig(std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
                   std::shared_ptr<ChTire> tire,    ///< tire subsystem
                   ChSystem* system                 ///< containing mechanical system
     );
-
-    ChTireTestRig(std::shared_ptr<ChWheel> wheel,  ///< wheel subsystem
-                  std::shared_ptr<ChTire> tire,    ///< tire subsystem
-                  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::ContactMethod::NSC);
 
     /// Set gravitational acceleration (default: 9.81 m/s2).
     void SetGravitationalAcceleration(double grav) { m_grav = grav; }
@@ -127,9 +124,6 @@ class CH_VEHICLE_API ChTireTestRig {
 
     /// Advance system state by the specified time step.
     void Advance(double step);
-
-    /// Get a pointer to the Chrono ChSystem.
-    ChSystem& GetSystem() const { return *m_system; }
 
     /// Get a handle to the underlying terrain subsystem.
     std::shared_ptr<ChTerrain> GetTerrain() const { return m_terrain; }

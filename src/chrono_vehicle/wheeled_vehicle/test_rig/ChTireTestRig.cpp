@@ -25,8 +25,6 @@
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChSystemSMC.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/terrain/GranularTerrain.h"
@@ -49,35 +47,6 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_tire_step(1e-3),
       m_collision_type(ChTire::CollisionType::SINGLE_POINT),
       m_tire_vis(VisualizationType::PRIMITIVES) {
-    // Default motion function for slip angle control
-    m_sa_fun = std::make_shared<ChFunction_Const>(0);
-}
-
-ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel,
-                             std::shared_ptr<ChTire> tire,
-                             ChMaterialSurface::ContactMethod contact_method)
-    : m_grav(9.8),
-      m_wheel(wheel),
-      m_tire(tire),
-      m_camber_angle(0),
-      m_normal_load(0),
-      m_ls_actuated(false),
-      m_rs_actuated(false),
-      m_terrain_type(TerrainType::NONE),
-      m_terrain_offset(0),
-      m_terrain_height(0),
-      m_tire_step(1e-3),
-      m_collision_type(ChTire::CollisionType::SINGLE_POINT),
-      m_tire_vis(VisualizationType::PRIMITIVES) {
-    m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                          : static_cast<ChSystem*>(new ChSystemSMC);
-
-    // Integration and Solver settings
-    m_system->SetMaxItersSolverSpeed(150);
-    m_system->SetMaxItersSolverStab(150);
-    m_system->SetMaxPenetrationRecoverySpeed(4.0);
-    m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-
     // Default motion function for slip angle control
     m_sa_fun = std::make_shared<ChFunction_Const>(0);
 }
@@ -511,9 +480,6 @@ void ChTireTestRig::GetSuggestedCollisionSettings(double& collision_envelope, Ch
 // -----------------------------------------------------------------------------
 
 TerrainForce ChTireTestRig::GetTireForce() const {
-    if (m_terrain_type == TerrainType::RIGID)
-        return m_tire->ReportTireForce(nullptr);
-
     return m_tire->ReportTireForce(m_terrain.get());
 }
 

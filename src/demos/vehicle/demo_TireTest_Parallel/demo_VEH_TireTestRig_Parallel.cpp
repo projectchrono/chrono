@@ -37,33 +37,33 @@ int main() {
     // Create system
     // -------------
 
-    ChSystemParallelNSC* system = new ChSystemParallelNSC();
+    ChSystemParallelNSC system;
 
     int threads = 8;
     int max_threads = CHOMPfunctions::GetNumProcs();
     if (threads > max_threads)
         threads = max_threads;
-    system->SetParallelThreadNumber(threads);
+    system.SetParallelThreadNumber(threads);
     CHOMPfunctions::SetNumThreads(threads);
 #pragma omp parallel
 #pragma omp master
     std::cout << "Using " << CHOMPfunctions::GetNumThreads() << " threads" << std::endl;
-    system->GetSettings()->perform_thread_tuning = false;
+    system.GetSettings()->perform_thread_tuning = false;
 
-    system->GetSettings()->solver.tolerance = 1e-3;
-    system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    system->GetSettings()->solver.max_iteration_normal = 0;
-    system->GetSettings()->solver.max_iteration_sliding = 50;
-    system->GetSettings()->solver.max_iteration_spinning = 0;
-    system->GetSettings()->solver.max_iteration_bilateral = 50;
-    system->GetSettings()->solver.compute_N = false;
-    system->GetSettings()->solver.alpha = 0;
-    system->GetSettings()->solver.cache_step_length = true;
-    system->GetSettings()->solver.use_full_inertia_tensor = false;
-    system->GetSettings()->solver.contact_recovery_speed = 1000;
-    system->GetSettings()->solver.bilateral_clamp_speed = 1e8;
-    system->GetSettings()->min_threads = threads;
-    system->ChangeSolverType(SolverType::BB);
+    system.GetSettings()->solver.tolerance = 1e-3;
+    system.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    system.GetSettings()->solver.max_iteration_normal = 0;
+    system.GetSettings()->solver.max_iteration_sliding = 50;
+    system.GetSettings()->solver.max_iteration_spinning = 0;
+    system.GetSettings()->solver.max_iteration_bilateral = 50;
+    system.GetSettings()->solver.compute_N = false;
+    system.GetSettings()->solver.alpha = 0;
+    system.GetSettings()->solver.cache_step_length = true;
+    system.GetSettings()->solver.use_full_inertia_tensor = false;
+    system.GetSettings()->solver.contact_recovery_speed = 1000;
+    system.GetSettings()->solver.bilateral_clamp_speed = 1e8;
+    system.GetSettings()->min_threads = threads;
+    system.ChangeSolverType(SolverType::BB);
 
     // Create wheel and tire subsystems
     // --------------------------------
@@ -74,7 +74,7 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChTireTestRig rig(wheel, tire, system);
+    ChTireTestRig rig(wheel, tire, &system);
 
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(8000);
@@ -94,16 +94,16 @@ int main() {
     double collision_envelope;
     ChVector<int> collision_bins;
     rig.GetSuggestedCollisionSettings(collision_envelope, collision_bins);
-    system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
-    system->GetSettings()->collision.bins_per_axis = vec3(collision_bins.x(), collision_bins.y(), collision_bins.z());
-    system->GetSettings()->collision.fixed_bins = true;
+    system.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    system.GetSettings()->collision.bins_per_axis = vec3(collision_bins.x(), collision_bins.y(), collision_bins.z());
+    system.GetSettings()->collision.fixed_bins = true;
 
-    switch (system->GetContactMethod()) {
+    switch (system.GetContactMethod()) {
         case ChMaterialSurface::NSC:
-            system->GetSettings()->collision.collision_envelope = collision_envelope;
+            system.GetSettings()->collision.collision_envelope = collision_envelope;
             break;
         case ChMaterialSurface::SMC:
-            system->GetSettings()->collision.collision_envelope = 0;
+            system.GetSettings()->collision.collision_envelope = 0;
             break;
     }
 
@@ -136,14 +136,14 @@ int main() {
     // -----------------
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Granular terrain demo", system);
+    gl_window.Initialize(1280, 720, "Granular terrain demo", &system);
     gl_window.SetCamera(ChVector<>(0, 3, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
     gl_window.SetRenderMode(opengl::SOLID);
 
     // Perform the simulation
     // ----------------------
 
-    rig.GetSystem().SetupInitial();
+    system.SetupInitial();
 
     while (gl_window.Active()) {
         rig.Advance(step_size);
@@ -155,7 +155,7 @@ int main() {
         gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
         gl_window.Render();
 
-        ////std::cout << rig.GetSystem().GetChTime() << std::endl;
+        ////std::cout << system.GetChTime() << std::endl;
         ////auto long_slip = tire->GetLongitudinalSlip();
         ////auto slip_angle = tire->GetSlipAngle();
         ////auto camber_angle = tire->GetCamberAngle();

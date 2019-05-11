@@ -16,6 +16,8 @@
 
 #include <algorithm>
 
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
@@ -36,6 +38,16 @@ double step_size = 1e-3;
 double tire_step_size = 1e-4;
 
 int main() {
+    // Create system
+    // -------------
+
+    ChSystemNSC system;
+
+    system.SetMaxItersSolverSpeed(150);
+    system.SetMaxItersSolverStab(150);
+    system.SetMaxPenetrationRecoverySpeed(4.0);
+    system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+
     // Create wheel and tire subsystems
     // --------------------------------
 
@@ -49,7 +61,7 @@ int main() {
     // Create and configure test rig
     // -----------------------------
 
-    ChTireTestRig rig(wheel, tire);
+    ChTireTestRig rig(wheel, tire, &system);
 
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(8000);
@@ -91,7 +103,7 @@ int main() {
     // Create the Irrlicht visualization
     // ---------------------------------
 
-    ChIrrApp application(&rig.GetSystem(), L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720), false, true);
+    ChIrrApp application(&system, L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720), false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -106,7 +118,7 @@ int main() {
     // Perform the simulation
     // ----------------------
 
-    rig.GetSystem().SetupInitial();
+    system.SetupInitial();
 
     while (application.GetDevice()->run()) {
         auto& loc = rig.GetPos();
@@ -121,7 +133,7 @@ int main() {
         rig.Advance(step_size);
         application.EndScene();
 
-        ////std::cout << rig.GetSystem().GetChTime() << std::endl;
+        ////std::cout << system.GetChTime() << std::endl;
         ////auto long_slip = tire->GetLongitudinalSlip();
         ////auto slip_angle = tire->GetSlipAngle();
         ////auto camber_angle = tire->GetCamberAngle();
