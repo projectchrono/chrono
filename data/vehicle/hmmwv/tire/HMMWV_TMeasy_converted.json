@@ -37,9 +37,9 @@
             ]
         },
         "Tire Damping": {
-            "Longitudinal [Ns/m]": 332.311438380565,
-            "Lateral [Ns/m]": 313.3062287263374,
-            "Vertical [Ns/m]": 350.2870126030939
+            "Longitudinal [Ns/m]": 3296,
+            "Lateral [Ns/m]": 3107,
+            "Vertical [Ns/m]": 3475
         },
         "Longitudinal": {
             "Initial Slopes dFx/dsx [N]": [
