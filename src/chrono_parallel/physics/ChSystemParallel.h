@@ -31,6 +31,8 @@
 #include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChLinkMotorLinearSpeed.h"
+#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
 #include "chrono/fea/ChMesh.h"
 
@@ -60,6 +62,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     virtual bool Integrate_Y() override;
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual void AddLink(std::shared_ptr<ChLink> link) override;
     virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
@@ -70,6 +73,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void UpdateOtherPhysics();
     virtual void UpdateRigidBodies();
     virtual void UpdateShafts();
+    virtual void UpdateMotorLinks();
     virtual void Update3DOFBodies();
     void RecomputeThreads();
 
@@ -154,6 +158,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     void AddShaft(std::shared_ptr<ChShaft> shaft);
 
     std::vector<ChShaft*> shaftlist;
+    std::vector<ChLinkMotorLinearSpeed*> linmotorlist;
+    std::vector<ChLinkMotorRotationSpeed*> rotmotorlist;
 };
 
 //====================================================================================================

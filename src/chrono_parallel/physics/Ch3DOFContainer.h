@@ -127,6 +127,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_unilaterals;
     uint num_bilaterals;
     uint num_shafts;
+    uint num_motors;
     uint num_fea_tets;
     uint num_fea_nodes;
 

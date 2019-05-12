@@ -185,20 +185,23 @@ void ChFEAContainer::Update(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<real3>& vel_node = data_manager->host_data.vel_node_fea;
     real3 g_acc = data_manager->settings.gravity;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node_fea;
+
+    uint offset = num_rigid_bodies * 6 + num_shafts + num_motors + num_fluid_bodies * 3;
     for (int i = 0; i < (signed)num_nodes; i++) {
         real3 vel = vel_node[i];
         real3 h_gravity = data_manager->settings.step_size * mass_node[i] * g_acc;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0] = vel.x;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1] = vel.y;
-        data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2] = vel.z;
+        data_manager->host_data.v[offset + i * 3 + 0] = vel.x;
+        data_manager->host_data.v[offset + i * 3 + 1] = vel.y;
+        data_manager->host_data.v[offset + i * 3 + 2] = vel.z;
 
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0] = h_gravity.x;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1] = h_gravity.y;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2] = h_gravity.z;
+        data_manager->host_data.hf[offset + i * 3 + 0] = h_gravity.x;
+        data_manager->host_data.hf[offset + i * 3 + 1] = h_gravity.y;
+        data_manager->host_data.hf[offset + i * 3 + 2] = h_gravity.z;
     }
 }
 
@@ -212,15 +215,18 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     //
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<real3>& vel_node = data_manager->host_data.vel_node_fea;
+    //
+    uint offset = num_rigid_bodies * 6 + num_shafts + num_motors + num_fluid_bodies * 3;
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_nodes; i++) {
         real3 vel;
-        vel.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 0];
-        vel.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 1];
-        vel.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3 + i * 3 + 2];
+        vel.x = data_manager->host_data.v[offset + i * 3 + 0];
+        vel.y = data_manager->host_data.v[offset + i * 3 + 1];
+        vel.z = data_manager->host_data.v[offset + i * 3 + 2];
 
         real speed = Length(vel);
         if (speed > max_velocity) {
@@ -237,7 +243,7 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
 
     custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
+    uint b_off = num_rigid_bodies * 6 + num_shafts + num_motors + num_fluid_bodies * 3;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
 
     real lame_lambda = youngs_modulus * poisson_ratio / ((1. + poisson_ratio) * (1. - 2. * poisson_ratio));
@@ -561,13 +567,14 @@ void ChFEAContainer::Build_D() {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_tets = data_manager->num_fea_tets;
     real step_size = data_manager->settings.step_size;
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
     custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
-    uint f_off = num_rigid_bodies * 6 + num_shafts;
+    uint b_off = num_rigid_bodies * 6 + num_shafts + num_motors + + num_fluid_bodies * 3;
+    uint f_off = num_rigid_bodies * 6 + num_shafts + num_motors;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_tets; i++) {
@@ -1071,11 +1078,12 @@ void ChFEAContainer::GenerateSparsity() {
     uint num_tets = data_manager->num_fea_tets;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_tet_contacts = data_manager->num_rigid_tet_contacts;
 
-    uint body_offset = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
-    uint fluid_offset = num_rigid_bodies * 6 + num_shafts;
+    uint body_offset = num_rigid_bodies * 6 + num_shafts + num_motors + num_fluid_bodies * 3;
+    uint fluid_offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;

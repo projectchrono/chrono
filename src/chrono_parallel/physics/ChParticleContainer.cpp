@@ -69,6 +69,7 @@ void ChParticleContainer::Update(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     real3 h_gravity = data_manager->settings.step_size * mass * data_manager->settings.gravity;
 #ifdef CHRONO_PARALLEL_USE_CUDA
     if (mpm_init) {
@@ -120,17 +121,18 @@ void ChParticleContainer::Update(double ChTime) {
     }
 #endif
 
+    uint offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
         // real3 vel = vel_fluid[i];
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel.x;
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel.y;
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel.z;
+        // data_manager->host_data.v[offset + i * 3 + 0] = vel.x;
+        // data_manager->host_data.v[offset + i * 3 + 1] = vel.y;
+        // data_manager->host_data.v[offset + i * 3 + 2] = vel.z;
 
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = h_gravity.x;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = h_gravity.y;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = h_gravity.z;
+        data_manager->host_data.hf[offset + i * 3 + 0] = h_gravity.x;
+        data_manager->host_data.hf[offset + i * 3 + 1] = h_gravity.y;
+        data_manager->host_data.hf[offset + i * 3 + 2] = h_gravity.z;
     }
 }
 
@@ -138,18 +140,21 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
 
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
+
+    uint offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         real3 vel;
         int original_index = data_manager->host_data.particle_indices_3dof[i];
         // these are sorted so we have to unsort them
-        vel.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0];
-        vel.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1];
-        vel.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2];
+        vel.x = data_manager->host_data.v[offset + i * 3 + 0];
+        vel.y = data_manager->host_data.v[offset + i * 3 + 1];
+        vel.z = data_manager->host_data.v[offset + i * 3 + 2];
 
         real speed = Length(vel);
         if (speed > max_velocity) {
@@ -284,7 +289,7 @@ void ChParticleContainer::Setup(int start_constraint) {
     } else {
         start_contact = start_constraint + num_rigid_fluid_contacts * 3;
     }
-    body_offset = num_rigid_bodies * 6 + num_shafts;
+    body_offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 
     num_rigid_contacts = (num_fluid_contacts - num_fluid_bodies) / 2;
 }
