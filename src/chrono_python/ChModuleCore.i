@@ -401,6 +401,7 @@ using namespace chrono::fea;
 %include "ChConveyor.i"
 %include "ChIndexedParticles.i"
 %include "ChParticlesClones.i"
+%include "ChLinkBase.i"
 %include "ChLink.i"
 %include "ChLinkMarkers.i"
 %include "ChLinkLimit.i"
