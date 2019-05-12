@@ -357,7 +357,10 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC {
         time_integrator = new_integrator;
     }
 
-    void set_friction_mode(GRAN_FRICTION_MODE new_mode) { gran_params->friction_mode = new_mode; }
+    void set_friction_mode(GRAN_FRICTION_MODE new_mode) {
+        gran_params->friction_mode = new_mode;
+        this->friction_mode = new_mode;
+    }
 
     void set_rolling_mode(GRAN_ROLLING_MODE new_mode) { gran_params->rolling_mode = new_mode; }
 
