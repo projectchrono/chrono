@@ -172,6 +172,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChContinuumPlasticVonMises)
 %shared_ptr(chrono::ChContinuumDruckerPrager)
 %shared_ptr(chrono::ChBodyFrame)
+%shared_ptr(chrono::ChNodeBase)
+%shared_ptr(chrono::ChNodeXYZ)
 %shared_ptr(chrono::ChMarker)
 %shared_ptr(chrono::ChForce)
 %shared_ptr(chrono::ChBody)
@@ -425,6 +427,7 @@ using namespace chrono::fea;
 %include "ChSystemSMC.i"
 %include "ChContactContainer.i"
 %include "ChProximityContainer.i"
+%import "../chrono/physics/ChLoad.h" // a forward reference done "the %import way" here works ok..
 %include "ChLoadContainer.i"
 %include "ChLinkBase.i"
 %include "ChLink.i"
