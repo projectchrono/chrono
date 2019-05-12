@@ -43,9 +43,8 @@ class ChLoaderUVW : public ChLoader {
     std::shared_ptr<ChLoadableUVW> GetLoadableUVW() { return loadable; }
 };
 
-/// Class of loaders for ChLoadableUVW objects (which support
-/// volume loads), for loads of distributed type, so these loads
-/// will undergo Gauss quadrature to integrate them in the volume.
+/// Class of loaders for ChLoadableUVW objects (which support volume loads), for loads of distributed type,
+/// so these loads will undergo Gauss quadrature to integrate them in the volume.
 
 class ChLoaderUVWdistributed : public ChLoaderUVW {
   public:
@@ -62,33 +61,34 @@ class ChLoaderUVWdistributed : public ChLoaderUVW {
                           ) override {
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+        mF.Reset();
 
         if (!loadable->IsTetrahedronIntegrationNeeded()) {
             // Case of normal box isoparametric coords
             assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
             assert(GetIntegrationPointsV() <= ChQuadrature::GetStaticTables()->Lroots.size());
             assert(GetIntegrationPointsW() <= ChQuadrature::GetStaticTables()->Lroots.size());
-            std::vector<double>* Ulroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
-            std::vector<double>* Uweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU() - 1];
-            std::vector<double>* Vlroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsV() - 1];
-            std::vector<double>* Vweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsV() - 1];
-            std::vector<double>* Wlroots = &ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsW() - 1];
-            std::vector<double>* Wweight = &ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsW() - 1];
+            const std::vector<double>& Ulroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
+            const std::vector<double>& Uweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsU() - 1];
+            const std::vector<double>& Vlroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsV() - 1];
+            const std::vector<double>& Vweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsV() - 1];
+            const std::vector<double>& Wlroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsW() - 1];
+            const std::vector<double>& Wweight = ChQuadrature::GetStaticTables()->Weight[GetIntegrationPointsW() - 1];
 
             ChVectorDynamic<> mNF(Q.GetRows());  // temporary value for loop
 
             // Gauss quadrature :  Q = sum (N'*F*detJ * wi*wj*wk)
-            for (unsigned int iu = 0; iu < Ulroots->size(); iu++) {
-                for (unsigned int iv = 0; iv < Vlroots->size(); iv++) {
-                    for (unsigned int iw = 0; iw < Wlroots->size(); iw++) {
+            for (unsigned int iu = 0; iu < Ulroots.size(); iu++) {
+                for (unsigned int iv = 0; iv < Vlroots.size(); iv++) {
+                    for (unsigned int iw = 0; iw < Wlroots.size(); iw++) {
                         double detJ;
                         // Compute F= F(u,v,w)
-                        this->ComputeF(Ulroots->at(iu), Vlroots->at(iv), Wlroots->at(iw), mF, state_x, state_w);
+                        this->ComputeF(Ulroots[iu], Vlroots[iv], Wlroots[iw], mF, state_x, state_w);
                         // Compute mNF= N(u,v,w)'*F
-                        loadable->ComputeNF(Ulroots->at(iu), Vlroots->at(iv), Wlroots->at(iw), mNF, detJ, mF, state_x,
+                        loadable->ComputeNF(Ulroots[iu], Vlroots[iv], Wlroots[iw], mNF, detJ, mF, state_x,
                                             state_w);
                         // Compute Q+= mNF detJ * wi*wj*wk
-                        mNF *= (detJ * Uweight->at(iu) * Vweight->at(iv) * Wweight->at(iw));
+                        mNF *= (detJ * Uweight[iu] * Vweight[iv] * Wweight[iw]);
                         Q += mNF;
                     }
                 }
@@ -96,34 +96,30 @@ class ChLoaderUVWdistributed : public ChLoaderUVW {
         } else {
             // case of tetrahedron: use special 3d quadrature tables (given U,V,W orders, use the U only)
             assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTablesTetrahedron()->Weight.size());
-            std::vector<double>* Ulroots =
-                &ChQuadrature::GetStaticTablesTetrahedron()->LrootsU[GetIntegrationPointsU() - 1];
-            std::vector<double>* Vlroots =
-                &ChQuadrature::GetStaticTablesTetrahedron()->LrootsV[GetIntegrationPointsU() - 1];
-            std::vector<double>* Wlroots =
-                &ChQuadrature::GetStaticTablesTetrahedron()->LrootsW[GetIntegrationPointsU() - 1];
-            std::vector<double>* weight =
-                &ChQuadrature::GetStaticTablesTetrahedron()->Weight[GetIntegrationPointsU() - 1];
+            const std::vector<double>& Ulroots = ChQuadrature::GetStaticTablesTetrahedron()->LrootsU[GetIntegrationPointsU() - 1];
+            const std::vector<double>& Vlroots = ChQuadrature::GetStaticTablesTetrahedron()->LrootsV[GetIntegrationPointsU() - 1];
+            const std::vector<double>& Wlroots = ChQuadrature::GetStaticTablesTetrahedron()->LrootsW[GetIntegrationPointsU() - 1];
+            const std::vector<double>& weight =  ChQuadrature::GetStaticTablesTetrahedron()->Weight[GetIntegrationPointsU() - 1];
 
             ChVectorDynamic<> mNF(Q.GetRows());  // temporary value for loop
 
             // Gauss quadrature :  Q = sum (N'*F*detJ * wi * 1/6)   often detJ=6*tetrahedron volume
-            for (unsigned int i = 0; i < Ulroots->size(); i++) {
+            for (unsigned int i = 0; i < Ulroots.size(); i++) {
                 double detJ;
                 // Compute F= F(u,v,w)
-                this->ComputeF(Ulroots->at(i), Vlroots->at(i), Wlroots->at(i), mF, state_x, state_w);
+                this->ComputeF(Ulroots[i], Vlroots[i], Wlroots[i], mF, state_x, state_w);
                 // Compute mNF= N(u,v,w)'*F
-                loadable->ComputeNF(Ulroots->at(i), Vlroots->at(i), Wlroots->at(i), mNF, detJ, mF, state_x, state_w);
+                loadable->ComputeNF(Ulroots[i], Vlroots[i], Wlroots[i], mNF, detJ, mF, state_x, state_w);
                 // Compute Q+= mNF detJ * wi * 1/6
-                mNF *= (detJ * weight->at(i) * (1. / 6.));  // (the 1/6 coefficient is not in the table);
+                mNF *= (detJ * weight[i] * (1. / 6.));  // (the 1/6 coefficient is not in the table);
                 Q += mNF;
             }
         }
     }
 };
 
-/// Class of loaders for ChLoadableUVW objects (which support
-/// volume loads) of atomic type, that is, with a concentrated load in a point Pu,Pv,Pz
+/// Class of loaders for ChLoadableUVW objects (which support volume loads) of atomic type,
+/// that is, with a concentrated load in a point Pu,Pv,Pz.
 
 class ChLoaderUVWatomic : public ChLoaderUVW {
   public:
@@ -131,8 +127,8 @@ class ChLoaderUVWatomic : public ChLoaderUVW {
     double Pv;
     double Pw;
 
-    ChLoaderUVWatomic(std::shared_ptr<ChLoadableUVW> mloadable, const double mU, const double mV, const double mW)
-        : ChLoaderUVW(mloadable) {}
+    ChLoaderUVWatomic(std::shared_ptr<ChLoadableUVW> mloadable, double mU, double mV, double mW)
+        : ChLoaderUVW(mloadable), Pu(mU), Pv(mV), Pw(mW) {}
     virtual ~ChLoaderUVWatomic() {}
 
     /// Computes Q = N'*F
@@ -141,13 +137,13 @@ class ChLoaderUVWatomic : public ChLoaderUVW {
                           ) override {
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-
-        double detJ;  // not used btw
+        mF.Reset();
 
         // Compute F=F(u,v,w)
         this->ComputeF(Pu, Pv, Pw, mF, state_x, state_w);
 
         // Compute N(u,v,w)'*F
+        double detJ;
         loadable->ComputeNF(Pu, Pv, Pw, Q, detJ, mF, state_x, state_w);
     }
 

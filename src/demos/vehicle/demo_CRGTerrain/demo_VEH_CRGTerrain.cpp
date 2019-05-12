@@ -35,9 +35,12 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
-// Select Path Follower, uncomment the next line to get the puer PID driver
+// Select Path Follower, uncomment the next line to get the pure PID driver
 //#define USE_PID 1
-
+// to use the XT controller uncomment the next line
+//#define USE_XT
+// to use the SR controller uncomment the next line
+#define USE_SR
 // =============================================================================
 // Problem parameters
 
@@ -115,9 +118,11 @@ int main(int argc, char* argv[]) {
 
     ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo PID Steering",
                         irr::core::dimension2d<irr::u32>(800, 640));
-#else
+#endif
+#ifdef USE_XT
     // Create the driver system based on XT steering controller
-    ChPathFollowerDriverXT driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed, my_hmmwv.GetVehicle().GetMaxSteeringAngle());    
+    ChPathFollowerDriverXT driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
+                                  my_hmmwv.GetVehicle().GetMaxSteeringAngle());
     driver.GetSteeringController().SetLookAheadDistance(5);
     driver.GetSteeringController().SetGains(0.4, 1, 1, 1);
     driver.GetSpeedController().SetGains(0.4, 0, 0);
@@ -126,10 +131,20 @@ int main(int argc, char* argv[]) {
     ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo XT Steering",
                         irr::core::dimension2d<irr::u32>(800, 640));
 #endif
+#ifdef USE_SR
+    ChPathFollowerDriverSR driver(my_hmmwv.GetVehicle(), path, "my_path", target_speed, path_is_closed,
+                                  my_hmmwv.GetVehicle().GetMaxSteeringAngle(), 3.2);
+    driver.GetSteeringController().SetGains(0.1, 5);
+    driver.GetSteeringController().SetPreviewTime(0.5);
+    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    driver.Initialize();
+
+    ChVehicleIrrApp app(&my_hmmwv.GetVehicle(), &my_hmmwv.GetPowertrain(), L"OpenCRG Demo SR Steering",
+                        irr::core::dimension2d<irr::u32>(800, 640));
+#endif
     // ---------------------------------------
     // Create the vehicle Irrlicht application
     // ---------------------------------------
-
 
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
@@ -231,6 +246,6 @@ int main(int argc, char* argv[]) {
 
         app.EndScene();
     }
-    
+
     return 0;
 }

@@ -89,6 +89,7 @@ ChQuadratureTables::ChQuadratureTables(int order_from, int order_to) {
         Lroots[io].resize(Ncoef);
 
         ChMatrixDynamic<> lcoef(Ncoef + 1, Ncoef + 1);
+        lcoef.Reset();
 
         glege_coef(lcoef, Ncoef);
         glege_roots(lcoef, Ncoef, io);

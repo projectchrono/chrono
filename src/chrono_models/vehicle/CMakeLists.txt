@@ -59,6 +59,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_SimpleDriveline.h
     hmmwv/HMMWV_SimplePowertrain.cpp
     hmmwv/HMMWV_SimplePowertrain.h
+    hmmwv/HMMWV_SimpleCVTPowertrain.cpp
+    hmmwv/HMMWV_SimpleCVTPowertrain.h
     hmmwv/HMMWV_SimpleMapPowertrain.cpp
     hmmwv/HMMWV_SimpleMapPowertrain.h
     hmmwv/HMMWV_Vehicle.h
@@ -123,6 +125,8 @@ set(CVM_GENERIC_FILES
     generic/Generic_RackPinion.cpp
     generic/Generic_RigidTire.h
     generic/Generic_RigidTire.cpp
+    generic/Generic_RigidMeshTire.h
+    generic/Generic_RigidMeshTire.cpp
     generic/Generic_FialaTire.h
     generic/Generic_FialaTire.cpp
     generic/Generic_SimplePowertrain.h

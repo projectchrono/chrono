@@ -36,7 +36,7 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
 
   public:
     /// Default constructor
-    ChConstraintTwoBodies() {}
+    ChConstraintTwoBodies();
 
     /// Construct and immediately set references to variables
     ChConstraintTwoBodies(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b);

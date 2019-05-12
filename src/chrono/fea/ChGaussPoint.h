@@ -15,8 +15,8 @@
 #ifndef CHGAUSSPOINT
 #define CHGAUSSPOINT
 
-#include "chrono/physics/ChTensors.h"
 #include "chrono/core/ChMath.h"
+#include "chrono/physics/ChTensors.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
@@ -25,63 +25,41 @@ namespace fea {
 /// @addtogroup fea_math
 /// @{
 
-/// Class for a gauss point, that has a position (1D-3D) and a weight.
+/// Class for a Gauss point, that has a position (1D-3D) and a weight.
 /// It also contains the strain and the stress tensor.
 class ChGaussPoint {
-  private:
-    /// Number.
-    int number;
-    /// Reference to parent integration rule
-    // ChIntegrationRule *irule;
-    /// Local (natural) coordinates of the point
-    ChVector<> LocalCoordinates;
-    /// Absolute point coordinates
-    ChVector<>* coordinates;
-    /// Integration weight
-    double weight;
-
   public:
-    /// Matrix of partial derivatives: to obtain strain & stress
-    ChMatrixDynamic<>* MatrB;
-    /// Strain tensor
-    ChStrainTensor<> Strain;
-    /// Stress tensor
-    ChStressTensor<> Stress;
+    ChMatrixDynamic<>* MatrB;  ///< Matrix of partial derivatives: to obtain strain & stress
+    ChStrainTensor<> Strain;   ///< Strain tensor
+    ChStressTensor<> Stress;   ///< Stress tensor
 
-    /// Constructor; n number of the gauss point, coordinates of the point, w weight
-    ChGaussPoint(/*ChGaussIntegrationRule *ir,*/ int n, ChVector<>* coord, double w);
-    /// Destructor
-    virtual ~ChGaussPoint();
+    /// Create a Gauss point with given number, coordinates and weight.
+    ChGaussPoint(int number, ChVector<>* coord, double weight);
 
-    /// Returns local coordinates
-    ChVector<> GetLocalCoordinates() { return LocalCoordinates; }
-    void setLocalCoordinates(ChVector<>& c) { LocalCoordinates = c; }
+    ~ChGaussPoint();
 
-    /// Returns absolute coordinates
-    ChVector<> GetCoordinates() {
-        if (coordinates) {
-            return *coordinates;
-        } else {
-            return LocalCoordinates;
-        }
-    }
-    void SetCoordinates(ChVector<>& c) {
-        if (coordinates) {
-            *coordinates = c;
-        } else {
-            coordinates = new ChVector<>(c);
-        }
-    }
+    /// Return local coordinates
+    ChVector<> GetLocalCoordinates() const { return m_local_coordinates; }
+    void SetLocalCoordinates(const ChVector<>& c) { m_local_coordinates = c; }
 
-    /// Returns  integration weight of receiver
-    virtual double GetWeight() { return weight; }
-    void setWeight(double w) { weight = w; }
+    /// Return absolute coordinates
+    ChVector<> GetCoordinates() const;
 
-    /// Returns number of the point
-    int GetNumber() { return number; }
+    /// Set absolute coordinates
+    void SetCoordinates(const ChVector<>& c);
 
-    /// Returns corresponding integration rule to receiver
-    //    ChIntegrationRule *giveIntegrationRule() { return irule; }
+    /// Return integration weight of receiver
+    double GetWeight() const { return m_weight; }
+    void SetWeight(double w) { m_weight = w; }
+
+    /// Return number of the point
+    int GetNumber() const { return m_number; }
+
+  private:
+    int m_number;                    ///< number of this point
+    ChVector<> m_local_coordinates;  ///< local (natural) coordinates of the point
+    ChVector<>* m_coordinates;       ///< absolute point coordinates
+    double m_weight;                 ///< integration weight
 };
 
 /// @} fea_math

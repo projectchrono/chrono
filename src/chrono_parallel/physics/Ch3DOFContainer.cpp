@@ -45,6 +45,7 @@ Ch3DOFContainer::Ch3DOFContainer()
       num_unilaterals(0),
       num_bilaterals(0),
       num_shafts(0),
+      num_motors(0),
       num_fea_tets(0),
       num_fea_nodes(0),
       alpha(0) {
@@ -88,6 +89,7 @@ void Ch3DOFContainer::Setup(int start_constraint) {
         num_unilaterals = data_manager->num_unilaterals;
         num_bilaterals = data_manager->num_bilaterals;
         num_shafts = data_manager->num_shafts;
+        num_motors = data_manager->num_motors;
         num_fea_tets = data_manager->num_fea_tets;
         num_fea_nodes = data_manager->num_fea_nodes;
     }

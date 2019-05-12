@@ -135,13 +135,13 @@ using namespace chrono::postprocess;
 // a lot of code bloat. 
 // Alternatively, in the following we create a set of Python-side
 // functions to perform casting by hand, thank to the macro 
-// %DefChSharedPtrDynamicDowncast(base,derived). 
+// %DefSharedPtrDynamicDowncast(base,derived). 
 // Do not specify the "chrono::" namespace before base or derived!
 // Later, in python, you can do the following:
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
-%DefChSharedPtrDynamicDowncast(ChAsset,ChPovRayAssetCustom)
+%DefSharedPtrDynamicDowncast2NS(chrono, chrono::postprocess, ChAsset,ChPovRayAssetCustom)
 
 
 //

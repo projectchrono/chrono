@@ -20,8 +20,7 @@
 
 namespace chrono {
 
-/// Specialized class for representing a N-DOF item for a
-/// system, that is an item with a diagonal mass matrix and
+/// Specialized class for representing a N-DOF item for a system, that is an item with a diagonal mass matrix and
 /// associate variables.
 
 class ChApi ChVariablesGenericDiagonalMass : public ChVariables {
@@ -40,22 +39,16 @@ class ChApi ChVariablesGenericDiagonalMass : public ChVariables {
     /// Access the diagonal mass
     ChVectorDynamic<>& GetMassDiagonal() { return *MmassDiag; }
 
-    // IMPLEMENT PARENT CLASS METHODS
-
-    /// The number of scalar variables in the vector qb
-    /// (dof=degrees of freedom)
+    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
     virtual int Get_ndof() const override { return this->ndof; }
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and add to result: result = [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
     virtual void Compute_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a
-    /// vector, and increment result: result += [invMb]*vect
+    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
     virtual void Compute_inc_invMb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
-    /// Computes the product of the mass matrix by a
-    /// vector, and set in result: result = [Mb]*vect
+    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
     virtual void Compute_inc_Mb_v(ChMatrix<double>& result, const ChMatrix<double>& vect) const override;
 
     /// Computes the product of the corresponding block in the

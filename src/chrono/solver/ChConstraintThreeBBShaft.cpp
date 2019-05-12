@@ -72,6 +72,9 @@ void ChConstraintThreeBBShaft::SetVariables(ChVariables* mvariables_a,
     variables_a = mvariables_a;
     variables_b = mvariables_b;
     variables_c = mvariables_c;
+    Cq_a.Reset();
+    Cq_b.Reset();
+    Cq_c.Reset();
 }
 
 void ChConstraintThreeBBShaft::Update_auxiliary() {

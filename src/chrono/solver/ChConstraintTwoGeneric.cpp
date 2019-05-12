@@ -19,13 +19,15 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChConstraintTwoGeneric)
 
+ChConstraintTwoGeneric::ChConstraintTwoGeneric() : Cq_a(nullptr), Cq_b(nullptr), Eq_a(nullptr), Eq_b(nullptr) {}
+
 ChConstraintTwoGeneric::ChConstraintTwoGeneric(ChVariables* mvariables_a, ChVariables* mvariables_b)
-    : Cq_a(NULL), Cq_b(NULL), Eq_a(NULL), Eq_b(NULL) {
+    : Cq_a(nullptr), Cq_b(nullptr), Eq_a(nullptr), Eq_b(nullptr) {
     SetVariables(mvariables_a, mvariables_b);
 }
 
 ChConstraintTwoGeneric::ChConstraintTwoGeneric(const ChConstraintTwoGeneric& other) : ChConstraintTwo(other) {
-    Cq_a = Cq_b = Eq_a = Eq_b = NULL;
+    Cq_a = Cq_b = Eq_a = Eq_b = nullptr;
     if (other.Cq_a)
         Cq_a = new ChMatrixDynamic<double>(*other.Cq_a);
     if (other.Cq_b)
@@ -37,14 +39,10 @@ ChConstraintTwoGeneric::ChConstraintTwoGeneric(const ChConstraintTwoGeneric& oth
 }
 
 ChConstraintTwoGeneric::~ChConstraintTwoGeneric() {
-    if (Cq_a)
-        delete Cq_a;
-    if (Cq_b)
-        delete Cq_b;
-    if (Eq_a)
-        delete Eq_a;
-    if (Eq_b)
-        delete Eq_b;
+    delete Cq_a;
+    delete Cq_b;
+    delete Eq_a;
+    delete Eq_b;
 }
 
 ChConstraintTwoGeneric& ChConstraintTwoGeneric::operator=(const ChConstraintTwoGeneric& other) {
@@ -55,43 +53,39 @@ ChConstraintTwoGeneric& ChConstraintTwoGeneric::operator=(const ChConstraintTwoG
     ChConstraintTwo::operator=(other);
 
     if (other.Cq_a) {
-        if (Cq_a == NULL)
+        if (!Cq_a)
             Cq_a = new ChMatrixDynamic<double>;
         Cq_a->CopyFromMatrix(*other.Cq_a);
     } else {
-        if (Cq_a)
-            delete Cq_a;
-        Cq_a = NULL;
+        delete Cq_a;
+        Cq_a = nullptr;
     }
 
     if (other.Cq_b) {
-        if (Cq_b == NULL)
+        if (!Cq_b)
             Cq_b = new ChMatrixDynamic<double>;
         Cq_b->CopyFromMatrix(*other.Cq_b);
     } else {
-        if (Cq_b)
-            delete Cq_b;
-        Cq_b = NULL;
+        delete Cq_b;
+        Cq_b = nullptr;
     }
 
     if (other.Eq_a) {
-        if (Eq_a == NULL)
+        if (!Eq_a)
             Eq_a = new ChMatrixDynamic<double>;
         Eq_a->CopyFromMatrix(*other.Eq_a);
     } else {
-        if (Eq_a)
-            delete Eq_a;
-        Eq_a = NULL;
+        delete Eq_a;
+        Eq_a = nullptr;
     }
 
     if (other.Eq_b) {
-        if (Eq_b == NULL)
+        if (!Eq_b)
             Eq_b = new ChMatrixDynamic<double>;
         Eq_b->CopyFromMatrix(*other.Eq_b);
     } else {
-        if (Eq_b)
-            delete Eq_b;
-        Eq_b = NULL;
+        delete Eq_b;
+        Eq_b = nullptr;
     }
 
     return *this;
@@ -117,13 +111,13 @@ void ChConstraintTwoGeneric::SetVariables(ChVariables* mvariables_a, ChVariables
             Eq_a = new ChMatrixDynamic<double>(variables_a->Get_ndof(), 1);
         else
             Eq_a->Resize(variables_a->Get_ndof(), 1);
+
+        Cq_a->Reset();
     } else {
-        if (Cq_a)
-            delete Cq_a;
-        Cq_a = NULL;
-        if (Eq_a)
-            delete Eq_a;
-        Eq_a = NULL;
+        delete Cq_a;
+        delete Eq_a;
+        Cq_a = nullptr;
+        Eq_a = nullptr;
     }
 
     if (variables_b->Get_ndof()) {
@@ -136,13 +130,13 @@ void ChConstraintTwoGeneric::SetVariables(ChVariables* mvariables_a, ChVariables
             Eq_b = new ChMatrixDynamic<double>(variables_b->Get_ndof(), 1);
         else
             Eq_b->Resize(variables_b->Get_ndof(), 1);
+
+        Cq_b->Reset();
     } else {
-        if (Cq_b)
-            delete Cq_b;
-        Cq_b = NULL;
-        if (Eq_b)
-            delete Eq_b;
-        Eq_b = NULL;
+        delete Cq_b;
+        delete Eq_b;
+        Cq_b = nullptr;
+        Eq_b = nullptr;
     }
 }
 

@@ -104,6 +104,8 @@ int main(int argc, char* argv[]) {
         // - send 2 variables to Simulink (the hydraulic cylinder velocity and displacement)
         ChMatrixDynamic<double> data_in(1, 1);
         ChMatrixDynamic<double> data_out(2, 1);
+        data_in.Reset();
+        data_out.Reset();
 
         // 4) Wait client (Simulink) to connect...
 

@@ -50,12 +50,12 @@
     "Tire Stiffness": {
       "Longitudinal [N/m]": 185004.42,
       "Lateral [N/m]": 164448.37,
-      "Vertical [N/m]": [ 205560.46, 205560.46 ]
+      "Vertical [N/m]": [ 411121.0, 411121.00 ]
     },
     "Tire Damping": {
-      "Longitudinal [Ns/m]": 131.87,
-      "Lateral [Ns/m]": 124.33,
-      "Vertical [Ns/m]": 139.01
+      "Longitudinal [Ns/m]": 3700,
+      "Lateral [Ns/m]": 3488,
+      "Vertical [Ns/m]": 3900
     },
     "Dynamic Radius Weighting Coefficients": [ 0.375, 0.75 ],
     "Longitudinal": {

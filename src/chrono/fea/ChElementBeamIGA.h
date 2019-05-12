@@ -407,6 +407,8 @@ class  ChElementBeamIGA :   public ChElementBeam,
         ChStateDelta  state_delta(mrows_w, nullptr);
 
         // Compute K=-dQ(x,v)/dx by backward differentiation
+        state_delta.Reset(mrows_w, nullptr);
+
         for (int i=0; i<mrows_w; ++i) {
             state_delta(i)+= Delta;
             this->LoadableStateIncrement(0, state_x_inc, state_x, 0, state_delta);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
@@ -457,6 +459,7 @@ class  ChElementBeamIGA :   public ChElementBeam,
         //
 
         ChMatrixDynamic<> Mloc(6 * (int)nodes.size(), 6 * (int)nodes.size());
+        Mloc.Reset();
 
         double nmass = mass /(double)nodes.size();
          //Iyy and Izz: (orthogonal to spline) approx as 1/50 lumped mass at half dist:

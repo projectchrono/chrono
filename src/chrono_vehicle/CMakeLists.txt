@@ -195,11 +195,15 @@ set(CV_POVERTRAIN_FILES
     powertrain/ChShaftsPowertrain.cpp
     powertrain/ChSimpleMapPowertrain.h
     powertrain/ChSimpleMapPowertrain.cpp
+    powertrain/ChSimpleCVTPowertrain.h
+    powertrain/ChSimpleCVTPowertrain.cpp
 
     powertrain/SimpleMapPowertrain.h
     powertrain/SimpleMapPowertrain.cpp
     powertrain/SimplePowertrain.h
     powertrain/SimplePowertrain.cpp
+    powertrain/SimpleCVTPowertrain.h
+    powertrain/SimpleCVTPowertrain.cpp
     powertrain/ShaftsPowertrain.h
     powertrain/ShaftsPowertrain.cpp
 )

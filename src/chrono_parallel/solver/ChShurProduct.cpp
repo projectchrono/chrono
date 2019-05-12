@@ -127,8 +127,8 @@ void ChShurProductFEM::Setup(ChParallelDataManager* data_container_) {
     //    uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
     //    uint start_tet = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
     //    int num_constraints = data_manager->num_fea_tets * (6 + 1);
-    //    uint start_nodes =
-    //        data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_fluid_bodies * 3;
+    //    uint start_nodes = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
+    //                       data_manager->num_fluid_bodies * 3;
     //    NshurB = submatrix(data_manager->host_data.D_T, start_tet, start_nodes, num_constraints,
     //                       data_manager->num_fea_nodes * 3) *
     //             submatrix(data_manager->host_data.M_invD, start_nodes, start_tet, data_manager->num_fea_nodes * 3,
@@ -139,8 +139,8 @@ void ChShurProductFEM::operator()(const DynamicVector<real>& x, DynamicVector<re
     uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
     uint start_tet = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
     int num_constraints = data_manager->num_fea_tets * (6 + 1);
-    uint start_nodes =
-        data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_fluid_bodies * 3;
+    uint start_nodes = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
+                       data_manager->num_fluid_bodies * 3;
     output = submatrix(data_manager->host_data.D_T, start_tet, start_nodes, num_constraints,
                        data_manager->num_fea_nodes * 3) *
                  submatrix(data_manager->host_data.M_invD, start_nodes, start_tet, data_manager->num_fea_nodes * 3,
