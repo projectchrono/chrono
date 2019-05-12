@@ -77,6 +77,7 @@ void ChFluidContainer::Update(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
     real3 g_acc = data_manager->settings.gravity;
@@ -130,17 +131,18 @@ void ChFluidContainer::Update(double ChTime) {
         }
     }
 #endif
+    uint offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
         // real3 vel = vel_fluid[i];
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel.x;
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = vel.y;
-        // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = vel.z;
+        // data_manager->host_data.v[offset + i * 3 + 0] = vel.x;
+        // data_manager->host_data.v[offset + i * 3 + 1] = vel.y;
+        // data_manager->host_data.v[offset + i * 3 + 2] = vel.z;
 
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = h_gravity.x;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 1] = h_gravity.y;
-        data_manager->host_data.hf[num_rigid_bodies * 6 + num_shafts + i * 3 + 2] = h_gravity.z;
+        data_manager->host_data.hf[offset + i * 3 + 0] = h_gravity.x;
+        data_manager->host_data.hf[offset + i * 3 + 1] = h_gravity.y;
+        data_manager->host_data.hf[offset + i * 3 + 2] = h_gravity.z;
     }
 }
 
@@ -148,17 +150,20 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
     custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
+
+    uint offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         real3 vel;
         int original_index = data_manager->host_data.particle_indices_3dof[i];
         // these are sorted so we have to unsort them
-        vel.x = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0];
-        vel.y = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 1];
-        vel.z = data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 2];
+        vel.x = data_manager->host_data.v[offset + i * 3 + 0];
+        vel.y = data_manager->host_data.v[offset + i * 3 + 1];
+        vel.z = data_manager->host_data.v[offset + i * 3 + 2];
 
         real speed = Length(vel);
         if (speed > max_velocity) {
@@ -289,7 +294,7 @@ void ChFluidContainer::Setup(int start_constraint) {
 
     start_viscous = start_density + num_fluid_bodies;
 
-    body_offset = num_rigid_bodies * 6 + num_shafts;
+    body_offset = num_rigid_bodies * 6 + num_shafts + num_motors;
 }
 
 void ChFluidContainer::Initialize() {

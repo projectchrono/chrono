@@ -70,6 +70,8 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
 
     virtual int GetDOF() override { return 1; }
 
+    ChVariablesGeneric& Variables() { return variable; }
+
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,

@@ -592,6 +592,7 @@ void ChIterativeSolverParallelSMC::ComputeD() {
 
     uint num_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
+    uint num_motors = data_manager->num_motors;
     uint num_dof = data_manager->num_dof;
     uint num_contacts = data_manager->num_rigid_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
