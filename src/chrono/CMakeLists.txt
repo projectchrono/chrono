@@ -207,6 +207,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLoadContainer.cpp
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
+	physics/ChLoadsXYZnode.cpp
     physics/ChLoadBodyMesh.cpp
     )
 
