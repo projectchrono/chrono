@@ -26,10 +26,8 @@
 namespace chrono {
 
 /// Class representing a container of many smooth (penalty) contacts.
-/// This is implemented as a typical linked list of ChContactSMC objects
-/// (that is, contacts between two ChContactable objects).
+/// Implemented using linked lists of ChContactSMC objects (that is, contacts between two ChContactable objects).
 class ChApi ChContactContainerSMC : public ChContactContainer {
-
   public:
     typedef ChContactSMC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactSMC_3_3;
     typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactSMC_6_3;
@@ -76,6 +74,8 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     std::list<ChContactSMC_666_333*>::iterator lastcontact_666_333;
     std::list<ChContactSMC_666_666*>::iterator lastcontact_666_666;
 
+    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
+
   public:
     ChContactContainerSMC();
     ChContactContainerSMC(const ChContactContainerSMC& other);
@@ -84,7 +84,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChContactContainerSMC* Clone() const override { return new ChContactContainerSMC(*this); }
 
-    /// Tell the number of added contacts
+    /// Report the number of added contacts.
     virtual int GetNcontacts() const override {
         return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666;
@@ -93,31 +93,36 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts() override;
 
-    /// The collision system will call BeginAddContact() before adding
-    /// all contacts (for example with AddContact() or similar). Instead of
-    /// simply deleting all list of the previous contacts, this optimized implementation
-    /// rewinds the link iterator to begin and tries to reuse previous contact objects
-    /// until possible, to avoid too much allocation/deallocation.
+    /// The collision system will call BeginAddContact() before adding all contacts (for example with AddContact() or
+    /// similar). Instead of simply deleting all list of the previous contacts, this optimized implementation rewinds
+    /// the link iterator to begin and tries to reuse previous contact objects until possible, to avoid too much
+    /// allocation/deallocation.
     virtual void BeginAddContact() override;
 
     /// Add a contact between two frames.
     virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
 
-    /// The collision system will call BeginAddContact() after adding
-    /// all contacts (for example with AddContact() or similar). This optimized version
-    /// purges the end of the list of contacts that were not reused (if any).
+    /// The collision system will call BeginAddContact() after adding all contacts (for example with AddContact() or
+    /// similar). This optimized version purges the end of the list of contacts that were not reused (if any).
     virtual void EndAddContact() override;
 
-    /// Scans all the contacts and for each contact executes the OnReportContact()
-    /// function of the provided callback object.
+    /// Scan all the contacts and for each contact executes the OnReportContact() function of the provided callback
+    /// object.
     virtual void ReportAllContacts(ReportContactCallback* mcallback) override;
 
-    /// In detail, it computes jacobians, violations, etc. and stores
-    /// results in inner structures of contacts.
+    /// Update state of this contact container: compute jacobians, violations, etc.
+    /// and store results in inner structures of contacts.
     virtual void Update(double mtime, bool update_assets = true) override;
 
     /// Compute contact forces on all contactable objects in this container.
+    /// This function caches contact forces in a map.
     virtual void ComputeContactForces() override;
+
+    /// Return the resultant contact force acting on the specified contactable object.
+    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
+
+    /// Return the resultant contact torque acting on the specified contactable object.
+    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
 
     // STATE FUNCTIONS
 

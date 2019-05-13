@@ -114,19 +114,32 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     /// Return the time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() const override;
 
-    /// Calculate cummulative contact forces for all bodies in the system.
-    virtual void CalculateContactForces() {}
-
     /// Calculate current body AABBs.
     void CalculateBodyAABB();
 
+    /// Calculate cummulative contact forces for all bodies in the system.
+    /// Note that this function must be explicitly called by the user at each time where
+    /// calls to GetContactableForce or ContactableTorque are made.
+    virtual void CalculateContactForces() {}
+
     /// Get the contact force on the body with specified id.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact forces is desired.
     virtual real3 GetBodyContactForce(uint body_id) const = 0;
+
     /// Get the contact torque on the body with specified id.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact torques is desired.
     virtual real3 GetBodyContactTorque(uint body_id) const = 0;
+
     /// Get the contact force on the specified body.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact forces is desired.
     real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetId()); }
+
     /// Get the contact torque on the specified body.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact torques is desired.
     real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetId()); }
 
     settings_container* GetSettings();

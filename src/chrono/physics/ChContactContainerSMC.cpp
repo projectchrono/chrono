@@ -339,6 +339,22 @@ void ChContactContainerSMC::ComputeContactForces() {
     SumAllContactForces(contactlist_666_666, contact_forces);
 }
 
+ChVector<> ChContactContainerSMC::GetContactableForce(ChContactable* contactable) {
+    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
+    if (Iterator != contact_forces.end()) {
+        return Iterator->second.force;
+    }
+    return ChVector<>(0);
+}
+
+ChVector<> ChContactContainerSMC::GetContactableTorque(ChContactable* contactable) {
+    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
+    if (Iterator != contact_forces.end()) {
+        return Iterator->second.torque;
+    }
+    return ChVector<>(0);
+}
+
 template <class Tcont>
 void _ReportAllContacts(std::list<Tcont*>& contactlist, ChContactContainer::ReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();

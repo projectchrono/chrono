@@ -18,7 +18,6 @@
 
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
-
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 
@@ -28,13 +27,9 @@ namespace chrono {
 /// @{
 
 /// Class representing a container of many contacts, implemented as a linked list of contact tuples.
-/// Notes:
-/// * This container is used only for reporting geometric information about the contact pairs
-///   and is therefore suitable for both NSC and SMC systems.
-/// * Currently, only contacts between rigid bodies are considered
-
+/// This container is used only for reporting geometric information about the contact pairs and is therefore suitable
+/// for both NSC and SMC systems. Currently, only contacts between rigid bodies are considered.
 class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
-
   public:
     typedef ChContactTuple<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContact_6_6;
 
@@ -53,18 +48,32 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
     virtual void EndAddContact() override;
 
     /// Specify a callback object to be used each time a contact point is added to the container.
-    /// Note that not all derived classes can support this. If supported, the OnAddContact() method
-    /// of the provided callback object will be called for each contact pair to allow modifying the
-    /// composite material properties.
-    virtual void RegisterAddContactCallback(AddContactCallback* mcallback) override { data_manager->add_contact_callback = mcallback; }
+    virtual void RegisterAddContactCallback(AddContactCallback* mcallback) override {
+        data_manager->add_contact_callback = mcallback;
+    }
 
     /// Get the callback object to be used each time a contact point is added to the container.
     virtual AddContactCallback* GetAddContactCallback() override { return data_manager->add_contact_callback; }
 
-    /// Scans all the contacts and for each contact executes the OnReportContact()
+    /// Scan all the contacts and for each contact executes the OnReportContact()
     /// function of the provided callback object.
     /// Note: currently, the contact reaction force and torque are not set (always zero).
     virtual void ReportAllContacts(ReportContactCallback* callback) override;
+
+    /// Compute contact forces on all contactable objects in this container.
+    /// Note that this function must be explicitly called by the user at each time where
+    /// calls to GetContactableForce or ContactableTorque are made.
+    virtual void ComputeContactForces() override;
+
+    /// Return the resultant contact force acting on the specified contactable object.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact forces is desired.
+    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
+
+    /// Return the resultant contact torque acting on the specified contactable object.
+    /// Note that ComputeContactForces must be called prior to calling this function
+    /// at any time where reporting of contact torques is desired.
+    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
 
     /// Return the list of contacts between rigid bodies
     const std::list<ChContact_6_6*>& GetContactList() const { return contactlist_6_6; }
@@ -79,4 +88,4 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
 
 /// @} parallel_colision
 
-} // end namespace chrono
+}  // end namespace chrono
