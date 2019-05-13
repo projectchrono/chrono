@@ -111,7 +111,7 @@ void ChTireTestRig::SetTerrainGranular(double radius,
     m_params_granular.cohesion = cohesion;
     m_params_granular.Young_modulus = Young_modulus;
 
-    m_params_granular.length = 4 * m_tire->GetRadius();
+    m_params_granular.length = 5 * m_tire->GetRadius();
     m_params_granular.width = 1;  //// TODO: m_tire->GetWidth();
 }
 
@@ -223,6 +223,8 @@ void ChTireTestRig::CreateMechanism() {
 
     m_ground_body = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(m_ground_body);
+    m_ground_body->SetName("rig_ground");
+    m_ground_body->SetIdentifier(0);
     m_ground_body->SetBodyFixed(true);
     {
         auto box = std::make_shared<ChBoxShape>();
@@ -232,6 +234,8 @@ void ChTireTestRig::CreateMechanism() {
 
     m_carrier_body = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(m_carrier_body);
+    m_carrier_body->SetName("rig_carrier");
+    m_carrier_body->SetIdentifier(1);
     m_carrier_body->SetPos(ChVector<>(0, 0, 0));
     m_carrier_body->SetMass(m_wheel->GetMass());
     m_carrier_body->SetInertiaXX(m_wheel->GetInertia());
@@ -252,6 +256,8 @@ void ChTireTestRig::CreateMechanism() {
 
     m_chassis_body = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(m_chassis_body);
+    m_chassis_body->SetName("rig_chassis");
+    m_chassis_body->SetIdentifier(2);
     m_chassis_body->SetPos(ChVector<>(0, 0, 0));
     m_chassis_body->SetMass(m_wheel->GetMass());
     m_chassis_body->SetInertiaXX(m_wheel->GetInertia());
@@ -271,6 +277,8 @@ void ChTireTestRig::CreateMechanism() {
 
     m_slip_body = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(m_slip_body);
+    m_slip_body->SetName("rig_slip");
+    m_slip_body->SetIdentifier(3);
     m_slip_body->SetPos(ChVector<>(0, 0, -4 * dim));
     m_slip_body->SetMass(m_wheel->GetMass());
     m_slip_body->SetInertiaXX(m_wheel->GetInertia());
@@ -286,6 +294,8 @@ void ChTireTestRig::CreateMechanism() {
     qc.Q_from_AngX(-m_camber_angle);
     m_spindle_body = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(m_spindle_body);
+    m_spindle_body->SetName("rig_spindle");
+    m_spindle_body->SetIdentifier(4);
     m_spindle_body->SetMass(1);
     m_spindle_body->SetInertiaXX(ChVector<>(0.01, 0.01, 0.01));
     m_spindle_body->SetPos(ChVector<>(0, 3 * dim, -4 * dim));
@@ -447,14 +457,14 @@ void ChTireTestRig::CreateTerrainGranular() {
         }
     }
 
-    terrain->SetStartIdentifier(100000);
+    terrain->SetStartIdentifier(1000000);
     ////terrain->EnableVisualization(true);
     terrain->EnableVerbose(true);
     terrain->Initialize(location, m_params_granular.length, m_params_granular.width, m_params_granular.num_layers,
                         m_params_granular.radius, m_params_granular.density);
 
-    double buffer_dist = 1.75 * m_tire->GetRadius();
-    double shift_dist = m_tire->GetRadius();
+    double buffer_dist = 2.0 * m_tire->GetRadius();
+    double shift_dist = 0.5 * m_tire->GetRadius();
     terrain->EnableMovingPatch(m_spindle_body, buffer_dist, shift_dist, ChVector<>(0, 0, -2));
 
     m_terrain = terrain;
