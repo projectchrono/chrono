@@ -247,7 +247,7 @@ void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
     AddMaterialSurfaceData(newbody);
 }
 
-void ChSystemParallel::AddLink(std::shared_ptr<ChLink> link) {
+void ChSystemParallel::AddLink(std::shared_ptr<ChLinkBase> link) {
     if (link->GetDOF() == 1) {
         if (auto mot = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(link)) {
             linmotorlist.push_back(mot.get());

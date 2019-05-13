@@ -199,7 +199,7 @@ void ChSystemParallelNSC::AssembleSystem() {
     double C_factor = 1 / step;
 
     for (int ip = 0; ip < linklist.size(); ++ip) {
-        std::shared_ptr<ChLink> Lpointer = linklist[ip];
+        std::shared_ptr<ChLinkBase> Lpointer = linklist[ip];
 
         Lpointer->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
         Lpointer->ConstraintsBiLoad_Ct(Ct_factor);

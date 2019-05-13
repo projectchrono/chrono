@@ -24,22 +24,6 @@ ChContactContainer::ChContactContainer(const ChContactContainer& other) : ChPhys
     report_contact_callback = other.report_contact_callback;
 }
 
-ChVector<> ChContactContainer::GetContactableForce(ChContactable* contactable) {
-    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
-    if (Iterator != contact_forces.end()) {
-        return Iterator->second.force;
-    }
-    return ChVector<>(0);
-}
-
-ChVector<> ChContactContainer::GetContactableTorque(ChContactable* contactable) {
-    std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
-    if (Iterator != contact_forces.end()) {
-        return Iterator->second.torque;
-    }
-    return ChVector<>(0);
-}
-
 void ChContactContainer::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChContactContainer>();

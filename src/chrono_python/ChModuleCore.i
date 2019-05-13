@@ -55,6 +55,7 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChNodeBase.h"
 #include "chrono/physics/ChNodeXYZ.h"
+#include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChTensors.h"
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
@@ -170,6 +171,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChContinuumPlasticVonMises)
 %shared_ptr(chrono::ChContinuumDruckerPrager)
 %shared_ptr(chrono::ChBodyFrame)
+%shared_ptr(chrono::ChNodeBase)
+%shared_ptr(chrono::ChNodeXYZ)
 %shared_ptr(chrono::ChMarker)
 %shared_ptr(chrono::ChForce)
 %shared_ptr(chrono::ChBody)
@@ -274,6 +277,15 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLoadBodyBodyBushingMate)
 %shared_ptr(chrono::ChLoadBodyBodyBushingPlastic)
 %shared_ptr(chrono::ChLoadBodyBodyBushingGeneric)
+%shared_ptr(chrono::ChLoadXYZnodeForce)
+%shared_ptr(chrono::ChLoadXYZnodeForceAbsolute)
+%shared_ptr(chrono::ChLoadXYZnodeXYZnode)
+%shared_ptr(chrono::ChLoadXYZnodeXYZnodeSpring)
+%shared_ptr(chrono::ChLoadXYZnodeXYZnodeBushing)
+%shared_ptr(chrono::ChLoadXYZnodeBody)
+%shared_ptr(chrono::ChLoadXYZnodeBodySpring)
+%shared_ptr(chrono::ChLoadXYZnodeBodyBushing)
+
 
 %shared_ptr(chrono::geometry::ChGeometry)
 %shared_ptr(chrono::geometry::ChLine)
@@ -416,6 +428,7 @@ using namespace chrono::fea;
 %include "ChSystemNSC.i"
 %include "ChSystemSMC.i"
 %include "ChProximityContainer.i"
+%import "../chrono/physics/ChLoad.h" // a forward reference done "the %import way" here works ok..
 %include "ChLoadContainer.i"
 
 %include "ChShaft.i"
@@ -430,6 +443,7 @@ using namespace chrono::fea;
 %include "ChLinkMotor.i"
 %include "../chrono/physics/ChLoad.h"
 %include "../chrono/physics/ChLoadsBody.h"
+%include "../chrono/physics/ChLoadsXYZnode.h"
 %include "../chrono/physics/ChLoadContainer.h"
 
 

@@ -396,11 +396,11 @@ void ChSystem::RemoveAllControls() {
 }
 
 void ChSystem::Reference_LM_byID() {
-    std::vector<std::shared_ptr<ChLink> > toremove;
+    std::vector<std::shared_ptr<ChLinkBase> > toremove;
 
     for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
     {
-        std::shared_ptr<ChLink> Lpointer = linklist[ip];
+        std::shared_ptr<ChLinkBase> Lpointer = linklist[ip];
         if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(Lpointer)) {
             std::shared_ptr<ChMarker> shm1 = SearchMarker(malink->GetMarkID1());
             std::shared_ptr<ChMarker> shm2 = SearchMarker(malink->GetMarkID2());
@@ -408,11 +408,11 @@ void ChSystem::Reference_LM_byID() {
             ChMarker* mm2 = shm1.get();
             malink->SetUpMarkers(mm1, mm2);
             if (mm1 && mm2) {
-                Lpointer->SetValid(true);
+                malink->SetValid(true);
             } else {
-                Lpointer->SetValid(false);
+                malink->SetValid(false);
                 malink->SetUpMarkers(0, 0);  // note: marker IDs are maintained
-                toremove.push_back(Lpointer);
+                toremove.push_back(malink);
             }
         }
     }
@@ -558,34 +558,34 @@ bool ChSystem::ManageSleepingBodies() {
         my_waker.someone_sleeps = false;
 
         // scan all links and wake connected bodies
-        for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
-        {
-            std::shared_ptr<ChLink> Lpointer = linklist[ip];
-
-            if (Lpointer->IsRequiringWaking()) {
-                ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
-                ChBody* b2 = dynamic_cast<ChBody*>(Lpointer->GetBody2());
-                if (b1 && b2) {
-                    bool sleep1 = b1->GetSleeping();
-                    bool sleep2 = b2->GetSleeping();
-                    bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-                    bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-                    if (sleep1 && !(sleep2 || could_sleep2)) {
-                        b1->SetSleeping(false);
-                        need_Setup_L = true;
-                    }
-                    if (sleep2 && !(sleep1 || could_sleep1)) {
-                        b2->SetSleeping(false);
-                        need_Setup_L = true;
-                    }
-                    if (could_sleep1 && !(sleep2 || could_sleep2)) {
-                        b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
-                    }
-                    if (could_sleep2 && !(sleep1 || could_sleep1)) {
-                        b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
-                    }
-                }
-            }
+		for (unsigned int ip = 0; ip < linklist.size(); ++ip)  // ITERATE on links
+		{
+			if (auto Lpointer = std::dynamic_pointer_cast<ChLink>(linklist[ip])) {
+				if (Lpointer->IsRequiringWaking()) {
+					ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
+					ChBody* b2 = dynamic_cast<ChBody*>(Lpointer->GetBody2());
+					if (b1 && b2) {
+						bool sleep1 = b1->GetSleeping();
+						bool sleep2 = b2->GetSleeping();
+						bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+						bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+						if (sleep1 && !(sleep2 || could_sleep2)) {
+							b1->SetSleeping(false);
+							need_Setup_L = true;
+						}
+						if (sleep2 && !(sleep1 || could_sleep1)) {
+							b2->SetSleeping(false);
+							need_Setup_L = true;
+						}
+						if (could_sleep1 && !(sleep2 || could_sleep2)) {
+							b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+						}
+						if (could_sleep2 && !(sleep1 || could_sleep1)) {
+							b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+						}
+					}
+				}
+			}
         }
 
         // scan all contacts and wake neighboring bodies
