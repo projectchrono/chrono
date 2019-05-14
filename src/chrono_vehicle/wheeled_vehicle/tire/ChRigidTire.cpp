@@ -187,13 +187,22 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
     // Otherwise, calculate and return the resultant of the contact forces acting
     // on the tire.  The resulting tire force and moment are expressed in global frame,
     // as applied at the center of the associated wheel body.
+
+    TerrainForce tire_force;
+    tire_force.point = m_wheel->GetPos();
+    tire_force.force = m_wheel->GetContactForce();
+    tire_force.moment = m_wheel->GetContactTorque();
+
+    // Approach using the RigidTireContactReporter does not work in Chrono::Parallel
+    // since contact forces and torques passed to OnReportContact are always zero.
+    /*
     RigidTireContactReporter reporter(m_wheel);
     m_wheel->GetSystem()->GetContactContainer()->ReportAllContacts(&reporter);
-
     TerrainForce tire_force;
     tire_force.point = m_wheel->GetPos();
     tire_force.force = reporter.GetAccumulatedForce();
     tire_force.moment = reporter.GetAccumulatedTorque();
+    */
 
     return tire_force;
 }
