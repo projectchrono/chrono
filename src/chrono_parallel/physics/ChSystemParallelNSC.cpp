@@ -104,6 +104,8 @@ void ChSystemParallelNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
 }
 
 void ChSystemParallelNSC::CalculateContactForces() {
+    uint num_unilaterals = data_manager->num_unilaterals;
+    uint num_rigid_dof = data_manager->num_rigid_bodies * 6;
     uint num_contacts = data_manager->num_rigid_contacts;
     DynamicVector<real>& Fc = data_manager->host_data.Fc;
 
@@ -117,8 +119,9 @@ void ChSystemParallelNSC::CalculateContactForces() {
 
     LOG(INFO) << "ChSystemParallelNSC::CalculateContactForces() ";
 
-    DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    Fc = data_manager->host_data.D * gamma / data_manager->settings.step_size;
+    const SubMatrixType& D_u = blaze::submatrix(data_manager->host_data.D, 0, 0, num_rigid_dof, num_unilaterals);
+    DynamicVector<real> gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, num_unilaterals);
+    Fc = D_u * gamma_u / data_manager->settings.step_size;
 }
 
 real3 ChSystemParallelNSC::GetBodyContactForce(uint body_id) const {
