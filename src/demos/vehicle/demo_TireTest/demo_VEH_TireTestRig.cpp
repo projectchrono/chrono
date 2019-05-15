@@ -137,14 +137,14 @@ int main() {
         ////auto long_slip = tire->GetLongitudinalSlip();
         ////auto slip_angle = tire->GetSlipAngle();
         ////auto camber_angle = tire->GetCamberAngle();
-        ////std::cout << long_slip << " " << slip_angle << " " << camber_angle << std::endl;
+        ////std::cout << "   " << long_slip << " " << slip_angle << " " << camber_angle << std::endl;
         ////auto tforce = rig.GetTireForce();
         ////auto frc = tforce.force;
         ////auto pnt = tforce.point;
         ////auto trq = tforce.moment;
-        ////std::cout << frc.x() << " " << frc.y() << " " << frc.z() << std::endl;
-        ////std::cout << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
-        ////std::cout << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
+        ////std::cout << "   " << frc.x() << " " << frc.y() << " " << frc.z() << std::endl;
+        ////std::cout << "   " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
+        ////std::cout << "   " << trq.x() << " " << trq.y() << " " << trq.z() << std::endl;
     }
 
     return 0;

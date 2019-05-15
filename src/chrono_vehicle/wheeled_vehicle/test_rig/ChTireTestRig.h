@@ -83,27 +83,30 @@ class CH_VEHICLE_API ChTireTestRig {
                        double Bekker_n,            ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
                        double Mohr_cohesion,       ///< cohesion [Pa], for shear failure
                        double Mohr_friction,       ///< Friction angle [degrees], for shear failure
-                       double Janosi_shear,        ///< shear parameter J [m], (usually few mm or cm)
+                       double Janosi_shear,        ///< shear parameter J [m], (usually a few mm or cm)
                        double terrain_length = 10  ///< length of terrain patch
     );
 
     /// Enable use of rigid terrain. Specify contact material properties.
     void SetTerrainRigid(double friction,            ///< coefficient of friction
                          double restitution,         ///< coefficient of restitution
-                         double Young_modulus,       ///< contact material Young's modulus
-                         double terrain_length = 10  ///< length of terrain patch
+                         double Young_modulus,       ///< contact material Young's modulus [Pa]
+                         double terrain_length = 10  ///< length of terrain patch [m]
     );
 
     /// Enable use of granular terrain.
     /// The terrain subsystem consists of identical spherical particles initialized in layers.
     /// A moving-patch option is used, with the patch dimensions set based on the tire dimensions.
-    void SetTerrainGranular(double radius,            ///< particle radius
+    void SetTerrainGranular(double radius,            ///< particle radius [m]
                             unsigned int num_layers,  ///< number of layers for initial particle creation
-                            double density,           ///< particle material density
+                            double density,           ///< particle material density [kg/m3]
                             double friction,          ///< inter-particle coefficient of friction
-                            double cohesion,          ///< inter-particle cohesion pressure
-                            double Young_modulus      ///< particle contact material Young's modulus
+                            double cohesion,          ///< inter-particle cohesion pressure [Pa]
+                            double Young_modulus      ///< particle contact material Young's modulus [Pa]
     );
+
+    /// Set time delay before releasing the wheel (default: 0s).
+    void SetTimeDelay(double delay) { m_time_delay = delay; }
 
     /// Initialize the rig system. This version uses all motion functions as specified by the user. It is the user's
     /// responsibility to set these up for a meaningful test.
@@ -124,6 +127,13 @@ class CH_VEHICLE_API ChTireTestRig {
 
     /// Advance system state by the specified time step.
     void Advance(double step);
+
+    /// Get total rig mass.
+    double GetTotalMass() const { return m_total_mass; }
+
+    /// Get applied load on rig
+    /// (to enforce specified normal load, taking into account the masses of all components).
+    double GetAppliedLoad() const { return m_applied_load; }
 
     /// Get a handle to the underlying terrain subsystem.
     std::shared_ptr<ChTerrain> GetTerrain() const { return m_terrain; }
@@ -149,9 +159,9 @@ class CH_VEHICLE_API ChTireTestRig {
     };
 
     struct TerrainParamsRigid {
-        float friction;  ///< coefficient of friction
-        float Young_modulus;         ///< Young's modulus
-        float restitution;        ///< coefficient of restitution
+        float friction;       ///< coefficient of friction
+        float Young_modulus;  ///< Young's modulus (Pa)
+        float restitution;    ///< coefficient of restitution
         double length;
         double width;
     };
@@ -159,10 +169,10 @@ class CH_VEHICLE_API ChTireTestRig {
     struct TerrainParamsGranular {
         double radius;            ///< particle radius
         unsigned int num_layers;  ///< number of layers for initial particle creation
-        double density;           ///< particle material density
+        double density;           ///< particle material density (kg/m3)
         double friction;          ///< inter-particle coefficient of friction
-        double cohesion;          ///< inter-particle cohesion pressure
-        double Young_modulus;     ///< particle contact material Young's modulus
+        double cohesion;          ///< inter-particle cohesion pressure (Pa)
+        double Young_modulus;     ///< particle contact material Young's modulus (Pa)
         double length;
         double width;
     };
@@ -184,8 +194,11 @@ class CH_VEHICLE_API ChTireTestRig {
     double m_tire_step;                      ///< step size for tire integration
     double m_camber_angle;                   ///< camber angle
 
-    double m_grav;         ///< gravitational acceleration
-    double m_normal_load;  ///< desired normal load
+    double m_grav;          ///< gravitational acceleration
+    double m_normal_load;   ///< desired normal load
+    double m_applied_load;  ///< applied load on chassis body
+    double m_total_mass;    ///< total sprung mass
+    double m_time_delay;    ///< time delay before applying external load 
 
     TerrainType m_terrain_type;               ///< terrain type
     TerrainParamsSCM m_params_SCM;            ///< SCM soil parameters

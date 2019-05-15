@@ -39,6 +39,9 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
       m_tire(tire),
       m_camber_angle(0),
       m_normal_load(0),
+      m_applied_load(0),
+      m_total_mass(0),
+      m_time_delay(0),
       m_ls_actuated(false),
       m_rs_actuated(false),
       m_terrain_type(TerrainType::NONE),
@@ -189,6 +192,14 @@ void ChTireTestRig::Initialize(double long_slip, double base_speed) {
 
 void ChTireTestRig::Advance(double step) {
     double time = m_system->GetChTime();
+
+    // Apply load on chassis body
+    double external_force = m_total_mass * m_grav;
+    if (time > m_time_delay)
+        external_force = m_applied_load;
+
+    m_chassis_body->Empty_forces_accumulators();
+    m_chassis_body->Accumulate_force(ChVector<>(0, 0, external_force), ChVector<>(0, 0, 0), true);
 
     // Synchronize subsystems
     auto tire_force = m_tire->GetTireForce();
@@ -343,13 +354,18 @@ void ChTireTestRig::CreateMechanism() {
     }
 
     // Calculate required body force on chassis (to enforce given normal load)
-    double total_mass = m_chassis_body->GetMass() + m_slip_body->GetMass() + m_spindle_body->GetMass() +
+    m_total_mass = m_chassis_body->GetMass() + m_slip_body->GetMass() + m_spindle_body->GetMass() +
                         m_wheel->GetMass() + m_tire->GetMass();
-    double actual_load = m_normal_load - total_mass * m_grav;
-    auto load = std::make_shared<ChLoadBodyForce>(m_chassis_body, ChVector<>(0, 0, -actual_load), false, VNULL, true);
+    m_applied_load = m_total_mass * m_grav - m_normal_load;
+
+    // Approach using ChLoad does not work with Chrono::Parallel (loads currently not supported).
+    // Instead use a force accumulator (updated in ChTireTestRig::Advance)
+    /*
+    auto load = std::make_shared<ChLoadBodyForce>(m_chassis_body, ChVector<>(0, 0, m_applied_load), false, VNULL, true);
     auto load_container = std::make_shared<ChLoadContainer>();
     load_container->Add(load);
     m_system->Add(load_container);
+    */
 
     // Initialize subsystems
     m_wheel->Initialize(m_spindle_body);
@@ -452,7 +468,7 @@ void ChTireTestRig::CreateTerrainGranular() {
             mat_g->SetRestitution(0.0f);
             mat_g->SetCohesion(static_cast<float>(coh_force * step_size));
             terrain->SetContactMaterialNSC(std::static_pointer_cast<ChMaterialSurfaceNSC>(mat_g));
-            terrain->SetCollisionEnvelope(0.02 * m_params_granular.radius);
+            terrain->SetCollisionEnvelope(0.05 * m_params_granular.radius);
             break;
         }
     }
@@ -479,7 +495,7 @@ void ChTireTestRig::GetSuggestedCollisionSettings(double& collision_envelope, Ch
         return;
     }
 
-    collision_envelope = 0.02 * m_params_granular.radius;
+    collision_envelope = 0.05 * m_params_granular.radius;
 
     int factor = 2;
     collision_bins.x() = (int)std::ceil((0.5 * m_params_granular.length) / m_params_granular.radius) / factor;
