@@ -19,7 +19,7 @@ environment:
     # and copy paste to
     # https://ci.appveyor.com/tools/encrypt
     # then copy/paste the result below
-    secure: GMdyezok6xJOnKB5w7km6dvQvBqGxR6RfYSPODdXhy1rq0lvDPMW4m9O9eeBHU99
+    secure: c+NCR991RaD0ERnXdzceVw==
 
   
   global:
@@ -134,9 +134,10 @@ install:
     #- cmd: conda install -c conda-forge -c dlr-sc -c oce oce==0.18.1 --yes
     # without version to avoid downgrade
     #- cmd: conda install -c conda-forge -c dlr-sc -c oce oce --yes
-    - cmd: conda install -c https://conda.anaconda.org/dlr-sc oce --yes
+    #- cmd: conda install -c https://conda.anaconda.org/dlr-sc oce --yes
     # Up-to date version by tpaviot
     #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
+    - cmd: conda install -c cadquery pythonocc-core --yes
     - cmd: conda install -c intel mkl-devel=2018.0.3 --yes
 
 ############################################### UBUNTU ###############################################################
