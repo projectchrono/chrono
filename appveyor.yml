@@ -130,13 +130,9 @@ install:
     - cmd: conda config --add channels https://conda.anaconda.org/conda-forge
     - cmd: conda config --add channels https://conda.anaconda.org/intel
     # need to manually add non standard channels.
-    
-    #- cmd: conda install -c conda-forge -c dlr-sc -c oce oce==0.18.1 --yes
-    # without version to avoid downgrade
-    #- cmd: conda install -c conda-forge -c dlr-sc -c oce oce --yes
-    - cmd: conda install -c https://conda.anaconda.org/dlr-sc oce --yes
-    # Up-to date version by tpaviot
+    # Up-to date version by tpaviot: breaks conda. Use CadQuery version
     #- cmd: conda install -c conda-forge -c dlr-sc -c pythonocc -c oce -c tpaviot pythonocc-core==0.18.2 --yes
+    - cmd: conda install -c cadquery pythonocc-core --yes
     - cmd: conda install -c intel mkl-devel=2018.0.3 --yes
 
 ############################################### UBUNTU ###############################################################
