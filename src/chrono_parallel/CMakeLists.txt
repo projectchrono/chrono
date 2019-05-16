@@ -81,6 +81,8 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
+else()
+  FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
 
 # Extract Blaze version
