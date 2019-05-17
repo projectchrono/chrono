@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #include <cmath>
@@ -130,6 +130,7 @@ __global__ void owner_prepack(int* d_sphere_pos_X,
     // replace with the new data
     sphere_info[mySphereID] = mydata;
 }
+
 // unpack sorted data to global memory, very coalesced
 template <unsigned int CUB_THREADS>
 __global__ void owner_unpack(int* d_sphere_pos_X,

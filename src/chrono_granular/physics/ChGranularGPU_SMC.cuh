@@ -11,7 +11,7 @@
 // Holds internal functions and kernels for running a sphere-sphere timestep
 //
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #pragma once
@@ -39,6 +39,7 @@ using chrono::granular::GRAN_TIME_INTEGRATOR;
 using chrono::granular::GRAN_FRICTION_MODE;
 using chrono::granular::GRAN_ROLLING_MODE;
 
+/// Convert position from its owner subdomain local frame to the global big domain frame
 inline __device__ __host__ int64_t3 convertPosLocalToGlobal(unsigned int ownerSD,
                                                             const int3& local_pos,
                                                             GranParamsPtr gran_params) {
@@ -111,6 +112,7 @@ inline __device__ void figureOutTouchedSD(int64_t sphCenter_X_relative,
         }
     }
 }
+
 /**
  * This kernel call prepares information that will be used in a subsequent kernel that performs the actual time
  * stepping.

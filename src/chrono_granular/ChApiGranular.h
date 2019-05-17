@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #pragma once

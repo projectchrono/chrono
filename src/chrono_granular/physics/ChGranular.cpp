@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #include <cuda.h>
@@ -219,11 +219,9 @@ void ChSystemGranular_MonodisperseSMC::packSphereDataPointers() {
 //     }
 // }  // namespace granular
 
-// This can belong to the superclass but does reference deCounts which may not be a thing when DVI rolls around
 void ChSystemGranular_MonodisperseSMC::writeFile(std::string ofile) const {
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == GRAN_OUTPUT_MODE::BINARY) {
-        // TODO implement this
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
         // much faster write due to no formatting
         std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
@@ -498,7 +496,7 @@ void ChSystemGranular_MonodisperseSMC::determineNewStepSize_SU() {
     } else {
         stepSize_SU = fixed_step_UU / TIME_SU2UU;
     }
-    // if step ize changed, update it on device
+    // if step size changed, update it on device
     if (gran_params->stepSize_SU != stepSize_SU) {
         gran_params->stepSize_SU = stepSize_SU;
     }

@@ -9,9 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
-
 
 #pragma once
 
@@ -28,7 +27,7 @@ struct Sphere_BC_params_t {
     T normal_sign;
 };
 
-/// Z-aligned cone facing upward
+/// Z-aligned cone pointed downward
 template <typename T, typename T3>
 struct Z_Cone_BC_params_t {
     T3 cone_tip;
@@ -45,7 +44,7 @@ struct Plane_BC_params_t {
     T3 position;
 };
 
-/// Infinite z-aligned cylinder
+/// Infinite Z-aligned cylinder
 template <typename T, typename T3>
 struct Z_Cylinder_BC_params_t {
     T3 center;
@@ -53,12 +52,12 @@ struct Z_Cylinder_BC_params_t {
     T normal_sign;
 };
 
-/// big enum to handle all possible BCs
+/// big enum to handle all possible boundary conditions
 template <typename T, typename T3>
 struct BC_params_t {
-    /// Am I active?
+    /// Is this boundary condition active?
     bool active;
-    /// Am I fixed?
+    /// Is the boundary condition fixed in space?
     bool fixed;
     /// Whether or not to track reaction forces
     bool track_forces;

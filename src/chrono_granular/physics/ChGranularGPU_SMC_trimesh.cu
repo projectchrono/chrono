@@ -9,9 +9,8 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
-// These two must be included first
 
 // NOTE: DON'T MOVE OR CHANGE THESE THREE LINES
 #include "chrono/ChConfig.h"
@@ -34,7 +33,9 @@ namespace granular {
 typedef const ChGranParams_trimesh* MeshParamsPtr;
 typedef ChTriangleSoup<float3>* TriangleSoupPtr;
 
-/// point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
+/// Point is in the LRF, rot_mat rotates LRF to GRF, pos translates LRF to GRF
+/// LRF: local reference frame
+/// GRF: global reference frame
 template <class IN_T, class IN_T3, class OUT_T3 = IN_T3>
 __device__ OUT_T3 apply_frame_transform(const IN_T3& point, const IN_T* pos, const IN_T* rot_mat) {
     OUT_T3 result;
@@ -744,8 +745,7 @@ __global__ void interactionTerrain_TriangleSoup(
 }  // end kernel
 
 void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleForces() {
-    gpuErrchk(cudaMemset(meshSoup_DEVICE->generalizedForcesPerFamily, 0,
-                         6 * meshSoup_DEVICE->numTriangleFamilies * sizeof(float)));
+    gpuErrchk(cudaMemset(meshSoup->generalizedForcesPerFamily, 0, 6 * meshSoup->numTriangleFamilies * sizeof(float)));
 }
 // Reset triangle broadphase data structures
 void ChSystemGranular_MonodisperseSMC_trimesh::resetTriangleBroadphaseInformation() {
@@ -763,11 +763,11 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() 
 
     const int nthreads = 32;
 
-    int nblocks = (meshSoup_DEVICE->nTrianglesInSoup + nthreads - 1) / nthreads;
+    int nblocks = (meshSoup->nTrianglesInSoup + nthreads - 1) / nthreads;
     // broadphase the triangles
     // TODO check these block/thread counts
     triangleSoupBroadPhase_dryrun<nthreads>
-        <<<nblocks, nthreads>>>(meshSoup_DEVICE, SD_numTrianglesTouching.data(), gran_params, tri_params);
+        <<<nblocks, nthreads>>>(meshSoup, SD_numTrianglesTouching.data(), gran_params, tri_params);
 
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
@@ -815,7 +815,7 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase() 
     gpuErrchk(cudaPeekAtLastError());
 
     triangleSoupBroadPhase<nthreads>
-        <<<nblocks, nthreads>>>(meshSoup_DEVICE, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
+        <<<nblocks, nthreads>>>(meshSoup, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
                                 SD_TriangleCompositeOffsets.data(), gran_params, tri_params);
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
@@ -843,15 +843,15 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase_re
     std::vector<unsigned int, cudallocator<unsigned int>> Triangle_NumSDsTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> Triangle_SDsCompositeOffsets;
 
-    Triangle_NumSDsTouching.resize(meshSoup_DEVICE->nTrianglesInSoup, 0);
-    Triangle_SDsCompositeOffsets.resize(meshSoup_DEVICE->nTrianglesInSoup, 0);
+    Triangle_NumSDsTouching.resize(meshSoup->nTrianglesInSoup, 0);
+    Triangle_SDsCompositeOffsets.resize(meshSoup->nTrianglesInSoup, 0);
 
     const int nthreads = CUDA_THREADS_PER_BLOCK;
-    int nblocks = (meshSoup_DEVICE->nTrianglesInSoup + nthreads - 1) / nthreads;
-    triangleSoup_CountSDsTouched<<<nblocks, nthreads>>>(meshSoup_DEVICE, Triangle_NumSDsTouching.data(), gran_params,
+    int nblocks = (meshSoup->nTrianglesInSoup + nthreads - 1) / nthreads;
+    triangleSoup_CountSDsTouched<<<nblocks, nthreads>>>(meshSoup, Triangle_NumSDsTouching.data(), gran_params,
                                                         tri_params);
 
-    unsigned int numTriangles = meshSoup_DEVICE->nTrianglesInSoup;
+    unsigned int numTriangles = meshSoup->nTrianglesInSoup;
 
     gpuErrchk(cudaDeviceSynchronize());
     gpuErrchk(cudaPeekAtLastError());
@@ -912,7 +912,7 @@ __host__ void ChSystemGranular_MonodisperseSMC_trimesh::runTriangleBroadphase_re
         // printf("first run: num entries is %u, theoretical max is %u\n", num_entries, nSDs *
         // MAX_TRIANGLE_COUNT_PER_SD);
         triangleSoup_StoreSDsTouched<<<nblocks, nthreads>>>(
-            meshSoup_DEVICE, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
+            meshSoup, Triangle_NumSDsTouching.data(), Triangle_SDsCompositeOffsets.data(),
             Triangle_SDsComposite_SDs.data(), Triangle_SDsComposite_TriIDs.data(), gran_params, tri_params);
         unsigned int num_items = num_entries;
         unsigned int* d_keys_in = Triangle_SDsComposite_SDs.data();
@@ -1042,7 +1042,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
 
         resetSphereAccelerations();
         resetBCForces();
-        if (meshSoup_DEVICE->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
             resetTriangleForces();
             resetTriangleBroadphaseInformation();
         }
@@ -1071,7 +1071,7 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
             gpuErrchk(cudaDeviceSynchronize());
         }
 
-        if (meshSoup_DEVICE->nTrianglesInSoup != 0 && mesh_collision_enabled) {
+        if (meshSoup->nTrianglesInSoup != 0 && mesh_collision_enabled) {
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
             // NOTE only run one of these!!!
@@ -1083,13 +1083,13 @@ __host__ double ChSystemGranular_MonodisperseSMC_trimesh::advance_simulation(flo
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        if (meshSoup_DEVICE->numTriangleFamilies != 0 && mesh_collision_enabled) {
+        if (meshSoup->numTriangleFamilies != 0 && mesh_collision_enabled) {
             // TODO please do not use a template here
             // triangle labels come after BC labels numerically
             unsigned int triangleFamilyHistmapOffset = gran_params->nSpheres + 1 + BC_params_list_SU.size() + 1;
             // compute sphere-triangle forces
             interactionTerrain_TriangleSoup<CUDA_THREADS_PER_BLOCK><<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(
-                meshSoup_DEVICE, sphere_data, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
+                meshSoup, sphere_data, triangles_in_SD_composite.data(), SD_numTrianglesTouching.data(),
                 SD_TriangleCompositeOffsets.data(), gran_params, tri_params, triangleFamilyHistmapOffset);
         }
         gpuErrchk(cudaPeekAtLastError());

@@ -11,7 +11,7 @@
 //
 // Contains collision helper functions from ChNarrowphaseR
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #pragma once

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #pragma once
@@ -25,7 +25,7 @@ using chrono::granular::GRAN_ROLLING_MODE;
 
 using chrono::granular::BC_type;
 using chrono::granular::BC_params_t;
-// using chrono::granular::AABox_BC_params_t;  // todo implement
+// using chrono::granular::AABox_BC_params_t;  // TODO implement
 using chrono::granular::Sphere_BC_params_t;
 using chrono::granular::Z_Cone_BC_params_t;
 using chrono::granular::Z_Cylinder_BC_params_t;
@@ -426,6 +426,7 @@ inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
     }
     return contact;
 }
+
 /// minimal overload for dist and contact_normal params
 inline __device__ bool addBCForces_Zcyl_frictionless(const int64_t3& sphPos,
                                                      const float3& sphVel,

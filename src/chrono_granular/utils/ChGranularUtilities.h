@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 #include <stdio.h>
 #include <stdlib.h>

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dan Negrut, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #pragma once
@@ -21,6 +21,9 @@
 namespace chrono {
 namespace granular {
 
+/// @addtogroup granular_physics
+/// @{
+
 /**
  *\brief Template class used as a place holder for arrays associated with a mesh. No memory
  * allocation of freeing done by objects of this class. All its members are public.
@@ -31,26 +34,40 @@ namespace granular {
  */
 template <class T3>
 struct ChTriangleSoup {
-    unsigned int nTrianglesInSoup;    //!< total number of triangles in the soup
-    unsigned int numTriangleFamilies;  //!< indicates how many meshes are squashed together in this soup
-    unsigned int* triangleFamily_ID;  //!< each entry says what family that triagnle belongs to; size: nTrianglesInSoup
+    /// Total number of triangles in the soup
+    unsigned int nTrianglesInSoup;
+    /// Indicates how many meshes are squashed together in this soup
+    unsigned int numTriangleFamilies;
+    /// Each entry says what family that triagnle belongs to; size: nTrianglesInSoup
+    unsigned int* triangleFamily_ID;
 
-    float* familyMass_SU;  //!< entry i is the SU mass of family i
+    /// Entry i is the SU mass of family i
+    float* familyMass_SU;
 
-    bool* inflated;          //!< entry i true indicates that family i is inflated
-    float* inflation_radii;  //!< entri i is the SU radius of inflation of family i
+    /// Entry i true indicates that family i is inflated
+    bool* inflated;
+    /// Entry i is the SU radius of inflation of family i
+    float* inflation_radii;
 
-    T3* node1;  //!< Position in local reference frame of node 1
-    T3* node2;  //!< Position in local reference frame of node 2
-    T3* node3;  //!< Position in local reference frame of node 3
+    /// Position in local reference frame of triangle vertex 1
+    T3* node1;
+    /// Position in local reference frame of triangle vertex 2
+    T3* node2;
+    /// Position in local reference frame of triangle vertex 3
+    T3* node3;
 
-    T3* vel;    //!< entry i is the linear velocity of family i (rigid body motion)
-    T3* omega;  //!< entry i is the angular velocity of family i (rigid body motion)
+    /// Entry i is the linear velocity of family i (rigid body motion)
+    T3* vel;
+    /// Entry i is the angular velocity of family i (rigid body motion)
+    T3* omega;
 
-    float* generalizedForcesPerFamily;  //!< Generalized forces acting on each family. Expressed
-                                        //!< in the global reference frame. Size: 6 * getNumTriangleFamilies.
+    /// Generalized forces acting on each family. Expressed
+    /// in the global reference frame. Size: 6 * getNumTriangleFamilies.
+    float* generalizedForcesPerFamily;
 };
 
+// TODO optimize rotations
+/// Position and rotation matrix defining the frame of a triangle mesh
 template <class T>
 struct ChFamilyFrame {
     T pos[3];
@@ -59,22 +76,33 @@ struct ChFamilyFrame {
 
 /// Extra parameters needed for triangle-sphere contact
 struct ChGranParams_trimesh {
-    float Gamma_n_s2m_SU;  //!< sphere-to-mesh contact damping coefficient, expressed in SU
-    float Gamma_t_s2m_SU;
-    float K_n_s2m_SU;  //!< normal stiffness coefficient, expressed in SU: sphere-to-mesh
+    /// Sphere-to-mesh normal stiffness, expressed in SU (Hertzian spring)
+    float K_n_s2m_SU;
+    /// Sphere-to-mesh tangent stiffness, expressed in SU (Hertzian spring)
     float K_t_s2m_SU;
-    /// acceleration caused by adhesion force
+
+    /// Sphere-to-mesh normal contact damping coefficient, expressed in SU
+    float Gamma_n_s2m_SU;
+    /// Sphere-to-mesh tangent contact damping coefficient, expressed in SU
+    float Gamma_t_s2m_SU;
+
+    /// Acceleration caused by adhesion force (constant adhesion model)
     float adhesionAcc_s2m;
 
-    // ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
+    /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
     float static_friction_coeff_s2m;
 
-    // Coefficient of rolling resistance
+    /// Coefficient of rolling resistance
+    /// Units and effect depend on the system rolling resistance model
     float rolling_coeff_s2m_SU;
 
     /// Number of triangle families
     unsigned int num_triangle_families;
+
+    /// Reference frames of the triangle families in single precision
     ChFamilyFrame<float>* fam_frame_broad;
+
+    /// Reference frames of the triangle families in double precision
     ChFamilyFrame<double>* fam_frame_narrow;
 };
 
@@ -100,7 +128,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     void set_K_t_SPH2MESH(double someValue) { K_t_s2m_UU = someValue; }
     void set_Gamma_t_SPH2MESH(double someValue) { Gamma_t_s2m_UU = someValue; }
 
-    unsigned int getNumTriangleFamilies() const { return meshSoup_DEVICE->numTriangleFamilies; }
+    unsigned int getNumTriangleFamilies() const { return meshSoup->numTriangleFamilies; }
 
     /// Collect forces exerted on meshes by granular system
     /// Each generalized force is 3 forces (x,y,z) and 3 torques (x,y,z)
@@ -140,48 +168,50 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     virtual void initializeTriangles();
     ChGranParams_trimesh* tri_params;
 
-    /// clean copy of mesh soup interacting with granular material
-    // store a pointer since we use unified memory for this
-    // Stored in UU
-    ChTriangleSoup<float3>* meshSoup_DEVICE;
+    /// Clean copy of mesh soup interacting with granular material in unified memory
+    /// Stored in UU
+    ChTriangleSoup<float3>* meshSoup;
 
-    double K_n_s2m_UU;  //!< the stiffness associated w/ contact between a mesh element and gran material
-
+    /// Sphere-to-mesh normal contact stiffness, in user units (Hertzian sprint)
+    double K_n_s2m_UU;
+    /// Sphere-to-mesh normal damping coefficient, in user units
     double Gamma_n_s2m_UU;
 
+    /// Sphere-to-mesh tangent contact stiffness, in user units (Hertzian sprint)
     double K_t_s2m_UU;
-
+    /// Sphere-to-mesh tangent damping coefficient, in user units
     double Gamma_t_s2m_UU;
 
-    /// rolling friction coefficient for sphere-to-mesh
+    /// Rolling friction coefficient for sphere-to-mesh
+    /// Units and effect depend on system rolling resistance model
     double rolling_coeff_s2m_UU;
 
+    /// Ratio of sphere-to-mesh adhesion to gravity (constant adhesion model)
     float adhesion_s2m_over_gravity;
 
+    /// Enable or disable collision between spheres and meshes
     bool mesh_collision_enabled = true;
 
     /// Number of triangles touching each bucket
     std::vector<unsigned int, cudallocator<unsigned int>> triangles_in_SD_composite;
-    // Number of triangles touching each SD
+
+    /// Number of triangles touching each subdomain
     std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching;
     std::vector<unsigned int, cudallocator<unsigned int>> SD_TriangleCompositeOffsets;
 
-    // Function members
     void resetTriangleBroadphaseInformation();
     void resetTriangleForces();
 
-    void setupTriMesh_DEVICE(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
-                             unsigned int nTriangles,
-                             std::vector<float> masses,
-                             std::vector<bool> inflated,
-                             std::vector<float> inflation_radii);
-    void cleanupTriMesh_DEVICE();
+    void setupTriMesh(const std::vector<chrono::geometry::ChTriangleMeshConnected>& all_meshes,
+                      unsigned int nTriangles,
+                      std::vector<float> masses,
+                      std::vector<bool> inflated,
+                      std::vector<float> inflation_radii);
+    void cleanupTriMesh();
 
-    /// run prefix-scan based broadphase
+    /// Run prefix-scan based broadphase
     void runTriangleBroadphase();
     void runTriangleBroadphase_rewrite();
-
-    // void initialize();
 
     virtual double get_max_K() const override;
 
@@ -191,6 +221,7 @@ class CH_GRANULAR_API ChSystemGranular_MonodisperseSMC_trimesh : public ChSystem
     template <class T>
     ChVector<T> ApplyFrameTransform(ChVector<T>& p, T* pos, T* rot_mat);
 };
+/// @} granular_physics
 
 }  // namespace granular
 }  // namespace chrono

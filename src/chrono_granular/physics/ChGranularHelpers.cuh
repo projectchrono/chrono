@@ -11,7 +11,7 @@
 // Holds of helper functions for GPU granular code that need to be scoped higher
 //
 // =============================================================================
-// Authors: Dan Negrut, Conlain Kelly, Nic Olsen
+// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
 #pragma once
