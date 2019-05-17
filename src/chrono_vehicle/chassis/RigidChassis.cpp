@@ -64,11 +64,11 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 
     for (int i = 0; i < num_comp; i++) {
         const Value& comp = d["Components"][i];
-        ChVector<> loc = LoadVectorJSON(comp["Centroidal Frame"]["Location"]);
-        ChQuaternion<> rot = LoadQuaternionJSON(comp["Centroidal Frame"]["Orientation"]);
+        ChVector<> loc = ReadVectorJSON(comp["Centroidal Frame"]["Location"]);
+        ChQuaternion<> rot = ReadQuaternionJSON(comp["Centroidal Frame"]["Orientation"]);
         double mass = comp["Mass"].GetDouble();
-        ChVector<> inertiaXX = LoadVectorJSON(comp["Moments of Inertia"]);
-        ChVector<> inertiaXY = LoadVectorJSON(comp["Products of Inertia"]);
+        ChVector<> inertiaXX = ReadVectorJSON(comp["Moments of Inertia"]);
+        ChVector<> inertiaXY = ReadVectorJSON(comp["Products of Inertia"]);
         bool is_void = comp["Void"].GetBool();
 
         ChMatrix33<> inertia(inertiaXX);
@@ -87,8 +87,8 @@ void RigidChassis::Create(const rapidjson::Document& d) {
     m_COM_loc = composite.GetCOM();
 
     // Extract driver position
-    m_driverCsys.pos = LoadVectorJSON(d["Driver Position"]["Location"]);
-    m_driverCsys.rot = LoadQuaternionJSON(d["Driver Position"]["Orientation"]);
+    m_driverCsys.pos = ReadVectorJSON(d["Driver Position"]["Location"]);
+    m_driverCsys.rot = ReadQuaternionJSON(d["Driver Position"]["Orientation"]);
 
     // Read contact information
     if (d.HasMember("Contact")) {
@@ -125,17 +125,17 @@ void RigidChassis::Create(const rapidjson::Document& d) {
             const Value& shape = d["Contact"]["Shapes"][i];
             std::string type = shape["Type"].GetString();
             if (type.compare("SPHERE") == 0) {
-                ChVector<> pos = LoadVectorJSON(shape["Location"]);
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
                 double radius = shape["Radius"].GetDouble();
                 m_coll_spheres.push_back(SphereShape(pos, radius));
             } else if (type.compare("BOX") == 0) {
-                ChVector<> pos = LoadVectorJSON(shape["Location"]);
-                ChQuaternion<> rot = LoadQuaternionJSON(shape["Orientation"]);
-                ChVector<> dims = LoadVectorJSON(shape["Dimensions"]);
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
                 m_coll_boxes.push_back(BoxShape(pos, rot, dims));
             } else if (type.compare("CYLINDER") == 0) {
-                ChVector<> pos = LoadVectorJSON(shape["Location"]);
-                ChQuaternion<> rot = LoadQuaternionJSON(shape["Orientation"]);
+                ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
                 double radius = shape["Radius"].GetDouble();
                 double length = shape["Length"].GetDouble();
                 m_coll_cylinders.push_back(CylinderShape(pos, rot, radius, length));
@@ -163,17 +163,17 @@ void RigidChassis::Create(const rapidjson::Document& d) {
                 const Value& shape = d["Visualization"]["Primitives"][i];
                 std::string type = shape["Type"].GetString();
                 if (type.compare("SPHERE") == 0) {
-                    ChVector<> pos = LoadVectorJSON(shape["Location"]);
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
                     double radius = shape["Radius"].GetDouble();
                     m_vis_spheres.push_back(SphereShape(pos, radius));
                 } else if (type.compare("BOX") == 0) {
-                    ChVector<> pos = LoadVectorJSON(shape["Location"]);
-                    ChQuaternion<> rot = LoadQuaternionJSON(shape["Orientation"]);
-                    ChVector<> dims = LoadVectorJSON(shape["Dimensions"]);
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
+                    ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
                     m_vis_boxes.push_back(BoxShape(pos, rot, dims));
                 } else if (type.compare("CYLINDER") == 0) {
-                    ChVector<> pos = LoadVectorJSON(shape["Location"]);
-                    ChQuaternion<> rot = LoadQuaternionJSON(shape["Orientation"]);
+                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
                     double radius = shape["Radius"].GetDouble();
                     double length = shape["Length"].GetDouble();
                     m_vis_cylinders.push_back(CylinderShape(pos, rot, radius, length));

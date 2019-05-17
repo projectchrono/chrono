@@ -58,7 +58,7 @@ void RigidTire::Create(const rapidjson::Document& d) {
     m_radius = d["Radius"].GetDouble();
     m_width = d["Width"].GetDouble();
     m_mass = d["Mass"].GetDouble();
-    m_inertia = LoadVectorJSON(d["Inertia"]);
+    m_inertia = ReadVectorJSON(d["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

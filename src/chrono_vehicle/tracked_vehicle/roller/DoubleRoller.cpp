@@ -60,7 +60,7 @@ void DoubleRoller::Create(const rapidjson::Document& d) {
     m_roller_width = d["Roller"]["Width"].GetDouble();
     m_roller_gap = d["Roller"]["Gap"].GetDouble();
     m_roller_mass = d["Roller"]["Mass"].GetDouble();
-    m_roller_inertia = LoadVectorJSON(d["Roller"]["Inertia"]);
+    m_roller_inertia = ReadVectorJSON(d["Roller"]["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

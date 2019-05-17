@@ -55,8 +55,8 @@ void ShaftsDriveline4WD::Create(const rapidjson::Document& d) {
 
     // Get shaft directions.
     assert(d.HasMember("Shaft Direction"));
-    SetMotorBlockDirection(LoadVectorJSON(d["Shaft Direction"]["Motor Block"]));
-    SetAxleDirection(LoadVectorJSON(d["Shaft Direction"]["Axle"]));
+    SetMotorBlockDirection(ReadVectorJSON(d["Shaft Direction"]["Motor Block"]));
+    SetAxleDirection(ReadVectorJSON(d["Shaft Direction"]["Axle"]));
 
     // Read shaft inertias.
     assert(d.HasMember("Shaft Inertia"));

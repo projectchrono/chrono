@@ -206,12 +206,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
-    /// Utility functions to load subsystems from JSON files.
-    void LoadSteering(const std::string& filename);
-    void LoadSuspension(const std::string& filename);
-    void LoadWheel(const std::string& filename, int side);
-    void LoadAntirollbar(const std::string& filename);
-
     /// Utility function to add visualization to post bodies.
     void AddVisualize_post(VehicleSide side, const ChColor& color);
 

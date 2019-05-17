@@ -66,7 +66,7 @@ void TrackShoeBandBushing::Create(const rapidjson::Document& d) {
     // Read tread body geometry and mass properties
     assert(d.HasMember("Tread"));
     m_tread_mass = d["Tread"]["Mass"].GetDouble();
-    m_tread_inertias = LoadVectorJSON(d["Tread"]["Inertia"]);
+    m_tread_inertias = ReadVectorJSON(d["Tread"]["Inertia"]);
     m_tread_length = d["Tread"]["Length"].GetDouble();
     m_tread_thickness = d["Tread"]["Thickness"].GetDouble();
     m_tooth_tip_length = d["Tread"]["Tooth Tip Length"].GetDouble();
@@ -79,13 +79,13 @@ void TrackShoeBandBushing::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Web"));
     m_num_web_segments = d["Web"]["Number Segments"].GetInt();
     m_web_mass = d["Web"]["Mass"].GetDouble();
-    m_web_inertias = LoadVectorJSON(d["Web"]["Inertia"]);
+    m_web_inertias = ReadVectorJSON(d["Web"]["Inertia"]);
     m_web_length = d["Web"]["Length"].GetDouble();
     m_web_thickness = d["Web"]["Thickness"].GetDouble();
 
     // Read guide pin geometry
     assert(d.HasMember("Guide Pin"));
-    m_guide_box_dims = LoadVectorJSON(d["Guide Pin"]["Dimensions"]);
+    m_guide_box_dims = ReadVectorJSON(d["Guide Pin"]["Dimensions"]);
     m_guide_box_offset_x = d["Guide Pin"]["Offset"].GetDouble();
 
     // Read bushing parameters

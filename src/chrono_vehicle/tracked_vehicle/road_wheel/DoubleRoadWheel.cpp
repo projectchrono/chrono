@@ -60,7 +60,7 @@ void DoubleRoadWheel::Create(const rapidjson::Document& d) {
     m_wheel_width = d["Wheel"]["Width"].GetDouble();
     m_wheel_gap = d["Wheel"]["Gap"].GetDouble();
     m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
-    m_wheel_inertia = LoadVectorJSON(d["Wheel"]["Inertia"]);
+    m_wheel_inertia = ReadVectorJSON(d["Wheel"]["Inertia"]);
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));

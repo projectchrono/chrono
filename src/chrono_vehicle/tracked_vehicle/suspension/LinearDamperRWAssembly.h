@@ -57,8 +57,6 @@ class CH_VEHICLE_API LinearDamperRWAssembly : public ChLinearDamperRWAssembly {
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    void LoadRoadWheel(const std::string& filename);
-
     ChLinkRotSpringCB::TorqueFunctor* m_spring_torqueCB;
     ChLinkSpringCB::ForceFunctor* m_shock_forceCB;
 

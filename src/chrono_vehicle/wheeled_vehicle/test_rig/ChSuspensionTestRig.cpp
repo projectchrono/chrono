@@ -23,33 +23,19 @@
 //
 // =============================================================================
 
-#include <cstdio>
-#include <algorithm>
-
-#include "chrono/assets/ChCylinderShape.h"
-
-#include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/chassis/ChRigidChassis.h"
-
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 
-#include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishbone.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
-#include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
+#include <algorithm>
+#include <cstdio>
 
-#include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
-#include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
-
-#include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
-
-#include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
-
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChCylinderShape.h"
+//
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
+//
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-
+//
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
@@ -94,134 +80,6 @@ ChSuspensionTestRigChassis::ChSuspensionTestRigChassis() : ChRigidChassis("Groun
 // -----------------------------------------------------------------------------
 const double ChSuspensionTestRig::m_post_height = 0.1;
 const double ChSuspensionTestRig::m_post_radius = 0.4;
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSuspensionTestRig::LoadSteering(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a steering specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Steering") == 0);
-
-    // Extract the driveline type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the steering using the appropriate template.
-    // Create the driveline using the appropriate template.
-    if (subtype.compare("PitmanArm") == 0) {
-        m_steering = std::make_shared<PitmanArm>(d);
-    } else if (subtype.compare("RackPinion") == 0) {
-        m_steering = std::make_shared<RackPinion>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
-
-void ChSuspensionTestRig::LoadSuspension(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a suspension specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Suspension") == 0);
-
-    // Extract the suspension type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the suspension using the appropriate template.
-    if (subtype.compare("DoubleWishbone") == 0) {
-        m_suspension = std::make_shared<DoubleWishbone>(d);
-    } else if (subtype.compare("DoubleWishboneReduced") == 0) {
-        m_suspension = std::make_shared<DoubleWishboneReduced>(d);
-    } else if (subtype.compare("SolidAxle") == 0) {
-        m_suspension = std::make_shared<SolidAxle>(d);
-    } else if (subtype.compare("MultiLink") == 0) {
-        m_suspension = std::make_shared<MultiLink>(d);
-    } else if (subtype.compare("MacPhersonStrut") == 0) {
-        m_suspension = std::make_shared<MacPhersonStrut>(d);
-    } else if (subtype.compare("SemiTrailingArm") == 0) {
-        m_suspension = std::make_shared<SemiTrailingArm>(d);
-    } else if (subtype.compare("ThreeLinkIRS") == 0) {
-        m_suspension = std::make_shared<ThreeLinkIRS>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
-
-void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is a wheel specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Wheel") == 0);
-
-    // Extract the wheel type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    // Create the wheel using the appropriate template.
-    if (subtype.compare("Wheel") == 0) {
-        m_wheel[side] = std::make_shared<Wheel>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
-
-void ChSuspensionTestRig::LoadAntirollbar(const std::string& filename) {
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
-
-    // Check that the given file is an antirollbar specification file.
-    assert(d.HasMember("Type"));
-    std::string type = d["Type"].GetString();
-    assert(type.compare("Antirollbar") == 0);
-
-    // Extract the antirollbar type.
-    assert(d.HasMember("Template"));
-    std::string subtype = d["Template"].GetString();
-
-    if (subtype.compare("AntirollBarRSD") == 0) {
-        m_antirollbar = std::make_shared<AntirollBarRSD>(d);
-    }
-
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
-}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -285,8 +143,8 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     assert(axle_index >= 0 && axle_index < num_axles);
 
     std::string file_name = d["Axles"][axle_index]["Suspension Input File"].GetString();
-    LoadSuspension(vehicle::GetDataFile(file_name));
-    m_suspLoc = LoadVectorJSON(d["Axles"][axle_index]["Suspension Location"]);
+    m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
+    m_suspLoc = ReadVectorJSON(d["Axles"][axle_index]["Suspension Location"]);
 
     int steering_index = -1;
     if (d["Axles"][axle_index].HasMember("Steering Index")) {
@@ -294,23 +152,23 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     }
 
     file_name = d["Axles"][axle_index]["Left Wheel Input File"].GetString();
-    LoadWheel(vehicle::GetDataFile(file_name), LEFT);
+    m_wheel[VehicleSide::LEFT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
     file_name = d["Axles"][axle_index]["Right Wheel Input File"].GetString();
-    LoadWheel(vehicle::GetDataFile(file_name), RIGHT);
+    m_wheel[VehicleSide::RIGHT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
     // Create the steering subsystem, if needed.
     if (steering_index >= 0) {
         std::string file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
-        LoadSteering(vehicle::GetDataFile(file_name));
-        m_steeringLoc = LoadVectorJSON(d["Steering Subsystems"][steering_index]["Location"]);
-        m_steeringRot = LoadQuaternionJSON(d["Steering Subsystems"][steering_index]["Orientation"]);
+        m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
+        m_steeringLoc = ReadVectorJSON(d["Steering Subsystems"][steering_index]["Location"]);
+        m_steeringRot = ReadQuaternionJSON(d["Steering Subsystems"][steering_index]["Orientation"]);
     }
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Axles"][axle_index].HasMember("Antirollbar Input File")) {
         std::string file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
-        LoadAntirollbar(vehicle::GetDataFile(file_name));
-        m_antirollbarLoc = LoadVectorJSON(d["Axles"][axle_index]["Antirollbar Location"]);
+        m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
+        m_antirollbarLoc = ReadVectorJSON(d["Axles"][axle_index]["Antirollbar Location"]);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
@@ -344,13 +202,13 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     assert(d.HasMember("Suspension"));
 
     std::string file_name = d["Suspension"]["Input File"].GetString();
-    LoadSuspension(vehicle::GetDataFile(file_name));
-    m_suspLoc = LoadVectorJSON(d["Suspension"]["Location"]);
+    m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
+    m_suspLoc = ReadVectorJSON(d["Suspension"]["Location"]);
 
     file_name = d["Suspension"]["Left Wheel Input File"].GetString();
-    LoadWheel(vehicle::GetDataFile(file_name), LEFT);
+    m_wheel[VehicleSide::LEFT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
     file_name = d["Suspension"]["Right Wheel Input File"].GetString();
-    LoadWheel(vehicle::GetDataFile(file_name), RIGHT);
+    m_wheel[VehicleSide::RIGHT] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
     // Read displacement limit
     assert(d.HasMember("Displacement Limit"));
@@ -359,16 +217,16 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     // Create the steering subsystem, if specified
     if (d.HasMember("Steering")) {
         std::string file_name = d["Steering"]["Input File"].GetString();
-        LoadSteering(vehicle::GetDataFile(file_name));
-        m_steeringLoc = LoadVectorJSON(d["Steering"]["Location"]);
-        m_steeringRot = LoadQuaternionJSON(d["Steering"]["Orientation"]);
+        m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
+        m_steeringLoc = ReadVectorJSON(d["Steering"]["Location"]);
+        m_steeringRot = ReadQuaternionJSON(d["Steering"]["Orientation"]);
     }
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Suspension"].HasMember("Antirollbar Input File")) {
         std::string file_name = d["Suspension"]["Antirollbar Input File"].GetString();
-        LoadAntirollbar(vehicle::GetDataFile(file_name));
-        m_antirollbarLoc = LoadVectorJSON(d["Suspension"]["Antirollbar Location"]);
+        m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
+        m_antirollbarLoc = ReadVectorJSON(d["Suspension"]["Antirollbar Location"]);
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
