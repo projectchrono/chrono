@@ -86,136 +86,11 @@ void ChSystemGranularSMC::resetSphereAccelerations() {
     }
 }
 
-// All the information a moving sphere needs
-typedef struct {
-    int sphere_local_pos_X;
-    int sphere_local_pos_Y;
-    int sphere_local_pos_Z;
-    float pos_X_dt;
-    float pos_Y_dt;
-    float pos_Z_dt;
-} sphere_data_struct;
-
-template <unsigned int CUB_THREADS>
-__global__ void owner_prepack(int* d_sphere_pos_X,
-                              int* d_sphere_pos_Y,
-                              int* d_sphere_pos_Z,
-                              float* d_sphere_pos_X_dt,
-                              float* d_sphere_pos_Y_dt,
-                              float* d_sphere_pos_Z_dt,
-                              unsigned int nSpheres,
-                              unsigned int* owners,
-                              sphere_data_struct* sphere_info,
-                              GranParamsPtr gran_params) {
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    // Only do this for valid spheres
-    if (mySphereID >= nSpheres) {
-        return;
-    }
-    // Find this SD's owner
-    owners[mySphereID] = SDTripletID(
-        pointSDTriplet(d_sphere_pos_X[mySphereID], d_sphere_pos_Y[mySphereID], d_sphere_pos_Z[mySphereID], gran_params),
-        gran_params);
-
-    sphere_data_struct mydata = sphere_info[mySphereID];
-
-    // The value is the sphere id, to be sorted with owner as the key
-    mydata.sphere_local_pos_X = d_sphere_pos_X[mySphereID];
-    mydata.sphere_local_pos_Y = d_sphere_pos_Y[mySphereID];
-    mydata.sphere_local_pos_Z = d_sphere_pos_Z[mySphereID];
-    mydata.pos_X_dt = d_sphere_pos_X_dt[mySphereID];
-    mydata.pos_Y_dt = d_sphere_pos_Y_dt[mySphereID];
-    mydata.pos_Z_dt = d_sphere_pos_Z_dt[mySphereID];
-    // replace with the new data
-    sphere_info[mySphereID] = mydata;
-}
-
-// unpack sorted data to global memory, very coalesced
-template <unsigned int CUB_THREADS>
-__global__ void owner_unpack(int* d_sphere_pos_X,
-                             int* d_sphere_pos_Y,
-                             int* d_sphere_pos_Z,
-                             float* d_sphere_pos_X_dt,
-                             float* d_sphere_pos_Y_dt,
-                             float* d_sphere_pos_Z_dt,
-                             unsigned int nSpheres,
-                             sphere_data_struct* sphere_info,
-                             GranParamsPtr gran_params) {
-    // Figure out what sphereID this thread will handle. We work with a 1D block structure and a 1D grid structure
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    // Only do this for valid spheres
-    if (mySphereID >= nSpheres) {
-        return;
-    }
-    sphere_data_struct mydata = sphere_info[mySphereID];
-
-    // The value is the sphere id, to be sorted with owner as the key
-    d_sphere_pos_X[mySphereID] = mydata.sphere_local_pos_X;
-    d_sphere_pos_Y[mySphereID] = mydata.sphere_local_pos_Y;
-    d_sphere_pos_Z[mySphereID] = mydata.sphere_local_pos_Z;
-    d_sphere_pos_X_dt[mySphereID] = mydata.pos_X_dt;
-    d_sphere_pos_Y_dt[mySphereID] = mydata.pos_Y_dt;
-    d_sphere_pos_Z_dt[mySphereID] = mydata.pos_Z_dt;
-}
-
-// Sorts data by owner SD, makes nicer memory accesses
-// Uses a boatload of memory
-__host__ void ChSystemGranularSMC::defragment_data() {
-    VERBOSE_PRINTF("Starting defrag run!\n");
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-
-    // Set of pointers for each buffer
-    unsigned int* d_owners;
-    sphere_data_struct* d_sphere_data;
-    // second buffer for nice sort
-    unsigned int* d_owners_2;
-    sphere_data_struct* d_sphere_data_2;
-    // Allocate some nice memory
-    gpuErrchk(cudaMalloc(&d_owners, nSpheres * sizeof(unsigned int)));
-    gpuErrchk(cudaMalloc(&d_sphere_data, nSpheres * sizeof(sphere_data_struct)));
-    gpuErrchk(cudaMalloc(&d_owners_2, nSpheres * sizeof(unsigned int)));
-    gpuErrchk(cudaMalloc(&d_sphere_data_2, nSpheres * sizeof(sphere_data_struct)));
-    owner_prepack<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-        sphere_local_pos_X.data(), sphere_local_pos_Y.data(), sphere_local_pos_Z.data(), pos_X_dt.data(),
-        pos_Y_dt.data(), pos_Z_dt.data(), nSpheres, d_owners, d_sphere_data, gran_params);
-    gpuErrchk(cudaDeviceSynchronize());
-
-    // Create a set of DoubleBuffers to wrap pairs of device pointers
-    cub::DoubleBuffer<unsigned int> d_keys(d_owners, d_owners_2);
-    cub::DoubleBuffer<sphere_data_struct> d_values(d_sphere_data, d_sphere_data_2);
-
-    // Determine temporary device storage requirements
-    void* d_temp_storage = NULL;
-    size_t temp_storage_bytes = 0;
-    // pass null, cub tells us what it needs
-    cub::DeviceRadixSort::SortPairs(NULL, temp_storage_bytes, d_keys, d_values, nSpheres);
-    gpuErrchk(cudaDeviceSynchronize());
-
-    // Allocate temporary storage
-    gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-    gpuErrchk(cudaDeviceSynchronize());
-
-    cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes, d_keys, d_values, nSpheres);
-    gpuErrchk(cudaDeviceSynchronize());
-
-    owner_unpack<CUDA_THREADS_PER_BLOCK><<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-        sphere_local_pos_X.data(), sphere_local_pos_Y.data(), sphere_local_pos_Z.data(), pos_X_dt.data(),
-        pos_Y_dt.data(), pos_Z_dt.data(), nSpheres, d_values.Current(), gran_params);
-    gpuErrchk(cudaDeviceSynchronize());
-    cudaFree(d_owners);
-    cudaFree(d_owners_2);
-    cudaFree(d_sphere_data);
-    cudaFree(d_sphere_data_2);
-    cudaFree(d_temp_storage);
-    VERBOSE_PRINTF("defrag finished!\n");
-}
-
-__global__ void generate_absv(const unsigned int nSpheres,
-                              const float* velX,
-                              const float* velY,
-                              const float* velZ,
-                              float* d_absv) {
+__global__ void compute_absv(const unsigned int nSpheres,
+                             const float* velX,
+                             const float* velY,
+                             const float* velZ,
+                             float* d_absv) {
     unsigned int my_sphere = blockIdx.x * blockDim.x + threadIdx.x;
     if (my_sphere < nSpheres) {
         float v[3] = {velX[my_sphere], velY[my_sphere], velZ[my_sphere]};
@@ -230,7 +105,7 @@ __host__ float ChSystemGranularSMC::get_max_vel() const {
     gpuErrchk(cudaMalloc(&d_absv, nSpheres * sizeof(float)));
     gpuErrchk(cudaMalloc(&d_max_vel, sizeof(float)));
 
-    generate_absv<<<(nSpheres + 255) / 256, 256>>>(nSpheres, pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(), d_absv);
+    compute_absv<<<(nSpheres + 255) / 256, 256>>>(nSpheres, pos_X_dt.data(), pos_Y_dt.data(), pos_Z_dt.data(), d_absv);
 
     void* d_temp_storage = NULL;
     size_t temp_storage_bytes = 0;

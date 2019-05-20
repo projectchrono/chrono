@@ -661,9 +661,6 @@ class CH_GRANULAR_API ChSystemGranularSMC {
     /// scaling of various physical quantities set by the user.
     virtual void switchToSimUnits();
 
-    /// Sort data based on owner subdomain to improve memory performance
-    virtual void defragment_data();
-
     /// Set the position function of a boundary condition and account for the offset
     void setBCOffset(const BC_type&,
                      const BC_params_t<float, float3>& params_UU,
